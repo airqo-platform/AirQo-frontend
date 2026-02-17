@@ -1,4 +1,4 @@
-import { BrowserWindow, dialog } from "electron";
+import { BrowserWindow, dialog, MessageBoxOptions, MessageBoxReturnValue } from "electron";
 import log from "electron-log";
 import { autoUpdater } from "electron-updater";
 
@@ -10,6 +10,14 @@ const getDialogWindow = (): BrowserWindow | undefined => {
     return activeWindow;
   }
   return undefined;
+};
+
+const showMessageBoxSafe = async (options: MessageBoxOptions): Promise<MessageBoxReturnValue> => {
+  const window = getDialogWindow();
+  if (window && !window.isDestroyed()) {
+    return dialog.showMessageBox(window, options);
+  }
+  return dialog.showMessageBox(options);
 };
 
 export const setAutoUpdateWindow = (window: BrowserWindow): void => {
@@ -30,7 +38,10 @@ export const setupAutoUpdates = (): void => {
   });
 
   autoUpdater.on("update-available", async () => {
-    const result = await dialog.showMessageBox(getDialogWindow(), {
+    const window = getDialogWindow();
+    if (!window || window.isDestroyed()) return;
+
+    const result = await showMessageBoxSafe({
       type: "info",
       title: "Update available",
       message: "A new version is available. Download now?",
@@ -45,7 +56,10 @@ export const setupAutoUpdates = (): void => {
   });
 
   autoUpdater.on("update-downloaded", async () => {
-    const result = await dialog.showMessageBox(getDialogWindow(), {
+    const window = getDialogWindow();
+    if (!window || window.isDestroyed()) return;
+
+    const result = await showMessageBoxSafe({
       type: "info",
       title: "Install update",
       message: "Update downloaded. Restart to install now?",
