@@ -115,6 +115,7 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
         <div className="fixed inset-0 bg-black/60 z-[999]" onClick={onClose} />
       )}
       <motion.aside
+        data-vertex-primary-sidebar
         initial={{ x: '-100%' }}
         animate={{ x: isOpen ? '0%' : '-100%' }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}

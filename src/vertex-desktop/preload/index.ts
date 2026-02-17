@@ -41,6 +41,28 @@ const injectDesktopTopbar = (): void => {
       html.vertex-desktop-topbar-enabled body {
         margin-top: var(--vertex-titlebar-height) !important;
       }
+      html.vertex-desktop-topbar-enabled [data-vertex-topbar] {
+        top: var(--vertex-titlebar-height) !important;
+      }
+      html.vertex-desktop-topbar-enabled [data-vertex-primary-sidebar] {
+        top: var(--vertex-titlebar-height) !important;
+        height: calc(100vh - var(--vertex-titlebar-height)) !important;
+      }
+      html.vertex-desktop-topbar-enabled [data-vertex-secondary-sidebar] {
+        top: calc(55px + var(--vertex-titlebar-height)) !important;
+      }
+      html.vertex-desktop-topbar-enabled [data-vertex-secondary-sidebar-container] {
+        height: calc(100vh - 55px - var(--vertex-titlebar-height)) !important;
+      }
+      html.vertex-desktop-topbar-enabled [data-vertex-main] {
+        margin-top: calc(50px + var(--vertex-titlebar-height)) !important;
+      }
+      @media (min-width: 1024px) {
+        html.vertex-desktop-topbar-enabled [data-vertex-main] {
+          margin-top: calc(48px + var(--vertex-titlebar-height)) !important;
+        }
+      }
+      /* Backward-compatibility for older deployed Vertex bundles without data attributes. */
       html.vertex-desktop-topbar-enabled header.fixed.top-0 {
         top: var(--vertex-titlebar-height) !important;
       }

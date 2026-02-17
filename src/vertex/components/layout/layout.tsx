@@ -110,6 +110,7 @@ export default function Layout({ children }: LayoutProps) {
         activeModule={activeModule}
       />
       <main
+        data-vertex-main
         className={`flex-1 transition-all duration-300 ease-in-out bg-background w-full flex flex-col ${isSecondarySidebarCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'} overflow-y-auto mt-[calc(50px+var(--vertex-ui-top-offset))] md:mt-[calc(50px+var(--vertex-ui-top-offset))] lg:mt-[calc(48px+var(--vertex-ui-top-offset))] pb-20 md:pb-0`}
       >
         <div
