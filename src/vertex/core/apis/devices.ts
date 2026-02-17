@@ -66,25 +66,37 @@ export interface DeviceDetailsResponse {
   data: Device;
 }
 
-// Response for device maintenance activities
-export interface MaintenanceActivity {
+export interface DeviceActivity {
   _id: string;
-  activity_codes?: string[];
-  tags: string[];
   device: string;
   date: string;
-  description?: string;
-  activityType: "maintenance";
-  nextMaintenance?: string;
-  createdAt: string;
-  updatedAt: string;
+  description: string;
+  activityType: string;
+  activity_by?: {
+    user_id: string;
+    name: string;
+    email: string;
+  };
+  site_id?: string;
   network?: string;
+  nextMaintenance?: string;
+  deployment_type?: string;
+  tags?: string[];
+  createdAt: string;
+  updatedAt?: string;
 }
 
-export interface MaintenanceActivitiesResponse {
+export interface DeviceActivitiesResponse {
   success: boolean;
   message: string;
-  site_activities: MaintenanceActivity[];
+  site_activities: DeviceActivity[];
+  meta: {
+    total: number;
+    limit: number;
+    skip: number;
+    page: number;
+    totalPages: number;
+  };
 }
 
 export type GetDevicesSummaryParams = Partial<Device> & {
@@ -342,6 +354,10 @@ export const devices = {
     network: string;
     user_id: string;
     deployment_date: string | undefined;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    userName?: string;
   }) => {
     try {
       const toIso = (d?: string) =>
@@ -363,7 +379,11 @@ export const devices = {
         network: deviceData.network,
         deviceName: deviceData.deviceName,
         height,
-        user_id: deviceData.user_id
+        user_id: deviceData.user_id,
+        firstName: deviceData.firstName,
+        lastName: deviceData.lastName,
+        email: deviceData.email,
+        userName: deviceData.userName
       }];
 
       const response = await jwtApiClient.post(
@@ -381,6 +401,10 @@ export const devices = {
     recallType: string;
     user_id: string;
     date: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    userName?: string;
   }) => {
     try {
       const response = await jwtApiClient.post(
@@ -470,24 +494,6 @@ export const devices = {
       const response = await jwtApiClient.post(
         `/devices/activities/maintain?deviceName=${deviceName}`,
         logData,
-        { headers: { 'X-Auth-Type': 'JWT' } }
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  getDeviceMaintenanceLogs: async (
-    deviceName: string
-  ): Promise<MaintenanceActivitiesResponse> => {
-    try {
-      const params = new URLSearchParams({
-        device: deviceName,
-        activity_type: "maintenance",
-      });
-      const response = await jwtApiClient.get<MaintenanceActivitiesResponse>(
-        `/devices/activities?${params.toString()}`,
         { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
@@ -651,6 +657,25 @@ export const devices = {
       const response = await jwtApiClient.get<ShippingBatchDetailsResponse>(
         `/devices/shipping-batches/${batchId}`,
         { headers: { "X-Auth-Type": "JWT" } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+
+  getDeviceActivities: async (deviceName: string, params: { page?: number; limit?: number } = {}): Promise<DeviceActivitiesResponse> => {
+    try {
+      const { page = 1, limit = 10 } = params;
+      const queryParams = new URLSearchParams({
+        device: deviceName,
+        page: String(page),
+        limit: String(limit)
+      });
+      const response = await jwtApiClient.get<DeviceActivitiesResponse>(
+        `/devices/activities?${queryParams.toString()}`,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {

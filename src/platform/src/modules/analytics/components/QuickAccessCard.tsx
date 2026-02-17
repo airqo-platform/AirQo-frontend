@@ -13,8 +13,9 @@ export const QuickAccessCard: React.FC<QuickAccessLocationsProps> = memo(
     sites,
     onManageFavorites,
     className,
-    title = 'Quick Access Locations',
+    title = 'Favorite Locations',
     subtitle = 'Add up to 4 frequently monitored cities for instant access to air quality trends, visualizations, and quick data downloads.',
+    infoLine,
     showIcon = true,
     onShowIconsChange,
     selectedPollutant,
@@ -32,7 +33,14 @@ export const QuickAccessCard: React.FC<QuickAccessLocationsProps> = memo(
 
     return (
       <div className={cn('w-full space-y-4', className)}>
-        <PageHeading title={title} subtitle={subtitle} />
+        <PageHeading
+          title={title}
+          subtitle={subtitle}
+          infoLine={
+            infoLine ??
+            'All air quality data shown here is open, public, and free to download.'
+          }
+        />
 
         {/* External filter bar - matches the design in the image (pill style) */}
         <FilterBar

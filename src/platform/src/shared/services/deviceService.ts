@@ -21,6 +21,7 @@ import type {
   CountriesResponse,
   MapReadingsResponse,
   ForecastResponse,
+  CohortResponse,
 } from '../types/api';
 
 export class DeviceService {
@@ -123,6 +124,21 @@ export class DeviceService {
     }
 
     return data as GroupCohortsResponse;
+  }
+
+  // Get cohort details - authenticated endpoint
+  async getCohort(cohortId: string): Promise<CohortResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.get<
+      CohortResponse | ApiErrorResponse
+    >(`/devices/cohorts/${cohortId}`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to get cohort details');
+    }
+
+    return data as CohortResponse;
   }
 
   // Get grids summary - authenticated endpoint

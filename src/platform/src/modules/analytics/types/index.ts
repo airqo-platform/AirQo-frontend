@@ -41,7 +41,7 @@ export interface AnalyticsCardProps {
   onClick?: (site: SiteData) => void;
 }
 
-// Quick access locations props interface
+// Favorite locations props interface
 export interface QuickAccessLocationsProps {
   sites: SiteData[];
   currentFilters?: {
@@ -58,6 +58,7 @@ export interface QuickAccessLocationsProps {
   className?: string;
   title?: string;
   subtitle?: string;
+  infoLine?: string;
   showIcon?: boolean;
   onShowIconsChange?: (showIcons: boolean) => void;
   selectedPollutant?: PollutantType;

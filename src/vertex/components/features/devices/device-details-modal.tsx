@@ -368,7 +368,7 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
                 )}
               />
               <ReusableInputField
-                label="Network"
+                label="Sensor Manufacturer"
                 value={device?.network || "-"}
                 readOnly={true}
                 showCopyButton={true}

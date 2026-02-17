@@ -1,0 +1,523 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&display=swap');
+
+:root {
+  --font-inter: 'Inter', sans-serif;
+
+  /* Zoom-responsive spacing variables */
+  --billboard-spacing-xs: clamp(0.25rem, 0.5vw, 0.5rem);
+  --billboard-spacing-sm: clamp(0.5rem, 1vw, 0.75rem);
+  --billboard-spacing-md: clamp(0.75rem, 1.5vw, 1.25rem);
+  --billboard-spacing-lg: clamp(1rem, 2vw, 1.5rem);
+  --billboard-spacing-xl: clamp(1.5rem, 3vw, 2.5rem);
+
+  /* Zoom-responsive font sizes */
+  --billboard-font-xs: clamp(0.75rem, 1.2vw, 0.875rem);
+  --billboard-font-sm: clamp(0.875rem, 1.4vw, 1rem);
+  --billboard-font-base: clamp(1rem, 1.6vw, 1.125rem);
+  --billboard-font-lg: clamp(1.125rem, 1.8vw, 1.25rem);
+  --billboard-font-xl: clamp(1.25rem, 2vw, 1.5rem);
+  --billboard-font-2xl: clamp(1.5rem, 2.5vw, 2rem);
+  --billboard-font-3xl: clamp(2rem, 3.5vw, 3rem);
+  --billboard-font-4xl: clamp(3rem, 5vw, 4.5rem);
+}
+
+body {
+  font-family: var(--font-inter);
+}
+
+.font-dm-mono {
+  font-family: 'DM Mono', monospace;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.4s ease-in;
+  }
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 10% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+  }
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/*# Legal page styles */
+.legal-page-content {
+  a {
+    color: blue;
+    text-decoration: underline;
+  }
+
+  p {
+    margin-bottom: 1rem;
+  }
+
+  ol {
+    list-style-type: decimal;
+    margin-left: 2rem;
+
+    li {
+      margin-bottom: 0.5rem;
+    }
+  }
+
+  ul {
+    list-style-type: disc;
+    margin-left: 2rem;
+
+    li {
+      margin-bottom: 0.5rem;
+    }
+  }
+}
+
+/* Customize the scrollbar for WebKit browsers */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 255, 0.911);
+  border-radius: 8px;
+  border: 2px solid #f0f0f0;
+}
+
+/* Firefox scrollbar styling */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 255, 0.911) #f0f0f0;
+}
+
+/* Internet Explorer and Edge support */
+body {
+  -ms-overflow-style: scrollbar;
+}
+
+/* GitHub Ribbon Styles */
+.github-ribbon {
+  position: fixed;
+  top: 0;
+  z-index: 9999;
+  pointer-events: none;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+}
+
+.github-ribbon.top-left {
+  left: 0;
+}
+
+.github-ribbon.top-right {
+  right: 0;
+}
+
+.github-ribbon-link {
+  display: inline-block;
+  padding: 8px 35px;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  text-align: center;
+  color: #ffffff;
+  background: #0882fc; /* AirQo primary blue */
+  border: 0;
+  pointer-events: auto;
+  transform-origin: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+  animation: slideInFromCorner 0.6s ease-out;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.github-ribbon.top-left .github-ribbon-link {
+  transform: translate(-36px, 25px) rotate(-40deg);
+}
+
+.github-ribbon.top-right .github-ribbon-link {
+  transform: translate(36px, 25px) rotate(40deg);
+}
+
+.github-ribbon-link:hover {
+  background: #0066cc;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.github-ribbon.top-left .github-ribbon-link:hover {
+  /* Removed transform effects, keeping only color change */
+}
+
+.github-ribbon.top-right .github-ribbon-link:hover {
+  /* Removed transform effects, keeping only color change */
+}
+
+.github-ribbon-link:focus {
+  outline: 2px solid #0a84ff;
+  outline-offset: 2px;
+}
+
+.github-ribbon.top-left .github-ribbon-link:active {
+  transform: translate(-35px, 25px) rotate(-45deg) scale(0.98);
+}
+
+.github-ribbon.top-right .github-ribbon-link:active {
+  transform: translate(35px, 25px) rotate(45deg) scale(0.98);
+}
+
+/* Responsive behavior - hide on mobile */
+@media (max-width: 768px) {
+  .github-ribbon {
+    display: none;
+  }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .github-ribbon-link {
+    animation: none;
+  }
+
+  .github-ribbon-link,
+  .github-ribbon-link:hover,
+  .github-ribbon-link:active {
+    transition: none;
+  }
+}
+
+/* Animation on mount */
+@keyframes slideInFromCorner {
+  from {
+    opacity: 0;
+    transform: translate(-100px, -100px);
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* Map custom marker styles */
+.custom-marker {
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.2s ease-in-out;
+}
+
+.custom-marker:hover {
+  z-index: 999 !important;
+}
+
+.mapboxgl-popup-content {
+  padding: 0;
+  border-radius: 8px;
+}
+
+.mapboxgl-popup-close-button {
+  font-size: 20px;
+  padding: 4px 8px;
+}
+
+/* CRITICAL: Completely hide Google Translate banner - Global level */
+.goog-te-banner-frame,
+.goog-te-banner-frame.skiptranslate,
+body > .skiptranslate,
+iframe.skiptranslate,
+iframe.goog-te-banner-frame,
+.goog-te-banner,
+#goog-gt-tt,
+.goog-te-balloon-frame {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  width: 0 !important;
+  position: absolute !important;
+  top: -9999px !important;
+  left: -9999px !important;
+  z-index: -9999 !important;
+  pointer-events: none !important;
+}
+
+/* Force body to stay in place when Google Translate is active */
+body,
+body.translated-ltr,
+body.translated-rtl {
+  top: 0 !important;
+  position: static !important;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* Hide any Google Translate iframes */
+iframe[src*='translate.google'],
+iframe[src*='translate.googleapis'] {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* Loading spinner styles */
+.loader {
+  color: #145dff;
+  font-size: 45px;
+  text-indent: -9999em;
+  overflow: hidden;
+  width: 1em;
+  height: 1em;
+  border-radius: 50%;
+  position: relative;
+  transform: translateZ(0);
+  animation:
+    mltShdSpin 1.7s infinite ease,
+    round 1.7s infinite ease;
+}
+
+@keyframes mltShdSpin {
+  0% {
+    box-shadow:
+      0 -0.83em 0 -0.4em,
+      0 -0.83em 0 -0.42em,
+      0 -0.83em 0 -0.44em,
+      0 -0.83em 0 -0.46em,
+      0 -0.83em 0 -0.477em;
+  }
+  5%,
+  95% {
+    box-shadow:
+      0 -0.83em 0 -0.4em,
+      0 -0.83em 0 -0.42em,
+      0 -0.83em 0 -0.44em,
+      0 -0.83em 0 -0.46em,
+      0 -0.83em 0 -0.477em;
+  }
+  10%,
+  59% {
+    box-shadow:
+      0 -0.83em 0 -0.4em,
+      -0.087em -0.825em 0 -0.42em,
+      -0.173em -0.812em 0 -0.44em,
+      -0.256em -0.789em 0 -0.46em,
+      -0.297em -0.775em 0 -0.477em;
+  }
+  20% {
+    box-shadow:
+      0 -0.83em 0 -0.4em,
+      -0.338em -0.758em 0 -0.42em,
+      -0.555em -0.617em 0 -0.44em,
+      -0.671em -0.488em 0 -0.46em,
+      -0.749em -0.34em 0 -0.477em;
+  }
+  38% {
+    box-shadow:
+      0 -0.83em 0 -0.4em,
+      -0.377em -0.74em 0 -0.42em,
+      -0.645em -0.522em 0 -0.44em,
+      -0.775em -0.297em 0 -0.46em,
+      -0.82em -0.09em 0 -0.477em;
+  }
+  100% {
+    box-shadow:
+      0 -0.83em 0 -0.4em,
+      0 -0.83em 0 -0.42em,
+      0 -0.83em 0 -0.44em,
+      0 -0.83em 0 -0.46em,
+      0 -0.83em 0 -0.477em;
+  }
+}
+
+@keyframes round {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* react-hot-toast z-index fix: ensure toasts appear above dialogs and headers */
+.react-hot-toast,
+.react-hot-toast-container,
+.react-hot-toast__container,
+.react-hot-toast-wrapper,
+.react-hot-toast__toast,
+.toast,
+.rh-toast {
+  z-index: 40000 !important;
+}
+
+/* If Toaster renders container with data attributes, target common selectors too */
+[data-hot-toast-root] {
+  z-index: 40000 !important;
+}
+
+/* Fade animations for translation loading */
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.animate-fadeOut {
+  animation: fadeOut 0.3s ease-in-out;
+}
+
+/* Circular Progress Animation */
+@keyframes circular-progress {
+  0% {
+    stroke-dashoffset: 100;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-circular-progress {
+  animation: circular-progress 20s linear infinite;
+}
+/* Billboard Component Zoom-Responsive Optimizations */
+@layer components {
+  /* Ensure billboard containers maintain proper spacing at all zoom levels */
+  [class*='billboard'] {
+    box-sizing: border-box;
+  }
+
+  /* Smooth transitions for zoom changes */
+  @media screen {
+    * {
+      transition-property: font-size, padding, margin, gap;
+      transition-duration: 0.1s;
+      transition-timing-function: ease-out;
+    }
+
+    /* Disable transitions for specific cases to avoid performance issues */
+    *:hover,
+    *:focus,
+    *:active {
+      transition-duration: 0s;
+    }
+  }
+
+  /* Improve text rendering at various zoom levels */
+  body {
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Prevent layout shift during zoom for fixed/absolute positioned elements */
+  [data-billboard-portal='true'] {
+    will-change: transform;
+    backface-visibility: hidden;
+  }
+
+  /* Ensure images scale properly with zoom */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Prevent overflow issues at high zoom levels */
+  .overflow-hidden {
+    contain: layout style;
+  }
+}

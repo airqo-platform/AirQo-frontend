@@ -7,6 +7,9 @@ import ReusableInputField from "@/components/shared/inputfield/ReusableInputFiel
 import { useCreateCohortFromCohorts } from "@/core/hooks/useCohorts";
 import { useNetworks } from "@/core/hooks/useNetworks";
 import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
+import { MultiSelectCombobox } from "@/components/ui/multi-select";
+import { Label } from "@/components/ui/label";
+import { DEFAULT_COHORT_TAGS } from "@/core/constants/devices";
 
 interface CreateCohortFromSelectionDialogProps {
   open: boolean;
@@ -26,6 +29,7 @@ export function CreateCohortFromSelectionDialog({
   const [name, setName] = useState("");
   const [network, setNetwork] = useState("");
   const [description, setDescription] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [error, setError] = useState("");
   const router = useRouter();
   const { mutate: createFromCohorts, isPending } = useCreateCohortFromCohorts();
@@ -36,6 +40,7 @@ export function CreateCohortFromSelectionDialog({
       setName("");
       setNetwork("");
       setDescription("");
+      setSelectedTags([]);
       setError("");
     }
   }, [open]);
@@ -50,7 +55,11 @@ export function CreateCohortFromSelectionDialog({
       return;
     }
     if (!network) {
-      setError("Please select a network.");
+      setError("Please select a Sensor Manufacturer.");
+      return;
+    }
+    if (selectedTags.length === 0) {
+      setError("Please select at least one tag.");
       return;
     }
     setError("");
@@ -61,6 +70,7 @@ export function CreateCohortFromSelectionDialog({
         description: description.trim() || undefined,
         cohort_ids: selectedCohortIds,
         network,
+        cohort_tags: selectedTags,
       },
       {
         onSuccess: (response) => {
@@ -97,12 +107,12 @@ export function CreateCohortFromSelectionDialog({
       <div className="space-y-4">
         <ReusableInputField label="New Cohort Name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter a name for the new cohort" required error={error} />
         <ReusableSelectInput
-          label="Network"
+          label="Sensor Manufacturer"
           id="network"
           value={network}
           onChange={(e) => setNetwork(e.target.value)}
           required
-          placeholder={isLoadingNetworks ? "Loading networks..." : "Select a network"}
+          placeholder={isLoadingNetworks ? "Loading sensor manufacturer..." : "Select a sensor manufacturer"}
           disabled={isLoadingNetworks}
         >
           {networks.map((network) => (
@@ -111,6 +121,17 @@ export function CreateCohortFromSelectionDialog({
             </option>
           ))}
         </ReusableSelectInput>
+
+        <div>
+          <Label className="mb-2 block">Tags</Label>
+          <MultiSelectCombobox
+            options={DEFAULT_COHORT_TAGS}
+            placeholder="Select or create tags..."
+            onValueChange={setSelectedTags}
+            value={selectedTags}
+          />
+        </div>
+
         <ReusableInputField as="textarea" label="Description (Optional)" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe this combined cohort" rows={3} />
       </div>
     </ReusableDialog>

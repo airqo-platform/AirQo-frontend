@@ -281,28 +281,33 @@ export const useThemePreferences = () => {
       initState.lastUserId !== userId ||
       initState.lastGroupId !== activeGroup?.id
     ) {
-      // Clear initialization flags
+      // Clear initialization flags when group changes to force refetch
       initState.isInitialized = false;
       initState.isInitializing = false;
 
-      // If group changed but user is the same, load group-specific theme
+      // If group changed but user is the same, fetch fresh theme from API
       if (
         userId &&
         activeGroup?.id &&
+        status === 'authenticated' &&
         initState.lastUserId === userId &&
         initState.lastGroupId !== activeGroup?.id
       ) {
-        const groupTheme = getStoredTheme(activeGroup?.id);
-        if (groupTheme) {
-          applyThemeToApp(groupTheme);
-        }
-      }
+        // Update tracking values first to prevent infinite loops
+        initState.lastGroupId = activeGroup?.id;
 
-      // Update tracking values
-      initState.lastUserId = userId || null;
-      initState.lastGroupId = activeGroup?.id || null;
+        // Force theme reinitialization from API with a small delay
+        // to allow SWR to invalidate and refetch with the new group
+        setTimeout(() => {
+          initializeThemeFromApi();
+        }, 50);
+      } else {
+        // Update tracking values
+        initState.lastUserId = userId || null;
+        initState.lastGroupId = activeGroup?.id || null;
+      }
     }
-  }, [status, userId, activeGroup?.id, applyThemeToApp]);
+  }, [status, userId, activeGroup?.id, initializeThemeFromApi]);
 
   return {
     // State

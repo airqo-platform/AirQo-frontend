@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '@/shared/components/ui';
 import { AqAnnotationX, AqDownload01 } from '@airqo/icons-react';
+import { Tooltip } from 'flowbite-react';
 import { TabType } from '../types/dataExportTypes';
 
 interface DataExportHeaderProps {
@@ -132,16 +133,18 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
         >
           Preview
         </Button>
-        <Button
-          variant="filled"
-          onClick={onDownload}
-          Icon={AqDownload01}
-          className="px-4 py-2 w-full sm:w-auto"
-          disabled={!isDownloadReady}
-          loading={isDownloading}
-        >
-          {isDownloading ? 'Downloading...' : 'Download Data'}
-        </Button>
+        <Tooltip content="Download openly available air quality data for your own use">
+          <Button
+            variant="filled"
+            onClick={onDownload}
+            Icon={AqDownload01}
+            className="px-4 py-2 w-full sm:w-auto"
+            disabled={!isDownloadReady}
+            loading={isDownloading}
+          >
+            {isDownloading ? 'Downloading...' : 'Download Data'}
+          </Button>
+        </Tooltip>
       </div>
     </div>
   );

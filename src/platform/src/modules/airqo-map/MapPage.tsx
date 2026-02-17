@@ -16,7 +16,12 @@ import { normalizeMapReadings } from './utils/dataNormalization';
 import { getEnvironmentAwareUrl } from '@/shared/utils/url';
 // import citiesData from './data/cities.json';
 import { hashId, trackEvent } from '@/shared/utils/analytics';
+import {
+  trackMapInteraction,
+  trackFeatureUsage,
+} from '@/shared/utils/enhancedAnalytics';
 import { InfoBanner } from '@/shared/components/ui/banner';
+import { useCohort } from '@/shared/hooks';
 
 interface MapPageProps {
   cohortId?: string;
@@ -82,10 +87,16 @@ const MapPage: React.FC<MapPageProps> = ({
   React.useEffect(() => {
     posthog?.capture('map_viewed');
     trackEvent('map_viewed');
+    trackFeatureUsage(posthog, 'map', 'view');
   }, [posthog]);
 
   const handlePollutantChange = (pollutant: 'pm2_5' | 'pm10') => {
     setSelectedPollutant(pollutant);
+    trackMapInteraction(posthog, {
+      action: 'filter_apply',
+      filterType: 'pollutant',
+      filterValue: pollutant,
+    });
   };
 
   const { setCountry } = useSitesByCountry({
@@ -98,9 +109,16 @@ const MapPage: React.FC<MapPageProps> = ({
     refetch,
   } = useMapReadings(cohortId);
 
-  // Check if map data is completely empty (organization info is private)
+  // Get cohort details for visibility check
+  const firstCohortId = cohortId ? cohortId.split(',')[0] : '';
+  const { data: cohortData } = useCohort(
+    firstCohortId,
+    isOrganizationFlow && !!firstCohortId
+  );
+
+  // Check if map data is unavailable due to private organization data
   const hasNoMapData =
-    !mapDataLoading && readings.length === 0 && isOrganizationFlow;
+    isOrganizationFlow && cohortData?.cohorts[0]?.visibility === false;
 
   // Disable WAQI data loading - keep logic for future enablement
   const allCities = React.useMemo(() => {
@@ -304,7 +322,7 @@ const MapPage: React.FC<MapPageProps> = ({
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:text-blue-800 underline"
                     >
-                      Vertex
+                      AirQo Vertex
                     </a>{' '}
                     to manage data visibility and make it public to view air
                     quality measurements.

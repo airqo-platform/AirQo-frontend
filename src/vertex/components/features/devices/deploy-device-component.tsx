@@ -141,13 +141,13 @@ const DeviceDetailsStep = ({
       </div>
       <div className="grid gap-2">
         <ReusableSelectInput
-          label="Network"
+          label="Sensor Manufacturer"
           id="network"
           value={deviceData.network}
           onChange={(e) => onSelectChange("network")(e.target.value)}
-          placeholder={isLoadingNetworks ? "Loading networks..." : "Select a network"}
+          placeholder={isLoadingNetworks ? "Loading Sensor Manufacturers..." : "Select a Sensor Manufacturer"}
           disabled={true}
-          error={networksError ? "Failed to load networks" : undefined}
+          error={networksError ? "Failed to load Sensor Manufacturers" : undefined}
         >
           {networks.map((network) => (
             <option key={network.net_name} value={network.net_name}>
@@ -524,6 +524,10 @@ const DeployDeviceComponent = ({
         site_name: deviceData.siteName || `${deviceData.deviceName} Site`,
         network: deviceData.network || "airqo",
         user_id: userDetails._id,
+        firstName: userDetails.firstName,
+        lastName: userDetails.lastName,
+        email: userDetails.email,
+        userName: userDetails.userName,
       },
       {
         onSuccess: () => {

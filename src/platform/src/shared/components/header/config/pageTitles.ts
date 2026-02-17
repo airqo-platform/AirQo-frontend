@@ -18,8 +18,12 @@ export const PAGE_TITLES: Record<string, string> = {
 
   '/request-organization': 'Organization',
 
-  // Admin routes
-  '/admin/org-requests': 'Organization Requests',
+  // System routes (platform-wide admin features)
+  '/system/clients': 'API Clients',
+  '/system/org-requests': 'Organization Requests',
+  '/system/user-statistics': 'User Statistics',
+
+  // Admin routes (organization-specific admin features)
   '/admin/members': 'Members',
   '/admin/member-requests': 'Member Requests',
   '/admin/roles': 'Roles & Permissions',
@@ -60,6 +64,15 @@ export const getPageTitle = (pathname: string): string => {
     if (parts.length >= 3) {
       const route = `/admin/${parts[2]}`;
       return PAGE_TITLES[route] || 'Admin';
+    }
+  }
+
+  // Handle system routes
+  if (pathname.startsWith('/system/')) {
+    const parts = pathname.split('/');
+    if (parts.length >= 3) {
+      const route = `/system/${parts[2]}`;
+      return PAGE_TITLES[route] || 'System';
     }
   }
 

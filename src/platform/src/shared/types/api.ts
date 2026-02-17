@@ -500,6 +500,48 @@ export interface GroupCohortsResponse {
   data: string[];
 }
 
+export interface CohortDevice {
+  _id: string;
+  name: string;
+  long_name: string;
+  description: string;
+  device_number: number;
+  isActive: boolean;
+  isOnline: boolean;
+  rawOnlineStatus: boolean;
+  lastRawData: string;
+  lastActive: string;
+  status: string;
+  network: string;
+  createdAt: string;
+}
+
+export interface Cohort {
+  _id: string;
+  groups: string[];
+  visibility: boolean;
+  cohort_tags: string[];
+  cohort_codes: string[];
+  name: string;
+  network: string;
+  createdAt: string;
+  devices: CohortDevice[];
+  numberOfDevices: number;
+}
+
+export interface CohortResponse {
+  success: boolean;
+  message: string;
+  meta: {
+    total: number;
+    limit: number;
+    skip: number;
+    page: number;
+    totalPages: number;
+  };
+  cohorts: Cohort[];
+}
+
 // Grids summary types
 export interface GridSite {
   _id: string;
@@ -1339,6 +1381,46 @@ export interface UpdateGroupDetailsResponse {
   group: GroupDetails;
 }
 
+// Unassign User from Group Types
+export interface UnassignUserFromGroupResponse {
+  success: boolean;
+  message: string;
+  data: {
+    _id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    userName: string;
+  };
+}
+
+// Leave Group Types
+export interface LeaveGroupResponse {
+  success: boolean;
+  message: string;
+  left_group: {
+    _id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    userName: string;
+  };
+}
+
+// Set Group Manager Types
+export interface SetGroupManagerResponse {
+  success: boolean;
+  message: string;
+  data: {
+    updated_group: {
+      _id: string;
+      grp_manager: string;
+      grp_title?: string;
+      grp_description?: string;
+    };
+  };
+}
+
 // User Statistics Types
 export interface UserStatisticsUser {
   userName: string;
@@ -1363,4 +1445,83 @@ export interface GetUserStatisticsResponse {
   success: boolean;
   message: string;
   users_stats: UserStatistics;
+}
+
+// Accept Email Invitation Types
+export interface AcceptEmailInvitationRequest {
+  token: string;
+  target_id: string;
+}
+
+export interface AcceptEmailInvitationResponse {
+  success: boolean;
+  message: string;
+}
+
+// Pending Invitations Types
+export interface PendingInvitationEntity {
+  name: string;
+  description?: string;
+  slug: string;
+  type: string;
+}
+
+export interface PendingInvitationInviter {
+  name: string;
+  email: string;
+}
+
+export interface PendingInvitation {
+  invitation_id: string;
+  entity: PendingInvitationEntity;
+  inviter: PendingInvitationInviter | null;
+  invited_at: string;
+  expires_at: string;
+  request_type: string;
+  target_id: string;
+}
+
+export interface GetPendingInvitationsResponse {
+  success: boolean;
+  message: string;
+  invitations: PendingInvitation[];
+}
+
+// Accept Invitation Types
+export interface AcceptInvitationUser {
+  _id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface AcceptInvitationOrganization {
+  id: string;
+  name: string;
+  type: string;
+}
+
+export interface AcceptInvitationData {
+  user: AcceptInvitationUser;
+  organization: AcceptInvitationOrganization;
+  login_url: string;
+  isNewUser: boolean;
+}
+
+export interface AcceptInvitationResponse {
+  success: boolean;
+  message: string;
+  data: AcceptInvitationData;
+}
+
+// Reject Invitation Types
+export interface RejectInvitationData {
+  invitation_id: string;
+  status: string;
+}
+
+export interface RejectInvitationResponse {
+  success: boolean;
+  message: string;
+  data: RejectInvitationData;
 }

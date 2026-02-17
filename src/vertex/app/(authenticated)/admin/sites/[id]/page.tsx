@@ -12,6 +12,8 @@ import { SiteInformationCard } from "@/components/features/sites/site-informatio
 import { SiteMobileAppCard } from "@/components/features/sites/site-mobile-app-card";
 import { EditSiteDetailsDialog } from "@/components/features/sites/edit-site-details-dialog";
 import ClientPaginatedDevicesTable from "@/components/features/devices/client-paginated-devices-table";
+import SiteMeasurementsApiCard from "@/components/features/sites/site-measurements-api-card";
+import SiteActivityCard from "@/components/features/sites/site-activity-card";
 
 const ContentGridSkeleton = () => (
   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 items-start">
@@ -62,18 +64,24 @@ export default function SiteDetailsPage() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-            <div className="lg:col-span-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+            <div className="flex flex-col gap-6">
               <SiteInformationCard
                 site={site}
                 onEdit={() => setEditSection("general")}
               />
             </div>
-            <div className="lg:col-span-1">
+
+            <div className="flex flex-col gap-6">
               <SiteMobileAppCard
                 site={site}
                 onEdit={() => setEditSection("mobile")}
               />
+              <SiteMeasurementsApiCard siteId={siteId} />
+            </div>
+
+            <div className="flex flex-col gap-6">
+              <SiteActivityCard siteId={siteId} />
             </div>
           </div>
           <div className="mt-6">

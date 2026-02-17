@@ -45,7 +45,7 @@ export default function DevicesPage() {
               Icon={Upload}
               permission={PERMISSIONS.DEVICE.CLAIM}
             >
-              Import Existing Device
+              Import External Device
             </ReusableButton>
           </div>
         </div>

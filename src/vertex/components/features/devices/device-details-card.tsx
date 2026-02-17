@@ -33,7 +33,7 @@ const DeviceDetailsCard: React.FC<DeviceDetailsCardProps> = ({ deviceId, onShowD
           <span className={`inline-block text-base font-mono break-all capitalize px-2 py-1 rounded-md ${device.status === "deployed" ? "text-green-600 bg-green-100" : "text-red-600 bg-red-100"}`}>{device.status}</span>
         </div>
         <div>
-          <div className="text-xs text-muted-foreground uppercase font-medium tracking-wide mb-1">Network</div>
+          <div className="text-xs text-muted-foreground uppercase font-medium tracking-wide mb-1">Sensor Manufacturer</div>
           <div className="text-base font-normal break-all">{device.network || 'N/A'}</div>
         </div>
       </div>

@@ -1,5 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
 import { sites, ApproximateCoordinatesResponse, GetSitesSummaryParams, SitesSummaryResponse, CreateSiteResponse } from "../apis/sites";
+import { DeviceActivitiesResponse } from "../apis/devices";
+
 import { useGroupCohorts } from "./useCohorts";
 import { useAppSelector } from "../redux/hooks";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
@@ -22,6 +24,26 @@ export interface SiteListingOptions {
   network?: string;
   status?: string;
 }
+
+export const useSiteActivitiesInfinite = (siteId: string) => {
+  return useInfiniteQuery<DeviceActivitiesResponse, AxiosError<ErrorResponse>>({
+      queryKey: ["siteActivities", siteId],
+      queryFn: ({ pageParam = 1 }) => sites.getSiteActivities(siteId, { page: pageParam as number, limit: 10 }),
+      getNextPageParam: (lastPage, allPages) => {
+          if (!lastPage.meta) {
+            if (!lastPage.site_activities || lastPage.site_activities.length < 10) return undefined;
+            return allPages.length + 1;
+          }
+          if (lastPage.meta.page < lastPage.meta.totalPages) {
+              return lastPage.meta.page + 1;
+          }
+          return undefined;
+      },
+      enabled: !!siteId,
+      staleTime: 60_000,
+      initialPageParam: 1,
+  });
+};
 
 export const useSites = (options: SiteListingOptions = {}) => {
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
