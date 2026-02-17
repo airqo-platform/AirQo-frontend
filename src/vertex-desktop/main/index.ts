@@ -14,6 +14,7 @@ const devUrl = process.env.VERTEX_DESKTOP_DEV_URL ?? "http://localhost:3000";
 const prodUrl = process.env.VERTEX_DESKTOP_PROD_URL ?? "https://vertex.airqo.net";
 const startUrl = isDev ? devUrl : prodUrl;
 const APP_USER_MODEL_ID = "net.airqo.vertex.desktop";
+const NETWORK_FAILURE_CODES = new Set([-106, -105, -102, -118, -137, -138, -202]);
 
 const getAssetPath = (fileName: string): string => {
   if (app.isPackaged) {
@@ -34,6 +35,7 @@ const createWindow = (): void => {
   process.env.VERTEX_DESKTOP_ICON_PATH = getAssetPath("icon.png");
   mainWindow = createMainWindow({ startUrl, preloadPath });
   setupAutoUpdates(mainWindow);
+  const offlinePagePath = getAssetPath("offline.html");
 
   const emitNavigationState = (): void => {
     if (!mainWindow) return;
@@ -45,6 +47,16 @@ const createWindow = (): void => {
   mainWindow.webContents.on("did-finish-load", emitNavigationState);
   mainWindow.webContents.on("did-navigate", emitNavigationState);
   mainWindow.webContents.on("did-navigate-in-page", emitNavigationState);
+  mainWindow.webContents.on("did-fail-load", (_event, errorCode, _errorDescription, validatedURL, isMainFrame) => {
+    if (!isMainFrame || !mainWindow) return;
+
+    const isHttpTarget = validatedURL?.startsWith("http://") || validatedURL?.startsWith("https://");
+    if (!isHttpTarget) return;
+
+    if (NETWORK_FAILURE_CODES.has(errorCode)) {
+      void mainWindow.loadFile(offlinePagePath);
+    }
+  });
 };
 
 app.whenReady().then(async () => {
@@ -53,6 +65,11 @@ app.whenReady().then(async () => {
   }
 
   ipcMain.handle("vertex-desktop:get-app-version", () => app.getVersion());
+  ipcMain.handle("vertex-desktop:retry-app-load", async () => {
+    if (!mainWindow) return false;
+    await mainWindow.loadURL(startUrl);
+    return true;
+  });
   ipcMain.handle("vertex-desktop:get-branding", () => {
     const iconPath = getAssetPath("icon.png");
     const icon = nativeImage.createFromPath(iconPath);

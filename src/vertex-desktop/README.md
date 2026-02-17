@@ -62,3 +62,4 @@ Installer output is written to `src/vertex-desktop/release`.
 - `preload/index.ts` exposes `window.vertexDesktop.getAppVersion()`.
 - Permission handlers currently allow media and fullscreen only.
 - Auto-update hooks are wired; CI release publishing is the next step.
+- If the hosted Vertex URL is unreachable, the desktop app loads a packaged offline fallback page (`assets/offline.html`) with a retry action.

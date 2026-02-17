@@ -6,6 +6,8 @@ import { ExtendedSession } from '../utils/secureApiProxyClient';
 
 const API_TOKEN = process.env.NEXT_PUBLIC_API_TOKEN;
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const NETWORK_DEGRADED_EVENT = 'vertex-network-degraded';
+const NETWORK_RECOVERED_EVENT = 'vertex-network-recovered';
 
 const createAxiosInstance = (isJWT = true) => {
   const axiosInstance = axios.create();
@@ -43,6 +45,9 @@ const createAxiosInstance = (isJWT = true) => {
 
   axiosInstance.interceptors.response.use(
     (response) => {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event(NETWORK_RECOVERED_EVENT));
+      }
       const newToken = response.headers['x-access-token'];
       if (newToken && typeof newToken === 'string') {        
         logger.warn(
@@ -52,6 +57,33 @@ const createAxiosInstance = (isJWT = true) => {
       return response;
     },
     (error) => {
+      const isNetworkFailure =
+        !error.response &&
+        (error.code === 'ERR_NETWORK' ||
+          error.code === 'ECONNABORTED' ||
+          typeof error.message === 'string');
+
+      if (isNetworkFailure && typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent(NETWORK_DEGRADED_EVENT, {
+            detail: { url: error.config?.url, code: error.code, message: error.message },
+          }),
+        );
+      }
+
+      if (!error.response) {
+        // Normalize network failures so UI error handlers can safely inspect response metadata.
+        error.response = {
+          status: 0,
+          statusText: 'NETWORK_ERROR',
+          data: {
+            message: 'No internet connection or server unavailable. Working offline.',
+          },
+          headers: {},
+          config: error.config,
+        };
+      }
+
       logger.error('API Response Error', {
         message: error.message,
         url: error.config?.url,

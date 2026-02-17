@@ -8,6 +8,7 @@ import { PersistGate } from "redux-persist/integration/react";
 import { AuthProvider } from "@/core/auth/authProvider";
 import dynamic from 'next/dynamic';
 import { ThemeProvider } from "@/components/theme-provider";
+import SessionLoadingState from "@/components/layout/loading/session-loading";
 
 const NetworkStatusBanner = dynamic(
   () => import('@/components/features/network-status-banner'),
@@ -24,6 +25,21 @@ export default function Providers({ children, session }: { children: React.React
           queries: {
             staleTime: 60 * 1000,
             refetchOnWindowFocus: false,
+            refetchOnReconnect: true,
+            networkMode: 'offlineFirst',
+            retry: (failureCount, error: any) => {
+              const status = error?.response?.status;
+              // Do not thrash retries while offline/server unreachable.
+              if (status === 0 || error?.code === 'ERR_NETWORK' || error?.code === 'ECONNABORTED') {
+                return false;
+              }
+              return failureCount < 2;
+            },
+            throwOnError: false,
+          },
+          mutations: {
+            networkMode: 'offlineFirst',
+            retry: 0,
           },
         },
       })
@@ -31,7 +47,7 @@ export default function Providers({ children, session }: { children: React.React
 
   return (
     <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
+      <PersistGate loading={<SessionLoadingState />} persistor={persistor}>
         <QueryClientProvider client={queryClient}>
           <AuthProvider session={session}>
             <ThemeProvider

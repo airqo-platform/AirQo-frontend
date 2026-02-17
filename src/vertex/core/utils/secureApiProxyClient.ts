@@ -51,6 +51,9 @@ class TokenCache {
 }
 
 const tokenCache = new TokenCache();
+const NETWORK_DEGRADED_EVENT = 'vertex-network-degraded';
+const NETWORK_RECOVERED_EVENT = 'vertex-network-recovered';
+const REQUEST_TIMEOUT_MS = process.env.NODE_ENV === 'development' ? 10000 : 25000;
 
 async function getJwtToken(): Promise<string | null> {
   const cachedToken = tokenCache.get();
@@ -83,7 +86,7 @@ const createSecureApiClient = (): AxiosInstance => {
   const instance = axios.create({
     baseURL: '/api',
     withCredentials: true,
-    timeout: 25000,
+    timeout: REQUEST_TIMEOUT_MS,
   });
 
   instance.interceptors.request.use(
@@ -122,11 +125,42 @@ const createSecureApiClient = (): AxiosInstance => {
   );
 
   instance.interceptors.response.use(
-    (response) => response,
+    (response) => {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event(NETWORK_RECOVERED_EVENT));
+      }
+      return response;
+    },
     (error) => {
       const status = error.response?.status;
       const url = error.config?.url;
       const authType = (error.config?.headers?.['x-auth-type'] || 'jwt').toString().toLowerCase();
+      const isNetworkFailure =
+        !error.response &&
+        (error.code === 'ERR_NETWORK' ||
+          error.code === 'ECONNABORTED' ||
+          typeof error.message === 'string');
+
+      if (isNetworkFailure && typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent(NETWORK_DEGRADED_EVENT, {
+            detail: { url, code: error.code, message: error.message },
+          })
+        );
+      }
+
+      if (!error.response) {
+        // Normalize network failures so downstream handlers can safely read `error.response.status`.
+        error.response = {
+          status: 0,
+          statusText: 'NETWORK_ERROR',
+          data: {
+            message: 'No internet connection or server unavailable. Working offline.',
+          },
+          headers: {},
+          config: error.config,
+        };
+      }
 
       logger.error('API request failed:', {
         url,

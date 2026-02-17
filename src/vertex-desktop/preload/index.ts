@@ -2,7 +2,8 @@ import { contextBridge, ipcRenderer } from "electron";
 import type { VertexDesktopApi } from "./api";
 
 const api: VertexDesktopApi = {
-  getAppVersion: async () => ipcRenderer.invoke("vertex-desktop:get-app-version")
+  getAppVersion: async () => ipcRenderer.invoke("vertex-desktop:get-app-version"),
+  retryAppLoad: async () => ipcRenderer.invoke("vertex-desktop:retry-app-load")
 };
 
 contextBridge.exposeInMainWorld("vertexDesktop", api);
@@ -22,6 +23,10 @@ const syncNavigationState = async (): Promise<void> => {
 };
 
 const injectDesktopTopbar = (): void => {
+  if (!window.location.protocol.startsWith("http")) {
+    return;
+  }
+
   if (!document.body || document.getElementById(TOPBAR_ID)) {
     return;
   }
@@ -192,3 +197,23 @@ if (document.readyState === "loading") {
 ipcRenderer.on("vertex-desktop:navigation-state", (_event, payload: { canGoBack?: boolean }) => {
   updateBackButtonState(Boolean(payload?.canGoBack));
 });
+
+const wireOfflinePageActions = (): void => {
+  const isOfflinePage = window.location.protocol === "file:" && window.location.pathname.endsWith("offline.html");
+  if (!isOfflinePage) return;
+
+  const retryButton = document.getElementById("retry-connection");
+  retryButton?.addEventListener("click", async () => {
+    await ipcRenderer.invoke("vertex-desktop:retry-app-load");
+  });
+
+  window.addEventListener("online", async () => {
+    await ipcRenderer.invoke("vertex-desktop:retry-app-load");
+  });
+};
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", wireOfflinePageActions, { once: true });
+} else {
+  wireOfflinePageActions();
+}
