@@ -138,8 +138,7 @@ const createSecureApiClient = (): AxiosInstance => {
       const isNetworkFailure =
         !error.response &&
         (error.code === 'ERR_NETWORK' ||
-          error.code === 'ECONNABORTED' ||
-          typeof error.message === 'string');
+          error.code === 'ECONNABORTED');
 
       if (isNetworkFailure && typeof window !== 'undefined') {
         window.dispatchEvent(
