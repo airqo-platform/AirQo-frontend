@@ -207,7 +207,7 @@ class AnalyticsCard extends StatelessWidget with UiLoggy {
                           Row(children: [
                             Text(
                               measurement.pm25?.value != null
-                                  ? measurement.pm25!.value!.toStringAsFixed(2)
+                                  ? measurement.pm25!.value!.toStringAsFixed(1)
                                   : "-",
                               style: TextStyle(
                                   fontWeight: FontWeight.w700,
