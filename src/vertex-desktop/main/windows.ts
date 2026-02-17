@@ -7,6 +7,8 @@ interface CreateWindowArgs {
 }
 
 export const createMainWindow = ({ startUrl, preloadPath }: CreateWindowArgs): BrowserWindow => {
+  const iconPath = process.env.VERTEX_DESKTOP_ICON_PATH ?? path.join(__dirname, "..", "..", "assets", "icon.png");
+
   const window = new BrowserWindow({
     title: "AirQo Vertex",
     width: 1440,
@@ -29,7 +31,7 @@ export const createMainWindow = ({ startUrl, preloadPath }: CreateWindowArgs): B
       sandbox: true,
       spellcheck: true
     },
-    icon: path.join(__dirname, "..", "..", "assets", "icon.png")
+    icon: iconPath
   });
 
   window.once("ready-to-show", () => {

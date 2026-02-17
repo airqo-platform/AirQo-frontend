@@ -15,6 +15,13 @@ const prodUrl = process.env.VERTEX_DESKTOP_PROD_URL ?? "https://vertex.airqo.net
 const startUrl = isDev ? devUrl : prodUrl;
 const APP_USER_MODEL_ID = "net.airqo.vertex.desktop";
 
+const getAssetPath = (fileName: string): string => {
+  if (app.isPackaged) {
+    return path.join(process.resourcesPath, "assets", fileName);
+  }
+  return path.join(__dirname, "..", "..", "assets", fileName);
+};
+
 let mainWindow: BrowserWindow | null = null;
 const singleInstance = app.requestSingleInstanceLock();
 
@@ -24,6 +31,7 @@ if (!singleInstance) {
 
 const createWindow = (): void => {
   const preloadPath = path.join(__dirname, "..", "preload", "index.js");
+  process.env.VERTEX_DESKTOP_ICON_PATH = getAssetPath("icon.png");
   mainWindow = createMainWindow({ startUrl, preloadPath });
   setupAutoUpdates(mainWindow);
 
@@ -46,7 +54,7 @@ app.whenReady().then(async () => {
 
   ipcMain.handle("vertex-desktop:get-app-version", () => app.getVersion());
   ipcMain.handle("vertex-desktop:get-branding", () => {
-    const iconPath = path.join(__dirname, "..", "..", "assets", "icon.png");
+    const iconPath = getAssetPath("icon.png");
     const icon = nativeImage.createFromPath(iconPath);
     return {
       name: "AirQo Vertex",
