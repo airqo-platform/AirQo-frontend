@@ -25,6 +25,7 @@ import { useSitesData } from '@/shared/hooks/useSitesData';
 import { useActiveGroupCohorts, useCohort } from '@/shared/hooks';
 import { InfoBanner } from '@/shared/components/ui/banner';
 import { getEnvironmentAwareUrl } from '@/shared/utils/url';
+import { useUser } from '@/shared/hooks/useUser';
 
 interface AnalyticsDashboardProps {
   className?: string;
@@ -35,6 +36,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 }) => {
   const dispatch = useDispatch();
   const posthog = usePostHog();
+  const { activeGroup } = useUser();
 
   // Get filters from Redux
   const { filters } = useAnalytics();
@@ -212,6 +214,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   // Determine what to show based on user's selected sites and available sites
   const hasSitesAvailable = availableSitesCount > 0;
 
+  // Check if the active organization is AirQo (open group)
+  const isAirQoGroup = activeGroup?.organizationSlug === 'airqo';
+
   // Case 1: User has NO selected sites - check if sites are available for their organization
   if (!hasSelectedSites) {
     return (
@@ -220,8 +225,10 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           // Show suggested locations when sites are available in the organization
           <SuggestedLocations />
         ) : (
-          // Show empty state banner ONLY when organization has no sites at all
-          <EmptyAnalyticsState />
+          // Show empty state banner ONLY when:
+          // 1. Organization has no sites at all AND
+          // 2. It's NOT the AirQo open group
+          !isAirQoGroup && <EmptyAnalyticsState />
         )}
 
         {/* Add Favorites Dialog */}
