@@ -1,0 +1,191 @@
+# AirQo Vertex Desktop - Changelog
+
+> **Note**: This changelog tracks desktop wrapper updates for the AirQo Vertex Electron app.
+
+---
+
+## Version 0.1.5
+**Released:** February 17, 2026
+
+### CI Automation and Release Pipeline for Auto-Updates
+
+Added dedicated desktop CI and tag-based release workflows to automatically publish Windows updater artifacts to GitHub Releases.
+
+<details>
+<summary><strong>CI/CD Enhancements (3)</strong></summary>
+
+- **Desktop CI Workflow**: Added a dedicated desktop workflow to run install, typecheck, and build validation for `src/vertex-desktop` changes.
+- **Tag-Based Release Workflow**: Added Windows release automation for tags matching `vertex-desktop-v*` with optional manual dispatch support.
+- **Auto-Update Artifact Publishing**: Configured release workflow to publish `electron-builder` outputs (`latest.yml` + installer artifacts) required by `electron-updater`.
+
+</details>
+
+<details>
+<summary><strong>Documentation (1)</strong></summary>
+
+- **Release Runbook**: Updated desktop README with CI workflow references and step-by-step tag-based release instructions.
+
+</details>
+
+<details>
+<summary><strong>Files Added/Modified (3)</strong></summary>
+
+- `.github/workflows/vertex-desktop-ci.yml`
+- `.github/workflows/vertex-desktop-release.yml`
+- `README.md`
+
+</details>
+
+---
+
+## Version 0.1.4
+**Released:** February 17, 2026
+
+### Offline Fallback, Updater Safety, and Navigation Hardening
+
+Improved resilience in installed desktop builds with a packaged offline experience and safer updater/navigation behavior.
+
+<details>
+<summary><strong>Offline Experience (2)</strong></summary>
+
+- **Packaged Offline Page**: Added a local offline fallback page that loads when the hosted Vertex app is unreachable.
+- **Retry Flow**: Added explicit retry handling (button + online event) to return users from offline screen to the live app.
+
+</details>
+
+<details>
+<summary><strong>Updater Robustness (2)</strong></summary>
+
+- **Single Listener Registration**: Prevented duplicate `autoUpdater` listener registration across macOS window re-creation.
+- **Destroyed Window Guard**: Added safe dialog guards to avoid showing update dialogs against invalid/destroyed windows.
+
+</details>
+
+<details>
+<summary><strong>Security & Stability (2)</strong></summary>
+
+- **Navigation Parse Guard**: Hardened `will-navigate` URL parsing with `try/catch` and default deny behavior on malformed URLs.
+- **Stable Layout Hooks**: Updated desktop CSS targeting to use stable `data-vertex-*` hooks (with fallback support for older deployments).
+
+</details>
+
+<details>
+<summary><strong>Files Modified (7)</strong></summary>
+
+- `main/index.ts`
+- `main/updates.ts`
+- `main/windows.ts`
+- `preload/index.ts`
+- `preload/api.ts`
+- `assets/offline.html`
+- `README.md`
+
+</details>
+
+---
+
+## Version 0.1.3
+**Released:** February 17, 2026
+
+### Title Bar Controls, Branding, and Layout Stability
+
+Added native-style title bar controls and branding, and fixed production layout overlap issues in installed builds.
+
+<details>
+<summary><strong>Desktop UI Enhancements (3)</strong></summary>
+
+- **Title Bar Navigation**: Added Back and Reload controls in the desktop title bar overlay.
+- **App Branding in Title Bar**: Added app icon and app name ("AirQo Vertex") next to title bar controls.
+- **Navigation State Sync**: Back button state now updates based on navigation history.
+
+</details>
+
+<details>
+<summary><strong>Production Layout Fixes (2)</strong></summary>
+
+- **Top Offset Injection**: Added desktop offset handling to prevent app headers from rendering under the native title bar.
+- **Sidebar/Main Fallback Rules**: Added production-safe fallback CSS rules for current hosted Vertex selectors to keep sidebars and content aligned in installed mode.
+
+</details>
+
+<details>
+<summary><strong>Packaging & Runtime Updates (3)</strong></summary>
+
+- **Windows Shortcut Support**: Configured installer shortcuts for Start Menu and Desktop.
+- **Asset Packaging**: Added `extraResources` so icon assets are shipped in installed builds.
+- **Runtime Asset Resolution**: Updated icon path resolution to use `process.resourcesPath` in packaged apps.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (5)</strong></summary>
+
+- `main/index.ts`
+- `main/windows.ts`
+- `preload/index.ts`
+- `package.json`
+- `README.md`
+
+</details>
+
+---
+
+## Version 0.1.2
+**Released:** February 17, 2026
+
+### Initial Electron Wrapper Setup
+
+Bootstrapped the desktop wrapper with secure defaults, update hooks, and a minimal preload bridge.
+
+<details>
+<summary><strong>Core Setup (4)</strong></summary>
+
+- **Electron Scaffold**: Added `main` and `preload` process structure for desktop runtime.
+- **Security Defaults**: Enabled `contextIsolation`, disabled `nodeIntegration`, and enabled renderer sandbox.
+- **Auto-Update Hooks**: Added updater setup and check flow scaffolding.
+- **Deep Link Skeleton**: Added protocol registration and deep-link handler structure.
+
+</details>
+
+<details>
+<summary><strong>Developer Experience (3)</strong></summary>
+
+- **Dev Workflow Scripts**: Added scripts to run Vertex web app and Electron wrapper together.
+- **Environment Template**: Added `.env.example` with desktop runtime URLs.
+- **Desktop Bridge Typing**: Added typed `window.vertexDesktop` interface for optional desktop-only APIs.
+
+</details>
+
+<details>
+<summary><strong>Files Added (11)</strong></summary>
+
+- `main/index.ts`
+- `main/windows.ts`
+- `main/permissions.ts`
+- `main/updates.ts`
+- `main/deeplinks.ts`
+- `main/menu.ts`
+- `preload/index.ts`
+- `preload/api.ts`
+- `package.json`
+- `tsconfig.json`
+- `.env.example`
+
+</details>
+
+---
+
+## Version 0.1.1
+**Released:** February 17, 2026
+
+### Windows Installer Baseline
+
+Prepared first installable Windows build configuration for the desktop wrapper.
+
+<details>
+<summary><strong>Installer Baseline (2)</strong></summary>
+
+- **NSIS Target**: Added Windows installer target and output configuration.
+- **Desktop Metadata**: Added app identity metadata and initial release packaging structure.
+
+</details>

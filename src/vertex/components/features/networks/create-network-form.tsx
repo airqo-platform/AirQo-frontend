@@ -60,7 +60,7 @@ export function CreateNetworkForm() {
                 setIsPending(false);
             }
         },
-        [handleClose]
+        [handleClose, queryClient]
     );
 
     return (
