@@ -1,0 +1,44 @@
+name: vertex-desktop-ci
+
+on:
+  pull_request:
+    branches:
+      - staging
+    paths:
+      - "src/vertex-desktop/**"
+      - ".github/workflows/vertex-desktop-ci.yml"
+      - ".github/workflows/vertex-desktop-release.yml"
+  push:
+    branches:
+      - staging
+    paths:
+      - "src/vertex-desktop/**"
+      - ".github/workflows/vertex-desktop-ci.yml"
+      - ".github/workflows/vertex-desktop-release.yml"
+
+jobs:
+  desktop-quality:
+    name: typecheck-and-build
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: src/vertex-desktop
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: src/vertex-desktop/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build desktop runtime
+        run: npm run build

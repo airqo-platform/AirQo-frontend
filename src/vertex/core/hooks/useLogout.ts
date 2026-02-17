@@ -6,6 +6,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { clearSessionData } from '../utils/sessionManager';
 import { clearTokenCache } from '../utils/secureApiProxyClient';
 import { setLastActiveModule } from '../utils/userPreferences';
+import { rememberAccount } from '../utils/rememberedAccounts';
 import logger from '@/lib/logger';
 import { useAppSelector, useAppDispatch } from '../redux/hooks';
 
@@ -33,6 +34,15 @@ export const useLogout = (callbackUrl?: string) => {
       if (email && pathname) {
         const currentModule = pathname.startsWith('/admin/') ? 'admin' : 'devices';
         setLastActiveModule(currentModule, email);
+      }
+
+      if (email) {
+        const displayName = `${userDetails?.firstName || ''} ${userDetails?.lastName || ''}`.trim() || userDetails?.userName || email;
+        rememberAccount({
+          email,
+          displayName,
+          profilePicture: userDetails?.profilePicture || '',
+        });
       }
       
       dispatch(setLoggingOut(true));

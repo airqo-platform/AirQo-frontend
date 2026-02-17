@@ -4,6 +4,7 @@
 
 @layer base {
   :root {
+    --vertex-ui-top-offset: 0px;
     /* Colors */
     --background: 246 246 247;
     --foreground: 28 29 32;

@@ -539,7 +539,7 @@ jobs:
             --cpu=1000m \
             --memory=256Mi \
             --update-secrets=/etc/env/.env=sta-env-vertex:latest \
-            --command="/bin/sh","-c","cat /etc/env/.env >> /app/.env; npm run start" \
+            --command="/bin/sh","-c","cat /etc/env/.env >> /app/.env; echo NEXTAUTH_URL= >> /app/.env; echo NEXTAUTH_COOKIE_DOMAIN= >> /app/.env; npm run start" \
             --allow-unauthenticated
 
       - name: Get preview service url

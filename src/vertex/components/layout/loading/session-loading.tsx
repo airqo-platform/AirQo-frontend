@@ -8,7 +8,9 @@ const SessionLoadingState = () => (
         role="status"
         aria-live="polite"
     >
-        <div className="secondary-main-loader" aria-label="Loading"></div>
+        <div className="flex flex-col items-center gap-3">
+            <div className="secondary-main-loader" aria-label="Loading"></div>
+        </div>
     </div>
 );
 

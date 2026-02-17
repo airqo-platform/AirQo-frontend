@@ -17,6 +17,12 @@ import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import { useAppDispatch } from "@/core/redux/hooks";
 import { setLoggingOut } from "@/core/redux/slices/userSlice";
 import { getLastActiveModule } from "@/core/utils/userPreferences";
+import {
+  getRememberedAccounts,
+  rememberAccount,
+  removeRememberedAccount,
+  type RememberedAccount,
+} from "@/core/utils/rememberedAccounts";
 
 const loginSchema = z.object({
   userName: z.string().email({ message: "Please enter a valid email address" }),
@@ -25,6 +31,7 @@ const loginSchema = z.object({
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
+  const [rememberedAccounts, setRememberedAccounts] = useState<RememberedAccount[]>([]);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -41,10 +48,22 @@ export default function LoginPage() {
     isMounted.current = true;
     // Reset logout state when login page mounts - this ensures suppression flags persist until we land here
     dispatch(setLoggingOut(false));
+    setRememberedAccounts(getRememberedAccounts());
     return () => {
       isMounted.current = false;
     };
   }, [dispatch]);
+
+  const handleUseRememberedAccount = useCallback((email: string) => {
+    form.setValue("userName", email, { shouldValidate: true });
+    form.setValue("password", "");
+    form.setFocus("password");
+  }, [form]);
+
+  const handleRemoveRememberedAccount = useCallback((id: string) => {
+    const updated = removeRememberedAccount(id);
+    setRememberedAccounts(updated);
+  }, []);
 
   const onSubmit = useCallback(async (values: z.infer<typeof loginSchema>) => {
     setIsLoading(true);
@@ -63,6 +82,13 @@ export default function LoginPage() {
       if (!isMounted.current) return;
 
       if (result?.ok) {
+        const existing = rememberedAccounts.find((item) => item.email.toLowerCase() === values.userName.toLowerCase());
+        rememberAccount({
+          email: values.userName,
+          displayName: existing?.displayName || values.userName,
+          profilePicture: existing?.profilePicture || "",
+        });
+        setRememberedAccounts(getRememberedAccounts());
         ReusableToast({ message: "Welcome back!", type: "SUCCESS" });
         window.location.href = redirectUrl;
       } else {
@@ -85,7 +111,7 @@ export default function LoginPage() {
       ReusableToast({ message, type: "ERROR" });
       setIsLoading(false);
     }
-  }, []);
+  }, [rememberedAccounts]);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-background to-muted/30 p-4">
@@ -108,6 +134,50 @@ export default function LoginPage() {
           </div>
         </div>
         <div className="flex flex-col">
+          {rememberedAccounts.length > 0 && (
+            <div className="mb-5 rounded-lg border border-border bg-card p-3">
+              <p className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">Recently used accounts</p>
+              <div className="space-y-2">
+                {rememberedAccounts.map((account) => (
+                  <div key={account.id} className="flex items-center justify-between gap-2 rounded-md border border-border px-3 py-2">
+                    <button
+                      type="button"
+                      onClick={() => handleUseRememberedAccount(account.email)}
+                      className="flex min-w-0 flex-1 items-center gap-2 text-left"
+                    >
+                      <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-semibold">
+                        {(account.displayName || account.email).charAt(0).toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-foreground">
+                          {account.displayName || account.email}
+                        </p>
+                        <p className="truncate text-xs text-muted-foreground">{account.email}</p>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveRememberedAccount(account.id)}
+                      className="text-xs text-muted-foreground hover:text-red-600"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  form.setValue("userName", "");
+                  form.setValue("password", "");
+                  form.setFocus("userName");
+                }}
+                className="mt-3 text-sm text-primary hover:underline"
+              >
+                Use a different account
+              </button>
+            </div>
+          )}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
