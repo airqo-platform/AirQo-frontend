@@ -67,6 +67,24 @@ Added Vertex-side configuration for shared NextAuth sessions across AirQo subdom
 </details>
 
 <details>
+<summary><strong>Desktop Application (5)</strong></summary>
+
+- **Electron Wrapper Project**: Introduced the dedicated desktop project at `src/vertex-desktop` with isolated runtime/build configuration.
+- **Desktop Runtime Architecture**: Added main-process modules for window lifecycle, updater integration, deep-link support, and permission handling.
+- **Preload Bridge APIs**: Added typed desktop bridge APIs (for example, app version/retry actions) exposed via preload for safe renderer access.
+- **Title Bar Overlay UX**: Added desktop title bar controls and overlay behavior tailored for wrapped Vertex navigation.
+- **Windows Packaging & Installer**: Added Windows installer/package configuration and release workflow support for updater-ready artifacts.
+
+</details>
+
+<details>
+<summary><strong>Desktop Release Notes (1)</strong></summary>
+
+- **Detailed Desktop Changelog**: Desktop-specific release history is tracked in `src/vertex-desktop/CHANGELOG.md`.
+
+</details>
+
+<details>
 <summary><strong>Files Modified (16)</strong></summary>
 
 - `package.json`
