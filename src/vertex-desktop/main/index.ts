@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import { app, BrowserWindow, ipcMain, nativeImage } from "electron";
 import { createMainWindow } from "./windows";
 import { setupPermissionHandlers } from "./permissions";
-import { setupAutoUpdates, checkForUpdates } from "./updates";
+import { setupAutoUpdates, checkForUpdates, setAutoUpdateWindow } from "./updates";
 import { registerDeepLinkProtocol, handleDeepLink } from "./deeplinks";
 import { setupMenu } from "./menu";
 
@@ -34,7 +34,7 @@ const createWindow = (): void => {
   const preloadPath = path.join(__dirname, "..", "preload", "index.js");
   process.env.VERTEX_DESKTOP_ICON_PATH = getAssetPath("icon.png");
   mainWindow = createMainWindow({ startUrl, preloadPath });
-  setupAutoUpdates(mainWindow);
+  setAutoUpdateWindow(mainWindow);
   const offlinePagePath = getAssetPath("offline.html");
 
   const emitNavigationState = (): void => {
@@ -98,6 +98,7 @@ app.whenReady().then(async () => {
   setupMenu();
   setupPermissionHandlers();
   createWindow();
+  setupAutoUpdates();
 
   if (!isDev) {
     await checkForUpdates();

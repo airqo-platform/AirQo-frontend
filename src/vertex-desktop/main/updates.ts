@@ -2,7 +2,26 @@ import { BrowserWindow, dialog } from "electron";
 import log from "electron-log";
 import { autoUpdater } from "electron-updater";
 
-export const setupAutoUpdates = (window: BrowserWindow): void => {
+let isAutoUpdateSetup = false;
+let activeWindow: BrowserWindow | null = null;
+
+const getDialogWindow = (): BrowserWindow | undefined => {
+  if (activeWindow && !activeWindow.isDestroyed()) {
+    return activeWindow;
+  }
+  return undefined;
+};
+
+export const setAutoUpdateWindow = (window: BrowserWindow): void => {
+  activeWindow = window;
+};
+
+export const setupAutoUpdates = (): void => {
+  if (isAutoUpdateSetup) {
+    return;
+  }
+  isAutoUpdateSetup = true;
+
   autoUpdater.logger = log;
   autoUpdater.autoDownload = false;
 
@@ -11,7 +30,7 @@ export const setupAutoUpdates = (window: BrowserWindow): void => {
   });
 
   autoUpdater.on("update-available", async () => {
-    const result = await dialog.showMessageBox(window, {
+    const result = await dialog.showMessageBox(getDialogWindow(), {
       type: "info",
       title: "Update available",
       message: "A new version is available. Download now?",
@@ -26,7 +45,7 @@ export const setupAutoUpdates = (window: BrowserWindow): void => {
   });
 
   autoUpdater.on("update-downloaded", async () => {
-    const result = await dialog.showMessageBox(window, {
+    const result = await dialog.showMessageBox(getDialogWindow(), {
       type: "info",
       title: "Install update",
       message: "Update downloaded. Restart to install now?",
