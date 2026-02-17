@@ -17,6 +17,16 @@ class LoadSurveys extends SurveyEvent {
   List<Object?> get props => [forceRefresh];
 }
 
+/// Load available surveys in guest mode (no authentication)
+class LoadSurveysGuest extends SurveyEvent {
+  final bool forceRefresh;
+
+  const LoadSurveysGuest({this.forceRefresh = false});
+
+  @override
+  List<Object?> get props => [forceRefresh];
+}
+
 /// Load a specific survey
 class LoadSurvey extends SurveyEvent {
   final String surveyId;
@@ -67,6 +77,11 @@ class SkipQuestion extends SurveyEvent {
 /// Submit survey response
 class SubmitSurvey extends SurveyEvent {
   const SubmitSurvey();
+}
+
+/// Submit survey response in guest mode (no authentication)
+class SubmitSurveyGuest extends SurveyEvent {
+  const SubmitSurveyGuest();
 }
 
 /// Load user's survey responses

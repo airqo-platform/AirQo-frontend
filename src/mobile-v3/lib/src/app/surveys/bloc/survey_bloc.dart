@@ -15,6 +15,7 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
 
   SurveyBloc(this.repository) : super(SurveyInitial()) {
     on<LoadSurveys>(_onLoadSurveys);
+    on<LoadSurveysGuest>(_onLoadSurveysGuest);
     on<LoadSurvey>(_onLoadSurvey);
     on<StartSurvey>(_onStartSurvey);
     on<AnswerQuestion>(_onAnswerQuestion);
@@ -22,6 +23,7 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
     on<PreviousQuestion>(_onPreviousQuestion);
     on<SkipQuestion>(_onSkipQuestion);
     on<SubmitSurvey>(_onSubmitSurvey);
+    on<SubmitSurveyGuest>(_onSubmitSurveyGuest);
     on<LoadSurveyResponses>(_onLoadSurveyResponses);
     on<LoadSurveyStats>(_onLoadSurveyStats);
     on<RetryFailedSubmissions>(_onRetryFailedSubmissions);
@@ -29,8 +31,10 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
     on<UpdateSurveyProgress>(_onUpdateSurveyProgress);
   }
 
-  Future<void> _onLoadSurveys(LoadSurveys event, Emitter<SurveyState> emit) async {
-    final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
+  Future<void> _onLoadSurveys(
+      LoadSurveys event, Emitter<SurveyState> emit) async {
+    final userId =
+        await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
     if (userId == null) {
       loggy.warning('Skipping survey load - user not authenticated');
       emit(SurveysLoaded(const [], userResponses: const []));
@@ -39,7 +43,8 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
 
     emit(SurveyLoading());
     try {
-      final surveys = await repository.getSurveys(forceRefresh: event.forceRefresh);
+      final surveys =
+          await repository.getSurveys(forceRefresh: event.forceRefresh);
       final userResponses = await repository.getSurveyResponses();
 
       emit(SurveysLoaded(surveys, userResponses: userResponses));
@@ -55,7 +60,27 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
     }
   }
 
-  Future<void> _onLoadSurvey(LoadSurvey event, Emitter<SurveyState> emit) async {
+  Future<void> _onLoadSurveysGuest(
+      LoadSurveysGuest event, Emitter<SurveyState> emit) async {
+    emit(SurveyLoading());
+    try {
+      final surveys =
+          await repository.getSurveysGuest(forceRefresh: event.forceRefresh);
+
+      emit(SurveysLoaded(surveys, userResponses: const []));
+      loggy.info('Loaded ${surveys.length} surveys (guest mode)');
+
+      for (final survey in surveys) {
+        await AnalyticsService().trackSurveyPresented(surveyId: survey.id);
+      }
+    } catch (e) {
+      loggy.error('Error loading surveys (guest): $e');
+      emit(SurveyError('Failed to load surveys', error: e));
+    }
+  }
+
+  Future<void> _onLoadSurvey(
+      LoadSurvey event, Emitter<SurveyState> emit) async {
     emit(SurveyLoading());
     try {
       final survey = await repository.getSurvey(event.surveyId);
@@ -71,7 +96,8 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
     }
   }
 
-  Future<void> _onStartSurvey(StartSurvey event, Emitter<SurveyState> emit) async {
+  Future<void> _onStartSurvey(
+      StartSurvey event, Emitter<SurveyState> emit) async {
     try {
       final responseId = DateTime.now().millisecondsSinceEpoch.toString();
       final startTime = DateTime.now();
@@ -117,7 +143,8 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
     }
   }
 
-  Future<void> _onAnswerQuestion(AnswerQuestion event, Emitter<SurveyState> emit) async {
+  Future<void> _onAnswerQuestion(
+      AnswerQuestion event, Emitter<SurveyState> emit) async {
     if (state is SurveyInProgress) {
       final currentState = state as SurveyInProgress;
       final updatedAnswers = Map<String, dynamic>.from(currentState.answers);
@@ -131,7 +158,8 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
       );
 
       // Update current response
-      final updatedResponseAnswers = List<SurveyAnswer>.from(currentState.currentResponse.answers);
+      final updatedResponseAnswers =
+          List<SurveyAnswer>.from(currentState.currentResponse.answers);
       final existingAnswerIndex = updatedResponseAnswers.indexWhere(
         (a) => a.questionId == event.questionId,
       );
@@ -159,7 +187,8 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
     }
   }
 
-  Future<void> _onNextQuestion(NextQuestion event, Emitter<SurveyState> emit) async {
+  Future<void> _onNextQuestion(
+      NextQuestion event, Emitter<SurveyState> emit) async {
     if (state is SurveyInProgress) {
       final currentState = state as SurveyInProgress;
 
@@ -183,13 +212,15 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
     }
   }
 
-  Future<void> _onPreviousQuestion(PreviousQuestion event, Emitter<SurveyState> emit) async {
+  Future<void> _onPreviousQuestion(
+      PreviousQuestion event, Emitter<SurveyState> emit) async {
     if (state is SurveyInProgress) {
       final currentState = state as SurveyInProgress;
 
       if (!currentState.isFirstQuestion) {
         final previousQuestionIndex = currentState.currentQuestionIndex - 1;
-        final previousQuestion = currentState.survey.questions[previousQuestionIndex];
+        final previousQuestion =
+            currentState.survey.questions[previousQuestionIndex];
 
         emit(currentState.copyWith(
           currentQuestionIndex: previousQuestionIndex,
@@ -207,11 +238,12 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
     }
   }
 
-  Future<void> _onSkipQuestion(SkipQuestion event, Emitter<SurveyState> emit) async {
+  Future<void> _onSkipQuestion(
+      SkipQuestion event, Emitter<SurveyState> emit) async {
     if (state is SurveyInProgress) {
       final currentState = state as SurveyInProgress;
       final currentQuestion = currentState.currentQuestion;
-      
+
       if (currentQuestion != null && !currentQuestion.isRequired) {
         // Move to next question if not the last one
         if (!currentState.isLastQuestion) {
@@ -224,12 +256,14 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
     }
   }
 
-  Future<void> _onSubmitSurvey(SubmitSurvey event, Emitter<SurveyState> emit) async {
+  Future<void> _onSubmitSurvey(
+      SubmitSurvey event, Emitter<SurveyState> emit) async {
     if (state is SurveyInProgress) {
       final currentState = state as SurveyInProgress;
-      
+
       if (!currentState.canSubmit) {
-        emit(SurveyError('Please answer all required questions before submitting'));
+        emit(SurveyError(
+            'Please answer all required questions before submitting'));
         return;
       }
 
@@ -257,7 +291,8 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
         );
 
         if (success) {
-          loggy.info('Successfully submitted survey: ${currentState.survey.title}');
+          loggy.info(
+              'Successfully submitted survey: ${currentState.survey.title}');
         } else {
           loggy.warning('Survey saved locally but failed to sync with server');
         }
@@ -272,10 +307,73 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
     }
   }
 
-  Future<void> _onLoadSurveyResponses(LoadSurveyResponses event, Emitter<SurveyState> emit) async {
+  Future<void> _onSubmitSurveyGuest(
+      SubmitSurveyGuest event, Emitter<SurveyState> emit) async {
+    if (state is SurveyInProgress) {
+      final currentState = state as SurveyInProgress;
+
+      if (!currentState.canSubmit) {
+        emit(SurveyError(
+            'Please answer all required questions before submitting'));
+        return;
+      }
+
+      emit(SurveySubmissionLoading(currentState.currentResponse));
+
+      try {
+        final completedAt = DateTime.now();
+        final answers = currentState.currentResponse.answers
+            .map((a) => SurveyAnswer(
+                  questionId: a.questionId,
+                  answer: a.answer,
+                  answeredAt: DateTime.now(),
+                ))
+            .toList();
+
+        final success = await repository.submitSurveyResponseGuest(
+          surveyId: currentState.survey.id,
+          answers: answers,
+          contextData: currentState.contextData,
+          startedAt: currentState.currentResponse.startedAt,
+        );
+
+        final guestResponse = currentState.currentResponse.copyWith(
+          status: SurveyResponseStatus.completed,
+          completedAt: completedAt,
+        );
+
+        emit(SurveySubmitted(guestResponse, submittedSuccessfully: success));
+
+        await AnalyticsService().trackSurveyCompleted(
+          surveyId: currentState.survey.id,
+          responseTime: completedAt
+              .difference(currentState.currentResponse.startedAt ?? completedAt)
+              .inSeconds,
+        );
+
+        if (success) {
+          loggy.info(
+              'Successfully submitted guest survey: ${currentState.survey.title}');
+        } else {
+          loggy.warning('Guest survey submission failed');
+        }
+      } catch (e) {
+        loggy.error('Error submitting guest survey: $e');
+        await AnalyticsService().trackSurveySubmissionFailed(
+          surveyId: currentState.survey.id,
+          error: e.toString(),
+        );
+        emit(SurveyError('Failed to submit survey', error: e));
+      }
+    }
+  }
+
+  Future<void> _onLoadSurveyResponses(
+      LoadSurveyResponses event, Emitter<SurveyState> emit) async {
     emit(SurveyLoading());
     try {
-      final responses = await repository.getSurveyResponses(surveyId: event.surveyId);
+      final responses =
+          await repository.getSurveyResponses(surveyId: event.surveyId);
       emit(SurveyResponsesLoaded(responses, surveyId: event.surveyId));
       loggy.info('Loaded ${responses.length} survey responses');
     } catch (e) {
@@ -284,7 +382,8 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
     }
   }
 
-  Future<void> _onLoadSurveyStats(LoadSurveyStats event, Emitter<SurveyState> emit) async {
+  Future<void> _onLoadSurveyStats(
+      LoadSurveyStats event, Emitter<SurveyState> emit) async {
     emit(SurveyLoading());
     try {
       final stats = await repository.getSurveyStats(event.surveyId);
@@ -300,18 +399,19 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
     }
   }
 
-  Future<void> _onRetryFailedSubmissions(RetryFailedSubmissions event, Emitter<SurveyState> emit) async {
+  Future<void> _onRetryFailedSubmissions(
+      RetryFailedSubmissions event, Emitter<SurveyState> emit) async {
     int retryCount = 0;
     const maxRetries = 3;
-    
+
     emit(SurveyRetryInProgress(retryCount));
-    
+
     try {
       // Emit progress updates for each retry attempt
       for (int attempt = 1; attempt <= maxRetries; attempt++) {
         retryCount = attempt;
         emit(SurveyRetryInProgress(retryCount));
-        
+
         try {
           await repository.retryFailedSubmissions(maxRetries: maxRetries);
           break; // Success, exit retry loop
@@ -324,29 +424,32 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
           loggy.warning('Retry attempt $attempt failed: $e');
         }
       }
-      
+
       // Reload surveys to reflect updated status
       final surveys = await repository.getSurveys();
       final userResponses = await repository.getSurveyResponses();
       emit(SurveysLoaded(surveys, userResponses: userResponses));
-      
+
       loggy.info('Retry completed successfully after $retryCount attempts');
     } catch (e) {
       loggy.error('Error during retry after $maxRetries attempts: $e');
-      emit(SurveyError('Failed to retry submissions after $maxRetries attempts', error: e));
+      emit(SurveyError('Failed to retry submissions after $maxRetries attempts',
+          error: e));
     }
   }
 
-  Future<void> _onResetSurvey(ResetSurvey event, Emitter<SurveyState> emit) async {
+  Future<void> _onResetSurvey(
+      ResetSurvey event, Emitter<SurveyState> emit) async {
     emit(SurveyInitial());
     loggy.info('Survey state reset');
   }
 
-  Future<void> _onUpdateSurveyProgress(UpdateSurveyProgress event, Emitter<SurveyState> emit) async {
+  Future<void> _onUpdateSurveyProgress(
+      UpdateSurveyProgress event, Emitter<SurveyState> emit) async {
     if (state is SurveyInProgress) {
       final currentState = state as SurveyInProgress;
-      
-      if (event.currentQuestionIndex >= 0 && 
+
+      if (event.currentQuestionIndex >= 0 &&
           event.currentQuestionIndex < currentState.survey.questions.length) {
         emit(currentState.copyWith(
           currentQuestionIndex: event.currentQuestionIndex,
