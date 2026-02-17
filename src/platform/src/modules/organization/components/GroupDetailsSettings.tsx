@@ -163,6 +163,10 @@ const GroupDetailsSettings: React.FC = () => {
       });
       toast.success('Group title updated successfully');
       await refreshGroupDetails();
+      // Reload to ensure UI (header/sidebar) reflects the updated title immediately
+      setTimeout(() => {
+        if (typeof window !== 'undefined') window.location.reload();
+      }, 500);
     } catch (error) {
       const errorMessage = getUserFriendlyErrorMessage(error);
       toast.error('Failed to update group title', errorMessage);
@@ -181,6 +185,10 @@ const GroupDetailsSettings: React.FC = () => {
       await userService.setGroupManager(activeGroup.id, selectedManager);
       toast.success('Group manager updated successfully');
       await refreshGroupDetails();
+      // Reload so manager changes are reflected across the app
+      setTimeout(() => {
+        if (typeof window !== 'undefined') window.location.reload();
+      }, 500);
     } catch (error) {
       const errorMessage = getUserFriendlyErrorMessage(error);
       toast.error('Failed to update group manager', errorMessage);
@@ -216,12 +224,14 @@ const GroupDetailsSettings: React.FC = () => {
           if (oldPublicId) {
             try {
               await deleteFromCloudinary(oldPublicId);
+              console.log('Successfully deleted old group logo:', oldPublicId);
             } catch (deleteError) {
+              // Log but don't block - orphaned images are better than blocked uploads
               console.warn(
-                'Failed to delete old group logo from Cloudinary:',
-                deleteError
+                'Failed to delete old group logo from Cloudinary (non-critical):',
+                deleteError instanceof Error ? deleteError.message : deleteError
               );
-              // Don't block the update if deletion fails
+              // Continue with upload regardless of deletion result
             }
           }
         }
@@ -244,6 +254,10 @@ const GroupDetailsSettings: React.FC = () => {
       setSelectedImage(null); // Reset selected image state
 
       await refreshGroupDetails();
+      // Reload to ensure all UI (header, sidebar, profile) shows updated group info
+      setTimeout(() => {
+        if (typeof window !== 'undefined') window.location.reload();
+      }, 500);
     } catch (error) {
       const errorMessage = getUserFriendlyErrorMessage(error);
       toast.error('Failed to update group details', errorMessage);
