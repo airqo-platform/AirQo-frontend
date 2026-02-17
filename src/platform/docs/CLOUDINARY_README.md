@@ -47,7 +47,7 @@ const handleFileUpload = async (file: File) => {
       quality: 'auto',
       format: 'auto',
     });
-    
+
     console.log('Upload successful:', result.secure_url);
   } catch (error) {
     console.error('Upload failed:', error.message);
@@ -55,30 +55,22 @@ const handleFileUpload = async (file: File) => {
 };
 ```
 
-### Profile Image Upload (with session user)
+### Profile Image Upload
 
 ```typescript
 import { uploadProfileImage } from '@/shared/utils/cloudinaryUpload';
-import { useSession } from 'next-auth/react';
 
 const ProfileImageUpload = () => {
-  const { data: session } = useSession();
-  
   const handleProfileUpload = async (file: File) => {
-    const sessionUser = session?.user as { firstName?: string; lastName?: string; email?: string };
-    const userName = sessionUser?.firstName && sessionUser?.lastName 
-      ? `${sessionUser.firstName}_${sessionUser.lastName}`
-      : sessionUser?.email?.split('@')[0] || 'user';
-    
     try {
-      const result = await uploadProfileImage(file, userName, {
-        onProgress: (progress) => {
+      const result = await uploadProfileImage(file, {
+        onProgress: progress => {
           console.log(`Upload progress: ${progress}%`);
-        }
+        },
       });
-      
+
       // result.secure_url contains the uploaded image URL
-      // Folder structure: profiles/john_doe/[timestamp]_[random].jpg
+      // All profile images are stored in the 'profiles' folder
     } catch (error) {
       console.error('Profile upload failed:', error.message);
     }
@@ -94,11 +86,11 @@ import { uploadToCloudinary } from '@/shared/utils/cloudinaryUpload';
 const UploadWithProgress = () => {
   const [progress, setProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
-  
+
   const handleUpload = async (file: File) => {
     setUploading(true);
     setProgress(0);
-    
+
     try {
       await uploadToCloudinary(file, {
         folder: 'documents',
@@ -110,7 +102,7 @@ const UploadWithProgress = () => {
       setUploading(false);
     }
   };
-  
+
   return (
     <div>
       {uploading && <div>Upload progress: {progress}%</div>}
@@ -130,7 +122,7 @@ const optimizedUrl = getOptimizedImageUrl('profiles/john_doe/avatar.jpg', {
   height: 300,
   quality: 'auto',
   format: 'auto',
-  crop: 'fill'
+  crop: 'fill',
 });
 ```
 
@@ -141,37 +133,40 @@ const optimizedUrl = getOptimizedImageUrl('profiles/john_doe/avatar.jpg', {
 Main upload function with full customization options.
 
 **Parameters:**
+
 - `file: File` - The file to upload
 - `options: CloudinaryUploadOptions` - Upload configuration
 
 **Options:**
+
 ```typescript
 interface CloudinaryUploadOptions {
-  folder?: string;              // Folder path in Cloudinary
-  publicId?: string;           // Custom public ID
-  tags?: string[];             // Tags for the uploaded file
-  transformation?: string;     // Cloudinary transformation string
-  quality?: 'auto' | number;   // Image quality
+  folder?: string; // Folder path in Cloudinary
+  publicId?: string; // Custom public ID
+  tags?: string[]; // Tags for the uploaded file
+  transformation?: string; // Cloudinary transformation string
+  quality?: 'auto' | number; // Image quality
   format?: 'auto' | 'jpg' | 'png' | 'webp'; // Output format
-  overwrite?: boolean;         // Overwrite existing files
-  uniqueFilename?: boolean;    // Generate unique filename
+  overwrite?: boolean; // Overwrite existing files
+  uniqueFilename?: boolean; // Generate unique filename
   onProgress?: (progress: number) => void; // Progress callback
 }
 ```
 
-### `uploadProfileImage(file, userName, options)`
+### `uploadProfileImage(file, options)`
 
 Convenience function for profile image uploads.
 
 **Parameters:**
+
 - `file: File` - The image file to upload
-- `userName: string` - User identifier for folder structure
-- `options: Omit<CloudinaryUploadOptions, 'folder'>` - Upload options (folder is auto-generated)
+- `options: Omit<CloudinaryUploadOptions, 'folder'>` - Upload options (folder is auto-set to 'profiles')
 
 **Folder Structure:**
-- Creates folders like: `profiles/john_doe/[filename]`
+
+- All profile images are stored in: `profiles/[filename]`
 - Automatically adds profile-related tags
-- Optimizes for profile images (quality: auto, format: auto)
+- Optimized for profile images
 
 ### `getOptimizedImageUrl(publicId, options)`
 
@@ -180,6 +175,7 @@ Generate optimized Cloudinary URLs for existing images.
 ## File Validation
 
 The utility automatically validates:
+
 - **File Type**: Only allows image formats (JPEG, PNG, WebP, GIF)
 - **File Size**: Maximum 10MB (configurable)
 - **File Content**: Ensures file is not empty
@@ -187,6 +183,7 @@ The utility automatically validates:
 ## Error Handling
 
 The utility provides descriptive error messages for:
+
 - Invalid file formats
 - File size exceeded
 - Network errors
@@ -221,9 +218,9 @@ my-app/
 ```typescript
 import { CLOUDINARY_CONSTANTS } from '@/shared/utils/cloudinaryUpload';
 
-console.log(CLOUDINARY_CONSTANTS.MAX_FILE_SIZE);     // 10485760 (10MB)
-console.log(CLOUDINARY_CONSTANTS.ALLOWED_FORMATS);   // ['image/jpeg', ...]
-console.log(CLOUDINARY_CONSTANTS.MAX_RETRIES);       // 3
+console.log(CLOUDINARY_CONSTANTS.MAX_FILE_SIZE); // 10485760 (10MB)
+console.log(CLOUDINARY_CONSTANTS.ALLOWED_FORMATS); // ['image/jpeg', ...]
+console.log(CLOUDINARY_CONSTANTS.MAX_RETRIES); // 3
 ```
 
 ## Best Practices

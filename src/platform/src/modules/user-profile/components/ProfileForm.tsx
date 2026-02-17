@@ -179,19 +179,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ userId }) => {
 
       // Upload only when user pressed Save
       if (pendingImage) {
-        const sessionUser = session?.user as {
-          firstName?: string;
-          lastName?: string;
-          email?: string;
-        };
-        const userName =
-          sessionUser?.firstName && sessionUser?.lastName
-            ? `${sessionUser.firstName.charAt(0).toUpperCase()}${sessionUser.firstName
-                .slice(1)
-                .toLowerCase()}_${sessionUser.lastName.toLowerCase()}`
-            : sessionUser?.email?.split('@')[0] || 'user';
-
-        const uploadRes = await uploadProfileImage(pendingImage, userName);
+        const uploadRes = await uploadProfileImage(pendingImage);
         finalPictureUrl = uploadRes.secure_url;
       }
 

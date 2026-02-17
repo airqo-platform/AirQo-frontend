@@ -116,17 +116,15 @@ export async function uploadToCloudinary(
 
 /**
  * Convenience function for profile image uploads
+ * All profile images are stored in the 'profiles' folder
  */
 export async function uploadProfileImage(
   file: File,
-  userName: string,
   options: Omit<CloudinaryUploadOptions, 'folder'> = {}
 ): Promise<CloudinaryUploadResult> {
-  const sanitizedUserName = sanitizeFolder(userName);
-
   return uploadToCloudinary(file, {
     ...options,
-    folder: `profiles/${sanitizedUserName}`,
+    folder: 'profiles',
     tags: ['profile', 'user-avatar', ...(options.tags || [])],
   });
 }
