@@ -1,6 +1,6 @@
 import path from "node:path";
 import dotenv from "dotenv";
-import { app, BrowserWindow, ipcMain } from "electron";
+import { app, BrowserWindow, ipcMain, nativeImage } from "electron";
 import { createMainWindow } from "./windows";
 import { setupPermissionHandlers } from "./permissions";
 import { setupAutoUpdates, checkForUpdates } from "./updates";
@@ -25,10 +25,45 @@ const createWindow = (): void => {
   const preloadPath = path.join(__dirname, "..", "preload", "index.js");
   mainWindow = createMainWindow({ startUrl, preloadPath });
   setupAutoUpdates(mainWindow);
+
+  const emitNavigationState = (): void => {
+    if (!mainWindow) return;
+    mainWindow.webContents.send("vertex-desktop:navigation-state", {
+      canGoBack: mainWindow.webContents.canGoBack()
+    });
+  };
+
+  mainWindow.webContents.on("did-finish-load", emitNavigationState);
+  mainWindow.webContents.on("did-navigate", emitNavigationState);
+  mainWindow.webContents.on("did-navigate-in-page", emitNavigationState);
 };
 
 app.whenReady().then(async () => {
   ipcMain.handle("vertex-desktop:get-app-version", () => app.getVersion());
+  ipcMain.handle("vertex-desktop:get-branding", () => {
+    const iconPath = path.join(__dirname, "..", "..", "assets", "icon.png");
+    const icon = nativeImage.createFromPath(iconPath);
+    return {
+      name: "AirQo Vertex",
+      iconDataUrl: icon.isEmpty() ? "" : icon.toDataURL()
+    };
+  });
+  ipcMain.handle("vertex-desktop:nav-reload", () => {
+    if (!mainWindow) return false;
+    mainWindow.webContents.reload();
+    return true;
+  });
+  ipcMain.handle("vertex-desktop:nav-back", () => {
+    if (!mainWindow) return false;
+    if (mainWindow.webContents.canGoBack()) {
+      mainWindow.webContents.goBack();
+      return true;
+    }
+    return false;
+  });
+  ipcMain.handle("vertex-desktop:can-go-back", () => {
+    return mainWindow?.webContents.canGoBack() ?? false;
+  });
   registerDeepLinkProtocol();
   setupMenu();
   setupPermissionHandlers();

@@ -8,6 +8,7 @@ interface CreateWindowArgs {
 
 export const createMainWindow = ({ startUrl, preloadPath }: CreateWindowArgs): BrowserWindow => {
   const window = new BrowserWindow({
+    title: "AirQo Vertex",
     width: 1440,
     height: 900,
     minWidth: 1100,
@@ -15,6 +16,12 @@ export const createMainWindow = ({ startUrl, preloadPath }: CreateWindowArgs): B
     show: false,
     autoHideMenuBar: true,
     backgroundColor: "#0b1324",
+    titleBarStyle: "hidden",
+    titleBarOverlay: {
+      color: "#0f1115",
+      symbolColor: "#e5e7eb",
+      height: 30
+    },
     webPreferences: {
       preload: preloadPath,
       contextIsolation: true,
