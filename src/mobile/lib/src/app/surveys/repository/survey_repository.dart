@@ -28,20 +28,12 @@ class SurveyRepository extends BaseRepository with UiLoggy {
         return _getMockSurveys(forceRefresh: forceRefresh);
       }
 
-      if (!forceRefresh) {
-        final cachedSurveys = await _getCachedSurveys();
-        if (cachedSurveys.isNotEmpty) {
-          loggy.info('Returning ${cachedSurveys.length} cached surveys');
-          return cachedSurveys;
-        }
-      }
-
       final queryParams = {
         'isActive': 'true',
         'limit': '100',
       };
 
-      final response = await createAuthenticatedGetRequest(_surveysEndpoint, queryParams);
+      final response = await createGetRequest(_surveysEndpoint, queryParams);
       final data = json.decode(response.body);
 
       if (data['success'] == true && data['surveys'] != null) {
@@ -50,8 +42,6 @@ class SurveyRepository extends BaseRepository with UiLoggy {
             .where((survey) => survey.isActive && !survey.isExpired)
             .toList();
 
-        await _cacheSurveys(surveys);
-
         loggy.info('Fetched ${surveys.length} active surveys from API');
         return surveys;
       } else {
@@ -59,12 +49,6 @@ class SurveyRepository extends BaseRepository with UiLoggy {
       }
     } catch (e) {
       loggy.error('Error fetching surveys: $e');
-
-      final cachedSurveys = await _getCachedSurveys();
-      if (cachedSurveys.isNotEmpty) {
-        loggy.info('Returning ${cachedSurveys.length} cached surveys as fallback');
-        return cachedSurveys;
-      }
 
       if (e.toString().contains('session has expired') ||
           e.toString().contains('Authentication token not found')) {

@@ -166,13 +166,11 @@ class ExposureDashboardView extends StatefulWidget {
 }
 
 class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLoggy {
-  int _selectedTabIndex = 0; // 0 for Today, 1 for This week
   bool _isRequestingPermission = false;
   bool _showGuide = false;
   final EnhancedLocationServiceManager _locationService = EnhancedLocationServiceManager();
   
   DailyExposureSummary? _todayExposure;
-  List<DailyExposureSummary> _weeklyData = [];
   bool _hasLocationPermission = false;
   bool _isLoadingData = false;
   String? _errorMessage;
@@ -247,17 +245,12 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
       
       // Try to get real exposure data first
       final todayData = await calculator.getTodayExposure();
-      
-      // Get weekly data
-      final weeklyTrend = await calculator.getCurrentWeekTrend();
-      final weeklyData = weeklyTrend?.dailySummaries ?? [];
-      
+
       if (mounted) {
         if (todayData != null && todayData.dataPoints.isNotEmpty) {
           // Use real calculated data
           setState(() {
             _todayExposure = todayData;
-            _weeklyData = weeklyData;
             _isLoadingData = false;
             _errorMessage = null;
           });
@@ -269,11 +262,9 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
         } else {
           // Fall back to mock data if no real data available
           final mockTodayData = MockExposureData.generateTodayExposure();
-          final mockWeeklyData = MockExposureData.generateWeeklyData();
 
           setState(() {
             _todayExposure = mockTodayData;
-            _weeklyData = mockWeeklyData;
             _isLoadingData = false;
             _errorMessage = null;
           });
@@ -313,29 +304,7 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                 
-                // Tab selector
-                Container(
-                  height: 44,
-                  alignment: Alignment.centerLeft,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _buildTabButton(
-                        label: "Today",
-                        isSelected: _selectedTabIndex == 0,
-                        onTap: () => setState(() => _selectedTabIndex = 0),
-                      ),
-                      const SizedBox(width: 8),
-                      _buildTabButton(
-                        label: "This week",
-                        isSelected: _selectedTabIndex == 1,
-                        onTap: () => setState(() => _selectedTabIndex = 1),
-                      ),
-                    ],
-                  ),
-                ),
-                
-                const SizedBox(height: 25),
+                const SizedBox(height: 8),
                 
                 // Content based on permission status
                 if (_isLoadingData)
@@ -363,9 +332,7 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
       children: [
         // Title
         Text(
-          _selectedTabIndex == 0 
-              ? 'Today\'s exposure summary'
-              : 'Weekly exposure summary',
+          'Today\'s exposure summary',
           style: TextStyle(
             fontSize: 16,
             color: Theme.of(context)
@@ -443,9 +410,7 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
       children: [
         // Title
         Text(
-          _selectedTabIndex == 0 
-              ? 'Today\'s exposure summary'
-              : 'Weekly exposure summary',
+          'Today\'s exposure summary',
           style: TextStyle(
             fontSize: 16,
             color: Theme.of(context)
@@ -554,7 +519,7 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
   }
 
   Widget _buildExposureContent() {
-    final currentData = _selectedTabIndex == 0 ? _todayExposure : (_weeklyData.isNotEmpty ? _weeklyData.last : null);
+    final currentData = _todayExposure;
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -572,9 +537,7 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
         
         // Subtitle with time range
         Text(
-          _selectedTabIndex == 0 
-              ? 'Today\'s exposure summary'
-              : 'Weekly exposure summary',
+          'Today\'s exposure summary',
           style: TextStyle(
             fontSize: 16,
             color: Theme.of(context)
@@ -591,14 +554,12 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
         Container(
           width: double.infinity,
           decoration: BoxDecoration(
-            color: Theme.of(context).highlightColor,
-            borderRadius: BorderRadius.circular(16),
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.black.withValues(alpha: 0.3)
-                    : Colors.black.withValues(alpha: 0.08),
-                blurRadius: 10,
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 4,
                 offset: const Offset(0, 2),
               ),
             ],
@@ -927,13 +888,11 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: Theme.of(context).highlightColor,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.black.withValues(alpha: 0.3)
-                    : Colors.black.withValues(alpha: 0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 4,
                 offset: Offset(0, 2),
               ),
@@ -1127,7 +1086,7 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
                     ),
                     Row(children: [
                       Text(
-                        peakPm25.toStringAsFixed(2),
+                        peakPm25.toStringAsFixed(1),
                         style: TextStyle(
                             fontWeight: FontWeight.w700,
                             fontSize: 36,
@@ -1446,15 +1405,13 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
   Widget _buildGuidePopup() {
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).highlightColor,
-        borderRadius: BorderRadius.circular(16),
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.black.withValues(alpha: 0.3)
-                : Colors.black.withValues(alpha: 0.15),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -1866,7 +1823,7 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
   String _getDynamicDescription(DailyExposureSummary? data) {
     if (data == null) return 'Unable to load exposure data. Please check your location settings.';
     
-    final timeFrame = _selectedTabIndex == 0 ? 'past 24 hours' : 'this week';
+    final timeFrame = 'past 24 hours';
     final outdoorHours = data.totalOutdoorTime.inHours;
     final outdoorMinutes = data.totalOutdoorTime.inMinutes % 60;
     final timeSpent = outdoorHours > 0 
@@ -1885,35 +1842,4 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
     }
   }
 
-  Widget _buildTabButton({
-    required String label,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primaryColor
-              : Theme.of(context).brightness == Brightness.dark
-                  ? AppColors.darkHighlight
-                  : AppColors.dividerColorlight,
-          borderRadius: BorderRadius.circular(30),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected
-                ? Colors.white
-                : Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white
-                    : Colors.black87,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ),
-    );
-  }
 }

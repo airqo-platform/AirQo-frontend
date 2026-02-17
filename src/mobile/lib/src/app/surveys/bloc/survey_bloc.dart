@@ -30,13 +30,6 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
   }
 
   Future<void> _onLoadSurveys(LoadSurveys event, Emitter<SurveyState> emit) async {
-    final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
-    if (userId == null) {
-      loggy.warning('Skipping survey load - user not authenticated');
-      emit(SurveysLoaded(const [], userResponses: const []));
-      return;
-    }
-
     emit(SurveyLoading());
     try {
       final surveys = await repository.getSurveys(forceRefresh: event.forceRefresh);
@@ -77,7 +70,7 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
       final startTime = DateTime.now();
 
       // Get current user ID from auth token
-      final userId = await AuthHelper.getCurrentUserId() ?? '';
+      final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true) ?? 'guest';
 
       // Create initial survey response
       final response = SurveyResponse(

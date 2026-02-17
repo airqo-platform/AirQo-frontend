@@ -147,7 +147,7 @@ class _DashboardHeaderState extends State<DashboardHeader> {
         }
 
         if (authState is GuestUser) {
-          return _buildGuestGreeting(context);
+          return _buildDefaultGreeting(context);
         }
 
         if (authState is AuthLoaded) {
@@ -168,17 +168,6 @@ class _DashboardHeaderState extends State<DashboardHeader> {
   Widget _buildDefaultGreeting(BuildContext context) {
     return Text(
       "Hi, 👋",
-      style: TextStyle(
-        fontSize: 28,
-        fontWeight: FontWeight.w700,
-        color: Theme.of(context).textTheme.headlineLarge?.color,
-      ),
-    );
-  }
-
-  Widget _buildGuestGreeting(BuildContext context) {
-    return Text(
-      "Hi, Guest 👋🏼",
       style: TextStyle(
         fontSize: 28,
         fontWeight: FontWeight.w700,

@@ -436,11 +436,7 @@ class SurveyTriggerService with UiLoggy {
   }
 
   Future<void> _handleBehaviorResponse(String alertId, bool followed, Map<String, dynamic> alertContext) async {
-    final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
-    if (userId == null) {
-      loggy.warning('Cannot handle behavior response: no authenticated user');
-      return;
-    }
+    final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true) ?? 'guest';
 
     final context = _navigationService.currentContext;
     if (context == null || !context.mounted) return;
@@ -461,11 +457,7 @@ class SurveyTriggerService with UiLoggy {
   }
 
   Future<void> _handleAlertDismissed(String alertId, Map<String, dynamic> alertContext) async {
-    final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
-    if (userId == null) {
-      loggy.warning('Cannot save alert dismissal: no authenticated user');
-      return;
-    }
+    final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true) ?? 'guest';
 
     final response = AlertResponse(
       id: '${alertId}_dismissed',

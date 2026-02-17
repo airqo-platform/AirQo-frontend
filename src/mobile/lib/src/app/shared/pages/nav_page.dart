@@ -3,7 +3,6 @@ import 'package:airqo/src/app/exposure/pages/exposure_dashboard_view.dart';
 import 'package:airqo/src/app/learn/pages/kya_page.dart';
 import 'package:airqo/src/app/map/pages/map_page.dart';
 import 'package:airqo/src/app/auth/services/auth_helper.dart';
-import 'package:airqo/src/app/auth/pages/login_page.dart';
 import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:airqo/src/app/surveys/bloc/survey_bloc.dart';
 import 'package:airqo/src/app/surveys/services/survey_notification_service.dart';
@@ -38,9 +37,8 @@ class NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
       isAuthenticated = userId != null;
     });
 
-    if (isAuthenticated) {
-      context.read<SurveyBloc>().add(const LoadSurveys());
-    }
+    // Load surveys for all users including guests
+    context.read<SurveyBloc>().add(const LoadSurveys());
   }
 
   Future<void> _updateBadgeCount() async {
@@ -59,12 +57,6 @@ class NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
   }
 
   void changeCurrentIndex(int index) {
-    // Check if user is trying to access exposure tab (index 2) without authentication
-    if (index == 2 && !isAuthenticated) {
-      _showAuthRequiredDialog();
-      return;
-    }
-
     // If navigating to Learn tab (index 3), mark surveys as seen
     if (index == 3) {
       _notificationService.updateLastSeenTimestamp();
@@ -86,91 +78,6 @@ class NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  void _showAuthRequiredDialog() {
-    final theme = Theme.of(context);
-
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: theme.cardColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.lock_outline,
-                size: 64,
-                color: AppColors.primaryColor.withValues(alpha: 0.7),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Sign in to access exposure data',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Exposure tracking requires a user account to maintain your personal health data.',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      style: TextButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: Text(
-                        'Cancel',
-                        style: TextStyle(
-                          color: theme.textTheme.bodyMedium?.color,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const LoginPage(),
-                          ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryColor,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text('Sign In'),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -184,7 +91,7 @@ class NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
         body: IndexedStack(index: currentIndex, children: [
           DashboardPage(),
           MapScreen(),
-          isAuthenticated ? ExposureDashboardView() : _buildAuthRequiredWidget(),
+          ExposureDashboardView(),
           KyaPage(),
         ]),
         bottomNavigationBar: BottomNavigationBar(
@@ -330,60 +237,6 @@ class NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
           ),
         )
       ],
-    );
-  }
-
-  Widget _buildAuthRequiredWidget() {
-    final theme = Theme.of(context);
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.lock_outline,
-              size: 64,
-              color: AppColors.primaryColor.withValues(alpha: 0.7),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Sign in to track exposure',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Exposure tracking requires a user account to maintain your personal health data.',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const LoginPage(),
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryColor,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: const Text('Sign In'),
-            ),
-          ],
-        ),
-      ),
     );
   }
 

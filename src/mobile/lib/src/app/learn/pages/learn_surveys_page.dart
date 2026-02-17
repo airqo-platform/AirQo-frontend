@@ -4,12 +4,8 @@ import 'package:collection/collection.dart';
 import 'package:airqo/src/app/surveys/bloc/survey_bloc.dart';
 import 'package:airqo/src/app/surveys/models/survey_model.dart';
 import 'package:airqo/src/app/surveys/models/survey_response_model.dart';
-import 'package:airqo/src/app/surveys/widgets/survey_card.dart';
 import 'package:airqo/src/app/surveys/pages/survey_detail_page.dart';
 import 'package:airqo/src/app/surveys/services/survey_notification_service.dart';
-import 'package:airqo/src/app/learn/models/lesson_response_model.dart';
-import 'package:airqo/src/app/auth/services/auth_helper.dart';
-import 'package:airqo/src/app/auth/pages/login_page.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 
 class LearnSurveysPage extends StatefulWidget {
@@ -25,40 +21,28 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
   @override
   void initState() {
     super.initState();
-    _loadSurveysIfAuthenticated();
+    _loadSurveys();
   }
 
-  Future<void> _loadSurveysIfAuthenticated() async {
-    final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
-    if (mounted && userId != null) {
+  void _loadSurveys() {
+    if (mounted) {
       context.read<SurveyBloc>().add(const LoadSurveys());
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<String?>(
-      future: AuthHelper.getCurrentUserId(suppressGuestWarning: true),
-      builder: (context, authSnapshot) {
-        final isGuest = authSnapshot.data == null;
-
-        if (isGuest) {
-          return _buildGuestSignInState();
+    return BlocBuilder<SurveyBloc, SurveyState>(
+      builder: (context, state) {
+        if (state is SurveyLoading) {
+          return _buildLoadingState();
+        } else if (state is SurveysLoaded) {
+          return _buildSurveysLoadedState(state);
+        } else if (state is SurveyError) {
+          return _buildErrorState(state);
+        } else {
+          return _buildEmptyState();
         }
-
-        return BlocBuilder<SurveyBloc, SurveyState>(
-          builder: (context, state) {
-            if (state is SurveyLoading) {
-              return _buildLoadingState();
-            } else if (state is SurveysLoaded) {
-              return _buildSurveysLoadedState(state);
-            } else if (state is SurveyError) {
-              return _buildErrorState(state);
-            } else {
-              return _buildEmptyState();
-            }
-          },
-        );
       },
     );
   }
@@ -267,70 +251,6 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
   }
 
   Widget _buildErrorState(SurveyError state) {
-    return FutureBuilder<String?>(
-      future: AuthHelper.getCurrentUserId(suppressGuestWarning: true),
-      builder: (context, snapshot) {
-        final theme = Theme.of(context);
-        final isGuest = snapshot.data == null;
-
-        return Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  isGuest ? Icons.login : Icons.error_outline,
-                  size: 64,
-                  color: isGuest
-                      ? AppColors.primaryColor.withValues(alpha: 0.7)
-                      : Colors.red.withValues(alpha: 0.5),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  isGuest ? 'Sign in to access surveys' : 'Unable to load surveys',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  isGuest
-                      ? 'Create an account or sign in to participate in research surveys and help improve air quality.'
-                      : state.message,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () {
-                    if (isGuest) {
-                      Navigator.of(context).pushNamed('/auth');
-                    } else {
-                      context.read<SurveyBloc>().add(const LoadSurveys());
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: Text(isGuest ? 'Sign In' : 'Try Again'),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildGuestSignInState() {
     final theme = Theme.of(context);
 
     return Center(
@@ -340,13 +260,13 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.login,
+              Icons.error_outline,
               size: 64,
-              color: AppColors.primaryColor.withValues(alpha: 0.7),
+              color: Colors.red.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
-              'Sign in to access surveys',
+              'Unable to load surveys',
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -354,7 +274,7 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Create an account or sign in to participate in research surveys and help improve air quality.',
+              state.message,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
               ),
@@ -363,11 +283,7 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const LoginPage(),
-                  ),
-                );
+                context.read<SurveyBloc>().add(const LoadSurveys());
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryColor,
@@ -376,7 +292,7 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: const Text('Sign In'),
+              child: const Text('Try Again'),
             ),
           ],
         ),

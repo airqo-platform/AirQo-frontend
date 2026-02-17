@@ -356,14 +356,6 @@ class _SurveyDetailViewState extends State<SurveyDetailView> {
           ),
         ],
         
-        if (isCompleted) ...[
-          AirQoButton(
-            label: 'View Results',
-            onPressed: () => _viewResults(context),
-            color: Colors.transparent,
-            textColor: AppColors.primaryColor,
-          ),
-        ],
       ],
     );
   }
@@ -502,16 +494,6 @@ class _SurveyDetailViewState extends State<SurveyDetailView> {
 
   void _startOrResumeSurvey(BuildContext context) {
     context.read<SurveyBloc>().add(StartSurvey(widget.survey));
-  }
-
-  void _viewResults(BuildContext context) {
-    // Track survey results viewed
-    AnalyticsService().trackSurveyResultsViewed(surveyId: widget.survey.id);
-
-    // TODO: Navigate to results page
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Results view coming soon!')),
-    );
   }
 
   void _trackSurveySkipped(BuildContext context) {
