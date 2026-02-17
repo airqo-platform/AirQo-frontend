@@ -14,7 +14,6 @@ import {
   PhoneNumberInput,
 } from '@/shared/components/ui';
 import { toast } from '@/shared/components/ui';
-import { useSession } from 'next-auth/react';
 import { useUpdateUserDetails, useUserDetails } from '@/shared/hooks';
 import { useChecklistIntegration } from '@/modules/user-checklist';
 import {
@@ -34,7 +33,6 @@ interface ProfileFormProps {
 const ProfileForm: React.FC<ProfileFormProps> = ({ userId }) => {
   const [loading, setLoading] = useState(false);
   const [pendingImage, setPendingImage] = useState<File | null>(null); // <-- NEW
-  const { data: session } = useSession();
   const { data: userDetails, mutate: mutateUserDetails } =
     useUserDetails(userId);
   const updateUserDetails = useUpdateUserDetails();
