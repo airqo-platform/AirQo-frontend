@@ -34,6 +34,7 @@
       "icon": "assets/icon.ico",
       "artifactName": "${productName}-Setup-${version}.${ext}",
       "executableName": "AirQoVertex",
+      "signAndEditExecutable": false,
       "target": [
         "nsis"
       ]
