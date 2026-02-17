@@ -47,13 +47,17 @@ jobs:
 
       - name: Ensure tag exists
         shell: bash
+        env:
+          RELEASE_TAG: ${{ steps.tag.outputs.tag }}
         run: |
           git fetch --tags --force
-          git rev-parse "${{ steps.tag.outputs.tag }}" >/dev/null 2>&1
+          git rev-parse "${RELEASE_TAG}" >/dev/null 2>&1
 
       - name: Checkout release tag
         shell: bash
-        run: git checkout "${{ steps.tag.outputs.tag }}"
+        env:
+          RELEASE_TAG: ${{ steps.tag.outputs.tag }}
+        run: git checkout "${RELEASE_TAG}"
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -107,13 +111,17 @@ jobs:
 
       - name: Ensure tag exists
         shell: bash
+        env:
+          RELEASE_TAG: ${{ steps.tag.outputs.tag }}
         run: |
           git fetch --tags --force
-          git rev-parse "${{ steps.tag.outputs.tag }}" >/dev/null 2>&1
+          git rev-parse "${RELEASE_TAG}" >/dev/null 2>&1
 
       - name: Checkout release tag
         shell: bash
-        run: git checkout "${{ steps.tag.outputs.tag }}"
+        env:
+          RELEASE_TAG: ${{ steps.tag.outputs.tag }}
+        run: git checkout "${RELEASE_TAG}"
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -167,13 +175,17 @@ jobs:
 
       - name: Ensure tag exists
         shell: bash
+        env:
+          RELEASE_TAG: ${{ steps.tag.outputs.tag }}
         run: |
           git fetch --tags --force
-          git rev-parse "${{ steps.tag.outputs.tag }}" >/dev/null 2>&1
+          git rev-parse "${RELEASE_TAG}" >/dev/null 2>&1
 
       - name: Checkout release tag
         shell: bash
-        run: git checkout "${{ steps.tag.outputs.tag }}"
+        env:
+          RELEASE_TAG: ${{ steps.tag.outputs.tag }}
+        run: git checkout "${RELEASE_TAG}"
 
       - name: Setup Node
         uses: actions/setup-node@v4
