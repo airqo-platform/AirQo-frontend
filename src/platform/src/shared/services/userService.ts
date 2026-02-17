@@ -37,6 +37,8 @@ import type {
   UnassignUserFromGroupResponse,
   LeaveGroupResponse,
   SetGroupManagerResponse,
+  UpdateGroupTitleRequest,
+  UpdateGroupTitleResponse,
 } from '../types/api';
 
 export class UserService {
@@ -532,6 +534,24 @@ export class UserService {
     }
 
     return data as SetGroupManagerResponse;
+  }
+
+  // Update group title - authenticated endpoint
+  async updateGroupTitle(
+    groupId: string,
+    request: UpdateGroupTitleRequest
+  ): Promise<UpdateGroupTitleResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.patch<
+      UpdateGroupTitleResponse | ApiErrorResponse
+    >(`/users/groups/${groupId}/title`, request);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to update group title');
+    }
+
+    return data as UpdateGroupTitleResponse;
   }
 }
 
