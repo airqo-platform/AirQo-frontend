@@ -144,11 +144,6 @@ interface CloudinaryUploadOptions {
   folder?: string; // Folder path in Cloudinary
   publicId?: string; // Custom public ID
   tags?: string[]; // Tags for the uploaded file
-  transformation?: string; // Cloudinary transformation string
-  quality?: 'auto' | number; // Image quality
-  format?: 'auto' | 'jpg' | 'png' | 'webp'; // Output format
-  overwrite?: boolean; // Overwrite existing files
-  uniqueFilename?: boolean; // Generate unique filename
   onProgress?: (progress: number) => void; // Progress callback
 }
 ```
@@ -177,7 +172,8 @@ Generate optimized Cloudinary URLs for existing images.
 The utility automatically validates:
 
 - **File Type**: Only allows image formats (JPEG, PNG, WebP, GIF)
-- **File Size**: Maximum 10MB (configurable)
+- **File Type**: Only allows image formats (JPEG, PNG, WebP, GIF)
+- **File Size**: Maximum 5MB (configurable)
 - **File Content**: Ensures file is not empty
 
 ## Error Handling
@@ -192,9 +188,11 @@ The utility provides descriptive error messages for:
 
 ## Retry Mechanism
 
-- Automatically retries failed uploads up to 3 times
-- 1-second delay between retries
-- Exponential backoff for rate limiting
+- There is currently no automatic retry mechanism implemented in the utility.
+
+If you need retries, implement them in your caller or add retry logic to
+`uploadToCloudinary` (for example: exponential backoff with a limited
+number of attempts).
 
 ## Folder Structure Examples
 
@@ -216,11 +214,24 @@ my-app/
 ## Constants
 
 ```typescript
-import { CLOUDINARY_CONSTANTS } from '@/shared/utils/cloudinaryUpload';
+// The library does not export a single `CLOUDINARY_CONSTANTS` object.
+// The following are the implementation values used by
+// `src/shared/utils/cloudinaryUpload.ts` and are shown here for
+// documentation purposes.
 
-console.log(CLOUDINARY_CONSTANTS.MAX_FILE_SIZE); // 10485760 (10MB)
-console.log(CLOUDINARY_CONSTANTS.ALLOWED_FORMATS); // ['image/jpeg', ...]
-console.log(CLOUDINARY_CONSTANTS.MAX_RETRIES); // 3
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5242880 (5MB)
+const ALLOWED_FORMATS = [
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+];
+
+console.log(MAX_FILE_SIZE); // 5242880 (5MB)
+console.log(ALLOWED_FORMATS);
+
+// NOTE: There is no `MAX_RETRIES` constant in the current implementation.
 ```
 
 ## Best Practices
