@@ -1,0 +1,84 @@
+{
+  "name": "vertex-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "author": "AirQo",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/airqo-platform/AirQo-frontend.git"
+  },
+  "description": "Electron desktop wrapper for AirQo Vertex",
+  "main": "dist/main/index.js",
+  "scripts": {
+    "clean": "rimraf dist release",
+    "build": "npm run clean && tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "dev": "concurrently -k \"npm:dev:web\" \"npm:dev:electron\"",
+    "dev:web": "npm --prefix ../vertex run dev",
+    "dev:electron": "wait-on tcp:3000 && npm run build && electron .",
+    "start": "npm run build && electron .",
+    "dist:win": "npm run build && electron-builder --win nsis"
+  },
+  "build": {
+    "appId": "net.airqo.vertex.desktop",
+    "productName": "AirQo Vertex",
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "assets",
+        "to": "assets",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "directories": {
+      "buildResources": "assets",
+      "output": "release"
+    },
+    "win": {
+      "icon": "assets/icon.ico",
+      "artifactName": "${productName}-Setup-${version}.${ext}",
+      "executableName": "AirQoVertex",
+      "target": [
+        "nsis"
+      ]
+    },
+    "mac": {
+      "icon": "assets/icon.icns"
+    },
+    "linux": {
+      "icon": "assets/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "AirQo Vertex",
+      "uninstallDisplayName": "AirQo Vertex"
+    },
+    "publish": [
+      {
+        "provider": "github"
+      }
+    ]
+  },
+  "dependencies": {
+    "dotenv": "^16.6.1",
+    "electron-log": "^5.4.3",
+    "electron-updater": "^6.6.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.11",
+    "concurrently": "^9.2.1",
+    "electron": "^37.2.6",
+    "electron-builder": "^26.0.12",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.9.2",
+    "wait-on": "^8.0.5"
+  }
+}

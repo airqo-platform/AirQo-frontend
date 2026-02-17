@@ -49,10 +49,14 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   const contextPermissions = getContextPermissions();
 
   return (
-    <aside className="hidden lg:block fixed left-0 top-[55px] z-50 text-sidebar-text transition-all duration-300 ease-in-out p-1">
+    <aside
+      data-vertex-secondary-sidebar
+      className="hidden lg:block fixed left-0 top-[calc(55px+var(--vertex-ui-top-offset))] z-50 text-sidebar-text transition-all duration-300 ease-in-out p-1"
+    >
       <div
+        data-vertex-secondary-sidebar-container
         className={`transition-all duration-300 ease-in-out relative z-50 p-1
-          ${isCollapsed ? 'w-[75px]' : 'w-[256px]'} h-[calc(100vh-4rem)]`}
+          ${isCollapsed ? 'w-[75px]' : 'w-[256px]'} h-[calc(100vh-55px-var(--vertex-ui-top-offset))]`}
       >
         <Button
           variant="ghost"

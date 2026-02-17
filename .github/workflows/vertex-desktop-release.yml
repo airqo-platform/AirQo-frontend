@@ -1,0 +1,208 @@
+name: vertex-desktop-release
+
+on:
+  push:
+    tags:
+      - "vertex-desktop-v*"
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Existing tag to release (example: vertex-desktop-v0.1.5)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release-windows:
+    name: build-and-publish-windows
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: src/vertex-desktop
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      VERTEX_DESKTOP_ENV: production
+      VERTEX_DESKTOP_PROD_URL: https://vertex.airqo.net
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve release tag
+        id: tag
+        shell: bash
+        env:
+          INPUT_TAG: ${{ inputs.release_tag }}
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            TAG="${INPUT_TAG}"
+          else
+            TAG="${GITHUB_REF_NAME}"
+          fi
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Ensure tag exists
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          git fetch --tags --force
+          git rev-parse "${RELEASE_TAG}" >/dev/null 2>&1
+
+      - name: Checkout release tag
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ steps.tag.outputs.tag }}
+        run: git checkout "${RELEASE_TAG}"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: src/vertex-desktop/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and publish release artifacts
+        run: npx electron-builder --win nsis --publish always
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: vertex-desktop-release-${{ steps.tag.outputs.tag }}
+          path: src/vertex-desktop/release/*
+          if-no-files-found: error
+
+  release-macos:
+    name: build-and-publish-macos
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: src/vertex-desktop
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      VERTEX_DESKTOP_ENV: production
+      VERTEX_DESKTOP_PROD_URL: https://vertex.airqo.net
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve release tag
+        id: tag
+        shell: bash
+        env:
+          INPUT_TAG: ${{ inputs.release_tag }}
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            TAG="${INPUT_TAG}"
+          else
+            TAG="${GITHUB_REF_NAME}"
+          fi
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Ensure tag exists
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          git fetch --tags --force
+          git rev-parse "${RELEASE_TAG}" >/dev/null 2>&1
+
+      - name: Checkout release tag
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ steps.tag.outputs.tag }}
+        run: git checkout "${RELEASE_TAG}"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: src/vertex-desktop/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and publish release artifacts
+        run: npx electron-builder --mac dmg zip --publish always
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: vertex-desktop-release-macos-${{ steps.tag.outputs.tag }}
+          path: src/vertex-desktop/release/*
+          if-no-files-found: error
+
+  release-linux:
+    name: build-and-publish-linux
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/vertex-desktop
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      VERTEX_DESKTOP_ENV: production
+      VERTEX_DESKTOP_PROD_URL: https://vertex.airqo.net
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve release tag
+        id: tag
+        shell: bash
+        env:
+          INPUT_TAG: ${{ inputs.release_tag }}
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            TAG="${INPUT_TAG}"
+          else
+            TAG="${GITHUB_REF_NAME}"
+          fi
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Ensure tag exists
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          git fetch --tags --force
+          git rev-parse "${RELEASE_TAG}" >/dev/null 2>&1
+
+      - name: Checkout release tag
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ steps.tag.outputs.tag }}
+        run: git checkout "${RELEASE_TAG}"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: src/vertex-desktop/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and publish release artifacts
+        run: npx electron-builder --linux AppImage deb --publish always
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: vertex-desktop-release-linux-${{ steps.tag.outputs.tag }}
+          path: src/vertex-desktop/release/*
+          if-no-files-found: error

@@ -7,6 +7,38 @@
 ## Version 1.23.18
 **Released:** February 17, 2026
 
+### Startup UX, Offline Resilience, Account Re-Login, and SSO Foundation
+
+Reduced blank/slow startup perception, improved offline behavior, introduced remembered-account login flow, and added cross-subdomain SSO session groundwork.
+
+<details>
+<summary><strong>Startup & Performance (3)</strong></summary>
+
+- **No Blank Rehydration Screen**: Updated Redux persist gate to render `SessionLoadingState` during initialization instead of `null`.
+- **Clearer Loading Feedback**: Enhanced session loader with explicit "Loading workspace..." text for better perceived progress.
+- **Faster Dev Boot Defaults**: Changed default dev script to non-inspect mode and added a dedicated `dev:inspect` script.
+
+</details>
+
+<details>
+<summary><strong>Offline Resilience (3)</strong></summary>
+
+- **Network Error Normalization**: Standardized no-response API failures to predictable `status: 0` responses for safer downstream handling.
+- **Connectivity Events**: Added `vertex-network-degraded` and `vertex-network-recovered` events to reflect API-level connectivity state.
+- **Offline-First Query Tuning**: Improved React Query defaults and bootstrap query retry policy to reduce startup stalls during poor connectivity.
+
+</details>
+
+<details>
+<summary><strong>Authentication UX (2)</strong></summary>
+
+- **Remembered Accounts**: Added secure remembered-account list (email/display info only, no password storage) on login page.
+- **Quick Account Switching**: Added "Recently used accounts" selection, remove-account action, and "Use a different account" flow.
+
+</details>
+
+<details>
+<summary><strong>Cross-Subdomain SSO Session Foundation (3)</strong></summary>
 ### Cross-Subdomain SSO Session Foundation
 
 Added Vertex-side configuration for shared NextAuth sessions across AirQo subdomains to support seamless login reuse between products.
@@ -28,6 +60,48 @@ Added Vertex-side configuration for shared NextAuth sessions across AirQo subdom
 </details>
 
 <details>
+<summary><strong>Desktop Layout Contract (1)</strong></summary>
+
+- **Stable Layout Hooks**: Added `data-vertex-*` attributes on topbar/sidebars/main to provide a stable desktop wrapper integration contract.
+
+</details>
+
+<details>
+<summary><strong>Desktop Application (5)</strong></summary>
+
+- **Electron Wrapper Project**: Introduced the dedicated desktop project at `src/vertex-desktop` with isolated runtime/build configuration.
+- **Desktop Runtime Architecture**: Added main-process modules for window lifecycle, updater integration, deep-link support, and permission handling.
+- **Preload Bridge APIs**: Added typed desktop bridge APIs (for example, app version/retry actions) exposed via preload for safe renderer access.
+- **Title Bar Overlay UX**: Added desktop title bar controls and overlay behavior tailored for wrapped Vertex navigation.
+- **Windows Packaging & Installer**: Added Windows installer/package configuration and release workflow support for updater-ready artifacts.
+
+</details>
+
+<details>
+<summary><strong>Desktop Release Notes (1)</strong></summary>
+
+- **Detailed Desktop Changelog**: Desktop-specific release history is tracked in `src/vertex-desktop/CHANGELOG.md`.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (16)</strong></summary>
+
+- `package.json`
+- `app/providers.tsx`
+- `app/login/page.tsx`
+- `app/api/auth/[...nextauth]/options.ts`
+- `core/auth/authProvider.tsx`
+- `core/apis/axiosConfig.ts`
+- `core/utils/secureApiProxyClient.ts`
+- `core/hooks/useLogout.ts`
+- `core/utils/rememberedAccounts.ts`
+- `components/features/network-status-banner/index.tsx`
+- `components/layout/loading/session-loading.tsx`
+- `components/layout/topbar.tsx`
+- `components/layout/primary-sidebar.tsx`
+- `components/layout/secondary-sidebar.tsx`
+- `components/layout/layout.tsx`
 <summary><strong>Files Modified (2)</strong></summary>
 
 - `app/api/auth/[...nextauth]/options.ts`
