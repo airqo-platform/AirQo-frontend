@@ -10,11 +10,19 @@ import { useUpdatePassword, useUser } from '@/shared/hooks';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import SettingsLayout from './SettingsLayout';
 import AccountDeletionCard from './AccountDeletionCard';
+import { LeaveOrganizationCard } from '@/modules/organization';
 
 const SecurityTab: React.FC = () => {
   const [loading, setLoading] = useState(false);
-  const { user } = useUser();
+  const { user, activeGroup } = useUser();
   const { trigger: updatePassword } = useUpdatePassword();
+
+  // Check if user is in an organization context (not AirQo default)
+  const isInOrganizationContext =
+    activeGroup &&
+    activeGroup.title?.toLowerCase() !== 'airqo' &&
+    activeGroup.organizationSlug?.toLowerCase() !== 'airqo' &&
+    activeGroup.organizationSlug;
 
   const {
     register,
@@ -129,6 +137,9 @@ const SecurityTab: React.FC = () => {
 
       {/* Account Deletion Section */}
       <AccountDeletionCard />
+
+      {/* Leave Organization Section - Only show if in organization context */}
+      {isInOrganizationContext && <LeaveOrganizationCard />}
     </div>
   );
 };
