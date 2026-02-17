@@ -31,7 +31,6 @@ const shouldUseSharedCookieDomain =
 
 export const options: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
-  trustHost: true,
   useSecureCookies: isProduction,
   providers: [
     CredentialsProvider({
