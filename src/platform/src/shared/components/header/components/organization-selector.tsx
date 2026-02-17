@@ -119,11 +119,6 @@ export function OrganizationSelector() {
           <div className="max-h-80 overflow-y-auto space-y-1">
             {groups.length > 0 ? (
               groups.map(group => {
-                const isAirQoGroup =
-                  group.title?.toLowerCase() === 'airqo' ||
-                  group.organizationSlug?.toLowerCase() === 'airqo' ||
-                  !group.organizationSlug;
-
                 return (
                   <button
                     key={group.id}
