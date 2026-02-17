@@ -4,6 +4,40 @@
 
 ---
 
+## Version 0.1.5
+**Released:** February 17, 2026
+
+### CI Automation and Release Pipeline for Auto-Updates
+
+Added dedicated desktop CI and tag-based release workflows to automatically publish Windows updater artifacts to GitHub Releases.
+
+<details>
+<summary><strong>CI/CD Enhancements (3)</strong></summary>
+
+- **Desktop CI Workflow**: Added a dedicated desktop workflow to run install, typecheck, and build validation for `src/vertex-desktop` changes.
+- **Tag-Based Release Workflow**: Added Windows release automation for tags matching `vertex-desktop-v*` with optional manual dispatch support.
+- **Auto-Update Artifact Publishing**: Configured release workflow to publish `electron-builder` outputs (`latest.yml` + installer artifacts) required by `electron-updater`.
+
+</details>
+
+<details>
+<summary><strong>Documentation (1)</strong></summary>
+
+- **Release Runbook**: Updated desktop README with CI workflow references and step-by-step tag-based release instructions.
+
+</details>
+
+<details>
+<summary><strong>Files Added/Modified (3)</strong></summary>
+
+- `.github/workflows/vertex-desktop-ci.yml`
+- `.github/workflows/vertex-desktop-release.yml`
+- `README.md`
+
+</details>
+
+---
+
 ## Version 0.1.4
 **Released:** February 17, 2026
 
