@@ -2,6 +2,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import type { AxiosError } from "axios";
 import { persistor, store } from "@/core/redux/store";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
@@ -27,10 +28,11 @@ export default function Providers({ children, session }: { children: React.React
             refetchOnWindowFocus: false,
             refetchOnReconnect: true,
             networkMode: 'offlineFirst',
-            retry: (failureCount, error: any) => {
-              const status = error?.response?.status;
+            retry: (failureCount, error) => {
+              const axiosError = error as AxiosError;
+              const status = axiosError?.response?.status;
               // Do not thrash retries while offline/server unreachable.
-              if (status === 0 || error?.code === 'ERR_NETWORK' || error?.code === 'ECONNABORTED') {
+              if (status === 0 || axiosError?.code === 'ERR_NETWORK' || axiosError?.code === 'ECONNABORTED') {
                 return false;
               }
               return failureCount < 2;
