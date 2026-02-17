@@ -295,4 +295,27 @@ class BaseRepository with UiLoggy {
       }
     }, url);
   }
+
+  Future<Response> createUnauthenticatedPostRequest({
+    required String path,
+    dynamic data,
+  }) async {
+    String url = ApiUtils.baseUrl + path;
+
+    loggy.info("Making unauthenticated POST request to: $url");
+
+    final response = await http.post(
+      Uri.parse(url),
+      body: json.encode(data),
+      headers: {"Accept": "*/*", "Content-Type": "application/json"},
+    );
+
+    loggy.info("Unauthenticated POST response status: ${response.statusCode}");
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return response;
+    } else {
+      throw _httpError(response, url);
+    }
+  }
 }
