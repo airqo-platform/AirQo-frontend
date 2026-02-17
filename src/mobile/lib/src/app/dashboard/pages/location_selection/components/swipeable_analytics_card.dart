@@ -464,7 +464,7 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
                                           Text(
                                             widget.measurement.pm25?.value != null
                                                 ? widget.measurement.pm25!.value!
-                                                    .toStringAsFixed(2)
+                                                    .toStringAsFixed(1)
                                                 : "-",
                                             style: TextStyle(
                                               fontWeight: FontWeight.w700,
