@@ -2,6 +2,11 @@
   "name": "vertex-desktop",
   "version": "0.1.0",
   "private": true,
+  "author": "AirQo",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/airqo-platform/AirQo-frontend.git"
+  },
   "description": "Electron desktop wrapper for AirQo Vertex",
   "main": "dist/main/index.js",
   "scripts": {
@@ -28,7 +33,6 @@
     "win": {
       "icon": "assets/icon.ico",
       "artifactName": "${productName}-Setup-${version}.${ext}",
-      "publisherName": "AirQo",
       "executableName": "AirQoVertex",
       "target": [
         "nsis"
