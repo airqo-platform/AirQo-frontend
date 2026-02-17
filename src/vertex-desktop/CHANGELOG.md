@@ -4,6 +4,52 @@
 
 ---
 
+## Version 0.1.4
+**Released:** February 17, 2026
+
+### Offline Fallback, Updater Safety, and Navigation Hardening
+
+Improved resilience in installed desktop builds with a packaged offline experience and safer updater/navigation behavior.
+
+<details>
+<summary><strong>Offline Experience (2)</strong></summary>
+
+- **Packaged Offline Page**: Added a local offline fallback page that loads when the hosted Vertex app is unreachable.
+- **Retry Flow**: Added explicit retry handling (button + online event) to return users from offline screen to the live app.
+
+</details>
+
+<details>
+<summary><strong>Updater Robustness (2)</strong></summary>
+
+- **Single Listener Registration**: Prevented duplicate `autoUpdater` listener registration across macOS window re-creation.
+- **Destroyed Window Guard**: Added safe dialog guards to avoid showing update dialogs against invalid/destroyed windows.
+
+</details>
+
+<details>
+<summary><strong>Security & Stability (2)</strong></summary>
+
+- **Navigation Parse Guard**: Hardened `will-navigate` URL parsing with `try/catch` and default deny behavior on malformed URLs.
+- **Stable Layout Hooks**: Updated desktop CSS targeting to use stable `data-vertex-*` hooks (with fallback support for older deployments).
+
+</details>
+
+<details>
+<summary><strong>Files Modified (7)</strong></summary>
+
+- `main/index.ts`
+- `main/updates.ts`
+- `main/windows.ts`
+- `preload/index.ts`
+- `preload/api.ts`
+- `assets/offline.html`
+- `README.md`
+
+</details>
+
+---
+
 ## Version 0.1.3
 **Released:** February 17, 2026
 

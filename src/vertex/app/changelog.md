@@ -4,6 +4,68 @@
 
 ---
 
+## Version 1.23.18
+**Released:** February 17, 2026
+
+### Startup UX, Offline Resilience, and Account Re-Login Improvements
+
+Reduced blank/slow startup perception, improved offline behavior, and introduced remembered-account login flow for faster account switching.
+
+<details>
+<summary><strong>Startup & Performance (3)</strong></summary>
+
+- **No Blank Rehydration Screen**: Updated Redux persist gate to render `SessionLoadingState` during initialization instead of `null`.
+- **Clearer Loading Feedback**: Enhanced session loader with explicit "Loading workspace..." text for better perceived progress.
+- **Faster Dev Boot Defaults**: Changed default dev script to non-inspect mode and added a dedicated `dev:inspect` script.
+
+</details>
+
+<details>
+<summary><strong>Offline Resilience (3)</strong></summary>
+
+- **Network Error Normalization**: Standardized no-response API failures to predictable `status: 0` responses for safer downstream handling.
+- **Connectivity Events**: Added `vertex-network-degraded` and `vertex-network-recovered` events to reflect API-level connectivity state.
+- **Offline-First Query Tuning**: Improved React Query defaults and bootstrap query retry policy to reduce startup stalls during poor connectivity.
+
+</details>
+
+<details>
+<summary><strong>Authentication UX (2)</strong></summary>
+
+- **Remembered Accounts**: Added secure remembered-account list (email/display info only, no password storage) on login page.
+- **Quick Account Switching**: Added "Recently used accounts" selection, remove-account action, and "Use a different account" flow.
+
+</details>
+
+<details>
+<summary><strong>Desktop Layout Contract (1)</strong></summary>
+
+- **Stable Layout Hooks**: Added `data-vertex-*` attributes on topbar/sidebars/main to provide a stable desktop wrapper integration contract.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (14)</strong></summary>
+
+- `package.json`
+- `app/providers.tsx`
+- `app/login/page.tsx`
+- `core/auth/authProvider.tsx`
+- `core/apis/axiosConfig.ts`
+- `core/utils/secureApiProxyClient.ts`
+- `core/hooks/useLogout.ts`
+- `core/utils/rememberedAccounts.ts`
+- `components/features/network-status-banner/index.tsx`
+- `components/layout/loading/session-loading.tsx`
+- `components/layout/topbar.tsx`
+- `components/layout/primary-sidebar.tsx`
+- `components/layout/secondary-sidebar.tsx`
+- `components/layout/layout.tsx`
+
+</details>
+
+---
+
 ## Version 1.23.17
 **Released:** January 25, 2026
 
