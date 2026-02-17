@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { cn, truncateDecimals } from '@/shared/lib/utils';
+import { cn, roundDecimals } from '@/shared/lib/utils';
 import {
   getAirQualityLevel,
   getAirQualityIcon,
@@ -185,7 +185,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
                 handleClick(syntheticEvent);
               }
             }}
-            aria-label={`Air quality reading: ${reading.pm25Value} PM2.5 at ${reading.locationName || 'Unknown location'}`}
+            aria-label={`Air quality reading: ${roundDecimals(pollutantValue, 1)} ${selectedPollutant === 'pm2_5' ? 'PM2.5' : 'PM10'} at ${reading.locationName || 'Unknown location'}`}
             style={{
               cursor: 'pointer',
               touchAction: 'manipulation',
@@ -216,7 +216,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
                 level === 'hazardous' && 'bg-red-900'
               )}
             >
-              {truncateDecimals(reading.pm25Value, 1)}
+              {roundDecimals(pollutantValue, 1)}
             </div>
           </div>
         </CustomTooltip>
@@ -244,7 +244,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
                 handleClick(syntheticEvent);
               }
             }}
-            aria-label={`Air quality reading: ${reading.pm25Value} PM2.5 at ${reading.locationName || 'Unknown location'}`}
+            aria-label={`Air quality reading: ${roundDecimals(pollutantValue, 1)} ${selectedPollutant === 'pm2_5' ? 'PM2.5' : 'PM10'} at ${reading.locationName || 'Unknown location'}`}
             style={{
               cursor: 'pointer',
               touchAction: 'manipulation',
@@ -301,7 +301,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
                 handleClick(syntheticEvent);
               }
             }}
-            aria-label={`Air quality reading: ${reading.pm25Value} PM2.5 at ${reading.locationName || 'Unknown location'}`}
+            aria-label={`Air quality reading: ${roundDecimals(pollutantValue, 1)} ${selectedPollutant === 'pm2_5' ? 'PM2.5' : 'PM10'} at ${reading.locationName || 'Unknown location'}`}
             style={{
               cursor: 'pointer',
               touchAction: 'manipulation',

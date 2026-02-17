@@ -9,7 +9,7 @@ import {
   getAirQualityInfo,
   getPollutantLabel,
 } from '@/shared/utils/airQuality';
-import { formatTruncatedNumber } from '@/shared/lib/utils';
+import { formatRoundedNumber } from '@/shared/lib/utils';
 import type { MapReading } from '../../../../shared/types/api';
 import type { AirQualityReading } from '../map/MapNodes';
 import type { PollutantType } from '@/shared/utils/airQuality';
@@ -149,7 +149,7 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
             </div>
             <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
               {pollutantValue !== null && pollutantValue !== undefined
-                ? `${formatTruncatedNumber(pollutantValue, 1)}µg/m³`
+                ? `${formatRoundedNumber(pollutantValue, 1)}µg/m³`
                 : 'N/A'}
             </div>
           </div>
@@ -232,7 +232,7 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
                   </span>
                   <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
                     {pollutantValue !== null && pollutantValue !== undefined
-                      ? `${getPollutantLabel(selectedPollutant)}: ${formatTruncatedNumber(pollutantValue, 1)}`
+                      ? `${getPollutantLabel(selectedPollutant)}: ${formatRoundedNumber(pollutantValue, 1)}`
                       : 'N/A'}
                   </span>
                 </div>

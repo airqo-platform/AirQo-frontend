@@ -63,28 +63,28 @@ export const normalizeText = (str: string): string => {
 };
 
 /**
- * Truncates a number to specified decimal places without rounding
- * @param value The number to truncate
+ * Rounds a number to specified decimal places
+ * @param value The number to round
  * @param decimalPlaces The number of decimal places to keep (default: 2)
- * @returns The truncated number
+ * @returns The rounded number
  */
-export const truncateDecimals = (
+export const roundDecimals = (
   value: number,
   decimalPlaces: number = 2
 ): number => {
   const multiplier = Math.pow(10, decimalPlaces);
-  return Math.trunc(value * multiplier) / multiplier;
+  return Math.round(value * multiplier) / multiplier;
 };
 
 /**
- * Formats a number by truncating to specified decimal places and converting to string
+ * Formats a number by rounding to specified decimal places and converting to string
  * @param value The number to format
  * @param decimalPlaces The number of decimal places to keep (default: 2)
  * @returns The formatted string
  */
-export const formatTruncatedNumber = (
+export const formatRoundedNumber = (
   value: number,
   decimalPlaces: number = 2
 ): string => {
-  return truncateDecimals(value, decimalPlaces).toFixed(decimalPlaces);
+  return roundDecimals(value, decimalPlaces).toFixed(decimalPlaces);
 };
