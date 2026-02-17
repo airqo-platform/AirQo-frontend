@@ -39,6 +39,12 @@ Reduced blank/slow startup perception, improved offline behavior, introduced rem
 
 <details>
 <summary><strong>Cross-Subdomain SSO Session Foundation (3)</strong></summary>
+### Cross-Subdomain SSO Session Foundation
+
+Added Vertex-side configuration for shared NextAuth sessions across AirQo subdomains to support seamless login reuse between products.
+
+<details>
+<summary><strong>Authentication Updates (3)</strong></summary>
 
 - **Shared Cookie Domain Support**: Added optional `NEXTAUTH_COOKIE_DOMAIN` handling so the NextAuth session cookie can be set on a parent domain (for example, `.airqo.net`) and reused by sibling apps.
 - **Explicit Secret Configuration**: Added `NEXTAUTH_SECRET` binding in auth options to ensure consistent token signing/decryption across apps participating in SSO.
@@ -78,6 +84,9 @@ Reduced blank/slow startup perception, improved offline behavior, introduced rem
 - `components/layout/primary-sidebar.tsx`
 - `components/layout/secondary-sidebar.tsx`
 - `components/layout/layout.tsx`
+<summary><strong>Files Modified (2)</strong></summary>
+
+- `app/api/auth/[...nextauth]/options.ts`
 - `README.md`
 
 </details>

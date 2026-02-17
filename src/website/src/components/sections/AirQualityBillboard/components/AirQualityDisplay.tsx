@@ -158,7 +158,7 @@ const AirQualityDisplay = ({
                     style={{ fontSize: valueFontSize }}
                   >
                     {Number.isFinite(forecast.pm2_5)
-                      ? forecast.pm2_5.toFixed(2)
+                      ? forecast.pm2_5.toFixed(1)
                       : '--'}
                   </span>
                   <div className="flex-shrink-0" style={iconWrapperStyle}>
@@ -249,7 +249,7 @@ const AirQualityDisplay = ({
                 }}
               >
                 {pm25Value !== null && pm25Value !== undefined
-                  ? pm25Value.toFixed(2)
+                  ? pm25Value.toFixed(1)
                   : '--'}
               </span>
               <span

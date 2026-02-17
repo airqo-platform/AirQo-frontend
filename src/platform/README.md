@@ -28,3 +28,16 @@ To learn more about Next.js, take a look at the following resources:
 - [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Authentication environment variables
+
+Set these variables for production SSO across subdomains:
+
+```bash
+NEXTAUTH_SECRET=<shared-secret-used-by-all-apps>
+NEXTAUTH_COOKIE_DOMAIN=.airqo.net
+```
+
+Notes:
+- `NEXTAUTH_SECRET` must be the same value in `analytics` and `vertex`.
+- `NEXTAUTH_COOKIE_DOMAIN=.airqo.net` enables a shared session cookie for `analytics.airqo.net` and `vertex.airqo.net`.
