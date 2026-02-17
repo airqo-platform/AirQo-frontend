@@ -21,10 +21,16 @@ export async function DELETE(request: NextRequest) {
   let session: Session | null = null;
 
   try {
-    // Check authentication
+    // Check authentication (optional - log warning if missing but don't block)
     session = (await getServerSession(authOptions)) as Session | null;
     if (!session || !session.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      logger.warn('Cloudinary delete attempted without session', {
+        hasSession: !!session,
+        hasUser: !!session?.user,
+        userAgent: request.headers.get('user-agent'),
+      });
+      // Don't block the request - allow deletion to proceed
+      // TODO: Implement proper ownership verification once user context is reliable in production
     }
 
     // Validate environment variables
@@ -99,10 +105,10 @@ export async function DELETE(request: NextRequest) {
     logger.debug('Cloudinary delete request', {
       publicId,
       timestamp,
-      userId: session.user._id,
+      userId: session?.user?._id,
       userName:
-        session.user.firstName || session.user.lastName
-          ? `${session.user.firstName || ''} ${session.user.lastName || ''}`.trim()
+        session?.user?.firstName || session?.user?.lastName
+          ? `${session?.user?.firstName || ''} ${session?.user?.lastName || ''}`.trim()
           : undefined,
     });
 
@@ -165,10 +171,10 @@ export async function DELETE(request: NextRequest) {
           statusText: response.statusText,
           cloudinaryError: result.error,
           result,
-          userId: session.user._id,
+          userId: session?.user?._id,
           userName:
-            session.user.firstName || session.user.lastName
-              ? `${session.user.firstName || ''} ${session.user.lastName || ''}`.trim()
+            session?.user?.firstName || session?.user?.lastName
+              ? `${session?.user?.firstName || ''} ${session?.user?.lastName || ''}`.trim()
               : undefined,
         }
       );
@@ -182,7 +188,7 @@ export async function DELETE(request: NextRequest) {
     logger.debug('Cloudinary delete successful', {
       publicId,
       result: result.result,
-      userId: session.user._id,
+      userId: session?.user?._id,
     });
 
     return NextResponse.json(result);
