@@ -27,7 +27,7 @@ interface ApiErrorResponse {
 const DEFAULT_ERROR_MAPPINGS: ErrorMapping = {
   // HTTP Status Codes
   400: 'Invalid request. Please check your input and try again.',
-  401: 'Authentication failed. Please check your credentials.',
+  401: 'Authentication required. Please sign in to continue.',
   403: 'Access denied. You do not have permission to perform this action.',
   404: 'The requested resource was not found.',
   408: 'Request timeout. Please try again.',

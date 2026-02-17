@@ -8,6 +8,7 @@ import { toast } from '@/shared/components/ui';
 import { securitySchema, type SecurityFormData } from '@/shared/lib/validators';
 import { useUpdatePassword, useUser } from '@/shared/hooks';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import { isInOrganizationContext } from '@/shared/utils/groupUtils';
 import SettingsLayout from './SettingsLayout';
 import AccountDeletionCard from './AccountDeletionCard';
 import { LeaveOrganizationCard } from '@/modules/organization';
@@ -18,11 +19,7 @@ const SecurityTab: React.FC = () => {
   const { trigger: updatePassword } = useUpdatePassword();
 
   // Check if user is in an organization context (not AirQo default)
-  const isInOrganizationContext =
-    activeGroup &&
-    activeGroup.title?.toLowerCase() !== 'airqo' &&
-    activeGroup.organizationSlug?.toLowerCase() !== 'airqo' &&
-    activeGroup.organizationSlug;
+  const showLeaveOrganization = isInOrganizationContext(activeGroup);
 
   const {
     register,
@@ -139,7 +136,7 @@ const SecurityTab: React.FC = () => {
       <AccountDeletionCard />
 
       {/* Leave Organization Section - Only show if in organization context */}
-      {isInOrganizationContext && <LeaveOrganizationCard />}
+      {showLeaveOrganization && <LeaveOrganizationCard />}
     </div>
   );
 };

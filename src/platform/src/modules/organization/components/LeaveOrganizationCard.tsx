@@ -5,6 +5,7 @@ import { Button, Dialog } from '@/shared/components/ui';
 import { toast } from '@/shared/components/ui';
 import { useLeaveGroup, useUser } from '@/shared/hooks';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import { isDefaultAirQoGroup } from '@/shared/utils/groupUtils';
 import { AqLogOut02, AqAlertTriangle } from '@airqo/icons-react';
 
 const LeaveOrganizationCard: React.FC = () => {
@@ -12,18 +13,9 @@ const LeaveOrganizationCard: React.FC = () => {
   const { activeGroup } = useUser();
   const leaveGroup = useLeaveGroup();
 
-  const isAirQoGroup =
-    activeGroup?.title?.toLowerCase() === 'airqo' ||
-    activeGroup?.organizationSlug?.toLowerCase() === 'airqo' ||
-    !activeGroup?.organizationSlug;
-
   const handleLeaveClick = useCallback(() => {
-    if (isAirQoGroup) {
-      toast.error('You cannot leave the default AirQo organization');
-      return;
-    }
     setShowLeaveDialog(true);
-  }, [isAirQoGroup]);
+  }, []);
 
   const handleConfirmLeave = useCallback(async () => {
     if (!activeGroup?.id) {
@@ -52,7 +44,7 @@ const LeaveOrganizationCard: React.FC = () => {
   }, [activeGroup, leaveGroup]);
 
   // Don't render if it's the AirQo group
-  if (isAirQoGroup) {
+  if (isDefaultAirQoGroup(activeGroup)) {
     return null;
   }
 

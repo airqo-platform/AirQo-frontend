@@ -7,6 +7,7 @@ import { Avatar } from '@/shared/components/ui/avatar';
 import { SearchField } from '@/shared/components/ui/search-field';
 import Dialog from '@/shared/components/ui/dialog';
 import { useUserActions } from '@/shared/hooks';
+import { isDefaultAirQoGroup } from '@/shared/utils/groupUtils';
 import { AqGrid01 } from '@airqo/icons-react';
 
 export function OrganizationSelector() {
@@ -23,16 +24,7 @@ export function OrganizationSelector() {
     if (!selectedGroup) return;
 
     // Determine navigation target based on group type BEFORE switching
-    // AIRQO group detection: check multiple conditions for robustness
-    const isAirQoGroup =
-      // Check if title matches AIRQO (case insensitive)
-      selectedGroup.title?.toLowerCase() === 'airqo' ||
-      // Check if organization slug is airqo
-      selectedGroup.organizationSlug?.toLowerCase() === 'airqo' ||
-      // Check if no organization slug (default user flow)
-      !selectedGroup.organizationSlug ||
-      // Fallback: check if title contains airqo
-      selectedGroup.title?.toLowerCase().includes('airqo');
+    const isAirQoGroup = isDefaultAirQoGroup(selectedGroup);
 
     // Switch the group first
     switchGroupById(groupId);

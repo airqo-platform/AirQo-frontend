@@ -162,12 +162,17 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ userId }) => {
         if (oldPublicId) {
           try {
             await deleteFromCloudinary(oldPublicId);
-          } catch (deleteError) {
-            console.warn(
-              'Failed to delete old profile picture from Cloudinary:',
-              deleteError
+            console.log(
+              'Successfully deleted old profile picture:',
+              oldPublicId
             );
-            // Don't block the update if deletion fails
+          } catch (deleteError) {
+            // Log but don't block - orphaned images are better than blocked uploads
+            console.warn(
+              'Failed to delete old profile picture from Cloudinary (non-critical):',
+              deleteError instanceof Error ? deleteError.message : deleteError
+            );
+            // Continue with upload regardless of deletion result
           }
         }
       }

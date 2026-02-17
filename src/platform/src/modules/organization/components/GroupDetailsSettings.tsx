@@ -216,12 +216,14 @@ const GroupDetailsSettings: React.FC = () => {
           if (oldPublicId) {
             try {
               await deleteFromCloudinary(oldPublicId);
+              console.log('Successfully deleted old group logo:', oldPublicId);
             } catch (deleteError) {
+              // Log but don't block - orphaned images are better than blocked uploads
               console.warn(
-                'Failed to delete old group logo from Cloudinary:',
-                deleteError
+                'Failed to delete old group logo from Cloudinary (non-critical):',
+                deleteError instanceof Error ? deleteError.message : deleteError
               );
-              // Don't block the update if deletion fails
+              // Continue with upload regardless of deletion result
             }
           }
         }
