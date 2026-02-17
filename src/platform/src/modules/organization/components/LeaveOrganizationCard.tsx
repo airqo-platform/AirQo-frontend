@@ -75,7 +75,7 @@ const LeaveOrganizationCard: React.FC = () => {
             <Button
               variant="filled"
               onClick={handleLeaveClick}
-              className="bg-amber-600 hover:bg-amber-700 text-white border-amber-600 ring-amber-600 outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
+              className="bg-red-600 hover:bg-red-700 text-white border-red-600 ring-red-600 outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
             >
               Leave Organization
             </Button>
