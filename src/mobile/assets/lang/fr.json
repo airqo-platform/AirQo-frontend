@@ -1,0 +1,182 @@
+{
+    "app_name": "AirQo",
+    
+    "navigation": {
+      "home": "Accueil",
+      "map": "Carte",
+      "learn": "Apprendre"
+    },
+    
+    "common": {
+      "loading": "Chargement...",
+      "error": "Une erreur est survenue",
+      "retry": "Réessayer",
+      "cancel": "Annuler",
+      "submit": "Soumettre",
+      "save": "Enregistrer",
+      "done": "Terminé",
+      "yes": "Oui",
+      "no": "Non",
+      "ok": "OK",
+      "next": "Suivant",
+      "previous": "Précédent",
+      "close": "Fermer",
+      "today": "Aujourd'hui",
+      "settings": "Paramètres",
+      "edit": "Modifier",
+      "create": "Créer",
+      "delete": "Supprimer",
+      "remove": "Retirer",
+      "all": "Tout"
+    },
+    
+    "auth": {
+      "login": "Connexion",
+      "login_here": "Se connecter ici",
+      "logout": "Se déconnecter",
+      "confirm_logout": "Confirmer la déconnexion",
+      "logout_confirmation": "Êtes-vous sûr de vouloir vous déconnecter ?",
+      "create_account": "Créer un compte",
+      "continue_as_guest": "Continuer en tant qu'invité",
+      "welcome": "Bienvenue sur AirQo !",
+      "clean_air": "De l'air pur pour toutes les villes africaines.",
+      "email": "Email",
+      "password": "Mot de passe",
+      "forgot_password": "Mot de passe oublié ?",
+      "reset_password": "Réinitialiser le mot de passe",
+      "confirm_password": "Confirmer le mot de passe",
+      "first_name": "Prénom",
+      "last_name": "Nom",
+      "enter_email": "Entrez votre email",
+      "enter_password": "Entrez votre mot de passe",
+      "enter_first_name": "Entrez votre prénom",
+      "enter_last_name": "Entrez votre nom",
+      "already_have_account": "Vous avez déjà un compte ?",
+      "dont_have_account": "Vous n'avez pas de compte ?",
+      "reset_link_sent": "Lien de réinitialisation envoyé",
+      "reset_password_message": "Entrez votre adresse email et nous vous enverrons un code pour réinitialiser votre mot de passe.",
+      "reset_password_success": "Votre mot de passe a été réinitialisé avec succès !",
+      "reset_login_message": "Vous pouvez maintenant vous connecter à votre compte avec votre nouveau mot de passe.",
+      "verify_email": "Veuillez confirmer votre adresse email.",
+      "verification_email_sent": "Un email avec des instructions de confirmation a été envoyé à :",
+      "resend": "Renvoyer",
+      "proceed_to_login": "Procéder à la connexion",
+      "cant_see_email": "Vous ne voyez pas l'email ?",
+      "email_required": "L'email est requis",
+      "password_required": "Le mot de passe est requis",
+      "first_name_required": "Le prénom est requis.",
+      "last_name_required": "Le nom est requis.",
+      "invalid_email": "Veuillez entrer une adresse email valide",
+      "password_validation": "Le mot de passe doit comporter au moins 6 caractères, inclure au moins une lettre et un chiffre."
+    },
+    
+    "dashboard": {
+      "welcome_greeting": "Bonjour, {name} 👋",
+      "guest_greeting": "Bonjour, Invité 👋🏼",
+      "todays_air_quality": "Qualité de l'air aujourd'hui",
+      "showing_locations_near_you": "Affichage de {count} emplacements près de vous",
+      "air_quality_stations": "Stations de surveillance de la qualité de l'air",
+      "my_places": "Mes lieux",
+      "nearby": "À proximité",
+      "add_places": "Ajoutez des lieux que vous aimez",
+      "add_places_description": "Commencez par ajouter des lieux qui vous intéressent.",
+      "add_location": "Ajouter un lieu",
+      "no_locations": "Aucun lieu disponible",
+      "try_again_different_location": "Veuillez réessayer avec un nom de lieu différent",
+      "location_removed": "\"{name}\" a été retiré de vos lieux",
+      "no_nearby_stations": "Aucune station de qualité d'air trouvée à proximité",
+      "no_nearby_message": "Il n'y a pas de stations de surveillance de la qualité de l'air dans un rayon de {radius} km de votre position.",
+      "search_locations": "Rechercher villages, villes ou pays",
+      "air_quality_categories": {
+        "good": "Bon",
+        "moderate": "Modéré",
+        "unhealthy_sensitive": "Malsain pour les groupes sensibles",
+        "unhealthy": "Malsain",
+        "very_unhealthy": "Très malsain",
+        "hazardous": "Dangereux",
+        "unavailable": "Indisponible"
+      },
+      "pm25": "PM2.5",
+      "pm10": "PM10",
+      "refresh": "Actualiser"
+    },
+    
+    "connection": {
+      "no_internet": "Connexion Internet perdue",
+      "no_internet_message": "Nous rencontrons des problèmes avec notre réseau\npas d'inquiétude, nous serons bientôt de retour.",
+      "location_services_disabled": "Services de localisation désactivés",
+      "location_permission_denied": "Autorisation de localisation refusée",
+      "location_permission_denied_permanently": "Autorisation de localisation refusée définitivement"
+    },
+    
+    "profile": {
+      "profile": "Profil",
+      "edit_profile": "Modifier votre profil",
+      "guest_user": "Utilisateur invité",
+      "create_account_prompt": "Créez un compte pour recevoir des alertes de qualité d'air",
+      "version": "Version",
+      "a_project_by": "UN PROJET DE",
+      "makerere_university": "L'UNIVERSITÉ DE MAKERERE",
+      "send_feedback": "Envoyer des commentaires",
+      "our_story": "Notre histoire",
+      "terms_and_privacy": "Conditions et politique de confidentialité",
+      "edit_profile_details": "Modifiez vos informations de profil ici",
+      "update_info": "Mettez à jour vos informations pour maintenir votre compte à jour",
+      "discard_changes": "Abandonner les modifications ?",
+      "discard_changes_message": "Vous avez des modifications non enregistrées. Êtes-vous sûr de vouloir revenir en arrière ?",
+      "discard": "Abandonner"
+    },
+    
+    "language": {
+      "language": "Langue",
+      "languages": "Langues",
+      "select_language": "Sélectionner la langue",
+      "language_changed": "Langue changée en {language}",
+      "change_language_description": "Changez la langue de l'application selon votre préférence"
+    },
+    
+    "location": {
+      "location": "Localisation",
+      "locations": "Localisations",
+      "location_permission": "AirQo pour utiliser votre localisation précise afin de déterminer la qualité de l'air à proximité",
+      "enable_location": "Activer la localisation",
+      "no_results": "Aucun résultat trouvé",
+      "other_locations": "Autres lieux",
+      "location_permission_required": "L'autorisation de localisation est nécessaire pour afficher les données de qualité d'air près de vous.",
+      "open_settings": "Ouvrir les paramètres",
+      "your_location": "Votre position : {lat}, {lng}",
+      "unknown_location": "Lieu inconnu",
+      "save_locations": "Enregistrer ({count}) lieux",
+      "location_selected": "Image sélectionnée. Enregistrez pour télécharger."
+    },
+    
+    "map": {
+      "airqo_map": "Carte AirQo",
+      "suggestions": "Suggestions",
+      "view_on_map": "Voir sur la carte"
+    },
+    
+    "learn": {
+      "know_your_air": "Connaître votre air",
+      "welcome_message": "👋 Bienvenue ! Dans \"Connaître votre air\", vous apprendrez tout sur AirQo et la qualité de l'air.",
+      "lessons": "Leçons",
+      "articles": "Articles",
+      "track_air_quality": "Suivez et surveillez la qualité de l'air que vous respirez",
+      "great_job": "👋🏼 Excellent travail !",
+      "teach_friends": "Vous pouvez maintenant enseigner à vos amis à en savoir plus sur la pollution de l'air",
+      "share": "Partager",
+      "rate_app": "Évaluer l'application",
+      "breathe_clean": "🌿 Respirez propre",
+      "air_pollution_community": "Apprenez et réduisez la pollution de l'air dans votre communauté"
+    },
+    
+    "errors": {
+      "an_error_occurred": "Une erreur s'est produite",
+      "network_error": "Nous rencontrons des problèmes avec notre réseau\npas d'inquiétude, nous serons bientôt de retour.",
+      "maintenance": "L'application est actuellement en maintenance",
+      "timeout": "La requête a expiré. Veuillez réessayer.",
+      "profile_update_error": "Erreur lors de la mise à jour du profil : {message}",
+      "image_upload_error": "Échec lors de la sélection de l'image : {message}",
+      "upload_error": "Erreur lors du téléchargement/mise à jour de l'image de profil : {message}"
+    }
+  }

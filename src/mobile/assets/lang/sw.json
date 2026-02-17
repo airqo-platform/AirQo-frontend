@@ -1,0 +1,182 @@
+{
+    "app_name": "AirQo",
+    
+    "navigation": {
+      "home": "Nyumbani",
+      "map": "Ramani",
+      "learn": "Jifunze"
+    },
+    
+    "common": {
+      "loading": "Inapakia...",
+      "error": "Hitilafu imetokea",
+      "retry": "Jaribu tena",
+      "cancel": "Ghairi",
+      "submit": "Wasilisha",
+      "save": "Hifadhi",
+      "done": "Imekamilika",
+      "yes": "Ndio",
+      "no": "La",
+      "ok": "Sawa",
+      "next": "Ifuatayo",
+      "previous": "Iliyotangulia",
+      "close": "Funga",
+      "today": "Leo",
+      "settings": "Mipangilio",
+      "edit": "Hariri",
+      "create": "Unda",
+      "delete": "Futa",
+      "remove": "Ondoa",
+      "all": "Zote"
+    },
+    
+    "auth": {
+      "login": "Ingia",
+      "login_here": "Ingia Hapa",
+      "logout": "Toka",
+      "confirm_logout": "Thibitisha Kutoka",
+      "logout_confirmation": "Una uhakika unataka kutoka?",
+      "create_account": "Fungua Akaunti",
+      "continue_as_guest": "Endelea kama mgeni",
+      "welcome": "Karibu kwenye AirQo!",
+      "clean_air": "Hewa Safi kwa Miji yote ya Afrika.",
+      "email": "Barua pepe",
+      "password": "Nenosiri",
+      "forgot_password": "Umesahau nenosiri?",
+      "reset_password": "Weka upya Nenosiri",
+      "confirm_password": "Thibitisha Nenosiri",
+      "first_name": "Jina la Kwanza",
+      "last_name": "Jina la Familia",
+      "enter_email": "Ingiza barua pepe yako",
+      "enter_password": "Ingiza nenosiri lako",
+      "enter_first_name": "Ingiza jina lako la kwanza",
+      "enter_last_name": "Ingiza jina lako la familia",
+      "already_have_account": "Tayari una akaunti?",
+      "dont_have_account": "Huna akaunti?",
+      "reset_link_sent": "Kiungo cha kuweka upya nenosiri kimetumwa",
+      "reset_password_message": "Ingiza anwani yako ya barua pepe na tutakutumia msimbo wa kuweka upya nenosiri lako.",
+      "reset_password_success": "Nenosiri lako limewekwa upya kwa mafanikio!",
+      "reset_login_message": "Sasa unaweza kuingia kwenye akaunti yako kwa kutumia nenosiri lako jipya.",
+      "verify_email": "Tafadhali thibitisha anwani yako ya barua pepe.",
+      "verification_email_sent": "Barua pepe yenye maelekezo ya uthibitisho imetumwa kwa:",
+      "resend": "Tuma tena",
+      "proceed_to_login": "Endelea kwenye Kuingia",
+      "cant_see_email": "Huoni barua pepe?",
+      "email_required": "Barua pepe inahitajika",
+      "password_required": "Nenosiri linahitajika",
+      "first_name_required": "Jina la kwanza linahitajika.",
+      "last_name_required": "Jina la familia linahitajika.",
+      "invalid_email": "Tafadhali ingiza anwani halali ya barua pepe",
+      "password_validation": "Nenosiri lazima liwe na angalau herufi 6, pamoja na angalau herufi moja na namba moja."
+    },
+    
+    "dashboard": {
+      "welcome_greeting": "Habari, {name} 👋",
+      "guest_greeting": "Habari, Mgeni 👋🏼",
+      "todays_air_quality": "Ubora wa Hewa wa Leo",
+      "showing_locations_near_you": "Inaonyesha maeneo {count} karibu nawe",
+      "air_quality_stations": "Vituo vya Ufuatiliaji wa Ubora wa Hewa",
+      "my_places": "Maeneo Yangu",
+      "nearby": "Karibu",
+      "add_places": "Ongeza maeneo unayopenda",
+      "add_places_description": "Anza kwa kuongeza maeneo unayojali.",
+      "add_location": "Ongeza Eneo",
+      "no_locations": "Hakuna maeneo yaliyopatikana",
+      "try_again_different_location": "Tafadhali jaribu tena kwa jina tofauti la eneo",
+      "location_removed": "\"{name}\" imeondolewa kutoka maeneo yako",
+      "no_nearby_stations": "Hakuna vituo vya ubora wa hewa vilivyopatikana karibu",
+      "no_nearby_message": "Hakuna vituo vya ufuatiliaji wa ubora wa hewa ndani ya kilomita {radius} kutoka eneo lako.",
+      "search_locations": "Tafuta Vijiji, Miji au Nchi",
+      "air_quality_categories": {
+        "good": "Nzuri",
+        "moderate": "Wastani",
+        "unhealthy_sensitive": "Isiyo na Afya kwa Vikundi Nyeti",
+        "unhealthy": "Isiyo na Afya",
+        "very_unhealthy": "Isiyo na Afya Sana",
+        "hazardous": "Hatari",
+        "unavailable": "Haipatikani"
+      },
+      "pm25": "PM2.5",
+      "pm10": "PM10",
+      "refresh": "Onyesha upya"
+    },
+    
+    "connection": {
+      "no_internet": "Muunganisho wa Intaneti Umepotea",
+      "no_internet_message": "Tuna matatizo na mtandao wetu\nusiwe na wasiwasi, tutarudi hivi karibuni.",
+      "location_services_disabled": "Huduma za Eneo Zimezimwa",
+      "location_permission_denied": "Ruhusa ya eneo imekataliwa",
+      "location_permission_denied_permanently": "Ruhusa ya eneo imekataliwa kabisa"
+    },
+    
+    "profile": {
+      "profile": "Wasifu",
+      "edit_profile": "Hariri wasifu wako",
+      "guest_user": "Mtumiaji Mgeni",
+      "create_account_prompt": "Unda akaunti kupata arifa za ubora wa hewa",
+      "version": "Toleo",
+      "a_project_by": "MRADI WA",
+      "makerere_university": "CHUO KIKUU CHA MAKERERE",
+      "send_feedback": "Tuma Maoni",
+      "our_story": "Hadithi Yetu",
+      "terms_and_privacy": "Masharti na Sera ya Faragha",
+      "edit_profile_details": "Hariri maelezo ya wasifu wako hapa",
+      "update_info": "Sasisha maelezo yako ili kuweka akaunti yako ya sasa",
+      "discard_changes": "Tupa Mabadiliko?",
+      "discard_changes_message": "Una mabadiliko ambayo hayajahifadhiwa. Una uhakika unataka kurudi nyuma?",
+      "discard": "Tupa"
+    },
+    
+    "language": {
+      "language": "Lugha",
+      "languages": "Lugha",
+      "select_language": "Chagua lugha",
+      "language_changed": "Lugha imebadilishwa kuwa {language}",
+      "change_language_description": "Badilisha lugha ya programu kuwa lugha unayopendelea"
+    },
+    
+    "location": {
+      "location": "Eneo",
+      "locations": "Maeneo",
+      "location_permission": "AirQo kutumia eneo lako sahihi ili kutambua Ubora wa Hewa wa eneo lako la karibu",
+      "enable_location": "Wezesha Eneo",
+      "no_results": "Hakuna matokeo yaliyopatikana",
+      "other_locations": "Maeneo Mengine",
+      "location_permission_required": "Ruhusa ya eneo inahitajika kuonyesha data ya ubora wa hewa karibu nawe.",
+      "open_settings": "Fungua Mipangilio",
+      "your_location": "Eneo lako: {lat}, {lng}",
+      "unknown_location": "Eneo Lisilojulikana",
+      "save_locations": "Hifadhi Maeneo ({count})",
+      "location_selected": "Picha imechaguliwa. Hifadhi ili kupakia."
+    },
+    
+    "map": {
+      "airqo_map": "Ramani ya AirQo",
+      "suggestions": "Mapendekezo",
+      "view_on_map": "Tazama kwenye Ramani"
+    },
+    
+    "learn": {
+      "know_your_air": "Jua Hewa Yako",
+      "welcome_message": "👋 Karibu! kwenye \"Jua Hewa Yako,\" utajifunza kuhusu AirQo na ubora wa hewa.",
+      "lessons": "Masomo",
+      "articles": "Makala",
+      "track_air_quality": "Fuatilia na chunguza ubora wa hewa unayovuta",
+      "great_job": "👋🏼 Kazi Nzuri !",
+      "teach_friends": "Sasa unaweza kuwafundisha marafiki zako kujifunza jambo kuhusu Uchafuzi wa Hewa",
+      "share": "Shiriki",
+      "rate_app": "Tathmini Programu",
+      "breathe_clean": "🌿 Vuta Hewa Safi",
+      "air_pollution_community": "Jifunze na punguza uchafuzi wa hewa katika jamii yako"
+    },
+    
+    "errors": {
+      "an_error_occurred": "Hitilafu Imetokea",
+      "network_error": "Tuna matatizo na mtandao wetu\nusiwe na wasiwasi, tutarudi hivi karibuni.",
+      "maintenance": "Programu iko chini ya matengenezo",
+      "timeout": "Ombi limepitwa na wakati. Tafadhali jaribu tena.",
+      "profile_update_error": "Hitilafu wakati wa kusasisha wasifu: {message}",
+      "image_upload_error": "Imeshindwa kuchagua picha: {message}",
+      "upload_error": "Hitilafu wakati wa kupakia/kusasisha picha ya wasifu: {message}"
+    }
+  }

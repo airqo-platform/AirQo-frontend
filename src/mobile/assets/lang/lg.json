@@ -1,0 +1,182 @@
+{
+    "app_name": "AirQo",
+    
+    "navigation": {
+      "home": "Awaka",
+      "map": "Maapu",
+      "learn": "Yiga"
+    },
+    
+    "common": {
+      "loading": "Kulindirira...",
+      "error": "Waliwo kiremya",
+      "retry": "Gezaako nate",
+      "cancel": "Sazaamu",
+      "submit": "Sindika",
+      "save": "Tereka",
+      "done": "Kiwedde",
+      "yes": "Yee",
+      "no": "Nedda",
+      "ok": "Kale",
+      "next": "Eddako",
+      "previous": "Edda",
+      "close": "Ggalawo",
+      "today": "Leero",
+      "settings": "Entegeka",
+      "edit": "Kyusa",
+      "create": "Tonda",
+      "delete": "Gyawo",
+      "remove": "Jjamu",
+      "all": "Byonna"
+    },
+    
+    "auth": {
+      "login": "Yingiza",
+      "login_here": "Yingiza Wano",
+      "logout": "Fuluma",
+      "confirm_logout": "Kakasa Okufuluma",
+      "logout_confirmation": "Okakafu oyagala okufuluma?",
+      "create_account": "Tonda Akawunti",
+      "continue_as_guest": "Weyongere nga mugenyi",
+      "welcome": "Tukwanirizza ku AirQo!",
+      "clean_air": "Empewo Ennungi eri Ebibuga byonna ebya Africa.",
+      "email": "Email",
+      "password": "Ekigambo ekikuumi",
+      "forgot_password": "Weerabidde ekigambo ekikuumi?",
+      "reset_password": "Ddamu Ekigambo Ekikuumi",
+      "confirm_password": "Kakasa Ekigambo Ekikuumi",
+      "first_name": "Erinnya Ekisooka",
+      "last_name": "Erinnya Erisembayo",
+      "enter_email": "Teeka email yo",
+      "enter_password": "Teeka ekigambo kyo ekikuumi",
+      "enter_first_name": "Teeka erinnya lyo ekisooka",
+      "enter_last_name": "Teeka erinnya lyo erisembayo",
+      "already_have_account": "Olina dda akawunti?",
+      "dont_have_account": "Tolina kawunti?",
+      "reset_link_sent": "Ekituufu ky'okuddamu ekigambo ekikuumi kisindikiddwa",
+      "reset_password_message": "Teeka email yo era tujja kukusindikira koodi okuddamu ekigambo kyo ekikuumi.",
+      "reset_password_success": "Ekigambo kyo ekikuumi kizziddwa bulungi!",
+      "reset_login_message": "Kaakati osobola okuyingira mu akawunti yo nga okozesa ekigambo ekikuumi ekipya.",
+      "verify_email": "Nkusaba okakase email yo.",
+      "verification_email_sent": "Email n'ebiragiro by'okukakasa esindikiddwa ku:",
+      "resend": "Ddamu osindike",
+      "proceed_to_login": "Genda ku kuyingiza",
+      "cant_see_email": "Tosobola kulaba email?",
+      "email_required": "Email yeetaagisa",
+      "password_required": "Ekigambo ekikuumi kyetaagisa",
+      "first_name_required": "Erinnya ekisooka lyetaagisa.",
+      "last_name_required": "Erinnya erisembayo lyetaagisa.",
+      "invalid_email": "Nsaba oyingize email entuufu",
+      "password_validation": "Ekigambo ekikuumi kiteekwa okubeera n'ennukuta 6 oba okusingawo, n'ennukuta n'ennamba."
+    },
+    
+    "dashboard": {
+      "welcome_greeting": "Oli otya, {name} 👋",
+      "guest_greeting": "Oli otya, Mugenyi 👋🏼",
+      "todays_air_quality": "Embeera y'Empewo Leero",
+      "showing_locations_near_you": "Okulaga ebifo {count} ebikwetoolodde",
+      "air_quality_stations": "Ebifo by'Okukebeera Embeera y'Empewo",
+      "my_places": "Ebifo Byange",
+      "nearby": "Okumpi",
+      "add_places": "Gattako ebifo by'oyagala",
+      "add_places_description": "Tandika nga ogattako ebifo by'ofaako.",
+      "add_location": "Gattako Ekifo",
+      "no_locations": "Tewali bifo biriwo",
+      "try_again_different_location": "Nsaba ogezaako n'erinnya ly'ekifo ekirala",
+      "location_removed": "\"{name}\" kiggyiddwa mu bifo byo",
+      "no_nearby_stations": "Tewali bifo bya kukebeera mbeera ya mpewo bisangiddwa kumpi",
+      "no_nearby_message": "Tewali bifo by'okukebeera embeera y'empewo mu kilomita {radius} okuva w'oli.",
+      "search_locations": "Noonya Ebyalo, Ebibuga oba Ensi",
+      "air_quality_categories": {
+        "good": "Nnungi",
+        "moderate": "Nnungi Katono",
+        "unhealthy_sensitive": "Embi eri Ebibinja Eby'obulemu",
+        "unhealthy": "Embi",
+        "very_unhealthy": "Mbi Nnyo",
+        "hazardous": "Ey'akabi",
+        "unavailable": "Teriwo"
+      },
+      "pm25": "PM2.5",
+      "pm10": "PM10",
+      "refresh": "Ddamu ozza"
+    },
+    
+    "connection": {
+      "no_internet": "Okukolagana kw'internet kugudde",
+      "no_internet_message": "Tulina obuzibu n'entambula yaffe\ntewewalika, tujja kukomawo mangu.",
+      "location_services_disabled": "Enkola y'Ebifo Esaanyiziddwawo",
+      "location_permission_denied": "Olukusa lw'ekifo lugaaniddwa",
+      "location_permission_denied_permanently": "Olukusa lw'ekifo lugaaniddwa lubeerera"
+    },
+    
+    "profile": {
+      "profile": "Profayiro",
+      "edit_profile": "Kyusa profayiro yo",
+      "guest_user": "Mukozesa Mugenyi",
+      "create_account_prompt": "Tonda akawunti okufuna okulabula ku mbeera y'empewo",
+      "version": "Enkyusa",
+      "a_project_by": "PULOJEKITI YA",
+      "makerere_university": "YUNIVASITE YA MAKERERE",
+      "send_feedback": "Sindika Endowooza",
+      "our_story": "Emboozi Yaffe",
+      "terms_and_privacy": "Amateeka n'Enkola y'Obukuumi",
+      "edit_profile_details": "Kyusa ebikwata ku profayiro yo wano",
+      "update_info": "Zzaawo ebikwata ku ggwe okukuuma akawunti yo ng'eky'omulembe",
+      "discard_changes": "Suula Enkyukakyuka?",
+      "discard_changes_message": "Olina enkyukakyuka ezitaterekeddwa. Okakafu oyagala okuddayo?",
+      "discard": "Suula"
+    },
+    
+    "language": {
+      "language": "Olulimi",
+      "languages": "Ennimi",
+      "select_language": "Londa olulimi",
+      "language_changed": "Olulimi lukyusiddwa okudda ku {language}",
+      "change_language_description": "Kyusa olulimi lw'app okudda ku olwo lw'oyagala"
+    },
+    
+    "location": {
+      "location": "Ekifo",
+      "locations": "Ebifo",
+      "location_permission": "AirQo okukozesa ekifo kyo ekituufu okuzuula Embeera y'Empewo mu kifo ekikumpi naawe",
+      "enable_location": "Kkiriza Ekifo",
+      "no_results": "Tewali bivaamu bizziddwa",
+      "other_locations": "Ebifo Ebirala",
+      "location_permission_required": "Olukusa lw'ekifo lyetaagisa okulaga ebikwata ku mbeera y'empewo okumpi naawe.",
+      "open_settings": "Ggulawo Entegeka",
+      "your_location": "Ekifo kyo: {lat}, {lng}",
+      "unknown_location": "Ekifo Ekitamanyiddwa",
+      "save_locations": "Tereka Ebifo ({count})",
+      "location_selected": "Ekifaananyi kilondeddwa. Tereka okusindika."
+    },
+    
+    "map": {
+      "airqo_map": "Maapu ya AirQo",
+      "suggestions": "Ebiteeso",
+      "view_on_map": "Laba ku Maapu"
+    },
+    
+    "learn": {
+      "know_your_air": "Manya Empewo Yo",
+      "welcome_message": "👋 Tukwanirizza! mu \"Manya Empewo Yo,\" ojja kuyiga ku AirQo n'embeera y'empewo.",
+      "lessons": "Amasomo",
+      "articles": "Ebiwandiiko",
+      "track_air_quality": "Goberera era weekenneenye obutonde bw'empewo gy'oissa",
+      "great_job": "👋🏼 Omulimu Omulungi !",
+      "teach_friends": "Kaakano osobola okuyigiriza mikwano gyo okumannya ku Okwonoona Empewo",
+      "share": "Gabanamu",
+      "rate_app": "Lamula App",
+      "breathe_clean": "🌿 Issa Empewo Ennongoofu",
+      "air_pollution_community": "Yiga era kendeeza okwonoona empewo mu kitundu kyo"
+    },
+    
+    "errors": {
+      "an_error_occurred": "Wabaddewo Ensobi",
+      "network_error": "Tulina obuzibu n'entambula yaffe\ntewewalika, tujja kukomawo mangu.",
+      "maintenance": "App eri mu nkola y'okuterezebwa",
+      "timeout": "Okusaba kuyiseewo. Nsaba ogezaako nate.",
+      "profile_update_error": "Ensobi mu kubuusa profayiro: {message}",
+      "image_upload_error": "Okugaana okulonda ekifaananyi: {message}",
+      "upload_error": "Ensobi mu kusindika/okubuusa ekifaananyi kya profayiro: {message}"
+    }
+  }

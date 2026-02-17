@@ -1,0 +1,182 @@
+{
+    "app_name": "AirQo",
+    
+    "navigation": {
+      "home": "Início",
+      "map": "Mapa",
+      "learn": "Aprender"
+    },
+    
+    "common": {
+      "loading": "Carregando...",
+      "error": "Ocorreu um erro",
+      "retry": "Tentar novamente",
+      "cancel": "Cancelar",
+      "submit": "Enviar",
+      "save": "Salvar",
+      "done": "Concluído",
+      "yes": "Sim",
+      "no": "Não",
+      "ok": "OK",
+      "next": "Próximo",
+      "previous": "Anterior",
+      "close": "Fechar",
+      "today": "Hoje",
+      "settings": "Configurações",
+      "edit": "Editar",
+      "create": "Criar",
+      "delete": "Excluir",
+      "remove": "Remover",
+      "all": "Todos"
+    },
+    
+    "auth": {
+      "login": "Entrar",
+      "login_here": "Entre Aqui",
+      "logout": "Sair",
+      "confirm_logout": "Confirmar Saída",
+      "logout_confirmation": "Tem certeza que deseja sair?",
+      "create_account": "Criar Conta",
+      "continue_as_guest": "Continuar como convidado",
+      "welcome": "Bem-vindo ao AirQo!",
+      "clean_air": "Ar Limpo para todas as Cidades Africanas.",
+      "email": "Email",
+      "password": "Senha",
+      "forgot_password": "Esqueceu a senha?",
+      "reset_password": "Redefinir Senha",
+      "confirm_password": "Confirmar Senha",
+      "first_name": "Nome",
+      "last_name": "Sobrenome",
+      "enter_email": "Digite seu email",
+      "enter_password": "Digite sua senha",
+      "enter_first_name": "Digite seu nome",
+      "enter_last_name": "Digite seu sobrenome",
+      "already_have_account": "Já tem uma conta?",
+      "dont_have_account": "Não tem uma conta?",
+      "reset_link_sent": "Link de redefinição de senha enviado",
+      "reset_password_message": "Digite seu endereço de email e enviaremos um código para redefinir sua senha.",
+      "reset_password_success": "Sua senha foi redefinida com sucesso!",
+      "reset_login_message": "Agora você pode entrar em sua conta usando sua nova senha.",
+      "verify_email": "Por favor, confirme seu endereço de email.",
+      "verification_email_sent": "Um email com instruções de confirmação foi enviado para:",
+      "resend": "Reenviar",
+      "proceed_to_login": "Prosseguir para o Login",
+      "cant_see_email": "Não consegue ver o email?",
+      "email_required": "O email é obrigatório",
+      "password_required": "A senha é obrigatória",
+      "first_name_required": "O nome é obrigatório.",
+      "last_name_required": "O sobrenome é obrigatório.",
+      "invalid_email": "Por favor, digite um endereço de email válido",
+      "password_validation": "A senha deve ter pelo menos 6 caracteres, incluir pelo menos uma letra e um número."
+    },
+    
+    "dashboard": {
+      "welcome_greeting": "Olá, {name} 👋",
+      "guest_greeting": "Olá, Convidado 👋🏼",
+      "todays_air_quality": "Qualidade do Ar Hoje",
+      "showing_locations_near_you": "Mostrando {count} locais próximos a você",
+      "air_quality_stations": "Estações de Monitoramento da Qualidade do Ar",
+      "my_places": "Meus Lugares",
+      "nearby": "Próximos",
+      "add_places": "Adicione lugares que você ama",
+      "add_places_description": "Comece adicionando locais que você se importa.",
+      "add_location": "Adicionar Local",
+      "no_locations": "Nenhum local disponível",
+      "try_again_different_location": "Por favor, tente novamente com um nome de local diferente",
+      "location_removed": "\"{name}\" foi removido dos seus lugares",
+      "no_nearby_stations": "Nenhuma estação de qualidade do ar encontrada nas proximidades",
+      "no_nearby_message": "Não há estações de monitoramento da qualidade do ar dentro de {radius} km da sua localização.",
+      "search_locations": "Pesquisar Vilarejos, Cidades ou Países",
+      "air_quality_categories": {
+        "good": "Boa",
+        "moderate": "Moderada",
+        "unhealthy_sensitive": "Insalubre para Grupos Sensíveis",
+        "unhealthy": "Insalubre",
+        "very_unhealthy": "Muito Insalubre",
+        "hazardous": "Perigosa",
+        "unavailable": "Indisponível"
+      },
+      "pm25": "PM2.5",
+      "pm10": "PM10",
+      "refresh": "Atualizar"
+    },
+    
+    "connection": {
+      "no_internet": "Conexão com a Internet Perdida",
+      "no_internet_message": "Estamos tendo problemas com nossa rede\nnão se preocupe, voltaremos em breve.",
+      "location_services_disabled": "Serviços de Localização Desativados",
+      "location_permission_denied": "Permissão de localização negada",
+      "location_permission_denied_permanently": "Permissão de localização negada permanentemente"
+    },
+    
+    "profile": {
+      "profile": "Perfil",
+      "edit_profile": "Editar seu perfil",
+      "guest_user": "Usuário Convidado",
+      "create_account_prompt": "Crie uma conta para receber alertas de qualidade do ar",
+      "version": "Versão",
+      "a_project_by": "UM PROJETO DE",
+      "makerere_university": "UNIVERSIDADE DE MAKERERE",
+      "send_feedback": "Enviar Feedback",
+      "our_story": "Nossa História",
+      "terms_and_privacy": "Termos e Política de Privacidade",
+      "edit_profile_details": "Edite seus detalhes de perfil aqui",
+      "update_info": "Atualize suas informações para manter sua conta atualizada",
+      "discard_changes": "Descartar Alterações?",
+      "discard_changes_message": "Você tem alterações não salvas. Tem certeza que deseja voltar?",
+      "discard": "Descartar"
+    },
+    
+    "language": {
+      "language": "Idioma",
+      "languages": "Idiomas",
+      "select_language": "Selecionar idioma",
+      "language_changed": "Idioma alterado para {language}",
+      "change_language_description": "Altere o idioma do aplicativo para seu idioma preferido"
+    },
+    
+    "location": {
+      "location": "Localização",
+      "locations": "Localizações",
+      "location_permission": "AirQo para usar sua localização precisa para localizar a Qualidade do Ar do local mais próximo",
+      "enable_location": "Ativar Localização",
+      "no_results": "Nenhum resultado encontrado",
+      "other_locations": "Outros Locais",
+      "location_permission_required": "A permissão de localização é necessária para mostrar dados de qualidade do ar perto de você.",
+      "open_settings": "Abrir Configurações",
+      "your_location": "Sua localização: {lat}, {lng}",
+      "unknown_location": "Local Desconhecido",
+      "save_locations": "Salvar ({count}) Locais",
+      "location_selected": "Imagem selecionada. Salve para carregar."
+    },
+    
+    "map": {
+      "airqo_map": "Mapa AirQo",
+      "suggestions": "Sugestões",
+      "view_on_map": "Ver no Mapa"
+    },
+    
+    "learn": {
+      "know_your_air": "Conheça Seu Ar",
+      "welcome_message": "👋 Bem-vindo! ao \"Conheça Seu Ar,\" você aprenderá sobre o AirQo e a qualidade do ar.",
+      "lessons": "Lições",
+      "articles": "Artigos",
+      "track_air_quality": "Acompanhe e monitore a qualidade do ar que você respira",
+      "great_job": "👋🏼 Ótimo Trabalho!",
+      "teach_friends": "Agora você pode ensinar seus amigos a aprender sobre a Poluição do Ar",
+      "share": "Compartilhar",
+      "rate_app": "Avaliar o Aplicativo",
+      "breathe_clean": "🌿 Respire Limpo",
+      "air_pollution_community": "Aprenda e reduza a poluição do ar em sua comunidade"
+    },
+    
+    "errors": {
+      "an_error_occurred": "Ocorreu um Erro",
+      "network_error": "Estamos tendo problemas com nossa rede\nnão se preocupe, voltaremos em breve.",
+      "maintenance": "O aplicativo está atualmente em manutenção",
+      "timeout": "Tempo limite da solicitação esgotado. Por favor, tente novamente.",
+      "profile_update_error": "Erro ao atualizar o perfil: {message}",
+      "image_upload_error": "Falha ao selecionar imagem: {message}",
+      "upload_error": "Erro ao carregar/atualizar imagem de perfil: {message}"
+    }
+  }

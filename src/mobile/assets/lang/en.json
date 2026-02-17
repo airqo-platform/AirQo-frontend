@@ -1,0 +1,182 @@
+{
+    "app_name": "AirQo",
+    
+    "navigation": {
+      "home": "Home",
+      "map": "Map",
+      "learn": "Learn"
+    },
+    
+    "common": {
+      "loading": "Loading...",
+      "error": "An error occurred",
+      "retry": "Try Again",
+      "cancel": "Cancel",
+      "submit": "Submit",
+      "save": "Save",
+      "done": "Done",
+      "yes": "Yes",
+      "no": "No",
+      "ok": "OK",
+      "next": "Next",
+      "previous": "Previous",
+      "close": "Close",
+      "today": "Today",
+      "settings": "Settings",
+      "edit": "Edit",
+      "create": "Create",
+      "delete": "Delete",
+      "remove": "Remove",
+      "all": "All"
+    },
+    
+    "auth": {
+      "login": "Login",
+      "login_here": "Login Here",
+      "logout": "Log out",
+      "confirm_logout": "Confirm Logout",
+      "logout_confirmation": "Are you sure you want to log out?",
+      "create_account": "Create Account",
+      "continue_as_guest": "Continue as guest",
+      "welcome": "Welcome to AirQo!",
+      "clean_air": "Clean Air for all African Cities.",
+      "email": "Email",
+      "password": "Password",
+      "forgot_password": "Forgot password?",
+      "reset_password": "Reset Password",
+      "confirm_password": "Confirm Password",
+      "first_name": "First Name",
+      "last_name": "Last Name",
+      "enter_email": "Enter your email",
+      "enter_password": "Enter your password",
+      "enter_first_name": "Enter your first name",
+      "enter_last_name": "Enter your last name",
+      "already_have_account": "Already have an account?",
+      "dont_have_account": "Don't have an account?",
+      "reset_link_sent": "Password reset link sent",
+      "reset_password_message": "Enter your email address and we will send you a code to reset your password.",
+      "reset_password_success": "Your password has been reset successfully!",
+      "reset_login_message": "You can now log in to your account using your new password.",
+      "verify_email": "Please confirm your email address.",
+      "verification_email_sent": "An email with confirmation instructions has been sent to:",
+      "resend": "Resend",
+      "proceed_to_login": "Proceed to Login",
+      "cant_see_email": "Can't see the email?",
+      "email_required": "Email is required",
+      "password_required": "Password is required",
+      "first_name_required": "First Name is required.",
+      "last_name_required": "Last name is required.",
+      "invalid_email": "Please enter a valid email address",
+      "password_validation": "Password must be at least 6 characters, include at least one letter and one number."
+    },
+    
+    "dashboard": {
+      "welcome_greeting": "Hi, {name} 👋",
+      "guest_greeting": "Hi, Guest 👋🏼",
+      "todays_air_quality": "Today's Air Quality",
+      "showing_locations_near_you": "Showing {count} locations near you",
+      "air_quality_stations": "Air Quality Monitoring Locations",
+      "my_places": "My Places",
+      "nearby": "Nearby",
+      "add_places": "Add places you love",
+      "add_places_description": "Start by adding locations you care about.",
+      "add_location": "Add Location",
+      "no_locations": "No locations available",
+      "try_again_different_location": "Please try again with a different location name",
+      "location_removed": "\"{name}\" has been removed from your places",
+      "no_nearby_stations": "No air quality stations found nearby",
+      "no_nearby_message": "There are no air quality monitoring stations within {radius} km of your location.",
+      "search_locations": "Search Villages, Cities or Countries",
+      "air_quality_categories": {
+        "good": "Good",
+        "moderate": "Moderate",
+        "unhealthy_sensitive": "Unhealthy for Sensitive Groups",
+        "unhealthy": "Unhealthy",
+        "very_unhealthy": "Very Unhealthy",
+        "hazardous": "Hazardous",
+        "unavailable": "Unavailable"
+      },
+      "pm25": "PM2.5",
+      "pm10": "PM10",
+      "refresh": "Refresh"
+    },
+    
+    "connection": {
+      "no_internet": "Internet Connection Lost",
+      "no_internet_message": "We're having issues with our network\nno worries, we'll be back up soon.",
+      "location_services_disabled": "Location Services Disabled",
+      "location_permission_denied": "Location permission denied",
+      "location_permission_denied_permanently": "Location permission permanently denied"
+    },
+    
+    "profile": {
+      "profile": "Profile",
+      "edit_profile": "Edit your profile",
+      "guest_user": "Guest User",
+      "create_account_prompt": "Create an account to get air quality alerts",
+      "version": "Version",
+      "a_project_by": "A PROJECT BY",
+      "makerere_university": "MAKERERE UNIVERSITY",
+      "send_feedback": "Send Feedback",
+      "our_story": "Our Story",
+      "terms_and_privacy": "Terms and Privacy Policy",
+      "edit_profile_details": "Edit your profile details here",
+      "update_info": "Update your information to keep your account current",
+      "discard_changes": "Discard Changes?",
+      "discard_changes_message": "You have unsaved changes. Are you sure you want to go back?",
+      "discard": "Discard"
+    },
+    
+    "language": {
+      "language": "Language",
+      "languages": "Languages",
+      "select_language": "Select language",
+      "language_changed": "Language changed to {language}",
+      "change_language_description": "Change the language of the app to your preferred language"
+    },
+    
+    "location": {
+      "location": "Location",
+      "locations": "Locations",
+      "location_permission": "AirQo to use your precise location to locate the Air Quality of your nearest location",
+      "enable_location": "Enable Location",
+      "no_results": "No results found",
+      "other_locations": "Other Locations",
+      "location_permission_required": "Location permission is required to show air quality data near you.",
+      "open_settings": "Open Settings",
+      "your_location": "Your location: {lat}, {lng}",
+      "unknown_location": "Unknown Location",
+      "save_locations": "Save ({count}) Locations",
+      "location_selected": "Image selected. Save to upload."
+    },
+    
+    "map": {
+      "airqo_map": "AirQo map",
+      "suggestions": "Suggestions",
+      "view_on_map": "View on Map"
+    },
+    
+    "learn": {
+      "know_your_air": "Know Your Air",
+      "welcome_message": "👋 Welcome! to \"Know Your Air,\" you'll learn about AirQo and air quality.",
+      "lessons": "Lessons",
+      "articles": "Articles",
+      "track_air_quality": "Track and monitor the quality of air you breathe",
+      "great_job": "👋🏼 Great Job !",
+      "teach_friends": "You can now teach your friends to learn a thing about Air Pollution",
+      "share": "Share",
+      "rate_app": "Rate the App",
+      "breathe_clean": "🌿 Breathe Clean",
+      "air_pollution_community": "Learn and reduce air pollution in your community"
+    },
+    
+    "errors": {
+      "an_error_occurred": "An Error Occurred",
+      "network_error": "We're having issues with our network\nno worries, we'll be back up soon.",
+      "maintenance": "The app is currently under maintenance",
+      "timeout": "Request timed out. Please try again.",
+      "profile_update_error": "Error updating profile: {message}",
+      "image_upload_error": "Failed to pick image: {message}",
+      "upload_error": "Error uploading/updating profile image: {message}"
+    }
+  }
