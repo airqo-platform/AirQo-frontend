@@ -6,7 +6,15 @@ import type { LoginCredentials, LoginResponse, DecodedToken } from '@/app/types/
 import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
 import logger from '@/lib/logger';
 
+const isProduction = process.env.NODE_ENV === 'production';
+const sharedCookieDomain = process.env.NEXTAUTH_COOKIE_DOMAIN;
+const sessionCookieName = isProduction
+  ? '__Secure-next-auth.session-token'
+  : 'next-auth.session-token';
+
 export const options: NextAuthOptions = {
+  secret: process.env.NEXTAUTH_SECRET,
+  useSecureCookies: isProduction,
   providers: [
     CredentialsProvider({
       id: 'credentials',
@@ -61,6 +69,23 @@ export const options: NextAuthOptions = {
     })
   ],
   
+  ...(sharedCookieDomain
+    ? {
+        cookies: {
+          sessionToken: {
+            name: sessionCookieName,
+            options: {
+              httpOnly: true,
+              sameSite: 'lax' as const,
+              path: '/',
+              secure: isProduction,
+              domain: sharedCookieDomain,
+            },
+          },
+        },
+      }
+    : {}),
+
   session: {
     strategy: 'jwt',
     maxAge: 24 * 60 * 60, // 24 hours
