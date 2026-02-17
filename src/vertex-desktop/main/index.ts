@@ -13,6 +13,7 @@ const isDev = process.env.VERTEX_DESKTOP_ENV === "development" || !app.isPackage
 const devUrl = process.env.VERTEX_DESKTOP_DEV_URL ?? "http://localhost:3000";
 const prodUrl = process.env.VERTEX_DESKTOP_PROD_URL ?? "https://vertex.airqo.net";
 const startUrl = isDev ? devUrl : prodUrl;
+const APP_USER_MODEL_ID = "net.airqo.vertex.desktop";
 
 let mainWindow: BrowserWindow | null = null;
 const singleInstance = app.requestSingleInstanceLock();
@@ -39,6 +40,10 @@ const createWindow = (): void => {
 };
 
 app.whenReady().then(async () => {
+  if (process.platform === "win32") {
+    app.setAppUserModelId(APP_USER_MODEL_ID);
+  }
+
   ipcMain.handle("vertex-desktop:get-app-version", () => app.getVersion());
   ipcMain.handle("vertex-desktop:get-branding", () => {
     const iconPath = path.join(__dirname, "..", "..", "assets", "icon.png");

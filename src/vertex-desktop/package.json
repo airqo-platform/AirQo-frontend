@@ -26,13 +26,21 @@
       "output": "release"
     },
     "win": {
+      "icon": "assets/icon.ico",
+      "artifactName": "${productName}-Setup-${version}.${ext}",
+      "publisherName": "AirQo",
+      "executableName": "AirQoVertex",
       "target": [
         "nsis"
       ]
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "AirQo Vertex",
+      "uninstallDisplayName": "AirQo Vertex"
     },
     "publish": [
       {
