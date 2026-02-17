@@ -142,7 +142,7 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
               <Tooltip
                 content={
                   percentageDifference !== undefined
-                    ? `Air quality ${percentageDifference > 0 ? 'worsened' : 'improved'} by ${Math.abs(percentageDifference).toFixed(2)}% compared to last week.`
+                    ? `Air quality ${percentageDifference > 0 ? 'worsened' : 'improved'} by ${Math.abs(percentageDifference).toFixed(1)}% compared to last week.`
                     : 'Air quality trend compared to last week.'
                 }
                 className="bg-black"
@@ -184,7 +184,7 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
               </div>
 
               <div className="text-3xl font-bold">
-                {status === 'no-value' ? '--' : value.toFixed(2)}
+                {status === 'no-value' ? '--' : value.toFixed(1)}
               </div>
             </div>
 

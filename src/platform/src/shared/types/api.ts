@@ -1421,6 +1421,24 @@ export interface SetGroupManagerResponse {
   };
 }
 
+// Update Group Title Types
+export interface UpdateGroupTitleRequest {
+  grp_title: string;
+}
+
+export interface UpdateGroupTitleResponse {
+  success: boolean;
+  message: string;
+  group: {
+    _id: string;
+    grp_title: string;
+    grp_status: string;
+    grp_description?: string;
+    grp_manager?: string;
+    organization_slug?: string;
+  };
+}
+
 // User Statistics Types
 export interface UserStatisticsUser {
   userName: string;

@@ -53,19 +53,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
       return { flow: 'user' as const, orgSlug: undefined };
     }
 
-    const isAirQoGroup =
-      // Check if title matches AIRQO (case insensitive)
-      activeGroup.title?.toLowerCase() === 'airqo' ||
-      // Check if organization slug is airqo
-      activeGroup.organizationSlug?.toLowerCase() === 'airqo' ||
-      // Check if no organization slug (default user flow)
-      !activeGroup.organizationSlug ||
-      // Fallback: check if title contains airqo
-      activeGroup.title?.toLowerCase().includes('airqo');
+    // Enhanced logic: Check organization slug first (more reliable than title)
+    // If organizationSlug exists and is not 'airqo', it's an organization flow
+    // Otherwise, it's a user flow (default AirQo group)
+    const hasOrgSlug =
+      activeGroup.organizationSlug &&
+      activeGroup.organizationSlug.toLowerCase() !== 'airqo';
 
     return {
-      flow: isAirQoGroup ? ('user' as const) : ('organization' as const),
-      orgSlug: activeGroup.organizationSlug || undefined,
+      flow: hasOrgSlug ? ('organization' as const) : ('user' as const),
+      orgSlug: hasOrgSlug ? activeGroup.organizationSlug : undefined,
     };
   }, [activeGroup, pathname]);
 

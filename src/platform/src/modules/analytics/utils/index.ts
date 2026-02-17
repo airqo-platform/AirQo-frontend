@@ -109,7 +109,7 @@ export const formatPMValue = (
     return 'No Data';
   }
 
-  return `${value.toFixed(2)} ${unit}`;
+  return `${value.toFixed(1)} ${unit}`;
 };
 
 /**

@@ -151,7 +151,7 @@ export default function FloatingMiniBillboard({
     return null;
   }
 
-  const displayValue = pm25Value.toFixed(2);
+  const displayValue = pm25Value.toFixed(1);
   const gridName = formatName(currentGrid.name);
 
   // Minimized compact state (hidden completely)
