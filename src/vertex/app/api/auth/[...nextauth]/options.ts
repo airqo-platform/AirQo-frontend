@@ -7,10 +7,27 @@ import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
 import logger from '@/lib/logger';
 
 const isProduction = process.env.NODE_ENV === 'production';
-const sharedCookieDomain = process.env.NEXTAUTH_COOKIE_DOMAIN;
+const sharedCookieDomain = process.env.NEXTAUTH_COOKIE_DOMAIN?.trim();
+const nextAuthUrl = process.env.NEXTAUTH_URL;
 const sessionCookieName = isProduction
   ? '__Secure-next-auth.session-token'
   : 'next-auth.session-token';
+
+const normalizeDomain = (domain: string): string => domain.replace(/^\./, '').toLowerCase();
+
+const isHostCompatibleWithCookieDomain = (() => {
+  if (!sharedCookieDomain || !nextAuthUrl) return false;
+  try {
+    const host = new URL(nextAuthUrl).hostname.toLowerCase();
+    const normalized = normalizeDomain(sharedCookieDomain);
+    return host === normalized || host.endsWith(`.${normalized}`);
+  } catch {
+    return false;
+  }
+})();
+
+const shouldUseSharedCookieDomain =
+  isProduction && !!sharedCookieDomain && isHostCompatibleWithCookieDomain;
 
 export const options: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
@@ -69,7 +86,7 @@ export const options: NextAuthOptions = {
     })
   ],
   
-  ...(sharedCookieDomain
+  ...(shouldUseSharedCookieDomain
     ? {
         cookies: {
           sessionToken: {
