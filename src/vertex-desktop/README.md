@@ -51,6 +51,28 @@ npm run dist:win
 
 Installer output is written to `src/vertex-desktop/release`.
 
+## CI and release workflows
+
+Desktop CI and release are handled by:
+
+- `.github/workflows/vertex-desktop-ci.yml`
+- `.github/workflows/vertex-desktop-release.yml`
+
+### Auto-update release flow
+
+1. Bump `version` in `src/vertex-desktop/package.json`.
+2. Commit changes.
+3. Create and push a release tag:
+
+```bash
+git tag vertex-desktop-v0.1.5
+git push origin vertex-desktop-v0.1.5
+```
+
+4. The release workflow builds Windows artifacts and publishes them to GitHub Releases.
+
+`electron-updater` consumes these release assets (`latest.yml` + installer) to deliver in-app updates.
+
 ## Runtime env vars
 
 - `VERTEX_DESKTOP_ENV` = `development` or `production`
