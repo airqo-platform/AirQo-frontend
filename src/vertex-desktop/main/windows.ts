@@ -45,9 +45,13 @@ export const createMainWindow = ({ startUrl, preloadPath }: CreateWindowArgs): B
 
   const appOrigin = new URL(startUrl).origin;
   window.webContents.on("will-navigate", (event, url) => {
-    if (new URL(url).origin !== appOrigin) {
+    try {
+      if (new URL(url).origin !== appOrigin) {
+        event.preventDefault();
+        shell.openExternal(url);
+      }
+    } catch {
       event.preventDefault();
-      shell.openExternal(url);
     }
   });
 
