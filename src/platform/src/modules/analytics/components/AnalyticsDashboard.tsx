@@ -268,7 +268,6 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
               measurements.
             </>
           }
-          className="shadow-lg bg-white/95 backdrop-blur-sm border-blue-200"
         />
       )}
 
