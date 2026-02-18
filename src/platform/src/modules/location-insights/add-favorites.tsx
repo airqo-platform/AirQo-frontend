@@ -300,7 +300,7 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
       messageSeverity={errorMessage ? 'error' : null}
       maxWidth="max-w-6xl"
     >
-      <div className="w-full min-w-0">
+      <div className="max-w-[360px] md:max-w-auto">
         <ServerSideTable
           title="Sites"
           data={sites}
