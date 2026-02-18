@@ -283,6 +283,7 @@ export function CreateCohortDialog({
                     placeholder="Select or create tags..."
                     onValueChange={field.onChange}
                     value={field.value || []}
+                    allowCreate={false}
                   />
                   <FormMessage />
                 </FormItem>

@@ -9,6 +9,7 @@ export interface GetCohortsSummaryParams {
   sortBy?: string;
   order?: "asc" | "desc";
   cohort_id?: string[];
+  tags?: string;
 }
 
 export const cohorts = {
@@ -26,6 +27,7 @@ export const cohorts = {
       if (params.cohort_id && params.cohort_id.length > 0) {
         queryParams.set("cohort_id", params.cohort_id.join(","));
       }
+      if (params.tags) queryParams.set("tags", params.tags);
 
       const response = await createSecureApiClient().get(
         `/devices/cohorts/summary?${queryParams.toString()}`,

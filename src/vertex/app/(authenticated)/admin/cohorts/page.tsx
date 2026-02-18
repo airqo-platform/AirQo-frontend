@@ -16,6 +16,8 @@ import { CreateCohortFromSelectionDialog } from "@/components/features/cohorts/c
 import { AssignCohortsToGroupDialog } from "@/components/features/cohorts/assign-cohorts-to-group";
 import { useServerSideTableState } from "@/core/hooks/useServerSideTableState";
 
+import { DEFAULT_COHORT_TAGS } from "@/core/constants/devices";
+
 type CohortRow = {
   id: string;
   name: string;
@@ -33,6 +35,7 @@ export default function CohortsPage() {
   } = useServerSideTableState({ initialPageSize: 25 });
 
   const [view, setView] = useState<'organization' | 'user'>('organization');
+  const [selectedTag, setSelectedTag] = useState<string>("All");
 
   // Count Queries (Stable, always enabled, minimal payload, no search/sort)
   const { meta: orgCountMeta, isFetching: isFetchingOrgCount } = useCohorts({
@@ -52,6 +55,7 @@ export default function CohortsPage() {
     search: searchTerm,
     sortBy: sorting[0]?.id,
     order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined,
+    tags: selectedTag === "All" ? undefined : selectedTag,
   }, {
     enabled: view === 'organization'
   });
@@ -150,13 +154,14 @@ export default function CohortsPage() {
                   setView('organization');
                   setPagination(prev => ({ ...prev, pageIndex: 0 }));
                   setSearchTerm("");
+                  setSelectedTag("All");
                 }}
                 className={`flex items-center gap-1 px-4 py-2 rounded-md text-sm font-medium transition-colors border ${view === 'organization'
                   ? "bg-blue-600 text-white border-blue-600"
                   : "bg-transparent text-blue-600 border-blue-600 hover:bg-blue-50"
                   }`}
               >
-                Organization Cohorts
+                Managed Cohorts
                 <span className="ml-1">
                   ({isFetchingOrgCount && orgCountMeta?.total === undefined ? (
                     <Skeleton className={`inline-block h-3 w-6 rounded-full ${view === 'organization' ? "bg-white/20" : "bg-blue-100"}`} />
@@ -170,6 +175,7 @@ export default function CohortsPage() {
                   setView('user');
                   setPagination(prev => ({ ...prev, pageIndex: 0 }));
                   setSearchTerm("");
+                  setSelectedTag("All");
                 }}
                 className={`flex items-center gap-1 px-4 py-2 rounded-md text-sm font-medium transition-colors border ${view === 'user'
                   ? "bg-blue-600 text-white border-blue-600"
@@ -186,6 +192,26 @@ export default function CohortsPage() {
                 </span>
               </button>
             </div>
+
+            {view === 'organization' && (
+              <div className="flex gap-2 mt-4 overflow-x-auto pb-2 p-1">
+                {['All', ...DEFAULT_COHORT_TAGS.map(t => t.value)].map((tag) => (
+                  <button
+                    key={tag}
+                    onClick={() => {
+                      setSelectedTag(tag);
+                      setPagination(prev => ({ ...prev, pageIndex: 0 }));
+                    }}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${selectedTag === tag
+                      ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 ring-1 ring-blue-600/20"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
+                      }`}
+                  >
+                    {tag === 'All' ? 'All Cohorts' : tag.charAt(0).toUpperCase() + tag.slice(1)}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           <ReusableButton
             variant="filled"
