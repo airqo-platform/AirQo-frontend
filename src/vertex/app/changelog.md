@@ -36,7 +36,7 @@ Refactored Cohort Tags to use a restricted multi-select system and overhauled th
 </details>
 
 <details>
-<summary><strong>Files Modified (6)</strong></summary>
+<summary><strong>Files Modified (9)</strong></summary>
 
 - `app/(authenticated)/admin/cohorts/page.tsx`
 - `components/features/cohorts/create-cohort.tsx`
@@ -44,6 +44,9 @@ Refactored Cohort Tags to use a restricted multi-select system and overhauled th
 - `components/features/cohorts/create-cohort-from-cohorts.tsx`
 - `core/hooks/useCohorts.ts`
 - `core/hooks/useDevices.ts`
+- `components/ui/multi-select.tsx`
+- `core/apis/cohorts.ts`
+- `core/constants/devices.ts`
 
 </details>
 
