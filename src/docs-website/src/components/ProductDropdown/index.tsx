@@ -13,7 +13,14 @@ import {
     AqCube02
 } from '@airqo/icons-react';
 
-const Products = [
+type Product = {
+    title: string;
+    path: string;
+    icon: React.ElementType;
+    landingPath?: string;
+};
+
+const PRODUCTS: Product[] = [
     {
         title: 'Analytics',
         path: '/docs/analytics',
@@ -58,7 +65,7 @@ export default function ProductDropdown() {
     const history = useHistory();
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    const currentProduct = Products.find(p => location.pathname.startsWith(p.path)) || Products[0];
+    const currentProduct = PRODUCTS.find((p) => location.pathname.startsWith(p.path)) || PRODUCTS[0];
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -70,10 +77,8 @@ export default function ProductDropdown() {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const handleProductSelect = (product: typeof Products[0]) => {
-        const targetPath = 'landingPath' in product && product.landingPath
-            ? product.landingPath
-            : product.path + '/intro';
+    const handleProductSelect = (product: Product) => {
+        const targetPath = product.landingPath ?? `${product.path}/intro`;
         history.push(targetPath);
         setIsOpen(false);
     };
@@ -98,7 +103,7 @@ export default function ProductDropdown() {
 
             {isOpen && (
                 <div className={styles.dropdownMenu}>
-                    {Products.map((product) => (
+                    {PRODUCTS.map((product) => (
                         <button
                             key={product.title}
                             className={`${styles.dropdownItem} ${currentProduct.title === product.title ? styles.activeItem : ''}`}

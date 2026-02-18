@@ -15,10 +15,10 @@ const config: Config = {
     'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap',
   ],
 
-  // Set the production url of your site here
-  url: 'https://your-docusaurus-site.example.com',
-
-  baseUrl: '/',
+  // Public host where docs are served.
+  url: 'https://platform.airqo.net',
+  // Docs are mounted under /docs on the shared platform domains.
+  baseUrl: '/docs/',
 
   onBrokenLinks: 'throw',
 
@@ -32,6 +32,7 @@ const config: Config = {
       'classic',
       {
         docs: {
+          routeBasePath: '/',
           breadcrumbs: false,
           sidebarPath: './sidebars.ts',
           async sidebarItemsGenerator({defaultSidebarItemsGenerator, ...args}) {

@@ -14,43 +14,43 @@ const ProductList: ProductItem[] = [
     {
         title: 'Analytics',
         description: 'Visualize and analyze air quality data with interactive dashboards and insights',
-        link: '/docs/analytics/intro',
+        link: '/analytics/intro',
         Icon: AqBarChartSquarePlus,
     },
     {
         title: 'Vertex',
-        description: 'Manage your organization\’s device lifecycle, from onboarding to real-time status monitoring.',
-        link: '/docs/vertex/intro',
+        description: "Manage your organization's device lifecycle, from onboarding to real-time status monitoring.",
+        link: '/vertex/intro',
         Icon: AqServer03,
     },
     {
         title: 'Beacon',
         description: 'Monitor real-time technical health metrics like battery and signal strength for the sensor network',
-        link: '/docs/beacon/intro',
+        link: '/beacon/intro',
         Icon: AqMonitor,
     },
     {
         title: 'AI Platform',
         description: 'Leverage machine learning for advanced air quality forecasting and spatial analysis',
-        link: '/docs/ai-platform/intro',
+        link: '/ai-platform/intro',
         Icon: AqCpuChip01,
     },
     {
         title: 'API',
-        description: 'Access AirQo\'s air quality data programmatically via our REST API',
-        link: '/docs/api/intro',
+        description: "Access AirQo's air quality data programmatically via our REST API",
+        link: '/api/intro',
         Icon: AqDataflow01,
     },
     {
         title: 'AirQo Mobile App',
         description: 'Monitor air quality on the go with personalized recommendations and alerts',
-        link: '/docs/mobile-app/intro',
+        link: '/mobile-app/intro',
         Icon: AqPhone01,
     },
     {
         title: 'Cross-Product Features',
         description: 'Features that span across multiple products',
-        link: '/docs/cross-product/concepts/access-control',
+        link: '/cross-product/concepts/access-control',
         Icon: AqCube02,
     }
 ];
