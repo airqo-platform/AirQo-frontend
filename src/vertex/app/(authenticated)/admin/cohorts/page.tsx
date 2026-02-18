@@ -2,7 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { CreateCohortDialog } from "@/components/features/cohorts/create-cohort";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import ReusableTable, { TableColumn } from "@/components/shared/table/ReusableTable";
@@ -28,6 +28,9 @@ type CohortRow = {
 
 export default function CohortsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
   const {
     pagination, setPagination,
     searchTerm, setSearchTerm,
@@ -35,7 +38,23 @@ export default function CohortsPage() {
   } = useServerSideTableState({ initialPageSize: 25 });
 
   const [view, setView] = useState<'organization' | 'user'>('organization');
-  const [selectedTag, setSelectedTag] = useState<string>("All");
+
+  // Tag Logic
+  const defaultTag = DEFAULT_COHORT_TAGS[0]?.value || "All";
+  const urlTag = searchParams.get('tags');
+  const selectedTag = urlTag || defaultTag;
+
+  const handleTagClick = (tag: string) => {
+    const params = new URLSearchParams(searchParams);
+    if (tag === 'All') {
+      params.delete('tags');
+      params.set('tags', 'All');
+    } else {
+      params.set('tags', tag);
+    }
+    setPagination(prev => ({ ...prev, pageIndex: 0 }));
+    router.replace(`${pathname}?${params.toString()}`);
+  };
 
   // Count Queries (Stable, always enabled, minimal payload, no search/sort)
   const { meta: orgCountMeta, isFetching: isFetchingOrgCount } = useCohorts({
@@ -154,7 +173,7 @@ export default function CohortsPage() {
                   setView('organization');
                   setPagination(prev => ({ ...prev, pageIndex: 0 }));
                   setSearchTerm("");
-                  setSelectedTag("All");
+                  handleTagClick("All");
                 }}
                 className={`flex items-center gap-1 px-4 py-2 rounded-md text-sm font-medium transition-colors border ${view === 'organization'
                   ? "bg-blue-600 text-white border-blue-600"
@@ -175,7 +194,7 @@ export default function CohortsPage() {
                   setView('user');
                   setPagination(prev => ({ ...prev, pageIndex: 0 }));
                   setSearchTerm("");
-                  setSelectedTag("All");
+                  handleTagClick("All");
                 }}
                 className={`flex items-center gap-1 px-4 py-2 rounded-md text-sm font-medium transition-colors border ${view === 'user'
                   ? "bg-blue-600 text-white border-blue-600"
@@ -198,10 +217,7 @@ export default function CohortsPage() {
                 {[...DEFAULT_COHORT_TAGS.map(t => t.value), 'All'].map((tag) => (
                   <button
                     key={tag}
-                    onClick={() => {
-                      setSelectedTag(tag);
-                      setPagination(prev => ({ ...prev, pageIndex: 0 }));
-                    }}
+                    onClick={() => handleTagClick(tag)}
                     className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${selectedTag === tag
                       ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 ring-1 ring-blue-600/20"
                       : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
