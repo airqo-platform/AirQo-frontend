@@ -186,27 +186,23 @@ export const CountryList: React.FC<CountryListProps> = ({
         </button>
       </div>
 
-      {/* ── Country grid ────────────────────────────────────────────────── */}
-      {/*
-        On mobile:  hidden when isCollapsed, visible when not.
-        On sm+:     always visible (override via sm:block / sm:flex).
-      */}
+      {/* ── Country list ────────────────────────────────────────────────── */}
+      {/* Mobile: hidden when collapsed, shown when expanded               */}
+      {/* Desktop: always visible, horizontal scroll                       */}
       <div
         className={cn(
           'px-4 pb-3',
-          // Mobile visibility controlled by state; desktop always shown
           isCollapsed ? 'hidden sm:block' : 'block',
-          // Add top padding only when toggle header is not rendered (sm+)
           'sm:pt-3'
         )}
       >
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 sm:flex-nowrap sm:overflow-x-auto sm:scrollbar-hide">
           {countries.map(country => (
             <button
               key={country.code}
               onClick={() => onCountrySelect?.(country.code)}
               className={cn(
-                'flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200',
+                'flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 flex-shrink-0',
                 selectedCountry === country.code
                   ? 'bg-primary text-primary-foreground ring-2 ring-primary/20 shadow-md'
                   : 'bg-gray-100 dark:bg-gray-700 text-muted-foreground hover:bg-gray-200 dark:hover:bg-gray-600'
@@ -223,7 +219,8 @@ export const CountryList: React.FC<CountryListProps> = ({
                   className="rounded-sm flex-shrink-0"
                 />
               )}
-              <span className="hidden sm:inline">
+              {/* Mobile: show name when expanded. Desktop: always show */}
+              <span className="sm:inline">
                 {capitalizeWords(country.name.replace(/_/g, ' '))}
               </span>
             </button>
