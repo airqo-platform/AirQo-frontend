@@ -214,7 +214,7 @@ export default function CohortsPage() {
 
             {view === 'organization' && (
               <div className="flex gap-2 mt-4 overflow-x-auto pb-2 p-1">
-                {[...DEFAULT_COHORT_TAGS.map(t => t.value), 'All'].map((tag) => (
+                {[...DEFAULT_COHORT_TAGS.map(t => ({ value: t.value, label: t.label })), { value: 'All', label: 'All Cohorts' }].map(({ value: tag, label }) => (
                   <button
                     key={tag}
                     onClick={() => handleTagClick(tag)}
@@ -223,7 +223,7 @@ export default function CohortsPage() {
                       : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
                       }`}
                   >
-                    {tag === 'All' ? 'All Cohorts' : tag.charAt(0).toUpperCase() + tag.slice(1)}
+                    {label.charAt(0).toUpperCase() + label.slice(1)}
                   </button>
                 ))}
               </div>
