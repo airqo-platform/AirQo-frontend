@@ -62,16 +62,25 @@ Desktop CI and release are handled by:
 
 1. Bump `version` in `src/vertex-desktop/package.json`.
 2. Commit changes.
-3. Create and push a release tag:
+3. Create and push a release tag (or run release workflow manually with an existing tag):
 
 ```bash
 git tag vertex-desktop-v0.1.5
 git push origin vertex-desktop-v0.1.5
 ```
 
-4. The release workflow builds Windows artifacts and publishes them to GitHub Releases.
+4. The `vertex-desktop-release` workflow builds and publishes installers to GitHub Releases for:
+- Windows (`nsis`)
+- macOS (`dmg`, `zip`)
+- Linux (`AppImage`, `deb`)
 
 `electron-updater` consumes these release assets (`latest.yml` + installer) to deliver in-app updates.
+
+### Update behavior
+
+- Windows: auto-update is supported through `electron-updater` + NSIS releases.
+- macOS/Linux: release artifacts are published, but update behavior may differ based on platform signing/notarization and feed support.
+- If you trigger the workflow manually, `release_tag` must already exist in the repository.
 
 ## Runtime env vars
 
@@ -83,5 +92,5 @@ git push origin vertex-desktop-v0.1.5
 
 - `preload/index.ts` exposes `window.vertexDesktop.getAppVersion()`.
 - Permission handlers currently allow media and fullscreen only.
-- Auto-update hooks are wired; CI release publishing is the next step.
+- Auto-update hooks and CI release publishing are wired via `.github/workflows/vertex-desktop-release.yml`.
 - If the hosted Vertex URL is unreachable, the desktop app loads a packaged offline fallback page (`assets/offline.html`) with a retry action.
