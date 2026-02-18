@@ -73,7 +73,7 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
      * independent of every ancestor.
      *
      * Desktop: calc(100dvh - 64px)  → full viewport minus nav bar
-     * Mobile:  55dvh                → bottom 55% of viewport (map gets 45dvh)
+     * Mobile:  60dvh                → bottom 60% of viewport (map gets 40dvh)
      *
      * The mobile value is set in MapPage on the wrapper div via inline style,
      * and we set height:100% here so MapSidebar fills that wrapper exactly.
@@ -88,7 +88,7 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
     <Card
       className={cn(
         'flex flex-col overflow-hidden',
-        'min-w-full lg:max-w-80 lg:min-w-80 pb-20 md:pb-0',
+        'min-w-full md:max-w-80 md:min-w-80 pb-20 md:pb-0',
         'rounded-none md:rounded-lg',
         className
       )}

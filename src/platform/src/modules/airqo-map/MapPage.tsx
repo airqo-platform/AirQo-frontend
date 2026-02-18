@@ -291,10 +291,10 @@ const MapPage: React.FC<MapPageProps> = ({
    *
    * MOBILE
    * ──────
-   * Map pane:     height = 45dvh  (explicit, not relative to anything)
-   * Sidebar pane: height = 55dvh  (explicit, not relative to anything)
+   * Map pane:     height = 40dvh  (explicit, not relative to anything)
+   * Sidebar pane: height = 60dvh  (explicit, not relative to anything)
    *               overflow: hidden (containment wall — nothing leaks out)
-   *               MapSidebar reads var(--sidebar-height) = 55dvh
+   *               MapSidebar reads var(--sidebar-height) = 60dvh
    *
    * CSS Custom Property approach:
    * We set --sidebar-height on the wrapper div that contains MapSidebar.
@@ -356,7 +356,7 @@ const MapPage: React.FC<MapPageProps> = ({
        *    — sets --sidebar-height: 60dvh so MapSidebar fills it exactly
        ──────────────────────────────────────────────────────────────────── */}
       <div className="flex flex-col md:hidden">
-        {/* Map pane — 45dvh, absolutely fixed */}
+        {/* Map pane — 40dvh, absolutely fixed */}
         <div
           className="relative overflow-hidden flex-none"
           style={{ height: '40dvh' }}

@@ -71,7 +71,7 @@ const userSidebarConfig: NavGroup[] = [
         id: 'bulk-export',
         label: 'Visualization & Data Export',
         href: '/user/data-export',
-        icon: AqDownload01,
+        icon: AqUpload01,
       },
       {
         id: 'map',
