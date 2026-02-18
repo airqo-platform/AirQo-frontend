@@ -260,7 +260,7 @@ const CohortDetailsCard: React.FC<CohortDetailsCardProps> = ({
             emptyMessage="No tags found."
             value={selectedTags}
             onValueChange={setSelectedTags}
-            allowCreate
+            allowCreate={false}
           />
         </div>
       </ReusableDialog>

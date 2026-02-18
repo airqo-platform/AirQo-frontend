@@ -40,6 +40,8 @@ export function CreateCohortFromSelectionDialog({
       setName("");
       setNetwork("");
       setDescription("");
+      setNetwork("");
+      setDescription("");
       setSelectedTags([]);
       setError("");
     }
@@ -129,6 +131,7 @@ export function CreateCohortFromSelectionDialog({
             placeholder="Select or create tags..."
             onValueChange={setSelectedTags}
             value={selectedTags}
+            allowCreate={false}
           />
         </div>
 

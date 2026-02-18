@@ -158,7 +158,7 @@ export function MultiSelectCombobox({
         <Command shouldFilter={false}>
           <CommandInput
             ref={inputRef}
-            placeholder="Search or add new tag..."
+            placeholder="Search or add new input..."
             value={inputValue}
             onValueChange={handleInputChange}
             onKeyDown={(e) => {
