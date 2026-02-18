@@ -4,6 +4,49 @@
 
 ---
 
+## Version 1.23.19
+**Released:** February 18, 2026
+
+### Cohort Tag Management & Managed View
+
+Refactored Cohort Tags to use a restricted multi-select system and overhauled the Managed Cohorts view with tag-based filtering and URL synchronization.
+
+<details>
+<summary><strong>Managed Cohorts View (3)</strong></summary>
+
+- **Renamed View**: The "Organization Cohorts" view has been renamed to **"Managed Cohorts"** to better reflect its purpose.
+- **Tag Filtering**: Introduced a tabbed filter bar for Managed Cohorts, allowing users to filter cohorts by category (e.g., "Organizational", "Individual").
+- **URL Synchronization**: Selected tags are now synced with the URL query parameter (`?tags=...`). The first available tag is selected by default if no parameter is present, ensuring a predictable initial state.
+
+</details>
+
+<details>
+<summary><strong>Cohort Tags Refactor (2)</strong></summary>
+
+- **Restricted Multi-Select**: Transitioned all cohort tag inputs (Create, Edit, Create from Selection) to a **Restricted Multi-Select** model. Users can select multiple tags but are restricted to the predefined list, preventing the creation of arbitrary tags.
+- **Array-Based Schema**: Updated form validation and API payloads to correctly handle tags as an array of strings, ensuring data consistency.
+
+</details>
+
+<details>
+<summary><strong>Improvements (1)</strong></summary>
+
+- **Device Deployment Feedback**: Enhanced the `useDeployDevice` hook to capture and display detailed error messages from the backend when deployments fail, improving troubleshooting visibility.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (6)</strong></summary>
+
+- `app/(authenticated)/admin/cohorts/page.tsx`
+- `components/features/cohorts/create-cohort.tsx`
+- `components/features/cohorts/cohort-detail-card.tsx`
+- `components/features/cohorts/create-cohort-from-cohorts.tsx`
+- `core/hooks/useCohorts.ts`
+- `core/hooks/useDevices.ts`
+
+</details>
+
 ## Version 1.23.18
 **Released:** February 17, 2026
 
