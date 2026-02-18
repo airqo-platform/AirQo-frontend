@@ -161,7 +161,7 @@ export function ServerSideTable<T extends TableItem>({
     ) : null;
 
   return (
-    <div className={`w-full max-w-full overflow-hidden ${className}`}>
+    <div className={`w-full max-w-full overflow-x-auto ${className}`}>
       <MultiSelectTable
         data={data}
         title={`${title}`}

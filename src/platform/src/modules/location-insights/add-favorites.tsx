@@ -300,26 +300,28 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
       messageSeverity={errorMessage ? 'error' : null}
       maxWidth="max-w-6xl"
     >
-      <ServerSideTable
-        title="Sites"
-        data={sites}
-        columns={columns}
-        multiSelect={true}
-        selectedItems={selectedIds}
-        onSelectedItemsChange={handleTableSelectionChange}
-        loading={isLoading}
-        error={error}
-        // Server-side pagination props
-        currentPage={currentPage}
-        totalPages={totalPages}
-        pageSize={pageSize}
-        totalItems={totalSites}
-        onPageChange={setCurrentPage}
-        onPageSizeChange={setPageSize}
-        // Server-side search props
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-      />
+      <div className="w-full min-w-0">
+        <ServerSideTable
+          title="Sites"
+          data={sites}
+          columns={columns}
+          multiSelect={true}
+          selectedItems={selectedIds}
+          onSelectedItemsChange={handleTableSelectionChange}
+          loading={isLoading}
+          error={error}
+          // Server-side pagination props
+          currentPage={currentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          totalItems={totalSites}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+          // Server-side search props
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+        />
+      </div>
     </WideDialog>
   );
 };

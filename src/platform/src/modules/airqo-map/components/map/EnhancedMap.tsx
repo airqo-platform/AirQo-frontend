@@ -556,7 +556,9 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
         isRefreshing={isRefreshing}
       />
 
-      <MapLegend pollutant={selectedPollutant} />
+      <div className="hidden md:block">
+        <MapLegend pollutant={selectedPollutant} />
+      </div>
 
       {onPollutantChange && (
         <div className="absolute top-4 left-4 z-20">

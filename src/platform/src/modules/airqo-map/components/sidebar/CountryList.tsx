@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Image from 'next/image';
+import { AqChevronUp, AqChevronDown } from '@airqo/icons-react';
 import { cn, capitalizeWords } from '@/shared/lib/utils';
 import { useCountries } from '../../hooks';
 import {
@@ -22,15 +23,15 @@ const CountryListSkeleton: React.FC<{ className?: string }> = ({
 }) => (
   <div
     className={cn(
-      'pt-3 pb-1 pl-4 border-b border-gray-100 dark:border-gray-700',
+      'pt-3 pb-1 px-4 border-b border-gray-100 dark:border-gray-700',
       className
     )}
   >
-    <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-3">
-      {Array.from({ length: 4 }).map((_, index) => (
+    <div className="flex gap-2 pb-3">
+      {Array.from({ length: 1 }).map((_, index) => (
         <div
           key={index}
-          className="flex items-center gap-2 px-3 py-2 rounded-full bg-gray-100 dark:bg-gray-700 animate-pulse"
+          className="flex items-center gap-2 px-3 py-2 rounded-full bg-gray-100 dark:bg-gray-700 animate-pulse flex-shrink-0"
         >
           <div className="w-4 h-4 bg-gray-200 dark:bg-gray-600 rounded"></div>
           <div className="w-16 h-4 bg-gray-200 dark:bg-gray-600 rounded"></div>
@@ -53,17 +54,16 @@ export const CountryList: React.FC<CountryListProps> = ({
     error,
   } = useCountries(cohort_id);
 
-  // Track if we've already auto-selected to prevent infinite loops
+  // Collapsed by default on mobile
+  const [isCollapsed, setIsCollapsed] = React.useState(true);
+
   const hasAutoSelectedRef = React.useRef(false);
   const hasHandledErrorRef = React.useRef(false);
 
-  // Transform CountryData to Country format using utility function
   const countries: Country[] = React.useMemo(() => {
     return normalizeCountries(countriesData || []);
   }, [countriesData]);
 
-  // IMPORTANT: All hooks must be called before any conditional returns
-  // Auto-select first country ONLY for organization flow when list loads and no country is selected
   React.useEffect(() => {
     if (
       isOrganizationFlow &&
@@ -73,7 +73,6 @@ export const CountryList: React.FC<CountryListProps> = ({
       !selectedCountry &&
       !hasAutoSelectedRef.current
     ) {
-      // Select the first real country (skip 'all' at index 0)
       const firstCountry = countries[1];
       if (firstCountry && onCountrySelect) {
         hasAutoSelectedRef.current = true;
@@ -89,7 +88,6 @@ export const CountryList: React.FC<CountryListProps> = ({
     onCountrySelect,
   ]);
 
-  // Handle error state - notify parent to clear country selection (only for org flow)
   React.useEffect(() => {
     if (
       isOrganizationFlow &&
@@ -97,19 +95,22 @@ export const CountryList: React.FC<CountryListProps> = ({
       onCountrySelect &&
       !hasHandledErrorRef.current
     ) {
-      // Pass empty string to prevent fetching data with wrong country
       hasHandledErrorRef.current = true;
       onCountrySelect('');
     }
   }, [isOrganizationFlow, error, onCountrySelect]);
 
-  // Reset refs when cohort_id changes (switching organizations)
   React.useEffect(() => {
     hasAutoSelectedRef.current = false;
     hasHandledErrorRef.current = false;
   }, [cohort_id]);
 
-  // NOW we can safely return early after all hooks are called
+  // Derive the selected country object for the collapsed summary
+  const selectedCountryObj = React.useMemo(
+    () => countries.find(c => c.code === selectedCountry),
+    [countries, selectedCountry]
+  );
+
   if (isLoading) {
     return <CountryListSkeleton className={className} />;
   }
@@ -118,7 +119,7 @@ export const CountryList: React.FC<CountryListProps> = ({
     return (
       <div
         className={cn(
-          'pt-3 pb-1 pl-4 border-b border-gray-100 dark:border-gray-700',
+          'pt-3 pb-1 px-4 border-b border-gray-100 dark:border-gray-700',
           className
         )}
       >
@@ -131,37 +132,103 @@ export const CountryList: React.FC<CountryListProps> = ({
 
   return (
     <div
-      className={cn(
-        'pt-3 pb-1 pl-4 border-b border-gray-100 dark:border-gray-700',
-        className
-      )}
+      className={cn('border-b border-gray-100 dark:border-gray-700', className)}
     >
-      <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-3">
-        {countries.map(country => (
-          <button
-            key={country.code}
-            onClick={() => onCountrySelect?.(country.code)}
-            className={cn(
-              'flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0',
-              selectedCountry === country.code
-                ? 'bg-primary text-primary-foreground ring-2 ring-primary/20 shadow-md'
-                : 'bg-gray-100 dark:bg-gray-700 text-muted-foreground hover:bg-gray-200 dark:hover:bg-gray-600'
-            )}
-          >
-            {country.code === 'all' ? (
-              <span className="text-base">{country.flag}</span>
-            ) : (
-              <Image
-                src={country.flag}
-                alt={`${country.name} flag`}
-                width={16}
-                height={12}
-                className="rounded-sm"
-              />
-            )}
-            <span>{capitalizeWords(country.name.replace(/_/g, ' '))}</span>
-          </button>
-        ))}
+      {/* ── Mobile toggle header (hidden on sm+) ───────────────────────── */}
+      <div className="flex items-center justify-between px-4 pt-3 pb-2 sm:hidden">
+        {/* Always show selected country in header */}
+        <div className="flex items-center gap-2 text-sm">
+          {selectedCountryObj ? (
+            <>
+              {selectedCountryObj.code === 'all' ? (
+                <span className="text-base">{selectedCountryObj.flag}</span>
+              ) : (
+                <Image
+                  src={selectedCountryObj.flag}
+                  alt={`${selectedCountryObj.name} flag`}
+                  width={16}
+                  height={12}
+                  className="rounded-sm flex-shrink-0"
+                />
+              )}
+              <span className="font-medium text-foreground">
+                {capitalizeWords(selectedCountryObj.name.replace(/_/g, ' '))}
+              </span>
+            </>
+          ) : (
+            <span className="font-medium text-foreground">Countries</span>
+          )}
+        </div>
+
+        <button
+          onClick={() => setIsCollapsed(prev => !prev)}
+          aria-label={
+            isCollapsed ? 'Expand country list' : 'Collapse country list'
+          }
+          aria-expanded={!isCollapsed}
+          className={cn(
+            'flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium transition-colors',
+            'bg-gray-100 dark:bg-gray-700 text-muted-foreground',
+            'hover:bg-gray-200 dark:hover:bg-gray-600 active:scale-95'
+          )}
+        >
+          {isCollapsed ? (
+            <>
+              <span>Show</span>
+              <AqChevronDown className="w-3.5 h-3.5" />
+            </>
+          ) : (
+            <>
+              <span>Hide</span>
+              <AqChevronUp className="w-3.5 h-3.5" />
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* ── Country grid ────────────────────────────────────────────────── */}
+      {/*
+        On mobile:  hidden when isCollapsed, visible when not.
+        On sm+:     always visible (override via sm:block / sm:flex).
+      */}
+      <div
+        className={cn(
+          'px-4 pb-3',
+          // Mobile visibility controlled by state; desktop always shown
+          isCollapsed ? 'hidden sm:block' : 'block',
+          // Add top padding only when toggle header is not rendered (sm+)
+          'sm:pt-3'
+        )}
+      >
+        <div className="flex flex-wrap gap-2">
+          {countries.map(country => (
+            <button
+              key={country.code}
+              onClick={() => onCountrySelect?.(country.code)}
+              className={cn(
+                'flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200',
+                selectedCountry === country.code
+                  ? 'bg-primary text-primary-foreground ring-2 ring-primary/20 shadow-md'
+                  : 'bg-gray-100 dark:bg-gray-700 text-muted-foreground hover:bg-gray-200 dark:hover:bg-gray-600'
+              )}
+            >
+              {country.code === 'all' ? (
+                <span className="text-base">{country.flag}</span>
+              ) : (
+                <Image
+                  src={country.flag}
+                  alt={`${country.name} flag`}
+                  width={16}
+                  height={12}
+                  className="rounded-sm flex-shrink-0"
+                />
+              )}
+              <span className="hidden sm:inline">
+                {capitalizeWords(country.name.replace(/_/g, ' '))}
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -296,7 +296,7 @@ const DataExportPage = () => {
       />
 
       {/* Main Layout with Sidebar and Content */}
-      <div className="flex flex-col lg:flex-row flex-1 overflow-hidden relative">
+      <div className="flex flex-col lg:flex-row flex-1 lg:overflow-hidden relative">
         <DataExportSidebar
           fileTitle={fileTitle}
           setFileTitle={setFileTitle}
@@ -320,7 +320,7 @@ const DataExportPage = () => {
         />
 
         {/* Main Content */}
-        <main className="flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out">
+        <main className="flex-1 flex flex-col overflow-x-hidden overflow-y-auto lg:overflow-hidden transition-all duration-300 ease-in-out">
           <div className="gap-4 md:px-4 flex-col flex flex-1">
             {/* Help Banner */}
             {showHelpBanner && (

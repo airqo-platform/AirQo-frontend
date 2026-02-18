@@ -307,7 +307,7 @@ const MapPage: React.FC<MapPageProps> = ({
       </div>
 
       <div className="flex flex-col h-full md:hidden">
-        <div className="h-1/2 flex-shrink-0 relative">
+        <div className="h-[45%] flex-shrink-0 relative">
           {/* Info Banner for Private Organization Data */}
           {hasNoMapData && (
             <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-[10000] w-full px-4">
@@ -344,7 +344,7 @@ const MapPage: React.FC<MapPageProps> = ({
           />
         </div>
 
-        <div className="flex-1 min-h-0">
+        <div className="flex-1 min-h-0 overflow-hidden">
           <MapSidebar
             className="h-full rounded-none"
             onSearch={handleSearch}
