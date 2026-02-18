@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useMediaQuery } from 'react-responsive';
 import { usePostHog } from 'posthog-js/react';
 import { MapSidebar, EnhancedMap } from '@/modules/airqo-map';
 import { useSitesByCountry, useMapReadings, useWAQICities } from './hooks';
@@ -303,6 +304,7 @@ const MapPage: React.FC<MapPageProps> = ({
    * ─────────────────────────────────────────────────────────────────────────
    */
   const contentHeight = `calc(100dvh - ${navHeight}px)`;
+  const isMdUp = useMediaQuery({ minWidth: 768 });
 
   return (
     <>
@@ -336,7 +338,7 @@ const MapPage: React.FC<MapPageProps> = ({
         {/* Map wrapper — fills remaining width, clips map overflow */}
         <div className="flex-1 min-w-0 relative overflow-hidden">
           {hasNoMapData && <PrivateOrgBanner />}
-          <EnhancedMap {...mapProps} />
+          {isMdUp && <EnhancedMap {...mapProps} />}
         </div>
       </div>
 
@@ -362,7 +364,7 @@ const MapPage: React.FC<MapPageProps> = ({
           style={{ height: '40dvh' }}
         >
           {hasNoMapData && <PrivateOrgBanner className="text-sm" />}
-          <EnhancedMap {...mapProps} />
+          {!isMdUp && <EnhancedMap {...mapProps} />}
         </div>
 
         {/* Sidebar pane — 60dvh, containment wall */}

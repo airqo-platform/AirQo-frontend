@@ -97,7 +97,7 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
           /**
            * --sidebar-height is set by MapPage on the wrapper div.
            * Desktop wrapper sets: --sidebar-height: calc(100dvh - 64px)
-           * Mobile wrapper sets:  --sidebar-height: 55dvh
+           * Mobile wrapper sets:  --sidebar-height: 60dvh
            * Fallback if neither is set: full viewport minus typical nav.
            */
           height: 'var(--sidebar-height, calc(100dvh - 64px))',
