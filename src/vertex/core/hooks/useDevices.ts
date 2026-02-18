@@ -643,9 +643,23 @@ export const useDeployDevice = () => {
       queryClient.invalidateQueries({ queryKey: ['myDevices'] });
       queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
     },
-    onError: error => {
+    onError: (error: AxiosError<any>) => {
+      let errorMessage = getApiErrorMessage(error);
+      const errorData = error.response?.data as any;
+
+      if (errorData?.failed_deployments?.length > 0) {
+        const failedMessages = errorData.failed_deployments
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .map((deployment: any) => deployment.error?.message)
+          .filter(Boolean);
+
+        if (failedMessages.length > 0) {
+          errorMessage = failedMessages.join(', ');
+        }
+      }
+
       ReusableToast({
-        message: `Deployment Failed: ${getApiErrorMessage(error)}`,
+        message: `Deployment Failed: ${errorMessage}`,
         type: 'ERROR',
       });
     },
