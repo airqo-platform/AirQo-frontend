@@ -195,7 +195,7 @@ export default function CohortsPage() {
 
             {view === 'organization' && (
               <div className="flex gap-2 mt-4 overflow-x-auto pb-2 p-1">
-                {['All', ...DEFAULT_COHORT_TAGS.map(t => t.value)].map((tag) => (
+                {[...DEFAULT_COHORT_TAGS.map(t => t.value), 'All'].map((tag) => (
                   <button
                     key={tag}
                     onClick={() => {
