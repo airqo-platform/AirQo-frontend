@@ -82,6 +82,16 @@ git push origin vertex-desktop-v0.1.5
 - macOS/Linux: release artifacts are published, but update behavior may differ based on platform signing/notarization and feed support.
 - If you trigger the workflow manually, `release_tag` must already exist in the repository.
 
+### When to trigger a desktop release
+
+Create a new desktop release tag (`vertex-desktop-v*`) only when the desktop wrapper itself changes, for example:
+- `src/vertex-desktop/main/**`, `src/vertex-desktop/preload/**`, menu/deeplink/update behavior
+- Desktop packaging/build config, installer behavior, or desktop dependencies
+- Desktop-only assets and bundled runtime behavior
+
+Do **not** create a desktop release tag for web-only Vertex changes in `src/vertex/**`.
+The desktop app loads the hosted Vertex web app URL at runtime, so normal web deploys are reflected in desktop without shipping a new desktop binary.
+
 ## Runtime env vars
 
 - `VERTEX_DESKTOP_ENV` = `development` or `production`
