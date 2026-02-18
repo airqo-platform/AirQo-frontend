@@ -69,6 +69,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Build desktop app
+        run: npm run build
+
       - name: Build and publish release artifacts
         run: npx electron-builder --win nsis --publish always
 
@@ -133,6 +136,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Build desktop app
+        run: npm run build
+
       - name: Build and publish release artifacts
         run: npx electron-builder --mac dmg zip --publish always
 
@@ -196,6 +202,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Build desktop app
+        run: npm run build
 
       - name: Build and publish release artifacts
         run: npx electron-builder --linux AppImage deb --publish always
