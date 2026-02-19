@@ -191,7 +191,7 @@ class _SurveyQuestionWidgetState extends State<SurveyQuestionWidget> {
 
   Widget _buildRating(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     // Defensive validation for maxValue
     int maxValue = 5; // default
     if (widget.question.maxValue != null) {
@@ -202,7 +202,7 @@ class _SurveyQuestionWidgetState extends State<SurveyQuestionWidget> {
         maxValue = 5; // fallback if casting fails
       }
     }
-    
+
     // Defensive validation for currentRating
     int currentRating = 0;
     if (widget.currentAnswer != null) {
@@ -218,48 +218,33 @@ class _SurveyQuestionWidgetState extends State<SurveyQuestionWidget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: List.generate(maxValue, (index) {
             final rating = index + 1;
             final isSelected = rating <= currentRating;
-            
+
             return GestureDetector(
               onTap: () => widget.onAnswerChanged(rating),
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: isSelected 
-                      ? AppColors.primaryColor 
-                      : Colors.transparent,
-                  border: Border.all(
-                    color: isSelected 
-                        ? AppColors.primaryColor 
-                        : theme.dividerColor,
-                    width: 2,
-                  ),
-                ),
+              child: Padding(
+                padding: const EdgeInsets.only(right: 4),
                 child: Icon(
-                  Icons.star,
-                  color: isSelected 
-                      ? Colors.white 
-                      : theme.textTheme.bodyMedium?.color?.withOpacity(0.3),
-                  size: 20,
+                  isSelected ? Icons.star_rounded : Icons.star_outline_rounded,
+                  color: isSelected
+                      ? const Color(0xFFFFC107)
+                      : theme.dividerColor,
+                  size: 40,
                 ),
               ),
             );
           }),
         ),
         if (currentRating > 0) ...[
-          const SizedBox(height: 12),
-          Center(
-            child: Text(
-              '$currentRating out of $maxValue',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: AppColors.primaryColor,
-                fontWeight: FontWeight.w500,
-              ),
+          const SizedBox(height: 8),
+          Text(
+            '$currentRating out of $maxValue',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: AppColors.primaryColor,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],

@@ -35,7 +35,7 @@ class SurveyRepository extends BaseRepository with UiLoggy {
       };
 
       final response = await createGetRequest(_surveysEndpoint, queryParams);
-      final data = json.decode(response.body);
+      final data = json.decode(utf8.decode(response.bodyBytes));
 
       if (data['success'] == true && data['surveys'] != null) {
         final surveys = (data['surveys'] as List)
@@ -77,7 +77,7 @@ class SurveyRepository extends BaseRepository with UiLoggy {
 
       final response = await createAuthenticatedGetRequest(
           '$_surveysEndpoint/$surveyId', {});
-      final data = json.decode(response.body);
+      final data = json.decode(utf8.decode(response.bodyBytes));
 
       if (data['success'] == true &&
           data['surveys'] != null &&
@@ -121,7 +121,7 @@ class SurveyRepository extends BaseRepository with UiLoggy {
         );
       }
 
-      final data = json.decode(apiResponse.body);
+      final data = json.decode(utf8.decode(apiResponse.bodyBytes));
 
       if (data['success'] == true) {
         loggy.info('Successfully submitted survey response: ${response.id}');
@@ -180,7 +180,7 @@ class SurveyRepository extends BaseRepository with UiLoggy {
 
         final apiResponse = await createAuthenticatedGetRequest(
             _surveyResponsesEndpoint, queryParams);
-        final data = json.decode(apiResponse.body);
+        final data = json.decode(utf8.decode(apiResponse.bodyBytes));
 
         if (data['success'] == true && data['responses'] != null) {
           final apiResponses = (data['responses'] as List)
@@ -211,7 +211,7 @@ class SurveyRepository extends BaseRepository with UiLoggy {
       try {
         final response = await createAuthenticatedGetRequest(
             '$_surveyStatsEndpoint/$surveyId', {});
-        final data = json.decode(response.body);
+        final data = json.decode(utf8.decode(response.bodyBytes));
 
         if (data['success'] == true && data['stats'] != null) {
           final stats = SurveyStats.fromJson(data['stats']);
