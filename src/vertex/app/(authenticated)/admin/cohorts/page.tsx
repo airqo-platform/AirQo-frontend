@@ -138,11 +138,11 @@ export default function CohortsPage() {
         if (tags.length === 0) return "-";
         return (
           <div className="flex flex-wrap gap-1 max-w-[220px]">
-            {tags.map((tag) => {
+            {tags.map((tag, index) => {
               const normalized = String(tag || "").replace(/_/g, " ");
               const displayTag = normalized.toLowerCase() === "external device" ? "misc" : normalized;
               return (
-                <Badge key={String(tag)} variant="secondary" className="font-normal capitalize">
+                <Badge key={`${String(tag)}-${index}`} variant="secondary" className="font-normal capitalize">
                   {displayTag}
                 </Badge>
               );
