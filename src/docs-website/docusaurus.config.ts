@@ -65,6 +65,20 @@ const config: Config = {
     ],
   ],
 
+  plugins: [
+    [
+      require.resolve('@easyops-cn/docusaurus-search-local'),
+      {
+        hashed: true,
+        docsRouteBasePath: '/',
+        indexBlog: false,
+        indexPages: false,
+        language: ['en'],
+        highlightSearchTermsOnTargetPage: true,
+      },
+    ],
+  ],
+
   themeConfig: {
     colorMode: {
       respectPrefersColorScheme: true,
@@ -80,6 +94,10 @@ const config: Config = {
         },
       },
       items: [
+        {
+          type: 'search',
+          position: 'right',
+        },
         {
           href: 'https://github.com/airqo-platform/AirQo-frontend/tree/staging/src/docs-website',
           label: 'GitHub',

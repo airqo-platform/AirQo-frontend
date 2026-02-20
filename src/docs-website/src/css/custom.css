@@ -479,3 +479,60 @@ div[class*='Sidebar']:hover::-webkit-scrollbar-thumb {
 .table-of-contents__link--active {
   font-weight: 600;
 }
+
+/* ==========================================================================
+   Navbar Search (Centered + Responsive)
+   ========================================================================== */
+@media (min-width: 997px) {
+  .navbar__inner {
+    position: relative;
+  }
+
+  .navbar [class*='navbarSearchContainer'] {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(52vw, 680px);
+    max-width: calc(100% - 26rem);
+    margin: 0 !important;
+    padding: 0 !important;
+    z-index: 6;
+  }
+
+  .navbar [class*='navbarSearchContainer'] .navbar__search {
+    position: relative;
+    width: 100%;
+    z-index: 5;
+  }
+
+  .navbar [class*='navbarSearchContainer'] .navbar__search-input,
+  .navbar [class*='navbarSearchContainer'] .DocSearch-Button {
+    width: 100%;
+    max-width: none;
+    min-width: 320px;
+    height: 2.5rem;
+    border-radius: 0.75rem;
+  }
+
+  .navbar__items--right {
+    margin-left: auto;
+    padding-left: 0;
+  }
+}
+
+@media (max-width: 996px) {
+  .navbar [class*='navbarSearchContainer'] {
+    position: static !important;
+    top: auto;
+    left: auto;
+    transform: none;
+    width: auto;
+    max-width: none;
+  }
+
+  .navbar [class*='navbarSearchContainer'] .navbar__search-input,
+  .navbar [class*='navbarSearchContainer'] .DocSearch-Button {
+    min-width: 0;
+  }
+}
