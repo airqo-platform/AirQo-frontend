@@ -132,7 +132,7 @@ export default function CohortsPage() {
     {
       key: "cohort_tags",
       label: "Tags",
-      sortable: false,
+      sortable: true,
       render: (value) => {
         const tags = Array.isArray(value) ? value : [];
         if (tags.length === 0) return "-";
