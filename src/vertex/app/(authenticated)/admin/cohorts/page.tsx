@@ -196,7 +196,7 @@ export default function CohortsPage() {
                   setView('organization');
                   setPagination(prev => ({ ...prev, pageIndex: 0 }));
                   setSearchTerm("");
-                  handleTagClick("All");
+                  handleTagClick("organizational");
                 }}
                 className={`flex items-center gap-1 px-4 py-2 rounded-md text-sm font-medium transition-colors border ${view === 'organization'
                   ? "bg-blue-600 text-white border-blue-600"
