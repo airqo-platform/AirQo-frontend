@@ -23,6 +23,7 @@ type CohortRow = {
   name: string;
   numberOfDevices: number;
   visibility: boolean;
+  cohort_tags?: string[];
   dateCreated?: string;
 }
 
@@ -129,6 +130,28 @@ export default function CohortsPage() {
       )
     },
     {
+      key: "cohort_tags",
+      label: "Tags",
+      sortable: true,
+      render: (value) => {
+        const tags = Array.isArray(value) ? value : [];
+        if (tags.length === 0) return "-";
+        return (
+          <div className="flex flex-wrap gap-1 max-w-[220px]">
+            {tags.map((tag, index) => {
+              const normalized = String(tag || "").replace(/_/g, " ");
+              const displayTag = normalized.toLowerCase() === "external device" ? "misc" : normalized;
+              return (
+                <Badge key={`${String(tag)}-${index}`} variant="secondary" className="font-normal capitalize">
+                  {displayTag}
+                </Badge>
+              );
+            })}
+          </div>
+        );
+      }
+    },
+    {
       key: "dateCreated",
       label: "Date created",
       sortable: true,
@@ -173,7 +196,7 @@ export default function CohortsPage() {
                   setView('organization');
                   setPagination(prev => ({ ...prev, pageIndex: 0 }));
                   setSearchTerm("");
-                  handleTagClick("All");
+                  handleTagClick("organizational");
                 }}
                 className={`flex items-center gap-1 px-4 py-2 rounded-md text-sm font-medium transition-colors border ${view === 'organization'
                   ? "bg-blue-600 text-white border-blue-600"
