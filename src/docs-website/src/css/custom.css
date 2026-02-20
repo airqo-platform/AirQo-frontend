@@ -231,6 +231,7 @@ pre code {
   
   /* Navbar and Sidebar should match card color in dark mode */
   --ifm-navbar-background-color: rgb(var(--card));
+  --floating-border-color: rgba(71, 85, 105, 0.55);
 }
 
 /* Responsive Floating Layout (Desktop Only) */
@@ -247,6 +248,7 @@ pre code {
     z-index: 100;
     width: calc(100% - 1rem);
     height: 3rem;
+    border: 1px solid transparent;
   }
 
   /* Push content down to account for fixed navbar */
@@ -270,6 +272,7 @@ pre code {
     overflow-y: auto; /* Allow internal scrolling if content is long */
     overflow-x: hidden;
     padding: 0 !important; /* Remove inner padding */
+    border: 1px solid transparent;
     
     /* Ensure content aligns to top */
     display: flex;
@@ -290,6 +293,7 @@ pre code {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    border: 1px solid transparent;
   }
 
   /* When inside wrapper, reset aside and any internal sidebar div styles */
@@ -478,6 +482,22 @@ div[class*='Sidebar']:hover::-webkit-scrollbar-thumb {
 
 .table-of-contents__link--active {
   font-weight: 600;
+}
+
+/* Dark mode chrome borders (navbar + sidebar) for clearer separation */
+[data-theme='dark'] .navbar {
+  border-color: var(--floating-border-color);
+}
+
+[data-theme='dark'] .theme-doc-sidebar-wrapper,
+[data-theme='dark'] aside[class^='theme-doc-sidebar-container'],
+[data-theme='dark'] aside[class*='theme-doc-sidebar-container'] {
+  border-color: var(--floating-border-color) !important;
+}
+
+/* Mobile/off-canvas docs sidebar in dark mode */
+[data-theme='dark'] .navbar-sidebar {
+  border-right: 1px solid var(--floating-border-color);
 }
 
 /* ==========================================================================
