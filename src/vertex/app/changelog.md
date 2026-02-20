@@ -4,6 +4,39 @@
 
 ---
 
+## Version 1.23.20
+**Released:** February 20, 2026
+
+### Device Details Runtime Stability Fix
+
+Fixed a production runtime crash on the admin device details route caused by non-string values being passed into string/date parsing paths.
+
+<details>
+<summary><strong>Fixes (2)</strong></summary>
+
+- **Crash Prevention in Date Parsing**: Added strict runtime type guards before calling `parseISO(...)` in device detail cards to avoid `TypeError: e.split is not a function` when API fields are not strings.
+- **Safe Organization Name Formatting**: Hardened organization/group name rendering in device table columns to avoid calling `.split("_")` on non-string values.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (2)</strong></summary>
+
+- Introduced guarded date parsing paths in maintenance, activity, and device-status feed components.
+- Added resilient fallback formatting for non-string group values in device table column rendering.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (4)</strong></summary>
+
+- `components/features/devices/maintenance-status-card.tsx`
+- `components/features/devices/device-activity-item.tsx`
+- `components/features/devices/run-device-test-card.tsx`
+- `components/features/devices/utils/table-columns.tsx`
+
+</details>
+
 ## Version 1.23.19
 **Released:** February 18, 2026
 
