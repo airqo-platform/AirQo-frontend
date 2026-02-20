@@ -10,8 +10,8 @@ The AirQo RBAC (Role-Based Access Control) system provides comprehensive access 
 
 ### Key Concepts
 
-- **Permissions**: Granular capabilities (e.g., `USER_VIEW`, `DEVICE_DEPLOY`)
-- **Roles**: Collections of permissions (e.g., `AIRQO_SUPER_ADMIN`, `MAKERERE_TECHNICIAN`)
+- **Permissions**: Granular capabilities (e.g., `USER_VIEW`, `DEVICE_DEPLOY`, `SHIPPING_VIEW`)
+- **Roles**: Collections of permissions (e.g., `AIRQO_SUPER_ADMIN`, `AIRQO_NETWORK_ADMIN`, `ORG_TECHNICIAN`)
 - **Groups**: Organizations that consume air quality data
 - **Networks**: Organizations that manufacture air quality sensors
 - **Tenants**: System boundaries (default: "airqo")
@@ -100,11 +100,19 @@ Most endpoints accept:
 #### Device Management
 
 - `DEVICE_VIEW` - View device information
+- `DEVICE_CLAIM` - Claim devices
 - `DEVICE_DEPLOY` - Deploy devices to sites
 - `DEVICE_RECALL` - Recall devices from deployment
 - `DEVICE_MAINTAIN` - Perform device maintenance
 - `DEVICE_UPDATE` - Update device configuration
 - `DEVICE_DELETE` - Delete device records
+
+#### Network Management
+
+- `NETWORK_VIEW` - View network information
+- `NETWORK_CREATE` - Create networks
+- `NETWORK_EDIT` - Edit network configuration
+- `NETWORK_DELETE` - Delete networks
 
 #### Site Management
 
@@ -128,12 +136,20 @@ Most endpoints accept:
 - `SETTINGS_EDIT` - Edit system settings
 - `GROUP_SETTINGS` - Manage group-specific settings
 
+#### Shipping Management
+
+- `SHIPPING_VIEW` - View shipping data and batches
+- `SHIPPING_CREATE` - Create shipping batches/workflows
+- `SHIPPING_EDIT` - Edit shipping records
+- `SHIPPING_DELETE` - Delete shipping records
+
 ### Standard Role Templates
 
 #### AirQo Roles
 
 - `AIRQO_SUPER_ADMIN` - Complete system access
 - `AIRQO_ADMIN` - Organization approval and management
+- `AIRQO_NETWORK_ADMIN` - Network, device, site, analytics, and shipping administration
 
 #### Organization Roles (Template)
 
@@ -207,9 +223,9 @@ GET /admin/rbac-health
   "health_status": {
     "service": "rbac-system",
     "status": "healthy",
-    "permissions_count": 45,
-    "roles_count": 12,
-    "airqo_roles_count": 2,
+    "permissions_count": 58,
+    "roles_count": 9,
+    "airqo_roles_count": 3,
     "has_airqo_roles": true,
     "tenant": "airqo",
     "timestamp": "2025-06-05T10:30:00.000Z",
@@ -235,9 +251,9 @@ GET /admin/rbac-status
   "rbac_status": {
     "system_health": {
       "status": "healthy",
-      "permissions_count": 45,
-      "total_roles_count": 12,
-      "airqo_roles_count": 2,
+      "permissions_count": 58,
+      "total_roles_count": 9,
+      "airqo_roles_count": 3,
       "super_admin_role_exists": true
     },
     "user_coverage": {
@@ -251,7 +267,7 @@ GET /admin/rbac-status
         "id": "64a7b8c9d1e2f3a4b5c6d7e9",
         "name": "AIRQO_SUPER_ADMIN",
         "code": "AIRQO_SUPER_ADMIN",
-        "permissions_count": 30
+        "permissions_count": 58
       }
     ],
     "recommendations": ["RBAC system is functioning well"]
