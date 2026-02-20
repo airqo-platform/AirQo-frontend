@@ -143,10 +143,13 @@ export const getColumns = (
         return (
           <div className="flex flex-wrap gap-1 max-w-[200px]">
             {groups.map((groupName) => {
-              const formattedName = groupName.split("_").join(" ");
+              const formattedName =
+                typeof groupName === "string"
+                  ? groupName.split("_").join(" ")
+                  : String(groupName ?? "").replace(/_/g, " ");
               return (
                 <span
-                  key={groupName}
+                  key={String(groupName)}
                   title={formattedName}
                   className="bg-gray-200 text-gray-800 text-xs font-medium px-2 py-0.5 rounded-full truncate capitalize"
                 >

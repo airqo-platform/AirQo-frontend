@@ -14,6 +14,10 @@ const DeviceActivityItem: React.FC<DeviceActivityItemProps> = ({
     isLast,
     showDeviceName = false,
 }) => {
+    const parsedDate =
+        typeof activity.date === "string" ? parseISO(activity.date) : null;
+    const hasValidDate = parsedDate !== null && isValid(parsedDate);
+
     return (
         <div className="relative pl-14 pb-2">
             {/* Vertical Line */}
@@ -34,9 +38,11 @@ const DeviceActivityItem: React.FC<DeviceActivityItemProps> = ({
                 <div className="flex-1 space-y-1">
                     <div className="text-xs text-gray-500">
                         <span>
-                            {isValid(parseISO(activity.date))
-                                ? format(parseISO(activity.date), "MMM d, yyyy h:mm a")
-                                : (activity.date || "Unknown date")}
+                            {hasValidDate
+                                ? format(parsedDate, "MMM d, yyyy h:mm a")
+                                : (typeof activity.date === "string" && activity.date.trim()
+                                    ? activity.date
+                                    : "Unknown date")}
                         </span>
                     </div>
                     <h4 className="text-base font-medium text-gray-900 leading-none">
