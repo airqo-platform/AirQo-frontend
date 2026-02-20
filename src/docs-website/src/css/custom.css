@@ -490,11 +490,13 @@ div[class*='Sidebar']:hover::-webkit-scrollbar-thumb {
 
   .navbar [class*='navbarSearchContainer'] {
     position: absolute;
-    left: 50%;
+    left: calc(var(--ifm-navbar-padding-horizontal) + 20rem);
+    right: calc(var(--ifm-navbar-padding-horizontal) + 12rem);
     top: 50%;
-    transform: translate(-50%, -50%);
-    width: min(52vw, 680px);
-    max-width: calc(100% - 26rem);
+    transform: translateY(-50%);
+    width: auto;
+    max-width: none;
+    min-width: 360px;
     margin: 0 !important;
     padding: 0 !important;
     z-index: 6;
@@ -513,6 +515,24 @@ div[class*='Sidebar']:hover::-webkit-scrollbar-thumb {
     min-width: 320px;
     height: 2.5rem;
     border-radius: 0.75rem;
+  }
+
+  /* Local search plugin: ensure the actual input fills the centered search area */
+  .navbar [class*='navbarSearchContainer'] > .navbar__search > .navbar__search-input {
+    width: 100% !important;
+    box-sizing: border-box;
+    padding-right: 5.75rem; /* reserve room for Ctrl+K hint */
+  }
+
+  /* Local search initializes autocomplete on hover/focus and wraps the input.
+     Keep wrapper full width to prevent post-init shrinking. */
+  .navbar [class*='navbarSearchContainer'] .algolia-autocomplete {
+    width: 100% !important;
+    display: block;
+  }
+
+  .navbar [class*='navbarSearchContainer'] .algolia-autocomplete .navbar__search-input {
+    width: 100% !important;
   }
 
   .navbar__items--right {
