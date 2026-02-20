@@ -127,7 +127,7 @@ export const LocationsList: React.FC<LocationsListProps> = ({
   return (
     <div className={cn('flex flex-col h-full', className)}>
       {/* Scrollable Content */}
-      <div className="flex-1 p-4 space-y-4 overflow-y-auto overflow-x-hidden min-h-0">
+      <div className="flex-1 p-2 space-y-4 overflow-y-auto overflow-x-hidden min-h-0">
         {hasNoResults ? (
           // Empty state for search results
           <div className="flex flex-col items-center justify-center h-full text-center">
