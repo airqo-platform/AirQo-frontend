@@ -4,6 +4,30 @@
 
 ---
 
+## Version 1.23.21
+**Released:** February 20, 2026
+
+### Managed Cohorts Tag Defaults & Admin Tags Visibility
+
+Updated cohort tag behavior to improve Managed Cohorts filtering and make cohort tags visible directly in the admin cohorts table.
+
+<details>
+<summary><strong>Improvements (3)</strong></summary>
+
+- **Managed Cohorts Default Filter**: Clicking the **Managed Cohorts** tab now defaults to the `organizational` tag instead of `All`, so users immediately see organizational cohorts.
+- **Tag Rename to Misc**: Replaced the previous `external device` cohort tag option with `misc` (both value and label) for cleaner categorization.
+- **Admin Table Tag Visibility**: Added a **Tags** column to the admin cohorts table to display each cohort's tags as badges.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (2)</strong></summary>
+
+- `app/(authenticated)/admin/cohorts/page.tsx`
+- `core/constants/devices.ts`
+
+</details>
+
 ## Version 1.23.20
 **Released:** February 20, 2026
 
