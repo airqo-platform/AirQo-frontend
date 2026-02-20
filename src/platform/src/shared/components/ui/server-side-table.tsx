@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { cn } from '@/shared/lib/utils';
 import { MultiSelectTable } from './multi-select-table';
 
 // Define the types locally since they're not exported from multi-select-table
@@ -161,7 +162,7 @@ export function ServerSideTable<T extends TableItem>({
     ) : null;
 
   return (
-    <div className={`w-full max-w-full overflow-hidden ${className}`}>
+    <div className={cn('w-full max-w-full overflow-x-auto', className)}>
       <MultiSelectTable
         data={data}
         title={`${title}`}

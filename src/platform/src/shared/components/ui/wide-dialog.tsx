@@ -266,7 +266,7 @@ const WideDialog: React.FC<WideDialogProps> = ({
 
                         {/* Main content and footer */}
                         <div className="flex flex-col flex-1 min-h-0">
-                          <main className="flex-1 p-4 sm:p-6 overflow-auto min-h-0">
+                          <main className="flex-1 p-2 sm:p-6 overflow-auto min-h-0">
                             {children}
                           </main>
 
