@@ -23,6 +23,7 @@ type CohortRow = {
   name: string;
   numberOfDevices: number;
   visibility: boolean;
+  cohort_tags?: string[];
   dateCreated?: string;
 }
 
@@ -127,6 +128,28 @@ export default function CohortsPage() {
       render: (v) => (
         <Badge variant={v ? "default" : "secondary"}>{v ? "Public" : "Private"}</Badge>
       )
+    },
+    {
+      key: "cohort_tags",
+      label: "Tags",
+      sortable: false,
+      render: (value) => {
+        const tags = Array.isArray(value) ? value : [];
+        if (tags.length === 0) return "-";
+        return (
+          <div className="flex flex-wrap gap-1 max-w-[220px]">
+            {tags.map((tag) => {
+              const normalized = String(tag || "").replace(/_/g, " ");
+              const displayTag = normalized.toLowerCase() === "external device" ? "misc" : normalized;
+              return (
+                <Badge key={String(tag)} variant="secondary" className="font-normal capitalize">
+                  {displayTag}
+                </Badge>
+              );
+            })}
+          </div>
+        );
+      }
     },
     {
       key: "dateCreated",
