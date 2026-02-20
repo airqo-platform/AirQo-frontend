@@ -490,13 +490,12 @@ div[class*='Sidebar']:hover::-webkit-scrollbar-thumb {
 
   .navbar [class*='navbarSearchContainer'] {
     position: absolute;
-    left: calc(var(--ifm-navbar-padding-horizontal) + 20rem);
-    right: calc(var(--ifm-navbar-padding-horizontal) + 12rem);
+    left: 50%;
     top: 50%;
-    transform: translateY(-50%);
-    width: auto;
-    max-width: none;
-    min-width: 360px;
+    transform: translate(-50%, -50%);
+    width: min(32vw, 540px);
+    max-width: calc(100% - 26rem);
+    min-width: 320px;
     margin: 0 !important;
     padding: 0 !important;
     z-index: 6;
