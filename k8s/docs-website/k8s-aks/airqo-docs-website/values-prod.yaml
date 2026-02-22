@@ -1,0 +1,32 @@
+replicaCount: 2
+image:
+  repository: eu.gcr.io/airqo-250220/airqo-docs
+  tag: latest
+  pullPolicy: Always
+imagePullSecrets: []
+nameOverride: ''
+fullnameOverride: ''
+service:
+  type: NodePort
+  protocol: TCP
+  nodePort: 30195
+  targetPort: 3000
+  port: 3000
+ingress:
+  enabled: false
+resources:
+  requests:
+    cpu: 10m
+    memory: 20Mi
+  limits:
+    cpu: 50m
+    memory: 150Mi
+autoscaling:
+  minReplicas: 1
+  maxReplicas: 2
+  targetMemoryUtilizationPercentage: 70
+app:
+  name: airqo-docs
+  label: docs
+  namespace: production
+  secret: prod-env-docs

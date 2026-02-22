@@ -1,0 +1,33 @@
+replicaCount: 2
+image:
+  repository: eu.gcr.io/airqo-250220/airqo-stage-vertex
+  tag: latest
+  pullPolicy: Always
+imagePullSecrets: []
+nameOverride: ''
+fullnameOverride: ''
+service:
+  type: NodePort
+  protocol: TCP
+  nodePort: 31113
+  targetPort: 3000
+  port: 3000
+ingress:
+  enabled: false
+resources:
+  requests:
+    cpu: 10m
+    memory: 20Mi
+  limits:
+    cpu: 50m
+    memory: 150Mi
+autoscaling:
+  minReplicas: 1
+  maxReplicas: 2
+  targetMemoryUtilizationPercentage: 80
+
+app:
+  name: airqo-stage-vertex
+  label: vertex
+  namespace: staging
+  secret: sta-env-vertex

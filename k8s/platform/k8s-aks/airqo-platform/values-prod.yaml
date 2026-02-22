@@ -1,0 +1,32 @@
+replicaCount: 1
+image:
+  repository: eu.gcr.io/airqo-250220/airqo-next-platform
+  tag: latest
+  pullPolicy: Always
+imagePullSecrets: []
+nameOverride: ''
+fullnameOverride: ''
+service:
+  type: NodePort
+  protocol: TCP
+  nodePort: 30103
+  targetPort: 3000
+  port: 3000
+ingress:
+  enabled: false
+resources:
+  requests:
+    cpu: 20m
+    memory: 150Mi
+  limits:
+    cpu: 200m
+    memory: 350Mi
+autoscaling:
+  minReplicas: 1
+  maxReplicas: 4
+  targetCPUUtilizationPercentage: 70
+app:
+  name: airqo-next-platform
+  label: airqo-next-platform
+  namespace: production
+  secret: prod-env-next-platform

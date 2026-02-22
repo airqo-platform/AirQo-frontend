@@ -1,0 +1,32 @@
+replicaCount: 2
+image:
+  repository: eu.gcr.io/airqo-250220/airqo-calibrate-app
+  tag: latest
+  pullPolicy: Always
+imagePullSecrets: []
+nameOverride: ''
+fullnameOverride: ''
+service:
+  type: NodePort
+  protocol: TCP
+  nodePort: 30106
+  targetPort: 80
+  port: 80
+ingress:
+  enabled: false
+resources:
+  requests:
+    cpu: 5m
+    memory: 25Mi
+  limits:
+    cpu: 100m
+    memory: 100Mi
+autoscaling:
+  minReplicas: 1
+  maxReplicas: 3
+  targetMemoryUtilizationPercentage: 70
+app:
+  name: airqo-calibrate-app
+  label: airqo-calibrate-app
+  namespace: production
+  secret: prod-env-calibrate-app
