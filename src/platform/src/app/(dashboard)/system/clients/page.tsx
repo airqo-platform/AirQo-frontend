@@ -220,6 +220,10 @@ const ClientsAdminPage: React.FC = () => {
     }
   };
 
+  const handleRefresh = useCallback(async () => {
+    await mutate();
+  }, [mutate]);
+
   const renderStatus = useCallback((value: unknown, item: TableClient) => {
     return (
       <span
@@ -391,7 +395,7 @@ const ClientsAdminPage: React.FC = () => {
         />
 
         {/* Actions */}
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
           <Button
             size="sm"
             variant={statusFilter === 'all' ? 'filled' : 'outlined'}
@@ -412,6 +416,15 @@ const ClientsAdminPage: React.FC = () => {
             onClick={() => setStatusFilter('inactive')}
           >
             Inactive ({clients.filter(c => !c.isActive).length})
+          </Button>
+          <Button
+            size="sm"
+            variant="outlined"
+            Icon={AqRefreshCw05}
+            onClick={handleRefresh}
+            className="ml-auto"
+          >
+            Refresh
           </Button>
         </div>
 
