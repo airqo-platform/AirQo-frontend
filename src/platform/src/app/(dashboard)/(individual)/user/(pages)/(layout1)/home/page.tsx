@@ -7,6 +7,7 @@ import { Card } from '@/shared/components/ui/card';
 import { Checklist } from '@/modules/user-checklist';
 import { AqDownloadCloud01, AqStar06, AqBuilding07 } from '@airqo/icons-react';
 import PlayIcon from '@/shared/components/ui/play-icon';
+import { InfoBanner } from '@/shared/components/ui/banner';
 
 export default function HomePage() {
   const { data: session } = useSession();
@@ -28,11 +29,12 @@ export default function HomePage() {
         </p>
 
         {/* Data Availability Note */}
-        <blockquote className="mt-3 text-sm text-gray-600 dark:text-gray-400 italic border-l-2 border-gray-300 dark:border-gray-600 pl-4 leading-relaxed">
-          All data on this platform is open and publicly available. View,
+        <InfoBanner
+          title="All data on this platform is open and publicly available. View,
           explore, and download air quality data for your own analysis,
-          reporting, or advocacy.
-        </blockquote>
+          reporting, or advocacy."
+          className="mt-4"
+        />
 
         {/* Quick Access Buttons (left-aligned) */}
         <div className="mt-4 flex flex-wrap gap-3 items-center">
