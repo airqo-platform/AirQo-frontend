@@ -256,7 +256,13 @@ const UserStatisticsPage: React.FC = () => {
         })}
       </div>
 
-      <div className="flex justify-end items-center mb-4">
+      <div className="flex justify-between items-center mb-4">
+        <button
+          onClick={handleRefresh}
+          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+        >
+          Refresh
+        </button>
         <div className="flex gap-2">
           <button
             onClick={exportToCSV}

@@ -23,7 +23,7 @@ import type { NormalizedChartData } from '@/shared/components/charts/types';
 import { trackEvent } from '@/shared/utils/analytics';
 import { useSitesData } from '@/shared/hooks/useSitesData';
 import { useActiveGroupCohorts, useCohort } from '@/shared/hooks';
-import { InfoBanner } from '@/shared/components/ui/banner';
+import { WarningBanner } from '@/shared/components/ui/banner';
 import { getEnvironmentAwareUrl } from '@/shared/utils/url';
 import { useUser } from '@/shared/hooks/useUser';
 
@@ -251,7 +251,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     <div className={`space-y-4 ${className}`}>
       {/* Show banner if cohort data is private */}
       {isCohortPrivate && (
-        <InfoBanner
+        <WarningBanner
           title="Location card data unavailable"
           message={
             <>
