@@ -25,9 +25,9 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import type { LegendPayload } from 'recharts';
 import { DynamicChartProps, ChartType } from '../../types';
 import { CustomTooltip } from '../ui/CustomTooltip';
-import { InteractiveLegend } from '../ui/CustomLegend';
 import { CustomReferenceLine } from '../ui/CustomReferenceLine';
 import {
   autoSelectChartType,
@@ -121,20 +121,43 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
     return { chartData: converted, seriesKeys: keys };
   }, [data, chartType, config.dataKey]);
 
-  // Handle legend toggle
-  const handleLegendToggle = useCallback(
-    (dataKey: string, visible: boolean) => {
-      setHiddenSeries(prev => {
-        const newSet = new Set(prev);
-        if (visible) {
-          newSet.delete(dataKey);
-        } else {
-          newSet.add(dataKey);
-        }
-        return newSet;
-      });
+  // Handle legend toggle using native Recharts legend events
+  const handleLegendClick = useCallback((entry: LegendPayload) => {
+    const seriesKey = String(entry.dataKey ?? entry.value ?? '').trim();
+    if (!seriesKey) return;
+
+    setHiddenSeries(prev => {
+      const next = new Set(prev);
+      if (next.has(seriesKey)) {
+        next.delete(seriesKey);
+      } else {
+        next.add(seriesKey);
+      }
+      return next;
+    });
+  }, []);
+
+  const formatLegendLabel = useCallback(
+    (value: string | number | undefined, entry: LegendPayload) => {
+      const seriesKey = String(entry.dataKey ?? entry.value ?? '').trim();
+      const isHidden = seriesKey ? hiddenSeries.has(seriesKey) : false;
+      const formattedValue = String(value ?? '')
+        .replace(/_/g, ' ')
+        .trim();
+
+      return (
+        <span
+          style={{
+            color: '#000000',
+            opacity: isHidden ? 0.5 : 1,
+            textDecoration: isHidden ? 'line-through' : 'none',
+          }}
+        >
+          {formattedValue}
+        </span>
+      );
     },
-    []
+    [hiddenSeries]
   );
 
   // Chart configuration
@@ -213,19 +236,16 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
         align="right"
         verticalAlign="bottom"
         layout="horizontal"
+        iconType="circle"
+        iconSize={8}
         wrapperStyle={{
           paddingTop: '20px',
           paddingBottom: '10px',
           fontSize: '12px',
+          cursor: 'pointer',
         }}
-        content={props => (
-          <InteractiveLegend
-            {...props}
-            onToggle={handleLegendToggle}
-            hiddenSeries={hiddenSeries}
-            className="flex justify-end items-center gap-2"
-          />
-        )}
+        formatter={formatLegendLabel}
+        onClick={handleLegendClick}
       />
     );
   };
