@@ -91,6 +91,7 @@ export interface RoleDetails {
   updatedAt: string;
   role_permissions: RolePermission[];
   role_users: string[];
+  user_count: number;
   group: RoleGroupInfo;
 }
 
