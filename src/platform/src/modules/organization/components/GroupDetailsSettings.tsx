@@ -9,6 +9,9 @@ import {
   uploadToCloudinary,
   deleteFromCloudinary,
   extractPublicIdFromUrl,
+  validateImageFile,
+  PROFILE_IMAGE_ALLOWED_MIME_TYPES,
+  MAX_IMAGE_FILE_SIZE_BYTES,
 } from '@/shared/utils/cloudinaryUpload';
 import { LoadingSpinner } from '@/shared/components/ui';
 import { Button } from '@/shared/components/ui/button';
@@ -108,6 +111,20 @@ const GroupDetailsSettings: React.FC = () => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+
+      try {
+        validateImageFile(file, {
+          allowedMimeTypes: [...PROFILE_IMAGE_ALLOWED_MIME_TYPES],
+          maxFileSizeBytes: MAX_IMAGE_FILE_SIZE_BYTES,
+        });
+      } catch (error) {
+        setSelectedImage(null);
+        e.target.value = '';
+        const errorMessage = getUserFriendlyErrorMessage(error);
+        toast.error('Invalid image', errorMessage);
+        return;
+      }
+
       // Revoke previous blob URL if it exists to prevent memory leaks
       if (imagePreview && imagePreview.startsWith('blob:')) {
         URL.revokeObjectURL(imagePreview);
@@ -210,13 +227,10 @@ const GroupDetailsSettings: React.FC = () => {
       const oldImageUrl = groupDetails?.grp_image;
 
       if (selectedImage) {
-        // Validate file size (max 5MB)
-        const maxSize = 5 * 1024 * 1024; // 5MB in bytes
-        if (selectedImage.size > maxSize) {
-          toast.error('File size exceeds 5MB limit');
-          setIsSaving(false);
-          return;
-        }
+        validateImageFile(selectedImage, {
+          allowedMimeTypes: [...PROFILE_IMAGE_ALLOWED_MIME_TYPES],
+          maxFileSizeBytes: MAX_IMAGE_FILE_SIZE_BYTES,
+        });
 
         // Delete old logo from Cloudinary if it exists
         if (oldImageUrl) {
@@ -239,6 +253,8 @@ const GroupDetailsSettings: React.FC = () => {
         const uploadResult = await uploadToCloudinary(selectedImage, {
           folder: 'organization_profiles',
           tags: ['group-logo', activeGroup.id],
+          allowedMimeTypes: [...PROFILE_IMAGE_ALLOWED_MIME_TYPES],
+          maxFileSizeBytes: MAX_IMAGE_FILE_SIZE_BYTES,
         });
         imageUrl = uploadResult.secure_url;
       }
@@ -389,7 +405,7 @@ const GroupDetailsSettings: React.FC = () => {
               <div>
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/png,image/jpeg,image/jpg,image/webp,image/avif"
                   onChange={handleImageChange}
                   className="hidden"
                   id="group-image-upload"
@@ -401,7 +417,7 @@ const GroupDetailsSettings: React.FC = () => {
                   Change Logo
                 </label>
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  JPG, PNG or GIF. Max 5MB.
+                  PNG, JPG, WebP, or AVIF. Max 5MB.
                 </p>
               </div>
             </div>
