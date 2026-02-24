@@ -50,7 +50,7 @@ const SEVERITY_CONFIG: Record<
   },
   error: {
     bgColor: 'bg-destructive/20',
-    borderColor: 'border-destructive/20',
+    borderColor: 'border-destructive/30',
     textColor: 'text-destructive',
     icon: <AqMessageXCircle className="h-5 w-5" />,
     iconColor: 'text-destructive',
