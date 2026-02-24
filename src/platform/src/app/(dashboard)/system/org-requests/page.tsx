@@ -334,12 +334,14 @@ const OrganizationRequestsPage = () => {
             <div className="flex items-center justify-between gap-3">
               <div className="flex space-x-2">
                 <Button
+                  size="sm"
                   variant={activeTab === 'pending' ? 'filled' : 'outlined'}
                   onClick={() => setActiveTab('pending')}
                 >
                   Pending ({requests.filter(r => r.status === 'pending').length})
                 </Button>
                 <Button
+                  size="sm"
                   variant={activeTab === 'approved' ? 'filled' : 'outlined'}
                   onClick={() => setActiveTab('approved')}
                 >
@@ -347,6 +349,7 @@ const OrganizationRequestsPage = () => {
                   )
                 </Button>
                 <Button
+                  size="sm"
                   variant={activeTab === 'rejected' ? 'filled' : 'outlined'}
                   onClick={() => setActiveTab('rejected')}
                 >
