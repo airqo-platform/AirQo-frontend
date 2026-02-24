@@ -146,13 +146,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
         .trim();
 
       return (
-        <span
-          style={{
-            color: '#000000',
-            opacity: isHidden ? 0.5 : 1,
-            textDecoration: isHidden ? 'line-through' : 'none',
-          }}
-        >
+        <span className={cn('text-foreground', isHidden && 'opacity-50 line-through')}>
           {formattedValue}
         </span>
       );
