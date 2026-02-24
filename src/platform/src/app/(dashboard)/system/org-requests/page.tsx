@@ -331,26 +331,34 @@ const OrganizationRequestsPage = () => {
 
           <div className="space-y-6">
             {/* Tab Navigation */}
-            <div className="flex space-x-2">
-              <Button
-                variant={activeTab === 'pending' ? 'filled' : 'outlined'}
-                onClick={() => setActiveTab('pending')}
-              >
-                Pending ({requests.filter(r => r.status === 'pending').length})
-              </Button>
-              <Button
-                variant={activeTab === 'approved' ? 'filled' : 'outlined'}
-                onClick={() => setActiveTab('approved')}
-              >
-                Approved ({requests.filter(r => r.status === 'approved').length}
-                )
-              </Button>
-              <Button
-                variant={activeTab === 'rejected' ? 'filled' : 'outlined'}
-                onClick={() => setActiveTab('rejected')}
-              >
-                Rejected ({requests.filter(r => r.status === 'rejected').length}
-                )
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex space-x-2">
+                <Button
+                  size="sm"
+                  variant={activeTab === 'pending' ? 'filled' : 'outlined'}
+                  onClick={() => setActiveTab('pending')}
+                >
+                  Pending ({requests.filter(r => r.status === 'pending').length})
+                </Button>
+                <Button
+                  size="sm"
+                  variant={activeTab === 'approved' ? 'filled' : 'outlined'}
+                  onClick={() => setActiveTab('approved')}
+                >
+                  Approved ({requests.filter(r => r.status === 'approved').length}
+                  )
+                </Button>
+                <Button
+                  size="sm"
+                  variant={activeTab === 'rejected' ? 'filled' : 'outlined'}
+                  onClick={() => setActiveTab('rejected')}
+                >
+                  Rejected ({requests.filter(r => r.status === 'rejected').length}
+                  )
+                </Button>
+              </div>
+              <Button variant="outlined" size="sm" onClick={handleRefresh}>
+                Refresh
               </Button>
             </div>
 
