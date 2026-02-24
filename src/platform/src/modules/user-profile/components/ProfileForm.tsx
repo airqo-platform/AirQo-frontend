@@ -20,6 +20,9 @@ import {
   uploadProfileImage,
   deleteFromCloudinary,
   extractPublicIdFromUrl,
+  validateImageFile,
+  PROFILE_IMAGE_ALLOWED_MIME_TYPES,
+  MAX_IMAGE_FILE_SIZE_BYTES,
 } from '@/shared/utils/cloudinaryUpload';
 import { profileSchema, type ProfileFormData } from '@/shared/lib/validators';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
@@ -113,6 +116,20 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ userId }) => {
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    try {
+      validateImageFile(file, {
+        allowedMimeTypes: [...PROFILE_IMAGE_ALLOWED_MIME_TYPES],
+        maxFileSizeBytes: MAX_IMAGE_FILE_SIZE_BYTES,
+      });
+    } catch (error) {
+      setPendingImage(null);
+      e.target.value = '';
+      const errorMessage = getUserFriendlyErrorMessage(error);
+      toast.error('Invalid image', errorMessage);
+      return;
+    }
+
     setPendingImage(file);
     // instant preview
     const reader = new FileReader();
@@ -250,7 +267,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ userId }) => {
               <label className="bg-primary text-white p-2 rounded-full cursor-pointer hover:bg-primary/80 transition-colors shadow-lg">
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/png,image/jpeg,image/jpg,image/webp,image/avif"
                   onChange={handleImageSelect}
                   className="hidden"
                   disabled={loading}
@@ -297,9 +314,9 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ userId }) => {
           <div className="flex-1">
             <h3 className="text-lg font-medium ">Profile Picture</h3>
             <p className="text-sm text-gray-600 mt-1">
-              Upload a new profile picture (JPG, PNG or GIF, max 5MB) or click
-              the X button to remove it. Click &quot;Save Changes&quot; to apply
-              your updates.
+              Upload a new profile picture (PNG, JPG, WebP, or AVIF, max 5MB)
+              or click the X button to remove it. Click &quot;Save Changes&quot;
+              to apply your updates.
             </p>
           </div>
         </div>

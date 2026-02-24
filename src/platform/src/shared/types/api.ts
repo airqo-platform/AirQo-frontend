@@ -90,7 +90,6 @@ export interface RoleDetails {
   createdAt: string;
   updatedAt: string;
   role_permissions: RolePermission[];
-  role_users: string[];
   user_count: number;
   group: RoleGroupInfo;
 }

@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import logger from '@/shared/lib/logger';
 
+const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+const ALLOWED_PROFILE_IMAGE_MIME_TYPES = [
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/webp',
+  'image/avif',
+];
+
 export async function POST(request: NextRequest) {
   try {
     // Enhanced validation with detailed logging for production debugging
@@ -49,13 +58,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate file type
-    if (!file.type.startsWith('image/')) {
-      return NextResponse.json({ error: 'Invalid file type' }, { status: 400 });
+    if (!ALLOWED_PROFILE_IMAGE_MIME_TYPES.includes(file.type)) {
+      return NextResponse.json(
+        {
+          error:
+            'Unsupported file format. Allowed formats: PNG, JPG, WebP, AVIF.',
+        },
+        { status: 400 }
+      );
     }
 
     // Validate file size (5MB max)
-    if (file.size > 5 * 1024 * 1024) {
-      return NextResponse.json({ error: 'File too large' }, { status: 400 });
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      return NextResponse.json(
+        { error: 'File is too large. Maximum allowed size is 5MB.' },
+        { status: 400 }
+      );
     }
 
     // Add upload preset if not provided
@@ -101,7 +119,7 @@ export async function POST(request: NextRequest) {
         }
       );
       return NextResponse.json(
-        { error: 'Upload failed' },
+        { error: result.error?.message || 'Upload failed' },
         { status: response.status }
       );
     }
