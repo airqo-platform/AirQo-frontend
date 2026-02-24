@@ -7,7 +7,6 @@ import { toast } from '@/shared/components/ui/toast';
 import { formatDate } from '@/shared/utils';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import {
-  AqPlus,
   AqEdit05,
   AqTrash01,
   AqRefreshCw05,
@@ -20,7 +19,6 @@ import { useRouter } from 'next/navigation';
 import { clientService } from '@/shared/services/clientService';
 import useSWR from 'swr';
 import Dialog from '@/shared/components/ui/dialog';
-import CreateClientDialog from '@/modules/api-client/components/CreateClientDialog';
 import EditClientDialog from '@/modules/api-client/components/EditClientDialog';
 import { PermissionGuard } from '@/shared/components/PermissionGuard';
 import { useRBAC, useUser } from '@/shared/hooks';
@@ -36,7 +34,6 @@ const ClientsAdminPage: React.FC = () => {
     'all' | 'active' | 'inactive'
   >('all');
 
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogState, setEditDialogState] = useState<{
     isOpen: boolean;
     client: Client | null;
@@ -390,41 +387,31 @@ const ClientsAdminPage: React.FC = () => {
       <div className="space-y-6">
         <PageHeading
           title="API Clients Management"
-          subtitle="Manage all API clients across the platform. View, create, edit, and delete client credentials."
+          subtitle="Manage all API clients across the platform. View, edit, and delete client credentials."
         />
 
         {/* Actions */}
-        <div className="flex justify-between items-center">
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              variant={statusFilter === 'all' ? 'filled' : 'outlined'}
-              onClick={() => setStatusFilter('all')}
-            >
-              All ({clients.length})
-            </Button>
-            <Button
-              size="sm"
-              variant={statusFilter === 'active' ? 'filled' : 'outlined'}
-              onClick={() => setStatusFilter('active')}
-            >
-              Active ({clients.filter(c => c.isActive).length})
-            </Button>
-            <Button
-              size="sm"
-              variant={statusFilter === 'inactive' ? 'filled' : 'outlined'}
-              onClick={() => setStatusFilter('inactive')}
-            >
-              Inactive ({clients.filter(c => !c.isActive).length})
-            </Button>
-          </div>
+        <div className="flex gap-2">
           <Button
             size="sm"
-            variant="filled"
-            Icon={AqPlus}
-            onClick={() => setCreateDialogOpen(true)}
+            variant={statusFilter === 'all' ? 'filled' : 'outlined'}
+            onClick={() => setStatusFilter('all')}
           >
-            Create Client
+            All ({clients.length})
+          </Button>
+          <Button
+            size="sm"
+            variant={statusFilter === 'active' ? 'filled' : 'outlined'}
+            onClick={() => setStatusFilter('active')}
+          >
+            Active ({clients.filter(c => c.isActive).length})
+          </Button>
+          <Button
+            size="sm"
+            variant={statusFilter === 'inactive' ? 'filled' : 'outlined'}
+            onClick={() => setStatusFilter('inactive')}
+          >
+            Inactive ({clients.filter(c => !c.isActive).length})
           </Button>
         </div>
 
@@ -436,17 +423,6 @@ const ClientsAdminPage: React.FC = () => {
           loading={isLoading}
           error={error?.message}
           showClientPagination={true}
-        />
-
-        {/* Create Client Dialog */}
-        <CreateClientDialog
-          isOpen={createDialogOpen}
-          onClose={() => setCreateDialogOpen(false)}
-          onSuccess={() => {
-            setCreateDialogOpen(false);
-            mutate();
-          }}
-          userId={user?.id}
         />
 
         {/* Edit Client Dialog */}
