@@ -82,7 +82,7 @@ const claimDeviceSchema = z.object({
 
 type ClaimDeviceFormData = z.infer<typeof claimDeviceSchema>;
 
-export type FlowStep = 'method-select' | 'manual-input' | 'qr-scan' | 'confirmation' | 'claiming' | 'success' | 'bulk-input' | 'bulk-confirmation' | 'bulk-claiming' | 'bulk-results' | 'cohort-import' | 'assigning-cohort';
+export type FlowStep = 'method-select' | 'manual-input' | 'qr-scan' | 'confirmation' | 'claiming' | 'success' | 'bulk-input' | 'bulk-confirmation' | 'bulk-claiming' | 'bulk-results' | 'cohort-import' | 'cohort-confirm' | 'assigning-cohort';
 
 export interface ClaimedDeviceInfo {
     deviceId: string;
@@ -127,6 +127,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     const [previousStep, setPreviousStep] = useState<FlowStep>('method-select');
     const [isImportingCohort, setIsImportingCohort] = useState(false);
     const [isCohortAssignmentSuccess, setIsCohortAssignmentSuccess] = useState(false);
+    const [verifiedCohort, setVerifiedCohort] = useState<{ id: string; name: string } | null>(null);
 
     const { mutateAsync: verifyCohort } = useVerifyCohort();
 
@@ -151,6 +152,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
         setPreviousStep('method-select');
         setIsImportingCohort(false);
         setIsCohortAssignmentSuccess(false);
+        setVerifiedCohort(null);
     }, [formMethods]);
 
     const handleClose = useCallback(() => {
@@ -337,6 +339,49 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
         }
     };
 
+    const handleConfirmCohortImport = () => {
+        if (!verifiedCohort || !user?._id) return;
+
+        if (isExternalOrg && activeGroup?._id) {
+            setStep('assigning-cohort');
+            assignCohortsToGroup(
+                { groupId: activeGroup._id, cohortIds: [verifiedCohort.id] },
+                {
+                    onSuccess: () => {
+                        setTimeout(() => {
+                            setIsCohortAssignmentSuccess(true);
+                            setStep('success');
+                        }, 3000);
+                    },
+                    onError: (err) => {
+                        setError(getApiErrorMessage(err));
+                        setStep('cohort-import');
+                    },
+                }
+            );
+            return;
+        }
+
+        if (isPersonalContext) {
+            setStep('assigning-cohort');
+            assignCohortsToUser(
+                { userId: user._id, cohortIds: [verifiedCohort.id] },
+                {
+                    onSuccess: () => {
+                        setTimeout(() => {
+                            setIsCohortAssignmentSuccess(true);
+                            setStep('success');
+                        }, 3000);
+                    },
+                    onError: (err) => {
+                        setError(getApiErrorMessage(err));
+                        setStep('cohort-import');
+                    },
+                }
+            );
+        }
+    };
+
     const handleVerifyCohort = async () => {
         const input = cohortIdInput.trim();
         if (!input) {
@@ -357,50 +402,16 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
             const result = await verifyCohort(input);
 
             if (result.success) {
-                if (result.cohort?.name?.toLowerCase() === 'airqo') {
+                const cohortName = result?.data?.name || result?.cohort?.name || '';
+                if (cohortName?.toLowerCase() === 'airqo') {
                     setError('This cohort is not available.');
                     setIsImportingCohort(false);
                     return;
                 }
 
-                if (isExternalOrg && activeGroup?._id) {
-                    setStep('assigning-cohort');
-                    assignCohortsToGroup({
-                        groupId: activeGroup._id,
-                        cohortIds: [input]
-                    }, {
-                        onSuccess: () => {
-                            setTimeout(() => {
-                                setIsCohortAssignmentSuccess(true);
-                                setStep('success');
-                            }, 3000);
-                        },
-                        onError: (err) => {
-                            setError(getApiErrorMessage(err));
-                            setStep('cohort-import');
-                        }
-                    });
-                    setIsImportingCohort(false);
-                    return;
-                }
-
-                if (isPersonalContext && user?._id) {
-                    setStep('assigning-cohort');
-                    assignCohortsToUser({
-                        userId: user._id,
-                        cohortIds: [input],
-                    }, {
-                        onSuccess: () => {
-                            setTimeout(() => {
-                                setIsCohortAssignmentSuccess(true);
-                                setStep('success');
-                            }, 3000);
-                        },
-                        onError: (err) => {
-                            setError(getApiErrorMessage(err));
-                            setStep('cohort-import');
-                        }
-                    });
+                if ((isExternalOrg && activeGroup?._id) || (isPersonalContext && user?._id)) {
+                    setVerifiedCohort({ id: input, name: cohortName || input });
+                    setStep('cohort-confirm');
                     setIsImportingCohort(false);
                     return;
                 }
@@ -466,6 +477,14 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                     showFooter: true,
                     primaryAction: { label: isImportingCohort ? 'Verifying...' : 'Import', onClick: handleVerifyCohort, disabled: isImportingCohort },
                     secondaryAction: { label: 'Back', onClick: () => setStep('method-select'), variant: 'outline' as const },
+                };
+            case 'cohort-confirm':
+                return {
+                    ...baseConfig,
+                    title: 'Confirm Cohort Import',
+                    showFooter: true,
+                    primaryAction: { label: 'Confirm & Import', onClick: handleConfirmCohortImport },
+                    secondaryAction: { label: 'Cancel', onClick: () => setStep('cohort-import'), variant: 'outline' as const },
                 };
             case 'assigning-cohort':
                 return { ...baseConfig, title: 'Assigning Cohort...', showCloseButton: false, preventBackdropClose: true, showFooter: false };
@@ -673,6 +692,22 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                     </div>
                 )}
 
+                {step === 'cohort-confirm' && verifiedCohort && (
+                    <div className="space-y-4">
+                        <div className="rounded-lg border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20 p-4">
+                            <p className="text-sm text-blue-800 dark:text-blue-200">
+                                <strong>Cohort Name:</strong> {verifiedCohort.name}
+                            </p>
+                            <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
+                                This will add the devices from this cohort to your {isExternalOrg ? 'organization' : 'personal'} assets.
+                            </p>
+                        </div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Continue to import this cohort?
+                        </p>
+                    </div>
+                )}
+
                 {step === 'manual-input' && (
                     <Form {...formMethods}>
                         <div className="space-y-6">
@@ -823,7 +858,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                         <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
                         <div className="text-center">
                             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Assigning Cohort</h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Adding cohort devices to your organization...</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Adding cohort devices to your {isExternalOrg ? 'organization' : 'personal'} assets...{' '}Please wait...</p>
                         </div>
                     </div>
                 )}
