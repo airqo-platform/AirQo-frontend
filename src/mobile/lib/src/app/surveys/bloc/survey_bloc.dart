@@ -2,9 +2,11 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:loggy/loggy.dart';
 import 'package:airqo/src/app/auth/services/auth_helper.dart';
+import 'package:airqo/src/app/shared/utils/device_id_manager.dart';
 import 'package:airqo/src/app/surveys/models/survey_model.dart';
 import 'package:airqo/src/app/surveys/models/survey_response_model.dart';
-import 'package:airqo/src/app/surveys/repository/survey_repository.dart';
+import 'package:airqo/src/app/surveys/repository/survey_repository.dart'
+    show DuplicateSurveySubmissionException, SurveyRepository;
 import 'package:airqo/src/app/shared/services/analytics_service.dart';
 
 part 'survey_event.dart';
@@ -71,12 +73,15 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
 
       // Get current user ID from auth token
       final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true) ?? 'guest';
+      final isGuest = userId == 'guest';
+      final deviceId = isGuest ? await DeviceIdManager.getDeviceId() : null;
 
       // Create initial survey response
       final response = SurveyResponse(
         id: responseId,
         surveyId: event.survey.id,
         userId: userId,
+        deviceId: deviceId,
         answers: [],
         status: SurveyResponseStatus.inProgress,
         startedAt: startTime,
@@ -91,7 +96,10 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
         contextData: event.contextData,
       ));
 
-      await AnalyticsService().trackSurveyStarted(surveyId: event.survey.id);
+      await AnalyticsService().trackSurveyStarted(
+        surveyId: event.survey.id,
+        deviceId: deviceId,
+      );
 
       // Track first question viewed
       if (event.survey.questions.isNotEmpty) {
@@ -247,6 +255,7 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
         await AnalyticsService().trackSurveyCompleted(
           surveyId: currentState.survey.id,
           responseTime: completionTime.inSeconds,
+          deviceId: currentState.currentResponse.deviceId,
         );
 
         if (success) {
@@ -254,11 +263,15 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
         } else {
           loggy.warning('Survey saved locally but failed to sync with server');
         }
+      } on DuplicateSurveySubmissionException catch (e) {
+        loggy.warning('Duplicate survey submission: $e');
+        emit(SurveyDuplicateSubmission(currentState.currentResponse));
       } catch (e) {
         loggy.error('Error submitting survey: $e');
         await AnalyticsService().trackSurveySubmissionFailed(
           surveyId: currentState.survey.id,
           error: e.toString(),
+          deviceId: currentState.currentResponse.deviceId,
         );
         emit(SurveyError('Failed to submit survey', error: e));
       }

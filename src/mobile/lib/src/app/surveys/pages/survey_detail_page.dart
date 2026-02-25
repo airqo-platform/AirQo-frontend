@@ -98,6 +98,8 @@ class _SurveyDetailViewState extends State<SurveyDetailView> {
           listener: (context, state) {
             if (state is SurveySubmitted) {
               _showSubmissionDialog(context, state);
+            } else if (state is SurveyDuplicateSubmission) {
+              _showDuplicateSubmissionDialog(context);
             } else if (state is SurveyError) {
               _showErrorSnackBar(context, state.message);
             }
@@ -535,6 +537,27 @@ class _SurveyDetailViewState extends State<SurveyDetailView> {
             Navigator.of(context).pop(); // Return to survey list
           },
         ),
+      ),
+    );
+  }
+
+  void _showDuplicateSubmissionDialog(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Already Submitted'),
+        content: const Text(
+          'You have already submitted a response to this survey from this device.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).pop();
+            },
+            child: const Text('OK'),
+          ),
+        ],
       ),
     );
   }

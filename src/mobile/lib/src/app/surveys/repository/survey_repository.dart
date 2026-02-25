@@ -3,11 +3,20 @@ import 'package:collection/collection.dart';
 import 'package:airqo/src/app/auth/services/auth_helper.dart';
 import 'package:airqo/src/app/shared/repository/base_repository.dart';
 import 'package:airqo/src/app/shared/repository/hive_repository.dart';
+import 'package:airqo/src/app/shared/utils/device_id_manager.dart';
 import 'package:airqo/src/app/surveys/models/survey_model.dart';
 import 'package:airqo/src/app/surveys/models/survey_response_model.dart';
 import 'package:airqo/src/app/surveys/example/example_survey_data.dart';
 import 'package:loggy/loggy.dart';
 import 'package:http/http.dart' as http;
+
+class DuplicateSurveySubmissionException implements Exception {
+  final String message;
+  const DuplicateSurveySubmissionException(
+      [this.message = 'You have already submitted a response to this survey from this device.']);
+  @override
+  String toString() => message;
+}
 
 class SurveyRepository extends BaseRepository with UiLoggy {
   static const String _surveysBoxName = 'surveys';
@@ -103,10 +112,6 @@ class SurveyRepository extends BaseRepository with UiLoggy {
 
       final responseData = response.toJson();
 
-      if (!isAuthenticated) {
-        responseData['userId'] = 'guest';
-      }
-
       http.Response apiResponse;
 
       if (isAuthenticated) {
@@ -115,10 +120,23 @@ class SurveyRepository extends BaseRepository with UiLoggy {
           data: responseData,
         );
       } else {
-        apiResponse = await createUnauthenticatedPostRequest(
-          path: _surveyResponsesEndpoint,
-          data: responseData,
-        );
+        responseData['userId'] = 'guest';
+        final deviceId = await DeviceIdManager.getDeviceId();
+        responseData['deviceId'] = deviceId;
+        loggy.info('Guest submission with deviceId: $deviceId');
+
+        try {
+          apiResponse = await createUnauthenticatedPostRequest(
+            path: _surveyResponsesEndpoint,
+            data: responseData,
+          );
+        } catch (e) {
+          if (e.toString().contains('status=409')) {
+            loggy.warning('Duplicate survey submission detected for guest');
+            throw const DuplicateSurveySubmissionException();
+          }
+          rethrow;
+        }
       }
 
       final data = json.decode(utf8.decode(apiResponse.bodyBytes));
@@ -138,6 +156,8 @@ class SurveyRepository extends BaseRepository with UiLoggy {
             'API submission failed: ${data['message'] ?? 'Unknown error'}');
       }
     } catch (e) {
+      if (e is DuplicateSurveySubmissionException) rethrow;
+
       loggy.error('Error submitting survey response: $e');
 
       final failedResponse = response.copyWith(

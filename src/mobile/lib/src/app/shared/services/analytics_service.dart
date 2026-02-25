@@ -137,9 +137,11 @@ class AnalyticsService with UiLoggy {
 
   Future<void> trackSurveyStarted({
     String? surveyId,
+    String? deviceId,
   }) =>
       trackEvent('survey_started', properties: {
         if (surveyId != null) 'survey_id': surveyId,
+        if (deviceId != null) 'device_id': deviceId,
       });
 
   Future<void> trackSurveyQuestionAnswered({
@@ -154,10 +156,12 @@ class AnalyticsService with UiLoggy {
   Future<void> trackSurveyCompleted({
     String? surveyId,
     int? responseTime,
+    String? deviceId,
   }) =>
       trackEvent('survey_completed', properties: {
         if (surveyId != null) 'survey_id': surveyId,
         if (responseTime != null) 'response_time': responseTime,
+        if (deviceId != null) 'device_id': deviceId,
       });
 
   Future<void> trackSurveyAbandoned({
@@ -172,10 +176,12 @@ class AnalyticsService with UiLoggy {
   Future<void> trackSurveySubmissionFailed({
     String? surveyId,
     String? error,
+    String? deviceId,
   }) =>
       trackEvent('survey_submission_failed', properties: {
         if (surveyId != null) 'survey_id': surveyId,
         if (error != null) 'error': error,
+        if (deviceId != null) 'device_id': deviceId,
       });
 
   Future<void> trackSurveyListViewed() => trackEvent('survey_list_viewed');

@@ -230,6 +230,16 @@ class SurveySubmissionLoading extends SurveyState {
   List<Object?> get props => [response];
 }
 
+/// Duplicate submission detected (409 — guest already submitted from this device)
+class SurveyDuplicateSubmission extends SurveyState {
+  final SurveyResponse response;
+
+  const SurveyDuplicateSubmission(this.response);
+
+  @override
+  List<Object?> get props => [response];
+}
+
 /// Retry state for failed submissions
 class SurveyRetryInProgress extends SurveyState {
   final int retryCount;

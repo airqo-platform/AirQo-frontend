@@ -55,6 +55,7 @@ class SurveyResponse extends Equatable {
   final String id;
   final String surveyId;
   final String userId;
+  final String? deviceId;
   final List<SurveyAnswer> answers;
   final SurveyResponseStatus status;
   final DateTime? startedAt; // Nullable to handle invalid/missing timestamps
@@ -66,6 +67,7 @@ class SurveyResponse extends Equatable {
     required this.id,
     required this.surveyId,
     required this.userId,
+    this.deviceId,
     required this.answers,
     required this.status,
     this.startedAt,
@@ -79,6 +81,7 @@ class SurveyResponse extends Equatable {
         id,
         surveyId,
         userId,
+        deviceId,
         answers,
         status,
         startedAt,
@@ -92,6 +95,7 @@ class SurveyResponse extends Equatable {
       id: json['_id'] ?? json['id'] ?? '',
       surveyId: json['surveyId'] ?? '',
       userId: json['userId'] ?? '',
+      deviceId: json['deviceId'] as String?,
       answers: (json['answers'] as List<dynamic>?)
               ?.map((a) => SurveyAnswer.fromJson(a))
               .toList() ??
@@ -114,6 +118,7 @@ class SurveyResponse extends Equatable {
       'id': id,
       'surveyId': surveyId,
       'userId': userId,
+      if (deviceId != null) 'deviceId': deviceId,
       'answers': answers.map((a) => a.toJson()).toList(),
       'status': status.toString().split('.').last,
       'startedAt': startedAt?.toIso8601String(),
@@ -148,6 +153,7 @@ class SurveyResponse extends Equatable {
     String? id,
     String? surveyId,
     String? userId,
+    String? deviceId,
     List<SurveyAnswer>? answers,
     SurveyResponseStatus? status,
     DateTime? startedAt,
@@ -159,6 +165,7 @@ class SurveyResponse extends Equatable {
       id: id ?? this.id,
       surveyId: surveyId ?? this.surveyId,
       userId: userId ?? this.userId,
+      deviceId: deviceId ?? this.deviceId,
       answers: answers ?? this.answers,
       status: status ?? this.status,
       startedAt: startedAt ?? this.startedAt,
