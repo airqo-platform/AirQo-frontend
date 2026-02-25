@@ -11,6 +11,7 @@ import { ThemeProvider } from '@/modules/themes';
 import { getThemeScript } from '@/modules/themes/utils/themeUtils';
 import baseMetadata from '@/shared/lib/metadata';
 import ErrorBoundary from '@/shared/components/ErrorBoundary';
+import AppNetworkGate from '@/shared/components/AppNetworkGate';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -34,18 +35,22 @@ export default function RootLayout({
         />
       </head>
       <body className={`antialiased ${inter.className}`}>
-        <ReduxProvider>
-          <ErrorBoundary>
-            <AuthProvider>
-              <GoogleAnalyticsProvider>
-                <PostHogProvider>
-                  <ThemeProvider>{children}</ThemeProvider>
-                </PostHogProvider>
-              </GoogleAnalyticsProvider>
-            </AuthProvider>
-          </ErrorBoundary>
-        </ReduxProvider>
-        <Toaster />
+        <AppNetworkGate>
+          <ReduxProvider>
+            <ErrorBoundary>
+              <AuthProvider>
+                <GoogleAnalyticsProvider>
+                  <PostHogProvider>
+                    <ThemeProvider>
+                      {children}
+                      <Toaster />
+                    </ThemeProvider>
+                  </PostHogProvider>
+                </GoogleAnalyticsProvider>
+              </AuthProvider>
+            </ErrorBoundary>
+          </ReduxProvider>
+        </AppNetworkGate>
       </body>
     </html>
   );
