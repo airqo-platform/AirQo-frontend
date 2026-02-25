@@ -8,8 +8,76 @@ import { Button } from '@/shared/components/ui/button';
 import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
 import { AqCheckCircle, AqXCircle } from '@airqo/icons-react';
 import { userService } from '@/shared/services/userService';
+import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 
 type ApprovalStatus = 'processing' | 'success' | 'error';
+
+interface InviteErrorDetails {
+  title: string;
+  message: string;
+  requestId?: string;
+}
+
+interface InviteErrorPayload {
+  message?: string;
+  errors?:
+    | {
+        message?: string;
+        current_status?: string;
+        request_id?: string;
+      }
+    | Array<{
+        message?: string;
+      }>;
+}
+
+const extractInviteErrorDetails = (error: unknown): InviteErrorDetails => {
+  const fallbackMessage =
+    'Failed to process your invitation. Please try again or contact support.';
+  const parsedMessage = getUserFriendlyErrorMessage(error);
+
+  const responseData = (
+    error as {
+      response?: {
+        data?: InviteErrorPayload;
+      };
+    }
+  )?.response?.data;
+
+  const payloadError =
+    responseData?.errors && !Array.isArray(responseData.errors)
+      ? responseData.errors
+      : undefined;
+
+  const status = payloadError?.current_status;
+  const messageFromPayload =
+    payloadError?.message || responseData?.message || parsedMessage;
+
+  const inferredStatus = (() => {
+    const lowerMessage = (messageFromPayload || '').toLowerCase();
+    if (lowerMessage.includes('approved')) return 'approved';
+    if (lowerMessage.includes('accepted')) return 'accepted';
+    if (lowerMessage.includes('rejected')) return 'rejected';
+    if (lowerMessage.includes('expired')) return 'expired';
+    if (lowerMessage.includes('pending')) return 'pending';
+    return undefined;
+  })();
+
+  const normalizedStatus = (status || inferredStatus)?.toLowerCase();
+  const titleMap: Record<string, string> = {
+    accepted: 'Invitation Already Accepted',
+    approved: 'Invitation Already Accepted',
+    rejected: 'Invitation Already Rejected',
+    expired: 'Invitation Expired',
+    pending: 'Invitation Is Still Pending',
+  };
+
+  return {
+    title: titleMap[normalizedStatus || ''] || 'Unable to Accept Invitation',
+    message: messageFromPayload || fallbackMessage,
+    requestId: payloadError?.request_id,
+  };
+};
 
 // Animation variants
 const containerVariants = {
@@ -48,10 +116,13 @@ const OrgInvitePage = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [status, setStatus] = useState<ApprovalStatus>('processing');
+  const [errorTitle, setErrorTitle] = useState('Unable to Accept Invitation');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [errorRequestId, setErrorRequestId] = useState<string | null>(null);
   const [isNavigatingToLogin, setIsNavigatingToLogin] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
-  const hasStartedRef = useRef(false);
+  const processedInviteKeyRef = useRef<string | null>(null);
+  const isComponentActiveRef = useRef(false);
 
   const handleGoToLogin = useCallback(() => {
     setIsNavigatingToLogin(true);
@@ -60,55 +131,61 @@ const OrgInvitePage = () => {
 
   const handleRetry = useCallback(() => {
     setIsRetrying(true);
+    processedInviteKeyRef.current = null;
     window.location.reload();
   }, []);
 
   useEffect(() => {
-    let isMounted = true;
+    isComponentActiveRef.current = true;
+
+    const token = searchParams.get('token');
+    const targetId = searchParams.get('target_id');
+
+    if (!token || !targetId) {
+      setStatus('error');
+      setErrorTitle('Invalid Invitation Link');
+      setErrorMessage('Invalid invitation link. Missing token or request ID.');
+      setErrorRequestId(null);
+
+      return () => {
+        isComponentActiveRef.current = false;
+      };
+    }
+
+    const inviteKey = `${token}:${targetId}`;
+    if (processedInviteKeyRef.current === inviteKey) {
+      return () => {
+        isComponentActiveRef.current = false;
+      };
+    }
+    processedInviteKeyRef.current = inviteKey;
+    setStatus('processing');
+    setErrorRequestId(null);
+
     const approveInvitation = async () => {
-      // Prevent duplicate API calls in React 18 Strict Mode
-      if (hasStartedRef.current) {
-        return;
-      }
-      hasStartedRef.current = true;
-
-      const token = searchParams.get('token');
-      const targetId = searchParams.get('target_id');
-
-      if (!token || !targetId) {
-        if (isMounted) {
-          setStatus('error');
-          setErrorMessage(
-            'Invalid invitation link. Missing token or request ID.'
-          );
-        }
-        return;
-      }
-
       try {
         await userService.acceptEmailInvitation({
           token,
           target_id: targetId,
         });
-        if (isMounted) {
-          setStatus('success');
-        }
+        if (!isComponentActiveRef.current) return;
+
+        setStatus('success');
       } catch (error) {
-        if (isMounted) {
-          setStatus('error');
-          const errorMsg =
-            error instanceof Error
-              ? error.message
-              : 'Failed to process your invitation. Please try again or contact support.';
-          setErrorMessage(errorMsg);
-        }
+        if (!isComponentActiveRef.current) return;
+
+        setStatus('error');
+        const details = extractInviteErrorDetails(error);
+        setErrorTitle(details.title);
+        setErrorMessage(details.message);
+        setErrorRequestId(details.requestId || null);
       }
     };
 
     approveInvitation();
 
     return () => {
-      isMounted = false;
+      isComponentActiveRef.current = false;
     };
   }, [searchParams]);
 
@@ -237,12 +314,17 @@ const OrgInvitePage = () => {
                   className="text-center space-y-3"
                 >
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    Something Went Wrong
+                    {errorTitle}
                   </h2>
                   <p className="text-sm text-muted-foreground max-w-sm">
                     {errorMessage ||
                       'An unexpected error occurred. Please try again.'}
                   </p>
+                  {errorRequestId && (
+                    <p className="text-xs text-muted-foreground/80 max-w-sm">
+                      Reference ID: {errorRequestId}
+                    </p>
+                  )}
                 </motion.div>
 
                 <motion.div
