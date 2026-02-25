@@ -5,134 +5,109 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { ExportOptions, ExportOptionsPartial } from '../types';
 
+const EXPORT_CLONE_STYLE = `
+  * {
+    color: inherit !important;
+    background-color: transparent !important;
+    border-color: inherit !important;
+  }
+
+  .recharts-wrapper {
+    margin: 0 auto !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+  }
+
+  .recharts-legend-wrapper {
+    background-color: transparent !important;
+    font-size: 12px !important;
+    font-family: inherit !important;
+  }
+
+  .recharts-legend-item,
+  .recharts-legend-item-text,
+  .recharts-legend-item text {
+    fill: #000000 !important;
+    color: #000000 !important;
+    font-size: 12px !important;
+    font-family: inherit !important;
+  }
+
+  .recharts-cartesian-axis-line,
+  .recharts-cartesian-axis-tick-line,
+  .recharts-cartesian-grid-line {
+    stroke: #e5e7eb !important;
+  }
+
+  .recharts-tooltip,
+  .recharts-tooltip * {
+    color: #000000 !important;
+    fill: #000000 !important;
+    background-color: #ffffff !important;
+  }
+`;
+
+const applyCloneStyles = (clonedDoc: Document) => {
+  const style = clonedDoc.createElement('style');
+  style.textContent = EXPORT_CLONE_STYLE;
+  clonedDoc.head.appendChild(style);
+
+  const chartContainer = clonedDoc.querySelector('.recharts-wrapper');
+  if (chartContainer instanceof HTMLElement) {
+    chartContainer.style.margin = '0 auto';
+    chartContainer.style.display = 'flex';
+    chartContainer.style.justifyContent = 'center';
+    chartContainer.style.alignItems = 'center';
+  }
+};
+
 export const useChartExport = () => {
   const exportRef = useRef<HTMLDivElement>(null);
 
+  const getExportElement = useCallback((): HTMLDivElement => {
+    if (!exportRef.current) {
+      throw new Error('Chart container not found');
+    }
+
+    const element = exportRef.current;
+    if (element.offsetWidth === 0 || element.offsetHeight === 0) {
+      throw new Error('Chart container has no visible content');
+    }
+
+    return element;
+  }, []);
+
+  const renderChartToCanvas = useCallback(
+    async (options: ExportOptionsPartial = {}) => {
+      const element = getExportElement();
+
+      return html2canvas(element, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        logging: false,
+        useCORS: true,
+        allowTaint: true,
+        width: options.width,
+        height: options.height,
+        ignoreElements: element => {
+          const htmlElement = element as HTMLElement;
+          return (
+            element.classList.contains('hidden') ||
+            htmlElement.style?.display === 'none' ||
+            htmlElement.style?.visibility === 'hidden'
+          );
+        },
+        onclone: applyCloneStyles,
+      });
+    },
+    [getExportElement]
+  );
+
   const exportToPNG = useCallback(
     async (options: ExportOptionsPartial = {}): Promise<void> => {
-      if (!exportRef.current) {
-        throw new Error('Chart container not found');
-      }
-
       try {
-        // Ensure the element is visible and has content
-        const element = exportRef.current;
-        if (element.offsetWidth === 0 || element.offsetHeight === 0) {
-          throw new Error('Chart container has no visible content');
-        }
-
-        const canvas = await html2canvas(element, {
-          backgroundColor: '#ffffff',
-          scale: 2, // Higher quality
-          logging: false,
-          useCORS: true,
-          allowTaint: true,
-          width: options.width,
-          height: options.height,
-          ignoreElements: element => {
-            // Ignore elements that might cause issues
-            const htmlElement = element as HTMLElement;
-            return (
-              element.classList.contains('hidden') ||
-              htmlElement.style?.display === 'none' ||
-              htmlElement.style?.visibility === 'hidden'
-            );
-          },
-          onclone: clonedDoc => {
-            // Remove problematic CSS that html2canvas can't handle
-            const style = clonedDoc.createElement('style');
-            style.textContent = `
-              * {
-                color: inherit !important;
-                background-color: transparent !important;
-                border-color: inherit !important;
-              }
-
-              /* Ensure chart container is properly centered */
-              .recharts-wrapper {
-                margin: 0 auto !important;
-                display: flex !important;
-                justify-content: center !important;
-                align-items: center !important;
-              }
-
-              /* Fix legend rendering */
-              .recharts-legend-wrapper {
-                background-color: transparent !important;
-                color: #374151 !important;
-                font-size: 12px !important;
-                font-family: inherit !important;
-              }
-
-              .recharts-legend-item {
-                color: #374151 !important;
-                background-color: transparent !important;
-              }
-
-              .recharts-legend-item-text,
-              .recharts-legend-item text {
-                fill: #374151 !important;
-                color: #374151 !important;
-                font-size: 12px !important;
-                font-family: inherit !important;
-              }
-
-              /* Interactive legend styling */
-              button {
-                color: inherit !important;
-                background-color: transparent !important;
-                border: none !important;
-                cursor: default !important;
-              }
-
-              .recharts-cartesian-axis-line,
-              .recharts-cartesian-axis-tick-line,
-              .recharts-cartesian-grid-line {
-                stroke: #e5e7eb !important;
-              }
-
-              .recharts-tooltip,
-              .recharts-tooltip * {
-                color: #000000 !important;
-                fill: #000000 !important;
-                background-color: #ffffff !important;
-              }
-
-              /* Ensure all text is visible */
-              text, span, div {
-                color: #374151 !important;
-                fill: #374151 !important;
-              }
-
-              /* Fix button styling for interactive legend */
-              button:hover {
-                background-color: transparent !important;
-              }
-
-              /* Ensure legend items are visible */
-              [class*="legend"] {
-                background-color: transparent !important;
-                color: #374151 !important;
-              }
-            `;
-            clonedDoc.head.appendChild(style);
-
-            // Remove any elements that might cause issues
-            const elementsToRemove = clonedDoc.querySelectorAll(
-              'button:not([class*="legend"]):not([class*="Legend"]), [onclick]:not([class*="legend"]):not([class*="Legend"]), [onmouseover]:not([class*="legend"]):not([class*="Legend"]), [onmouseout]:not([class*="legend"]):not([class*="Legend"])'
-            );
-            elementsToRemove.forEach(el => el.remove());
-
-            // Ensure the chart container is centered
-            const chartContainer = clonedDoc.querySelector('.recharts-wrapper');
-            if (chartContainer) {
-              (chartContainer as HTMLElement).style.margin = '0 auto';
-              (chartContainer as HTMLElement).style.display = 'flex';
-              (chartContainer as HTMLElement).style.justifyContent = 'center';
-              (chartContainer as HTMLElement).style.alignItems = 'center';
-            }
-          },
-        });
+        const canvas = await renderChartToCanvas(options);
 
         // Create download link
         const link = document.createElement('a');
@@ -149,134 +124,13 @@ export const useChartExport = () => {
         throw error;
       }
     },
-    []
+    [renderChartToCanvas]
   );
 
   const exportToPDF = useCallback(
     async (options: ExportOptionsPartial = {}): Promise<void> => {
-      if (!exportRef.current) {
-        throw new Error('Chart container not found');
-      }
-
       try {
-        // Ensure the element is visible and has content
-        const element = exportRef.current;
-        if (element.offsetWidth === 0 || element.offsetHeight === 0) {
-          throw new Error('Chart container has no visible content');
-        }
-
-        const canvas = await html2canvas(element, {
-          backgroundColor: '#ffffff',
-          scale: 2,
-          logging: false,
-          useCORS: true,
-          allowTaint: true,
-          width: options.width,
-          height: options.height,
-          ignoreElements: element => {
-            // Ignore elements that might cause issues
-            const htmlElement = element as HTMLElement;
-            return (
-              element.classList.contains('hidden') ||
-              htmlElement.style?.display === 'none' ||
-              htmlElement.style?.visibility === 'hidden'
-            );
-          },
-          onclone: clonedDoc => {
-            // Remove problematic CSS that html2canvas can't handle
-            const style = clonedDoc.createElement('style');
-            style.textContent = `
-              * {
-                color: inherit !important;
-                background-color: transparent !important;
-                border-color: inherit !important;
-              }
-
-              /* Ensure chart container is properly centered */
-              .recharts-wrapper {
-                margin: 0 auto !important;
-                display: flex !important;
-                justify-content: center !important;
-                align-items: center !important;
-              }
-
-              /* Fix legend rendering */
-              .recharts-legend-wrapper {
-                background-color: transparent !important;
-                color: #374151 !important;
-                font-size: 12px !important;
-                font-family: inherit !important;
-              }
-
-              .recharts-legend-item {
-                color: #374151 !important;
-                background-color: transparent !important;
-              }
-
-              .recharts-legend-item-text,
-              .recharts-legend-item text {
-                fill: #374151 !important;
-                color: #374151 !important;
-                font-size: 12px !important;
-                font-family: inherit !important;
-              }
-
-              /* Interactive legend styling */
-              button {
-                color: inherit !important;
-                background-color: transparent !important;
-                border: none !important;
-                cursor: default !important;
-              }
-
-              .recharts-cartesian-axis-line,
-              .recharts-cartesian-axis-tick-line,
-              .recharts-cartesian-grid-line {
-                stroke: #e5e7eb !important;
-              }
-
-              .recharts-tooltip,
-              .recharts-tooltip * {
-                color: #000000 !important;
-                fill: #000000 !important;
-                background-color: #ffffff !important;
-              }
-
-              /* Ensure all text is visible */
-              text, span, div {
-                color: #374151 !important;
-                fill: #374151 !important;
-              }
-
-              /* Fix button styling for interactive legend */
-              button:hover {
-                background-color: transparent !important;
-              }
-
-              /* Ensure legend items are visible */
-              [class*="legend"] {
-                background-color: transparent !important;
-                color: #374151 !important;
-              }
-            `;
-            clonedDoc.head.appendChild(style);
-
-            // Remove any elements that might cause issues
-            const elementsToRemove = clonedDoc.querySelectorAll(
-              'button:not([class*="legend"]):not([class*="Legend"]), [onclick]:not([class*="legend"]):not([class*="Legend"]), [onmouseover]:not([class*="legend"]):not([class*="Legend"]), [onmouseout]:not([class*="legend"]):not([class*="Legend"])'
-            );
-            elementsToRemove.forEach(el => el.remove());
-
-            // Ensure the chart container is centered
-            const chartContainer = clonedDoc.querySelector('.recharts-wrapper');
-            if (chartContainer) {
-              (chartContainer as HTMLElement).style.margin = '0 auto';
-              (chartContainer as HTMLElement).style.display = 'flex';
-              (chartContainer as HTMLElement).style.justifyContent = 'center';
-              (chartContainer as HTMLElement).style.alignItems = 'center';
-            }
-          },
-        });
+        const canvas = await renderChartToCanvas(options);
 
         const imgData = canvas.toDataURL('image/png', options.quality || 0.9);
 
@@ -336,18 +190,16 @@ export const useChartExport = () => {
         throw error;
       }
     },
-    []
+    [renderChartToCanvas]
   );
 
   const exportToSVG = useCallback(
     async (options: ExportOptionsPartial = {}): Promise<void> => {
-      if (!exportRef.current) {
-        throw new Error('Chart container not found');
-      }
-
       try {
+        const element = getExportElement();
+
         // Find SVG element within the chart container
-        const svgElement = exportRef.current.querySelector('svg');
+        const svgElement = element.querySelector('svg');
         if (!svgElement) {
           throw new Error('No SVG element found in chart');
         }
@@ -387,7 +239,7 @@ export const useChartExport = () => {
         throw error;
       }
     },
-    []
+    [getExportElement]
   );
 
   const exportChart = useCallback(
