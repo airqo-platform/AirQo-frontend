@@ -10,6 +10,11 @@ interface MaintenanceStatusCardProps {
 const MaintenanceStatusCard: React.FC<MaintenanceStatusCardProps> = ({
   nextMaintenance,
 }) => {
+  const maintenanceDate =
+    typeof nextMaintenance === "string" ? parseISO(nextMaintenance) : null;
+  const hasValidMaintenanceDate =
+    maintenanceDate !== null && isValid(maintenanceDate);
+
   return (
     <Card className="w-full rounded-lg">
       <div className="flex items-center justify-between px-3 py-2 border-b">
@@ -17,10 +22,10 @@ const MaintenanceStatusCard: React.FC<MaintenanceStatusCardProps> = ({
       </div>
 
       <div className="px-3 py-0 space-y-3">
-        {nextMaintenance && isValid(parseISO(nextMaintenance)) ? (
+        {hasValidMaintenanceDate ? (
           <div className="pt-3 pb-3">
             <div className="text-base font-normal">
-              {format(parseISO(nextMaintenance), "MMM d yyyy, h:mm a")}
+              {format(maintenanceDate, "MMM d yyyy, h:mm a")}
             </div>
           </div>
         ) : (

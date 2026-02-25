@@ -1,7 +1,6 @@
 import React from 'react';
 import { Button } from '@/shared/components/ui';
 import { AqAnnotationX, AqDownload01 } from '@airqo/icons-react';
-import { Tooltip } from 'flowbite-react';
 import { TabType } from '../types/dataExportTypes';
 
 interface DataExportHeaderProps {
@@ -50,7 +49,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
 
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-      <div className="flex items-center gap-4 w-full sm:w-auto">
+      <div className="flex items-start gap-4 w-full sm:w-auto">
         {/* Sidebar Toggle - Hidden on desktop */}
         {onToggleSidebar && (
           <div className="block lg:hidden">
@@ -69,16 +68,18 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
         )}
 
         {/* Tab Navigation */}
-        <div className="flex space-x-2">
+        <div className="flex flex-wrap lg:flex-nowrap gap-2 gap-x-2 overflow-x-auto scrollbar-hide mt-2 lg:mt-0">
           <Button
             variant={activeTab === 'sites' ? 'filled' : 'outlined'}
             onClick={() => onTabChange('sites')}
+            className="flex-shrink-0"
           >
             Sites
           </Button>
           <Button
             variant={activeTab === 'devices' ? 'filled' : 'outlined'}
             onClick={() => onTabChange('devices')}
+            className="flex-shrink-0"
           >
             Devices
           </Button>
@@ -87,12 +88,14 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
               <Button
                 variant={activeTab === 'countries' ? 'filled' : 'outlined'}
                 onClick={() => onTabChange('countries')}
+                className="flex-shrink-0"
               >
                 Countries
               </Button>
               <Button
                 variant={activeTab === 'cities' ? 'filled' : 'outlined'}
                 onClick={() => onTabChange('cities')}
+                className="flex-shrink-0"
               >
                 Cities
               </Button>
@@ -101,7 +104,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
         </div>
       </div>
 
-      <div className="flex flex-col justify-end sm:flex-row gap-2 w-full sm:w-auto flex-wrap">
+      <div className="flex flex-col justify-end sm:flex-row gap-2 w-full sm:w-auto flex-wrap mt-3 sm:mt-0">
         {hasSelections && (
           <Button
             variant="outlined"
@@ -133,18 +136,16 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
         >
           Preview
         </Button>
-        <Tooltip content="Download openly available air quality data for your own use">
-          <Button
-            variant="filled"
-            onClick={onDownload}
-            Icon={AqDownload01}
-            className="px-4 py-2 w-full sm:w-auto"
-            disabled={!isDownloadReady}
-            loading={isDownloading}
-          >
-            {isDownloading ? 'Downloading...' : 'Download Data'}
-          </Button>
-        </Tooltip>
+        <Button
+          variant="filled"
+          onClick={onDownload}
+          Icon={AqDownload01}
+          className="px-4 py-2 w-full sm:w-auto"
+          disabled={!isDownloadReady}
+          loading={isDownloading}
+        >
+          {isDownloading ? 'Downloading...' : 'Download Data'}
+        </Button>
       </div>
     </div>
   );

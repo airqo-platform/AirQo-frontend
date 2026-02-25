@@ -12,6 +12,7 @@ import {
   AqKey01,
   AqPresentationChart02,
   AqServer03,
+  AqUpload01,
   AqFileQuestion02,
 } from '@airqo/icons-react';
 
@@ -70,7 +71,7 @@ const userSidebarConfig: NavGroup[] = [
         id: 'bulk-export',
         label: 'Visualization & Data Export',
         href: '/user/data-export',
-        icon: AqDownload01,
+        icon: AqUpload01,
       },
       {
         id: 'map',
@@ -333,7 +334,7 @@ export const bottomNavItems: Record<'user' | 'organization', NavItem[]> = {
       id: 'bulk-export',
       label: 'Export',
       href: '/user/data-export',
-      icon: AqDownload01,
+      icon: AqUpload01,
     },
     {
       id: 'map',

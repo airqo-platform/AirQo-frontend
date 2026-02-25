@@ -11,6 +11,7 @@ import { ThemeProvider } from '@/modules/themes';
 import { getThemeScript } from '@/modules/themes/utils/themeUtils';
 import baseMetadata from '@/shared/lib/metadata';
 import ErrorBoundary from '@/shared/components/ErrorBoundary';
+import AppNetworkGate from '@/shared/components/AppNetworkGate';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -39,13 +40,17 @@ export default function RootLayout({
             <AuthProvider>
               <GoogleAnalyticsProvider>
                 <PostHogProvider>
-                  <ThemeProvider>{children}</ThemeProvider>
+                  <AppNetworkGate>
+                    <ThemeProvider>
+                      {children}
+                      <Toaster />
+                    </ThemeProvider>
+                  </AppNetworkGate>
                 </PostHogProvider>
               </GoogleAnalyticsProvider>
             </AuthProvider>
           </ErrorBoundary>
         </ReduxProvider>
-        <Toaster />
       </body>
     </html>
   );

@@ -1,7 +1,7 @@
 /**
  * Cloudinary Upload Utility
  *
- * Simplified utility for uploading images to Cloudinary via Next.js API proxy.
+ * Simplified utility for uploading images directly to Cloudinary.
  * Handles file validation, folder organization, and error handling.
  */
 
@@ -11,6 +11,8 @@ export interface CloudinaryUploadOptions {
   publicId?: string;
   tags?: string[];
   onProgress?: (progress: number) => void;
+  maxFileSizeBytes?: number;
+  allowedMimeTypes?: string[];
 }
 
 export interface CloudinaryUploadResult {
@@ -28,31 +30,71 @@ export interface CloudinaryUploadResult {
 }
 
 // Constants
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ALLOWED_FORMATS = [
+const DEFAULT_MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+const DEFAULT_ALLOWED_MIME_TYPES = [
   'image/jpeg',
   'image/jpg',
   'image/png',
   'image/webp',
+  'image/avif',
   'image/gif',
+  'image/svg+xml',
 ];
+
+export const MAX_IMAGE_FILE_SIZE_BYTES = DEFAULT_MAX_FILE_SIZE_BYTES;
+export const PROFILE_IMAGE_ALLOWED_MIME_TYPES = [
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/webp',
+  'image/avif',
+] as const;
+
+const ALLOWED_PROFILE_IMAGE_TYPES_LABEL = 'PNG, JPG, WebP, AVIF';
+
+interface ImageValidationOptions {
+  allowedMimeTypes?: string[];
+  maxFileSizeBytes?: number;
+}
+
+const bytesToMb = (bytes: number): string =>
+  `${(bytes / 1024 / 1024).toFixed(0)}MB`;
 
 /**
  * Validates file before upload
  */
-function validateFile(file: File): void {
-  if (!ALLOWED_FORMATS.includes(file.type)) {
+export function validateImageFile(
+  file: File,
+  options: ImageValidationOptions = {}
+): void {
+  const allowedMimeTypes =
+    options.allowedMimeTypes ?? DEFAULT_ALLOWED_MIME_TYPES;
+  const maxFileSizeBytes =
+    options.maxFileSizeBytes ?? DEFAULT_MAX_FILE_SIZE_BYTES;
+
+  if (!allowedMimeTypes.includes(file.type)) {
+    const allowedTypesLabel =
+      allowedMimeTypes.length === PROFILE_IMAGE_ALLOWED_MIME_TYPES.length &&
+      allowedMimeTypes.every(
+        (type, index) => type === PROFILE_IMAGE_ALLOWED_MIME_TYPES[index]
+      )
+        ? ALLOWED_PROFILE_IMAGE_TYPES_LABEL
+        : allowedMimeTypes
+            .map(type => type.split('/')[1]?.toUpperCase() || type)
+            .join(', ');
     throw new Error(
-      `Invalid format. Allowed: ${ALLOWED_FORMATS.map(f => f.split('/')[1]).join(', ')}`
+      `Unsupported file format. Allowed formats: ${allowedTypesLabel}.`
     );
   }
 
-  if (file.size > MAX_FILE_SIZE) {
-    throw new Error('File too large (max 5MB)');
+  if (file.size > maxFileSizeBytes) {
+    throw new Error(
+      `File is too large. Maximum allowed size is ${bytesToMb(maxFileSizeBytes)}.`
+    );
   }
 
   if (file.size === 0) {
-    throw new Error('File is empty');
+    throw new Error('The selected file is empty.');
   }
 }
 
@@ -70,10 +112,21 @@ export async function uploadToCloudinary(
   file: File,
   options: CloudinaryUploadOptions = {}
 ): Promise<CloudinaryUploadResult> {
-  validateFile(file);
+  validateImageFile(file, {
+    maxFileSizeBytes: options.maxFileSizeBytes,
+    allowedMimeTypes: options.allowedMimeTypes,
+  });
 
   const formData = new FormData();
   formData.append('file', file);
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_NAME;
+  const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_PRESET;
+
+  if (!cloudName || !uploadPreset) {
+    throw new Error(
+      'Image upload is not configured correctly. Please contact support.'
+    );
+  }
 
   // Add folder structure (using 'folder' parameter instead of 'public_id' for unsigned uploads)
   if (options.folder) {
@@ -86,46 +139,60 @@ export async function uploadToCloudinary(
     formData.append('tags', options.tags.join(','));
   }
 
-  try {
-    const response = await fetch('/api/cloudinary/upload', {
-      method: 'POST',
-      body: formData,
-    });
+  // Required for unsigned browser uploads
+  formData.append('upload_preset', uploadPreset);
 
-    let result;
-    const text = await response.text();
-    try {
-      result = JSON.parse(text);
-    } catch {
-      // If response is not JSON (e.g. 500 HTML), throw the text
-      throw new Error(`Upload failed: ${text.substring(0, 100)}...`);
-    }
+  try {
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      {
+        method: 'POST',
+        body: formData,
+      }
+    );
+
+    const result = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      throw new Error(result.error || 'Upload failed');
+      const cloudinaryMessage =
+        (result as { error?: { message?: string } })?.error?.message ||
+        (result as { error?: string })?.error;
+
+      throw new Error(cloudinaryMessage || 'Image upload failed.');
     }
 
-    return result;
+    return result as CloudinaryUploadResult;
   } catch (error) {
     if (error instanceof Error) {
+      const lowerMessage = error.message.toLowerCase();
+      if (
+        lowerMessage.includes('payload too large') ||
+        lowerMessage.includes('request entity too large')
+      ) {
+        throw new Error(
+          'File is too large for upload processing. Please choose a smaller image (max 5MB).'
+        );
+      }
+
       throw error;
     }
-    throw new Error('Upload failed');
+    throw new Error('Image upload failed.');
   }
 }
 
 /**
- * Convenience function for profile image uploads
- * All profile images are stored in the 'profiles' folder
+ * Uploads profile image using strict profile format constraints
  */
 export async function uploadProfileImage(
   file: File,
-  options: Omit<CloudinaryUploadOptions, 'folder'> = {}
+  options: Omit<CloudinaryUploadOptions, 'folder' | 'allowedMimeTypes'> = {}
 ): Promise<CloudinaryUploadResult> {
   return uploadToCloudinary(file, {
     ...options,
     folder: 'profiles',
     tags: ['profile', 'user-avatar', ...(options.tags || [])],
+    allowedMimeTypes: [...PROFILE_IMAGE_ALLOWED_MIME_TYPES],
+    maxFileSizeBytes: MAX_IMAGE_FILE_SIZE_BYTES,
   });
 }
 

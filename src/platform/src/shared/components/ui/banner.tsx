@@ -42,28 +42,28 @@ const SEVERITY_CONFIG: Record<
   }
 > = {
   success: {
-    bgColor: 'bg-emerald-50 dark:bg-emerald-950/20',
+    bgColor: 'bg-emerald-100 dark:bg-emerald-950/20',
     borderColor: 'border-emerald-200 dark:border-emerald-800',
     textColor: 'text-emerald-800 dark:text-emerald-200',
     icon: <AqMessageCheckCircle className="h-5 w-5" />,
     iconColor: 'text-emerald-600 dark:text-emerald-400',
   },
   error: {
-    bgColor: 'bg-destructive/10',
-    borderColor: 'border-destructive/20',
+    bgColor: 'bg-destructive/20',
+    borderColor: 'border-destructive/30',
     textColor: 'text-destructive',
     icon: <AqMessageXCircle className="h-5 w-5" />,
     iconColor: 'text-destructive',
   },
   warning: {
-    bgColor: 'bg-amber-50 dark:bg-amber-950/20',
+    bgColor: 'bg-amber-100 dark:bg-amber-950/20',
     borderColor: 'border-amber-200 dark:border-amber-800',
     textColor: 'text-amber-800 dark:text-amber-200',
     icon: <AqAlertTriangle className="h-5 w-5" />,
     iconColor: 'text-amber-600 dark:text-amber-400',
   },
   info: {
-    bgColor: 'bg-blue-50 dark:bg-blue-950/20',
+    bgColor: 'bg-blue-100 dark:bg-blue-950/20',
     borderColor: 'border-blue-200 dark:border-blue-800',
     textColor: 'text-blue-800 dark:text-blue-200',
     icon: <AqAnnotationInfo className="h-5 w-5" />,
