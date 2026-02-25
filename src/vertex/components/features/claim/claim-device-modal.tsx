@@ -15,7 +15,7 @@ import { QRScanner } from '../devices/qr-scanner';
 import { useClaimDevice, useBulkClaimDevices } from '@/core/hooks/useDevices';
 import { useUserContext } from '@/core/hooks/useUserContext';
 import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
-import { useGroupCohorts, useVerifyCohort, useAssignCohortsToGroup } from '@/core/hooks/useCohorts';
+import { useGroupCohorts, useVerifyCohort, useAssignCohortsToGroup, useAssignCohortsToUser } from '@/core/hooks/useCohorts';
 import { cohorts as cohortsApi } from '@/core/apis/cohorts';
 import logger from '@/lib/logger';
 import { FileUploadParser } from './FileUploadParser';
@@ -131,6 +131,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     const { mutateAsync: verifyCohort } = useVerifyCohort();
 
     const { mutate: assignCohortsToGroup } = useAssignCohortsToGroup();
+    const { mutate: assignCohortsToUser } = useAssignCohortsToUser();
 
     const formMethods = useForm<ClaimDeviceFormData>({
         resolver: zodResolver(claimDeviceSchema),
@@ -367,6 +368,27 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                     assignCohortsToGroup({
                         groupId: activeGroup._id,
                         cohortIds: [input]
+                    }, {
+                        onSuccess: () => {
+                            setTimeout(() => {
+                                setIsCohortAssignmentSuccess(true);
+                                setStep('success');
+                            }, 3000);
+                        },
+                        onError: (err) => {
+                            setError(getApiErrorMessage(err));
+                            setStep('cohort-import');
+                        }
+                    });
+                    setIsImportingCohort(false);
+                    return;
+                }
+
+                if (isPersonalContext && user?._id) {
+                    setStep('assigning-cohort');
+                    assignCohortsToUser({
+                        userId: user._id,
+                        cohortIds: [input],
                     }, {
                         onSuccess: () => {
                             setTimeout(() => {
