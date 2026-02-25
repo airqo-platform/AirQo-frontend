@@ -35,22 +35,22 @@ export default function RootLayout({
         />
       </head>
       <body className={`antialiased ${inter.className}`}>
-        <AppNetworkGate>
-          <ReduxProvider>
-            <ErrorBoundary>
-              <AuthProvider>
-                <GoogleAnalyticsProvider>
-                  <PostHogProvider>
+        <ReduxProvider>
+          <ErrorBoundary>
+            <AuthProvider>
+              <GoogleAnalyticsProvider>
+                <PostHogProvider>
+                  <AppNetworkGate>
                     <ThemeProvider>
                       {children}
                       <Toaster />
                     </ThemeProvider>
-                  </PostHogProvider>
-                </GoogleAnalyticsProvider>
-              </AuthProvider>
-            </ErrorBoundary>
-          </ReduxProvider>
-        </AppNetworkGate>
+                  </AppNetworkGate>
+                </PostHogProvider>
+              </GoogleAnalyticsProvider>
+            </AuthProvider>
+          </ErrorBoundary>
+        </ReduxProvider>
       </body>
     </html>
   );
