@@ -1,0 +1,33 @@
+replicaCount: 1
+image:
+  repository: eu.gcr.io/airqo-250220/airqo-stage-calibrate-app
+  tag: latest
+  pullPolicy: Always
+imagePullSecrets: []
+nameOverride: ''
+fullnameOverride: ''
+service:
+  type: NodePort
+  protocol: TCP
+  nodePort: 31106
+  targetPort: 80
+  port: 80
+ingress:
+  enabled: false
+resources:
+  requests:
+    cpu: 5m
+    memory: 20Mi
+  limits:
+    cpu: 100m
+    memory: 100Mi
+autoscaling:
+  minReplicas: 1
+  maxReplicas: 2
+  targetMemoryUtilizationPercentage: 80
+
+app:
+  name: airqo-stage-calibrate-app
+  label: sta-calibrate-app
+  namespace: staging
+  secret: sta-env-calibrate-app

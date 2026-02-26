@@ -1,0 +1,33 @@
+replicaCount: 1
+image:
+  repository: eu.gcr.io/airqo-250220/airqo-stage-next-platform
+  tag: latest
+  pullPolicy: Always
+imagePullSecrets: []
+nameOverride: ''
+fullnameOverride: ''
+service:
+  type: NodePort
+  protocol: TCP
+  nodePort: 31107
+  targetPort: 3000
+  port: 3000
+ingress:
+  enabled: false
+resources:
+  requests:
+    cpu: 20m
+    memory: 150Mi
+  limits:
+    cpu: 200m
+    memory: 350Mi
+autoscaling:
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+
+app:
+  name: airqo-stage-next-platform
+  label: sta-next-platform
+  namespace: staging
+  secret: sta-env-next-platform
