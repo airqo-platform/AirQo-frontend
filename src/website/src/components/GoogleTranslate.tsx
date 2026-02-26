@@ -1,262 +1,198 @@
 'use client';
 
-import Script from 'next/script';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
+
+import {
+  isGoogleTranslationActive,
+  normalizeGoogleLanguageCode,
+} from '@/utils/googleTranslate';
+import { languages } from '@/utils/languages';
 
 declare global {
   interface Window {
     google: any;
-    googleTranslateElementInit: any;
+    googleTranslateElementInit: () => void;
     googleTranslateLoaded?: boolean;
   }
 }
 
+const INCLUDED_LANGUAGES = Array.from(
+  new Set(languages.map((lang) => normalizeGoogleLanguageCode(lang.code))),
+).join(',');
+
+const GOOGLE_TRANSLATE_SCRIPT_ID = 'google-translate-script';
+
 const GoogleTranslate = () => {
-  const [mounted, setMounted] = useState(false);
-
   useEffect(() => {
-    setMounted(true);
+    const originalBodyStyles = {
+      top: document.body.style.top,
+      position: document.body.style.position,
+      marginTop: document.body.style.marginTop,
+      paddingTop: document.body.style.paddingTop,
+    };
+    let didAdjustBodyStyles = false;
 
-    // Check if translation is already loaded
-    if (window.google?.translate) {
-      window.googleTranslateLoaded = true;
-    }
-
-    // Aggressively hide Google Translate banner on mount and on any DOM changes
-    const hideTranslateBanner = () => {
-      // Hide the banner frame
-      const bannerFrames = document.querySelectorAll(
-        '.goog-te-banner-frame, .skiptranslate iframe',
+    const hideTranslateArtifacts = () => {
+      const elements = document.querySelectorAll(
+        '.goog-te-banner-frame, .skiptranslate iframe, iframe.skiptranslate, iframe.goog-te-banner-frame, .goog-te-balloon-frame',
       );
-      bannerFrames.forEach((frame) => {
-        if (frame instanceof HTMLElement) {
-          frame.style.setProperty('display', 'none', 'important');
-          frame.style.setProperty('visibility', 'hidden', 'important');
+
+      if (elements.length === 0) {
+        return;
+      }
+
+      elements.forEach((element) => {
+        if (element instanceof HTMLElement) {
+          element.style.setProperty('display', 'none', 'important');
+          element.style.setProperty('visibility', 'hidden', 'important');
         }
       });
 
-      // Reset body top position
-      document.body.style.top = '0';
-      document.body.style.position = 'static';
-
-      // Remove any translate-related classes from body
-      document.body.classList.remove('translated-ltr', 'translated-rtl');
+      if (!didAdjustBodyStyles) {
+        document.body.style.top = '0';
+        document.body.style.position = 'static';
+        document.body.style.marginTop = '0';
+        document.body.style.paddingTop = '0';
+        didAdjustBodyStyles = true;
+      }
     };
 
-    // Run immediately
-    hideTranslateBanner();
+    let frameId: number | null = null;
+    const scheduleHide = () => {
+      if (frameId !== null) return;
 
-    // Run periodically to catch any late additions
-    const interval = setInterval(hideTranslateBanner, 100);
+      frameId = window.requestAnimationFrame(() => {
+        hideTranslateArtifacts();
+        frameId = null;
+      });
+    };
 
-    // Observe DOM for any Google Translate injections
-    const observer = new MutationObserver(hideTranslateBanner);
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['style', 'class'],
-    });
-
-    // Add global click listener to handle navigation when translated
-    const handleLinkClick = (e: MouseEvent) => {
-      // Ignore non-primary or modified clicks, and events already handled
+    const initGoogleTranslate = () => {
+      if (!window.google?.translate) return;
       if (
-        e.defaultPrevented ||
-        e.button !== 0 ||
-        e.metaKey ||
-        e.ctrlKey ||
-        e.shiftKey ||
-        e.altKey
+        window.googleTranslateLoaded &&
+        document.querySelector('.goog-te-combo')
       ) {
         return;
       }
 
-      // Check if translation is active via cookie
-      const cookies = document.cookie.split('; ');
-      const googtransCookie = cookies.find((row) =>
-        row.trim().startsWith('googtrans='),
+      new window.google.translate.TranslateElement(
+        {
+          pageLanguage: 'en',
+          layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE,
+          autoDisplay: false,
+          includedLanguages: INCLUDED_LANGUAGES,
+        },
+        'google_translate_element',
       );
 
-      // If no translation cookie, or it's set to English/English (default), we don't need to interfere
-      if (!googtransCookie) return;
+      window.googleTranslateLoaded = true;
+      scheduleHide();
+    };
 
-      const cookieValue = googtransCookie.split('=')[1]?.trim();
-      if (cookieValue === '/en/en' || cookieValue === '/auto/en') return;
+    window.googleTranslateElementInit = initGoogleTranslate;
 
-      const target = e.target as HTMLElement | null;
+    if (window.google?.translate) {
+      initGoogleTranslate();
+    } else if (!document.getElementById(GOOGLE_TRANSLATE_SCRIPT_ID)) {
+      const script = document.createElement('script');
+      script.id = GOOGLE_TRANSLATE_SCRIPT_ID;
+      script.src =
+        'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+      script.async = true;
+      script.defer = true;
+      document.body.appendChild(script);
+    }
+
+    scheduleHide();
+
+    const observer = new MutationObserver(() => {
+      scheduleHide();
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+
+    const timeoutIds = [150, 500, 1200, 2500].map((delay) =>
+      window.setTimeout(scheduleHide, delay),
+    );
+
+    const handleDocumentClick = (event: MouseEvent) => {
+      if (
+        event.defaultPrevented ||
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      ) {
+        return;
+      }
+
+      if (!isGoogleTranslationActive()) return;
+
+      const target = event.target as HTMLElement | null;
       const anchor = target?.closest('a');
 
-      if (!anchor) return;
-      if (anchor.target === '_blank') return;
+      if (!anchor || anchor.target === '_blank') return;
 
-      // Check if it's a valid href
       const href = anchor.getAttribute('href');
       if (!href) return;
 
-      // Skip anchor links, mailto, tel, javascript:
       if (
         href.startsWith('#') ||
         href.startsWith('mailto:') ||
         href.startsWith('tel:') ||
         href.startsWith('javascript:')
-      )
+      ) {
         return;
+      }
 
-      // Check if it's an external link
-      if (href.startsWith('http') && !href.startsWith(window.location.origin))
+      let destinationUrl: URL;
+      try {
+        destinationUrl = new URL(href, window.location.href);
+      } catch {
         return;
+      }
 
-      // If we are here, it's an internal navigation. Force reload to avoid React hydration issues.
-      e.preventDefault();
-      e.stopPropagation();
-      window.location.href = href;
+      if (destinationUrl.origin !== window.location.origin) {
+        return;
+      }
+
+      event.preventDefault();
+      window.location.assign(destinationUrl.href);
     };
 
-    document.addEventListener('click', handleLinkClick, true);
+    document.addEventListener('click', handleDocumentClick, true);
 
     return () => {
-      clearInterval(interval);
       observer.disconnect();
-      document.removeEventListener('click', handleLinkClick, true);
+      timeoutIds.forEach((timeoutId) => {
+        window.clearTimeout(timeoutId);
+      });
+      document.removeEventListener('click', handleDocumentClick, true);
+
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+
+      if (didAdjustBodyStyles) {
+        document.body.style.top = originalBodyStyles.top;
+        document.body.style.position = originalBodyStyles.position;
+        document.body.style.marginTop = originalBodyStyles.marginTop;
+        document.body.style.paddingTop = originalBodyStyles.paddingTop;
+      }
     };
   }, []);
 
-  if (!mounted) return null;
-
   return (
-    <div className="hidden">
+    <div className="hidden notranslate" aria-hidden="true">
       <div
         id="google_translate_element"
         className="google-translate-container"
       />
-
-      <Script id="google-translate-init" strategy="afterInteractive">
-        {`
-          function googleTranslateElementInit() {
-            if (window.google && window.google.translate) {
-              new window.google.translate.TranslateElement(
-                {
-                  pageLanguage: 'en',
-                  layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE,
-                  autoDisplay: false,
-                includedLanguages: 'en,en-GB,fr,sw,ar,pt,ha,am,zu,yo,ig,so,rw,mg,es,de,it,pl,nl,ru,sv,fi,zh-CN,hi,ja,ko,th,vi,id,af,aa,bm,ny,ee,fon,gaa,kg,ki,kri,ln,lg,luo,nqo,om,pcm,rn,nso,sn,ss,tzm,ti,ts,tw,ve,wo,xh'
-                },
-                'google_translate_element'
-              );
-              
-              // Mark as loaded
-              window.googleTranslateLoaded = true;
-              
-              // Aggressively hide banner
-              const hideGoogleBanner = function() {
-                const frames = document.querySelectorAll('.goog-te-banner-frame, iframe.skiptranslate, .skiptranslate');
-                frames.forEach(function(el) {
-                  if (el && el.style) {
-                    el.style.display = 'none';
-                    el.style.visibility = 'hidden';
-                  }
-                });
-                document.body.style.top = '0';
-                document.body.style.position = 'static';
-              };
-              
-              // Run immediately and repeatedly
-              hideGoogleBanner();
-              setInterval(hideGoogleBanner, 100);
-              
-              // Enhanced translation for dynamic content
-              setTimeout(function() {
-                if (window.google && window.google.translate) {
-                  const translateObserver = new MutationObserver(function(mutations) {
-                    hideGoogleBanner();
-                  });
-                  
-                  translateObserver.observe(document.body, {
-                    childList: true,
-                    subtree: true,
-                    attributes: false
-                  });
-                }
-              }, 500);
-            }
-          }
-        `}
-      </Script>
-
-      <Script
-        src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
-        strategy="afterInteractive"
-      />
-
-      <style jsx global>{`
-        /* CRITICAL: Aggressively hide all Google Translate banner elements */
-        .goog-te-banner-frame,
-        .goog-te-banner-frame.skiptranslate,
-        body > .skiptranslate,
-        iframe.skiptranslate,
-        iframe.goog-te-banner-frame,
-        .goog-te-banner,
-        #goog-gt-tt,
-        .goog-te-balloon-frame {
-          display: none !important;
-          visibility: hidden !important;
-          opacity: 0 !important;
-          height: 0 !important;
-          width: 0 !important;
-          position: absolute !important;
-          top: -9999px !important;
-          left: -9999px !important;
-          z-index: -9999 !important;
-          pointer-events: none !important;
-        }
-
-        /* Force body positioning */
-        body,
-        body.translated-ltr,
-        body.translated-rtl {
-          top: 0 !important;
-          position: static !important;
-          margin-top: 0 !important;
-          padding-top: 0 !important;
-        }
-
-        /* Hide any iframe from Google Translate */
-        iframe[src*='translate.google'],
-        iframe[src*='translate.googleapis'] {
-          display: none !important;
-          visibility: hidden !important;
-        }
-        /* Customize the widget to look cleaner */
-        .goog-te-gadget {
-          font-family: inherit !important;
-          font-size: 0 !important; /* Hide text */
-          color: transparent !important;
-        }
-        .goog-te-gadget .goog-te-combo {
-          color: #374151; /* text-gray-700 */
-          border: 1px solid #e5e7eb; /* border-gray-200 */
-          border-radius: 0.375rem; /* rounded-md */
-          padding: 0.25rem 0.5rem;
-          font-size: 0.875rem; /* text-sm */
-          line-height: 1.25rem;
-          outline: none;
-          background-color: white;
-          cursor: pointer;
-          margin: 0 !important;
-        }
-        /* Hide the Google logo/branding text if possible */
-        .goog-logo-link {
-          display: none !important;
-        }
-        .goog-te-gadget span {
-          display: none !important;
-        }
-        /* Fix for the iframe that Google injects */
-        #goog-gt-tt {
-          display: none !important;
-        }
-      `}</style>
     </div>
   );
 };
