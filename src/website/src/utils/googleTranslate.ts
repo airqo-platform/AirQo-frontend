@@ -68,12 +68,21 @@ export const normalizeGoogleLanguageCode = (languageCode: string): string => {
 
 export const setPersistedLanguageCode = (languageCode: string) => {
   if (typeof window === 'undefined') return;
-  window.localStorage.setItem(LANGUAGE_STORAGE_KEY, languageCode);
+  try {
+    window.localStorage.setItem(LANGUAGE_STORAGE_KEY, languageCode);
+  } catch (error) {
+    console.warn('Unable to persist selected language:', error);
+  }
 };
 
 export const getPersistedLanguageCode = (): string | null => {
   if (typeof window === 'undefined') return null;
-  return window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+  try {
+    return window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+  } catch (error) {
+    console.warn('Unable to read persisted language:', error);
+    return null;
+  }
 };
 
 export const getGoogleTranslateTargetLanguage = (): string | null => {

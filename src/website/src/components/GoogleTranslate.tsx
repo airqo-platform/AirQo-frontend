@@ -24,10 +24,22 @@ const GOOGLE_TRANSLATE_SCRIPT_ID = 'google-translate-script';
 
 const GoogleTranslate = () => {
   useEffect(() => {
+    const originalBodyStyles = {
+      top: document.body.style.top,
+      position: document.body.style.position,
+      marginTop: document.body.style.marginTop,
+      paddingTop: document.body.style.paddingTop,
+    };
+    let didAdjustBodyStyles = false;
+
     const hideTranslateArtifacts = () => {
       const elements = document.querySelectorAll(
         '.goog-te-banner-frame, .skiptranslate iframe, iframe.skiptranslate, iframe.goog-te-banner-frame, .goog-te-balloon-frame',
       );
+
+      if (elements.length === 0) {
+        return;
+      }
 
       elements.forEach((element) => {
         if (element instanceof HTMLElement) {
@@ -36,10 +48,13 @@ const GoogleTranslate = () => {
         }
       });
 
-      document.body.style.top = '0';
-      document.body.style.position = 'static';
-      document.body.style.marginTop = '0';
-      document.body.style.paddingTop = '0';
+      if (!didAdjustBodyStyles) {
+        document.body.style.top = '0';
+        document.body.style.position = 'static';
+        document.body.style.marginTop = '0';
+        document.body.style.paddingTop = '0';
+        didAdjustBodyStyles = true;
+      }
     };
 
     let frameId: number | null = null;
@@ -135,23 +150,39 @@ const GoogleTranslate = () => {
         return;
       }
 
-      if (href.startsWith('http') && !href.startsWith(window.location.origin)) {
+      let destinationUrl: URL;
+      try {
+        destinationUrl = new URL(href, window.location.href);
+      } catch {
+        return;
+      }
+
+      if (destinationUrl.origin !== window.location.origin) {
         return;
       }
 
       event.preventDefault();
-      window.location.assign(href);
+      window.location.assign(destinationUrl.href);
     };
 
     document.addEventListener('click', handleDocumentClick, true);
 
     return () => {
       observer.disconnect();
-      timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
+      timeoutIds.forEach((timeoutId) => {
+        window.clearTimeout(timeoutId);
+      });
       document.removeEventListener('click', handleDocumentClick, true);
 
       if (frameId !== null) {
         window.cancelAnimationFrame(frameId);
+      }
+
+      if (didAdjustBodyStyles) {
+        document.body.style.top = originalBodyStyles.top;
+        document.body.style.position = originalBodyStyles.position;
+        document.body.style.marginTop = originalBodyStyles.marginTop;
+        document.body.style.paddingTop = originalBodyStyles.paddingTop;
       }
     };
   }, []);

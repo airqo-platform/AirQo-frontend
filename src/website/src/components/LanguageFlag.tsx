@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { getFlagUrl } from '@/utils/languages';
 
@@ -32,6 +32,10 @@ const LanguageFlag: React.FC<LanguageFlagProps> = ({
     () => languageCode.split('-')[0].toUpperCase(),
     [languageCode],
   );
+
+  useEffect(() => {
+    setHasError(false);
+  }, [languageCode]);
 
   return (
     <span className={wrapperClassName} role="img" aria-label={country}>
