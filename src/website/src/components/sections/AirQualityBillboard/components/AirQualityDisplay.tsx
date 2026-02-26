@@ -93,7 +93,7 @@ const AirQualityDisplay = ({
 
     const gridTemplate = homepage
       ? 'flex md:grid md:grid-cols-7 gap-2 md:gap-3 overflow-x-auto md:overflow-visible pb-1 md:pb-0 pr-1 md:pr-0'
-      : 'grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-7 gap-2 sm:gap-3 lg:gap-4';
+      : 'flex lg:grid lg:grid-cols-7 gap-2 sm:gap-3 lg:gap-4 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0 pr-1 lg:pr-0';
 
     return (
       <div className="w-full">
@@ -105,15 +105,13 @@ const AirQualityDisplay = ({
               ? 'bg-blue-700/80 text-white'
               : 'bg-blue-600/25 text-white';
 
-            const cardPadding = homepage
-              ? 'p-2 sm:p-3'
-              : 'p-2.5 sm:p-3 lg:p-3.5';
+            const cardPadding = homepage ? 'p-2 sm:p-3' : 'p-2 sm:p-3 lg:p-3.5';
             const minH = homepage
               ? 'min-h-[104px] sm:min-h-[116px] md:min-h-[126px]'
-              : 'min-h-[112px] sm:min-h-[124px] lg:min-h-[132px]';
+              : 'min-h-[104px] sm:min-h-[116px] lg:min-h-[132px]';
             const cardMinW = homepage
               ? 'min-w-[92px] sm:min-w-[102px] md:min-w-0'
-              : '';
+              : 'min-w-[92px] sm:min-w-[104px] lg:min-w-0';
             const dayClass = 'font-semibold';
             const valueClass = 'font-extrabold mb-1';
 
@@ -195,11 +193,11 @@ const AirQualityDisplay = ({
           className={
             homepage
               ? 'flex-1 grid grid-cols-[minmax(0,1fr)_minmax(130px,180px)] sm:grid-cols-[minmax(0,1fr)_minmax(160px,230px)] lg:grid-cols-[minmax(0,1fr)_minmax(200px,280px)] gap-[clamp(0.75rem,2vw,1.5rem)] min-h-0'
-              : 'flex-1 grid grid-cols-1 xl:grid-cols-[1.2fr_minmax(220px,320px)] gap-[clamp(0.5rem,1.2vw,1.5rem)] min-h-0'
+              : 'flex-1 grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(180px,240px)] xl:grid-cols-[1.2fr_minmax(220px,320px)] gap-[clamp(0.5rem,1.2vw,1.5rem)] min-h-0'
           }
         >
           {/* Left Section */}
-          <div className="flex flex-col justify-center space-y-[clamp(0.5rem,1vw,1rem)] min-h-0">
+          <div className="flex flex-col justify-start md:justify-center space-y-[clamp(0.5rem,1vw,1rem)] min-h-0">
             {/* Air Quality Title */}
             <div
               className="font-bold leading-tight tracking-tight"
@@ -275,7 +273,7 @@ const AirQualityDisplay = ({
             className={
               homepage
                 ? 'flex flex-col items-end justify-start gap-[clamp(0.75rem,1.5vw,1.25rem)] min-h-[180px] md:min-h-[220px] w-full'
-                : 'flex flex-col items-center xl:items-end justify-between min-h-0 gap-[clamp(0.75rem,1.5vw,1.25rem)]'
+                : 'flex flex-row md:flex-col items-center md:items-end justify-between min-h-0 gap-[clamp(0.75rem,1.5vw,1.25rem)]'
             }
           >
             {/* Air Quality Icon - Single responsive implementation */}
@@ -297,8 +295,8 @@ const AirQualityDisplay = ({
                 <div
                   className="transform hover:scale-105 transition-transform duration-300"
                   style={{
-                    width: 'clamp(6.5rem, 11vw, 11rem)',
-                    height: 'clamp(6.5rem, 11vw, 11rem)',
+                    width: 'clamp(5.25rem, 11vw, 11rem)',
+                    height: 'clamp(5.25rem, 11vw, 11rem)',
                   }}
                 >
                   {getAirQualityIcon(
@@ -312,7 +310,7 @@ const AirQualityDisplay = ({
             )}
 
             {/* QR Code */}
-            <div className="flex flex-col items-center gap-[clamp(0.25rem,0.6vw,0.5rem)] mt-auto">
+            <div className="flex flex-col items-center gap-[clamp(0.25rem,0.6vw,0.5rem)] mt-0 md:mt-auto">
               <span
                 className="font-semibold tracking-wider text-white/90"
                 style={{ fontSize: 'clamp(0.65rem, 1vw, 0.95rem)' }}

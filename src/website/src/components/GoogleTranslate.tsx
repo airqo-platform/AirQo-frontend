@@ -188,7 +188,7 @@ const GoogleTranslate = () => {
   }, []);
 
   return (
-    <div className="hidden notranslate" aria-hidden>
+    <div className="hidden notranslate" aria-hidden="true">
       <div
         id="google_translate_element"
         className="google-translate-container"
