@@ -1,16 +1,16 @@
 'use client';
 
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
-import Image from 'next/image';
 import React, { useState } from 'react';
 
+import LanguageFlag from '@/components/LanguageFlag';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { getFlagUrl, Language, languages } from '@/utils/languages';
+import { Language, languages } from '@/utils/languages';
 
 interface LanguageModalProps {
   isOpen: boolean;
@@ -59,28 +59,14 @@ const LanguageModal: React.FC<LanguageModalProps> = ({
                 className="flex items-center space-x-3 p-3 rounded-lg hover:bg-blue-50 transition-colors text-left group focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-blue-50"
                 aria-label={`Select ${lang.name} language`}
               >
-                <span
-                  className="flex items-center justify-center w-8 h-5 overflow-hidden rounded border border-gray-200"
-                  role="img"
-                  aria-label={lang.country}
-                >
-                  <Image
-                    src={getFlagUrl(lang.flag)}
-                    alt={`${lang.country} flag`}
-                    width={32}
-                    height={20}
-                    className="object-cover"
-                    unoptimized
-                    onError={(e) => {
-                      const target = e.currentTarget;
-                      target.style.display = 'none';
-                      const parent = target.parentElement;
-                      if (parent) {
-                        parent.innerHTML = `<span class="flex items-center justify-center w-full h-full bg-blue-100 text-blue-600 font-semibold text-xs rounded border border-blue-200">${lang.code.split('-')[0].toUpperCase()}</span>`;
-                      }
-                    }}
-                  />
-                </span>
+                <LanguageFlag
+                  flag={lang.flag}
+                  country={lang.country}
+                  languageCode={lang.code}
+                  width={32}
+                  height={20}
+                  wrapperClassName="flex items-center justify-center w-8 h-5 overflow-hidden rounded border border-gray-200"
+                />
                 <span className="font-medium text-gray-900 group-hover:text-blue-700 truncate">
                   {lang.name}
                 </span>

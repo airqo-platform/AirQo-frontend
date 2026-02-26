@@ -1,86 +1,89 @@
 'use client';
 
-import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 import { FaFacebookF, FaLinkedinIn, FaYoutube } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 
 import LanguageModal from '@/components/dialogs/LanguageModal';
-import { getFlagUrl, Language, languages } from '@/utils/languages';
+import LanguageFlag from '@/components/LanguageFlag';
+import {
+  applyGoogleTranslateLanguage,
+  getGoogleTranslateTargetLanguage,
+  getPersistedLanguageCode,
+  setPersistedLanguageCode,
+} from '@/utils/googleTranslate';
+import { Language, languages } from '@/utils/languages';
+
+const DEFAULT_LANGUAGE =
+  languages.find((lang) => lang.code === 'en-GB') || languages[0];
 
 const TopBanner = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState<Language>(
-    languages.find((l) => l.code === 'en-GB') || languages[0],
-  ); // Default to English UK
+  const [isApplyingLanguage, setIsApplyingLanguage] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] =
+    useState<Language>(DEFAULT_LANGUAGE);
 
   useEffect(() => {
-    // Check for existing google translate cookie
-    const getCookie = (name: string): string | undefined => {
-      const cookies = document.cookie.split(';');
-      const cookie = cookies.find((c) => c.trim().startsWith(`${name}=`));
-      return cookie ? cookie.split('=')[1] : undefined;
-    };
+    const targetLanguage = getGoogleTranslateTargetLanguage();
+    const persistedLanguage = getPersistedLanguageCode();
 
-    const googtrans = getCookie('googtrans');
-    if (googtrans) {
-      const langCode = googtrans.split('/').pop();
-      if (langCode) {
-        // Try exact match first
-        let foundLang = languages.find((l) => l.code === langCode);
+    let resolvedLanguage: Language | undefined;
 
-        // If not found, try matching the primary language code (e.g., 'pt' from 'pt-PT')
-        if (!foundLang && langCode.includes('-')) {
-          const primaryCode = langCode.split('-')[0];
-          foundLang = languages.find((l) => l.code === primaryCode);
-        }
-
-        if (foundLang) {
-          setSelectedLanguage(foundLang);
-        }
-      }
+    // Prefer cookie when actively translated to a non-English language.
+    if (targetLanguage && targetLanguage !== 'en') {
+      resolvedLanguage =
+        languages.find((lang) => lang.code === targetLanguage) ||
+        languages.find(
+          (lang) => lang.code.split('-')[0] === targetLanguage.split('-')[0],
+        );
     }
-  }, []); // Empty dependency array - only run once on mount
 
-  const handleLanguageSelect = (lang: Language) => {
-    setSelectedLanguage(lang);
+    if (!resolvedLanguage && persistedLanguage) {
+      resolvedLanguage = languages.find(
+        (lang) => lang.code === persistedLanguage,
+      );
+    }
+
+    if (resolvedLanguage) {
+      setSelectedLanguage(resolvedLanguage);
+    }
+  }, []);
+
+  const handleLanguageSelect = async (language: Language) => {
+    if (isApplyingLanguage) return;
+
+    setSelectedLanguage(language);
+    setPersistedLanguageCode(language.code);
     setIsModalOpen(false);
 
-    // Set the google translate cookie with the format /auto/target_lang
-    const cookieValue = `/auto/${lang.code}`;
-    const hostname = window.location.hostname;
+    const currentTargetLanguage = getGoogleTranslateTargetLanguage();
+    const sameLanguage =
+      currentTargetLanguage === language.code ||
+      currentTargetLanguage === language.code.split('-')[0];
 
-    // Helper to delete cookie with specific domain
-    const deleteCookie = (name: string, domain?: string) => {
-      document.cookie = `${name}=; path=/; domain=${domain}; expires=Thu, 01 Jan 1970 00:00:01 GMT`;
-      document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT`;
-    };
+    if (sameLanguage) return;
 
-    // 1. Aggressively clear existing cookies to avoid conflicts.
-    // We iterate through all domain levels to ensure no conflicting 'googtrans' cookies remain.
-    // This is critical because Google Translate can be sensitive to cookie domain scope (e.g., .airqo.net vs staging.airqo.net),
-    // and a more specific cookie might prevent the new language selection from taking effect.
-    const domains = hostname.split('.');
-    while (domains.length > 0) {
-      const d = domains.join('.');
-      deleteCookie('googtrans', d);
-      deleteCookie('googtrans', `.${d}`);
-      domains.shift();
+    setIsApplyingLanguage(true);
+
+    try {
+      const applied = await applyGoogleTranslateLanguage(language.code, 2500);
+
+      // One light retry for cases where Google script is still initializing
+      if (!applied) {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        const retryApplied = await applyGoogleTranslateLanguage(
+          language.code,
+          2000,
+        );
+
+        // Last resort fallback to hard reload for deterministic application.
+        if (!retryApplied) {
+          window.location.reload();
+        }
+      }
+    } finally {
+      setIsApplyingLanguage(false);
     }
-    deleteCookie('googtrans'); // Clear without domain
-
-    // 2. Set new cookie
-    if (hostname === 'localhost') {
-      document.cookie = `googtrans=${cookieValue}; path=/; max-age=31536000`;
-    } else {
-      // Set on the current domain with a leading dot to support subdomains
-      // This ensures it's treated as a domain cookie
-      const domain = hostname.replace(/^www\./, '');
-      document.cookie = `googtrans=${cookieValue}; path=/; domain=.${domain}; max-age=31536000`;
-    }
-
-    // Reload the page to apply translation
-    window.location.reload();
   };
 
   return (
@@ -132,34 +135,25 @@ const TopBanner = () => {
               <FaYoutube size={14} />
             </a>
           </div>
+
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-md px-3 py-1.5 text-sm"
+            disabled={isApplyingLanguage}
+            className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-md px-3 py-1.5 text-sm disabled:opacity-70 disabled:cursor-wait"
             aria-label="Select language"
           >
-            <span
-              className="flex items-center justify-center w-5 h-4 overflow-hidden rounded border border-gray-200"
-              role="img"
-              aria-label={selectedLanguage.country}
-            >
-              <Image
-                src={getFlagUrl(selectedLanguage.flag)}
-                alt={`${selectedLanguage.country} flag`}
-                width={20}
-                height={16}
-                className="object-cover"
-                unoptimized
-                onError={(e) => {
-                  const target = e.currentTarget;
-                  target.style.display = 'none';
-                  const parent = target.parentElement;
-                  if (parent) {
-                    parent.innerHTML = `<span class="flex items-center justify-center w-full h-full bg-blue-100 text-blue-600 font-semibold text-[9px] rounded border border-blue-200">${selectedLanguage.code.split('-')[0].toUpperCase()}</span>`;
-                  }
-                }}
-              />
+            <LanguageFlag
+              flag={selectedLanguage.flag}
+              country={selectedLanguage.country}
+              languageCode={selectedLanguage.code}
+              width={20}
+              height={16}
+              wrapperClassName="flex items-center justify-center w-5 h-4 overflow-hidden rounded border border-gray-200"
+              fallbackTextClassName="flex items-center justify-center w-full h-full bg-blue-100 text-blue-600 font-semibold text-[9px] rounded border border-blue-200"
+            />
+            <span className="font-medium">
+              {isApplyingLanguage ? 'Applying...' : selectedLanguage.name}
             </span>
-            <span className="font-medium">{selectedLanguage.name}</span>
           </button>
         </div>
       </div>
