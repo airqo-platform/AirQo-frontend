@@ -379,7 +379,12 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                     },
                 }
             );
+            return;
         }
+
+        // Fallback if context is indeterminate
+        setError('Unable to determine assignment context. Please try again.');
+        setStep('cohort-import');
     };
 
     const handleVerifyCohort = async () => {
