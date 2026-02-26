@@ -258,7 +258,7 @@ const AirQualityDisplay = ({
                   fontSize: 'clamp(1rem, 1.8vw, 1.75rem)',
                 }}
               >
-                μg/m³
+                &micro;g/m&sup3;
               </span>
             </div>
 
