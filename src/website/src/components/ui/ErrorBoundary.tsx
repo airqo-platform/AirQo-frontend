@@ -1,6 +1,7 @@
 'use client';
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 
+import { isGoogleTranslationActive } from '@/utils/googleTranslate';
 import logger from '@/utils/logger';
 import {
   getSessionStorageItem,
@@ -65,10 +66,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 
     // Auto-recovery for Google Translate related errors
     if (typeof window !== 'undefined') {
-      const isTranslated =
-        document.cookie.includes('googtrans=') ||
-        document.body.classList.contains('translated-ltr') ||
-        document.body.classList.contains('translated-rtl');
+      const isTranslated = isGoogleTranslationActive();
 
       if (isTranslated) {
         const isDomError =

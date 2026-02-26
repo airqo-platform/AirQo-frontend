@@ -287,6 +287,7 @@ export default async function RootLayout({
         {/* Performance optimizations - DNS prefetch and preconnect */}
         <link rel="dns-prefetch" href="//res.cloudinary.com" />
         <link rel="dns-prefetch" href="//www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="//translate.google.com" />
         <link rel="dns-prefetch" href="//translate.googleapis.com" />
         <link
           rel="preconnect"
@@ -296,6 +297,11 @@ export default async function RootLayout({
         <link
           rel="preconnect"
           href="//www.googletagmanager.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preconnect"
+          href="//translate.google.com"
           crossOrigin="anonymous"
         />
 
