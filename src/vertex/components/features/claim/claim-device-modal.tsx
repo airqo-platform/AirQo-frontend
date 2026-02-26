@@ -402,7 +402,10 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
             const result = await verifyCohort(input);
 
             if (result.success) {
-                const cohortName = result?.data?.name || result?.cohort?.name || '';
+                const cohortName =
+                    (result as { data?: { name?: string } }).data?.name ||
+                    result?.cohort?.name ||
+                    '';
                 if (cohortName?.toLowerCase() === 'airqo') {
                     setError('This cohort is not available.');
                     setIsImportingCohort(false);
