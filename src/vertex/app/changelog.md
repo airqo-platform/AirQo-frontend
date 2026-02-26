@@ -4,6 +4,38 @@
 
 ---
 
+## Version 1.23.22
+**Released:** February 25, 2026
+
+### Cohort Import Confirmation & Personal Assignment Flow
+
+Refined the "Import from Cohort" flow to add an explicit confirmation step and align personal imports with cohort assignment, plus fixed a React render loop in cohort details.
+
+<details>
+<summary><strong>Improvements (3)</strong></summary>
+
+- **Cohort Import Confirmation**: Added a dedicated confirmation step after verifying Cohort ID, displaying the cohort name before assignment.
+- **Personal Import Assignment**: Personal-scope imports now assign the cohort to the user (no claim-token entry), matching the intended assignment flow.
+- **Reliable User Cohort Refresh**: Assignment to user now invalidates the `userDetails` query and `myDevices` to refresh cohort-aware views.
+
+</details>
+
+<details>
+<summary><strong>Fixes (1)</strong></summary>
+
+- **Cohort Details Render Loop**: Removed a default array prop that caused a `Maximum update depth exceeded` error on the cohort details page.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (3)</strong></summary>
+
+- `components/features/cohorts/cohort-detail-card.tsx`
+- `components/features/claim/claim-device-modal.tsx`
+- `core/hooks/useCohorts.ts`
+
+</details>
+
 ## Version 1.23.21
 **Released:** February 20, 2026
 
