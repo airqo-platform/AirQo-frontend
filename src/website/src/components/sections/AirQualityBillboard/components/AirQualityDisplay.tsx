@@ -178,6 +178,8 @@ const AirQualityDisplay = ({
     );
   };
 
+  const forecastContent = renderForecast();
+
   return (
     <AnimatePresence mode="wait">
       <motion.div
@@ -261,9 +263,9 @@ const AirQualityDisplay = ({
             </div>
 
             {/* 7-Day Forecast */}
-            {forecastData && (
+            {forecastContent && (
               <div className="mt-[clamp(0.375rem,0.8vw,0.625rem)]">
-                {renderForecast()}
+                {forecastContent}
               </div>
             )}
           </div>
