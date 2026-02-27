@@ -268,6 +268,18 @@ GET /admin/rbac-status
         "name": "AIRQO_SUPER_ADMIN",
         "code": "AIRQO_SUPER_ADMIN",
         "permissions_count": 58
+      },
+      {
+        "id": "64a7b8c9d1e2f3a4b5c6d7ea",
+        "name": "AIRQO_ADMIN",
+        "code": "AIRQO_ADMIN",
+        "permissions_count": 45
+      },
+      {
+        "id": "64a7b8c9d1e2f3a4b5c6d7eb",
+        "name": "AIRQO_NETWORK_ADMIN",
+        "code": "AIRQO_NETWORK_ADMIN",
+        "permissions_count": 58
       }
     ],
     "recommendations": ["RBAC system is functioning well"]
