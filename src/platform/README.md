@@ -1,4 +1,4 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app)
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
 
@@ -39,5 +39,6 @@ NEXTAUTH_COOKIE_DOMAIN=.airqo.net
 ```
 
 Notes:
+
 - `NEXTAUTH_SECRET` must be the same value in `analytics` and `vertex`.
 - `NEXTAUTH_COOKIE_DOMAIN=.airqo.net` enables a shared session cookie for `analytics.airqo.net` and `vertex.airqo.net`.
