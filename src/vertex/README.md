@@ -1,6 +1,6 @@
 # Vertex (Web App)
 
-`vertex` is the AirQo web application for Device and Network management.
+`vertex` is the AirQo web application for Device and Network management
 
 ## Quick start
 
@@ -61,6 +61,7 @@ NEXTAUTH_COOKIE_DOMAIN=.airqo.net
 ```
 
 Notes:
+
 - `NEXTAUTH_SECRET` should match the value used by the Analytics platform.
 - `NEXTAUTH_COOKIE_DOMAIN=.airqo.net` allows a shared cookie across sibling subdomains (for example `analytics.airqo.net` and `vertex.airqo.net`).
 
