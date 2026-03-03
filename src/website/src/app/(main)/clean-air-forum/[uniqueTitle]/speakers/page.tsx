@@ -11,7 +11,7 @@ export function generateMetadata({
 }) {
   return createMetadata({
     ...METADATA_CONFIGS.cleanAirForumSpeakers,
-    url: `/clean-air-forum/${params.uniqueTitle}/speakers`,
+    url: `/africa-clean-air-forum/${params.uniqueTitle}/speakers`,
   });
 }
 

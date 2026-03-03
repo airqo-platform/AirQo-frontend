@@ -12,7 +12,7 @@ interface ForumLoadingProps {
 
 const ForumLoading: React.FC<ForumLoadingProps> = ({
   className,
-  message = 'Loading Clean Air Forum…',
+  message = 'Loading Africa Clean Air Forum...',
 }) => {
   return (
     <div className={cn('min-h-screen w-full', className)}>

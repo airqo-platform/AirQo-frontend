@@ -21,7 +21,7 @@ const ForumEventsPage: React.FC<{ skipHero?: boolean }> = ({ skipHero }) => {
   } = useForumEvents();
 
   const handleEventClick = (event: ForumEvent) => {
-    router.push(`/clean-air-forum/${event.unique_title}`);
+    router.push(`/africa-clean-air-forum/${event.unique_title}`);
   };
 
   const formatDateRange = (startDate: string, endDate: string) => {
@@ -86,7 +86,7 @@ const ForumEventsPage: React.FC<{ skipHero?: boolean }> = ({ skipHero }) => {
                 Forum Events
               </h1>
               <p className="text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
-                Explore our collection of Clean Air Forum events bringing
+                Explore our collection of Africa Clean Air Forum events bringing
                 together communities of practice to foster knowledge sharing and
                 cross-border partnerships across Africa
               </p>

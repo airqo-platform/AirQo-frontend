@@ -40,9 +40,9 @@ const TabNavigation: React.FC = () => {
   // Build href with uniqueTitle if it exists
   const buildHref = (href: string) => {
     if (uniqueTitle) {
-      return `/clean-air-forum/${uniqueTitle}${href}`;
+      return `/africa-clean-air-forum/${uniqueTitle}${href}`;
     }
-    return `/clean-air-forum${href}`;
+    return `/africa-clean-air-forum${href}`;
   };
 
   const handleTabClick = (href: string) => {

@@ -11,7 +11,7 @@ export function generateMetadata({
 }) {
   return createMetadata({
     ...METADATA_CONFIGS.cleanAirForumResources,
-    url: `/clean-air-forum/${params.uniqueTitle}/resources`,
+    url: `/africa-clean-air-forum/${params.uniqueTitle}/resources`,
   });
 }
 

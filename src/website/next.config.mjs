@@ -87,6 +87,15 @@ const nextConfig = {
       },
     ];
   },
+
+  async rewrites() {
+    return [
+      {
+        source: '/africa-clean-air-forum/:path*',
+        destination: '/clean-air-forum/:path*',
+      },
+    ];
+  },
 };
 
 export default nextConfig;
