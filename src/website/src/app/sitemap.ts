@@ -30,6 +30,7 @@ const FORUM_ROUTE_CONFIG = [
 
 const FORUM_TITLES_ENDPOINT = '/forum-event-titles/';
 const MAX_FORUM_API_PAGES = 20;
+const DEFAULT_FORUM_FETCH_TIMEOUT_MS = 8000;
 
 interface ForumEventTitle {
   unique_title: string;
@@ -39,6 +40,7 @@ interface ForumEventTitle {
 
 interface ForumEventTitlesResponse {
   next?: string | null;
+  previous?: string | null;
   results?: ForumEventTitle[];
 }
 
@@ -51,30 +53,82 @@ const normalizeForumApiBaseUrl = (rawApiUrl: string): string => {
   return `${trimmed}/website/api/v2`;
 };
 
-const withToken = (url: string, token?: string): string => {
-  if (!token) return url;
+const getForumFetchTimeoutMs = (): number => {
+  const timeout = Number.parseInt(
+    process.env.FORUM_SITEMAP_FETCH_TIMEOUT_MS || '',
+    10,
+  );
+  if (Number.isFinite(timeout) && timeout > 0) {
+    return timeout;
+  }
+  return DEFAULT_FORUM_FETCH_TIMEOUT_MS;
+};
 
+const getForumAuthHeaders = (token?: string): HeadersInit => {
+  if (!token) return { Accept: 'application/json' };
+  return {
+    Accept: 'application/json',
+    Authorization: `Bearer ${token}`,
+  };
+};
+
+const removeTokenFromUrl = (url: string): string => {
   try {
-    const parsed = new URL(url);
-    if (!parsed.searchParams.has('token')) {
-      parsed.searchParams.set('token', token);
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      const parsed = new URL(url);
+      parsed.searchParams.delete('token');
+      return parsed.toString();
     }
-    return parsed.toString();
+
+    const [beforeHash, hash = ''] = url.split('#', 2);
+    const [pathname, query = ''] = beforeHash.split('?', 2);
+    const params = new URLSearchParams(query);
+    params.delete('token');
+
+    const cleanQuery = params.toString();
+    const rebuilt = `${pathname}${cleanQuery ? `?${cleanQuery}` : ''}`;
+    return hash ? `${rebuilt}#${hash}` : rebuilt;
   } catch {
     return url;
   }
 };
 
-const resolveNextUrl = (
-  nextUrl: string,
-  apiBaseUrl: string,
-  token?: string,
-): string => {
-  const resolved = nextUrl.startsWith('http')
-    ? nextUrl
-    : new URL(nextUrl, apiBaseUrl).toString();
+const resolveNextUrl = (nextUrl: string, apiBaseUrl: string): string | null => {
+  const sanitizedNextUrl = removeTokenFromUrl(nextUrl);
 
-  return withToken(resolved, token);
+  try {
+    const apiBase = new URL(
+      apiBaseUrl.endsWith('/') ? apiBaseUrl : `${apiBaseUrl}/`,
+    );
+
+    if (
+      sanitizedNextUrl.startsWith('http://') ||
+      sanitizedNextUrl.startsWith('https://')
+    ) {
+      const absoluteNext = new URL(sanitizedNextUrl);
+      if (absoluteNext.origin !== apiBase.origin) {
+        console.error('Discarding cross-origin pagination URL in sitemap:', {
+          apiOrigin: apiBase.origin,
+          nextOrigin: absoluteNext.origin,
+        });
+        return null;
+      }
+      absoluteNext.searchParams.delete('token');
+      return absoluteNext.toString();
+    }
+
+    const resolvedRelative = new URL(sanitizedNextUrl, apiBase);
+    resolvedRelative.searchParams.delete('token');
+    return resolvedRelative.toString();
+  } catch (error) {
+    const typedError = error as Error;
+    console.error('Failed to resolve pagination URL in sitemap:', {
+      nextUrl: sanitizedNextUrl,
+      message: typedError.message,
+      name: typedError.name,
+    });
+    return null;
+  }
 };
 
 const parseValidDate = (value?: string): Date | null => {
@@ -92,11 +146,11 @@ const fetchForumEventTitles = async (): Promise<ForumEventTitle[]> => {
 
   const apiBaseUrl = normalizeForumApiBaseUrl(rawApiUrl);
   const apiToken = process.env.API_TOKEN;
+  const fetchTimeoutMs = getForumFetchTimeoutMs();
+  const authHeaders = getForumAuthHeaders(apiToken);
 
-  let nextUrl: string | null = withToken(
-    `${apiBaseUrl}${FORUM_TITLES_ENDPOINT}?page_size=100`,
-    apiToken,
-  );
+  let nextUrl: string | null =
+    `${apiBaseUrl}${FORUM_TITLES_ENDPOINT}?page_size=100`;
 
   const allEvents: ForumEventTitle[] = [];
 
@@ -105,16 +159,39 @@ const fetchForumEventTitles = async (): Promise<ForumEventTitle[]> => {
     nextUrl && pageCount < MAX_FORUM_API_PAGES;
     pageCount += 1
   ) {
+    const controller = new AbortController();
+    let didTimeout = false;
+    const timeout = setTimeout(() => {
+      didTimeout = true;
+      controller.abort();
+    }, fetchTimeoutMs);
+
     try {
       const response = await fetch(nextUrl, {
         next: { revalidate: 86400 },
+        headers: authHeaders,
+        signal: controller.signal,
       });
 
       if (!response.ok) {
+        console.error('Forum sitemap fetch failed:', {
+          url: nextUrl,
+          status: response.status,
+          statusText: response.statusText,
+        });
         break;
       }
 
       const data: ForumEventTitlesResponse = await response.json();
+      const sanitizedData: ForumEventTitlesResponse = {
+        ...data,
+        next:
+          typeof data.next === 'string' ? removeTokenFromUrl(data.next) : null,
+        previous:
+          typeof data.previous === 'string'
+            ? removeTokenFromUrl(data.previous)
+            : null,
+      };
       const pageResults = (data.results || []).filter(
         (event): event is ForumEventTitle =>
           typeof event?.unique_title === 'string' &&
@@ -123,13 +200,22 @@ const fetchForumEventTitles = async (): Promise<ForumEventTitle[]> => {
 
       allEvents.push(...pageResults);
 
-      if (!data.next) {
+      if (!sanitizedData.next) {
         nextUrl = null;
       } else {
-        nextUrl = resolveNextUrl(data.next, apiBaseUrl, apiToken);
+        nextUrl = resolveNextUrl(sanitizedData.next, apiBaseUrl);
       }
-    } catch {
+    } catch (error) {
+      const typedError = error as Error;
+      console.error('Forum sitemap pagination request failed:', {
+        url: nextUrl,
+        timeout: didTimeout,
+        message: typedError.message,
+        name: typedError.name,
+      });
       break;
+    } finally {
+      clearTimeout(timeout);
     }
   }
 
