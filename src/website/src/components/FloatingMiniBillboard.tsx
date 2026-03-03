@@ -13,8 +13,10 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
+import { hexToRgba } from '@/components/sections/AirQualityBillboard/utils';
 import type { Grid } from '@/types/grids';
 import {
+  AIR_QUALITY_INFO,
   categoryToLevel,
   formatName,
   getAirQualityCategory,
@@ -41,7 +43,7 @@ const getAirQualityIcon = (category: string) => {
   const level = categoryToLevel(category);
   const color = getAirQualityColor(category);
   const iconProps = {
-    className: `w-full h-full`,
+    className: 'w-full h-full',
     style: { color },
   };
 
@@ -83,10 +85,17 @@ export default function FloatingMiniBillboard({
   const pm25Value = readingData?.pm2_5?.value;
   const hasValidData = pm25Value != null && pm25Value >= 0;
   const category = getAirQualityCategory(pm25Value, 'pm2_5');
+  const level = categoryToLevel(category);
   const categoryLabel =
-    category === 'UnhealthyForSensitiveGroups'
-      ? 'Unhealthy for Sensitive Groups'
-      : category;
+    AIR_QUALITY_INFO[level as keyof typeof AIR_QUALITY_INFO]?.label ||
+    'Unknown';
+  const categoryColor = getAirQualityColor(category);
+  const badgeStyle = {
+    backgroundColor: hexToRgba(categoryColor, 0.14),
+    color: categoryColor,
+    border: `1px solid ${hexToRgba(categoryColor, 0.16)}`,
+    fontFamily: '"Times New Roman", Times, serif',
+  };
 
   // Check if we should hide on billboard pages
   const shouldHide = pathname?.startsWith('/billboard');
@@ -96,7 +105,7 @@ export default function FloatingMiniBillboard({
     // Delay mounting to ensure page is ready
     const timer = setTimeout(() => {
       setIsMounted(true);
-    }, 100); // Reduced from 1000ms to 100ms
+    }, 100);
 
     return () => clearTimeout(timer);
   }, []);
@@ -184,7 +193,7 @@ export default function FloatingMiniBillboard({
           className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center bg-blue-800/90 backdrop-blur-sm rounded-full shadow-md z-10 touch-manipulation"
           aria-label="Minimize widget"
         >
-          <span className="text-white text-sm leading-none">×</span>
+          <span className="text-white text-sm leading-none">&times;</span>
         </button>
 
         <Link
@@ -206,9 +215,12 @@ export default function FloatingMiniBillboard({
                   <span className="text-lg font-bold">{displayValue}</span>
                   <span className="text-[8px] opacity-60">PM2.5</span>
                 </div>
-                <p className="text-[9px] opacity-80 font-medium truncate">
+                <span
+                  className="inline-flex rounded-full px-2.5 py-1 text-[9px] font-semibold leading-none mt-1 max-w-full truncate"
+                  style={badgeStyle}
+                >
                   {categoryLabel}
-                </p>
+                </span>
               </div>
             </div>
           </div>
@@ -229,7 +241,7 @@ export default function FloatingMiniBillboard({
         className="absolute top-2 right-2 p-1 hover:bg-white/20 active:bg-white/30 rounded-full transition-colors z-10 touch-manipulation"
         aria-label="Minimize widget"
       >
-        <span className="text-white text-xl leading-none">×</span>
+        <span className="text-white text-xl leading-none">&times;</span>
       </button>
 
       <Link
@@ -260,7 +272,14 @@ export default function FloatingMiniBillboard({
                 <span className="text-3xl font-bold">{displayValue}</span>
                 <span className="text-xs opacity-70">PM2.5</span>
               </div>
-              <p className="text-xs mt-1 opacity-90">{categoryLabel}</p>
+              <div className="mt-2.5">
+                <span
+                  className="inline-flex rounded-full px-3.5 py-1.5 text-sm font-semibold leading-none"
+                  style={badgeStyle}
+                >
+                  {categoryLabel}
+                </span>
+              </div>
             </div>
 
             {/* Icon */}
@@ -274,7 +293,7 @@ export default function FloatingMiniBillboard({
 
           {/* Footer */}
           <div className="mt-3 pt-3 border-t border-white/20">
-            <p className="text-xs opacity-80">Discover more →</p>
+            <p className="text-xs opacity-80">Discover more &rarr;</p>
           </div>
         </div>
       </Link>
