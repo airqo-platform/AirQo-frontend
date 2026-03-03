@@ -114,7 +114,7 @@ export const metadata: Metadata = {
     'Google.org Africa',
     'World Bank air quality',
     // Products
-    'CLEAN-Air Forum',
+    'Africa Clean Air Forum',
     'CLEAN-Air Network',
     'Binos Monitor',
     'AirQalibrate',

@@ -185,10 +185,10 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  href="/clean-air-forum"
+                  href="/africa-clean-air-forum"
                   className="text-gray-600 hover:underline"
                 >
-                  CLEAN-Air Forum
+                  Africa Clean Air Forum
                 </Link>
               </li>
               <li>

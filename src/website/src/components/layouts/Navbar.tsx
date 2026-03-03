@@ -90,7 +90,7 @@ const menuItems: MenuItems = {
     { title: 'Events', href: '/events' },
     { title: 'Press', href: '/press' },
     { title: 'FAQs', href: '/faqs' },
-    { title: 'CLEAN-Air Forum', href: '/clean-air-forum' },
+    { title: 'Africa Clean Air Forum', href: '/africa-clean-air-forum' },
   ],
   Developers: [
     {

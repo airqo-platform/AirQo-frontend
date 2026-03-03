@@ -661,15 +661,15 @@ export const METADATA_CONFIGS = {
   },
   cleanAirForum: {
     title:
-      'CLEAN-Air Forum 2025 Nairobi Kenya | Africa Air Quality Conference - Uganda, Nigeria, Ghana Leaders',
+      'Africa Clean Air Forum 2025 Nairobi Kenya | Africa Air Quality Conference - Uganda, Nigeria, Ghana Leaders',
     description:
       "Africa's largest air quality conference - Nairobi, Kenya 2025. 500+ experts from Uganda, Kenya, Nigeria, Ghana, Rwanda, Tanzania. Network with African ministers, WHO officials, researchers. Register now. Venue: Nairobi. Participants from Kampala, Lagos, Accra, Kigali, Dar es Salaam. Africa's clean air future.",
     keywords:
-      'CLEAN-Air Forum Nairobi, Kenya air quality conference, Nairobi environmental summit 2025, East Africa air conference, Uganda air quality forum, Kenya environmental leaders, Nigeria clean air summit, Ghana air conference, African ministers environment, Nairobi conference venue, Kampala to Nairobi conference, air quality policy Africa, Kenya climate summit, East Africa environmental forum, African air quality networking, Nairobi 2025 registration',
-    url: '/clean-air-forum/about',
+      'Africa Clean Air Forum Nairobi, Kenya air quality conference, Nairobi environmental summit 2025, East Africa air conference, Uganda air quality forum, Kenya environmental leaders, Nigeria clean air summit, Ghana air conference, African ministers environment, Nairobi conference venue, Kampala to Nairobi conference, air quality policy Africa, Kenya climate summit, East Africa environmental forum, African air quality networking, Nairobi 2025 registration',
+    url: '/africa-clean-air-forum/about',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
-      alt: 'CLEAN-Air Forum 2025 Nairobi - Partnerships for Clean Air in Africa',
+      alt: 'Africa Clean Air Forum 2025 Nairobi - Partnerships for Clean Air in Africa',
       width: 1200,
       height: 630,
       type: 'image/jpeg',
@@ -818,17 +818,18 @@ export const METADATA_CONFIGS = {
       type: 'image/png',
     },
   },
-  // CLEAN-Air Forum pages with event-specific SEO
+  // Africa Clean Air Forum pages with event-specific SEO
   cleanAirForumSessions: {
-    title: 'Sessions & Agenda | CLEAN-Air Forum 2025 Nairobi - 3-Day Program',
+    title:
+      'Sessions & Agenda | Africa Clean Air Forum 2025 Nairobi - 3-Day Program',
     description:
-      'Explore 50+ sessions at CLEAN-Air Forum 2025 including keynotes, panel discussions, workshops, and networking events. Topics cover air quality monitoring, policy frameworks, health impacts, and clean air solutions for African cities.',
+      'Explore 50+ sessions at Africa Clean Air Forum 2025 including keynotes, panel discussions, workshops, and networking events. Topics cover air quality monitoring, policy frameworks, health impacts, and clean air solutions for African cities.',
     keywords:
-      'CLEAN-Air Forum agenda, conference sessions, air quality workshops, Nairobi 2025 program, environmental panels, policy discussions, technical workshops, networking events',
-    url: '/clean-air-forum/clean-air-forum-2025/sessions',
+      'Africa Clean Air Forum agenda, conference sessions, air quality workshops, Nairobi 2025 program, environmental panels, policy discussions, technical workshops, networking events',
+    url: '/africa-clean-air-forum/africa-clean-air-forum-2025/sessions',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
-      alt: 'CLEAN-Air Forum 2025 Conference Sessions',
+      alt: 'Africa Clean Air Forum 2025 Conference Sessions',
       width: 1200,
       height: 630,
       type: 'image/jpeg',
@@ -836,45 +837,47 @@ export const METADATA_CONFIGS = {
   },
   cleanAirForumSpeakers: {
     title:
-      'Speakers & Experts | CLEAN-Air Forum 2025 - 100+ Environmental Leaders',
+      'Speakers & Experts | Africa Clean Air Forum 2025 - 100+ Environmental Leaders',
     description:
-      'Meet 100+ distinguished speakers at CLEAN-Air Forum 2025 including government ministers, WHO officials, researchers, and innovators. Leading voices in air quality science, policy, and technology sharing insights on African air pollution solutions.',
+      'Meet 100+ distinguished speakers at Africa Clean Air Forum 2025 including government ministers, WHO officials, researchers, and innovators. Leading voices in air quality science, policy, and technology sharing insights on African air pollution solutions.',
     keywords:
-      'CLEAN-Air Forum speakers, air quality experts, environmental leaders, conference presenters, WHO officials, African ministers, research scientists, policy makers',
-    url: '/clean-air-forum/clean-air-forum-2025/speakers',
+      'Africa Clean Air Forum speakers, air quality experts, environmental leaders, conference presenters, WHO officials, African ministers, research scientists, policy makers',
+    url: '/africa-clean-air-forum/africa-clean-air-forum-2025/speakers',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
-      alt: 'CLEAN-Air Forum 2025 Distinguished Speakers',
+      alt: 'Africa Clean Air Forum 2025 Distinguished Speakers',
       width: 1200,
       height: 630,
       type: 'image/jpeg',
     },
   },
   cleanAirForumResources: {
-    title: 'Resources & Materials | CLEAN-Air Forum 2025 - Download Center',
+    title:
+      'Resources & Materials | Africa Clean Air Forum 2025 - Download Center',
     description:
-      'Access presentations, research papers, policy briefs, and tools from CLEAN-Air Forum 2025. Download air quality datasets, monitoring guides, implementation frameworks, and best practices for clean air initiatives in African cities.',
+      'Access presentations, research papers, policy briefs, and tools from Africa Clean Air Forum 2025. Download air quality datasets, monitoring guides, implementation frameworks, and best practices for clean air initiatives in African cities.',
     keywords:
-      'CLEAN-Air Forum resources, conference materials, research downloads, policy documents, air quality tools, presentation slides, implementation guides, best practices',
-    url: '/clean-air-forum/clean-air-forum-2025/resources',
+      'Africa Clean Air Forum resources, conference materials, research downloads, policy documents, air quality tools, presentation slides, implementation guides, best practices',
+    url: '/africa-clean-air-forum/africa-clean-air-forum-2025/resources',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
-      alt: 'CLEAN-Air Forum 2025 Resources and Downloads',
+      alt: 'Africa Clean Air Forum 2025 Resources and Downloads',
       width: 1200,
       height: 630,
       type: 'image/jpeg',
     },
   },
   cleanAirForumSponsorships: {
-    title: 'Sponsorship Opportunities | CLEAN-Air Forum 2025 - Partner with Us',
+    title:
+      'Sponsorship Opportunities | Africa Clean Air Forum 2025 - Partner with Us',
     description:
-      'Partner with CLEAN-Air Forum 2025 to showcase your commitment to clean air in Africa. Sponsorship packages include exhibition space, speaking opportunities, branding, and networking with 500+ environmental leaders and decision-makers.',
+      'Partner with Africa Clean Air Forum 2025 to showcase your commitment to clean air in Africa. Sponsorship packages include exhibition space, speaking opportunities, branding, and networking with 500+ environmental leaders and decision-makers.',
     keywords:
-      'CLEAN-Air Forum sponsorship, partnership opportunities, conference sponsors, exhibition packages, environmental partnerships, corporate sponsorship, event partnership',
-    url: '/clean-air-forum/clean-air-forum-2025/sponsorships',
+      'Africa Clean Air Forum sponsorship, partnership opportunities, conference sponsors, exhibition packages, environmental partnerships, corporate sponsorship, event partnership',
+    url: '/africa-clean-air-forum/africa-clean-air-forum-2025/sponsorships',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
-      alt: 'CLEAN-Air Forum 2025 Sponsorship Opportunities',
+      alt: 'Africa Clean Air Forum 2025 Sponsorship Opportunities',
       width: 1200,
       height: 630,
       type: 'image/jpeg',
@@ -882,30 +885,30 @@ export const METADATA_CONFIGS = {
   },
   cleanAirForumLogistics: {
     title:
-      'Venue & Travel Info | CLEAN-Air Forum 2025 Nairobi - Plan Your Visit',
+      'Venue & Travel Info | Africa Clean Air Forum 2025 Nairobi - Plan Your Visit',
     description:
-      'Plan your trip to CLEAN-Air Forum 2025 in Nairobi, Kenya. Find venue details, recommended hotels, visa information, local transportation, and travel tips. Special rates available at partner hotels near the conference center.',
+      'Plan your trip to Africa Clean Air Forum 2025 in Nairobi, Kenya. Find venue details, recommended hotels, visa information, local transportation, and travel tips. Special rates available at partner hotels near the conference center.',
     keywords:
-      'CLEAN-Air Forum venue, Nairobi conference location, travel Kenya, conference hotels, visa information, airport transfers, accommodation Nairobi, travel logistics',
-    url: '/clean-air-forum/clean-air-forum-2025/logistics',
+      'Africa Clean Air Forum venue, Nairobi conference location, travel Kenya, conference hotels, visa information, airport transfers, accommodation Nairobi, travel logistics',
+    url: '/africa-clean-air-forum/africa-clean-air-forum-2025/logistics',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
-      alt: 'CLEAN-Air Forum 2025 Venue in Nairobi',
+      alt: 'Africa Clean Air Forum 2025 Venue in Nairobi',
       width: 1200,
       height: 630,
       type: 'image/jpeg',
     },
   },
   cleanAirForumProgramCommittee: {
-    title: 'Program Committee | CLEAN-Air Forum 2025 Organizing Team',
+    title: 'Program Committee | Africa Clean Air Forum 2025 Organizing Team',
     description:
-      'Meet the distinguished program committee organizing CLEAN-Air Forum 2025. Leading researchers, policymakers, and practitioners from WHO, UNEP, African governments, and academia shaping the conference agenda for maximum impact.',
+      'Meet the distinguished program committee organizing Africa Clean Air Forum 2025. Leading researchers, policymakers, and practitioners from WHO, UNEP, African governments, and academia shaping the conference agenda for maximum impact.',
     keywords:
-      'CLEAN-Air Forum committee, conference organizers, program committee, scientific committee, organizing team, conference leadership, advisory board',
-    url: '/clean-air-forum/clean-air-forum-2025/program-committee',
+      'Africa Clean Air Forum committee, conference organizers, program committee, scientific committee, organizing team, conference leadership, advisory board',
+    url: '/africa-clean-air-forum/africa-clean-air-forum-2025/program-committee',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
-      alt: 'CLEAN-Air Forum 2025 Program Committee',
+      alt: 'Africa Clean Air Forum 2025 Program Committee',
       width: 1200,
       height: 630,
       type: 'image/jpeg',
@@ -913,12 +916,12 @@ export const METADATA_CONFIGS = {
   },
   cleanAirForumGlossary: {
     title:
-      'Air Quality Glossary | CLEAN-Air Forum 2025 - Key Terms & Definitions',
+      'Air Quality Glossary | Africa Clean Air Forum 2025 - Key Terms & Definitions',
     description:
       'Comprehensive glossary of air quality terms, monitoring technologies, and policy concepts. Understand PM2.5, PM10, AQI, WHO guidelines, and technical terminology used in air pollution science and clean air initiatives.',
     keywords:
       'Air quality glossary, PM2.5 definition, AQI explained, air pollution terms, monitoring terminology, WHO guidelines, environmental definitions, technical glossary',
-    url: '/clean-air-forum/clean-air-forum-2025/glossary',
+    url: '/africa-clean-air-forum/africa-clean-air-forum-2025/glossary',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
       alt: 'Air Quality Terms and Definitions Glossary',
@@ -929,15 +932,15 @@ export const METADATA_CONFIGS = {
   },
   cleanAirForumPartners: {
     title:
-      'Partners & Collaborators | CLEAN-Air Forum 2025 - Global Support Network',
+      'Partners & Collaborators | Africa Clean Air Forum 2025 - Global Support Network',
     description:
-      'CLEAN-Air Forum 2025 partners include WHO, UNEP, World Bank, Google.org, African governments, and leading environmental organizations. Together advancing clean air solutions through collaboration and knowledge sharing.',
+      'Africa Clean Air Forum 2025 partners include WHO, UNEP, World Bank, Google.org, African governments, and leading environmental organizations. Together advancing clean air solutions through collaboration and knowledge sharing.',
     keywords:
-      'CLEAN-Air Forum partners, conference collaborators, WHO partnership, UNEP support, World Bank, Google.org, environmental partners, African organizations',
-    url: '/clean-air-forum/clean-air-forum-2025/partners',
+      'Africa Clean Air Forum partners, conference collaborators, WHO partnership, UNEP support, World Bank, Google.org, environmental partners, African organizations',
+    url: '/africa-clean-air-forum/africa-clean-air-forum-2025/partners',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
-      alt: 'CLEAN-Air Forum 2025 Partners and Collaborators',
+      alt: 'Africa Clean Air Forum 2025 Partners and Collaborators',
       width: 1200,
       height: 630,
       type: 'image/jpeg',
@@ -963,7 +966,7 @@ export const METADATA_CONFIGS = {
     title:
       'Events & Conferences | AirQo Air Quality Workshops & Community Engagement',
     description:
-      'Stay updated with AirQo events including CLEAN-Air Forum, community workshops, hackathons, training sessions, and webinars. Join us at conferences across Africa to learn about air quality monitoring and clean air solutions.',
+      'Stay updated with AirQo events including Africa Clean Air Forum, community workshops, hackathons, training sessions, and webinars. Join us at conferences across Africa to learn about air quality monitoring and clean air solutions.',
     keywords:
       'AirQo events, air quality conferences, environmental workshops, community events, hackathons, training sessions, webinars, African environmental events',
     url: '/events',
