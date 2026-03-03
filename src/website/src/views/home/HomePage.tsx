@@ -137,28 +137,29 @@ const HomePage = () => {
       {/* The clean air Forum */}
       <MotionSection>
         <ReversibleContentSection
-          title="CLEAN-Air Forum 2025, Nairobi, Kenya"
+          title="Africa Clean Air Forum 2026"
           subtitle="Africa’s Premier Air Quality Community"
           description={
             <>
               <div style={{ marginBottom: '1rem' }}>
-                The CLEAN-Air Forum is an annual convening for the communities
-                of practice in Africa, started in Kampala in 2023, as a platform
-                for knowledge sharing and multi-regional partnerships for
-                tackling air pollution in African cities.
+                The Africa Clean Air Forum is the flagship event of the Africa
+                Clean Air Network (AfriCAN). It serves as a platform to convene
+                policymakers, academia, industry, media and civil society
+                organisations to foster knowledge sharing, collaboration, and
+                cross-border partnerships to address air pollution across
+                Africa.
               </div>
               <div>
-                CLEAN-Air Forum 2025, Nairobi, held under the theme
-                “Partnerships for Clean Air Solutions,” aims to strengthen
-                cross-border transdisciplinary partnerships, promote
-                evidence-based approaches, and build capacity to advance clean
-                air solutions in Africa.
+                The Africa Clean Air Forum 26 will convene experts at the
+                forefront of air quality science to explore how data, modelling,
+                monitoring technologies, and emerging tools can inform
+                decision-making and long-term investment across the continent.
               </div>
             </>
           }
-          buttonText="Explore the Forum"
-          buttonLink="/clean-air-forum"
-          imageUrl="https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg"
+          buttonText="Learn more"
+          buttonLink="https://cleanairafrica.org/events/annual-forum-2026-pretoria/"
+          imageUrl="https://res.cloudinary.com/dbibjvyhm/image/upload/v1772537998/website/photos/Clean-Air-Forum-Save-the-Date_1_xgtbul.png"
           reverse={false}
           backgroundColor="bg-[#EDF3FF]"
           subtitleColor="text-black"
