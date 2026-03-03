@@ -216,7 +216,7 @@ export default function FloatingMiniBillboard({
                   <span className="text-[8px] opacity-60">PM2.5</span>
                 </div>
                 <span
-                  className="inline-flex rounded-full px-2 py-0.5 text-[8px] font-semibold leading-none mt-0.5 max-w-full truncate"
+                  className="inline-flex rounded-full px-2.5 py-1 text-[9px] font-semibold leading-none mt-1 max-w-full truncate"
                   style={badgeStyle}
                 >
                   {categoryLabel}
@@ -272,18 +272,12 @@ export default function FloatingMiniBillboard({
                 <span className="text-3xl font-bold">{displayValue}</span>
                 <span className="text-xs opacity-70">PM2.5</span>
               </div>
-              <div className="flex flex-wrap items-center gap-1 mt-2">
+              <div className="mt-2.5">
                 <span
-                  className="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold leading-none"
+                  className="inline-flex rounded-full px-3.5 py-1.5 text-sm font-semibold leading-none"
                   style={badgeStyle}
                 >
                   {categoryLabel}
-                </span>
-                <span
-                  className="text-[11px] opacity-90 leading-none"
-                  style={{ fontFamily: '"Times New Roman", Times, serif' }}
-                >
-                  Air quality is {categoryLabel.toLowerCase()}
                 </span>
               </div>
             </div>
