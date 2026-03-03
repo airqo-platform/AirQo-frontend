@@ -180,6 +180,13 @@ const DataExportPage = () => {
     }
   }, [activeTab, setDeviceCategory]);
 
+  // BAM device exports under Devices tab always use raw data type
+  useEffect(() => {
+    if (activeTab === 'devices' && deviceCategory === 'bam' && dataType !== 'raw') {
+      setDataType('raw');
+    }
+  }, [activeTab, deviceCategory, dataType, setDataType]);
+
   // Handle sidebar visibility based on screen size
   useEffect(() => {
     const mediaQuery = window.matchMedia('(min-width: 1024px)');

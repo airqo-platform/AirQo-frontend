@@ -72,6 +72,9 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
   setDeviceCategory,
   activeTab,
 }) => {
+  const hideDataTypeSelection =
+    activeTab === 'devices' && deviceCategory === 'bam';
+
   const frequencyOptions = useMemo(() => {
     const allOptions = Object.entries(FREQUENCY_LABELS).map(
       ([value, label]) => ({
@@ -144,13 +147,15 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
           />
 
           {/* Data Type */}
-          <CustomField
-            label="Data Type"
-            value={dataType}
-            onChange={setDataType}
-            options={dataTypeOptions}
-            placeholder="Select data type"
-          />
+          {!hideDataTypeSelection && (
+            <CustomField
+              label="Data Type"
+              value={dataType}
+              onChange={setDataType}
+              options={dataTypeOptions}
+              placeholder="Select data type"
+            />
+          )}
 
           {/* Pollutants */}
           <div className="space-y-2">
@@ -274,13 +279,15 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
             />
 
             {/* Data Type */}
-            <CustomField
-              label="Data Type"
-              value={dataType}
-              onChange={setDataType}
-              options={dataTypeOptions}
-              placeholder="Select data type"
-            />
+            {!hideDataTypeSelection && (
+              <CustomField
+                label="Data Type"
+                value={dataType}
+                onChange={setDataType}
+                options={dataTypeOptions}
+                placeholder="Select data type"
+              />
+            )}
 
             {/* Pollutants */}
             <div className="space-y-2">
