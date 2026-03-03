@@ -94,18 +94,17 @@ const removeTokenFromUrl = (url: string): string => {
 };
 
 const resolveNextUrl = (nextUrl: string, apiBaseUrl: string): string | null => {
-  const sanitizedNextUrl = removeTokenFromUrl(nextUrl);
+  const sanitizedNextUrl = removeTokenFromUrl(nextUrl).trim();
 
   try {
     const apiBase = new URL(
       apiBaseUrl.endsWith('/') ? apiBaseUrl : `${apiBaseUrl}/`,
     );
+    const hasScheme = /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(sanitizedNextUrl);
+    const isProtocolRelative = sanitizedNextUrl.startsWith('//');
 
-    if (
-      sanitizedNextUrl.startsWith('http://') ||
-      sanitizedNextUrl.startsWith('https://')
-    ) {
-      const absoluteNext = new URL(sanitizedNextUrl);
+    if (hasScheme || isProtocolRelative) {
+      const absoluteNext = new URL(sanitizedNextUrl, apiBase);
       if (absoluteNext.origin !== apiBase.origin) {
         console.error('Discarding cross-origin pagination URL in sitemap:', {
           apiOrigin: apiBase.origin,
