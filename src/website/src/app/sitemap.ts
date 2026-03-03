@@ -28,7 +28,7 @@ const FORUM_ROUTE_CONFIG = [
   { suffix: '/glossary', changeFrequency: 'monthly' as const, priority: 0.4 },
 ] as const;
 
-const FORUM_TITLES_ENDPOINT = '/website/api/v2/forum-event-titles/';
+const FORUM_TITLES_ENDPOINT = '/forum-event-titles/';
 const MAX_FORUM_API_PAGES = 20;
 
 interface ForumEventTitle {
@@ -42,9 +42,13 @@ interface ForumEventTitlesResponse {
   results?: ForumEventTitle[];
 }
 
-const normalizeApiBaseUrl = (rawApiUrl: string): string => {
+const normalizeForumApiBaseUrl = (rawApiUrl: string): string => {
   const trimmed = rawApiUrl.replace(/\/$/, '');
-  return trimmed.endsWith('/api/v2') ? trimmed : `${trimmed}/api/v2`;
+  if (trimmed.endsWith('/website/api/v2')) return trimmed;
+  if (trimmed.endsWith('/api/v2')) {
+    return trimmed.replace(/\/api\/v2$/, '/website/api/v2');
+  }
+  return `${trimmed}/website/api/v2`;
 };
 
 const withToken = (url: string, token?: string): string => {
@@ -68,9 +72,15 @@ const resolveNextUrl = (
 ): string => {
   const resolved = nextUrl.startsWith('http')
     ? nextUrl
-    : `${apiBaseUrl}${nextUrl.startsWith('/') ? nextUrl : `/${nextUrl}`}`;
+    : new URL(nextUrl, apiBaseUrl).toString();
 
   return withToken(resolved, token);
+};
+
+const parseValidDate = (value?: string): Date | null => {
+  if (!value) return null;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
 };
 
 const fetchForumEventTitles = async (): Promise<ForumEventTitle[]> => {
@@ -80,7 +90,7 @@ const fetchForumEventTitles = async (): Promise<ForumEventTitle[]> => {
     return [];
   }
 
-  const apiBaseUrl = normalizeApiBaseUrl(rawApiUrl);
+  const apiBaseUrl = normalizeForumApiBaseUrl(rawApiUrl);
   const apiToken = process.env.API_TOKEN;
 
   let nextUrl: string | null = withToken(
@@ -302,8 +312,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     (event) => {
       const encodedTitle = encodeURIComponent(event.unique_title);
       const eventLastModified =
-        (event.modified && new Date(event.modified)) ||
-        (event.created && new Date(event.created)) ||
+        parseValidDate(event.modified) ??
+        parseValidDate(event.created) ??
         currentDate;
 
       return FORUM_ROUTE_CONFIG.map((route) => ({
