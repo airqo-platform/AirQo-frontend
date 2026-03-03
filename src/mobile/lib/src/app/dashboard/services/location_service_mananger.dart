@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:loggy/loggy.dart';
 
@@ -182,6 +183,37 @@ class LocationServiceManager with UiLoggy {
     return Geolocator.distanceBetween(lat1, lon1, lat2, lon2) / 1000; // Convert meters to kilometers
   }
   
+  /// Gets the user's current country via reverse geocoding.
+  /// Returns null if permission is denied, services are disabled, or an error occurs.
+  Future<String?> getUserCountry() async {
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return null;
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) return null;
+      }
+      if (permission == LocationPermission.deniedForever) return null;
+
+      final position = await Geolocator.getCurrentPosition();
+      final placemarks =
+          await placemarkFromCoordinates(position.latitude, position.longitude);
+
+      if (placemarks.isNotEmpty) {
+        final country = placemarks.first.country;
+        if (country != null && country.isNotEmpty) {
+          loggy.info('User country detected: $country');
+          return country;
+        }
+      }
+    } catch (e) {
+      loggy.warning('Error detecting user country: $e');
+    }
+    return null;
+  }
+
   /// Opens the location settings page
   Future<bool> openLocationSettings() async {
     return await Geolocator.openLocationSettings();

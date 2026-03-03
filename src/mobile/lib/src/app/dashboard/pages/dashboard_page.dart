@@ -1,12 +1,11 @@
 import 'package:airqo/src/app/auth/pages/login_page.dart';
 import 'package:airqo/src/app/dashboard/pages/location_selection/location_selection_screen.dart';
 import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
+import 'package:airqo/src/app/dashboard/services/location_service_mananger.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:async';
-import 'package:geolocator/geolocator.dart';
-import 'package:geocoding/geocoding.dart';
 
 import '../../auth/bloc/auth_bloc.dart';
 import '../../profile/bloc/user_bloc.dart';
@@ -66,49 +65,18 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
 
   Future<void> _getUserCountry() async {
     if (!mounted) return;
-    try {
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) return;
-
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) return;
+    final country = await LocationServiceManager().getUserCountry();
+    if (country != null && mounted) {
+      setState(() {
+        userCountry = country;
+      });
+      final isCountrySupported = CountryRepository.countries
+          .any((c) => c.countryName.toLowerCase() == country.toLowerCase());
+      if (isCountrySupported) {
+        setState(() {
+          selectedCountry = country;
+        });
       }
-      if (permission == LocationPermission.deniedForever) return;
-
-      final position = await Geolocator.getCurrentPosition();
-
-      final placemarks =
-          await placemarkFromCoordinates(position.latitude, position.longitude);
-
-      if (placemarks.isEmpty) {
-        loggy.warning(
-            'No placemarks found for coordinates: ${position.latitude}, ${position.longitude}');
-        return;
-      }
-
-      if (placemarks.isNotEmpty) {
-        final country = placemarks.first.country;
-        if (country != null && country.isNotEmpty) {
-          setState(() {
-            userCountry = country;
-          });
-
-          final isCountrySupported = CountryRepository.countries
-              .any((c) => c.countryName.toLowerCase() == country.toLowerCase());
-
-          if (isCountrySupported) {
-            setState(() {
-              selectedCountry = country;
-            });
-          }
-
-          return;
-        }
-      }
-    } catch (e) {
-      loggy.warning('Error getting user country: $e');
     }
   }
 
