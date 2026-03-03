@@ -90,7 +90,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
                   preferences =
                       UserPreferencesModel.fromJson(prefsResponse['data']);
                 } else if (prefsResponse['data'] is List &&
-                    prefsResponse['data'].isNotEmpty) {
+                    prefsResponse['data'].isNotEmpty &&
+                    prefsResponse['data'].first is Map<String, dynamic>) {
                   preferences = UserPreferencesModel.fromJson(
                       prefsResponse['data'].first);
                 }
@@ -221,15 +222,17 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
       UserPreferencesModel? prefsData;
       if (response['success'] == true) {
         if (response['preferences'] is List &&
-            response['preferences'].isNotEmpty) {
+            response['preferences'].isNotEmpty &&
+            response['preferences'].first is Map<String, dynamic>) {
           prefsData =
               UserPreferencesModel.fromJson(response['preferences'].first);
-        } else if (response['preference'] != null) {
+        } else if (response['preference'] is Map<String, dynamic>) {
           prefsData = UserPreferencesModel.fromJson(response['preference']);
         } else if (response['data'] is Map<String, dynamic>) {
           prefsData = UserPreferencesModel.fromJson(response['data']);
         } else if (response['data'] is List &&
-            (response['data'] as List).isNotEmpty) {
+            (response['data'] as List).isNotEmpty &&
+            response['data'].first is Map<String, dynamic>) {
           prefsData = UserPreferencesModel.fromJson(response['data'].first);
         } else {
           loggy.warning('Unrecognised preferences response format, keeping existing state');

@@ -197,7 +197,9 @@ class LocationServiceManager with UiLoggy {
       }
       if (permission == LocationPermission.deniedForever) return null;
 
-      final position = await Geolocator.getCurrentPosition();
+      final position = await Geolocator.getCurrentPosition(
+        timeLimit: const Duration(seconds: 10),
+      );
       final placemarks =
           await placemarkFromCoordinates(position.latitude, position.longitude);
 

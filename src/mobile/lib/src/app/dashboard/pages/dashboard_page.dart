@@ -67,16 +67,16 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
     if (!mounted) return;
     final country = await LocationServiceManager().getUserCountry();
     if (country != null && mounted) {
+      final match = CountryRepository.countries.where(
+        (c) => c.countryName.toLowerCase() == country.toLowerCase(),
+      ).firstOrNull;
+      final canonicalName = match?.countryName;
       setState(() {
-        userCountry = country;
+        userCountry = canonicalName ?? country;
+        if (canonicalName != null && selectedCountry == null) {
+          selectedCountry = canonicalName;
+        }
       });
-      final isCountrySupported = CountryRepository.countries
-          .any((c) => c.countryName.toLowerCase() == country.toLowerCase());
-      if (isCountrySupported) {
-        setState(() {
-          selectedCountry = country;
-        });
-      }
     }
   }
 
