@@ -9,9 +9,10 @@ export function generateMetadata({
 }: {
   params: { uniqueTitle: string };
 }) {
+  const encodedTitle = encodeURIComponent(params.uniqueTitle);
   return createMetadata({
     ...METADATA_CONFIGS.cleanAirForumSpeakers,
-    url: `/africa-clean-air-forum/${params.uniqueTitle}/speakers`,
+    url: `/africa-clean-air-forum/${encodedTitle}/speakers`,
   });
 }
 

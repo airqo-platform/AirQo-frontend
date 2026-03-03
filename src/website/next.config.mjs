@@ -85,14 +85,15 @@ const nextConfig = {
         destination: '/clean-air-network/about',
         permanent: true,
       },
-    ];
-  },
-
-  async rewrites() {
-    return [
       {
-        source: '/africa-clean-air-forum/:path*',
-        destination: '/clean-air-forum/:path*',
+        source: '/clean-air-forum',
+        destination: '/africa-clean-air-forum',
+        permanent: true,
+      },
+      {
+        source: '/clean-air-forum/:path*',
+        destination: '/africa-clean-air-forum/:path*',
+        permanent: true,
       },
     ];
   },

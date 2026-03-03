@@ -150,7 +150,7 @@ const HomePage = () => {
                 Africa.
               </div>
               <div>
-                The Africa Clean Air Forum 26 will convene experts at the
+                The Africa Clean Air Forum 2026 will convene experts at the
                 forefront of air quality science to explore how data, modelling,
                 monitoring technologies, and emerging tools can inform
                 decision-making and long-term investment across the continent.
