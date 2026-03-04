@@ -86,7 +86,7 @@ void main() async {
         config.host = host;
         config.debug = true;
         config.captureApplicationLifecycleEvents = true;
-        config.personProfiles = PostHogPersonProfiles.identifiedOnly;
+        config.personProfiles = PostHogPersonProfiles.always;
         config.maxBatchSize = 1;
 
         try {
