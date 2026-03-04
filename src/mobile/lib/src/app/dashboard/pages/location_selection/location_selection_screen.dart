@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:loggy/loggy.dart';
+import 'package:airqo/src/app/dashboard/services/location_service_mananger.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/other/places/bloc/google_places_bloc.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
@@ -48,6 +49,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
   UserPreferencesModel? userPreferences;
   bool isHtmlError = false;
   bool _isUserSelecting = false;
+  String? userCountry;
 
   @override
   void initState() {
@@ -55,6 +57,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
     loggy.info('initState called');
     selectedLocations = {};
     _initializeUserData();
+    _detectUserCountry();
     googlePlacesBloc = context.read<GooglePlacesBloc>();
     googlePlacesBloc!.add(ResetGooglePlaces());
 
@@ -391,6 +394,15 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
     });
   }
 
+  Future<void> _detectUserCountry() async {
+    final country = await LocationServiceManager().getUserCountry();
+    if (country != null && mounted) {
+      setState(() {
+        userCountry = country;
+      });
+    }
+  }
+
   Set<String> _getActiveCountries() {
     final activeCountries = CountryRepository.extractActiveCountryNames(allMeasurements);
     loggy.info('Active countries extracted from ${allMeasurements.length} measurements: $activeCountries');
@@ -501,6 +513,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
           onFilterSelected: _filterByCountry,
           onResetFilter: _resetFilter,
           activeCountries: _getActiveCountries(),
+          userCountry: userCountry,
         ),
         if (showLocationLimitError)
           Padding(
