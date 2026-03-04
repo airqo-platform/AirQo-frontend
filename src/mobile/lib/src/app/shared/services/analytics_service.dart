@@ -346,6 +346,33 @@ class AnalyticsService with UiLoggy {
         if (errorMessage != null) 'error_message': errorMessage,
       });
 
+  /// Track session lifecycle
+  Future<void> trackSessionStarted({
+    required String sessionId,
+    String? userId,
+    bool isGuest = false,
+  }) =>
+      trackEvent('session_started', properties: {
+        'session_id': sessionId,
+        if (userId != null) 'user_id': userId,
+        'is_guest': isGuest,
+        'timestamp': DateTime.now().toIso8601String(),
+      });
+
+  Future<void> trackSessionEnded({
+    required String sessionId,
+    required int durationSeconds,
+    String? userId,
+    bool isGuest = false,
+  }) =>
+      trackEvent('session_ended', properties: {
+        'session_id': sessionId,
+        'duration_seconds': durationSeconds,
+        if (userId != null) 'user_id': userId,
+        'is_guest': isGuest,
+        'timestamp': DateTime.now().toIso8601String(),
+      });
+
   /// Set user properties for identification
   Future<void> setUserIdentity({
     required String userId,

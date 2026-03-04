@@ -39,6 +39,7 @@ import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:airqo/src/app/surveys/bloc/survey_bloc.dart';
 import 'package:airqo/src/app/surveys/repository/survey_repository.dart';
 import 'package:airqo/src/app/shared/services/navigation_service.dart';
+import 'package:airqo/src/app/shared/services/session_tracker.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
@@ -262,6 +263,7 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
       AutoUpdateService().initialize(NavigationService.navigatorKey);
       NotificationHelper().initialize(context);
       NotificationHelper().subscribeToRelevantTopics();
+      SessionTracker().startSession();
     });
   }
 
@@ -277,6 +279,9 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
 
     if (state == AppLifecycleState.resumed) {
       AutoUpdateService().checkForUpdates(showDialog: true);
+      SessionTracker().startSession();
+    } else if (state == AppLifecycleState.paused) {
+      SessionTracker().endSession();
     }
   }
 
