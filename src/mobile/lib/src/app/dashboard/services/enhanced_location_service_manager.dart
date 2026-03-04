@@ -4,6 +4,7 @@ import 'package:loggy/loggy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:airqo/src/app/profile/models/privacy_zone_model.dart';
 import 'package:airqo/src/app/profile/repository/privacy_repository.dart';
+import 'package:airqo/src/app/shared/services/analytics_service.dart';
 
 class EnhancedLocationServiceManager with UiLoggy {
   static final EnhancedLocationServiceManager _instance =
@@ -62,7 +63,7 @@ class EnhancedLocationServiceManager with UiLoggy {
     _isTrackingActive = true;
     _trackingStatusController.add(true);
 
-    _trackingTimer = Timer.periodic(Duration(minutes: 5), (timer) async {
+    _trackingTimer = Timer.periodic(Duration(hours: 1), (timer) async {
       if (!_isTrackingPaused) {
         await _captureLocationPoint();
       }
@@ -109,6 +110,12 @@ class EnhancedLocationServiceManager with UiLoggy {
 
       _lastKnownPosition = position;
       _locationController.add(position);
+
+      await AnalyticsService().trackLocationCaptured(
+        latitude: position.latitude,
+        longitude: position.longitude,
+        accuracy: position.accuracy,
+      );
 
       loggy.info(
           'Location point captured: ${position.latitude}, ${position.longitude}');

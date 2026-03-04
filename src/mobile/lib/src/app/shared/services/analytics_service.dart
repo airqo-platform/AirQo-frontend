@@ -296,6 +296,18 @@ class AnalyticsService with UiLoggy {
             if (connectionType != null) 'connection_type': connectionType,
           });
 
+  /// Track geo location
+  Future<void> trackLocationCaptured({
+    required double latitude,
+    required double longitude,
+    double? accuracy,
+  }) =>
+      trackEvent('location_captured', properties: {
+        'latitude': latitude,
+        'longitude': longitude,
+        if (accuracy != null) 'accuracy': accuracy,
+      });
+
   /// Track screen navigation
   Future<void> trackScreenViewed({
     required String screenName,
