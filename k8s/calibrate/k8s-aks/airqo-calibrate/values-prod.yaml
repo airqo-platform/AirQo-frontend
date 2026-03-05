@@ -1,6 +1,6 @@
 replicaCount: 2
 image:
-  repository: eu.gcr.io/airqo-250220/airqo-calibrate-app
+  repository: airqoacr.azurecr.io/airqo-calibrate-app
   tag: latest
   pullPolicy: IfNotPresent
 imagePullSecrets: []

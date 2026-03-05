@@ -51,7 +51,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
-          fetch-depth: 2
+          fetch-depth: 0
 
       - name: check modified frontends
         id: check_files
@@ -154,17 +154,24 @@ jobs:
 
       - name: Deploy to Container Apps
         run: |
-          az containerapp create \
-            --name website-staging \
-            --resource-group ${{ env.RG }} \
-            --environment ${{ env.STAGING_ENV }} \
-            --image ${{ env.REGISTRY_URL }}/website2-staging:${{ needs.image-tag.outputs.build_id }} \
-            --target-port 3000 \
-            --env-vars-from-file .env \
-            --cpu 1.0 --memory 2.0Gi \
-            --ingress external \
-            --min-replicas 1 \
-            --max-replicas 2
+          if az containerapp show -g ${{ env.RG }} -n website-staging >/dev/null 2>&1; then
+            az containerapp update \
+              --resource-group ${{ env.RG }} \
+              --name website-staging \
+              --image ${{ env.REGISTRY_URL }}/website2-staging:${{ needs.image-tag.outputs.build_id }}
+          else
+            az containerapp create \
+              --name website-staging \
+              --resource-group ${{ env.RG }} \
+              --environment ${{ env.STAGING_ENV }} \
+              --image ${{ env.REGISTRY_URL }}/website2-staging:${{ needs.image-tag.outputs.build_id }} \
+              --target-port 3000 \
+              --env-vars-from-file .env \
+              --cpu 1.0 --memory 2.0Gi \
+              --ingress external \
+              --min-replicas 1 \
+              --max-replicas 2
+          fi
 
 
   ### build and push calibrate app image ###
