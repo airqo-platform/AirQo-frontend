@@ -38,7 +38,7 @@ jobs:
     if: github.event.pull_request.merged == true
     name: check for changed frontends
     outputs:
-      run_website: ${{ steps.check_files.outputs.run_website2 }} # website
+      run_website: ${{ steps.check_files.outputs.run_website }} # website
       run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }} # calibrate app
       run_analytics_platform: ${{ steps.check_files.outputs.run_analytics_platform }} # analytics platform
       run_reports: ${{ steps.check_files.outputs.run_reports }} # reports
@@ -49,7 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           fetch-depth: 2
 
@@ -57,10 +57,10 @@ jobs:
         id: check_files
         run: |
           echo "=============== list modified files ==============="
-          git diff --name-only HEAD^ HEAD
+          git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}"
 
           echo "========== check paths of modified files =========="
-          git diff --name-only HEAD^ HEAD > files.txt
+          git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}" > files.txt
 
           echo "run_website=false" >>$GITHUB_OUTPUT
           echo "run_calibrate_app=false" >>$GITHUB_OUTPUT
@@ -119,10 +119,10 @@ jobs:
     if: needs.check.outputs.run_website == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
       - name: Login to Azure
-        uses: azure/login@v1
+        uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
@@ -175,7 +175,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -223,7 +223,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -263,7 +263,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -302,7 +302,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -341,7 +341,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
 
       - name: Login to Azure
         uses: azure/login@v2

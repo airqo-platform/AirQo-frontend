@@ -44,13 +44,13 @@ jobs:
       run_docs: ${{ steps.check_files.outputs.run_docs }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 2
 
       - id: check_files
         run: |
-          git diff --name-only HEAD^ HEAD > files.txt
+          git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}" > files.txt
 
           echo "run_calibrate_app=false" >> $GITHUB_OUTPUT
           echo "run_analytics_platform=false" >> $GITHUB_OUTPUT
@@ -81,7 +81,7 @@ jobs:
       url: ${{ steps.preview.outputs.url }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
       - name: Azure Login
         uses: azure/login@v2
@@ -140,11 +140,11 @@ jobs:
 ############################################################
 
   website-pr-comment:
+    needs: [check, website]
     if: needs.check.outputs.run_website == 'true'
-    needs: [website]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/github-script@v6
+      - uses: actions/github-script@v8
         with:
           script: |
             github.rest.issues.createComment({
@@ -167,7 +167,7 @@ jobs:
       url: ${{ steps.preview.outputs.url }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
       - name: Azure Login
         uses: azure/login@v2
@@ -239,7 +239,7 @@ jobs:
       url: ${{ steps.preview.outputs.url }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
       - uses: azure/login@v2
         with:
@@ -306,7 +306,7 @@ jobs:
       url: ${{ steps.preview.outputs.url }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
       - uses: azure/login@v2
         with:
@@ -330,7 +330,7 @@ jobs:
 
       - name: Deploy
         run: |
-          APP=${{ needs.branch-name.outputs.lowercase }}-analytics-platform-preview}
+          APP=${{ needs.branch-name.outputs.lowercase }}-analytics-platform-preview
 
           az containerapp up \
             --name $APP \
@@ -373,7 +373,7 @@ jobs:
       url: ${{ steps.preview.outputs.url }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
       - uses: azure/login@v2
         with:
@@ -397,7 +397,7 @@ jobs:
 
       - name: Deploy
         run: |
-          APP=${{ needs.branch-name.outputs.lowercase }}-calibrate-app-preview
+          APP=${{ needs.branch-name.outputs.lowercase }}-vertex-preview
 
           az containerapp up \
             --name $APP \
@@ -440,7 +440,7 @@ jobs:
       url: ${{ steps.preview.outputs.url }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
       - uses: azure/login@v2
         with:

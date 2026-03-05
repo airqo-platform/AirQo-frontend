@@ -37,7 +37,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           fetch-depth: 2
 
@@ -45,7 +45,7 @@ jobs:
         id: check_files
         run: |
 
-          git diff --name-only HEAD^ HEAD > files.txt
+          git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}" > files.txt
 
           echo "remove_calibrate_app_preview=false" >>$GITHUB_OUTPUT
           echo "remove_analytics_platform=false" >>$GITHUB_OUTPUT

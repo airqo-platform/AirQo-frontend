@@ -2,7 +2,7 @@ replicaCount: 1
 image:
   repository: airqoacr.azurecr.io/airqo-stage-next-platform
   tag: latest
-  pullPolicy: Always
+  pullPolicy: IfNotPresent
 imagePullSecrets: []
 nameOverride: ''
 fullnameOverride: ''
