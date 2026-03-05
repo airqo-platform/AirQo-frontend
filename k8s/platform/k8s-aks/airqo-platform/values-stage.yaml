@@ -1,6 +1,6 @@
 replicaCount: 1
 image:
-  repository: eu.gcr.io/airqo-250220/airqo-stage-next-platform
+  repository: airqoacr.azurecr.io/airqo-stage-next-platform
   tag: latest
   pullPolicy: Always
 imagePullSecrets: []

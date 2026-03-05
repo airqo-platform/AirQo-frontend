@@ -1,6 +1,6 @@
 replicaCount: 2
 image:
-  repository: eu.gcr.io/airqo-250220/airqo-stage-beacon
+  repository: airqoacr.azurecr.io/airqo-stage-beacon
   tag: latest
   pullPolicy: Always
 imagePullSecrets: []

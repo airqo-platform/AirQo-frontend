@@ -1,6 +1,6 @@
 replicaCount: 2
 image:
-  repository: eu.gcr.io/airqo-250220/airqo-vertex
+  repository: airqoacr.azurecr.io/airqo-vertex
   tag: latest
   pullPolicy: Always
 imagePullSecrets: []

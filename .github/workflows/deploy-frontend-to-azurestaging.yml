@@ -1,0 +1,374 @@
+name: deploy-frontends-to-staging-azure
+
+on:
+  pull_request:
+    branches:
+      - staging
+    types:
+      - closed
+
+env:
+  REGISTRY_URL: airqoacr.azurecr.io
+  RG: airqo-main-rg
+  STAGING_ENV: airqo-website-staging-env
+  DEPLOY_BRANCH: staging
+  ACR_NAME: airqoacr
+  PROJECT_ID: airqo-250220
+
+jobs:
+  image-tag:
+    if: github.event.pull_request.merged == true
+    name: create image tag
+    runs-on: ubuntu-latest
+    outputs:
+      build_id: ${{ steps.prep.outputs.build_id }} # build id
+      datetime: ${{ steps.prep.outputs.datetime }} # build date
+    steps:
+      - name: generate build ID
+        id: prep
+        run: |
+          sha=${GITHUB_SHA::8}
+          timestamp=$(date +%s)
+          datetime=$(date)
+          echo "build_id=stage-${sha}-${timestamp}" >>$GITHUB_OUTPUT
+          echo "datetime=${datetime}" >>$GITHUB_OUTPUT
+
+  check:
+    # this job will only run if the PR has been merged
+    if: github.event.pull_request.merged == true
+    name: check for changed frontends
+    outputs:
+      run_website: ${{ steps.check_files.outputs.run_website2 }} # website
+      run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }} # calibrate app
+      run_analytics_platform: ${{ steps.check_files.outputs.run_analytics_platform }} # analytics platform
+      run_reports: ${{ steps.check_files.outputs.run_reports }} # reports
+      run_vertex: ${{ steps.check_files.outputs.run_vertex }} # vertex
+      run_beacon: ${{ steps.check_files.outputs.run_beacon }} # beacon
+      run_docs: ${{ steps.check_files.outputs.run_docs }} # docs
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+
+      - name: check modified frontends
+        id: check_files
+        run: |
+          echo "=============== list modified files ==============="
+          git diff --name-only HEAD^ HEAD
+
+          echo "========== check paths of modified files =========="
+          git diff --name-only HEAD^ HEAD > files.txt
+
+          echo "run_website=false" >>$GITHUB_OUTPUT
+          echo "run_calibrate_app=false" >>$GITHUB_OUTPUT
+          echo "run_analytics_platform=false" >>$GITHUB_OUTPUT
+          echo "run_reports=false" >>$GITHUB_OUTPUT
+          echo "run_vertex=false" >>$GITHUB_OUTPUT
+          echo "run_beacon=false" >>$GITHUB_OUTPUT
+          echo "run_docs=false" >>$GITHUB_OUTPUT
+
+          while IFS= read -r file
+          do
+            echo $file
+            if [[ $file == src/website/* ]]; then
+              echo "run_website=true" >>$GITHUB_OUTPUT
+            fi            
+
+            if [[ $file == src/calibrate/* ]]; then
+              echo "run_calibrate_app=true" >>$GITHUB_OUTPUT
+            fi
+
+            if [[ $file == src/platform/* ]]; then
+              echo "run_analytics_platform=true" >>$GITHUB_OUTPUT
+            fi
+
+            if [[ $file == src/reports/* ]]; then
+              echo "run_reports=true" >>$GITHUB_OUTPUT
+            fi
+
+            if [[ $file == src/vertex/* ]]; then
+              echo "run_vertex=true" >>$GITHUB_OUTPUT
+            fi 
+
+            if [[ $file == src/beacon/* ]]; then
+              echo "run_beacon=true" >>$GITHUB_OUTPUT
+            fi
+
+            if [[ $file == src/docs-website/* ]]; then
+              echo "run_docs=true" >>$GITHUB_OUTPUT
+            fi
+
+            if [[ $file == workflow-trigger ]]; then
+              echo "run_website=true" >>$GITHUB_OUTPUT
+              echo "run_calibrate_app=true" >>$GITHUB_OUTPUT
+              echo "run_analytics_platform=true" >>$GITHUB_OUTPUT
+              echo "run_reports=true" >>$GITHUB_OUTPUT
+              echo "run_vertex=true" >>$GITHUB_OUTPUT
+              echo "run_beacon=true" >>$GITHUB_OUTPUT
+              echo "run_docs=true" >>$GITHUB_OUTPUT
+            fi
+
+          done < files.txt
+
+  website:
+    name: Deploy Website to Staging (Container Apps)
+    needs: [check, image-tag]
+    if: needs.check.outputs.run_website == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: ACR Login
+        run: az acr login --name ${{ env.ACR_NAME }}
+
+      - name: Create .env file with all secrets
+        run: |
+          echo "SECRET=${{ secrets.WEBSITE_SECRET }}" > .env
+          echo "API_URL=${{ secrets.WEBSITE_STAGE_API_URL }}" >> .env
+          echo "OPENCAGE_API_KEY=${{ secrets.WEBSITE_STAGE_OPENCAGE_API_KEY }}" >> .env
+          echo "API_TOKEN=${{ secrets.WEBSITE_STAGE_API_TOKEN }}" >> .env
+          echo "SLACK_WEBHOOK_URL=${{ secrets.WEBSITE_STAGE_SLACK_WEBHOOK_URL }}" >> .env
+          echo "SLACK_CHANNEL=${{ secrets.WEBSITE_STAGE_SLACK_CHANNEL }}" >> .env
+          echo "NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }}" >> .env
+          echo "NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }}" >> .env
+
+      - name: Build and Push Docker Image
+        run: |
+          cd src/website/
+          docker build . \
+            --build-arg API_URL=${{ secrets.WEBSITE_STAGE_API_URL }} \
+            --build-arg NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }} \
+            --build-arg NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }} \
+            --tag ${{ env.REGISTRY_URL }}/website2-staging:${{ needs.image-tag.outputs.build_id }}
+          docker push ${{ env.REGISTRY_URL }}/website2-staging:${{ needs.image-tag.outputs.build_id }}
+          docker tag ${{ env.REGISTRY_URL }}/website2-staging:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/website2-staging:latest
+          docker push ${{ env.REGISTRY_URL }}/website2-staging:latest
+
+      - name: Deploy to Container Apps
+        run: |
+          az containerapp create \
+            --name website-staging \
+            --resource-group ${{ env.RG }} \
+            --environment ${{ env.STAGING_ENV }} \
+            --image ${{ env.REGISTRY_URL }}/website2-staging:${{ needs.image-tag.outputs.build_id }} \
+            --target-port 3000 \
+            --env-vars-from-file .env \
+            --cpu 1.0 --memory 2.0Gi \
+            --ingress external \
+            --min-replicas 1 \
+            --max-replicas 2
+
+
+  ### build and push calibrate app image ###
+  calibrate-app:
+    name: build-push-calibrate-app-image
+    needs: [check, image-tag]
+    if: needs.check.outputs.run_calibrate_app == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: NPM Setup and Build
+        uses: actions/setup-node@v3
+        with:
+          node-version: "12"
+      - run: |
+          cd src/calibrate/
+          npm install
+          CI=false npm run build
+
+      - name: ACR Login
+        run: az acr login --name ${{ env.ACR_NAME }}
+
+      - name: Build and Push Docker Image
+        run: |
+          cd src/calibrate/
+          docker build --tag ${{ env.REGISTRY_URL }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }} .
+          docker push ${{ env.REGISTRY_URL }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }}
+          docker tag ${{ env.REGISTRY_URL }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/airqo-stage-calibrate-app:latest
+          docker push ${{ env.REGISTRY_URL }}/airqo-stage-calibrate-app:latest
+
+      - name: Update corresponding helm values file(with retry)
+        uses: Wandalen/wretry.action@v1.2.0 # Retries action on fail
+        with:
+          action: fjogeleit/yaml-update-action@main # Action to retry
+          with: |
+            valueFile: "k8s/calibrate/k8s-aks/airqo-calibrate/values-stage.yaml"
+            propertyPath: "image.tag"
+            value: ${{ needs.image-tag.outputs.build_id }}
+            branch: ${{ env.DEPLOY_BRANCH }}
+            token: ${{ secrets.YAML_UPDATER_TOKEN }}
+            message: "Update calibrate app staging image tag to ${{ needs.image-tag.outputs.build_id }}"
+
+
+  ### build and push analytics platform image ###
+  analytics-platform:
+    name: build-push-analytics-platform-image
+    needs: [check, image-tag]
+    if: needs.check.outputs.run_analytics_platform == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: ACR Login
+        run: az acr login --name ${{ env.ACR_NAME }}
+
+
+      - name: Build and Push Docker Image
+        run: |
+          cd src/platform/
+          docker build --tag ${{ env.REGISTRY_URL }}/airqo-stage-next-platform:${{ needs.image-tag.outputs.build_id }} .
+          docker push ${{ env.REGISTRY_URL }}/airqo-stage-next-platform:${{ needs.image-tag.outputs.build_id }}
+          docker tag ${{ env.REGISTRY_URL }}/airqo-stage-next-platform:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/airqo-stage-next-platform:latest
+          docker push ${{ env.REGISTRY_URL }}/airqo-stage-next-platform:latest
+
+      - name: Update corresponding helm values file(with retry)
+        uses: Wandalen/wretry.action@v1.2.0 # Retries action on fail
+        with:
+          action: fjogeleit/yaml-update-action@main # Action to retry
+          with: |
+            valueFile: "k8s/platform/k8s-aks/airqo-platform/values-stage.yaml"
+            propertyPath: "image.tag"
+            value: ${{ needs.image-tag.outputs.build_id }}
+            branch: ${{ env.DEPLOY_BRANCH }}
+            token: ${{ secrets.YAML_UPDATER_TOKEN }}
+            message: "Update next platform staging image tag to ${{ needs.image-tag.outputs.build_id }}"
+
+
+  ### build and push vertex image ###
+  vertex:
+    name: build-push-vertex-image
+    needs: [check, image-tag]
+    if: needs.check.outputs.run_vertex == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: ACR Login
+        run: az acr login --name ${{ env.ACR_NAME }}
+
+      - name: Build and Push Docker Image
+        run: |
+          cd src/vertex/
+          docker build --tag ${{ env.REGISTRY_URL }}/airqo-stage-vertex:${{ needs.image-tag.outputs.build_id }} .
+          docker push ${{ env.REGISTRY_URL }}/airqo-stage-vertex:${{ needs.image-tag.outputs.build_id }}
+          docker tag ${{ env.REGISTRY_URL }}/airqo-stage-vertex:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/airqo-stage-vertex:latest
+          docker push ${{ env.REGISTRY_URL }}/airqo-stage-vertex:latest
+
+      - name: Update corresponding helm values file(with retry)
+        uses: Wandalen/wretry.action@v1.2.0 # Retries action on fail
+        with:
+          action: fjogeleit/yaml-update-action@main # Action to retry
+          with: |
+            valueFile: "k8s/vertex/k8s-aks/airqo-vertex/values-stage.yaml"
+            propertyPath: "image.tag"
+            value: ${{ needs.image-tag.outputs.build_id }}
+            branch: ${{ env.DEPLOY_BRANCH }}
+            token: ${{ secrets.YAML_UPDATER_TOKEN }}
+            message: "Update vertex staging image tag to ${{ needs.image-tag.outputs.build_id }}"
+
+
+  ### build and push beacon image ###
+  beacon:
+    name: build-push-beacon-image
+    needs: [check, image-tag]
+    if: needs.check.outputs.run_beacon == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: ACR Login
+        run: az acr login --name ${{ env.ACR_NAME }}
+
+      - name: Build and Push Docker Image
+        run: |
+          cd src/beacon/
+          docker build --tag ${{ env.REGISTRY_URL }}/airqo-stage-beacon:${{ needs.image-tag.outputs.build_id }} .
+          docker push ${{ env.REGISTRY_URL }}/airqo-stage-beacon:${{ needs.image-tag.outputs.build_id }}
+          docker tag ${{ env.REGISTRY_URL }}/airqo-stage-beacon:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/airqo-stage-beacon:latest
+          docker push ${{ env.REGISTRY_URL }}/airqo-stage-beacon:latest
+
+      - name: Update corresponding helm values file(with retry)
+        uses: Wandalen/wretry.action@v1.2.0 # Retries action on fail
+        with:
+          action: fjogeleit/yaml-update-action@main # Action to retry
+          with: |
+            valueFile: "k8s/beacon/k8s-aks/airqo-beacon/values-stage.yaml"
+            propertyPath: "image.tag"
+            value: ${{ needs.image-tag.outputs.build_id }}
+            branch: ${{ env.DEPLOY_BRANCH }}
+            token: ${{ secrets.YAML_UPDATER_TOKEN }}
+            message: "Update beacon staging image tag to ${{ needs.image-tag.outputs.build_id }}"
+
+
+  ### build and push docs image ###
+  docs:
+    name: build-push-docs-image
+    needs: [check, image-tag]
+    if: needs.check.outputs.run_docs == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: ACR Login
+        run: az acr login --name ${{ env.ACR_NAME }}
+
+      - name: Build and Push Docker Image
+        run: |
+          cd src/docs-website/
+          docker build --tag ${{ env.REGISTRY_URL }}/airqo-stage-docs:${{ needs.image-tag.outputs.build_id }} .
+          docker push ${{ env.REGISTRY_URL }}/airqo-stage-docs:${{ needs.image-tag.outputs.build_id }}
+          docker tag ${{ env.REGISTRY_URL }}/airqo-stage-docs:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/airqo-stage-docs:latest
+          docker push ${{ env.REGISTRY_URL }}/airqo-stage-docs:latest
+      
+      - name: Update corresponding helm values file(with retry)
+        uses: Wandalen/wretry.action@v1.2.0 # Retries action on fail
+        with:
+          action: fjogeleit/yaml-update-action@main # Action to retry
+          with: |
+            valueFile: "k8s/docs-website/k8s-aks/airqo-docs-website/values-stage.yaml"
+            propertyPath: "image.tag"
+            value: ${{ needs.image-tag.outputs.build_id }}
+            branch: ${{ env.DEPLOY_BRANCH }}
+            token: ${{ secrets.YAML_UPDATER_TOKEN }} 
+            message: "Update docs staging image tag to ${{ needs.image-tag.outputs.build_id }}"
+            
+ 
