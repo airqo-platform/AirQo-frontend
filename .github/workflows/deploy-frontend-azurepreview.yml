@@ -48,7 +48,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - id: check_files
+      - name: check modified frontends
+        id: check_files
         run: |
           echo "=============== list modified files ==============="
           git diff --name-only HEAD^ HEAD
@@ -56,21 +57,40 @@ jobs:
           echo "========== check paths of modified files =========="
           git diff --name-only HEAD^ HEAD > files.txt
 
-          echo "run_calibrate_app=false" >> $GITHUB_OUTPUT
-          echo "run_analytics_platform=false" >> $GITHUB_OUTPUT
-          echo "run_website=false" >> $GITHUB_OUTPUT
-          echo "run_vertex=false" >> $GITHUB_OUTPUT
-          echo "run_beacon=false" >> $GITHUB_OUTPUT
-          echo "run_docs=false" >> $GITHUB_OUTPUT
+          echo "run_calibrate_app=false" >>$GITHUB_OUTPUT
+          echo "run_analytics_platform=false" >>$GITHUB_OUTPUT   
+          echo "run_website2=false" >>$GITHUB_OUTPUT
+          echo "run_vertex=false" >>$GITHUB_OUTPUT    
+          echo "run_beacon=false" >>$GITHUB_OUTPUT
+          echo "run_docs=false" >>$GITHUB_OUTPUT
 
           while IFS= read -r file
           do
-            [[ $file == src/calibrate/* ]] && echo "run_calibrate_app=true" >> $GITHUB_OUTPUT
-            [[ $file == src/platform/* ]] && echo "run_analytics_platform=true" >> $GITHUB_OUTPUT
-            [[ $file == src/website/* ]] && echo "run_website=true" >> $GITHUB_OUTPUT
-            [[ $file == src/vertex/* ]] && echo "run_vertex=true" >> $GITHUB_OUTPUT
-            [[ $file == src/beacon/* ]] && echo "run_beacon=true" >> $GITHUB_OUTPUT
-            [[ $file == src/docs-website/* ]] && echo "run_docs=true" >> $GITHUB_OUTPUT
+            echo $file
+            if [[ $file == src/calibrate/* ]]; then
+              echo "run_calibrate_app=true" >>$GITHUB_OUTPUT
+            fi
+
+            if [[ $file == src/platform/* ]]; then
+              echo "run_analytics_platform=true" >>$GITHUB_OUTPUT
+            fi
+
+            if [[ $file == src/website/* ]]; then
+              echo "run_website2=true" >>$GITHUB_OUTPUT
+            fi            
+
+            if [[ $file == src/vertex/* ]]; then
+              echo "run_vertex=true" >>$GITHUB_OUTPUT
+            fi 
+
+            if [[ $file == src/beacon/* ]]; then
+              echo "run_beacon=true" >>$GITHUB_OUTPUT
+            fi 
+
+            if [[ $file == src/docs-website/* ]]; then
+              echo "run_docs=true" >>$GITHUB_OUTPUT
+            fi
+
           done < files.txt
 
 #########################################
