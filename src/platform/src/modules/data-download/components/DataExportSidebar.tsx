@@ -46,7 +46,7 @@ const fileTypeOptions = [
 
 const deviceCategoryOptions = [
   { value: 'lowcost', label: 'Low Cost' },
-  { value: 'bam', label: 'BAM' },
+  { value: 'bam', label: 'Reference Monitor' },
   { value: 'mobile', label: 'Mobile' },
   { value: 'gas', label: 'Gas' },
 ];
