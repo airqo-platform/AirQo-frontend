@@ -146,9 +146,13 @@ jobs:
             --resource-group ${{ env.RG}} \
             --environment ${{ env.PR_PREVIEW_ENV}} \
             --image ${{ env.REGISTRY_URL }}/website-pr-preview:${{ github.sha }} \
-            --env-vars-file .env \
             --target-port 3000 \
             --ingress external
+
+          az containerapp update \
+            --name $APP \
+            --resource-group ${{ env.RG }} \
+            --env-vars $(cat .env | tr '\n' ' ')            
 
       - id: preview
         run: |
@@ -225,9 +229,13 @@ jobs:
             --resource-group ${{ env.RG}} \
             --environment ${{ env.PR_PREVIEW_ENV}} \
             --image ${{ env.REGISTRY_URL }}/beacon-pr-preview:${{ github.sha }} \
-            --env-vars-file .env \
             --target-port 3000 \
             --ingress external
+
+          az containerapp update \
+            --name $APP \
+            --resource-group ${{ env.RG }} \
+            --env-vars $(cat .env | tr '\n' ' ')        
 
       - id: preview
         run: |
@@ -298,9 +306,13 @@ jobs:
             --resource-group ${{ env.RG}} \
             --environment ${{ env.PR_PREVIEW_ENV}} \
             --image ${{ env.REGISTRY_URL }}/calibrate-app-pr-preview:${{ github.sha }} \
-            --env-vars-file .env \
             --target-port 80 \
             --ingress external
+
+          az containerapp update \
+            --name $APP \
+            --resource-group ${{ env.RG }} \
+            --env-vars $(cat .env | tr '\n' ' ')
 
       - id: preview
         run: |
@@ -367,10 +379,14 @@ jobs:
             --resource-group ${{ env.RG}} \
             --environment ${{ env.PR_PREVIEW_ENV}} \
             --image ${{ env.REGISTRY_URL }}/analytics-platform-pr-preview:${{ github.sha }} \
-            --env-vars-file .env \
             --target-port 3000 \
             --ingress external
 
+          az containerapp update \
+            --name $APP \
+            --resource-group ${{ env.RG }} \
+            --env-vars $(cat .env | tr '\n' ' ')   
+            
       - id: preview
         run: |
           URL=$(az containerapp show \
@@ -436,9 +452,13 @@ jobs:
             --resource-group ${{ env.RG}} \
             --environment ${{ env.PR_PREVIEW_ENV}} \
             --image ${{ env.REGISTRY_URL }}/vertex-pr-preview:${{ github.sha }} \
-            --env-vars-file .env \
             --target-port 3000 \
             --ingress external
+
+          az containerapp update \
+            --name $APP \
+            --resource-group ${{ env.RG }} \
+            --env-vars $(cat .env | tr '\n' ' ')            
 
       - id: preview
         run: |
@@ -505,10 +525,14 @@ jobs:
             --resource-group ${{ env.RG}} \
             --environment ${{ env.PR_PREVIEW_ENV}} \
             --image ${{ env.REGISTRY_URL }}/docs-pr-preview:${{ github.sha }} \
-            --env-vars-file .env \
             --target-port 3000 \
             --ingress external
 
+          az containerapp update \
+            --name $APP \
+            --resource-group ${{ env.RG }} \
+            --env-vars $(cat .env | tr '\n' ' ')
+            
       - id: preview
         run: |
           URL=$(az containerapp show \
