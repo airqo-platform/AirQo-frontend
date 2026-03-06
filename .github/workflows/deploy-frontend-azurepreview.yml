@@ -137,6 +137,7 @@ jobs:
           echo "NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }}" >> .env
           echo "NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }}" >> .env
 
+          
       - name: Deploy Container App
         run: |
           APP=${{ needs.branch-name.outputs.lowercase }}-website-preview
