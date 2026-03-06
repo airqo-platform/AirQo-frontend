@@ -12,6 +12,7 @@ const LANGUAGE_CODE_ALIASES: Record<string, string> = {
   'zh-hans': 'zh-CN',
   'pt-br': 'pt',
   'pt-pt': 'pt',
+  he: 'iw',
 };
 
 let cachedTranslateCombo: HTMLSelectElement | null = null;
@@ -25,6 +26,12 @@ const triggerGoogleTranslateInit = () => {
   if (typeof initializer === 'function') {
     initializer();
   }
+};
+
+export const isGoogleTranslateScriptBlocked = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  return !!(window as Window & { googleTranslateScriptBlocked?: boolean })
+    .googleTranslateScriptBlocked;
 };
 
 const getCookieValue = (name: string): string | undefined => {

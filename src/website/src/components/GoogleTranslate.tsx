@@ -13,6 +13,7 @@ declare global {
     google: any;
     googleTranslateElementInit: () => void;
     googleTranslateLoaded?: boolean;
+    googleTranslateScriptBlocked?: boolean;
   }
 }
 
@@ -68,11 +69,15 @@ const GoogleTranslate = () => {
           script.defer = true;
           script.fetchPriority = 'high';
           script.addEventListener('load', () => {
+            window.googleTranslateScriptBlocked = false;
             script.setAttribute('data-gt-ready', 'true');
             initGoogleTranslate();
           });
           script.addEventListener('error', () => {
-            if (isFallback) return;
+            if (isFallback) {
+              window.googleTranslateScriptBlocked = true;
+              return;
+            }
 
             script.remove();
             loadScript(GOOGLE_TRANSLATE_SCRIPT_FALLBACK_SRC, true);

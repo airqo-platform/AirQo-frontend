@@ -73,6 +73,55 @@ export const languages: Language[] = [
     country: 'Pakistan',
     region: 'International Priority',
   },
+  {
+    code: 'lg',
+    name: 'Luganda',
+    flag: 'ug',
+    country: 'Uganda',
+    region: 'International Priority',
+  },
+  {
+    code: 'ru',
+    name: 'Russian',
+    flag: 'ru',
+    country: 'Russia',
+    region: 'International Priority',
+  },
+  {
+    code: 'la',
+    name: 'Latin',
+    flag: 'va',
+    country: 'Vatican City',
+    region: 'International Priority',
+  },
+  {
+    code: 'he',
+    name: 'Hebrew',
+    flag: 'il',
+    country: 'Israel',
+    region: 'International Priority',
+  },
+  {
+    code: 'nl',
+    name: 'Dutch',
+    flag: 'nl',
+    country: 'Netherlands',
+    region: 'International Priority',
+  },
+  {
+    code: 'tr',
+    name: 'Turkish',
+    flag: 'tr',
+    country: 'Turkey',
+    region: 'International Priority',
+  },
+  {
+    code: 'ja',
+    name: 'Japanese',
+    flag: 'jp',
+    country: 'Japan',
+    region: 'International Priority',
+  },
 
   // East Africa
   {

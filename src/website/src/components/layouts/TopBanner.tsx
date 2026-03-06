@@ -10,6 +10,7 @@ import {
   applyGoogleTranslateLanguage,
   getGoogleTranslateTargetLanguage,
   getPersistedLanguageCode,
+  isGoogleTranslateScriptBlocked,
   normalizeGoogleLanguageCode,
   setGoogleTranslateLanguageCookie,
   setPersistedLanguageCode,
@@ -86,6 +87,13 @@ const TopBanner = () => {
 
         // Last fallback for deterministic behavior when combo is unavailable.
         if (!retryApplied) {
+          if (isGoogleTranslateScriptBlocked()) {
+            console.warn(
+              'Google Translate is blocked by browser settings or an extension.',
+            );
+            return;
+          }
+
           setGoogleTranslateLanguageCookie(language.code);
           window.location.reload();
         }

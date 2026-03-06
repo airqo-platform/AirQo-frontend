@@ -71,7 +71,7 @@ const LanguageModal: React.FC<LanguageModalProps> = ({
                   height={20}
                   wrapperClassName="flex items-center justify-center w-8 h-5 overflow-hidden rounded border border-gray-200"
                 />
-                <span className="flex-1 font-medium text-gray-900 group-hover:text-blue-700 truncate">
+                <span className="min-w-0 flex-1 font-medium text-gray-900 group-hover:text-blue-700 truncate">
                   {lang.name}
                 </span>
               </button>
