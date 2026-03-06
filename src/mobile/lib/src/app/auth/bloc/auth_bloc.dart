@@ -2,6 +2,7 @@ import 'package:airqo/src/app/auth/models/input_model.dart';
 import 'package:airqo/src/app/auth/repository/auth_repository.dart';
 import 'package:airqo/src/app/auth/services/auth_helper.dart';
 import 'package:airqo/src/app/shared/services/analytics_service.dart';
+import 'package:airqo/src/app/shared/utils/device_id_manager.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
@@ -27,6 +28,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     on<UseAsGuest>((event, emit) async {
       await AnalyticsService().trackGuestModeAccessed();
+      final deviceId = await DeviceIdManager.getDeviceId();
+      await AnalyticsService().setUserIdentity(userId: deviceId);
       emit(GuestUser());
     });
 
@@ -46,6 +49,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         }
         emit(AuthLoaded(AuthPurpose.login));
       } else {
+        final deviceId = await DeviceIdManager.getDeviceId();
+        await AnalyticsService().setUserIdentity(userId: deviceId);
         emit(GuestUser());
       }
     } catch (e) {
@@ -142,6 +147,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await AnalyticsService().resetUser();
       await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.authToken);
       await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.userId);
+      final deviceId = await DeviceIdManager.getDeviceId();
+      await AnalyticsService().setUserIdentity(userId: deviceId);
       emit(GuestUser());
     } catch (e) {
       debugPrint("Logout error: $e");
@@ -153,7 +160,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.authToken);
       await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.userId);
-      emit(GuestUser()); 
+      final deviceId = await DeviceIdManager.getDeviceId();
+      await AnalyticsService().setUserIdentity(userId: deviceId);
+      emit(GuestUser());
     } catch (e) {
       debugPrint("Session expiry cleanup error: $e");
       emit(GuestUser());
