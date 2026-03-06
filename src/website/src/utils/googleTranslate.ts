@@ -213,7 +213,6 @@ export const applyGoogleTranslateLanguage = async (
   if (!combo) return false;
 
   const resolvedCode = resolveLanguageForCombo(languageCode, combo);
-  setGoogleTranslateLanguageCookie(resolvedCode);
 
   const currentTargetLanguage = normalizeGoogleLanguageCode(
     getGoogleTranslateTargetLanguage() || DEFAULT_GOOGLE_LANGUAGE,
