@@ -7,6 +7,7 @@ import LanguageFlag from '@/components/LanguageFlag';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -38,6 +39,9 @@ const LanguageModal: React.FC<LanguageModalProps> = ({
           <DialogTitle className="text-2xl font-bold text-gray-900">
             Select Language
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Choose a language to translate the website content.
+          </DialogDescription>
           <div className="relative mt-4">
             <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
@@ -67,7 +71,7 @@ const LanguageModal: React.FC<LanguageModalProps> = ({
                   height={20}
                   wrapperClassName="flex items-center justify-center w-8 h-5 overflow-hidden rounded border border-gray-200"
                 />
-                <span className="font-medium text-gray-900 group-hover:text-blue-700 truncate">
+                <span className="min-w-0 flex-1 font-medium text-gray-900 group-hover:text-blue-700 truncate">
                   {lang.name}
                 </span>
               </button>
