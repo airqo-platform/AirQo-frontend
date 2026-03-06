@@ -147,8 +147,8 @@ export const getBannerNotification = ({
   if (activeTab === 'devices' && deviceCategory === 'bam') {
     return (
       <InfoBanner
-        title="BAM Device Data Available"
-        message="BAM devices provide high-quality reference data with all frequency options available for detailed analysis."
+        title="Reference Monitor Data Available"
+        message="Reference Monitor provide high-quality reference data with all frequency options available for detailed analysis."
       />
     );
   }

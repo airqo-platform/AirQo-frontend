@@ -4,7 +4,7 @@ export const DEVICE_CATEGORY_OPTIONS = [
   { value: 'lowcost', label: 'Low Cost' },
   { value: 'mobile', label: 'Mobile' },
   { value: 'gas', label: 'Gas' },
-  { value: 'bam', label: 'BAM' },
+  { value: 'bam', label: 'Reference Monitor' },
 ] as const;
 
 export const DATA_TYPE_OPTIONS = [

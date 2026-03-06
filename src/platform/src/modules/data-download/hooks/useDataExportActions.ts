@@ -116,8 +116,13 @@ export const useDataExportActions = (
         });
       }
 
+      const effectiveDataType: 'calibrated' | 'raw' =
+        activeTab === 'devices' && deviceCategory === 'bam'
+          ? 'raw'
+          : (dataType as 'calibrated' | 'raw');
+
       const request: DataDownloadRequest = {
-        datatype: dataType as 'calibrated' | 'raw',
+        datatype: effectiveDataType,
         downloadType: fileType as 'csv' | 'json',
         startDateTime: dateRange.from.toISOString(),
         endDateTime: dateRange.to.toISOString(),
@@ -162,7 +167,7 @@ export const useDataExportActions = (
               : sitesForDownload.length;
 
         trackDataDownload(posthog, {
-          dataType: dataType as 'calibrated' | 'raw',
+          dataType: effectiveDataType,
           fileType: fileType as 'csv' | 'json',
           frequency: frequency as 'hourly' | 'daily' | 'monthly',
           pollutants: selectedPollutants,

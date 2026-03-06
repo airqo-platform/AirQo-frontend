@@ -40,7 +40,18 @@ export const getDevicesColumns = (): ColumnConfig[] => [
     ),
   },
   { key: 'network', label: 'Network' },
-  { key: 'category', label: 'Category' },
+  {
+    key: 'category',
+    label: 'Category',
+    render: (value: unknown) => {
+      const category = value as string;
+      return (
+        <span className="capitalize">
+          {category === 'bam' ? 'Reference Monitor' : category}
+        </span>
+      );
+    },
+  },
 ];
 
 /**
