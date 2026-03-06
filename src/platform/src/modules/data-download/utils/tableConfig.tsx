@@ -1,6 +1,7 @@
 import React from 'react';
 import { AqMonitor03, AqMarkerPin03, AqGlobe01 } from '@airqo/icons-react';
 import { ColumnConfig, TabConfig, TabType } from '../types/dataExportTypes';
+import { DEVICE_CATEGORY_OPTIONS } from '../constants/dataExportConstants';
 
 /**
  * Sites table columns configuration
@@ -45,11 +46,10 @@ export const getDevicesColumns = (): ColumnConfig[] => [
     label: 'Category',
     render: (value: unknown) => {
       const category = value as string;
-      return (
-        <span className="capitalize">
-          {category === 'bam' ? 'Reference Monitor' : category}
-        </span>
+      const option = DEVICE_CATEGORY_OPTIONS.find(
+        opt => opt.value === category
       );
+      return <span>{option?.label || category}</span>;
     },
   },
 ];
