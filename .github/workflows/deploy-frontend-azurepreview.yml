@@ -48,9 +48,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Fetch base branch
+        run: |
+          git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1
+
       - id: check_files
         run: |
-          git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}" > files.txt
+          git diff --name-only origin/${{ github.event.pull_request.base.ref }} HEAD > files.txt
 
           echo "run_calibrate_app=false" >> $GITHUB_OUTPUT
           echo "run_analytics_platform=false" >> $GITHUB_OUTPUT
