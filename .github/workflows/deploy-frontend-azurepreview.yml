@@ -48,13 +48,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Fetch base branch
-        run: |
-          git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1
-
       - id: check_files
         run: |
-          git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD > files.txt || true
+          echo "=============== list modified files ==============="
+          git diff --name-only HEAD^ HEAD
+
+          echo "========== check paths of modified files =========="
+          git diff --name-only HEAD^ HEAD > files.txt
 
           echo "run_calibrate_app=false" >> $GITHUB_OUTPUT
           echo "run_analytics_platform=false" >> $GITHUB_OUTPUT
