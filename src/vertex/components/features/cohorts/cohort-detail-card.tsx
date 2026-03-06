@@ -26,7 +26,7 @@ const CohortDetailsCard: React.FC<CohortDetailsCardProps> = ({
   visibility,
   onShowDetailsModal,
   loading,
-  cohort_tags = [],
+  cohort_tags,
 }) => {
   const [isVisibilityDialogOpen, setIsVisibilityDialogOpen] = useState(false);
   const [isTagsDialogOpen, setIsTagsDialogOpen] = useState(false);
@@ -36,7 +36,7 @@ const CohortDetailsCard: React.FC<CohortDetailsCardProps> = ({
   const { mutate: updateCohort, isPending } = useUpdateCohortDetails();
 
   useEffect(() => {
-    setSelectedTags(cohort_tags || []);
+    setSelectedTags(cohort_tags ?? []);
   }, [cohort_tags]);
 
   const handleToggleVisibility = (checked: boolean) => {
