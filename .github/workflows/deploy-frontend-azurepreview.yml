@@ -160,6 +160,7 @@ jobs:
 #########################################
 
   beacon:
+    name: build-push-deploy-beacon-preview
     needs: [check, branch-name]
     if: needs.check.outputs.run_beacon == 'true'
     runs-on: ubuntu-latest
@@ -167,7 +168,8 @@ jobs:
       url: ${{ steps.preview.outputs.url }}
 
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout code
+        uses: actions/checkout@v6
 
       - name: Azure Login
         uses: azure/login@v2
@@ -232,6 +234,7 @@ jobs:
             })
 
   calibrate_app:
+    name: build-push-deploy-calibrate-app-preview
     needs: [check, branch-name]
     if: needs.check.outputs.run_calibrate_app == 'true'
     runs-on: ubuntu-latest
@@ -239,7 +242,8 @@ jobs:
       url: ${{ steps.preview.outputs.url }}
 
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout code
+        uses: actions/checkout@v6
 
       - uses: azure/login@v2
         with:
@@ -299,6 +303,7 @@ jobs:
             })
               
   analytics_platform:
+    name: build-push-deploy-analytics-platform-preview
     needs: [check, branch-name]
     if: needs.check.outputs.run_analytics_platform == 'true'
     runs-on: ubuntu-latest
@@ -306,7 +311,8 @@ jobs:
       url: ${{ steps.preview.outputs.url }}
 
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout code
+        uses: actions/checkout@v6
 
       - uses: azure/login@v2
         with:
@@ -366,6 +372,7 @@ jobs:
             })          
 
   vertex:
+    name: build-push-deploy-vertex-preview
     needs: [check, branch-name]
     if: needs.check.outputs.run_vertex == 'true'
     runs-on: ubuntu-latest
@@ -373,7 +380,8 @@ jobs:
       url: ${{ steps.preview.outputs.url }}
 
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout code
+        uses: actions/checkout@v6
 
       - uses: azure/login@v2
         with:
@@ -433,6 +441,7 @@ jobs:
             })
 
   docs:
+    name: build-push-deploy-docs-preview
     needs: [check, branch-name]
     if: needs.check.outputs.run_docs == 'true'
     runs-on: ubuntu-latest
@@ -440,7 +449,8 @@ jobs:
       url: ${{ steps.preview.outputs.url }}
 
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout code
+        uses: actions/checkout@v6
 
       - uses: azure/login@v2
         with:
