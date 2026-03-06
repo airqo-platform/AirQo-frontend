@@ -1,3 +1,5 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
@@ -11,6 +13,8 @@ import MonitorDisplay from '../sections/footer/MonitorDisplay';
 import ScrollToTopButton from './ScrollToTopButton';
 
 const Footer = () => {
+  const currentYear = new Date().getFullYear();
+
   return (
     <footer
       id="WebsiteFooter"
@@ -66,7 +70,7 @@ const Footer = () => {
         </div>
 
         {/* Links Section */}
-        <div className="flex justify-between flex-wrap gap-8">
+        <div className="grid w-full grid-cols-1 gap-8 sm:grid-cols-2 xl:grid-cols-4">
           {/* Products Section */}
           <div className="flex flex-col">
             <h3 className="font-semibold text-gray-800 mb-4">Products</h3>
@@ -185,10 +189,10 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  href="/clean-air-forum"
+                  href="/africa-clean-air-forum"
                   className="text-gray-600 hover:underline"
                 >
-                  CLEAN-Air Forum
+                  Africa Clean Air Forum
                 </Link>
               </li>
               <li>
@@ -217,6 +221,41 @@ const Footer = () => {
               </li>
             </ul>
           </div>
+
+          {/* Developers Section */}
+          <div className="flex flex-col">
+            <h3 className="font-semibold text-gray-800 mb-4">Developers</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link
+                  href="/packages"
+                  className="text-gray-600 hover:underline"
+                >
+                  Packages
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="https://docs.airqo.net/airqo-rest-api-documentation/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-600 hover:underline"
+                >
+                  Documentation
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="https://github.com/airqo-platform"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-600 hover:underline"
+                >
+                  GitHub
+                </Link>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
 
@@ -237,7 +276,7 @@ const Footer = () => {
       <div className="flex flex-col text-sm lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">
         {/* Footer Bottom Links */}
         <div className="flex flex-wrap gap-4 text-center lg:text-left text-gray-600">
-          &copy; 2025 AirQo
+          &copy; {currentYear} AirQo
           <Link href="/legal/terms-of-service" className="hover:underline">
             Terms of service
           </Link>

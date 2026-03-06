@@ -90,7 +90,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
                   preferences =
                       UserPreferencesModel.fromJson(prefsResponse['data']);
                 } else if (prefsResponse['data'] is List &&
-                    prefsResponse['data'].isNotEmpty) {
+                    prefsResponse['data'].isNotEmpty &&
+                    prefsResponse['data'].first is Map<String, dynamic>) {
                   preferences = UserPreferencesModel.fromJson(
                       prefsResponse['data'].first);
                 }
@@ -220,29 +221,32 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
 
       UserPreferencesModel? prefsData;
       if (response['success'] == true) {
-        if (response['data'] != null &&
-            response['data'] is Map<String, dynamic>) {
-          prefsData = UserPreferencesModel.fromJson(response['data']);
-        } else if (response['preferences'] is List &&
-            response['preferences'].isNotEmpty) {
+        if (response['preferences'] is List &&
+            response['preferences'].isNotEmpty &&
+            response['preferences'].first is Map<String, dynamic>) {
           prefsData =
               UserPreferencesModel.fromJson(response['preferences'].first);
+        } else if (response['preference'] is Map<String, dynamic>) {
+          prefsData = UserPreferencesModel.fromJson(response['preference']);
+        } else if (response['data'] is Map<String, dynamic>) {
+          prefsData = UserPreferencesModel.fromJson(response['data']);
+        } else if (response['data'] is List &&
+            (response['data'] as List).isNotEmpty &&
+            response['data'].first is Map<String, dynamic>) {
+          prefsData = UserPreferencesModel.fromJson(response['data'].first);
         } else {
-          prefsData = UserPreferencesModel(
-            id: '',
-            userId: userId,
-            selectedSites: [],
-          );
-          loggy.info('No preferences data found, initializing with 0 sites');
+          loggy.warning('Unrecognised preferences response format, keeping existing state');
         }
-        loggy.info(
-            'Loaded preferences: ${prefsData.selectedSites.length} sites');
-        emit(DashboardLoaded(
-          currentState.response, 
-          userPreferences: prefsData,
-          isOffline: currentState.isOffline,
-          lastUpdated: currentState.lastUpdated,
-        ));
+
+        if (prefsData != null) {
+          loggy.info('Loaded preferences: ${prefsData.selectedSites.length} sites');
+          emit(DashboardLoaded(
+            currentState.response,
+            userPreferences: prefsData,
+            isOffline: currentState.isOffline,
+            lastUpdated: currentState.lastUpdated,
+          ));
+        }
       } else {
         loggy.warning('Failed to load user preferences: ${response['message']}');
       }

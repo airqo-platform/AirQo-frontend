@@ -36,7 +36,9 @@ const AboutPage = () => {
       component: 'AboutPage',
       context: 'ForumDataContext',
     });
-    return <ForumLoading message="Loading Clean Air Forum information..." />;
+    return (
+      <ForumLoading message="Loading Africa Clean Air Forum information..." />
+    );
   }
 
   try {

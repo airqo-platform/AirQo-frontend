@@ -49,12 +49,12 @@ const GlossaryPage = () => {
         <div className="prose max-w-none flex flex-col gap-6">
           <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
 
-          {/* Clean Air Forum Events Section (Sidebar) */}
+          {/* Africa Clean Air Forum Events Section (Sidebar) */}
           <div className="flex flex-col md:flex-row py-6 md:space-x-8">
             {/* Left column: Heading */}
             <div className="md:w-1/3 mb-4 md:mb-0">
               <h1 className="text-2xl mt-4 font-semibold">
-                Clean Air Forum Events
+                Africa Clean Air Forum Events
               </h1>
             </div>
             {/* Right column: List of event links */}
@@ -62,7 +62,7 @@ const GlossaryPage = () => {
               <ul className="space-y-2">
                 {eventsList.map((event) => {
                   // Use the unique_title directly in the link.
-                  const href = `/clean-air-forum/${encodeURIComponent(
+                  const href = `/africa-clean-air-forum/${encodeURIComponent(
                     event.unique_title,
                   )}/about`;
                   return (

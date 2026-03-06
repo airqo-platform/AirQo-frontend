@@ -8,12 +8,12 @@ import ForumHero from '@/views/cleanairforum/ForumHero';
 
 // Generate metadata for SEO
 export const metadata = createMetadata({
-  title: "CLEAN-Air Forum | Africa's Premier Air Quality Convening",
+  title: "Africa Clean Air Forum | Africa's Premier Air Quality Convening",
   description:
     "Join Africa's annual convening for policymakers, air quality experts, industry leaders, academics, and civil society organizations. Fostering knowledge sharing and cross-border partnerships to address air pollution in African cities.",
   keywords:
-    'CLEAN-Air Forum, air quality Africa, environmental conference, clean air advocacy, African cities pollution, air quality experts',
-  url: '/clean-air-forum',
+    'Africa Clean Air Forum, air quality Africa, environmental conference, clean air advocacy, African cities pollution, air quality experts',
+  url: '/africa-clean-air-forum',
 });
 
 export const viewport = generateViewport();

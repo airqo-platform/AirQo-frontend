@@ -15,9 +15,10 @@ export function generateMetadata({
 }: {
   params: { uniqueTitle: string };
 }) {
+  const encodedTitle = encodeURIComponent(params.uniqueTitle);
   return createMetadata({
     ...METADATA_CONFIGS.cleanAirForum,
-    url: `/clean-air-forum/${params.uniqueTitle}/about`,
+    url: `/africa-clean-air-forum/${encodedTitle}/about`,
   });
 }
 

@@ -81,10 +81,10 @@ const BannerSection = ({ data }: { data: any }) => {
           {/* Back button for detail pages */}
           <div className="flex w-full justify-start mb-4">
             <button
-              onClick={() => router.push('/clean-air-forum')}
+              onClick={() => router.push('/africa-clean-air-forum')}
               className="inline-flex items-center px-3 py-2 bg-white rounded-md shadow-sm text-sm text-gray-700 hover:bg-gray-50"
             >
-              ← Back
+              {'<- Back'}
             </button>
           </div>
           <h1 className="text-3xl md:text-5xl mb-4 font-bold text-gray-900">

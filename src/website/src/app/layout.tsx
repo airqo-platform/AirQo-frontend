@@ -8,6 +8,7 @@ import { ReactNode, Suspense, lazy } from 'react';
 
 import CookieConsent from '@/components/CookieConsent';
 import ExternalLinkDecorator from '@/components/ExternalLinkDecorator';
+import GoogleTranslate from '@/components/GoogleTranslate';
 import { ErrorBoundary } from '@/components/ui';
 import { ReduxDataProvider } from '@/context/ReduxDataProvider';
 import { SwrProvider } from '@/services/providers/SwrProvider';
@@ -20,7 +21,6 @@ const EngagementDialog = lazy(
 const FloatingMiniBillboardWrapper = lazy(
   () => import('@/components/FloatingMiniBillboardWrapper'),
 );
-const GoogleTranslate = lazy(() => import('@/components/GoogleTranslate'));
 
 const interFont = localFont({
   src: [
@@ -114,7 +114,7 @@ export const metadata: Metadata = {
     'Google.org Africa',
     'World Bank air quality',
     // Products
-    'CLEAN-Air Forum',
+    'Africa Clean Air Forum',
     'CLEAN-Air Network',
     'Binos Monitor',
     'AirQalibrate',
@@ -344,9 +344,7 @@ export default async function RootLayout({
         </Script>
       </head>
       <body>
-        <Suspense fallback={null}>
-          <GoogleTranslate />
-        </Suspense>
+        <GoogleTranslate />
         <ExternalLinkDecorator />
         <ErrorBoundary>
           <ReduxDataProvider>
