@@ -44,7 +44,9 @@ jobs:
       run_docs: ${{ steps.check_files.outputs.run_docs }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Fetch base branch
         run: |
@@ -83,7 +85,7 @@ jobs:
       url: ${{ steps.preview.outputs.url }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
 
       - name: Azure Login
         uses: azure/login@v2
@@ -171,7 +173,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Azure Login
         uses: azure/login@v2
@@ -245,7 +247,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - uses: azure/login@v2
         with:
@@ -314,7 +316,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - uses: azure/login@v2
         with:
@@ -383,7 +385,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - uses: azure/login@v2
         with:
@@ -452,7 +454,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - uses: azure/login@v2
         with:
