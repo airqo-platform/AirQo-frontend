@@ -137,7 +137,9 @@ jobs:
           echo "NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }}" >> .env
           echo "NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }}" >> .env
 
-          
+      - name: Login to ACR
+        run: az acr login --name airqoacr
+
       - name: Deploy Container App
         run: |
           APP=${{ needs.branch-name.outputs.lowercase }}-website-preview
@@ -221,6 +223,9 @@ jobs:
           docker build -t ${{ env.REGISTRY_URL }}/beacon-pr-preview:${{ github.sha }} src/beacon
           docker push ${{ env.REGISTRY_URL }}/beacon-pr-preview:${{ github.sha }}
 
+      - name: Login to ACR
+        run: az acr login --name airqoacr
+
       - name: Deploy
         run: |
           APP=${{ needs.branch-name.outputs.lowercase }}-beacon-preview
@@ -298,6 +303,9 @@ jobs:
           docker build -t ${{ env.REGISTRY_URL }}/calibrate-app-pr-preview:${{ github.sha }} src/calibrate
           docker push ${{ env.REGISTRY_URL }}/calibrate-app-pr-preview:${{ github.sha }}
 
+      - name: Login to ACR
+        run: az acr login --name airqoacr
+
       - name: Deploy
         run: |
           APP=${{ needs.branch-name.outputs.lowercase }}-calibrate-app-preview
@@ -371,6 +379,9 @@ jobs:
           docker build -t ${{ env.REGISTRY_URL }}/analytics-platform-pr-preview:${{ github.sha }} src/platform
           docker push ${{ env.REGISTRY_URL }}/analytics-platform-pr-preview:${{ github.sha }}
 
+      - name: Login to ACR
+        run: az acr login --name airqoacr
+          
       - name: Deploy
         run: |
           APP=${{ needs.branch-name.outputs.lowercase }}-analytics-platform-preview
@@ -444,6 +455,9 @@ jobs:
           docker build -t ${{ env.REGISTRY_URL }}/vertex-pr-preview:${{ github.sha }} src/vertex
           docker push ${{ env.REGISTRY_URL }}/vertex-pr-preview:${{ github.sha }}
 
+      - name: Login to ACR
+        run: az acr login --name airqoacr
+
       - name: Deploy
         run: |
           APP=${{ needs.branch-name.outputs.lowercase }}-vertex-preview
@@ -516,6 +530,9 @@ jobs:
         run: |
           docker build -t ${{ env.REGISTRY_URL }}/docs-pr-preview:${{ github.sha }} src/docs-website
           docker push ${{ env.REGISTRY_URL }}/docs-pr-preview:${{ github.sha }}
+
+      - name: Login to ACR
+        run: az acr login --name airqoacr
 
       - name: Deploy
         run: |
