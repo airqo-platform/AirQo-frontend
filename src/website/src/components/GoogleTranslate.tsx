@@ -21,6 +21,10 @@ const INCLUDED_LANGUAGES = Array.from(
 ).join(',');
 
 const GOOGLE_TRANSLATE_SCRIPT_ID = 'google-translate-script';
+const GOOGLE_TRANSLATE_SCRIPT_SRC =
+  'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+const GOOGLE_TRANSLATE_SCRIPT_FALLBACK_SRC =
+  'https://translate.googleapis.com/translate_a/element.js?cb=googleTranslateElementInit';
 
 const GoogleTranslate = () => {
   useEffect(() => {
@@ -56,18 +60,27 @@ const GoogleTranslate = () => {
       ) as HTMLScriptElement | null;
 
       if (!existingScript) {
-        const script = document.createElement('script');
-        script.id = GOOGLE_TRANSLATE_SCRIPT_ID;
-        script.src =
-          'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
-        script.async = true;
-        script.defer = true;
-        script.fetchPriority = 'high';
-        script.crossOrigin = 'anonymous';
-        script.addEventListener('load', () => {
-          script.setAttribute('data-gt-ready', 'true');
-        });
-        document.body.appendChild(script);
+        const loadScript = (sourceUrl: string, isFallback = false) => {
+          const script = document.createElement('script');
+          script.id = GOOGLE_TRANSLATE_SCRIPT_ID;
+          script.src = sourceUrl;
+          script.async = true;
+          script.defer = true;
+          script.fetchPriority = 'high';
+          script.addEventListener('load', () => {
+            script.setAttribute('data-gt-ready', 'true');
+            initGoogleTranslate();
+          });
+          script.addEventListener('error', () => {
+            if (isFallback) return;
+
+            script.remove();
+            loadScript(GOOGLE_TRANSLATE_SCRIPT_FALLBACK_SRC, true);
+          });
+          document.body.appendChild(script);
+        };
+
+        loadScript(GOOGLE_TRANSLATE_SCRIPT_SRC);
       } else if (existingScript.getAttribute('data-gt-ready') === 'true') {
         initGoogleTranslate();
       } else {
