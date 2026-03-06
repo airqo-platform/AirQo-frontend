@@ -1,4 +1,4 @@
-name: deploy-to-azure-preview-environment
+name: deploy-to-azure-previews-environment
 
 on:
   pull_request:
