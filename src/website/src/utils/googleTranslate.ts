@@ -204,9 +204,6 @@ export const applyGoogleTranslateLanguage = async (
 ): Promise<boolean> => {
   if (typeof window === 'undefined') return false;
 
-  const normalizedRequested = normalizeGoogleLanguageCode(languageCode);
-  setGoogleTranslateLanguageCookie(normalizedRequested);
-
   let combo = await waitForTranslateCombo(timeoutMs);
   if (!combo) {
     triggerGoogleTranslateInit();
@@ -229,7 +226,7 @@ export const applyGoogleTranslateLanguage = async (
   }
 
   combo.value = resolvedCode;
-
+  setGoogleTranslateLanguageCookie(resolvedCode);
   combo.dispatchEvent(new Event('change', { bubbles: true }));
   return true;
 };

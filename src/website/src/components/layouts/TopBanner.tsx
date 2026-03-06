@@ -20,6 +20,36 @@ import { Language, languages } from '@/utils/languages';
 const DEFAULT_LANGUAGE =
   languages.find((lang) => lang.code === 'en-GB') || languages[0];
 
+const findLanguageByCode = (languageCode: string): Language | undefined => {
+  const rawCode = languageCode.trim().toLowerCase();
+  if (!rawCode) return undefined;
+
+  const normalizedCode = normalizeGoogleLanguageCode(languageCode)
+    .trim()
+    .toLowerCase();
+  const primaryRaw = rawCode.split('-')[0];
+  const primaryNormalized = normalizedCode.split('-')[0];
+
+  return (
+    languages.find((lang) => lang.code.toLowerCase() === rawCode) ||
+    languages.find(
+      (lang) =>
+        normalizeGoogleLanguageCode(lang.code).trim().toLowerCase() ===
+        normalizedCode,
+    ) ||
+    languages.find(
+      (lang) => lang.code.toLowerCase().split('-')[0] === primaryRaw,
+    ) ||
+    languages.find(
+      (lang) =>
+        normalizeGoogleLanguageCode(lang.code)
+          .trim()
+          .toLowerCase()
+          .split('-')[0] === primaryNormalized,
+    )
+  );
+};
+
 const TopBanner = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isApplyingLanguage, setIsApplyingLanguage] = useState(false);
@@ -33,18 +63,15 @@ const TopBanner = () => {
     let resolvedLanguage: Language | undefined;
 
     // Prefer cookie when actively translated to a non-English language.
-    if (targetLanguage && targetLanguage !== 'en') {
-      resolvedLanguage =
-        languages.find((lang) => lang.code === targetLanguage) ||
-        languages.find(
-          (lang) => lang.code.split('-')[0] === targetLanguage.split('-')[0],
-        );
+    if (
+      targetLanguage &&
+      normalizeGoogleLanguageCode(targetLanguage).toLowerCase() !== 'en'
+    ) {
+      resolvedLanguage = findLanguageByCode(targetLanguage);
     }
 
     if (!resolvedLanguage && persistedLanguage) {
-      resolvedLanguage = languages.find(
-        (lang) => lang.code === persistedLanguage,
-      );
+      resolvedLanguage = findLanguageByCode(persistedLanguage);
     }
 
     if (resolvedLanguage) {
