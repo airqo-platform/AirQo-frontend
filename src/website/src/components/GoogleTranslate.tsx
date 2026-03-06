@@ -24,49 +24,6 @@ const GOOGLE_TRANSLATE_SCRIPT_ID = 'google-translate-script';
 
 const GoogleTranslate = () => {
   useEffect(() => {
-    const originalBodyStyles = {
-      top: document.body.style.top,
-      position: document.body.style.position,
-      marginTop: document.body.style.marginTop,
-      paddingTop: document.body.style.paddingTop,
-    };
-    let didAdjustBodyStyles = false;
-
-    const hideTranslateArtifacts = () => {
-      const elements = document.querySelectorAll(
-        '.goog-te-banner-frame, .skiptranslate iframe, iframe.skiptranslate, iframe.goog-te-banner-frame, .goog-te-balloon-frame',
-      );
-
-      if (elements.length === 0) {
-        return;
-      }
-
-      elements.forEach((element) => {
-        if (element instanceof HTMLElement) {
-          element.style.setProperty('display', 'none', 'important');
-          element.style.setProperty('visibility', 'hidden', 'important');
-        }
-      });
-
-      if (!didAdjustBodyStyles) {
-        document.body.style.top = '0';
-        document.body.style.position = 'static';
-        document.body.style.marginTop = '0';
-        document.body.style.paddingTop = '0';
-        didAdjustBodyStyles = true;
-      }
-    };
-
-    let frameId: number | null = null;
-    const scheduleHide = () => {
-      if (frameId !== null) return;
-
-      frameId = window.requestAnimationFrame(() => {
-        hideTranslateArtifacts();
-        frameId = null;
-      });
-    };
-
     const initGoogleTranslate = () => {
       if (!window.google?.translate) return;
       if (
@@ -87,37 +44,41 @@ const GoogleTranslate = () => {
       );
 
       window.googleTranslateLoaded = true;
-      scheduleHide();
     };
 
     window.googleTranslateElementInit = initGoogleTranslate;
 
     if (window.google?.translate) {
       initGoogleTranslate();
-    } else if (!document.getElementById(GOOGLE_TRANSLATE_SCRIPT_ID)) {
-      const script = document.createElement('script');
-      script.id = GOOGLE_TRANSLATE_SCRIPT_ID;
-      script.src =
-        'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
-      script.async = true;
-      script.defer = true;
-      document.body.appendChild(script);
+    } else {
+      const existingScript = document.getElementById(
+        GOOGLE_TRANSLATE_SCRIPT_ID,
+      ) as HTMLScriptElement | null;
+
+      if (!existingScript) {
+        const script = document.createElement('script');
+        script.id = GOOGLE_TRANSLATE_SCRIPT_ID;
+        script.src =
+          'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+        script.async = true;
+        script.defer = true;
+        script.fetchPriority = 'high';
+        script.crossOrigin = 'anonymous';
+        script.addEventListener('load', () => {
+          script.setAttribute('data-gt-ready', 'true');
+        });
+        document.body.appendChild(script);
+      } else if (existingScript.getAttribute('data-gt-ready') === 'true') {
+        initGoogleTranslate();
+      } else {
+        const onLoad = () => {
+          existingScript.setAttribute('data-gt-ready', 'true');
+          initGoogleTranslate();
+          existingScript.removeEventListener('load', onLoad);
+        };
+        existingScript.addEventListener('load', onLoad);
+      }
     }
-
-    scheduleHide();
-
-    const observer = new MutationObserver(() => {
-      scheduleHide();
-    });
-
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-    });
-
-    const timeoutIds = [150, 500, 1200, 2500].map((delay) =>
-      window.setTimeout(scheduleHide, delay),
-    );
 
     const handleDocumentClick = (event: MouseEvent) => {
       if (
@@ -168,27 +129,12 @@ const GoogleTranslate = () => {
     document.addEventListener('click', handleDocumentClick, true);
 
     return () => {
-      observer.disconnect();
-      timeoutIds.forEach((timeoutId) => {
-        window.clearTimeout(timeoutId);
-      });
       document.removeEventListener('click', handleDocumentClick, true);
-
-      if (frameId !== null) {
-        window.cancelAnimationFrame(frameId);
-      }
-
-      if (didAdjustBodyStyles) {
-        document.body.style.top = originalBodyStyles.top;
-        document.body.style.position = originalBodyStyles.position;
-        document.body.style.marginTop = originalBodyStyles.marginTop;
-        document.body.style.paddingTop = originalBodyStyles.paddingTop;
-      }
     };
   }, []);
 
   return (
-    <div className="hidden notranslate" aria-hidden="true">
+    <div className="google-translate-host notranslate" aria-hidden="true">
       <div
         id="google_translate_element"
         className="google-translate-container"

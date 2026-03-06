@@ -1,33 +1,45 @@
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import React, { useEffect, useState } from 'react';
+
+import Loading from '@/components/loading';
 
 interface PageTransitionWrapperProps {
   children: React.ReactNode;
 }
 
+let hasCompletedInitialHydration = false;
+
 const PageTransitionWrapper: React.FC<PageTransitionWrapperProps> = ({
   children,
 }) => {
-  const [isVisible, setIsVisible] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
+  const [isHydrated, setIsHydrated] = useState(hasCompletedInitialHydration);
 
   useEffect(() => {
-    // Fade in content after initial load
-    setIsVisible(true);
+    if (hasCompletedInitialHydration) return;
+
+    const frameId = window.requestAnimationFrame(() => {
+      hasCompletedInitialHydration = true;
+      setIsHydrated(true);
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
   }, []);
 
+  if (!isHydrated) {
+    return <Loading fullScreen />;
+  }
+
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isVisible ? 1 : 0 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.4, ease: 'easeInOut' }}
-      >
-        {children}
-      </motion.div>
-    </AnimatePresence>
+    <motion.div
+      initial={{ opacity: shouldReduceMotion ? 1 : 0.96 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: shouldReduceMotion ? 0 : 0.18, ease: 'easeOut' }}
+    >
+      {children}
+    </motion.div>
   );
 };
 

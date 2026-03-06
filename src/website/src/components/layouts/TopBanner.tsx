@@ -10,6 +10,8 @@ import {
   applyGoogleTranslateLanguage,
   getGoogleTranslateTargetLanguage,
   getPersistedLanguageCode,
+  normalizeGoogleLanguageCode,
+  setGoogleTranslateLanguageCookie,
   setPersistedLanguageCode,
 } from '@/utils/googleTranslate';
 import { Language, languages } from '@/utils/languages';
@@ -57,27 +59,34 @@ const TopBanner = () => {
     setIsModalOpen(false);
 
     const currentTargetLanguage = getGoogleTranslateTargetLanguage();
+    const normalizedCurrent = currentTargetLanguage
+      ? normalizeGoogleLanguageCode(currentTargetLanguage).toLowerCase()
+      : null;
+    const normalizedRequested = normalizeGoogleLanguageCode(
+      language.code,
+    ).toLowerCase();
     const sameLanguage =
-      currentTargetLanguage === language.code ||
-      currentTargetLanguage === language.code.split('-')[0];
+      normalizedCurrent === normalizedRequested ||
+      normalizedCurrent === normalizedRequested.split('-')[0];
 
     if (sameLanguage) return;
 
     setIsApplyingLanguage(true);
 
     try {
-      const applied = await applyGoogleTranslateLanguage(language.code, 2500);
+      const applied = await applyGoogleTranslateLanguage(language.code, 5000);
 
       // One light retry for cases where Google script is still initializing
       if (!applied) {
         await new Promise((resolve) => setTimeout(resolve, 500));
         const retryApplied = await applyGoogleTranslateLanguage(
           language.code,
-          2000,
+          4000,
         );
 
-        // Last resort fallback to hard reload for deterministic application.
+        // Last fallback for deterministic behavior when combo is unavailable.
         if (!retryApplied) {
+          setGoogleTranslateLanguageCookie(language.code);
           window.location.reload();
         }
       }
