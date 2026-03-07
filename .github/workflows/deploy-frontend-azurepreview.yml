@@ -175,7 +175,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'New website changes available for preview [here](${{ needs.website.outputs.url }})'
+              body: 'New azure website changes available for preview [here](${{ needs.website.outputs.url }})'
             })
 
 #########################################
@@ -250,7 +250,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'New beacon changes available for preview [here](${{ needs.beacon.outputs.url }})'
+              body: 'New azure beacon changes available for preview [here](${{ needs.beacon.outputs.url }})'
             })
 
 #########################################
@@ -324,7 +324,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'New calibrate_app changes available for preview [here](${{ needs.calibrate_app.outputs.url }})'
+              body: 'New azure calibrate_app changes available for preview [here](${{ needs.calibrate_app.outputs.url }})'
             })
 
 #########################################
@@ -398,7 +398,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'New analytics_platform changes available for preview [here](${{ needs.analytics_platform.outputs.url }})'
+              body: 'New azure analytics_platform changes available for preview [here](${{ needs.analytics_platform.outputs.url }})'
             })
 
 #########################################
@@ -472,7 +472,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'New vertex changes available for preview [here](${{ needs.vertex.outputs.url }})'
+              body: 'New azure vertex changes available for preview [here](${{ needs.vertex.outputs.url }})'
             })
 
 #########################################
@@ -546,5 +546,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'New docs changes available for preview [here](${{ needs.docs.outputs.url }})'
+              body: 'New azure docs changes available for preview [here](${{ needs.docs.outputs.url }})'
             })           
