@@ -6,11 +6,26 @@ import axios, {
 } from 'axios';
 import logger from '@/shared/lib/logger';
 
+const UNAUTHORIZED_EVENT_NAME = 'auth:unauthorized';
+const UNAUTHORIZED_EVENT_COOLDOWN_MS = 1500;
+
 // Extended type for config with metadata
 interface RequestConfigWithMetadata extends InternalAxiosRequestConfig {
   metadata?: {
     startTime: number;
   };
+}
+
+interface UnauthorizedEventDetail {
+  status: number;
+  data: unknown;
+  url?: string;
+}
+
+declare global {
+  interface Window {
+    __airqoUnauthorizedEventLastAt?: number;
+  }
 }
 
 // Safe JSON stringification to prevent circular reference errors and memory leaks
@@ -45,6 +60,21 @@ const safeStringify = (obj: unknown, maxLength = 1000): string => {
   } catch {
     return '[Unstringifiable]';
   }
+};
+
+const dispatchUnauthorizedEvent = (detail: UnauthorizedEventDetail) => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  const now = Date.now();
+  const lastEventAt = window.__airqoUnauthorizedEventLastAt || 0;
+  if (now - lastEventAt < UNAUTHORIZED_EVENT_COOLDOWN_MS) {
+    return;
+  }
+
+  window.__airqoUnauthorizedEventLastAt = now;
+  window.dispatchEvent(new CustomEvent(UNAUTHORIZED_EVENT_NAME, { detail }));
 };
 
 // Auth types
@@ -163,17 +193,11 @@ export class ApiClient {
           });
 
           // Dispatch event with error details for smart handling
-          if (typeof window !== 'undefined') {
-            window.dispatchEvent(
-              new CustomEvent('auth:unauthorized', {
-                detail: {
-                  status: error.response.status,
-                  data: error.response.data,
-                  url: error.config?.url,
-                },
-              })
-            );
-          }
+          dispatchUnauthorizedEvent({
+            status: error.response.status,
+            data: error.response.data,
+            url: error.config?.url,
+          });
         } else if (error.response?.status === 403) {
           // 403 Forbidden - permission issue, log but don't spam Slack
           logger.warn('Forbidden API access', {
