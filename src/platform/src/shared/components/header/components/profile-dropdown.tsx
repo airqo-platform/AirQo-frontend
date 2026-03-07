@@ -15,6 +15,7 @@ import {
 } from '@/shared/components/ui';
 import { ProfileDropdownProps } from '../types';
 import { useLogout, useUser } from '@/shared/hooks';
+import LogoutConfirmationDialog from './logout-confirmation-dialog';
 
 export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
   className,
@@ -23,10 +24,23 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
   const { user, isLoggingOut } = useUser();
   const logout = useLogout();
   const pathname = usePathname();
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = React.useState(false);
 
-  const handleSignOut = async () => {
+  const handleRequestSignOut = React.useCallback(() => {
+    if (!isLoggingOut) {
+      setIsLogoutDialogOpen(true);
+    }
+  }, [isLoggingOut]);
+
+  const handleCloseLogoutDialog = React.useCallback(() => {
+    if (!isLoggingOut) {
+      setIsLogoutDialogOpen(false);
+    }
+  }, [isLoggingOut]);
+
+  const handleConfirmSignOut = React.useCallback(async () => {
     await logout();
-  };
+  }, [logout]);
 
   // Determine profile route based on current path
   // If user is in organization flow (/org/[slug]/...), route to org profile
@@ -92,7 +106,7 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
           <DropdownMenuSeparator />
 
           <DropdownMenuItem
-            onClick={handleSignOut}
+            onClick={handleRequestSignOut}
             disabled={isLoggingOut}
             className={isLoggingOut ? 'opacity-50 cursor-not-allowed' : ''}
           >
@@ -102,6 +116,13 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
           </DropdownMenuItem>
         </div>
       </DropdownMenuContent>
+
+      <LogoutConfirmationDialog
+        isOpen={isLogoutDialogOpen}
+        isLoggingOut={isLoggingOut}
+        onClose={handleCloseLogoutDialog}
+        onConfirm={handleConfirmSignOut}
+      />
     </DropdownMenu>
   );
 };
