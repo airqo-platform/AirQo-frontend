@@ -38,7 +38,7 @@ jobs:
     outputs:
       run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }}
       run_analytics_platform: ${{ steps.check_files.outputs.run_analytics_platform }}
-      run_website: ${{ steps.check_files.outputs.run_website }}
+      run_website: ${{ steps.check_files.outputs.run_website }}   # FIX: was run_website2
       run_vertex: ${{ steps.check_files.outputs.run_vertex }}
       run_beacon: ${{ steps.check_files.outputs.run_beacon }}
       run_docs: ${{ steps.check_files.outputs.run_docs }}
@@ -58,9 +58,9 @@ jobs:
           git diff --name-only HEAD^ HEAD > files.txt
 
           echo "run_calibrate_app=false" >>$GITHUB_OUTPUT
-          echo "run_analytics_platform=false" >>$GITHUB_OUTPUT   
-          echo "run_website2=false" >>$GITHUB_OUTPUT
-          echo "run_vertex=false" >>$GITHUB_OUTPUT    
+          echo "run_analytics_platform=false" >>$GITHUB_OUTPUT
+          echo "run_website=false" >>$GITHUB_OUTPUT          # FIX: was run_website2
+          echo "run_vertex=false" >>$GITHUB_OUTPUT
           echo "run_beacon=false" >>$GITHUB_OUTPUT
           echo "run_docs=false" >>$GITHUB_OUTPUT
 
@@ -76,16 +76,16 @@ jobs:
             fi
 
             if [[ $file == src/website/* ]]; then
-              echo "run_website2=true" >>$GITHUB_OUTPUT
-            fi            
+              echo "run_website=true" >>$GITHUB_OUTPUT       # FIX: was run_website2
+            fi
 
             if [[ $file == src/vertex/* ]]; then
               echo "run_vertex=true" >>$GITHUB_OUTPUT
-            fi 
+            fi
 
             if [[ $file == src/beacon/* ]]; then
               echo "run_beacon=true" >>$GITHUB_OUTPUT
-            fi 
+            fi
 
             if [[ $file == src/docs-website/* ]]; then
               echo "run_docs=true" >>$GITHUB_OUTPUT
@@ -127,18 +127,14 @@ jobs:
 
           docker push ${{ env.REGISTRY_URL }}/website-pr-preview:${{ github.sha }}
 
-      - name: Create env file
+      - name: Pull secrets from Key Vault
         run: |
-          echo "API_URL=${{ secrets.WEBSITE_STAGE_API_URL }}" >> .env
-          echo "OPENCAGE_API_KEY=${{ secrets.WEBSITE_STAGE_OPENCAGE_API_KEY }}" >> .env
-          echo "API_TOKEN=${{ secrets.WEBSITE_STAGE_API_TOKEN }}" >> .env
-          echo "SLACK_WEBHOOK_URL=${{ secrets.WEBSITE_STAGE_SLACK_WEBHOOK_URL }}" >> .env
-          echo "SLACK_CHANNEL=${{ secrets.WEBSITE_STAGE_SLACK_CHANNEL }}" >> .env
-          echo "NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }}" >> .env
-          echo "NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }}" >> .env
+          az keyvault secret show \
+            --vault-name ${{ env.KEYVAULT }} \
+            --name sta-env-website \
+            --query value -o tsv > secrets.json
 
-      - name: Login to ACR
-        run: az acr login --name airqoacr
+          jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' secrets.json > .env
 
       - name: Deploy Container App
         run: |
@@ -148,24 +144,25 @@ jobs:
             --name $APP \
             --resource-group ${{ env.RG }} \
             --environment ${{ env.PR_PREVIEW_ENV }} \
-            --image ${{ env.REGISTRY_URL }}/docs-pr-preview:${{ github.sha }} \
+            --image ${{ env.REGISTRY_URL }}/website-pr-preview:${{ github.sha }} \  # FIX: was docs-pr-preview
             --target-port 3000 \
             --ingress external \
             --registry-server ${{ env.REGISTRY_URL }} \
             --registry-username airqoacr \
             --registry-password ${{ secrets.ACR_PASSWORD }}
 
+          ; values quoted to handle spaces/special chars
           az containerapp update \
             --name $APP \
             --resource-group ${{ env.RG }} \
-            --env-vars $(grep -v '^#' .env | grep '=' | tr '\n' ' ')             
+            --set-env-vars $(grep -v '^#' .env | grep '=' | while IFS='=' read -r key val; do printf '%s=%s ' "$key" "$(printf '%s' "$val" | tr -d '\r')"; done)
 
       - id: preview
         run: |
           URL=$(az containerapp show \
-          --name ${{ needs.branch-name.outputs.lowercase }}-website-preview \} \          
-          --resource-group ${{ env.RG}} \
-          --query properties.configuration.ingress.fqdn -o tsv)
+            --name ${{ needs.branch-name.outputs.lowercase }}-website-preview \
+            --resource-group ${{ env.RG }} \
+            --query properties.configuration.ingress.fqdn -o tsv)
 
           echo "url=https://$URL" >> $GITHUB_OUTPUT
 
@@ -188,9 +185,8 @@ jobs:
               body: 'New website changes available for preview [here](${{ needs.website.outputs.url }})'
             })
 
-
 #########################################
-# BEACON PREVIEW (KEY VAULT VERSION)
+# BEACON PREVIEW
 #########################################
 
   beacon:
@@ -215,9 +211,9 @@ jobs:
       - name: Pull secrets from Key Vault
         run: |
           az keyvault secret show \
-          --vault-name ${{ env.KEYVAULT}} \
-          --name sta-env-beacon \
-          --query value -o tsv > secrets.json
+            --vault-name ${{ env.KEYVAULT }} \
+            --name sta-env-beacon \
+            --query value -o tsv > secrets.json
 
           jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' secrets.json > .env
 
@@ -244,17 +240,18 @@ jobs:
             --registry-username airqoacr \
             --registry-password ${{ secrets.ACR_PASSWORD }}
 
+          
           az containerapp update \
             --name $APP \
             --resource-group ${{ env.RG }} \
-            --env-vars $(grep -v '^#' .env | grep '=' | tr '\n' ' ')        
+            --set-env-vars $(grep -v '^#' .env | grep '=' | while IFS='=' read -r key val; do printf '%s=%s ' "$key" "$(printf '%s' "$val" | tr -d '\r')"; done)
 
       - id: preview
         run: |
           URL=$(az containerapp show \
-          --name ${{ needs.branch-name.outputs.lowercase }}-beacon-preview \
-          --resource-group ${{ env.RG}} \          
-          --query properties.configuration.ingress.fqdn -o tsv)
+            --name ${{ needs.branch-name.outputs.lowercase }}-beacon-preview \
+            --resource-group ${{ env.RG }} \
+            --query properties.configuration.ingress.fqdn -o tsv)
 
           echo "url=https://$URL" >> $GITHUB_OUTPUT
 
@@ -277,6 +274,10 @@ jobs:
               body: 'New beacon changes available for preview [here](${{ needs.beacon.outputs.url }})'
             })
 
+#########################################
+# CALIBRATE APP PREVIEW
+#########################################
+
   calibrate_app:
     name: build-push-deploy-calibrate-app-preview
     needs: [check, branch-name]
@@ -298,9 +299,9 @@ jobs:
       - name: Pull secrets
         run: |
           az keyvault secret show \
-          --vault-name ${{ env.KEYVAULT}} \
-          --name sta-env-calibrate-app \
-          --query value -o tsv > secrets.json
+            --vault-name ${{ env.KEYVAULT }} \
+            --name sta-env-calibrate-app \
+            --query value -o tsv > secrets.json
 
           jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' secrets.json > .env
 
@@ -327,20 +328,21 @@ jobs:
             --registry-username airqoacr \
             --registry-password ${{ secrets.ACR_PASSWORD }}
 
+          
           az containerapp update \
             --name $APP \
             --resource-group ${{ env.RG }} \
-            --env-vars $(grep -v '^#' .env | grep '=' | tr '\n' ' ')
+            --set-env-vars $(grep -v '^#' .env | grep '=' | while IFS='=' read -r key val; do printf '%s=%s ' "$key" "$(printf '%s' "$val" | tr -d '\r')"; done)
 
       - id: preview
         run: |
           URL=$(az containerapp show \
-          --name ${{ needs.branch-name.outputs.lowercase }}-calibrate-app-preview \
-          --resource-group ${{ env.RG}} \          
-          --query properties.configuration.ingress.fqdn -o tsv)
+            --name ${{ needs.branch-name.outputs.lowercase }}-calibrate-app-preview \
+            --resource-group ${{ env.RG }} \
+            --query properties.configuration.ingress.fqdn -o tsv)
 
           echo "url=https://$URL" >> $GITHUB_OUTPUT
-          
+
   calibrate-pr-comment:
     needs: [check, calibrate_app]
     if: needs.check.outputs.run_calibrate_app == 'true'
@@ -355,7 +357,11 @@ jobs:
               repo: context.repo.repo,
               body: 'New calibrate_app changes available for preview [here](${{ needs.calibrate_app.outputs.url }})'
             })
-              
+
+#########################################
+# ANALYTICS PLATFORM PREVIEW
+#########################################
+
   analytics_platform:
     name: build-push-deploy-analytics-platform-preview
     needs: [check, branch-name]
@@ -377,9 +383,9 @@ jobs:
       - name: Pull secrets
         run: |
           az keyvault secret show \
-          --vault-name ${{ env.KEYVAULT}} \
-          --name sta-env-next-platform \
-          --query value -o tsv > secrets.json
+            --vault-name ${{ env.KEYVAULT }} \
+            --name sta-env-next-platform \
+            --query value -o tsv > secrets.json
 
           jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' secrets.json > .env
 
@@ -390,7 +396,7 @@ jobs:
 
       - name: Login to ACR
         run: az acr login --name airqoacr
-          
+
       - name: Deploy
         run: |
           APP=${{ needs.branch-name.outputs.lowercase }}-analytics-platform-preview
@@ -406,20 +412,21 @@ jobs:
             --registry-username airqoacr \
             --registry-password ${{ secrets.ACR_PASSWORD }}
 
+          
           az containerapp update \
             --name $APP \
             --resource-group ${{ env.RG }} \
-            --env-vars $(grep -v '^#' .env | grep '=' | tr '\n' ' ')   
-            
+            --set-env-vars $(grep -v '^#' .env | grep '=' | while IFS='=' read -r key val; do printf '%s=%s ' "$key" "$(printf '%s' "$val" | tr -d '\r')"; done)
+
       - id: preview
         run: |
           URL=$(az containerapp show \
-          --name ${{ needs.branch-name.outputs.lowercase }}-analytics-platform-preview \
-          --resource-group ${{ env.RG}} \          
-          --query properties.configuration.ingress.fqdn -o tsv)
+            --name ${{ needs.branch-name.outputs.lowercase }}-analytics-platform-preview \
+            --resource-group ${{ env.RG }} \
+            --query properties.configuration.ingress.fqdn -o tsv)
 
           echo "url=https://$URL" >> $GITHUB_OUTPUT
-          
+
   analytics-pr-comment:
     needs: [check, analytics_platform]
     if: needs.check.outputs.run_analytics_platform == 'true'
@@ -433,7 +440,11 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: 'New analytics_platform changes available for preview [here](${{ needs.analytics_platform.outputs.url }})'
-            })          
+            })
+
+#########################################
+# VERTEX PREVIEW
+#########################################
 
   vertex:
     name: build-push-deploy-vertex-preview
@@ -456,9 +467,9 @@ jobs:
       - name: Pull secrets
         run: |
           az keyvault secret show \
-          --vault-name ${{ env.KEYVAULT}} \
-          --name sta-env-vertex \
-          --query value -o tsv > secrets.json
+            --vault-name ${{ env.KEYVAULT }} \
+            --name sta-env-vertex \
+            --query value -o tsv > secrets.json
 
           jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' secrets.json > .env
 
@@ -488,15 +499,14 @@ jobs:
           az containerapp update \
             --name $APP \
             --resource-group ${{ env.RG }} \
-            --env-vars $(grep -v '^#' .env | grep '=' | tr '\n' ' ')           
+            --set-env-vars $(grep -v '^#' .env | grep '=' | while IFS='=' read -r key val; do printf '%s=%s ' "$key" "$(printf '%s' "$val" | tr -d '\r')"; done)
 
       - id: preview
         run: |
           URL=$(az containerapp show \
-          --name ${{ needs.branch-name.outputs.lowercase }}-vertex-preview \
-          --resource-group ${{ env.RG}} \         
-          --query properties.configuration.ingress.fqdn -o tsv)
-          
+            --name ${{ needs.branch-name.outputs.lowercase }}-vertex-preview \
+            --resource-group ${{ env.RG }} \
+            --query properties.configuration.ingress.fqdn -o tsv)
 
           echo "url=https://$URL" >> $GITHUB_OUTPUT
 
@@ -514,6 +524,10 @@ jobs:
               repo: context.repo.repo,
               body: 'New vertex changes available for preview [here](${{ needs.vertex.outputs.url }})'
             })
+
+#########################################
+# DOCS PREVIEW
+#########################################
 
   docs:
     name: build-push-deploy-docs-preview
@@ -536,9 +550,9 @@ jobs:
       - name: Pull secrets
         run: |
           az keyvault secret show \
-          --vault-name ${{ env.KEYVAULT}} \
-          --name sta-env-docs \
-          --query value -o tsv > secrets.json
+            --vault-name ${{ env.KEYVAULT }} \
+            --name sta-env-docs \
+            --query value -o tsv > secrets.json
 
           jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' secrets.json > .env
 
@@ -565,19 +579,20 @@ jobs:
             --registry-username airqoacr \
             --registry-password ${{ secrets.ACR_PASSWORD }}
 
+          
           az containerapp update \
             --name $APP \
             --resource-group ${{ env.RG }} \
-            --env-vars $(grep -v '^#' .env | grep '=' | tr '\n' ' ')
-            
+            --set-env-vars $(grep -v '^#' .env | grep '=' | while IFS='=' read -r key val; do printf '%s=%s ' "$key" "$(printf '%s' "$val" | tr -d '\r')"; done)
+
       - id: preview
         run: |
           URL=$(az containerapp show \
-          --name ${{ needs.branch-name.outputs.lowercase }}-docs-preview \
-          --resource-group ${{ env.RG}} \
-          --query properties.configuration.ingress.fqdn -o tsv)
+            --name ${{ needs.branch-name.outputs.lowercase }}-docs-preview \
+            --resource-group ${{ env.RG }} \
+            --query properties.configuration.ingress.fqdn -o tsv)
 
-          echo "url=https://$URL" >> $GITHUB_OUTPUT            
+          echo "url=https://$URL" >> $GITHUB_OUTPUT
 
   docs-pr-comment:
     needs: [check, docs]

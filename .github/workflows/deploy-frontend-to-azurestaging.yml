@@ -21,8 +21,8 @@ jobs:
     name: create image tag
     runs-on: ubuntu-latest
     outputs:
-      build_id: ${{ steps.prep.outputs.build_id }} # build id
-      datetime: ${{ steps.prep.outputs.datetime }} # build date
+      build_id: ${{ steps.prep.outputs.build_id }}
+      datetime: ${{ steps.prep.outputs.datetime }}
     steps:
       - name: generate build ID
         id: prep
@@ -34,17 +34,16 @@ jobs:
           echo "datetime=${datetime}" >>$GITHUB_OUTPUT
 
   check:
-    # this job will only run if the PR has been merged
     if: github.event.pull_request.merged == true
     name: check for changed frontends
     outputs:
-      run_website: ${{ steps.check_files.outputs.run_website }} # website
-      run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }} # calibrate app
-      run_analytics_platform: ${{ steps.check_files.outputs.run_analytics_platform }} # analytics platform
-      run_reports: ${{ steps.check_files.outputs.run_reports }} # reports
-      run_vertex: ${{ steps.check_files.outputs.run_vertex }} # vertex
-      run_beacon: ${{ steps.check_files.outputs.run_beacon }} # beacon
-      run_docs: ${{ steps.check_files.outputs.run_docs }} # docs
+      run_website: ${{ steps.check_files.outputs.run_website }}
+      run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }}
+      run_analytics_platform: ${{ steps.check_files.outputs.run_analytics_platform }}
+      run_reports: ${{ steps.check_files.outputs.run_reports }}
+      run_vertex: ${{ steps.check_files.outputs.run_vertex }}
+      run_beacon: ${{ steps.check_files.outputs.run_beacon }}
+      run_docs: ${{ steps.check_files.outputs.run_docs }}
 
     runs-on: ubuntu-latest
     steps:
@@ -75,7 +74,7 @@ jobs:
             echo $file
             if [[ $file == src/website/* ]]; then
               echo "run_website=true" >>$GITHUB_OUTPUT
-            fi            
+            fi
 
             if [[ $file == src/calibrate/* ]]; then
               echo "run_calibrate_app=true" >>$GITHUB_OUTPUT
@@ -91,7 +90,7 @@ jobs:
 
             if [[ $file == src/vertex/* ]]; then
               echo "run_vertex=true" >>$GITHUB_OUTPUT
-            fi 
+            fi
 
             if [[ $file == src/beacon/* ]]; then
               echo "run_beacon=true" >>$GITHUB_OUTPUT
@@ -154,31 +153,33 @@ jobs:
 
       - name: Deploy to Container Apps
         run: |
+          ENV_VARS=$(grep -v '^#' .env | grep '=' | while IFS='=' read -r key val; do printf '%s=%s ' "$key" "$(printf '%s' "$val" | tr -d '\r')"; done)
+
           if az containerapp show -g ${{ env.RG }} -n website-staging >/dev/null 2>&1; then
             az containerapp update \
               --resource-group ${{ env.RG }} \
               --name website-staging \
-              --image ${{ env.REGISTRY_URL }}/website2-staging:${{ needs.image-tag.outputs.build_id }}
+              --image ${{ env.REGISTRY_URL }}/website2-staging:${{ needs.image-tag.outputs.build_id }} \
               --registry-server ${{ env.REGISTRY_URL }} \
               --registry-username airqoacr \
-              --registry-password ${{ secrets.ACR_PASSWORD}}  \
-              --env-vars $(grep -v '^#' .env | grep '=' | tr '\n' ' ')           
-                          
+              --registry-password ${{ secrets.ACR_PASSWORD }} \
+              --set-env-vars $ENV_VARS
+
           else
             az containerapp create \
               --name website-staging \
               --resource-group ${{ env.RG }} \
               --environment ${{ env.STAGING_ENV }} \
               --image ${{ env.REGISTRY_URL }}/website2-staging:${{ needs.image-tag.outputs.build_id }} \
-              --target-port           --env-vars $(cat .env | tr '\n' ' ')3000 \
-              --env-vars $(grep -v '^#' .env | grep '=' | tr '\n' ' ') \
+              --target-port 3000 \
+              --env-vars $ENV_VARS \
               --cpu 1.0 --memory 2.0Gi \
               --ingress external \
               --min-replicas 1 \
               --max-replicas 2 \
               --registry-server ${{ env.REGISTRY_URL }} \
               --registry-username airqoacr \
-              --registry-password ${{ secrets.ACR_PASSWORD}}               
+              --registry-password ${{ secrets.ACR_PASSWORD }}
           fi
 
 
@@ -218,9 +219,9 @@ jobs:
           docker push ${{ env.REGISTRY_URL }}/airqo-stage-calibrate-app:latest
 
       - name: Update corresponding helm values file(with retry)
-        uses: Wandalen/wretry.action@v1.2.0 # Retries action on fail
+        uses: Wandalen/wretry.action@v1.2.0
         with:
-          action: fjogeleit/yaml-update-action@main # Action to retry
+          action: fjogeleit/yaml-update-action@main
           with: |
             valueFile: "k8s/calibrate/k8s-aks/airqo-calibrate/values-stage.yaml"
             propertyPath: "image.tag"
@@ -248,7 +249,6 @@ jobs:
       - name: ACR Login
         run: az acr login --name ${{ env.ACR_NAME }}
 
-
       - name: Build and Push Docker Image
         run: |
           cd src/platform/
@@ -258,9 +258,9 @@ jobs:
           docker push ${{ env.REGISTRY_URL }}/airqo-stage-next-platform:latest
 
       - name: Update corresponding helm values file(with retry)
-        uses: Wandalen/wretry.action@v1.2.0 # Retries action on fail
+        uses: Wandalen/wretry.action@v1.2.0
         with:
-          action: fjogeleit/yaml-update-action@main # Action to retry
+          action: fjogeleit/yaml-update-action@main
           with: |
             valueFile: "k8s/platform/k8s-aks/airqo-platform/values-stage.yaml"
             propertyPath: "image.tag"
@@ -297,9 +297,9 @@ jobs:
           docker push ${{ env.REGISTRY_URL }}/airqo-stage-vertex:latest
 
       - name: Update corresponding helm values file(with retry)
-        uses: Wandalen/wretry.action@v1.2.0 # Retries action on fail
+        uses: Wandalen/wretry.action@v1.2.0
         with:
-          action: fjogeleit/yaml-update-action@main # Action to retry
+          action: fjogeleit/yaml-update-action@main
           with: |
             valueFile: "k8s/vertex/k8s-aks/airqo-vertex/values-stage.yaml"
             propertyPath: "image.tag"
@@ -336,9 +336,9 @@ jobs:
           docker push ${{ env.REGISTRY_URL }}/airqo-stage-beacon:latest
 
       - name: Update corresponding helm values file(with retry)
-        uses: Wandalen/wretry.action@v1.2.0 # Retries action on fail
+        uses: Wandalen/wretry.action@v1.2.0
         with:
-          action: fjogeleit/yaml-update-action@main # Action to retry
+          action: fjogeleit/yaml-update-action@main
           with: |
             valueFile: "k8s/beacon/k8s-aks/airqo-beacon/values-stage.yaml"
             propertyPath: "image.tag"
@@ -373,17 +373,17 @@ jobs:
           docker push ${{ env.REGISTRY_URL }}/airqo-stage-docs:${{ needs.image-tag.outputs.build_id }}
           docker tag ${{ env.REGISTRY_URL }}/airqo-stage-docs:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/airqo-stage-docs:latest
           docker push ${{ env.REGISTRY_URL }}/airqo-stage-docs:latest
-      
+
       - name: Update corresponding helm values file(with retry)
-        uses: Wandalen/wretry.action@v1.2.0 # Retries action on fail
+        uses: Wandalen/wretry.action@v1.2.0
         with:
-          action: fjogeleit/yaml-update-action@main # Action to retry
+          action: fjogeleit/yaml-update-action@main
           with: |
             valueFile: "k8s/docs-website/k8s-aks/airqo-docs-website/values-stage.yaml"
             propertyPath: "image.tag"
             value: ${{ needs.image-tag.outputs.build_id }}
             branch: ${{ env.DEPLOY_BRANCH }}
-            token: ${{ secrets.YAML_UPDATER_TOKEN }} 
+            token: ${{ secrets.YAML_UPDATER_TOKEN }}
             message: "Update docs staging image tag to ${{ needs.image-tag.outputs.build_id }}"
             
  
