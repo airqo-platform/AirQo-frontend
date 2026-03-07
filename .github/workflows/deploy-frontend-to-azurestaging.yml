@@ -163,7 +163,7 @@ jobs:
               --registry-username airqoacr \
               --registry-password ${{ secrets.ACR_PASSWORD}}  \
               --env-vars $(cat .env | tr '\n' ' ')  \            
-              --environment ${{ env.STAGING_ENV }}                            
+                          
           else
             az containerapp create \
               --name website-staging \

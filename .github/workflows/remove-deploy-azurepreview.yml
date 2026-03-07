@@ -9,7 +9,7 @@ on:
 
 env:
   RG: airqo-main-rg
-  PR_PREVIEW_ENV: airqo-pr-preview-env
+
 jobs:
 
   branch-name:
@@ -106,7 +106,6 @@ jobs:
           az containerapp delete \
             --name $APP \
             --resource-group ${{ env.RG}} \
-            --environment ${{ env.PR_PREVIEW_ENV}} \
             --yes || echo "Preview not found"
 
 ########################################################
@@ -132,7 +131,6 @@ jobs:
           az containerapp delete \
             --name $APP \
             --resource-group ${{ env.RG}} \
-            --environment ${{ env.PR_PREVIEW_ENV}} \
             --yes || echo "Preview not found"
 
 ########################################################
@@ -158,7 +156,6 @@ jobs:
           az containerapp delete \
             --name $APP \
             --resource-group ${{ env.RG}} \
-            --environment ${{ env.PR_PREVIEW_ENV}} \
             --yes || echo "Preview not found"
 
 ########################################################
@@ -184,7 +181,6 @@ jobs:
           az containerapp delete \
             --name $APP \
             --resource-group ${{ env.RG}} \
-            --environment ${{ env.PR_PREVIEW_ENV}} \
             --yes || echo "Preview not found"
 
 ########################################################
@@ -210,7 +206,6 @@ jobs:
           az containerapp delete \
             --name $APP \
             --resource-group ${{ env.RG}} \
-            --environment ${{ env.PR_PREVIEW_ENV}} \
             --yes || echo "Preview not found"
 
 ########################################################
@@ -236,5 +231,4 @@ jobs:
           az containerapp delete \
             --name $APP \
             --resource-group ${{ env.RG}} \
-            --environment ${{ env.PR_PREVIEW_ENV}} \
             --yes || echo "Preview not found"

@@ -158,14 +158,12 @@ jobs:
           az containerapp update \
             --name $APP \
             --resource-group ${{ env.RG }} \
-            --environment ${{ env.PR_PREVIEW_ENV}} \            
             --env-vars $(cat .env | tr '\n' ' ')            
 
       - id: preview
         run: |
           URL=$(az containerapp show \
-          --name ${{ needs.branch-name.outputs.lowercase }}-website-preview \
-          --environment ${{ env.PR_PREVIEW_ENV}} \          
+          --name ${{ needs.branch-name.outputs.lowercase }}-website-preview \} \          
           --resource-group ${{ env.RG}} \
           --query properties.configuration.ingress.fqdn -o tsv)
 
@@ -248,16 +246,14 @@ jobs:
 
           az containerapp update \
             --name $APP \
-            --resource-group ${{ env.RG }} \
-            --environment ${{ env.PR_PREVIEW_ENV}} \            
+            --resource-group ${{ env.RG }} \            
             --env-vars $(cat .env | tr '\n' ' ')        
 
       - id: preview
         run: |
           URL=$(az containerapp show \
           --name ${{ needs.branch-name.outputs.lowercase }}-beacon-preview \
-          --resource-group ${{ env.RG}} \
-          --environment ${{ env.PR_PREVIEW_ENV}} \          
+          --resource-group ${{ env.RG}} \          
           --query properties.configuration.ingress.fqdn -o tsv)
 
           echo "url=https://$URL" >> $GITHUB_OUTPUT
@@ -333,16 +329,14 @@ jobs:
 
           az containerapp update \
             --name $APP \
-            --resource-group ${{ env.RG }} \
-            --environment ${{ env.PR_PREVIEW_ENV}} \            
+            --resource-group ${{ env.RG }} \          
             --env-vars $(cat .env | tr '\n' ' ')
 
       - id: preview
         run: |
           URL=$(az containerapp show \
           --name ${{ needs.branch-name.outputs.lowercase }}-calibrate-app-preview \
-          --resource-group ${{ env.RG}} \
-          --environment ${{ env.PR_PREVIEW_ENV}} \          
+          --resource-group ${{ env.RG}} \          
           --query properties.configuration.ingress.fqdn -o tsv)
 
           echo "url=https://$URL" >> $GITHUB_OUTPUT
@@ -414,16 +408,14 @@ jobs:
 
           az containerapp update \
             --name $APP \
-            --resource-group ${{ env.RG }} \
-            --environment ${{ env.PR_PREVIEW_ENV}} \            
+            --resource-group ${{ env.RG }} \           
             --env-vars $(cat .env | tr '\n' ' ')   
             
       - id: preview
         run: |
           URL=$(az containerapp show \
           --name ${{ needs.branch-name.outputs.lowercase }}-analytics-platform-preview \
-          --resource-group ${{ env.RG}} \
-          --environment ${{ env.PR_PREVIEW_ENV}} \          
+          --resource-group ${{ env.RG}} \          
           --query properties.configuration.ingress.fqdn -o tsv)
 
           echo "url=https://$URL" >> $GITHUB_OUTPUT
@@ -495,16 +487,14 @@ jobs:
 
           az containerapp update \
             --name $APP \
-            --resource-group ${{ env.RG }} \
-            --environment ${{ env.PR_PREVIEW_ENV}} \            
+            --resource-group ${{ env.RG }} \           
             --env-vars $(cat .env | tr '\n' ' ')            
 
       - id: preview
         run: |
           URL=$(az containerapp show \
           --name ${{ needs.branch-name.outputs.lowercase }}-vertex-preview \
-          --resource-group ${{ env.RG}} \
-          --environment ${{ env.PR_PREVIEW_ENV}} \          
+          --resource-group ${{ env.RG}} \         
           --query properties.configuration.ingress.fqdn -o tsv)
           
 
@@ -577,8 +567,7 @@ jobs:
 
           az containerapp update \
             --name $APP \
-            --resource-group ${{ env.RG }} \
-            --environment ${{ env.PR_PREVIEW_ENV}} \            
+            --resource-group ${{ env.RG }} \           
             --env-vars $(cat .env | tr '\n' ' ')
             
       - id: preview
@@ -586,7 +575,6 @@ jobs:
           URL=$(az containerapp show \
           --name ${{ needs.branch-name.outputs.lowercase }}-docs-preview \
           --resource-group ${{ env.RG}} \
-          --environment ${{ env.PR_PREVIEW_ENV}} \
           --query properties.configuration.ingress.fqdn -o tsv)
 
           echo "url=https://$URL" >> $GITHUB_OUTPUT            

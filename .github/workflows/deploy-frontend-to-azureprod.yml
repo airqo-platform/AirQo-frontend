@@ -103,8 +103,7 @@ jobs:
               --registry-server ${{ env.REGISTRY_URL }} \
               --registry-username airqoacr \
               --registry-password ${{ secrets.ACR_PASSWORD}}  \
-              --env-vars $(cat .env | tr '\n' ' ')  \            
-              --environment ${{ env.PROD_ENV }}                            
+              --env-vars $(cat .env | tr '\n' ' ')  \                                      
           else
             az containerapp create \
               --name website-staging \
@@ -112,14 +111,11 @@ jobs:
               --environment ${{ env.PROD_ENV }} \
               --image ${{ env.REGISTRY_URL }}/website2-staging:${{ needs.image-tag.outputs.build_id }} \
               --target-port 3000 \
-              --env-vars $(cat .env | tr '\n' ' ')  \
+              --env-vars-from-file .env \
               --cpu 1.0 --memory 2.0Gi \
               --ingress external \
               --min-replicas 1 \
-              --max-replicas 2  \
-              --registry-server ${{ env.REGISTRY_URL }} \
-              --registry-username airqoacr \
-              --registry-password ${{ secrets.ACR_PASSWORD}} 
+              --max-replicas 2
           fi
 
   calibrate-app:
