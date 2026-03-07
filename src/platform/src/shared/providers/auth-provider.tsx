@@ -1,7 +1,7 @@
 'use client';
 
 import { SessionProvider, useSession, getSession } from 'next-auth/react';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { LoadingOverlay } from '@/shared/components/ui/loading-overlay';
@@ -59,6 +59,9 @@ const publicRoutes = [
   '/org-invite', // Public invitation acceptance page
 ];
 
+const UNAUTHORIZED_WINDOW_MS = 30000;
+const UNAUTHORIZED_THRESHOLD = 3;
+
 function AuthWrapper({ children }: { children: React.ReactNode }) {
   const { data: session, status, update } = useSession();
   const router = useRouter();
@@ -66,11 +69,82 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   const activeGroup = useSelector(selectActiveGroup);
   const isLoggingOut = useSelector(selectLoggingOut);
   const logout = useLogout();
-  const [hasLoggedOutForExpiration, setHasLoggedOutForExpiration] =
-    useState(false);
-  const [hasHandledUnauthorized, setHasHandledUnauthorized] = useState(false);
+  const isHandlingUnauthorizedRef = useRef(false);
+  const hasHandledUnauthorizedRef = useRef(false);
+  const hasStartedLogoutRef = useRef(false);
+  const unauthorizedStatsRef = useRef({ count: 0, lastAt: 0 });
 
   const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
+
+  const clearAccountDeletionFlags = useCallback(() => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      localStorage.removeItem('account_deleted');
+      localStorage.removeItem('account_deleted_timestamp');
+    } catch (error) {
+      console.warn('Error clearing account deletion flags:', error);
+    }
+  }, []);
+
+  const resetUnauthorizedTracking = useCallback(() => {
+    unauthorizedStatsRef.current = { count: 0, lastAt: 0 };
+    hasHandledUnauthorizedRef.current = false;
+    isHandlingUnauthorizedRef.current = false;
+    hasStartedLogoutRef.current = false;
+  }, []);
+
+  const executeLogout = useCallback(
+    (toastConfig?: { title: string; description: string; duration?: number }) => {
+      if (hasStartedLogoutRef.current || isLoggingOut) {
+        return;
+      }
+
+      hasStartedLogoutRef.current = true;
+      hasHandledUnauthorizedRef.current = true;
+
+      if (toastConfig) {
+        toast.error(
+          toastConfig.title,
+          toastConfig.description,
+          toastConfig.duration
+        );
+      }
+
+      logout();
+    },
+    [isLoggingOut, logout]
+  );
+
+  const checkAccountDeletionFlag = useCallback((): boolean => {
+    if (typeof window === 'undefined') return false;
+
+    const accountDeleted = localStorage.getItem('account_deleted');
+    const deletionTimestamp = localStorage.getItem('account_deleted_timestamp');
+
+    if (accountDeleted === 'true') {
+      logger.info('Account deletion detected, logging out...');
+      clearAccountDeletionFlags();
+      executeLogout({
+        title: 'Account Deleted',
+        description: 'Your account has been deleted. You have been logged out.',
+        duration: 5000,
+      });
+      return true;
+    }
+
+    if (deletionTimestamp) {
+      const timestamp = parseInt(deletionTimestamp, 10);
+      const now = Date.now();
+      const fiveMinutes = 5 * 60 * 1000;
+
+      if (now - timestamp > fiveMinutes) {
+        clearAccountDeletionFlags();
+      }
+    }
+
+    return false;
+  }, [clearAccountDeletionFlags, executeLogout]);
 
   // Listen for unauthorized events from API client
   const handleUnauthorized = useCallback(
@@ -93,122 +167,64 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       // Don't handle unauthorized on public routes (login, register, etc.)
       if (isPublicRoute) return;
 
-      // Prevent multiple unauthorized handling
-      if (hasHandledUnauthorized) return;
-
       // Don't handle if we're already logging out
       if (isLoggingOut) return;
 
-      // Check if account was deleted (set by account deletion confirmation page)
-      if (typeof window !== 'undefined') {
-        const accountDeleted = localStorage.getItem('account_deleted');
-        const deletionTimestamp = localStorage.getItem(
-          'account_deleted_timestamp'
-        );
+      // Prevent storms caused by concurrent 401 responses.
+      if (hasHandledUnauthorizedRef.current || isHandlingUnauthorizedRef.current)
+        return;
+      isHandlingUnauthorizedRef.current = true;
 
-        if (accountDeleted === 'true') {
-          // Account was deleted, clear flags and logout immediately
-          logger.info('Account deletion detected, logging out...');
-          setHasHandledUnauthorized(true);
-          try {
-            localStorage.removeItem('account_deleted');
-            localStorage.removeItem('account_deleted_timestamp');
-          } catch (error) {
-            console.warn('Error clearing account deletion flags:', error);
-          }
-          toast.error(
-            'Account Deleted',
-            'Your account has been deleted. You have been logged out.',
-            5000
-          );
-          logout();
+      try {
+        if (checkAccountDeletionFlag()) {
           return;
         }
 
-        // Check if deletion flag is recent (within last 5 minutes) to avoid stale flags
-        if (deletionTimestamp) {
-          const timestamp = parseInt(deletionTimestamp, 10);
-          const now = Date.now();
-          const fiveMinutes = 5 * 60 * 1000;
-
-          if (now - timestamp > fiveMinutes) {
-            // Clear stale deletion flags
-            try {
-              localStorage.removeItem('account_deleted');
-              localStorage.removeItem('account_deleted_timestamp');
-            } catch (error) {
-              console.warn(
-                'Error clearing stale account deletion flags:',
-                error
-              );
-            }
-          }
-        }
-      }
-
-      // Check if session is expired before logging out
-      try {
+        // Check if session is expired before logging out.
         await update();
 
-        // Get fresh session data
         const freshSession = await getSession();
         if (freshSession && freshSession.user) {
           logger.warn(
             '401 received but session is valid - likely permissions issue or account deleted'
           );
-          // If we get here and have made multiple 401 calls recently, it might be account deletion
-          // Add a counter to detect potential account deletion scenario
-          const unauthorizedCount = parseInt(
-            localStorage.getItem('unauthorized_count') || '0',
-            10
-          );
-          const lastUnauthorized = parseInt(
-            localStorage.getItem('last_unauthorized') || '0',
-            10
-          );
-          const now = Date.now();
 
-          if (now - lastUnauthorized < 30000 && unauthorizedCount >= 2) {
-            // 30 seconds, 3+ calls
+          const now = Date.now();
+          const lastAt = unauthorizedStatsRef.current.lastAt;
+          const withinWindow = now - lastAt < UNAUTHORIZED_WINDOW_MS;
+          unauthorizedStatsRef.current.count = withinWindow
+            ? unauthorizedStatsRef.current.count + 1
+            : 1;
+          unauthorizedStatsRef.current.lastAt = now;
+
+          if (unauthorizedStatsRef.current.count >= UNAUTHORIZED_THRESHOLD) {
             logger.warn(
               'Multiple 401s with valid session - possible account deletion, logging out...'
             );
-            setHasHandledUnauthorized(true);
-            toast.error(
-              'Access Denied',
-              'Your access has been revoked. Please log in again.',
-              5000
-            );
-            logout();
-            return;
+            executeLogout({
+              title: 'Access Denied',
+              description: 'Your access has been revoked. Please log in again.',
+              duration: 5000,
+            });
           }
-
-          // Update counters
-          localStorage.setItem(
-            'unauthorized_count',
-            (unauthorizedCount + 1).toString()
-          );
-          localStorage.setItem('last_unauthorized', now.toString());
-
           return;
         }
 
-        // Session is expired, logout
+        // Session is expired.
         logger.info('Session expired, logging out...');
-        setHasHandledUnauthorized(true);
-        toast.error(
-          'Session Expired',
-          'Your session has expired. Please log in again.',
-          5000
-        );
-        logout();
+        executeLogout({
+          title: 'Session Expired',
+          description: 'Your session has expired. Please log in again.',
+          duration: 5000,
+        });
       } catch (error) {
         console.error('Error handling unauthorized event:', error);
-        setHasHandledUnauthorized(true);
-        logout();
+        executeLogout();
+      } finally {
+        isHandlingUnauthorizedRef.current = false;
       }
     },
-    [logout, update, isPublicRoute, hasHandledUnauthorized, isLoggingOut]
+    [checkAccountDeletionFlag, executeLogout, isLoggingOut, isPublicRoute, update]
   );
 
   useEffect(() => {
@@ -236,40 +252,24 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (status === 'authenticated') {
-      setHasLoggedOutForExpiration(false);
-      setHasHandledUnauthorized(false);
-      // Clear any stale unauthorized counters
-      try {
-        localStorage.removeItem('unauthorized_count');
-        localStorage.removeItem('last_unauthorized');
-      } catch {
-        // Ignore localStorage errors
-      }
+      resetUnauthorizedTracking();
     }
-  }, [status]);
+  }, [resetUnauthorizedTracking, status]);
 
   // Logout when status becomes unauthenticated on protected routes
-  // But skip if we're already logging out or have handled unauthorized
+  // But skip if we're already logging out or if logout has already started.
   useEffect(() => {
     if (
       status === 'unauthenticated' &&
       !isPublicRoute &&
-      !hasLoggedOutForExpiration &&
       !isLoggingOut &&
-      !hasHandledUnauthorized
+      !hasStartedLogoutRef.current
     ) {
       logger.info('Status unauthenticated on protected route, logging out');
-      setHasLoggedOutForExpiration(true);
+      hasStartedLogoutRef.current = true;
       logout();
     }
-  }, [
-    status,
-    isPublicRoute,
-    logout,
-    hasLoggedOutForExpiration,
-    isLoggingOut,
-    hasHandledUnauthorized,
-  ]);
+  }, [status, isPublicRoute, logout, isLoggingOut]);
 
   // While session is being fetched, show a loading overlay
   // Exception: For public routes, don't show loading overlay (let them render immediately)
