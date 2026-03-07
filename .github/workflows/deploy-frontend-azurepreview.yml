@@ -38,7 +38,7 @@ jobs:
     outputs:
       run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }}
       run_analytics_platform: ${{ steps.check_files.outputs.run_analytics_platform }}
-      run_website: ${{ steps.check_files.outputs.run_website }}   # FIX: was run_website2
+      run_website: ${{ steps.check_files.outputs.run_website }}
       run_vertex: ${{ steps.check_files.outputs.run_vertex }}
       run_beacon: ${{ steps.check_files.outputs.run_beacon }}
       run_docs: ${{ steps.check_files.outputs.run_docs }}
@@ -59,7 +59,7 @@ jobs:
 
           echo "run_calibrate_app=false" >>$GITHUB_OUTPUT
           echo "run_analytics_platform=false" >>$GITHUB_OUTPUT
-          echo "run_website=false" >>$GITHUB_OUTPUT          # FIX: was run_website2
+          echo "run_website=false" >>$GITHUB_OUTPUT
           echo "run_vertex=false" >>$GITHUB_OUTPUT
           echo "run_beacon=false" >>$GITHUB_OUTPUT
           echo "run_docs=false" >>$GITHUB_OUTPUT
@@ -76,7 +76,7 @@ jobs:
             fi
 
             if [[ $file == src/website/* ]]; then
-              echo "run_website=true" >>$GITHUB_OUTPUT       # FIX: was run_website2
+              echo "run_website=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == src/vertex/* ]]; then
@@ -118,23 +118,25 @@ jobs:
       - name: Build website image
         run: |
           cd src/website/
-
           docker build . \
-          --build-arg API_URL=${{ secrets.WEBSITE_STAGE_API_URL }} \
-          --build-arg NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }} \
-          --build-arg NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }} \
-          --tag ${{ env.REGISTRY_URL }}/website-pr-preview:${{ github.sha }}
-
+            --build-arg API_URL=${{ secrets.WEBSITE_STAGE_API_URL }} \
+            --build-arg NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }} \
+            --build-arg NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }} \
+            --tag ${{ env.REGISTRY_URL }}/website-pr-preview:${{ github.sha }}
           docker push ${{ env.REGISTRY_URL }}/website-pr-preview:${{ github.sha }}
 
-      - name: Pull secrets from Key Vault
+      - name: Create secrets.json from GitHub secrets
         run: |
-          az keyvault secret show \
-            --vault-name ${{ env.KEYVAULT }} \
-            --name sta-env-website \
-            --query value -o tsv > secrets.json
-
-          jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' secrets.json > .env
+          jq -n \
+            --arg SECRET "${{ secrets.WEBSITE_SECRET }}" \
+            --arg API_URL "${{ secrets.WEBSITE_STAGE_API_URL }}" \
+            --arg OPENCAGE_API_KEY "${{ secrets.WEBSITE_STAGE_OPENCAGE_API_KEY }}" \
+            --arg API_TOKEN "${{ secrets.WEBSITE_STAGE_API_TOKEN }}" \
+            --arg SLACK_WEBHOOK_URL "${{ secrets.WEBSITE_STAGE_SLACK_WEBHOOK_URL }}" \
+            --arg SLACK_CHANNEL "${{ secrets.WEBSITE_STAGE_SLACK_CHANNEL }}" \
+            --arg NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN "${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }}" \
+            --arg NEXT_PUBLIC_GA_MEASUREMENT_ID "${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }}" \
+            '{SECRET: $SECRET, API_URL: $API_URL, OPENCAGE_API_KEY: $OPENCAGE_API_KEY, API_TOKEN: $API_TOKEN, SLACK_WEBHOOK_URL: $SLACK_WEBHOOK_URL, SLACK_CHANNEL: $SLACK_CHANNEL, NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN: $NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN, NEXT_PUBLIC_GA_MEASUREMENT_ID: $NEXT_PUBLIC_GA_MEASUREMENT_ID}' > secrets.json
 
       - name: Deploy Container App
         run: |
@@ -144,18 +146,13 @@ jobs:
             --name $APP \
             --resource-group ${{ env.RG }} \
             --environment ${{ env.PR_PREVIEW_ENV }} \
-            --image ${{ env.REGISTRY_URL }}/website-pr-preview:${{ github.sha }} \  # FIX: was docs-pr-preview
+            --image ${{ env.REGISTRY_URL }}/website-pr-preview:${{ github.sha }} \
             --target-port 3000 \
             --ingress external \
             --registry-server ${{ env.REGISTRY_URL }} \
             --registry-username airqoacr \
-            --registry-password ${{ secrets.ACR_PASSWORD }}
-
-          ; values quoted to handle spaces/special chars
-          az containerapp update \
-            --name $APP \
-            --resource-group ${{ env.RG }} \
-            --set-env-vars $(grep -v '^#' .env | grep '=' | while IFS='=' read -r key val; do printf '%s=%s ' "$key" "$(printf '%s' "$val" | tr -d '\r')"; done)
+            --registry-password ${{ secrets.ACR_PASSWORD }} \
+            --env-vars "$(jq -r 'to_entries | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json)"
 
       - id: preview
         run: |
@@ -165,10 +162,6 @@ jobs:
             --query properties.configuration.ingress.fqdn -o tsv)
 
           echo "url=https://$URL" >> $GITHUB_OUTPUT
-
-############################################################
-# PR COMMENTS
-############################################################
 
   website-pr-comment:
     needs: [check, website]
@@ -215,17 +208,12 @@ jobs:
             --name sta-env-beacon \
             --query value -o tsv > secrets.json
 
-          jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' secrets.json > .env
-
       - name: Build image
         run: |
           docker build -t ${{ env.REGISTRY_URL }}/beacon-pr-preview:${{ github.sha }} src/beacon
           docker push ${{ env.REGISTRY_URL }}/beacon-pr-preview:${{ github.sha }}
 
-      - name: Login to ACR
-        run: az acr login --name airqoacr
-
-      - name: Deploy
+      - name: Deploy Container App
         run: |
           APP=${{ needs.branch-name.outputs.lowercase }}-beacon-preview
 
@@ -238,13 +226,8 @@ jobs:
             --ingress external \
             --registry-server ${{ env.REGISTRY_URL }} \
             --registry-username airqoacr \
-            --registry-password ${{ secrets.ACR_PASSWORD }}
-
-          
-          az containerapp update \
-            --name $APP \
-            --resource-group ${{ env.RG }} \
-            --set-env-vars $(grep -v '^#' .env | grep '=' | while IFS='=' read -r key val; do printf '%s=%s ' "$key" "$(printf '%s' "$val" | tr -d '\r')"; done)
+            --registry-password ${{ secrets.ACR_PASSWORD }} \
+            --env-vars "$(jq -r 'to_entries | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json)"
 
       - id: preview
         run: |
@@ -254,10 +237,6 @@ jobs:
             --query properties.configuration.ingress.fqdn -o tsv)
 
           echo "url=https://$URL" >> $GITHUB_OUTPUT
-
-#########################################
-# PR COMMENTS
-#########################################
 
   beacon-pr-comment:
     needs: [check, beacon]
@@ -296,24 +275,19 @@ jobs:
 
       - run: az acr login --name airqoacr
 
-      - name: Pull secrets
+      - name: Pull secrets from Key Vault
         run: |
           az keyvault secret show \
             --vault-name ${{ env.KEYVAULT }} \
             --name sta-env-calibrate-app \
             --query value -o tsv > secrets.json
 
-          jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' secrets.json > .env
-
       - name: Build image
         run: |
           docker build -t ${{ env.REGISTRY_URL }}/calibrate-app-pr-preview:${{ github.sha }} src/calibrate
           docker push ${{ env.REGISTRY_URL }}/calibrate-app-pr-preview:${{ github.sha }}
 
-      - name: Login to ACR
-        run: az acr login --name airqoacr
-
-      - name: Deploy
+      - name: Deploy Container App
         run: |
           APP=${{ needs.branch-name.outputs.lowercase }}-calibrate-app-preview
 
@@ -326,13 +300,8 @@ jobs:
             --ingress external \
             --registry-server ${{ env.REGISTRY_URL }} \
             --registry-username airqoacr \
-            --registry-password ${{ secrets.ACR_PASSWORD }}
-
-          
-          az containerapp update \
-            --name $APP \
-            --resource-group ${{ env.RG }} \
-            --set-env-vars $(grep -v '^#' .env | grep '=' | while IFS='=' read -r key val; do printf '%s=%s ' "$key" "$(printf '%s' "$val" | tr -d '\r')"; done)
+            --registry-password ${{ secrets.ACR_PASSWORD }} \
+            --env-vars "$(jq -r 'to_entries | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json)"
 
       - id: preview
         run: |
@@ -380,24 +349,19 @@ jobs:
 
       - run: az acr login --name airqoacr
 
-      - name: Pull secrets
+      - name: Pull secrets from Key Vault
         run: |
           az keyvault secret show \
             --vault-name ${{ env.KEYVAULT }} \
             --name sta-env-next-platform \
             --query value -o tsv > secrets.json
 
-          jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' secrets.json > .env
-
       - name: Build image
         run: |
           docker build -t ${{ env.REGISTRY_URL }}/analytics-platform-pr-preview:${{ github.sha }} src/platform
           docker push ${{ env.REGISTRY_URL }}/analytics-platform-pr-preview:${{ github.sha }}
 
-      - name: Login to ACR
-        run: az acr login --name airqoacr
-
-      - name: Deploy
+      - name: Deploy Container App
         run: |
           APP=${{ needs.branch-name.outputs.lowercase }}-analytics-platform-preview
 
@@ -410,13 +374,8 @@ jobs:
             --ingress external \
             --registry-server ${{ env.REGISTRY_URL }} \
             --registry-username airqoacr \
-            --registry-password ${{ secrets.ACR_PASSWORD }}
-
-          
-          az containerapp update \
-            --name $APP \
-            --resource-group ${{ env.RG }} \
-            --set-env-vars $(grep -v '^#' .env | grep '=' | while IFS='=' read -r key val; do printf '%s=%s ' "$key" "$(printf '%s' "$val" | tr -d '\r')"; done)
+            --registry-password ${{ secrets.ACR_PASSWORD }} \
+            --env-vars "$(jq -r 'to_entries | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json)"
 
       - id: preview
         run: |
@@ -464,24 +423,19 @@ jobs:
 
       - run: az acr login --name airqoacr
 
-      - name: Pull secrets
+      - name: Pull secrets from Key Vault
         run: |
           az keyvault secret show \
             --vault-name ${{ env.KEYVAULT }} \
             --name sta-env-vertex \
             --query value -o tsv > secrets.json
 
-          jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' secrets.json > .env
-
       - name: Build image
         run: |
           docker build -t ${{ env.REGISTRY_URL }}/vertex-pr-preview:${{ github.sha }} src/vertex
           docker push ${{ env.REGISTRY_URL }}/vertex-pr-preview:${{ github.sha }}
 
-      - name: Login to ACR
-        run: az acr login --name airqoacr
-
-      - name: Deploy
+      - name: Deploy Container App
         run: |
           APP=${{ needs.branch-name.outputs.lowercase }}-vertex-preview
 
@@ -494,12 +448,8 @@ jobs:
             --ingress external \
             --registry-server ${{ env.REGISTRY_URL }} \
             --registry-username airqoacr \
-            --registry-password ${{ secrets.ACR_PASSWORD }}
-
-          az containerapp update \
-            --name $APP \
-            --resource-group ${{ env.RG }} \
-            --set-env-vars $(grep -v '^#' .env | grep '=' | while IFS='=' read -r key val; do printf '%s=%s ' "$key" "$(printf '%s' "$val" | tr -d '\r')"; done)
+            --registry-password ${{ secrets.ACR_PASSWORD }} \
+            --env-vars "$(jq -r 'to_entries | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json)"
 
       - id: preview
         run: |
@@ -547,24 +497,19 @@ jobs:
 
       - run: az acr login --name airqoacr
 
-      - name: Pull secrets
+      - name: Pull secrets from Key Vault
         run: |
           az keyvault secret show \
             --vault-name ${{ env.KEYVAULT }} \
             --name sta-env-docs \
             --query value -o tsv > secrets.json
 
-          jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' secrets.json > .env
-
       - name: Build image
         run: |
           docker build -t ${{ env.REGISTRY_URL }}/docs-pr-preview:${{ github.sha }} src/docs-website
           docker push ${{ env.REGISTRY_URL }}/docs-pr-preview:${{ github.sha }}
 
-      - name: Login to ACR
-        run: az acr login --name airqoacr
-
-      - name: Deploy
+      - name: Deploy Container App
         run: |
           APP=${{ needs.branch-name.outputs.lowercase }}-docs-preview
 
@@ -577,13 +522,8 @@ jobs:
             --ingress external \
             --registry-server ${{ env.REGISTRY_URL }} \
             --registry-username airqoacr \
-            --registry-password ${{ secrets.ACR_PASSWORD }}
-
-          
-          az containerapp update \
-            --name $APP \
-            --resource-group ${{ env.RG }} \
-            --set-env-vars $(grep -v '^#' .env | grep '=' | while IFS='=' read -r key val; do printf '%s=%s ' "$key" "$(printf '%s' "$val" | tr -d '\r')"; done)
+            --registry-password ${{ secrets.ACR_PASSWORD }} \
+            --env-vars "$(jq -r 'to_entries | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json)"
 
       - id: preview
         run: |
@@ -607,4 +547,4 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: 'New docs changes available for preview [here](${{ needs.docs.outputs.url }})'
-            })            
+            })           

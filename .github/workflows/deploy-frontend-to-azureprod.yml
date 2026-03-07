@@ -70,17 +70,6 @@ jobs:
       - name: ACR Login
         run: az acr login --name ${{ env.ACR_NAME }}
 
-      - name: Create .env file with all secrets
-        run: |
-          echo "SECRET=${{ secrets.WEBSITE_SECRET }}" > .env
-          echo "API_URL=${{ secrets.WEBSITE_PROD_API_URL }}" >> .env
-          echo "OPENCAGE_API_KEY=${{ secrets.WEBSITE_PROD_OPENCAGE_API_KEY }}" >> .env
-          echo "API_TOKEN=${{ secrets.WEBSITE_PROD_API_TOKEN }}" >> .env
-          echo "SLACK_WEBHOOK_URL=${{ secrets.WEBSITE_PROD_SLACK_WEBHOOK_URL }}" >> .env
-          echo "SLACK_CHANNEL=${{ secrets.WEBSITE_PROD_SLACK_CHANNEL }}" >> .env
-          echo "NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=${{ secrets.WEBSITE_PROD_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }}" >> .env
-          echo "NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_PROD_NEXT_PUBLIC_GA_MEASUREMENT_ID }}" >> .env
-
       - name: Build and Push Docker Image
         run: |
           cd src/website/
@@ -93,10 +82,21 @@ jobs:
           docker tag ${{ env.REGISTRY_URL }}/website2:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/website2:latest
           docker push ${{ env.REGISTRY_URL }}/website2:latest
 
+      - name: Create secrets.json from GitHub secrets
+        run: |
+          jq -n \
+            --arg SECRET "${{ secrets.WEBSITE_SECRET }}" \
+            --arg API_URL "${{ secrets.WEBSITE_PROD_API_URL }}" \
+            --arg OPENCAGE_API_KEY "${{ secrets.WEBSITE_PROD_OPENCAGE_API_KEY }}" \
+            --arg API_TOKEN "${{ secrets.WEBSITE_PROD_API_TOKEN }}" \
+            --arg SLACK_WEBHOOK_URL "${{ secrets.WEBSITE_PROD_SLACK_WEBHOOK_URL }}" \
+            --arg SLACK_CHANNEL "${{ secrets.WEBSITE_PROD_SLACK_CHANNEL }}" \
+            --arg NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN "${{ secrets.WEBSITE_PROD_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }}" \
+            --arg NEXT_PUBLIC_GA_MEASUREMENT_ID "${{ secrets.WEBSITE_PROD_NEXT_PUBLIC_GA_MEASUREMENT_ID }}" \
+            '{SECRET: $SECRET, API_URL: $API_URL, OPENCAGE_API_KEY: $OPENCAGE_API_KEY, API_TOKEN: $API_TOKEN, SLACK_WEBHOOK_URL: $SLACK_WEBHOOK_URL, SLACK_CHANNEL: $SLACK_CHANNEL, NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN: $NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN, NEXT_PUBLIC_GA_MEASUREMENT_ID: $NEXT_PUBLIC_GA_MEASUREMENT_ID}' > secrets.json
+
       - name: Deploy to Container Apps
         run: |
-          ENV_VARS=$(grep -v '^#' .env | grep '=' | while IFS='=' read -r key val; do printf '%s=%s ' "$key" "$(printf '%s' "$val" | tr -d '\r')"; done)
-
           if az containerapp show -g ${{ env.RG }} -n website-prod >/dev/null 2>&1; then
             az containerapp update \
               --resource-group ${{ env.RG }} \
@@ -105,8 +105,7 @@ jobs:
               --registry-server ${{ env.REGISTRY_URL }} \
               --registry-username airqoacr \
               --registry-password ${{ secrets.ACR_PASSWORD }} \
-              --set-env-vars $ENV_VARS
-
+              --set-env-vars "$(jq -r 'to_entries | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json)"
           else
             az containerapp create \
               --name website-prod \
@@ -114,7 +113,7 @@ jobs:
               --environment ${{ env.PROD_ENV }} \
               --image ${{ env.REGISTRY_URL }}/website2:${{ needs.image-tag.outputs.build_id }} \
               --target-port 3000 \
-              --env-vars $ENV_VARS \
+              --env-vars "$(jq -r 'to_entries | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json)" \
               --cpu 1.0 --memory 2.0Gi \
               --ingress external \
               --min-replicas 1 \

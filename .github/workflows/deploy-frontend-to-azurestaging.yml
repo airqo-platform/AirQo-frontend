@@ -13,7 +13,6 @@ env:
   STAGING_ENV: airqo-website-staging-env
   DEPLOY_BRANCH: staging
   ACR_NAME: airqoacr
-  PROJECT_ID: airqo-250220
 
 jobs:
   image-tag:
@@ -128,17 +127,6 @@ jobs:
       - name: ACR Login
         run: az acr login --name ${{ env.ACR_NAME }}
 
-      - name: Create .env file with all secrets
-        run: |
-          echo "SECRET=${{ secrets.WEBSITE_SECRET }}" > .env
-          echo "API_URL=${{ secrets.WEBSITE_STAGE_API_URL }}" >> .env
-          echo "OPENCAGE_API_KEY=${{ secrets.WEBSITE_STAGE_OPENCAGE_API_KEY }}" >> .env
-          echo "API_TOKEN=${{ secrets.WEBSITE_STAGE_API_TOKEN }}" >> .env
-          echo "SLACK_WEBHOOK_URL=${{ secrets.WEBSITE_STAGE_SLACK_WEBHOOK_URL }}" >> .env
-          echo "SLACK_CHANNEL=${{ secrets.WEBSITE_STAGE_SLACK_CHANNEL }}" >> .env
-          echo "NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }}" >> .env
-          echo "NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }}" >> .env
-
       - name: Build and Push Docker Image
         run: |
           cd src/website/
@@ -151,10 +139,21 @@ jobs:
           docker tag ${{ env.REGISTRY_URL }}/website2-staging:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/website2-staging:latest
           docker push ${{ env.REGISTRY_URL }}/website2-staging:latest
 
+      - name: Create secrets.json from GitHub secrets
+        run: |
+          jq -n \
+            --arg SECRET "${{ secrets.WEBSITE_SECRET }}" \
+            --arg API_URL "${{ secrets.WEBSITE_STAGE_API_URL }}" \
+            --arg OPENCAGE_API_KEY "${{ secrets.WEBSITE_STAGE_OPENCAGE_API_KEY }}" \
+            --arg API_TOKEN "${{ secrets.WEBSITE_STAGE_API_TOKEN }}" \
+            --arg SLACK_WEBHOOK_URL "${{ secrets.WEBSITE_STAGE_SLACK_WEBHOOK_URL }}" \
+            --arg SLACK_CHANNEL "${{ secrets.WEBSITE_STAGE_SLACK_CHANNEL }}" \
+            --arg NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN "${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }}" \
+            --arg NEXT_PUBLIC_GA_MEASUREMENT_ID "${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }}" \
+            '{SECRET: $SECRET, API_URL: $API_URL, OPENCAGE_API_KEY: $OPENCAGE_API_KEY, API_TOKEN: $API_TOKEN, SLACK_WEBHOOK_URL: $SLACK_WEBHOOK_URL, SLACK_CHANNEL: $SLACK_CHANNEL, NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN: $NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN, NEXT_PUBLIC_GA_MEASUREMENT_ID: $NEXT_PUBLIC_GA_MEASUREMENT_ID}' > secrets.json
+
       - name: Deploy to Container Apps
         run: |
-          ENV_VARS=$(grep -v '^#' .env | grep '=' | while IFS='=' read -r key val; do printf '%s=%s ' "$key" "$(printf '%s' "$val" | tr -d '\r')"; done)
-
           if az containerapp show -g ${{ env.RG }} -n website-staging >/dev/null 2>&1; then
             az containerapp update \
               --resource-group ${{ env.RG }} \
@@ -163,8 +162,7 @@ jobs:
               --registry-server ${{ env.REGISTRY_URL }} \
               --registry-username airqoacr \
               --registry-password ${{ secrets.ACR_PASSWORD }} \
-              --set-env-vars $ENV_VARS
-
+              --set-env-vars "$(jq -r 'to_entries | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json)"
           else
             az containerapp create \
               --name website-staging \
@@ -172,7 +170,7 @@ jobs:
               --environment ${{ env.STAGING_ENV }} \
               --image ${{ env.REGISTRY_URL }}/website2-staging:${{ needs.image-tag.outputs.build_id }} \
               --target-port 3000 \
-              --env-vars $ENV_VARS \
+              --env-vars "$(jq -r 'to_entries | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json)" \
               --cpu 1.0 --memory 2.0Gi \
               --ingress external \
               --min-replicas 1 \
@@ -181,7 +179,6 @@ jobs:
               --registry-username airqoacr \
               --registry-password ${{ secrets.ACR_PASSWORD }}
           fi
-
 
   ### build and push calibrate app image ###
   calibrate-app:
@@ -230,7 +227,6 @@ jobs:
             token: ${{ secrets.YAML_UPDATER_TOKEN }}
             message: "Update calibrate app staging image tag to ${{ needs.image-tag.outputs.build_id }}"
 
-
   ### build and push analytics platform image ###
   analytics-platform:
     name: build-push-analytics-platform-image
@@ -268,7 +264,6 @@ jobs:
             branch: ${{ env.DEPLOY_BRANCH }}
             token: ${{ secrets.YAML_UPDATER_TOKEN }}
             message: "Update next platform staging image tag to ${{ needs.image-tag.outputs.build_id }}"
-
 
   ### build and push vertex image ###
   vertex:
@@ -308,7 +303,6 @@ jobs:
             token: ${{ secrets.YAML_UPDATER_TOKEN }}
             message: "Update vertex staging image tag to ${{ needs.image-tag.outputs.build_id }}"
 
-
   ### build and push beacon image ###
   beacon:
     name: build-push-beacon-image
@@ -346,7 +340,6 @@ jobs:
             branch: ${{ env.DEPLOY_BRANCH }}
             token: ${{ secrets.YAML_UPDATER_TOKEN }}
             message: "Update beacon staging image tag to ${{ needs.image-tag.outputs.build_id }}"
-
 
   ### build and push docs image ###
   docs:
