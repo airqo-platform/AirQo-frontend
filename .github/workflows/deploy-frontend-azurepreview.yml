@@ -237,7 +237,7 @@ jobs:
             --name $APP \
             --resource-group ${{ env.RG }} \
             --environment ${{ env.PR_PREVIEW_ENV }} \
-            --image ${{ env.REGISTRY_URL }}/docs-pr-preview:${{ github.sha }} \
+            --image ${{ env.REGISTRY_URL }}/beacon-pr-preview:${{ github.sha }} \
             --target-port 3000 \
             --ingress external \
             --registry-server ${{ env.REGISTRY_URL }} \
@@ -320,7 +320,7 @@ jobs:
             --name $APP \
             --resource-group ${{ env.RG }} \
             --environment ${{ env.PR_PREVIEW_ENV }} \
-            --image ${{ env.REGISTRY_URL }}/docs-pr-preview:${{ github.sha }} \
+            --image ${{ env.REGISTRY_URL }}/calibrate-app-pr-preview:${{ github.sha }} \
             --target-port 80 \
             --ingress external \
             --registry-server ${{ env.REGISTRY_URL }} \
@@ -399,7 +399,7 @@ jobs:
             --name $APP \
             --resource-group ${{ env.RG }} \
             --environment ${{ env.PR_PREVIEW_ENV }} \
-            --image ${{ env.REGISTRY_URL }}/docs-pr-preview:${{ github.sha }} \
+            --image ${{ env.REGISTRY_URL }}/analytics-platform-pr-preview:${{ github.sha }} \
             --target-port 3000 \
             --ingress external \
             --registry-server ${{ env.REGISTRY_URL }} \
@@ -478,7 +478,7 @@ jobs:
             --name $APP \
             --resource-group ${{ env.RG }} \
             --environment ${{ env.PR_PREVIEW_ENV }} \
-            --image ${{ env.REGISTRY_URL }}/docs-pr-preview:${{ github.sha }} \
+            --image ${{ env.REGISTRY_URL }}/vertex-pr-preview:${{ github.sha }} \
             --target-port 3000 \
             --ingress external \
             --registry-server ${{ env.REGISTRY_URL }} \
