@@ -1,0 +1,31 @@
+replicaCount: 2
+image:
+  repository: airqoacr.azurecr.io/airqo-stage-beacon
+  tag: stage-6c8a67f5-1772960748
+  pullPolicy: IfNotPresent
+imagePullSecrets: []
+nameOverride: ''
+fullnameOverride: ''
+service:
+  type: NodePort
+  nodePort: 31193
+  targetPort: 3000
+  port: 3000
+ingress:
+  enabled: false
+resources:
+  requests:
+    cpu: 10m
+    memory: 20Mi
+  limits:
+    cpu: 50m
+    memory: 150Mi
+autoscaling:
+  minReplicas: 1
+  maxReplicas: 2
+  targetMemoryUtilizationPercentage: 80
+app:
+  name: airqo-stage-beacon
+  label: beacon
+  namespace: staging
+  secret: sta-env-beacon

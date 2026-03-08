@@ -59,7 +59,7 @@ const ProfilePage: React.FC = () => {
       component: userId ? () => <ProfileForm userId={userId} /> : null,
     },
     { id: 1, title: 'Security', component: () => <SecurityTab /> },
-    { id: 2, title: 'Org Invites', component: () => <OrgInvitesTab /> },
+    { id: 2, title: 'Team Invites', component: () => <OrgInvitesTab /> },
     { id: 3, title: 'API', component: () => <ApiClientPage /> },
     { id: 4, title: 'Theme', component: () => <ThemeManager /> },
   ];

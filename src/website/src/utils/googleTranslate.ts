@@ -8,6 +8,30 @@ const LANGUAGE_STORAGE_KEY = 'airqo_selected_language';
 const LANGUAGE_CODE_ALIASES: Record<string, string> = {
   'en-gb': 'en',
   'en-us': 'en',
+  zh: 'zh-CN',
+  'zh-hans': 'zh-CN',
+  'pt-br': 'pt',
+  'pt-pt': 'pt',
+  he: 'iw',
+};
+
+let cachedTranslateCombo: HTMLSelectElement | null = null;
+
+const triggerGoogleTranslateInit = () => {
+  if (typeof window === 'undefined') return;
+  const initializer = (
+    window as Window & { googleTranslateElementInit?: () => void }
+  ).googleTranslateElementInit;
+
+  if (typeof initializer === 'function') {
+    initializer();
+  }
+};
+
+export const isGoogleTranslateScriptBlocked = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  return !!(window as Window & { googleTranslateScriptBlocked?: boolean })
+    .googleTranslateScriptBlocked;
 };
 
 const getCookieValue = (name: string): string | undefined => {
@@ -114,30 +138,43 @@ const waitForTranslateCombo = async (
 ): Promise<HTMLSelectElement | null> => {
   if (typeof document === 'undefined') return null;
 
-  const existing = document.querySelector(
-    GOOGLE_TRANSLATE_COMBO_SELECTOR,
-  ) as HTMLSelectElement | null;
+  const existing =
+    cachedTranslateCombo &&
+    document.contains(cachedTranslateCombo) &&
+    cachedTranslateCombo.matches(GOOGLE_TRANSLATE_COMBO_SELECTOR)
+      ? cachedTranslateCombo
+      : (document.querySelector(
+          GOOGLE_TRANSLATE_COMBO_SELECTOR,
+        ) as HTMLSelectElement | null);
+
+  cachedTranslateCombo = existing;
   if (existing) return existing;
 
-  const started = Date.now();
-
   return new Promise((resolve) => {
-    const intervalId = window.setInterval(() => {
+    let observer: MutationObserver | null = null;
+
+    const timeoutId = window.setTimeout(() => {
+      observer?.disconnect();
+      resolve(null);
+    }, timeoutMs);
+
+    observer = new MutationObserver(() => {
       const combo = document.querySelector(
         GOOGLE_TRANSLATE_COMBO_SELECTOR,
       ) as HTMLSelectElement | null;
 
       if (combo) {
-        window.clearInterval(intervalId);
+        cachedTranslateCombo = combo;
+        window.clearTimeout(timeoutId);
+        observer?.disconnect();
         resolve(combo);
-        return;
       }
+    });
 
-      if (Date.now() - started >= timeoutMs) {
-        window.clearInterval(intervalId);
-        resolve(null);
-      }
-    }, 80);
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
   });
 };
 
@@ -163,22 +200,32 @@ const resolveLanguageForCombo = (
 
 export const applyGoogleTranslateLanguage = async (
   languageCode: string,
-  timeoutMs: number = 3000,
+  timeoutMs: number = 5000,
 ): Promise<boolean> => {
   if (typeof window === 'undefined') return false;
 
-  setGoogleTranslateLanguageCookie(languageCode);
+  let combo = await waitForTranslateCombo(timeoutMs);
+  if (!combo) {
+    triggerGoogleTranslateInit();
+    combo = await waitForTranslateCombo(Math.max(2000, timeoutMs));
+  }
 
-  const combo = await waitForTranslateCombo(timeoutMs);
   if (!combo) return false;
 
   const resolvedCode = resolveLanguageForCombo(languageCode, combo);
-  setGoogleTranslateLanguageCookie(resolvedCode);
 
-  if (combo.value !== resolvedCode) {
-    combo.value = resolvedCode;
+  const currentTargetLanguage = normalizeGoogleLanguageCode(
+    getGoogleTranslateTargetLanguage() || DEFAULT_GOOGLE_LANGUAGE,
+  );
+  if (
+    combo.value === resolvedCode &&
+    currentTargetLanguage.toLowerCase() === resolvedCode.toLowerCase()
+  ) {
+    return true;
   }
 
+  combo.value = resolvedCode;
+  setGoogleTranslateLanguageCookie(resolvedCode);
   combo.dispatchEvent(new Event('change', { bubbles: true }));
   return true;
 };
