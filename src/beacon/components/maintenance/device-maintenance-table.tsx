@@ -100,7 +100,7 @@ export default function DeviceMaintenanceTable({
                                 onClick={() => onSort('airqlouds')}
                             >
                                 <div className="flex items-center space-x-1">
-                                    <span>AirQlouds</span>
+                                    <span>Cohorts</span>
                                     {renderSortIcon('airqlouds')}
                                 </div>
                             </th>

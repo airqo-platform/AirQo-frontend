@@ -28,11 +28,11 @@ export default function AirQloudMaintenanceTable({
     onPageChange
 }: AirQloudMaintenanceTableProps) {
     if (loading) {
-        return <div className="p-4 text-center">Loading AirQloud stats...</div>
+        return <div className="p-4 text-center">Loading Cohort stats...</div>
     }
 
     if (!data || data.length === 0) {
-        return <div className="p-4 text-center text-gray-500">No AirQloud data available.</div>
+        return <div className="p-4 text-center text-gray-500">No Cohort data available.</div>
     }
 
     const renderSortIcon = (field: string) => {

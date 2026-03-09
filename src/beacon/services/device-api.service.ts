@@ -21,7 +21,8 @@ import {
   AirQloudStatsResponse,
   DeviceMaintenanceStatsResponse,
   MaintenanceAnalyticsResponse,
-  MaintenanceMapResponse
+  MaintenanceMapResponse,
+  MaintenanceMapItem
 } from '@/types/api.types'
 
 
@@ -36,16 +37,27 @@ class ApiService {
   constructor() {
     this.baseUrl = config.apiUrl
     this.apiPrefix = config.apiPrefix || '/api/v1'
-    this.defaultHeaders = {
-      'Content-Type': 'application/json',
+    this.defaultHeaders = {}
+  }
+
+  /**
+   * Get the appropriate endpoint based on environment
+   * @param resource - The resource path (e.g., '/devices/')
+   */
+  private getEndpoint(resource: string): string {
+    const cleanPath = resource.startsWith('/') ? resource : `/${resource}`;
+
+    // For local development, use path as is (base URL handles the rest)
+    if (config.isLocalhost) {
+      return cleanPath;
     }
+
+    // For production/staging, prefix with configured API prefix + service name
+    return `${this.apiPrefix}/beacon${cleanPath}`;
   }
 
   private getAuthHeaders(): HeadersInit {
-    // Skip auth for localhost
-    if (config.isLocalhost) {
-      return this.defaultHeaders
-    }
+
 
     const token = authService.getToken()
     if (token) {
@@ -63,12 +75,14 @@ class ApiService {
     retries: number = this.maxRetries
   ): Promise<T> {
     try {
+      const headers = {
+        ...this.getAuthHeaders(),
+        ...options.headers,
+      }
+
       const response = await fetch(url, {
         ...options,
-        headers: {
-          ...this.getAuthHeaders(),
-          ...options.headers,
-        },
+        headers,
       })
 
       if (!response.ok) {
@@ -124,63 +138,64 @@ class ApiService {
   transformDeviceListToUI(devices: Device[]): UIDevice[] {
     return devices.map(device => ({
       // Flat properties for backward compatibility
-      device_id: device.device_id,
-      device_name: device.device_name,
-      device_key: device.device_key,
-      network: device.network,
-      category: device.category,
-      status: device.status,
-      is_online: device.is_online,
-      is_active: device.is_active,
-      power_type: device.power_type,
-      mount_type: device.mount_type,
-      height: device.height,
-      next_maintenance: device.next_maintenance,
-      first_seen: device.first_seen,
-      last_updated: device.last_updated,
+      device_id: device._id || device.device_id || '', // Fallback to old field if present
+      device_name: device.name || device.long_name || device.device_name || 'Unnamed Device',
+      device_key: device.writeKey || device.readKey || '', // approximate mapping
+      network: device.network || '',
+      category: device.category || '',
+      status: device.status || 'not deployed',
+      is_online: device.isOnline,
+      is_active: device.isActive,
+      power_type: device.powerType || '',
+      mount_type: device.mountType || '',
+      height: device.height || 0,
+      next_maintenance: device.nextMaintenance || '',
+      first_seen: device.createdAt || '',
+      last_updated: device.lastRawData || device.lastActive || '',
 
-      // New firmware and network fields
-      channel_id: device.channel_id,
-      network_id: device.network_id,
-      current_firmware: device.current_firmware,
-      target_firmware: device.target_firmware,
-      firmware_download_state: device.firmware_download_state,
+      // New firmware and network fields - NOT present in new Device interface as top level, maybe in beacon_data?
+      // usage in new Device format seems limited, preserving structure for UI
+      channel_id: device.device_number || 0, // Using device_number as channel_id proxy?
+      network_id: '', // Not clear in new format, logic needed?
+      current_firmware: '', // Not in data.json top level
+      target_firmware: '',
+      firmware_download_state: '',
 
-      // Location data from site_location or location
-      latitude: device.location?.latitude || device.site_location?.latitude || device.latitude,
-      longitude: device.location?.longitude || device.site_location?.longitude || device.longitude,
-      location_name: device.location?.site_name || device.site_location?.site_name || device.site_id,
-      city: device.site_location?.city || '',
-      district: device.site_location?.district || '',
-      country: device.site_location?.country || '',
-      site_category: device.site_location?.site_category || '',
+      // Location data
+      latitude: device.latitude || device.site?.approximate_latitude || 0,
+      longitude: device.longitude || device.site?.approximate_longitude || 0,
+      location_name: device.site?.location_name || device.site?.name || '',
+      city: device.site?.city || '',
+      district: '', // Not in data.json site
+      country: device.site?.country || '',
+      site_category: '', // Not in data.json site
 
-      // Latest reading data
-      pm2_5: device.latest_reading?.pm2_5 || null,
-      pm10: device.latest_reading?.pm10 || null,
-      temperature: device.latest_reading?.temperature || null,
-      humidity: device.latest_reading?.humidity || null,
-      reading_timestamp: device.latest_reading?.timestamp,
+      // Latest reading data - raw data structure in data.json is different/absent top level
+      pm2_5: null,
+      pm10: null,
+      temperature: null,
+      humidity: null,
+      reading_timestamp: device.lastRawData,
 
       // Nested structure for new code
       device: {
-        id: device.device_id,
-        name: device.device_name,
-        power_type: device.power_type,
-        mount_type: device.mount_type,
-        next_maintenance: device.next_maintenance,
+        id: device._id || device.device_id || '',
+        name: device.name || device.long_name || 'Unnamed',
+        power_type: device.powerType,
+        mount_type: device.mountType,
+        next_maintenance: device.nextMaintenance,
         status: device.status
       },
       location: {
-        name: device.location?.site_name || device.site_location?.site_name || device.site_id,
-        latitude: device.location?.latitude || device.site_location?.latitude || device.latitude,
-        longitude: device.location?.longitude || device.site_location?.longitude || device.longitude,
-        city: device.site_location?.city || '',
-        district: device.site_location?.district || '',
-        country: device.site_location?.country || ''
+        name: device.site?.location_name || device.site?.name,
+        latitude: device.latitude || device.site?.approximate_latitude,
+        longitude: device.longitude || device.site?.approximate_longitude,
+        city: device.site?.city,
+        district: '',
+        country: device.site?.country
       },
-      maintenance_history: [], // This would need a separate API call
-      readings_history: [] // This would need a separate API call
+      maintenance_history: [],
+      readings_history: []
     }))
   }
 
@@ -192,7 +207,7 @@ class ApiService {
       include_maintenance: params?.include_maintenance ?? true
     })
 
-    const endpoint = config.isLocalhost ? '/devices/stats' : `${this.apiPrefix}/beacon/devices/stats`
+    const endpoint = this.getEndpoint('/devices/stats')
     const url = `${this.baseUrl}${endpoint}${queryString}`
     return this.fetchWithRetry<DeviceStatsResponse>(url)
   }
@@ -206,7 +221,7 @@ class ApiService {
   // Device List API
   async getDevices(params?: DeviceQueryParams): Promise<Device[]> {
     const queryString = this.buildQueryString(params || {})
-    const endpoint = config.isLocalhost ? '/devices/' : `${this.apiPrefix}/beacon/devices/`
+    const endpoint = this.getEndpoint('/devices/')
     const url = `${this.baseUrl}${endpoint}${queryString}`
     console.log('Device API URL:', url)
     console.log('Base URL:', this.baseUrl)
@@ -216,12 +231,30 @@ class ApiService {
   // Device List API with Pagination
   async getDevicesPaginated(params?: DeviceQueryParams): Promise<PaginatedDeviceResponse> {
     const queryString = this.buildQueryString(params || {})
-    const endpoint = config.isLocalhost ? '/devices/' : `${this.apiPrefix}/beacon/devices/`
+    const endpoint = this.getEndpoint('/devices/')
     const url = `${this.baseUrl}${endpoint}${queryString}`
     console.log('Device API URL (Paginated):', url)
     console.log('Base URL:', this.baseUrl)
 
     const response = await this.fetchWithRetry<any>(url)
+
+    // Handle new response format with "meta"
+    if (response.meta && response.devices) {
+      return {
+        devices: response.devices,
+        meta: response.meta,
+        pagination: {
+          total: response.meta.total,
+          skip: response.meta.skip,
+          limit: response.meta.limit,
+          returned: response.devices.length,
+          pages: response.meta.totalPages,
+          current_page: response.meta.page,
+          has_next: (response.meta.page * response.meta.limit) < response.meta.total, // Approximate check
+          has_previous: response.meta.page > 1
+        }
+      }
+    }
 
     // Handle both paginated and non-paginated responses
     if (Array.isArray(response)) {
@@ -279,15 +312,28 @@ class ApiService {
   // Get Devices with Pagination and UI transformation
   async getDevicesForUIPaginated(params?: DeviceQueryParams): Promise<PaginatedUIDeviceResponse> {
     const paginatedResponse = await this.getDevicesPaginated(params)
+
+    // Ensure pagination exists
+    const pagination = paginatedResponse.pagination || {
+      total: 0,
+      skip: params?.skip || 0,
+      limit: params?.limit || 0,
+      returned: 0,
+      pages: 0,
+      current_page: 1,
+      has_next: false,
+      has_previous: false
+    }
+
     return {
       devices: this.transformDeviceListToUI(paginatedResponse.devices),
-      pagination: paginatedResponse.pagination
+      pagination
     }
   }
 
   // Single Device API
   async getDevice(deviceId: string): Promise<Device> {
-    const endpoint = config.isLocalhost ? '/devices/' : `${this.apiPrefix}/beacon/devices/`
+    const endpoint = this.getEndpoint('/devices/')
     const url = `${this.baseUrl}${endpoint}${encodeURIComponent(deviceId)}`
     return this.fetchWithRetry<Device>(url)
   }
@@ -298,7 +344,7 @@ class ApiService {
     params?: PerformanceQueryParams
   ): Promise<DevicePerformanceResponse> {
     const queryString = this.buildQueryString({ days: params?.days || 7 })
-    const endpoint = config.isLocalhost ? '/devices/' : `${this.apiPrefix}/beacon/devices/`
+    const endpoint = this.getEndpoint('/devices/')
     const url = `${this.baseUrl}${endpoint}${encodeURIComponent(deviceId)}/performance${queryString}`
     return this.fetchWithRetry<DevicePerformanceResponse>(url)
   }
@@ -309,7 +355,7 @@ class ApiService {
     params?: ReadingsQueryParams
   ): Promise<DeviceReadingsResponse> {
     const queryString = this.buildQueryString(params || {})
-    const endpoint = config.isLocalhost ? '/devices/' : `${this.apiPrefix}/beacon/devices/`
+    const endpoint = this.getEndpoint('/devices/')
     const url = `${this.baseUrl}${endpoint}${encodeURIComponent(deviceId)}/readings${queryString}`
     return this.fetchWithRetry<DeviceReadingsResponse>(url)
   }
@@ -320,34 +366,40 @@ class ApiService {
       hours: params?.hours || 24,
       limit: params?.limit
     })
-    const endpoint = config.isLocalhost ? '/devices/offline/list' : `${this.apiPrefix}/beacon/devices/offline/list`
+    const endpoint = this.getEndpoint('/devices/offline/list')
     const url = `${this.baseUrl}${endpoint}${queryString}`
     return this.fetchWithRetry<OfflineDevicesResponse>(url)
   }
 
   // Create Device
   async createDevice(deviceData: Partial<Device>): Promise<Device> {
-    const endpoint = config.isLocalhost ? '/devices' : `${this.apiPrefix}/beacon/devices`
+    const endpoint = this.getEndpoint('/devices')
     const url = `${this.baseUrl}${endpoint}`
     return this.fetchWithRetry<Device>(url, {
       method: 'POST',
-      body: JSON.stringify(deviceData)
+      body: JSON.stringify(deviceData),
+      headers: {
+        'Content-Type': 'application/json'
+      }
     })
   }
 
   // Update Device
   async updateDevice(deviceId: string, deviceData: Partial<Device>): Promise<Device> {
-    const endpoint = config.isLocalhost ? '/devices/' : `${this.apiPrefix}/beacon/devices/`
+    const endpoint = this.getEndpoint('/devices/')
     const url = `${this.baseUrl}${endpoint}${encodeURIComponent(deviceId)}`
     return this.fetchWithRetry<Device>(url, {
       method: 'PATCH',
-      body: JSON.stringify(deviceData)
+      body: JSON.stringify(deviceData),
+      headers: {
+        'Content-Type': 'application/json'
+      }
     })
   }
 
   // Delete Device
   async deleteDevice(deviceId: string): Promise<{ message: string }> {
-    const endpoint = config.isLocalhost ? '/devices/' : `${this.apiPrefix}/beacon/devices/`
+    const endpoint = this.getEndpoint('/devices/')
     const url = `${this.baseUrl}${endpoint}${encodeURIComponent(deviceId)}`
     return this.fetchWithRetry<{ message: string }>(url, {
       method: 'DELETE'
@@ -356,21 +408,28 @@ class ApiService {
 
   // Dashboard Summary API (analytics prefix)
   async getDashboardSummary(): Promise<any> {
-    const endpoint = config.isLocalhost ? '/analytics/dashboard' : `${this.apiPrefix}/beacon/analytics/dashboard`
+    const endpoint = this.getEndpoint('/analytics/dashboard')
     const url = `${this.baseUrl}${endpoint}`
     return this.fetchWithRetry<any>(url)
   }
 
   // Device Summary API (new endpoint)
+  // Device Summary API (new endpoint)
   async getDeviceSummary(): Promise<DeviceSummaryResponse> {
-    const endpoint = config.isLocalhost ? '/devices/summary' : `${this.apiPrefix}/beacon/devices/summary`
-    const url = `${this.baseUrl}${endpoint}`
-    return this.fetchWithRetry<DeviceSummaryResponse>(url)
+    // Return dummy data as the endpoint is no longer available
+    return Promise.resolve({
+      total_devices: 0,
+      active_airqlouds: 0,
+      tracked_devices: 0,
+      deployed_devices: 0,
+      tracked_online: 0,
+      tracked_offline: 0
+    })
   }
 
   // System Health API (analytics prefix)
   async getSystemHealth(): Promise<any> {
-    const endpoint = config.isLocalhost ? '/analytics/system-health' : `${this.apiPrefix}/beacon/analytics/system-health`
+    const endpoint = this.getEndpoint('/analytics/system-health')
     const url = `${this.baseUrl}${endpoint}`
     return this.fetchWithRetry<any>(url)
   }
@@ -378,7 +437,7 @@ class ApiService {
   // Data Transmission Summary API (analytics prefix)
   async getDataTransmissionSummary(params?: { days?: number }): Promise<any> {
     const queryString = this.buildQueryString({ days: params?.days || 7 })
-    const endpoint = config.isLocalhost ? '/analytics/data-transmission/summary' : `${this.apiPrefix}/beacon/analytics/data-transmission/summary`
+    const endpoint = this.getEndpoint('/analytics/data-transmission/summary')
     const url = `${this.baseUrl}${endpoint}${queryString}`
     return this.fetchWithRetry<any>(url)
   }
@@ -386,7 +445,7 @@ class ApiService {
   // Network Performance API (analytics prefix)
   async getNetworkPerformance(params?: { days?: number }): Promise<any> {
     const queryString = this.buildQueryString({ days: params?.days || 7 })
-    const endpoint = config.isLocalhost ? '/analytics/network-performance' : `${this.apiPrefix}/beacon/analytics/network-performance`
+    const endpoint = this.getEndpoint('/analytics/network-performance')
     const url = `${this.baseUrl}${endpoint}${queryString}`
     return this.fetchWithRetry<any>(url)
   }
@@ -397,14 +456,14 @@ class ApiService {
       days: params?.days || 30,
       limit: params?.limit
     })
-    const endpoint = config.isLocalhost ? '/devices/maintenance/upcoming' : `${this.apiPrefix}/beacon/devices/maintenance/upcoming`
+    const endpoint = this.getEndpoint('/devices/maintenance/upcoming')
     const url = `${this.baseUrl}${endpoint}${queryString}`
     return this.fetchWithRetry<any>(url)
   }
 
   // Map Data API
   async getMapData(): Promise<any> {
-    const endpoint = config.isLocalhost ? '/devices/map-data' : `${this.apiPrefix}/beacon/devices/map-data`
+    const endpoint = this.getEndpoint('/devices/map-data')
     const url = `${this.baseUrl}${endpoint}`
     return this.fetchWithRetry<any>(url)
   }
@@ -412,13 +471,13 @@ class ApiService {
   // Site Analytics APIs
   async getSites(params?: { limit?: number; skip?: number }): Promise<any> {
     const queryString = this.buildQueryString(params || {})
-    const endpoint = config.isLocalhost ? '/sites/' : `${this.apiPrefix}/beacon/sites/`
+    const endpoint = this.getEndpoint('/sites/')
     const url = `${this.baseUrl}${endpoint}${queryString}`
     return this.fetchWithRetry<any>(url)
   }
 
   async getSiteById(siteId: string): Promise<any> {
-    const endpoint = config.isLocalhost ? '/sites/' : `${this.apiPrefix}/beacon/sites/`
+    const endpoint = this.getEndpoint('/sites/')
     const url = `${this.baseUrl}${endpoint}${encodeURIComponent(siteId)}`
     return this.fetchWithRetry<any>(url)
   }
@@ -429,7 +488,7 @@ class ApiService {
     frequency?: string
   }): Promise<any> {
     const queryString = this.buildQueryString(params || {})
-    const endpoint = config.isLocalhost ? '/sites/' : `${this.apiPrefix}/beacon/sites/`
+    const endpoint = this.getEndpoint('/sites/')
     const url = `${this.baseUrl}${endpoint}${encodeURIComponent(siteId)}/analytics${queryString}`
     return this.fetchWithRetry<any>(url)
   }
@@ -469,14 +528,19 @@ class ApiService {
     skip?: number
     limit?: number
     device_id?: string
-    channel_id?: string
-    start_date?: string
-    end_date?: string
+    category_name?: string
   }): Promise<any> {
+    const { device_id, category_name = 'lowcost', ...queryParams } = params || {}
+
+    if (!device_id) {
+      throw new Error('Device ID is required for fetching metadata')
+    }
+
     const endpoint = config.isLocalhost
-      ? '/data/metadata'
-      : `${this.apiPrefix}/beacon/data/metadata`
-    const queryString = this.buildQueryString(params || {})
+      ? `/devices/${device_id}/metadata/${category_name}`
+      : this.getEndpoint(`/devices/${device_id}/metadata/${category_name}`)
+
+    const queryString = this.buildQueryString(queryParams)
     const url = `${this.baseUrl}${endpoint}${queryString}`
 
     return this.fetchWithRetry(url)
@@ -484,36 +548,40 @@ class ApiService {
 
   // Get device configuration history
   async getDeviceConfig(params?: {
-    channel_id: number
+    device_id: string
+    category_name?: string
     skip?: number
     limit?: number
-    start_date?: string
-    end_date?: string
   }): Promise<any> {
+    const { device_id, category_name = 'lowcost', ...queryParams } = params || {}
+
+    if (!device_id) {
+      throw new Error('Device ID is required for fetching config history')
+    }
+
     const endpoint = config.isLocalhost
-      ? '/data/config'
-      : `${this.apiPrefix}/beacon/data/config`
-    const queryString = this.buildQueryString(params || {})
+      ? `/devices/${device_id}/configdata/${category_name}`
+      : this.getEndpoint(`/devices/${device_id}/configdata/${category_name}`)
+
+    const queryString = this.buildQueryString(queryParams)
     const url = `${this.baseUrl}${endpoint}${queryString}`
 
     return this.fetchWithRetry(url)
   }
 
-  // Get device performance data
+  // Get device performance data (GET /devices/performance)
   async getDevicePerformanceData(data: {
     start: string
     end: string
-    ids: string[]
+    deviceNames: string[]
   }): Promise<any> {
-    const endpoint = config.isLocalhost
-      ? '/performance/device'
-      : `${this.apiPrefix}/beacon/performance/device`
-    const url = `${this.baseUrl}${endpoint}`
+    const endpoint = this.getEndpoint('/devices/performance')
+    // Use comma-separated device names
+    const deviceNamesParam = data.deviceNames.join(',')
+    const url = `${this.baseUrl}${endpoint}?device_name=${encodeURIComponent(deviceNamesParam)}&startDateTime=${encodeURIComponent(data.start)}&endDateTime=${encodeURIComponent(data.end)}`
 
-    return this.fetchWithRetry(url, {
-      method: 'POST',
-      body: JSON.stringify(data),
-    })
+    const response = await this.fetchWithRetry<any>(url)
+    return response.data ?? response
   }
 
   // Update device configurations
@@ -532,7 +600,7 @@ class ApiService {
   }): Promise<any> {
     const endpoint = config.isLocalhost
       ? '/data/config'
-      : `${this.apiPrefix}/beacon/data/config`
+      : this.getEndpoint('/data/config')
     const url = `${this.baseUrl}${endpoint}`
 
     return this.fetchWithRetry(url, {
@@ -580,7 +648,7 @@ class ApiService {
   async getAirQloudStats(body: MaintenanceStatsBody): Promise<AirQloudStatsResponse> {
     const endpoint = config.isLocalhost
       ? '/maintenance/airqlouds/stats'
-      : `${this.apiPrefix}/beacon/maintenance/airqlouds/stats`
+      : this.getEndpoint('/maintenance/airqlouds/stats')
     const url = `${this.baseUrl}${endpoint}`
 
     return this.fetchWithRetry<AirQloudStatsResponse>(url, {
@@ -592,7 +660,7 @@ class ApiService {
   async getDeviceStatsMaintenance(body: MaintenanceStatsBody): Promise<DeviceMaintenanceStatsResponse> {
     const endpoint = config.isLocalhost
       ? '/maintenance/devices/stats'
-      : `${this.apiPrefix}/beacon/maintenance/devices/stats`
+      : this.getEndpoint('/maintenance/devices/stats')
     const url = `${this.baseUrl}${endpoint}`
 
     return this.fetchWithRetry<DeviceMaintenanceStatsResponse>(url, {
@@ -604,19 +672,22 @@ class ApiService {
   async getMaintenanceAnalytics(period_days: number = 14): Promise<MaintenanceAnalyticsResponse> {
     const endpoint = config.isLocalhost
       ? `/maintenance/analytics?days=${period_days}`
-      : `${this.apiPrefix}/beacon/maintenance/analytics?days=${period_days}`
+      : this.getEndpoint(`/maintenance/analytics?days=${period_days}`)
     const url = `${this.baseUrl}${endpoint}`
 
     return this.fetchWithRetry<MaintenanceAnalyticsResponse>(url)
   }
 
-  async getMaintenanceMapData(period_days: number = 14): Promise<MaintenanceMapResponse> {
+  async getMaintenanceMapData(period_days: number = 14, tags?: string): Promise<MaintenanceMapItem[]> {
+    let query = `days=${period_days}`
+    if (tags) query += `&tags=${tags}`
     const endpoint = config.isLocalhost
-      ? `/maintenance/map-view?days=${period_days}`
-      : `${this.apiPrefix}/beacon/maintenance/map-view?days=${period_days}`
+      ? `/maintenance/map-view?${query}`
+      : this.getEndpoint(`/maintenance/map-view?${query}`)
     const url = `${this.baseUrl}${endpoint}`
 
-    return this.fetchWithRetry<MaintenanceMapResponse>(url)
+    const response = await this.fetchWithRetry<MaintenanceMapResponse>(url)
+    return response.data
   }
 }
 
@@ -651,11 +722,11 @@ export const getSiteAnalytics = (siteId: string, params?: { start_date?: string;
 export const getCountryAnalytics = (countryId: string, params?: { start_date?: string; end_date?: string }) => deviceApiService.getCountryAnalytics(countryId, params)
 export const getRegionalAnalytics = (regionId: string, params?: { start_date?: string; end_date?: string }) => deviceApiService.getRegionalAnalytics(regionId, params)
 export const getDistrictAnalytics = (districtId: string, params?: { start_date?: string; end_date?: string }) => deviceApiService.getDistrictAnalytics(districtId, params)
-export const getDeviceMetadata = (params?: { skip?: number; limit?: number; device_id?: string; channel_id?: string; start_date?: string; end_date?: string }) => deviceApiService.getDeviceMetadata(params)
-export const getDeviceConfig = (params?: { channel_id: number; skip?: number; limit?: number; start_date?: string; end_date?: string }) => deviceApiService.getDeviceConfig(params)
+export const getDeviceMetadata = (params?: { skip?: number; limit?: number; device_id?: string; category_name?: string }) => deviceApiService.getDeviceMetadata(params)
+export const getDeviceConfig = (params?: { device_id: string; category_name?: string; skip?: number; limit?: number }) => deviceApiService.getDeviceConfig(params)
 export const updateDeviceConfigs = (data: { device_ids: string[]; config1?: string; config2?: string; config3?: string; config4?: string; config5?: string; config6?: string; config7?: string; config8?: string; config9?: string; config10?: string }) => deviceApiService.updateDeviceConfigs(data)
-export const getDevicePerformanceData = (data: { start: string; end: string; ids: string[] }) => deviceApiService.getDevicePerformanceData(data)
+export const getDevicePerformanceData = (data: { start: string; end: string; deviceNames: string[] }) => deviceApiService.getDevicePerformanceData(data)
 export const getAirQloudStats = (body: MaintenanceStatsBody) => deviceApiService.getAirQloudStats(body)
 export const getDeviceStatsMaintenance = (body: MaintenanceStatsBody) => deviceApiService.getDeviceStatsMaintenance(body)
 export const getMaintenanceAnalytics = (period_days: number = 14) => deviceApiService.getMaintenanceAnalytics(period_days)
-export const getMaintenanceMapData = (period_days: number = 14) => deviceApiService.getMaintenanceMapData(period_days)
+export const getMaintenanceMapData = (period_days: number = 14, tags?: string) => deviceApiService.getMaintenanceMapData(period_days, tags)

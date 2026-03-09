@@ -15,6 +15,7 @@ import {
   MapPin,
   FileText,
   Edit,
+  ArrowLeft,
 } from "lucide-react"
 import { config } from "@/lib/config"
 import authService from "@/services/api-service"
@@ -27,67 +28,88 @@ import PerformanceTab from "./performance-tab"
 import DeviceDetailsTab from "./device-details-tab"
 
 // Define interfaces for the device data
-interface DeviceMetadataEntry {
-  entryID: any
-  created_at: string
-  [key: string]: any
-}
-
-interface DeviceConfigEntry {
-  entryID: any
-  created_at: string
-  config_updated?: boolean
-  [key: string]: any
-}
-
 interface DeviceDetail {
-  device_id: string
-  device_name: string
-  device_key: number
-  read_key: string | null
-  write_key: string | null
-  channel_id: number | null
-  network_id: string | null
+  _id: string
+  name: string
+  long_name: string
+  device_number: number
+  description?: string
+  createdAt: string
+
+  // Network & Identifiers
   network: string
-  category: string | null
-  current_firmware: string | null
-  target_firmware: string | null
-  previous_firmware: string | null
-  file_upload_state: boolean | null
-  firmware_download_state: string | null
-  is_active: boolean
-  is_online: boolean
+  network_id: string | null
+  device_codes: string[]
+
+  // Keys
+  readKey: string
+  writeKey: string
+
+  // Status & State
+  isActive: boolean
+  isOnline: boolean
+  rawOnlineStatus: boolean
   status: string
-  mount_type?: string
-  power_type?: string
-  height?: number
-  next_maintenance?: string
-  first_seen: string
-  last_updated: string
-  created_at: string
-  updated_at: string
-  location?: {
-    latitude: number
-    longitude: number
-    location_name?: string
-    admin_level_country?: string
-    admin_level_city?: string
-    admin_level_division?: string
+  visibility: boolean
+  mobility: boolean
+  authRequired: boolean
+
+  // Categories
+  category: string
+  category_hierarchy: Array<{
+    level: string
+    category: string
+    description: string
+  }>
+  device_categories: {
+    primary_category: string
+    deployment_category: string
+    is_mobile: boolean
+    is_static: boolean
+    is_lowcost: boolean
+    all_categories: string[]
   }
-  recent_reading?: {
-    site_name?: string
-    pm2_5: number
-    pm10: number
-    temperature?: number
-    humidity?: number
-    timestamp?: string
+
+  // Hardware/Physical
+  height: number
+  mountType: string
+  powerType: string
+
+  // Firmware
+  beacon_data: {
+    network_id: string | null
+    current_firmware: string | null
+    previous_firmware: string | null
+    file_upload_state: boolean
+    firmware_download_state: string | null
   }
-  field_data: DeviceMetadataEntry[]
-  config_data?: DeviceConfigEntry[]
-  meta_data?: DeviceMetadataEntry[]
-  field_names?: Record<string, string>
-  config_names?: Record<string, string>
-  metadata_names?: Record<string, string>
+
+  // Location
+  latitude: number
+  longitude: number
+  approximate_distance_in_km: number
+  bearing_in_radians: number
+  site?: {
+    _id: string
+    name: string
+    formatted_name: string
+    location_name: string
+    city?: string
+    country?: string
+    description?: string
+  }
+
+  // Dates
+  deployment_date: string
+  nextMaintenance: string
+  lastActive: string
+  lastRawData: string
+
+  // Groups & Tags
+  cohorts: Array<{ _id: string; name: string }>
+  grids: Array<{ _id: string; name: string }>
+  groups: any[]
+  tags: any[]
 }
 
 export default function DeviceDetailPage() {
@@ -119,37 +141,46 @@ export default function DeviceDetailPage() {
       })
     }
   }
-  
+
   // Fetch device data from API
   const fetchDeviceData = async () => {
     try {
       setIsRefreshing(true)
       setError(null)
-      
+
+      if (!params?.id) return
+
       const deviceId = params.id as string
-      const apiPath = config.isLocalhost ? 
+      // Use consistent endpoint path as per user request
+      const apiPath = config.isLocalhost ?
         `/devices/${deviceId}` :
         `/api/v1/beacon/devices/${deviceId}`
-      
+
       const response = await fetch(`${config.apiUrl}${apiPath}`, {
         headers: {
           'Authorization': authService.getToken() || '',
           'Content-Type': 'application/json'
         }
       })
-      
+
       if (!response.ok) {
         if (response.status === 404) {
           throw new Error("Device not found")
         }
         throw new Error(`API error: ${response.status}`)
       }
-      
-      const data = await response.json()
-      console.log("Device data received:", data)
-      console.log("Site name:", data.site_name)
-      console.log("Location:", data.location)
-      setDevice(data)
+
+      const responseData = await response.json()
+      console.log("Device data received:", responseData)
+
+      if (responseData.success && responseData.data) {
+        setDevice(responseData.data)
+      } else if (responseData.name || responseData.device_id) {
+        // Fallback or direct object return
+        setDevice(responseData)
+      } else {
+        throw new Error("Invalid response format")
+      }
     } catch (err: any) {
       console.error("Error fetching device data:", err)
       setError(err.message)
@@ -158,10 +189,12 @@ export default function DeviceDetailPage() {
       setIsRefreshing(false)
     }
   }
-  
+
   useEffect(() => {
-    fetchDeviceData()
-  }, [params.id])
+    if (params?.id) {
+      fetchDeviceData()
+    }
+  }, [params?.id])
 
   const handleRefresh = () => {
     fetchDeviceData()
@@ -206,66 +239,54 @@ export default function DeviceDetailPage() {
 
   return (
     <div className="mb-6">
-      <Button 
-        variant="ghost" 
-        className="mb-2 pl-0 -ml-3" 
+      <Button
+        variant="ghost"
+        className="mb-2 pl-0 -ml-3"
         onClick={() => router.push('/dashboard/devices')}
       >
         <ChevronLeft className="h-4 w-4 mr-1" /> Back to devices
       </Button>
 
-      {/* Device Header with basic info */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">{device.device_name}</h1>
-          <p className="text-gray-600 mt-1">Device ID: {device.device_id}</p>
-        </div>
-        <div className="mt-4 md:mt-0 flex space-x-2">
-          <Button 
-            variant="outline" 
+      {/* Tabs for Device Information */}
+      <Tabs defaultValue="device-details" className="mt-2">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+          <TabsList className="grid w-full max-w-3xl grid-cols-5">
+            <TabsTrigger value="device-details" className="flex items-center">
+              <MapPin className="mr-2 h-4 w-4" />
+              Device Details
+            </TabsTrigger>
+            {/* <TabsTrigger value="sensor-data" className="flex items-center">
+            <Activity className="mr-2 h-4 w-4" />
+            Sensor Data
+          </TabsTrigger> */}
+            <TabsTrigger value="metadata" className="flex items-center">
+              <Box className="mr-2 h-4 w-4" />
+              Metadata
+            </TabsTrigger>
+            <TabsTrigger value="config" className="flex items-center">
+              <Settings className="mr-2 h-4 w-4" />
+              Config
+            </TabsTrigger>
+            <TabsTrigger value="performance" className="flex items-center">
+              <Activity className="mr-2 h-4 w-4" />
+              Performance
+            </TabsTrigger>
+            <TabsTrigger value="files" className="flex items-center">
+              <FileText className="mr-2 h-4 w-4" />
+              Files
+            </TabsTrigger>
+          </TabsList>
+          <Button
+            variant="outline"
             onClick={() => setUpdateDialogOpen(true)}
           >
             <Edit className="h-4 w-4 mr-2" />
             Update Device
           </Button>
-          <Button variant="outline" onClick={handleRefresh} disabled={isRefreshing}>
-            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            {isRefreshing ? 'Refreshing...' : 'Refresh'}
-          </Button>
         </div>
-      </div>
-
-      {/* Tabs for Device Information */}
-      <Tabs defaultValue="device-details" className="mt-6">
-        <TabsList className="grid w-full max-w-4xl grid-cols-5">
-          <TabsTrigger value="device-details" className="flex items-center">
-            <MapPin className="mr-2 h-4 w-4" />
-            Device Details
-          </TabsTrigger>
-          {/* <TabsTrigger value="sensor-data" className="flex items-center">
-            <Activity className="mr-2 h-4 w-4" />
-            Sensor Data
-          </TabsTrigger> */}
-          <TabsTrigger value="metadata" className="flex items-center">
-            <Box className="mr-2 h-4 w-4" />
-            Metadata
-          </TabsTrigger>
-          <TabsTrigger value="config" className="flex items-center">
-            <Settings className="mr-2 h-4 w-4" />
-            Config
-          </TabsTrigger>
-          <TabsTrigger value="performance" className="flex items-center">
-            <Activity className="mr-2 h-4 w-4" />
-            Performance
-          </TabsTrigger>
-          <TabsTrigger value="files" className="flex items-center">
-            <FileText className="mr-2 h-4 w-4" />
-            Files
-          </TabsTrigger>
-        </TabsList>
 
         <TabsContent value="device-details" className="mt-4">
-          <DeviceDetailsTab 
+          <DeviceDetailsTab
             device={device}
             copiedKey={copiedKey}
             copyToClipboard={copyToClipboard}
@@ -274,23 +295,23 @@ export default function DeviceDetailPage() {
         </TabsContent>
 
         {/* <TabsContent value="sensor-data" className="mt-4">
-          <SensorDataTab deviceId={device.device_id} deviceName={device.device_name} />
+          <SensorDataTab deviceId={device.name} deviceName={device.long_name || device.name} />
         </TabsContent> */}
 
         <TabsContent value="metadata" className="mt-4">
-          <MetadataTab deviceId={device.device_id} deviceName={device.device_name} />
+          <MetadataTab deviceId={device.name} deviceName={device.long_name || device.name} />
         </TabsContent>
 
         <TabsContent value="config" className="mt-4">
-          <ConfigTab 
-            deviceId={device.device_id} 
-            deviceName={device.device_name}
-            channelId={device.channel_id || 0}
+          <ConfigTab
+            deviceId={device.name}
+            deviceName={device.long_name || device.name}
+            channelId={device.device_number || 0}
           />
         </TabsContent>
 
         <TabsContent value="performance" className="mt-4">
-          <PerformanceTab deviceId={device.device_id} deviceName={device.device_name} />
+          <PerformanceTab deviceId={device.name} deviceName={device.long_name || device.name} />
         </TabsContent>
 
         <TabsContent value="files" className="mt-4">
@@ -310,12 +331,18 @@ export default function DeviceDetailPage() {
           </Card>
         </TabsContent>
       </Tabs>
-      
+
       {/* Update Device Dialog */}
       <UpdateDeviceDialog
         open={updateDialogOpen}
         onOpenChange={setUpdateDialogOpen}
-        device={device}
+        device={device ? {
+          device_id: device.name,
+          device_name: device.long_name || device.name,
+          network_id: device.network_id || device.beacon_data?.network_id,
+          current_firmware: device.beacon_data?.current_firmware,
+          firmware_download_state: device.beacon_data?.firmware_download_state
+        } : null}
         onUpdateSuccess={handleRefresh}
       />
     </div>
