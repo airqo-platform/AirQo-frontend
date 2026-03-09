@@ -148,7 +148,7 @@ jobs:
             --resource-group ${{ env.RG }} \
             --environment ${{ env.PR_PREVIEW_ENV }} \
             --image ${{ env.REGISTRY_URL }}/website-pr-preview:${{ github.sha }} \
-            --target-port 3000 \
+            --target-port 8080 \
             --ingress external \
             --registry-server ${{ env.REGISTRY_URL }} \
             --registry-username airqoacr \
