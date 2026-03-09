@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import {
   Button,
   LoadingSpinner,
@@ -15,6 +16,7 @@ import { AqCheckCircle, AqXCircle } from '@airqo/icons-react';
 const ConfirmDeletePage: React.FC = () => {
   const params = useParams();
   const router = useRouter();
+  const { data: session } = useSession();
   const { trigger: confirmDeletion } = useConfirmAccountDeletion();
   const logout = useLogout('/user/login?message=Account deleted successfully');
 
@@ -102,11 +104,40 @@ const ConfirmDeletePage: React.FC = () => {
         // Set account deletion flag for other tabs/browsers immediately
         if (typeof window !== 'undefined') {
           try {
-            localStorage.setItem('account_deleted', 'true');
-            localStorage.setItem(
-              'account_deleted_timestamp',
-              Date.now().toString()
-            );
+            const currentUser = session?.user as
+              | { _id?: string; email?: string }
+              | undefined;
+            const userId =
+              typeof currentUser?._id === 'string'
+                ? currentUser._id.trim()
+                : '';
+            const email =
+              typeof currentUser?.email === 'string'
+                ? currentUser.email.trim().toLowerCase()
+                : '';
+            const deletionUserIdentifier = userId
+              ? `id:${userId}`
+              : email
+                ? `email:${email}`
+                : '';
+
+            if (deletionUserIdentifier) {
+              // Write supporting metadata first; write the boolean flag last so
+              // storage listeners read a fully populated marker.
+              localStorage.setItem(
+                'account_deleted_user_identifier',
+                deletionUserIdentifier
+              );
+              localStorage.setItem(
+                'account_deleted_timestamp',
+                Date.now().toString()
+              );
+              localStorage.setItem('account_deleted', 'true');
+            } else {
+              localStorage.removeItem('account_deleted');
+              localStorage.removeItem('account_deleted_timestamp');
+              localStorage.removeItem('account_deleted_user_identifier');
+            }
           } catch (error) {
             console.warn('Error setting account deletion flag:', error);
           }

@@ -21,6 +21,9 @@ export interface AirQualityReading {
   provider: string;
   status?: 'active' | 'inactive' | 'maintenance';
   isPrimary?: boolean;
+  deviceCategories?: import('../../../../shared/types/api').DeviceCategories;
+  primaryCategory?: string | null;
+  deploymentCategory?: string | null;
   aqiCategory?: string;
   aqiColor?: string;
   pollutantValue?: number;
@@ -56,6 +59,7 @@ interface MapNodesProps {
   className?: string;
   selectedPollutant?: PollutantType;
   zoomLevel?: number; // Add zoom level for cluster styling
+  showZoomHint?: boolean;
 }
 
 const getSizeClasses = (size: 'sm' | 'md' | 'lg') => {
@@ -121,6 +125,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
   className,
   selectedPollutant = 'pm2_5',
   zoomLevel = 10,
+  showZoomHint = false,
 }) => {
   // Determine if this is a cluster or individual node
   const isCluster = cluster && cluster.pointCount > 1;
@@ -143,6 +148,25 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
   const handleMouseLeave = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
+    const nextTarget = e.relatedTarget;
+    if (
+      nextTarget instanceof Element &&
+      nextTarget.closest('[data-testid="flowbite-tooltip"]')
+    ) {
+      return;
+    }
+    onHover?.(null);
+  };
+
+  const handleTooltipAction = () => {
+    onClick?.(data);
+  };
+
+  const handleTooltipHoverChange = (isHovering: boolean) => {
+    if (isHovering) {
+      onHover?.(data);
+      return;
+    }
     onHover?.(null);
   };
 
@@ -164,7 +188,13 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
     // Different rendering based on nodeType
     if (nodeType === 'number') {
       return (
-        <CustomTooltip data={reading} selectedPollutant={selectedPollutant}>
+        <CustomTooltip
+          data={reading}
+          selectedPollutant={selectedPollutant}
+          onTooltipAction={handleTooltipAction}
+          onTooltipHoverChange={handleTooltipHoverChange}
+          showZoomHint={showZoomHint}
+        >
           <div
             className={cn(
               'relative cursor-pointer pointer-events-auto transition-all duration-150',
@@ -187,7 +217,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
             }}
             aria-label={`Air quality reading: ${roundDecimals(pollutantValue, 1)} ${selectedPollutant === 'pm2_5' ? 'PM2.5' : 'PM10'} at ${reading.locationName || 'Unknown location'}`}
             style={{
-              cursor: 'pointer',
+              cursor: showZoomHint ? 'zoom-in' : 'pointer',
               touchAction: 'manipulation',
               userSelect: 'none',
               WebkitUserSelect: 'none',
@@ -223,7 +253,13 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
       );
     } else if (nodeType === 'node') {
       return (
-        <CustomTooltip data={reading} selectedPollutant={selectedPollutant}>
+        <CustomTooltip
+          data={reading}
+          selectedPollutant={selectedPollutant}
+          onTooltipAction={handleTooltipAction}
+          onTooltipHoverChange={handleTooltipHoverChange}
+          showZoomHint={showZoomHint}
+        >
           <div
             className={cn(
               'relative cursor-pointer pointer-events-auto transition-all duration-150',
@@ -246,7 +282,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
             }}
             aria-label={`Air quality reading: ${roundDecimals(pollutantValue, 1)} ${selectedPollutant === 'pm2_5' ? 'PM2.5' : 'PM10'} at ${reading.locationName || 'Unknown location'}`}
             style={{
-              cursor: 'pointer',
+              cursor: showZoomHint ? 'zoom-in' : 'pointer',
               touchAction: 'manipulation',
               userSelect: 'none',
               WebkitUserSelect: 'none',
@@ -280,7 +316,13 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
       );
     } else {
       return (
-        <CustomTooltip data={reading} selectedPollutant={selectedPollutant}>
+        <CustomTooltip
+          data={reading}
+          selectedPollutant={selectedPollutant}
+          onTooltipAction={handleTooltipAction}
+          onTooltipHoverChange={handleTooltipHoverChange}
+          showZoomHint={showZoomHint}
+        >
           <div
             className={cn(
               'relative cursor-pointer pointer-events-auto transition-all duration-150',
@@ -303,7 +345,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
             }}
             aria-label={`Air quality reading: ${roundDecimals(pollutantValue, 1)} ${selectedPollutant === 'pm2_5' ? 'PM2.5' : 'PM10'} at ${reading.locationName || 'Unknown location'}`}
             style={{
-              cursor: 'pointer',
+              cursor: showZoomHint ? 'zoom-in' : 'pointer',
               touchAction: 'manipulation',
               userSelect: 'none',
               WebkitUserSelect: 'none',
@@ -387,7 +429,12 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
     const textSize = isHighZoom ? 'text-sm font-bold' : 'text-base font-bold';
 
     return (
-      <CustomTooltip data={cluster} selectedPollutant={selectedPollutant}>
+      <CustomTooltip
+        data={cluster}
+        selectedPollutant={selectedPollutant}
+        onTooltipAction={handleTooltipAction}
+        onTooltipHoverChange={handleTooltipHoverChange}
+      >
         <div
           className={cn(
             'relative flex items-center cursor-pointer pointer-events-auto transition-all duration-200',
@@ -410,7 +457,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
           }}
           aria-label={`Cluster of ${cluster.pointCount} air quality monitoring stations`}
           style={{
-            cursor: 'pointer',
+            cursor: 'zoom-in',
             touchAction: 'none',
             userSelect: 'none',
             WebkitUserSelect: 'none',
