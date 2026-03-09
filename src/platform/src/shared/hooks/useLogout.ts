@@ -45,16 +45,25 @@ export const useLogout = (callbackUrl?: string) => {
           const deletionTimestamp = localStorage.getItem(
             'account_deleted_timestamp'
           );
+          const deletionUserIdentifier = localStorage.getItem(
+            'account_deleted_user_identifier'
+          );
           const parsedTimestamp = deletionTimestamp
             ? Number.parseInt(deletionTimestamp, 10)
             : NaN;
           const keepDeletionSignal =
             accountDeleted &&
             Number.isFinite(parsedTimestamp) &&
+            typeof deletionUserIdentifier === 'string' &&
+            deletionUserIdentifier.trim().length > 0 &&
             Date.now() - parsedTimestamp <= ACCOUNT_DELETION_TTL_MS;
 
           const crossTabSignalKeys = keepDeletionSignal
-            ? new Set(['account_deleted', 'account_deleted_timestamp'])
+            ? new Set([
+                'account_deleted',
+                'account_deleted_timestamp',
+                'account_deleted_user_identifier',
+              ])
             : new Set<string>();
 
           for (let i = 0; i < localStorage.length; i++) {

@@ -62,6 +62,7 @@ const publicRoutes = [
 const UNAUTHORIZED_WINDOW_MS = 30000;
 const UNAUTHORIZED_THRESHOLD = 3;
 const ACCOUNT_DELETION_TTL_MS = 5 * 60 * 1000;
+const ACCOUNT_DELETION_USER_IDENTIFIER_KEY = 'account_deleted_user_identifier';
 
 function AuthWrapper({ children }: { children: React.ReactNode }) {
   const { data: session, status, update } = useSession();
@@ -83,10 +84,32 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     try {
       localStorage.removeItem('account_deleted');
       localStorage.removeItem('account_deleted_timestamp');
+      localStorage.removeItem(ACCOUNT_DELETION_USER_IDENTIFIER_KEY);
     } catch (error) {
       console.warn('Error clearing account deletion flags:', error);
     }
   }, []);
+
+  const getCurrentSessionUserIdentifier = useCallback((): string | null => {
+    const currentUser = session?.user as
+      | { _id?: string; email?: string }
+      | undefined;
+    const userId =
+      typeof currentUser?._id === 'string' ? currentUser._id.trim() : '';
+    if (userId) {
+      return `id:${userId}`;
+    }
+
+    const email =
+      typeof currentUser?.email === 'string'
+        ? currentUser.email.trim().toLowerCase()
+        : '';
+    if (email) {
+      return `email:${email}`;
+    }
+
+    return null;
+  }, [session?.user]);
 
   const resetUnauthorizedTracking = useCallback(() => {
     unauthorizedStatsRef.current = { count: 0, lastAt: 0 };
@@ -126,6 +149,9 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
     const accountDeleted = localStorage.getItem('account_deleted');
     const deletionTimestamp = localStorage.getItem('account_deleted_timestamp');
+    const deletionUserIdentifier = localStorage.getItem(
+      ACCOUNT_DELETION_USER_IDENTIFIER_KEY
+    );
     const parsedTimestamp = deletionTimestamp
       ? Number.parseInt(deletionTimestamp, 10)
       : NaN;
@@ -139,6 +165,19 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       }
 
       if (now - parsedTimestamp > ACCOUNT_DELETION_TTL_MS) {
+        clearAccountDeletionFlags();
+        return false;
+      }
+
+      const currentUserIdentifier = getCurrentSessionUserIdentifier();
+      if (
+        !deletionUserIdentifier ||
+        !currentUserIdentifier ||
+        deletionUserIdentifier !== currentUserIdentifier
+      ) {
+        logger.warn(
+          'Ignoring stale account deletion flag due to missing or mismatched user identifier'
+        );
         clearAccountDeletionFlags();
         return false;
       }
@@ -157,7 +196,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     }
 
     return false;
-  }, [clearAccountDeletionFlags, executeLogout]);
+  }, [clearAccountDeletionFlags, executeLogout, getCurrentSessionUserIdentifier]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
