@@ -12,6 +12,7 @@ import {
 } from '@/shared/utils/airQuality';
 import type { AirQualityReading, ClusterData } from './MapNodes';
 import type { PollutantType } from '@/shared/utils/airQuality';
+import { getMonitorMetadata } from '@/modules/airqo-map/utils/monitorMetadata';
 
 interface CustomTooltipProps {
   data: AirQualityReading | ClusterData | null;
@@ -159,6 +160,7 @@ const getTooltipContent = (
   const IconComponent = getAirQualityIcon(level);
   const color = getAirQualityColor(level);
   const label = getAirQualityLabel(level);
+  const monitorMetadata = getMonitorMetadata(reading);
 
   return (
     <div className="p-2 min-w-[250px] max-w-[350px]">
@@ -189,10 +191,33 @@ const getTooltipContent = (
         </div>
       </div>
 
-      <div className="text-left mt-2 pt-2 border-t border-gray-100">
+      <div className="text-left mt-2 pt-2 border-t border-gray-100 space-y-2">
         <div className="text-xs text-gray-500">
-          Provider: {reading.provider}
+          Source: {monitorMetadata.provider}
         </div>
+
+        {(monitorMetadata.primaryCategory ||
+          monitorMetadata.deploymentCategory) && (
+          <div className="grid grid-cols-2 gap-2">
+            <div className="rounded-md border border-gray-100 bg-gray-50 px-2 py-1">
+              <div className="text-[10px] uppercase tracking-wide text-gray-500">
+                Category
+              </div>
+              <div className="text-xs font-semibold text-gray-800">
+                {monitorMetadata.primaryCategory || 'N/A'}
+              </div>
+            </div>
+
+            <div className="rounded-md border border-gray-100 bg-gray-50 px-2 py-1">
+              <div className="text-[10px] uppercase tracking-wide text-gray-500">
+                Deployment
+              </div>
+              <div className="text-xs font-semibold text-gray-800">
+                {monitorMetadata.deploymentCategory || 'N/A'}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

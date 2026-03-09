@@ -21,6 +21,9 @@ export interface AirQualityReading {
   provider: string;
   status?: 'active' | 'inactive' | 'maintenance';
   isPrimary?: boolean;
+  deviceCategories?: import('../../../../shared/types/api').DeviceCategories;
+  primaryCategory?: string | null;
+  deploymentCategory?: string | null;
   aqiCategory?: string;
   aqiColor?: string;
   pollutantValue?: number;

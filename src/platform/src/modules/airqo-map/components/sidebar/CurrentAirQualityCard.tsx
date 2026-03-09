@@ -13,6 +13,7 @@ import { formatRoundedNumber } from '@/shared/lib/utils';
 import type { MapReading } from '../../../../shared/types/api';
 import type { AirQualityReading } from '../map/MapNodes';
 import type { PollutantType } from '@/shared/utils/airQuality';
+import { getMonitorMetadata } from '@/modules/airqo-map/utils/monitorMetadata';
 
 // Types for location data
 interface LocationData {
@@ -37,9 +38,9 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
 
   const pollutantValue =
     selectedPollutant === 'pm2_5'
-      ? (mapReading as MapReading)?.pm2_5?.value ||
+      ? (mapReading as MapReading)?.pm2_5?.value ??
         (mapReading as AirQualityReading)?.pm25Value
-      : (mapReading as MapReading)?.pm10?.value ||
+      : (mapReading as MapReading)?.pm10?.value ??
         (mapReading as AirQualityReading)?.pm10Value;
 
   const airQualityInfo = React.useMemo(() => {
@@ -102,6 +103,11 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
   };
 
   const { city, country } = getCityAndCountry();
+  const monitorMetadata = getMonitorMetadata(mapReading);
+  const monitorId =
+    (mapReading as MapReading)?.device ||
+    (mapReading as AirQualityReading)?.fullReadingData?.device ||
+    'N/A';
 
   // Format date and time
   const formatDateTime = (dateString?: string) => {
@@ -183,6 +189,25 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
             </div>
           </div>
 
+          <div className="pb-3">
+            <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                Monitoring Profile
+              </div>
+            </div>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <span className="rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-1 text-xs font-medium text-gray-700 dark:text-gray-200">
+                Provider: {monitorMetadata.provider}
+              </span>
+              <span className="rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-1 text-xs font-medium text-gray-700 dark:text-gray-200">
+                Primary: {monitorMetadata.primaryCategory || 'N/A'}
+              </span>
+              <span className="rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-1 text-xs font-medium text-gray-700 dark:text-gray-200">
+                Deployment: {monitorMetadata.deploymentCategory || 'N/A'}
+              </span>
+            </div>
+          </div>
+
           {/* Expandable sections */}
           {showMoreDetails && (
             <>
@@ -200,41 +225,61 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
                 </div>
               </div>
 
-              {/* Monitor section */}
-              <div className="pb-3">
-                <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    Monitor
-                  </div>
-                </div>
-                <div className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                  {(mapReading as MapReading)?.device ||
-                    (mapReading as AirQualityReading)?.provider ||
-                    'N/A'}
-                </div>
-              </div>
-
-              {/* Pollution source and pollutant */}
+              {/* Data source and monitor */}
               <div className="pb-3">
                 <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
                   <div className="flex justify-between">
                     <span className="text-xs text-gray-500 dark:text-gray-400">
-                      Pollution Source
+                      Data Provider
                     </span>
                     <span className="text-xs text-gray-500 dark:text-gray-400">
-                      Pollutant
+                      Monitor
+                    </span>
+                  </div>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
+                    {monitorMetadata.provider}
+                  </span>
+                  <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
+                    {monitorId}
+                  </span>
+                </div>
+              </div>
+
+              {/* Device categories */}
+              <div className="pb-3">
+                <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
+                  <div className="flex justify-between">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      Primary Category
+                    </span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      Deployment
                     </span>
                   </div>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                    N/A
+                    {monitorMetadata.primaryCategory || 'N/A'}
                   </span>
                   <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                    {pollutantValue !== null && pollutantValue !== undefined
-                      ? `${getPollutantLabel(selectedPollutant)}: ${formatRoundedNumber(pollutantValue, 1)}`
-                      : 'N/A'}
+                    {monitorMetadata.deploymentCategory || 'N/A'}
                   </span>
+                </div>
+              </div>
+
+              {/* Pollutant */}
+              <div className="pb-3">
+                <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    Pollutant
+                  </div>
+                </div>
+                <div className="font-semibold text-base text-gray-900 dark:text-gray-100">
+                  {pollutantValue !== null && pollutantValue !== undefined
+                    ? `${getPollutantLabel(selectedPollutant)}: ${formatRoundedNumber(pollutantValue, 1)}`
+                    : 'N/A'}
                 </div>
               </div>
 

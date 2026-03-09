@@ -96,6 +96,7 @@ import {
   getAirQualityColor,
   type PollutantType,
 } from '../../../shared/utils/airQuality';
+import { getMonitorMetadata } from './monitorMetadata';
 
 export interface PollutantConfig {
   type: PollutantType;
@@ -137,6 +138,7 @@ export function normalizeMapReadings(
     })
     .map(reading => {
       const pollutantValue = reading[pollutantType]?.value as number;
+      const monitorMetadata = getMonitorMetadata(reading);
 
       return {
         id: reading.site_id || reading._id,
@@ -164,9 +166,12 @@ export function normalizeMapReadings(
             return new Date();
           }
         })(),
-        provider: reading.siteDetails.data_provider || 'AirQo',
+        provider: monitorMetadata.provider,
         status: reading.is_reading_primary ? 'active' : 'inactive',
         isPrimary: reading.is_reading_primary,
+        deviceCategories: reading.device_categories,
+        primaryCategory: monitorMetadata.primaryCategory,
+        deploymentCategory: monitorMetadata.deploymentCategory,
         aqiCategory: reading.aqi_category,
         aqiColor: reading.aqi_color,
         pollutantValue,
