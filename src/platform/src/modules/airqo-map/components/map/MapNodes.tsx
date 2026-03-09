@@ -59,6 +59,7 @@ interface MapNodesProps {
   className?: string;
   selectedPollutant?: PollutantType;
   zoomLevel?: number; // Add zoom level for cluster styling
+  showZoomHint?: boolean;
 }
 
 const getSizeClasses = (size: 'sm' | 'md' | 'lg') => {
@@ -124,6 +125,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
   className,
   selectedPollutant = 'pm2_5',
   zoomLevel = 10,
+  showZoomHint = false,
 }) => {
   // Determine if this is a cluster or individual node
   const isCluster = cluster && cluster.pointCount > 1;
@@ -146,11 +148,26 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
   const handleMouseLeave = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
+    const nextTarget = e.relatedTarget;
+    if (
+      nextTarget instanceof Element &&
+      nextTarget.closest('[data-testid="flowbite-tooltip"]')
+    ) {
+      return;
+    }
     onHover?.(null);
   };
 
   const handleTooltipAction = () => {
     onClick?.(data);
+  };
+
+  const handleTooltipHoverChange = (isHovering: boolean) => {
+    if (isHovering) {
+      onHover?.(data);
+      return;
+    }
+    onHover?.(null);
   };
 
   // Render individual node
@@ -175,6 +192,8 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
           data={reading}
           selectedPollutant={selectedPollutant}
           onTooltipAction={handleTooltipAction}
+          onTooltipHoverChange={handleTooltipHoverChange}
+          showZoomHint={showZoomHint}
         >
           <div
             className={cn(
@@ -198,7 +217,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
             }}
             aria-label={`Air quality reading: ${roundDecimals(pollutantValue, 1)} ${selectedPollutant === 'pm2_5' ? 'PM2.5' : 'PM10'} at ${reading.locationName || 'Unknown location'}`}
             style={{
-              cursor: 'pointer',
+              cursor: showZoomHint ? 'zoom-in' : 'pointer',
               touchAction: 'manipulation',
               userSelect: 'none',
               WebkitUserSelect: 'none',
@@ -238,6 +257,8 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
           data={reading}
           selectedPollutant={selectedPollutant}
           onTooltipAction={handleTooltipAction}
+          onTooltipHoverChange={handleTooltipHoverChange}
+          showZoomHint={showZoomHint}
         >
           <div
             className={cn(
@@ -261,7 +282,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
             }}
             aria-label={`Air quality reading: ${roundDecimals(pollutantValue, 1)} ${selectedPollutant === 'pm2_5' ? 'PM2.5' : 'PM10'} at ${reading.locationName || 'Unknown location'}`}
             style={{
-              cursor: 'pointer',
+              cursor: showZoomHint ? 'zoom-in' : 'pointer',
               touchAction: 'manipulation',
               userSelect: 'none',
               WebkitUserSelect: 'none',
@@ -299,6 +320,8 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
           data={reading}
           selectedPollutant={selectedPollutant}
           onTooltipAction={handleTooltipAction}
+          onTooltipHoverChange={handleTooltipHoverChange}
+          showZoomHint={showZoomHint}
         >
           <div
             className={cn(
@@ -322,7 +345,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
             }}
             aria-label={`Air quality reading: ${roundDecimals(pollutantValue, 1)} ${selectedPollutant === 'pm2_5' ? 'PM2.5' : 'PM10'} at ${reading.locationName || 'Unknown location'}`}
             style={{
-              cursor: 'pointer',
+              cursor: showZoomHint ? 'zoom-in' : 'pointer',
               touchAction: 'manipulation',
               userSelect: 'none',
               WebkitUserSelect: 'none',
@@ -410,6 +433,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
         data={cluster}
         selectedPollutant={selectedPollutant}
         onTooltipAction={handleTooltipAction}
+        onTooltipHoverChange={handleTooltipHoverChange}
       >
         <div
           className={cn(
@@ -433,7 +457,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
           }}
           aria-label={`Cluster of ${cluster.pointCount} air quality monitoring stations`}
           style={{
-            cursor: 'pointer',
+            cursor: 'zoom-in',
             touchAction: 'none',
             userSelect: 'none',
             WebkitUserSelect: 'none',

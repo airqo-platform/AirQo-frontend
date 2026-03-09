@@ -20,6 +20,8 @@ interface CustomTooltipProps {
   className?: string;
   selectedPollutant?: PollutantType;
   onTooltipAction?: (data: AirQualityReading | ClusterData) => void;
+  onTooltipHoverChange?: (isHovering: boolean) => void;
+  showZoomHint?: boolean;
 }
 
 const formatValue = (value: number): string => {
@@ -50,7 +52,8 @@ const formatDate = (date: Date | string): string => {
 const getTooltipContent = (
   data: AirQualityReading | ClusterData,
   selectedPollutant: PollutantType = 'pm2_5',
-  onTooltipAction?: (data: AirQualityReading | ClusterData) => void
+  onTooltipAction?: (data: AirQualityReading | ClusterData) => void,
+  showZoomHint = false
 ) => {
   // Check if it's a cluster
   const isCluster = 'readings' in data && 'pointCount' in data;
@@ -134,7 +137,7 @@ const getTooltipContent = (
                 onTooltipAction(cluster);
               }}
             >
-              Click for more information
+              Zoom in for node details
             </button>
           ) : (
             <div className="text-xs text-gray-500">Click to zoom in</div>
@@ -235,6 +238,12 @@ const getTooltipContent = (
           </div>
         )}
 
+        {showZoomHint && (
+          <div className="rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-xs text-amber-800">
+            Nodes are close together here. Zoom in to view exact node details.
+          </div>
+        )}
+
         {onTooltipAction && (
           <div>
             <button
@@ -261,6 +270,8 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
   className,
   selectedPollutant = 'pm2_5',
   onTooltipAction,
+  onTooltipHoverChange,
+  showZoomHint = false,
 }) => {
   if (!data) {
     return <>{children}</>;
@@ -268,9 +279,26 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
 
   return (
     <Tooltip
-      content={getTooltipContent(data, selectedPollutant, onTooltipAction)}
+      content={getTooltipContent(
+        data,
+        selectedPollutant,
+        onTooltipAction,
+        showZoomHint
+      )}
       placement="top"
       style="light"
+      onMouseEnter={() => onTooltipHoverChange?.(true)}
+      onMouseLeave={event => {
+        const nextTarget = event.relatedTarget;
+        if (
+          nextTarget instanceof Element &&
+          (nextTarget.closest('[data-testid="flowbite-tooltip"]') ||
+            nextTarget.closest('[data-testid="flowbite-tooltip-target"]'))
+        ) {
+          return;
+        }
+        onTooltipHoverChange?.(false);
+      }}
       className={cn(
         'z-[10000000] !important transform-gpu pointer-events-auto',
         className
