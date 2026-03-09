@@ -141,7 +141,7 @@ jobs:
       - name: Deploy Container App
         run: |
           BRANCH="${{ needs.branch-name.outputs.lowercase }}"
-          APP="${BRANCH:0:18}-website-preview"
+          APP="${BRANCH:0:12}-website-preview"
 
           az containerapp up \
             --name $APP \
@@ -158,7 +158,7 @@ jobs:
       - id: preview
         run: |
           BRANCH="${{ needs.branch-name.outputs.lowercase }}"
-          APP="${BRANCH:0:18}-website-preview" 
+          APP="${BRANCH:0:12}-website-preview" 
 
           URL=$(az containerapp show \
             --name $APP \
@@ -220,7 +220,7 @@ jobs:
       - name: Deploy Container App
         run: |
           BRANCH="${{ needs.branch-name.outputs.lowercase }}"
-          APP="${BRANCH:0:18}-beacon-preview"
+          APP="${BRANCH:0:12}-beacon-preview"
 
           az containerapp up \
             --name $APP \
@@ -237,7 +237,7 @@ jobs:
       - id: preview
         run: |
           BRANCH="${{ needs.branch-name.outputs.lowercase }}"
-          APP="${BRANCH:0:18}-beacon-preview"
+          APP="${BRANCH:0:12}-beacon-preview"
 
           URL=$(az containerapp show \
             --name $APP \
@@ -298,7 +298,7 @@ jobs:
       - name: Deploy Container App
         run: |
           BRANCH="${{ needs.branch-name.outputs.lowercase }}"
-          APP="${BRANCH:0:18}-calibrate-app-preview"
+          APP="${BRANCH:0:12}-calibrate-app-preview"
 
           az containerapp up \
             --name $APP \
@@ -315,7 +315,7 @@ jobs:
       - id: preview
         run: |
           BRANCH="${{ needs.branch-name.outputs.lowercase }}"
-          APP="${BRANCH:0:18}-calibrate-app-preview"
+          APP="${BRANCH:0:12}-calibrate-app-preview"
 
           URL=$(az containerapp show \
             --name $APP \
@@ -376,7 +376,7 @@ jobs:
       - name: Deploy Container App
         run: |
           BRANCH="${{ needs.branch-name.outputs.lowercase }}"
-          APP="${BRANCH:0:18}-analytics-platform-preview"
+          APP="${BRANCH:0:12}-analytics-platform-preview"
 
           az containerapp up \
             --name $APP \
@@ -393,7 +393,7 @@ jobs:
       - id: preview
         run: |
           BRANCH="${{ needs.branch-name.outputs.lowercase }}"
-          APP="${BRANCH:0:18}-analytics-platform-preview"
+          APP="${BRANCH:0:12}-analytics-platform-preview"
 
           URL=$(az containerapp show \
             --name $APP \
@@ -454,7 +454,7 @@ jobs:
       - name: Deploy Container App
         run: |
           BRANCH="${{ needs.branch-name.outputs.lowercase }}"
-          APP="${BRANCH:0:18}-vertex-preview"
+          APP="${BRANCH:0:12}-vertex-preview"
 
           az containerapp up \
             --name $APP \
@@ -471,7 +471,7 @@ jobs:
       - id: preview
         run: |
           BRANCH="${{ needs.branch-name.outputs.lowercase }}"
-          APP="${BRANCH:0:18}-vertex-preview"
+          APP="${BRANCH:0:12}-vertex-preview"
 
           URL=$(az containerapp show \
             --name $APP \
@@ -532,7 +532,7 @@ jobs:
       - name: Deploy Container App
         run: |
           BRANCH="${{ needs.branch-name.outputs.lowercase }}"
-          APP="${BRANCH:0:18}-docs-preview"
+          APP="${BRANCH:0:12}-docs-preview"
 
           az containerapp up \
             --name $APP \
@@ -549,8 +549,8 @@ jobs:
       - id: preview
         run: |
           BRANCH="${{ needs.branch-name.outputs.lowercase }}"
-          APP="${BRANCH:0:18}-docs-preview"
-          
+          APP="${BRANCH:0:12}-docs-preview"
+
           URL=$(az containerapp show \
             --name $APP \
             --resource-group ${{ env.RG }} \
