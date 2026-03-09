@@ -633,6 +633,19 @@ export interface Averages {
   };
 }
 
+export interface DeviceCategories {
+  primary_category?: string;
+  deployment_category?: string;
+  mobile_category?: string;
+  ownership_category?: string;
+  all_categories?: string[];
+  is_mobile?: boolean;
+  is_static?: boolean;
+  is_lowcost?: boolean;
+  is_bam?: boolean;
+  is_gas?: boolean;
+}
+
 export interface HealthTip {
   title: string;
   description: string;
@@ -674,6 +687,7 @@ export interface MapReading {
   averages: Averages;
   createdAt: string;
   device: string;
+  device_categories?: DeviceCategories;
   device_id: string;
   frequency: string;
   health_tips: HealthTip[];
@@ -1131,6 +1145,7 @@ export interface RecentReading {
   averages: Averages;
   createdAt: string;
   device: string;
+  device_categories?: DeviceCategories;
   device_id: string;
   frequency: string;
   health_tips: HealthTip[];
