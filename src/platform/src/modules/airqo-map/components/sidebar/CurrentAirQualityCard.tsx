@@ -53,7 +53,7 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
 
   // Helper function to extract city and country from location name
   const parseLocationDetails = (locationName?: string) => {
-    if (!locationName) return { city: 'N/A', country: 'N/A' };
+    if (!locationName) return { city: '--', country: '--' };
 
     // For WAQI data, location names are typically in format "City, Country" or just "City"
     const parts = locationName.split(',').map(part => part.trim());
@@ -67,7 +67,7 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
       // If no comma, assume it's just a city name
       return {
         city: locationName,
-        country: 'N/A',
+        country: '--',
       };
     }
   };
@@ -107,11 +107,11 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
   const monitorId =
     (mapReading as MapReading)?.device ||
     (mapReading as AirQualityReading)?.fullReadingData?.device ||
-    'N/A';
+    '--';
 
   // Format date and time
   const formatDateTime = (dateString?: string) => {
-    if (!dateString) return { date: 'N/A', time: 'N/A' };
+    if (!dateString) return { date: '--', time: '--' };
     const date = new Date(dateString);
     const formattedDate = date.toLocaleDateString('en-US', {
       month: 'short',
@@ -156,7 +156,7 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
             <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
               {pollutantValue !== null && pollutantValue !== undefined
                 ? `${formatRoundedNumber(pollutantValue, 1)}µg/m³`
-                : 'N/A'}
+                : '--'}
             </div>
           </div>
           {AirQualityIcon && <AirQualityIcon className="w-12 h-12" />}
@@ -185,26 +185,7 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
               {airQualityInfo?.level ||
                 (mapReading as MapReading)?.aqi_category ||
                 (mapReading as AirQualityReading)?.aqiCategory ||
-                'N/A'}
-            </div>
-          </div>
-
-          <div className="pb-3">
-            <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
-              <div className="text-xs text-gray-500 dark:text-gray-400">
-                Monitoring Profile
-              </div>
-            </div>
-            <div className="mt-2 flex flex-wrap gap-2">
-              <span className="rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-1 text-xs font-medium text-gray-700 dark:text-gray-200">
-                Source: {monitorMetadata.provider}
-              </span>
-              <span className="rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-1 text-xs font-medium text-gray-700 dark:text-gray-200">
-                Category: {monitorMetadata.primaryCategory || 'N/A'}
-              </span>
-              <span className="rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-1 text-xs font-medium text-gray-700 dark:text-gray-200">
-                Deployment: {monitorMetadata.deploymentCategory || 'N/A'}
-              </span>
+                '--'}
             </div>
           </div>
 
@@ -230,7 +211,7 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
                 <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
                   <div className="flex justify-between">
                     <span className="text-xs text-gray-500 dark:text-gray-400">
-                      Data Provider
+                      Source
                     </span>
                     <span className="text-xs text-gray-500 dark:text-gray-400">
                       Monitor
@@ -252,7 +233,7 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
                 <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
                   <div className="flex justify-between">
                     <span className="text-xs text-gray-500 dark:text-gray-400">
-                      Primary Category
+                      Category
                     </span>
                     <span className="text-xs text-gray-500 dark:text-gray-400">
                       Deployment
@@ -261,10 +242,10 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
                 </div>
                 <div className="flex justify-between">
                   <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                    {monitorMetadata.primaryCategory || 'N/A'}
+                    {monitorMetadata.primaryCategory || '--'}
                   </span>
                   <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                    {monitorMetadata.deploymentCategory || 'N/A'}
+                    {monitorMetadata.deploymentCategory || '--'}
                   </span>
                 </div>
               </div>
@@ -279,7 +260,7 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
                 <div className="font-semibold text-base text-gray-900 dark:text-gray-100">
                   {pollutantValue !== null && pollutantValue !== undefined
                     ? `${getPollutantLabel(selectedPollutant)}: ${formatRoundedNumber(pollutantValue, 1)}`
-                    : 'N/A'}
+                    : '--'}
                 </div>
               </div>
 
