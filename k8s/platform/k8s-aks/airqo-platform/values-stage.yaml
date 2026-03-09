@@ -28,6 +28,6 @@ autoscaling:
 
 app:
   name: airqo-stage-next-platform
-  label: sta-next-platform
+  label: sta-platform
   namespace: staging
   secret: sta-env-next-platform

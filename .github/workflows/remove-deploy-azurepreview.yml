@@ -101,7 +101,8 @@ jobs:
 
       - name: Delete Container App
         run: |
-          APP=${{ needs.branch-name.outputs.lowercase }}-calibrate-app-preview
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-calibrate-app-preview"
 
           az containerapp delete \
             --name $APP \
@@ -125,8 +126,10 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Delete Container App
+
         run: |
-          APP=${{ needs.branch-name.outputs.lowercase }}-analytics-platform-preview
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-analytics-platform-preview"
 
           az containerapp delete \
             --name $APP \
@@ -151,7 +154,8 @@ jobs:
 
       - name: Delete Container App
         run: |
-          APP=${{ needs.branch-name.outputs.lowercase }}-website-preview
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-website-preview"
 
           az containerapp delete \
             --name $APP \
@@ -176,7 +180,8 @@ jobs:
 
       - name: Delete Container App
         run: |
-          APP=${{ needs.branch-name.outputs.lowercase }}-vertex-preview
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-vertex-preview"
 
           az containerapp delete \
             --name $APP \
@@ -201,7 +206,8 @@ jobs:
 
       - name: Delete Container App
         run: |
-          APP=${{ needs.branch-name.outputs.lowercase }}-beacon-preview
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-beacon-preview"
 
           az containerapp delete \
             --name $APP \
@@ -226,7 +232,8 @@ jobs:
 
       - name: Delete Container App
         run: |
-          APP=${{ needs.branch-name.outputs.lowercase }}-docs-preview
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-docs-preview"
 
           az containerapp delete \
             --name $APP \
