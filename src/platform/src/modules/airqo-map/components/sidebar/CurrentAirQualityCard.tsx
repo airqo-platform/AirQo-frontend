@@ -38,10 +38,10 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
 
   const pollutantValue =
     selectedPollutant === 'pm2_5'
-      ? (mapReading as MapReading)?.pm2_5?.value ??
-        (mapReading as AirQualityReading)?.pm25Value
-      : (mapReading as MapReading)?.pm10?.value ??
-        (mapReading as AirQualityReading)?.pm10Value;
+      ? ((mapReading as MapReading)?.pm2_5?.value ??
+        (mapReading as AirQualityReading)?.pm25Value)
+      : ((mapReading as MapReading)?.pm10?.value ??
+        (mapReading as AirQualityReading)?.pm10Value);
 
   const airQualityInfo = React.useMemo(() => {
     if (pollutantValue !== null && pollutantValue !== undefined) {
@@ -197,10 +197,10 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
             </div>
             <div className="mt-2 flex flex-wrap gap-2">
               <span className="rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-1 text-xs font-medium text-gray-700 dark:text-gray-200">
-                Provider: {monitorMetadata.provider}
+                Source: {monitorMetadata.provider}
               </span>
               <span className="rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-1 text-xs font-medium text-gray-700 dark:text-gray-200">
-                Primary: {monitorMetadata.primaryCategory || 'N/A'}
+                Category: {monitorMetadata.primaryCategory || 'N/A'}
               </span>
               <span className="rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-1 text-xs font-medium text-gray-700 dark:text-gray-200">
                 Deployment: {monitorMetadata.deploymentCategory || 'N/A'}

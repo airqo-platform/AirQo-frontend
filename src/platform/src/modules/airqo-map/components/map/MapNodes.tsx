@@ -149,6 +149,10 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
     onHover?.(null);
   };
 
+  const handleTooltipAction = () => {
+    onClick?.(data);
+  };
+
   // Render individual node
   if (!isCluster && reading) {
     // Determine the pollutant value based on selected pollutant
@@ -167,7 +171,11 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
     // Different rendering based on nodeType
     if (nodeType === 'number') {
       return (
-        <CustomTooltip data={reading} selectedPollutant={selectedPollutant}>
+        <CustomTooltip
+          data={reading}
+          selectedPollutant={selectedPollutant}
+          onTooltipAction={handleTooltipAction}
+        >
           <div
             className={cn(
               'relative cursor-pointer pointer-events-auto transition-all duration-150',
@@ -226,7 +234,11 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
       );
     } else if (nodeType === 'node') {
       return (
-        <CustomTooltip data={reading} selectedPollutant={selectedPollutant}>
+        <CustomTooltip
+          data={reading}
+          selectedPollutant={selectedPollutant}
+          onTooltipAction={handleTooltipAction}
+        >
           <div
             className={cn(
               'relative cursor-pointer pointer-events-auto transition-all duration-150',
@@ -283,7 +295,11 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
       );
     } else {
       return (
-        <CustomTooltip data={reading} selectedPollutant={selectedPollutant}>
+        <CustomTooltip
+          data={reading}
+          selectedPollutant={selectedPollutant}
+          onTooltipAction={handleTooltipAction}
+        >
           <div
             className={cn(
               'relative cursor-pointer pointer-events-auto transition-all duration-150',
@@ -390,7 +406,11 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
     const textSize = isHighZoom ? 'text-sm font-bold' : 'text-base font-bold';
 
     return (
-      <CustomTooltip data={cluster} selectedPollutant={selectedPollutant}>
+      <CustomTooltip
+        data={cluster}
+        selectedPollutant={selectedPollutant}
+        onTooltipAction={handleTooltipAction}
+      >
         <div
           className={cn(
             'relative flex items-center cursor-pointer pointer-events-auto transition-all duration-200',

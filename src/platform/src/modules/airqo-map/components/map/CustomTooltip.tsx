@@ -19,6 +19,7 @@ interface CustomTooltipProps {
   children: React.ReactNode;
   className?: string;
   selectedPollutant?: PollutantType;
+  onTooltipAction?: (data: AirQualityReading | ClusterData) => void;
 }
 
 const formatValue = (value: number): string => {
@@ -48,7 +49,8 @@ const formatDate = (date: Date | string): string => {
 
 const getTooltipContent = (
   data: AirQualityReading | ClusterData,
-  selectedPollutant: PollutantType = 'pm2_5'
+  selectedPollutant: PollutantType = 'pm2_5',
+  onTooltipAction?: (data: AirQualityReading | ClusterData) => void
 ) => {
   // Check if it's a cluster
   const isCluster = 'readings' in data && 'pointCount' in data;
@@ -122,7 +124,21 @@ const getTooltipContent = (
         </div>
 
         <div className="text-left mt-2 pt-2 border-t border-gray-100">
-          <div className="text-xs text-gray-500">Click to zoom in</div>
+          {onTooltipAction ? (
+            <button
+              type="button"
+              className="text-xs font-medium text-primary hover:underline"
+              onClick={event => {
+                event.preventDefault();
+                event.stopPropagation();
+                onTooltipAction(cluster);
+              }}
+            >
+              Click for more information
+            </button>
+          ) : (
+            <div className="text-xs text-gray-500">Click to zoom in</div>
+          )}
         </div>
       </div>
     );
@@ -218,6 +234,22 @@ const getTooltipContent = (
             </div>
           </div>
         )}
+
+        {onTooltipAction && (
+          <div>
+            <button
+              type="button"
+              className="text-xs font-medium text-primary hover:underline"
+              onClick={event => {
+                event.preventDefault();
+                event.stopPropagation();
+                onTooltipAction(reading);
+              }}
+            >
+              Click node for more information
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -228,6 +260,7 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
   children,
   className,
   selectedPollutant = 'pm2_5',
+  onTooltipAction,
 }) => {
   if (!data) {
     return <>{children}</>;
@@ -235,11 +268,11 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
 
   return (
     <Tooltip
-      content={getTooltipContent(data, selectedPollutant)}
+      content={getTooltipContent(data, selectedPollutant, onTooltipAction)}
       placement="top"
       style="light"
       className={cn(
-        'z-[10000000] !important transform-gpu pointer-events-none',
+        'z-[10000000] !important transform-gpu pointer-events-auto',
         className
       )}
       trigger="hover"
