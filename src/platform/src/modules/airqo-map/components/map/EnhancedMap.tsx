@@ -45,6 +45,13 @@ const getApproxDistanceKm = (
 };
 
 const DETAILED_NODE_ZOOM_THRESHOLD = 14.5;
+const MAP_MARKER_Z_INDEX = 20;
+
+const isClusterData = (
+  item: AirQualityReading | ClusterData
+): item is ClusterData => {
+  return 'readings' in item && 'pointCount' in item;
+};
 
 interface EnhancedMapProps {
   className?: string;
@@ -86,6 +93,10 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   const [hoveredItem, setHoveredItem] = useState<
     AirQualityReading | ClusterData | null
   >(null);
+  const [forceTooltipNodeId, setForceTooltipNodeId] = useState<string | null>(
+    null
+  );
+  const isMountedRef = useRef(true);
 
   const currentMapStyle = useSelector(selectMapStyle);
   const currentNodeType = useSelector(selectNodeType);
@@ -96,6 +107,12 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   const mapboxAccessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
   const clusterThreshold = 14;
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     const currentZoom = viewState.zoom || 12;
@@ -291,22 +308,12 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
 
   const nonHoveredClusters = useMemo(
     () => clusters.filter(cluster => hoveredItem?.id !== cluster.id),
-    [clusters, hoveredItem]
+    [clusters, hoveredItem?.id]
   );
 
   const nonHoveredReadings = useMemo(
     () => nonClusteredReadings.filter(reading => hoveredItem?.id !== reading.id),
-    [nonClusteredReadings, hoveredItem]
-  );
-
-  const nonPrimaryReadings = useMemo(
-    () => nonHoveredReadings.filter(reading => reading.isPrimary === false),
-    [nonHoveredReadings]
-  );
-
-  const primaryReadings = useMemo(
-    () => nonHoveredReadings.filter(reading => reading.isPrimary !== false),
-    [nonHoveredReadings]
+    [nonClusteredReadings, hoveredItem?.id]
   );
 
   const hasCrowdedNodes = crowdedNodeIds.size > 0;
@@ -349,7 +356,9 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
     } catch (error) {
       console.error('Failed to refresh map data:', error);
     } finally {
-      setIsRefreshing(false);
+      if (isMountedRef.current) {
+        setIsRefreshing(false);
+      }
     }
   }, [onRefreshData]);
 
@@ -373,6 +382,8 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   const handleNodeClick = useCallback(
     (reading: AirQualityReading) => {
       setSelectedNode(reading.id);
+      setHoveredItem(reading);
+      setForceTooltipNodeId(reading.id);
       onNodeClick?.(reading);
     },
     [onNodeClick]
@@ -381,9 +392,9 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   const handleReadingClick = useCallback(
     (reading: AirQualityReading) => {
       const currentZoom = viewState.zoom || 10;
-      const shouldZoomForDetail =
-        crowdedNodeIds.has(reading.id) &&
-        currentZoom < DETAILED_NODE_ZOOM_THRESHOLD;
+      const shouldZoomForDetail = currentZoom < DETAILED_NODE_ZOOM_THRESHOLD;
+
+      handleNodeClick(reading);
 
       if (shouldZoomForDetail) {
         const targetZoom = Math.min(
@@ -398,19 +409,19 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
           easing: t => 1 - Math.pow(1 - t, 3),
           padding: { top: 40, bottom: 40, left: 40, right: 40 },
         });
-        return;
       }
-
-      handleNodeClick(reading);
     },
-    [crowdedNodeIds, handleNodeClick, viewState.zoom]
+    [handleNodeClick, viewState.zoom]
   );
 
   const handleHover = useCallback(
     (item: AirQualityReading | ClusterData | null) => {
+      if (item && forceTooltipNodeId && item.id !== forceTooltipNodeId) {
+        setForceTooltipNodeId(null);
+      }
       setHoveredItem(item);
     },
-    []
+    [forceTooltipNodeId]
   );
 
   const handleClusterClick = useCallback(
@@ -421,8 +432,10 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
       pointCount: number;
       readings: AirQualityReading[];
     }) => {
+      setForceTooltipNodeId(null);
+
       if (cluster.pointCount === 1) {
-        handleNodeClick(cluster.readings[0]);
+        handleReadingClick(cluster.readings[0]);
         return;
       }
 
@@ -469,7 +482,72 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
 
       onClusterClick?.(cluster);
     },
-    [handleNodeClick, onClusterClick, viewState.zoom]
+    [handleReadingClick, onClusterClick, viewState.zoom]
+  );
+
+  const renderClusterMarker = useCallback(
+    (cluster: ClusterData, hovered = false) => (
+      <Marker
+        key={`${cluster.id}-${hovered ? 'hovered' : 'base'}`}
+        longitude={cluster.longitude}
+        latitude={cluster.latitude}
+        anchor="center"
+        style={{ zIndex: MAP_MARKER_Z_INDEX, cursor: 'pointer' }}
+      >
+        <MapNodes
+          cluster={cluster}
+          nodeType={currentNodeType}
+          onClick={data => handleClusterClick(data as ClusterData)}
+          onHover={handleHover}
+          isHovered={hovered}
+          selectedPollutant={selectedPollutant}
+          zoomLevel={debouncedZoom}
+        />
+      </Marker>
+    ),
+    [
+      currentNodeType,
+      debouncedZoom,
+      handleClusterClick,
+      handleHover,
+      selectedPollutant,
+    ]
+  );
+
+  const renderReadingMarker = useCallback(
+    (reading: AirQualityReading, hovered = false) => {
+      return (
+        <Marker
+          key={`${reading.id}-${hovered ? 'hovered' : 'base'}`}
+          longitude={reading.longitude}
+          latitude={reading.latitude}
+          anchor="center"
+          style={{ zIndex: MAP_MARKER_Z_INDEX, cursor: 'pointer' }}
+        >
+          <MapNodes
+            reading={reading}
+            nodeType={currentNodeType}
+            onClick={data => handleReadingClick(data as AirQualityReading)}
+            onHover={handleHover}
+            isSelected={selectedNode === reading.id}
+            isHovered={hovered}
+            size="md"
+            selectedPollutant={selectedPollutant}
+            showZoomHint={crowdedNodeIds.has(reading.id)}
+            isTooltipOpen={forceTooltipNodeId === reading.id}
+          />
+        </Marker>
+      );
+    },
+    [
+      crowdedNodeIds,
+      currentNodeType,
+      handleHover,
+      handleReadingClick,
+      forceTooltipNodeId,
+      selectedNode,
+      selectedPollutant,
+    ]
   );
 
   if (!mapboxAccessToken) {
@@ -512,117 +590,21 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
         onClick={e => {
           if (!e.features || e.features.length === 0) {
             setSelectedNode(null);
+            setHoveredItem(null);
+            setForceTooltipNodeId(null);
           }
         }}
       >
         {/* Render nodes and clusters based on zoom level and proximity */}
         <>
-          {/* Render all clusters except the hovered one */}
-          {nonHoveredClusters.map(cluster => (
-            <Marker
-              key={cluster.id}
-              longitude={cluster.longitude}
-              latitude={cluster.latitude}
-              anchor="center"
-            >
-              <MapNodes
-                cluster={cluster}
-                nodeType={currentNodeType}
-                onClick={data => handleClusterClick(data as ClusterData)}
-                onHover={handleHover}
-                isHovered={false}
-                selectedPollutant={selectedPollutant}
-                zoomLevel={debouncedZoom}
-              />
-            </Marker>
-          ))}
+          {nonHoveredClusters.map(cluster => renderClusterMarker(cluster))}
+          {nonHoveredReadings.map(reading => renderReadingMarker(reading))}
 
-          {/* Render individual nodes that are not part of any cluster and not hovered */}
-          {/* Render non-primary readings first (lower z-index) */}
-          {nonPrimaryReadings.map(reading => (
-            <Marker
-              key={reading.id}
-              longitude={reading.longitude}
-              latitude={reading.latitude}
-              anchor="center"
-            >
-              <MapNodes
-                reading={reading}
-                nodeType={currentNodeType}
-                onClick={data => handleReadingClick(data as AirQualityReading)}
-                onHover={handleHover}
-                isSelected={selectedNode === reading.id}
-                isHovered={false}
-                size="md"
-                selectedPollutant={selectedPollutant}
-                showZoomHint={crowdedNodeIds.has(reading.id)}
-              />
-            </Marker>
-          ))}
-
-          {/* Render primary readings that are not hovered */}
-          {primaryReadings.map(reading => (
-            <Marker
-              key={reading.id}
-              longitude={reading.longitude}
-              latitude={reading.latitude}
-              anchor="center"
-            >
-              <MapNodes
-                reading={reading}
-                nodeType={currentNodeType}
-                onClick={data => handleReadingClick(data as AirQualityReading)}
-                onHover={handleHover}
-                isSelected={selectedNode === reading.id}
-                isHovered={false}
-                size="md"
-                selectedPollutant={selectedPollutant}
-                showZoomHint={crowdedNodeIds.has(reading.id)}
-              />
-            </Marker>
-          ))}
-
-          {/* Render the hovered item last to ensure highest z-index */}
+          {/* Render hovered item last to keep hit-testing predictable */}
           {hoveredItem &&
-            (hoveredItem.hasOwnProperty('readings') ? (
-              // It's a cluster
-              <Marker
-                key={hoveredItem.id}
-                longitude={(hoveredItem as ClusterData).longitude}
-                latitude={(hoveredItem as ClusterData).latitude}
-                anchor="center"
-              >
-                <MapNodes
-                  cluster={hoveredItem as ClusterData}
-                  nodeType={currentNodeType}
-                  onClick={data => handleClusterClick(data as ClusterData)}
-                  onHover={handleHover}
-                  isHovered={true}
-                  selectedPollutant={selectedPollutant}
-                  zoomLevel={debouncedZoom}
-                />
-              </Marker>
-            ) : (
-              // It's a reading
-              <Marker
-                key={hoveredItem.id}
-                longitude={(hoveredItem as AirQualityReading).longitude}
-                latitude={(hoveredItem as AirQualityReading).latitude}
-                anchor="center"
-              >
-                <MapNodes
-                  reading={hoveredItem as AirQualityReading}
-                  nodeType={currentNodeType}
-                  onClick={data => handleReadingClick(data as AirQualityReading)}
-                  onHover={handleHover}
-                  isSelected={selectedNode === hoveredItem.id}
-                  isHovered={true}
-                  size="md"
-                  selectedPollutant={selectedPollutant}
-                  showZoomHint={crowdedNodeIds.has(hoveredItem.id)}
-                />
-              </Marker>
-            ))}
+            (isClusterData(hoveredItem)
+              ? renderClusterMarker(hoveredItem, true)
+              : renderReadingMarker(hoveredItem, true))}
         </>
       </MapboxMap>
 

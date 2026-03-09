@@ -3,6 +3,7 @@
 import React from 'react';
 import { InfoBanner } from '@/shared/components/ui/banner';
 import { Button } from '@/shared/components/ui/button';
+import { getEnvironmentAwareUrl } from '@/shared/utils/url';
 
 interface EmptyAnalyticsStateProps {
   className?: string;
@@ -12,10 +13,7 @@ export const EmptyAnalyticsState: React.FC<EmptyAnalyticsStateProps> = ({
   className = '',
 }) => {
   // Determine the correct Vertex URL based on environment
-  const vertexUrl =
-    process.env.NEXT_PUBLIC_ALLOW_DEV_TOOLS === 'staging'
-      ? 'https://staging-vertex.airqo.net/'
-      : 'https://vertex.airqo.net/';
+  const vertexUrl = getEnvironmentAwareUrl('https://vertex.airqo.net/');
 
   const handleOpenVertex = () => {
     window.open(vertexUrl, '_blank', 'noopener,noreferrer');

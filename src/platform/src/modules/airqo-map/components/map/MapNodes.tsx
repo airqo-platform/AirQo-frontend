@@ -60,6 +60,7 @@ interface MapNodesProps {
   selectedPollutant?: PollutantType;
   zoomLevel?: number; // Add zoom level for cluster styling
   showZoomHint?: boolean;
+  isTooltipOpen?: boolean;
 }
 
 const getSizeClasses = (size: 'sm' | 'md' | 'lg') => {
@@ -73,45 +74,7 @@ const getSizeClasses = (size: 'sm' | 'md' | 'lg') => {
   }
 };
 
-// Enhanced z-index calculation for proper layering with hover support
-const getZIndexClasses = (
-  isSelected: boolean,
-  isHovered: boolean,
-  isPrimary: boolean,
-  isCluster: boolean
-) => {
-  // Base z-index levels (higher for more important items)
-  const baseLevels = {
-    cluster: 30,
-    primary: 20,
-    regular: 10,
-  };
-
-  const baseLevel = isCluster
-    ? baseLevels.cluster
-    : isPrimary
-      ? baseLevels.primary
-      : baseLevels.regular;
-
-  // Priority modifiers (higher numbers = higher priority)
-  const modifiers = {
-    base: 0,
-    selected: 200,
-    hovered: 300,
-    selectedHovered: 400,
-  };
-
-  let modifier = modifiers.base;
-  if (isSelected && isHovered) {
-    modifier = modifiers.selectedHovered;
-  } else if (isHovered) {
-    modifier = modifiers.hovered;
-  } else if (isSelected) {
-    modifier = modifiers.selected;
-  }
-
-  return `z-[${baseLevel + modifier}]`;
-};
+const MAP_NODE_Z_INDEX_CLASS = 'z-[20]';
 
 const MapNodesComponent: React.FC<MapNodesProps> = ({
   reading,
@@ -126,6 +89,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
   selectedPollutant = 'pm2_5',
   zoomLevel = 10,
   showZoomHint = false,
+  isTooltipOpen = false,
 }) => {
   // Determine if this is a cluster or individual node
   const isCluster = cluster && cluster.pointCount > 1;
@@ -183,7 +147,6 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
     const sizeClasses = getSizeClasses(size);
     const isInactive =
       reading.status === 'inactive' || reading.status === 'maintenance';
-    const isPrimaryReading = reading.isPrimary !== false;
 
     // Different rendering based on nodeType
     if (nodeType === 'number') {
@@ -194,12 +157,14 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
           onTooltipAction={handleTooltipAction}
           onTooltipHoverChange={handleTooltipHoverChange}
           showZoomHint={showZoomHint}
+          forceOpen={isTooltipOpen}
         >
           <div
             className={cn(
               'relative cursor-pointer pointer-events-auto transition-all duration-150',
               'hover:scale-105 active:scale-95',
-              getZIndexClasses(isSelected, isHovered, isPrimaryReading, false),
+              isHovered && 'scale-105',
+              MAP_NODE_Z_INDEX_CLASS,
               isInactive && 'opacity-60',
               className
             )}
@@ -259,12 +224,14 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
           onTooltipAction={handleTooltipAction}
           onTooltipHoverChange={handleTooltipHoverChange}
           showZoomHint={showZoomHint}
+          forceOpen={isTooltipOpen}
         >
           <div
             className={cn(
               'relative cursor-pointer pointer-events-auto transition-all duration-150',
               'hover:scale-105 active:scale-95',
-              getZIndexClasses(isSelected, isHovered, isPrimaryReading, false),
+              isHovered && 'scale-105',
+              MAP_NODE_Z_INDEX_CLASS,
               isInactive && 'opacity-60',
               className
             )}
@@ -322,12 +289,14 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
           onTooltipAction={handleTooltipAction}
           onTooltipHoverChange={handleTooltipHoverChange}
           showZoomHint={showZoomHint}
+          forceOpen={isTooltipOpen}
         >
           <div
             className={cn(
               'relative cursor-pointer pointer-events-auto transition-all duration-150',
               'hover:scale-105 active:scale-95',
-              getZIndexClasses(isSelected, isHovered, isPrimaryReading, false),
+              isHovered && 'scale-105',
+              MAP_NODE_Z_INDEX_CLASS,
               isInactive && 'opacity-60',
               className
             )}
@@ -439,7 +408,8 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
           className={cn(
             'relative flex items-center cursor-pointer pointer-events-auto transition-all duration-200',
             'hover:scale-105 active:scale-95',
-            getZIndexClasses(isSelected, isHovered, false, true),
+            isHovered && 'scale-105',
+            MAP_NODE_Z_INDEX_CLASS,
             isHighZoom && 'opacity-100',
             className
           )}
@@ -457,8 +427,8 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
           }}
           aria-label={`Cluster of ${cluster.pointCount} air quality monitoring stations`}
           style={{
-            cursor: 'zoom-in',
-            touchAction: 'none',
+            cursor: 'pointer',
+            touchAction: 'manipulation',
             userSelect: 'none',
             WebkitUserSelect: 'none',
             MozUserSelect: 'none',
@@ -473,11 +443,9 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
             )}
           >
             <div className="flex items-center relative">
-              <BestIcon className={cn('text-gray-700 z-10', iconSize)} />
+              <BestIcon className={cn('text-gray-700', iconSize)} />
               {validReadings.length > 1 && (
-                <WorstIcon
-                  className={cn('text-gray-700 -ml-3 z-5', iconSize)}
-                />
+                <WorstIcon className={cn('text-gray-700 -ml-3', iconSize)} />
               )}
             </div>
             <span className={cn('text-gray-800 ml-2', textSize)}>
@@ -496,11 +464,16 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
 const areEqual = (prevProps: MapNodesProps, nextProps: MapNodesProps) => {
   return (
     prevProps.isSelected === nextProps.isSelected &&
+    prevProps.isHovered === nextProps.isHovered &&
     prevProps.nodeType === nextProps.nodeType &&
     prevProps.size === nextProps.size &&
     prevProps.selectedPollutant === nextProps.selectedPollutant &&
+    prevProps.zoomLevel === nextProps.zoomLevel &&
+    prevProps.showZoomHint === nextProps.showZoomHint &&
+    prevProps.isTooltipOpen === nextProps.isTooltipOpen &&
     prevProps.reading?.id === nextProps.reading?.id &&
     prevProps.cluster?.id === nextProps.cluster?.id &&
+    prevProps.cluster?.pointCount === nextProps.cluster?.pointCount &&
     prevProps.reading?.pm25Value === nextProps.reading?.pm25Value &&
     prevProps.reading?.pm10Value === nextProps.reading?.pm10Value
   );
