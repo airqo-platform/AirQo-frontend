@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { selectLoggingOut } from '@/shared/store/selectors';
 import { useCallback, useEffect, useRef } from 'react';
+import logger from '@/shared/lib/logger';
 
 export const useLogout = (callbackUrl?: string) => {
   const dispatch = useDispatch();
@@ -61,7 +62,7 @@ export const useLogout = (callbackUrl?: string) => {
         // Sign out from NextAuth and redirect
         await signOut({ callbackUrl: callbackUrl || '/user/login' });
       } catch (error) {
-        console.error('Logout error:', error);
+        logger.error('Logout error in useLogout', error);
         // Reset logging out state on error
         dispatch(setLoggingOut(false));
         // Fallback redirect

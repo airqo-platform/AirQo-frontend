@@ -95,7 +95,11 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   }, []);
 
   const executeLogout = useCallback(
-    (toastConfig?: { title: string; description: string; duration?: number }) => {
+    async (toastConfig?: {
+      title: string;
+      description: string;
+      duration?: number;
+    }) => {
       if (hasStartedLogoutRef.current || isLoggingOut) {
         return;
       }
@@ -111,7 +115,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
         );
       }
 
-      logout();
+      await logout();
     },
     [isLoggingOut, logout]
   );
