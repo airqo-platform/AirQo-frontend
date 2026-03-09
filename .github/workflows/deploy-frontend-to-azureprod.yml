@@ -1,0 +1,309 @@
+name: deploy-to-production-azure
+
+on:
+  workflow_dispatch:
+    inputs:
+      website:
+        description: "Deploy Website"
+        required: false
+        type: boolean
+      calibrate_app:
+        description: "Deploy Calibrate app"
+        required: false
+        type: boolean
+      analytics_platform:
+        description: "Deploy Analytics Platform"
+        required: false
+        type: boolean
+      vertex:
+        description: "Deploy vertex"
+        required: false
+        type: boolean
+      beacon:
+        description: "Deploy Beacon"
+        required: false
+        type: boolean
+      docs:
+        description: "Deploy docs"
+        required: false
+        type: boolean
+
+env:
+  REGISTRY_URL: airqoacr.azurecr.io
+  RG: airqo-main-rg
+  PROD_ENV: airqo-website-prod-env
+  DEPLOY_BRANCH: staging
+  ACR_NAME: airqoacr
+
+jobs:
+  image-tag:
+    name: create image tag
+    runs-on: ubuntu-latest
+    outputs:
+      build_id: ${{ steps.prep.outputs.build_id }}
+      datetime: ${{ steps.prep.outputs.datetime }}
+    if: github.triggering_actor == 'Baalmart'
+    steps:
+      - name: generate build ID
+        id: prep
+        run: |
+          sha=${GITHUB_SHA::8}
+          timestamp=$(date +%s)
+          datetime=$(date)
+          echo "build_id=prod-${sha}-${timestamp}" >>$GITHUB_OUTPUT
+          echo "datetime=${datetime}" >>$GITHUB_OUTPUT
+
+  website:
+    name: build-push-website
+    needs: [image-tag]
+    if: inputs.website == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: ACR Login
+        run: az acr login --name ${{ env.ACR_NAME }}
+
+      - name: Build and Push Docker Image
+        run: |
+          cd src/website/
+          docker build . \
+            --build-arg API_URL=${{ secrets.WEBSITE_PROD_API_URL }} \
+            --build-arg NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_PROD_NEXT_PUBLIC_GA_MEASUREMENT_ID }} \
+            --build-arg NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=${{ secrets.WEBSITE_PROD_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }} \
+            --tag ${{ env.REGISTRY_URL }}/website2:${{ needs.image-tag.outputs.build_id }}
+          docker push ${{ env.REGISTRY_URL }}/website2:${{ needs.image-tag.outputs.build_id }}
+          docker tag ${{ env.REGISTRY_URL }}/website2:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/website2:latest
+          docker push ${{ env.REGISTRY_URL }}/website2:latest
+
+      - name: Create secrets.json from GitHub secrets
+        run: |
+          jq -n \
+            --arg SECRET "${{ secrets.WEBSITE_SECRET }}" \
+            --arg API_URL "${{ secrets.WEBSITE_PROD_API_URL }}" \
+            --arg OPENCAGE_API_KEY "${{ secrets.WEBSITE_PROD_OPENCAGE_API_KEY }}" \
+            --arg API_TOKEN "${{ secrets.WEBSITE_PROD_API_TOKEN }}" \
+            --arg SLACK_WEBHOOK_URL "${{ secrets.WEBSITE_PROD_SLACK_WEBHOOK_URL }}" \
+            --arg SLACK_CHANNEL "${{ secrets.WEBSITE_PROD_SLACK_CHANNEL }}" \
+            --arg NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN "${{ secrets.WEBSITE_PROD_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }}" \
+            --arg NEXT_PUBLIC_GA_MEASUREMENT_ID "${{ secrets.WEBSITE_PROD_NEXT_PUBLIC_GA_MEASUREMENT_ID }}" \
+            '{SECRET: $SECRET, API_URL: $API_URL, OPENCAGE_API_KEY: $OPENCAGE_API_KEY, API_TOKEN: $API_TOKEN, SLACK_WEBHOOK_URL: $SLACK_WEBHOOK_URL, SLACK_CHANNEL: $SLACK_CHANNEL, NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN: $NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN, NEXT_PUBLIC_GA_MEASUREMENT_ID: $NEXT_PUBLIC_GA_MEASUREMENT_ID}' > secrets.json
+
+      - name: Deploy to Container Apps
+        run: |
+          if az containerapp show -g ${{ env.RG }} -n website-prod >/dev/null 2>&1; then
+            az containerapp update \
+              --resource-group ${{ env.RG }} \
+              --name website-prod \
+              --image ${{ env.REGISTRY_URL }}/website2:${{ needs.image-tag.outputs.build_id }} \
+              --registry-server ${{ env.REGISTRY_URL }} \
+              --registry-username airqoacr \
+              --registry-password ${{ secrets.ACR_PASSWORD }} \
+              --set-env-vars "$(jq -r 'to_entries | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json)"
+          else
+            az containerapp create \
+              --name website-prod \
+              --resource-group ${{ env.RG }} \
+              --environment ${{ env.PROD_ENV }} \
+              --image ${{ env.REGISTRY_URL }}/website2:${{ needs.image-tag.outputs.build_id }} \
+              --target-port 8080 \
+              --env-vars "$(jq -r 'to_entries | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json)" \
+              --cpu 1.0 --memory 2.0Gi \
+              --ingress external \
+              --min-replicas 1 \
+              --max-replicas 2 \
+              --registry-server ${{ env.REGISTRY_URL }} \
+              --registry-username airqoacr \
+              --registry-password ${{ secrets.ACR_PASSWORD }}
+          fi
+
+  calibrate-app:
+    name: build-push-calibrate-app
+    needs: [image-tag]
+    if: inputs.calibrate_app == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: ACR Login
+        run: az acr login --name ${{ env.ACR_NAME }}
+
+      - name: Build and Push Docker Image
+        run: |
+          cd src/calibrate/
+          docker build -t ${{ env.REGISTRY_URL }}/airqo-calibrate-app:${{ needs.image-tag.outputs.build_id }} .
+          docker push ${{ env.REGISTRY_URL }}/airqo-calibrate-app:${{ needs.image-tag.outputs.build_id }}
+          docker tag ${{ env.REGISTRY_URL }}/airqo-calibrate-app:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/airqo-calibrate-app:latest
+          docker push ${{ env.REGISTRY_URL }}/airqo-calibrate-app:latest
+
+      - name: Update Helm values
+        uses: Wandalen/wretry.action@v1.2.0
+        with:
+          action: fjogeleit/yaml-update-action@main
+          with: |
+            valueFile: "k8s/calibrate/k8s-aks/airqo-calibrate/values-prod.yaml"
+            propertyPath: "image.tag"
+            value: ${{ needs.image-tag.outputs.build_id }}
+            branch: ${{ env.DEPLOY_BRANCH }}
+            token: ${{ secrets.YAML_UPDATER_TOKEN }}
+            message: "Update calibrate production image tag"
+
+  analytics-platform:
+    name: build-push-analytics-platform
+    needs: [image-tag]
+    if: inputs.analytics_platform == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: ACR Login
+        run: az acr login --name ${{ env.ACR_NAME }}
+
+      - name: Build and Push Docker Image
+        run: |
+          cd src/platform/
+          docker build -t ${{ env.REGISTRY_URL }}/airqo-next-platform:${{ needs.image-tag.outputs.build_id }} .
+          docker push ${{ env.REGISTRY_URL }}/airqo-next-platform:${{ needs.image-tag.outputs.build_id }}
+          docker tag ${{ env.REGISTRY_URL }}/airqo-next-platform:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/airqo-next-platform:latest
+          docker push ${{ env.REGISTRY_URL }}/airqo-next-platform:latest
+
+      - name: Update Helm values
+        uses: Wandalen/wretry.action@v1.2.0
+        with:
+          action: fjogeleit/yaml-update-action@main
+          with: |
+            valueFile: "k8s/platform/k8s-aks/airqo-platform/values-prod.yaml"
+            propertyPath: "image.tag"
+            value: ${{ needs.image-tag.outputs.build_id }}
+            branch: ${{ env.DEPLOY_BRANCH }}
+            token: ${{ secrets.YAML_UPDATER_TOKEN }}
+            message: "Update analytics production image tag"
+
+  vertex:
+    name: build-push-vertex
+    needs: [image-tag]
+    if: inputs.vertex == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: ACR Login
+        run: az acr login --name ${{ env.ACR_NAME }}
+
+      - name: Build and Push Docker Image
+        run: |
+          cd src/vertex/
+          docker build -t ${{ env.REGISTRY_URL }}/airqo-vertex:${{ needs.image-tag.outputs.build_id }} .
+          docker push ${{ env.REGISTRY_URL }}/airqo-vertex:${{ needs.image-tag.outputs.build_id }}
+          docker tag ${{ env.REGISTRY_URL }}/airqo-vertex:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/airqo-vertex:latest
+          docker push ${{ env.REGISTRY_URL }}/airqo-vertex:latest
+
+      - name: Update Helm values
+        uses: Wandalen/wretry.action@v1.2.0
+        with:
+          action: fjogeleit/yaml-update-action@main
+          with: |
+            valueFile: "k8s/vertex/k8s-aks/airqo-vertex/values-prod.yaml"
+            propertyPath: "image.tag"
+            value: ${{ needs.image-tag.outputs.build_id }}
+            branch: ${{ env.DEPLOY_BRANCH }}
+            token: ${{ secrets.YAML_UPDATER_TOKEN }}
+            message: "Update vertex production image tag"
+
+  beacon:
+    name: build-push-beacon
+    needs: [image-tag]
+    if: inputs.beacon == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: ACR Login
+        run: az acr login --name ${{ env.ACR_NAME }}
+
+      - name: Build and Push Docker Image
+        run: |
+          cd src/beacon/
+          docker build -t ${{ env.REGISTRY_URL }}/airqo-beacon:${{ needs.image-tag.outputs.build_id }} .
+          docker push ${{ env.REGISTRY_URL }}/airqo-beacon:${{ needs.image-tag.outputs.build_id }}
+          docker tag ${{ env.REGISTRY_URL }}/airqo-beacon:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/airqo-beacon:latest
+          docker push ${{ env.REGISTRY_URL }}/airqo-beacon:latest
+
+      - name: Update Helm values
+        uses: Wandalen/wretry.action@v1.2.0
+        with:
+          action: fjogeleit/yaml-update-action@main
+          with: |
+            valueFile: "k8s/beacon/k8s-aks/airqo-beacon/values-prod.yaml"
+            propertyPath: "image.tag"
+            value: ${{ needs.image-tag.outputs.build_id }}
+            branch: ${{ env.DEPLOY_BRANCH }}
+            token: ${{ secrets.YAML_UPDATER_TOKEN }}
+            message: "Update beacon production image tag"
+
+  docs:
+    name: build-push-docs
+    needs: [image-tag]
+    if: inputs.docs == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: ACR Login
+        run: az acr login --name ${{ env.ACR_NAME }}
+
+      - name: Build and Push Docker Image
+        run: |
+          cd src/docs-website/
+          docker build -t ${{ env.REGISTRY_URL }}/airqo-docs:${{ needs.image-tag.outputs.build_id }} .
+          docker push ${{ env.REGISTRY_URL }}/airqo-docs:${{ needs.image-tag.outputs.build_id }}
+          docker tag ${{ env.REGISTRY_URL }}/airqo-docs:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/airqo-docs:latest
+          docker push ${{ env.REGISTRY_URL }}/airqo-docs:latest
+
+      - name: Update Helm values
+        uses: Wandalen/wretry.action@v1.2.0
+        with:
+          action: fjogeleit/yaml-update-action@main
+          with: |
+            valueFile: "k8s/docs-website/k8s-aks/airqo-docs-website/values-prod.yaml"
+            propertyPath: "image.tag"
+            value: ${{ needs.image-tag.outputs.build_id }}
+            branch: ${{ env.DEPLOY_BRANCH }}
+            token: ${{ secrets.YAML_UPDATER_TOKEN }}
+            message: "Update docs production image tag"

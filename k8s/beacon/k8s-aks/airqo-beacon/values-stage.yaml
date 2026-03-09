@@ -1,8 +1,8 @@
 replicaCount: 2
 image:
-  repository: eu.gcr.io/airqo-250220/airqo-stage-beacon
+  repository: airqoacr.azurecr.io/airqo-stage-beacon
   tag: stage-6c8a67f5-1772960748
-  pullPolicy: Always
+  pullPolicy: IfNotPresent
 imagePullSecrets: []
 nameOverride: ''
 fullnameOverride: ''
@@ -13,9 +13,6 @@ service:
   port: 3000
 ingress:
   enabled: false
-nodeSelector:
-  role: high-mem
-tolerations: {}
 resources:
   requests:
     cpu: 10m
@@ -27,18 +24,8 @@ autoscaling:
   minReplicas: 1
   maxReplicas: 2
   targetMemoryUtilizationPercentage: 80
-affinity:
-  nodeAffinity:
-    preferredDuringSchedulingIgnoredDuringExecution:
-      - preference:
-          matchExpressions:
-            - key: role
-              operator: In
-              values:
-                - high-mem
-        weight: 1
 app:
   name: airqo-stage-beacon
   label: beacon
   namespace: staging
-  configmap: env-beacon-staging
+  secret: sta-env-beacon
