@@ -240,11 +240,11 @@ export default function DeviceDetailsTab({
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-500">Latitude</p>
-                    <p className="font-medium">{device.latitude?.toFixed(6) || '0.000000'}</p>
+                    <p className="font-medium">{device.latitude != null ? device.latitude.toFixed(6) : '—'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Longitude</p>
-                    <p className="font-medium">{device.longitude?.toFixed(6) || '0.000000'}</p>
+                    <p className="font-medium">{device.longitude != null ? device.longitude.toFixed(6) : '—'}</p>
                   </div>
                 </div>
                 <div>
@@ -281,8 +281,8 @@ export default function DeviceDetailsTab({
                               id: device.name,
                               name: device.long_name || device.name,
                               status: device.rawOnlineStatus ? "active" : "offline",
-                              lat: device.latitude || 0,
-                              lng: device.longitude || 0,
+                              lat: device.latitude ?? 0,
+                              lng: device.longitude ?? 0,
                               lastUpdate: device.lastRawData ? new Date(device.lastRawData).toLocaleString() : undefined,
                               location: {
                                 location_name: device.site?.location_name,

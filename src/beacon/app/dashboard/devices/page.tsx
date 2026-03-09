@@ -138,11 +138,8 @@ export default function DevicesPage() {
         params.search = searchTerm.trim()
       }
 
-      // Always filter by airqo network
-      //params.network = "airqo"
-
-
-      // Add filters if they are set (currently commented out in UI)
+      // Network and status filters are currently handled by the backend's
+      // default scoping. UI filter controls are disabled until needed.
       // if (networkFilter !== "all") {
       //   params.network = networkFilter
       // }

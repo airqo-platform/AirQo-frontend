@@ -171,7 +171,6 @@ export default function DeviceDetailPage() {
       }
 
       const responseData = await response.json()
-      console.log("Device data received:", responseData)
 
       if (responseData.success && responseData.data) {
         setDevice(responseData.data)

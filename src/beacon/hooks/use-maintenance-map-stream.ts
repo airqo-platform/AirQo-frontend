@@ -27,7 +27,9 @@ interface StreamState {
  */
 function parseSSEChunk(buffer: string): { events: Array<{ event: string; data: string }>; remaining: string } {
     const events: Array<{ event: string; data: string }> = []
-    const blocks = buffer.split("\n\n")
+    // Normalize CRLF to LF so both line-ending styles are handled
+    const normalized = buffer.replace(/\r\n/g, "\n")
+    const blocks = normalized.split("\n\n")
 
     // The last block might be incomplete — keep it as remaining
     const remaining = blocks.pop() || ""
@@ -168,17 +170,19 @@ export function useMaintenanceMapStream(days: number = 14, tags?: string): Strea
                             error_margin: payload.error_margin ?? 0,
                             cohorts: payload.cohorts ?? [],
                         }
-                        deviceMapRef.current.set(item.device_name, item)
+                        const key = item.device_id || item.device_name
+                        deviceMapRef.current.set(key, item)
                         // Batch state updates — spread into a new array from the map
                         setDevices(Array.from(deviceMapRef.current.values()))
                         setDeviceCount(deviceMapRef.current.size)
                         break
                     }
                     case "cohort_update": {
-                        const existing = deviceMapRef.current.get(payload.device_name)
+                        const lookupKey = payload.device_id || payload.device_name
+                        const existing = deviceMapRef.current.get(lookupKey)
                         if (existing && payload.cohort) {
                             existing.cohorts = [...existing.cohorts, payload.cohort]
-                            deviceMapRef.current.set(payload.device_name, { ...existing })
+                            deviceMapRef.current.set(lookupKey, { ...existing })
                             setDevices(Array.from(deviceMapRef.current.values()))
                         }
                         break

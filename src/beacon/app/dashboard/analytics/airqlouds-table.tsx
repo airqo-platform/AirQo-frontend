@@ -31,7 +31,7 @@ interface ProcessedAirQloud {
   uptime: number | null
   onlinePercentage: number | null
   numberOfDevices: number
-  offlineDevices: number
+  offlineDevices: number | null
   errorMargin: number | null
   location: string
   uptimeHistory: Array<{ value: number; timestamp: string }>
@@ -51,7 +51,7 @@ const processAirQloudData = (airqloud: AirQloudWithPerformance, performanceDays:
   const overallErrorMargin = typeof rawErrorMargin === 'number' ? rawErrorMargin : null;
 
   // Count offline devices: those whose last_active is before the start of yesterday
-  let offlineDevices = 0;
+  let offlineDevices: number | null = null;
   if (airqloud.devices && Array.isArray(airqloud.devices)) {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
@@ -494,9 +494,15 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <Badge variant="outline">{airqloud.numberOfDevices - airqloud.offlineDevices}/{airqloud.numberOfDevices}</Badge>
-                            {airqloud.offlineDevices > 0 && (
-                              <span className="text-xs text-red-500">{airqloud.offlineDevices} offline</span>
+                            {airqloud.offlineDevices != null ? (
+                              <>
+                                <Badge variant="outline">{airqloud.numberOfDevices - airqloud.offlineDevices}/{airqloud.numberOfDevices}</Badge>
+                                {airqloud.offlineDevices > 0 && (
+                                  <span className="text-xs text-red-500">{airqloud.offlineDevices} offline</span>
+                                )}
+                              </>
+                            ) : (
+                              <Badge variant="outline">{airqloud.numberOfDevices}</Badge>
                             )}
                           </div>
                         </TableCell>

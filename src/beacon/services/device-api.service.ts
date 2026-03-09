@@ -37,7 +37,9 @@ class ApiService {
   constructor() {
     this.baseUrl = config.apiUrl
     this.apiPrefix = config.apiPrefix || '/api/v1'
-    this.defaultHeaders = {}
+    this.defaultHeaders = {
+      'Content-Type': 'application/json',
+    }
   }
 
   /**
@@ -140,7 +142,7 @@ class ApiService {
       // Flat properties for backward compatibility
       device_id: device._id || device.device_id || '', // Fallback to old field if present
       device_name: device.name || device.long_name || device.device_name || 'Unnamed Device',
-      device_key: device.writeKey || device.readKey || '', // approximate mapping
+      device_key: '',
       network: device.network || '',
       category: device.category || '',
       status: device.status || 'not deployed',

@@ -104,13 +104,32 @@ export default function ConfigTab({ deviceId, deviceName, channelId }: ConfigTab
 
       const skip = (page - 1) * itemsPerPage
       const params: any = {
-        device_id: deviceId, // Changed from channel_id
+        device_id: deviceId,
         skip,
         limit: itemsPerPage,
       }
 
-      // Date filtering removed for now as per previous pattern or kept empty
-      // if (dateRange.from) { ... }
+      // Include date range filters if selected
+      if (dateRange.from) {
+        const fromDate = new Date(dateRange.from)
+        if (includeTime) {
+          const [fromHours, fromMinutes] = timeRange.from.split(':').map(Number)
+          fromDate.setHours(fromHours, fromMinutes, 0, 0)
+        } else {
+          fromDate.setHours(0, 0, 0, 0)
+        }
+        params.start_date = fromDate.toISOString()
+      }
+      if (dateRange.to) {
+        const toDate = new Date(dateRange.to)
+        if (includeTime) {
+          const [toHours, toMinutes] = timeRange.to.split(':').map(Number)
+          toDate.setHours(toHours, toMinutes, 59, 999)
+        } else {
+          toDate.setHours(23, 59, 59, 999)
+        }
+        params.end_date = toDate.toISOString()
+      }
 
       const response = await getDeviceConfig(params)
 

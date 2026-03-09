@@ -72,7 +72,6 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName, initi
   const [performanceData, setPerformanceData] = useState<PerformanceData[]>([])
   const [loading, setLoading] = useState(!initialData)
   const [error, setError] = useState<string | null>(null)
-  const [hasUsedInitialData, setHasUsedInitialData] = useState(false)
 
   // Default date range getter: last 14 days ending yesterday
   const getDefaultDateRange = () => {
@@ -170,7 +169,7 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName, initi
 
   useEffect(() => {
     // If initialData is provided from the overview tab, use it instead of fetching
-    if (initialData && !hasUsedInitialData) {
+    if (initialData) {
       const devices = initialData.devices || []
       if (devices.length > 0) {
         const transformedData: PerformanceData[] = devices.map((device) => ({
@@ -182,16 +181,15 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName, initi
           backendData: device.data || [],
         }))
         setPerformanceData(transformedData)
+      } else {
+        setPerformanceData([])
       }
       setLoading(false)
-      setHasUsedInitialData(true)
       return
     }
 
     // Only fetch if no initialData was provided
-    if (!initialData) {
-      fetchPerformanceData()
-    }
+    fetchPerformanceData()
   }, [airqloudId, initialData])
 
   const handleDateRangeChange = (newDateRange: { from: Date | undefined; to: Date | undefined }) => {

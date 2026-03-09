@@ -73,18 +73,19 @@ interface AirQloudDetailData {
 
 // Process device performance data from Cohort API (nested structure)
 const processDevicePerformance = (device: DevicePerformanceRaw): ProcessedDeviceData => {
-  const dailyData: { [date: string]: { hours: number; errorMargins: number[] } } = {}
+  const dailyData: { [date: string]: { hoursSet: Set<number>; errorMargins: number[] } } = {}
 
   const deviceData = device.data || []
 
   deviceData.forEach((d: any) => {
-    const date = new Date(d.datetime).toDateString()
+    const dt = new Date(d.datetime)
+    const date = dt.toDateString()
 
     if (!dailyData[date]) {
-      dailyData[date] = { hours: 0, errorMargins: [] }
+      dailyData[date] = { hoursSet: new Set(), errorMargins: [] }
     }
 
-    dailyData[date].hours += 1
+    dailyData[date].hoursSet.add(dt.getHours())
 
     if (d.s1_pm2_5 != null && d.s2_pm2_5 != null) {
       dailyData[date].errorMargins.push(Math.abs(d.s1_pm2_5 - d.s2_pm2_5))
@@ -94,7 +95,7 @@ const processDevicePerformance = (device: DevicePerformanceRaw): ProcessedDevice
   const dates = Object.keys(dailyData).sort((a, b) => new Date(a).getTime() - new Date(b).getTime()).slice(-14)
 
   const uptimeHistory = dates.map(date => ({
-    value: Math.min(100, (dailyData[date].hours / 24) * 100),
+    value: Math.min(100, (Math.min(24, dailyData[date].hoursSet.size) / 24) * 100),
     timestamp: date
   }))
 

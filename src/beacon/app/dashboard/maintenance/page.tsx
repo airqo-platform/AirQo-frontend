@@ -209,6 +209,9 @@ export default function MaintenancePage() {
     // Fetch map data when days or tags change
     useEffect(() => {
         let cancelled = false;
+        // Clear stale route when the underlying dataset changes
+        setIsRouting(false);
+        setRoutePath([]);
         fetchMapData().then((res) => {
             if (!cancelled && res) setMapData(res)
         })

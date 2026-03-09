@@ -68,19 +68,20 @@ interface ProcessedDeviceData {
 
 const processDevicePerformance = (device: AirQloudDetailData['devices'][0]): ProcessedDeviceData => {
   // Group data by date
-  const dailyData: { [date: string]: { hours: number; errorMargins: number[] } } = {}
+  const dailyData: { [date: string]: { hoursSet: Set<number>; errorMargins: number[] } } = {}
 
   const deviceData = device.data || []
 
   deviceData.forEach((d: any) => {
-    const date = new Date(d.datetime).toDateString() // Group by date only
+    const dt = new Date(d.datetime)
+    const date = dt.toDateString() // Group by date only
 
     if (!dailyData[date]) {
-      dailyData[date] = { hours: 0, errorMargins: [] }
+      dailyData[date] = { hoursSet: new Set(), errorMargins: [] }
     }
 
-    // Count unique hours per day
-    dailyData[date].hours += 1
+    // Track distinct hours per day
+    dailyData[date].hoursSet.add(dt.getHours())
 
     // Collect error margins for this day
     if (d.s1_pm2_5 != null && d.s2_pm2_5 != null) {
@@ -92,7 +93,7 @@ const processDevicePerformance = (device: AirQloudDetailData['devices'][0]): Pro
   const dates = Object.keys(dailyData).sort((a, b) => new Date(a).getTime() - new Date(b).getTime()).slice(-14) // Sort chronologically and take last 14 days
 
   const uptimeHistory = dates.map(date => ({
-    value: Math.min(100, (dailyData[date].hours / 24) * 100), // Percentage of 24 hours
+    value: Math.min(100, (Math.min(24, dailyData[date].hoursSet.size) / 24) * 100), // Percentage of 24 hours
     timestamp: date
   }))
 
@@ -602,7 +603,6 @@ export default function AirQloudDetailPage() {
                               averageErrorMargin={device.average_error_margin}
                             />
                           </TableCell>
-                          <TableCell>{device.data_points}</TableCell>
                           <TableCell>
                             {device.last_active ? (() => {
                               const lastActiveDate = new Date(device.last_active)
@@ -627,6 +627,7 @@ export default function AirQloudDetailPage() {
                               <span className="text-muted-foreground text-sm">N/A</span>
                             )}
                           </TableCell>
+                          <TableCell>{device.data_points}</TableCell>
                           <TableCell>
                             <Badge
                               variant={
