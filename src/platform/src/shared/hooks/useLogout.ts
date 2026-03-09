@@ -5,31 +5,31 @@ import { persistor } from '@/shared/store';
 import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { selectLoggingOut } from '@/shared/store/selectors';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback } from 'react';
 import logger from '@/shared/lib/logger';
+
+let sharedLogoutPromise: Promise<void> | null = null;
+let sharedIsLoggingOut = false;
+const ACCOUNT_DELETION_TTL_MS = 5 * 60 * 1000;
 
 export const useLogout = (callbackUrl?: string) => {
   const dispatch = useDispatch();
   const router = useRouter();
   const isLoggingOut = useSelector(selectLoggingOut);
-  const isLoggingOutRef = useRef(isLoggingOut);
-  const logoutPromiseRef = useRef<Promise<void> | null>(null);
-
-  useEffect(() => {
-    isLoggingOutRef.current = isLoggingOut;
-  }, [isLoggingOut]);
 
   const logout = useCallback(async () => {
-    if (logoutPromiseRef.current) {
-      await logoutPromiseRef.current;
+    if (sharedLogoutPromise) {
+      await sharedLogoutPromise;
       return;
     }
 
-    if (isLoggingOutRef.current) {
+    if (sharedIsLoggingOut || isLoggingOut) {
       return;
     }
 
     const runLogout = async () => {
+      sharedIsLoggingOut = true;
+
       try {
         // Set logging out state to show loading
         dispatch(setLoggingOut(true));
@@ -40,9 +40,30 @@ export const useLogout = (callbackUrl?: string) => {
         // Clear any remaining application storage immediately
         if (typeof window !== 'undefined') {
           const keysToRemove: string[] = [];
+          const accountDeleted =
+            localStorage.getItem('account_deleted') === 'true';
+          const deletionTimestamp = localStorage.getItem(
+            'account_deleted_timestamp'
+          );
+          const parsedTimestamp = deletionTimestamp
+            ? Number.parseInt(deletionTimestamp, 10)
+            : NaN;
+          const keepDeletionSignal =
+            accountDeleted &&
+            Number.isFinite(parsedTimestamp) &&
+            Date.now() - parsedTimestamp <= ACCOUNT_DELETION_TTL_MS;
+
+          const crossTabSignalKeys = keepDeletionSignal
+            ? new Set(['account_deleted', 'account_deleted_timestamp'])
+            : new Set<string>();
+
           for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
-            if (key && !key.startsWith('next-auth')) {
+            if (
+              key &&
+              !key.startsWith('next-auth') &&
+              !crossTabSignalKeys.has(key)
+            ) {
               keysToRemove.push(key);
             }
           }
@@ -67,15 +88,15 @@ export const useLogout = (callbackUrl?: string) => {
         dispatch(setLoggingOut(false));
         // Fallback redirect
         router.push(callbackUrl || '/user/login');
+      } finally {
+        sharedIsLoggingOut = false;
+        sharedLogoutPromise = null;
       }
     };
 
-    const pendingLogout = runLogout().finally(() => {
-      logoutPromiseRef.current = null;
-    });
-    logoutPromiseRef.current = pendingLogout;
-    await pendingLogout;
-  }, [callbackUrl, dispatch, router]);
+    sharedLogoutPromise = runLogout();
+    await sharedLogoutPromise;
+  }, [callbackUrl, dispatch, isLoggingOut, router]);
 
   return logout;
 };

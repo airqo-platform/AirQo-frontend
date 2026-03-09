@@ -61,6 +61,7 @@ const publicRoutes = [
 
 const UNAUTHORIZED_WINDOW_MS = 30000;
 const UNAUTHORIZED_THRESHOLD = 3;
+const ACCOUNT_DELETION_TTL_MS = 5 * 60 * 1000;
 
 function AuthWrapper({ children }: { children: React.ReactNode }) {
   const { data: session, status, update } = useSession();
@@ -125,10 +126,24 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
     const accountDeleted = localStorage.getItem('account_deleted');
     const deletionTimestamp = localStorage.getItem('account_deleted_timestamp');
+    const parsedTimestamp = deletionTimestamp
+      ? Number.parseInt(deletionTimestamp, 10)
+      : NaN;
+    const hasValidTimestamp = Number.isFinite(parsedTimestamp);
+    const now = Date.now();
 
     if (accountDeleted === 'true') {
+      if (!hasValidTimestamp) {
+        clearAccountDeletionFlags();
+        return false;
+      }
+
+      if (now - parsedTimestamp > ACCOUNT_DELETION_TTL_MS) {
+        clearAccountDeletionFlags();
+        return false;
+      }
+
       logger.info('Account deletion detected, logging out...');
-      clearAccountDeletionFlags();
       executeLogout({
         title: 'Account Deleted',
         description: 'Your account has been deleted. You have been logged out.',
@@ -137,18 +152,25 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       return true;
     }
 
-    if (deletionTimestamp) {
-      const timestamp = parseInt(deletionTimestamp, 10);
-      const now = Date.now();
-      const fiveMinutes = 5 * 60 * 1000;
-
-      if (now - timestamp > fiveMinutes) {
-        clearAccountDeletionFlags();
-      }
+    if (hasValidTimestamp && now - parsedTimestamp > ACCOUNT_DELETION_TTL_MS) {
+      clearAccountDeletionFlags();
     }
 
     return false;
   }, [clearAccountDeletionFlags, executeLogout]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === 'account_deleted' && event.newValue === 'true') {
+        checkAccountDeletionFlag();
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, [checkAccountDeletionFlag]);
 
   // Listen for unauthorized events from API client
   const handleUnauthorized = useCallback(
