@@ -27,6 +27,6 @@ autoscaling:
   targetMemoryUtilizationPercentage: 70
 app:
   name: airqo-calibrate-app
-  label: airqo-calibrate-app
+  label: calibrate-app
   namespace: production
   secret: prod-env-calibrate-app

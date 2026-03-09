@@ -27,6 +27,6 @@ autoscaling:
   targetCPUUtilizationPercentage: 70
 app:
   name: airqo-next-platform
-  label: airqo-next-platform
+  label: airqo-platform
   namespace: production
   secret: prod-env-next-platform
