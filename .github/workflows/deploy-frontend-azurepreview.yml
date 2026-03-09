@@ -367,6 +367,9 @@ jobs:
             --vault-name ${{ env.KEYVAULT }} \
             --name sta-env-next-platform \
             --query value -o tsv > secrets.json
+        
+            # Write .env into the build context for Next.js build time 
+          jq -r 'to_entries | map("\(.key)=\(.value|tostring)") | .[]' secrets.json > src/platform/.env          
 
       - name: Build image
         run: |
