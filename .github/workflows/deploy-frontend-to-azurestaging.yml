@@ -169,7 +169,7 @@ jobs:
               --resource-group ${{ env.RG }} \
               --environment ${{ env.STAGING_ENV }} \
               --image ${{ env.REGISTRY_URL }}/website2-staging:${{ needs.image-tag.outputs.build_id }} \
-              --target-port 3000 \
+              --target-port 8080 \
               --env-vars "$(jq -r 'to_entries | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json)" \
               --cpu 1.0 --memory 2.0Gi \
               --ingress external \

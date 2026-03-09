@@ -28,6 +28,6 @@ autoscaling:
 
 app:
   name: airqo-stage-calibrate-app
-  label: sta-calibrate-app
+  label: sta-calibrate
   namespace: staging
   secret: sta-env-calibrate-app

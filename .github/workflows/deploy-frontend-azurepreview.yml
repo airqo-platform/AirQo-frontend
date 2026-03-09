@@ -140,14 +140,15 @@ jobs:
 
       - name: Deploy Container App
         run: |
-          APP=${{ needs.branch-name.outputs.lowercase }}-website-preview
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-website-preview"
 
           az containerapp up \
             --name $APP \
             --resource-group ${{ env.RG }} \
             --environment ${{ env.PR_PREVIEW_ENV }} \
             --image ${{ env.REGISTRY_URL }}/website-pr-preview:${{ github.sha }} \
-            --target-port 3000 \
+            --target-port 8080 \
             --ingress external \
             --registry-server ${{ env.REGISTRY_URL }} \
             --registry-username airqoacr \
@@ -156,8 +157,11 @@ jobs:
 
       - id: preview
         run: |
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-website-preview" 
+
           URL=$(az containerapp show \
-            --name ${{ needs.branch-name.outputs.lowercase }}-website-preview \
+            --name $APP \
             --resource-group ${{ env.RG }} \
             --query properties.configuration.ingress.fqdn -o tsv)
 
@@ -215,7 +219,8 @@ jobs:
 
       - name: Deploy Container App
         run: |
-          APP=${{ needs.branch-name.outputs.lowercase }}-beacon-preview
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-beacon-preview"
 
           az containerapp up \
             --name $APP \
@@ -231,8 +236,11 @@ jobs:
 
       - id: preview
         run: |
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-beacon-preview"
+
           URL=$(az containerapp show \
-            --name ${{ needs.branch-name.outputs.lowercase }}-beacon-preview \
+            --name $APP \
             --resource-group ${{ env.RG }} \
             --query properties.configuration.ingress.fqdn -o tsv)
 
@@ -289,7 +297,8 @@ jobs:
 
       - name: Deploy Container App
         run: |
-          APP=${{ needs.branch-name.outputs.lowercase }}-calibrate-app-preview
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-calibrate-app-preview"
 
           az containerapp up \
             --name $APP \
@@ -305,8 +314,11 @@ jobs:
 
       - id: preview
         run: |
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-calibrate-app-preview"
+
           URL=$(az containerapp show \
-            --name ${{ needs.branch-name.outputs.lowercase }}-calibrate-app-preview \
+            --name $APP \
             --resource-group ${{ env.RG }} \
             --query properties.configuration.ingress.fqdn -o tsv)
 
@@ -363,7 +375,8 @@ jobs:
 
       - name: Deploy Container App
         run: |
-          APP=${{ needs.branch-name.outputs.lowercase }}-analytics-platform-preview
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-analytics-platform-preview"
 
           az containerapp up \
             --name $APP \
@@ -379,8 +392,11 @@ jobs:
 
       - id: preview
         run: |
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-analytics-platform-preview"
+
           URL=$(az containerapp show \
-            --name ${{ needs.branch-name.outputs.lowercase }}-analytics-platform-preview \
+            --name $APP \
             --resource-group ${{ env.RG }} \
             --query properties.configuration.ingress.fqdn -o tsv)
 
@@ -437,7 +453,8 @@ jobs:
 
       - name: Deploy Container App
         run: |
-          APP=${{ needs.branch-name.outputs.lowercase }}-vertex-preview
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-vertex-preview"
 
           az containerapp up \
             --name $APP \
@@ -453,8 +470,11 @@ jobs:
 
       - id: preview
         run: |
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-vertex-preview"
+
           URL=$(az containerapp show \
-            --name ${{ needs.branch-name.outputs.lowercase }}-vertex-preview \
+            --name $APP \
             --resource-group ${{ env.RG }} \
             --query properties.configuration.ingress.fqdn -o tsv)
 
@@ -511,7 +531,8 @@ jobs:
 
       - name: Deploy Container App
         run: |
-          APP=${{ needs.branch-name.outputs.lowercase }}-docs-preview
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-docs-preview"
 
           az containerapp up \
             --name $APP \
@@ -527,8 +548,11 @@ jobs:
 
       - id: preview
         run: |
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-docs-preview"
+
           URL=$(az containerapp show \
-            --name ${{ needs.branch-name.outputs.lowercase }}-docs-preview \
+            --name $APP \
             --resource-group ${{ env.RG }} \
             --query properties.configuration.ingress.fqdn -o tsv)
 
