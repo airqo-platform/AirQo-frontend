@@ -379,7 +379,7 @@ jobs:
       - name: Deploy Container App
         run: |
           BRANCH="${{ needs.branch-name.outputs.lowercase }}"
-          APP="${BRANCH:0:12}-analytics-platform-preview"
+          APP="${BRANCH:0:12}-analytics-p-preview"
 
           az containerapp up \
             --name $APP \
@@ -396,7 +396,7 @@ jobs:
       - id: preview
         run: |
           BRANCH="${{ needs.branch-name.outputs.lowercase }}"
-          APP="${BRANCH:0:12}-analytics-platform-preview"
+          APP="${BRANCH:0:12}-analytics-p-preview"
 
           URL=$(az containerapp show \
             --name $APP \
