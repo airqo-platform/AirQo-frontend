@@ -6,6 +6,39 @@ import {
 } from '@/shared/types/api';
 import { TableItem } from '../types/dataExportTypes';
 
+const getFirstNonEmptyString = (...values: unknown[]): string | undefined => {
+  for (const value of values) {
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (trimmed && trimmed !== '--') {
+        return trimmed;
+      }
+    }
+  }
+  return undefined;
+};
+
+const getSiteDisplayName = (site?: TableItem): string => {
+  const displayName = getFirstNonEmptyString(
+    site?.name,
+    site?.search_name,
+    site?.formatted_name,
+    site?.location_name
+  );
+  return normalizeText(displayName || '--');
+};
+
+const getSiteSearchName = (site?: TableItem): string => {
+  return (
+    getFirstNonEmptyString(
+      site?.search_name,
+      site?.formatted_name,
+      site?.location_name,
+      site?.name
+    ) || '--'
+  );
+};
+
 /**
  * Processes sites data for table display
  */
@@ -20,7 +53,16 @@ export const processSitesData = (
       (site.site_id as string | number) ||
       (site._id as string | number) ||
       index,
-    name: normalizeText(removeUnderscores((site.name as string) || '--')),
+    name: normalizeText(
+      removeUnderscores(
+        getFirstNonEmptyString(
+          site.name,
+          site.search_name,
+          site.formatted_name,
+          site.location_name
+        ) || '--'
+      )
+    ),
     city: removeUnderscores((site.city as string) || '--'),
     country: removeUnderscores((site.country as string) || '--'),
     data_provider: removeUnderscores(
@@ -105,11 +147,14 @@ export const createSitesForVisualization = (
 ) => {
   return siteIds.map(siteId => {
     const site = sitesData.find(item => String(item.id) === siteId);
+    const siteObject = site as TableItem | undefined;
     return {
-      _id: siteId,
-      name: normalizeText((site?.name as string) || '--'),
-      search_name: site?.name as string,
-      country: site?.country as string,
+      _id: ((siteObject?._id as string) || siteId) as string,
+      name: getSiteDisplayName(siteObject),
+      search_name: getSiteSearchName(siteObject),
+      country: (siteObject?.country as string) || '--',
+      city: (siteObject?.city as string) || undefined,
+      region: (siteObject?.region as string) || undefined,
     };
   });
 };
@@ -124,12 +169,26 @@ export const createSitesFromDevicesForVisualization = (
   return deviceIds.map(deviceId => {
     const device = devicesData.find(item => String(item.id) === deviceId);
     const site = device?.site as Record<string, unknown>;
+    const displayName = getFirstNonEmptyString(
+      site?.name,
+      site?.search_name,
+      site?.formatted_name,
+      site?.location_name
+    );
 
     return {
       _id: (site?._id as string) || deviceId,
-      name: normalizeText((site?.name as string) || '--'),
-      search_name: (site?.search_name as string) || (site?.name as string),
-      country: site?.country as string,
+      name: normalizeText(displayName || '--'),
+      search_name:
+        getFirstNonEmptyString(
+          site?.search_name,
+          site?.name,
+          site?.formatted_name,
+          site?.location_name
+        ) || '--',
+      country: (site?.country as string) || '--',
+      city: (site?.city as string) || undefined,
+      region: (site?.region as string) || undefined,
       device_name: normalizeText((device?.name as string) || '--'),
     };
   });
@@ -161,12 +220,21 @@ export const createSitesFromGridsForVisualization = (
       }>;
 
       sites.forEach(site => {
+        const displayName = getFirstNonEmptyString(
+          site.name,
+          site.search_name,
+          site.location_name
+        );
         allSites.push({
           _id: site._id,
-          name: normalizeText(site.name || site.search_name || '--'),
+          name: normalizeText(displayName || '--'),
           search_name:
-            site.name || site.search_name || site.location_name || '--',
-          country: site.country,
+            getFirstNonEmptyString(
+              site.search_name,
+              site.name,
+              site.location_name
+            ) || '--',
+          country: site.country || '--',
         });
       });
     }

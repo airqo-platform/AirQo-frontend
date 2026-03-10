@@ -33,7 +33,7 @@ export const useDataExportData = (
   tabStates: Record<TabType, TabState>,
   deviceCategory: DeviceCategory,
   selectedDeviceIds: string[],
-  devicesData: TableItem[],
+  selectedDevicesData: TableItem[],
   setSelectedDevices: (devices: string[]) => void
 ) => {
   // Sites params
@@ -158,13 +158,26 @@ export const useDataExportData = (
   // Update selected devices when device IDs change
   useEffect(() => {
     if (activeTab === 'devices' && selectedDeviceIds.length > 0) {
+      // Use cached selected rows across pages when available.
+      const deviceLookupSource =
+        selectedDevicesData.length > 0
+          ? selectedDevicesData
+          : processedDevicesData;
       const selectedDeviceNames = mapDeviceIdsToNames(
         selectedDeviceIds,
-        processedDevicesData
+        deviceLookupSource
       );
       setSelectedDevices(selectedDeviceNames);
+    } else if (activeTab === 'devices' && selectedDeviceIds.length === 0) {
+      setSelectedDevices([]);
     }
-  }, [activeTab, selectedDeviceIds, processedDevicesData, setSelectedDevices]);
+  }, [
+    activeTab,
+    selectedDeviceIds,
+    selectedDevicesData,
+    processedDevicesData,
+    setSelectedDevices,
+  ]);
 
   // Reset device pagination when category changes
   useEffect(() => {
