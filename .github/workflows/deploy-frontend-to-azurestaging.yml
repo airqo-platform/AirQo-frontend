@@ -13,6 +13,7 @@ env:
   STAGING_ENV: airqo-website-staging-env
   DEPLOY_BRANCH: staging
   ACR_NAME: airqoacr
+  KEYVAULT: airqo-kv-staging
 
 jobs:
   image-tag:
@@ -244,6 +245,15 @@ jobs:
 
       - name: ACR Login
         run: az acr login --name ${{ env.ACR_NAME }}
+
+      - name: Pull secrets from Key Vault
+        run: |
+          az keyvault secret show \
+            --vault-name ${{ env.KEYVAULT }} \
+            --name sta-env-next-platform \
+            --query value -o tsv > secrets.json
+
+          jq -r 'to_entries | .[] | "\(.key)=\(.value|tojson)"' secrets.json > src/platform/.env        
 
       - name: Build and Push Docker Image
         run: |

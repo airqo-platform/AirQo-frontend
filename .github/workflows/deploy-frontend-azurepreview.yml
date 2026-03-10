@@ -367,6 +367,9 @@ jobs:
             --vault-name ${{ env.KEYVAULT }} \
             --name sta-env-next-platform \
             --query value -o tsv > secrets.json
+        
+            # Write .env into the build context for Next.js build time 
+          jq -r 'to_entries | .[] | "\(.key)=\(.value|tojson)"' secrets.json > src/platform/.env         
 
       - name: Build image
         run: |
@@ -376,7 +379,7 @@ jobs:
       - name: Deploy Container App
         run: |
           BRANCH="${{ needs.branch-name.outputs.lowercase }}"
-          APP="${BRANCH:0:12}-analytics-platform-preview"
+          APP="${BRANCH:0:12}-analytics-p-preview"
 
           az containerapp up \
             --name $APP \
@@ -393,7 +396,7 @@ jobs:
       - id: preview
         run: |
           BRANCH="${{ needs.branch-name.outputs.lowercase }}"
-          APP="${BRANCH:0:12}-analytics-platform-preview"
+          APP="${BRANCH:0:12}-analytics-p-preview"
 
           URL=$(az containerapp show \
             --name $APP \
