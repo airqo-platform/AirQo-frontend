@@ -420,7 +420,6 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                 if ((isExternalOrg && activeGroup?._id) || (isPersonalContext && user?._id)) {
                     setVerifiedCohort({ id: input, name: cohortName || input });
                     setStep('cohort-confirm');
-                    setIsImportingCohort(false);
                     return;
                 }
 
@@ -452,9 +451,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
             const message = err instanceof Error ? err.message : 'Failed to verify Cohort ID';
             setError(message);
         } finally {
-            if (!isExternalOrg) {
-                setIsImportingCohort(false);
-            }
+            setIsImportingCohort(false);
         }
     };
 
@@ -1036,3 +1033,4 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
 };
 
 export default ClaimDeviceModal;
+
