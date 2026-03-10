@@ -340,7 +340,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     };
 
     const handleConfirmCohortImport = () => {
-        if (!verifiedCohort || !user?._id) {
+        if (!verifiedCohort) {
             setError('Session expired or cohort details are missing. Please verify the cohort again.');
             setStep('cohort-import');
             return;
@@ -367,6 +367,11 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
         }
 
         if (isPersonalContext) {
+            if (!user?._id) {
+                setError('User session not available. Please try again.');
+                setStep('cohort-import');
+                return;
+            }
             setStep('assigning-cohort');
             assignCohortsToUser(
                 { userId: user._id, cohortIds: [verifiedCohort.id] },
@@ -421,7 +426,21 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                     return;
                 }
 
-                if ((isExternalOrg && activeGroup?._id) || (isPersonalContext && user?._id)) {
+                if (isExternalOrg) {
+                    if (!activeGroup?._id) {
+                        setError('No organization is selected. Please try again.');
+                        return;
+                    }
+                    setVerifiedCohort({ id: input, name: cohortName || input });
+                    setStep('cohort-confirm');
+                    return;
+                }
+
+                if (isPersonalContext) {
+                    if (!user?._id) {
+                        setError('User session not available. Please try again.');
+                        return;
+                    }
                     setVerifiedCohort({ id: input, name: cohortName || input });
                     setStep('cohort-confirm');
                     return;
