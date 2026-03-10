@@ -50,6 +50,8 @@ export function AssignCohortDevicesDialog({
   const { isExternalOrg, activeGroup } = useUserContext();
   const [cohortSearch, setCohortSearch] = useState("");
   const [debouncedCohortSearch, setDebouncedCohortSearch] = useState("");
+  const [deviceSearch, setDeviceSearch] = useState("");
+  const [debouncedDeviceSearch, setDebouncedDeviceSearch] = useState("");
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -58,6 +60,14 @@ export function AssignCohortDevicesDialog({
 
     return () => clearTimeout(timer);
   }, [cohortSearch]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedDeviceSearch(deviceSearch);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [deviceSearch]);
 
   const { cohorts: allCohorts, isFetching: isFetchingAllCohorts } = useCohorts({
     enabled: open && !isExternalOrg,
@@ -87,7 +97,10 @@ export function AssignCohortDevicesDialog({
   const cohorts = isExternalOrg ? filteredGroupCohorts : allCohorts;
   const isFetchingCohorts = isExternalOrg ? (isFetchingGroupCohorts || isFetchingCohortIds) : isFetchingAllCohorts;
 
-  const { devices: allDevices } = useDevices({ enabled: open });
+  const { devices: allDevices, isFetching: isFetchingDevices } = useDevices({
+    enabled: open,
+    search: debouncedDeviceSearch,
+  });
   const { mutate: assignDevices, isPending: isAssigning } = useAssignDevicesToCohort();
 
   const [createCohortModalOpen, setCreateCohortModalOpen] = useState(false);
@@ -124,6 +137,8 @@ export function AssignCohortDevicesDialog({
       });
       setCohortSearch("");
       setDebouncedCohortSearch("");
+      setDeviceSearch("");
+      setDebouncedDeviceSearch("");
     }
   }, [open, selectedDevices, form, cohortId]);
 
@@ -240,18 +255,24 @@ export function AssignCohortDevicesDialog({
                     Devices <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
-                    <MultiSelectCombobox
-                      options={deviceOptions}
-                      value={field.value || []}
-                      onValueChange={field.onChange}
-                      placeholder="Select devices..."
-                      allowCreate={false}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                  <MultiSelectCombobox
+                    options={deviceOptions}
+                    value={field.value || []}
+                    onValueChange={field.onChange}
+                    placeholder="Select devices..."
+                    allowCreate={false}
+                    onSearchChange={setDeviceSearch}
+                    searchValue={deviceSearch}
+                    emptyMessage={isFetchingDevices ? "Searching devices..." : "No devices found."}
+                  />
+                </FormControl>
+                {isFetchingDevices && (
+                  <p className="text-xs text-muted-foreground">Searching devices...</p>
+                )}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           </form>
         </Form>
       </ReusableDialog>
