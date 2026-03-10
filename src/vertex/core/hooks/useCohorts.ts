@@ -424,12 +424,15 @@ export const useAssignCohortsToUser = () => {
       }
       return cohortsApi.assignCohortsToUser(userId, cohortIds);
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
         queryKey: ['cohorts', activeNetwork?.net_name],
       });
       queryClient.invalidateQueries({
-        queryKey: ['my-devices'],
+        queryKey: ['userDetails', variables.userId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['myDevices'],
       });
       queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
     },
