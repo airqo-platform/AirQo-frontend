@@ -29,8 +29,28 @@ const GOOGLE_TRANSLATE_SCRIPT_FALLBACK_SRC =
 
 const GoogleTranslate = () => {
   useEffect(() => {
+    const addPreconnect = (href: string) => {
+      const existing = document.querySelector(
+        `link[rel="preconnect"][href="${href}"]`,
+      );
+      if (existing) return;
+
+      const link = document.createElement('link');
+      link.rel = 'preconnect';
+      link.href = href;
+      link.crossOrigin = 'anonymous';
+      document.head.appendChild(link);
+    };
+
+    addPreconnect('https://translate.google.com');
+    addPreconnect('https://translate.googleapis.com');
+    addPreconnect('https://translate.gstatic.com');
+
     const initGoogleTranslate = () => {
       if (!window.google?.translate) return;
+      const TranslateElement = window.google?.translate?.TranslateElement;
+      if (typeof TranslateElement !== 'function') return;
+
       if (
         window.googleTranslateLoaded &&
         document.querySelector('.goog-te-combo')
@@ -38,17 +58,32 @@ const GoogleTranslate = () => {
         return;
       }
 
-      new window.google.translate.TranslateElement(
-        {
-          pageLanguage: 'en',
-          layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE,
-          autoDisplay: false,
-          includedLanguages: INCLUDED_LANGUAGES,
-        },
-        'google_translate_element',
-      );
+      if (!document.getElementById('google_translate_element')) return;
 
-      window.googleTranslateLoaded = true;
+      const translateElementConfig: {
+        pageLanguage: string;
+        autoDisplay: boolean;
+        includedLanguages: string;
+        layout?: unknown;
+      } = {
+        pageLanguage: 'en',
+        autoDisplay: false,
+        includedLanguages: INCLUDED_LANGUAGES,
+      };
+
+      if (TranslateElement.InlineLayout?.SIMPLE) {
+        translateElementConfig.layout = TranslateElement.InlineLayout.SIMPLE;
+      }
+
+      try {
+        new TranslateElement(
+          translateElementConfig,
+          'google_translate_element',
+        );
+        window.googleTranslateLoaded = true;
+      } catch {
+        window.googleTranslateLoaded = false;
+      }
     };
 
     window.googleTranslateElementInit = initGoogleTranslate;
@@ -66,8 +101,8 @@ const GoogleTranslate = () => {
           script.id = GOOGLE_TRANSLATE_SCRIPT_ID;
           script.src = sourceUrl;
           script.async = true;
-          script.defer = true;
           script.fetchPriority = 'high';
+          script.crossOrigin = 'anonymous';
           script.addEventListener('load', () => {
             window.googleTranslateScriptBlocked = false;
             script.setAttribute('data-gt-ready', 'true');
@@ -82,7 +117,7 @@ const GoogleTranslate = () => {
             script.remove();
             loadScript(GOOGLE_TRANSLATE_SCRIPT_FALLBACK_SRC, true);
           });
-          document.body.appendChild(script);
+          document.head.appendChild(script);
         };
 
         loadScript(GOOGLE_TRANSLATE_SCRIPT_SRC);

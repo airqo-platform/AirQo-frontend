@@ -304,6 +304,22 @@ export default async function RootLayout({
           href="//translate.google.com"
           crossOrigin="anonymous"
         />
+        <link
+          rel="preconnect"
+          href="//translate.googleapis.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preconnect"
+          href="//translate.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preload"
+          as="script"
+          href="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
+          crossOrigin="anonymous"
+        />
 
         {/* Preload critical resources */}
         <link

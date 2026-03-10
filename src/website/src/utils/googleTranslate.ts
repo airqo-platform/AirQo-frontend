@@ -4,6 +4,7 @@ const GOOGTRANS_COOKIE_NAME = 'googtrans';
 const GOOGLE_TRANSLATE_COMBO_SELECTOR = '.goog-te-combo';
 const DEFAULT_GOOGLE_LANGUAGE = 'en';
 const LANGUAGE_STORAGE_KEY = 'airqo_selected_language';
+const MIN_COMBO_WAIT_MS = 400;
 
 const LANGUAGE_CODE_ALIASES: Record<string, string> = {
   'en-gb': 'en',
@@ -178,6 +179,22 @@ const waitForTranslateCombo = async (
   });
 };
 
+const ensureTranslateCombo = async (
+  timeoutMs: number,
+): Promise<HTMLSelectElement | null> => {
+  const normalizedTimeout = Math.max(timeoutMs, MIN_COMBO_WAIT_MS);
+
+  let combo = await waitForTranslateCombo(normalizedTimeout);
+  if (combo) return combo;
+
+  triggerGoogleTranslateInit();
+
+  combo = await waitForTranslateCombo(
+    Math.max(MIN_COMBO_WAIT_MS, Math.floor(normalizedTimeout / 2)),
+  );
+  return combo;
+};
+
 const resolveLanguageForCombo = (
   requestedCode: string,
   combo: HTMLSelectElement,
@@ -200,19 +217,19 @@ const resolveLanguageForCombo = (
 
 export const applyGoogleTranslateLanguage = async (
   languageCode: string,
-  timeoutMs: number = 5000,
+  timeoutMs: number = 1500,
 ): Promise<boolean> => {
   if (typeof window === 'undefined') return false;
 
-  let combo = await waitForTranslateCombo(timeoutMs);
-  if (!combo) {
-    triggerGoogleTranslateInit();
-    combo = await waitForTranslateCombo(Math.max(2000, timeoutMs));
-  }
+  // Set cookie immediately so reload fallback applies target language deterministically.
+  setGoogleTranslateLanguageCookie(languageCode);
+
+  const combo = await ensureTranslateCombo(timeoutMs);
 
   if (!combo) return false;
 
   const resolvedCode = resolveLanguageForCombo(languageCode, combo);
+  setGoogleTranslateLanguageCookie(resolvedCode);
 
   const currentTargetLanguage = normalizeGoogleLanguageCode(
     getGoogleTranslateTargetLanguage() || DEFAULT_GOOGLE_LANGUAGE,
@@ -225,7 +242,6 @@ export const applyGoogleTranslateLanguage = async (
   }
 
   combo.value = resolvedCode;
-  setGoogleTranslateLanguageCookie(resolvedCode);
   combo.dispatchEvent(new Event('change', { bubbles: true }));
   return true;
 };

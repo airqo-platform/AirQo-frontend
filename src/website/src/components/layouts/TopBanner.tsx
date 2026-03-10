@@ -102,28 +102,19 @@ const TopBanner = () => {
     setIsApplyingLanguage(true);
 
     try {
-      const applied = await applyGoogleTranslateLanguage(language.code, 5000);
+      const applied = await applyGoogleTranslateLanguage(language.code, 1500);
 
-      // One light retry for cases where Google script is still initializing
+      // Fast deterministic fallback when combo is unavailable.
       if (!applied) {
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        const retryApplied = await applyGoogleTranslateLanguage(
-          language.code,
-          4000,
-        );
-
-        // Last fallback for deterministic behavior when combo is unavailable.
-        if (!retryApplied) {
-          if (isGoogleTranslateScriptBlocked()) {
-            console.warn(
-              'Google Translate is blocked by browser settings or an extension.',
-            );
-            return;
-          }
-
-          setGoogleTranslateLanguageCookie(language.code);
-          window.location.reload();
+        if (isGoogleTranslateScriptBlocked()) {
+          console.warn(
+            'Google Translate is blocked by browser settings or an extension.',
+          );
+          return;
         }
+
+        setGoogleTranslateLanguageCookie(language.code);
+        window.location.reload();
       }
     } finally {
       setIsApplyingLanguage(false);
