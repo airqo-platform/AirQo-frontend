@@ -202,7 +202,6 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   // Determine if cohort data is private (not visible)
   const isCohortPrivate = cohortData?.cohorts[0]?.visibility === false;
   const isOrganizationFlow = pathname.startsWith('/org/');
-  const hasResolvedGroupContext = Boolean(activeGroup);
 
   useEffect(() => {
     if (!sitesCountError) return;
@@ -221,7 +220,6 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   // Only check for available sites count after preferences are loaded
   const isInitialLoading =
     userContextLoading ||
-    !hasResolvedGroupContext ||
     preferencesLoading ||
     (shouldCheckAvailableSites && sitesCountLoading);
 
