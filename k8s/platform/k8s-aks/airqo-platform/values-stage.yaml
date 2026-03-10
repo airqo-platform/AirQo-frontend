@@ -1,7 +1,7 @@
 replicaCount: 1
 image:
   repository: airqoacr.azurecr.io/airqo-stage-next-platform
-  tag: latest
+  tag: stage-3d6e7cbb-1773143537
   pullPolicy: IfNotPresent
 imagePullSecrets: []
 nameOverride: ''
@@ -25,7 +25,6 @@ autoscaling:
   minReplicas: 1
   maxReplicas: 3
   targetCPUUtilizationPercentage: 80
-
 app:
   name: airqo-stage-next-platform
   label: sta-platform
