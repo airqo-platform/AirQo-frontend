@@ -253,7 +253,7 @@ jobs:
             --name sta-env-next-platform \
             --query value -o tsv > secrets.json
 
-          jq -r 'to_entries | map("\(.key)=\(.value|tostring)") | .[]' secrets.json > src/platform/.env        
+          jq -r 'to_entries | .[] | "\(.key)=\(.value|tojson)"' secrets.json > src/platform/.env        
 
       - name: Build and Push Docker Image
         run: |
