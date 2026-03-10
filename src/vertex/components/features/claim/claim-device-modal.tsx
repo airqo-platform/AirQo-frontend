@@ -340,7 +340,11 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     };
 
     const handleConfirmCohortImport = () => {
-        if (!verifiedCohort || !user?._id) return;
+        if (!verifiedCohort || !user?._id) {
+            setError('Session expired or cohort details are missing. Please verify the cohort again.');
+            setStep('cohort-import');
+            return;
+        }
 
         if (isExternalOrg && activeGroup?._id) {
             setStep('assigning-cohort');
