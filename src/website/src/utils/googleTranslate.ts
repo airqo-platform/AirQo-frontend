@@ -3,6 +3,7 @@
 const GOOGTRANS_COOKIE_NAME = 'googtrans';
 const GOOGLE_TRANSLATE_COMBO_SELECTOR = '.goog-te-combo';
 const DEFAULT_GOOGLE_LANGUAGE = 'en';
+const SOURCE_GOOGLE_LANGUAGE = 'en';
 const LANGUAGE_STORAGE_KEY = 'airqo_selected_language';
 const MIN_COMBO_WAIT_MS = 400;
 
@@ -128,7 +129,7 @@ export const isGoogleTranslationActive = (): boolean => {
 
 export const setGoogleTranslateLanguageCookie = (languageCode: string) => {
   const normalizedCode = normalizeGoogleLanguageCode(languageCode);
-  const cookieValue = `/auto/${normalizedCode}`;
+  const cookieValue = `/${SOURCE_GOOGLE_LANGUAGE}/${normalizedCode}`;
 
   clearGoogTransCookie();
   setGoogTransCookie(cookieValue);
@@ -175,6 +176,49 @@ const waitForTranslateCombo = async (
     observer.observe(document.body, {
       childList: true,
       subtree: true,
+    });
+  });
+};
+
+const isDomTranslationActive = (): boolean => {
+  if (typeof document === 'undefined') return false;
+
+  return (
+    document.body.classList.contains('translated-ltr') ||
+    document.body.classList.contains('translated-rtl')
+  );
+};
+
+const waitForDomTranslationState = async (
+  shouldBeActive: boolean,
+  timeoutMs: number,
+): Promise<boolean> => {
+  if (typeof document === 'undefined') return false;
+
+  const isExpectedState = () =>
+    shouldBeActive ? isDomTranslationActive() : !isDomTranslationActive();
+
+  if (isExpectedState()) return true;
+
+  return new Promise((resolve) => {
+    let observer: MutationObserver | null = null;
+
+    const timeoutId = window.setTimeout(() => {
+      observer?.disconnect();
+      resolve(isExpectedState());
+    }, timeoutMs);
+
+    observer = new MutationObserver(() => {
+      if (isExpectedState()) {
+        window.clearTimeout(timeoutId);
+        observer?.disconnect();
+        resolve(true);
+      }
+    });
+
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['class'],
     });
   });
 };
@@ -231,17 +275,18 @@ export const applyGoogleTranslateLanguage = async (
   const resolvedCode = resolveLanguageForCombo(languageCode, combo);
   setGoogleTranslateLanguageCookie(resolvedCode);
 
-  const currentTargetLanguage = normalizeGoogleLanguageCode(
-    getGoogleTranslateTargetLanguage() || DEFAULT_GOOGLE_LANGUAGE,
-  );
-  if (
-    combo.value === resolvedCode &&
-    currentTargetLanguage.toLowerCase() === resolvedCode.toLowerCase()
-  ) {
-    return true;
-  }
-
   combo.value = resolvedCode;
   combo.dispatchEvent(new Event('change', { bubbles: true }));
-  return true;
+
+  const normalizedResolved = resolvedCode.trim().toLowerCase();
+  const isDefaultLanguage =
+    normalizedResolved === DEFAULT_GOOGLE_LANGUAGE ||
+    normalizedResolved.split('-')[0] === DEFAULT_GOOGLE_LANGUAGE;
+
+  // Verify translation state quickly so caller can fallback immediately if needed.
+  const confirmed = await waitForDomTranslationState(
+    !isDefaultLanguage,
+    Math.max(700, timeoutMs),
+  );
+  return confirmed;
 };

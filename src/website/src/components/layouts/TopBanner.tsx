@@ -1,5 +1,6 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { FaFacebookF, FaLinkedinIn, FaYoutube } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
@@ -19,6 +20,7 @@ import { Language, languages } from '@/utils/languages';
 
 const DEFAULT_LANGUAGE =
   languages.find((lang) => lang.code === 'en-GB') || languages[0];
+const DEFAULT_GOOGLE_LANGUAGE = 'en';
 
 const findLanguageByCode = (languageCode: string): Language | undefined => {
   const rawCode = languageCode.trim().toLowerCase();
@@ -51,6 +53,7 @@ const findLanguageByCode = (languageCode: string): Language | undefined => {
 };
 
 const TopBanner = () => {
+  const pathname = usePathname();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isApplyingLanguage, setIsApplyingLanguage] = useState(false);
   const [selectedLanguage, setSelectedLanguage] =
@@ -78,6 +81,33 @@ const TopBanner = () => {
       setSelectedLanguage(resolvedLanguage);
     }
   }, []);
+
+  useEffect(() => {
+    if (isApplyingLanguage || isGoogleTranslateScriptBlocked()) return;
+
+    const targetLanguage = getGoogleTranslateTargetLanguage();
+    const requestedLanguage =
+      targetLanguage ||
+      normalizeGoogleLanguageCode(selectedLanguage.code).toLowerCase();
+
+    const normalizedRequested =
+      normalizeGoogleLanguageCode(requestedLanguage).toLowerCase();
+    const isDefaultLanguage =
+      normalizedRequested === DEFAULT_GOOGLE_LANGUAGE ||
+      normalizedRequested.split('-')[0] === DEFAULT_GOOGLE_LANGUAGE;
+
+    if (isDefaultLanguage) return;
+
+    const retryTimeouts = [120, 800, 1800].map((delay) =>
+      window.setTimeout(() => {
+        void applyGoogleTranslateLanguage(requestedLanguage, 1800);
+      }, delay),
+    );
+
+    return () => {
+      retryTimeouts.forEach((timeoutId) => window.clearTimeout(timeoutId));
+    };
+  }, [isApplyingLanguage, pathname, selectedLanguage.code]);
 
   const handleLanguageSelect = async (language: Language) => {
     if (isApplyingLanguage) return;
