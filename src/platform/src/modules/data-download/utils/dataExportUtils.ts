@@ -6,6 +6,14 @@ import {
 } from '@/shared/types/api';
 import { TableItem } from '../types/dataExportTypes';
 
+type SiteNameSource = {
+  [key: string]: unknown;
+  name?: unknown;
+  search_name?: unknown;
+  formatted_name?: unknown;
+  location_name?: unknown;
+};
+
 const getFirstNonEmptyString = (...values: unknown[]): string | undefined => {
   for (const value of values) {
     if (typeof value === 'string') {
@@ -18,7 +26,7 @@ const getFirstNonEmptyString = (...values: unknown[]): string | undefined => {
   return undefined;
 };
 
-const getSiteDisplayName = (site?: TableItem): string => {
+const getSiteDisplayName = (site?: SiteNameSource): string => {
   const displayName = getFirstNonEmptyString(
     site?.name,
     site?.search_name,
@@ -28,7 +36,7 @@ const getSiteDisplayName = (site?: TableItem): string => {
   return normalizeText(displayName || '--');
 };
 
-const getSiteSearchName = (site?: TableItem): string => {
+const getSiteSearchName = (site?: SiteNameSource): string => {
   return (
     getFirstNonEmptyString(
       site?.search_name,
@@ -168,24 +176,12 @@ export const createSitesFromDevicesForVisualization = (
 ) => {
   return deviceIds.map(deviceId => {
     const device = devicesData.find(item => String(item.id) === deviceId);
-    const site = device?.site as Record<string, unknown>;
-    const displayName = getFirstNonEmptyString(
-      site?.name,
-      site?.search_name,
-      site?.formatted_name,
-      site?.location_name
-    );
+    const site = device?.site as SiteNameSource | undefined;
 
     return {
       _id: (site?._id as string) || deviceId,
-      name: normalizeText(displayName || '--'),
-      search_name:
-        getFirstNonEmptyString(
-          site?.search_name,
-          site?.name,
-          site?.formatted_name,
-          site?.location_name
-        ) || '--',
+      name: getSiteDisplayName(site),
+      search_name: getSiteSearchName(site),
       country: (site?.country as string) || '--',
       city: (site?.city as string) || undefined,
       region: (site?.region as string) || undefined,
@@ -215,25 +211,16 @@ export const createSitesFromGridsForVisualization = (
         _id: string;
         name: string;
         search_name?: string;
+        formatted_name?: string;
         location_name?: string;
         country: string;
       }>;
 
       sites.forEach(site => {
-        const displayName = getFirstNonEmptyString(
-          site.name,
-          site.search_name,
-          site.location_name
-        );
         allSites.push({
           _id: site._id,
-          name: normalizeText(displayName || '--'),
-          search_name:
-            getFirstNonEmptyString(
-              site.search_name,
-              site.name,
-              site.location_name
-            ) || '--',
+          name: getSiteDisplayName(site),
+          search_name: getSiteSearchName(site),
           country: site.country || '--',
         });
       });

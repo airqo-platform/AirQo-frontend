@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { usePostHog } from 'posthog-js/react';
 import { usePathname } from 'next/navigation';
@@ -8,7 +8,6 @@ import { QuickAccessCard, EmptyAnalyticsState, SuggestedLocations } from './';
 import { ChartContainer } from '@/shared/components/charts';
 import { DynamicChart } from '@/shared/components/charts';
 import { LoadingState } from '@/shared/components/ui/loading-state';
-import { ErrorState } from '@/shared/components/ui/error-state';
 import { EmptyState } from '@/shared/components/ui/empty-state';
 import {
   useAnalyticsSiteCards,
@@ -68,6 +67,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     totalSites: availableSitesCount,
     isLoading: sitesCountLoading,
     error: sitesCountError,
+    retry: retrySitesCountFetch,
   } = useSitesData({
     enabled: shouldCheckAvailableSites,
     initialPageSize: 1,
@@ -204,6 +204,18 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   const isOrganizationFlow = pathname.startsWith('/org/');
   const hasResolvedGroupContext = Boolean(activeGroup);
 
+  useEffect(() => {
+    if (!sitesCountError) return;
+
+    console.warn(
+      '[AnalyticsDashboard] Failed to fetch available sites count for empty state',
+      {
+        error: sitesCountError,
+        activeGroupId: activeGroup?.id,
+      }
+    );
+  }, [sitesCountError, activeGroup?.id]);
+
   // Combined loading state - coordinated to show loading only once
   // When preferences are loading, we don't know if user has sites yet
   // Only check for available sites count after preferences are loaded
@@ -230,27 +242,47 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   // Case 1: User has NO selected sites - check if sites are available for their organization
   if (!hasSelectedSites) {
     let emptyStateContent: React.ReactNode = null;
+    const hasSitesCountError = Boolean(sitesCountError);
 
-    if (sitesCountError) {
-      emptyStateContent = (
-        <ErrorState
-          title="Unable to load locations"
-          description="Please check your connection and try again."
-          compact
-        />
-      );
-    } else if (hasSitesAvailable) {
+    if (hasSitesAvailable) {
       // Show suggested locations when sites are available in the active group
       emptyStateContent = <SuggestedLocations />;
     } else if (isOrganizationFlow) {
       // Organization-specific onboarding notice
-      emptyStateContent = <EmptyAnalyticsState />;
+      emptyStateContent = (
+        <div className="space-y-4">
+          <EmptyAnalyticsState />
+          {hasSitesCountError && (
+            <EmptyState
+              title="Unable to refresh available locations"
+              description="We're showing onboarding in the meantime. Retry to check available locations again."
+              action={{
+                label: 'Retry',
+                onClick: retrySitesCountFetch,
+              }}
+              compact
+            />
+          )}
+        </div>
+      );
     } else {
       // User flow should never show organization onboarding notice
       emptyStateContent = (
         <EmptyState
           title="No favorite locations yet"
-          description="Add locations to favorites to track trends and insights."
+          description={
+            hasSitesCountError
+              ? 'We could not verify available locations right now. Add locations to favorites to track trends and insights, or retry.'
+              : 'Add locations to favorites to track trends and insights.'
+          }
+          action={
+            hasSitesCountError
+              ? {
+                  label: 'Retry',
+                  onClick: retrySitesCountFetch,
+                }
+              : undefined
+          }
         />
       );
     }
