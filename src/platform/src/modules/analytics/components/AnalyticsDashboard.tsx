@@ -286,7 +286,10 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                   label: 'Retry',
                   onClick: retrySitesCountFetch,
                 }
-              : undefined
+              : {
+                  label: 'Add favorite',
+                  onClick: handleManageFavorites,
+                }
           }
         />
       );
