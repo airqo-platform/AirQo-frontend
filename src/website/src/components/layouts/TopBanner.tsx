@@ -1,5 +1,6 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { FaFacebookF, FaLinkedinIn, FaYoutube } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
@@ -8,6 +9,7 @@ import LanguageModal from '@/components/dialogs/LanguageModal';
 import LanguageFlag from '@/components/LanguageFlag';
 import {
   applyGoogleTranslateLanguage,
+  clearGoogleTranslateLanguageCookie,
   getGoogleTranslateTargetLanguage,
   getPersistedLanguageCode,
   isGoogleTranslateScriptBlocked,
@@ -19,6 +21,34 @@ import { Language, languages } from '@/utils/languages';
 
 const DEFAULT_LANGUAGE =
   languages.find((lang) => lang.code === 'en-GB') || languages[0];
+const DEFAULT_GOOGLE_LANGUAGE = 'en';
+
+const handleFailedLanguageApply = (
+  languageCode: string,
+  shouldReload: boolean,
+): { blockedByScript: boolean } => {
+  const scriptBlocked = isGoogleTranslateScriptBlocked();
+  if (scriptBlocked) {
+    console.warn(
+      'Google Translate is blocked by browser settings or an extension.',
+    );
+  }
+
+  // Background retries must not leave stale translation cookies active.
+  if (!shouldReload) {
+    clearGoogleTranslateLanguageCookie();
+    return { blockedByScript: scriptBlocked };
+  }
+
+  if (scriptBlocked) {
+    clearGoogleTranslateLanguageCookie();
+    return { blockedByScript: true };
+  }
+
+  setGoogleTranslateLanguageCookie(languageCode);
+  window.location.reload();
+  return { blockedByScript: false };
+};
 
 const findLanguageByCode = (languageCode: string): Language | undefined => {
   const rawCode = languageCode.trim().toLowerCase();
@@ -51,6 +81,7 @@ const findLanguageByCode = (languageCode: string): Language | undefined => {
 };
 
 const TopBanner = () => {
+  const pathname = usePathname();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isApplyingLanguage, setIsApplyingLanguage] = useState(false);
   const [selectedLanguage, setSelectedLanguage] =
@@ -79,9 +110,78 @@ const TopBanner = () => {
     }
   }, []);
 
+  useEffect(() => {
+    if (isApplyingLanguage || isGoogleTranslateScriptBlocked()) return;
+
+    const targetLanguage = getGoogleTranslateTargetLanguage();
+    const requestedLanguage =
+      targetLanguage ||
+      normalizeGoogleLanguageCode(selectedLanguage.code).toLowerCase();
+
+    const normalizedRequested =
+      normalizeGoogleLanguageCode(requestedLanguage).toLowerCase();
+    const isDefaultLanguage =
+      normalizedRequested === DEFAULT_GOOGLE_LANGUAGE ||
+      normalizedRequested.split('-')[0] === DEFAULT_GOOGLE_LANGUAGE;
+
+    if (isDefaultLanguage) return;
+
+    const retryController = new AbortController();
+    const retryDelays = [120, 800, 1800];
+
+    const waitForDelay = async (delay: number, signal: AbortSignal) =>
+      new Promise<boolean>((resolve) => {
+        if (signal.aborted) {
+          resolve(false);
+          return;
+        }
+
+        const timeoutId = window.setTimeout(() => {
+          signal.removeEventListener('abort', handleAbort);
+          resolve(true);
+        }, delay);
+
+        const handleAbort = () => {
+          window.clearTimeout(timeoutId);
+          resolve(false);
+        };
+
+        signal.addEventListener('abort', handleAbort, { once: true });
+      });
+
+    void (async () => {
+      for (const delay of retryDelays) {
+        const shouldContinue = await waitForDelay(
+          delay,
+          retryController.signal,
+        );
+        if (!shouldContinue) return;
+
+        const applied = await applyGoogleTranslateLanguage(
+          requestedLanguage,
+          1800,
+          {
+            signal: retryController.signal,
+            requireFreshContentSignal: true,
+          },
+        );
+
+        if (retryController.signal.aborted) return;
+        if (applied) return;
+      }
+
+      handleFailedLanguageApply(requestedLanguage, false);
+    })();
+
+    return () => {
+      retryController.abort();
+    };
+  }, [isApplyingLanguage, pathname, selectedLanguage.code]);
+
   const handleLanguageSelect = async (language: Language) => {
     if (isApplyingLanguage) return;
 
+    const previousLanguage = selectedLanguage;
     setSelectedLanguage(language);
     setPersistedLanguageCode(language.code);
     setIsModalOpen(false);
@@ -102,27 +202,14 @@ const TopBanner = () => {
     setIsApplyingLanguage(true);
 
     try {
-      const applied = await applyGoogleTranslateLanguage(language.code, 5000);
+      const applied = await applyGoogleTranslateLanguage(language.code, 1500);
 
-      // One light retry for cases where Google script is still initializing
+      // Fast deterministic fallback when combo is unavailable.
       if (!applied) {
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        const retryApplied = await applyGoogleTranslateLanguage(
-          language.code,
-          4000,
-        );
-
-        // Last fallback for deterministic behavior when combo is unavailable.
-        if (!retryApplied) {
-          if (isGoogleTranslateScriptBlocked()) {
-            console.warn(
-              'Google Translate is blocked by browser settings or an extension.',
-            );
-            return;
-          }
-
-          setGoogleTranslateLanguageCookie(language.code);
-          window.location.reload();
+        const failure = handleFailedLanguageApply(language.code, true);
+        if (failure.blockedByScript) {
+          setSelectedLanguage(previousLanguage);
+          setPersistedLanguageCode(previousLanguage.code);
         }
       }
     } finally {
