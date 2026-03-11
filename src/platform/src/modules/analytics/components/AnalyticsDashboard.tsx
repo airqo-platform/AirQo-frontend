@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { usePostHog } from 'posthog-js/react';
 import { QuickAccessCard, EmptyAnalyticsState, SuggestedLocations } from './';
 import { ChartContainer } from '@/shared/components/charts';
 import { DynamicChart } from '@/shared/components/charts';
 import { LoadingState } from '@/shared/components/ui/loading-state';
+import { EmptyState } from '@/shared/components/ui/empty-state';
 import {
   useAnalyticsSiteCards,
   useAnalyticsPreferences,
@@ -26,17 +27,20 @@ import { useActiveGroupCohorts, useCohort } from '@/shared/hooks';
 import { WarningBanner } from '@/shared/components/ui/banner';
 import { getEnvironmentAwareUrl } from '@/shared/utils/url';
 import { useUser } from '@/shared/hooks/useUser';
+import logger from '@/shared/lib/logger';
 
 interface AnalyticsDashboardProps {
   className?: string;
+  isOrganizationFlow: boolean;
 }
 
 export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   className = '',
+  isOrganizationFlow,
 }) => {
   const dispatch = useDispatch();
   const posthog = usePostHog();
-  const { activeGroup } = useUser();
+  const { activeGroup, isLoading: userContextLoading } = useUser();
 
   // Get filters from Redux
   const { filters } = useAnalytics();
@@ -60,12 +64,16 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   // Check if there are sites available in the organization (only when needed)
   // This is organization-specific via useActiveGroupCohortSites
   // Only enabled after preferences load and when user has no selected sites
-  const { totalSites: availableSitesCount, isLoading: sitesCountLoading } =
-    useSitesData({
-      enabled: shouldCheckAvailableSites,
-      initialPageSize: 1,
-      maxLimit: 1,
-    });
+  const {
+    totalSites: availableSitesCount,
+    isLoading: sitesCountLoading,
+    error: sitesCountError,
+    retry: retrySitesCountFetch,
+  } = useSitesData({
+    enabled: shouldCheckAvailableSites,
+    initialPageSize: 1,
+    maxLimit: 1,
+  });
 
   // Get site cards data - only when user has selected sites
   const { siteCards, isLoading: siteCardsLoading } = useAnalyticsSiteCards();
@@ -194,11 +202,33 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   };
   // Determine if cohort data is private (not visible)
   const isCohortPrivate = cohortData?.cohorts[0]?.visibility === false;
+
+  useEffect(() => {
+    if (!sitesCountError) return;
+
+    logger.warn(
+      '[AnalyticsDashboard] Failed to fetch available sites count for empty state',
+      {
+        activeGroupId: activeGroup?.id ?? 'unknown',
+        errorType: typeof sitesCountError,
+      }
+    );
+
+    if (process.env.NODE_ENV === 'development') {
+      logger.debug(
+        '[AnalyticsDashboard] Sites count fetch error details',
+        sitesCountError
+      );
+    }
+  }, [sitesCountError, activeGroup?.id]);
+
   // Combined loading state - coordinated to show loading only once
   // When preferences are loading, we don't know if user has sites yet
   // Only check for available sites count after preferences are loaded
   const isInitialLoading =
-    preferencesLoading || (shouldCheckAvailableSites && sitesCountLoading);
+    userContextLoading ||
+    preferencesLoading ||
+    (shouldCheckAvailableSites && sitesCountLoading);
 
   // Show single, coordinated loading state
   if (isInitialLoading) {
@@ -214,22 +244,60 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   // Determine what to show based on user's selected sites and available sites
   const hasSitesAvailable = availableSitesCount > 0;
 
-  // Check if the active organization is AirQo (open group)
-  const isAirQoGroup = activeGroup?.organizationSlug === 'airqo';
-
   // Case 1: User has NO selected sites - check if sites are available for their organization
   if (!hasSelectedSites) {
+    let emptyStateContent: React.ReactNode = null;
+    const hasSitesCountError = Boolean(sitesCountError);
+
+    if (hasSitesAvailable) {
+      // Show suggested locations when sites are available in the active group
+      emptyStateContent = <SuggestedLocations />;
+    } else if (isOrganizationFlow) {
+      // Organization-specific onboarding notice
+      emptyStateContent = (
+        <div className="space-y-4">
+          <EmptyAnalyticsState />
+          {hasSitesCountError && (
+            <EmptyState
+              title="Unable to refresh available locations"
+              description="We're showing onboarding in the meantime. Retry to check available locations again."
+              action={{
+                label: 'Retry',
+                onClick: retrySitesCountFetch,
+              }}
+              compact
+            />
+          )}
+        </div>
+      );
+    } else {
+      // User flow should never show organization onboarding notice
+      emptyStateContent = (
+        <EmptyState
+          title="No favorite locations yet"
+          description={
+            hasSitesCountError
+              ? 'We could not verify available locations right now. Add locations to favorites to track trends and insights, or retry.'
+              : 'Add locations to favorites to track trends and insights.'
+          }
+          action={
+            hasSitesCountError
+              ? {
+                  label: 'Retry',
+                  onClick: retrySitesCountFetch,
+                }
+              : {
+                  label: 'Add favorite',
+                  onClick: handleManageFavorites,
+                }
+          }
+        />
+      );
+    }
+
     return (
       <div className={`space-y-8 ${className}`}>
-        {hasSitesAvailable ? (
-          // Show suggested locations when sites are available in the organization
-          <SuggestedLocations />
-        ) : (
-          // Show empty state banner ONLY when:
-          // 1. Organization has no sites at all AND
-          // 2. It's NOT the AirQo open group
-          !isAirQoGroup && <EmptyAnalyticsState />
-        )}
+        {emptyStateContent}
 
         {/* Add Favorites Dialog */}
         <AddFavorites

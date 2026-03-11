@@ -21,6 +21,7 @@ export interface UseSitesDataResult {
   // Loading states
   isLoading: boolean;
   error: string | null;
+  retry: () => void;
 
   // Pagination controls
   setCurrentPage: (page: number) => void;
@@ -69,7 +70,7 @@ export function useSitesData({
   }, [currentPage, pageSize, debouncedSearchTerm, maxLimit]);
 
   // Fetch data using the enhanced hook
-  const { data, error, isLoading } = useActiveGroupCohortSites(
+  const { data, error, isLoading, mutate } = useActiveGroupCohortSites(
     enabled ? apiParams : undefined
   );
 
@@ -106,6 +107,9 @@ export function useSitesData({
     // Loading states
     isLoading,
     error: typeof error === 'string' ? error : (error?.message ?? null),
+    retry: () => {
+      void mutate();
+    },
 
     // Pagination controls
     setCurrentPage,

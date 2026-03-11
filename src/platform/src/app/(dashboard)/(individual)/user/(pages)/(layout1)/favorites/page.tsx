@@ -3,5 +3,5 @@
 import { AnalyticsDashboard } from '@/modules/analytics';
 
 export default function FavoritesPage() {
-  return <AnalyticsDashboard />;
+  return <AnalyticsDashboard isOrganizationFlow={false} />;
 }

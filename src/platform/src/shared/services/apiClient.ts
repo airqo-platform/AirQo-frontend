@@ -227,14 +227,25 @@ export class ApiClient {
         } else if (error.response?.status >= 400) {
           // Other 4xx Client errors - log locally but only send serious ones to Slack
           // Avoid sending validation errors (400, 422) to Slack in production
+          const status = error.response.status;
+          if (status === 409) {
+            // 409 Conflict is often an expected business-rule outcome
+            // (e.g. duplicate account/email) and should not page on-call.
+            logger.warn('API conflict response', {
+              ...errorContext,
+              responseData: error.response.data,
+            });
+            return Promise.reject(error);
+          }
+
           const shouldNotifySlack =
-            error.response.status >= 405 && // Skip validation errors (400, 404 already handled)
-            error.response.status !== 408 && // Skip request timeout (client-side)
-            error.response.status !== 429; // Skip rate limiting (already handled)
+            status >= 405 && // Skip validation errors (400, 404 already handled)
+            status !== 408 && // Skip request timeout (client-side)
+            status !== 429; // Skip rate limiting (already handled)
 
           if (shouldNotifySlack) {
             const apiError = new Error(
-              `API Client Error: ${error.response.status} ${error.response.statusText}`
+              `API Client Error: ${status} ${error.response.statusText}`
             );
             apiError.name = 'APIClientError';
             logger.errorWithSlack('API client error occurred', apiError, {

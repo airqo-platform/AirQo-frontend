@@ -6,6 +6,48 @@ import {
 } from '@/shared/types/api';
 import { TableItem } from '../types/dataExportTypes';
 
+type SiteNameSource = {
+  [key: string]: unknown;
+  name?: unknown;
+  search_name?: unknown;
+  formatted_name?: unknown;
+  location_name?: unknown;
+};
+
+const getFirstNonEmptyString = (...values: unknown[]): string | undefined => {
+  for (const value of values) {
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (trimmed && trimmed !== '--') {
+        return trimmed;
+      }
+    }
+  }
+  return undefined;
+};
+
+const getSiteDisplayName = (site?: SiteNameSource): string => {
+  const displayName =
+    getFirstNonEmptyString(
+      site?.name,
+      site?.search_name,
+      site?.formatted_name,
+      site?.location_name
+    ) || '--';
+  return normalizeText(removeUnderscores(displayName));
+};
+
+const getSiteSearchName = (site?: SiteNameSource): string => {
+  return (
+    getFirstNonEmptyString(
+      site?.search_name,
+      site?.formatted_name,
+      site?.location_name,
+      site?.name
+    ) || '--'
+  );
+};
+
 /**
  * Processes sites data for table display
  */
@@ -20,7 +62,7 @@ export const processSitesData = (
       (site.site_id as string | number) ||
       (site._id as string | number) ||
       index,
-    name: normalizeText(removeUnderscores((site.name as string) || '--')),
+    name: getSiteDisplayName(site as SiteNameSource),
     city: removeUnderscores((site.city as string) || '--'),
     country: removeUnderscores((site.country as string) || '--'),
     data_provider: removeUnderscores(
@@ -105,11 +147,14 @@ export const createSitesForVisualization = (
 ) => {
   return siteIds.map(siteId => {
     const site = sitesData.find(item => String(item.id) === siteId);
+    const siteObject = site as TableItem | undefined;
     return {
-      _id: siteId,
-      name: normalizeText((site?.name as string) || '--'),
-      search_name: site?.name as string,
-      country: site?.country as string,
+      _id: ((siteObject?._id as string) || siteId) as string,
+      name: getSiteDisplayName(siteObject),
+      search_name: getSiteSearchName(siteObject),
+      country: (siteObject?.country as string) || '--',
+      city: (siteObject?.city as string) || undefined,
+      region: (siteObject?.region as string) || undefined,
     };
   });
 };
@@ -123,13 +168,15 @@ export const createSitesFromDevicesForVisualization = (
 ) => {
   return deviceIds.map(deviceId => {
     const device = devicesData.find(item => String(item.id) === deviceId);
-    const site = device?.site as Record<string, unknown>;
+    const site = device?.site as SiteNameSource | undefined;
 
     return {
       _id: (site?._id as string) || deviceId,
-      name: normalizeText((site?.name as string) || '--'),
-      search_name: (site?.search_name as string) || (site?.name as string),
-      country: site?.country as string,
+      name: getSiteDisplayName(site),
+      search_name: getSiteSearchName(site),
+      country: (site?.country as string) || '--',
+      city: (site?.city as string) || undefined,
+      region: (site?.region as string) || undefined,
       device_name: normalizeText((device?.name as string) || '--'),
     };
   });
@@ -156,6 +203,7 @@ export const createSitesFromGridsForVisualization = (
         _id: string;
         name: string;
         search_name?: string;
+        formatted_name?: string;
         location_name?: string;
         country: string;
       }>;
@@ -163,10 +211,9 @@ export const createSitesFromGridsForVisualization = (
       sites.forEach(site => {
         allSites.push({
           _id: site._id,
-          name: normalizeText(site.name || site.search_name || '--'),
-          search_name:
-            site.name || site.search_name || site.location_name || '--',
-          country: site.country,
+          name: getSiteDisplayName(site),
+          search_name: getSiteSearchName(site),
+          country: site.country || '--',
         });
       });
     }

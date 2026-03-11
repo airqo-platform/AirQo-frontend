@@ -1,7 +1,7 @@
 import { AnalyticsDashboard } from '@/modules/analytics';
 
 const Page = () => {
-  return <AnalyticsDashboard />;
+  return <AnalyticsDashboard isOrganizationFlow={true} />;
 };
 
 export default Page;
