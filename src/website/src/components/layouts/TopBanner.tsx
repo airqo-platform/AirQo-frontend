@@ -26,7 +26,7 @@ const DEFAULT_GOOGLE_LANGUAGE = 'en';
 const handleFailedLanguageApply = (
   languageCode: string,
   shouldReload: boolean,
-) => {
+): { blockedByScript: boolean } => {
   const scriptBlocked = isGoogleTranslateScriptBlocked();
   if (scriptBlocked) {
     console.warn(
@@ -37,13 +37,17 @@ const handleFailedLanguageApply = (
   // Background retries must not leave stale translation cookies active.
   if (!shouldReload) {
     clearGoogleTranslateLanguageCookie();
-    return;
+    return { blockedByScript: scriptBlocked };
   }
 
-  if (scriptBlocked) return;
+  if (scriptBlocked) {
+    clearGoogleTranslateLanguageCookie();
+    return { blockedByScript: true };
+  }
 
   setGoogleTranslateLanguageCookie(languageCode);
   window.location.reload();
+  return { blockedByScript: false };
 };
 
 const findLanguageByCode = (languageCode: string): Language | undefined => {
@@ -177,6 +181,7 @@ const TopBanner = () => {
   const handleLanguageSelect = async (language: Language) => {
     if (isApplyingLanguage) return;
 
+    const previousLanguage = selectedLanguage;
     setSelectedLanguage(language);
     setPersistedLanguageCode(language.code);
     setIsModalOpen(false);
@@ -201,7 +206,11 @@ const TopBanner = () => {
 
       // Fast deterministic fallback when combo is unavailable.
       if (!applied) {
-        handleFailedLanguageApply(language.code, true);
+        const failure = handleFailedLanguageApply(language.code, true);
+        if (failure.blockedByScript) {
+          setSelectedLanguage(previousLanguage);
+          setPersistedLanguageCode(previousLanguage.code);
+        }
       }
     } finally {
       setIsApplyingLanguage(false);
