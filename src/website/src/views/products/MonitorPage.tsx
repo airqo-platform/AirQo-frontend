@@ -39,7 +39,14 @@ const cardVariants = {
   },
 };
 
+const MONITORING_SOLUTIONS_DOC_URL =
+  'https://res.cloudinary.com/dbibjvyhm/image/upload/v1773140737/website/docs/AirQo_Air_Quality_Monitoring_Solution_rtiz2c.pdf';
+
 const MonitorPage = () => {
+  const openMonitoringSolutionsDoc = () => {
+    window.open(MONITORING_SOLUTIONS_DOC_URL, '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <div className="pb-16 flex flex-col w-full space-y-20">
       {/* Hero Section */}
@@ -237,6 +244,75 @@ const MonitorPage = () => {
               existing expertise to advance air quality management, and
               implicitly, air quality improvement in these African cities.
             </p>
+          </motion.div>
+        </div>
+      </motion.section>
+
+      {/* Monitoring Solutions Section */}
+      <motion.section
+        className="px-4"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={containerVariants}
+      >
+        <div
+          className={`${mainConfig.containerClass} rounded-2xl border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-green-50 p-8 lg:p-12 grid grid-cols-1 lg:grid-cols-2 gap-10 items-start`}
+        >
+          <motion.div className="space-y-5" variants={itemVariants}>
+            <p className="text-sm tracking-wide uppercase text-blue-700 font-semibold">
+              Procurement Support
+            </p>
+            <h2 className="text-[32px] lg:text-[40px] leading-tight font-semibold text-gray-900">
+              AirQo Air Quality Monitoring Solutions
+            </h2>
+            <p className="text-lg text-gray-700">
+              Access a clear overview of AirQo&apos;s monitoring offers for
+              organizations, institutions, and city stakeholders planning to
+              deploy air quality monitors.
+            </p>
+            <ul className="space-y-3 text-gray-700">
+              <li className="flex items-start gap-3">
+                <span className="mt-2 h-2 w-2 rounded-full bg-blue-700"></span>
+                <span>
+                  Options for fixed and mobile monitoring deployments.
+                </span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mt-2 h-2 w-2 rounded-full bg-blue-700"></span>
+                <span>
+                  Guidance on setup, operations, and long-term network
+                  performance.
+                </span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mt-2 h-2 w-2 rounded-full bg-blue-700"></span>
+                <span>
+                  Practical information to support planning and procurement
+                  decisions.
+                </span>
+              </li>
+            </ul>
+          </motion.div>
+
+          <motion.div
+            className="bg-white border border-gray-200 rounded-xl p-6 lg:p-8 shadow-sm space-y-5"
+            variants={cardVariants}
+          >
+            <h3 className="text-2xl font-semibold text-gray-900">
+              Download the Solutions Document
+            </h3>
+            <p className="text-gray-700">
+              Review AirQo&apos;s full monitoring solutions document to
+              understand available offerings and choose the option that fits
+              your implementation goals.
+            </p>
+            <CustomButton
+              onClick={openMonitoringSolutionsDoc}
+              className="w-full flex items-center justify-center bg-blue-700 hover:bg-blue-800 text-white font-semibold"
+            >
+              View Monitoring Solutions
+            </CustomButton>
           </motion.div>
         </div>
       </motion.section>

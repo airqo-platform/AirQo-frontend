@@ -22,6 +22,7 @@ interface CustomTooltipProps {
   onTooltipAction?: (data: AirQualityReading | ClusterData) => void;
   onTooltipHoverChange?: (isHovering: boolean) => void;
   showZoomHint?: boolean;
+  forceOpen?: boolean;
 }
 
 const formatValue = (value: number): string => {
@@ -272,19 +273,55 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
   onTooltipAction,
   onTooltipHoverChange,
   showZoomHint = false,
+  forceOpen = false,
 }) => {
   if (!data) {
     return <>{children}</>;
   }
 
+  const tooltipContent = getTooltipContent(
+    data,
+    selectedPollutant,
+    onTooltipAction,
+    showZoomHint
+  );
+
+  const target = (
+    <div className="inline-block relative z-[1] isolate pointer-events-auto">
+      {children}
+    </div>
+  );
+
+  if (forceOpen) {
+    return (
+      <div
+        className={cn('relative inline-block pointer-events-auto', className)}
+        onMouseEnter={() => onTooltipHoverChange?.(true)}
+        onMouseLeave={event => {
+          const nextTarget = event.relatedTarget;
+          if (
+            nextTarget instanceof Element &&
+            (nextTarget.closest('[data-testid="flowbite-tooltip"]') ||
+              nextTarget.closest('[data-testid="flowbite-tooltip-target"]'))
+          ) {
+            return;
+          }
+          onTooltipHoverChange?.(false);
+        }}
+      >
+        {target}
+        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 z-[10000000] pointer-events-auto">
+          <div className="rounded-lg border border-gray-200 bg-white text-gray-900 shadow-lg">
+            {tooltipContent}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Tooltip
-      content={getTooltipContent(
-        data,
-        selectedPollutant,
-        onTooltipAction,
-        showZoomHint
-      )}
+      content={tooltipContent}
       placement="top"
       style="light"
       onMouseEnter={() => onTooltipHoverChange?.(true)}
@@ -307,9 +344,7 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
       arrow={true}
       animation="duration-150"
     >
-      <div className="inline-block relative z-[1] isolate pointer-events-auto">
-        {children}
-      </div>
+      {target}
     </Tooltip>
   );
 };

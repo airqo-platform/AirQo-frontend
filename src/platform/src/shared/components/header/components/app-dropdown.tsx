@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
 } from '@/shared/components/ui/dropdown-menu';
+import { getEnvironmentAwareUrl } from '@/shared/utils/url';
 
 interface App {
   name: string;
@@ -34,24 +35,12 @@ interface AppDropdownProps {
 
 const AppDropdown: React.FC<AppDropdownProps> = ({ className = '' }) => {
   const [showQRCode, setShowQRCode] = useState(false);
-  const isProduction = process.env.NODE_ENV === 'production';
-
-  const getUrl = (baseUrl: string): string => {
-    if (isProduction) return baseUrl;
-    try {
-      const url = new URL(baseUrl);
-      url.hostname = `staging-${url.hostname}`;
-      return url.toString();
-    } catch {
-      return baseUrl;
-    }
-  };
 
   const apps: App[] = [
     {
       name: 'Calibrate',
       icon: AqCalibration,
-      href: getUrl('https://airqalibrate.airqo.net/'),
+      href: getEnvironmentAwareUrl('https://airqalibrate.airqo.net/'),
       color: 'bg-blue-500',
     },
     // {
@@ -69,7 +58,7 @@ const AppDropdown: React.FC<AppDropdownProps> = ({ className = '' }) => {
     {
       name: 'Vertex',
       icon: AqServer03,
-      href: getUrl('https://vertex.airqo.net/'),
+      href: getEnvironmentAwareUrl('https://vertex.airqo.net/'),
       color: 'bg-yellow-600',
     },
     {
