@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { usePostHog } from 'posthog-js/react';
-import { usePathname } from 'next/navigation';
 import { QuickAccessCard, EmptyAnalyticsState, SuggestedLocations } from './';
 import { ChartContainer } from '@/shared/components/charts';
 import { DynamicChart } from '@/shared/components/charts';
@@ -28,17 +27,19 @@ import { useActiveGroupCohorts, useCohort } from '@/shared/hooks';
 import { WarningBanner } from '@/shared/components/ui/banner';
 import { getEnvironmentAwareUrl } from '@/shared/utils/url';
 import { useUser } from '@/shared/hooks/useUser';
+import logger from '@/shared/lib/logger';
 
 interface AnalyticsDashboardProps {
   className?: string;
+  isOrganizationFlow: boolean;
 }
 
 export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   className = '',
+  isOrganizationFlow,
 }) => {
   const dispatch = useDispatch();
   const posthog = usePostHog();
-  const pathname = usePathname();
   const { activeGroup, isLoading: userContextLoading } = useUser();
 
   // Get filters from Redux
@@ -201,18 +202,24 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   };
   // Determine if cohort data is private (not visible)
   const isCohortPrivate = cohortData?.cohorts[0]?.visibility === false;
-  const isOrganizationFlow = pathname.startsWith('/org/');
 
   useEffect(() => {
     if (!sitesCountError) return;
 
-    console.warn(
+    logger.warn(
       '[AnalyticsDashboard] Failed to fetch available sites count for empty state',
       {
-        error: sitesCountError,
-        activeGroupId: activeGroup?.id,
+        activeGroupId: activeGroup?.id ?? 'unknown',
+        errorType: typeof sitesCountError,
       }
     );
+
+    if (process.env.NODE_ENV === 'development') {
+      logger.debug(
+        '[AnalyticsDashboard] Sites count fetch error details',
+        sitesCountError
+      );
+    }
   }, [sitesCountError, activeGroup?.id]);
 
   // Combined loading state - coordinated to show loading only once

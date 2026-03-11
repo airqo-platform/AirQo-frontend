@@ -27,13 +27,14 @@ const getFirstNonEmptyString = (...values: unknown[]): string | undefined => {
 };
 
 const getSiteDisplayName = (site?: SiteNameSource): string => {
-  const displayName = getFirstNonEmptyString(
-    site?.name,
-    site?.search_name,
-    site?.formatted_name,
-    site?.location_name
-  );
-  return normalizeText(displayName || '--');
+  const displayName =
+    getFirstNonEmptyString(
+      site?.name,
+      site?.search_name,
+      site?.formatted_name,
+      site?.location_name
+    ) || '--';
+  return normalizeText(removeUnderscores(displayName));
 };
 
 const getSiteSearchName = (site?: SiteNameSource): string => {
@@ -61,16 +62,7 @@ export const processSitesData = (
       (site.site_id as string | number) ||
       (site._id as string | number) ||
       index,
-    name: normalizeText(
-      removeUnderscores(
-        getFirstNonEmptyString(
-          site.name,
-          site.search_name,
-          site.formatted_name,
-          site.location_name
-        ) || '--'
-      )
-    ),
+    name: getSiteDisplayName(site as SiteNameSource),
     city: removeUnderscores((site.city as string) || '--'),
     country: removeUnderscores((site.country as string) || '--'),
     data_provider: removeUnderscores(
