@@ -22,6 +22,23 @@ const DEFAULT_LANGUAGE =
   languages.find((lang) => lang.code === 'en-GB') || languages[0];
 const DEFAULT_GOOGLE_LANGUAGE = 'en';
 
+const handleFailedLanguageApply = (
+  languageCode: string,
+  shouldReload: boolean,
+) => {
+  if (isGoogleTranslateScriptBlocked()) {
+    console.warn(
+      'Google Translate is blocked by browser settings or an extension.',
+    );
+    return;
+  }
+
+  if (!shouldReload) return;
+
+  setGoogleTranslateLanguageCookie(languageCode);
+  window.location.reload();
+};
+
 const findLanguageByCode = (languageCode: string): Language | undefined => {
   const rawCode = languageCode.trim().toLowerCase();
   if (!rawCode) return undefined;
@@ -100,12 +117,23 @@ const TopBanner = () => {
 
     const retryTimeouts = [120, 800, 1800].map((delay) =>
       window.setTimeout(() => {
-        void applyGoogleTranslateLanguage(requestedLanguage, 1800);
+        void (async () => {
+          const applied = await applyGoogleTranslateLanguage(
+            requestedLanguage,
+            1800,
+          );
+
+          if (!applied) {
+            handleFailedLanguageApply(requestedLanguage, false);
+          }
+        })();
       }, delay),
     );
 
     return () => {
-      retryTimeouts.forEach((timeoutId) => window.clearTimeout(timeoutId));
+      retryTimeouts.forEach((timeoutId) => {
+        window.clearTimeout(timeoutId);
+      });
     };
   }, [isApplyingLanguage, pathname, selectedLanguage.code]);
 
@@ -136,15 +164,7 @@ const TopBanner = () => {
 
       // Fast deterministic fallback when combo is unavailable.
       if (!applied) {
-        if (isGoogleTranslateScriptBlocked()) {
-          console.warn(
-            'Google Translate is blocked by browser settings or an extension.',
-          );
-          return;
-        }
-
-        setGoogleTranslateLanguageCookie(language.code);
-        window.location.reload();
+        handleFailedLanguageApply(language.code, true);
       }
     } finally {
       setIsApplyingLanguage(false);
