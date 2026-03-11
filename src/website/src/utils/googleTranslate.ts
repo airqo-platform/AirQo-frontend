@@ -2,6 +2,12 @@
 
 const GOOGTRANS_COOKIE_NAME = 'googtrans';
 const GOOGLE_TRANSLATE_COMBO_SELECTOR = '.goog-te-combo';
+const GOOGLE_TRANSLATE_CONTENT_ROOT_SELECTORS = [
+  'main',
+  '[role="main"]',
+  '#__next',
+  '[data-nextjs-scroll-focus-boundary]',
+];
 const DEFAULT_GOOGLE_LANGUAGE = 'en';
 const SOURCE_GOOGLE_LANGUAGE = 'en';
 const LANGUAGE_STORAGE_KEY = 'airqo_selected_language';
@@ -135,6 +141,10 @@ export const setGoogleTranslateLanguageCookie = (languageCode: string) => {
   setGoogTransCookie(cookieValue);
 };
 
+export const clearGoogleTranslateLanguageCookie = () => {
+  clearGoogTransCookie();
+};
+
 const toNormalizedGoogleLanguageCode = (
   languageCode: string | null | undefined,
 ): string | null => {
@@ -164,8 +174,10 @@ const restoreGoogleTranslateLanguageCookie = (languageCode: string | null) => {
 
 const waitForTranslateCombo = async (
   timeoutMs: number,
+  signal?: AbortSignal,
 ): Promise<HTMLSelectElement | null> => {
   if (typeof document === 'undefined') return null;
+  if (signal?.aborted) return null;
 
   const existing =
     cachedTranslateCombo &&
@@ -181,10 +193,23 @@ const waitForTranslateCombo = async (
 
   return new Promise((resolve) => {
     let observer: MutationObserver | null = null;
+    let didResolve = false;
+
+    const finalize = (combo: HTMLSelectElement | null) => {
+      if (didResolve) return;
+      didResolve = true;
+      observer?.disconnect();
+      signal?.removeEventListener('abort', handleAbort);
+      resolve(combo);
+    };
+
+    const handleAbort = () => {
+      window.clearTimeout(timeoutId);
+      finalize(null);
+    };
 
     const timeoutId = window.setTimeout(() => {
-      observer?.disconnect();
-      resolve(null);
+      finalize(null);
     }, timeoutMs);
 
     observer = new MutationObserver(() => {
@@ -195,8 +220,7 @@ const waitForTranslateCombo = async (
       if (combo) {
         cachedTranslateCombo = combo;
         window.clearTimeout(timeoutId);
-        observer?.disconnect();
-        resolve(combo);
+        finalize(combo);
       }
     });
 
@@ -204,6 +228,8 @@ const waitForTranslateCombo = async (
       childList: true,
       subtree: true,
     });
+
+    signal?.addEventListener('abort', handleAbort, { once: true });
   });
 };
 
@@ -216,52 +242,139 @@ const isDomTranslationActive = (): boolean => {
   );
 };
 
+const getGoogleTranslateContentRoot = (): HTMLElement => {
+  for (const selector of GOOGLE_TRANSLATE_CONTENT_ROOT_SELECTORS) {
+    const element = document.querySelector<HTMLElement>(selector);
+    if (element) return element;
+  }
+
+  return document.body;
+};
+
+const getContentSignature = (root: HTMLElement): string => {
+  const textSample = (root.textContent || '')
+    .replace(/\s+/g, ' ')
+    .slice(0, 300);
+  return `${root.childElementCount}:${textSample}`;
+};
+
+type WaitForDomTranslationOptions = {
+  signal?: AbortSignal;
+  requireFreshContentSignal?: boolean;
+};
+
 const waitForDomTranslationState = async (
   shouldBeActive: boolean,
   timeoutMs: number,
+  options: WaitForDomTranslationOptions = {},
 ): Promise<boolean> => {
   if (typeof document === 'undefined') return false;
+  if (options.signal?.aborted) return false;
+
+  const root = getGoogleTranslateContentRoot();
+  const requireFreshContentSignal =
+    shouldBeActive && !!options.requireFreshContentSignal;
+  const initialSignature = requireFreshContentSignal
+    ? getContentSignature(root)
+    : null;
+  let sawFreshContentMutation = false;
+
+  const hasExpectedTranslationState = () =>
+    shouldBeActive ? isDomTranslationActive() : !isDomTranslationActive();
+
+  const hasFreshContentSignal = () =>
+    !requireFreshContentSignal ||
+    sawFreshContentMutation ||
+    getContentSignature(root) !== initialSignature;
 
   const isExpectedState = () =>
-    shouldBeActive ? isDomTranslationActive() : !isDomTranslationActive();
+    hasExpectedTranslationState() && hasFreshContentSignal();
 
   if (isExpectedState()) return true;
 
   return new Promise((resolve) => {
     let observer: MutationObserver | null = null;
+    let didResolve = false;
+
+    const finalize = (result: boolean) => {
+      if (didResolve) return;
+      didResolve = true;
+      observer?.disconnect();
+      options.signal?.removeEventListener('abort', handleAbort);
+      resolve(result);
+    };
+
+    const handleAbort = () => {
+      window.clearTimeout(timeoutId);
+      finalize(false);
+    };
 
     const timeoutId = window.setTimeout(() => {
-      observer?.disconnect();
-      resolve(isExpectedState());
+      finalize(isExpectedState());
     }, timeoutMs);
 
-    observer = new MutationObserver(() => {
+    observer = new MutationObserver((mutations) => {
+      if (requireFreshContentSignal) {
+        sawFreshContentMutation = mutations.some(
+          (mutation) =>
+            mutation.type !== 'attributes' ||
+            mutation.target !== document.body ||
+            mutation.attributeName !== 'class',
+        );
+      }
+
       if (isExpectedState()) {
         window.clearTimeout(timeoutId);
-        observer?.disconnect();
-        resolve(true);
+        finalize(true);
       }
     });
 
-    observer.observe(document.body, {
-      attributes: true,
-      attributeFilter: ['class'],
-    });
+    if (root === document.body) {
+      observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class'],
+        childList: requireFreshContentSignal,
+        characterData: requireFreshContentSignal,
+        subtree: requireFreshContentSignal,
+      });
+    } else {
+      observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class'],
+      });
+
+      if (requireFreshContentSignal) {
+        observer.observe(root, {
+          attributes: true,
+          attributeFilter: ['class', 'lang'],
+          childList: true,
+          characterData: true,
+          subtree: true,
+        });
+      }
+    }
+
+    options.signal?.addEventListener('abort', handleAbort, { once: true });
   });
 };
 
 const ensureTranslateCombo = async (
   timeoutMs: number,
+  signal?: AbortSignal,
 ): Promise<HTMLSelectElement | null> => {
+  if (signal?.aborted) return null;
+
   const normalizedTimeout = Math.max(timeoutMs, MIN_COMBO_WAIT_MS);
 
-  let combo = await waitForTranslateCombo(normalizedTimeout);
+  let combo = await waitForTranslateCombo(normalizedTimeout, signal);
   if (combo) return combo;
+  if (signal?.aborted) return null;
 
   triggerGoogleTranslateInit();
 
   combo = await waitForTranslateCombo(
     Math.max(MIN_COMBO_WAIT_MS, Math.floor(normalizedTimeout / 2)),
+    signal,
   );
   return combo;
 };
@@ -289,8 +402,13 @@ const resolveLanguageForCombo = (
 export const applyGoogleTranslateLanguage = async (
   languageCode: string,
   timeoutMs: number = 1500,
+  options: {
+    signal?: AbortSignal;
+    requireFreshContentSignal?: boolean;
+  } = {},
 ): Promise<boolean> => {
   if (typeof window === 'undefined') return false;
+  if (options.signal?.aborted) return false;
 
   const currentTargetLanguage = getGoogleTranslateTargetLanguage();
   const normalizedCurrentTarget = toNormalizedGoogleLanguageCode(
@@ -298,16 +416,23 @@ export const applyGoogleTranslateLanguage = async (
   );
   const revertCookieToPreviousTarget = () =>
     restoreGoogleTranslateLanguageCookie(currentTargetLanguage);
+  const abortAndRevert = () => {
+    revertCookieToPreviousTarget();
+    return false;
+  };
 
   // Set cookie immediately so reload fallback applies target language deterministically.
+  if (options.signal?.aborted) return false;
   setGoogleTranslateLanguageCookie(languageCode);
+  if (options.signal?.aborted) return abortAndRevert();
 
-  const combo = await ensureTranslateCombo(timeoutMs);
+  const combo = await ensureTranslateCombo(timeoutMs, options.signal);
 
   if (!combo) {
     revertCookieToPreviousTarget();
     return false;
   }
+  if (options.signal?.aborted) return abortAndRevert();
 
   const resolvedCode = resolveLanguageForCombo(languageCode, combo);
   const normalizedResolvedCode = toNormalizedGoogleLanguageCode(resolvedCode);
@@ -318,6 +443,7 @@ export const applyGoogleTranslateLanguage = async (
   }
 
   setGoogleTranslateLanguageCookie(resolvedCode);
+  if (options.signal?.aborted) return abortAndRevert();
 
   const switchingBetweenNonDefaultLanguages =
     !!normalizedCurrentTarget &&
@@ -339,7 +465,12 @@ export const applyGoogleTranslateLanguage = async (
   const confirmed = await waitForDomTranslationState(
     !isDefaultGoogleLanguage(normalizedResolvedCode),
     Math.max(700, timeoutMs),
+    {
+      signal: options.signal,
+      requireFreshContentSignal: options.requireFreshContentSignal,
+    },
   );
+  if (options.signal?.aborted) return abortAndRevert();
   if (!confirmed) {
     revertCookieToPreviousTarget();
     return false;

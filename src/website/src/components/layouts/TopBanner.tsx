@@ -9,6 +9,7 @@ import LanguageModal from '@/components/dialogs/LanguageModal';
 import LanguageFlag from '@/components/LanguageFlag';
 import {
   applyGoogleTranslateLanguage,
+  clearGoogleTranslateLanguageCookie,
   getGoogleTranslateTargetLanguage,
   getPersistedLanguageCode,
   isGoogleTranslateScriptBlocked,
@@ -26,14 +27,20 @@ const handleFailedLanguageApply = (
   languageCode: string,
   shouldReload: boolean,
 ) => {
-  if (isGoogleTranslateScriptBlocked()) {
+  const scriptBlocked = isGoogleTranslateScriptBlocked();
+  if (scriptBlocked) {
     console.warn(
       'Google Translate is blocked by browser settings or an extension.',
     );
+  }
+
+  // Background retries must not leave stale translation cookies active.
+  if (!shouldReload) {
+    clearGoogleTranslateLanguageCookie();
     return;
   }
 
-  if (!shouldReload) return;
+  if (scriptBlocked) return;
 
   setGoogleTranslateLanguageCookie(languageCode);
   window.location.reload();
@@ -115,25 +122,55 @@ const TopBanner = () => {
 
     if (isDefaultLanguage) return;
 
-    const retryTimeouts = [120, 800, 1800].map((delay) =>
-      window.setTimeout(() => {
-        void (async () => {
-          const applied = await applyGoogleTranslateLanguage(
-            requestedLanguage,
-            1800,
-          );
+    const retryController = new AbortController();
+    const retryDelays = [120, 800, 1800];
 
-          if (!applied) {
-            handleFailedLanguageApply(requestedLanguage, false);
-          }
-        })();
-      }, delay),
-    );
+    const waitForDelay = async (delay: number, signal: AbortSignal) =>
+      new Promise<boolean>((resolve) => {
+        if (signal.aborted) {
+          resolve(false);
+          return;
+        }
+
+        const timeoutId = window.setTimeout(() => {
+          signal.removeEventListener('abort', handleAbort);
+          resolve(true);
+        }, delay);
+
+        const handleAbort = () => {
+          window.clearTimeout(timeoutId);
+          resolve(false);
+        };
+
+        signal.addEventListener('abort', handleAbort, { once: true });
+      });
+
+    void (async () => {
+      for (const delay of retryDelays) {
+        const shouldContinue = await waitForDelay(
+          delay,
+          retryController.signal,
+        );
+        if (!shouldContinue) return;
+
+        const applied = await applyGoogleTranslateLanguage(
+          requestedLanguage,
+          1800,
+          {
+            signal: retryController.signal,
+            requireFreshContentSignal: true,
+          },
+        );
+
+        if (retryController.signal.aborted) return;
+        if (applied) return;
+      }
+
+      handleFailedLanguageApply(requestedLanguage, false);
+    })();
 
     return () => {
-      retryTimeouts.forEach((timeoutId) => {
-        window.clearTimeout(timeoutId);
-      });
+      retryController.abort();
     };
   }, [isApplyingLanguage, pathname, selectedLanguage.code]);
 
