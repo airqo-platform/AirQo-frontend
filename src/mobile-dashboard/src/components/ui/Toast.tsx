@@ -39,8 +39,6 @@ export const Toast: React.FC<ToastProps> = ({
     }
   };
 
-  if (!isVisible) return null;
-
   return (
     <div className={`
       fixed top-4 right-4 z-50 max-w-sm w-full

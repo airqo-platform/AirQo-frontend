@@ -52,9 +52,9 @@ class SurveyAPI {
     return response.json();
   }
 
-  async updateSurvey(id: string, survey: Omit<Survey, 'id' | 'createdAt' | 'updatedAt'>, token?: string, method: 'PATCH' | 'PUT' = 'PUT', signal?: AbortSignal): Promise<Partial<Survey>> {
+  async updateSurvey(id: string, survey: Omit<Survey, 'id' | 'createdAt' | 'updatedAt'>, token?: string, signal?: AbortSignal): Promise<Partial<Survey>> {
     const response = await fetch(`/api/surveys/${id}`, {
-      method,
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         ...(token && { 'Authorization': token }),

@@ -1,4 +1,4 @@
-﻿# About Me (for IDE)
+# About Me (for IDE)
 
 
 I’m a mid-level product designer (3 years) new to coding (1 month).  

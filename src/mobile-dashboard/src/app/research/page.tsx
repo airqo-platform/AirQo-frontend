@@ -137,7 +137,10 @@ export default function ResearchDataPage() {
     return responses.filter(response => {
       const completedDate = new Date(response.createdAt);
       const fromDate = dateFrom ? new Date(dateFrom) : null;
-      const toDate = dateTo ? new Date(dateTo) : null;
+      let toDate = dateTo ? new Date(dateTo) : null;
+      if (toDate) {
+        toDate.setHours(23, 59, 59, 999);
+      }
 
       if (fromDate && completedDate < fromDate) return false;
       if (toDate && completedDate > toDate) return false;
@@ -327,6 +330,7 @@ export default function ResearchDataPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
   };
 
   if (authLoading) {

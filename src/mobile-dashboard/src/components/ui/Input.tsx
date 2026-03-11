@@ -11,7 +11,7 @@ interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, '
   multiline?: boolean;
 }
 
-const Input = React.forwardRef<HTMLInputElement, InputProps>(
+const Input = React.forwardRef<HTMLInputElement | HTMLTextAreaElement, InputProps>(
   ({
     className,
     type = 'text',
@@ -61,7 +61,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             <input
               type={type}
               className={inputClasses}
-              ref={ref}
+              ref={ref as React.Ref<HTMLInputElement>}
               {...props}
             />
           )}

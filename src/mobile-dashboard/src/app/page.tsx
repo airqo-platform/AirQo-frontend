@@ -94,8 +94,12 @@ export default function SurveyGenerator() {
 
   // Load hasCreatedAtLeastOne from localStorage on mount
   useEffect(() => {
-    const flag = typeof window !== 'undefined' && localStorage.getItem('airqo_sg_hasCreatedAtLeastOne') === '1';
-    setHasCreatedAtLeastOne(flag);
+    try {
+      const flag = typeof window !== 'undefined' && localStorage.getItem('airqo_sg_hasCreatedAtLeastOne') === '1';
+      setHasCreatedAtLeastOne(flag);
+    } catch {
+      setHasCreatedAtLeastOne(false);
+    }
   }, []);
 
   // Load surveys on component mount
@@ -365,7 +369,7 @@ export default function SurveyGenerator() {
     try {
       if (isEditMode) {
         console.debug('[SG] update payload:', JSON.stringify(payload, null, 2));
-        const updated = await surveyApi.updateSurvey(selectedSurveyId!, payload, token, 'PUT');
+        const updated = await surveyApi.updateSurvey(selectedSurveyId!, payload, token);
         if (updated.id) {
           mergeListWithServer(updated as Survey);
         }

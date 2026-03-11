@@ -26,21 +26,19 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.log('Making request to AirQo API:', `${API_BASE_URL}/api/v2/users/surveys`);
     const response = await fetch(`${API_BASE_URL}/api/v2/users/surveys`, {
       headers: getHeaders(authToken),
     });
 
-    console.log('AirQo API response status:', response.status);
-    console.log('AirQo API response headers:', Object.fromEntries(response.headers.entries()));
+    if (process.env.NODE_ENV !== 'production') {
+      console.debug('AirQo GET /surveys status:', response.status);
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.log('AirQo API error response:', errorText);
-      
+
       // If 404, the user might not have any surveys yet, return empty array
       if (response.status === 404) {
-        console.log('No surveys found for user, returning empty array');
         return NextResponse.json([]);
       }
       
@@ -54,8 +52,7 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await response.json();
-    console.log('AirQo API response data:', data);
-    
+
     // AirQO API returns { success: true, surveys: [...] }
     if (data.success && data.surveys) {
       // Transform surveys to use 'id' instead of '_id' for consistency
@@ -72,14 +69,13 @@ export async function GET(request: NextRequest) {
       // User has no surveys yet
       return NextResponse.json([]);
     } else {
-      console.log('Unexpected AirQo API response format:', data);
       return NextResponse.json(
         { error: 'Invalid response format from AirQO API' },
         { status: 500 }
       );
     }
   } catch (error) {
-    console.error('Error fetching surveys:', error);
+    console.error('Error fetching surveys:', error instanceof Error ? error.message : 'Unknown error');
     return NextResponse.json(
       { error: 'Failed to fetch surveys' },
       { status: 500 }
@@ -100,7 +96,6 @@ export async function POST(request: NextRequest) {
     }
 
     const survey = await request.json() as Record<string, unknown>;
-    console.log('Received survey data:', JSON.stringify(survey, null, 2));
 
     const mapQuestionType = (type: unknown): string => {
       if (typeof type !== 'string') return 'text';
@@ -168,21 +163,18 @@ export async function POST(request: NextRequest) {
       expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() // 1 year from now
     };
 
-    console.log('Transformed survey data for AirQo API:', JSON.stringify(transformedSurvey, null, 2));
-
-    console.log('Making POST request to AirQo API:', `${API_BASE_URL}/api/v2/users/surveys`);
     const response = await fetch(`${API_BASE_URL}/api/v2/users/surveys`, {
       method: 'POST',
       headers: getHeaders(authToken),
       body: JSON.stringify(transformedSurvey),
     });
 
-    console.log('AirQo API POST response status:', response.status);
-    console.log('AirQo API POST response headers:', Object.fromEntries(response.headers.entries()));
+    if (process.env.NODE_ENV !== 'production') {
+      console.debug('AirQo POST /surveys status:', response.status);
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.log('AirQo API POST error response:', errorText);
       return NextResponse.json(
         { error: `Failed to create survey: ${response.statusText}`, details: errorText },
         { status: response.status }
@@ -190,8 +182,7 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await response.json();
-    console.log('AirQo API POST response data:', JSON.stringify(data, null, 2));
-    
+
     // AirQO API returns { success: true, created_survey: {...} }
     if (data.success && data.created_survey) {
       const createdSurvey = {
@@ -204,14 +195,13 @@ export async function POST(request: NextRequest) {
       };
       return NextResponse.json(createdSurvey);
     } else {
-      console.log('Unexpected AirQo API POST response format:', data);
       return NextResponse.json(
         { error: 'Invalid response format from AirQO API' },
         { status: 500 }
       );
     }
   } catch (error) {
-    console.error('Error creating survey:', error);
+    console.error('Error creating survey:', error instanceof Error ? error.message : 'Unknown error');
     return NextResponse.json(
       { error: 'Failed to create survey' },
       { status: 500 }
