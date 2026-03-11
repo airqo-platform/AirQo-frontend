@@ -164,8 +164,6 @@ export default function SurveyGenerator() {
               ...s,
               // prefer explicit questionsCount if list items are summaries
               questionsCount: count,
-              // if list items carry full questions, keep them in sync too:
-              questions: Array.isArray(s.questions) ? new Array(count).fill(null) : s.questions,
               // Also update title and description if they've changed
               title: currentSurvey.title || s.title,
               description: currentSurvey.description || s.description,
