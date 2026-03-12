@@ -278,15 +278,13 @@ const MonitorPage = () => {
             <ul className="space-y-3 text-gray-700">
               <li className="flex items-start gap-3">
                 <span className="mt-2 h-2 w-2 rounded-full bg-blue-700"></span>
-                <span>
-                  Flexible plans ranging from 4 monitors to 40+.
-                </span>
+                <span>Flexible plans ranging from 4 monitors to 40+.</span>
               </li>
               <li className="flex items-start gap-3">
                 <span className="mt-2 h-2 w-2 rounded-full bg-blue-700"></span>
                 <span>
-                  Complete monitoring solutions including hardware, data
-                  access, and technical support.
+                  Complete monitoring solutions including hardware, data access,
+                  and technical support.
                 </span>
               </li>
               <li className="flex items-start gap-3">
