@@ -29,7 +29,10 @@ const FORUM_ROUTE_CONFIG = [
 ] as const;
 
 const FORUM_TITLES_ENDPOINT = '/forum-event-titles/';
-const MAX_FORUM_API_PAGES = 20;
+const EVENTS_ENDPOINT = '/events/';
+const CAREERS_ENDPOINT = '/careers/';
+const PARTNERS_ENDPOINT = '/partners/';
+const MAX_PAGINATED_API_PAGES = 20;
 const DEFAULT_FORUM_FETCH_TIMEOUT_MS = 8000;
 
 interface ForumEventTitle {
@@ -38,11 +41,24 @@ interface ForumEventTitle {
   modified?: string;
 }
 
-interface ForumEventTitlesResponse {
+interface PaginatedApiResponse<T> {
   next?: string | null;
   previous?: string | null;
-  results?: ForumEventTitle[];
+  results?: T[];
 }
+
+interface ContentRouteItem {
+  id?: string | number;
+  public_identifier?: string;
+  created_at?: string;
+  updated_at?: string;
+  created?: string;
+  modified?: string;
+}
+
+type SitemapChangeFrequency = NonNullable<
+  MetadataRoute.Sitemap[number]['changeFrequency']
+>;
 
 const normalizeForumApiBaseUrl = (rawApiUrl: string): string => {
   const trimmed = rawApiUrl.replace(/\/$/, '');
@@ -69,6 +85,17 @@ const getForumAuthHeaders = (token?: string): HeadersInit => {
   return {
     Accept: 'application/json',
     Authorization: `Bearer ${token}`,
+  };
+};
+
+const getSitemapApiConfig = () => {
+  const rawApiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL;
+  if (!rawApiUrl) return null;
+
+  return {
+    apiBaseUrl: normalizeForumApiBaseUrl(rawApiUrl),
+    fetchTimeoutMs: getForumFetchTimeoutMs(),
+    authHeaders: getForumAuthHeaders(process.env.API_TOKEN),
   };
 };
 
@@ -136,26 +163,72 @@ const parseValidDate = (value?: string): Date | null => {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 };
 
-const fetchForumEventTitles = async (): Promise<ForumEventTitle[]> => {
-  const rawApiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL;
+const isForumEventTitle = (event: unknown): event is ForumEventTitle => {
+  if (!event || typeof event !== 'object') return false;
+  const title = (event as ForumEventTitle).unique_title;
+  return typeof title === 'string' && title.trim().length > 0;
+};
 
-  if (!rawApiUrl) {
-    return [];
+const isContentRouteItem = (item: unknown): item is ContentRouteItem => {
+  if (!item || typeof item !== 'object') return false;
+  const contentItem = item as ContentRouteItem;
+  const hasPublicIdentifier =
+    typeof contentItem.public_identifier === 'string' &&
+    contentItem.public_identifier.trim().length > 0;
+  const hasId =
+    typeof contentItem.id === 'string' || typeof contentItem.id === 'number';
+  return hasPublicIdentifier || hasId;
+};
+
+const getContentSlug = (item: ContentRouteItem): string | null => {
+  if (
+    typeof item.public_identifier === 'string' &&
+    item.public_identifier.trim().length > 0
+  ) {
+    return item.public_identifier.trim();
   }
 
-  const apiBaseUrl = normalizeForumApiBaseUrl(rawApiUrl);
-  const apiToken = process.env.API_TOKEN;
-  const fetchTimeoutMs = getForumFetchTimeoutMs();
-  const authHeaders = getForumAuthHeaders(apiToken);
+  if (typeof item.id === 'string' && item.id.trim().length > 0) {
+    return item.id.trim();
+  }
 
-  let nextUrl: string | null =
-    `${apiBaseUrl}${FORUM_TITLES_ENDPOINT}?page_size=100`;
+  if (typeof item.id === 'number') {
+    return String(item.id);
+  }
 
-  const allEvents: ForumEventTitle[] = [];
+  return null;
+};
+
+const getContentLastModified = (
+  item: ContentRouteItem,
+  fallbackDate: Date,
+): Date => {
+  return (
+    parseValidDate(item.updated_at) ??
+    parseValidDate(item.modified) ??
+    parseValidDate(item.created_at) ??
+    parseValidDate(item.created) ??
+    fallbackDate
+  );
+};
+
+const fetchPaginatedItems = async <T>({
+  endpoint,
+  isValidItem,
+}: {
+  endpoint: string;
+  isValidItem: (item: unknown) => item is T;
+}): Promise<T[]> => {
+  const apiConfig = getSitemapApiConfig();
+  if (!apiConfig) return [];
+
+  const { apiBaseUrl, fetchTimeoutMs, authHeaders } = apiConfig;
+  let nextUrl: string | null = `${apiBaseUrl}${endpoint}?page_size=100`;
+  const allItems: T[] = [];
 
   for (
     let pageCount = 0;
-    nextUrl && pageCount < MAX_FORUM_API_PAGES;
+    nextUrl && pageCount < MAX_PAGINATED_API_PAGES;
     pageCount += 1
   ) {
     const controller = new AbortController();
@@ -173,7 +246,12 @@ const fetchForumEventTitles = async (): Promise<ForumEventTitle[]> => {
       });
 
       if (!response.ok) {
-        console.error('Forum sitemap fetch failed:', {
+        // Some deployments may not expose all optional sitemap endpoints.
+        // Treat a first-page 404 as "no entries" instead of a hard failure.
+        if (response.status === 404 && pageCount === 0) {
+          break;
+        }
+        console.error('Sitemap fetch failed:', {
           url: nextUrl,
           status: response.status,
           statusText: response.statusText,
@@ -181,8 +259,8 @@ const fetchForumEventTitles = async (): Promise<ForumEventTitle[]> => {
         break;
       }
 
-      const data: ForumEventTitlesResponse = await response.json();
-      const sanitizedData: ForumEventTitlesResponse = {
+      const data: PaginatedApiResponse<T> = await response.json();
+      const sanitizedData: PaginatedApiResponse<T> = {
         ...data,
         next:
           typeof data.next === 'string' ? removeTokenFromUrl(data.next) : null,
@@ -191,13 +269,9 @@ const fetchForumEventTitles = async (): Promise<ForumEventTitle[]> => {
             ? removeTokenFromUrl(data.previous)
             : null,
       };
-      const pageResults = (data.results || []).filter(
-        (event): event is ForumEventTitle =>
-          typeof event?.unique_title === 'string' &&
-          event.unique_title.trim().length > 0,
-      );
+      const pageResults = (data.results || []).filter(isValidItem);
 
-      allEvents.push(...pageResults);
+      allItems.push(...pageResults);
 
       if (!sanitizedData.next) {
         nextUrl = null;
@@ -206,7 +280,7 @@ const fetchForumEventTitles = async (): Promise<ForumEventTitle[]> => {
       }
     } catch (error) {
       const typedError = error as Error;
-      console.error('Forum sitemap pagination request failed:', {
+      console.error('Sitemap pagination request failed:', {
         url: nextUrl,
         timeout: didTimeout,
         message: typedError.message,
@@ -218,6 +292,15 @@ const fetchForumEventTitles = async (): Promise<ForumEventTitle[]> => {
     }
   }
 
+  return allItems;
+};
+
+const fetchForumEventTitles = async (): Promise<ForumEventTitle[]> => {
+  const allEvents = await fetchPaginatedItems<ForumEventTitle>({
+    endpoint: FORUM_TITLES_ENDPOINT,
+    isValidItem: isForumEventTitle,
+  });
+
   // Deduplicate by unique_title in case the API returns repeated rows across pages
   const deduplicated = new Map<string, ForumEventTitle>();
   allEvents.forEach((event) => {
@@ -227,6 +310,53 @@ const fetchForumEventTitles = async (): Promise<ForumEventTitle[]> => {
   return Array.from(deduplicated.values());
 };
 
+const fetchContentRouteItems = async (
+  endpoint: string,
+): Promise<ContentRouteItem[]> => {
+  const allItems = await fetchPaginatedItems<ContentRouteItem>({
+    endpoint,
+    isValidItem: isContentRouteItem,
+  });
+
+  const deduplicated = new Map<string, ContentRouteItem>();
+  allItems.forEach((item) => {
+    const slug = getContentSlug(item);
+    if (slug) deduplicated.set(slug, item);
+  });
+
+  return Array.from(deduplicated.values());
+};
+
+const buildContentDetailRoutes = ({
+  items,
+  basePath,
+  baseUrl,
+  currentDate,
+  changeFrequency,
+  priority,
+}: {
+  items: ContentRouteItem[];
+  basePath: string;
+  baseUrl: string;
+  currentDate: Date;
+  changeFrequency: SitemapChangeFrequency;
+  priority: number;
+}): MetadataRoute.Sitemap => {
+  return items.flatMap((item) => {
+    const slug = getContentSlug(item);
+    if (!slug) return [];
+
+    return [
+      {
+        url: `${baseUrl}${basePath}/${encodeURIComponent(slug)}`,
+        lastModified: getContentLastModified(item, currentDate),
+        changeFrequency,
+        priority,
+      },
+    ];
+  });
+};
+
 export const revalidate = 86400; // refresh daily
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -234,164 +364,98 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = rawBase.replace(/\/$/, '');
   const currentDate = new Date();
 
-  // Define all static routes with their priorities and change frequencies
-  const staticRoutes: MetadataRoute.Sitemap = [
+  const staticRouteConfig: Array<{
+    path: string;
+    changeFrequency: SitemapChangeFrequency;
+    priority: number;
+  }> = [
+    { path: '/', changeFrequency: 'daily', priority: 1 },
     {
-      url: `${baseUrl}/`,
-      lastModified: currentDate,
-      changeFrequency: 'daily',
-      priority: 1,
-    },
-    // Interactive tools and data visualization (HIGH PRIORITY for engagement)
-    {
-      url: `${baseUrl}/billboard/interactive`,
-      lastModified: currentDate,
+      path: '/billboard/interactive',
       changeFrequency: 'hourly',
       priority: 0.95,
     },
+    { path: '/about-us', changeFrequency: 'monthly', priority: 0.8 },
+    { path: '/products/monitor', changeFrequency: 'monthly', priority: 0.9 },
+    { path: '/products/analytics', changeFrequency: 'monthly', priority: 0.9 },
+    { path: '/products/api', changeFrequency: 'monthly', priority: 0.9 },
+    { path: '/products/mobile-app', changeFrequency: 'monthly', priority: 0.9 },
+    { path: '/products/calibrate', changeFrequency: 'monthly', priority: 0.8 },
+    { path: '/packages', changeFrequency: 'weekly', priority: 0.8 },
+    { path: '/packages/icons', changeFrequency: 'weekly', priority: 0.7 },
     {
-      url: `${baseUrl}/about-us`,
-      lastModified: currentDate,
+      path: '/packages/icons/docs',
       changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    // Products
-    {
-      url: `${baseUrl}/products/monitor`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly',
-      priority: 0.9,
+      priority: 0.65,
     },
     {
-      url: `${baseUrl}/products/analytics`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/products/api`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/products/mobile-app`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/products/calibrate`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    // Packages (Developer Resources)
-    {
-      url: `${baseUrl}/packages`,
-      lastModified: currentDate,
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/packages/icons`,
-      lastModified: currentDate,
-      changeFrequency: 'weekly',
-      priority: 0.7,
-    },
-    // Solutions
-    {
-      url: `${baseUrl}/solutions/african-cities`,
-      lastModified: currentDate,
+      path: '/solutions/african-cities',
       changeFrequency: 'monthly',
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/solutions/communities`,
-      lastModified: currentDate,
+      path: '/solutions/communities',
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    { path: '/solutions/research', changeFrequency: 'monthly', priority: 0.8 },
+    {
+      path: '/solutions/network-coverage',
       changeFrequency: 'monthly',
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/solutions/research`,
-      lastModified: currentDate,
+      path: '/solutions/kampala-study',
       changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    // Africa Clean Air Forum landing page
-    {
-      url: `${baseUrl}/africa-clean-air-forum`,
-      lastModified: currentDate,
-      changeFrequency: 'weekly',
-      priority: 0.9,
-    },
-    // About pages
-    {
-      url: `${baseUrl}/careers`,
-      lastModified: currentDate,
-      changeFrequency: 'weekly',
       priority: 0.7,
     },
     {
-      url: `${baseUrl}/events`,
-      lastModified: currentDate,
+      path: '/africa-clean-air-forum',
       changeFrequency: 'weekly',
-      priority: 0.7,
+      priority: 0.9,
     },
+    { path: '/careers', changeFrequency: 'weekly', priority: 0.7 },
+    { path: '/events', changeFrequency: 'weekly', priority: 0.7 },
+    { path: '/press', changeFrequency: 'monthly', priority: 0.6 },
+    { path: '/resources', changeFrequency: 'weekly', priority: 0.6 },
+    { path: '/faqs', changeFrequency: 'weekly', priority: 0.75 },
+    { path: '/contact', changeFrequency: 'yearly', priority: 0.8 },
+    { path: '/explore-data', changeFrequency: 'hourly', priority: 0.95 },
     {
-      url: `${baseUrl}/press`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly',
-      priority: 0.6,
-    },
-    {
-      url: `${baseUrl}/resources`,
-      lastModified: currentDate,
+      path: '/explore-data/mobile-app',
       changeFrequency: 'weekly',
-      priority: 0.6,
+      priority: 0.85,
     },
-    // Contact
     {
-      url: `${baseUrl}/contact`,
-      lastModified: currentDate,
-      changeFrequency: 'yearly',
-      priority: 0.8,
-    },
-    // Explore Data
-    {
-      url: `${baseUrl}/explore-data`,
-      lastModified: currentDate,
-      changeFrequency: 'hourly',
-      priority: 0.95,
-    },
-    // Legal
-    {
-      url: `${baseUrl}/legal/terms-of-service`,
-      lastModified: currentDate,
+      path: '/legal/terms-of-service',
       changeFrequency: 'yearly',
       priority: 0.3,
     },
+    { path: '/legal/privacy-policy', changeFrequency: 'yearly', priority: 0.3 },
+    { path: '/legal/airqo-data', changeFrequency: 'yearly', priority: 0.3 },
     {
-      url: `${baseUrl}/legal/privacy-policy`,
-      lastModified: currentDate,
-      changeFrequency: 'yearly',
-      priority: 0.3,
-    },
-    {
-      url: `${baseUrl}/legal/airqo-data`,
-      lastModified: currentDate,
-      changeFrequency: 'yearly',
-      priority: 0.3,
-    },
-    {
-      url: `${baseUrl}/legal/payment-refund-policy`,
-      lastModified: currentDate,
+      path: '/legal/payment-refund-policy',
       changeFrequency: 'yearly',
       priority: 0.2,
     },
   ];
 
-  const forumEvents = await fetchForumEventTitles();
+  const staticRoutes: MetadataRoute.Sitemap = staticRouteConfig.map(
+    (route) => ({
+      url: `${baseUrl}${route.path}`,
+      lastModified: currentDate,
+      changeFrequency: route.changeFrequency,
+      priority: route.priority,
+    }),
+  );
+
+  const [forumEvents, eventItems, careerItems, partnerItems] =
+    await Promise.all([
+      fetchForumEventTitles(),
+      fetchContentRouteItems(EVENTS_ENDPOINT),
+      fetchContentRouteItems(CAREERS_ENDPOINT),
+      fetchContentRouteItems(PARTNERS_ENDPOINT),
+    ]);
 
   const forumEventRoutes: MetadataRoute.Sitemap = forumEvents.flatMap(
     (event) => {
@@ -410,5 +474,38 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   );
 
-  return [...staticRoutes, ...forumEventRoutes];
+  const eventDetailRoutes = buildContentDetailRoutes({
+    items: eventItems,
+    basePath: '/events',
+    baseUrl,
+    currentDate,
+    changeFrequency: 'weekly',
+    priority: 0.65,
+  });
+
+  const careerDetailRoutes = buildContentDetailRoutes({
+    items: careerItems,
+    basePath: '/careers',
+    baseUrl,
+    currentDate,
+    changeFrequency: 'weekly',
+    priority: 0.65,
+  });
+
+  const partnerDetailRoutes = buildContentDetailRoutes({
+    items: partnerItems,
+    basePath: '/partners',
+    baseUrl,
+    currentDate,
+    changeFrequency: 'monthly',
+    priority: 0.6,
+  });
+
+  return [
+    ...staticRoutes,
+    ...forumEventRoutes,
+    ...eventDetailRoutes,
+    ...careerDetailRoutes,
+    ...partnerDetailRoutes,
+  ];
 }

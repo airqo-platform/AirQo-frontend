@@ -261,35 +261,37 @@ const MonitorPage = () => {
         >
           <motion.div className="space-y-5" variants={itemVariants}>
             <p className="text-sm tracking-wide uppercase text-blue-700 font-semibold">
-              Procurement Support
+              AirQo Monitoring Solutions
             </p>
             <h2 className="text-[32px] lg:text-[40px] leading-tight font-semibold text-gray-900">
-              AirQo Air Quality Monitoring Solutions
+              Deploy air quality monitoring in your City
             </h2>
             <p className="text-lg text-gray-700">
-              Access a clear overview of AirQo&apos;s monitoring offers for
-              organizations, institutions, and city stakeholders planning to
-              deploy air quality monitors.
+              AirQo provides scalable air quality monitoring solutions designed
+              for cities, institutions, and communities seeking reliable air
+              pollution data.
+            </p>
+            <p className="text-lg text-gray-700">
+              From neighbourhood pilots to city-wide monitoring networks, our
+              plans are built to support partners at every stage of deployment.
             </p>
             <ul className="space-y-3 text-gray-700">
               <li className="flex items-start gap-3">
                 <span className="mt-2 h-2 w-2 rounded-full bg-blue-700"></span>
+                <span>Flexible plans ranging from 4 monitors to 40+.</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mt-2 h-2 w-2 rounded-full bg-blue-700"></span>
                 <span>
-                  Options for fixed and mobile monitoring deployments.
+                  Complete monitoring solutions including hardware, data access,
+                  and technical support.
                 </span>
               </li>
               <li className="flex items-start gap-3">
                 <span className="mt-2 h-2 w-2 rounded-full bg-blue-700"></span>
                 <span>
-                  Guidance on setup, operations, and long-term network
-                  performance.
-                </span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="mt-2 h-2 w-2 rounded-full bg-blue-700"></span>
-                <span>
-                  Practical information to support planning and procurement
-                  decisions.
+                  Designed for African cities and aligned with international
+                  monitoring standards.
                 </span>
               </li>
             </ul>
@@ -300,18 +302,17 @@ const MonitorPage = () => {
             variants={cardVariants}
           >
             <h3 className="text-2xl font-semibold text-gray-900">
-              Download the Solutions Document
+              Ready to find the right plan?
             </h3>
             <p className="text-gray-700">
-              Review AirQo&apos;s full monitoring solutions document to
-              understand available offerings and choose the option that fits
-              your implementation goals.
+              Explore our monitoring plans, compare what&apos;s included, and
+              choose the option that fits your scale and implementation goals.
             </p>
             <CustomButton
               onClick={openMonitoringSolutionsDoc}
               className="w-full flex items-center justify-center bg-blue-700 hover:bg-blue-800 text-white font-semibold"
             >
-              View Monitoring Solutions
+              Explore Monitoring Plans
             </CustomButton>
           </motion.div>
         </div>
