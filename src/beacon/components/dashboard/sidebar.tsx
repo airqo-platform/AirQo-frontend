@@ -56,13 +56,13 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar }: SidebarProps) 
               href="/dashboard/analytics"
               className={`flex items-center rounded-md hover:bg-gray-100 transition-colors group relative ${sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
                 }`}
-              title={!sidebarOpen ? "AirQloud Uptime" : ""}
+              title={!sidebarOpen ? "Performance Analysis" : ""}
             >
               <AqAirQlouds size={25} color="#374151" />
-              {sidebarOpen && <span className="ml-3 text-sm">AirQloud Uptime</span>}
+              {sidebarOpen && <span className="ml-3 text-sm">Performance Analysis</span>}
               {!sidebarOpen && (
                 <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
-                  AirQloud Uptime
+                  Performance Analysis
                 </span>
               )}
             </Link>

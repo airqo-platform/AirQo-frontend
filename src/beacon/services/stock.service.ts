@@ -28,8 +28,19 @@ class StockService {
   /**
    * Get the appropriate endpoint based on environment
    */
-  private getEndpoint(path: string): string {
-    return config.isLocalhost ? path : `${this.apiPrefix}/beacon${path}`;
+  /**
+   * Get the appropriate endpoint based on environment
+   * @param resource - The resource path (e.g., '/items-stock')
+   */
+  private getEndpoint(resource: string): string {
+    const cleanPath = resource.startsWith('/') ? resource : `/${resource}`;
+
+    if (config.isLocalhost) {
+      return `${cleanPath}`;
+    }
+
+    // For production/staging, prefix with configured API prefix + service name
+    return `${this.apiPrefix}/beacon${cleanPath}`;
   }
 
   /**

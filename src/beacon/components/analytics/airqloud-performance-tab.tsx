@@ -37,14 +37,26 @@ import {
 interface AirQloudPerformanceTabProps {
   airqloudId: string
   airqloudName: string
+  initialData?: {
+    devices: Array<{
+      _id?: string
+      name: string
+      long_name: string
+      uptime?: number | null
+      data_completeness?: number | null
+      sensor_error_margin?: number | null
+      data?: any[]
+    }>
+  }
 }
 
 interface PerformanceData {
   id: string
   name: string
-  freq: number[]
-  error_margin: (number | null)[]
-  timestamp: string[]
+  uptime: number
+  data_completeness: number
+  sensor_error_margin: number
+  backendData: any[]
 }
 
 interface DeviceSummary {
@@ -55,10 +67,10 @@ interface DeviceSummary {
   avgUptime: number
 }
 
-export default function AirQloudPerformanceTab({ airqloudId, airqloudName }: Readonly<AirQloudPerformanceTabProps>) {
+export default function AirQloudPerformanceTab({ airqloudId, airqloudName, initialData }: Readonly<AirQloudPerformanceTabProps>) {
   const { toast } = useToast()
   const [performanceData, setPerformanceData] = useState<PerformanceData[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(!initialData)
   const [error, setError] = useState<string | null>(null)
 
   // Default date range getter: last 14 days ending yesterday
@@ -116,20 +128,22 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName }: Rea
         endDate.setHours(23, 59, 59, 999)
       }
 
-      // Calculate days for the airqloud API
-      const days = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
-
       // Fetch airqloud details with device performance
-      const response = await airQloudService.getAirQloudById(airqloudId, days)
+      const response = await airQloudService.getAirQloudById(
+        airqloudId,
+        startDate.toISOString(),
+        endDate.toISOString()
+      )
 
-      if (Array.isArray(response?.device_performance) && response.device_performance.length > 0) {
+      if (response && Array.isArray(response.devices) && response.devices.length > 0) {
         // Transform the data to match PerformanceData interface
-        const transformedData: PerformanceData[] = response.device_performance.map((device) => ({
-          id: device.device_id,
-          name: (device as any).device_name || device.device_id,
-          freq: device.performance.freq,
-          error_margin: device.performance.error_margin,
-          timestamp: device.performance.timestamp,
+        const transformedData: PerformanceData[] = response.devices.map((device) => ({
+          id: device._id || device.name,
+          name: device.long_name || device.name,
+          uptime: device.uptime || 0,
+          data_completeness: device.data_completeness || 0,
+          sensor_error_margin: device.sensor_error_margin || 0,
+          backendData: device.data || [],
         }))
 
         setPerformanceData(transformedData)
@@ -145,7 +159,7 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName }: Rea
       setError(err.message || "Failed to load performance data")
       toast({
         title: "Error",
-        description: "Failed to load AirQloud (Cohort) performance data",
+        description: "Failed to load Cohort performance data",
         variant: "destructive",
       })
     } finally {
@@ -154,8 +168,29 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName }: Rea
   }
 
   useEffect(() => {
+    // If initialData is provided from the overview tab, use it instead of fetching
+    if (initialData) {
+      const devices = initialData.devices || []
+      if (devices.length > 0) {
+        const transformedData: PerformanceData[] = devices.map((device) => ({
+          id: device._id || device.name,
+          name: device.long_name || device.name,
+          uptime: device.uptime || 0,
+          data_completeness: device.data_completeness || 0,
+          sensor_error_margin: device.sensor_error_margin || 0,
+          backendData: device.data || [],
+        }))
+        setPerformanceData(transformedData)
+      } else {
+        setPerformanceData([])
+      }
+      setLoading(false)
+      return
+    }
+
+    // Only fetch if no initialData was provided
     fetchPerformanceData()
-  }, [airqloudId])
+  }, [airqloudId, initialData])
 
   const handleDateRangeChange = (newDateRange: { from: Date | undefined; to: Date | undefined }) => {
     setDateRange(newDateRange)
@@ -196,12 +231,12 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName }: Rea
     return performanceData.map((device) => ({
       deviceId: device.id,
       deviceName: device.name,
-      chartData: device.timestamp.map((time, index) => ({
-        timestamp: time,
-        formattedTime: format(new Date(time), "MMM dd HH:mm"),
-        freq: device.freq[index] || 0,
-        error_margin: device.error_margin[index],
-      })).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()),
+      chartData: device.backendData.map((d: any) => ({
+        timestamp: d.datetime,
+        formattedTime: format(new Date(d.datetime), "MMM dd HH:mm"),
+        freq: 1,
+        error_margin: (d.s1_pm2_5 != null && d.s2_pm2_5 != null) ? Math.abs(d.s1_pm2_5 - d.s2_pm2_5) : null,
+      })).sort((a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()),
     }))
   }, [performanceData])
 
@@ -210,30 +245,26 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName }: Rea
     return performanceData.map((device) => {
       const dailyData: Record<string, { date: string; hoursWithData: number; totalHours: number }> = {}
 
-      for (let index = 0; index < device.timestamp.length; index++) {
-        const time = device.timestamp[index]
-        const date = format(new Date(time), "yyyy-MM-dd")
+      device.backendData.forEach((d: any) => {
+        const dateKey = format(new Date(d.datetime), "yyyy-MM-dd")
 
-        if (!dailyData[date]) {
-          dailyData[date] = {
-            date: format(new Date(time), "MMM dd, yyyy"),
+        if (!dailyData[dateKey]) {
+          dailyData[dateKey] = {
+            date: format(new Date(d.datetime), "MMM dd, yyyy"),
             hoursWithData: 0,
-            totalHours: 24,
+            totalHours: 24, // Assuming hourly data
           }
         }
 
-        // Count hour if freq is not 0 or error_margin is not null
-        if (device.freq[index] > 0 || device.error_margin[index] !== null) {
-          dailyData[date].hoursWithData++
-        }
-      }
+        dailyData[dateKey].hoursWithData++
+      })
 
       return {
         deviceId: device.id,
         deviceName: device.name,
         dailyUptimeData: Object.keys(dailyData).sort().map(key => ({
           date: dailyData[key].date,
-          uptimePercentage: ((dailyData[key].hoursWithData / dailyData[key].totalHours) * 100).toFixed(1),
+          uptimePercentage: Math.min(100, (dailyData[key].hoursWithData / dailyData[key].totalHours) * 100).toFixed(1),
         })),
       }
     })
@@ -241,24 +272,14 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName }: Rea
 
   // Calculate summary statistics for each device
   const devicesSummary = useMemo((): DeviceSummary[] => {
-    return performanceData.map((device) => {
-      const validFreq = device.freq.filter(f => f > 0)
-      const validErrorMargin = device.error_margin.filter((e): e is number => e !== null)
-
-      const uptimeData = devicesUptimeData.find(d => d.deviceId === device.id)?.dailyUptimeData || []
-      const avgUptime = uptimeData.length > 0
-        ? uptimeData.reduce((sum, d) => sum + Number.parseFloat(d.uptimePercentage), 0) / uptimeData.length
-        : 0
-
-      return {
-        deviceId: device.id,
-        deviceName: device.name,
-        avgFrequency: validFreq.length > 0 ? validFreq.reduce((a, b) => a + b, 0) / validFreq.length : 0,
-        avgErrorMargin: validErrorMargin.length > 0 ? validErrorMargin.reduce((a, b) => a + b, 0) / validErrorMargin.length : 0,
-        avgUptime,
-      }
-    })
-  }, [performanceData, devicesUptimeData])
+    return performanceData.map((device) => ({
+      deviceId: device.id,
+      deviceName: device.name,
+      avgFrequency: device.data_completeness * 100, // Represented as percentage
+      avgErrorMargin: device.sensor_error_margin,
+      avgUptime: device.uptime * 100,
+    }))
+  }, [performanceData])
 
   const isSingleDevice = performanceData.length === 1
 
@@ -268,7 +289,7 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName }: Rea
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>AirQloud (Cohort) Performance</CardTitle>
+              <CardTitle>Cohort Performance</CardTitle>
               <CardDescription>
                 View performance metrics for {airqloudName}
               </CardDescription>
@@ -463,7 +484,7 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName }: Rea
           {!loading && performanceData.length === 0 && (
             <div className="text-center py-10 text-gray-500">
               <Activity className="h-10 w-10 mx-auto mb-2 text-gray-400" />
-              <p>No performance data available for this AirQloud (Cohort).</p>
+              <p>No performance data available for this Cohort.</p>
               <p className="text-sm mt-2">Try selecting a different date range.</p>
             </div>
           )}
