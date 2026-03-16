@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ArrowLeft, Calendar, Wifi, AlertTriangle, BarChart3, Loader2 } from "lucide-react"
+import { ArrowLeft, Calendar, Wifi, AlertTriangle, BarChart3 } from "lucide-react"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -24,22 +24,26 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { airQloudService, type AirQloudPerformanceData } from "@/services/airqloud.service"
+import { type AirQloudPerformanceData } from "@/services/airqloud.service"
 
 interface DateRange {
   from: string
   to: string
 }
 
-// Device performance from AirQloud API (nested structure)
+// Device performance from Cohort API (nested structure)
 interface DevicePerformanceRaw {
-  device_id: string
-  device_name: string
-  performance: {
-    freq: number[]
-    error_margin: number[]
-    timestamp: string[]
-  }
+  _id?: string
+  name: string
+  long_name: string
+  uptime?: number | null
+  data_completeness?: number | null
+  sensor_error_margin?: number | null
+  data?: any[]
+  // compatibility fields
+  freq?: number[]
+  error_margin?: number[]
+  timestamp?: string[]
 }
 
 // Device performance from Device API (flat structure)
@@ -64,19 +68,86 @@ interface ProcessedDeviceData {
 interface AirQloudDetailData {
   id: string
   name: string
-  device_performance: DevicePerformanceRaw[]
+  devices: DevicePerformanceRaw[]
 }
 
-// Process device performance data from AirQloud API (nested structure)
+// Process device performance data from Cohort API (nested structure)
 const processDevicePerformance = (device: DevicePerformanceRaw): ProcessedDeviceData => {
-  const { freq, error_margin, timestamp } = device.performance
-  
-  return processPerformanceData(device.device_id, device.device_name, freq, error_margin, timestamp)
+  const dailyData: { [date: string]: { hoursSet: Set<number>; errorMargins: number[] } } = {}
+
+  const deviceData = device.data || []
+
+  deviceData.forEach((d: any) => {
+    const dt = new Date(d.datetime)
+    const date = dt.toDateString()
+
+    if (!dailyData[date]) {
+      dailyData[date] = { hoursSet: new Set(), errorMargins: [] }
+    }
+
+    dailyData[date].hoursSet.add(dt.getHours())
+
+    if (d.s1_pm2_5 != null && d.s2_pm2_5 != null) {
+      dailyData[date].errorMargins.push(Math.abs(d.s1_pm2_5 - d.s2_pm2_5))
+    }
+  })
+
+  const dates = Object.keys(dailyData).sort((a, b) => new Date(a).getTime() - new Date(b).getTime()).slice(-14)
+
+  const uptimeHistory = dates.map(date => ({
+    value: Math.min(100, (Math.min(24, dailyData[date].hoursSet.size) / 24) * 100),
+    timestamp: date
+  }))
+
+  const errorMarginHistory = dates.map(date => ({
+    value: dailyData[date].errorMargins.length > 0
+      ? dailyData[date].errorMargins.reduce((sum, em) => sum + em, 0) / dailyData[date].errorMargins.length
+      : 0,
+    timestamp: date
+  }))
+
+  return {
+    device_id: device._id || device.name,
+    device_name: device.long_name || device.name,
+    daily_uptime_percentage: (device.uptime || 0) * 100,
+    average_error_margin: device.sensor_error_margin || 0,
+    data_points: deviceData.length,
+    uptime_history: uptimeHistory,
+    error_margin_history: errorMarginHistory
+  }
 }
 
 // Process device performance data from Device API (flat structure)
 const processDevicePerformanceFlat = (device: DevicePerformanceFlat): ProcessedDeviceData => {
-  return processPerformanceData(device.id, device.name, device.freq, device.error_margin, device.timestamp)
+  // If the device has raw_data (actual API response), process like nested format
+  if ((device as any).raw_data && Array.isArray((device as any).raw_data)) {
+    return processDevicePerformance({
+      name: (device as any).device_name || device.name || device.id,
+      long_name: (device as any).device_name || device.name || device.id,
+      uptime: (device as any).uptime,
+      sensor_error_margin: (device as any).sensor_error_margin,
+      data: (device as any).raw_data,
+    })
+  }
+
+  // Fallback: legacy flat array format with timestamp/freq/error_margin
+  const timestamp = device.timestamp || []
+  const freq = device.freq || []
+  const error_margin = device.error_margin || []
+
+  if (timestamp.length === 0) {
+    return {
+      device_id: device.id,
+      device_name: device.name || device.id,
+      daily_uptime_percentage: 0,
+      average_error_margin: 0,
+      data_points: 0,
+      uptime_history: [],
+      error_margin_history: [],
+    }
+  }
+
+  return processPerformanceData(device.id, device.name, freq, error_margin, timestamp)
 }
 
 // Common processing function for performance data
@@ -87,53 +158,53 @@ const processPerformanceData = (
   error_margin: (number | null)[],
   timestamp: string[]
 ): ProcessedDeviceData => {
-  
+
   // Group data by date (since timestamps are hourly)
   const dailyData: { [date: string]: { hours: number; errorMargins: number[] } } = {}
-  
+
   timestamp.forEach((ts, index) => {
     const date = new Date(ts).toDateString() // Group by date only
-    
+
     if (!dailyData[date]) {
       dailyData[date] = { hours: 0, errorMargins: [] }
     }
-    
+
     // Count unique hours per day (freq represents hours with data)
     if (freq[index] && freq[index] > 0) {
       dailyData[date].hours += 1
     }
-    
+
     // Collect error margins for this day
     if (error_margin[index] !== undefined && error_margin[index] !== null) {
       dailyData[date].errorMargins.push(error_margin[index])
     }
   })
-  
+
   // Convert to arrays for history graphs
   const dates = Object.keys(dailyData).sort((a, b) => new Date(a).getTime() - new Date(b).getTime()).slice(-14) // Sort chronologically and take last 14 days
-  
+
   const uptimeHistory = dates.map(date => ({
     value: (dailyData[date].hours / 24) * 100, // Percentage of 24 hours
     timestamp: date
   }))
-  
+
   const errorMarginHistory = dates.map(date => ({
-    value: dailyData[date].errorMargins.length > 0 
-      ? dailyData[date].errorMargins.reduce((sum, em) => sum + em, 0) / dailyData[date].errorMargins.length 
+    value: dailyData[date].errorMargins.length > 0
+      ? dailyData[date].errorMargins.reduce((sum, em) => sum + em, 0) / dailyData[date].errorMargins.length
       : 0,
     timestamp: date
   }))
-  
+
   // Calculate overall averages
   const totalUniqueHours = Object.values(dailyData).reduce((sum, day) => sum + day.hours, 0)
   const totalDays = Object.keys(dailyData).length
   const dailyUptimePercentage = totalDays > 0 ? (totalUniqueHours / (totalDays * 24)) * 100 : 0
-  
+
   const allErrorMargins = Object.values(dailyData).flatMap(day => day.errorMargins)
   const avgErrorMargin = allErrorMargins.length > 0
     ? allErrorMargins.reduce((sum, em) => sum + em, 0) / allErrorMargins.length
     : 0
-  
+
   return {
     device_id: deviceId,
     device_name: deviceName,
@@ -252,20 +323,12 @@ const ErrorMarginMiniGraph = ({
   )
 }
 
-// Calculate summary stats for an AirQloud
+// Calculate summary stats for a Cohort
 const calculateStats = (airqloud: AirQloudPerformanceData) => {
-  const avgUptime = airqloud.freq.length > 0
-    ? (airqloud.freq.reduce((sum, f) => sum + f, 0) / (airqloud.freq.length * 24)) * 100
-    : 0
-  
-  const avgErrorMargin = airqloud.error_margin.length > 0
-    ? airqloud.error_margin.reduce((sum, em) => sum + em, 0) / airqloud.error_margin.length
-    : 0
-  
   return {
-    avgUptime: Math.min(avgUptime, 100),
-    avgErrorMargin,
-    daysOfData: airqloud.freq.length,
+    avgUptime: Math.min((airqloud.uptime || 0) * 100, 100),
+    avgErrorMargin: airqloud.sensor_error_margin || 0,
+    daysOfData: airqloud.data ? airqloud.data.length : 0,
   }
 }
 
@@ -304,32 +367,28 @@ export default function AnalysisResultsPage() {
   const [dateRange, setDateRange] = useState<DateRange | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [selectedTab, setSelectedTab] = useState<string>("")
-  
-  // State for device performance data per AirQloud
-  const [deviceDataCache, setDeviceDataCache] = useState<Record<string, AirQloudDetailData | null>>({})
-  const [loadingDeviceData, setLoadingDeviceData] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
     // Load data from sessionStorage
     const storedData = sessionStorage.getItem('analysisData')
     const storedDateRange = sessionStorage.getItem('analysisDateRange')
     const storedAnalysisType = sessionStorage.getItem('analysisType') as "airqlouds" | "devices" | null
-    
+
     if (storedData && storedDateRange) {
       try {
         const parsedDateRange = JSON.parse(storedDateRange) as DateRange
         setDateRange(parsedDateRange)
         setAnalysisType(storedAnalysisType || "airqlouds")
-        
+
         if (storedAnalysisType === "devices") {
           // Device analysis - data is array of device performance (flat structure)
           const parsedData = JSON.parse(storedData) as DevicePerformanceFlat[]
           setDeviceData(parsedData)
         } else {
-          // AirQloud analysis
+          // Cohort analysis - data includes devices in each cohort
           const parsedData = JSON.parse(storedData) as AirQloudPerformanceData[]
           setData(parsedData)
-          
+
           // Set the first tab as selected
           if (parsedData.length > 0) {
             setSelectedTab(parsedData[0].id)
@@ -339,38 +398,9 @@ export default function AnalysisResultsPage() {
         console.error('Error parsing stored data:', error)
       }
     }
-    
+
     setIsLoading(false)
   }, [])
-
-  // Fetch device performance data when tab changes
-  useEffect(() => {
-    if (!selectedTab || deviceDataCache[selectedTab] !== undefined) {
-      return
-    }
-
-    const fetchDeviceData = async () => {
-      setLoadingDeviceData(prev => ({ ...prev, [selectedTab]: true }))
-      
-      try {
-        const response = await airQloudService.getAirQloudById(selectedTab, 14)
-        // Cast the response to match our expected interface
-        const deviceData: AirQloudDetailData = {
-          id: response.id,
-          name: response.name,
-          device_performance: (response.device_performance || []) as DevicePerformanceRaw[]
-        }
-        setDeviceDataCache(prev => ({ ...prev, [selectedTab]: deviceData }))
-      } catch (error) {
-        console.error('Error fetching device data:', error)
-        setDeviceDataCache(prev => ({ ...prev, [selectedTab]: null }))
-      } finally {
-        setLoadingDeviceData(prev => ({ ...prev, [selectedTab]: false }))
-      }
-    }
-
-    fetchDeviceData()
-  }, [selectedTab, deviceDataCache])
 
   if (isLoading) {
     return (
@@ -392,7 +422,7 @@ export default function AnalysisResultsPage() {
   }
 
   // Check if we have no data for either type
-  const hasNoData = analysisType === "devices" 
+  const hasNoData = analysisType === "devices"
     ? (!deviceData || deviceData.length === 0)
     : (!data || data.length === 0)
 
@@ -428,12 +458,12 @@ export default function AnalysisResultsPage() {
   // Device Analysis View
   if (analysisType === "devices" && deviceData) {
     const processedDevices = deviceData.map(device => processDevicePerformanceFlat(device))
-    
+
     // Calculate overall stats for devices
     const overallAvgUptime = processedDevices.length > 0
       ? processedDevices.reduce((sum, d) => sum + d.daily_uptime_percentage, 0) / processedDevices.length
       : 0
-    
+
     const overallAvgErrorMargin = processedDevices.length > 0
       ? processedDevices.reduce((sum, d) => sum + d.average_error_margin, 0) / processedDevices.length
       : 0
@@ -553,12 +583,12 @@ export default function AnalysisResultsPage() {
                 </TableHeader>
                 <TableBody>
                   {processedDevices.map((device) => {
-                    const status = device.daily_uptime_percentage >= 75 
-                      ? "Good" 
-                      : device.daily_uptime_percentage >= 50 
-                        ? "Fair" 
+                    const status = device.daily_uptime_percentage >= 75
+                      ? "Good"
+                      : device.daily_uptime_percentage >= 50
+                        ? "Fair"
                         : "Poor"
-                    
+
                     return (
                       <TableRow key={device.device_id}>
                         <TableCell className="font-medium">
@@ -596,7 +626,7 @@ export default function AnalysisResultsPage() {
     )
   }
 
-  // AirQloud Analysis View (existing code)
+  // Cohort Analysis View (existing code)
   if (!data) return null
 
   // Calculate overall summary stats
@@ -635,7 +665,7 @@ export default function AnalysisResultsPage() {
           </div>
         </div>
         <Badge variant="outline" className="text-sm">
-          {data.length} AirQloud{data.length !== 1 ? 's' : ''} (Cohort{data.length !== 1 ? 's' : ''}) analysed
+          {data.length} Cohort{data.length !== 1 ? 's' : ''} analysed
         </Badge>
       </div>
 
@@ -644,7 +674,7 @@ export default function AnalysisResultsPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total AirQlouds (Cohorts)
+              Total Cohorts
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -694,7 +724,7 @@ export default function AnalysisResultsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5" />
-            AirQloud (Cohort) Summary
+            Cohort Summary
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -702,7 +732,7 @@ export default function AnalysisResultsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>AirQloud (Cohort) Name</TableHead>
+                  <TableHead>Cohort Name</TableHead>
                   <TableHead>Average Uptime</TableHead>
                   <TableHead>Error Margin</TableHead>
                   <TableHead>Days of Data</TableHead>
@@ -733,14 +763,14 @@ export default function AnalysisResultsPage() {
       {/* Individual AirQloud Tabs */}
       <Card>
         <CardHeader>
-          <CardTitle>Individual AirQloud (Cohort) Details</CardTitle>
+          <CardTitle>Individual Cohort Details</CardTitle>
         </CardHeader>
         <CardContent>
           <Tabs value={selectedTab} onValueChange={setSelectedTab}>
             <TabsList className="flex flex-wrap h-auto gap-1">
               {data.map((aq) => (
-                <TabsTrigger 
-                  key={aq.id} 
+                <TabsTrigger
+                  key={aq.id}
                   value={aq.id}
                   className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                 >
@@ -751,16 +781,14 @@ export default function AnalysisResultsPage() {
 
             {data.map((aq) => {
               const stats = calculateStats(aq)
-              const deviceData = deviceDataCache[aq.id]
-              const isLoadingDevices = loadingDeviceData[aq.id]
-              const processedDevices: ProcessedDeviceData[] = deviceData?.device_performance 
-                ? deviceData.device_performance.map(device => processDevicePerformance(device))
+              const processedDevices: ProcessedDeviceData[] = aq.devices
+                ? aq.devices.map(device => processDevicePerformance(device as DevicePerformanceRaw))
                 : []
 
               return (
                 <TabsContent key={aq.id} value={aq.id} className="mt-6">
                   <div className="space-y-6">
-                    {/* AirQloud Header */}
+                    {/* Cohort Header */}
                     <div className="flex items-center justify-between">
                       <div>
                         <h3 className="text-lg font-semibold">{aq.name}</h3>
@@ -818,12 +846,7 @@ export default function AnalysisResultsPage() {
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
-                        {isLoadingDevices ? (
-                          <div className="flex items-center justify-center py-8">
-                            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                            <span className="ml-2 text-muted-foreground">Loading device data...</span>
-                          </div>
-                        ) : processedDevices.length > 0 ? (
+                        {processedDevices.length > 0 ? (
                           <div className="overflow-x-auto">
                             <Table>
                               <TableHeader>
@@ -852,12 +875,12 @@ export default function AnalysisResultsPage() {
                               <TableBody>
                                 {processedDevices.map((device) => {
                                   // Determine status based on uptime
-                                  const status = device.daily_uptime_percentage >= 75 
-                                    ? "Good" 
-                                    : device.daily_uptime_percentage >= 50 
-                                      ? "Fair" 
+                                  const status = device.daily_uptime_percentage >= 75
+                                    ? "Good"
+                                    : device.daily_uptime_percentage >= 50
+                                      ? "Fair"
                                       : "Poor"
-                                  
+
                                   return (
                                     <TableRow key={device.device_id}>
                                       <TableCell className="font-medium">

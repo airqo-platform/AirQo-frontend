@@ -48,51 +48,104 @@ export interface DeviceStatsResponse {
 
 // Device Model Types
 export interface Device {
-  device_key: string
-  device_id: string
-  device_name: string
-  network?: string
-  category?: string
-  status?: string
-  is_active: boolean
-  is_online: boolean
-  site_id?: string
-  latitude?: number
-  longitude?: number
-  power_type?: string
-  mount_type?: string
-  height?: number
-  last_updated?: string
-  next_maintenance?: string
-  first_seen?: string
-  created_at?: string
-  updated_at?: string
-  channel_id?: number
-  network_id?: string
+  _id: string
+  name: string
+  long_name: string
+  alias: string
+  description?: string
+
+  // Status & Connectivity
+  isActive: boolean
+  isOnline: boolean
+  isPrimaryInLocation: boolean
+  status: string // "deployed", "not deployed", "recalled"
+  visibility: boolean
+  authRequired: boolean
+
+  // Hardware & Config
+  device_number: number
+  serial_number: string
+  device_codes: string[]
+  network: string // "airqo", etc.
+  category: string // "lowcost", "bam", etc.
+  mobility: boolean
+  height: number
+  mountType?: string
+  powerType?: string
+
+  // Security
+  writeKey: string
+  readKey: string
+
+  // Dates
+  createdAt: string
+  lastActive: string
+  lastRawData: string
+  deployment_date?: string
+  nextMaintenance?: string
+
+  // Location
+  latitude: number
+  longitude: number
+  approximate_distance_in_km?: number
+  bearing_in_radians?: number
+
+  // Categories & Groups
+  groups: string[]
+  tags: string[]
+  cohorts: Array<{
+    _id: string
+    name: string
+    description?: string
+  }>
+
+  grids: Array<{
+    _id: string
+    name: string
+    admin_level: string
+    long_name: string
+  }>
+
+  // Site Info
+  site?: {
+    _id: string
+    name: string
+    formatted_name: string
+    location_name: string
+    search_name: string
+    city: string
+    country: string
+    description: string
+    approximate_latitude: number
+    approximate_longitude: number
+    generated_name: string
+  }
+
+  // Additional Data
+  device_categories?: {
+    primary_category: string
+    deployment_category: string
+    is_mobile: boolean
+    is_static: boolean
+    is_lowcost: boolean
+    all_categories: string[]
+  }
+
+  onlineStatusAccuracy?: {
+    accuracyPercentage: number
+    lastCheck: string
+    lastCorrectCheck: string
+  }
+
+  // Keeping some old optional fields for backward compatibility if mixed usage occurs
+  // (Optional - can remove if we are sure only new format is used)
+  device_id?: string
+  device_name?: string
+  site_location?: any
+  location?: any
   current_firmware?: string
   target_firmware?: string
   firmware_download_state?: string
-  site_location?: {
-    site_name?: string
-    city?: string
-    district?: string
-    country?: string
-    latitude?: number
-    longitude?: number
-    site_category?: string
-  } | null
-  location?: {
-    latitude?: number
-    longitude?: number
-    site_name?: string
-  } | null
-  latest_reading?: {
-    pm2_5?: number | null
-    pm10?: number | null
-    temperature?: number | null
-    humidity?: number | null
-    timestamp?: string
-  } | null
 }
 
 // Pagination Metadata
@@ -107,10 +160,24 @@ export interface PaginationMetadata {
   has_previous: boolean
 }
 
+// New API Response Meta
+export interface ApiResponseMeta {
+  total: number
+  limit: number
+  skip: number
+  page: number
+  totalResults: number
+  totalPages: number
+  detailLevel?: string
+  usedCache?: boolean
+  nextPage?: string
+}
+
 // Paginated Device Response
 export interface PaginatedDeviceResponse {
   devices: Device[]
-  pagination: PaginationMetadata
+  pagination?: PaginationMetadata // specific to internal usage after transformation or old API
+  meta?: ApiResponseMeta // from new API
 }
 
 // Device Performance Types
@@ -386,20 +453,16 @@ export interface MaintenanceMapItem {
   latitude: number
   longitude: number
   last_active: string | null
-  avg_uptime: number
-  avg_error_margin: number
-  airqlouds: string[]
-  site: {
-    _id: string
-    name: string
-    district: string | null
-    country: string
-    latitude: number
-    longitude: number
-  }
+  uptime: number
+  data_completeness: number
+  error_margin: number
+  cohorts: string[]
 }
 
-export type MaintenanceMapResponse = MaintenanceMapItem[]
+export interface MaintenanceMapResponse {
+  success: boolean
+  data: MaintenanceMapItem[]
+}
 
 export interface MaintenanceAnalyticsResponse {
   // Define properties based on usage or allow flexible structure for now if unknown
