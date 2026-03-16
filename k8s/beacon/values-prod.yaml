@@ -1,7 +1,7 @@
 replicaCount: 2
 image:
   repository: eu.gcr.io/airqo-250220/airqo-beacon
-  tag: prod-e4f1cbcd-1773655142
+  tag: prod-714734c5-1773672846
   pullPolicy: Always
 imagePullSecrets: []
 nameOverride: ''
