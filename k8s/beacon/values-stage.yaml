@@ -1,7 +1,7 @@
 replicaCount: 2
 image:
   repository: eu.gcr.io/airqo-250220/airqo-stage-beacon
-  tag: stage-5524f0e3-1773654719
+  tag: stage-0d86faf2-1773672783
   pullPolicy: Always
 imagePullSecrets: []
 nameOverride: ''
