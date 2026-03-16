@@ -30,7 +30,7 @@ class StockService {
    */
   /**
    * Get the appropriate endpoint based on environment
-   * @param resource - The resource path (e.g., '/items-stock')
+   * @param resource - The resource path (e.g., '/items-stock/')
    */
   private getEndpoint(resource: string): string {
     const cleanPath = resource.startsWith('/') ? resource : `/${resource}`;
@@ -93,7 +93,7 @@ class StockService {
       if (params?.low_stock_threshold !== undefined) queryParams.append('low_stock_threshold', params.low_stock_threshold.toString());
       if (params?.return_list !== undefined) queryParams.append('return_list', params.return_list.toString());
 
-      const endpoint = this.getEndpoint('/items-stock');
+      const endpoint = this.getEndpoint('/items-stock/');
       const url = queryParams.toString()
         ? `${this.baseUrl}${endpoint}?${queryParams.toString()}`
         : `${this.baseUrl}${endpoint}`;
@@ -128,7 +128,7 @@ class StockService {
    */
   async createItem(data: ItemsStockCreate): Promise<ItemsStock> {
     try {
-      const endpoint = this.getEndpoint('/items-stock');
+      const endpoint = this.getEndpoint('/items-stock/');
       const response = await axios.post(`${this.baseUrl}${endpoint}`, data, this.getAxiosConfig());
       return response.data;
     } catch (error) {
