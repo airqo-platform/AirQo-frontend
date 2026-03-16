@@ -63,7 +63,9 @@ class EnhancedLocationServiceManager with UiLoggy {
     _isTrackingActive = true;
     _trackingStatusController.add(true);
 
-    _trackingTimer = Timer.periodic(Duration(hours: 1), (timer) async {
+    await _captureLocationPoint();
+
+    _trackingTimer = Timer.periodic(Duration(minutes: 20), (timer) async {
       if (!_isTrackingPaused) {
         await _captureLocationPoint();
       }
