@@ -40,7 +40,7 @@ export default function DeviceMap({ devices = [], selectedDeviceId }: DeviceMapP
   const geoJsonLayerRef = useRef<L.GeoJSON | null>(null)
   const hasInitializedRef = useRef(false)
 
- 
+
 
   // Initialize map and update markers in a single useEffect
   useEffect(() => {
@@ -106,8 +106,8 @@ export default function DeviceMap({ devices = [], selectedDeviceId }: DeviceMapP
 
         // Add markers
         devices.forEach((device) => {
-          
-          
+
+
           const isSelected = device.id === selectedDeviceId
           const icon = createCustomIcon(device.status, isSelected)
 
@@ -119,18 +119,18 @@ export default function DeviceMap({ devices = [], selectedDeviceId }: DeviceMapP
           markersRef.current.push(marker)
 
           // Format PM2.5 and PM10 values with 1 decimal place if they exist
-          const pm25Value = device.latest_reading?.pm2_5 !== undefined && device.latest_reading?.pm2_5 !== null ? 
+          const pm25Value = device.latest_reading?.pm2_5 !== undefined && device.latest_reading?.pm2_5 !== null ?
             Number(device.latest_reading.pm2_5).toFixed(1) : 'No data';
-          
-          const pm10Value = device.latest_reading?.pm10 !== undefined && device.latest_reading?.pm10 !== null ? 
+
+          const pm10Value = device.latest_reading?.pm10 !== undefined && device.latest_reading?.pm10 !== null ?
             Number(device.latest_reading.pm10).toFixed(1) : 'No data';
 
           // Get location name with fallbacks
-          const locationName = device.latest_reading?.site_name || 
-                              device.location?.location_name || 
-                              device.location?.admin_level_city || 
-                              device.location?.admin_level_country || 
-                              'Unknown location';
+          const locationName = device.latest_reading?.site_name ||
+            device.location?.location_name ||
+            device.location?.admin_level_city ||
+            device.location?.admin_level_country ||
+            'Unknown location';
 
           // Add popup with device info
           marker.bindPopup(`
@@ -138,25 +138,23 @@ export default function DeviceMap({ devices = [], selectedDeviceId }: DeviceMapP
               <h3 style="margin: 0 0 5px; font-weight: bold;">${device.name}</h3>
               <p style="margin: 0 0 5px;">ID: ${device.id}</p>
               <p style="margin: 0 0 5px;">Status: 
-                <span style="color: ${
-                  device.status === "active" ? "#4CAF50" : device.status === "warning" ? "#FFC107" : "#F44336"
-                }; font-weight: bold;">
+                <span style="color: ${device.status === "active" ? "#4CAF50" : device.status === "warning" ? "#FFC107" : "#F44336"
+            }; font-weight: bold;">
                   ${device.status.toUpperCase()}
                 </span>
               </p>
               ${device.lastUpdate ? `<p style="margin: 0 0 5px;">Last Update: ${device.lastUpdate}</p>` : ""}
               ${device.battery ? `<p style="margin: 0 0 5px;">Battery: ${device.battery}</p>` : ""}
-              ${
-                device.status !== "offline"
-                  ? `
-                <p style="margin: 0 0 5px;">PM2.5: ${pm25Value} μg/m³</p>
-                <p style="margin: 0 0 5px;">PM10: ${pm10Value} μg/m³</p>
+              ${device.status !== "offline"
+              ? `
+                <!-- <p style="margin: 0 0 5px;">PM2.5: ${pm25Value} μg/m³</p> -->
+                <!-- <p style="margin: 0 0 5px;">PM10: ${pm10Value} μg/m³</p> -->
                 <p style="margin: 0 0 5px;">Location: ${locationName}</p>
-                ${device.latest_reading?.aqi_category ? 
-                  `<p style="margin: 0 0 5px;">AQI: ${device.latest_reading.aqi_category}</p>` : ''}
+                ${device.latest_reading?.aqi_category ?
+                `<p style="margin: 0 0 5px;">AQI: ${device.latest_reading.aqi_category}</p>` : ''}
               `
-                  : ""
-              }
+              : ""
+            }
             </div>
           `)
 

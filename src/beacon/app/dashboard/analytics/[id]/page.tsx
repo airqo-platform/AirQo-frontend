@@ -36,19 +36,22 @@ interface AirQloudDetailData {
   country: string
   visibility: boolean | null
   is_active: boolean
-  created_at: string
+  createdAt: string
   device_count: number
-  freq: number[]
-  error_margin: number[]
-  timestamp: string[]
-  device_performance: Array<{
-    device_id: string
-    device_name: string
-    performance: {
-      freq: number[]
-      error_margin: number[]
-      timestamp: string[]
-    }
+  uptime?: number | null
+  data_completeness?: number | null
+  sensor_error_margin?: number | null
+  data?: any[]
+  devices: Array<{
+    _id?: string
+    name: string
+    long_name: string
+    uptime?: number | null
+    data_completeness?: number | null
+    sensor_error_margin?: number | null
+    lastActive?: string
+    lastRawData?: string
+    data?: any[]
   }>
 }
 
@@ -58,31 +61,31 @@ interface ProcessedDeviceData {
   daily_uptime_percentage: number
   average_error_margin: number
   data_points: number
+  last_active: string | null
   uptime_history: Array<{ value: number; timestamp: string }>
   error_margin_history: Array<{ value: number; timestamp: string }>
 }
 
-const processDevicePerformance = (device: AirQloudDetailData['device_performance'][0]): ProcessedDeviceData => {
-  const { freq, error_margin, timestamp } = device.performance
+const processDevicePerformance = (device: AirQloudDetailData['devices'][0]): ProcessedDeviceData => {
+  // Group data by date
+  const dailyData: { [date: string]: { hoursSet: Set<number>; errorMargins: number[] } } = {}
 
-  // Group data by date (since timestamps are hourly)
-  const dailyData: { [date: string]: { hours: number; errorMargins: number[] } } = {}
+  const deviceData = device.data || []
 
-  timestamp.forEach((ts, index) => {
-    const date = new Date(ts).toDateString() // Group by date only
+  deviceData.forEach((d: any) => {
+    const dt = new Date(d.datetime)
+    const date = dt.toDateString() // Group by date only
 
     if (!dailyData[date]) {
-      dailyData[date] = { hours: 0, errorMargins: [] }
+      dailyData[date] = { hoursSet: new Set(), errorMargins: [] }
     }
 
-    // Count unique hours per day (freq represents hours with data)
-    if (freq[index] && freq[index] > 0) {
-      dailyData[date].hours += 1
-    }
+    // Track distinct hours per day
+    dailyData[date].hoursSet.add(dt.getHours())
 
     // Collect error margins for this day
-    if (error_margin[index] !== undefined && error_margin[index] !== null) {
-      dailyData[date].errorMargins.push(error_margin[index])
+    if (d.s1_pm2_5 != null && d.s2_pm2_5 != null) {
+      dailyData[date].errorMargins.push(Math.abs(d.s1_pm2_5 - d.s2_pm2_5))
     }
   })
 
@@ -90,7 +93,7 @@ const processDevicePerformance = (device: AirQloudDetailData['device_performance
   const dates = Object.keys(dailyData).sort((a, b) => new Date(a).getTime() - new Date(b).getTime()).slice(-14) // Sort chronologically and take last 14 days
 
   const uptimeHistory = dates.map(date => ({
-    value: (dailyData[date].hours / 24) * 100, // Percentage of 24 hours
+    value: Math.min(100, (Math.min(24, dailyData[date].hoursSet.size) / 24) * 100), // Percentage of 24 hours
     timestamp: date
   }))
 
@@ -101,36 +104,16 @@ const processDevicePerformance = (device: AirQloudDetailData['device_performance
     timestamp: date
   }))
 
-  // Calculate overall averages
-  const totalUniqueHours = Object.values(dailyData).reduce((sum, day) => sum + day.hours, 0)
-  const totalDays = Object.keys(dailyData).length
-  const dailyUptimePercentage = totalDays > 0 ? (totalUniqueHours / (totalDays * 24)) * 100 : 0
-
-  const allErrorMargins = Object.values(dailyData).flatMap(day => day.errorMargins)
-  const avgErrorMargin = allErrorMargins.length > 0
-    ? allErrorMargins.reduce((sum, em) => sum + em, 0) / allErrorMargins.length
-    : 0
-
   return {
-    device_id: device.device_id,
-    device_name: device.device_name,
-    daily_uptime_percentage: Math.min(dailyUptimePercentage, 100), // Cap at 100%
-    average_error_margin: avgErrorMargin,
-    data_points: timestamp.length, // Total hourly data points
+    device_id: device._id || device.name,
+    device_name: device.long_name || device.name,
+    daily_uptime_percentage: (device.uptime || 0) * 100,
+    average_error_margin: device.sensor_error_margin || 0,
+    data_points: deviceData.length,
+    last_active: device.lastActive || device.lastRawData || null,
     uptime_history: uptimeHistory,
     error_margin_history: errorMarginHistory
   }
-}
-
-const formatChartData = (freq: number[], errorMargin: number[], timestamps: string[]) => {
-  return timestamps.map((timestamp, index) => ({
-    date: new Date(timestamp).toLocaleDateString(),
-    uptime: ((freq[index] || 0) / 24) * 100,
-    errorMargin: errorMargin[index] || 0,
-    timestamp
-  }))
-    .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
-    .slice(-14) // Last 14 days
 }
 
 // Props interfaces for mini graph components
@@ -256,7 +239,7 @@ export default function AirQloudDetailPage() {
   useEffect(() => {
     const fetchAirQloudDetail = async () => {
       if (!airqloudId) {
-        setError('AirQloud ID is required')
+        setError('Cohort ID is required')
         setIsLoading(false)
         return
       }
@@ -264,10 +247,19 @@ export default function AirQloudDetailPage() {
       try {
         setIsLoading(true)
         setError(null)
-        const response = await airQloudService.getAirQloudById(airqloudId, 14)
-        setData(response as AirQloudDetailData)
+
+        const endDate = new Date()
+        const startDate = new Date()
+        startDate.setDate(endDate.getDate() - 14)
+
+        const response = await airQloudService.getAirQloudById(
+          airqloudId,
+          startDate.toISOString(),
+          endDate.toISOString()
+        )
+        setData(response as unknown as AirQloudDetailData)
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch AirQloud details')
+        setError(err instanceof Error ? err.message : 'Failed to fetch Cohort details')
       } finally {
         setIsLoading(false)
       }
@@ -341,16 +333,46 @@ export default function AirQloudDetailPage() {
   }
 
   // Calculate summary statistics
-  const averageUptime = data.freq.length > 0
-    ? (data.freq.reduce((sum, f) => sum + f, 0) / (data.freq.length * 24)) * 100
-    : 0
+  const averageUptime = (data.uptime || 0) * 100
 
-  const averageErrorMargin = data.error_margin.length > 0
-    ? data.error_margin.reduce((sum, em) => sum + em, 0) / data.error_margin.length
-    : 0
+  const averageErrorMargin = data.sensor_error_margin || 0
 
-  const chartData = formatChartData(data.freq, data.error_margin, data.timestamp)
-  const processedDevices = data.device_performance ? data.device_performance.map(processDevicePerformance) : []
+  const processedDevices = data.devices ? data.devices.map(processDevicePerformance) : []
+
+  const chartData = []
+
+  if (data) {
+    const dailyCohort: { [date: string]: { deviceCount: number, totalUptime: number, totalError: number, errorCount: number } } = {}
+
+    processedDevices.forEach(device => {
+      device.uptime_history.forEach(u => {
+        if (!dailyCohort[u.timestamp]) dailyCohort[u.timestamp] = { deviceCount: 0, totalUptime: 0, totalError: 0, errorCount: 0 }
+        dailyCohort[u.timestamp].deviceCount += 1
+        dailyCohort[u.timestamp].totalUptime += u.value
+      })
+      device.error_margin_history.forEach(e => {
+        if (e.value > 0) {
+          dailyCohort[e.timestamp].totalError += e.value
+          dailyCohort[e.timestamp].errorCount += 1
+        }
+      })
+    })
+
+    const chartArr = Object.keys(dailyCohort)
+      .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
+      .slice(-14)
+      .map(date => {
+        const day = dailyCohort[date]
+        return {
+          date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          uptime: day.deviceCount > 0 ? day.totalUptime / day.deviceCount : 0,
+          errorMargin: day.errorCount > 0 ? day.totalError / day.errorCount : 0,
+          timestamp: date
+        }
+      })
+
+    chartData.push(...chartArr)
+  }
 
   const chartConfig = {
     uptime: {
@@ -382,7 +404,7 @@ export default function AirQloudDetailPage() {
             </div>
             <div className="flex items-center gap-1">
               <Calendar className="h-4 w-4" />
-              Created {new Date(data.created_at).toLocaleDateString()}
+              Created {new Date(data.createdAt || new Date()).toLocaleDateString()}
             </div>
             <Badge variant={data.is_active ? "default" : "secondary"}>
               {data.is_active ? "Active" : "Inactive"}
@@ -443,8 +465,8 @@ export default function AirQloudDetailPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{data.freq.length}</div>
-                {/* <div className="text-sm text-muted-foreground">Last 14 days</div> */}
+                <div className="text-2xl font-bold">{chartData.length}</div>
+                <div className="text-sm text-muted-foreground">Days captured</div>
               </CardContent>
             </Card>
           </div>
@@ -550,6 +572,7 @@ export default function AirQloudDetailPage() {
                         <TableHead>Device Name</TableHead>
                         <TableHead>Daily Uptime</TableHead>
                         <TableHead>Error Margin</TableHead>
+                        <TableHead>Last Active</TableHead>
                         <TableHead>Data Points</TableHead>
                         <TableHead>Status</TableHead>
                       </TableRow>
@@ -579,6 +602,30 @@ export default function AirQloudDetailPage() {
                               errorMarginHistory={device.error_margin_history}
                               averageErrorMargin={device.average_error_margin}
                             />
+                          </TableCell>
+                          <TableCell>
+                            {device.last_active ? (() => {
+                              const lastActiveDate = new Date(device.last_active)
+                              const now = new Date()
+                              const hoursAgo = Math.floor((now.getTime() - lastActiveDate.getTime()) / (1000 * 60 * 60))
+                              const daysAgo = Math.floor(hoursAgo / 24)
+                              const colorClass = hoursAgo < 24 ? 'text-green-600' : daysAgo < 3 ? 'text-yellow-600' : 'text-red-600'
+                              const timeAgo = hoursAgo < 1 ? 'Just now' : hoursAgo < 24 ? `${hoursAgo}h ago` : `${daysAgo}d ago`
+                              return (
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger>
+                                      <span className={`text-sm font-medium ${colorClass}`}>{timeAgo}</span>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p className="text-xs">{lastActiveDate.toLocaleString()}</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              )
+                            })() : (
+                              <span className="text-muted-foreground text-sm">N/A</span>
+                            )}
                           </TableCell>
                           <TableCell>{device.data_points}</TableCell>
                           <TableCell>
@@ -613,6 +660,7 @@ export default function AirQloudDetailPage() {
           <AirQloudPerformanceTab
             airqloudId={airqloudId}
             airqloudName={data.name}
+            initialData={data}
           />
         </TabsContent>
       </Tabs>

@@ -39,13 +39,31 @@ interface PerformanceTabProps {
   deviceName: string
 }
 
+interface RawDataPoint {
+  site_name?: string
+  humidity: number | null
+  pm10: number | null
+  s2_pm2_5: number | null
+  s1_pm2_5: number | null
+  s1_pm10: number | null
+  s2_pm10: number | null
+  longitude?: number
+  latitude?: number
+  pm2_5: number | null
+  temperature: number | null
+  datetime: string
+  network?: string
+  device_name?: string
+  frequency?: string
+  battery_voltage?: number | null
+}
+
 interface PerformanceData {
-  id: string
-  name: string
-  freq: number[]
-  error_margin: (number | null)[]
-  battery_voltage: (number | null)[]
-  timestamp: string[]
+  device_name: string
+  uptime: number
+  data_completeness: number
+  sensor_error_margin: number
+  raw_data: RawDataPoint[]
 }
 
 interface DeviceSummary {
@@ -114,11 +132,13 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
       const response = await getDevicePerformanceData({
         start: startDate.toISOString(),
         end: endDate.toISOString(),
-        ids: [deviceId],
+        deviceNames: [deviceId],
       })
 
-      if (response && response.length > 0) {
-        setPerformanceData(response)
+      // response is already unwrapped to the data array by the service
+      const data = Array.isArray(response) ? response : []
+      if (data.length > 0) {
+        setPerformanceData(data)
       } else {
         setPerformanceData([])
         toast({
@@ -170,50 +190,95 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
     setIsCalendarOpen(false)
   }
 
-  // Process data for each device
+  // Aggregate raw data into hourly buckets for each device
   const devicesChartData = useMemo(() => {
-    return performanceData.map((device) => ({
-      deviceId: device.id,
-      deviceName: device.name,
-      chartData: device.timestamp.map((time, index) => ({
-        timestamp: time,
-        formattedTime: format(new Date(time), "MMM dd HH:mm"),
-        freq: device.freq[index] || 0,
-        error_margin: device.error_margin[index],
-        battery_voltage: device.battery_voltage?.[index] ?? null,
-      })),
-    }))
+    return performanceData.map((device) => {
+      // Group raw_data by hour bucket
+      const hourlyBuckets: Record<string, {
+        timestamp: string
+        errorMargins: number[]
+        batteryVoltages: number[]
+        count: number
+      }> = {}
+
+      for (const point of device.raw_data) {
+        const dt = new Date(point.datetime)
+        // Create an hour-level key like "2026-01-26T08:00:00.000Z"
+        const hourDate = new Date(dt)
+        hourDate.setMinutes(0, 0, 0)
+        const hourKey = hourDate.toISOString()
+
+        if (!hourlyBuckets[hourKey]) {
+          hourlyBuckets[hourKey] = {
+            timestamp: hourKey,
+            errorMargins: [],
+            batteryVoltages: [],
+            count: 0,
+          }
+        }
+
+        hourlyBuckets[hourKey].count++
+
+        // Compute inter-sensor error margin
+        if (point.s1_pm2_5 != null && point.s2_pm2_5 != null) {
+          hourlyBuckets[hourKey].errorMargins.push(Math.abs(point.s1_pm2_5 - point.s2_pm2_5))
+        }
+
+        if (point.battery_voltage != null) {
+          hourlyBuckets[hourKey].batteryVoltages.push(point.battery_voltage)
+        }
+      }
+
+      // Convert buckets to sorted chart data
+      const chartData = Object.values(hourlyBuckets)
+        .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+        .map((bucket) => ({
+          timestamp: bucket.timestamp,
+          formattedTime: format(new Date(bucket.timestamp), "MMM dd HH:mm"),
+          freq: bucket.count, // number of entries in this hour
+          error_margin: bucket.errorMargins.length > 0
+            ? bucket.errorMargins.reduce((a, b) => a + b, 0) / bucket.errorMargins.length
+            : null,
+          battery_voltage: bucket.batteryVoltages.length > 0
+            ? bucket.batteryVoltages.reduce((a, b) => a + b, 0) / bucket.batteryVoltages.length
+            : null,
+        }))
+
+      return {
+        deviceId: device.device_name,
+        deviceName: device.device_name,
+        chartData,
+      }
+    })
   }, [performanceData])
 
   // Calculate daily uptime for each device
   const devicesUptimeData = useMemo(() => {
     return performanceData.map((device) => {
-      const dailyData: Record<string, { date: string; hoursWithData: number; totalHours: number }> = {}
+      const dailyData: Record<string, { date: string; hoursWithData: Set<number>; totalHours: number }> = {}
 
-      for (let index = 0; index < device.timestamp.length; index++) {
-        const time = device.timestamp[index]
-        const date = format(new Date(time), "yyyy-MM-dd")
+      for (const point of device.raw_data) {
+        const dt = new Date(point.datetime)
+        const dateKey = format(dt, "yyyy-MM-dd")
 
-        if (!dailyData[date]) {
-          dailyData[date] = {
-            date: format(new Date(time), "MMM dd, yyyy"),
-            hoursWithData: 0,
+        if (!dailyData[dateKey]) {
+          dailyData[dateKey] = {
+            date: format(dt, "MMM dd, yyyy"),
+            hoursWithData: new Set<number>(),
             totalHours: 24,
           }
         }
 
-        // Count hour if freq is not 0 or error_margin is not null
-        if (device.freq[index] > 0 || device.error_margin[index] !== null) {
-          dailyData[date].hoursWithData++
-        }
+        // Track unique hours that have data
+        dailyData[dateKey].hoursWithData.add(dt.getHours())
       }
 
       return {
-        deviceId: device.id,
-        deviceName: device.name,
+        deviceId: device.device_name,
+        deviceName: device.device_name,
         dailyUptimeData: Object.values(dailyData).map(day => ({
           date: day.date,
-          uptimePercentage: ((day.hoursWithData / day.totalHours) * 100).toFixed(1),
+          uptimePercentage: ((day.hoursWithData.size / day.totalHours) * 100).toFixed(1),
         })),
       }
     })
@@ -222,25 +287,34 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
   // Calculate summary statistics for each device
   const devicesSummary = useMemo((): DeviceSummary[] => {
     return performanceData.map((device) => {
-      const validFreq = device.freq.filter(f => f > 0)
-      const validErrorMargin = device.error_margin.filter((e): e is number => e !== null)
-      const validBatteryVoltage = device.battery_voltage?.filter((v): v is number => v !== null) || []
-
-      const uptimeData = devicesUptimeData.find(d => d.deviceId === device.id)?.dailyUptimeData || []
+      // Average of the daily uptime percentages
+      const uptimeData = devicesUptimeData.find(d => d.deviceId === device.device_name)?.dailyUptimeData || []
       const avgUptime = uptimeData.length > 0
         ? uptimeData.reduce((sum, d) => sum + Number.parseFloat(d.uptimePercentage), 0) / uptimeData.length
         : 0
+      const avgErrorMargin = device.sensor_error_margin
+
+      // Compute avg frequency: average entries per hour (from hourly buckets)
+      const chartData = devicesChartData.find(d => d.deviceId === device.device_name)?.chartData || []
+      const avgFrequency = chartData.length > 0
+        ? chartData.reduce((sum, h) => sum + h.freq, 0) / chartData.length
+        : 0
+
+      // Compute avg battery voltage from raw_data if available
+      const validBatteryVoltage = device.raw_data
+        .map(p => p.battery_voltage)
+        .filter((v): v is number => v != null)
 
       return {
-        deviceId: device.id,
-        deviceName: device.name,
-        avgFrequency: validFreq.length > 0 ? validFreq.reduce((a, b) => a + b, 0) / validFreq.length : 0,
-        avgErrorMargin: validErrorMargin.length > 0 ? validErrorMargin.reduce((a, b) => a + b, 0) / validErrorMargin.length : 0,
+        deviceId: device.device_name,
+        deviceName: device.device_name,
+        avgFrequency,
+        avgErrorMargin,
         avgUptime,
         avgBatteryVoltage: validBatteryVoltage.length > 0 ? validBatteryVoltage.reduce((a, b) => a + b, 0) / validBatteryVoltage.length : 0,
       }
     })
-  }, [performanceData, devicesUptimeData])
+  }, [performanceData, devicesChartData, devicesUptimeData])
 
   const isSingleDevice = performanceData.length === 1
 

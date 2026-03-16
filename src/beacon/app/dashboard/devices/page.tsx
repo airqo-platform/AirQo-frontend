@@ -68,6 +68,9 @@ const AfricaMap = dynamic(
   }
 )
 
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
+
 export default function DevicesPage() {
   const { toast } = useToast()
 
@@ -95,9 +98,10 @@ export default function DevicesPage() {
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [showMap, setShowMap] = useState(false)
-  const [viewMode, setViewMode] = useState<"list" | "map">("list") // New state for view toggle
+  const [viewMode, setViewMode] = useState<"list" | "map">("list")
   const [firmwareDialogOpen, setFirmwareDialogOpen] = useState(false)
   const [selectedFirmwareDevice, setSelectedFirmwareDevice] = useState<UIDevice | null>(null)
+  const [showTracked, setShowTracked] = useState(true) // Default to tracked
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1)
@@ -134,10 +138,8 @@ export default function DevicesPage() {
         params.search = searchTerm.trim()
       }
 
-      // Always filter by airqo network
-      params.network = "airqo"
-
-      // Add filters if they are set (currently commented out in UI)
+      // Network and status filters are currently handled by the backend's
+      // default scoping. UI filter controls are disabled until needed.
       // if (networkFilter !== "all") {
       //   params.network = networkFilter
       // }
@@ -184,7 +186,7 @@ export default function DevicesPage() {
     }, 500) // Wait 500ms after user stops typing
 
     return () => clearTimeout(searchDebounce)
-  }, [currentPage, itemsPerPage, searchTerm]) // Added searchTerm
+  }, [currentPage, itemsPerPage, searchTerm, showTracked]) // Added searchTerm and showTracked
 
   // Refresh all data
   const refreshData = () => {
@@ -253,8 +255,8 @@ export default function DevicesPage() {
         status: device.status ?? (isDeviceOnline(device) ? "online" : "offline"),
         lat: device.latitude,
         lng: device.longitude,
-        pm2_5: device.pm2_5,
-        pm10: device.pm10,
+        pm2_5: device.pm2_5 ?? undefined,
+        pm10: device.pm10 ?? undefined,
         reading_timestamp: device.reading_timestamp,
       }))
   }, [devices, isDeviceOnline])
@@ -527,9 +529,10 @@ export default function DevicesPage() {
           {/* List View */}
           {viewMode === "list" && (
             <>
-              {/* Search Input - Backend Search Enabled */}
-              <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-2 mb-4">
-                <div className="relative flex-1">
+              {/* Controls Container */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
+                {/* Search Input */}
+                <div className="relative flex-1 max-w-md">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="search"
@@ -556,11 +559,9 @@ export default function DevicesPage() {
                     </Button>
                   )}
                 </div>
-                {searchTerm && (
-                  <div className="text-sm text-muted-foreground">
-                    Searching devices...
-                  </div>
-                )}
+
+
+
               </div>
 
               {/* Filters - Temporarily Commented Out */}
@@ -749,11 +750,11 @@ export default function DevicesPage() {
                             <SelectValue placeholder="Per page" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="5">5</SelectItem>
                             <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="15">15</SelectItem>
+                            <SelectItem value="20">20</SelectItem>
                             <SelectItem value="25">25</SelectItem>
-                            <SelectItem value="50">50</SelectItem>
-                            <SelectItem value="100">100</SelectItem>
+                            <SelectItem value="30">30</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -801,6 +802,6 @@ export default function DevicesPage() {
         device={selectedFirmwareDevice}
         onUpdateSuccess={handleUpdateSuccess}
       />
-    </div>
+    </div >
   )
 }

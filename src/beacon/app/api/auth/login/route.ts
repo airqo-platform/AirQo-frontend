@@ -6,11 +6,11 @@ import { NextRequest, NextResponse } from 'next/server'
 
 // Use environment variables with proper fallbacks
 const getApiBaseUrl = () => {
-  return process.env.AIRQO_STAGING_API_BASE_URL || 
-         process.env.NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL || 
-         process.env.AIRQO_API_BASE_URL ||
-         process.env.NEXT_PUBLIC_AIRQO_API_BASE_URL ||
-         'https://staging-platform.airqo.net'
+  return process.env.AIRQO_STAGING_API_BASE_URL ||
+    process.env.NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL ||
+    process.env.AIRQO_API_BASE_URL ||
+    process.env.NEXT_PUBLIC_AIRQO_API_BASE_URL ||
+    'https://staging-platform.airqo.net'
 }
 
 const AIRQO_API_BASE_URL = getApiBaseUrl()
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     // Parse response
     const responseText = await airqoResponse.text()
     let data
-    
+
     try {
       data = JSON.parse(responseText)
     } catch {
@@ -68,11 +68,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(data, {
       status: airqoResponse.status
     })
-    
+
   } catch (error: any) {
     // Handle network or other errors
     console.error('Authentication error:', error)
-    
+
     return NextResponse.json(
       {
         success: false,
