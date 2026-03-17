@@ -358,7 +358,7 @@ const AboutPage: React.FC = () => {
       },
       {
         key: 'ex-fellow',
-        label: 'Former Fellows',
+        label: 'Fellowship Alumni',
         members: exFellowsPageMembers,
         totalPages: exFellowsTotalPages,
         currentPage: exFellowsPage,
