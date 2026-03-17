@@ -61,16 +61,6 @@ export const useCreateOrganizationRequest = () => {
   );
 };
 
-// Check slug availability
-export const useCheckSlugAvailability = () => {
-  return useSWRMutation(
-    'user/check-slug-availability',
-    async (key, { arg }: { arg: { slug: string } }) => {
-      return await userService.checkSlugAvailability(arg.slug);
-    }
-  );
-};
-
 // Initiate account deletion
 export const useInitiateAccountDeletion = () => {
   return useSWRMutation(

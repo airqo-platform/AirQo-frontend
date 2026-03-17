@@ -26,7 +26,7 @@ const AppNetworkGate = ({ children }: AppNetworkGateProps) => {
     try {
       await queryClient.invalidateQueries();
       await queryClient.refetchQueries({ type: 'active' });
-      await mutate(key => typeof key === 'string', undefined, {
+      await mutate(() => true, undefined, {
         revalidate: true,
       });
       router.refresh();
