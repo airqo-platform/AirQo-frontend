@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useNetworkStatus } from '@/shared/hooks/useNetworkStatus';
-import NoInternetConnection from './NoInternetConnection';
+import { WarningBanner, Button } from '@/shared/components/ui';
 
 interface AppNetworkGateProps {
   children: React.ReactNode;
@@ -32,11 +32,25 @@ const AppNetworkGate = ({ children }: AppNetworkGateProps) => {
     }
   }, [router]);
 
-  if (isOffline) {
-    return <NoInternetConnection onRetry={handleRetry} />;
-  }
-
-  return <>{children}</>;
+  return (
+    <>
+      {isOffline && (
+        <div className="sticky top-0 z-[2000] p-2 md:p-3">
+          <WarningBanner
+            title="You're offline"
+            message="Showing cached data. Reconnect to refresh with the latest updates."
+            dense
+            actions={
+              <Button size="sm" variant="outlined" onClick={handleRetry}>
+                Retry connection
+              </Button>
+            }
+          />
+        </div>
+      )}
+      {children}
+    </>
+  );
 };
 
 export default AppNetworkGate;
