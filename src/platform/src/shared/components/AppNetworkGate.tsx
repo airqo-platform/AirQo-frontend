@@ -48,9 +48,7 @@ const AppNetworkGate = ({ children }: AppNetworkGateProps) => {
   }, [isOnline, isOffline, refreshCachedData]);
 
   const handleRetry = useCallback(() => {
-    if (typeof navigator !== 'undefined' && navigator.onLine) {
-      void refreshCachedData();
-    }
+    void refreshCachedData();
   }, [refreshCachedData]);
 
   return (

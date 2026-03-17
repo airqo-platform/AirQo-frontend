@@ -50,7 +50,7 @@ export const useLogout = (callbackUrl?: string) => {
 
         // Clear any remaining application storage immediately
         if (typeof window !== 'undefined') {
-          const keysToRemove: string[] = [];
+          const keysToRemove = new Set<string>();
           const accountDeleted =
             localStorage.getItem('account_deleted') === 'true';
           const deletionTimestamp = localStorage.getItem(
@@ -84,19 +84,19 @@ export const useLogout = (callbackUrl?: string) => {
               !key.startsWith('next-auth') &&
               !crossTabSignalKeys.has(key)
             ) {
-              keysToRemove.push(key);
+              keysToRemove.add(key);
             }
 
             if (
               key?.startsWith('airqo:swr-cache:v1:') ||
               key?.startsWith('airqo:react-query:v1:')
             ) {
-              keysToRemove.push(key);
+              keysToRemove.add(key);
             }
           }
-          keysToRemove.forEach(key => localStorage.removeItem(key));
-          localStorage.removeItem('airqo:swr-cache:v1');
-          localStorage.removeItem('airqo:react-query:v1');
+          for (const key of Array.from(keysToRemove)) {
+            localStorage.removeItem(key);
+          }
 
           // Clear sessionStorage
           sessionStorage.clear();

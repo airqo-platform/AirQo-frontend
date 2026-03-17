@@ -16,8 +16,9 @@ export interface UseCountriesResult {
  * Hook for fetching countries list
  * @param cohort_id - Optional comma-separated cohort IDs for filtering
  */
-export function useCountries(cohort_id?: string): UseCountriesResult {
-  const normalizedCohortId = cohort_id || 'all';
+export function useCountries(cohort_id?: string | null): UseCountriesResult {
+  const normalizedCohortId =
+    cohort_id === null ? 'disabled' : (cohort_id ?? 'all');
   const enabled = cohort_id !== null;
 
   const {
@@ -41,6 +42,17 @@ export function useCountries(cohort_id?: string): UseCountriesResult {
   const refetch = useCallback(async () => {
     await refetchQuery();
   }, [refetchQuery]);
+
+  const noopRefetch = useCallback(async () => undefined, []);
+
+  if (!enabled) {
+    return {
+      countries: [],
+      isLoading: false,
+      error: null,
+      refetch: noopRefetch,
+    };
+  }
 
   return {
     countries,

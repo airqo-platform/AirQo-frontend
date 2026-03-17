@@ -105,13 +105,15 @@ export const useSiteChartData = ({
     await refetchQuery();
   }, [refetchQuery, shouldFetch]);
 
+  const gatedChartData = shouldFetch ? chartData : [];
+
   return {
-    chartData: shouldFetch ? chartData : [],
+    chartData: gatedChartData,
     isLoading: shouldFetch ? isLoading || isFetching : false,
     error: shouldFetch ? (error?.message ?? null) : null,
     refresh,
     // Metadata
-    hasData: chartData.length > 0,
+    hasData: gatedChartData.length > 0,
     siteId,
     pollutant,
     frequency,

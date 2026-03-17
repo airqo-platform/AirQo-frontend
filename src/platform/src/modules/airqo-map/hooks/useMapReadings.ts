@@ -21,7 +21,8 @@ export interface UseMapReadingsResult {
 export function useMapReadings(
   cohort_id?: string | null
 ): UseMapReadingsResult {
-  const normalizedCohortId = cohort_id || 'all';
+  const normalizedCohortId =
+    cohort_id === null ? 'disabled' : (cohort_id ?? 'all');
   const enabled = cohort_id !== null;
 
   const {
@@ -45,6 +46,17 @@ export function useMapReadings(
   const refetch = useCallback(async () => {
     await refetchQuery();
   }, [refetchQuery]);
+
+  const noopRefetch = useCallback(async () => undefined, []);
+
+  if (!enabled) {
+    return {
+      readings: [],
+      isLoading: false,
+      error: null,
+      refetch: noopRefetch,
+    };
+  }
 
   return {
     readings,
