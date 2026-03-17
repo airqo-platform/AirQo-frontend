@@ -131,6 +131,29 @@ export function useSitesByCountry({
     setCurrentCountry(newCountry);
   }, []);
 
+  const noopLoadMore = useCallback(() => undefined, []);
+  const noopRefetch = useCallback(async () => undefined, []);
+  const noopSetCountry: UseSitesByCountryResult['setCountry'] = useCallback(
+    () => undefined,
+    []
+  );
+
+  if (!enabled) {
+    return {
+      sites: [],
+      totalSites: 0,
+      totalPages: 0,
+      currentPage: 1,
+      isLoading: false,
+      isLoadingMore: false,
+      error: null,
+      hasNextPage: false,
+      loadMore: noopLoadMore,
+      refetch: noopRefetch,
+      setCountry: noopSetCountry,
+    };
+  }
+
   return {
     sites,
     totalSites: latestMeta?.total ?? 0,

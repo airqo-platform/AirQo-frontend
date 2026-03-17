@@ -21,6 +21,7 @@ export interface UseMapReadingsResult {
 export function useMapReadings(
   cohort_id?: string | null
 ): UseMapReadingsResult {
+  const normalizedCohortId = cohort_id || 'all';
   const enabled = cohort_id !== null;
 
   const {
@@ -29,14 +30,10 @@ export function useMapReadings(
     error,
     refetch: refetchQuery,
   } = useQuery<MapReading[], Error>({
-    queryKey: ['map', 'readings', cohort_id ?? 'all'],
+    queryKey: ['map', 'readings', normalizedCohortId],
     queryFn: async () => {
-      if (cohort_id === '') {
-        return [];
-      }
-
       const response: MapReadingsResponse =
-        await deviceService.getMapReadingsWithToken(cohort_id ?? undefined);
+        await deviceService.getMapReadingsWithToken(cohort_id || undefined);
       return response.measurements;
     },
     enabled,

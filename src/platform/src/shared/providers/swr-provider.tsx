@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { SWRConfig, type SWRConfiguration, type Cache, type State } from 'swr';
 
-const SWR_CACHE_STORAGE_KEY = 'airqo:swr-cache:v1';
+const SWR_CACHE_STORAGE_KEY_PREFIX = 'airqo:swr-cache:v1';
 const SWR_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 12; // 12 hours
 const SWR_PERSIST_INTERVAL_MS = 1000 * 30; // 30 seconds
 const SWR_MAX_PERSISTED_ENTRIES = 400;
@@ -14,6 +14,17 @@ type SerializedSWRCache = {
 };
 
 type SWRCacheState = State<unknown, unknown>;
+
+interface SWRProviderProps {
+  children: React.ReactNode;
+  scopeKey?: string | null;
+  enablePersistence?: boolean;
+}
+
+const buildStorageKey = (scopeKey?: string | null): string | null => {
+  if (!scopeKey) return null;
+  return `${SWR_CACHE_STORAGE_KEY_PREFIX}:${scopeKey}`;
+};
 
 const getErrorStatusCode = (error: unknown): number | null => {
   if (!error || typeof error !== 'object') return null;
@@ -49,15 +60,47 @@ const shouldRetryOnError = (error: unknown): boolean => {
   return true;
 };
 
-const loadPersistedCache = (): Map<string, SWRCacheState> => {
+const sanitizeStateForPersistence = (
+  state: SWRCacheState
+): { data: unknown } | null => {
+  if (!state || typeof state !== 'object') {
+    return null;
+  }
+
+  if (typeof state.data === 'undefined') {
+    return null;
+  }
+
+  return { data: state.data };
+};
+
+const sanitizeLoadedState = (value: unknown): SWRCacheState | null => {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+
+  const data = (value as { data?: unknown }).data;
+  if (typeof data === 'undefined') {
+    return null;
+  }
+
+  return {
+    data,
+    error: undefined,
+    isLoading: false,
+    isValidating: false,
+  };
+};
+
+const loadPersistedCache = (storageKey: string | null): Map<string, SWRCacheState> => {
   const cache = new Map<string, SWRCacheState>();
 
-  if (typeof window === 'undefined') {
+  if (typeof window === 'undefined' || !storageKey) {
     return cache;
   }
 
   try {
-    const raw = window.localStorage.getItem(SWR_CACHE_STORAGE_KEY);
+    const raw = window.localStorage.getItem(storageKey);
     if (!raw) return cache;
 
     const parsed = JSON.parse(raw) as SerializedSWRCache;
@@ -66,22 +109,27 @@ const loadPersistedCache = (): Map<string, SWRCacheState> => {
       typeof parsed.timestamp !== 'number' ||
       !Array.isArray(parsed.entries)
     ) {
-      window.localStorage.removeItem(SWR_CACHE_STORAGE_KEY);
+      window.localStorage.removeItem(storageKey);
       return cache;
     }
 
     if (Date.now() - parsed.timestamp > SWR_CACHE_MAX_AGE_MS) {
-      window.localStorage.removeItem(SWR_CACHE_STORAGE_KEY);
+      window.localStorage.removeItem(storageKey);
       return cache;
     }
 
     for (const [key, value] of parsed.entries) {
-      if (typeof key === 'string') {
-        cache.set(key, value as SWRCacheState);
+      if (typeof key !== 'string') {
+        continue;
       }
+
+      const sanitizedState = sanitizeLoadedState(value);
+      if (!sanitizedState) continue;
+
+      cache.set(key, sanitizedState);
     }
   } catch {
-    window.localStorage.removeItem(SWR_CACHE_STORAGE_KEY);
+    window.localStorage.removeItem(storageKey);
   }
 
   return cache;
@@ -96,9 +144,14 @@ const getSerializableEntries = (
     if (typeof key !== 'string') continue;
     if (typeof value === 'undefined') continue;
 
+    const persistableState = sanitizeStateForPersistence(value);
+    if (!persistableState) {
+      continue;
+    }
+
     try {
-      JSON.stringify(value);
-      entries.push([key, value]);
+      JSON.stringify(persistableState);
+      entries.push([key, persistableState]);
     } catch {
       continue;
     }
@@ -111,14 +164,17 @@ const getSerializableEntries = (
   return entries;
 };
 
-const persistCache = (cache: Map<string, SWRCacheState>) => {
-  if (typeof window === 'undefined') {
+const persistCache = (
+  cache: Map<string, SWRCacheState>,
+  storageKey: string | null
+) => {
+  if (typeof window === 'undefined' || !storageKey) {
     return;
   }
 
   const entries = getSerializableEntries(cache);
   if (entries.length === 0) {
-    window.localStorage.removeItem(SWR_CACHE_STORAGE_KEY);
+    window.localStorage.removeItem(storageKey);
     return;
   }
 
@@ -129,7 +185,7 @@ const persistCache = (cache: Map<string, SWRCacheState>) => {
         timestamp: Date.now(),
         entries: candidateEntries,
       };
-      window.localStorage.setItem(SWR_CACHE_STORAGE_KEY, JSON.stringify(payload));
+      window.localStorage.setItem(storageKey, JSON.stringify(payload));
       return;
     } catch {
       candidateEntries = candidateEntries.slice(
@@ -140,15 +196,23 @@ const persistCache = (cache: Map<string, SWRCacheState>) => {
   }
 };
 
-export function SWRProvider({ children }: { children: React.ReactNode }) {
-  const cache = useMemo(() => loadPersistedCache(), []);
+export function SWRProvider({
+  children,
+  scopeKey,
+  enablePersistence = true,
+}: SWRProviderProps) {
+  const storageKey = useMemo(
+    () => (enablePersistence ? buildStorageKey(scopeKey) : null),
+    [enablePersistence, scopeKey]
+  );
+  const cache = useMemo(() => loadPersistedCache(storageKey), [storageKey]);
 
   const persistNow = useCallback(() => {
-    persistCache(cache);
-  }, [cache]);
+    persistCache(cache, storageKey);
+  }, [cache, storageKey]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || !storageKey) return;
 
     const intervalId = window.setInterval(persistNow, SWR_PERSIST_INTERVAL_MS);
     const handleBeforeUnload = () => persistNow();
@@ -166,7 +230,7 @@ export function SWRProvider({ children }: { children: React.ReactNode }) {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [persistNow]);
+  }, [persistNow, storageKey]);
 
   const config = useMemo<SWRConfiguration>(
     () => ({

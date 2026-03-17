@@ -5,8 +5,19 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 
-const QUERY_CACHE_KEY = 'airqo:react-query:v1';
+const QUERY_CACHE_KEY_PREFIX = 'airqo:react-query:v1';
 const QUERY_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 12; // 12 hours
+
+interface QueryProviderProps {
+  children: React.ReactNode;
+  scopeKey?: string | null;
+  enablePersistence?: boolean;
+}
+
+const buildStorageKey = (scopeKey?: string | null): string | null => {
+  if (!scopeKey) return null;
+  return `${QUERY_CACHE_KEY_PREFIX}:${scopeKey}`;
+};
 
 const getErrorStatusCode = (error: unknown): number | null => {
   if (!error || typeof error !== 'object') return null;
@@ -62,22 +73,30 @@ const createQueryClient = () =>
     },
   });
 
-export function QueryProvider({ children }: { children: React.ReactNode }) {
+export function QueryProvider({
+  children,
+  scopeKey,
+  enablePersistence = true,
+}: QueryProviderProps) {
   const [queryClient] = useState(() => createQueryClient());
+  const storageKey = useMemo(
+    () => (enablePersistence ? buildStorageKey(scopeKey) : null),
+    [enablePersistence, scopeKey]
+  );
 
   const persister = useMemo(() => {
-    if (typeof window === 'undefined') {
+    if (typeof window === 'undefined' || !storageKey) {
       return undefined;
     }
 
     return createSyncStoragePersister({
       storage: window.localStorage,
-      key: QUERY_CACHE_KEY,
+      key: storageKey,
       throttleTime: 1000,
       serialize: data => JSON.stringify(data),
       deserialize: value => JSON.parse(value),
     });
-  }, []);
+  }, [storageKey]);
 
   if (!persister) {
     return (
@@ -91,7 +110,7 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
       persistOptions={{
         persister,
         maxAge: QUERY_CACHE_MAX_AGE_MS,
-        buster: QUERY_CACHE_KEY,
+        buster: storageKey ?? undefined,
       }}
       onSuccess={() => {
         queryClient.resumePausedMutations().catch(() => undefined);

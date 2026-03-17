@@ -59,6 +59,7 @@ export const useSiteChartData = ({
   const {
     data: chartData = [],
     isLoading,
+    isFetching,
     error,
     refetch: refetchQuery,
   } = useQuery<NormalizedChartData[], Error>({
@@ -106,7 +107,7 @@ export const useSiteChartData = ({
 
   return {
     chartData: shouldFetch ? chartData : [],
-    isLoading: shouldFetch ? isLoading : false,
+    isLoading: shouldFetch ? isLoading || isFetching : false,
     error: shouldFetch ? (error?.message ?? null) : null,
     refresh,
     // Metadata

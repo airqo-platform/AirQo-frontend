@@ -17,7 +17,8 @@ export const usePhotonSearch = (query: string, enabled = true) => {
     return () => window.clearTimeout(timeoutId);
   }, [query]);
 
-  const shouldFetch = enabled && debouncedQuery.trim().length > 0;
+  const normalizedQuery = debouncedQuery.trim();
+  const shouldFetch = enabled && normalizedQuery.length > 0;
 
   const {
     data: results = [],
@@ -25,8 +26,8 @@ export const usePhotonSearch = (query: string, enabled = true) => {
     error,
     refetch: refetchQuery,
   } = useQuery<PhotonSearchResult[], Error>({
-    queryKey: ['map', 'photon-search', debouncedQuery.trim()],
-    queryFn: () => photonService.search(debouncedQuery, 10),
+    queryKey: ['map', 'photon-search', normalizedQuery],
+    queryFn: () => photonService.search(normalizedQuery, 10),
     enabled: shouldFetch,
     networkMode: 'offlineFirst',
     staleTime: 1000 * 60 * 5,

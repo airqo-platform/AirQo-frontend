@@ -86,6 +86,13 @@ export const useLogout = (callbackUrl?: string) => {
             ) {
               keysToRemove.push(key);
             }
+
+            if (
+              key?.startsWith('airqo:swr-cache:v1:') ||
+              key?.startsWith('airqo:react-query:v1:')
+            ) {
+              keysToRemove.push(key);
+            }
           }
           keysToRemove.forEach(key => localStorage.removeItem(key));
           localStorage.removeItem('airqo:swr-cache:v1');

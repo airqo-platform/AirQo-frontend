@@ -17,6 +17,7 @@ export interface UseCountriesResult {
  * @param cohort_id - Optional comma-separated cohort IDs for filtering
  */
 export function useCountries(cohort_id?: string): UseCountriesResult {
+  const normalizedCohortId = cohort_id || 'all';
   const enabled = cohort_id !== null;
 
   const {
@@ -25,14 +26,10 @@ export function useCountries(cohort_id?: string): UseCountriesResult {
     error,
     refetch: refetchQuery,
   } = useQuery<CountryData[], Error>({
-    queryKey: ['map', 'countries', cohort_id ?? 'all'],
+    queryKey: ['map', 'countries', normalizedCohortId],
     queryFn: async () => {
-      if (cohort_id === '') {
-        return [];
-      }
-
       const response: CountriesResponse =
-        await deviceService.getCountriesAuthenticated(cohort_id ?? undefined);
+        await deviceService.getCountriesAuthenticated(cohort_id || undefined);
       return response.countries;
     },
     enabled,
