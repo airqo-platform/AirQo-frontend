@@ -149,6 +149,8 @@ const Footer = () => {
               <li>
                 <Link
                   href="/solutions/network-coverage"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="text-gray-600 hover:underline"
                 >
                   Network Coverage

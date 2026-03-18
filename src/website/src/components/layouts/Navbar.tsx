@@ -20,6 +20,7 @@ type MenuItem = {
   title: string;
   description?: string;
   href: string;
+  newTab?: boolean;
 };
 
 type MenuItems = {
@@ -80,6 +81,7 @@ const menuItems: MenuItems = {
       title: 'Network Coverage',
       description: 'Explore our air quality monitoring network across Africa',
       href: '/solutions/network-coverage',
+      newTab: true,
     },
   ],
   About: [
@@ -133,9 +135,10 @@ const DropdownMenuContent: React.FC<{
           <ul key={index} className="flex-1 space-y-3">
             {colItems.map((item) => {
               const isExternal = item.href.startsWith('http');
+              const shouldOpenInNewTab = isExternal || item.newTab;
               return (
                 <li key={item.href}>
-                  {isExternal ? (
+                  {shouldOpenInNewTab ? (
                     <a
                       href={item.href}
                       target="_blank"
@@ -154,6 +157,8 @@ const DropdownMenuContent: React.FC<{
                   ) : (
                     <Link
                       href={item.href}
+                      target={item.newTab ? '_blank' : undefined}
+                      rel={item.newTab ? 'noopener noreferrer' : undefined}
                       className="block p-2 rounded-xl hover:bg-blue-50 hover:text-blue-500 transition translate-element"
                     >
                       <div className="font-medium translate-element">
@@ -309,6 +314,8 @@ const Navbar: React.FC = () => {
                       <Link
                         key={item.href}
                         href={item.href}
+                        target={item.newTab ? '_blank' : undefined}
+                        rel={item.newTab ? 'noopener noreferrer' : undefined}
                         onClick={handleLinkClick}
                         className="block px-4 py-2 text-gray-700 hover:bg-blue-50 transition rounded translate-element"
                       >

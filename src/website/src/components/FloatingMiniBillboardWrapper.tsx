@@ -166,7 +166,8 @@ export default function FloatingMiniBillboardWrapper() {
   if (
     loading ||
     billboardData.length === 0 ||
-    pathname?.startsWith('/packages')
+    pathname?.startsWith('/packages') ||
+    pathname?.startsWith('/solutions/network-coverage')
   ) {
     return null;
   }
