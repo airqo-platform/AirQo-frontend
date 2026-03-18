@@ -1,4 +1,5 @@
 import 'package:airqo/src/app/auth/pages/welcome_screen.dart';
+import 'package:airqo/src/app/profile/pages/languages/select_language_page.dart';
 import 'package:airqo/src/app/profile/pages/location_privacy_screen.dart';
 import 'package:airqo/src/app/profile/pages/research_settings_screen.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
@@ -192,19 +193,19 @@ class _SettingsWidgetState extends State<SettingsWidget> {
 
             SizedBox(height: screenHeight * 0.02),
 
-            // SettingsTile(
-            //   iconPath: "assets/images/shared/language_icon.svg",
-            //   title: "Languages",
-            //   onTap: () {
-            //     Navigator.of(context).push(
-            //       MaterialPageRoute(
-            //         builder: (context) => SelectLanguagePage(),
-            //       ),
-            //     );
-            //   },
-            //   description:
-            //       "Change the language of the app to your preferred language",
-            // ),
+            SettingsTile(
+              iconPath: "assets/images/shared/language_icon.svg",
+              title: "Languages",
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => SelectLanguagePage(),
+                  ),
+                );
+              },
+              description:
+                  "Change the language of the app to your preferred language",
+            ),
 
             Padding(
               padding: EdgeInsets.symmetric(vertical: screenHeight * 0.05),

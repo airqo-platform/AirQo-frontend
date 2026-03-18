@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:loggy/loggy.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_details.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/meta/utils/utils.dart';
 
@@ -256,7 +257,7 @@ class AnalyticsCard extends StatelessWidget with UiLoggy {
                         color: _getAqiColor(measurement).withOpacity(0.15),
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: Text(
+                      child: TranslatedText(
                         measurement.aqiCategory ?? "Unknown",
                         style: TextStyle(
                           fontSize: 14,

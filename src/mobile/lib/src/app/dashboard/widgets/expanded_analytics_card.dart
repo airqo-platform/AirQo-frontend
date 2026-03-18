@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:loggy/loggy.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_details.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/meta/utils/utils.dart';
 
@@ -223,7 +224,7 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
                                   .withOpacity(0.15),
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            child: Text(
+                            child: TranslatedText(
                               widget.measurement.aqiCategory ?? "Unknown",
                               style: TextStyle(
                                 fontSize: 14,
@@ -248,7 +249,7 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
                     horizontal: 16,
                     vertical: 12,
                   ),
-                  child: Text(
+                  child: TranslatedText(
                     healthTipTagline,
                     style: TextStyle(
                       fontSize: 15,
@@ -282,7 +283,7 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
                       size: 24,
                     ),
                     const SizedBox(width: 8),
-                    Text(
+                    TranslatedText(
                       "Today's health tip",
                       style: TextStyle(
                         fontSize: 16,
@@ -294,7 +295,7 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
                 ),
                 const SizedBox(height: 16),
                 healthTipDescription != null
-                    ? Text(
+                    ? TranslatedText(
                         healthTipDescription,
                         style: TextStyle(
                           fontSize: 15,
@@ -302,7 +303,7 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
                           color: Theme.of(context).textTheme.bodyLarge?.color,
                         ),
                       )
-                    : Text(
+                    : TranslatedText(
                         "Health tip not available for this air quality level.",
                         style: TextStyle(
                           fontSize: 15,
