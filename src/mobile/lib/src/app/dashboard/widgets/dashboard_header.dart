@@ -3,8 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import '../../auth/bloc/auth_bloc.dart';
+import '../../other/language/bloc/language_bloc.dart';
 import '../../profile/bloc/user_bloc.dart';
 import '../../shared/widgets/page_padding.dart';
+import '../../shared/widgets/translated_text.dart';
 import '../../surveys/bloc/survey_bloc.dart';
 import '../../surveys/services/survey_notification_service.dart';
 import '../../learn/pages/kya_page.dart';
@@ -70,15 +72,35 @@ class _DashboardHeaderState extends State<DashboardHeader> {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           SizedBox(height: 16),
           _buildGreeting(context),
-          Text(
-            "Today's Air Quality • ${DateFormat.MMMMd().format(DateTime.now())}",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? AppColors.secondaryHeadlineColor2
-                  : AppColors.secondaryHeadlineColor4,
-            ),
+          BlocBuilder<LanguageBloc, LanguageState>(
+            builder: (context, langState) {
+              final locale =
+                  langState is LanguageLoaded ? langState.languageCode : 'en';
+              // intl supports fr and sw; fall back to en for lg and others
+              final dateLocale =
+                  ['en', 'fr', 'sw'].contains(locale) ? locale : 'en';
+              final formattedDate =
+                  DateFormat.MMMMd(dateLocale).format(DateTime.now());
+              final textStyle = TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.secondaryHeadlineColor2
+                    : AppColors.secondaryHeadlineColor4,
+              );
+              return Row(
+                children: [
+                  TranslatedText(
+                    "Today's Air Quality",
+                    style: textStyle,
+                  ),
+                  Text(
+                    " • $formattedDate",
+                    style: textStyle,
+                  ),
+                ],
+              );
+            },
           ),
           if (_showAlert) ...[
             SizedBox(height: 12),
@@ -166,7 +188,7 @@ class _DashboardHeaderState extends State<DashboardHeader> {
   }
 
   Widget _buildDefaultGreeting(BuildContext context) {
-    return Text(
+    return TranslatedText(
       "Hi, 👋",
       style: TextStyle(
         fontSize: 28,
@@ -180,15 +202,21 @@ class _DashboardHeaderState extends State<DashboardHeader> {
     return BlocBuilder<UserBloc, UserState>(
       builder: (context, userState) {
         if (userState is UserLoaded) {
-          return Text(
-            "Hi ${userState.model.users[0].firstName} 👋",
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.w700,
-              color: Theme.of(context).brightness == Brightness.dark
-            ? AppColors.boldHeadlineColor2
-            : AppColors.boldHeadlineColor5,
-            ),
+          final greetingStyle = TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.w700,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.boldHeadlineColor2
+                : AppColors.boldHeadlineColor5,
+          );
+          return Row(
+            children: [
+              TranslatedText("Hi", style: greetingStyle),
+              Text(
+                " ${userState.model.users[0].firstName} 👋",
+                style: greetingStyle,
+              ),
+            ],
           );
         } else if (userState is UserLoadingError) {
           if (userState.retryCount == 0) {
@@ -196,8 +224,7 @@ class _DashboardHeaderState extends State<DashboardHeader> {
               context.read<UserBloc>().add(LoadUserWithRetry());
             });
           }
-          
-          return Text(
+          return TranslatedText(
             "Hi 👋",
             style: TextStyle(
               fontSize: 28,
