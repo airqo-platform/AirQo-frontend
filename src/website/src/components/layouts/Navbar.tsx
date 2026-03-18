@@ -310,18 +310,26 @@ const Navbar: React.FC = () => {
                   <div
                     className={`overflow-hidden transition-max-height duration-300 ease-in-out ${expandedMenu === title ? 'max-h-screen' : 'max-h-0'}`}
                   >
-                    {items.map((item) => (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        target={item.newTab ? '_blank' : undefined}
-                        rel={item.newTab ? 'noopener noreferrer' : undefined}
-                        onClick={handleLinkClick}
-                        className="block px-4 py-2 text-gray-700 hover:bg-blue-50 transition rounded translate-element"
-                      >
-                        {item.title}
-                      </Link>
-                    ))}
+                    {items.map((item) => {
+                      const isExternal = item.href.startsWith('http');
+                      const shouldOpenInNewTab = isExternal || item.newTab;
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          target={shouldOpenInNewTab ? '_blank' : undefined}
+                          rel={
+                            shouldOpenInNewTab
+                              ? 'noopener noreferrer'
+                              : undefined
+                          }
+                          onClick={handleLinkClick}
+                          className="block px-4 py-2 text-gray-700 hover:bg-blue-50 transition rounded translate-element"
+                        >
+                          {item.title}
+                        </Link>
+                      );
+                    })}
                   </div>
                 </div>
               ))}

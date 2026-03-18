@@ -12,6 +12,53 @@ const typeDotClass: Record<MonitorType, string> = {
   Inactive: 'bg-slate-400',
 };
 
+const getBadgeClassesForMonitorType = (type: MonitorType) => {
+  if (type === 'Reference')
+    return 'inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700';
+  if (type === 'LCS')
+    return 'inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-700';
+  return 'inline-flex items-center rounded-full bg-slate-200 px-3 py-1 text-sm font-semibold text-slate-600';
+};
+
+const getStatusBadgeClasses = (status: string) => {
+  if (status === 'active')
+    return 'inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-sm font-semibold text-emerald-700';
+  if (status === 'inactive')
+    return 'inline-flex rounded-full bg-slate-200 px-2 py-0.5 text-sm font-semibold text-slate-600';
+  return 'inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-sm font-semibold text-slate-700';
+};
+
+const formatRelativeTime = (iso?: string) => {
+  if (!iso) return 'Unknown';
+  try {
+    const then = new Date(iso).getTime();
+    const now = Date.now();
+    const diff = Math.floor((now - then) / 1000);
+    if (diff < 60) return `${diff}s ago`;
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    return `${Math.floor(diff / 86400)}d ago`;
+  } catch {
+    return iso;
+  }
+};
+
+const formatMonthYear = (iso?: string) => {
+  if (!iso) return 'Unknown';
+  try {
+    const d = new Date(iso);
+    return d.toLocaleString(undefined, { month: 'short', year: 'numeric' });
+  } catch {
+    return iso;
+  }
+};
+
+const formatCoordinates = (lat: number, lon: number) => {
+  const latSuffix = lat < 0 ? 'S' : 'N';
+  const lonSuffix = lon < 0 ? 'W' : 'E';
+  return `${Math.abs(lat).toFixed(4)}°${latSuffix} ${Math.abs(lon).toFixed(4)}°${lonSuffix}`;
+};
+
 const StatLine = ({
   label,
   value,
@@ -313,7 +360,9 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
         {selectedMonitor && (
           <div className="rounded-xl border border-slate-200 bg-white">
             <div className="border-b border-slate-200 p-4">
-              <div className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700">
+              <div
+                className={getBadgeClassesForMonitorType(selectedMonitor.type)}
+              >
                 {selectedMonitor.type} Monitor
               </div>
               <h3 className="mt-2 text-2xl font-bold leading-tight text-slate-900 sm:text-3xl">
@@ -336,14 +385,16 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
               <StatLine
                 label="Status"
                 value={
-                  <span className="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-sm font-semibold text-emerald-700">
+                  <span
+                    className={getStatusBadgeClasses(selectedMonitor.status)}
+                  >
                     {selectedMonitor.status}
                   </span>
                 }
               />
               <StatLine
                 label="Last Active"
-                value={selectedMonitor.lastActive}
+                value={formatRelativeTime(selectedMonitor.lastActive)}
               />
             </div>
 
@@ -375,9 +426,15 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
               <StatLine label="Land Use" value={selectedMonitor.landUse} />
               <StatLine
                 label="Coordinates"
-                value={`${selectedMonitor.latitude.toFixed(4)}°N ${selectedMonitor.longitude.toFixed(4)}°E`}
+                value={formatCoordinates(
+                  selectedMonitor.latitude,
+                  selectedMonitor.longitude,
+                )}
               />
-              <StatLine label="Deployed" value={selectedMonitor.deployed} />
+              <StatLine
+                label="Deployed"
+                value={formatMonthYear(selectedMonitor.deployed)}
+              />
             </div>
 
             <div className="border-b border-slate-200 p-4">
@@ -386,7 +443,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
               </h4>
               <StatLine
                 label="Last Date"
-                value={selectedMonitor.calibrationLastDate}
+                value={formatMonthYear(selectedMonitor.calibrationLastDate)}
               />
               <StatLine
                 label="Method"
@@ -409,7 +466,12 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
               <div className="mt-3 grid grid-cols-1 gap-2">
                 <button
                   type="button"
-                  onClick={() => window.open(VERTEX_APP_URL, '_blank')}
+                  onClick={() =>
+                    window.open(
+                      selectedMonitor.viewDataUrl ?? VERTEX_APP_URL,
+                      '_blank',
+                    )
+                  }
                   className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700"
                 >
                   View data

@@ -20,7 +20,10 @@ const NetworkCoverageLegend: React.FC<NetworkCoverageLegendProps> = ({
             <span className="h-2.5 w-2.5 rounded-full bg-blue-600" /> LCS
           </div>
           <div className="flex w-full items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-emerald-600" />
+            <span
+              className="h-2.5 w-2.5 rounded-full"
+              style={{ backgroundColor: '#12A86B' }}
+            />
             Reference
           </div>
           <div className="flex w-full items-center gap-2">

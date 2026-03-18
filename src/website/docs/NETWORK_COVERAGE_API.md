@@ -41,7 +41,14 @@ Returns all countries and monitor points used for:
 ### Query parameters (optional)
 
 - `search` (string): search by country/city/station/network
-- `activeOnly` (boolean): return active monitors only
+- `activeOnly` (boolean query string): filter to active monitors only when set to the string `"true"`.
+
+  Notes: Query parameters are serialized as strings. The backend MUST accept the following case-insensitive string values for `activeOnly`:
+  - `true` — return only active monitors
+  - `false` — return active and inactive monitors (no filtering)
+
+  If `activeOnly` is omitted, the service SHOULD return both active and inactive monitors (i.e., do not filter by activity). Treat unknown values as `false` (no filtering).
+
 - `types` (csv): one or more values from `Reference,LCS,Inactive`
 
 ### Response shape
@@ -170,7 +177,10 @@ Useful if countries are loaded first and monitor list is loaded per selected cou
 
 ### Query parameters (optional)
 
-- `activeOnly` (boolean)
+- `activeOnly` (boolean query string)
+
+  Notes: Accept the case-insensitive strings `"true"` or `"false"`. When `"true"`, return only active monitors. When omitted or any other value, return both active and inactive monitors.
+
 - `types` (csv)
 
 ### Response shape
@@ -194,7 +204,10 @@ The page currently supports CSV/PDF exports from the header. If export should be
 ### Query parameters (optional)
 
 - `countryId` (string)
-- `activeOnly` (boolean)
+- `activeOnly` (boolean query string)
+
+  Notes: Accept the case-insensitive strings `"true"` or `"false"`. When `"true"`, return only active monitors. When omitted or any other value, return both active and inactive monitors.
+
 - `types` (csv)
 - `search` (string)
 
