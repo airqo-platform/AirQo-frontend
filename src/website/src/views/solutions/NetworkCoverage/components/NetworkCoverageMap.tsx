@@ -57,12 +57,12 @@ const monitorNodeMarkup = (
   selected: boolean,
 ) => {
   const icon = isOnline
-    ? `<svg viewBox="0 0 24 24" aria-hidden="true" style="width:24px;height:24px;color:${ringColor};"><path fill="currentColor" d="M12 18.2a1.2 1.2 0 1 0 0 2.4a1.2 1.2 0 0 0 0-2.4Zm0-4.1a4.7 4.7 0 0 0-3.35 1.4a1 1 0 1 0 1.4 1.42a2.7 2.7 0 0 1 3.9 0a1 1 0 0 0 1.4-1.42A4.7 4.7 0 0 0 12 14.1Zm0-4.5a9.2 9.2 0 0 0-6.54 2.7a1 1 0 1 0 1.41 1.42a7.2 7.2 0 0 1 10.26 0a1 1 0 1 0 1.41-1.42A9.2 9.2 0 0 0 12 9.6Z"/></svg>`
-    : `<svg viewBox="0 0 24 24" aria-hidden="true" style="width:24px;height:24px;color:${ringColor};"><path fill="currentColor" d="M3.7 3.7a1 1 0 0 0-1.4 1.4l2.35 2.35a9.1 9.1 0 0 0-.6.5a1 1 0 0 0 1.41 1.42c.11-.1.22-.2.34-.29l1.45 1.45a4.8 4.8 0 0 0-1.9 1.14a1 1 0 1 0 1.41 1.42a2.8 2.8 0 0 1 1.93-.8l1.26 1.26a1.2 1.2 0 1 0 1.43 1.43l1.29 1.29a1.2 1.2 0 0 0 1.7-1.7l-11-11Zm8.3 7.8a4.8 4.8 0 0 1 2.6.78a1 1 0 0 0 1.07-1.69a6.8 6.8 0 0 0-3.67-1.09a1 1 0 1 0 0 2Zm0-4.4a9.2 9.2 0 0 1 6.54 2.7a1 1 0 0 0 1.41-1.42A11.2 11.2 0 0 0 12 5.1a1 1 0 1 0 0 2Z"/></svg>`;
+    ? `<svg viewBox="0 0 24 24" aria-hidden="true" style="width:20px;height:20px;color:${ringColor};"><path fill="currentColor" d="M12 18.2a1.2 1.2 0 1 0 0 2.4a1.2 1.2 0 0 0 0-2.4Zm0-4.1a4.7 4.7 0 0 0-3.35 1.4a1 1 0 1 0 1.4 1.42a2.7 2.7 0 0 1 3.9 0a1 1 0 0 0 1.4-1.42A4.7 4.7 0 0 0 12 14.1Zm0-4.5a9.2 9.2 0 0 0-6.54 2.7a1 1 0 1 0 1.41 1.42a7.2 7.2 0 0 1 10.26 0a1 1 0 1 0 1.41-1.42A9.2 9.2 0 0 0 12 9.6Z"/></svg>`
+    : `<svg viewBox="0 0 24 24" aria-hidden="true" style="width:20px;height:20px;color:${ringColor};"><path fill="currentColor" d="M3.7 3.7a1 1 0 0 0-1.4 1.4l2.35 2.35a9.1 9.1 0 0 0-.6.5a1 1 0 0 0 1.41 1.42c.11-.1.22-.2.34-.29l1.45 1.45a4.8 4.8 0 0 0-1.9 1.14a1 1 0 1 0 1.41 1.42a2.8 2.8 0 0 1 1.93-.8l1.26 1.26a1.2 1.2 0 1 0 1.43 1.43l1.29 1.29a1.2 1.2 0 0 0 1.7-1.7l-11-11Zm8.3 7.8a4.8 4.8 0 0 1 2.6.78a1 1 0 0 0 1.07-1.69a6.8 6.8 0 0 0-3.67-1.09a1 1 0 1 0 0 2Zm0-4.4a9.2 9.2 0 0 1 6.54 2.7a1 1 0 0 0 1.41-1.42A11.2 11.2 0 0 0 12 5.1a1 1 0 1 0 0 2Z"/></svg>`;
 
-  return `<div style="position:relative;transition:transform .2s;transform:${selected ? 'scale(1.12)' : 'scale(1)'};"><span style="display:grid;place-items:center;height:52px;width:52px;border-radius:9999px;border:2px solid ${ringColor};background:#fff;box-shadow:0 6px 14px rgba(15,23,42,.24);${selected ? 'box-shadow:0 0 0 7px rgba(59,130,246,.2),0 6px 14px rgba(15,23,42,.24);' : ''}">${icon}</span>${
+  return `<div style="position:relative;transition:transform .2s;transform:${selected ? 'scale(1.08)' : 'scale(1)'};"><span style="display:grid;place-items:center;height:46px;width:46px;border-radius:9999px;border:2px solid ${ringColor};background:#fff;box-shadow:0 6px 14px rgba(15,23,42,.24);${selected ? 'box-shadow:0 0 0 6px rgba(59,130,246,.2),0 6px 14px rgba(15,23,42,.24);' : ''}">${icon}</span>${
     count > 1
-      ? `<span style="position:absolute;right:-5px;top:-5px;border-radius:9999px;background:#2563eb;color:#fff;font-weight:700;font-size:12px;line-height:1;padding:4px 7px;">+${count - 1}</span>`
+      ? `<span style="position:absolute;right:-5px;top:-5px;border-radius:9999px;background:#2563eb;color:#fff;font-weight:700;font-size:11px;line-height:1;padding:3px 6px;">+${count - 1}</span>`
       : ''
   }</div>`;
 };

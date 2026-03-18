@@ -1,8 +1,4 @@
-import {
-  AqDownload01,
-  AqMarkerPin01,
-  AqSearchRefraction,
-} from '@airqo/icons-react';
+import { AqMarkerPin01, AqSearchRefraction } from '@airqo/icons-react';
 import React from 'react';
 import { FiChevronLeft, FiX } from 'react-icons/fi';
 
@@ -23,11 +19,11 @@ const StatLine = ({
   label: string;
   value: React.ReactNode;
 }) => (
-  <div className="grid grid-cols-[120px_1fr] gap-2 py-1.5 text-[14px] sm:grid-cols-[145px_1fr] sm:text-[15px]">
-    <span className="font-semibold uppercase tracking-[0.08em] text-slate-500">
+  <div className="grid grid-cols-[112px_1fr] gap-2 py-1 text-[14px] sm:grid-cols-[130px_1fr] sm:text-[15px]">
+    <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-500 sm:text-xs">
       {label}
     </span>
-    <span className="text-slate-900">{value}</span>
+    <span className="text-[15px] text-slate-900 sm:text-base">{value}</span>
   </div>
 );
 
@@ -46,7 +42,6 @@ interface NetworkCoverageSidebarProps {
   onSelectMonitor: (monitorId: string, countryId: string) => void;
   onClosePrompt: () => void;
   onResetToOverview: () => void;
-  onDownloadCsv: () => void;
 }
 
 const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
@@ -64,7 +59,6 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
   onSelectMonitor,
   onClosePrompt,
   onResetToOverview,
-  onDownloadCsv,
 }) => {
   const monitoredCountriesCount = countries.filter(
     (country) => country.monitors.length > 0,
@@ -270,7 +264,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
 
         {selectedCountry && !selectedMonitor && (
           <div className="space-y-3">
-            <div className="rounded-xl border border-slate-200 bg-white p-3">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
               <h3 className="text-[24px] font-semibold leading-7 text-slate-900 sm:text-[26px]">
                 {selectedCountry.country}
               </h3>
@@ -332,7 +326,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
             </div>
 
             <div className="border-b border-slate-200 p-4">
-              <h4 className="mb-1 text-sm font-bold uppercase tracking-[0.08em] text-slate-500 sm:text-base">
+              <h4 className="mb-2 text-xs font-bold uppercase tracking-[0.08em] text-slate-500 sm:text-sm">
                 Network
               </h4>
               <p className="mb-2 text-[15px] font-semibold text-slate-900">
@@ -354,7 +348,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
             </div>
 
             <div className="border-b border-slate-200 p-4">
-              <h4 className="mb-1 text-sm font-bold uppercase tracking-[0.08em] text-slate-500 sm:text-base">
+              <h4 className="mb-2 text-xs font-bold uppercase tracking-[0.08em] text-slate-500 sm:text-sm">
                 Equipment
               </h4>
               <StatLine label="Instrument" value={selectedMonitor.equipment} />
@@ -374,7 +368,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
             </div>
 
             <div className="border-b border-slate-200 p-4">
-              <h4 className="mb-1 text-sm font-bold uppercase tracking-[0.08em] text-slate-500 sm:text-base">
+              <h4 className="mb-2 text-xs font-bold uppercase tracking-[0.08em] text-slate-500 sm:text-sm">
                 Location
               </h4>
               <StatLine label="Site" value={selectedMonitor.site} />
@@ -387,7 +381,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
             </div>
 
             <div className="border-b border-slate-200 p-4">
-              <h4 className="mb-1 text-sm font-bold uppercase tracking-[0.08em] text-slate-500 sm:text-base">
+              <h4 className="mb-2 text-xs font-bold uppercase tracking-[0.08em] text-slate-500 sm:text-sm">
                 Calibration
               </h4>
               <StatLine
@@ -405,24 +399,17 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
             </div>
 
             <div className="border-b border-slate-200 p-4">
-              <h4 className="mb-1 text-sm font-bold uppercase tracking-[0.08em] text-slate-500 sm:text-base">
+              <h4 className="mb-2 text-xs font-bold uppercase tracking-[0.08em] text-slate-500 sm:text-sm">
                 Data Access
               </h4>
               <StatLine
                 label="Public Data"
                 value={selectedMonitor.publicData}
               />
-              <div className="mt-3 grid grid-cols-2 gap-2">
+              <div className="mt-3 grid grid-cols-1 gap-2">
                 <button
                   type="button"
-                  onClick={onDownloadCsv}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-3 py-2.5 text-sm font-semibold text-white"
-                >
-                  <AqDownload01 className="h-4 w-4" />
-                  Download data
-                </button>
-                <button
-                  type="button"
+                  onClick={() => window.open(VERTEX_APP_URL, '_blank')}
                   className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700"
                 >
                   View data
@@ -431,7 +418,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
             </div>
 
             <div className="p-4">
-              <h4 className="mb-1 text-sm font-bold uppercase tracking-[0.08em] text-slate-500 sm:text-base">
+              <h4 className="mb-2 text-xs font-bold uppercase tracking-[0.08em] text-slate-500 sm:text-sm">
                 Contact
               </h4>
               <StatLine

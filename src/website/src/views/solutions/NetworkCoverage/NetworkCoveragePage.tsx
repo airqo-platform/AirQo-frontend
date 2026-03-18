@@ -256,7 +256,6 @@ const NetworkCoveragePage = () => {
               onSelectMonitor={selectMonitor}
               onClosePrompt={() => setShowAddMonitorPromptFor(null)}
               onResetToOverview={resetToOverview}
-              onDownloadCsv={() => handleDownload('csv')}
             />
           </div>
 

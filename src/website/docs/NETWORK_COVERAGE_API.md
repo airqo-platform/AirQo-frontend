@@ -1,104 +1,220 @@
-# Network Coverage API (Minimum Scope)
+# Network Coverage API Contract (Backend Required Fields)
 
-This is the trimmed API contract for only what the Coverage page needs now.
+This document defines the backend payload contract needed for the current and enhanced Network Coverage experience.
+
+## Scope
+
+This contract supports:
+
+- map rendering (monitor nodes and choropleth coverage)
+- country selection from sidebar
+- monitor selection from map node or sidebar item
+- full monitor detail panel rendering
+- header export actions
+- View data action on monitor details
 
 ## Base
 
 - Base URL example: `https://api.airqo.net/v2`
-- Response content type: `application/json`
+- Content type: `application/json` (except file exports)
 - Timestamp format: ISO 8601 UTC
+- Coordinates: decimal degrees (`latitude`, `longitude`)
 
-## 1) Coverage + Monitors Payload
+## Enumerations
+
+```ts
+type MonitorType = 'Reference' | 'LCS' | 'Inactive';
+type MonitorStatus = 'active' | 'inactive';
+type YesNo = 'Yes' | 'No';
+```
+
+## 1) Coverage + Monitor List (Primary Page Payload)
 
 `GET /network-coverage`
 
-Returns all data needed to render:
+Returns all countries and monitor points used for:
 
-- country sidebar list
-- choropleth shading (count per country)
+- left sidebar country list and monitor list
 - map monitor nodes
+- choropleth monitor count per country (computed as `country.monitors.length`)
 
-### Query Parameters
+### Query parameters (optional)
 
-- `search` (optional, string)
-- `activeOnly` (optional, boolean)
-- `types` (optional, csv enum): `Reference,LCS,Inactive`
+- `search` (string): search by country/city/station/network
+- `activeOnly` (boolean): return active monitors only
+- `types` (csv): one or more values from `Reference,LCS,Inactive`
 
-### Response
+### Response shape
+
+```ts
+type NetworkCoverageResponse = {
+  countries: CountryCoverage[];
+  meta?: {
+    totalCountries?: number;
+    monitoredCountries?: number;
+    generatedAt?: string;
+  };
+};
+
+type CountryCoverage = {
+  id: string; // slug, e.g. "uganda"
+  country: string; // e.g. "Uganda"
+  iso2: string; // ISO 3166-1 alpha-2, e.g. "UG"
+  monitors: MonitorListItem[];
+};
+
+type MonitorListItem = {
+  id: string;
+  name: string;
+  city: string;
+  country: string;
+  iso2: string;
+  latitude: number;
+  longitude: number;
+  type: MonitorType;
+  status: MonitorStatus;
+  lastActive: string;
+
+  // Required because the details panel and monitor cards rely on these values.
+  network: string;
+  operator: string;
+  equipment: string;
+  manufacturer: string;
+  pollutants: string[];
+  resolution: string;
+  transmission: string;
+  site: string;
+  landUse: string;
+  deployed: string;
+  calibrationLastDate: string;
+  calibrationMethod: string;
+  uptime30d: string;
+  publicData: YesNo;
+  organisation: string;
+  coLocation: string;
+  coLocationNote: string;
+
+  // Required for View data action.
+  viewDataUrl?: string;
+};
+```
+
+### Minimal response example
 
 ```json
 {
   "countries": [
     {
-      "id": "uganda",
-      "country": "Uganda",
-      "iso2": "UG",
-      "monitorCount": 6,
+      "id": "egypt",
+      "country": "Egypt",
+      "iso2": "EG",
       "monitors": [
         {
-          "id": "ug-kcca-ref-01",
-          "name": "KCCA Nakawa Reference Station",
-          "country": "Uganda",
-          "iso2": "UG",
-          "city": "Kampala",
-          "latitude": 0.3314,
-          "longitude": 32.618,
+          "id": "eg-cairo-ref-01",
+          "name": "Cairo Reference Node",
+          "city": "Cairo",
+          "country": "Egypt",
+          "iso2": "EG",
+          "latitude": 30.0444,
+          "longitude": 31.2357,
           "type": "Reference",
           "status": "active",
-          "lastActive": "2026-03-18T10:21:00Z"
+          "lastActive": "2026-03-18T10:21:00Z",
+          "network": "Cairo AQ",
+          "operator": "Government",
+          "equipment": "AQM 65",
+          "manufacturer": "Aeroqual",
+          "pollutants": ["PM2.5", "PM10", "NO2"],
+          "resolution": "Hourly",
+          "transmission": "Fiber",
+          "site": "Downtown Cairo municipality tower",
+          "landUse": "Urban",
+          "deployed": "Dec 2020",
+          "calibrationLastDate": "Sep 2025",
+          "calibrationMethod": "Annual lab calibration",
+          "uptime30d": "96%",
+          "publicData": "Yes",
+          "organisation": "Egyptian Environmental Affairs Agency",
+          "coLocation": "Not available",
+          "coLocationNote": "Public agency restricted access site.",
+          "viewDataUrl": "https://vertex.airqo.net"
         }
       ]
     }
   ],
   "meta": {
     "totalCountries": 54,
-    "monitoredCountries": 7
+    "monitoredCountries": 7,
+    "generatedAt": "2026-03-18T10:21:00Z"
   }
 }
 ```
 
-## 2) Monitor Detail Payload (Sidebar)
+## 2) Monitor Detail (Optional if full fields already in list)
 
 `GET /network-coverage/monitors/{monitorId}`
 
-Returns detailed monitor information for the selected monitor sidebar panel.
+Use this when monitor details are fetched on demand instead of being embedded in the list payload.
 
-### Response
+### Response shape
 
-```json
-{
-  "id": "ug-kcca-ref-01",
-  "name": "KCCA Nakawa Reference Station",
-  "city": "Kampala",
-  "country": "Uganda",
-  "iso2": "UG",
-  "latitude": 0.3314,
-  "longitude": 32.618,
-  "type": "Reference",
-  "status": "active",
-  "lastActive": "2026-03-18T10:21:00Z"
-}
+```ts
+type MonitorDetailResponse = MonitorListItem;
 ```
 
-## 3) Export Data
+## 3) Country Monitor List (Optional convenience endpoint)
 
-`GET /network-coverage/export.csv`
+`GET /network-coverage/countries/{countryId}/monitors`
 
-`GET /network-coverage/export.pdf`
+Useful if countries are loaded first and monitor list is loaded per selected country.
 
-### Query Parameters
+### Query parameters (optional)
 
-- `countryId` (optional)
-- `activeOnly` (optional, boolean)
-- `types` (optional, csv enum): `Reference,LCS,Inactive`
+- `activeOnly` (boolean)
+- `types` (csv)
 
-### CSV Header
+### Response shape
+
+```ts
+type CountryMonitorsResponse = {
+  countryId: string;
+  country: string;
+  iso2: string;
+  monitors: MonitorListItem[];
+};
+```
+
+## 4) Export Endpoints (Header action)
+
+The page currently supports CSV/PDF exports from the header. If export should be server-generated:
+
+- `GET /network-coverage/export.csv`
+- `GET /network-coverage/export.pdf`
+
+### Query parameters (optional)
+
+- `countryId` (string)
+- `activeOnly` (boolean)
+- `types` (csv)
+- `search` (string)
+
+### CSV header
 
 ```csv
 Country,City,Monitor Name,Type,Status,Latitude,Longitude,Last Active
 ```
 
-## Error Shape
+## Interaction Requirements for Backend
+
+- When user clicks a map node or a monitor item from sidebar, the selected monitor record must contain all detail fields required by the detail panel.
+- `id` must be globally unique and stable across requests.
+- `iso2` must be valid ISO alpha-2 code so map-country selection works correctly.
+- `latitude` and `longitude` must always be numeric (not strings).
+- `pollutants` must be a non-null array (empty array if unknown).
+- `publicData` must be either `Yes` or `No`.
+- `viewDataUrl` should be returned when available to make the View data button resolve to monitor-specific data.
+
+## Error envelope
 
 ```json
 {
@@ -108,3 +224,10 @@ Country,City,Monitor Name,Type,Status,Latitude,Longitude,Last Active
   }
 }
 ```
+
+Recommended common codes:
+
+- `BAD_REQUEST`
+- `NOT_FOUND`
+- `UNAUTHORIZED`
+- `INTERNAL_ERROR`
