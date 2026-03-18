@@ -44,15 +44,17 @@ class KyaLessonContainer extends StatelessWidget {
                           : Colors.white,
                       borderRadius: BorderRadius.circular(4)),
                   width: 240,
-                  height: 116,
+                  constraints: const BoxConstraints(minHeight: 116),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       TranslatedText(kyaLesson.title,
                           style: TextStyle(
-                              fontWeight: FontWeight.w600, fontSize: 16)),
-                      Spacer(),
+                              fontWeight: FontWeight.w600, fontSize: 16),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis),
+                      const SizedBox(height: 12),
                       Row(
                         children: [
                           Container(

@@ -212,9 +212,12 @@ class _DashboardHeaderState extends State<DashboardHeader> {
           return Row(
             children: [
               TranslatedText("Hi", style: greetingStyle),
-              Text(
-                " ${userState.model.users[0].firstName} 👋",
-                style: greetingStyle,
+              Flexible(
+                child: Text(
+                  " ${userState.model.users[0].firstName} 👋",
+                  style: greetingStyle,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           );

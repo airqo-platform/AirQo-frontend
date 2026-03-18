@@ -182,6 +182,8 @@ class CardContent extends StatelessWidget {
                       fontSize: 24,
                       fontWeight: FontWeight.w700,
                       color: Colors.black),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 SizedBox(height: 8),
                 TranslatedText(
@@ -190,6 +192,8 @@ class CardContent extends StatelessWidget {
                       fontSize: 20,
                       fontWeight: FontWeight.w500,
                       color: Colors.black),
+                  maxLines: 4,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 SizedBox(height: 4),
               ],
