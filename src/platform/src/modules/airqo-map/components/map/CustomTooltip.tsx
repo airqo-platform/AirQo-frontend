@@ -16,7 +16,7 @@ import { getMonitorMetadata } from '@/modules/airqo-map/utils/monitorMetadata';
 
 interface CustomTooltipProps {
   data: AirQualityReading | ClusterData | null;
-  children: React.ReactNode;
+  children: React.ReactElement;
   className?: string;
   selectedPollutant?: PollutantType;
   onTooltipAction?: (data: AirQualityReading | ClusterData) => void;
@@ -25,27 +25,19 @@ interface CustomTooltipProps {
   forceOpen?: boolean;
 }
 
-const formatValue = (value: number): string => {
-  return formatRoundedNumber(value, 1);
-};
+const formatValue = (value: number): string => formatRoundedNumber(value, 1);
 
 const formatDate = (date: Date | string): string => {
   try {
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-
-    // Check if the date is valid
-    if (isNaN(dateObj.getTime())) {
-      return 'Invalid date';
-    }
-
+    const d = typeof date === 'string' ? new Date(date) : date;
+    if (isNaN(d.getTime())) return 'Invalid date';
     return new Intl.DateTimeFormat('en-US', {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-    }).format(dateObj);
-  } catch (error) {
-    console.warn('Error formatting date:', error, date);
+    }).format(d);
+  } catch {
     return 'Invalid date';
   }
 };
@@ -56,7 +48,6 @@ const getTooltipContent = (
   onTooltipAction?: (data: AirQualityReading | ClusterData) => void,
   showZoomHint = false
 ) => {
-  // Check if it's a cluster
   const isCluster = 'readings' in data && 'pointCount' in data;
 
   if (isCluster) {
@@ -70,20 +61,16 @@ const getTooltipContent = (
       return (
         <div className="p-2 min-w-[250px] w-full max-w-[350px]">
           <div className="text-left mb-2">
-            <div className="text-xs text-gray-500">
-              {formatDate(new Date())}
-            </div>
+            <div className="text-xs text-gray-500">{formatDate(new Date())}</div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-primary rounded-full flex-shrink-0"></div>
+              <div className="w-3 h-3 bg-primary rounded-full flex-shrink-0" />
               <div className="font-medium text-gray-900 text-sm">
                 Cluster ({cluster.pointCount} stations)
               </div>
             </div>
           </div>
-          <div className="text-left">
-            <div className="text-sm text-gray-500">
-              No data available for {getPollutantLabel(selectedPollutant)}
-            </div>
+          <div className="text-sm text-gray-500">
+            No data available for {getPollutantLabel(selectedPollutant)}
           </div>
         </div>
       );
@@ -105,40 +92,31 @@ const getTooltipContent = (
         <div className="text-left mb-2">
           <div className="text-xs text-gray-500">{formatDate(new Date())}</div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-primary rounded-full flex-shrink-0"></div>
+            <div className="w-3 h-3 bg-primary rounded-full flex-shrink-0" />
             <div className="font-medium text-gray-900 text-sm">
               Cluster ({cluster.pointCount} stations)
             </div>
           </div>
         </div>
-
         <div className="text-left w-full flex items-center justify-between">
           <div className="flex flex-col items-left gap-1 mb-1">
-            <div className="text-sm font-medium" style={{ color }}>
-              {label}
-            </div>
+            <div className="text-sm font-medium" style={{ color }}>{label}</div>
             <div className="text-sm text-gray-900">
-              {formatValue(avgValue)} µg/m³{' '}
-              {getPollutantLabel(selectedPollutant)}
+              {formatValue(avgValue)} µg/m³ {getPollutantLabel(selectedPollutant)}
             </div>
           </div>
           <div className="flex-shrink-0">
             <IconComponent className="w-9 h-9" />
           </div>
         </div>
-
         <div className="text-left mt-2 pt-2 border-t border-gray-100">
           {onTooltipAction ? (
             <button
               type="button"
               className="text-xs font-medium text-primary hover:underline"
-              onClick={event => {
-                event.preventDefault();
-                event.stopPropagation();
-                onTooltipAction(cluster);
-              }}
+              onClick={e => { e.stopPropagation(); onTooltipAction(cluster); }}
             >
-              Zoom in for node details
+              Click to zoom in and view node details
             </button>
           ) : (
             <div className="text-xs text-gray-500">Click to zoom in</div>
@@ -157,20 +135,16 @@ const getTooltipContent = (
     return (
       <div className="p-2 min-w-[250px] max-w-[350px]">
         <div className="text-left mb-2">
-          <div className="text-xs text-gray-500">
-            {formatDate(reading.lastUpdated)}
-          </div>
+          <div className="text-xs text-gray-500">{formatDate(reading.lastUpdated)}</div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-primary rounded-full flex-shrink-0"></div>
+            <div className="w-3 h-3 bg-primary rounded-full flex-shrink-0" />
             <div className="font-medium text-gray-900 text-sm">
-              {reading.locationName || 'Air Quality Station'}
+              {reading.locationName ?? 'Air Quality Station'}
             </div>
           </div>
         </div>
-        <div className="text-left">
-          <div className="text-sm text-gray-500">
-            No data available for {getPollutantLabel(selectedPollutant)}
-          </div>
+        <div className="text-sm text-gray-500">
+          No data available for {getPollutantLabel(selectedPollutant)}
         </div>
       </div>
     );
@@ -185,25 +159,20 @@ const getTooltipContent = (
   return (
     <div className="p-2 min-w-[250px] max-w-[350px]">
       <div className="text-left mb-2">
-        <div className="text-xs text-gray-500">
-          {formatDate(reading.lastUpdated)}
-        </div>
+        <div className="text-xs text-gray-500">{formatDate(reading.lastUpdated)}</div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-primary rounded-full flex-shrink-0"></div>
+          <div className="w-3 h-3 bg-primary rounded-full flex-shrink-0" />
           <div className="font-medium text-gray-900 text-sm">
-            {reading.locationName || 'Air Quality Station'}
+            {reading.locationName ?? 'Air Quality Station'}
           </div>
         </div>
       </div>
 
       <div className="text-left flex items-center justify-between w-full">
         <div className="flex flex-col items-left gap-1 mb-1">
-          <div className="text-sm font-medium" style={{ color }}>
-            {label}
-          </div>
+          <div className="text-sm font-medium" style={{ color }}>{label}</div>
           <div className="text-sm text-gray-900">
-            {formatValue(pollutantValue)} µg/m³{' '}
-            {getPollutantLabel(selectedPollutant)}
+            {formatValue(pollutantValue)} µg/m³ {getPollutantLabel(selectedPollutant)}
           </div>
         </div>
         <div className="flex-shrink-0" style={{ color }}>
@@ -212,28 +181,20 @@ const getTooltipContent = (
       </div>
 
       <div className="text-left mt-2 pt-2 border-t border-gray-100 space-y-2">
-        <div className="text-xs text-gray-500">
-          Source: {monitorMetadata.provider}
-        </div>
+        <div className="text-xs text-gray-500">Source: {monitorMetadata.provider}</div>
 
-        {(monitorMetadata.primaryCategory ||
-          monitorMetadata.deploymentCategory) && (
+        {(monitorMetadata.primaryCategory || monitorMetadata.deploymentCategory) && (
           <div className="grid grid-cols-2 gap-2">
             <div className="rounded-md border border-gray-100 bg-gray-50 px-2 py-1">
-              <div className="text-[10px] uppercase tracking-wide text-gray-500">
-                Category
-              </div>
+              <div className="text-[10px] uppercase tracking-wide text-gray-500">Category</div>
               <div className="text-xs font-semibold text-gray-800">
-                {monitorMetadata.primaryCategory || 'N/A'}
+                {monitorMetadata.primaryCategory ?? 'N/A'}
               </div>
             </div>
-
             <div className="rounded-md border border-gray-100 bg-gray-50 px-2 py-1">
-              <div className="text-[10px] uppercase tracking-wide text-gray-500">
-                Deployment
-              </div>
+              <div className="text-[10px] uppercase tracking-wide text-gray-500">Deployment</div>
               <div className="text-xs font-semibold text-gray-800">
-                {monitorMetadata.deploymentCategory || 'N/A'}
+                {monitorMetadata.deploymentCategory ?? 'N/A'}
               </div>
             </div>
           </div>
@@ -246,25 +207,31 @@ const getTooltipContent = (
         )}
 
         {onTooltipAction && (
-          <div>
-            <button
-              type="button"
-              className="text-xs font-medium text-primary hover:underline"
-              onClick={event => {
-                event.preventDefault();
-                event.stopPropagation();
-                onTooltipAction(reading);
-              }}
-            >
-              Click node for more information
-            </button>
-          </div>
+          <button
+            type="button"
+            className="text-xs font-medium text-primary hover:underline"
+            onClick={e => { e.stopPropagation(); onTooltipAction(reading); }}
+          >
+            Click node for more information
+          </button>
         )}
       </div>
     </div>
   );
 };
 
+/**
+ * CustomTooltip — wraps a map node with hover or pinned tooltips.
+ *
+ * DESIGN DECISIONS:
+ * - children is typed as ReactElement (not ReactNode) because Flowbite's
+ *   Tooltip requires a single element child.
+ * - The Flowbite Tooltip wrapper is only used in hover mode. For pinned/forced
+ *   open state, we render a custom absolute-positioned bubble instead.
+ * - The tooltip popup in forceOpen mode uses pointer-events:none at the container
+ *   level so it never intercepts clicks on the map node beneath it. Interactive
+ *   elements (buttons) inside re-enable pointer-events individually.
+ */
 export const CustomTooltip: React.FC<CustomTooltipProps> = ({
   data,
   children,
@@ -275,9 +242,7 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
   showZoomHint = false,
   forceOpen = false,
 }) => {
-  if (!data) {
-    return <>{children}</>;
-  }
+  if (!data) return children;
 
   const tooltipContent = getTooltipContent(
     data,
@@ -286,32 +251,25 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
     showZoomHint
   );
 
-  const target = (
-    <div className="inline-block relative z-[1] isolate pointer-events-auto">
-      {children}
-    </div>
-  );
-
+  // Pinned (post-click) mode: absolute bubble above the node
   if (forceOpen) {
     return (
       <div
-        className={cn('relative inline-block pointer-events-auto', className)}
+        className={cn('relative inline-flex items-center justify-center', className)}
         onMouseEnter={() => onTooltipHoverChange?.(true)}
-        onMouseLeave={event => {
-          const nextTarget = event.relatedTarget;
-          if (
-            nextTarget instanceof Element &&
-            (nextTarget.closest('[data-testid="flowbite-tooltip"]') ||
-              nextTarget.closest('[data-testid="flowbite-tooltip-target"]'))
-          ) {
-            return;
-          }
-          onTooltipHoverChange?.(false);
-        }}
+        onMouseLeave={() => onTooltipHoverChange?.(false)}
       >
-        {target}
-        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 z-[10000000] pointer-events-auto">
-          <div className="rounded-lg border border-gray-200 bg-white text-gray-900 shadow-lg">
+        {children}
+        {/*
+         * pointer-events: none on the container prevents the tooltip bubble
+         * from blocking clicks on the node below it.
+         * Interactive elements inside (buttons) re-enable via pointer-events-auto.
+         */}
+        <div
+          className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 z-[9999] pointer-events-none"
+          aria-live="polite"
+        >
+          <div className="rounded-lg border border-gray-200 bg-white text-gray-900 shadow-lg pointer-events-auto">
             {tooltipContent}
           </div>
         </div>
@@ -319,32 +277,20 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
     );
   }
 
+  // Default hover mode: Flowbite Tooltip
   return (
     <Tooltip
       content={tooltipContent}
       placement="top"
       style="light"
       onMouseEnter={() => onTooltipHoverChange?.(true)}
-      onMouseLeave={event => {
-        const nextTarget = event.relatedTarget;
-        if (
-          nextTarget instanceof Element &&
-          (nextTarget.closest('[data-testid="flowbite-tooltip"]') ||
-            nextTarget.closest('[data-testid="flowbite-tooltip-target"]'))
-        ) {
-          return;
-        }
-        onTooltipHoverChange?.(false);
-      }}
-      className={cn(
-        'z-[10000000] !important transform-gpu pointer-events-auto',
-        className
-      )}
+      onMouseLeave={() => onTooltipHoverChange?.(false)}
+      className={cn('z-[9999]', className)}
       trigger="hover"
-      arrow={true}
+      arrow
       animation="duration-150"
     >
-      {target}
+      {children}
     </Tooltip>
   );
 };

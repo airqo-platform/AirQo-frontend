@@ -7,8 +7,8 @@ import {
   getAirQualityIcon,
 } from '@/shared/utils/airQuality';
 import { CustomTooltip } from './CustomTooltip';
+import type { PollutantType } from '@/shared/utils/airQuality';
 
-// Consolidated component for rendering both individual nodes and clusters
 export interface AirQualityReading {
   id: string;
   siteId: string;
@@ -28,9 +28,7 @@ export interface AirQualityReading {
   aqiColor?: string;
   pollutantValue?: number;
   pollutantType?: 'pm2_5' | 'pm10';
-  // Add reference to full reading data for details panel
   fullReadingData?: import('../../../../shared/types/api').MapReading;
-  // WAQI forecast data
   forecastData?: import('../../../../shared/types/api').ForecastData[];
 }
 
@@ -43,12 +41,8 @@ export interface ClusterData {
   mostCommonLevel?: string;
 }
 
-import type { PollutantType } from '@/shared/utils/airQuality';
-
 interface MapNodesProps {
-  // For individual nodes
   reading?: AirQualityReading;
-  // For clusters
   cluster?: ClusterData;
   size?: 'sm' | 'md' | 'lg';
   nodeType?: 'emoji' | 'heatmap' | 'node' | 'number';
@@ -58,24 +52,37 @@ interface MapNodesProps {
   isHovered?: boolean;
   className?: string;
   selectedPollutant?: PollutantType;
-  zoomLevel?: number; // Add zoom level for cluster styling
-  showZoomHint?: boolean;
+  zoomLevel?: number;
   isTooltipOpen?: boolean;
 }
 
-const getSizeClasses = (size: 'sm' | 'md' | 'lg') => {
-  switch (size) {
-    case 'sm':
-      return 'w-8 h-8';
-    case 'lg':
-      return 'w-14 h-14';
-    default:
-      return 'w-10 h-10';
-  }
+const SIZE_CLASSES: Record<'sm' | 'md' | 'lg', string> = {
+  sm: 'w-8 h-8',
+  md: 'w-10 h-10',
+  lg: 'w-14 h-14',
 };
 
-const MAP_NODE_Z_INDEX_CLASS = 'z-[20]';
+const ICON_CLASSES: Record<'sm' | 'md' | 'lg', string> = {
+  sm: 'w-5 h-5',
+  md: 'w-7 h-7',
+  lg: 'w-10 h-10',
+};
 
+// Stable shared button styles — applied directly on the DOM element, not inside a nested component
+const NODE_BUTTON_STYLE: React.CSSProperties = {
+  touchAction: 'manipulation',
+  userSelect: 'none',
+  pointerEvents: 'auto',
+  cursor: 'pointer',
+};
+
+/**
+ * CRITICAL: Do NOT define sub-components inside render functions.
+ * React treats inline component definitions as new types every render,
+ * causing unmount/remount which destroys click handlers.
+ *
+ * All rendering is done flat inside this single component.
+ */
 const MapNodesComponent: React.FC<MapNodesProps> = ({
   reading,
   cluster,
@@ -88,370 +95,199 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
   className,
   selectedPollutant = 'pm2_5',
   zoomLevel = 10,
-  showZoomHint = false,
   isTooltipOpen = false,
 }) => {
-  // Determine if this is a cluster or individual node
-  const isCluster = cluster && cluster.pointCount > 1;
-  const data = cluster || reading;
+  const isCluster = !!(cluster && cluster.pointCount > 1);
+  const data = (cluster ?? reading) as AirQualityReading | ClusterData | undefined;
 
   if (!data) return null;
 
+  // --- Stable event handlers (defined here, not inside nested components) ---
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
     onClick?.(data);
   };
 
-  const handleMouseEnter = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    onHover?.(data);
-  };
-
-  const handleMouseLeave = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    const nextTarget = e.relatedTarget;
-    if (
-      nextTarget instanceof Element &&
-      nextTarget.closest('[data-testid="flowbite-tooltip"]')
-    ) {
-      return;
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onClick?.(data);
     }
-    onHover?.(null);
   };
 
-  const handleTooltipAction = () => {
-    onClick?.(data);
-  };
+  const handleMouseEnter = () => onHover?.(data);
+  const handleMouseLeave = () => onHover?.(null);
 
-  const handleTooltipHoverChange = (isHovering: boolean) => {
-    if (isHovering) {
-      onHover?.(data);
-      return;
-    }
-    onHover?.(null);
-  };
-
-  // Render individual node
-  if (!isCluster && reading) {
-    // Determine the pollutant value based on selected pollutant
-    const pollutantValue =
-      selectedPollutant === 'pm2_5'
-        ? reading.pm25Value
-        : (reading as AirQualityReading).pm10Value;
-
-    const level = getAirQualityLevel(pollutantValue, selectedPollutant);
-    const IconComponent = getAirQualityIcon(level);
-    const sizeClasses = getSizeClasses(size);
-    const isInactive =
-      reading.status === 'inactive' || reading.status === 'maintenance';
-
-    // Different rendering based on nodeType
-    if (nodeType === 'number') {
-      return (
-        <CustomTooltip
-          data={reading}
-          selectedPollutant={selectedPollutant}
-          onTooltipAction={handleTooltipAction}
-          onTooltipHoverChange={handleTooltipHoverChange}
-          showZoomHint={showZoomHint}
-          forceOpen={isTooltipOpen}
-        >
-          <div
-            className={cn(
-              'relative cursor-pointer pointer-events-auto transition-all duration-150',
-              'hover:scale-105 active:scale-95',
-              isHovered && 'scale-105',
-              MAP_NODE_Z_INDEX_CLASS,
-              isInactive && 'opacity-60',
-              className
-            )}
-            onClick={handleClick}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-            role="button"
-            tabIndex={0}
-            onKeyDown={e => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                const syntheticEvent = e as unknown as React.MouseEvent;
-                handleClick(syntheticEvent);
-              }
-            }}
-            aria-label={`Air quality reading: ${roundDecimals(pollutantValue, 1)} ${selectedPollutant === 'pm2_5' ? 'PM2.5' : 'PM10'} at ${reading.locationName || 'Unknown location'}`}
-            style={{
-              cursor: showZoomHint ? 'zoom-in' : 'pointer',
-              touchAction: 'manipulation',
-              userSelect: 'none',
-              WebkitUserSelect: 'none',
-              MozUserSelect: 'none',
-              msUserSelect: 'none',
-            }}
-          >
-            {/* Selection indicator with clean pulse effect */}
-            {isSelected && (
-              <div className="absolute -inset-1 rounded-full">
-                <div className="absolute inset-0 rounded-full border-2 border-primary animate-pulse opacity-75" />
-                <div className="absolute inset-0 rounded-full border border-primary/50 animate-ping" />
-              </div>
-            )}
-
-            {/* Number node */}
-            <div
-              className={cn(
-                'rounded-full border-2 border-white shadow-sm flex items-center justify-center relative transition-all duration-200 font-bold text-white',
-                sizeClasses,
-                level === 'good' && 'bg-green-500',
-                level === 'moderate' && 'bg-yellow-500',
-                level === 'unhealthy-sensitive-groups' && 'bg-orange-500',
-                level === 'unhealthy' && 'bg-red-500',
-                level === 'very-unhealthy' && 'bg-purple-500',
-                level === 'hazardous' && 'bg-red-900'
-              )}
-            >
-              {roundDecimals(pollutantValue, 1)}
-            </div>
-          </div>
-        </CustomTooltip>
-      );
-    } else if (nodeType === 'node') {
-      return (
-        <CustomTooltip
-          data={reading}
-          selectedPollutant={selectedPollutant}
-          onTooltipAction={handleTooltipAction}
-          onTooltipHoverChange={handleTooltipHoverChange}
-          showZoomHint={showZoomHint}
-          forceOpen={isTooltipOpen}
-        >
-          <div
-            className={cn(
-              'relative cursor-pointer pointer-events-auto transition-all duration-150',
-              'hover:scale-105 active:scale-95',
-              isHovered && 'scale-105',
-              MAP_NODE_Z_INDEX_CLASS,
-              isInactive && 'opacity-60',
-              className
-            )}
-            onClick={handleClick}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-            role="button"
-            tabIndex={0}
-            onKeyDown={e => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                const syntheticEvent = e as unknown as React.MouseEvent;
-                handleClick(syntheticEvent);
-              }
-            }}
-            aria-label={`Air quality reading: ${roundDecimals(pollutantValue, 1)} ${selectedPollutant === 'pm2_5' ? 'PM2.5' : 'PM10'} at ${reading.locationName || 'Unknown location'}`}
-            style={{
-              cursor: showZoomHint ? 'zoom-in' : 'pointer',
-              touchAction: 'manipulation',
-              userSelect: 'none',
-              WebkitUserSelect: 'none',
-              MozUserSelect: 'none',
-              msUserSelect: 'none',
-            }}
-          >
-            {/* Selection indicator with clean pulse effect */}
-            {isSelected && (
-              <div className="absolute -inset-1 rounded-full">
-                <div className="absolute inset-0 rounded-full border-2 border-primary animate-pulse opacity-75" />
-                <div className="absolute inset-0 rounded-full border border-primary/50 animate-ping" />
-              </div>
-            )}
-
-            {/* Colored node */}
-            <div
-              className={cn(
-                'rounded-full border-2 border-white shadow-sm relative transition-all duration-200',
-                sizeClasses,
-                level === 'good' && 'bg-green-500',
-                level === 'moderate' && 'bg-yellow-500',
-                level === 'unhealthy-sensitive-groups' && 'bg-orange-500',
-                level === 'unhealthy' && 'bg-red-500',
-                level === 'very-unhealthy' && 'bg-purple-500',
-                level === 'hazardous' && 'bg-red-900'
-              )}
-            />
-          </div>
-        </CustomTooltip>
-      );
-    } else {
-      return (
-        <CustomTooltip
-          data={reading}
-          selectedPollutant={selectedPollutant}
-          onTooltipAction={handleTooltipAction}
-          onTooltipHoverChange={handleTooltipHoverChange}
-          showZoomHint={showZoomHint}
-          forceOpen={isTooltipOpen}
-        >
-          <div
-            className={cn(
-              'relative cursor-pointer pointer-events-auto transition-all duration-150',
-              'hover:scale-105 active:scale-95',
-              isHovered && 'scale-105',
-              MAP_NODE_Z_INDEX_CLASS,
-              isInactive && 'opacity-60',
-              className
-            )}
-            onClick={handleClick}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-            role="button"
-            tabIndex={0}
-            onKeyDown={e => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                const syntheticEvent = e as unknown as React.MouseEvent;
-                handleClick(syntheticEvent);
-              }
-            }}
-            aria-label={`Air quality reading: ${roundDecimals(pollutantValue, 1)} ${selectedPollutant === 'pm2_5' ? 'PM2.5' : 'PM10'} at ${reading.locationName || 'Unknown location'}`}
-            style={{
-              cursor: showZoomHint ? 'zoom-in' : 'pointer',
-              touchAction: 'manipulation',
-              userSelect: 'none',
-              WebkitUserSelect: 'none',
-              MozUserSelect: 'none',
-              msUserSelect: 'none',
-            }}
-          >
-            {/* Selection indicator with clean pulse effect */}
-            {isSelected && (
-              <div className="absolute -inset-1 rounded-full">
-                <div className="absolute inset-0 rounded-full border-2 border-primary animate-pulse opacity-75" />
-                <div className="absolute inset-0 rounded-full border border-primary/50 animate-ping" />
-              </div>
-            )}
-
-            {/* Main node */}
-            <div
-              className={cn(
-                'rounded-full border-2 border-white shadow-sm flex items-center justify-center relative transition-all duration-200 bg-white',
-                sizeClasses
-              )}
-            >
-              <IconComponent
-                className={cn(
-                  'text-gray-700',
-                  size === 'sm' && 'w-5 h-5',
-                  size === 'md' && 'w-7 h-7',
-                  size === 'lg' && 'w-10 h-10'
-                )}
-              />
-
-              {/* Status indicator for inactive nodes */}
-              {isInactive && (
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-gray-400 rounded-full border border-white">
-                  <div className="w-full h-full flex items-center justify-center">
-                    <div className="w-1 h-1 bg-white rounded-full" />
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </CustomTooltip>
-      );
-    }
-  }
-
-  // Render cluster
+  // ─── Cluster Rendering ──────────────────────────────────────────────────────
   if (isCluster && cluster) {
-    const readings = cluster.readings || [];
-    const validReadings = readings.filter(r => {
-      const val = selectedPollutant === 'pm2_5' ? r.pm25Value : r.pm10Value;
-      return val !== undefined && !isNaN(val);
-    });
+    const pollutantValues = cluster.readings
+      .map(r => (selectedPollutant === 'pm2_5' ? r.pm25Value : r.pm10Value))
+      .filter(v => v !== undefined && !isNaN(v));
 
-    if (validReadings.length === 0) return null;
+    if (pollutantValues.length === 0) return null;
 
-    const values = validReadings.map(r => {
-      return selectedPollutant === 'pm2_5' ? r.pm25Value : r.pm10Value;
-    });
+    const sortedValues = [...pollutantValues].sort((a, b) => a - b);
+    const BestIcon = getAirQualityIcon(
+      getAirQualityLevel(sortedValues[0], selectedPollutant)
+    );
+    const WorstIcon = getAirQualityIcon(
+      getAirQualityLevel(sortedValues[sortedValues.length - 1], selectedPollutant)
+    );
 
-    const sortedValues = [...values].sort((a, b) => a - b);
-
-    const bestValue = sortedValues[0];
-    const worstValue = sortedValues[sortedValues.length - 1];
-
-    const bestLevel = getAirQualityLevel(bestValue, selectedPollutant);
-    const worstLevel = getAirQualityLevel(worstValue, selectedPollutant);
-
-    const BestIcon = getAirQualityIcon(bestLevel);
-    const WorstIcon = getAirQualityIcon(worstLevel);
-
-    const totalCount = cluster.pointCount;
-    const showPlusCount = totalCount > 2;
-    const displayCount = showPlusCount
-      ? `+${totalCount - 2}`
-      : totalCount.toString();
-
-    const isHighZoom = zoomLevel >= 12;
-    const clusterSize = isHighZoom ? 'px-2 py-1' : 'px-3 py-1.5';
-    const iconSize = isHighZoom ? 'w-6 h-6' : 'w-7 h-7';
-    const textSize = isHighZoom ? 'text-sm font-bold' : 'text-base font-bold';
+    const isHighZoom = (zoomLevel ?? 10) >= 12;
+    const displayCount =
+      cluster.pointCount > 2 ? `+${cluster.pointCount - 2}` : cluster.pointCount;
 
     return (
       <CustomTooltip
         data={cluster}
         selectedPollutant={selectedPollutant}
-        onTooltipAction={handleTooltipAction}
-        onTooltipHoverChange={handleTooltipHoverChange}
+        onTooltipAction={() => onClick?.(data)}
+        onTooltipHoverChange={hovering => onHover?.(hovering ? data : null)}
       >
+        {/* 
+          Single flat div — NO nested component definition.
+          pointerEvents: auto is essential so mapbox doesn't swallow clicks.
+        */}
         <div
-          className={cn(
-            'relative flex items-center cursor-pointer pointer-events-auto transition-all duration-200',
-            'hover:scale-105 active:scale-95',
-            isHovered && 'scale-105',
-            MAP_NODE_Z_INDEX_CLASS,
-            isHighZoom && 'opacity-100',
-            className
-          )}
-          onClick={handleClick}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
           role="button"
           tabIndex={0}
-          onKeyDown={e => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              const syntheticEvent = e as unknown as React.MouseEvent;
-              handleClick(syntheticEvent);
-            }
-          }}
-          aria-label={`Cluster of ${cluster.pointCount} air quality monitoring stations`}
-          style={{
-            cursor: 'pointer',
-            touchAction: 'manipulation',
-            userSelect: 'none',
-            WebkitUserSelect: 'none',
-            MozUserSelect: 'none',
-            msUserSelect: 'none',
-            pointerEvents: 'auto',
-          }}
+          aria-label={`Cluster of ${cluster.pointCount} air quality stations. Click to zoom in.`}
+          className={cn(
+            'flex items-center bg-white rounded-full shadow-md border border-gray-200 select-none',
+            'transition-transform duration-150',
+            'hover:scale-110 active:scale-95',
+            isHovered && 'scale-110',
+            isHighZoom ? 'px-2 py-1 gap-1' : 'px-3 py-1.5 gap-1.5',
+            className
+          )}
+          style={NODE_BUTTON_STYLE}
+          onClick={handleClick}
+          onKeyDown={handleKeyDown}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
         >
-          <div
+          <div className="flex items-center">
+            <BestIcon className={isHighZoom ? 'w-6 h-6' : 'w-7 h-7'} />
+            {pollutantValues.length > 1 && (
+              <WorstIcon
+                className={cn(isHighZoom ? 'w-6 h-6' : 'w-7 h-7', '-ml-3')}
+              />
+            )}
+          </div>
+          <span
             className={cn(
-              'bg-white rounded-full shadow-sm flex items-center relative',
-              clusterSize
+              'font-black text-gray-800',
+              isHighZoom ? 'text-sm' : 'text-base'
             )}
           >
-            <div className="flex items-center relative">
-              <BestIcon className={cn('text-gray-700', iconSize)} />
-              {validReadings.length > 1 && (
-                <WorstIcon className={cn('text-gray-700 -ml-3', iconSize)} />
-              )}
-            </div>
-            <span className={cn('text-gray-800 ml-2', textSize)}>
-              {displayCount}
-            </span>
-          </div>
+            {displayCount}
+          </span>
+        </div>
+      </CustomTooltip>
+    );
+  }
+
+  // ─── Individual Node Rendering ──────────────────────────────────────────────
+  if (reading) {
+    const pollutantValue =
+      selectedPollutant === 'pm2_5' ? reading.pm25Value : reading.pm10Value;
+    const level = getAirQualityLevel(pollutantValue, selectedPollutant);
+    const IconComponent = getAirQualityIcon(level);
+    const sizeClass = SIZE_CLASSES[size];
+    const iconClass = ICON_CLASSES[size];
+    const isInactive =
+      reading.status === 'inactive' || reading.status === 'maintenance';
+
+    const ariaLabel = `Air quality: ${roundDecimals(pollutantValue, 1)} ${
+      selectedPollutant === 'pm2_5' ? 'PM2.5' : 'PM10'
+    } µg/m³ at ${reading.locationName ?? 'Unknown location'}. Click to view details.`;
+
+    const LEVEL_BG: Record<string, string> = {
+      good: 'bg-green-500',
+      moderate: 'bg-yellow-500',
+      'unhealthy-sensitive-groups': 'bg-orange-500',
+      unhealthy: 'bg-red-500',
+      'very-unhealthy': 'bg-purple-500',
+      hazardous: 'bg-red-900',
+    };
+    const levelBg = LEVEL_BG[level] ?? 'bg-gray-400';
+
+    // Determine inner node visual based on nodeType
+    let nodeVisual: React.ReactNode;
+
+    if (nodeType === 'number') {
+      nodeVisual = (
+        <div
+          className={cn(
+            'rounded-full border-2 border-white shadow-sm flex items-center justify-center font-bold text-white text-xs',
+            sizeClass,
+            levelBg
+          )}
+        >
+          {roundDecimals(pollutantValue, 0)}
+        </div>
+      );
+    } else if (nodeType === 'node') {
+      nodeVisual = (
+        <div
+          className={cn('rounded-full border-2 border-white shadow-sm', sizeClass, levelBg)}
+        />
+      );
+    } else {
+      // Default: emoji/icon style
+      nodeVisual = (
+        <div
+          className={cn(
+            'rounded-full border-2 border-white shadow-sm flex items-center justify-center bg-white overflow-visible',
+            sizeClass,
+            isInactive && 'opacity-60'
+          )}
+        >
+          <IconComponent className={cn('text-gray-700', iconClass)} />
+          {reading.status === 'inactive' && (
+            <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-gray-400 rounded-full border-2 border-white" />
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <CustomTooltip
+        data={reading}
+        selectedPollutant={selectedPollutant}
+        onTooltipAction={() => onClick?.(data)}
+        onTooltipHoverChange={hovering => onHover?.(hovering ? data : null)}
+        forceOpen={isTooltipOpen}
+      >
+        {/* 
+          ⚠️ CRITICAL: Flat div, not a nested component.
+          pointerEvents:'auto' ensures mapbox doesn't swallow events.
+          position:relative is needed for the selection ring.
+        */}
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label={ariaLabel}
+          className={cn(
+            'relative select-none',
+            'transition-transform duration-150',
+            'hover:scale-110 active:scale-95',
+            isHovered && 'scale-110',
+            className
+          )}
+          style={NODE_BUTTON_STYLE}
+          onClick={handleClick}
+          onKeyDown={handleKeyDown}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
+          {/* Selection ring */}
+          {isSelected && (
+            <span className="absolute -inset-1.5 rounded-full border-2 border-blue-500 animate-pulse pointer-events-none" />
+          )}
+          {nodeVisual}
         </div>
       </CustomTooltip>
     );
@@ -460,24 +296,25 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
   return null;
 };
 
-// Optimize memo comparison
-const areEqual = (prevProps: MapNodesProps, nextProps: MapNodesProps) => {
-  return (
-    prevProps.isSelected === nextProps.isSelected &&
-    prevProps.isHovered === nextProps.isHovered &&
-    prevProps.nodeType === nextProps.nodeType &&
-    prevProps.size === nextProps.size &&
-    prevProps.selectedPollutant === nextProps.selectedPollutant &&
-    prevProps.zoomLevel === nextProps.zoomLevel &&
-    prevProps.showZoomHint === nextProps.showZoomHint &&
-    prevProps.isTooltipOpen === nextProps.isTooltipOpen &&
-    prevProps.reading?.id === nextProps.reading?.id &&
-    prevProps.cluster?.id === nextProps.cluster?.id &&
-    prevProps.cluster?.pointCount === nextProps.cluster?.pointCount &&
-    prevProps.reading?.pm25Value === nextProps.reading?.pm25Value &&
-    prevProps.reading?.pm10Value === nextProps.reading?.pm10Value
-  );
-};
+/**
+ * Optimized memo comparison — only re-render when visually relevant props change.
+ * We intentionally skip re-render on callbacks (onClick/onHover) because they
+ * are stable useCallback references from EnhancedMap.
+ */
+const areEqual = (prev: MapNodesProps, next: MapNodesProps): boolean =>
+  prev.isSelected === next.isSelected &&
+  prev.isHovered === next.isHovered &&
+  prev.nodeType === next.nodeType &&
+  prev.size === next.size &&
+  prev.selectedPollutant === next.selectedPollutant &&
+  prev.zoomLevel === next.zoomLevel &&
+  prev.isTooltipOpen === next.isTooltipOpen &&
+  prev.reading?.id === next.reading?.id &&
+  prev.reading?.pm25Value === next.reading?.pm25Value &&
+  prev.reading?.pm10Value === next.reading?.pm10Value &&
+  prev.reading?.status === next.reading?.status &&
+  prev.cluster?.id === next.cluster?.id &&
+  prev.cluster?.pointCount === next.cluster?.pointCount;
 
 export const MapNodes = React.memo(MapNodesComponent, areEqual);
 MapNodes.displayName = 'MapNodes';
