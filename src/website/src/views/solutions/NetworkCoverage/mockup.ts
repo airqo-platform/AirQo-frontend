@@ -30,6 +30,7 @@ export interface MonitorStation {
   coLocation: string;
   coLocationNote: string;
   lastActive: string;
+  viewDataUrl?: string;
 }
 
 export interface CountryCoverage {

@@ -37,7 +37,7 @@ const NetworkCoverageHeader: React.FC<NetworkCoverageHeaderProps> = ({
         >
           <FiMenu className="h-5 w-5" />
         </button>
-        <h1 className="text-xl font-semibold leading-none sm:text-[33px]">
+        <h1 className="text-lg font-semibold leading-none sm:text-2xl">
           Africa Air Sensor Coverages
         </h1>
       </div>
