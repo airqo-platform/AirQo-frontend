@@ -207,7 +207,8 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
         minZoom: 2.2,
         maxZoom: 13,
         attributionControl: true,
-        customAttribution: ['Powered by AirQo'],
+        // Provide HTML so the "AirQo" text is a clickable link to the site homepage
+        customAttribution: ['Powered by <a href="/" rel="noopener">AirQo</a>'],
       });
       setMapInitError(null);
     } catch {
@@ -476,7 +477,7 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       coveragePopupRef.current
         .setLngLat(event.lngLat)
         .setHTML(
-          `<div style="min-width: 138px; font-size: 12px; line-height: 1.4;"><div style="font-weight: 700; margin-bottom: 2px;">${name}</div><div>Monitor collection: ${count}</div></div>`,
+          `<div style="min-width: 138px; font-size: 12px; line-height: 1.4;"><div style="font-weight: 700; margin-bottom: 2px;">${name}</div><div>Monitors: ${count}</div></div>`,
         )
         .addTo(map);
     };
