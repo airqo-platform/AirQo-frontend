@@ -2,7 +2,7 @@
 
 import { AqLoading02 } from '@airqo/icons-react';
 import jsPDF from 'jspdf';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { MapLoader } from '@/components/map';
 
@@ -78,7 +78,17 @@ const NetworkCoveragePage = () => {
     string | null
   >(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [mapStyle, setMapStyle] = useState('mapbox://styles/mapbox/light-v11');
+  const [mapStyle, setMapStyle] = useState(
+    'mapbox://styles/mapbox/streets-v12',
+  );
+
+  useEffect(() => {
+    setMapStyle(
+      viewMode === 'coverage'
+        ? 'mapbox://styles/mapbox/light-v11'
+        : 'mapbox://styles/mapbox/streets-v12',
+    );
+  }, [viewMode]);
 
   const countries = useMemo(
     () =>
@@ -254,11 +264,8 @@ const NetworkCoveragePage = () => {
             <MapLoader
               loadingComponent={
                 <div className="flex h-full w-full items-center justify-center bg-[#f6f6f7]">
-                  <div className="flex flex-col items-center gap-2 text-blue-600">
-                    <AqLoading02 className="h-10 w-10 animate-spin" />
-                    <span className="text-sm font-semibold text-blue-700">
-                      Loading map...
-                    </span>
+                  <div className="text-blue-600">
+                    <AqLoading02 className="animate-spin" />
                   </div>
                 </div>
               }

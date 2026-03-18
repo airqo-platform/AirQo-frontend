@@ -1,5 +1,10 @@
+import {
+  AqDownload01,
+  AqMarkerPin01,
+  AqSearchRefraction,
+} from '@airqo/icons-react';
 import React from 'react';
-import { FiChevronLeft, FiMapPin, FiSearch, FiX } from 'react-icons/fi';
+import { FiChevronLeft, FiX } from 'react-icons/fi';
 
 import { CountryCoverage, MonitorStation, MonitorType } from '../mockup';
 
@@ -18,7 +23,7 @@ const StatLine = ({
   label: string;
   value: React.ReactNode;
 }) => (
-  <div className="grid grid-cols-[120px_1fr] gap-2 py-1 text-[13px] sm:grid-cols-[145px_1fr] sm:text-[14px]">
+  <div className="grid grid-cols-[120px_1fr] gap-2 py-1.5 text-[14px] sm:grid-cols-[145px_1fr] sm:text-[15px]">
     <span className="font-semibold uppercase tracking-[0.08em] text-slate-500">
       {label}
     </span>
@@ -87,7 +92,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
         {!selectedCountry ? (
           <>
             <div className="relative">
-              <FiSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <AqSearchRefraction className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
                 value={query}
                 onChange={(event) => onQueryChange(event.target.value)}
@@ -187,13 +192,13 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <h3 className="text-[22px] font-semibold leading-6 text-inherit sm:text-[26px] sm:leading-7">
+                        <h3 className="text-[16px] font-semibold leading-6 text-inherit sm:text-[17px] sm:leading-7">
                           {country.country}
                         </h3>
                         {isNoData ? (
-                          <p className="text-sm">No monitors installed</p>
+                          <p className="mt-1 text-xs">No monitors installed</p>
                         ) : (
-                          <p className="text-sm text-slate-500">
+                          <p className="mt-1 text-xs text-slate-500">
                             {country.monitors.length} monitor
                             {country.monitors.length === 1 ? '' : 's'} {' · '}
                             {
@@ -205,11 +210,11 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                           </p>
                         )}
                       </div>
-                      <FiMapPin className="mt-1 h-4 w-4 text-slate-400" />
+                      <AqMarkerPin01 className="mt-1 h-4 w-4 text-slate-400" />
                     </div>
 
                     {!isNoData && (
-                      <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-500">
+                      <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-slate-500">
                         {counts.LCS > 0 && (
                           <span className="inline-flex items-center gap-1">
                             <span className="h-2 w-2 rounded-full bg-blue-600" />
@@ -320,7 +325,8 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
               <h3 className="mt-2 text-2xl font-bold leading-tight text-slate-900 sm:text-3xl">
                 {selectedMonitor.name}
               </h3>
-              <p className="text-lg text-slate-500 sm:text-2xl">
+              <p className="mt-1 flex items-center gap-1.5 text-lg text-slate-500 sm:text-xl">
+                <AqMarkerPin01 className="h-4 w-4 text-slate-400" />
                 {selectedMonitor.city}, {selectedMonitor.country}
               </p>
             </div>
@@ -329,7 +335,9 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
               <h4 className="mb-1 text-sm font-bold uppercase tracking-[0.08em] text-slate-500 sm:text-base">
                 Network
               </h4>
-              <StatLine label="Network" value={selectedMonitor.network} />
+              <p className="mb-2 text-[15px] font-semibold text-slate-900">
+                {selectedMonitor.network}
+              </p>
               <StatLine label="Operator" value={selectedMonitor.operator} />
               <StatLine
                 label="Status"
@@ -408,8 +416,9 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                 <button
                   type="button"
                   onClick={onDownloadCsv}
-                  className="rounded-xl bg-blue-600 px-3 py-2.5 text-sm font-semibold text-white"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-3 py-2.5 text-sm font-semibold text-white"
                 >
+                  <AqDownload01 className="h-4 w-4" />
                   Download data
                 </button>
                 <button

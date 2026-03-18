@@ -1,5 +1,6 @@
+import { AqDownload01 } from '@airqo/icons-react';
 import React, { useEffect, useRef, useState } from 'react';
-import { FiChevronDown, FiDownload, FiMenu } from 'react-icons/fi';
+import { FiChevronDown, FiMenu } from 'react-icons/fi';
 
 interface NetworkCoverageHeaderProps {
   onToggleSidebar: () => void;
@@ -47,7 +48,7 @@ const NetworkCoverageHeader: React.FC<NetworkCoverageHeaderProps> = ({
           onClick={() => setShowDownloadMenu((previous) => !previous)}
           className="inline-flex items-center gap-1 rounded-md border border-blue-700 bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white sm:gap-2 sm:px-3 sm:text-sm"
         >
-          <FiDownload className="h-4 w-4" />
+          <AqDownload01 className="h-4 w-4" />
           <span className="hidden sm:inline">Download data</span>
           <span className="sm:hidden">Download</span>
           <FiChevronDown className="h-4 w-4" />

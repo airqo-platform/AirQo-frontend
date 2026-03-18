@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { createRoot, Root } from 'react-dom/client';
 import { FiMinus, FiPlus } from 'react-icons/fi';
 
 import {
@@ -10,7 +9,6 @@ import {
   MonitorStation,
   ViewMode,
 } from '../mockup';
-import MonitorNode from './map/MonitorNode';
 
 interface NetworkCoverageMapProps {
   countries: CountryCoverage[];
@@ -25,23 +23,48 @@ interface NetworkCoverageMapProps {
 type MarkerResource = {
   marker: any;
   element: HTMLButtonElement;
-  root: Root;
   handleClick: () => void;
   handleMouseEnter: () => void;
   handleMouseLeave: () => void;
 };
 
 const AFRICA_BOUNDS: [[number, number], [number, number]] = [
-  [-28, -42],
-  [63, 43],
+  [-30, -43],
+  [64, 45],
 ];
 
 const bucketColor = (count: number): string => {
-  if (count === 0) return '#E8ECF3';
-  if (count === 1) return '#CCD9FF';
-  if (count <= 3) return '#8EADFF';
-  if (count <= 6) return '#4D79F2';
-  return '#1C56E3';
+  if (count === 0) return '#ECEFF4';
+  if (count <= 9) return '#FFE7A3';
+  if (count <= 49) return '#FFC95D';
+  if (count <= 199) return '#F39C4A';
+  if (count <= 999) return '#D65A31';
+  return '#8A2D14';
+};
+
+const escapeHtml = (value: string): string =>
+  value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+
+const monitorNodeMarkup = (
+  isOnline: boolean,
+  ringColor: string,
+  count: number,
+  selected: boolean,
+) => {
+  const icon = isOnline
+    ? `<svg viewBox="0 0 24 24" aria-hidden="true" style="width:24px;height:24px;color:${ringColor};"><path fill="currentColor" d="M12 18.2a1.2 1.2 0 1 0 0 2.4a1.2 1.2 0 0 0 0-2.4Zm0-4.1a4.7 4.7 0 0 0-3.35 1.4a1 1 0 1 0 1.4 1.42a2.7 2.7 0 0 1 3.9 0a1 1 0 0 0 1.4-1.42A4.7 4.7 0 0 0 12 14.1Zm0-4.5a9.2 9.2 0 0 0-6.54 2.7a1 1 0 1 0 1.41 1.42a7.2 7.2 0 0 1 10.26 0a1 1 0 1 0 1.41-1.42A9.2 9.2 0 0 0 12 9.6Z"/></svg>`
+    : `<svg viewBox="0 0 24 24" aria-hidden="true" style="width:24px;height:24px;color:${ringColor};"><path fill="currentColor" d="M3.7 3.7a1 1 0 0 0-1.4 1.4l2.35 2.35a9.1 9.1 0 0 0-.6.5a1 1 0 0 0 1.41 1.42c.11-.1.22-.2.34-.29l1.45 1.45a4.8 4.8 0 0 0-1.9 1.14a1 1 0 1 0 1.41 1.42a2.8 2.8 0 0 1 1.93-.8l1.26 1.26a1.2 1.2 0 1 0 1.43 1.43l1.29 1.29a1.2 1.2 0 0 0 1.7-1.7l-11-11Zm8.3 7.8a4.8 4.8 0 0 1 2.6.78a1 1 0 0 0 1.07-1.69a6.8 6.8 0 0 0-3.67-1.09a1 1 0 1 0 0 2Zm0-4.4a9.2 9.2 0 0 1 6.54 2.7a1 1 0 0 0 1.41-1.42A11.2 11.2 0 0 0 12 5.1a1 1 0 1 0 0 2Z"/></svg>`;
+
+  return `<div style="position:relative;transition:transform .2s;transform:${selected ? 'scale(1.12)' : 'scale(1)'};"><span style="display:grid;place-items:center;height:52px;width:52px;border-radius:9999px;border:2px solid ${ringColor};background:#fff;box-shadow:0 6px 14px rgba(15,23,42,.24);${selected ? 'box-shadow:0 0 0 7px rgba(59,130,246,.2),0 6px 14px rgba(15,23,42,.24);' : ''}">${icon}</span>${
+    count > 1
+      ? `<span style="position:absolute;right:-5px;top:-5px;border-radius:9999px;background:#2563eb;color:#fff;font-weight:700;font-size:12px;line-height:1;padding:4px 7px;">+${count - 1}</span>`
+      : ''
+  }</div>`;
 };
 
 const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
@@ -62,8 +85,10 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
   const coverageMouseEnterHandlerRef = useRef<(() => void) | null>(null);
   const coverageMouseLeaveHandlerRef = useRef<(() => void) | null>(null);
   const coveragePopupRef = useRef<any>(null);
+  const monitorPopupRef = useRef<any>(null);
   const markersRef = useRef<MarkerResource[]>([]);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [mapInitError, setMapInitError] = useState<string | null>(null);
   const [zoomLevel, setZoomLevel] = useState(2.6);
 
   const countryById = useMemo(() => {
@@ -146,10 +171,10 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
         'mouseleave',
         resource.handleMouseLeave,
       );
-      resource.root.unmount();
       resource.marker.remove();
     });
     markersRef.current = [];
+    monitorPopupRef.current?.remove();
   };
 
   useEffect(() => {
@@ -163,24 +188,43 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
 
     const mapboxgl = (window as any).mapboxgl;
 
-    mapRef.current = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      style: mapStyle,
-      center: [20, 2],
-      zoom: 2.6,
-      projection: 'mercator',
-      maxBounds: AFRICA_BOUNDS,
-      minZoom: 2.2,
-      maxZoom: 13,
-      attributionControl: true,
-    });
+    if (typeof mapboxgl?.supported === 'function' && !mapboxgl.supported()) {
+      setMapInitError(
+        'This browser does not support the required map features. Please update your browser.',
+      );
+      return;
+    }
+
+    let mapInstance: any;
+    try {
+      mapInstance = new mapboxgl.Map({
+        container: mapContainerRef.current,
+        style: mapStyle,
+        center: [20, 2],
+        zoom: 2.6,
+        projection: 'mercator',
+        maxBounds: AFRICA_BOUNDS,
+        minZoom: 2.2,
+        maxZoom: 13,
+        attributionControl: true,
+        customAttribution: ['Powered by AirQo'],
+      });
+      setMapInitError(null);
+    } catch {
+      setMapInitError(
+        'Map failed to initialize on this device. Please refresh or try a different browser.',
+      );
+      return;
+    }
+
+    mapRef.current = mapInstance;
 
     mapRef.current.on('load', () => {
       const map = mapRef.current;
 
       map.fitBounds(AFRICA_BOUNDS, {
-        padding: { top: 90, right: 90, bottom: 100, left: 90 },
-        maxZoom: 2.55,
+        padding: { top: 95, right: 110, bottom: 130, left: 100 },
+        maxZoom: 2.4,
         duration: 0,
       });
 
@@ -261,6 +305,7 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
         );
       }
       clearMarkers();
+      coveragePopupRef.current?.remove();
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
@@ -303,6 +348,14 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
   useEffect(() => {
     if (!mapRef.current || !mapContainerRef.current) {
       return;
+    }
+
+    if (typeof ResizeObserver === 'undefined') {
+      const onResize = () => {
+        mapRef.current?.resize();
+      };
+      window.addEventListener('resize', onResize);
+      return () => window.removeEventListener('resize', onResize);
     }
 
     const observer = new ResizeObserver(() => {
@@ -355,6 +408,12 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
 
     const mapboxgl = (window as any).mapboxgl;
     const map = mapRef.current;
+    const setCanvasCursor = (cursor: string) => {
+      const canvas = map?.getCanvas?.();
+      if (canvas?.style) {
+        canvas.style.cursor = cursor;
+      }
+    };
 
     if (!coveragePopupRef.current) {
       coveragePopupRef.current = new mapboxgl.Popup({
@@ -362,6 +421,15 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
         closeOnClick: false,
         className: 'network-coverage-tooltip',
         offset: 12,
+      });
+    }
+
+    if (!monitorPopupRef.current) {
+      monitorPopupRef.current = new mapboxgl.Popup({
+        closeButton: false,
+        closeOnClick: false,
+        className: 'network-monitor-tooltip',
+        offset: 18,
       });
     }
 
@@ -417,11 +485,11 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       if (viewMode !== 'coverage') {
         return;
       }
-      map.getCanvas().style.cursor = 'pointer';
+      setCanvasCursor('pointer');
     };
 
     const handleMouseLeave = () => {
-      map.getCanvas().style.cursor = '';
+      setCanvasCursor('');
       coveragePopupRef.current?.remove();
     };
 
@@ -435,7 +503,7 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
 
     if (viewMode !== 'coverage') {
       coveragePopupRef.current?.remove();
-      map.getCanvas().style.cursor = '';
+      setCanvasCursor('');
     }
 
     return () => {
@@ -463,7 +531,7 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
         );
         coverageMouseLeaveHandlerRef.current = null;
       }
-      map.getCanvas().style.cursor = '';
+      setCanvasCursor('');
       coveragePopupRef.current?.remove();
     };
   }, [countryByIso2, mapLoaded, monitorCountByIso2, viewMode]);
@@ -484,8 +552,6 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       const element = document.createElement('button');
       element.type = 'button';
       element.className = 'cursor-pointer';
-
-      const root = createRoot(element);
       const groupHasReference = group.type === 'Reference';
       const groupHasOnline = group.monitors.some(
         (monitor) => monitor.status === 'active',
@@ -502,13 +568,11 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
             : '#2563EB'
         : '#94A3B8';
 
-      root.render(
-        <MonitorNode
-          isOnline={groupHasOnline}
-          ringColor={ringColor}
-          count={group.monitors.length}
-          selected={groupHasSelected}
-        />,
+      element.innerHTML = monitorNodeMarkup(
+        groupHasOnline,
+        ringColor,
+        group.monitors.length,
+        groupHasSelected,
       );
 
       const handleClick = () => {
@@ -533,10 +597,39 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
 
       element.addEventListener('click', handleClick);
       const handleMouseEnter = () => {
-        element.style.zIndex = '20';
+        element.style.zIndex = '40';
+
+        if (!monitorPopupRef.current) {
+          return;
+        }
+
+        if (group.monitors.length > 1) {
+          const previewNames = group.monitors
+            .slice(0, 3)
+            .map((monitor) => `<div>${escapeHtml(monitor.name)}</div>`)
+            .join('');
+          const remaining = group.monitors.length - 3;
+          monitorPopupRef.current
+            .setLngLat([group.longitude, group.latitude])
+            .setHTML(
+              `<div style="min-width: 210px; font-size: 15px; line-height: 1.45;"><div style="font-weight: 700; color: #1e293b; margin-bottom: 6px;">${group.monitors.length} monitors</div><div style="color: #64748b;">${previewNames}${remaining > 0 ? `<div style=\"color:#2563eb;font-weight:600;\">+${remaining} more</div>` : ''}</div></div>`,
+            )
+            .addTo(map);
+          return;
+        }
+
+        const node = group.monitors[0];
+        const statusColor = node.status === 'active' ? '#22c55e' : '#94a3b8';
+        monitorPopupRef.current
+          .setLngLat([group.longitude, group.latitude])
+          .setHTML(
+            `<div style="min-width: 248px; font-size: 14px; line-height: 1.35;"><div style="font-size: 16px; color: #2563eb; margin-right: 7px; vertical-align: middle; display: inline-block; line-height: 0;">•</div><div style="display:inline-block; vertical-align: middle; width: calc(100% - 24px);"><div style="font-weight:700;color:#1e293b;font-size:18px;">${escapeHtml(node.name)}</div><div style="color:#64748b;font-size:12px; margin-top: 1px;">AirQo · ${escapeHtml(node.city)}, ${escapeHtml(node.country)}</div><div style="margin-top: 4px;"><span style="color:#2563eb;font-weight:700;font-size:14px;">${escapeHtml(node.type)}</span><span style="color:${statusColor};font-weight:600;font-size:14px; margin-left: 8px;">● ${escapeHtml(node.status === 'active' ? 'Active' : 'Inactive')}</span></div></div></div>`,
+          )
+          .addTo(map);
       };
       const handleMouseLeave = () => {
         element.style.zIndex = groupHasSelected ? '8' : '4';
+        monitorPopupRef.current?.remove();
       };
       element.addEventListener('mouseenter', handleMouseEnter);
       element.addEventListener('mouseleave', handleMouseLeave);
@@ -550,7 +643,6 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       markersRef.current.push({
         marker,
         element,
-        root,
         handleClick,
         handleMouseEnter,
         handleMouseLeave,
@@ -613,8 +705,8 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
 
     if (!selectedCountryId) {
       map.fitBounds(AFRICA_BOUNDS, {
-        padding: { top: 110, right: 90, bottom: 120, left: 90 },
-        maxZoom: 2.55,
+        padding: { top: 115, right: 110, bottom: 140, left: 100 },
+        maxZoom: 2.4,
         duration: 850,
       });
     }
@@ -649,9 +741,13 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
         </button>
       </div>
 
-      <div className="pointer-events-none absolute bottom-2 right-2 z-20 rounded-md bg-white/90 px-2 py-1 text-xs font-medium text-slate-600 shadow-sm">
-        Powered by <span className="font-semibold text-blue-600">AirQo</span>
-      </div>
+      {mapInitError && (
+        <div className="absolute inset-0 z-30 grid place-items-center bg-[#f6f6f7]">
+          <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 shadow-sm">
+            {mapInitError}
+          </div>
+        </div>
+      )}
 
       <style jsx global>{`
         .network-coverage-tooltip .mapboxgl-popup-content {
@@ -666,6 +762,28 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
         .network-coverage-tooltip .mapboxgl-popup-tip {
           border-top-color: #1f2430;
           border-bottom-color: #1f2430;
+        }
+
+        .network-monitor-tooltip .mapboxgl-popup-content {
+          border-radius: 16px;
+          background: #ffffff;
+          color: #1e293b;
+          border: 0;
+          padding: 12px 14px;
+          box-shadow: 0 14px 34px rgba(15, 23, 42, 0.2);
+        }
+
+        .network-monitor-tooltip .mapboxgl-popup-tip {
+          border-top-color: #ffffff;
+          border-bottom-color: #ffffff;
+        }
+
+        .network-monitor-tooltip.mapboxgl-popup {
+          z-index: 70 !important;
+        }
+
+        .mapboxgl-ctrl.mapboxgl-ctrl-attrib {
+          font-size: 11px;
         }
       `}</style>
     </div>
