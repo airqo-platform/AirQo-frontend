@@ -10,6 +10,8 @@ import { selectActiveGroup, selectLoggingOut } from '@/shared/store/selectors';
 import { useLogout } from '@/shared/hooks/useLogout';
 import { toast } from '@/shared/components/ui/toast';
 import logger from '@/shared/lib/logger';
+import { SWRProvider } from '@/shared/providers/swr-provider';
+import { QueryProvider } from '@/shared/providers/query-provider';
 
 // Component to guard and redirect based on active group for all pages
 function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
@@ -63,6 +65,49 @@ const UNAUTHORIZED_WINDOW_MS = 30000;
 const UNAUTHORIZED_THRESHOLD = 3;
 const ACCOUNT_DELETION_TTL_MS = 5 * 60 * 1000;
 const ACCOUNT_DELETION_USER_IDENTIFIER_KEY = 'account_deleted_user_identifier';
+
+const getSessionCacheScope = (session: unknown): string | null => {
+  const user = (session as { user?: { _id?: string; email?: string } })?.user;
+  const userId = typeof user?._id === 'string' ? user._id.trim() : '';
+  if (userId) {
+    return `id:${userId}`;
+  }
+
+  const email =
+    typeof user?.email === 'string' ? user.email.trim().toLowerCase() : '';
+  if (email) {
+    return `email:${email}`;
+  }
+
+  return null;
+};
+
+function AuthScopedCacheProviders({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { data: session, status } = useSession();
+  const cacheScope = getSessionCacheScope(session);
+  const enablePersistence = status === 'authenticated' && !!cacheScope;
+  const providerKey = `${status}:${cacheScope ?? 'anon'}`;
+
+  return (
+    <SWRProvider
+      key={`swr:${providerKey}`}
+      scopeKey={cacheScope}
+      enablePersistence={enablePersistence}
+    >
+      <QueryProvider
+        key={`query:${providerKey}`}
+        scopeKey={cacheScope}
+        enablePersistence={enablePersistence}
+      >
+        {children}
+      </QueryProvider>
+    </SWRProvider>
+  );
+}
 
 function AuthWrapper({ children }: { children: React.ReactNode }) {
   const { data: session, status, update } = useSession();
@@ -362,7 +407,9 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider refetchOnWindowFocus={false} refetchInterval={0}>
-      <AuthWrapper>{children}</AuthWrapper>
+      <AuthScopedCacheProviders>
+        <AuthWrapper>{children}</AuthWrapper>
+      </AuthScopedCacheProviders>
     </SessionProvider>
   );
 }

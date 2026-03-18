@@ -7,6 +7,8 @@ import { useSelector } from 'react-redux';
 import { selectLoggingOut } from '@/shared/store/selectors';
 import { useCallback } from 'react';
 import logger from '@/shared/lib/logger';
+import { useSWRConfig } from 'swr';
+import { useQueryClient } from '@tanstack/react-query';
 
 let sharedLogoutPromise: Promise<void> | null = null;
 let sharedIsLoggingOut = false;
@@ -16,6 +18,8 @@ export const useLogout = (callbackUrl?: string) => {
   const dispatch = useDispatch();
   const router = useRouter();
   const isLoggingOut = useSelector(selectLoggingOut);
+  const { cache, mutate } = useSWRConfig();
+  const queryClient = useQueryClient();
 
   const logout = useCallback(async () => {
     if (sharedLogoutPromise) {
@@ -37,9 +41,16 @@ export const useLogout = (callbackUrl?: string) => {
         // Clear Redux store first
         dispatch(clearUser());
 
+        // Clear in-memory request caches to prevent stale cross-account reads.
+        await mutate(() => true, undefined, { revalidate: false });
+        if (typeof (cache as Map<unknown, unknown>).clear === 'function') {
+          (cache as Map<unknown, unknown>).clear();
+        }
+        queryClient.clear();
+
         // Clear any remaining application storage immediately
         if (typeof window !== 'undefined') {
-          const keysToRemove: string[] = [];
+          const keysToRemove = new Set<string>();
           const accountDeleted =
             localStorage.getItem('account_deleted') === 'true';
           const deletionTimestamp = localStorage.getItem(
@@ -73,10 +84,19 @@ export const useLogout = (callbackUrl?: string) => {
               !key.startsWith('next-auth') &&
               !crossTabSignalKeys.has(key)
             ) {
-              keysToRemove.push(key);
+              keysToRemove.add(key);
+            }
+
+            if (
+              key?.startsWith('airqo:swr-cache:v1:') ||
+              key?.startsWith('airqo:react-query:v1:')
+            ) {
+              keysToRemove.add(key);
             }
           }
-          keysToRemove.forEach(key => localStorage.removeItem(key));
+          for (const key of Array.from(keysToRemove)) {
+            localStorage.removeItem(key);
+          }
 
           // Clear sessionStorage
           sessionStorage.clear();
@@ -105,7 +125,7 @@ export const useLogout = (callbackUrl?: string) => {
 
     sharedLogoutPromise = runLogout();
     await sharedLogoutPromise;
-  }, [callbackUrl, dispatch, isLoggingOut, router]);
+  }, [cache, callbackUrl, dispatch, isLoggingOut, mutate, queryClient, router]);
 
   return logout;
 };

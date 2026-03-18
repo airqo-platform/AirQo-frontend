@@ -19,7 +19,6 @@ export {
   useUpdateUserDetails,
   useUpdatePassword,
   useCreateOrganizationRequest,
-  useCheckSlugAvailability,
   useInitiateAccountDeletion,
   useConfirmAccountDeletion,
   useUser,

@@ -71,29 +71,20 @@ export const securitySchema = z
 
 // Organization Request validation
 export const organizationRequestSchema = z.object({
-  organization_name: z
+  city: z
     .string()
-    .min(2, 'Organization name must be at least 2 characters')
-    .max(100, 'Organization name must be less than 100 characters')
-    .regex(
-      /^[a-zA-Z0-9\s\-&.,()]+$/,
-      'Organization name contains invalid characters'
-    ),
+    .min(2, 'City must be at least 2 characters')
+    .max(100, 'City must be less than 100 characters'),
 
-  organization_slug: z
+  project_name: z
     .string()
-    .min(3, 'Organization slug must be at least 3 characters')
-    .max(50, 'Organization slug must be less than 50 characters')
-    .regex(
-      /^[a-z0-9-]+$/,
-      'Slug must contain only lowercase letters, numbers, and hyphens'
-    )
-    .regex(/^[a-z0-9]/, 'Slug must start with a letter or number')
-    .regex(/[a-z0-9]$/, 'Slug must end with a letter or number')
-    .refine(
-      slug => !slug.includes('--'),
-      'Slug cannot contain consecutive hyphens'
-    ),
+    .min(2, 'Project name must be at least 2 characters')
+    .max(120, 'Project name must be less than 120 characters'),
+
+  funder_partner: z
+    .string()
+    .max(120, 'Funder/partner must be less than 120 characters')
+    .optional(),
 
   contact_email: z
     .string()
@@ -104,16 +95,7 @@ export const organizationRequestSchema = z.object({
   contact_name: z
     .string()
     .min(2, 'Contact name must be at least 2 characters')
-    .max(100, 'Contact name must be less than 100 characters')
-    .regex(/^[a-zA-Z\s\-.,']+$/, 'Contact name contains invalid characters'),
-
-  contact_phone: z
-    .string()
-    .min(1, 'Phone number is required')
-    .regex(
-      /^\+[1-9]\d{1,14}$/,
-      'Please enter a valid phone number with country code'
-    ),
+    .max(100, 'Contact name must be less than 100 characters'),
 
   use_case: z
     .string()
@@ -132,21 +114,6 @@ export const organizationRequestSchema = z.object({
     .string()
     .min(2, 'Country is required')
     .max(100, 'Country name is too long'),
-
-  branding_settings: z
-    .object({
-      logo_url: z.string().url().optional().or(z.literal('')),
-      primary_color: z
-        .string()
-        .regex(/^#[0-9A-Fa-f]{6}$/, 'Primary color must be a valid hex color'),
-      secondary_color: z
-        .string()
-        .regex(
-          /^#[0-9A-Fa-f]{6}$/,
-          'Secondary color must be a valid hex color'
-        ),
-    })
-    .optional(),
 });
 
 // Individual field validators for real-time validation
@@ -160,47 +127,6 @@ export const validateEmail = (email: string): string | null => {
     }
     return 'Invalid email';
   }
-};
-
-export const validateSlug = (slug: string): string | null => {
-  try {
-    organizationRequestSchema.shape.organization_slug.parse(slug);
-    return null;
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return error.issues[0]?.message || 'Invalid slug format';
-    }
-    return 'Invalid slug format';
-  }
-};
-
-export const validatePhone = (phone: string): string | null => {
-  try {
-    organizationRequestSchema.shape.contact_phone.parse(phone);
-    return null;
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return error.issues[0]?.message || 'Invalid phone number';
-    }
-    return 'Invalid phone number';
-  }
-};
-
-// Slug generation utility
-export const generateSlug = (name: string): string => {
-  return (
-    name
-      .toLowerCase()
-      .trim()
-      // Replace spaces and special chars with hyphens
-      .replace(/[^a-z0-9\s-]/g, '')
-      // Replace spaces with single hyphens
-      .replace(/\s+/g, '-')
-      // Remove consecutive hyphens
-      .replace(/-+/g, '-')
-      // Remove leading/trailing hyphens
-      .replace(/^-+|-+$/g, '')
-  );
 };
 
 export type LoginFormData = z.infer<typeof loginSchema>;

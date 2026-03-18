@@ -644,6 +644,40 @@
   dependencies:
     postcss-selector-parser "6.0.10"
 
+"@tanstack/query-core@5.90.20":
+  version "5.90.20"
+  resolved "https://registry.yarnpkg.com/@tanstack/query-core/-/query-core-5.90.20.tgz#e12128e39210715d4ce4fb299c33498ac297771e"
+  integrity sha512-OMD2HLpNouXEfZJWcKeVKUgQ5n+n3A2JFmBaScpNDUqSrQSjiveC7dKMe53uJUg1nDG16ttFPz2xfilz6i2uVg==
+
+"@tanstack/query-persist-client-core@5.92.1":
+  version "5.92.1"
+  resolved "https://registry.yarnpkg.com/@tanstack/query-persist-client-core/-/query-persist-client-core-5.92.1.tgz#330099cd7d6f427c4448a080299fa7e5e4c5a7fa"
+  integrity sha512-XGzB1lulFrGc8UwQnMI12r71R7ock/XOZvDaz3Fu3xrxCFwLHuFcABAOkIolS/6hFHe0pRdsBRXd4Q8ECqiCug==
+  dependencies:
+    "@tanstack/query-core" "5.90.20"
+
+"@tanstack/query-sync-storage-persister@^5.90.24":
+  version "5.90.24"
+  resolved "https://registry.yarnpkg.com/@tanstack/query-sync-storage-persister/-/query-sync-storage-persister-5.90.24.tgz#cc4b40ff242d44283780d0a281ea4f83a48d0252"
+  integrity sha512-/L0XnUNe+XanPpnTka9J/5M8Xj/6Ap1zre1fVLN/HsoMlLrFiqDijwMiwvwbSuaCyVUnH8Kh8ECXX5fPZtEsBg==
+  dependencies:
+    "@tanstack/query-core" "5.90.20"
+    "@tanstack/query-persist-client-core" "5.92.1"
+
+"@tanstack/react-query-persist-client@^5.90.24":
+  version "5.90.24"
+  resolved "https://registry.yarnpkg.com/@tanstack/react-query-persist-client/-/react-query-persist-client-5.90.24.tgz#e3463631e8add1ec2d4db3f774c4eff384a1fd9b"
+  integrity sha512-FkfU37vHq61Efr/qGiz+CUNmGfCky1jjsaZFuS5MsWwA9vPHudCwmdirgyTx+RfcQxyHON904q/pc48zrIEhxg==
+  dependencies:
+    "@tanstack/query-persist-client-core" "5.92.1"
+
+"@tanstack/react-query@^5.90.21":
+  version "5.90.21"
+  resolved "https://registry.yarnpkg.com/@tanstack/react-query/-/react-query-5.90.21.tgz#e0eb40831a76510be438109435b8807ef63ab1b9"
+  integrity sha512-0Lu6y5t+tvlTJMTO7oh5NSpJfpg/5D41LlThfepTixPYkJ0sE2Jj0m0f6yYqujBwIXlId87e234+MxG3D3g7kg==
+  dependencies:
+    "@tanstack/query-core" "5.90.20"
+
 "@tanstack/react-virtual@^3.13.9":
   version "3.13.12"
   resolved "https://registry.npmjs.org/@tanstack/react-virtual/-/react-virtual-3.13.12.tgz"

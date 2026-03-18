@@ -1172,31 +1172,27 @@ export interface BrandingSettings {
 }
 
 export interface CreateOrganizationRequest {
-  organization_name: string;
-  organization_slug: string;
+  city: string;
+  project_name: string;
+  projectName?: string;
+  funder_partner?: string;
+  funderPartner?: string;
   contact_email: string;
   contact_name: string;
-  contact_phone: string;
   use_case: string;
-  organization_type: string;
+  organization_type: 'academic' | 'government' | 'ngo' | 'private' | 'other';
   country: string;
-  branding_settings: BrandingSettings;
 }
 
 export interface CreateOrganizationResponse {
   success: boolean;
   message: string;
   data?: {
-    organization_id: string;
-    organization_slug: string;
+    organization_id?: string;
+    organization_slug?: string;
+    request_id?: string;
     status: string;
   };
-}
-
-export interface SlugAvailabilityResponse {
-  success: boolean;
-  message: string;
-  available: boolean;
 }
 
 // Account deletion
@@ -1216,14 +1212,19 @@ export interface OrganizationRequest {
   status: 'pending' | 'approved' | 'rejected';
   onboarding_completed: boolean;
   onboarding_method: string;
-  organization_name: string;
-  organization_slug: string;
+  organization_name?: string;
+  organization_slug?: string;
+  project_name?: string;
+  projectName?: string;
+  funder_partner?: string;
+  funderPartner?: string;
+  city?: string;
   contact_email: string;
   contact_name: string;
   use_case: string;
   organization_type: string;
   country: string;
-  branding_settings: BrandingSettings;
+  branding_settings?: BrandingSettings;
   createdAt: string;
   updatedAt: string;
   __v: number;
