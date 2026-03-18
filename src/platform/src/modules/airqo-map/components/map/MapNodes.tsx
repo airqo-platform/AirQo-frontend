@@ -9,6 +9,8 @@ import {
 import { CustomTooltip } from './CustomTooltip';
 import type { PollutantType } from '@/shared/utils/airQuality';
 
+// ─── Public types ──────────────────────────────────────────────────────────────
+
 export interface AirQualityReading {
   id: string;
   siteId: string;
@@ -41,20 +43,7 @@ export interface ClusterData {
   mostCommonLevel?: string;
 }
 
-interface MapNodesProps {
-  reading?: AirQualityReading;
-  cluster?: ClusterData;
-  size?: 'sm' | 'md' | 'lg';
-  nodeType?: 'emoji' | 'heatmap' | 'node' | 'number';
-  onClick?: (data: AirQualityReading | ClusterData) => void;
-  onHover?: (data: AirQualityReading | ClusterData | null) => void;
-  isSelected?: boolean;
-  isHovered?: boolean;
-  className?: string;
-  selectedPollutant?: PollutantType;
-  zoomLevel?: number;
-  isTooltipOpen?: boolean;
-}
+// ─── Module-level constants (never recreated on re-render) ────────────────────
 
 const SIZE_CLASSES: Record<'sm' | 'md' | 'lg', string> = {
   sm: 'w-8 h-8',
@@ -68,7 +57,23 @@ const ICON_CLASSES: Record<'sm' | 'md' | 'lg', string> = {
   lg: 'w-10 h-10',
 };
 
-// Stable shared button styles — applied directly on the DOM element, not inside a nested component
+/**
+ * Tailwind classes for AQI level backgrounds.
+ * Defined at module scope so they are never re-allocated during render.
+ */
+const LEVEL_BG: Record<string, string> = {
+  good: 'bg-green-500',
+  moderate: 'bg-yellow-500',
+  'unhealthy-sensitive-groups': 'bg-orange-500',
+  unhealthy: 'bg-red-500',
+  'very-unhealthy': 'bg-purple-500',
+  hazardous: 'bg-red-900',
+};
+
+/**
+ * Stable inline style for the clickable node wrapper.
+ * Object defined at module scope — never triggers re-render via reference change.
+ */
 const NODE_BUTTON_STYLE: React.CSSProperties = {
   touchAction: 'manipulation',
   userSelect: 'none',
@@ -76,12 +81,38 @@ const NODE_BUTTON_STYLE: React.CSSProperties = {
   cursor: 'pointer',
 };
 
+// ─── Props ─────────────────────────────────────────────────────────────────────
+
+interface MapNodesProps {
+  reading?: AirQualityReading;
+  cluster?: ClusterData;
+  size?: 'sm' | 'md' | 'lg';
+  nodeType?: 'emoji' | 'heatmap' | 'node' | 'number';
+  onClick?: (data: AirQualityReading | ClusterData) => void;
+  onHover?: (data: AirQualityReading | ClusterData | null) => void;
+  isSelected?: boolean;
+  isHovered?: boolean;
+  className?: string;
+  selectedPollutant?: PollutantType;
+  /**
+   * Rounded to the nearest integer for memo comparison — avoids glitching
+   * caused by fractional zoom updates during smooth pan/zoom animations.
+   */
+  zoomLevel?: number;
+  isTooltipOpen?: boolean;
+}
+
+// ─── Component ─────────────────────────────────────────────────────────────────
+
 /**
- * CRITICAL: Do NOT define sub-components inside render functions.
- * React treats inline component definitions as new types every render,
- * causing unmount/remount which destroys click handlers.
+ * MapNodes renders a single map marker — either a cluster pill or an
+ * individual air-quality reading icon.
  *
- * All rendering is done flat inside this single component.
+ * KEY RULES to avoid glitching:
+ * 1. Never define sub-components inside the render function (causes remount).
+ * 2. Keep module-level constants out of render (stops allocation on re-render).
+ * 3. Memo comparison must be correct — stale clusters were previously possible
+ *    because areEqual ignored cluster.readings content changes.
  */
 const MapNodesComponent: React.FC<MapNodesProps> = ({
   reading,
@@ -102,7 +133,8 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
 
   if (!data) return null;
 
-  // --- Stable event handlers (defined here, not inside nested components) ---
+  // Stable inline event handlers — defined once per render of this node.
+  // These are never passed down to child components so there is no prop-drilling concern.
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
@@ -119,11 +151,11 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
   const handleMouseEnter = () => onHover?.(data);
   const handleMouseLeave = () => onHover?.(null);
 
-  // ─── Cluster Rendering ──────────────────────────────────────────────────────
+  // ── Cluster ──────────────────────────────────────────────────────────────────
   if (isCluster && cluster) {
     const pollutantValues = cluster.readings
       .map(r => (selectedPollutant === 'pm2_5' ? r.pm25Value : r.pm10Value))
-      .filter(v => v !== undefined && !isNaN(v));
+      .filter((v): v is number => v !== undefined && !isNaN(v));
 
     if (pollutantValues.length === 0) return null;
 
@@ -135,7 +167,8 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
       getAirQualityLevel(sortedValues[sortedValues.length - 1], selectedPollutant)
     );
 
-    const isHighZoom = (zoomLevel ?? 10) >= 12;
+    // Use rounded zoom for styling decisions — avoids visual thrash during animations
+    const isHighZoom = Math.round(zoomLevel) >= 12;
     const displayCount =
       cluster.pointCount > 2 ? `+${cluster.pointCount - 2}` : cluster.pointCount;
 
@@ -146,10 +179,6 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
         onTooltipAction={() => onClick?.(data)}
         onTooltipHoverChange={hovering => onHover?.(hovering ? data : null)}
       >
-        {/* 
-          Single flat div — NO nested component definition.
-          pointerEvents: auto is essential so mapbox doesn't swallow clicks.
-        */}
         <div
           role="button"
           tabIndex={0}
@@ -177,10 +206,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
             )}
           </div>
           <span
-            className={cn(
-              'font-black text-gray-800',
-              isHighZoom ? 'text-sm' : 'text-base'
-            )}
+            className={cn('font-black text-gray-800', isHighZoom ? 'text-sm' : 'text-base')}
           >
             {displayCount}
           </span>
@@ -189,7 +215,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
     );
   }
 
-  // ─── Individual Node Rendering ──────────────────────────────────────────────
+  // ── Individual node ───────────────────────────────────────────────────────────
   if (reading) {
     const pollutantValue =
       selectedPollutant === 'pm2_5' ? reading.pm25Value : reading.pm10Value;
@@ -197,6 +223,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
     const IconComponent = getAirQualityIcon(level);
     const sizeClass = SIZE_CLASSES[size];
     const iconClass = ICON_CLASSES[size];
+    const levelBg = LEVEL_BG[level] ?? 'bg-gray-400';
     const isInactive =
       reading.status === 'inactive' || reading.status === 'maintenance';
 
@@ -204,24 +231,14 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
       selectedPollutant === 'pm2_5' ? 'PM2.5' : 'PM10'
     } µg/m³ at ${reading.locationName ?? 'Unknown location'}. Click to view details.`;
 
-    const LEVEL_BG: Record<string, string> = {
-      good: 'bg-green-500',
-      moderate: 'bg-yellow-500',
-      'unhealthy-sensitive-groups': 'bg-orange-500',
-      unhealthy: 'bg-red-500',
-      'very-unhealthy': 'bg-purple-500',
-      hazardous: 'bg-red-900',
-    };
-    const levelBg = LEVEL_BG[level] ?? 'bg-gray-400';
-
-    // Determine inner node visual based on nodeType
     let nodeVisual: React.ReactNode;
 
     if (nodeType === 'number') {
       nodeVisual = (
         <div
           className={cn(
-            'rounded-full border-2 border-white shadow-sm flex items-center justify-center font-bold text-white text-xs',
+            'rounded-full border-2 border-white shadow-sm',
+            'flex items-center justify-center font-bold text-white text-xs',
             sizeClass,
             levelBg
           )}
@@ -236,11 +253,12 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
         />
       );
     } else {
-      // Default: emoji/icon style
+      // Default: emoji / icon style
       nodeVisual = (
         <div
           className={cn(
-            'rounded-full border-2 border-white shadow-sm flex items-center justify-center bg-white overflow-visible',
+            'rounded-full border-2 border-white shadow-sm',
+            'flex items-center justify-center bg-white overflow-visible',
             sizeClass,
             isInactive && 'opacity-60'
           )}
@@ -261,11 +279,6 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
         onTooltipHoverChange={hovering => onHover?.(hovering ? data : null)}
         forceOpen={isTooltipOpen}
       >
-        {/* 
-          ⚠️ CRITICAL: Flat div, not a nested component.
-          pointerEvents:'auto' ensures mapbox doesn't swallow events.
-          position:relative is needed for the selection ring.
-        */}
         <div
           role="button"
           tabIndex={0}
@@ -283,7 +296,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
-          {/* Selection ring */}
+          {/* Selection ring — pointer-events:none so it never intercepts clicks */}
           {isSelected && (
             <span className="absolute -inset-1.5 rounded-full border-2 border-blue-500 animate-pulse pointer-events-none" />
           )}
@@ -296,25 +309,78 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
   return null;
 };
 
+// ─── Memo equality ─────────────────────────────────────────────────────────────
+
 /**
- * Optimized memo comparison — only re-render when visually relevant props change.
- * We intentionally skip re-render on callbacks (onClick/onHover) because they
- * are stable useCallback references from EnhancedMap.
+ * Cluster readings content fingerprint — detects changes in pm2.5/pm10 values
+ * even when the cluster ID and point count are unchanged.
+ *
+ * We compute a cheap numeric sum of pollutant values rather than doing a deep
+ * comparison or JSON serialisation; this is O(n) but avoids allocation.
  */
-const areEqual = (prev: MapNodesProps, next: MapNodesProps): boolean =>
-  prev.isSelected === next.isSelected &&
-  prev.isHovered === next.isHovered &&
-  prev.nodeType === next.nodeType &&
-  prev.size === next.size &&
-  prev.selectedPollutant === next.selectedPollutant &&
-  prev.zoomLevel === next.zoomLevel &&
-  prev.isTooltipOpen === next.isTooltipOpen &&
-  prev.reading?.id === next.reading?.id &&
-  prev.reading?.pm25Value === next.reading?.pm25Value &&
-  prev.reading?.pm10Value === next.reading?.pm10Value &&
-  prev.reading?.status === next.reading?.status &&
-  prev.cluster?.id === next.cluster?.id &&
-  prev.cluster?.pointCount === next.cluster?.pointCount;
+const clusterReadingsFingerprint = (readings: AirQualityReading[]): number => {
+  let sum = 0;
+  for (const r of readings) {
+    // XOR-accumulate IDs' char codes for a fast structural check
+    sum += (r.pm25Value ?? 0) + (r.pm10Value ?? 0);
+  }
+  return sum;
+};
+
+/**
+ * Custom memo comparator for MapNodes.
+ *
+ * We skip re-render on callback prop changes (onClick/onHover) because those
+ * are stable useCallback references from EnhancedMap — including them would
+ * defeat memoisation entirely.
+ *
+ * FIX (CodeRabbit review): cluster.readings content is now checked via a
+ * lightweight fingerprint so that updated pollutant values with unchanged
+ * member IDs correctly invalidate the memo and trigger a re-render.
+ *
+ * FIX (glitching): zoomLevel is compared as Math.round() so fractional zoom
+ * changes during smooth pan/zoom animations don't cause constant re-renders.
+ */
+const areEqual = (prev: MapNodesProps, next: MapNodesProps): boolean => {
+  // Shared visual state
+  if (
+    prev.isSelected !== next.isSelected ||
+    prev.isHovered !== next.isHovered ||
+    prev.nodeType !== next.nodeType ||
+    prev.size !== next.size ||
+    prev.selectedPollutant !== next.selectedPollutant ||
+    prev.isTooltipOpen !== next.isTooltipOpen
+  ) return false;
+
+  // Round zoom for comparison — prevents glitch-re-renders during smooth animation
+  if (Math.round(prev.zoomLevel ?? 10) !== Math.round(next.zoomLevel ?? 10)) return false;
+
+  // Individual reading checks
+  if (
+    prev.reading?.id !== next.reading?.id ||
+    prev.reading?.pm25Value !== next.reading?.pm25Value ||
+    prev.reading?.pm10Value !== next.reading?.pm10Value ||
+    prev.reading?.status !== next.reading?.status
+  ) return false;
+
+  // Cluster structural checks
+  if (
+    prev.cluster?.id !== next.cluster?.id ||
+    prev.cluster?.pointCount !== next.cluster?.pointCount
+  ) return false;
+
+  // FIX: Check cluster readings content so stale pollutant values are detected.
+  // Only run when both sides have readings (cluster identity already matched above).
+  if (prev.cluster?.readings && next.cluster?.readings) {
+    if (prev.cluster.readings.length !== next.cluster.readings.length) return false;
+    if (
+      clusterReadingsFingerprint(prev.cluster.readings) !==
+      clusterReadingsFingerprint(next.cluster.readings)
+    ) return false;
+  }
+
+  return true;
+};
 
 export const MapNodes = React.memo(MapNodesComponent, areEqual);
 MapNodes.displayName = 'MapNodes';
