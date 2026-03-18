@@ -264,7 +264,10 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           cd src/beacon/
-          docker build -t ${{ env.REGISTRY_URL }}/airqo-beacon:${{ needs.image-tag.outputs.build_id }} .
+          docker build \
+            --build-arg NEXT_PUBLIC_AIRQO_API_BASE_URL=https://beacon.airqo.net \
+            --build-arg NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL=https://beacon.airqo.net \
+            -t ${{ env.REGISTRY_URL }}/airqo-beacon:${{ needs.image-tag.outputs.build_id }} .
           docker push ${{ env.REGISTRY_URL }}/airqo-beacon:${{ needs.image-tag.outputs.build_id }}
           docker tag ${{ env.REGISTRY_URL }}/airqo-beacon:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/airqo-beacon:latest
           docker push ${{ env.REGISTRY_URL }}/airqo-beacon:latest
