@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:airqo/src/app/other/language/bloc/language_bloc.dart';
+import 'package:airqo/src/app/shared/services/mlkit_translation_service.dart';
 import 'package:airqo/src/app/shared/services/sunbird_translation_service.dart';
 
 /// A drop-in replacement for [Text] that automatically translates content
-/// using Sunbird AI when a supported local language is selected.
-/// Falls back to the original text for English or unsupported languages.
+/// using the appropriate backend:
+/// - Luganda → Sunbird AI
+/// - Swahili, French → Google ML Kit (on-device, free)
 class TranslatedText extends StatelessWidget {
   final String text;
   final TextStyle? style;
@@ -22,6 +24,18 @@ class TranslatedText extends StatelessWidget {
     this.overflow,
   });
 
+  Future<String> _translate(String localeCode) {
+    if (SunbirdTranslationService().supportsTranslation(localeCode)) {
+      return SunbirdTranslationService()
+          .translate(text, targetLocale: localeCode);
+    }
+    if (MlKitTranslationService().supportsTranslation(localeCode)) {
+      return MlKitTranslationService()
+          .translate(text, targetLocale: localeCode);
+    }
+    return Future.value(text);
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<LanguageBloc, LanguageState>(
@@ -29,7 +43,11 @@ class TranslatedText extends StatelessWidget {
         final localeCode =
             state is LanguageLoaded ? state.languageCode : 'en';
 
-        if (!SunbirdTranslationService().supportsTranslation(localeCode)) {
+        final isSupported =
+            SunbirdTranslationService().supportsTranslation(localeCode) ||
+            MlKitTranslationService().supportsTranslation(localeCode);
+
+        if (!isSupported) {
           return Text(
             text,
             style: style,
@@ -40,8 +58,7 @@ class TranslatedText extends StatelessWidget {
         }
 
         return FutureBuilder<String>(
-          future: SunbirdTranslationService()
-              .translate(text, targetLocale: localeCode),
+          future: _translate(localeCode),
           builder: (context, snapshot) {
             return Text(
               snapshot.data ?? text,

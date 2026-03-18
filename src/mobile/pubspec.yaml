@@ -67,6 +67,7 @@ dependencies:
   shared_preferences: ^2.5.3
   uuid: ^4.5.1
   device_info_plus: ^10.1.0
+  google_mlkit_translation: ^0.13.0
   flutter_localizations:
     sdk: flutter
   synchronized: ^3.3.0+3

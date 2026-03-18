@@ -26,10 +26,9 @@ class SelectLanguagePage extends StatefulWidget {
 class _SelectLanguagePageState extends State<SelectLanguagePage> {
   final List<LanguageOption> languages = [
     LanguageOption(code: 'en', name: 'English', nativeName: 'English'),
-    LanguageOption(code: 'fr', name: 'French', nativeName: 'Français'),
-    LanguageOption(code: 'sw', name: 'Swahili', nativeName: 'Kiswahili'),
     LanguageOption(code: 'lg', name: 'Luganda', nativeName: 'Luganda'),
-    LanguageOption(code: 'pt', name: 'Portuguese', nativeName: 'Português'),
+    LanguageOption(code: 'sw', name: 'Swahili', nativeName: 'Kiswahili'),
+    LanguageOption(code: 'fr', name: 'French', nativeName: 'Français'),
   ];
 
   void _showLanguageChangeNotification(
