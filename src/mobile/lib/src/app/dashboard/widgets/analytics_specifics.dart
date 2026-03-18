@@ -1,6 +1,7 @@
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/widgets/expanded_analytics_card.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_forecast_widget.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 
@@ -134,7 +135,7 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text(
+                    TranslatedText(
                       "Today",
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
@@ -151,7 +152,7 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
                   )
                 else
                   const Center(
-                    child: Text("Forecast not available"),
+                    child: TranslatedText("Forecast not available"),
                   ),
                 const SizedBox(height: 16),
               ],
