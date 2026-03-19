@@ -117,9 +117,13 @@ const CohortDetailsModal: React.FC<CohortDetailsModalProps> = ({
                     name: derivedName,
                     updateReason: trimmedReason,
                 });
-            }
-
-            if (!isOrganizational && nameChanged) {
+                if (tagsChanged) {
+                    await updateCohortDetails.mutateAsync({
+                        cohortId: cohortDetails.id,
+                        data: { cohort_tags: form.tags },
+                    });
+                }
+            } else if (!isOrganizational && nameChanged) {
                 await updateCohortDetails.mutateAsync({
                     cohortId: cohortDetails.id,
                     data: { name: derivedName, cohort_tags: form.tags },
