@@ -35,10 +35,12 @@ export default function CohortDetailsPage() {
     name: string;
     id: string;
     visibility: boolean;
+    cohort_tags: string[];
   }>({
     name: "",
     id: "",
     visibility: true,
+    cohort_tags: [],
   });
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showAssignDialog, setShowAssignDialog] = useState(false);
@@ -53,6 +55,7 @@ export default function CohortDetailsPage() {
         name: cohort.name,
         id: cohort._id,
         visibility: cohort.visibility,
+        cohort_tags: cohort.cohort_tags || [],
       });
     }
   }, [cohort]);

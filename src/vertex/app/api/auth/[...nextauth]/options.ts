@@ -11,7 +11,7 @@ const sharedCookieDomain = process.env.NEXTAUTH_COOKIE_DOMAIN?.trim();
 const nextAuthUrl = process.env.NEXTAUTH_URL;
 const sessionCookieName = isProduction
   ? '__Secure-next-auth.session-token'
-  : 'next-auth.session-token';
+  : 'vertex.next-auth.session-token';
 
 const normalizeDomain = (domain: string): string => domain.replace(/^\./, '').toLowerCase();
 
@@ -28,6 +28,17 @@ const isHostCompatibleWithCookieDomain = (() => {
 
 const shouldUseSharedCookieDomain =
   isProduction && !!sharedCookieDomain && isHostCompatibleWithCookieDomain;
+
+const sessionCookieConfig = {
+  name: sessionCookieName,
+  options: {
+    httpOnly: true,
+    sameSite: 'lax' as const,
+    path: '/',
+    secure: isProduction,
+    ...(shouldUseSharedCookieDomain ? { domain: sharedCookieDomain } : {}),
+  },
+};
 
 export const options: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
@@ -86,22 +97,9 @@ export const options: NextAuthOptions = {
     })
   ],
   
-  ...(shouldUseSharedCookieDomain
-    ? {
-        cookies: {
-          sessionToken: {
-            name: sessionCookieName,
-            options: {
-              httpOnly: true,
-              sameSite: 'lax' as const,
-              path: '/',
-              secure: isProduction,
-              domain: sharedCookieDomain,
-            },
-          },
-        },
-      }
-    : {}),
+  cookies: {
+    sessionToken: sessionCookieConfig,
+  },
 
   session: {
     strategy: 'jwt',
