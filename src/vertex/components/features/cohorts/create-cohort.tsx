@@ -39,12 +39,9 @@ interface CreateCohortDialogProps {
 }
 
 const formSchema = z.object({
-  city: z.string().min(1, {
-    message: "City is required.",
-  }),
-  projectName: z.string().min(1, {
-    message: "Project name is required.",
-  }),
+  name: z.string().optional(),
+  city: z.string().optional(),
+  projectName: z.string().optional(),
   funder: z.string().optional(),
   network: z.string().min(1, {
     message: "Please select a Sensor Manufacturer.",
@@ -55,6 +52,20 @@ const formSchema = z.object({
   cohort_tags: z.array(z.string()).min(1, {
     message: "Please select at least one tag.",
   }),
+}).superRefine((values, ctx) => {
+  const isOrganizational = values.cohort_tags?.includes("organizational");
+  if (isOrganizational) {
+    if (!values.city?.trim()) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "City is required.", path: ["city"] });
+    }
+    if (!values.projectName?.trim()) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Project name is required.", path: ["projectName"] });
+    }
+  } else {
+    if (!values.name?.trim()) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Cohort name is required.", path: ["name"] });
+    }
+  }
 });
 
 export function CreateCohortDialog({
@@ -67,6 +78,7 @@ export function CreateCohortDialog({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      name: "",
       city: "",
       projectName: "",
       funder: "",
@@ -126,6 +138,7 @@ export function CreateCohortDialog({
   useEffect(() => {
     if (open) {
       form.reset({
+        name: "",
         city: "",
         projectName: "",
         funder: "",
@@ -209,7 +222,10 @@ export function CreateCohortDialog({
   // Final submit handler
   const handleConfirmCreate = () => {
     const values = form.getValues();
-    const derivedName = buildCohortName(values.city, values.projectName, values.funder);
+    const isOrganizational = values.cohort_tags?.includes("organizational");
+    const derivedName = isOrganizational
+      ? buildCohortName(values.city || "", values.projectName || "", values.funder)
+      : (values.name || "").trim();
     createCohort(
       { name: derivedName, network: values.network, deviceIds: values.devices, cohort_tags: values.cohort_tags },
       {
@@ -271,7 +287,10 @@ export function CreateCohortDialog({
 
   const config = getDialogConfig();
   const formValues = form.getValues();
-  const derivedName = buildCohortName(formValues.city, formValues.projectName, formValues.funder);
+  const isOrganizational = form.watch("cohort_tags")?.includes("organizational");
+  const derivedName = isOrganizational
+    ? buildCohortName(formValues.city || "", formValues.projectName || "", formValues.funder)
+    : (formValues.name || "").trim();
 
   return (
     <ReusableDialog
@@ -295,81 +314,6 @@ export function CreateCohortDialog({
       {step === 'form' && (
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onFormReview)} className="space-y-4">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <FormField
-                control={form.control}
-                name="city"
-                render={({ field }) => (
-                  <TooltipProvider delayDuration={0}>
-                    <Tooltip open={showIgnoredTooltip.city}>
-                      <TooltipTrigger asChild>
-                        <div>
-                          <ReusableInputField
-                            label="City"
-                            placeholder="e.g. Nairobi"
-                            required
-                            {...field}
-                            onChange={(e) => handleSanitizedFieldChange("city", e.target.value, field.onChange)}
-                            error={form.formState.errors.city?.message}
-                          />
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">
-                        <p className="text-xs">Special character ignored</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="projectName"
-                render={({ field }) => (
-                  <TooltipProvider delayDuration={0}>
-                    <Tooltip open={showIgnoredTooltip.projectName}>
-                      <TooltipTrigger asChild>
-                        <div>
-                          <ReusableInputField
-                            label="Project name"
-                            placeholder="e.g. WRI"
-                            required
-                            {...field}
-                            onChange={(e) => handleSanitizedFieldChange("projectName", e.target.value, field.onChange)}
-                            error={form.formState.errors.projectName?.message}
-                          />
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">
-                        <p className="text-xs">Special character ignored</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="funder"
-                render={({ field }) => (
-                  <TooltipProvider delayDuration={0}>
-                    <Tooltip open={showIgnoredTooltip.funder}>
-                      <TooltipTrigger asChild>
-                        <div>
-                          <ReusableInputField
-                            label="Funder (optional)"
-                            placeholder="e.g. EPIC"
-                            {...field}
-                            onChange={(e) => handleSanitizedFieldChange("funder", e.target.value, field.onChange)}
-                          />
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">
-                        <p className="text-xs">Special character ignored</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )}
-              />
-            </div>
             <FormField
               control={form.control}
               name="cohort_tags"
@@ -387,6 +331,98 @@ export function CreateCohortDialog({
                 </FormItem>
               )}
             />
+
+            {isOrganizational ? (
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <FormField
+                  control={form.control}
+                  name="city"
+                  render={({ field }) => (
+                    <TooltipProvider delayDuration={0}>
+                      <Tooltip open={showIgnoredTooltip.city}>
+                        <TooltipTrigger asChild>
+                          <div>
+                            <ReusableInputField
+                              label="City"
+                              placeholder="e.g. Nairobi"
+                              required
+                              {...field}
+                              onChange={(e) => handleSanitizedFieldChange("city", e.target.value, field.onChange)}
+                              error={form.formState.errors.city?.message}
+                            />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          <p className="text-xs">Special character ignored</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="projectName"
+                  render={({ field }) => (
+                    <TooltipProvider delayDuration={0}>
+                      <Tooltip open={showIgnoredTooltip.projectName}>
+                        <TooltipTrigger asChild>
+                          <div>
+                            <ReusableInputField
+                              label="Project name"
+                              placeholder="e.g. WRI"
+                              required
+                              {...field}
+                              onChange={(e) => handleSanitizedFieldChange("projectName", e.target.value, field.onChange)}
+                              error={form.formState.errors.projectName?.message}
+                            />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          <p className="text-xs">Special character ignored</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="funder"
+                  render={({ field }) => (
+                    <TooltipProvider delayDuration={0}>
+                      <Tooltip open={showIgnoredTooltip.funder}>
+                        <TooltipTrigger asChild>
+                          <div>
+                            <ReusableInputField
+                              label="Funder (optional)"
+                              placeholder="e.g. EPIC"
+                              {...field}
+                              onChange={(e) => handleSanitizedFieldChange("funder", e.target.value, field.onChange)}
+                            />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          <p className="text-xs">Special character ignored</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+                />
+              </div>
+            ) : (
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <ReusableInputField
+                    label="Cohort name"
+                    placeholder="Enter cohort name"
+                    required
+                    {...field}
+                    error={form.formState.errors.name?.message}
+                  />
+                )}
+              />
+            )}
             <FormField
               control={form.control}
               name="network"
@@ -452,9 +488,11 @@ export function CreateCohortDialog({
                 </FormItem>
               )}
             />
-            <div className="text-xs text-muted-foreground">
-              Cohort name will be: <span className="font-medium">{derivedName || "-"}</span>
-            </div>
+            {isOrganizational && (
+              <div className="text-xs text-muted-foreground">
+                Cohort name will be: <span className="font-medium">{derivedName || "-"}</span>
+              </div>
+            )}
           </form>
         </Form>
       )}
