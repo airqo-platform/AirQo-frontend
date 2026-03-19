@@ -488,11 +488,6 @@ export function CreateCohortDialog({
                 </FormItem>
               )}
             />
-            {isOrganizational && (
-              <div className="text-xs text-muted-foreground">
-                Cohort name will be: <span className="font-medium">{derivedName || "-"}</span>
-              </div>
-            )}
           </form>
         </Form>
       )}

@@ -240,12 +240,6 @@ export function CreateCohortFromSelectionDialog({
           ))}
         </ReusableSelectInput>
 
-        {selectedTags.includes("organizational") && (
-          <div className="text-xs text-muted-foreground">
-            Cohort name will be: <span className="font-medium">{buildCohortName(city, projectName, funder) || "-"}</span>
-          </div>
-        )}
-
         <ReusableInputField as="textarea" label="Description (Optional)" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe this combined cohort" rows={3} />
       </div>
     </ReusableDialog>
