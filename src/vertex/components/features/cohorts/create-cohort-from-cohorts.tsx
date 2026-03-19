@@ -154,7 +154,7 @@ export function CreateCohortFromSelectionDialog({
           selectedTags.length === 0 ||
           (selectedTags.includes("organizational")
             ? city.trim().length === 0 || projectName.trim().length === 0
-            : name.trim().length === 0),
+            : name.trim().length < 2),
       }}
       secondaryAction={{
         label: "Cancel",

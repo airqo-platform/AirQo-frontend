@@ -53,6 +53,7 @@ const CohortDetailsModal: React.FC<CohortDetailsModalProps> = ({
     const tooltipTimers = useRef<Record<string, ReturnType<typeof setTimeout> | null>>({});
 
     useEffect(() => {
+        if (!open) return;
         const { city, projectName, funder } = splitCohortName(cohortDetails.name || "");
         setForm({
             name: cohortDetails.name || "",
@@ -62,20 +63,6 @@ const CohortDetailsModal: React.FC<CohortDetailsModalProps> = ({
             updateReason: "",
             tags: cohortDetails.cohort_tags || [],
         });
-    }, [cohortDetails]);
-
-    useEffect(() => {
-        if (!open) {
-            const { city, projectName, funder } = splitCohortName(cohortDetails.name || "");
-            setForm({
-                name: cohortDetails.name || "",
-                city,
-                projectName,
-                funder,
-                updateReason: "",
-                tags: cohortDetails.cohort_tags || [],
-            });
-        }
     }, [open, cohortDetails]);
 
     const handleCancel = () => {
@@ -103,9 +90,10 @@ const CohortDetailsModal: React.FC<CohortDetailsModalProps> = ({
         const derivedName = isOrganizational
             ? (legacyOrganizationalName ? trimmedName : buildCohortName(trimmedCity, trimmedProject, form.funder))
             : trimmedName;
+        const requiresUpdateReason = isOrganizational && derivedName !== cohortDetails.name;
         if (!isOrganizational && trimmedName.length === 0) return;
         if (isOrganizational && !legacyOrganizationalName && (trimmedCity.length === 0 || trimmedProject.length === 0)) return;
-        if (isOrganizational && trimmedReason.length === 0) return;
+        if (requiresUpdateReason && trimmedReason.length === 0) return;
         const nameChanged = derivedName.length > 0 && derivedName !== cohortDetails.name;
 
         if (!nameChanged && !tagsChanged) return onClose();
@@ -169,12 +157,14 @@ const CohortDetailsModal: React.FC<CohortDetailsModalProps> = ({
     const tagsChanged =
         JSON.stringify(form.tags.slice().sort()) !== JSON.stringify((cohortDetails.cohort_tags || []).slice().sort());
     const isSaving = updateCohortName.isPending || updateCohortDetails.isPending;
+    const requiresUpdateReason = isOrganizational && derivedName !== cohortDetails.name;
     const canSave =
         (isOrganizational
             ? (legacyOrganizationalName
-                ? trimmedName.length > 0 && trimmedReason.length > 0
-                : trimmedCity.length > 0 && trimmedProject.length > 0 && trimmedReason.length > 0)
+                ? trimmedName.length > 0
+                : trimmedCity.length > 0 && trimmedProject.length > 0)
             : trimmedName.length > 0) &&
+        (!requiresUpdateReason || trimmedReason.length > 0) &&
         derivedName.length > 0 &&
         (derivedName !== cohortDetails.name || tagsChanged);
 
