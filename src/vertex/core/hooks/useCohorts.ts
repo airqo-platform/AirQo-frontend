@@ -174,6 +174,43 @@ export const useUpdateCohortDetails = () => {
   });
 };
 
+export const useUpdateCohortName = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      cohortId,
+      name,
+      updateReason,
+    }: {
+      cohortId: string;
+      name: string;
+      updateReason: string;
+    }) =>
+      cohortsApi.updateCohortNameApi(cohortId, {
+        name,
+        confirm_update: true,
+        update_reason: updateReason,
+      }),
+    onSuccess: (data, variables) => {
+      ReusableToast({
+        message: 'Cohort name updated successfully',
+        type: 'SUCCESS',
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['cohort-details', variables.cohortId],
+      });
+      queryClient.invalidateQueries({ queryKey: ['cohorts'] });
+      queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
+    },
+    onError: error => {
+      ReusableToast({
+        message: `Failed to update cohort name: ${getApiErrorMessage(error)}`,
+        type: 'ERROR',
+      });
+    },
+  });
+};
+
 export const useCreateCohort = () => {
     const queryClient = useQueryClient();
     return useMutation({

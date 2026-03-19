@@ -125,6 +125,18 @@ export const cohorts = {
       throw error;
     }
   },
+  updateCohortNameApi: async (cohortId: string, payload: { name: string; confirm_update: boolean; update_reason: string }) => {
+    try {
+      const response = await createSecureApiClient().put(
+        `/devices/cohorts/${cohortId}/name`,
+        payload,
+        { headers: { 'X-Auth-Type': 'JWT' } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
   createCohortFromCohorts: async (payload: { name: string; description?: string; cohort_ids: string[]; network?: string; cohort_tags?: string[] }) => {
     try {
       const response = await createSecureApiClient().post(
