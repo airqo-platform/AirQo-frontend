@@ -38,6 +38,16 @@ const getErrorStatusCode = (error: unknown): number | null => {
   return null;
 };
 
+const getErrorCode = (error: unknown): string | null => {
+  if (!error || typeof error !== 'object') return null;
+
+  const axiosLike = error as {
+    code?: string;
+  };
+
+  return typeof axiosLike.code === 'string' ? axiosLike.code : null;
+};
+
 const createQueryClient = () =>
   new QueryClient({
     defaultOptions: {
@@ -53,6 +63,16 @@ const createQueryClient = () =>
           }
 
           const status = getErrorStatusCode(error);
+          const errorCode = getErrorCode(error);
+
+          if (status !== null && status >= 500) {
+            return false;
+          }
+
+          if (errorCode === 'ECONNABORTED' || errorCode === 'ERR_NETWORK') {
+            return false;
+          }
+
           if (
             status === 401 ||
             status === 403 ||
