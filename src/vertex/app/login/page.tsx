@@ -5,7 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod"
 import Link from "next/link"
 import Image from "next/image"
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { Form, FormField } from "@/components/ui/form"
 import { signUpUrl, forgotPasswordUrl } from "@/core/urls"
@@ -32,6 +33,18 @@ const loginSchema = z.object({
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [rememberedAccounts, setRememberedAccounts] = useState<RememberedAccount[]>([]);
+  const searchParams = useSearchParams();
+  const callbackUrl = useMemo(() => {
+    const raw = searchParams.get("callbackUrl");
+    if (!raw) return "";
+    try {
+      const parsed = new URL(raw, window.location.origin);
+      if (parsed.origin !== window.location.origin) return "";
+      return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+    } catch {
+      return "";
+    }
+  }, [searchParams]);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -70,7 +83,8 @@ export default function LoginPage() {
 
     // Read preference BEFORE authentication to avoid timing issues
     const lastModule = getLastActiveModule(values.userName);
-    const redirectUrl = lastModule === 'admin' ? '/admin/networks' : '/home';
+    const fallbackUrl = lastModule === 'admin' ? '/admin/networks' : '/home';
+    const redirectUrl = callbackUrl || fallbackUrl;
 
     try {
       const result = await signIn("credentials", {
@@ -111,7 +125,7 @@ export default function LoginPage() {
       ReusableToast({ message, type: "ERROR" });
       setIsLoading(false);
     }
-  }, [rememberedAccounts]);
+  }, [rememberedAccounts, callbackUrl]);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-background to-muted/30 p-4">
