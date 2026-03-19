@@ -1,14 +1,15 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import ReusableButton from "@/components/shared/button/ReusableButton";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
 
 import { useUpdateCohortName } from "@/core/hooks/useCohorts";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import logger from "@/lib/logger";
+import { buildCohortName, sanitizeCohortInput, splitCohortName } from "@/core/utils/cohortName";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface CohortDetailsModalProps {
     open: boolean;
@@ -25,35 +26,48 @@ const CohortDetailsModal: React.FC<CohortDetailsModalProps> = ({
     cohortDetails,
     onClose,
 }) => {
-    const [form, setForm] = useState({ name: cohortDetails.name, updateReason: "" });
+    const [form, setForm] = useState({ city: "", projectName: "", funder: "", updateReason: "" });
     const updateCohortName = useUpdateCohortName();
+    const [showIgnoredTooltip, setShowIgnoredTooltip] = useState({
+        city: false,
+        projectName: false,
+        funder: false,
+    });
+    const tooltipTimers = useRef<Record<string, ReturnType<typeof setTimeout> | null>>({});
 
     useEffect(() => {
-        setForm({ name: cohortDetails.name, updateReason: "" });
+        const { city, projectName, funder } = splitCohortName(cohortDetails.name || "");
+        setForm({ city, projectName, funder, updateReason: "" });
     }, [cohortDetails]);
 
     useEffect(() => {
         if (!open) {
-            setForm({ name: cohortDetails.name, updateReason: "" });
+            const { city, projectName, funder } = splitCohortName(cohortDetails.name || "");
+            setForm({ city, projectName, funder, updateReason: "" });
         }
     }, [open, cohortDetails]);
 
     const handleCancel = () => {
-        setForm({ name: cohortDetails.name, updateReason: "" });
+        const { city, projectName, funder } = splitCohortName(cohortDetails.name || "");
+        setForm({ city, projectName, funder, updateReason: "" });
         onClose();
     };
 
     const handleSave = async () => {
-        const trimmedName = form.name.trim();
+        const trimmedCity = form.city.trim();
+        const trimmedProject = form.projectName.trim();
         const trimmedReason = form.updateReason.trim();
-        if (trimmedName.length === 0) return;
-        if (trimmedName === cohortDetails.name) return onClose();
+        if (trimmedCity.length === 0 || trimmedProject.length === 0) return;
         if (trimmedReason.length === 0) return;
+
+        const derivedName = buildCohortName(trimmedCity, trimmedProject, form.funder);
+        if (derivedName.length === 0) return;
+        if (derivedName === cohortDetails.name) return onClose();
 
         try {
             await updateCohortName.mutateAsync({
                 cohortId: cohortDetails.id,
-                name: trimmedName,
+                name: derivedName,
                 updateReason: trimmedReason,
             });
             onClose();
@@ -62,12 +76,33 @@ const CohortDetailsModal: React.FC<CohortDetailsModalProps> = ({
         }
     };
 
-    const trimmedName = form.name.trim();
+    const handleSanitizedInputChange = (
+        fieldKey: "city" | "projectName" | "funder",
+        value: string
+    ) => {
+        const sanitized = sanitizeCohortInput(value);
+        if (/[^a-zA-Z0-9]/.test(value)) {
+            setShowIgnoredTooltip((prev) => ({ ...prev, [fieldKey]: true }));
+            if (tooltipTimers.current[fieldKey]) {
+                clearTimeout(tooltipTimers.current[fieldKey] as ReturnType<typeof setTimeout>);
+            }
+            tooltipTimers.current[fieldKey] = setTimeout(() => {
+                setShowIgnoredTooltip((prev) => ({ ...prev, [fieldKey]: false }));
+            }, 1500);
+        }
+        setForm((prev) => ({ ...prev, [fieldKey]: sanitized }));
+    };
+
+    const trimmedCity = form.city.trim();
+    const trimmedProject = form.projectName.trim();
     const trimmedReason = form.updateReason.trim();
+    const derivedName = buildCohortName(trimmedCity, trimmedProject, form.funder);
     const canSave =
-        trimmedName.length > 0 &&
+        trimmedCity.length > 0 &&
+        trimmedProject.length > 0 &&
         trimmedReason.length > 0 &&
-        trimmedName !== cohortDetails.name;
+        derivedName.length > 0 &&
+        derivedName !== cohortDetails.name;
 
     return (
         <ReusableDialog
@@ -85,24 +120,75 @@ const CohortDetailsModal: React.FC<CohortDetailsModalProps> = ({
             }
         >
             <div className="space-y-4">
-                <div className="space-y-2">
-                    <Label>Cohort Name *</Label>
-                    <Input
-                        value={form.name}
-                        onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))}
-                        placeholder="Enter cohort name"
-                        disabled={updateCohortName.isPending}
-                    />
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    <TooltipProvider delayDuration={0}>
+                        <Tooltip open={showIgnoredTooltip.city}>
+                            <TooltipTrigger asChild>
+                                <div>
+                                    <ReusableInputField
+                                        label="City"
+                                        value={form.city}
+                                        onChange={(e) => handleSanitizedInputChange("city", e.target.value)}
+                                        placeholder="e.g. Nairobi"
+                                        disabled={updateCohortName.isPending}
+                                        required
+                                    />
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="top">
+                                <p className="text-xs">Special character ignored</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                    <TooltipProvider delayDuration={0}>
+                        <Tooltip open={showIgnoredTooltip.projectName}>
+                            <TooltipTrigger asChild>
+                                <div>
+                                    <ReusableInputField
+                                        label="Project name"
+                                        value={form.projectName}
+                                        onChange={(e) => handleSanitizedInputChange("projectName", e.target.value)}
+                                        placeholder="e.g. WRI"
+                                        disabled={updateCohortName.isPending}
+                                        required
+                                    />
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="top">
+                                <p className="text-xs">Special character ignored</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                    <TooltipProvider delayDuration={0}>
+                        <Tooltip open={showIgnoredTooltip.funder}>
+                            <TooltipTrigger asChild>
+                                <div>
+                                    <ReusableInputField
+                                        label="Funder (optional)"
+                                        value={form.funder}
+                                        onChange={(e) => handleSanitizedInputChange("funder", e.target.value)}
+                                        placeholder="e.g. EPIC"
+                                        disabled={updateCohortName.isPending}
+                                    />
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="top">
+                                <p className="text-xs">Special character ignored</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
                 </div>
-                <div className="space-y-2">
-                    <Label>Update Reason *</Label>
-                    <Input
-                        value={form.updateReason}
-                        onChange={(e) => setForm((s) => ({ ...s, updateReason: e.target.value }))}
-                        placeholder="Why is this name changing?"
-                        disabled={updateCohortName.isPending}
-                    />
+                <div className="text-xs text-muted-foreground">
+                    Cohort name will be: <span className="font-medium">{derivedName || "-"}</span>
                 </div>
+                <ReusableInputField
+                    label="Update reason"
+                    value={form.updateReason}
+                    onChange={(e) => setForm((s) => ({ ...s, updateReason: e.target.value }))}
+                    placeholder="Why is this name changing?"
+                    disabled={updateCohortName.isPending}
+                    required
+                />
             </div>
         </ReusableDialog>
     );
