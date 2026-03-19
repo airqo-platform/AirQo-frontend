@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -416,7 +417,7 @@ class AutoUpdateService with UiLoggy {
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: Text(
+              child: TranslatedText(
                 'Update Available',
                 style: TextStyle(
                   color: isDarkMode 
@@ -445,8 +446,8 @@ class AutoUpdateService with UiLoggy {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Current:', 
+                      TranslatedText(
+                        'Current:',
                         style: TextStyle(
                           fontWeight: FontWeight.w500,
                           color: isDarkMode 
@@ -468,8 +469,8 @@ class AutoUpdateService with UiLoggy {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Latest:', 
+                      TranslatedText(
+                        'Latest:',
                         style: TextStyle(
                           fontWeight: FontWeight.w500,
                           color: isDarkMode 
@@ -508,7 +509,7 @@ class AutoUpdateService with UiLoggy {
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(
+                    child: TranslatedText(
                       'Get the latest features and improvements by updating now.',
                       style: TextStyle(
                         fontSize: 14,
@@ -534,7 +535,7 @@ class AutoUpdateService with UiLoggy {
                   ? AppColors.secondaryHeadlineColor2 
                   : AppColors.secondaryHeadlineColor,
             ),
-            child: const Text('Skip This Version'),
+            child: const TranslatedText('Skip This Version'),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -543,7 +544,7 @@ class AutoUpdateService with UiLoggy {
                   ? AppColors.secondaryHeadlineColor2 
                   : AppColors.secondaryHeadlineColor,
             ),
-            child: const Text('Later'),
+            child: const TranslatedText('Later'),
           ),
           ElevatedButton.icon(
             onPressed: () {
@@ -551,7 +552,7 @@ class AutoUpdateService with UiLoggy {
               _openAppStore(packageName);
             },
             icon: const Icon(Icons.download),
-            label: const Text('Update'),
+            label: const TranslatedText('Update'),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryColor,
               foregroundColor: Colors.white,

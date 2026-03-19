@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:airqo/src/app/dashboard/services/enhanced_location_service_manager.dart';
 import 'package:airqo/src/app/profile/models/location_data_model.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 
 class AddPrivacyZoneDialog extends StatefulWidget {
   final Function(String name, double lat, double lng, double radius) onAddZone;
@@ -82,7 +83,7 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog>
               ),
             ),
             const SizedBox(width: 12),
-            Text(
+            TranslatedText(
               'Add Privacy Zone',
               style: TextStyle(
                 color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
@@ -100,7 +101,7 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog>
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                TranslatedText(
                   'Create a zone where location tracking will be automatically disabled to protect your privacy.',
                   style: TextStyle(
                     fontSize: 14,
@@ -152,7 +153,7 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog>
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: const Text(
+            child: const TranslatedText(
               'Cancel',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
@@ -169,7 +170,7 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog>
                     ),
                   )
                 : const Icon(Icons.add_location, size: 18, color: Colors.white),
-            label: const Text('Add Zone'),
+            label: const TranslatedText('Add Zone'),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
@@ -346,7 +347,7 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      TranslatedText(
                         'Use current location',
                         style: TextStyle(
                           color: isDarkMode
@@ -357,7 +358,7 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog>
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Text(
+                      TranslatedText(
                         'Zone will be created at your current position',
                         style: TextStyle(
                           color: isDarkMode
@@ -395,7 +396,7 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        TranslatedText(
           'Manual Coordinates',
           style: TextStyle(
             fontSize: 14,
@@ -608,7 +609,7 @@ class _DeleteDataRangeDialogState extends State<DeleteDataRangeDialog>
               ),
             ),
             const SizedBox(width: 12),
-            Text(
+            TranslatedText(
               'Delete Data Range',
               style: TextStyle(
                 color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
@@ -643,7 +644,7 @@ class _DeleteDataRangeDialogState extends State<DeleteDataRangeDialog>
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Text(
+                      child: TranslatedText(
                         'This action cannot be undone. Select the date range for location data you want to permanently delete.',
                         style: TextStyle(
                           color: Colors.red.shade700,
@@ -683,7 +684,7 @@ class _DeleteDataRangeDialogState extends State<DeleteDataRangeDialog>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      TranslatedText(
                         'Summary',
                         style: TextStyle(
                           fontSize: 14,
@@ -729,7 +730,7 @@ class _DeleteDataRangeDialogState extends State<DeleteDataRangeDialog>
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: const Text(
+            child: const TranslatedText(
               'Cancel',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
@@ -748,7 +749,7 @@ class _DeleteDataRangeDialogState extends State<DeleteDataRangeDialog>
                     ),
                   )
                 : const Icon(Icons.delete_forever, size: 18),
-            label: const Text('Delete Range'),
+            label: const TranslatedText('Delete Range'),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
@@ -1053,7 +1054,7 @@ class _LocationDetailDialogState extends State<LocationDetailDialog>
                 ),
               ),
               const SizedBox(width: 12),
-              Text(
+              TranslatedText(
                 'Location Details',
                 style: TextStyle(
                   color:
@@ -1079,7 +1080,7 @@ class _LocationDetailDialogState extends State<LocationDetailDialog>
             TextButton.icon(
               onPressed: () => Navigator.pop(context),
               icon: const Icon(Icons.close, size: 18),
-              label: const Text('Close'),
+              label: const TranslatedText('Close'),
               style: TextButton.styleFrom(
                 foregroundColor: AppColors.primaryColor,
                 padding:
@@ -1179,7 +1180,7 @@ class _LocationDetailDialogState extends State<LocationDetailDialog>
                 size: 20,
               ),
               const SizedBox(width: 8),
-              Text(
+              TranslatedText(
                 'Sharing Status',
                 style: TextStyle(
                   fontSize: 16,
@@ -1389,7 +1390,7 @@ class _LocationPermissionDialogState extends State<LocationPermissionDialog>
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: const Text(
+              child: const TranslatedText(
                 'Cancel',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
@@ -1401,7 +1402,7 @@ class _LocationPermissionDialogState extends State<LocationPermissionDialog>
                   widget.onOpenSettings!();
                 },
                 icon: const Icon(Icons.settings, size: 18),
-                label: const Text('Open Settings'),
+                label: const TranslatedText('Open Settings'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryColor,
                   foregroundColor: Colors.white,

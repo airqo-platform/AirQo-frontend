@@ -4,6 +4,7 @@ import 'package:airqo/src/app/auth/pages/password_reset/forgot_password.dart';
 import 'package:airqo/src/app/auth/pages/register_page.dart';
 import 'package:airqo/src/app/shared/pages/nav_page.dart';
 import 'package:airqo/src/app/shared/widgets/form_field.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -87,7 +88,7 @@ class _LoginPageState extends State<LoginPage> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  TranslatedText(
                     'Your account has not been verified yet.',
                     style: TextStyle(
                       fontSize: 16,
@@ -95,7 +96,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   SizedBox(height: 8),
-                  Text(
+                  TranslatedText(
                     'Please check your email for a verification code or request a new one.',
                     style: TextStyle(
                       fontSize: 14,
@@ -107,7 +108,7 @@ class _LoginPageState extends State<LoginPage> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: Text(
+                  child: TranslatedText(
                     'Cancel',
                     style: TextStyle(
                       color: Colors.grey[600],
@@ -130,7 +131,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     );
                   },
-                  child: Text('Verify Now'),
+                  child: TranslatedText('Verify Now'),
                 ),
               ],
               shape: RoundedRectangleBorder(
@@ -279,7 +280,7 @@ class _LoginPageState extends State<LoginPage> {
                                           strokeWidth: 2,
                                         ),
                                       )
-                                    : Text(
+                                    : TranslatedText(
                                         "Login",
                                         style: TextStyle(
                                           fontWeight: FontWeight.w500,
@@ -296,7 +297,7 @@ class _LoginPageState extends State<LoginPage> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Flexible(
-                                child: Text(
+                                child: TranslatedText(
                                   "Don't have an account?",
                                   style: TextStyle(
                                     color: Theme.of(context).textTheme.headlineLarge?.color,
@@ -312,7 +313,7 @@ class _LoginPageState extends State<LoginPage> {
                                     builder: (context) => CreateAccountScreen(),
                                   ),
                                 ),
-                                child: Text(
+                                child: TranslatedText(
                                   " Create Account",
                                   style: TextStyle(
                                     fontWeight: FontWeight.w500,
@@ -338,7 +339,7 @@ class _LoginPageState extends State<LoginPage> {
                                       builder: (context) => ForgotPasswordPage(),
                                     ),
                                   ),
-                                  child: Text(
+                                  child: TranslatedText(
                                     "Forgot password?",
                                     style: TextStyle(
                                       fontWeight: FontWeight.w500,
@@ -413,7 +414,7 @@ class VerificationOption extends StatelessWidget {
           ),
         );
       },
-      child: Text(
+      child: TranslatedText(
         "Verify account",
         style: TextStyle(
           fontWeight: FontWeight.w500,

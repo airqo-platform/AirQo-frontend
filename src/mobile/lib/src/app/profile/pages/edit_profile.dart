@@ -13,6 +13,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:loggy/loggy.dart';
 
 class EditProfile extends StatefulWidget {
@@ -496,14 +497,14 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
                     context: context,
                     builder: (context) => AlertDialog(
                       backgroundColor: cardColor,
-                      title: Text(
+                      title: TranslatedText(
                         'Discard Changes?',
                         style: TextStyle(
                           color: textColor,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      content: Text(
+                      content: TranslatedText(
                         'You have unsaved changes. Are you sure you want to go back?',
                         style: TextStyle(
                           color: subtitleColor,
@@ -512,7 +513,7 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.of(context).pop(),
-                          child: Text(
+                          child: TranslatedText(
                             'Cancel',
                             style: TextStyle(
                               color: subtitleColor,
@@ -528,7 +529,7 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
                             Navigator.of(context).pop();
                             Navigator.of(context).pop();
                           },
-                          child: Text('Discard'),
+                          child: TranslatedText('Discard'),
                         ),
                       ],
                     ),

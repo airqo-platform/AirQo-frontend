@@ -1,5 +1,6 @@
 import 'package:airqo/src/app/dashboard/bloc/forecast/forecast_bloc.dart';
 import 'package:airqo/src/app/shared/widgets/loading_widget.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/meta/utils/forecast_utils.dart';
 import 'package:flutter/material.dart';
@@ -250,7 +251,7 @@ class _AnalyticsForecastWidgetState extends State<AnalyticsForecastWidget> with 
               padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               minimumSize: Size(60, 36),
             ),
-            child: Text("Retry", style: TextStyle(color: Colors.white)),
+            child: TranslatedText("Retry", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -288,7 +289,7 @@ class _AnalyticsForecastWidgetState extends State<AnalyticsForecastWidget> with 
           SizedBox(width: 8),
           TextButton(
             onPressed: _refreshForecasts,
-            child: Text("Retry", style: TextStyle(color: AppColors.primaryColor)),
+            child: TranslatedText("Retry", style: TextStyle(color: AppColors.primaryColor)),
           ),
         ],
       ),

@@ -1,6 +1,7 @@
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_card.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_details.dart';
 import 'package:airqo/src/app/dashboard/widgets/google_places_loader.dart';
 import 'package:airqo/src/app/dashboard/widgets/location_display_widget.dart';
@@ -605,7 +606,7 @@ class _MapScreenState extends State<MapScreen>
             color: Colors.grey,
           ),
           SizedBox(height: 16),
-          Text(
+          TranslatedText(
             "Unable to load map data",
             style: TextStyle(
               fontSize: 18,
@@ -614,7 +615,7 @@ class _MapScreenState extends State<MapScreen>
             ),
           ),
           SizedBox(height: 8),
-          Text(
+          TranslatedText(
             "Please check your connection and try again",
             style: TextStyle(
               fontSize: 16,
@@ -625,7 +626,7 @@ class _MapScreenState extends State<MapScreen>
           ElevatedButton.icon(
             onPressed: _retryLoading,
             icon: Icon(Icons.refresh),
-            label: Text('Try Again'),
+            label: TranslatedText('Try Again'),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryColor,
               foregroundColor: Colors.white,
@@ -811,7 +812,7 @@ class _MapScreenState extends State<MapScreen>
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Text("Today",
+                        TranslatedText("Today",
                             style: TextStyle(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 20,
@@ -1022,7 +1023,7 @@ class _MapScreenState extends State<MapScreen>
               if (isModalFull) SizedBox(height: 16),
               Row(
                 children: [
-                  Text("AirQo map",
+                  TranslatedText("AirQo map",
                       style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.w700,
@@ -1273,7 +1274,7 @@ class _MapScreenState extends State<MapScreen>
 
                               if (measurements.isEmpty) {
                                 return Center(
-                                  child: Text("No locations available"),
+                                  child: TranslatedText("No locations available"),
                                 );
                               }
 

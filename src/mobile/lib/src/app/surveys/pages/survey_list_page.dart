@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:collection/collection.dart';
@@ -554,7 +555,7 @@ class _SurveyListPageState extends State<SurveyListPage> {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: const Text('Try Again'),
+              child: const TranslatedText('Try Again'),
             ),
           ],
         ),
@@ -577,7 +578,7 @@ class _SurveyListPageState extends State<SurveyListPage> {
               color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.3),
             ),
             const SizedBox(height: 16),
-            Text(
+            TranslatedText(
               'No surveys available',
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
@@ -585,7 +586,7 @@ class _SurveyListPageState extends State<SurveyListPage> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
-            Text(
+            TranslatedText(
               'Check back later for new research surveys.',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
@@ -597,7 +598,7 @@ class _SurveyListPageState extends State<SurveyListPage> {
               onPressed: () {
                 context.read<SurveyBloc>().add(const LoadSurveys(forceRefresh: true));
               },
-              child: const Text('Refresh'),
+              child: const TranslatedText('Refresh'),
             ),
           ],
         ),

@@ -6,6 +6,7 @@ import 'package:airqo/src/app/auth/pages/password_reset/reset_link_sent.dart';
 
 import 'package:airqo/src/app/shared/widgets/form_field.dart';
 import 'package:airqo/src/app/shared/widgets/spinner.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -95,7 +96,7 @@ class _ForgotPasswordPage extends State<ForgotPasswordPage> {
                         SizedBox(
                           height: 12,
                         ),
-                        Text("Enter your email address and we will send you a code to reset your password.",
+                        TranslatedText("Enter your email address and we will send you a code to reset your password.",
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
@@ -202,7 +203,7 @@ class _ForgotPasswordPage extends State<ForgotPasswordPage> {
                         child: Center(
                           child: loading
                               ? Spinner()
-                              : Text(
+                              : TranslatedText(
                             "Submit",
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
@@ -223,7 +224,7 @@ class _ForgotPasswordPage extends State<ForgotPasswordPage> {
                 onTap: () => Navigator.of(context).push(MaterialPageRoute(
                     builder: (context) => LoginPage())),
                 child: Center(
-                  child: Text(
+                  child: TranslatedText(
                     "Login",
                     style: TextStyle(
                         fontWeight: FontWeight.w500,

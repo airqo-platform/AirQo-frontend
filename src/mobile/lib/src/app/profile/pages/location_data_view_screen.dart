@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:airqo/src/app/profile/models/location_data_model.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/meta/utils/date_formatters.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 
 class LocationDataViewScreen extends StatefulWidget {
   final List<LocationDataPoint> locationHistory;
@@ -127,7 +128,7 @@ class _LocationDataViewScreenState extends State<LocationDataViewScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          TranslatedText(
             'Location Data Overview',
             style: TextStyle(
               fontSize: 16,
@@ -237,7 +238,7 @@ class _LocationDataViewScreenState extends State<LocationDataViewScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          TranslatedText(
             'Filters & Sorting',
             style: TextStyle(
               fontSize: 14,
@@ -264,13 +265,13 @@ class _LocationDataViewScreenState extends State<LocationDataViewScreen> {
           const SizedBox(height: 12),
           Row(
             children: [
-              Text(
+              TranslatedText(
                 'Sort by:',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: isDarkMode 
-                      ? AppColors.secondaryHeadlineColor2 
+                  color: isDarkMode
+                      ? AppColors.secondaryHeadlineColor2
                       : AppColors.secondaryHeadlineColor,
                 ),
               ),
@@ -393,7 +394,7 @@ class _LocationDataViewScreenState extends State<LocationDataViewScreen> {
               ),
             ),
             SizedBox(height: screenWidth * 0.06),
-            Text(
+            TranslatedText(
               'No Location Data',
               style: TextStyle(
                 fontSize: 20,
@@ -432,7 +433,7 @@ class _LocationDataViewScreenState extends State<LocationDataViewScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Text('Show All Data'),
+                child: const TranslatedText('Show All Data'),
               ),
             ],
           ],
@@ -573,7 +574,7 @@ class _LocationDataViewScreenState extends State<LocationDataViewScreen> {
                               color: AppColors.primaryColor,
                             ),
                             const SizedBox(width: 8),
-                            const Text('View Details'),
+                            const TranslatedText('View Details'),
                           ],
                         ),
                       ),
@@ -587,7 +588,7 @@ class _LocationDataViewScreenState extends State<LocationDataViewScreen> {
                               color: Colors.red,
                             ),
                             const SizedBox(width: 8),
-                            const Text('Delete'),
+                            const TranslatedText('Delete'),
                           ],
                         ),
                       ),
@@ -676,7 +677,7 @@ class _LocationDataViewScreenState extends State<LocationDataViewScreen> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
-      title: Text(
+      title: TranslatedText(
         'Location Details',
         style: TextStyle(
           color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
@@ -705,7 +706,7 @@ class _LocationDataViewScreenState extends State<LocationDataViewScreen> {
             foregroundColor: AppColors.primaryColor,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
-          child: const Text('Close'),
+          child: const TranslatedText('Close'),
         ),
       ],
       actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -758,16 +759,16 @@ class _LocationDataViewScreenState extends State<LocationDataViewScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
-        title: Text(
+        title: TranslatedText(
           'Delete Location Point',
           style: TextStyle(
-            color: Theme.of(context).brightness == Brightness.dark 
-                ? Colors.white 
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white
                 : AppColors.boldHeadlineColor4,
             fontWeight: FontWeight.w600,
           ),
         ),
-        content: Text(
+        content: TranslatedText(
           'Are you sure you want to delete this location point? This action cannot be undone.',
           style: TextStyle(
             color: Theme.of(context).brightness == Brightness.dark 
@@ -783,7 +784,7 @@ class _LocationDataViewScreenState extends State<LocationDataViewScreen> {
                   ? Colors.grey[400] 
                   : Colors.grey[700],
             ),
-            child: const Text('Cancel'),
+            child: const TranslatedText('Cancel'),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
@@ -794,7 +795,7 @@ class _LocationDataViewScreenState extends State<LocationDataViewScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: const Text('Delete'),
+            child: const TranslatedText('Delete'),
           ),
         ],
       ),

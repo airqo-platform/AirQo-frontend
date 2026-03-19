@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:geolocator/geolocator.dart';
@@ -173,19 +174,19 @@ class NotificationHelper with UiLoggy {
       final shouldOpenSettings = await showDialog<bool>(
         context: context,
         builder: (dialogContext) => AlertDialog(
-          title: const Text('Notifications Blocked'),
-          content: const Text(
+          title: const TranslatedText('Notifications Blocked'),
+          content: const TranslatedText(
             'Notifications have been permanently blocked. To enable them, '
             'please go to app settings and allow notifications.',
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Cancel'),
+              child: const TranslatedText('Cancel'),
             ),
             ElevatedButton(
               onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('Open Settings'),
+              child: const TranslatedText('Open Settings'),
             ),
           ],
         ),
@@ -203,19 +204,19 @@ class NotificationHelper with UiLoggy {
     final shouldRequest = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Enable Notifications'),
-        content: const Text(
+        title: const TranslatedText('Enable Notifications'),
+        content: const TranslatedText(
           'Stay informed about air quality changes and new surveys in your area. '
           'We\'ll send you important alerts and updates.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Not Now'),
+            child: const TranslatedText('Not Now'),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Enable'),
+            child: const TranslatedText('Enable'),
           ),
         ],
       ),

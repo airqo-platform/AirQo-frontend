@@ -2,6 +2,7 @@ import 'package:airqo/src/app/learn/bloc/kya_bloc.dart';
 import 'package:airqo/src/app/learn/widgets/kya_lesson_container.dart';
 import 'package:airqo/src/app/learn/pages/learn_surveys_page.dart';
 import 'package:airqo/src/app/shared/widgets/loading_widget.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -76,7 +77,7 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: 16),
-              Text(
+              TranslatedText(
                 "Learn",
                 style: TextStyle(
                   fontSize: 28,
@@ -87,7 +88,7 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
                 ),
               ),
               SizedBox(height: 8),
-              Text(
+              TranslatedText(
                 "Explore lessons to understand air quality, or take surveys to help us learn about your experience.",
                 style: TextStyle(
                   fontSize: 18,
@@ -151,7 +152,7 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
                   : AppColors.dividerColorlight,
           borderRadius: BorderRadius.circular(30),
         ),
-        child: Text(
+        child: TranslatedText(
           label,
           style: TextStyle(
             color: isSelected
@@ -216,7 +217,7 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
                           color: Colors.grey,
                         ),
                         SizedBox(height: 16),
-                        Text(
+                        TranslatedText(
                           "Unable to load content",
                           style: TextStyle(
                             fontSize: 18,
@@ -227,7 +228,7 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
                         SizedBox(height: 8),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 32.0),
-                          child: Text(
+                          child: TranslatedText(
                             "Please check your connection and try again",
                             textAlign: TextAlign.center,
                             style: TextStyle(
@@ -240,7 +241,7 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
                         ElevatedButton.icon(
                           onPressed: _retryLoading,
                           icon: Icon(Icons.refresh),
-                          label: Text('Try Again'),
+                          label: TranslatedText('Try Again'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primaryColor,
                             foregroundColor: Colors.white,
@@ -260,7 +261,7 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
             children: [
               CircularProgressIndicator(),
               SizedBox(height: 16),
-              Text("Loading know your air content...")
+              TranslatedText("Loading know your air content...")
             ],
           ),
         );

@@ -1,4 +1,5 @@
 import 'package:airqo/src/app/dashboard/widgets/nearby_measurement_card.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -414,7 +415,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                   children: [
                     const Icon(Icons.location_off, color: Colors.amber, size: 48),
                     const SizedBox(height: 16),
-                    Text(
+                    TranslatedText(
                       "Location Services Disabled",
                       textAlign: TextAlign.center,
                       style: TextStyle(
@@ -424,7 +425,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text(
+                    TranslatedText(
                       "Please enable location services in your device settings to see air quality data near you.",
                       textAlign: TextAlign.center,
                       style: TextStyle(
@@ -436,7 +437,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                     ElevatedButton.icon(
                       onPressed: _openLocationSettings,
                       icon: const Icon(Icons.settings),
-                      label: const Text("Open Location Settings"),
+                      label: const TranslatedText("Open Location Settings"),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryColor,
                         foregroundColor: Colors.white,
@@ -456,7 +457,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                   const SizedBox(height: 120),
                   CircularProgressIndicator(color: AppColors.primaryColor),
                   const SizedBox(height: 16),
-                  Text(
+                  TranslatedText(
                     "Getting your location...",
                     style: TextStyle(
                       fontSize: 16,
@@ -480,7 +481,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                     children: [
                       const Icon(Icons.location_off, color: Colors.amber, size: 48),
                       const SizedBox(height: 16),
-                      Text(
+                      TranslatedText(
                         "No air quality stations found nearby",
                         textAlign: TextAlign.center,
                         style: TextStyle(
@@ -502,7 +503,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                       ElevatedButton.icon(
                         onPressed: _retry,
                         icon: const Icon(Icons.refresh),
-                        label: const Text("Refresh"),
+                        label: const TranslatedText("Refresh"),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryColor,
                           foregroundColor: Colors.white,

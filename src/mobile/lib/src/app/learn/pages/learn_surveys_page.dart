@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:collection/collection.dart';
@@ -140,7 +141,7 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
                         color: AppColors.primaryColor,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Text(
+                      child: TranslatedText(
                         'New',
                         style: TextStyle(
                           color: Colors.white,
@@ -156,7 +157,7 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
                         color: Colors.green,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Text(
+                      child: TranslatedText(
                         'Completed',
                         style: TextStyle(
                           color: Colors.white,
@@ -172,7 +173,7 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
                         color: Colors.orange,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Text(
+                      child: TranslatedText(
                         'In Progress',
                         style: TextStyle(
                           color: Colors.white,
@@ -265,7 +266,7 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
               color: Colors.red.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
-            Text(
+            TranslatedText(
               'Unable to load surveys',
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
@@ -292,7 +293,7 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: const Text('Try Again'),
+              child: const TranslatedText('Try Again'),
             ),
           ],
         ),
@@ -315,7 +316,7 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
               color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.3),
             ),
             const SizedBox(height: 16),
-            Text(
+            TranslatedText(
               'No surveys available',
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
@@ -323,7 +324,7 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
-            Text(
+            TranslatedText(
               'Check back later for new research surveys.',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
@@ -335,7 +336,7 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
               onPressed: () {
                 context.read<SurveyBloc>().add(const LoadSurveys(forceRefresh: true));
               },
-              child: const Text('Refresh'),
+              child: const TranslatedText('Refresh'),
             ),
           ],
         ),

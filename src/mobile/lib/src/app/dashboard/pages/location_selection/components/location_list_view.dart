@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -99,7 +100,7 @@ class LocationListView extends StatelessWidget with UiLoggy {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 24, vertical: 12),
                   ),
-                  child: const Text('Try Again'),
+                  child: const TranslatedText('Try Again'),
                 ),
               ],
             ),

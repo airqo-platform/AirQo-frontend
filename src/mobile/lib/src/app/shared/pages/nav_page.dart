@@ -7,6 +7,7 @@ import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:airqo/src/app/surveys/bloc/survey_bloc.dart';
 import 'package:airqo/src/app/surveys/services/survey_notification_service.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -163,7 +164,7 @@ class NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
           color: isSelected ? Theme.of(context).primaryColor : null,
         ),
         SizedBox(height: 5),
-        Text(
+        TranslatedText(
           label,
           style: TextStyle(
             fontSize: 12,
@@ -228,7 +229,7 @@ class NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
           ],
         ),
         SizedBox(height: 5),
-        Text(
+        TranslatedText(
           label,
           style: TextStyle(
             fontSize: 12,

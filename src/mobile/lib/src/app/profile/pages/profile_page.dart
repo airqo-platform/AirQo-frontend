@@ -2,6 +2,7 @@ import 'package:airqo/src/app/profile/bloc/user_bloc.dart';
 import 'package:airqo/src/app/profile/pages/edit_profile.dart';
 import 'package:airqo/src/app/profile/pages/widgets/settings_widget.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -160,7 +161,7 @@ class _ProfilePageState extends State<ProfilePage> with UiLoggy {
                                                   size: 18,
                                                 ),
                                                 SizedBox(width: 8),
-                                                Text(
+                                                TranslatedText(
                                                   "Edit your profile",
                                                   style: TextStyle(
                                                     fontWeight: FontWeight.w500,
@@ -226,7 +227,7 @@ class _ProfilePageState extends State<ProfilePage> with UiLoggy {
               children: [
                 CircularProgressIndicator(),
                 SizedBox(height: 16),
-                Text(
+                TranslatedText(
                   "Loading your profile...",
                   style: TextStyle(
                     color: Theme.of(context).brightness == Brightness.dark
@@ -332,7 +333,7 @@ class TabIcon extends StatelessWidget {
               : Colors.black,
         ),
         SizedBox(height: 8),
-        Text(label)
+        TranslatedText(label)
       ],
     );
   }

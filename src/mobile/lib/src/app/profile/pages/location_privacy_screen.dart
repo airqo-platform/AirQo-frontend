@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:airqo/src/app/profile/pages/widgets/privacy_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/app/dashboard/services/enhanced_location_service_manager.dart';
 import 'package:airqo/src/app/profile/models/privacy_zone_model.dart';
 import 'package:airqo/src/app/profile/repository/privacy_repository.dart';
@@ -226,7 +227,7 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    TranslatedText(
                       'Location',
                       style: TextStyle(
                         fontSize: 16,
@@ -252,7 +253,7 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          Text(
+          TranslatedText(
             'AirQo to use your precise location to locate the Air Quality of your nearest location',
             style: TextStyle(
               fontSize: 13,
@@ -306,7 +307,7 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    TranslatedText(
                       'Location Tracking',
                       style: TextStyle(
                         fontSize: 16,
@@ -377,7 +378,7 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          Text(
+          TranslatedText(
             'Controls whether your location is tracked for air quality insights',
             style: TextStyle(
               fontSize: 13,
@@ -402,7 +403,7 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
+            TranslatedText(
               'Privacy Zones',
               style: TextStyle(
                 fontSize: 18,
@@ -413,7 +414,7 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
             ElevatedButton.icon(
               onPressed: () => _showAddPrivacyZoneDialog(),
               icon: const Icon(Icons.add, size: 18, color: Colors.white),
-              label: const Text('Add Zone'),
+              label: const TranslatedText('Add Zone'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryColor,
                 foregroundColor: Colors.white,
@@ -434,7 +435,7 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
           ],
         ),
         const SizedBox(height: 8),
-        Text(
+        TranslatedText(
           'Locations where tracking is automatically disabled',
           style: TextStyle(
             fontSize: 14,
@@ -469,7 +470,7 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
                       : AppColors.secondaryHeadlineColor,
                 ),
                 const SizedBox(height: 12),
-                Text(
+                TranslatedText(
                   'No privacy zones configured',
                   style: TextStyle(
                     fontSize: 16,
@@ -480,7 +481,7 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(
+                TranslatedText(
                   'Add privacy zones to automatically disable tracking in sensitive areas',
                   textAlign: TextAlign.center,
                   style: TextStyle(

@@ -1,4 +1,5 @@
 
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 
@@ -41,7 +42,7 @@ class ResetSuccessPage extends StatelessWidget {
               child: SizedBox(
                 child: Column(
                   children: [
-                    Text("Your password has been reset successfully!",
+                    TranslatedText("Your password has been reset successfully!",
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
@@ -52,7 +53,7 @@ class ResetSuccessPage extends StatelessWidget {
                     SizedBox(
                       height: 20,
                     ),
-                    Text("You can now log in to your account using your new password.",
+                    TranslatedText("You can now log in to your account using your new password.",
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
@@ -73,7 +74,7 @@ class ResetSuccessPage extends StatelessWidget {
                         color: AppColors.primaryColor,
                         borderRadius: BorderRadius.circular(4)),
                     child: Center(
-                      child:Text(
+                      child:TranslatedText(
                         "Login",
                         style: TextStyle(
                           fontWeight: FontWeight.w500,

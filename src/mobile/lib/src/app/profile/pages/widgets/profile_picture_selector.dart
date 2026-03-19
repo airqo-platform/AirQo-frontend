@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
@@ -136,7 +137,7 @@ class _ProfilePictureSelectorState extends State<ProfilePictureSelector> with Ui
                 backgroundColor: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200,
                 child: Icon(Icons.photo_library, color: iconColor),
               ),
-              title: Text('Choose from library', style: TextStyle(color: textColor)),
+              title: TranslatedText('Choose from library', style: TextStyle(color: textColor)),
               onTap: () {
                 Navigator.of(context).pop();
                 _pickImage(ImageSource.gallery);
@@ -149,7 +150,7 @@ class _ProfilePictureSelectorState extends State<ProfilePictureSelector> with Ui
                 backgroundColor: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200,
                 child: Icon(Icons.camera_alt, color: iconColor),
               ),
-              title: Text('Take photo', style: TextStyle(color: textColor)),
+              title: TranslatedText('Take photo', style: TextStyle(color: textColor)),
               onTap: () {
                 Navigator.of(context).pop();
                 _pickImage(ImageSource.camera);

@@ -1,7 +1,13 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:loggy/loggy.dart';
 
-enum HiveBoxNames { authBox, cacheBox, preferencesBox }
+enum HiveBoxNames {
+  authBox,
+  cacheBox,
+  preferencesBox,
+  sunbirdTranslationBox,
+  mlkitTranslationBox,
+}
 
 class HiveBoxSetup {
   static final _logger = Loggy('HiveBoxSetup');
@@ -15,6 +21,8 @@ class HiveBoxSetup {
       await Hive.openBox('authBox');
       await Hive.openBox('preferencesBox');
       await Hive.openBox('cacheBox');
+      await Hive.openBox('sunbirdTranslationBox');
+      await Hive.openBox('mlkitTranslationBox');
 
       _logger.info('All Hive boxes initialized successfully');
     } catch (e) {

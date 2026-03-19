@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -11,9 +12,9 @@ class LessonFinishedWidget extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text("👋🏼 Great Job !",
+          TranslatedText("👋🏼 Great Job !",
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
-          Text(
+          TranslatedText(
               "You can now teach your friends to learn a thing about Air Pollution",
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),

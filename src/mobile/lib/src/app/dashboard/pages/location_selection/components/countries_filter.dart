@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
 import 'package:airqo/src/app/dashboard/models/country_model.dart';
 import 'package:airqo/src/app/dashboard/widgets/countries_chip.dart';
@@ -38,7 +39,7 @@ class CountriesFilter extends StatelessWidget {
           FilterChip(
             selected: currentFilter == "All",
             onSelected: (_) => onResetFilter(),
-            label: const Text("All"),
+            label: const TranslatedText("All"),
             backgroundColor: Theme.of(context).highlightColor,
             selectedColor: AppColors.primaryColor,
             labelStyle: TextStyle(

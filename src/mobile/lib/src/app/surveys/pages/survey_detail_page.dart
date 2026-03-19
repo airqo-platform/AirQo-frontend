@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:airqo/src/app/surveys/bloc/survey_bloc.dart';
@@ -277,7 +278,7 @@ class _SurveyDetailViewState extends State<SurveyDetailView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                TranslatedText(
                   'Survey Completed',
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
@@ -447,7 +448,7 @@ class _SurveyDetailViewState extends State<SurveyDetailView> {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   backgroundColor: theme.brightness == Brightness.dark ? Colors.transparent : Colors.white,
                 ),
-                child: const Text('Previous'),
+                child: const TranslatedText('Previous'),
               ),
             ),
           
@@ -473,7 +474,7 @@ class _SurveyDetailViewState extends State<SurveyDetailView> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
-              child: Text(
+              child: TranslatedText(
                 state.isLastQuestion ? 'Submit' : 'Next',
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
@@ -545,8 +546,8 @@ class _SurveyDetailViewState extends State<SurveyDetailView> {
     showDialog<void>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Already Submitted'),
-        content: const Text(
+        title: const TranslatedText('Already Submitted'),
+        content: const TranslatedText(
           'You have already submitted a response to this survey from this device.',
         ),
         actions: [
@@ -555,7 +556,7 @@ class _SurveyDetailViewState extends State<SurveyDetailView> {
               Navigator.of(context).pop();
               Navigator.of(context).pop();
             },
-            child: const Text('OK'),
+            child: const TranslatedText('OK'),
           ),
         ],
       ),

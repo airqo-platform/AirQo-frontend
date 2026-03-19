@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/research/models/research_consent_model.dart';
@@ -110,7 +111,7 @@ class _ResearchParticipationScreenState extends State<ResearchParticipationScree
         ),
         const SizedBox(height: 24),
         
-        Text(
+        TranslatedText(
           'Join Our Air Quality Research',
           style: TextStyle(
             fontSize: 28,
@@ -121,7 +122,7 @@ class _ResearchParticipationScreenState extends State<ResearchParticipationScree
         ),
         const SizedBox(height: 16),
         
-        Text(
+        TranslatedText(
           'Help us understand how air pollution affects daily life and how people adapt their behavior to stay healthy.',
           style: TextStyle(
             fontSize: 18,
@@ -176,7 +177,7 @@ class _ResearchParticipationScreenState extends State<ResearchParticipationScree
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(
+                child: TranslatedText(
                   'This is voluntary research. You can participate in any way that works for you and leave at any time.',
                   style: TextStyle(
                     fontSize: 14,
@@ -195,7 +196,7 @@ class _ResearchParticipationScreenState extends State<ResearchParticipationScree
   Widget _buildInformationButtons() {
     return Column(
       children: [
-        Text(
+        TranslatedText(
           'Learn More About the Study',
           style: TextStyle(
             fontSize: 20,
@@ -317,7 +318,7 @@ class _ResearchParticipationScreenState extends State<ResearchParticipationScree
       ),
       child: Column(
         children: [
-          Text(
+          TranslatedText(
             'Ready to participate?',
             style: TextStyle(
               fontSize: 18,
@@ -326,7 +327,7 @@ class _ResearchParticipationScreenState extends State<ResearchParticipationScree
             ),
           ),
           const SizedBox(height: 8),
-          Text(
+          TranslatedText(
             'Review the information above, then set your consent preferences.',
             style: TextStyle(
               fontSize: 14,
@@ -348,7 +349,7 @@ class _ResearchParticipationScreenState extends State<ResearchParticipationScree
                 ),
                 elevation: 0,
               ),
-              child: const Text(
+              child: const TranslatedText(
                 'Set Consent Preferences',
                 style: TextStyle(
                   fontSize: 16,
@@ -368,7 +369,7 @@ class _ResearchParticipationScreenState extends State<ResearchParticipationScree
     return AlertDialog(
       backgroundColor: isDarkMode ? AppColors.darkThemeBackground : Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      title: Text(
+      title: TranslatedText(
         'What We\'re Studying',
         style: TextStyle(
           fontSize: 20,
@@ -382,7 +383,7 @@ class _ResearchParticipationScreenState extends State<ResearchParticipationScree
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              TranslatedText(
                 'Our research focuses on understanding how people respond to air quality information and adapt their daily routines.',
                 style: TextStyle(
                   fontSize: 16,
@@ -439,7 +440,7 @@ class _ResearchParticipationScreenState extends State<ResearchParticipationScree
                       children: [
                         Icon(Icons.lightbulb, color: Colors.green, size: 20),
                         const SizedBox(width: 8),
-                        Text(
+                        TranslatedText(
                           'Research Impact',
                           style: TextStyle(
                             fontSize: 16,
@@ -450,7 +451,7 @@ class _ResearchParticipationScreenState extends State<ResearchParticipationScree
                       ],
                     ),
                     const SizedBox(height: 8),
-                    Text(
+                    TranslatedText(
                       'Your participation helps create better air quality apps, more effective public health policies, and targeted interventions for communities.',
                       style: TextStyle(
                         fontSize: 14,
@@ -468,7 +469,7 @@ class _ResearchParticipationScreenState extends State<ResearchParticipationScree
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text(
+          child: TranslatedText(
             'Close',
             style: TextStyle(
               color: AppColors.primaryColor,
@@ -486,7 +487,7 @@ class _ResearchParticipationScreenState extends State<ResearchParticipationScree
     return AlertDialog(
       backgroundColor: isDarkMode ? AppColors.darkThemeBackground : Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      title: Text(
+      title: TranslatedText(
         'Data We Collect',
         style: TextStyle(
           fontSize: 20,
@@ -500,7 +501,7 @@ class _ResearchParticipationScreenState extends State<ResearchParticipationScree
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              TranslatedText(
                 'You choose what to share. Here are specific examples:',
                 style: TextStyle(
                   fontSize: 14,
@@ -519,7 +520,7 @@ class _ResearchParticipationScreenState extends State<ResearchParticipationScree
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text(
+          child: TranslatedText(
             'Close',
             style: TextStyle(
               color: AppColors.primaryColor,
@@ -575,7 +576,7 @@ class _ResearchParticipationScreenState extends State<ResearchParticipationScree
     return AlertDialog(
       backgroundColor: isDarkMode ? AppColors.darkThemeBackground : Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      title: Text(
+      title: TranslatedText(
         'Risks & Benefits',
         style: TextStyle(
           fontSize: 20,
@@ -589,7 +590,7 @@ class _ResearchParticipationScreenState extends State<ResearchParticipationScree
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              TranslatedText(
                 'Understanding what to expect from participation:',
                 style: TextStyle(
                   fontSize: 16,
@@ -601,7 +602,7 @@ class _ResearchParticipationScreenState extends State<ResearchParticipationScree
               ),
               const SizedBox(height: 24),
               
-              Text(
+              TranslatedText(
                 'Potential Benefits',
                 style: TextStyle(
                   fontSize: 18,
@@ -630,7 +631,7 @@ class _ResearchParticipationScreenState extends State<ResearchParticipationScree
               
               const SizedBox(height: 24),
               
-              Text(
+              TranslatedText(
                 'Potential Risks',
                 style: TextStyle(
                   fontSize: 18,
@@ -664,7 +665,7 @@ class _ResearchParticipationScreenState extends State<ResearchParticipationScree
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    TranslatedText(
                       'Your Control',
                       style: TextStyle(
                         fontSize: 16,
@@ -673,7 +674,7 @@ class _ResearchParticipationScreenState extends State<ResearchParticipationScree
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text(
+                    TranslatedText(
                       '• Choose which data to share\n• Modify permissions anytime\n• Pause or stop participation at any point\n• Delete your data upon request',
                       style: TextStyle(
                         fontSize: 14,
@@ -691,7 +692,7 @@ class _ResearchParticipationScreenState extends State<ResearchParticipationScree
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text(
+          child: TranslatedText(
             'Close',
             style: TextStyle(
               color: AppColors.primaryColor,
@@ -881,7 +882,7 @@ class _ResearchParticipationScreenState extends State<ResearchParticipationScree
     return AlertDialog(
       backgroundColor: isDarkMode ? AppColors.darkThemeBackground : Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      title: Text(
+      title: TranslatedText(
         'Questions & Answers',
         style: TextStyle(
           fontSize: 20,
@@ -895,7 +896,7 @@ class _ResearchParticipationScreenState extends State<ResearchParticipationScree
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              TranslatedText(
                 'Common questions about research participation:',
                 style: TextStyle(
                   fontSize: 16,
@@ -915,7 +916,7 @@ class _ResearchParticipationScreenState extends State<ResearchParticipationScree
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text(
+          child: TranslatedText(
             'Close',
             style: TextStyle(
               color: AppColors.primaryColor,
@@ -989,7 +990,7 @@ class _ResearchParticipationScreenState extends State<ResearchParticipationScree
                 ),
               ),
               const SizedBox(width: 12),
-              Text(
+              TranslatedText(
                 'Frequently Asked Questions',
                 style: TextStyle(
                   fontSize: 18,

@@ -3,6 +3,7 @@ import 'package:airqo/src/app/auth/bloc/ForgotPasswordBloc/forgot_password_event
 import 'package:airqo/src/app/auth/pages/password_reset/reset_success.dart';
 import 'package:airqo/src/app/shared/widgets/form_field.dart';
 import 'package:airqo/src/app/shared/widgets/spinner.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -96,7 +97,7 @@ class _PasswordResetPage extends State<PasswordResetPage> {
                         SizedBox(
                           height: 20,
                         ),
-                        Text("Please enter your new password below. Make sure it's something secure that you can remember.",
+                        TranslatedText("Please enter your new password below. Make sure it's something secure that you can remember.",
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
@@ -224,7 +225,7 @@ class _PasswordResetPage extends State<PasswordResetPage> {
                         child: Center(
                           child: loading
                               ? Spinner()
-                              : Text(
+                              : TranslatedText(
                             "Reset Password",
                             style: TextStyle(
                               fontWeight: FontWeight.w500,

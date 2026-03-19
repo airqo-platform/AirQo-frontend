@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/research/models/research_consent_model.dart';
@@ -127,7 +128,7 @@ class _ResearchConsentScreenState extends State<ResearchConsentScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  TranslatedText(
                     'Choose Your Participation Level',
                     style: TextStyle(
                       fontSize: 24,
@@ -137,7 +138,7 @@ class _ResearchConsentScreenState extends State<ResearchConsentScreen> {
                   ),
                   const SizedBox(height: 16),
                   
-                  Text(
+                  TranslatedText(
                     'Select which parts of the research you\'d like to participate in. You can change these choices anytime in your privacy settings.',
                     style: TextStyle(
                       fontSize: 16,
@@ -211,7 +212,7 @@ class _ResearchConsentScreenState extends State<ResearchConsentScreen> {
                               color: Colors.white,
                             ),
                           )
-                        : const Text(
+                        : const TranslatedText(
                             'Join Research Study',
                             style: TextStyle(
                               fontSize: 16,
@@ -224,7 +225,7 @@ class _ResearchConsentScreenState extends State<ResearchConsentScreen> {
                 const SizedBox(height: 8),
                 
                 Center(
-                  child: Text(
+                  child: TranslatedText(
                     'You can modify these choices anytime in Settings',
                     style: TextStyle(
                       fontSize: 12,

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/app/surveys/repository/alert_response_repository.dart';
 import 'package:airqo/src/app/research/repository/research_consent_repository.dart';
 import 'package:airqo/src/app/research/models/research_consent_model.dart';
@@ -156,7 +157,7 @@ class _ResearchSettingsScreenState extends State<ResearchSettingsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    TranslatedText(
                       'Research Consent',
                       style: TextStyle(
                         fontSize: 16,
@@ -165,7 +166,7 @@ class _ResearchSettingsScreenState extends State<ResearchSettingsScreen> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
+                    TranslatedText(
                       'Manage your research participation preferences',
                       style: TextStyle(
                         fontSize: 12,
