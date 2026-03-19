@@ -4,7 +4,7 @@ const CATEGORY_LABEL_OVERRIDES: Record<string, string> = {
   airqo: 'AirQo',
   bam: 'Reference Monitor',
   lowcost: 'Low Cost Sensor',
-  low_cost: 'Low Cost Sensor',
+  'low cost': 'Low Cost Sensor',
   us: 'US',
   uk: 'UK',
 };
