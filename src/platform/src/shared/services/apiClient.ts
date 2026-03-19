@@ -83,11 +83,11 @@ const dispatchUnauthorizedEvent = (detail: UnauthorizedEventDetail) => {
 const shouldNotifyApiFailure = (key: string): boolean => {
   const now = Date.now();
 
-  for (const [cacheKey, ts] of apiFailureNotificationCache.entries()) {
+  apiFailureNotificationCache.forEach((ts, cacheKey) => {
     if (now - ts > API_FAILURE_NOTIFY_COOLDOWN_MS) {
       apiFailureNotificationCache.delete(cacheKey);
     }
-  }
+  });
 
   const lastNotifiedAt = apiFailureNotificationCache.get(key);
   if (lastNotifiedAt && now - lastNotifiedAt < API_FAILURE_NOTIFY_COOLDOWN_MS) {
