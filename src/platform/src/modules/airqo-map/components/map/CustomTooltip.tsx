@@ -63,7 +63,9 @@ const ClusterTooltipContent: React.FC<{
   if (validReadings.length === 0) {
     return (
       <div className="p-2 min-w-[250px] max-w-[350px]">
-        <div className="text-xs text-gray-500 mb-1">{formatDate(new Date())}</div>
+        <div className="text-xs text-gray-500 mb-1">
+          {formatDate(new Date())}
+        </div>
         <div className="font-medium text-gray-900 text-sm mb-2">
           Cluster ({cluster.pointCount} stations)
         </div>
@@ -93,7 +95,9 @@ const ClusterTooltipContent: React.FC<{
       </div>
       <div className="flex items-center justify-between mb-2">
         <div>
-          <div className="text-sm font-medium" style={{ color }}>{label}</div>
+          <div className="text-sm font-medium" style={{ color }}>
+            {label}
+          </div>
           <div className="text-sm text-gray-900">
             {formatValue(avgValue)} µg/m³ {getPollutantLabel(selectedPollutant)}
           </div>
@@ -133,7 +137,9 @@ const ReadingTooltipContent: React.FC<{
   if (pollutantValue === undefined || isNaN(pollutantValue)) {
     return (
       <div className="p-2 min-w-[250px] max-w-[350px]">
-        <div className="text-xs text-gray-500 mb-1">{formatDate(reading.lastUpdated)}</div>
+        <div className="text-xs text-gray-500 mb-1">
+          {formatDate(reading.lastUpdated)}
+        </div>
         <div className="font-medium text-gray-900 text-sm mb-2">
           {reading.locationName ?? 'Air Quality Station'}
         </div>
@@ -152,16 +158,21 @@ const ReadingTooltipContent: React.FC<{
 
   return (
     <div className="p-2 min-w-[250px] max-w-[350px]">
-      <div className="text-xs text-gray-500 mb-1">{formatDate(reading.lastUpdated)}</div>
+      <div className="text-xs text-gray-500 mb-1">
+        {formatDate(reading.lastUpdated)}
+      </div>
       <div className="font-medium text-gray-900 text-sm mb-2">
         {reading.locationName ?? 'Air Quality Station'}
       </div>
 
       <div className="flex items-center justify-between mb-2">
         <div>
-          <div className="text-sm font-medium" style={{ color }}>{label}</div>
+          <div className="text-sm font-medium" style={{ color }}>
+            {label}
+          </div>
           <div className="text-sm text-gray-900">
-            {formatValue(pollutantValue)} µg/m³ {getPollutantLabel(selectedPollutant)}
+            {formatValue(pollutantValue)} µg/m³{' '}
+            {getPollutantLabel(selectedPollutant)}
           </div>
         </div>
         <div style={{ color }}>
@@ -175,13 +186,19 @@ const ReadingTooltipContent: React.FC<{
         {(meta.primaryCategory || meta.deploymentCategory) && (
           <div className="grid grid-cols-2 gap-2">
             <div className="rounded-md border border-gray-100 bg-gray-50 px-2 py-1">
-              <div className="text-[10px] uppercase tracking-wide text-gray-500">Category</div>
+              <div className="text-[10px] uppercase tracking-wide text-gray-500">
+                Category
+              </div>
               <div className="text-xs font-semibold text-gray-800">
-                {meta.primaryCategory ?? 'N/A'}
+                {meta?.primaryCategory === 'Low Cost Sensor'
+                  ? 'LCS'
+                  : meta?.primaryCategory || 'N/A'}
               </div>
             </div>
             <div className="rounded-md border border-gray-100 bg-gray-50 px-2 py-1">
-              <div className="text-[10px] uppercase tracking-wide text-gray-500">Deployment</div>
+              <div className="text-[10px] uppercase tracking-wide text-gray-500">
+                Deployment
+              </div>
               <div className="text-xs font-semibold text-gray-800">
                 {meta.deploymentCategory ?? 'N/A'}
               </div>
@@ -250,14 +267,18 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
     <ClusterTooltipContent
       cluster={data as ClusterData}
       selectedPollutant={selectedPollutant}
-      onTooltipAction={onTooltipAction as ((d: ClusterData) => void) | undefined}
+      onTooltipAction={
+        onTooltipAction as ((d: ClusterData) => void) | undefined
+      }
     />
   ) : (
     <ReadingTooltipContent
       reading={data as AirQualityReading}
       selectedPollutant={selectedPollutant}
       showZoomHint={showZoomHint}
-      onTooltipAction={onTooltipAction as ((d: AirQualityReading) => void) | undefined}
+      onTooltipAction={
+        onTooltipAction as ((d: AirQualityReading) => void) | undefined
+      }
     />
   );
 
@@ -265,7 +286,10 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
   if (forceOpen) {
     return (
       <div
-        className={cn('relative inline-flex items-center justify-center', className)}
+        className={cn(
+          'relative inline-flex items-center justify-center',
+          className
+        )}
         onMouseEnter={() => onTooltipHoverChange?.(true)}
         onMouseLeave={() => onTooltipHoverChange?.(false)}
       >

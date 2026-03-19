@@ -2,9 +2,9 @@ import type { DeviceCategories } from '@/shared/types/api';
 
 const CATEGORY_LABEL_OVERRIDES: Record<string, string> = {
   airqo: 'AirQo',
-  bam: 'BAM',
-  lowcost: 'Low Cost',
-  low_cost: 'Low Cost',
+  bam: 'Reference Monitor',
+  lowcost: 'Low Cost Sensor',
+  low_cost: 'Low Cost Sensor',
   us: 'US',
   uk: 'UK',
 };
