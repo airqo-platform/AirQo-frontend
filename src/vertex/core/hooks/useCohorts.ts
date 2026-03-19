@@ -164,6 +164,7 @@ export const useUpdateCohortDetails = () => {
       });
       queryClient.invalidateQueries({ queryKey: ['cohorts'] });
       queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
+      queryClient.invalidateQueries({ queryKey: ['groupCohorts'] });
     },
     onError: error => {
       ReusableToast({
