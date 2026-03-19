@@ -176,12 +176,13 @@ export function CreateCohortFromSelectionDialog({
         </div>
 
         {selectedTags.includes("organizational") ? (
+          <>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             <TooltipProvider delayDuration={0}>
               <Tooltip open={showIgnoredTooltip.city}>
                 <TooltipTrigger asChild>
                   <div>
-                    <ReusableInputField label="City" value={city} onChange={(e) => handleSanitizedInputChange("city", e.target.value, setCity)} placeholder="e.g. Nairobi" required error={error} />
+                    <ReusableInputField label="City" value={city} onChange={(e) => handleSanitizedInputChange("city", e.target.value, setCity)} placeholder="e.g. Nairobi" required />
                   </div>
                 </TooltipTrigger>
                 <TooltipContent side="top">
@@ -193,7 +194,7 @@ export function CreateCohortFromSelectionDialog({
               <Tooltip open={showIgnoredTooltip.projectName}>
                 <TooltipTrigger asChild>
                   <div>
-                    <ReusableInputField label="Project name" value={projectName} onChange={(e) => handleSanitizedInputChange("projectName", e.target.value, setProjectName)} placeholder="e.g. WRI" required error={error} />
+                    <ReusableInputField label="Project name" value={projectName} onChange={(e) => handleSanitizedInputChange("projectName", e.target.value, setProjectName)} placeholder="e.g. WRI" required />
                   </div>
                 </TooltipTrigger>
                 <TooltipContent side="top">
@@ -214,6 +215,10 @@ export function CreateCohortFromSelectionDialog({
               </Tooltip>
             </TooltipProvider>
           </div>
+          {error && (
+            <p className="text-xs text-red-600 dark:text-red-400">{error}</p>
+          )}
+          </>
         ) : (
           <ReusableInputField
             label="Cohort name"
@@ -221,8 +226,10 @@ export function CreateCohortFromSelectionDialog({
             onChange={(e) => setName(e.target.value)}
             placeholder="Enter cohort name"
             required
-            error={error}
           />
+        )}
+        {!selectedTags.includes("organizational") && error && (
+          <p className="text-xs text-red-600 dark:text-red-400">{error}</p>
         )}
         <ReusableSelectInput
           label="Sensor Manufacturer"
