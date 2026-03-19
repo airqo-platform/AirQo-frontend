@@ -248,7 +248,7 @@ export class ApiClient {
               responseData: error.response.data,
             });
           } else {
-            logger.warn('Suppressed duplicate API server error notification', {
+            logger.error('Suppressed duplicate API server error notification', {
               ...errorContext,
               responseData: error.response.data,
             });
@@ -289,7 +289,7 @@ export class ApiClient {
                 responseData: error.response.data,
               });
             } else {
-              logger.warn(
+              logger.error(
                 'Suppressed duplicate API client error notification',
                 {
                   ...errorContext,
@@ -320,7 +320,7 @@ export class ApiClient {
               errorContext
             );
           } else {
-            logger.warn('Suppressed duplicate API timeout notification', {
+            logger.error('Suppressed duplicate API timeout notification', {
               ...errorContext,
               errorCode,
             });
@@ -338,10 +338,13 @@ export class ApiClient {
               errorContext
             );
           } else {
-            logger.warn('Suppressed duplicate API network error notification', {
-              ...errorContext,
-              errorCode,
-            });
+            logger.error(
+              'Suppressed duplicate API network error notification',
+              {
+                ...errorContext,
+                errorCode,
+              }
+            );
           }
         } else {
           // Unknown/other errors - log but evaluate if Slack notification is needed
