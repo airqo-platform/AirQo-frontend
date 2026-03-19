@@ -19,7 +19,6 @@ import type {
   VerifyEmailResponse,
   CreateOrganizationRequest,
   CreateOrganizationResponse,
-  SlugAvailabilityResponse,
   InitiateAccountDeletionResponse,
   ConfirmAccountDeletionResponse,
   GetGroupJoinRequestsResponse,
@@ -206,20 +205,6 @@ export class UserService {
     }
 
     return data as CreateOrganizationResponse;
-  }
-
-  // Check slug availability - open endpoint
-  async checkSlugAvailability(slug: string): Promise<SlugAvailabilityResponse> {
-    const response = await this.openClient.get<
-      SlugAvailabilityResponse | ApiErrorResponse
-    >(`/users/org-requests/slug-availability/${slug}`);
-    const data = response.data;
-
-    if ('success' in data && !data.success) {
-      throw new Error(data.message || 'Failed to check slug availability');
-    }
-
-    return data as SlugAvailabilityResponse;
   }
 
   // Initiate account deletion - authenticated endpoint

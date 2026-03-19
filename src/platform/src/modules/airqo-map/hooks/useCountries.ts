@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { deviceService } from '../../../shared/services/deviceService';
 import type { CountriesResponse, CountryData } from '../../../shared/types/api';
 
@@ -15,48 +16,48 @@ export interface UseCountriesResult {
  * Hook for fetching countries list
  * @param cohort_id - Optional comma-separated cohort IDs for filtering
  */
-export function useCountries(cohort_id?: string): UseCountriesResult {
-  const [countries, setCountries] = useState<CountryData[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export function useCountries(cohort_id?: string | null): UseCountriesResult {
+  const normalizedCohortId =
+    cohort_id === null ? 'disabled' : (cohort_id ?? 'all');
+  const enabled = cohort_id !== null;
 
-  const fetchCountries = async () => {
-    // If cohort_id is null, wait for it to be determined
-    if (cohort_id === null) {
-      return;
-    }
-
-    // If cohort_id is empty string, no cohorts exist, so no countries
-    if (cohort_id === '') {
-      setCountries([]);
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      setError(null);
+  const {
+    data: countries = [],
+    isLoading,
+    error,
+    refetch: refetchQuery,
+  } = useQuery<CountryData[], Error>({
+    queryKey: ['map', 'countries', normalizedCohortId],
+    queryFn: async () => {
       const response: CountriesResponse =
-        await deviceService.getCountriesAuthenticated(cohort_id);
-      setCountries(response.countries);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Failed to fetch countries'
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
+        await deviceService.getCountriesAuthenticated(cohort_id || undefined);
+      return response.countries;
+    },
+    enabled,
+    networkMode: 'offlineFirst',
+    staleTime: 1000 * 60 * 10,
+    gcTime: 1000 * 60 * 60 * 12,
+  });
 
-  useEffect(() => {
-    fetchCountries();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cohort_id]);
+  const refetch = useCallback(async () => {
+    await refetchQuery();
+  }, [refetchQuery]);
+
+  const noopRefetch = useCallback(async () => undefined, []);
+
+  if (!enabled) {
+    return {
+      countries: [],
+      isLoading: false,
+      error: null,
+      refetch: noopRefetch,
+    };
+  }
 
   return {
     countries,
     isLoading,
-    error,
-    refetch: fetchCountries,
+    error: error?.message ?? null,
+    refetch,
   };
 }

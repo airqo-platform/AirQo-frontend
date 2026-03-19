@@ -15,51 +15,90 @@ export interface DevicePerformance {
   }
 }
 
-export interface AirQloudWithPerformance {
-  id: string
+export interface Device {
+  _id?: string
   name: string
-  country: string
-  visibility: boolean | null
-  is_active: boolean
-  created_at: string
-  number_of_devices?: number
-  device_count: number
-  freq: number[]
-  error_margin: number[]
-  timestamp: string[]
-  device_performance?: DevicePerformance[]
+  long_name: string
+  description: string | null
+  device_number: number
+  isActive: boolean
+  isOnline: boolean
+  rawOnlineStatus: boolean
+  lastRawData: string
+  lastActive: string
+  status: string
+  network: string
+  createdAt: string
+  uptime?: number | null
+  data_completeness?: number | null
+  sensor_error_margin?: number | null
+  data?: any[]
 }
 
-export interface AirQloudBasic {
-  id: string
+export interface Cohort {
+  _id?: string
   name: string
-  country: string
-  visibility: boolean | null
-  is_active: boolean
-  created_at: string
-  number_of_devices?: number
+  network: string
+  createdAt: string
+  numberOfDevices: number
+  devices: Device[]
+  groups: any[]
+  cohort_tags: string[]
+  cohort_codes: string[]
+  visibility: boolean
+  uptime?: number | null
+  data_completeness?: number | null
+  sensor_error_margin?: number | null
+  error_margin?: number | number[] | null  // Single number in summary mode, array in raw mode
+  data?: any[]
+  // Optional performance fields for compatibility
+  freq?: number[]
+  timestamp?: string[]
+}
+
+// Retaining old interface name for compatibility effectively, but mapping to Cohort structure
+export interface AirQloudWithPerformance extends Cohort {
+  id: string // Mapped from name
+  device_count: number // Mapped from numberOfDevices
+  is_active: boolean // Mapped from visibility
+  country: string // defaulted to empty
+}
+
+export interface AirQloudBasic extends Cohort {
+  id: string
   device_count: number
 }
 
 export interface AirQloudsQueryParams {
   skip?: number
   limit?: number
-  country?: string
+  tags?: string
   search?: string
-  include_performance?: boolean
+  include_performance?: boolean // Deprecated but kept for signature compatibility
   performance_days?: number
   is_active?: boolean
+  includePerformance?: boolean
+  startDateTime?: string
+  endDateTime?: string
+  frequency?: string
+  summary?: boolean
 }
 
 export interface AirQloudsMeta {
   total: number
   page: number
-  pages: number
+  totalPages: number
   limit: number
   skip: number
 }
 
 export interface AirQloudsResponse {
+  cohorts: Cohort[]
+  meta: AirQloudsMeta
+}
+
+// Adapted response to match old structure for the UI component
+export interface MappedAirQloudsResponse {
   airqlouds: AirQloudWithPerformance[]
   meta: AirQloudsMeta
 }
@@ -121,8 +160,22 @@ export interface AirQloudPerformanceData {
   id: string
   name: string
   freq: number[]
-  error_margin: number[]
+  error_margin: number | number[]
   timestamp: string[]
+  uptime?: number | null
+  data_completeness?: number | null
+  sensor_error_margin?: number | null
+  data?: any[]
+  numberOfDevices?: number
+  devices?: Array<{
+    _id?: string
+    name: string
+    long_name: string
+    uptime?: number | null
+    data_completeness?: number | null
+    sensor_error_margin?: number | null
+    data?: any[]
+  }>
 }
 
 class AirQloudService {
@@ -144,40 +197,43 @@ class AirQloudService {
   /**
    * Get auth headers - skip for localhost
    */
+  /**
+   * Get auth headers
+   */
   private getAuthHeaders(): Record<string, string> {
-    if (config.isLocalhost) {
-      return { 'Content-Type': 'application/json' }
-    }
-
     // Import authService dynamically to avoid circular dependencies
     const authService = require('./api-service').default
     const token = authService.getToken()
+
     if (token) {
       return {
         'Content-Type': 'application/json',
         'Authorization': token
       }
     }
+
     return { 'Content-Type': 'application/json' }
   }
 
   /**
-   * Get all AirQlouds with performance data
+   * Get all Cohorts (formerly AirQlouds)
    */
-  async getAirQlouds(params: AirQloudsQueryParams = {}): Promise<AirQloudsResponse> {
+  async getCohorts(params: AirQloudsQueryParams = {}): Promise<MappedAirQloudsResponse> {
     const queryParams = new URLSearchParams()
-
-    // Always include performance data
-    queryParams.append('include_performance', 'true')
 
     if (params.skip !== undefined) queryParams.append('skip', params.skip.toString())
     if (params.limit !== undefined) queryParams.append('limit', params.limit.toString())
-    if (params.country) queryParams.append('country', params.country)
-    if (params.search) queryParams.append('search', params.search)
-    if (params.performance_days) queryParams.append('performance_days', params.performance_days.toString())
-    if (params.is_active !== undefined) queryParams.append('is_active', params.is_active.toString())
+    if (params.tags) queryParams.append('tags', params.tags)
 
-    const endpoint = this.getEndpoint('/airqlouds')
+    if (params.search) queryParams.append('search', params.search)
+
+    if (params.includePerformance) queryParams.append('includePerformance', params.includePerformance.toString())
+    if (params.startDateTime) queryParams.append('startDateTime', params.startDateTime)
+    if (params.endDateTime) queryParams.append('endDateTime', params.endDateTime)
+    if (params.frequency) queryParams.append('frequency', params.frequency)
+    if (params.summary !== undefined) queryParams.append('summary', params.summary.toString())
+
+    const endpoint = this.getEndpoint('/cohorts/')
     const url = `${this.baseUrl}${endpoint}?${queryParams.toString()}`
 
     try {
@@ -191,29 +247,72 @@ class AirQloudService {
       }
 
       const data = await response.json()
-      return data
+
+      // Map the new response structure to the old one for compatibility
+      const mappedCohorts: AirQloudWithPerformance[] = data.cohorts.map((cohort: Cohort) => ({
+        ...cohort,
+        id: cohort._id || cohort.name,
+        device_count: cohort.numberOfDevices,
+        is_active: cohort.visibility,
+        country: '',
+        freq: cohort.freq || [],
+        error_margin: cohort.error_margin || [],
+        timestamp: cohort.timestamp || [],
+      }))
+
+      // Summary mode may not return meta, so provide a fallback
+      const meta: AirQloudsMeta = data.meta || {
+        total: mappedCohorts.length,
+        page: 1,
+        totalPages: 1,
+        limit: mappedCohorts.length,
+        skip: 0
+      }
+
+      return {
+        airqlouds: mappedCohorts,
+        meta
+      }
     } catch (error) {
-      console.error('Error fetching AirQlouds:', error)
+      console.error('Error fetching Cohorts:', error)
       throw error
     }
+  }
+
+  /**
+   * Get all AirQlouds with performance data - ALIAS for getCohorts
+   */
+  async getAirQlouds(params: AirQloudsQueryParams = {}): Promise<MappedAirQloudsResponse> {
+    return this.getCohorts(params)
   }
 
   /**
    * Get all AirQlouds without performance data (for filters/dropdowns)
    */
-  async getAirQloudsBasic(params: Omit<AirQloudsQueryParams, 'include_performance' | 'performance_days'> = {}): Promise<AirQloudsResponse> {
+  async getAirQloudsBasic(params: Omit<AirQloudsQueryParams, 'include_performance' | 'performance_days'> = {}): Promise<MappedAirQloudsResponse> {
+    return this.getCohorts(params)
+  }
+
+  /**
+   * Get a specific AirQloud by ID with performance data
+   * Uses the same path-based endpoint as multi-cohort analysis: /cohorts/{id}
+   */
+  async getAirQloudById(
+    airqloudId: string,
+    startDateTime?: string,
+    endDateTime?: string
+  ): Promise<AirQloudWithPerformance> {
+    const endpoint = this.getEndpoint(`/cohorts/${airqloudId}`)
+
     const queryParams = new URLSearchParams()
 
-    // Do NOT include performance data
-    queryParams.append('include_performance', 'false')
+    if (startDateTime && endDateTime) {
+      queryParams.append('includePerformance', 'true')
+      queryParams.append('startDateTime', startDateTime)
+      queryParams.append('endDateTime', endDateTime)
+      queryParams.append('frequency', 'hourly')
+    }
 
-    if (params.skip !== undefined) queryParams.append('skip', params.skip.toString())
-    if (params.limit !== undefined) queryParams.append('limit', params.limit.toString())
-    if (params.country) queryParams.append('country', params.country)
-    if (params.search) queryParams.append('search', params.search)
-    if (params.is_active !== undefined) queryParams.append('is_active', params.is_active.toString())
-
-    const endpoint = this.getEndpoint('/airqlouds')
     const url = `${this.baseUrl}${endpoint}?${queryParams.toString()}`
 
     try {
@@ -227,37 +326,22 @@ class AirQloudService {
       }
 
       const data = await response.json()
-      return data
-    } catch (error) {
-      console.error('Error fetching AirQlouds (basic):', error)
-      throw error
-    }
-  }
+      const cohort = data.cohorts?.[0]
 
-  /**
-   * Get a specific AirQloud by ID with performance data
-   */
-  async getAirQloudById(
-    airqloudId: string,
-    performanceDays: number = 14
-  ): Promise<AirQloudWithPerformance> {
-    const endpoint = this.getEndpoint(`/airqlouds/${airqloudId}`)
-    const url = `${this.baseUrl}${endpoint}?include_performance=true&performance_days=${performanceDays}`
-
-    try {
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: this.getAuthHeaders(),
-      })
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+      if (!cohort) {
+        throw new Error(`Cohort ${airqloudId} not found`)
       }
 
-      const data = await response.json()
-      return data
+      return {
+        ...cohort,
+        id: cohort._id || cohort.name,
+        device_count: cohort.numberOfDevices,
+        is_active: cohort.visibility,
+        country: cohort.country || '',
+        error_margin: cohort.error_margin,
+      }
     } catch (error) {
-      console.error(`Error fetching AirQloud ${airqloudId}:`, error)
+      console.error(`Error fetching Cohort ${airqloudId}:`, error)
       throw error
     }
   }
@@ -266,7 +350,7 @@ class AirQloudService {
    * Create a new AirQloud
    */
   async createAirQloud(payload: CreateAirQloudPayload): Promise<CreateAirQloudResponse> {
-    const endpoint = this.getEndpoint('/airqlouds/')
+    const endpoint = this.getEndpoint('/cohorts/')
     const url = `${this.baseUrl}${endpoint}`
 
     try {
@@ -284,7 +368,7 @@ class AirQloudService {
       const data = await response.json()
       return data
     } catch (error) {
-      console.error('Error creating AirQloud:', error)
+      console.error('Error creating Cohort:', error)
       throw error
     }
   }
@@ -299,7 +383,7 @@ class AirQloudService {
     visibility?: boolean,
     columnMappings?: ColumnMapping
   ): Promise<CreateAirQloudWithDevicesResponse> {
-    const endpoint = this.getEndpoint('/airqlouds/create-with-devices')
+    const endpoint = this.getEndpoint('/cohorts/create-with-devices')
     const url = `${this.baseUrl}${endpoint}`
 
     try {
@@ -331,7 +415,6 @@ class AirQloudService {
         formData.append('column_mappings', JSON.stringify(transformedMappings))
       }
 
-      // For FormData, don't set Content-Type header - browser will set it with boundary
       const authHeaders = this.getAuthHeaders()
       delete (authHeaders as any)['Content-Type']
 
@@ -349,38 +432,61 @@ class AirQloudService {
       const data = await response.json()
       return data
     } catch (error) {
-      console.error('Error creating AirQloud with devices:', error)
+      console.error('Error creating Cohort with devices:', error)
       throw error
     }
   }
 
   /**
    * Get performance data for multiple AirQlouds
+   * Uses path-based IDs: /cohorts/id1,id2?includePerformance=true&...
    */
   async getAirQloudPerformance(params: {
     start: string
     end: string
     ids: string[]
   }): Promise<AirQloudPerformanceData[]> {
-    const endpoint = this.getEndpoint('/performance/airqloud')
-    const url = `${this.baseUrl}${endpoint}`
+    if (!params.ids || params.ids.length === 0) {
+      return []
+    }
+
+    const queryParams = new URLSearchParams()
+    queryParams.append('includePerformance', 'true')
+    queryParams.append('startDateTime', params.start)
+    queryParams.append('endDateTime', params.end)
+    queryParams.append('frequency', 'hourly')
+
+    const idsPath = params.ids.join(',')
+    const endpoint = this.getEndpoint(`/cohorts/${idsPath}`)
+    const url = `${this.baseUrl}${endpoint}?${queryParams.toString()}`
 
     try {
       const response = await fetch(url, {
-        method: 'POST',
+        method: 'GET',
         headers: this.getAuthHeaders(),
-        body: JSON.stringify(params),
       })
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.detail || `HTTP error! status: ${response.status}`)
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
 
       const data = await response.json()
-      return data
+
+      return data.cohorts.map((cohort: Cohort) => ({
+        id: cohort._id || cohort.name,
+        name: cohort.name,
+        uptime: cohort.uptime,
+        data_completeness: cohort.data_completeness,
+        sensor_error_margin: cohort.sensor_error_margin,
+        error_margin: cohort.error_margin,
+        data: cohort.data,
+        freq: cohort.freq || [],
+        timestamp: cohort.timestamp || [],
+        numberOfDevices: cohort.numberOfDevices,
+        devices: cohort.devices || [],
+      }))
     } catch (error) {
-      console.error('Error fetching AirQloud performance:', error)
+      console.error('Error fetching Cohorts Performance:', error)
       throw error
     }
   }
@@ -401,7 +507,7 @@ class AirQloudService {
       queryParams.append('run_in_background', params.run_in_background.toString())
     }
 
-    const endpoint = this.getEndpoint('/airqlouds/sync')
+    const endpoint = this.getEndpoint('/cohorts/sync')
     const url = `${this.baseUrl}${endpoint}?${queryParams.toString()}`
 
     try {
@@ -418,7 +524,7 @@ class AirQloudService {
       const data = await response.json()
       return data
     } catch (error) {
-      console.error('Error syncing AirQlouds:', error)
+      console.error('Error syncing Cohorts:', error)
       throw error
     }
   }
@@ -430,7 +536,7 @@ class AirQloudService {
     airqloudId: string,
     payload: UpdateAirQloudPayload
   ): Promise<AirQloudWithPerformance> {
-    const endpoint = this.getEndpoint(`/airqlouds/${airqloudId}`)
+    const endpoint = this.getEndpoint(`/cohorts/${airqloudId}`)
     const url = `${this.baseUrl}${endpoint}`
 
     try {
@@ -446,9 +552,18 @@ class AirQloudService {
       }
 
       const data = await response.json()
-      return data
+      return {
+        ...data,
+        id: data.name,
+        device_count: data.numberOfDevices,
+        is_active: data.visibility,
+        country: '',
+        freq: [],
+        error_margin: [],
+        timestamp: [],
+      }
     } catch (error) {
-      console.error(`Error updating AirQloud ${airqloudId}:`, error)
+      console.error(`Error updating Cohort ${airqloudId}:`, error)
       throw error
     }
   }

@@ -40,14 +40,19 @@ interface OrganizationRequest {
   status: 'pending' | 'approved' | 'rejected';
   onboarding_completed: boolean;
   onboarding_method: string;
-  organization_name: string;
-  organization_slug: string;
+  organization_name?: string;
+  organization_slug?: string;
+  project_name?: string;
+  projectName?: string;
+  funder_partner?: string;
+  funderPartner?: string;
+  city?: string;
   contact_email: string;
   contact_name: string;
   use_case: string;
   organization_type: string;
   country: string;
-  branding_settings: {
+  branding_settings?: {
     logo_url: string;
     primary_color: string;
     secondary_color: string;
@@ -58,6 +63,15 @@ interface OrganizationRequest {
   approved_by: string | null;
   rejection_reason?: string;
 }
+
+const getProjectName = (request: OrganizationRequest) =>
+  request.project_name ||
+  request.projectName ||
+  request.organization_name ||
+  'Untitled project';
+
+const getPartnerName = (request: OrganizationRequest) =>
+  request.funder_partner || request.funderPartner || '';
 
 const OrganizationRequestsPage = () => {
   const { data, error, isLoading, mutate } = useOrganizationRequests();
@@ -91,11 +105,21 @@ const OrganizationRequestsPage = () => {
     if (searchTerm.trim()) {
       const searchLower = searchTerm.toLowerCase();
       filtered = filtered.filter(
-        request =>
-          request.organization_name.toLowerCase().includes(searchLower) ||
-          request.contact_name.toLowerCase().includes(searchLower) ||
-          request.contact_email.toLowerCase().includes(searchLower) ||
-          request.organization_slug.toLowerCase().includes(searchLower)
+        request => {
+          const projectName = getProjectName(request).toLowerCase();
+          const city = (request.city || '').toLowerCase();
+          const legacySlug = (request.organization_slug || '').toLowerCase();
+          const partner = getPartnerName(request).toLowerCase();
+
+          return (
+            projectName.includes(searchLower) ||
+            request.contact_name.toLowerCase().includes(searchLower) ||
+            request.contact_email.toLowerCase().includes(searchLower) ||
+            city.includes(searchLower) ||
+            partner.includes(searchLower) ||
+            legacySlug.includes(searchLower)
+          );
+        }
       );
     }
 
@@ -171,20 +195,25 @@ const OrganizationRequestsPage = () => {
   const columns: TableColumn<OrganizationRequest>[] = useMemo(
     () => [
       {
-        key: 'organization_name',
-        label: 'Organization',
+        key: 'project_name',
+        label: 'Project',
         render: (value: unknown, item: OrganizationRequest) => {
           const isExpanded = expandedItems.has(item._id);
+          const projectName = getProjectName(item);
+          const partner = getPartnerName(item);
           const truncatedUseCase =
             item.use_case.length > 50
               ? item.use_case.substring(0, 50) + '...'
               : item.use_case;
           return (
             <div>
-              <div>{item.organization_name}</div>
+              <div>{projectName}</div>
               <div className="text-sm text-gray-500">
-                {item.organization_slug}
+                {item.city ? `${item.city}, ${item.country}` : item.country}
               </div>
+              {partner && (
+                <div className="text-sm text-gray-500">Partner: {partner}</div>
+              )}
               <div className="text-sm text-gray-600 mt-1">
                 {isExpanded ? item.use_case : truncatedUseCase}
                 {item.use_case.length > 50 && (
@@ -418,7 +447,7 @@ const OrganizationRequestsPage = () => {
           >
             <p>
               Are you sure you want to {confirmDialog?.type} the request from{' '}
-              {currentRequest?.organization_name}?
+              {currentRequest ? getProjectName(currentRequest) : 'this project'}?
             </p>
             {confirmDialog?.type === 'reject' && (
               <TextInput

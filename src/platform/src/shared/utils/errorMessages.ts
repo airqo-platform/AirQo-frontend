@@ -31,7 +31,7 @@ const DEFAULT_ERROR_MAPPINGS: ErrorMapping = {
   403: 'Access denied. You do not have permission to perform this action.',
   404: 'The requested resource was not found.',
   408: 'Request timeout. Please try again.',
-  409: 'Conflict occurred. The resource may already exist.',
+  409: 'A record with these details already exists.',
   422: 'Validation failed. Please check your input.',
   429: 'Too many requests. Please wait a moment before trying again.',
   500: 'Server error. Please try again later.',

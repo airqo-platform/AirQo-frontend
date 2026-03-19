@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useGetChartData } from '@/shared/hooks/useAnalytics';
+import { useCallback, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { analyticsService } from '@/shared/services/analyticsService';
 import { normalizeAirQualityData } from '@/shared/components/charts/utils';
 import type { ChartDataPoint } from '@/shared/types/api';
 import type { NormalizedChartData } from '@/shared/components/charts/types';
@@ -33,12 +34,6 @@ export const useSiteChartData = ({
   days = 7,
   enabled = true,
 }: UseSiteChartDataOptions = {}) => {
-  const { trigger: getChartData, isMutating } = useGetChartData();
-
-  const [chartData, setChartData] = useState<NormalizedChartData[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
   // Calculate date range based on startDate/endDate or days parameter
   const dateRange = useMemo(() => {
     if (startDate && endDate) {
@@ -59,74 +54,66 @@ export const useSiteChartData = ({
     };
   }, [startDate, endDate, days]);
 
-  // Fetch chart data function
-  const fetchChartData = useCallback(async () => {
-    if (!siteId || !enabled) {
-      setChartData([]);
-      return;
-    }
+  const shouldFetch = Boolean(siteId && enabled);
 
-    setIsLoading(true);
-    setError(null);
+  const {
+    data: chartData = [],
+    isLoading,
+    isFetching,
+    error,
+    refetch: refetchQuery,
+  } = useQuery<NormalizedChartData[], Error>({
+    queryKey: [
+      'map',
+      'site-chart-data',
+      siteId ?? 'none',
+      dateRange.startDate,
+      dateRange.endDate,
+      frequency,
+      pollutant,
+    ],
+    queryFn: async () => {
+      if (!siteId) {
+        return [];
+      }
 
-    try {
-      const response = await getChartData({
+      const response = await analyticsService.getChartData({
         sites: [siteId],
         startDate: dateRange.startDate,
         endDate: dateRange.endDate,
-        chartType: 'line', // Default to line, can be overridden in chart config
-        frequency: frequency,
+        chartType: 'line',
+        frequency,
         pollutant: pollutant.toLowerCase().replace('.', '_'),
         organisation_name: '',
       });
 
-      if (
-        response?.data &&
-        Array.isArray(response.data) &&
-        response.data.length > 0
-      ) {
-        // Transform API data to chart format
-        const transformed = normalizeAirQualityData(
-          response.data as ChartDataPoint[]
-        );
-        setChartData(transformed);
-      } else {
-        setChartData([]);
+      if (!Array.isArray(response?.data) || response.data.length === 0) {
+        return [];
       }
-    } catch (err) {
-      console.error('Error fetching site chart data:', err);
-      setError('Failed to fetch chart data');
-      setChartData([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [
-    siteId,
-    dateRange.startDate,
-    dateRange.endDate,
-    frequency,
-    pollutant,
-    getChartData,
-    enabled,
-  ]);
+
+      return normalizeAirQualityData(response.data as ChartDataPoint[]);
+    },
+    enabled: shouldFetch,
+    networkMode: 'offlineFirst',
+    staleTime: 1000 * 60 * 10,
+    gcTime: 1000 * 60 * 60 * 12,
+  });
 
   // Refresh data function
   const refresh = useCallback(async () => {
-    return fetchChartData();
-  }, [fetchChartData]);
+    if (!shouldFetch) return;
+    await refetchQuery();
+  }, [refetchQuery, shouldFetch]);
 
-  // Fetch data when dependencies change
-  useEffect(() => {
-    fetchChartData();
-  }, [fetchChartData]);
+  const gatedChartData = shouldFetch ? chartData : [];
 
   return {
-    chartData,
-    isLoading: isLoading || isMutating,
-    error,
+    chartData: gatedChartData,
+    isLoading: shouldFetch ? isLoading || isFetching : false,
+    error: shouldFetch ? (error?.message ?? null) : null,
     refresh,
     // Metadata
-    hasData: chartData.length > 0,
+    hasData: gatedChartData.length > 0,
     siteId,
     pollutant,
     frequency,

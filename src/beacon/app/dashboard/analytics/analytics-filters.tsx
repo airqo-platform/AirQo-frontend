@@ -54,6 +54,11 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
   const [devices, setDevices] = useState<Device[]>([])
   const [isLoadingAirqlouds, setIsLoadingAirqlouds] = useState(false)
   const [isLoadingDevices, setIsLoadingDevices] = useState(false)
+
+  // Cohort Tags State
+  const [cohortTags, setCohortTags] = useState<string[]>(["hardware"])
+  const availableTags = ["hardware", "software", "test", "production"] // Hardcoded for now, could be fetched
+
   const [dateRange, setDateRange] = useState<{
     from: Date | undefined
     to: Date | undefined
@@ -105,6 +110,7 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
           setIsLoadingAirqlouds(true)
           const response = await airQloudService.getAirQloudsBasic({
             search: searchTerm || undefined,
+            tags: cohortTags.length > 0 ? cohortTags.join(",") : undefined,
             limit: 100,
           })
           // The API might return { airqlouds: [], meta: {} } or [] depending on the endpoint used in service
@@ -131,7 +137,7 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
     }, 300)
 
     return () => clearTimeout(timer)
-  }, [filterType, searchTerm])
+  }, [filterType, searchTerm, cohortTags])
 
   // Fetch Devices from API
   useEffect(() => {
@@ -161,8 +167,8 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
   }, [filterType, searchTerm])
 
   const currentItems = filterType === "airqlouds"
-    ? airqlouds.map(aq => ({ id: aq.id, name: aq.name, isActive: aq.is_active }))
-    : devices.map(d => ({ id: d.device_id, name: d.device_name, isActive: true }))
+    ? airqlouds.map((aq: AirQloudBasic) => ({ id: aq.id, name: aq.name || '', isActive: (aq as any).is_active ?? true }))
+    : devices.map((d: Device) => ({ id: d.name || d.device_name || '', name: d.name || d.device_name || '', isActive: true }))
 
   const handleFilterTypeChange = (value: "airqlouds" | "devices") => {
     setFilterType(value)
@@ -175,8 +181,8 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
     // Check if trying to select an inactive airqloud
     if (!isActive && filterType === "airqlouds") {
       toast({
-        title: "Cannot select untracked AirQloud (Cohort)",
-        description: "You need to activate this AirQloud (Cohort) to track it. Go to the table below and click on 'Untracked' to enable tracking.",
+        title: "Cannot select untracked Cohort",
+        description: "You need to activate this Cohort to track it. Go to the table below and click on 'Untracked' to enable tracking.",
         variant: "destructive",
         duration: 5000,
       })
@@ -245,6 +251,14 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
     notifyFilterChange(filterType, newSelection, dateRange, timeRange, includeTime)
   }
 
+  const toggleTag = (tag: string) => {
+    setCohortTags(prev =>
+      prev.includes(tag)
+        ? prev.filter(t => t !== tag)
+        : [...prev, tag]
+    )
+  }
+
   // No need for client-side filtering since API handles search
   const filteredItems = currentItems
 
@@ -258,7 +272,7 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Airqloud (Cohort) Uptime Analysis</CardTitle>
+        <CardTitle>Cohort Performance Analysis</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -272,7 +286,7 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="airqlouds">AirQlouds (Cohorts)</SelectItem>
+                  <SelectItem value="airqlouds">Cohorts</SelectItem>
                   <SelectItem value="devices">Devices</SelectItem>
                 </SelectContent>
               </Select>
@@ -280,9 +294,28 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
 
             {/* Search and Selection */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">
-                Select {filterType === "airqlouds" ? "AirQlouds (Cohorts)" : "Devices"}
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium">
+                  Select {filterType === "airqlouds" ? "Cohorts" : "Devices"}
+                </label>
+              </div>
+
+              {/* Tag Filters for Cohorts */}
+              {filterType === "airqlouds" && (
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {availableTags.map(tag => (
+                    <Badge
+                      key={tag}
+                      variant={cohortTags.includes(tag) ? "default" : "outline"}
+                      className="cursor-pointer capitalize"
+                      onClick={() => toggleTag(tag)}
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -307,10 +340,10 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
                         key={item.id}
                         className={cn(
                           "p-2 cursor-pointer hover:bg-accent transition-colors",
-                          selectedItems.includes(item.id) && "bg-accent",
+                          selectedItems.includes(item.id || '') && "bg-accent",
                           isInactive && "opacity-60"
                         )}
-                        onClick={() => handleItemSelect(item.id, item.name, item.isActive)}
+                        onClick={() => handleItemSelect(item.id || '', item.name || 'Unknown', item.isActive)}
                       >
                         <div className="flex items-center gap-2">
                           {isInactive ? (
@@ -318,13 +351,13 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
                           ) : (
                             <input
                               type="checkbox"
-                              checked={selectedItems.includes(item.id)}
+                              checked={selectedItems.includes(item.id || '')}
                               onChange={() => { }}
                               className="cursor-pointer"
                             />
                           )}
                           <span className={cn("text-sm flex-1", isInactive && "text-muted-foreground")}>
-                            {item.name}
+                            {item.name || 'Unknown'}
                           </span>
                           {isInactive && (
                             <span className="text-xs text-red-500">Untracked</span>
@@ -545,7 +578,7 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
             {/* Selected Items Display */}
             <div className="space-y-2">
               <label className="text-sm font-medium">
-                Selected {filterType === "airqlouds" ? "AirQlouds (Cohorts)" : "Devices"} ({selectedItems.length})
+                Selected {filterType === "airqlouds" ? "Cohorts" : "Devices"} ({selectedItems.length})
               </label>
               <div className="border rounded-md p-3 min-h-[100px] max-h-[150px] overflow-y-auto">
                 {selectedItems.length > 0 ? (
