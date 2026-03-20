@@ -30,6 +30,10 @@ import type { PollutantType } from '@/shared/utils/airQuality';
 const MAP_MARKER_Z_INDEX = 20;
 const CLUSTER_ZOOM_THRESHOLD = 14;
 const NODE_DETAIL_ZOOM = 14.5;
+const AFRICA_BOUNDS: [[number, number], [number, number]] = [
+  [-20, -35],
+  [55, 38],
+];
 /** Debounce delay for clustering recalculation (ms) */
 const CLUSTER_DEBOUNCE_MS = 250;
 
@@ -37,8 +41,7 @@ const CLUSTER_DEBOUNCE_MS = 250;
 
 const isClusterData = (
   item: AirQualityReading | ClusterData
-): item is ClusterData =>
-  (item as ClusterData).pointCount !== undefined;
+): item is ClusterData => (item as ClusterData).pointCount !== undefined;
 
 /**
  * Build a spatial grid index for O(n) clustering.
@@ -63,12 +66,12 @@ const buildSpatialIndex = (
  */
 const getClusterParams = (zoom: number) => {
   const z = Math.floor(zoom);
-  if (z < 4)  return { gridSize: 4.0, distanceKm: 15.0, minSize: 2 };
-  if (z < 6)  return { gridSize: 2.0, distanceKm: 8.0,  minSize: 2 };
-  if (z < 8)  return { gridSize: 1.0, distanceKm: 5.0,  minSize: 2 };
-  if (z < 10) return { gridSize: 0.5, distanceKm: 3.0,  minSize: 3 };
-  if (z < 12) return { gridSize: 0.2, distanceKm: 1.5,  minSize: 3 };
-  return       { gridSize: 0.1, distanceKm: 0.8,  minSize: 4 };
+  if (z < 4) return { gridSize: 4.0, distanceKm: 15.0, minSize: 2 };
+  if (z < 6) return { gridSize: 2.0, distanceKm: 8.0, minSize: 2 };
+  if (z < 8) return { gridSize: 1.0, distanceKm: 5.0, minSize: 2 };
+  if (z < 10) return { gridSize: 0.5, distanceKm: 3.0, minSize: 3 };
+  if (z < 12) return { gridSize: 0.2, distanceKm: 1.5, minSize: 3 };
+  return { gridSize: 0.1, distanceKm: 0.8, minSize: 4 };
 };
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -109,7 +112,8 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   const isMountedRef = useRef(true);
 
   // ── View / interaction state ─────────────────────────────────────────────────
-  const [viewState, setViewState] = useState<Partial<ViewState>>(initialViewState);
+  const [viewState, setViewState] =
+    useState<Partial<ViewState>>(initialViewState);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [pinnedTooltipId, setPinnedTooltipId] = useState<string | null>(null);
@@ -130,8 +134,8 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
    *   should be debounced so the expensive O(n²) clustering only runs once the
    *   user has settled at a new zoom level.
    */
-  const [clusterZoom, setClusterZoom] = useState(
-    () => Math.floor(viewState.zoom ?? 3)
+  const [clusterZoom, setClusterZoom] = useState(() =>
+    Math.floor(viewState.zoom ?? 3)
   );
 
   const currentMapStyle = useSelector(selectMapStyle);
@@ -178,10 +182,16 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
 
   const { clusters, clusterMemberIds } = useMemo(() => {
     if (airQualityData.length === 0) {
-      return { clusters: [] as ClusterData[], clusterMemberIds: new Set<string>() };
+      return {
+        clusters: [] as ClusterData[],
+        clusterMemberIds: new Set<string>(),
+      };
     }
     if (clusterZoom >= CLUSTER_ZOOM_THRESHOLD) {
-      return { clusters: [] as ClusterData[], clusterMemberIds: new Set<string>() };
+      return {
+        clusters: [] as ClusterData[],
+        clusterMemberIds: new Set<string>(),
+      };
     }
 
     const { gridSize, distanceKm, minSize } = getClusterParams(clusterZoom);
@@ -213,7 +223,10 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
 
         if (members.length < minSize) continue;
 
-        members.forEach(r => { processed.add(r.id); memberIds.add(r.id); });
+        members.forEach(r => {
+          processed.add(r.id);
+          memberIds.add(r.id);
+        });
 
         const n = members.length;
         const avgLng = members.reduce((s, r) => s + r.longitude, 0) / n;
@@ -226,7 +239,10 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
           : 0;
 
         result.push({
-          id: `cluster-${members.map(r => r.id).sort().join('|')}`,
+          id: `cluster-${members
+            .map(r => r.id)
+            .sort()
+            .join('|')}`,
           longitude: avgLng,
           latitude: avgLat,
           pointCount: n,
@@ -246,8 +262,14 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
 
   // ── Map control handlers ──────────────────────────────────────────────────────
 
-  const handleZoomIn  = useCallback(() => mapRef.current?.zoomIn({ duration: 300 }), []);
-  const handleZoomOut = useCallback(() => mapRef.current?.zoomOut({ duration: 300 }), []);
+  const handleZoomIn = useCallback(
+    () => mapRef.current?.zoomIn({ duration: 300 }),
+    []
+  );
+  const handleZoomOut = useCallback(
+    () => mapRef.current?.zoomOut({ duration: 300 }),
+    []
+  );
 
   const handleGeolocation = useCallback(() => {
     if (!('geolocation' in navigator)) return;
@@ -274,11 +296,16 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
     }
   }, [onRefreshData]);
 
-  const handleMapStyleToggle = useCallback(() => setIsStyleDialogOpen(true), []);
+  const handleMapStyleToggle = useCallback(
+    () => setIsStyleDialogOpen(true),
+    []
+  );
 
   const handleStyleChange = useCallback(
     (style: MapStyle) => {
-      dispatch(setMapSettings({ mapStyle: style.url, nodeType: style.nodeStyle }));
+      dispatch(
+        setMapSettings({ mapStyle: style.url, nodeType: style.nodeStyle })
+      );
       setIsStyleDialogOpen(false);
     },
     [dispatch]
@@ -299,7 +326,10 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   const flyToNode = useCallback(
     (reading: AirQualityReading) => {
       const currentZoom = viewState.zoom ?? 3;
-      const targetZoom = Math.min(18, Math.max(currentZoom + 2, NODE_DETAIL_ZOOM));
+      const targetZoom = Math.min(
+        18,
+        Math.max(currentZoom + 2, NODE_DETAIL_ZOOM)
+      );
       mapRef.current?.flyTo({
         center: [reading.longitude, reading.latitude],
         zoom: targetZoom,
@@ -340,10 +370,10 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
 
       const currentZoom = viewState.zoom ?? 3;
       let targetZoom: number;
-      if (maxSpan < 0.001)     targetZoom = Math.max(16, currentZoom + 3);
+      if (maxSpan < 0.001) targetZoom = Math.max(16, currentZoom + 3);
       else if (maxSpan < 0.01) targetZoom = Math.max(14, currentZoom + 2.5);
-      else if (maxSpan < 0.1)  targetZoom = Math.max(12, currentZoom + 2);
-      else                     targetZoom = Math.max(10, currentZoom + 1.5);
+      else if (maxSpan < 0.1) targetZoom = Math.max(12, currentZoom + 2);
+      else targetZoom = Math.max(10, currentZoom + 1.5);
       targetZoom = Math.min(17, targetZoom);
 
       const centerLon = lons.reduce((a, b) => a + b, 0) / lons.length;
@@ -405,7 +435,10 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   if (!mapboxAccessToken) {
     return (
       <div
-        className={cn('flex items-center justify-center h-full bg-muted rounded-lg', className)}
+        className={cn(
+          'flex items-center justify-center h-full bg-muted rounded-lg',
+          className
+        )}
       >
         <p className="text-muted-foreground text-center px-4">
           MapBox access token not configured.
@@ -427,6 +460,9 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
         mapboxAccessToken={mapboxAccessToken}
         style={{ width: '100%', height: '100%' }}
         mapStyle={currentMapStyle}
+        maxBounds={AFRICA_BOUNDS}
+        minZoom={2.5}
+        maxZoom={18}
         attributionControl={false}
         /**
          * interactiveLayerIds stays empty — all interaction is handled
@@ -519,7 +555,11 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
 
       <MapLoadingOverlay
         isVisible={isLoading || isRefreshing}
-        message={isLoading ? 'Loading air quality data…' : 'Refreshing air quality data…'}
+        message={
+          isLoading
+            ? 'Loading air quality data…'
+            : 'Refreshing air quality data…'
+        }
       />
     </div>
   );

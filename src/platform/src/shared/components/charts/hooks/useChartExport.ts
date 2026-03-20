@@ -5,61 +5,82 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { ExportOptions, ExportOptionsPartial } from '../types';
 
-const EXPORT_CLONE_STYLE = `
-  * {
-    color: inherit !important;
-    background-color: transparent !important;
-    border-color: inherit !important;
-  }
-
-  .recharts-wrapper {
-    margin: 0 auto !important;
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-  }
-
-  .recharts-legend-wrapper {
-    background-color: transparent !important;
-    font-size: 12px !important;
-    font-family: inherit !important;
-  }
-
-  .recharts-legend-item,
-  .recharts-legend-item-text,
-  .recharts-legend-item text {
-    fill: #000000 !important;
-    color: #000000 !important;
-    font-size: 12px !important;
-    font-family: inherit !important;
-  }
-
-  .recharts-cartesian-axis-line,
-  .recharts-cartesian-axis-tick-line,
-  .recharts-cartesian-grid-line {
-    stroke: #e5e7eb !important;
-  }
-
-  .recharts-tooltip,
-  .recharts-tooltip * {
-    color: #000000 !important;
-    fill: #000000 !important;
-    background-color: #ffffff !important;
-  }
-`;
-
 const applyCloneStyles = (clonedDoc: Document) => {
-  const style = clonedDoc.createElement('style');
-  style.textContent = EXPORT_CLONE_STYLE;
-  clonedDoc.head.appendChild(style);
+  const applyStyles = (
+    element: Element | null,
+    styles: Partial<CSSStyleDeclaration>
+  ) => {
+    if (!(element instanceof HTMLElement || element instanceof SVGElement)) {
+      return;
+    }
 
-  const chartContainer = clonedDoc.querySelector('.recharts-wrapper');
-  if (chartContainer instanceof HTMLElement) {
-    chartContainer.style.margin = '0 auto';
-    chartContainer.style.display = 'flex';
-    chartContainer.style.justifyContent = 'center';
-    chartContainer.style.alignItems = 'center';
-  }
+    Object.entries(styles).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        element.style.setProperty(
+          key.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`),
+          String(value)
+        );
+      }
+    });
+  };
+
+  clonedDoc.querySelectorAll('*').forEach(element => {
+    applyStyles(element, {
+      color: 'inherit',
+      backgroundColor: 'transparent',
+      borderColor: 'inherit',
+    });
+  });
+
+  clonedDoc.querySelectorAll('.recharts-wrapper').forEach(element => {
+    applyStyles(element, {
+      margin: '0 auto',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+    });
+  });
+
+  clonedDoc.querySelectorAll('.recharts-legend-wrapper').forEach(element => {
+    applyStyles(element, {
+      backgroundColor: 'transparent',
+      fontSize: '12px',
+      fontFamily: 'inherit',
+    });
+  });
+
+  clonedDoc
+    .querySelectorAll(
+      '.recharts-legend-item, .recharts-legend-item-text, .recharts-legend-item text'
+    )
+    .forEach(element => {
+      applyStyles(element, {
+        fill: '#000000',
+        color: '#000000',
+        fontSize: '12px',
+        fontFamily: 'inherit',
+      });
+    });
+
+  clonedDoc
+    .querySelectorAll(
+      '.recharts-cartesian-axis-line, .recharts-cartesian-axis-tick-line, .recharts-cartesian-grid-line'
+    )
+    .forEach(element => {
+      applyStyles(element, {
+        stroke: '#e5e7eb',
+      });
+    });
+
+  clonedDoc
+    .querySelectorAll('.recharts-tooltip, .recharts-tooltip *')
+    .forEach(element => {
+      applyStyles(element, {
+        color: '#000000',
+        fill: '#000000',
+        backgroundColor: '#ffffff',
+      });
+    });
 };
 
 export const useChartExport = () => {

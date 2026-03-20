@@ -5,6 +5,11 @@ import MapGL from 'react-map-gl/mapbox';
 import { cn } from '@/shared/lib/utils';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
+const AFRICA_BOUNDS: [[number, number], [number, number]] = [
+  [-20, -35],
+  [55, 38],
+];
+
 interface MapBoxProps {
   className?: string;
   initialViewState?: {
@@ -18,9 +23,9 @@ interface MapBoxProps {
 export const MapBox: React.FC<MapBoxProps> = ({
   className,
   initialViewState = {
-    longitude: 32.5825, // Default to Kampala, Uganda (AirQo HQ)
-    latitude: 0.3476,
-    zoom: 10,
+    longitude: 20,
+    latitude: 2,
+    zoom: 3,
   },
   style,
 }) => {
@@ -60,6 +65,9 @@ export const MapBox: React.FC<MapBoxProps> = ({
         initialViewState={initialViewState}
         style={{ width: '100%', height: '100%' }}
         mapStyle="mapbox://styles/mapbox/streets-v12"
+        maxBounds={AFRICA_BOUNDS}
+        minZoom={2.5}
+        maxZoom={18}
         attributionControl={false}
       />
     </div>
