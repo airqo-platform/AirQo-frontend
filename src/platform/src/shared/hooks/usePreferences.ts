@@ -144,7 +144,7 @@ export const useGroupTheme = (groupId: string) => {
     () => preferencesService.getGroupTheme(groupId),
     {
       revalidateOnFocus: true,
-      revalidateOnReconnect: true,
+      revalidateOnReconnect: false,
       // Keep theme data fresh when switching organizations
       dedupingInterval: 2000,
     }
@@ -160,7 +160,7 @@ export const useUserTheme = (userId: string, groupId: string) => {
     () => preferencesService.getUserTheme(userId, groupId),
     {
       revalidateOnFocus: true,
-      revalidateOnReconnect: true,
+      revalidateOnReconnect: false,
       // Ensure fresh data when group changes by minimal deduping
       dedupingInterval: 1000,
       // Keep error retry to minimum to avoid infinite loops on group switch

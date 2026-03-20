@@ -104,16 +104,30 @@ export const useDataExportData = (
   ]);
 
   // Fetch sites data
-  const sitesHook = useActiveGroupCohortSites(sitesParams);
+  const sitesHook = useActiveGroupCohortSites(
+    sitesParams,
+    activeTab === 'sites'
+  );
 
   // Fetch devices data
-  const devicesHook = useActiveGroupCohortDevices(devicesParams);
+  const devicesHook = useActiveGroupCohortDevices(
+    devicesParams,
+    activeTab === 'devices'
+  );
 
   // Fetch countries data
-  const countriesHook = useGridsSummary(countriesParams);
+  const countriesHook = useGridsSummary(
+    countriesParams,
+    undefined,
+    activeTab === 'countries'
+  );
 
   // Fetch cities data
-  const citiesHook = useGridsSummary(citiesParams);
+  const citiesHook = useGridsSummary(
+    citiesParams,
+    undefined,
+    activeTab === 'cities'
+  );
 
   const currentHook =
     activeTab === 'sites'

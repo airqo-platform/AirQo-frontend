@@ -26,38 +26,8 @@ const buildStorageKey = (scopeKey?: string | null): string | null => {
   return `${SWR_CACHE_STORAGE_KEY_PREFIX}:${scopeKey}`;
 };
 
-const getErrorStatusCode = (error: unknown): number | null => {
-  if (!error || typeof error !== 'object') return null;
-
-  const axiosLike = error as {
-    status?: number;
-    response?: { status?: number };
-  };
-
-  if (typeof axiosLike.response?.status === 'number') {
-    return axiosLike.response.status;
-  }
-
-  if (typeof axiosLike.status === 'number') {
-    return axiosLike.status;
-  }
-
-  return null;
-};
-
-const shouldRetryOnError = (error: unknown): boolean => {
-  if (typeof navigator !== 'undefined' && !navigator.onLine) {
-    return false;
-  }
-
-  const status = getErrorStatusCode(error);
-  if (!status) return true;
-
-  if (status === 401 || status === 403 || status === 404) {
-    return false;
-  }
-
-  return true;
+const shouldRetryOnError = (): boolean => {
+  return false;
 };
 
 const sanitizeStateForPersistence = (
@@ -92,7 +62,9 @@ const sanitizeLoadedState = (value: unknown): SWRCacheState | null => {
   };
 };
 
-const loadPersistedCache = (storageKey: string | null): Map<string, SWRCacheState> => {
+const loadPersistedCache = (
+  storageKey: string | null
+): Map<string, SWRCacheState> => {
   const cache = new Map<string, SWRCacheState>();
 
   if (typeof window === 'undefined' || !storageKey) {
@@ -236,12 +208,12 @@ export function SWRProvider({
     () => ({
       provider: () => cache as Cache<SWRCacheState>,
       revalidateOnFocus: false,
-      revalidateOnReconnect: true,
+      revalidateOnReconnect: false,
       revalidateIfStale: true,
       keepPreviousData: true,
       dedupingInterval: 1000 * 15,
       focusThrottleInterval: 1000 * 60,
-      errorRetryCount: 2,
+      errorRetryCount: 0,
       errorRetryInterval: 2000,
       shouldRetryOnError,
       isPaused: () => typeof navigator !== 'undefined' && !navigator.onLine,
