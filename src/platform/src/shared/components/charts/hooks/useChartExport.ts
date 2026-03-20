@@ -34,12 +34,42 @@ const applyCloneStyles = (clonedDoc: Document) => {
     } else {
       // Fallback: if we can't access realm constructors, ensure the element
       // exposes a style object we can mutate (safely skip otherwise).
-      const fallbackStyle = (element as any).style;
-      if (!fallbackStyle || typeof fallbackStyle.setProperty !== 'function')
+      try {
+        const candidate = element as unknown as {
+          style?: { setProperty?: unknown };
+        };
+        if (
+          !candidate.style ||
+          typeof candidate.style.setProperty !== 'function'
+        )
+          return;
+      } catch {
         return;
+      }
     }
 
-    const styleObj: CSSStyleDeclaration | undefined = (element as any).style;
+    let styleObj: CSSStyleDeclaration | undefined;
+    const maybeHTMLElement = element as HTMLElement;
+    const maybeSVGElement = element as SVGElement;
+
+    if (
+      maybeHTMLElement &&
+      maybeHTMLElement.style &&
+      typeof (maybeHTMLElement.style as unknown as { setProperty?: unknown })
+        .setProperty === 'function'
+    ) {
+      styleObj = maybeHTMLElement.style as unknown as CSSStyleDeclaration;
+    } else if (
+      maybeSVGElement &&
+      maybeSVGElement.style &&
+      typeof (maybeSVGElement.style as unknown as { setProperty?: unknown })
+        .setProperty === 'function'
+    ) {
+      styleObj = maybeSVGElement.style as unknown as CSSStyleDeclaration;
+    } else {
+      return;
+    }
+
     if (!styleObj || typeof styleObj.setProperty !== 'function') return;
 
     Object.entries(styles).forEach(([key, value]) => {
