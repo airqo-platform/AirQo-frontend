@@ -6,17 +6,45 @@ import jsPDF from 'jspdf';
 import { ExportOptions, ExportOptionsPartial } from '../types';
 
 const applyCloneStyles = (clonedDoc: Document) => {
+  const view = clonedDoc.defaultView;
+  const HTMLElementCtor = view?.HTMLElement;
+  const SVGElementCtor = view?.SVGElement;
+
   const applyStyles = (
     element: Element | null,
     styles: Partial<CSSStyleDeclaration>
   ) => {
-    if (!(element instanceof HTMLElement || element instanceof SVGElement)) {
+    if (!element) {
       return;
     }
+    const hasRealmCtors = Boolean(HTMLElementCtor || SVGElementCtor);
+
+    if (hasRealmCtors) {
+      const isHTMLElement = HTMLElementCtor
+        ? element instanceof HTMLElementCtor
+        : false;
+      const isSVGElement = SVGElementCtor
+        ? element instanceof SVGElementCtor
+        : false;
+
+      // If the cloned document provides realm-specific constructors, use them
+      // to verify element instances. If the element does not belong to the
+      // cloned realm, skip styling it.
+      if (!isHTMLElement && !isSVGElement) return;
+    } else {
+      // Fallback: if we can't access realm constructors, ensure the element
+      // exposes a style object we can mutate (safely skip otherwise).
+      const fallbackStyle = (element as any).style;
+      if (!fallbackStyle || typeof fallbackStyle.setProperty !== 'function')
+        return;
+    }
+
+    const styleObj: CSSStyleDeclaration | undefined = (element as any).style;
+    if (!styleObj || typeof styleObj.setProperty !== 'function') return;
 
     Object.entries(styles).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
-        element.style.setProperty(
+        styleObj.setProperty(
           key.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`),
           String(value)
         );

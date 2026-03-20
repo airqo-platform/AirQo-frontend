@@ -6,8 +6,8 @@ import { cn } from '@/shared/lib/utils';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 const AFRICA_BOUNDS: [[number, number], [number, number]] = [
-  [-20, -35],
-  [55, 38],
+  [-35, -45],
+  [60, 45],
 ];
 
 interface MapBoxProps {
@@ -23,9 +23,9 @@ interface MapBoxProps {
 export const MapBox: React.FC<MapBoxProps> = ({
   className,
   initialViewState = {
-    longitude: 20,
+    longitude: 15,
     latitude: 2,
-    zoom: 3,
+    zoom: 0.7,
   },
   style,
 }) => {
@@ -66,7 +66,7 @@ export const MapBox: React.FC<MapBoxProps> = ({
         style={{ width: '100%', height: '100%' }}
         mapStyle="mapbox://styles/mapbox/streets-v12"
         maxBounds={AFRICA_BOUNDS}
-        minZoom={2.5}
+        minZoom={0.5}
         maxZoom={18}
         attributionControl={false}
       />

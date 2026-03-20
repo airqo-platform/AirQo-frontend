@@ -31,8 +31,8 @@ const MAP_MARKER_Z_INDEX = 20;
 const CLUSTER_ZOOM_THRESHOLD = 14;
 const NODE_DETAIL_ZOOM = 14.5;
 const AFRICA_BOUNDS: [[number, number], [number, number]] = [
-  [-20, -35],
-  [55, 38],
+  [-35, -45],
+  [60, 45],
 ];
 /** Debounce delay for clustering recalculation (ms) */
 const CLUSTER_DEBOUNCE_MS = 250;
@@ -93,7 +93,7 @@ interface EnhancedMapProps {
 
 export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   className,
-  initialViewState = { longitude: 20, latitude: 2, zoom: 3 },
+  initialViewState = { longitude: 15, latitude: 2, zoom: 0.7 },
   airQualityData = [],
   onNodeClick,
   onClusterClick,
@@ -461,7 +461,7 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
         style={{ width: '100%', height: '100%' }}
         mapStyle={currentMapStyle}
         maxBounds={AFRICA_BOUNDS}
-        minZoom={2.5}
+        minZoom={0.5}
         maxZoom={18}
         attributionControl={false}
         /**
