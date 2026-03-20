@@ -71,7 +71,8 @@ export function useSitesData({
 
   // Fetch data using the enhanced hook
   const { data, error, isLoading, mutate } = useActiveGroupCohortSites(
-    enabled ? apiParams : undefined
+    apiParams,
+    enabled
   );
 
   // Normalize sites data

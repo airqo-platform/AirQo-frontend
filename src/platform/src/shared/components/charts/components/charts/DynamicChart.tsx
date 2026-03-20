@@ -26,7 +26,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import type { LegendPayload } from 'recharts';
-import { DynamicChartProps, ChartType } from '../../types';
+import { DynamicChartProps, ChartType, NormalizedChartData } from '../../types';
 import { CustomTooltip } from '../ui/CustomTooltip';
 import { CustomReferenceLine } from '../ui/CustomReferenceLine';
 import {
@@ -146,7 +146,12 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
         .trim();
 
       return (
-        <span className={cn('text-foreground', isHidden && 'opacity-50 line-through')}>
+        <span
+          className={cn(
+            'text-foreground',
+            isHidden && 'opacity-50 line-through'
+          )}
+        >
           {formattedValue}
         </span>
       );
@@ -162,7 +167,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
 
   // Common props for all charts
   const commonProps = {
-    data: chartData,
+    data: chartData as unknown as NormalizedChartData[],
     margin: chartConfig.margin,
     ...CHART_ANIMATIONS[chartType as keyof typeof CHART_ANIMATIONS],
   };
@@ -362,7 +367,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
 
       case 'radar':
         const radarProps = {
-          data: chartData,
+          data: chartData as unknown as NormalizedChartData[],
           margin: { top: 20, right: 30, left: 20, bottom: 20 },
           ...CHART_ANIMATIONS.line,
         };
@@ -393,7 +398,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
 
       case 'pie':
         const pieProps = {
-          data: chartData,
+          data: chartData as unknown as NormalizedChartData[],
           margin: { top: 20, right: 30, left: 20, bottom: 20 },
           ...CHART_ANIMATIONS.line,
         };
@@ -448,9 +453,16 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
     chartConfig.width && typeof chartConfig.width === 'number'
       ? chartConfig.width
       : undefined;
+  const responsiveWidth =
+    typeof chartConfig.width === 'number'
+      ? chartConfig.width
+      : typeof chartConfig.width === 'string' &&
+          /^\d+%$/.test(chartConfig.width)
+        ? (chartConfig.width as `${number}%`)
+        : ('100%' as const);
 
   const containerProps = responsive
-    ? { width: '100%', height: chartConfig.height }
+    ? { width: responsiveWidth, height: chartConfig.height }
     : explicitMinWidth
       ? {
           style: {

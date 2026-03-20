@@ -45,19 +45,52 @@ const getErrorStatusCode = (error: unknown): number | null => {
   return null;
 };
 
+const getErrorCode = (error: unknown): string | null => {
+  if (!error || typeof error !== 'object') return null;
+
+  const axiosLike = error as {
+    code?: string;
+  };
+
+  return typeof axiosLike.code === 'string' ? axiosLike.code : null;
+};
+
 const shouldRetryOnError = (error: unknown): boolean => {
   if (typeof navigator !== 'undefined' && !navigator.onLine) {
     return false;
   }
 
   const status = getErrorStatusCode(error);
-  if (!status) return true;
+  const errorCode = getErrorCode(error);
 
-  if (status === 401 || status === 403 || status === 404) {
+  if (errorCode === 'ECONNABORTED' || errorCode === 'ERR_NETWORK') {
     return false;
   }
 
-  return true;
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'message' in error &&
+    typeof (error as { message?: unknown }).message === 'string' &&
+    (error as { message?: string }).message?.toLowerCase().includes('timeout')
+  ) {
+    return false;
+  }
+
+  if (!status) return false;
+
+  if (
+    status === 401 ||
+    status === 403 ||
+    status === 404 ||
+    status === 408 ||
+    status === 429 ||
+    status >= 500
+  ) {
+    return false;
+  }
+
+  return false;
 };
 
 const sanitizeStateForPersistence = (
@@ -92,7 +125,9 @@ const sanitizeLoadedState = (value: unknown): SWRCacheState | null => {
   };
 };
 
-const loadPersistedCache = (storageKey: string | null): Map<string, SWRCacheState> => {
+const loadPersistedCache = (
+  storageKey: string | null
+): Map<string, SWRCacheState> => {
   const cache = new Map<string, SWRCacheState>();
 
   if (typeof window === 'undefined' || !storageKey) {
@@ -236,12 +271,12 @@ export function SWRProvider({
     () => ({
       provider: () => cache as Cache<SWRCacheState>,
       revalidateOnFocus: false,
-      revalidateOnReconnect: true,
+      revalidateOnReconnect: false,
       revalidateIfStale: true,
       keepPreviousData: true,
       dedupingInterval: 1000 * 15,
       focusThrottleInterval: 1000 * 60,
-      errorRetryCount: 2,
+      errorRetryCount: 0,
       errorRetryInterval: 2000,
       shouldRetryOnError,
       isPaused: () => typeof navigator !== 'undefined' && !navigator.onLine,
