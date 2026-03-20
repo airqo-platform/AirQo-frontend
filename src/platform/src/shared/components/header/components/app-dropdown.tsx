@@ -109,7 +109,6 @@ const AppDropdown: React.FC<AppDropdownProps> = ({ className = '' }) => {
       <DropdownMenuContent
         className="w-auto border-none shadow-lg z-[10000]"
         align="end"
-        showOverlay={true}
       >
         {!showQRCode ? (
           <div className="p-2 grid grid-cols-3 gap-3">
