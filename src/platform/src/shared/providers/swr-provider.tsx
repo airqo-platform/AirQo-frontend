@@ -26,70 +26,7 @@ const buildStorageKey = (scopeKey?: string | null): string | null => {
   return `${SWR_CACHE_STORAGE_KEY_PREFIX}:${scopeKey}`;
 };
 
-const getErrorStatusCode = (error: unknown): number | null => {
-  if (!error || typeof error !== 'object') return null;
-
-  const axiosLike = error as {
-    status?: number;
-    response?: { status?: number };
-  };
-
-  if (typeof axiosLike.response?.status === 'number') {
-    return axiosLike.response.status;
-  }
-
-  if (typeof axiosLike.status === 'number') {
-    return axiosLike.status;
-  }
-
-  return null;
-};
-
-const getErrorCode = (error: unknown): string | null => {
-  if (!error || typeof error !== 'object') return null;
-
-  const axiosLike = error as {
-    code?: string;
-  };
-
-  return typeof axiosLike.code === 'string' ? axiosLike.code : null;
-};
-
-const shouldRetryOnError = (error: unknown): boolean => {
-  if (typeof navigator !== 'undefined' && !navigator.onLine) {
-    return false;
-  }
-
-  const status = getErrorStatusCode(error);
-  const errorCode = getErrorCode(error);
-
-  if (errorCode === 'ECONNABORTED' || errorCode === 'ERR_NETWORK') {
-    return false;
-  }
-
-  if (
-    typeof error === 'object' &&
-    error !== null &&
-    'message' in error &&
-    typeof (error as { message?: unknown }).message === 'string' &&
-    (error as { message?: string }).message?.toLowerCase().includes('timeout')
-  ) {
-    return false;
-  }
-
-  if (!status) return false;
-
-  if (
-    status === 401 ||
-    status === 403 ||
-    status === 404 ||
-    status === 408 ||
-    status === 429 ||
-    status >= 500
-  ) {
-    return false;
-  }
-
+const shouldRetryOnError = (): boolean => {
   return false;
 };
 
