@@ -5,26 +5,32 @@ import { motion } from 'framer-motion';
 import { AqChevronLeft, AqChevronRight } from '@airqo/icons-react';
 import { cn } from '@/shared/lib/utils';
 import { Card } from '@/shared/components/ui/card';
-import { SidebarContent } from './components';
+import { SidebarContent, SidebarSkeleton } from './components';
 import { useAppDispatch, useAppSelector } from '@/shared/hooks/redux';
 import { toggleSidebar } from '@/shared/store/uiSlice';
 import { useUserActions } from '@/shared/hooks';
+import { useRBAC } from '@/shared/hooks';
 import { SidebarProps } from './types';
 import { useMediaQuery } from 'react-responsive';
 import { usePathname } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 export const Sidebar: React.FC<SidebarProps> = ({
   className,
   hideToggle = false,
   isCollapsed: propIsCollapsed,
+  isLoading: propIsLoading,
 }) => {
   const dispatch = useAppDispatch();
   const globalIsCollapsed = useAppSelector(state => state.ui.sidebarCollapsed);
   const isCollapsed =
     propIsCollapsed !== undefined ? propIsCollapsed : globalIsCollapsed;
   const { activeGroup } = useUserActions();
+  const { isLoading: rbacLoading } = useRBAC();
+  const { status: sessionStatus } = useSession();
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const pathname = usePathname();
+  const isLoading = propIsLoading ?? rbacLoading;
 
   const handleToggle = React.useCallback(() => {
     dispatch(toggleSidebar());
@@ -65,6 +71,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
       orgSlug: hasOrgSlug ? activeGroup.organizationSlug : undefined,
     };
   }, [activeGroup, pathname]);
+  // Treat base and nested admin/system/org routes as protected so
+  // exact base paths like '/admin' and '/system' are handled consistently
+  // with the flow detection above (which uses startsWith('/admin')/('/system')).
+  const isProtectedSidebarRoute =
+    pathname.startsWith('/org') ||
+    pathname.startsWith('/system') ||
+    pathname.startsWith('/admin');
+  const shouldWaitForActiveGroup = pathname.startsWith('/org/');
+  const shouldShowLoadingSkeleton =
+    isProtectedSidebarRoute &&
+    (sessionStatus === 'loading' ||
+      isLoading ||
+      (shouldWaitForActiveGroup && !activeGroup));
 
   return (
     <>
@@ -107,12 +126,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </motion.div>
 
           {/* Navigation */}
-          <SidebarContent
-            flow={flow}
-            orgSlug={orgSlug}
-            isCollapsed={isCollapsed}
-            onItemClick={handleItemClick}
-          />
+          {shouldShowLoadingSkeleton ? (
+            <SidebarSkeleton isCollapsed={isCollapsed} />
+          ) : (
+            <SidebarContent
+              flow={flow}
+              orgSlug={orgSlug}
+              isCollapsed={isCollapsed}
+              onItemClick={handleItemClick}
+            />
+          )}
         </Card>
       </motion.div>
     </>
