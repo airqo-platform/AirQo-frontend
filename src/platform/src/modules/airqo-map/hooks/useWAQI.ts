@@ -26,6 +26,7 @@ export function useWAQICities(
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const requestVersionRef = useRef(0);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const isMountedRef = useRef(true);
 
   // Memoize cities to prevent infinite re-renders
@@ -38,6 +39,12 @@ export function useWAQICities(
       return;
     }
 
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
     const requestVersion = ++requestVersionRef.current;
 
     try {
@@ -64,7 +71,10 @@ export function useWAQICities(
         const batchCities = memoizedCities.slice(startIndex, endIndex);
 
         try {
-          const data = await waqiService.getMultipleCitiesData(batchCities);
+          const data = await waqiService.getMultipleCitiesData(
+            batchCities,
+            abortController.signal
+          );
 
           // Check again if still mounted after API call
           if (
@@ -103,6 +113,10 @@ export function useWAQICities(
       if (isMountedRef.current) {
         setIsLoading(false);
       }
+
+      if (abortControllerRef.current === abortController) {
+        abortControllerRef.current = null;
+      }
     }
   }, [memoizedCities, batchSize]);
 
@@ -111,6 +125,9 @@ export function useWAQICities(
     isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
       requestVersionRef.current += 1;
     };
   }, []);

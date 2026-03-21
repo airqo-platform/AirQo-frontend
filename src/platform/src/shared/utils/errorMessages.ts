@@ -195,7 +195,7 @@ export function getUserFriendlyErrorMessage(
     }
 
     // Priority 4: Network errors
-    if (axiosError.code === 'NETWORK_ERROR') {
+    if (axiosError.code === 'ERR_NETWORK') {
       return (
         errorMappings['network'] ||
         'Network error. Please check your internet connection and try again.'
