@@ -75,9 +75,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
     pathname.startsWith('/org/') ||
     pathname.startsWith('/system/') ||
     pathname.startsWith('/admin/');
+  const shouldWaitForActiveGroup = pathname.startsWith('/org/');
   const shouldShowLoadingSkeleton =
     isProtectedSidebarRoute &&
-    (sessionStatus === 'loading' || isLoading || !activeGroup);
+    (sessionStatus === 'loading' ||
+      isLoading ||
+      (shouldWaitForActiveGroup && !activeGroup));
 
   return (
     <>
