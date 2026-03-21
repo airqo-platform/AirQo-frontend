@@ -1,21 +1,14 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useDebounce } from '@/shared/hooks/useDebounce';
 import { photonService, PhotonSearchResult } from '../services/photonService';
 
 export type { PhotonSearchResult } from '../services/photonService';
 
 export const usePhotonSearch = (query: string, enabled = true) => {
-  const [debouncedQuery, setDebouncedQuery] = useState(query);
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      setDebouncedQuery(query);
-    }, 300);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [query]);
+  const debouncedQuery = useDebounce(query, 300);
 
   const normalizedQuery = debouncedQuery.trim();
   const shouldFetch = enabled && normalizedQuery.length > 0;

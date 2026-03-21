@@ -117,7 +117,6 @@ export class ApiClient {
 
     this.client = axios.create({
       baseURL: this.baseUrl,
-      timeout: 60000,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -194,7 +193,6 @@ export class ApiClient {
           status: error.response?.status,
           statusText: error.response?.statusText,
           baseURL: error.config?.baseURL,
-          timeout: error.config?.timeout,
           duration: error.config?.metadata?.startTime
             ? Date.now() - error.config.metadata.startTime
             : undefined,
@@ -275,7 +273,6 @@ export class ApiClient {
 
           const shouldNotifySlack =
             status >= 405 && // Skip validation errors (400, 404 already handled)
-            status !== 408 && // Skip request timeout (client-side)
             status !== 429; // Skip rate limiting (already handled)
 
           if (shouldNotifySlack) {
@@ -302,27 +299,6 @@ export class ApiClient {
             logger.warn('API validation error', {
               ...errorContext,
               responseData: error.response.data,
-            });
-          }
-        } else if (
-          error.code === 'ECONNABORTED' ||
-          error.message?.includes('timeout')
-        ) {
-          // Timeout errors - notify Slack as these are serious connectivity issues
-          const timeoutError = new Error(
-            `API request timeout: ${error.config?.timeout}ms`
-          );
-          timeoutError.name = 'APITimeoutError';
-          if (canNotify) {
-            logger.errorWithSlack(
-              'API request timed out',
-              timeoutError,
-              errorContext
-            );
-          } else {
-            logger.error('Suppressed duplicate API timeout notification', {
-              ...errorContext,
-              errorCode,
             });
           }
         } else if (error.code === 'ERR_NETWORK' || !error.response) {

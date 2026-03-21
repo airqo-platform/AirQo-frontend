@@ -120,12 +120,8 @@ const sendToSlack = async (
   incrementErrorCount();
 
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
-
     const response = await fetch('/api/slack/notify', {
       method: 'POST',
-      signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -146,8 +142,6 @@ const sendToSlack = async (
       }),
     });
 
-    clearTimeout(timeoutId);
-
     if (!response.ok) {
       let errorData;
       try {
@@ -158,11 +152,7 @@ const sendToSlack = async (
       log.error('Failed to send error to Slack:', errorData);
     }
   } catch (slackError) {
-    if (slackError instanceof Error && slackError.name === 'AbortError') {
-      log.error('Slack notification timed out');
-    } else {
-      log.error('Failed to send error to Slack:', slackError);
-    }
+    log.error('Failed to send error to Slack:', slackError);
   }
 };
 
