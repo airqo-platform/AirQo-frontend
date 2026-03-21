@@ -102,9 +102,8 @@ const TopBanner = () => {
   const pathname = usePathname();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isApplyingLanguage, setIsApplyingLanguage] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState<Language>(
-    resolveSelectedLanguage,
-  );
+  const [selectedLanguage, setSelectedLanguage] =
+    useState<Language>(DEFAULT_LANGUAGE);
 
   useEffect(() => {
     const syncSelectedLanguage = () => {
@@ -138,11 +137,6 @@ const TopBanner = () => {
 
   useEffect(() => {
     if (isApplyingLanguage || isGoogleTranslateScriptBlocked()) return;
-
-    const currentTargetLanguage = getGoogleTranslateTargetLanguage();
-    const normalizedCurrentTarget = currentTargetLanguage
-      ? normalizeGoogleLanguageCode(currentTargetLanguage).trim().toLowerCase()
-      : null;
     const normalizedSelectedLanguage = normalizeGoogleLanguageCode(
       selectedLanguage.code,
     )
@@ -154,12 +148,6 @@ const TopBanner = () => {
       normalizedSelectedLanguage.split('-')[0] === DEFAULT_GOOGLE_LANGUAGE;
 
     if (selectedIsDefault) return;
-
-    const alreadyTranslated =
-      normalizedCurrentTarget === normalizedSelectedLanguage ||
-      normalizedCurrentTarget === normalizedSelectedLanguage.split('-')[0];
-
-    if (alreadyTranslated) return;
 
     const syncTranslation = window.setTimeout(() => {
       void applyGoogleTranslateLanguage(selectedLanguage.code, 1200, {
