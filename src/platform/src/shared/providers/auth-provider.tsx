@@ -13,6 +13,7 @@ import logger from '@/shared/lib/logger';
 import { SWRProvider } from '@/shared/providers/swr-provider';
 import { QueryProvider } from '@/shared/providers/query-provider';
 import { runClientCacheMaintenance } from '@/shared/lib/clientCache';
+import { normalizeCallbackUrl } from '@/shared/lib/auth-redirect';
 
 // Component to guard and redirect based on active group for all pages
 function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
