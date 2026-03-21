@@ -11,7 +11,12 @@ interface SidebarSkeletonProps {
 }
 
 const SkeletonBlock = ({ className }: { className?: string }) => (
-  <div className={cn('animate-pulse rounded-md bg-muted', className)} />
+  <div
+    className={cn(
+      'animate-pulse rounded-md bg-slate-200 dark:bg-slate-700',
+      className
+    )}
+  />
 );
 
 export const SidebarSkeleton: React.FC<SidebarSkeletonProps> = ({
@@ -23,38 +28,38 @@ export const SidebarSkeleton: React.FC<SidebarSkeletonProps> = ({
 
   return (
     <Card
-      className={cn('flex-1 border-0 shadow-none bg-transparent', className)}
+      className={cn('flex-1 border-0 bg-transparent shadow-none', className)}
     >
-      <CardContent className="p-4 md:p-5">
+      <CardContent className="p-2 md:p-3">
         {showBrand && !isCollapsed && (
-          <div className="mb-4 flex items-center gap-3">
-            <SkeletonBlock className="h-9 w-9 rounded-full" />
-            <div className="space-y-2 flex-1">
-              <SkeletonBlock className="h-4 w-28" />
+          <div className="mb-3 flex items-center gap-2">
+            <SkeletonBlock className="h-8 w-8 rounded-full" />
+            <div className="flex-1 space-y-2">
+              <SkeletonBlock className="h-3.5 w-24" />
               <SkeletonBlock className="h-3 w-20" />
             </div>
           </div>
         )}
 
         {isCollapsed ? (
-          <div className="space-y-3 pt-2">
+          <div className="space-y-2 pt-1">
             {Array.from({ length: itemCount }).map((_, index) => (
               <div
                 key={`collapsed-item-${index}`}
                 className="flex justify-center"
               >
-                <SkeletonBlock className="h-10 w-10 rounded-full" />
+                <SkeletonBlock className="h-9 w-9 rounded-full" />
               </div>
             ))}
           </div>
         ) : (
-          <div className="space-y-3 pt-1">
+          <div className="space-y-2 pt-0.5">
             {Array.from({ length: itemCount }).map((_, index) => (
               <div
                 key={`item-${index}`}
-                className="flex items-center gap-3 rounded-xl px-3 py-3"
+                className="flex items-center gap-2 rounded-lg px-2 py-2"
               >
-                <SkeletonBlock className="h-9 w-9 rounded-lg" />
+                <SkeletonBlock className="h-8 w-8 rounded-lg" />
                 <div className="flex-1 space-y-2">
                   <SkeletonBlock className="h-3.5 w-3/5" />
                   <SkeletonBlock className="h-3 w-2/5" />
