@@ -136,6 +136,42 @@ const TopBanner = () => {
     };
   }, [pathname]);
 
+  useEffect(() => {
+    if (isApplyingLanguage || isGoogleTranslateScriptBlocked()) return;
+
+    const currentTargetLanguage = getGoogleTranslateTargetLanguage();
+    const normalizedCurrentTarget = currentTargetLanguage
+      ? normalizeGoogleLanguageCode(currentTargetLanguage).trim().toLowerCase()
+      : null;
+    const normalizedSelectedLanguage = normalizeGoogleLanguageCode(
+      selectedLanguage.code,
+    )
+      .trim()
+      .toLowerCase();
+
+    const selectedIsDefault =
+      normalizedSelectedLanguage === DEFAULT_GOOGLE_LANGUAGE ||
+      normalizedSelectedLanguage.split('-')[0] === DEFAULT_GOOGLE_LANGUAGE;
+
+    if (selectedIsDefault) return;
+
+    const alreadyTranslated =
+      normalizedCurrentTarget === normalizedSelectedLanguage ||
+      normalizedCurrentTarget === normalizedSelectedLanguage.split('-')[0];
+
+    if (alreadyTranslated) return;
+
+    const syncTranslation = window.setTimeout(() => {
+      void applyGoogleTranslateLanguage(selectedLanguage.code, 1200, {
+        requireFreshContentSignal: true,
+      });
+    }, 0);
+
+    return () => {
+      window.clearTimeout(syncTranslation);
+    };
+  }, [isApplyingLanguage, pathname, selectedLanguage.code]);
+
   const handleLanguageSelect = async (language: Language) => {
     if (isApplyingLanguage) return;
 
