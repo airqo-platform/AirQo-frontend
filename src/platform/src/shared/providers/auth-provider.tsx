@@ -12,6 +12,7 @@ import { toast } from '@/shared/components/ui/toast';
 import logger from '@/shared/lib/logger';
 import { SWRProvider } from '@/shared/providers/swr-provider';
 import { QueryProvider } from '@/shared/providers/query-provider';
+import { runClientCacheMaintenance } from '@/shared/lib/clientCache';
 
 // Component to guard and redirect based on active group for all pages
 function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
@@ -82,11 +83,7 @@ const getSessionCacheScope = (session: unknown): string | null => {
   return null;
 };
 
-function AuthScopedCacheProviders({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function AuthScopedCacheProviders({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const cacheScope = getSessionCacheScope(session);
   const enablePersistence = status === 'authenticated' && !!cacheScope;
@@ -241,7 +238,11 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     }
 
     return false;
-  }, [clearAccountDeletionFlags, executeLogout, getCurrentSessionUserIdentifier]);
+  }, [
+    clearAccountDeletionFlags,
+    executeLogout,
+    getCurrentSessionUserIdentifier,
+  ]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -281,7 +282,10 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       if (isLoggingOut) return;
 
       // Prevent storms caused by concurrent 401 responses.
-      if (hasHandledUnauthorizedRef.current || isHandlingUnauthorizedRef.current)
+      if (
+        hasHandledUnauthorizedRef.current ||
+        isHandlingUnauthorizedRef.current
+      )
         return;
       isHandlingUnauthorizedRef.current = true;
 
@@ -334,7 +338,13 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
         isHandlingUnauthorizedRef.current = false;
       }
     },
-    [checkAccountDeletionFlag, executeLogout, isLoggingOut, isPublicRoute, update]
+    [
+      checkAccountDeletionFlag,
+      executeLogout,
+      isLoggingOut,
+      isPublicRoute,
+      update,
+    ]
   );
 
   useEffect(() => {
@@ -405,6 +415,10 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    runClientCacheMaintenance();
+  }, []);
+
   return (
     <SessionProvider refetchOnWindowFocus={false} refetchInterval={0}>
       <AuthScopedCacheProviders>

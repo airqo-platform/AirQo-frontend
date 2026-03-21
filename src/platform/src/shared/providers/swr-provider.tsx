@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useMemo } from 'react';
 import { SWRConfig, type SWRConfiguration, type Cache, type State } from 'swr';
+import { shouldEnablePersistentClientCache } from '@/shared/lib/clientCache';
 
-const SWR_CACHE_STORAGE_KEY_PREFIX = 'airqo:swr-cache:v1';
-const SWR_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 12; // 12 hours
+const SWR_CACHE_STORAGE_KEY_PREFIX = 'airqo:swr-cache:v2';
+const SWR_CACHE_MAX_AGE_MS = 1000 * 60 * 30; // 30 minutes
 const SWR_PERSIST_INTERVAL_MS = 1000 * 30; // 30 seconds
 const SWR_MAX_PERSISTED_ENTRIES = 400;
 
@@ -14,6 +15,11 @@ type SerializedSWRCache = {
 };
 
 type SWRCacheState = State<unknown, unknown>;
+
+type PersistedSWRState = {
+  data: unknown;
+  updatedAt: number;
+};
 
 interface SWRProviderProps {
   children: React.ReactNode;
@@ -32,7 +38,7 @@ const shouldRetryOnError = (): boolean => {
 
 const sanitizeStateForPersistence = (
   state: SWRCacheState
-): { data: unknown } | null => {
+): PersistedSWRState | null => {
   if (!state || typeof state !== 'object') {
     return null;
   }
@@ -41,7 +47,10 @@ const sanitizeStateForPersistence = (
     return null;
   }
 
-  return { data: state.data };
+  return {
+    data: state.data,
+    updatedAt: Date.now(),
+  };
 };
 
 const sanitizeLoadedState = (value: unknown): SWRCacheState | null => {
@@ -49,8 +58,20 @@ const sanitizeLoadedState = (value: unknown): SWRCacheState | null => {
     return null;
   }
 
-  const data = (value as { data?: unknown }).data;
+  const candidate = value as { data?: unknown; updatedAt?: unknown };
+  const data = candidate.data;
+  const updatedAt =
+    typeof candidate.updatedAt === 'number' ? candidate.updatedAt : NaN;
+
   if (typeof data === 'undefined') {
+    return null;
+  }
+
+  if (!Number.isFinite(updatedAt)) {
+    return null;
+  }
+
+  if (Date.now() - updatedAt > SWR_CACHE_MAX_AGE_MS) {
     return null;
   }
 
@@ -173,9 +194,11 @@ export function SWRProvider({
   scopeKey,
   enablePersistence = true,
 }: SWRProviderProps) {
+  const shouldPersist =
+    enablePersistence && shouldEnablePersistentClientCache();
   const storageKey = useMemo(
-    () => (enablePersistence ? buildStorageKey(scopeKey) : null),
-    [enablePersistence, scopeKey]
+    () => (shouldPersist ? buildStorageKey(scopeKey) : null),
+    [scopeKey, shouldPersist]
   );
   const cache = useMemo(() => loadPersistedCache(storageKey), [storageKey]);
 
@@ -207,8 +230,8 @@ export function SWRProvider({
   const config = useMemo<SWRConfiguration>(
     () => ({
       provider: () => cache as Cache<SWRCacheState>,
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
+      revalidateOnFocus: true,
+      revalidateOnReconnect: true,
       revalidateIfStale: true,
       keepPreviousData: true,
       dedupingInterval: 1000 * 15,
