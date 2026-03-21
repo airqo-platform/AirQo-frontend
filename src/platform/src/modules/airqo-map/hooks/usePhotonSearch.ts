@@ -29,7 +29,7 @@ export const usePhotonSearch = (query: string, enabled = true) => {
     queryKey: ['map', 'photon-search', normalizedQuery],
     queryFn: () => photonService.search(normalizedQuery, 10),
     enabled: shouldFetch,
-    networkMode: 'offlineFirst',
+    networkMode: 'online',
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 60 * 12,
   });

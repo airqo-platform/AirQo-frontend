@@ -47,7 +47,7 @@ export function useForecast({
       return deviceService.getForecastAuthenticated(siteId);
     },
     enabled: shouldFetchFromApi,
-    networkMode: 'offlineFirst',
+    networkMode: 'online',
     staleTime: 1000 * 60 * 10,
     gcTime: 1000 * 60 * 60 * 12,
   });

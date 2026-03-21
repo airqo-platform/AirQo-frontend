@@ -34,7 +34,7 @@ export function useCountries(cohort_id?: string | null): UseCountriesResult {
       return response.countries;
     },
     enabled,
-    networkMode: 'offlineFirst',
+    networkMode: 'online',
     staleTime: 1000 * 60 * 10,
     gcTime: 1000 * 60 * 60 * 12,
   });

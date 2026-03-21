@@ -10,6 +10,7 @@ const LEGACY_QUERY_CACHE_PREFIX = 'airqo:react-query:v1:';
 const PERSISTED_USER_STATE_KEY = 'persist:user';
 
 const CACHE_VERSION_MISMATCH_LOG_KEY = 'airqo:cache-version-mismatch:last';
+const ENABLE_PERSISTED_CLIENT_CACHE = false;
 
 const isBrowser = (): boolean =>
   typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
@@ -32,7 +33,7 @@ const shouldDeleteCacheKey = (key: string): boolean => {
 };
 
 export const shouldEnablePersistentClientCache = (): boolean => {
-  return process.env.NEXT_PUBLIC_ENABLE_PERSISTED_CLIENT_CACHE === 'true';
+  return ENABLE_PERSISTED_CLIENT_CACHE;
 };
 
 export const runClientCacheMaintenance = (): void => {
@@ -51,7 +52,11 @@ export const runClientCacheMaintenance = (): void => {
     const key = window.localStorage.key(i);
     if (!key) continue;
 
-    if (shouldDeleteCacheKey(key) || key === PERSISTED_USER_STATE_KEY) {
+    if (
+      shouldDeleteCacheKey(key) ||
+      key === PERSISTED_USER_STATE_KEY ||
+      key.startsWith('persist:user')
+    ) {
       keysToDelete.push(key);
     }
   }

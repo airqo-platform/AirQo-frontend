@@ -91,7 +91,7 @@ export function useSitesByCountry({
       }
       return undefined;
     },
-    networkMode: 'offlineFirst',
+    networkMode: 'online',
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 60 * 12,
   });
