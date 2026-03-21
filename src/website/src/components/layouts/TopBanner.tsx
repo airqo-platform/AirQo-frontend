@@ -13,6 +13,7 @@ import {
   getGoogleTranslateTargetLanguage,
   getPersistedLanguageCode,
   isGoogleTranslateScriptBlocked,
+  isGoogleTranslationActive,
   normalizeGoogleLanguageCode,
   setGoogleTranslateLanguageCookie,
   setPersistedLanguageCode,
@@ -88,6 +89,10 @@ const TopBanner = () => {
     useState<Language>(DEFAULT_LANGUAGE);
 
   useEffect(() => {
+    if (isGoogleTranslationActive()) {
+      return;
+    }
+
     const targetLanguage = getGoogleTranslateTargetLanguage();
     const persistedLanguage = getPersistedLanguageCode();
 
