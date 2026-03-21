@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { mutate } from 'swr';
 
 import { useGridMeasurements } from '@/hooks/useApiHooks';
+import { queryClient } from '@/services/queryClient';
+import { apiQueryKeys } from '@/services/queryKeys';
 
 import type { DataType, Item, Measurement } from '../types';
 import { getValidMeasurements } from '../utils';
@@ -93,9 +94,12 @@ export const useMeasurements = (
   // Force revalidation when item changes
   const forceMeasurementsRefresh = useCallback(() => {
     if (selectedItem) {
-      mutate(
-        `gridMeasurements-${selectedItem._id}-${JSON.stringify({ limit: 80 })}`,
-      );
+      queryClient.invalidateQueries({
+        queryKey: apiQueryKeys.gridMeasurements(selectedItem._id, {
+          limit: 80,
+        }),
+        exact: true,
+      });
     }
   }, [selectedItem]);
 

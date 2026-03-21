@@ -11,7 +11,7 @@ import ExternalLinkDecorator from '@/components/ExternalLinkDecorator';
 import GoogleTranslate from '@/components/GoogleTranslate';
 import { ErrorBoundary } from '@/components/ui';
 import { ReduxDataProvider } from '@/context/ReduxDataProvider';
-import { SwrProvider } from '@/services/providers/SwrProvider';
+import { QueryProvider } from '@/services/providers/QueryProvider';
 import { generateViewport } from '@/lib/metadata';
 
 // Lazy load non-critical components
@@ -358,12 +358,12 @@ export default async function RootLayout({
         <ExternalLinkDecorator />
         <ErrorBoundary>
           <ReduxDataProvider>
-            <SwrProvider>
+            <QueryProvider>
               {children}
               <Suspense fallback={null}>
                 <EngagementDialog />
               </Suspense>
-            </SwrProvider>
+            </QueryProvider>
           </ReduxDataProvider>
         </ErrorBoundary>
         <CookieConsent />
