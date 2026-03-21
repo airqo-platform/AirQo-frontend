@@ -27,12 +27,12 @@ const isNonEmptyString = (value: unknown): value is string => {
  * Provides utilities to check user permissions and roles
  */
 export const useRBAC = () => {
-  const { user } = useUser();
+  const { user, isLoading: userLoading } = useUser();
   const { activeGroup } = useUser();
   const {
     data: rolesData,
     error,
-    isLoading,
+    isLoading: rolesLoading,
   } = useUserRolesById(user?.id || null);
 
   const userRoles = useMemo((): UserRolesData | null => {
@@ -310,6 +310,8 @@ export const useRBAC = () => {
     const hasValidEmail = !!user?.email?.toLowerCase().endsWith('@airqo.net');
     return hasRole && hasValidEmail;
   }, [allRoles, user?.email]);
+
+  const isLoading = userLoading || rolesLoading;
 
   return {
     // Data

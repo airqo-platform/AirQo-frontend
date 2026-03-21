@@ -2,6 +2,7 @@ export interface SidebarProps {
   className?: string;
   hideToggle?: boolean;
   isCollapsed?: boolean;
+  isLoading?: boolean;
 }
 
 export interface SidebarContentProps {
