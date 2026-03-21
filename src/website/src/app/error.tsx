@@ -19,7 +19,7 @@ export default function GlobalError({
   }, [error]);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col z-[999999]">
       <TopBanner />
       <div className="flex-1 flex flex-col justify-center items-center p-6">
         <div className="text-center">

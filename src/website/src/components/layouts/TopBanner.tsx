@@ -13,7 +13,6 @@ import {
   getGoogleTranslateTargetLanguage,
   getPersistedLanguageCode,
   isGoogleTranslateScriptBlocked,
-  isGoogleTranslationActive,
   normalizeGoogleLanguageCode,
   setGoogleTranslateLanguageCookie,
   setPersistedLanguageCode,
@@ -23,6 +22,24 @@ import { Language, languages } from '@/utils/languages';
 const DEFAULT_LANGUAGE =
   languages.find((lang) => lang.code === 'en-GB') || languages[0];
 const DEFAULT_GOOGLE_LANGUAGE = 'en';
+
+const resolveSelectedLanguage = (): Language => {
+  const activeLanguage = getGoogleTranslateTargetLanguage();
+  const persistedLanguage = getPersistedLanguageCode();
+
+  const activeResolved =
+    activeLanguage &&
+    normalizeGoogleLanguageCode(activeLanguage).trim().toLowerCase() !==
+      DEFAULT_GOOGLE_LANGUAGE
+      ? findLanguageByCode(activeLanguage)
+      : undefined;
+
+  const persistedResolved = persistedLanguage
+    ? findLanguageByCode(persistedLanguage)
+    : undefined;
+
+  return activeResolved || persistedResolved || DEFAULT_LANGUAGE;
+};
 
 const handleFailedLanguageApply = (
   languageCode: string,
@@ -85,103 +102,39 @@ const TopBanner = () => {
   const pathname = usePathname();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isApplyingLanguage, setIsApplyingLanguage] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] =
-    useState<Language>(DEFAULT_LANGUAGE);
+  const [selectedLanguage, setSelectedLanguage] = useState<Language>(
+    resolveSelectedLanguage,
+  );
 
   useEffect(() => {
-    if (isGoogleTranslationActive()) {
-      return;
-    }
+    const syncSelectedLanguage = () => {
+      const resolvedLanguage = resolveSelectedLanguage();
 
-    const targetLanguage = getGoogleTranslateTargetLanguage();
-    const persistedLanguage = getPersistedLanguageCode();
+      setSelectedLanguage((current) =>
+        current.code === resolvedLanguage.code ? current : resolvedLanguage,
+      );
+    };
 
-    let resolvedLanguage: Language | undefined;
+    syncSelectedLanguage();
 
-    // Prefer cookie when actively translated to a non-English language.
-    if (
-      targetLanguage &&
-      normalizeGoogleLanguageCode(targetLanguage).toLowerCase() !== 'en'
-    ) {
-      resolvedLanguage = findLanguageByCode(targetLanguage);
-    }
-
-    if (!resolvedLanguage && persistedLanguage) {
-      resolvedLanguage = findLanguageByCode(persistedLanguage);
-    }
-
-    if (resolvedLanguage) {
-      setSelectedLanguage(resolvedLanguage);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (isApplyingLanguage || isGoogleTranslateScriptBlocked()) return;
-
-    const targetLanguage = getGoogleTranslateTargetLanguage();
-    const requestedLanguage =
-      targetLanguage ||
-      normalizeGoogleLanguageCode(selectedLanguage.code).toLowerCase();
-
-    const normalizedRequested =
-      normalizeGoogleLanguageCode(requestedLanguage).toLowerCase();
-    const isDefaultLanguage =
-      normalizedRequested === DEFAULT_GOOGLE_LANGUAGE ||
-      normalizedRequested.split('-')[0] === DEFAULT_GOOGLE_LANGUAGE;
-
-    if (isDefaultLanguage) return;
-
-    const retryController = new AbortController();
-    const retryDelays = [120, 800, 1800];
-
-    const waitForDelay = async (delay: number, signal: AbortSignal) =>
-      new Promise<boolean>((resolve) => {
-        if (signal.aborted) {
-          resolve(false);
-          return;
-        }
-
-        const timeoutId = window.setTimeout(() => {
-          signal.removeEventListener('abort', handleAbort);
-          resolve(true);
-        }, delay);
-
-        const handleAbort = () => {
-          window.clearTimeout(timeoutId);
-          resolve(false);
-        };
-
-        signal.addEventListener('abort', handleAbort, { once: true });
-      });
-
-    void (async () => {
-      for (const delay of retryDelays) {
-        const shouldContinue = await waitForDelay(
-          delay,
-          retryController.signal,
-        );
-        if (!shouldContinue) return;
-
-        const applied = await applyGoogleTranslateLanguage(
-          requestedLanguage,
-          1800,
-          {
-            signal: retryController.signal,
-            requireFreshContentSignal: true,
-          },
-        );
-
-        if (retryController.signal.aborted) return;
-        if (applied) return;
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        syncSelectedLanguage();
       }
+    };
 
-      handleFailedLanguageApply(requestedLanguage, false);
-    })();
+    window.addEventListener('focus', syncSelectedLanguage);
+    window.addEventListener('pageshow', syncSelectedLanguage);
+    window.addEventListener('storage', syncSelectedLanguage);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
-      retryController.abort();
+      window.removeEventListener('focus', syncSelectedLanguage);
+      window.removeEventListener('pageshow', syncSelectedLanguage);
+      window.removeEventListener('storage', syncSelectedLanguage);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [isApplyingLanguage, pathname, selectedLanguage.code]);
+  }, [pathname]);
 
   const handleLanguageSelect = async (language: Language) => {
     if (isApplyingLanguage) return;
@@ -202,7 +155,9 @@ const TopBanner = () => {
       normalizedCurrent === normalizedRequested ||
       normalizedCurrent === normalizedRequested.split('-')[0];
 
-    if (sameLanguage) return;
+    if (sameLanguage) {
+      return;
+    }
 
     setIsApplyingLanguage(true);
 
@@ -216,6 +171,8 @@ const TopBanner = () => {
           setSelectedLanguage(previousLanguage);
           setPersistedLanguageCode(previousLanguage.code);
         }
+      } else {
+        setSelectedLanguage(language);
       }
     } finally {
       setIsApplyingLanguage(false);
