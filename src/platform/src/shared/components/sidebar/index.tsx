@@ -71,10 +71,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       orgSlug: hasOrgSlug ? activeGroup.organizationSlug : undefined,
     };
   }, [activeGroup, pathname]);
+  // Treat base and nested admin/system/org routes as protected so
+  // exact base paths like '/admin' and '/system' are handled consistently
+  // with the flow detection above (which uses startsWith('/admin')/('/system')).
   const isProtectedSidebarRoute =
-    pathname.startsWith('/org/') ||
-    pathname.startsWith('/system/') ||
-    pathname.startsWith('/admin/');
+    pathname.startsWith('/org') ||
+    pathname.startsWith('/system') ||
+    pathname.startsWith('/admin');
   const shouldWaitForActiveGroup = pathname.startsWith('/org/');
   const shouldShowLoadingSkeleton =
     isProtectedSidebarRoute &&
