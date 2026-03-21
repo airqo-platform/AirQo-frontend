@@ -24,6 +24,7 @@ const LANGUAGE_CODE_ALIASES: Record<string, string> = {
 };
 
 let cachedTranslateCombo: HTMLSelectElement | null = null;
+const translationApplicationCache = new Map<string, Promise<boolean>>();
 
 const triggerGoogleTranslateInit = () => {
   if (typeof window === 'undefined') return;
@@ -410,6 +411,15 @@ export const applyGoogleTranslateLanguage = async (
   if (typeof window === 'undefined') return false;
   if (options.signal?.aborted) return false;
 
+  const normalizedRequestedCode = toNormalizedGoogleLanguageCode(languageCode);
+  if (!normalizedRequestedCode) return false;
+
+  const cacheKey = `${window.location.pathname}|${normalizedRequestedCode}|${options.requireFreshContentSignal ? 'fresh' : 'standard'}`;
+  const cachedApplication = translationApplicationCache.get(cacheKey);
+  if (cachedApplication) {
+    return cachedApplication;
+  }
+
   const currentTargetLanguage = getGoogleTranslateTargetLanguage();
   const normalizedCurrentTarget = toNormalizedGoogleLanguageCode(
     currentTargetLanguage,
@@ -421,60 +431,78 @@ export const applyGoogleTranslateLanguage = async (
     return false;
   };
 
-  // Set cookie immediately so reload fallback applies target language deterministically.
-  if (options.signal?.aborted) return false;
-  setGoogleTranslateLanguageCookie(languageCode);
-  if (options.signal?.aborted) return abortAndRevert();
+  const applicationPromise = (async () => {
+    if (
+      !options.requireFreshContentSignal &&
+      normalizedCurrentTarget === normalizedRequestedCode &&
+      isDomTranslationActive()
+    ) {
+      return true;
+    }
 
-  const combo = await ensureTranslateCombo(timeoutMs, options.signal);
+    // Set cookie immediately so reload fallback applies target language deterministically.
+    if (options.signal?.aborted) return false;
+    setGoogleTranslateLanguageCookie(languageCode);
+    if (options.signal?.aborted) return abortAndRevert();
 
-  if (!combo) {
-    revertCookieToPreviousTarget();
-    return false;
+    const combo = await ensureTranslateCombo(timeoutMs, options.signal);
+
+    if (!combo) {
+      revertCookieToPreviousTarget();
+      return false;
+    }
+    if (options.signal?.aborted) return abortAndRevert();
+
+    const resolvedCode = resolveLanguageForCombo(languageCode, combo);
+    const normalizedResolvedCode = toNormalizedGoogleLanguageCode(resolvedCode);
+
+    if (!normalizedResolvedCode) {
+      revertCookieToPreviousTarget();
+      return false;
+    }
+
+    setGoogleTranslateLanguageCookie(resolvedCode);
+    if (options.signal?.aborted) return abortAndRevert();
+
+    const switchingBetweenNonDefaultLanguages =
+      !!normalizedCurrentTarget &&
+      !isDefaultGoogleLanguage(normalizedCurrentTarget) &&
+      !isDefaultGoogleLanguage(normalizedResolvedCode) &&
+      normalizedCurrentTarget.split('-')[0] !==
+        normalizedResolvedCode.split('-')[0];
+
+    // Existing translated-* classes cannot confirm non-default -> non-default switches.
+    if (switchingBetweenNonDefaultLanguages) {
+      revertCookieToPreviousTarget();
+      return false;
+    }
+
+    combo.value = resolvedCode;
+    combo.dispatchEvent(new Event('change', { bubbles: true }));
+
+    // Verify translation state quickly so caller can fallback immediately if needed.
+    const confirmed = await waitForDomTranslationState(
+      !isDefaultGoogleLanguage(normalizedResolvedCode),
+      Math.max(700, timeoutMs),
+      {
+        signal: options.signal,
+        requireFreshContentSignal: options.requireFreshContentSignal,
+      },
+    );
+    if (options.signal?.aborted) return abortAndRevert();
+    if (!confirmed) {
+      revertCookieToPreviousTarget();
+      return false;
+    }
+
+    return true;
+  })();
+
+  translationApplicationCache.set(cacheKey, applicationPromise);
+
+  try {
+    return await applicationPromise;
+  } finally {
+    translationApplicationCache.delete(cacheKey);
   }
-  if (options.signal?.aborted) return abortAndRevert();
-
-  const resolvedCode = resolveLanguageForCombo(languageCode, combo);
-  const normalizedResolvedCode = toNormalizedGoogleLanguageCode(resolvedCode);
-
-  if (!normalizedResolvedCode) {
-    revertCookieToPreviousTarget();
-    return false;
-  }
-
-  setGoogleTranslateLanguageCookie(resolvedCode);
-  if (options.signal?.aborted) return abortAndRevert();
-
-  const switchingBetweenNonDefaultLanguages =
-    !!normalizedCurrentTarget &&
-    !isDefaultGoogleLanguage(normalizedCurrentTarget) &&
-    !isDefaultGoogleLanguage(normalizedResolvedCode) &&
-    normalizedCurrentTarget.split('-')[0] !==
-      normalizedResolvedCode.split('-')[0];
-
-  // Existing translated-* classes cannot confirm non-default -> non-default switches.
-  if (switchingBetweenNonDefaultLanguages) {
-    revertCookieToPreviousTarget();
-    return false;
-  }
-
-  combo.value = resolvedCode;
-  combo.dispatchEvent(new Event('change', { bubbles: true }));
-
-  // Verify translation state quickly so caller can fallback immediately if needed.
-  const confirmed = await waitForDomTranslationState(
-    !isDefaultGoogleLanguage(normalizedResolvedCode),
-    Math.max(700, timeoutMs),
-    {
-      signal: options.signal,
-      requireFreshContentSignal: options.requireFreshContentSignal,
-    },
-  );
-  if (options.signal?.aborted) return abortAndRevert();
-  if (!confirmed) {
-    revertCookieToPreviousTarget();
-    return false;
-  }
-
-  return true;
 };

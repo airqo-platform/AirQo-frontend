@@ -1,4 +1,5 @@
-import { mutate } from 'swr';
+import { queryClient } from '@/services/queryClient';
+import { apiQueryKeys } from '@/services/queryKeys';
 
 import type { DataType } from '../types';
 
@@ -6,23 +7,20 @@ interface ErrorDisplayProps {
   type: 'summary' | 'measurements';
   dataType: DataType;
   selectedItem?: any;
-  gridsParams?: any;
 }
 
-const ErrorDisplay = ({
-  type,
-  dataType,
-  selectedItem,
-  gridsParams,
-}: ErrorDisplayProps) => {
+const ErrorDisplay = ({ type, dataType, selectedItem }: ErrorDisplayProps) => {
   const handleRetry = () => {
     if (type === 'summary') {
-      mutate(`gridsSummary-${JSON.stringify(gridsParams)}`);
+      queryClient.invalidateQueries({ queryKey: ['gridsSummary'] });
     } else {
       if (selectedItem) {
-        mutate(
-          `gridMeasurements-${selectedItem._id}-${JSON.stringify({ limit: 80 })}`,
-        );
+        queryClient.invalidateQueries({
+          queryKey: apiQueryKeys.gridMeasurements(selectedItem._id, {
+            limit: 80,
+          }),
+          exact: true,
+        });
       }
     }
   };

@@ -1,17 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { mutate } from 'swr';
 
 import { useGridsSummary } from '@/hooks/useApiHooks';
 import { gridsService } from '@/services/apiService';
+import { queryClient } from '@/services/queryClient';
+import { apiQueryKeys } from '@/services/queryKeys';
 
-import type { DataType } from '../types';
+import type { DataType, Grid } from '../types';
 import { parseNextPageParams } from '../utils';
 
 export const useAirQualityData = (
   dataType: DataType,
   propItemName?: string,
 ) => {
-  const [allGrids, setAllGrids] = useState<any[]>([]);
+  const [allGrids, setAllGrids] = useState<Grid[]>([]);
   const [loadingMore, setLoadingMore] = useState(false);
   const [loadedPages, setLoadedPages] = useState<Set<string>>(new Set());
   const isMountedRef = useRef(true);
@@ -33,8 +34,10 @@ export const useAirQualityData = (
   useEffect(() => {
     if (gridsData?.grids) {
       setAllGrids((prev) => {
-        const existingIds = new Set(prev.map((g) => g._id));
-        const newGrids = gridsData.grids.filter((g) => !existingIds.has(g._id));
+        const existingIds = new Set(prev.map((grid) => grid._id));
+        const newGrids = gridsData.grids.filter(
+          (grid: Grid) => !existingIds.has(grid._id),
+        );
         return [...prev, ...newGrids];
       });
     }
@@ -59,12 +62,17 @@ export const useAirQualityData = (
       // Load more data
       const loadMore = async () => {
         try {
-          const response = await gridsService.getGridsSummary(_params);
-          if (response.success && response.grids) {
+          const response = await queryClient.fetchQuery({
+            queryKey: apiQueryKeys.gridsSummary(_params),
+            queryFn: () => gridsService.getGridsSummary(_params),
+            staleTime: 5 * 60 * 1000,
+          });
+
+          if (response?.grids) {
             setAllGrids((prev) => {
-              const existingIds = new Set(prev.map((g) => g._id));
+              const existingIds = new Set(prev.map((grid) => grid._id));
               const newGrids = response.grids.filter(
-                (g) => !existingIds.has(g._id),
+                (grid: Grid) => !existingIds.has(grid._id),
               );
               return [...prev, ...newGrids];
             });
@@ -81,10 +89,8 @@ export const useAirQualityData = (
 
   // Clear cache when switching data types
   const clearDataTypeCache = useCallback(() => {
-    mutate((key) => typeof key === 'string' && key.startsWith('gridsSummary'));
-    mutate(
-      (key) => typeof key === 'string' && key.startsWith('gridMeasurements'),
-    );
+    queryClient.invalidateQueries({ queryKey: ['gridsSummary'] });
+    queryClient.invalidateQueries({ queryKey: ['gridMeasurements'] });
 
     // Reset loaded pages tracking
     setLoadedPages(new Set());
