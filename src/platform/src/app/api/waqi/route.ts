@@ -3,6 +3,9 @@ import { NextRequest, NextResponse } from 'next/server';
 const WAQI_BASE_URL = 'https://api.waqi.info';
 const WAQI_TOKEN = process.env.WAQI_TOKEN;
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 if (!WAQI_TOKEN) {
   throw new Error('WAQI_TOKEN environment variable is not set');
 }
@@ -32,6 +35,7 @@ export async function GET(request: NextRequest) {
     waqiUrl.searchParams.set('token', WAQI_TOKEN!);
 
     const response = await fetch(waqiUrl.toString(), {
+      cache: 'no-store',
       headers: {
         Accept: 'application/json',
         'User-Agent': 'AirQo/1.0',
@@ -46,7 +50,13 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await response.json();
-    return NextResponse.json(data);
+    return NextResponse.json(data, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, max-age=0, must-revalidate',
+        Pragma: 'no-cache',
+        Expires: '0',
+      },
+    });
   } catch (error) {
     console.error('WAQI API proxy error:', error);
     return NextResponse.json(

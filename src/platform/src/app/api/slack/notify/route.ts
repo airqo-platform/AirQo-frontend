@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function POST(request: NextRequest) {
   try {
     const webhookUrl = process.env.NEXT_PUBLIC_SLACK_WEBHOOK_URL;
@@ -140,7 +143,16 @@ export async function POST(request: NextRequest) {
       throw new Error(`Slack API error: ${response.status}`);
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json(
+      { success: true },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, max-age=0, must-revalidate',
+          Pragma: 'no-cache',
+          Expires: '0',
+        },
+      }
+    );
   } catch (error) {
     console.error('Failed to send Slack notification:', error);
 
@@ -150,7 +162,14 @@ export async function POST(request: NextRequest) {
           error: 'Request timeout',
           details: 'Slack webhook request timed out',
         },
-        { status: 408 }
+        {
+          status: 408,
+          headers: {
+            'Cache-Control': 'no-store, no-cache, max-age=0, must-revalidate',
+            Pragma: 'no-cache',
+            Expires: '0',
+          },
+        }
       );
     }
 
@@ -159,7 +178,14 @@ export async function POST(request: NextRequest) {
         error: 'Failed to send notification',
         details: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          'Cache-Control': 'no-store, no-cache, max-age=0, must-revalidate',
+          Pragma: 'no-cache',
+          Expires: '0',
+        },
+      }
     );
   }
 }

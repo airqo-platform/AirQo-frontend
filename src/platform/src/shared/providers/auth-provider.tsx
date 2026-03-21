@@ -12,6 +12,7 @@ import { toast } from '@/shared/components/ui/toast';
 import logger from '@/shared/lib/logger';
 import { SWRProvider } from '@/shared/providers/swr-provider';
 import { QueryProvider } from '@/shared/providers/query-provider';
+import { runClientCacheMaintenance } from '@/shared/lib/clientCache';
 import { normalizeCallbackUrl } from '@/shared/lib/auth-redirect';
 
 // Component to guard and redirect based on active group for all pages
@@ -430,6 +431,10 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    runClientCacheMaintenance();
+  }, []);
+
   return (
     <SessionProvider refetchOnWindowFocus={false} refetchInterval={0}>
       <AuthScopedCacheProviders>

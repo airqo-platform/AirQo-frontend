@@ -88,8 +88,8 @@ export const useLogout = (callbackUrl?: string) => {
             }
 
             if (
-              key?.startsWith('airqo:swr-cache:v1:') ||
-              key?.startsWith('airqo:react-query:v1:')
+              key?.startsWith('airqo:swr-cache:') ||
+              key?.startsWith('airqo:react-query:')
             ) {
               keysToRemove.add(key);
             }
@@ -102,8 +102,9 @@ export const useLogout = (callbackUrl?: string) => {
           sessionStorage.clear();
 
           // Clear in-memory auth event dedupe marker
-          delete (window as Window & { __airqoUnauthorizedEventLastAt?: number })
-            .__airqoUnauthorizedEventLastAt;
+          delete (
+            window as Window & { __airqoUnauthorizedEventLastAt?: number }
+          ).__airqoUnauthorizedEventLastAt;
         }
 
         // Clear persisted Redux data

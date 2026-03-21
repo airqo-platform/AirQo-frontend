@@ -38,7 +38,7 @@ export function useMapReadings(
       return response.measurements;
     },
     enabled,
-    networkMode: 'offlineFirst',
+    networkMode: 'online',
     staleTime: 1000 * 60 * 2,
     gcTime: 1000 * 60 * 60 * 12,
   });
