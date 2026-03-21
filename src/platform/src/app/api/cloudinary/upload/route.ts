@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import logger from '@/shared/lib/logger';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
 const ALLOWED_PROFILE_IMAGE_MIME_TYPES = [
   'image/jpeg',
@@ -85,6 +88,7 @@ export async function POST(request: NextRequest) {
     const response = await fetch(CLOUDINARY_URL, {
       method: 'POST',
       body: formData,
+      cache: 'no-store',
     });
 
     if (!response.ok) {
@@ -120,12 +124,25 @@ export async function POST(request: NextRequest) {
       );
       return NextResponse.json(
         { error: result.error?.message || 'Upload failed' },
-        { status: response.status }
+        {
+          status: response.status,
+          headers: {
+            'Cache-Control': 'no-store, no-cache, max-age=0, must-revalidate',
+            Pragma: 'no-cache',
+            Expires: '0',
+          },
+        }
       );
     }
 
     const result = await response.json();
-    return NextResponse.json(result);
+    return NextResponse.json(result, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, max-age=0, must-revalidate',
+        Pragma: 'no-cache',
+        Expires: '0',
+      },
+    });
   } catch (error: unknown) {
     const uploadError =
       error instanceof Error
@@ -140,7 +157,14 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       { error: 'Internal server error. Please check server logs.' },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          'Cache-Control': 'no-store, no-cache, max-age=0, must-revalidate',
+          Pragma: 'no-cache',
+          Expires: '0',
+        },
+      }
     );
   }
 }

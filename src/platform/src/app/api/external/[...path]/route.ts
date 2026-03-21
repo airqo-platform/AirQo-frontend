@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 function buildBaseUrl(): string {
   const baseUrl =
     process.env.NEXT_PUBLIC_API_BASE_URL || process.env.API_BASE_URL;
@@ -87,6 +90,7 @@ async function proxyRequest(request: NextRequest, path: string[]) {
     const options: RequestInit = {
       method: request.method,
       headers,
+      cache: 'no-store',
     };
 
     // Add body for non-GET requests
@@ -111,6 +115,9 @@ async function proxyRequest(request: NextRequest, path: string[]) {
       headers: {
         'Content-Type':
           response.headers.get('Content-Type') || 'application/json',
+        'Cache-Control': 'no-store, no-cache, max-age=0, must-revalidate',
+        Pragma: 'no-cache',
+        Expires: '0',
       },
     });
   } catch (error) {
