@@ -70,7 +70,7 @@ const createQueryClient = () =>
             return false;
           }
 
-          if (errorCode === 'ECONNABORTED' || errorCode === 'ERR_NETWORK') {
+          if (errorCode === 'ERR_NETWORK') {
             return false;
           }
 

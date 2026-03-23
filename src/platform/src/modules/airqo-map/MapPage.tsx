@@ -145,7 +145,7 @@ const MapPage: React.FC<MapPageProps> = ({
 
   // WAQI disabled — wiring kept for future re-enablement
   const allCities = React.useMemo(() => [], []);
-  const { citiesReadings: waqiReadings } = useWAQICities(allCities, 10, 500);
+  const { citiesReadings: waqiReadings } = useWAQICities(allCities, 10);
 
   const normalizedReadings = React.useMemo(() => {
     const airqoReadings = normalizeMapReadings(readings, selectedPollutant);
