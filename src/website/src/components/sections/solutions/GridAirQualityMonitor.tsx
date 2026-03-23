@@ -89,6 +89,11 @@ const SkeletonLoader = () => (
 
 type SupportedPollutant = 'pm2_5' | 'pm10';
 
+type HealthTip = {
+  title?: string;
+  description?: string;
+};
+
 const GridAirQualityMonitor: React.FC = () => {
   const [adminLevel, setAdminLevel] = useState<AdminLevel>('country');
   const [selectedGrid, setSelectedGrid] = useState<Grid | null>(null);
@@ -109,7 +114,7 @@ const GridAirQualityMonitor: React.FC = () => {
     if (gridsData?.grids?.length) {
       const currentGridExists =
         selectedGrid &&
-        gridsData.grids.some((grid) => grid._id === selectedGrid._id);
+        gridsData.grids.some((grid: Grid) => grid._id === selectedGrid._id);
       if (!selectedGrid || !currentGridExists) {
         setSelectedGrid(gridsData.grids[0]);
       }
@@ -125,7 +130,7 @@ const GridAirQualityMonitor: React.FC = () => {
 
   // Memoize health tips to avoid unnecessary re-renders
   const healthTips = useMemo(
-    () => readingData?.data?.health_tips?.slice(0, 3) || [],
+    () => (readingData?.data?.health_tips?.slice(0, 3) || []) as HealthTip[],
     [readingData?.data?.health_tips],
   );
 

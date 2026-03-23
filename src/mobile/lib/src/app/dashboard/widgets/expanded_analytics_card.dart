@@ -86,6 +86,17 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
     }
   }
 
+  String _getDeviceCategoryLabel(String category) {
+    switch (category.toLowerCase()) {
+      case 'lowcost':
+        return 'Low Cost Sensor';
+      case 'bam':
+        return 'Reference Monitor';
+      default:
+        return category;
+    }
+  }
+
   String? _getHealthTipDescription() {
     if (widget.measurement.healthTips != null &&
         widget.measurement.healthTips!.isNotEmpty &&
@@ -211,6 +222,7 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
                       ),
                       const SizedBox(height: 16),
                       Wrap(
+                        spacing: 8,
                         children: [
                           Container(
                             margin: const EdgeInsets.only(bottom: 12),
@@ -233,6 +245,36 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
                               maxLines: 1,
                             ),
                           ),
+                          if (widget.measurement.deviceCategories
+                                  ?.primaryCategory !=
+                              null)
+                            Container(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? const Color(0xFF2A3744)
+                                    : const Color(0xFFEAEFF5),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                _getDeviceCategoryLabel(widget.measurement
+                                    .deviceCategories!.primaryCategory!),
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.color,
+                                ),
+                                maxLines: 1,
+                              ),
+                            ),
                         ],
                       ),
                     ],

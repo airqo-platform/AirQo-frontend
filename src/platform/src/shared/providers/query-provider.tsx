@@ -4,9 +4,10 @@ import { useMemo, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
+import { shouldEnablePersistentClientCache } from '@/shared/lib/clientCache';
 
-const QUERY_CACHE_KEY_PREFIX = 'airqo:react-query:v1';
-const QUERY_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 12; // 12 hours
+const QUERY_CACHE_KEY_PREFIX = 'airqo:react-query:v2';
+const QUERY_CACHE_MAX_AGE_MS = 1000 * 60 * 30; // 30 minutes
 
 interface QueryProviderProps {
   children: React.ReactNode;
@@ -38,14 +39,24 @@ const getErrorStatusCode = (error: unknown): number | null => {
   return null;
 };
 
+const getErrorCode = (error: unknown): string | null => {
+  if (!error || typeof error !== 'object') return null;
+
+  const axiosLike = error as {
+    code?: string;
+  };
+
+  return typeof axiosLike.code === 'string' ? axiosLike.code : null;
+};
+
 const createQueryClient = () =>
   new QueryClient({
     defaultOptions: {
       queries: {
-        networkMode: 'offlineFirst',
-        staleTime: 1000 * 60 * 5,
+        networkMode: 'online',
+        staleTime: 1000 * 60,
         gcTime: QUERY_CACHE_MAX_AGE_MS,
-        refetchOnWindowFocus: false,
+        refetchOnWindowFocus: true,
         refetchOnReconnect: true,
         retry: (failureCount, error) => {
           if (typeof navigator !== 'undefined' && !navigator.onLine) {
@@ -53,6 +64,16 @@ const createQueryClient = () =>
           }
 
           const status = getErrorStatusCode(error);
+          const errorCode = getErrorCode(error);
+
+          if (status !== null && status >= 500) {
+            return false;
+          }
+
+          if (errorCode === 'ERR_NETWORK') {
+            return false;
+          }
+
           if (
             status === 401 ||
             status === 403 ||
@@ -67,7 +88,7 @@ const createQueryClient = () =>
         retryDelay: attempt => Math.min(1000 * 2 ** attempt, 10000),
       },
       mutations: {
-        networkMode: 'offlineFirst',
+        networkMode: 'online',
         retry: 0,
       },
     },
@@ -79,9 +100,11 @@ export function QueryProvider({
   enablePersistence = true,
 }: QueryProviderProps) {
   const [queryClient] = useState(() => createQueryClient());
+  const shouldPersist =
+    enablePersistence && shouldEnablePersistentClientCache();
   const storageKey = useMemo(
-    () => (enablePersistence ? buildStorageKey(scopeKey) : null),
-    [enablePersistence, scopeKey]
+    () => (shouldPersist ? buildStorageKey(scopeKey) : null),
+    [scopeKey, shouldPersist]
   );
 
   const persister = useMemo(() => {

@@ -28,6 +28,13 @@ import type {
   CohortResponse,
 } from '../types/api';
 
+const SWR_STABLE_REQUEST_OPTIONS = {
+  revalidateOnFocus: false,
+  revalidateOnReconnect: false,
+  shouldRetryOnError: false,
+  dedupingInterval: 5000,
+} as const;
+
 // Authenticated sites summary hook
 export const useSitesSummary = (
   params: SitesSummaryParams = {},
@@ -38,10 +45,7 @@ export const useSitesSummary = (
   return useSWR<SitesSummaryResponse>(
     key,
     () => deviceService.getSitesSummaryAuthenticated(params),
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 5000,
-    }
+    SWR_STABLE_REQUEST_OPTIONS
   );
 };
 
@@ -55,10 +59,7 @@ export const useSitesSummaryWithToken = (
   return useSWR<SitesSummaryResponse>(
     key,
     () => deviceService.getSitesSummaryWithToken(params),
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 5000,
-    }
+    SWR_STABLE_REQUEST_OPTIONS
   );
 };
 
@@ -73,10 +74,7 @@ export const useGridsSummary = (
   return useSWR<GridsSummaryResponse>(
     key,
     () => deviceService.getGridsSummaryAuthenticated(params, cohort_id),
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 5000,
-    }
+    SWR_STABLE_REQUEST_OPTIONS
   );
 };
 
@@ -91,10 +89,7 @@ export const useGridsSummaryWithToken = (
   return useSWR<GridsSummaryResponse>(
     key,
     () => deviceService.getGridsSummaryWithToken(params, cohort_id),
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 5000,
-    }
+    SWR_STABLE_REQUEST_OPTIONS
   );
 };
 
@@ -112,10 +107,7 @@ export const useCohortSites = (
   return useSWR<CohortSitesResponse>(
     key,
     () => deviceService.getCohortSites({ cohort_ids: cohortIds }, params),
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 5000,
-    }
+    SWR_STABLE_REQUEST_OPTIONS
   );
 };
 
@@ -136,8 +128,7 @@ export const useActiveGroupCohortSites = (
     key,
     () => deviceService.getCohortSites({ cohort_ids: cohortIds }, params),
     {
-      revalidateOnFocus: false,
-      dedupingInterval: 5000,
+      ...SWR_STABLE_REQUEST_OPTIONS,
       // Don't fetch if cohorts are still loading
       isPaused: () => cohortsLoading,
     }
@@ -167,8 +158,7 @@ export const useActiveGroupCohortDevices = (
     key,
     () => deviceService.getCohortDevices({ cohort_ids: cohortIds }, params),
     {
-      revalidateOnFocus: false,
-      dedupingInterval: 5000,
+      ...SWR_STABLE_REQUEST_OPTIONS,
       // Don't fetch if cohorts are still loading
       isPaused: () => cohortsLoading,
     }
@@ -195,10 +185,7 @@ export const useCohortDevices = (
   return useSWR<CohortDevicesResponse>(
     key,
     () => deviceService.getCohortDevices({ cohort_ids: cohortIds }, params),
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 5000,
-    }
+    SWR_STABLE_REQUEST_OPTIONS
   );
 };
 
@@ -209,10 +196,7 @@ export const useGroupCohorts = (groupId: string, enabled = true) => {
   return useSWR<GroupCohortsResponse>(
     key,
     () => deviceService.getGroupCohorts(groupId),
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 5000,
-    }
+    SWR_STABLE_REQUEST_OPTIONS
   );
 };
 
@@ -221,8 +205,7 @@ export const useCohort = (cohortId: string, enabled = true) => {
   const key = enabled && cohortId ? ['cohort/details', cohortId] : null;
 
   return useSWR<CohortResponse>(key, () => deviceService.getCohort(cohortId), {
-    revalidateOnFocus: false,
-    dedupingInterval: 5000,
+    ...SWR_STABLE_REQUEST_OPTIONS,
   });
 };
 
@@ -244,7 +227,7 @@ export const useActiveGroupCohorts = () => {
     shouldFetch ? ['group/cohorts', groupId] : null,
     () => deviceService.getGroupCohorts(groupId!),
     {
-      revalidateOnFocus: false,
+      ...SWR_STABLE_REQUEST_OPTIONS,
       dedupingInterval: 30000, // Cache for 30 seconds
       onLoadingSlow: () => {
         dispatch(setCohortsLoading(true));

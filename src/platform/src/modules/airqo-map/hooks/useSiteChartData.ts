@@ -94,7 +94,7 @@ export const useSiteChartData = ({
       return normalizeAirQualityData(response.data as ChartDataPoint[]);
     },
     enabled: shouldFetch,
-    networkMode: 'offlineFirst',
+    networkMode: 'online',
     staleTime: 1000 * 60 * 10,
     gcTime: 1000 * 60 * 60 * 12,
   });

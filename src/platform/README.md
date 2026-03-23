@@ -1,4 +1,4 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app)
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
 
@@ -31,13 +31,14 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 ## Authentication environment variables
 
-Set these variables for production SSO across subdomains:
+Set the auth variables for this app:
 
 ```bash
-NEXTAUTH_SECRET=<shared-secret-used-by-all-apps>
-NEXTAUTH_COOKIE_DOMAIN=.airqo.net
+NEXTAUTH_SECRET=<app-specific-secret>
+NEXTAUTH_URL=http://localhost:3000
 ```
 
 Notes:
-- `NEXTAUTH_SECRET` must be the same value in `analytics` and `vertex`.
-- `NEXTAUTH_COOKIE_DOMAIN=.airqo.net` enables a shared session cookie for `analytics.airqo.net` and `vertex.airqo.net`.
+
+- `NEXTAUTH_SECRET` should be unique to this app deployment.
+- `NEXTAUTH_URL` must match the local or production origin for the app.

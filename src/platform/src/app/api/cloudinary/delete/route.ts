@@ -4,6 +4,9 @@ import { authOptions } from '@/shared/lib/auth';
 import type { Session } from 'next-auth';
 import logger from '@/shared/lib/logger';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // Validate publicId format
 // Cloudinary Public IDs can include any character except: ? & # \ % < >
 // We also allow + as it is common in URLs (spaces)
@@ -139,6 +142,7 @@ export async function DELETE(request: NextRequest) {
     const response = await fetch(CLOUDINARY_URL, {
       method: 'POST',
       body: formData,
+      cache: 'no-store',
     });
 
     const result = await response.json();
@@ -151,10 +155,19 @@ export async function DELETE(request: NextRequest) {
           status: response.status,
         });
         // Return success since the resource doesn't exist anyway
-        return NextResponse.json({
-          result: 'ok',
-          message: 'Resource already deleted or does not exist',
-        });
+        return NextResponse.json(
+          {
+            result: 'ok',
+            message: 'Resource already deleted or does not exist',
+          },
+          {
+            headers: {
+              'Cache-Control': 'no-store, no-cache, max-age=0, must-revalidate',
+              Pragma: 'no-cache',
+              Expires: '0',
+            },
+          }
+        );
       }
 
       const cloudinaryError = new Error(
@@ -181,7 +194,14 @@ export async function DELETE(request: NextRequest) {
 
       return NextResponse.json(
         { error: result.error?.message || 'Delete failed' },
-        { status: response.status }
+        {
+          status: response.status,
+          headers: {
+            'Cache-Control': 'no-store, no-cache, max-age=0, must-revalidate',
+            Pragma: 'no-cache',
+            Expires: '0',
+          },
+        }
       );
     }
 
@@ -191,7 +211,13 @@ export async function DELETE(request: NextRequest) {
       userId: session?.user?._id,
     });
 
-    return NextResponse.json(result);
+    return NextResponse.json(result, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, max-age=0, must-revalidate',
+        Pragma: 'no-cache',
+        Expires: '0',
+      },
+    });
   } catch (error: unknown) {
     const deleteError =
       error instanceof Error
@@ -208,7 +234,14 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          'Cache-Control': 'no-store, no-cache, max-age=0, must-revalidate',
+          Pragma: 'no-cache',
+          Expires: '0',
+        },
+      }
     );
   }
 }

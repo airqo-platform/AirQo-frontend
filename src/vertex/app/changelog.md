@@ -4,6 +4,33 @@
 
 ---
 
+## Version 1.23.23
+**Released:** March 19, 2026
+
+### Cohort Naming Workflow, Tag-Driven Forms, and Auth Stability
+
+<details>
+<summary><strong>Improvements (6)</strong></summary>
+
+- **Cohort Name Composition**: Organizational cohorts now build names from `city_project_funder` with sanitized input and live preview.
+- **Tag-Driven Inputs**: Tag selection is now first, and only the `organizational` tag requires city/project/funder inputs.
+- **Edit Cohort Behavior**: Organizational cohorts use the new naming endpoint with update reason; non‑organizational cohorts update via the original name edit path.
+- **Input Guardrails**: Special characters (including spaces) are ignored as users type, with a lightweight tooltip.
+- **Responsive Layout**: Cohort naming inputs render 3-up on desktop, 2-up on tablet, and 1-up on mobile.
+- **Device Assignment Search**: Added device search to the assign‑devices modal with server-side filtering.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (4)</strong></summary>
+
+- **New Cohort Name Utilities**: Added shared helpers for building and parsing cohort names.
+- **New Rename Hook**: Added `useUpdateCohortName` and API binding to the cohort naming endpoint.
+- **Auth Cookie Isolation**: Switched dev session cookie name and aligned middleware token parsing.
+- **Env Template Update**: Added NextAuth environment variables to the vertex example env file.
+
+</details>
+
 ## Version 1.23.22
 **Released:** February 25, 2026
 

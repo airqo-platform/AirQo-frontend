@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
@@ -10,6 +10,8 @@ import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput"
 import { MultiSelectCombobox } from "@/components/ui/multi-select";
 import { Label } from "@/components/ui/label";
 import { DEFAULT_COHORT_TAGS } from "@/core/constants/devices";
+import { buildCohortName, sanitizeCohortInput } from "@/core/utils/cohortName";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface CreateCohortFromSelectionDialogProps {
   open: boolean;
@@ -26,17 +28,29 @@ export function CreateCohortFromSelectionDialog({
   onSuccess,
   andNavigate = true,
 }: CreateCohortFromSelectionDialogProps) {
+  const [city, setCity] = useState("");
+  const [projectName, setProjectName] = useState("");
+  const [funder, setFunder] = useState("");
   const [name, setName] = useState("");
   const [network, setNetwork] = useState("");
   const [description, setDescription] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [error, setError] = useState("");
+  const [showIgnoredTooltip, setShowIgnoredTooltip] = useState({
+    city: false,
+    projectName: false,
+    funder: false,
+  });
+  const tooltipTimers = useRef<Record<string, ReturnType<typeof setTimeout> | null>>({});
   const router = useRouter();
   const { mutate: createFromCohorts, isPending } = useCreateCohortFromCohorts();
   const { networks, isLoading: isLoadingNetworks } = useNetworks();
 
   useEffect(() => {
     if (!open) {
+      setCity("");
+      setProjectName("");
+      setFunder("");
       setName("");
       setNetwork("");
       setDescription("");
@@ -52,8 +66,18 @@ export function CreateCohortFromSelectionDialog({
   };
 
   const handleSubmit = () => {
-    if (name.trim().length < 2) {
-      setError("Cohort name must be at least 2 characters.");
+    const isOrganizational = selectedTags.includes("organizational");
+    if (isOrganizational) {
+      if (city.trim().length === 0) {
+        setError("City is required.");
+        return;
+      }
+      if (projectName.trim().length === 0) {
+        setError("Project name is required.");
+        return;
+      }
+    } else if (name.trim().length === 0) {
+      setError("Cohort name is required.");
       return;
     }
     if (!network) {
@@ -66,9 +90,17 @@ export function CreateCohortFromSelectionDialog({
     }
     setError("");
 
+    const derivedName = isOrganizational
+      ? buildCohortName(city, projectName, funder)
+      : name.trim();
+    if (derivedName.length < 2) {
+      setError("Cohort name must be at least 2 characters.");
+      return;
+    }
+
     createFromCohorts(
       {
-        name: name.trim(),
+        name: derivedName,
         description: description.trim() || undefined,
         cohort_ids: selectedCohortIds,
         network,
@@ -87,6 +119,24 @@ export function CreateCohortFromSelectionDialog({
     );
   };
 
+  const handleSanitizedInputChange = (
+    fieldKey: "city" | "projectName" | "funder",
+    value: string,
+    setter: (nextValue: string) => void
+  ) => {
+    const sanitized = sanitizeCohortInput(value);
+    if (/[^a-zA-Z0-9]/.test(value)) {
+      setShowIgnoredTooltip((prev) => ({ ...prev, [fieldKey]: true }));
+      if (tooltipTimers.current[fieldKey]) {
+        clearTimeout(tooltipTimers.current[fieldKey] as ReturnType<typeof setTimeout>);
+      }
+      tooltipTimers.current[fieldKey] = setTimeout(() => {
+        setShowIgnoredTooltip((prev) => ({ ...prev, [fieldKey]: false }));
+      }, 1500);
+    }
+    setter(sanitized);
+  };
+
   return (
     <ReusableDialog
       isOpen={open}
@@ -97,7 +147,14 @@ export function CreateCohortFromSelectionDialog({
       primaryAction={{
         label: isPending ? "Creating..." : "Create",
         onClick: handleSubmit,
-        disabled: isPending || name.trim().length < 2 || selectedCohortIds.length === 0 || !network,
+        disabled:
+          isPending ||
+          selectedCohortIds.length === 0 ||
+          !network ||
+          selectedTags.length === 0 ||
+          (selectedTags.includes("organizational")
+            ? city.trim().length === 0 || projectName.trim().length === 0
+            : name.trim().length < 2),
       }}
       secondaryAction={{
         label: "Cancel",
@@ -107,7 +164,73 @@ export function CreateCohortFromSelectionDialog({
       }}
     >
       <div className="space-y-4">
-        <ReusableInputField label="New Cohort Name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter a name for the new cohort" required error={error} />
+        <div>
+          <Label className="mb-2 block">Tags</Label>
+          <MultiSelectCombobox
+            options={DEFAULT_COHORT_TAGS}
+            placeholder="Select or create tags..."
+            onValueChange={setSelectedTags}
+            value={selectedTags}
+            allowCreate={false}
+          />
+        </div>
+
+        {selectedTags.includes("organizational") ? (
+          <>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <TooltipProvider delayDuration={0}>
+              <Tooltip open={showIgnoredTooltip.city}>
+                <TooltipTrigger asChild>
+                  <div>
+                    <ReusableInputField label="City" value={city} onChange={(e) => handleSanitizedInputChange("city", e.target.value, setCity)} placeholder="e.g. Nairobi" required />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p className="text-xs">Special character ignored</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider delayDuration={0}>
+              <Tooltip open={showIgnoredTooltip.projectName}>
+                <TooltipTrigger asChild>
+                  <div>
+                    <ReusableInputField label="Project name" value={projectName} onChange={(e) => handleSanitizedInputChange("projectName", e.target.value, setProjectName)} placeholder="e.g. WRI" required />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p className="text-xs">Special character ignored</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider delayDuration={0}>
+              <Tooltip open={showIgnoredTooltip.funder}>
+                <TooltipTrigger asChild>
+                  <div>
+                    <ReusableInputField label="Funder (Optional)" value={funder} onChange={(e) => handleSanitizedInputChange("funder", e.target.value, setFunder)} placeholder="e.g. EPIC" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p className="text-xs">Special character ignored</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          {error && (
+            <p className="text-xs text-red-600 dark:text-red-400">{error}</p>
+          )}
+          </>
+        ) : (
+          <ReusableInputField
+            label="Cohort name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Enter cohort name"
+            required
+          />
+        )}
+        {!selectedTags.includes("organizational") && error && (
+          <p className="text-xs text-red-600 dark:text-red-400">{error}</p>
+        )}
         <ReusableSelectInput
           label="Sensor Manufacturer"
           id="network"
@@ -123,17 +246,6 @@ export function CreateCohortFromSelectionDialog({
             </option>
           ))}
         </ReusableSelectInput>
-
-        <div>
-          <Label className="mb-2 block">Tags</Label>
-          <MultiSelectCombobox
-            options={DEFAULT_COHORT_TAGS}
-            placeholder="Select or create tags..."
-            onValueChange={setSelectedTags}
-            value={selectedTags}
-            allowCreate={false}
-          />
-        </div>
 
         <ReusableInputField as="textarea" label="Description (Optional)" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe this combined cohort" rows={3} />
       </div>

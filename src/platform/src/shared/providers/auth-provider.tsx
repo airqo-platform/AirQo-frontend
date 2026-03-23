@@ -2,7 +2,7 @@
 
 import { SessionProvider, useSession, getSession } from 'next-auth/react';
 import { useEffect, useRef, useCallback } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { LoadingOverlay } from '@/shared/components/ui/loading-overlay';
 import { UserDataFetcher } from './UserDataFetcher';
@@ -12,6 +12,8 @@ import { toast } from '@/shared/components/ui/toast';
 import logger from '@/shared/lib/logger';
 import { SWRProvider } from '@/shared/providers/swr-provider';
 import { QueryProvider } from '@/shared/providers/query-provider';
+import { runClientCacheMaintenance } from '@/shared/lib/clientCache';
+import { normalizeCallbackUrl } from '@/shared/lib/auth-redirect';
 
 // Component to guard and redirect based on active group for all pages
 function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
@@ -61,6 +63,10 @@ const publicRoutes = [
   '/org-invite', // Public invitation acceptance page
 ];
 
+const isPublicAuthRoute = (pathname: string): boolean =>
+  publicRoutes.some(route => pathname.startsWith(route)) ||
+  /^\/org\/[^/]+\/(login|register)$/.test(pathname);
+
 const UNAUTHORIZED_WINDOW_MS = 30000;
 const UNAUTHORIZED_THRESHOLD = 3;
 const ACCOUNT_DELETION_TTL_MS = 5 * 60 * 1000;
@@ -82,11 +88,7 @@ const getSessionCacheScope = (session: unknown): string | null => {
   return null;
 };
 
-function AuthScopedCacheProviders({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function AuthScopedCacheProviders({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const cacheScope = getSessionCacheScope(session);
   const enablePersistence = status === 'authenticated' && !!cacheScope;
@@ -113,15 +115,21 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   const { data: session, status, update } = useSession();
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const activeGroup = useSelector(selectActiveGroup);
   const isLoggingOut = useSelector(selectLoggingOut);
-  const logout = useLogout();
   const isHandlingUnauthorizedRef = useRef(false);
   const hasHandledUnauthorizedRef = useRef(false);
   const hasStartedLogoutRef = useRef(false);
   const unauthorizedStatsRef = useRef({ count: 0, lastAt: 0 });
 
-  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
+  const isPublicRoute = isPublicAuthRoute(pathname);
+  const callbackUrl = normalizeCallbackUrl(searchParams.get('callbackUrl'));
+  const currentProtectedPath = searchParams.toString()
+    ? `${pathname}?${searchParams.toString()}`
+    : pathname;
+  const protectedRouteLoginUrl = `/user/login?callbackUrl=${encodeURIComponent(currentProtectedPath)}`;
+  const logout = useLogout(protectedRouteLoginUrl);
 
   const clearAccountDeletionFlags = useCallback(() => {
     if (typeof window === 'undefined') return;
@@ -241,7 +249,11 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     }
 
     return false;
-  }, [clearAccountDeletionFlags, executeLogout, getCurrentSessionUserIdentifier]);
+  }, [
+    clearAccountDeletionFlags,
+    executeLogout,
+    getCurrentSessionUserIdentifier,
+  ]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -281,7 +293,10 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       if (isLoggingOut) return;
 
       // Prevent storms caused by concurrent 401 responses.
-      if (hasHandledUnauthorizedRef.current || isHandlingUnauthorizedRef.current)
+      if (
+        hasHandledUnauthorizedRef.current ||
+        isHandlingUnauthorizedRef.current
+      )
         return;
       isHandlingUnauthorizedRef.current = true;
 
@@ -334,7 +349,13 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
         isHandlingUnauthorizedRef.current = false;
       }
     },
-    [checkAccountDeletionFlag, executeLogout, isLoggingOut, isPublicRoute, update]
+    [
+      checkAccountDeletionFlag,
+      executeLogout,
+      isLoggingOut,
+      isPublicRoute,
+      update,
+    ]
   );
 
   useEffect(() => {
@@ -352,13 +373,18 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       // Allow /org-invite to be accessed by authenticated users
       if (pathname.startsWith('/org-invite')) return;
 
+      if (callbackUrl) {
+        router.replace(callbackUrl);
+        return;
+      }
+
       if (activeGroup.title.toLowerCase() === 'airqo') {
-        router.push('/user/home');
+        router.replace('/user/home');
       } else {
-        router.push(`/org/${activeGroup.organizationSlug}/dashboard`);
+        router.replace(`/org/${activeGroup.organizationSlug}/dashboard`);
       }
     }
-  }, [status, isPublicRoute, activeGroup, router, pathname]);
+  }, [status, isPublicRoute, activeGroup, router, pathname, callbackUrl]);
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -379,7 +405,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       hasStartedLogoutRef.current = true;
       logout();
     }
-  }, [status, isPublicRoute, logout, isLoggingOut]);
+  }, [status, isPublicRoute, logout, isLoggingOut, protectedRouteLoginUrl]);
 
   // While session is being fetched, show a loading overlay
   // Exception: For public routes, don't show loading overlay (let them render immediately)
@@ -405,6 +431,10 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    runClientCacheMaintenance();
+  }, []);
+
   return (
     <SessionProvider refetchOnWindowFocus={false} refetchInterval={0}>
       <AuthScopedCacheProviders>

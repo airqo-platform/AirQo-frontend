@@ -45,7 +45,7 @@ const fileTypeOptions = [
 ];
 
 const deviceCategoryOptions = [
-  { value: 'lowcost', label: 'Low Cost' },
+  { value: 'lowcost', label: 'Low Cost Sensor' },
   { value: 'bam', label: 'Reference Monitor' },
   { value: 'mobile', label: 'Mobile' },
   { value: 'gas', label: 'Gas' },
