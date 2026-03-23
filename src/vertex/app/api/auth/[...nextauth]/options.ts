@@ -2,32 +2,18 @@ import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { users } from '@/core/apis/users';
 import { jwtDecode } from 'jwt-decode';
-import type { LoginCredentials, LoginResponse, DecodedToken } from '@/app/types/users';
+import type {
+  LoginCredentials,
+  LoginResponse,
+  DecodedToken,
+} from '@/app/types/users';
 import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
 import logger from '@/lib/logger';
 
 const isProduction = process.env.NODE_ENV === 'production';
-const sharedCookieDomain = process.env.NEXTAUTH_COOKIE_DOMAIN?.trim();
-const nextAuthUrl = process.env.NEXTAUTH_URL;
 const sessionCookieName = isProduction
   ? '__Secure-next-auth.session-token'
   : 'vertex.next-auth.session-token';
-
-const normalizeDomain = (domain: string): string => domain.replace(/^\./, '').toLowerCase();
-
-const isHostCompatibleWithCookieDomain = (() => {
-  if (!sharedCookieDomain || !nextAuthUrl) return false;
-  try {
-    const host = new URL(nextAuthUrl).hostname.toLowerCase();
-    const normalized = normalizeDomain(sharedCookieDomain);
-    return host === normalized || host.endsWith(`.${normalized}`);
-  } catch {
-    return false;
-  }
-})();
-
-const shouldUseSharedCookieDomain =
-  isProduction && !!sharedCookieDomain && isHostCompatibleWithCookieDomain;
 
 const sessionCookieConfig = {
   name: sessionCookieName,
@@ -36,7 +22,6 @@ const sessionCookieConfig = {
     sameSite: 'lax' as const,
     path: '/',
     secure: isProduction,
-    ...(shouldUseSharedCookieDomain ? { domain: sharedCookieDomain } : {}),
   },
 };
 
@@ -49,7 +34,7 @@ export const options: NextAuthOptions = {
       name: 'credentials',
       credentials: {
         userName: { label: 'Username', type: 'text' },
-        password: { label: 'Password', type: 'password' }
+        password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
         if (!credentials?.userName || !credentials?.password) {
@@ -58,14 +43,14 @@ export const options: NextAuthOptions = {
         }
 
         try {
-          const loginResponse = await users.loginWithDetails({
+          const loginResponse = (await users.loginWithDetails({
             userName: credentials.userName,
-            password: credentials.password
-          } as LoginCredentials) as LoginResponse;
+            password: credentials.password,
+          } as LoginCredentials)) as LoginResponse;
 
           if (loginResponse?.token) {
             const decoded = jwtDecode<DecodedToken>(loginResponse.token);
-            
+
             return {
               id: decoded._id,
               email: decoded.email,
@@ -82,21 +67,25 @@ export const options: NextAuthOptions = {
               exp: decoded.exp,
             };
           }
-          
-          logger.warn('Login API returned success status but no token.', { userName: credentials.userName });
-          throw new Error('Authentication server returned an invalid response.');
+
+          logger.warn('Login API returned success status but no token.', {
+            userName: credentials.userName,
+          });
+          throw new Error(
+            'Authentication server returned an invalid response.'
+          );
         } catch (error) {
           const errorMessage = getApiErrorMessage(error);
-          logger.error('Authentication error during login', { 
+          logger.error('Authentication error during login', {
             userName: credentials.userName,
             error: errorMessage,
           });
           throw new Error(errorMessage);
         }
-      }
-    })
+      },
+    }),
   ],
-  
+
   cookies: {
     sessionToken: sessionCookieConfig,
   },
@@ -105,11 +94,11 @@ export const options: NextAuthOptions = {
     strategy: 'jwt',
     maxAge: 24 * 60 * 60, // 24 hours
   },
-  
+
   jwt: {
     maxAge: 24 * 60 * 60, // 24 hours
   },
-  
+
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -127,7 +116,7 @@ export const options: NextAuthOptions = {
       }
       return token;
     },
-    
+
     async session({ session, token }) {
       // Check if token is expired
       if (token.exp) {
@@ -155,13 +144,13 @@ export const options: NextAuthOptions = {
         };
       }
       return session;
-    }
+    },
   },
-  
+
   pages: {
     signIn: '/login',
     error: '/login',
   },
-  
+
   debug: false,
 };
