@@ -76,6 +76,13 @@ const formatCoordinates = (lat: number, lon: number) => {
 const displayText = (value?: string | null) =>
   value && value.trim() ? value : '--';
 
+const formatNetworkName = (value?: string | null) =>
+  value && value.trim()
+    ? value.trim().toLowerCase() === 'airqo'
+      ? 'AirQo'
+      : value.trim()
+    : '--';
+
 const StatLine = ({
   label,
   value,
@@ -109,6 +116,7 @@ interface NetworkCoverageSidebarProps {
   onClosePrompt: () => void;
   onResetToOverview: () => void;
   onRetry?: () => void;
+  monitorLoading?: boolean;
 }
 
 const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
@@ -129,6 +137,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
   onRetry,
   isLoading = false,
   error = null,
+  monitorLoading = false,
 }) => {
   const monitoredCountriesCount = countries.filter(
     (country) => country.monitors.length > 0,
@@ -507,6 +516,24 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
         )}
 
         {/* ── Monitor detail ── */}
+        {monitorLoading && !selectedMonitor ? (
+          <div className="overflow-hidden rounded-xl border border-slate-200 bg-white p-4">
+            <div className="animate-pulse">
+              <div className="h-6 w-28 rounded bg-slate-200" />
+              <div className="mt-3 h-4 w-40 rounded bg-slate-100" />
+              <div className="mt-4 grid grid-cols-2 gap-4">
+                <div className="h-3 rounded bg-slate-100" />
+                <div className="h-3 rounded bg-slate-100" />
+              </div>
+              <div className="mt-4 space-y-3">
+                <div className="h-3 rounded bg-slate-100" />
+                <div className="h-3 rounded bg-slate-100" />
+                <div className="h-3 rounded bg-slate-100" />
+              </div>
+            </div>
+          </div>
+        ) : null}
+
         {selectedMonitor && (
           <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
             {/* Monitor header */}
@@ -534,7 +561,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                 Network
               </h4>
               <p className="mb-2 text-base font-semibold text-slate-900">
-                {displayText(selectedMonitor.network)}
+                {formatNetworkName(selectedMonitor.network)}
               </p>
               <StatLine
                 label="Operator"

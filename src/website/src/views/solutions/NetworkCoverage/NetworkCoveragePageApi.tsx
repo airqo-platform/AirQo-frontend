@@ -45,6 +45,13 @@ const formatPdfText = (value?: string | null) => {
   return value.trim();
 };
 
+const formatNetworkName = (value?: string | null) => {
+  if (!value || !value.trim()) return '--';
+  const trimmed = value.trim();
+  if (trimmed.toLowerCase() === 'airqo') return 'AirQo';
+  return trimmed;
+};
+
 const formatPdfDateTime = (value?: string) => {
   if (!value) {
     return '--';
@@ -66,7 +73,7 @@ const buildPdfRow = (monitor: NetworkCoverageMonitor) => [
   formatPdfText(monitor.name),
   monitor.type,
   monitor.status,
-  formatPdfText(monitor.network),
+  formatNetworkName(monitor.network),
   formatPdfText(monitor.operator),
   formatCoordinates(monitor.latitude, monitor.longitude),
   formatPdfText(monitor.uptime30d),
@@ -105,6 +112,7 @@ const NetworkCoveragePage = () => {
   );
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [flyToMonitorId, setFlyToMonitorId] = useState<string | null>(null);
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -230,6 +238,17 @@ const NetworkCoveragePage = () => {
     setViewMode('monitors');
     setIsSidebarOpen(true);
   };
+
+  useEffect(() => {
+    if (monitorDetailQuery.isSuccess && selectedMonitorId) {
+      // Only trigger fly-to after monitor details have loaded so sidebar can show immediately
+      setFlyToMonitorId(selectedMonitorId);
+      // clear after a short delay to avoid re-triggering unnecessarily
+      const t = window.setTimeout(() => setFlyToMonitorId(null), 1200);
+      return () => window.clearTimeout(t);
+    }
+    return undefined;
+  }, [monitorDetailQuery.isSuccess, selectedMonitorId]);
 
   const toggleType = (type: MonitorType) => {
     setSelectedTypes((previous) => {
@@ -483,9 +502,9 @@ const NetworkCoveragePage = () => {
                 mapStyle={mapStyle}
                 onCountrySelectByIso={selectCountryByIso}
                 onMonitorSelect={selectMonitor}
+                onResetView={resetToOverview}
               />
             </MapLoader>
-
             {isInitialLoading ? (
               <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#f6f6f7]/70 backdrop-blur-[1px]">
                 <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm font-medium text-slate-700 shadow-lg">
@@ -493,7 +512,6 @@ const NetworkCoveragePage = () => {
                 </div>
               </div>
             ) : null}
-
             {summaryError && !countries.length ? (
               <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#f6f6f7]/80 px-6">
                 <div className="max-w-sm rounded-2xl border border-red-200 bg-white p-5 text-center shadow-lg">
@@ -511,19 +529,17 @@ const NetworkCoveragePage = () => {
                 </div>
               </div>
             ) : null}
-
             {downloadError ? (
               <div className="absolute right-4 top-4 z-20 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800 shadow-sm">
                 {downloadError}
               </div>
             ) : null}
-
+            monitorLoading={monitorDetailQuery.isFetching}
             {isDownloading ? (
               <div className="absolute right-4 top-4 z-20 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm">
                 Preparing download...
               </div>
             ) : null}
-
             <div className="absolute right-3 top-3 z-20 inline-flex rounded-full border border-slate-300 bg-white p-1 text-xs font-semibold shadow-sm sm:right-4 sm:top-4">
               <button
                 type="button"
@@ -548,11 +564,9 @@ const NetworkCoveragePage = () => {
                 Coverage
               </button>
             </div>
-
             <div className="absolute bottom-4 left-4 z-20">
               <NetworkCoverageLegend viewMode={viewMode} />
             </div>
-
             <div className="absolute left-4 top-3 z-20 sm:top-4">
               <select
                 value={mapStyle}

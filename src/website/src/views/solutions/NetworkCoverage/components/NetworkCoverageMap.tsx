@@ -19,6 +19,8 @@ interface NetworkCoverageMapProps {
   mapStyle: string;
   onCountrySelectByIso: (iso2: string) => void;
   onMonitorSelect: (monitorId: string, countryId: string) => void;
+  onResetView: () => void;
+  flyToMonitorId?: string | null;
 }
 
 type MarkerResource = {
@@ -50,6 +52,13 @@ const escapeHtml = (value: string): string =>
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;');
+
+const formatNetworkName = (value?: string | null) => {
+  if (!value || !value.trim()) return '--';
+  const trimmed = value.trim();
+  if (trimmed.toLowerCase() === 'airqo') return 'AirQo';
+  return trimmed;
+};
 
 const monitorTypeLabel: Record<MonitorType, string> = {
   Reference: 'Reference',
@@ -137,9 +146,9 @@ const buildMonitorTooltipMarkup = (monitor: NetworkCoverageMonitor) => {
       </div>
 
       <div style="margin-top:12px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px;padding-top:12px;border-top:1px solid rgba(148,163,184,0.18);font-size:12px;line-height:1.45;">
-        <div style="min-width:0;">
-          <div style="color:#94A3B8;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;font-size:10px;">Network</div>
-          <div style="margin-top:2px;color:#334155;font-weight:600;word-break:break-word;overflow-wrap:anywhere;white-space:normal;">${escapeHtml(monitor.network || '--')}</div>
+          <div style="min-width:0;">
+          <div style="color:#94A3B8;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;font-size:10px;">Source</div>
+          <div style="margin-top:2px;color:#334155;font-weight:600;word-break:break-word;overflow-wrap:anywhere;white-space:normal;">${escapeHtml(formatNetworkName(monitor.network))}</div>
         </div>
         <div style="min-width:0;">
           <div style="color:#94A3B8;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;font-size:10px;">Coordinates</div>
@@ -187,6 +196,8 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
   mapStyle,
   onCountrySelectByIso,
   onMonitorSelect,
+  onResetView,
+  flyToMonitorId,
 }) => {
   const mapRef = useRef<any>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -802,19 +813,6 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       selectedCountryIso2,
     ]);
 
-    if (selectedMonitorId) {
-      const monitor = allMonitors.find((item) => item.id === selectedMonitorId);
-      if (monitor) {
-        map.flyTo({
-          center: [monitor.longitude, monitor.latitude],
-          zoom: 10.8,
-          speed: 0.9,
-          curve: 1.2,
-        });
-      }
-      return;
-    }
-
     if (selectedCountry && selectedCountry.monitors.length > 0) {
       const bounds = new (window as any).mapboxgl.LngLatBounds();
       selectedCountry.monitors.forEach((monitor) => {
@@ -835,13 +833,23 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
         duration: 850,
       });
     }
-  }, [
-    allMonitors,
-    mapLoaded,
-    selectedCountry,
-    selectedCountryId,
-    selectedMonitorId,
-  ]);
+  }, [allMonitors, mapLoaded, selectedCountry, selectedCountryId]);
+
+  // Fly to a specific monitor when parent requests it (triggered after details load)
+  useEffect(() => {
+    if (!mapLoaded || !mapRef.current || !flyToMonitorId) return;
+
+    const map = mapRef.current;
+    const monitor = allMonitors.find((item) => item.id === flyToMonitorId);
+    if (monitor) {
+      map.flyTo({
+        center: [monitor.longitude, monitor.latitude],
+        zoom: 10.8,
+        speed: 0.9,
+        curve: 1.2,
+      });
+    }
+  }, [flyToMonitorId, mapLoaded, allMonitors]);
 
   return (
     <div className="relative h-full w-full">
@@ -863,6 +871,30 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
           aria-label="Zoom out"
         >
           <FiMinus className="h-5 w-5" />
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            try {
+              mapRef.current?.fitBounds(AFRICA_BOUNDS, {
+                padding: { top: 115, right: 110, bottom: 140, left: 100 },
+                maxZoom: 2.4,
+                duration: 650,
+              });
+            } catch (e) {
+              // ignore
+            }
+            try {
+              onResetView();
+            } catch (e) {
+              // ignore
+            }
+          }}
+          className="grid h-12 w-12 place-items-center border-t border-slate-200 bg-white text-slate-700 transition-colors hover:bg-slate-50"
+          aria-label="Reset view"
+          title="Reset view"
+        >
+          <span className="text-xs font-semibold">Reset</span>
         </button>
       </div>
 
