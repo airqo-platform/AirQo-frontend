@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Home, Bell, Settings, Package, Layers, Box, ChevronLeft, ChevronRight, Wrench, FlaskConical } from "lucide-react"
-import { AqMonitor, AqAirQlouds } from '@airqo/icons-react'
+import { AqMonitor, AqAirQlouds } from '@/components/icons'
 
 interface SidebarProps {
   sidebarOpen: boolean

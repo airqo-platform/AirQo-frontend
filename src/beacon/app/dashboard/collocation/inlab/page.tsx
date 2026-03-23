@@ -1,10 +1,22 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useRouter } from "next/navigation"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import {
   Tooltip,
   TooltipContent,
@@ -18,6 +30,8 @@ import {
   CheckCircle2,
   Activity,
   BarChart3,
+  Plus,
+  Calendar as CalendarIcon,
 } from "lucide-react"
 
 // --- Mock Data ---
@@ -106,10 +120,10 @@ const mockInlabDevices: InlabDevice[] = [
 ]
 
 const mockDispatchedCollocations: DispatchedCollocation[] = [
-  { id: "1", name: "Batch Alpha", numberOfDevices: 8, startDate: "2026-01-10", endDate: "2026-01-24", uptime: 96.5, sensorErrorMargin: 3.2, uptimeHistory: generateUptimeHistory(96.5) },
-  { id: "2", name: "Batch Beta", numberOfDevices: 5, startDate: "2026-02-01", endDate: "2026-02-15", uptime: 93.1, sensorErrorMargin: 4.8, uptimeHistory: generateUptimeHistory(93.1) },
-  { id: "3", name: "Batch Gamma", numberOfDevices: 10, startDate: "2026-02-20", endDate: "2026-03-06", uptime: 97.8, sensorErrorMargin: 2.1, uptimeHistory: generateUptimeHistory(97.8) },
-  { id: "4", name: "Batch Delta", numberOfDevices: 6, startDate: "2026-03-10", endDate: "2026-03-18", uptime: 91.4, sensorErrorMargin: 5.5, uptimeHistory: generateUptimeHistory(91.4) },
+  { id: "1", name: "MANHICA Batch", numberOfDevices: 8, startDate: "2026-01-10", endDate: "2026-01-24", uptime: 96.5, sensorErrorMargin: 3.2, uptimeHistory: generateUptimeHistory(96.5) },
+  { id: "2", name: "WRI & Safiri Electric Project", numberOfDevices: 5, startDate: "2026-02-01", endDate: "2026-02-15", uptime: 93.1, sensorErrorMargin: 4.8, uptimeHistory: generateUptimeHistory(93.1) },
+  { id: "3", name: "NCCG_CAF_22", numberOfDevices: 10, startDate: "2026-02-20", endDate: "2026-03-06", uptime: 97.8, sensorErrorMargin: 2.1, uptimeHistory: generateUptimeHistory(97.8) },
+  { id: "4", name: "EPIC LAGOS_NIMR", numberOfDevices: 6, startDate: "2026-03-10", endDate: "2026-03-18", uptime: 91.4, sensorErrorMargin: 5.5, uptimeHistory: generateUptimeHistory(91.4) },
 ]
 
 // --- Helpers ---
@@ -235,8 +249,14 @@ function ErrorMarginMiniGraph({ errorMarginHistory, averageMargin }: { errorMarg
 // --- Component ---
 
 export default function InlabCollocationPage() {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState<"inlab" | "dispatched">("inlab")
   const [searchTerm, setSearchTerm] = useState("")
+  const [selectedDevices, setSelectedDevices] = useState<string[]>([])
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [batchName, setBatchName] = useState("")
+  const [startDate, setStartDate] = useState("")
+  const [endDate, setEndDate] = useState("")
 
   const filteredInlabDevices = mockInlabDevices.filter((d) =>
     d.deviceName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -248,15 +268,124 @@ export default function InlabCollocationPage() {
     d.name.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
+  const toggleDeviceSelection = (deviceId: string) => {
+    setSelectedDevices((prev) =>
+      prev.includes(deviceId)
+        ? prev.filter((id) => id !== deviceId)
+        : [...prev, deviceId]
+    )
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedDevices.length === filteredInlabDevices.length) {
+      setSelectedDevices([])
+    } else {
+      setSelectedDevices(filteredInlabDevices.map((d) => d.id))
+    }
+  }
+
+  const handleCreateBatch = (e: React.FormEvent) => {
+    e.preventDefault()
+    // Mock API call
+    console.log("Creating batch:", {
+      name: batchName,
+      startDate,
+      endDate,
+      devices: selectedDevices,
+    })
+    setIsCreateDialogOpen(false)
+    // Reset form
+    setBatchName("")
+    setStartDate("")
+    setEndDate("")
+    setSelectedDevices([])
+    // In a real app, you would refresh the data here
+    setActiveTab("dispatched")
+  }
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Inlab Collocation</h1>
-        <Button variant="outline" size="sm" className="flex items-center">
-          <RefreshCw className="mr-2 h-4 w-4" />
-          Refresh Data
-        </Button>
+        <div className="flex items-center gap-2">
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button disabled={selectedDevices.length === 0} className="flex items-center">
+                <Plus className="mr-2 h-4 w-4" />
+                Create Batch {selectedDevices.length > 0 && `(${selectedDevices.length})`}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <form onSubmit={handleCreateBatch}>
+                <DialogHeader>
+                  <DialogTitle>Create Collocation Batch</DialogTitle>
+                  <DialogDescription>
+                    Create a new dispatch collocation batch for {selectedDevices.length} selected devices.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="batch-name">Batch Name</Label>
+                    <Input
+                      id="batch-name"
+                      placeholder="e.g. MANHICA Batch"
+                      value={batchName}
+                      onChange={(e) => setBatchName(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="start-date">Start Date</Label>
+                      <Input
+                        id="start-date"
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="end-date">End Date</Label>
+                      <Input
+                        id="end-date"
+                        type="date"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="bg-muted p-3 rounded-md">
+                    <p className="text-xs font-medium mb-2">Selected Devices:</p>
+                    <div className="max-h-32 overflow-y-auto space-y-1">
+                      {selectedDevices.map((id) => {
+                        const device = mockInlabDevices.find((d) => d.id === id)
+                        return (
+                          <div key={id} className="text-xs flex items-center justify-between">
+                            <span>{device?.deviceName}</span>
+                            <span className="text-muted-foreground">{device?.networkId}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit">Create Batch</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+          <Button variant="outline" size="sm" className="flex items-center">
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Refresh Data
+          </Button>
+        </div>
       </div>
 
       {/* Summary Cards */}
@@ -376,6 +505,16 @@ export default function InlabCollocationPage() {
               <table className="w-full">
                 <thead>
                   <tr className="bg-gray-50">
+                    <th className="py-3 px-4 text-left w-10">
+                      <Checkbox
+                        checked={
+                          filteredInlabDevices.length > 0 &&
+                          selectedDevices.length === filteredInlabDevices.length
+                        }
+                        onCheckedChange={toggleSelectAll}
+                        aria-label="Select all"
+                      />
+                    </th>
                     <th className="text-left py-3 px-4 font-medium text-gray-600">Device Name</th>
                     <th className="text-left py-3 px-4 font-medium text-gray-600">Category</th>
                     <th className="text-left py-3 px-4 font-medium text-gray-600">Channel ID</th>
@@ -388,7 +527,7 @@ export default function InlabCollocationPage() {
                 <tbody>
                   {filteredInlabDevices.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="py-8 text-center text-gray-500">
+                      <td colSpan={8} className="py-8 text-center text-gray-500">
                         No inlab devices found matching your search.
                       </td>
                     </tr>
@@ -396,9 +535,18 @@ export default function InlabCollocationPage() {
                     filteredInlabDevices.map((device) => (
                       <tr
                         key={device.id}
-                        className="border-b hover:bg-gray-50 transition-colors cursor-pointer"
-                        onClick={() => window.location.href = `/dashboard/devices/${device.id}`}
+                        className={`border-b hover:bg-gray-50 transition-colors cursor-pointer ${
+                          selectedDevices.includes(device.id) ? "bg-primary/5" : ""
+                        }`}
+                        onClick={() => toggleDeviceSelection(device.id)}
                       >
+                        <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
+                          <Checkbox
+                            checked={selectedDevices.includes(device.id)}
+                            onCheckedChange={() => toggleDeviceSelection(device.id)}
+                            aria-label={`Select ${device.deviceName}`}
+                          />
+                        </td>
                         <td className="py-3 px-4">
                           <span className="font-medium">{device.deviceName}</span>
                         </td>
@@ -462,7 +610,8 @@ export default function InlabCollocationPage() {
                     filteredDispatched.map((batch) => (
                       <tr
                         key={batch.id}
-                        className="border-b hover:bg-gray-50 transition-colors"
+                        className="border-b hover:bg-gray-50 transition-colors cursor-pointer"
+                        onClick={() => router.push(`/dashboard/collocation/inlab/${batch.id}`)}
                       >
                         <td className="py-3 px-4">
                           <span className="font-medium">{batch.name}</span>

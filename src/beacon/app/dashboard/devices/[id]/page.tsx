@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -19,6 +19,7 @@ import {
 } from "lucide-react"
 import { config } from "@/lib/config"
 import authService from "@/services/api-service"
+import { isMockMode } from "@/lib/mock-data"
 import { useToast } from "@/hooks/use-toast"
 import UpdateDeviceDialog from "@/components/dashboard/update-device-dialog"
 import SensorDataTab from "./sensor-data-tab"
@@ -115,6 +116,7 @@ interface DeviceDetail {
 export default function DeviceDetailPage() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { toast } = useToast()
   const [device, setDevice] = useState<DeviceDetail | null>(null)
   const [loading, setLoading] = useState(true)
@@ -151,6 +153,82 @@ export default function DeviceDetailPage() {
       if (!params?.id) return
 
       const deviceId = params.id as string
+      const isMock = searchParams.get('mock') === 'true' || isMockMode()
+
+      if (isMock) {
+        // Use dummy data for in-lab collocation devices
+        const mockDevice: DeviceDetail = {
+          _id: deviceId,
+          name: `mock_device_${deviceId.substring(0, 4)}`,
+          long_name: "Mock In-Lab Device",
+          device_number: 123456,
+          description: "This is a dummy device for in-lab collocation demonstration.",
+          createdAt: new Date().toISOString(),
+          network: "airqo",
+          network_id: null,
+          device_codes: ["MOCK-001"],
+          readKey: "mock-read-key-123456789",
+          writeKey: "mock-write-key-987654321",
+          isActive: true,
+          isOnline: true,
+          rawOnlineStatus: true,
+          status: "in-lab",
+          visibility: true,
+          mobility: false,
+          authRequired: false,
+          category: "lowcost",
+          category_hierarchy: [
+            { level: "primary", category: "lowcost", description: "Low cost sensor" }
+          ],
+          device_categories: {
+            primary_category: "lowcost",
+            deployment_category: "in-lab",
+            is_mobile: false,
+            is_static: true,
+            is_lowcost: true,
+            all_categories: ["lowcost"]
+          },
+          height: 1.5,
+          mountType: "pole",
+          powerType: "solar",
+          beacon_data: {
+            network_id: null,
+            current_firmware: "v1.0.0-mock",
+            previous_firmware: null,
+            file_upload_state: false,
+            firmware_download_state: null
+          },
+          latitude: 0.3476,
+          longitude: 32.5825,
+          approximate_distance_in_km: 0,
+          bearing_in_radians: 0,
+          site: {
+            _id: "mock-site-id",
+            name: "Mock Lab Site",
+            formatted_name: "Makerere University Lab",
+            location_name: "Kampala, Uganda",
+            city: "Kampala",
+            country: "Uganda",
+            description: "Mock laboratory site for collocation"
+          },
+          deployment_date: new Date().toISOString(),
+          nextMaintenance: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          lastActive: new Date().toISOString(),
+          lastRawData: new Date().toISOString(),
+          cohorts: [{ _id: "mock-cohort", name: "Mock In-Lab Cohort" }],
+          grids: [],
+          groups: [],
+          tags: ["mock", "in-lab"]
+        }
+        
+        // Simulate network delay
+        await new Promise(resolve => setTimeout(resolve, 500))
+        setDevice(mockDevice)
+        setLoading(false)
+        setIsRefreshing(false)
+        return
+      }
+
       // Use consistent endpoint path as per user request
       const apiPath = config.isLocalhost ?
         `/devices/${deviceId}` :

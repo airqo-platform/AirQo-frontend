@@ -6,6 +6,7 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import { config } from '@/lib/config';
 import authService from './api-service';
+import { isMockMode, getMockCategories } from '@/lib/mock-data';
 import {
   Category,
   CategoryCreate,
@@ -63,6 +64,8 @@ class CategoryService {
    * Get all categories
    */
   async getAllCategories(params?: CategoryListParams): Promise<CategoryListResponse> {
+    if (isMockMode()) return getMockCategories() as any
+
     try {
       const queryParams = new URLSearchParams();
       if (params?.page !== undefined) queryParams.append('page', params.page.toString());
@@ -86,6 +89,11 @@ class CategoryService {
    * Get a specific category by name
    */
   async getCategoryByName(categoryName: string): Promise<Category> {
+    if (isMockMode()) {
+      const all = getMockCategories() as any
+      return all.categories.find((c: any) => c.name === categoryName) || all.categories[0]
+    }
+
     try {
       const endpoint = this.getEndpoint(`/categories/${encodeURIComponent(categoryName)}`);
       const url = `${this.baseUrl}${endpoint}`;
