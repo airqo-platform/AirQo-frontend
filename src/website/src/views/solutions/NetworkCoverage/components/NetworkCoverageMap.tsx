@@ -51,6 +51,117 @@ const escapeHtml = (value: string): string =>
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;');
 
+const monitorTypeLabel: Record<MonitorType, string> = {
+  Reference: 'Reference',
+  LCS: 'Low Cost Sensor (LCS)',
+  Inactive: 'Inactive',
+};
+
+const monitorTypeStyles: Record<
+  MonitorType,
+  { bg: string; text: string; dot: string }
+> = {
+  Reference: {
+    bg: 'rgba(16, 185, 129, 0.10)',
+    text: '#047857',
+    dot: '#10B981',
+  },
+  LCS: {
+    bg: 'rgba(37, 99, 235, 0.10)',
+    text: '#1D4ED8',
+    dot: '#2563EB',
+  },
+  Inactive: {
+    bg: 'rgba(148, 163, 184, 0.16)',
+    text: '#475569',
+    dot: '#94A3B8',
+  },
+};
+
+const statusStyles: Record<
+  'active' | 'inactive',
+  { bg: string; text: string; dot: string }
+> = {
+  active: {
+    bg: 'rgba(34, 197, 94, 0.12)',
+    text: '#15803D',
+    dot: '#22C55E',
+  },
+  inactive: {
+    bg: 'rgba(148, 163, 184, 0.16)',
+    text: '#64748B',
+    dot: '#94A3B8',
+  },
+};
+
+const buildPill = (
+  label: string,
+  color: { bg: string; text: string; dot: string },
+) => `
+  <span style="display:inline-flex;align-items:center;gap:6px;border-radius:9999px;background:${color.bg};color:${color.text};padding:5px 9px;font-size:11px;font-weight:700;line-height:1.1;white-space:nowrap;">
+    <span style="width:6px;height:6px;border-radius:9999px;background:${color.dot};flex-shrink:0;"></span>
+    ${escapeHtml(label)}
+  </span>
+`;
+
+const buildMonitorTooltipMarkup = (monitor: NetworkCoverageMonitor) => {
+  const typeColor = monitorTypeStyles[monitor.type];
+  const statusColor = statusStyles[monitor.status];
+  const latitudeText = Number.isFinite(monitor.latitude)
+    ? `${Math.abs(monitor.latitude).toFixed(4)}°${monitor.latitude < 0 ? 'S' : 'N'}`
+    : '--';
+  const longitudeText = Number.isFinite(monitor.longitude)
+    ? `${Math.abs(monitor.longitude).toFixed(4)}°${monitor.longitude < 0 ? 'W' : 'E'}`
+    : '--';
+
+  return `
+    <div style="width:auto;max-width:320px;min-width:0;box-sizing:border-box;overflow-wrap:anywhere;word-break:break-word;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+        <div style="min-width:0;flex:1;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <span style="flex-shrink:0;width:8px;height:8px;border-radius:9999px;background:#2563EB;"></span>
+            <span style="font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#64748B;">Monitor</span>
+          </div>
+          <div style="font-size:16px;font-weight:800;line-height:1.28;color:#0F172A;word-break:break-word;overflow-wrap:anywhere;white-space:normal;">
+            ${escapeHtml(monitor.name)}
+          </div>
+          <div style="margin-top:6px;font-size:13px;line-height:1.45;color:#64748B;word-break:break-word;overflow-wrap:anywhere;white-space:normal;">
+            ${escapeHtml(monitor.operator || 'AirQo')} · ${escapeHtml(monitor.city)}, ${escapeHtml(monitor.country)}
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;max-width:100%;">
+        ${buildPill(monitorTypeLabel[monitor.type], typeColor)}
+        ${buildPill(monitor.status === 'active' ? 'Active' : 'Inactive', statusColor)}
+      </div>
+
+      <div style="margin-top:12px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px;padding-top:12px;border-top:1px solid rgba(148,163,184,0.18);font-size:12px;line-height:1.45;">
+        <div style="min-width:0;">
+          <div style="color:#94A3B8;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;font-size:10px;">Network</div>
+          <div style="margin-top:2px;color:#334155;font-weight:600;word-break:break-word;overflow-wrap:anywhere;white-space:normal;">${escapeHtml(monitor.network || '--')}</div>
+        </div>
+        <div style="min-width:0;">
+          <div style="color:#94A3B8;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;font-size:10px;">Coordinates</div>
+          <div style="margin-top:2px;color:#334155;font-weight:600;word-break:break-word;overflow-wrap:anywhere;white-space:normal;">${latitudeText}<br />${longitudeText}</div>
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+const buildCoverageTooltipMarkup = (name: string, count: number) => `
+  <div style="min-width:0;max-width:240px;overflow-wrap:anywhere;word-break:break-word;">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
+      <div style="min-width:0;flex:1;">
+        <div style="font-size:14px;font-weight:800;line-height:1.25;color:#F8FAFC;word-break:break-word;overflow-wrap:anywhere;">${escapeHtml(name)}</div>
+        <div style="margin-top:4px;font-size:12px;line-height:1.4;color:rgba(248,250,252,0.78);">${count} monitor${count === 1 ? '' : 's'} tracked</div>
+      </div>
+      <span style="flex-shrink:0;border-radius:9999px;background:rgba(255,255,255,0.14);padding:4px 8px;font-size:11px;font-weight:700;color:#FFFFFF;white-space:nowrap;">${count}</span>
+    </div>
+  </div>
+`;
+
 const monitorNodeMarkup = (
   isOnline: boolean,
   ringColor: string,
@@ -61,7 +172,7 @@ const monitorNodeMarkup = (
     ? `<svg viewBox="0 0 24 24" aria-hidden="true" style="width:20px;height:20px;color:${ringColor};"><path fill="currentColor" d="M12 18.2a1.2 1.2 0 1 0 0 2.4a1.2 1.2 0 0 0 0-2.4Zm0-4.1a4.7 4.7 0 0 0-3.35 1.4a1 1 0 1 0 1.4 1.42a2.7 2.7 0 0 1 3.9 0a1 1 0 0 0 1.4-1.42A4.7 4.7 0 0 0 12 14.1Zm0-4.5a9.2 9.2 0 0 0-6.54 2.7a1 1 0 1 0 1.41 1.42a7.2 7.2 0 0 1 10.26 0a1 1 0 1 0 1.41-1.42A9.2 9.2 0 0 0 12 9.6Z"/></svg>`
     : `<svg viewBox="0 0 24 24" aria-hidden="true" style="width:20px;height:20px;color:${ringColor};"><path fill="currentColor" d="M3.7 3.7a1 1 0 0 0-1.4 1.4l2.35 2.35a9.1 9.1 0 0 0-.6.5a1 1 0 0 0 1.41 1.42c.11-.1.22-.2.34-.29l1.45 1.45a4.8 4.8 0 0 0-1.9 1.14a1 1 0 1 0 1.41 1.42a2.8 2.8 0 0 1 1.93-.8l1.26 1.26a1.2 1.2 0 1 0 1.43 1.43l1.29 1.29a1.2 1.2 0 0 0 1.7-1.7l-11-11Zm8.3 7.8a4.8 4.8 0 0 1 2.6.78a1 1 0 0 0 1.07-1.69a6.8 6.8 0 0 0-3.67-1.09a1 1 0 1 0 0 2Zm0-4.4a9.2 9.2 0 0 1 6.54 2.7a1 1 0 0 0 1.41-1.42A11.2 11.2 0 0 0 12 5.1a1 1 0 1 0 0 2Z"/></svg>`;
 
-  return `<div style="position:relative;transition:transform .2s;transform:${selected ? 'scale(1.08)' : 'scale(1)'};"><span style="display:grid;place-items:center;height:46px;width:46px;border-radius:9999px;border:2px solid ${ringColor};background:#fff;box-shadow:0 6px 14px rgba(15,23,42,.24);${selected ? 'box-shadow:0 0 0 6px rgba(59,130,246,.2),0 6px 14px rgba(15,23,42,.24);' : ''}">${icon}</span>${
+  return `<div style="position:relative;"><span style="display:grid;place-items:center;height:46px;width:46px;border-radius:9999px;border:2px solid ${ringColor};background:#fff;box-shadow:0 6px 14px rgba(15,23,42,.24);${selected ? 'box-shadow:0 0 0 6px rgba(59,130,246,.12),0 6px 14px rgba(15,23,42,.24);' : ''}">${icon}</span>${
     count > 1
       ? `<span style="position:absolute;right:-5px;top:-5px;border-radius:9999px;background:#2563eb;color:#fff;font-weight:700;font-size:11px;line-height:1;padding:3px 6px;">+${count - 1}</span>`
       : ''
@@ -477,9 +588,7 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
 
       coveragePopupRef.current
         .setLngLat(event.lngLat)
-        .setHTML(
-          `<div style="min-width: 138px; font-size: 12px; line-height: 1.4;"><div style="font-weight: 700; margin-bottom: 2px;">${name}</div><div>Monitors: ${count}</div></div>`,
-        )
+        .setHTML(buildCoverageTooltipMarkup(name, count))
         .addTo(map);
     };
 
@@ -608,25 +717,39 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
         if (group.monitors.length > 1) {
           const previewNames = group.monitors
             .slice(0, 3)
-            .map((monitor) => `<div>${escapeHtml(monitor.name)}</div>`)
+            .map(
+              (monitor) =>
+                `<div style="display:flex;align-items:center;gap:7px;min-width:0;"><span style="width:5px;height:5px;border-radius:9999px;background:#2563EB;flex-shrink:0;"></span><span style="min-width:0;overflow-wrap:anywhere;word-break:break-word;">${escapeHtml(monitor.name)}</span></div>`,
+            )
             .join('');
           const remaining = group.monitors.length - 3;
           monitorPopupRef.current
             .setLngLat([group.longitude, group.latitude])
             .setHTML(
-              `<div style="min-width: 210px; font-size: 15px; line-height: 1.45;"><div style="font-weight: 700; color: #1e293b; margin-bottom: 6px;">${group.monitors.length} monitors</div><div style="color: #64748b;">${previewNames}${remaining > 0 ? `<div style=\"color:#2563eb;font-weight:600;\">+${remaining} more</div>` : ''}</div></div>`,
+              `
+                <div style="min-width:240px;max-width:280px;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                    <div>
+                      <div style="font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#64748B;">Cluster</div>
+                      <div style="margin-top:4px;font-size:16px;font-weight:800;line-height:1.25;color:#0F172A;">${group.monitors.length} monitors</div>
+                    </div>
+                    <span style="border-radius:9999px;background:#EFF6FF;color:#2563EB;padding:5px 8px;font-size:11px;font-weight:700;white-space:nowrap;">Zoom in</span>
+                  </div>
+                  <div style="margin-top:12px;display:flex;flex-direction:column;gap:7px;font-size:12px;line-height:1.45;color:#475569;padding-top:12px;border-top:1px solid rgba(148,163,184,0.18);">
+                    ${previewNames}
+                    ${remaining > 0 ? `<div style="color:#2563EB;font-weight:700;">+${remaining} more</div>` : ''}
+                  </div>
+                </div>
+              `,
             )
             .addTo(map);
           return;
         }
 
         const node = group.monitors[0];
-        const statusColor = node.status === 'active' ? '#22c55e' : '#94a3b8';
         monitorPopupRef.current
           .setLngLat([group.longitude, group.latitude])
-          .setHTML(
-            `<div style="min-width: 248px; font-size: 14px; line-height: 1.35;"><div style="font-size: 16px; color: #2563eb; margin-right: 7px; vertical-align: middle; display: inline-block; line-height: 0;">•</div><div style="display:inline-block; vertical-align: middle; width: calc(100% - 24px);"><div style="font-weight:700;color:#1e293b;font-size:18px;">${escapeHtml(node.name)}</div><div style="color:#64748b;font-size:12px; margin-top: 1px;">AirQo · ${escapeHtml(node.city)}, ${escapeHtml(node.country)}</div><div style="margin-top: 4px;"><span style="color:#2563eb;font-weight:700;font-size:14px;">${escapeHtml(node.type)}</span><span style="color:${statusColor};font-weight:600;font-size:14px; margin-left: 8px;">● ${escapeHtml(node.status === 'active' ? 'Active' : 'Inactive')}</span></div></div></div>`,
-          )
+          .setHTML(buildMonitorTooltipMarkup(node))
           .addTo(map);
       };
       const handleMouseLeave = () => {
@@ -753,26 +876,28 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
 
       <style jsx global>{`
         .network-coverage-tooltip .mapboxgl-popup-content {
-          border-radius: 10px;
-          background: #1f2430;
+          border-radius: 18px;
+          background: linear-gradient(180deg, #1e293b 0%, #111827 100%);
           color: #ffffff;
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          padding: 10px 12px;
-          box-shadow: 0 10px 24px rgba(2, 6, 23, 0.45);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          padding: 12px 14px;
+          box-shadow: 0 18px 36px rgba(2, 6, 23, 0.42);
         }
 
         .network-coverage-tooltip .mapboxgl-popup-tip {
-          border-top-color: #1f2430;
-          border-bottom-color: #1f2430;
+          border-top-color: #111827;
+          border-bottom-color: #111827;
         }
 
         .network-monitor-tooltip .mapboxgl-popup-content {
-          border-radius: 16px;
+          border-radius: 22px;
           background: #ffffff;
           color: #1e293b;
           border: 0;
-          padding: 12px 14px;
-          box-shadow: 0 14px 34px rgba(15, 23, 42, 0.2);
+          padding: 16px 16px 15px;
+          box-shadow: 0 18px 44px rgba(15, 23, 42, 0.22);
+          max-width: 320px;
+          overflow: visible;
         }
 
         .network-monitor-tooltip .mapboxgl-popup-tip {
@@ -780,8 +905,34 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
           border-bottom-color: #ffffff;
         }
 
+        .network-monitor-tooltip .mapboxgl-popup-content,
+        .network-coverage-tooltip .mapboxgl-popup-content {
+          overflow-wrap: anywhere;
+          word-break: break-word;
+          transition: none !important;
+          transform: none !important;
+        }
+
+        .network-monitor-tooltip .mapboxgl-popup-tip,
+        .network-coverage-tooltip .mapboxgl-popup-tip {
+          transition: none !important;
+        }
+
+        .mapboxgl-popup {
+          transition: none !important;
+        }
+
+        .network-monitor-tooltip .mapboxgl-popup-content * {
+          box-sizing: border-box;
+        }
+
+        .network-monitor-tooltip .mapboxgl-popup-content::-webkit-scrollbar {
+          width: 0;
+          height: 0;
+        }
+
         .network-monitor-tooltip.mapboxgl-popup {
-          z-index: 70 !important;
+          z-index: 80 !important;
         }
 
         .mapboxgl-ctrl.mapboxgl-ctrl-attrib {

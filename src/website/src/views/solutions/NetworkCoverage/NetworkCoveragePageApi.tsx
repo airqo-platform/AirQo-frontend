@@ -165,11 +165,6 @@ const NetworkCoveragePage = () => {
     return null;
   }, [countryMonitorsQuery.data, selectedCountryId]);
 
-  const allMonitors = useMemo(
-    () => countries.flatMap((country) => country.monitors),
-    [countries],
-  );
-
   const monitorDetailQuery = useNetworkCoverageMonitor(selectedMonitorId, {
     tenant: DEFAULT_TENANT,
   });
@@ -430,6 +425,7 @@ const NetworkCoveragePage = () => {
         <NetworkCoverageHeader
           onToggleSidebar={() => setIsSidebarOpen((previous) => !previous)}
           onDownload={handleDownload}
+          isDownloading={isDownloading}
         />
 
         <main className="relative mt-2 flex min-h-0 flex-1 overflow-hidden rounded-xl border border-slate-200 bg-[#f6f6f7]">
