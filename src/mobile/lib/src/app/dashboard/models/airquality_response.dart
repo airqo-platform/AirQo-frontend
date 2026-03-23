@@ -52,6 +52,9 @@ class Measurement {
 
   final String? device;
 
+  @JsonKey(name: 'device_categories')
+  final DeviceCategories? deviceCategories;
+
   @JsonKey(name: 'device_id')
   final String? deviceId;
 
@@ -89,6 +92,7 @@ class Measurement {
     this.averages,
     this.createdAt,
     this.device,
+    this.deviceCategories,
     this.deviceId,
     this.frequency,
     this.healthTips,
@@ -350,8 +354,21 @@ class SiteCategory {
     this.waterway,
   });
 
-  factory SiteCategory.fromJson(Map<String, dynamic> json) => 
+  factory SiteCategory.fromJson(Map<String, dynamic> json) =>
       _$SiteCategoryFromJson(json);
 
   Map<String, dynamic> toJson() => _$SiteCategoryToJson(this);
+}
+
+@JsonSerializable()
+class DeviceCategories {
+  @JsonKey(name: 'primary_category')
+  final String? primaryCategory;
+
+  DeviceCategories({this.primaryCategory});
+
+  factory DeviceCategories.fromJson(Map<String, dynamic> json) =>
+      _$DeviceCategoriesFromJson(json);
+
+  Map<String, dynamic> toJson() => _$DeviceCategoriesToJson(this);
 }
