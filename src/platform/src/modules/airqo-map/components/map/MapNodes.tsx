@@ -129,7 +129,10 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
   isTooltipOpen = false,
 }) => {
   const isCluster = !!(cluster && cluster.pointCount > 1);
-  const data = (cluster ?? reading) as AirQualityReading | ClusterData | undefined;
+  const data = (cluster ?? reading) as
+    | AirQualityReading
+    | ClusterData
+    | undefined;
 
   if (!data) return null;
 
@@ -164,13 +167,18 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
       getAirQualityLevel(sortedValues[0], selectedPollutant)
     );
     const WorstIcon = getAirQualityIcon(
-      getAirQualityLevel(sortedValues[sortedValues.length - 1], selectedPollutant)
+      getAirQualityLevel(
+        sortedValues[sortedValues.length - 1],
+        selectedPollutant
+      )
     );
 
     // Use rounded zoom for styling decisions — avoids visual thrash during animations
     const isHighZoom = Math.round(zoomLevel) >= 12;
     const displayCount =
-      cluster.pointCount > 2 ? `+${cluster.pointCount - 2}` : cluster.pointCount;
+      cluster.pointCount > 2
+        ? `+${cluster.pointCount - 2}`
+        : cluster.pointCount;
 
     return (
       <CustomTooltip
@@ -206,7 +214,10 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
             )}
           </div>
           <span
-            className={cn('font-black text-gray-800', isHighZoom ? 'text-sm' : 'text-base')}
+            className={cn(
+              'font-black text-gray-800',
+              isHighZoom ? 'text-sm' : 'text-base'
+            )}
           >
             {displayCount}
           </span>
@@ -224,8 +235,6 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
     const sizeClass = SIZE_CLASSES[size];
     const iconClass = ICON_CLASSES[size];
     const levelBg = LEVEL_BG[level] ?? 'bg-gray-400';
-    const isInactive =
-      reading.status === 'inactive' || reading.status === 'maintenance';
 
     const ariaLabel = `Air quality: ${roundDecimals(pollutantValue, 1)} ${
       selectedPollutant === 'pm2_5' ? 'PM2.5' : 'PM10'
@@ -249,7 +258,11 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
     } else if (nodeType === 'node') {
       nodeVisual = (
         <div
-          className={cn('rounded-full border-2 border-white shadow-sm', sizeClass, levelBg)}
+          className={cn(
+            'rounded-full border-2 border-white shadow-sm',
+            sizeClass,
+            levelBg
+          )}
         />
       );
     } else {
@@ -259,14 +272,10 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
           className={cn(
             'rounded-full border-2 border-white shadow-sm',
             'flex items-center justify-center bg-white overflow-visible',
-            sizeClass,
-            isInactive && 'opacity-60'
+            sizeClass
           )}
         >
           <IconComponent className={cn('text-gray-700', iconClass)} />
-          {reading.status === 'inactive' && (
-            <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-gray-400 rounded-full border-2 border-white" />
-          )}
         </div>
       );
     }
@@ -350,10 +359,12 @@ const areEqual = (prev: MapNodesProps, next: MapNodesProps): boolean => {
     prev.size !== next.size ||
     prev.selectedPollutant !== next.selectedPollutant ||
     prev.isTooltipOpen !== next.isTooltipOpen
-  ) return false;
+  )
+    return false;
 
   // Round zoom for comparison — prevents glitch-re-renders during smooth animation
-  if (Math.round(prev.zoomLevel ?? 10) !== Math.round(next.zoomLevel ?? 10)) return false;
+  if (Math.round(prev.zoomLevel ?? 10) !== Math.round(next.zoomLevel ?? 10))
+    return false;
 
   // Individual reading checks
   if (
@@ -361,22 +372,26 @@ const areEqual = (prev: MapNodesProps, next: MapNodesProps): boolean => {
     prev.reading?.pm25Value !== next.reading?.pm25Value ||
     prev.reading?.pm10Value !== next.reading?.pm10Value ||
     prev.reading?.status !== next.reading?.status
-  ) return false;
+  )
+    return false;
 
   // Cluster structural checks
   if (
     prev.cluster?.id !== next.cluster?.id ||
     prev.cluster?.pointCount !== next.cluster?.pointCount
-  ) return false;
+  )
+    return false;
 
   // FIX: Check cluster readings content so stale pollutant values are detected.
   // Only run when both sides have readings (cluster identity already matched above).
   if (prev.cluster?.readings && next.cluster?.readings) {
-    if (prev.cluster.readings.length !== next.cluster.readings.length) return false;
+    if (prev.cluster.readings.length !== next.cluster.readings.length)
+      return false;
     if (
       clusterReadingsFingerprint(prev.cluster.readings) !==
       clusterReadingsFingerprint(next.cluster.readings)
-    ) return false;
+    )
+      return false;
   }
 
   return true;
