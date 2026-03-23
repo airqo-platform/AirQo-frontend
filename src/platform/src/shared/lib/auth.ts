@@ -4,10 +4,9 @@ import { isTokenExpired } from './utils';
 import { authService } from '../services/authService';
 
 const isProduction = process.env.NODE_ENV === 'production';
-const sharedCookieDomain = process.env.NEXTAUTH_COOKIE_DOMAIN;
 const sessionCookieName = isProduction
   ? '__Secure-next-auth.session-token'
-  : 'next-auth.session-token';
+  : 'analytics.next-auth.session-token';
 
 // Helper function to check token expiration and log
 const isTokenInvalid = (accessToken: string | undefined): boolean => {
@@ -67,22 +66,17 @@ export const authOptions: any = {
       },
     }),
   ],
-  ...(sharedCookieDomain
-    ? {
-        cookies: {
-          sessionToken: {
-            name: sessionCookieName,
-            options: {
-              httpOnly: true,
-              sameSite: 'lax' as const,
-              path: '/',
-              secure: isProduction,
-              domain: sharedCookieDomain,
-            },
-          },
-        },
-      }
-    : {}),
+  cookies: {
+    sessionToken: {
+      name: sessionCookieName,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax' as const,
+        path: '/',
+        secure: isProduction,
+      },
+    },
+  },
   pages: {
     signIn: '/user/login',
     signOut: '/user/login',
