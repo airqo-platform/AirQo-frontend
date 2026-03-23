@@ -388,7 +388,7 @@ const KampalaStudyPage = () => {
             size={'lg'}
             onClick={() =>
               window.open(
-                'https://drive.google.com/file/d/1gshIrY3gi_8RSfdmhFSHF25xE90fu2h5/view',
+                'https://drive.google.com/drive/folders/1OoUpSluMMYFwAPzB7uFAEhW9byhncB-q?usp=sharing',
                 '_blank',
               )
             }
