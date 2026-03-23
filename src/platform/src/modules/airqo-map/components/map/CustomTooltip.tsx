@@ -190,9 +190,7 @@ const ReadingTooltipContent: React.FC<{
                 Category
               </div>
               <div className="text-xs font-semibold text-gray-800">
-                {meta?.primaryCategory === 'Low Cost Sensor'
-                  ? 'LCS'
-                  : meta?.primaryCategory || 'N/A'}
+                {meta?.primaryCategory ?? '--'}
               </div>
             </div>
             <div className="rounded-md border border-gray-100 bg-gray-50 px-2 py-1">
@@ -200,7 +198,7 @@ const ReadingTooltipContent: React.FC<{
                 Deployment
               </div>
               <div className="text-xs font-semibold text-gray-800">
-                {meta.deploymentCategory ?? 'N/A'}
+                {meta.deploymentCategory ?? '--'}
               </div>
             </div>
           </div>
