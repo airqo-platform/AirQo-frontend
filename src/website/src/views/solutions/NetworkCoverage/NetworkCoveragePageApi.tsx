@@ -445,6 +445,16 @@ const NetworkCoveragePage = () => {
           onToggleSidebar={() => setIsSidebarOpen((previous) => !previous)}
           onDownload={handleDownload}
           isDownloading={isDownloading}
+          onAddToNetwork={() => {
+            // placeholder action - open sidebar prompt or perform add-to-network flow
+            // for now show a simple alert to indicate action
+            try {
+              // eslint-disable-next-line no-alert
+              alert('Add to Network action triggered');
+            } catch (e) {
+              // ignore in non-browser env
+            }
+          }}
         />
 
         <main className="relative mt-2 flex min-h-0 flex-1 overflow-hidden rounded-xl border border-slate-200 bg-[#f6f6f7]">
