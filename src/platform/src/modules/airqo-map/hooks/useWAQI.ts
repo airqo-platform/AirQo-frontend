@@ -16,17 +16,16 @@ export interface UseWAQICitiesResult {
  * Cities are loaded in batches and added to the map progressively to avoid blocking UI
  * @param cities - Array of city names
  * @param batchSize - Number of cities to load per batch (default: 15)
- * @param batchDelay - Delay between batches in ms (default: 300)
  * @note Ensure the cities array is memoized in the calling component to avoid infinite re-renders
  */
 export function useWAQICities(
   cities: string[],
-  batchSize: number = 15,
-  batchDelay: number = 300
+  batchSize: number = 15
 ): UseWAQICitiesResult {
   const [citiesReadings, setCitiesReadings] = useState<AirQualityReading[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const requestVersionRef = useRef(0);
   const abortControllerRef = useRef<AbortController | null>(null);
   const isMountedRef = useRef(true);
 
@@ -40,13 +39,13 @@ export function useWAQICities(
       return;
     }
 
-    // Cancel any ongoing requests
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
 
-    // Create new abort controller for this batch
-    abortControllerRef.current = new AbortController();
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+    const requestVersion = ++requestVersionRef.current;
 
     try {
       setIsLoading(true);
@@ -56,10 +55,10 @@ export function useWAQICities(
       const totalBatches = Math.ceil(memoizedCities.length / batchSize);
 
       for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
-        // Check if component is still mounted and request wasn't cancelled
+        // Stop if a newer request started or the component unmounted
         if (
           !isMountedRef.current ||
-          abortControllerRef.current?.signal.aborted
+          requestVersionRef.current !== requestVersion
         ) {
           break;
         }
@@ -74,13 +73,13 @@ export function useWAQICities(
         try {
           const data = await waqiService.getMultipleCitiesData(
             batchCities,
-            abortControllerRef.current.signal
+            abortController.signal
           );
 
           // Check again if still mounted after API call
           if (
             !isMountedRef.current ||
-            abortControllerRef.current?.signal.aborted
+            requestVersionRef.current !== requestVersion
           ) {
             break;
           }
@@ -101,18 +100,9 @@ export function useWAQICities(
           // Log error but continue with next batch
           console.warn(`Error loading batch ${batchIndex + 1}:`, batchError);
         }
-
-        // Add delay between batches (except for the last batch)
-        if (batchIndex < totalBatches - 1 && isMountedRef.current) {
-          await new Promise(resolve => setTimeout(resolve, batchDelay));
-        }
       }
     } catch (err) {
-      if (
-        isMountedRef.current &&
-        err instanceof Error &&
-        err.name !== 'AbortError'
-      ) {
+      if (isMountedRef.current) {
         setError(
           err instanceof Error
             ? err.message
@@ -123,8 +113,12 @@ export function useWAQICities(
       if (isMountedRef.current) {
         setIsLoading(false);
       }
+
+      if (abortControllerRef.current === abortController) {
+        abortControllerRef.current = null;
+      }
     }
-  }, [memoizedCities, batchSize, batchDelay]);
+  }, [memoizedCities, batchSize]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -134,6 +128,7 @@ export function useWAQICities(
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
+      requestVersionRef.current += 1;
     };
   }, []);
 

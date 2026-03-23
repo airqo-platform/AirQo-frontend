@@ -30,7 +30,6 @@ const DEFAULT_ERROR_MAPPINGS: ErrorMapping = {
   401: 'Authentication required. Please sign in to continue.',
   403: 'Access denied. You do not have permission to perform this action.',
   404: 'The requested resource was not found.',
-  408: 'Request timeout. Please try again.',
   409: 'A record with these details already exists.',
   422: 'Validation failed. Please check your input.',
   429: 'Too many requests. Please wait a moment before trying again.',
@@ -52,7 +51,6 @@ const DEFAULT_ERROR_MAPPINGS: ErrorMapping = {
     'Network error. Please check your internet connection and try again.',
   connection:
     'Network error. Please check your internet connection and try again.',
-  timeout: 'Request timeout. Please try again.',
   'rate limit':
     'Too many login attempts. Please wait a few minutes before trying again.',
   'too many':
@@ -196,11 +194,8 @@ export function getUserFriendlyErrorMessage(
       }
     }
 
-    // Priority 4: Network/timeout errors
-    if (
-      axiosError.code === 'NETWORK_ERROR' ||
-      axiosError.code === 'ECONNABORTED'
-    ) {
+    // Priority 4: Network errors
+    if (axiosError.code === 'ERR_NETWORK') {
       return (
         errorMappings['network'] ||
         'Network error. Please check your internet connection and try again.'
