@@ -1,1 +1,1 @@
-export { default } from './NetworkCoveragePage';
+export { default } from './NetworkCoveragePageApi';

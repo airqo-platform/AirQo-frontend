@@ -5,13 +5,14 @@ import { FiMinus, FiPlus } from 'react-icons/fi';
 
 import {
   africanIso2Codes,
-  CountryCoverage,
-  MonitorStation,
-  ViewMode,
-} from '../mockup';
+  type MonitorType,
+  type NetworkCoverageCountry,
+  type NetworkCoverageMonitor,
+  type ViewMode,
+} from '../networkCoverageTypes';
 
 interface NetworkCoverageMapProps {
-  countries: CountryCoverage[];
+  countries: NetworkCoverageCountry[];
   selectedCountryId: string | null;
   selectedMonitorId: string | null;
   viewMode: ViewMode;
@@ -132,10 +133,10 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
     const grouped = new Map<
       string,
       {
-        monitors: MonitorStation[];
+        monitors: NetworkCoverageMonitor[];
         latitude: number;
         longitude: number;
-        type: MonitorStation['type'];
+        type: MonitorType;
       }
     >();
 

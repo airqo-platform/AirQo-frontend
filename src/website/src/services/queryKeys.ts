@@ -109,6 +109,27 @@ export const apiQueryKeys = {
     admin_level?: string;
     search?: string;
   }) => ['gridsSummary', compactParams(params)] as const,
+  networkCoverageSummary: (params?: {
+    tenant?: string;
+    search?: string;
+    activeOnly?: boolean;
+    types?: string;
+  }) => ['networkCoverageSummary', compactParams(params)] as const,
+  networkCoverageCountryMonitors: (
+    countryId: string | null,
+    params?: {
+      tenant?: string;
+      activeOnly?: boolean;
+      types?: string;
+    },
+  ) =>
+    [
+      'networkCoverageCountryMonitors',
+      countryId,
+      compactParams(params),
+    ] as const,
+  networkCoverageMonitor: (monitorId: string | null) =>
+    ['networkCoverageMonitor', monitorId] as const,
   gridRepresentativeReading: (gridId: string | null) =>
     ['gridRepresentativeReading', gridId] as const,
   gridMeasurements: (

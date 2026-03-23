@@ -19,6 +19,7 @@ import {
   gridsService,
   highlightsService,
   impactNumbersService,
+  networkCoverageService,
   partnersService,
   predictService,
   pressService,
@@ -434,6 +435,62 @@ export const useGridsSummary = (
     {
       enabled: !!params,
       staleTime: 5 * 60 * 1000,
+      ...queryOptions,
+    },
+  );
+
+export const useNetworkCoverageSummary = (
+  params?: {
+    tenant?: string;
+    search?: string;
+    activeOnly?: boolean;
+    types?: string;
+  },
+  queryOptions?: ServiceQueryOptions<any>,
+) =>
+  useServiceQuery(
+    apiQueryKeys.networkCoverageSummary(params),
+    () => networkCoverageService.getNetworkCoverageSummary(params || {}),
+    {
+      staleTime: 15 * 60 * 1000,
+      placeholderData: keepPreviousData,
+      ...queryOptions,
+    },
+  );
+
+export const useNetworkCoverageCountryMonitors = (
+  countryId: string | null,
+  params?: {
+    tenant?: string;
+    activeOnly?: boolean;
+    types?: string;
+  },
+  queryOptions?: ServiceQueryOptions<any>,
+) =>
+  useServiceQuery(
+    apiQueryKeys.networkCoverageCountryMonitors(countryId, params),
+    () =>
+      networkCoverageService.getNetworkCoverageCountryMonitors(
+        countryId as string,
+        params || {},
+      ),
+    {
+      enabled: !!countryId,
+      staleTime: 15 * 60 * 1000,
+      ...queryOptions,
+    },
+  );
+
+export const useNetworkCoverageMonitor = (
+  monitorId: string | null,
+  queryOptions?: ServiceQueryOptions<any>,
+) =>
+  useServiceQuery(
+    apiQueryKeys.networkCoverageMonitor(monitorId),
+    () => networkCoverageService.getNetworkCoverageMonitor(monitorId as string),
+    {
+      enabled: !!monitorId,
+      staleTime: 30 * 60 * 1000,
       ...queryOptions,
     },
   );

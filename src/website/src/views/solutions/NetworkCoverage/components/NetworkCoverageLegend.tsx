@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { ViewMode } from '../mockup';
+import { type ViewMode } from '../networkCoverageTypes';
 
 interface NetworkCoverageLegendProps {
   viewMode: ViewMode;

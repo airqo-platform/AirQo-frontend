@@ -2,9 +2,13 @@ import { AqMarkerPin01, AqSearchRefraction } from '@airqo/icons-react';
 import React from 'react';
 import { FiChevronLeft, FiX } from 'react-icons/fi';
 
-import { CountryCoverage, MonitorStation, MonitorType } from '../mockup';
+import {
+  type MonitorType,
+  type NetworkCoverageCountry,
+  type NetworkCoverageMonitor,
+} from '../networkCoverageTypes';
 
-const VERTEX_APP_URL = 'https://vertex.airqo.net';
+const ANALYTICS_APP_URL = 'https://analytics.airqo.net';
 
 const typeDotClass: Record<MonitorType, string> = {
   LCS: 'bg-blue-600',
@@ -29,7 +33,7 @@ const getStatusBadgeClasses = (status: string) => {
 };
 
 const formatRelativeTime = (iso?: string) => {
-  if (!iso) return 'Unknown';
+  if (!iso) return '--';
   try {
     const then = new Date(iso).getTime();
     const now = Date.now();
@@ -39,25 +43,32 @@ const formatRelativeTime = (iso?: string) => {
     if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
     return `${Math.floor(diff / 86400)}d ago`;
   } catch {
-    return iso;
+    return '--';
   }
 };
 
 const formatMonthYear = (iso?: string) => {
-  if (!iso) return 'Unknown';
+  if (!iso) return '--';
   try {
     const d = new Date(iso);
     return d.toLocaleString(undefined, { month: 'short', year: 'numeric' });
   } catch {
-    return iso;
+    return '--';
   }
 };
 
 const formatCoordinates = (lat: number, lon: number) => {
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+    return '--';
+  }
+
   const latSuffix = lat < 0 ? 'S' : 'N';
   const lonSuffix = lon < 0 ? 'W' : 'E';
   return `${Math.abs(lat).toFixed(4)}°${latSuffix} ${Math.abs(lon).toFixed(4)}°${lonSuffix}`;
 };
+
+const displayText = (value?: string | null) =>
+  value && value.trim() ? value : '--';
 
 const StatLine = ({
   label,
@@ -75,13 +86,15 @@ const StatLine = ({
 );
 
 interface NetworkCoverageSidebarProps {
-  countries: CountryCoverage[];
+  countries: NetworkCoverageCountry[];
   query: string;
   selectedTypes: MonitorType[];
   activeOnly: boolean;
-  selectedCountry: CountryCoverage | null;
-  selectedMonitor: MonitorStation | null;
+  selectedCountry: NetworkCoverageCountry | null;
+  selectedMonitor: NetworkCoverageMonitor | null;
   showAddMonitorPromptFor: string | null;
+  isLoading?: boolean;
+  error?: string | null;
   onQueryChange: (value: string) => void;
   onToggleType: (type: MonitorType) => void;
   onToggleActiveOnly: () => void;
@@ -106,26 +119,18 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
   onSelectMonitor,
   onClosePrompt,
   onResetToOverview,
+  isLoading = false,
+  error = null,
 }) => {
   const monitoredCountriesCount = countries.filter(
     (country) => country.monitors.length > 0,
   ).length;
 
-  const filteredCountries = countries.filter((country) => {
-    const search = query.trim().toLowerCase();
-    if (!search) {
-      return true;
-    }
-    return country.country.toLowerCase().includes(search);
-  });
-
   const filteredCountryMonitors = selectedCountry
-    ? selectedCountry.monitors.filter((monitor) => {
-        const typeAllowed = selectedTypes.includes(monitor.type);
-        const statusAllowed = activeOnly ? monitor.status === 'active' : true;
-        return typeAllowed && statusAllowed;
-      })
+    ? selectedCountry.monitors
     : [];
+
+  const isOverviewLoading = isLoading && !selectedCountry;
 
   return (
     <aside className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white lg:rounded-none lg:border-0 lg:border-r lg:border-slate-200">
@@ -153,26 +158,28 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
             </div>
 
             <div className="mt-3 flex flex-wrap gap-2">
-              {(['Reference', 'LCS'] as MonitorType[]).map((type) => {
-                const active = selectedTypes.includes(type);
-                return (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() => onToggleType(type)}
-                    className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${
-                      active
-                        ? 'border-blue-300 bg-blue-50 text-blue-700'
-                        : 'border-slate-300 bg-white text-slate-600'
-                    }`}
-                  >
-                    <span
-                      className={`h-2 w-2 rounded-full ${typeDotClass[type]}`}
-                    />
-                    {type}
-                  </button>
-                );
-              })}
+              {(['Reference', 'LCS', 'Inactive'] as MonitorType[]).map(
+                (type) => {
+                  const active = selectedTypes.includes(type);
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => onToggleType(type)}
+                      className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${
+                        active
+                          ? 'border-blue-300 bg-blue-50 text-blue-700'
+                          : 'border-slate-300 bg-white text-slate-600'
+                      }`}
+                    >
+                      <span
+                        className={`h-2 w-2 rounded-full ${typeDotClass[type]}`}
+                      />
+                      {type}
+                    </button>
+                  );
+                },
+              )}
               <button
                 type="button"
                 onClick={onToggleActiveOnly}
@@ -206,9 +213,29 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
       </div>
 
       <div className="relative min-h-0 flex-1 overflow-y-auto px-3 py-3 overscroll-contain">
-        {!selectedCountry && (
+        {error && countries.length === 0 && !selectedCountry ? (
+          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            <p className="font-semibold">
+              Unable to load network coverage data.
+            </p>
+            <p className="mt-1 text-red-600">{error}</p>
+          </div>
+        ) : null}
+
+        {isOverviewLoading ? (
+          <div className="space-y-3">
+            {[...Array(5)].map((_, index) => (
+              <div
+                key={index}
+                className="h-24 animate-pulse rounded-xl border border-slate-200 bg-slate-100"
+              />
+            ))}
+          </div>
+        ) : null}
+
+        {!selectedCountry && !isOverviewLoading && countries.length > 0 && (
           <div className="space-y-2">
-            {filteredCountries.map((country) => {
+            {countries.map((country) => {
               const counts = country.monitors.reduce(
                 (accumulator, monitor) => {
                   accumulator[monitor.type] += 1;
@@ -309,6 +336,15 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
           </div>
         )}
 
+        {!selectedCountry &&
+        !isOverviewLoading &&
+        countries.length === 0 &&
+        !error ? (
+          <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-500">
+            No countries match the current search and filter settings.
+          </div>
+        ) : null}
+
         {selectedCountry && !selectedMonitor && (
           <div className="space-y-3">
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
@@ -317,8 +353,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
               </h3>
               <p className="mt-1 text-sm text-slate-500">
                 {filteredCountryMonitors.length} monitor
-                {filteredCountryMonitors.length === 1 ? '' : 's'} available with
-                current filters
+                {filteredCountryMonitors.length === 1 ? '' : 's'} available
               </p>
             </div>
 
@@ -379,9 +414,12 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                 Network
               </h4>
               <p className="mb-2 text-[15px] font-semibold text-slate-900">
-                {selectedMonitor.network}
+                {displayText(selectedMonitor.network)}
               </p>
-              <StatLine label="Operator" value={selectedMonitor.operator} />
+              <StatLine
+                label="Operator"
+                value={displayText(selectedMonitor.operator)}
+              />
               <StatLine
                 label="Status"
                 value={
@@ -402,19 +440,29 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
               <h4 className="mb-2 text-xs font-bold uppercase tracking-[0.08em] text-slate-500 sm:text-sm">
                 Equipment
               </h4>
-              <StatLine label="Instrument" value={selectedMonitor.equipment} />
+              <StatLine
+                label="Instrument"
+                value={displayText(selectedMonitor.equipment)}
+              />
               <StatLine
                 label="Manufacturer"
-                value={selectedMonitor.manufacturer}
+                value={displayText(selectedMonitor.manufacturer)}
               />
               <StatLine
                 label="Pollutants"
-                value={selectedMonitor.pollutants.join(' · ')}
+                value={
+                  selectedMonitor.pollutants.length
+                    ? selectedMonitor.pollutants.join(' · ')
+                    : '--'
+                }
               />
-              <StatLine label="Resolution" value={selectedMonitor.resolution} />
+              <StatLine
+                label="Resolution"
+                value={displayText(selectedMonitor.resolution)}
+              />
               <StatLine
                 label="Transmission"
-                value={selectedMonitor.transmission}
+                value={displayText(selectedMonitor.transmission)}
               />
             </div>
 
@@ -422,8 +470,14 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
               <h4 className="mb-2 text-xs font-bold uppercase tracking-[0.08em] text-slate-500 sm:text-sm">
                 Location
               </h4>
-              <StatLine label="Site" value={selectedMonitor.site} />
-              <StatLine label="Land Use" value={selectedMonitor.landUse} />
+              <StatLine
+                label="Site"
+                value={displayText(selectedMonitor.site)}
+              />
+              <StatLine
+                label="Land Use"
+                value={displayText(selectedMonitor.landUse)}
+              />
               <StatLine
                 label="Coordinates"
                 value={formatCoordinates(
@@ -447,11 +501,11 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
               />
               <StatLine
                 label="Method"
-                value={selectedMonitor.calibrationMethod}
+                value={displayText(selectedMonitor.calibrationMethod)}
               />
               <StatLine
                 label="Uptime (30d)"
-                value={selectedMonitor.uptime30d}
+                value={displayText(selectedMonitor.uptime30d)}
               />
             </div>
 
@@ -461,15 +515,16 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
               </h4>
               <StatLine
                 label="Public Data"
-                value={selectedMonitor.publicData}
+                value={displayText(selectedMonitor.publicData)}
               />
               <div className="mt-3 grid grid-cols-1 gap-2">
                 <button
                   type="button"
                   onClick={() =>
                     window.open(
-                      selectedMonitor.viewDataUrl ?? VERTEX_APP_URL,
+                      ANALYTICS_APP_URL,
                       '_blank',
+                      'noopener,noreferrer',
                     )
                   }
                   className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700"
@@ -485,26 +540,15 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
               </h4>
               <StatLine
                 label="Organisation"
-                value={selectedMonitor.organisation}
+                value={displayText(selectedMonitor.organisation)}
               />
               <StatLine
                 label="Co-location"
-                value={
-                  <span className="font-semibold text-emerald-600">
-                    {selectedMonitor.coLocation}
-                  </span>
-                }
+                value={displayText(selectedMonitor.coLocation)}
               />
               <p className="mt-2 text-sm text-slate-500">
-                {selectedMonitor.coLocationNote}
+                {displayText(selectedMonitor.coLocationNote)}
               </p>
-              <button
-                type="button"
-                onClick={() => window.open(VERTEX_APP_URL, '_blank')}
-                className="mt-3 w-full rounded-xl bg-emerald-600 px-3 py-2.5 text-sm font-semibold text-white"
-              >
-                Request co-location
-              </button>
             </div>
           </div>
         )}
