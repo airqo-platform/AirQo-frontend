@@ -118,9 +118,8 @@ export async function POST(request: NextRequest) {
       ],
     });
 
-    // Send to Slack with timeout
-    const timeoutMs = parseInt(process.env.SLACK_TIMEOUT_MS || '5000', 10);
     const controller = new AbortController();
+    const timeoutMs = 10000;
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
     let response;
