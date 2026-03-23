@@ -140,19 +140,6 @@ jobs:
           docker tag ${{ env.REGISTRY_URL }}/website2-staging:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/website2-staging:latest
           docker push ${{ env.REGISTRY_URL }}/website2-staging:latest
 
-      - name: Create secrets.json from GitHub secrets
-        run: |
-          jq -n \
-            --arg SECRET "${{ secrets.WEBSITE_SECRET }}" \
-            --arg API_URL "${{ secrets.WEBSITE_STAGE_API_URL }}" \
-            --arg OPENCAGE_API_KEY "${{ secrets.WEBSITE_STAGE_OPENCAGE_API_KEY }}" \
-            --arg API_TOKEN "${{ secrets.WEBSITE_STAGE_API_TOKEN }}" \
-            --arg SLACK_WEBHOOK_URL "${{ secrets.WEBSITE_STAGE_SLACK_WEBHOOK_URL }}" \
-            --arg SLACK_CHANNEL "${{ secrets.WEBSITE_STAGE_SLACK_CHANNEL }}" \
-            --arg NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN "${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }}" \
-            --arg NEXT_PUBLIC_GA_MEASUREMENT_ID "${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }}" \
-            '{SECRET: $SECRET, API_URL: $API_URL, OPENCAGE_API_KEY: $OPENCAGE_API_KEY, API_TOKEN: $API_TOKEN, SLACK_WEBHOOK_URL: $SLACK_WEBHOOK_URL, SLACK_CHANNEL: $SLACK_CHANNEL, NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN: $NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN, NEXT_PUBLIC_GA_MEASUREMENT_ID: $NEXT_PUBLIC_GA_MEASUREMENT_ID}' > secrets.json
-
       - name: Deploy to Container Apps
         run: |
           if az containerapp show -g ${{ env.RG }} -n website-staging >/dev/null 2>&1; then
@@ -163,7 +150,15 @@ jobs:
               --registry-server ${{ env.REGISTRY_URL }} \
               --registry-username airqoacr \
               --registry-password ${{ secrets.ACR_PASSWORD }} \
-              --set-env-vars "$(jq -r 'to_entries | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json)"
+              --set-env-vars \
+                "SECRET=${{ secrets.WEBSITE_SECRET }}" \
+                "API_URL=${{ secrets.WEBSITE_STAGE_API_URL }}" \
+                "OPENCAGE_API_KEY=${{ secrets.WEBSITE_STAGE_OPENCAGE_API_KEY }}" \
+                "API_TOKEN=${{ secrets.WEBSITE_STAGE_API_TOKEN }}" \
+                "SLACK_WEBHOOK_URL=${{ secrets.WEBSITE_STAGE_SLACK_WEBHOOK_URL }}" \
+                "SLACK_CHANNEL=${{ secrets.WEBSITE_STAGE_SLACK_CHANNEL }}" \
+                "NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }}" \
+                "NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }}"
           else
             az containerapp create \
               --name website-staging \
@@ -171,7 +166,15 @@ jobs:
               --environment ${{ env.STAGING_ENV }} \
               --image ${{ env.REGISTRY_URL }}/website2-staging:${{ needs.image-tag.outputs.build_id }} \
               --target-port 8080 \
-              --env-vars "$(jq -r 'to_entries | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json)" \
+              --env-vars \
+                "SECRET=${{ secrets.WEBSITE_SECRET }}" \
+                "API_URL=${{ secrets.WEBSITE_STAGE_API_URL }}" \
+                "OPENCAGE_API_KEY=${{ secrets.WEBSITE_STAGE_OPENCAGE_API_KEY }}" \
+                "API_TOKEN=${{ secrets.WEBSITE_STAGE_API_TOKEN }}" \
+                "SLACK_WEBHOOK_URL=${{ secrets.WEBSITE_STAGE_SLACK_WEBHOOK_URL }}" \
+                "SLACK_CHANNEL=${{ secrets.WEBSITE_STAGE_SLACK_CHANNEL }}" \
+                "NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }}" \
+                "NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }}" \
               --cpu 1.0 --memory 2.0Gi \
               --ingress external \
               --min-replicas 1 \
