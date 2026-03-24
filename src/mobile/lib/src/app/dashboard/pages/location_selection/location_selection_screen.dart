@@ -55,6 +55,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
   final UserPreferencesRepository _preferencesRepo = UserPreferencesImpl();
   late final SitesRepository _sitesRepository;
   Timer? _searchDebounce;
+  int _searchRequestId = 0;
   bool isSaving = false;
   String? currentUserId;
   UserPreferencesModel? userPreferences;
@@ -287,11 +288,14 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
 
     googlePlacesBloc!.add(SearchPlace(value));
 
+    final requestId = ++_searchRequestId;
+
     _searchDebounce = Timer(const Duration(milliseconds: 400), () {
       if (CacheManager().isConnected) {
-        _searchSitesFromApi(value);
+        _searchSitesFromApi(value, requestId);
       } else {
         loggy.info('Offline — using local search for: "$value"');
+        if (requestId != _searchRequestId) return;
         setState(() {
           localSearchResults = LocationHelper.searchAirQualityLocations(
                   value, allMeasurements)
@@ -313,36 +317,34 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
     });
   }
 
-  Future<void> _searchSitesFromApi(String query) async {
+  Future<void> _searchSitesFromApi(String query, int requestId) async {
     loggy.info('Fetching search results from API for: "$query"');
     try {
       final results = await _sitesRepository.searchSites(query);
-      if (mounted) {
-        setState(() {
-          localSearchResults = results;
-        });
-      }
+      if (requestId != _searchRequestId || !mounted) return;
+      setState(() {
+        localSearchResults = results;
+      });
     } catch (e) {
       loggy.error('API search failed, falling back to local search: $e');
-      if (mounted) {
-        setState(() {
-          localSearchResults = LocationHelper.searchAirQualityLocations(
-                  query, allMeasurements)
-              .where((m) => m.siteId != null)
-              .map((m) => SiteSearchResult(
-                    id: m.siteId!,
-                    name: m.siteDetails?.name,
-                    searchName: m.siteDetails?.searchName,
-                    city: m.siteDetails?.city,
-                    town: m.siteDetails?.town,
-                    district: m.siteDetails?.district,
-                    country: m.siteDetails?.country,
-                    formattedName: m.siteDetails?.formattedName,
-                    locationName: m.siteDetails?.locationName,
-                  ))
-              .toList();
-        });
-      }
+      if (requestId != _searchRequestId || !mounted) return;
+      setState(() {
+        localSearchResults = LocationHelper.searchAirQualityLocations(
+                query, allMeasurements)
+            .where((m) => m.siteId != null)
+            .map((m) => SiteSearchResult(
+                  id: m.siteId!,
+                  name: m.siteDetails?.name,
+                  searchName: m.siteDetails?.searchName,
+                  city: m.siteDetails?.city,
+                  town: m.siteDetails?.town,
+                  district: m.siteDetails?.district,
+                  country: m.siteDetails?.country,
+                  formattedName: m.siteDetails?.formattedName,
+                  locationName: m.siteDetails?.locationName,
+                ))
+            .toList();
+      });
     }
   }
 

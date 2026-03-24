@@ -71,11 +71,12 @@ class SitesImpl extends SitesRepository with NetworkLoggy {
             .toList();
       } else {
         loggy.warning('Sites search API error: ${response.statusCode}');
-        return [];
+        throw Exception(
+            'Sites search failed with status ${response.statusCode}: ${response.body}');
       }
     } catch (e) {
       loggy.error('Error searching sites: $e');
-      return [];
+      rethrow;
     }
   }
 
