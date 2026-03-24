@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+import 'package:airqo/src/app/dashboard/models/site_search_result.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/other/places/bloc/google_places_bloc.dart';
 import 'package:airqo/src/app/dashboard/widgets/google_places_loader.dart';
@@ -17,9 +18,10 @@ class LocationListView extends StatelessWidget with UiLoggy {
   final String currentFilter;
   final List<Measurement> allMeasurements;
   final List<Measurement> filteredMeasurements;
-  final List<Measurement> localSearchResults;
+  final List<SiteSearchResult> localSearchResults;
   final Set<String> selectedLocations;
   final Function(Measurement, bool) onToggleSelection;
+  final Function(SiteSearchResult, bool) onToggleSiteSelection;
   final Function({Measurement? measurement, String? placeName}) onViewDetails;
   final VoidCallback onResetFilter;
 
@@ -35,6 +37,7 @@ class LocationListView extends StatelessWidget with UiLoggy {
     required this.localSearchResults,
     required this.selectedLocations,
     required this.onToggleSelection,
+    required this.onToggleSiteSelection,
     required this.onViewDetails,
     required this.onResetFilter,
   });
@@ -144,7 +147,7 @@ class LocationListView extends StatelessWidget with UiLoggy {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   ),
-                  ...localSearchResults.map((measurement) => Column(
+                  ...localSearchResults.map((site) => Column(
                         children: [
                           ListTile(
                             leading: CircleAvatar(
@@ -154,10 +157,7 @@ class LocationListView extends StatelessWidget with UiLoggy {
                               ),
                             ),
                             title: Text(
-                              measurement.siteDetails?.city ??
-                                  measurement.siteDetails?.town ??
-                                  measurement.siteDetails?.locationName ??
-                                  "Unknown Location",
+                              site.displayName,
                               style: TextStyle(
                                   color: Theme.of(context)
                                       .textTheme
@@ -165,10 +165,7 @@ class LocationListView extends StatelessWidget with UiLoggy {
                                       ?.color),
                             ),
                             subtitle: Text(
-                              measurement.siteDetails?.searchName ??
-                                  measurement.siteDetails?.name ??
-                                  measurement.siteDetails?.formattedName ??
-                                  "---",
+                              site.displaySubtitle,
                               style: TextStyle(
                                   color: Theme.of(context)
                                       .textTheme
@@ -177,10 +174,9 @@ class LocationListView extends StatelessWidget with UiLoggy {
                                       ?.withOpacity(0.7)),
                             ),
                             trailing: Checkbox(
-                              value: selectedLocations
-                                  .contains(measurement.siteId),
+                              value: selectedLocations.contains(site.id),
                               onChanged: (value) {
-                                onToggleSelection(measurement, value!);
+                                onToggleSiteSelection(site, value!);
                               },
                               fillColor: WidgetStateProperty.resolveWith(
                                 (states) =>
@@ -190,14 +186,14 @@ class LocationListView extends StatelessWidget with UiLoggy {
                               ),
                               checkColor: Colors.white,
                               side: BorderSide(
-                                  color: Theme.of(context).brightness == Brightness.dark 
-                                      ? Theme.of(context).dividerColor 
+                                  color: Theme.of(context).brightness == Brightness.dark
+                                      ? Theme.of(context).dividerColor
                                       : Colors.grey[600]!),
                             ),
-                            onTap: () =>
-                                onViewDetails(measurement: measurement),
+                            onTap: () => onToggleSiteSelection(
+                                site, !selectedLocations.contains(site.id)),
                           ),
-                          if (measurement != localSearchResults.last)
+                          if (site != localSearchResults.last)
                             Divider(indent: 50),
                         ],
                       )),
