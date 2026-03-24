@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:airqo/src/app/dashboard/models/site_search_result.dart';
 import 'package:airqo/src/app/shared/repository/hive_repository.dart';
@@ -57,7 +58,9 @@ class SitesImpl extends SitesRepository with NetworkLoggy {
       );
 
       final headers = await _getHeaders();
-      final response = await _httpClient.get(uri, headers: headers);
+      final response = await _httpClient
+          .get(uri, headers: headers)
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body) as Map<String, dynamic>;
@@ -74,6 +77,9 @@ class SitesImpl extends SitesRepository with NetworkLoggy {
         throw Exception(
             'Sites search failed with status ${response.statusCode}: ${response.body}');
       }
+    } on TimeoutException {
+      loggy.error('Sites search request timed out for query: "$query"');
+      throw TimeoutException('Sites search timed out');
     } catch (e) {
       loggy.error('Error searching sites: $e');
       rethrow;
