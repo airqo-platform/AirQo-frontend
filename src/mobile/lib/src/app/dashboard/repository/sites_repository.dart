@@ -28,11 +28,11 @@ class SitesImpl extends SitesRepository with NetworkLoggy {
       "Content-Type": "application/json",
     };
     if (userToken != null && (userToken as String).isNotEmpty) {
-      headers["Authorization"] = userToken;
+      headers["Authorization"] = "JWT $userToken";
     } else {
       final appToken = dotenv.env["AIRQO_MOBILE_TOKEN"];
       if (appToken != null && appToken.isNotEmpty) {
-        headers["Authorization"] = appToken;
+        headers["Authorization"] = "JWT $appToken";
       }
     }
     return headers;

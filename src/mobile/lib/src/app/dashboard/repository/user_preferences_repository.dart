@@ -23,13 +23,13 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
 
     if (userToken != null && userToken.isNotEmpty) {
       loggy.info('Using user authentication token');
-      headers["Authorization"] = userToken;
+      headers["Authorization"] = "JWT $userToken";
     } else {
 
       loggy.info('Using application token from environment');
       final appToken = dotenv.env["AIRQO_MOBILE_TOKEN"];
       if (appToken != null && appToken.isNotEmpty) {
-        headers["Authorization"] = appToken;
+        headers["Authorization"] = "JWT $appToken";
       } else {
         loggy.warning('No authentication token available');
       }
