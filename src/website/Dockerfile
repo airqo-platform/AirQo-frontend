@@ -35,6 +35,9 @@ FROM node:20-alpine AS runner
 ENV NODE_ENV=production
 WORKDIR /app
 
+# Add CA certificates to trust Let's Encrypt and other CAs
+RUN apk add --no-cache ca-certificates && update-ca-certificates
+
 # Runtime args for server-side environment variables
 # Runtime secrets must be supplied by the platform (docker run -e ...) or
 # via your orchestrator/secret manager. Do NOT bake them into the image.
