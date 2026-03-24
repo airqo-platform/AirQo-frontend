@@ -215,7 +215,7 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
   const [zoomLevel, setZoomLevel] = useState(2.6);
 
   const countryById = useMemo(() => {
-    const result: Record<string, CountryCoverage> = {};
+    const result: Record<string, NetworkCoverageCountry> = {};
     countries.forEach((country) => {
       result[country.id] = country;
     });
@@ -223,7 +223,7 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
   }, [countries]);
 
   const countryByIso2 = useMemo(() => {
-    const result: Record<string, CountryCoverage> = {};
+    const result: Record<string, NetworkCoverageCountry> = {};
     countries.forEach((country) => {
       result[country.iso2] = country;
     });
@@ -881,12 +881,12 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
                 maxZoom: 2.4,
                 duration: 650,
               });
-            } catch (e) {
+            } catch {
               // ignore
             }
             try {
               onResetView();
-            } catch (e) {
+            } catch {
               // ignore
             }
           }}

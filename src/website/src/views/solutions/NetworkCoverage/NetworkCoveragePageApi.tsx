@@ -6,12 +6,12 @@ import autoTable from 'jspdf-autotable';
 import React, { useEffect, useMemo, useState } from 'react';
 
 import { MapLoader } from '@/components/map';
-import { networkCoverageService } from '@/services/apiService';
 import {
   useNetworkCoverageCountryMonitors,
   useNetworkCoverageMonitor,
   useNetworkCoverageSummary,
 } from '@/hooks/useApiHooks';
+import { networkCoverageService } from '@/services/apiService';
 
 import NetworkCoverageHeader from './components/NetworkCoverageHeader';
 import NetworkCoverageLegend from './components/NetworkCoverageLegend';
@@ -65,6 +65,17 @@ const formatPdfDateTime = (value?: string) => {
   } catch {
     return '--';
   }
+};
+
+const formatCoordinates = (lat: number, lon: number) => {
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+    return '--';
+  }
+
+  const latSuffix = lat < 0 ? 'S' : 'N';
+  const lonSuffix = lon < 0 ? 'W' : 'E';
+
+  return `${Math.abs(lat).toFixed(4)}°${latSuffix} ${Math.abs(lon).toFixed(4)}°${lonSuffix}`;
 };
 
 const buildPdfRow = (monitor: NetworkCoverageMonitor) => [
@@ -451,7 +462,7 @@ const NetworkCoveragePage = () => {
             try {
               // eslint-disable-next-line no-alert
               alert('Add to Network action triggered');
-            } catch (e) {
+            } catch {
               // ignore in non-browser env
             }
           }}
@@ -513,6 +524,7 @@ const NetworkCoveragePage = () => {
                 onCountrySelectByIso={selectCountryByIso}
                 onMonitorSelect={selectMonitor}
                 onResetView={resetToOverview}
+                flyToMonitorId={flyToMonitorId}
               />
             </MapLoader>
             {isInitialLoading ? (

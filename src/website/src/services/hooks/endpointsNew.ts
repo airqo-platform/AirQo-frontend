@@ -37,7 +37,9 @@ type ServiceQueryResult<T> = {
   data: T | undefined;
   error: Error | null;
   isLoading: boolean;
+  isFetching: boolean;
   isValidating: boolean;
+  isSuccess: boolean;
   refetch: UseQueryResult<T, Error>['refetch'];
 };
 
@@ -56,7 +58,9 @@ function useServiceQuery<T>(
     data: query.data,
     error: query.error ?? null,
     isLoading: query.isLoading,
+    isFetching: query.isFetching,
     isValidating: query.isFetching,
+    isSuccess: query.isSuccess,
     refetch: query.refetch,
   };
 }
@@ -483,11 +487,18 @@ export const useNetworkCoverageCountryMonitors = (
 
 export const useNetworkCoverageMonitor = (
   monitorId: string | null,
+  params?: {
+    tenant?: string;
+  },
   queryOptions?: ServiceQueryOptions<any>,
 ) =>
   useServiceQuery(
-    apiQueryKeys.networkCoverageMonitor(monitorId),
-    () => networkCoverageService.getNetworkCoverageMonitor(monitorId as string),
+    apiQueryKeys.networkCoverageMonitor(monitorId, params),
+    () =>
+      networkCoverageService.getNetworkCoverageMonitor(
+        monitorId as string,
+        params || {},
+      ),
     {
       enabled: !!monitorId,
       staleTime: 30 * 60 * 1000,

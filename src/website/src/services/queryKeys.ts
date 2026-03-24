@@ -128,8 +128,12 @@ export const apiQueryKeys = {
       countryId,
       compactParams(params),
     ] as const,
-  networkCoverageMonitor: (monitorId: string | null) =>
-    ['networkCoverageMonitor', monitorId] as const,
+  networkCoverageMonitor: (
+    monitorId: string | null,
+    params?: {
+      tenant?: string;
+    },
+  ) => ['networkCoverageMonitor', monitorId, compactParams(params)] as const,
   gridRepresentativeReading: (gridId: string | null) =>
     ['gridRepresentativeReading', gridId] as const,
   gridMeasurements: (
