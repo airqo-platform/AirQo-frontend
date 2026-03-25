@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/feedback/pages/feedback_screen.dart';
 import 'package:airqo/src/app/profile/pages/widgets/settings_tile.dart';
 import 'package:flutter/material.dart';
 
@@ -25,7 +26,13 @@ class GuestSettingsWidget extends StatelessWidget {
         SettingsTile(
           iconPath: "assets/images/shared/feedback_icon.svg",
           title: "Send Feedback",
-          onChanged: (_) {},
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const FeedbackScreen(),
+              ),
+            );
+          },
         ),
         SettingsTile(
           iconPath: "assets/images/shared/airqo_story_icon.svg",

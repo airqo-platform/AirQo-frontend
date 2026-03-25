@@ -1,4 +1,6 @@
 import 'package:airqo/src/app/auth/pages/welcome_screen.dart';
+import 'package:airqo/src/app/feedback/pages/feedback_screen.dart';
+import 'package:airqo/src/app/profile/bloc/user_bloc.dart';
 import 'package:airqo/src/app/profile/pages/languages/select_language_page.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -236,6 +238,28 @@ void _showLogoutConfirmation() {
             ),
 
             SizedBox(height: screenHeight * 0.02),
+
+            SettingsTile(
+              iconPath: "assets/images/shared/feedback_icon.svg",
+              title: "Send Feedback",
+              description:
+                  "Share your thoughts or report issues to help us improve AirQo",
+              onTap: () {
+                final userState = context.read<UserBloc>().state;
+                String? email;
+                if (userState is UserLoaded &&
+                    userState.model.users.isNotEmpty) {
+                  email = userState.model.users[0].email;
+                }
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        FeedbackScreen(initialEmail: email),
+                  ),
+                );
+              },
+            ),
+
 
             Padding(
               padding: EdgeInsets.symmetric(vertical: screenHeight * 0.05),
