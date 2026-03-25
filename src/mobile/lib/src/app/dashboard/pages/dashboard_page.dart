@@ -240,7 +240,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const LocationSelectionScreen(),
+                      builder: (context) => LocationSelectionScreen(),
                     ),
                   ).then((value) {
                     if (value != null) {

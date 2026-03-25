@@ -285,7 +285,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
 
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const LocationSelectionScreen()),
+      MaterialPageRoute(builder: (context) => LocationSelectionScreen()),
     );
 
     if (result != null && mounted) {
