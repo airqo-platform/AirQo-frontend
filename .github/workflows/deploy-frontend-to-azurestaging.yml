@@ -142,7 +142,16 @@ jobs:
 
       - name: Deploy to Container Apps
         run: |
-          ENV_VARS="SECRET=${{ secrets.WEBSITE_SECRET }} API_URL=${{ secrets.WEBSITE_STAGE_API_URL }} OPENCAGE_API_KEY=${{ secrets.WEBSITE_STAGE_OPENCAGE_API_KEY }} API_TOKEN=${{ secrets.WEBSITE_STAGE_API_TOKEN }} SLACK_WEBHOOK_URL=${{ secrets.WEBSITE_STAGE_SLACK_WEBHOOK_URL }} SLACK_CHANNEL=${{ secrets.WEBSITE_STAGE_SLACK_CHANNEL }} NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }} NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }}"
+          ENV_VARS=(
+            "SECRET=${{ secrets.WEBSITE_SECRET }}"
+            "API_URL=${{ secrets.WEBSITE_STAGE_API_URL }}"
+            "OPENCAGE_API_KEY=${{ secrets.WEBSITE_STAGE_OPENCAGE_API_KEY }}"
+            "API_TOKEN=${{ secrets.WEBSITE_STAGE_API_TOKEN }}"
+            "SLACK_WEBHOOK_URL=${{ secrets.WEBSITE_STAGE_SLACK_WEBHOOK_URL }}"
+            "SLACK_CHANNEL=${{ secrets.WEBSITE_STAGE_SLACK_CHANNEL }}"
+            "NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }}"
+            "NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }}"
+          )
           
           if az containerapp show -g ${{ env.RG }} -n website-staging >/dev/null 2>&1; then
             az containerapp update \
@@ -152,7 +161,7 @@ jobs:
               --registry-server ${{ env.REGISTRY_URL }} \
               --registry-username airqoacr \
               --registry-password ${{ secrets.ACR_PASSWORD }} \
-              --set-env-vars $ENV_VARS
+              --set-env-vars "${ENV_VARS[@]}"
 
           else
             az containerapp create \
@@ -161,7 +170,7 @@ jobs:
               --environment ${{ env.STAGING_ENV }} \
               --image ${{ env.REGISTRY_URL }}/website2-staging:${{ needs.image-tag.outputs.build_id }} \
               --target-port 8080 \
-              --env-vars $ENV_VARS \
+              --env-vars "${ENV_VARS[@]}"\
               --cpu 1.0 --memory 2.0Gi \
               --ingress external \
               --min-replicas 1 \
