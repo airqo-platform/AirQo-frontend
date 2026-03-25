@@ -525,13 +525,7 @@ const NetworkCoveragePage = () => {
                 flyToMonitorId={flyToMonitorId}
               />
             </MapLoader>
-            {isInitialLoading ? (
-              <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#f6f6f7]/70 backdrop-blur-[1px]">
-                <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm font-medium text-slate-700 shadow-lg">
-                  Loading network coverage data...
-                </div>
-              </div>
-            ) : null}
+            {/* initial loading handled by MapLoader spinner; remove redundant message */}
             {summaryError && !countries.length ? (
               <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#f6f6f7]/80 px-6">
                 <div className="max-w-sm rounded-2xl border border-red-200 bg-white p-5 text-center shadow-lg">
