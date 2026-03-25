@@ -129,16 +129,7 @@ jobs:
         run: |
           BRANCH="${{ needs.branch-name.outputs.lowercase }}"
           APP="${BRANCH:0:12}-website-preview"
-          ENV_VARS=(
-            "SECRET=${{ secrets.WEBSITE_SECRET }}"
-            "API_URL=${{ secrets.WEBSITE_STAGE_API_URL }}"
-            "OPENCAGE_API_KEY=${{ secrets.WEBSITE_STAGE_OPENCAGE_API_KEY }}"
-            "API_TOKEN=${{ secrets.WEBSITE_STAGE_API_TOKEN }}"
-            "SLACK_WEBHOOK_URL=${{ secrets.WEBSITE_STAGE_SLACK_WEBHOOK_URL }}"
-            "SLACK_CHANNEL=${{ secrets.WEBSITE_STAGE_SLACK_CHANNEL }}"
-            "NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }}"
-            "NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }}"
-          )
+          ENV_VARS="SECRET=${{ secrets.WEBSITE_SECRET }} API_URL=${{ secrets.WEBSITE_STAGE_API_URL }} OPENCAGE_API_KEY=${{ secrets.WEBSITE_STAGE_OPENCAGE_API_KEY }} API_TOKEN=${{ secrets.WEBSITE_STAGE_API_TOKEN }} SLACK_WEBHOOK_URL=${{ secrets.WEBSITE_STAGE_SLACK_WEBHOOK_URL }} SLACK_CHANNEL=${{ secrets.WEBSITE_STAGE_SLACK_CHANNEL }} NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }} NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }}"
           
           az containerapp up \
             --name $APP \
@@ -150,7 +141,7 @@ jobs:
             --registry-server ${{ env.REGISTRY_URL }} \
             --registry-username airqoacr \
             --registry-password ${{ secrets.ACR_PASSWORD }} \
-            --env-vars "${ENV_VARS[@]}"
+            --env-vars $ENV_VARS
 
       - id: preview
         run: |
