@@ -13,6 +13,7 @@ import {
 } from '@/hooks/useApiHooks';
 import { networkCoverageService } from '@/services/apiService';
 
+import NetworkCoverageAddToNetworkDialog from './components/NetworkCoverageAddToNetworkDialog';
 import NetworkCoverageHeader from './components/NetworkCoverageHeader';
 import NetworkCoverageLegend from './components/NetworkCoverageLegend';
 import NetworkCoverageMap from './components/NetworkCoverageMap';
@@ -67,10 +68,9 @@ const formatPdfDateTime = (value?: string) => {
   }
 };
 
-const formatCoordinates = (lat: number, lon: number) => {
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-    return '--';
-  }
+const formatCoordinates = (lat: number | null, lon: number | null) => {
+  if (typeof lat !== 'number' || typeof lon !== 'number') return '--';
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return '--';
 
   const latSuffix = lat < 0 ? 'S' : 'N';
   const lonSuffix = lon < 0 ? 'W' : 'E';
@@ -118,6 +118,8 @@ const NetworkCoveragePage = () => {
     string | null
   >(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isAddToNetworkDialogOpen, setIsAddToNetworkDialogOpen] =
+    useState(false);
   const [mapStyle, setMapStyle] = useState(
     'mapbox://styles/mapbox/streets-v12',
   );
@@ -456,16 +458,12 @@ const NetworkCoveragePage = () => {
           onToggleSidebar={() => setIsSidebarOpen((previous) => !previous)}
           onDownload={handleDownload}
           isDownloading={isDownloading}
-          onAddToNetwork={() => {
-            // placeholder action - open sidebar prompt or perform add-to-network flow
-            // for now show a simple alert to indicate action
-            try {
-              // eslint-disable-next-line no-alert
-              alert('Add to Network action triggered');
-            } catch {
-              // ignore in non-browser env
-            }
-          }}
+          onAddToNetwork={() => setIsAddToNetworkDialogOpen(true)}
+        />
+
+        <NetworkCoverageAddToNetworkDialog
+          isOpen={isAddToNetworkDialogOpen}
+          onOpenChange={setIsAddToNetworkDialogOpen}
         />
 
         <main className="relative mt-2 flex min-h-0 flex-1 overflow-hidden rounded-xl border border-slate-200 bg-[#f6f6f7]">
@@ -556,7 +554,6 @@ const NetworkCoveragePage = () => {
                 {downloadError}
               </div>
             ) : null}
-            monitorLoading={monitorDetailQuery.isFetching}
             {isDownloading ? (
               <div className="absolute right-4 top-4 z-20 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm">
                 Preparing download...

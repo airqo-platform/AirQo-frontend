@@ -116,12 +116,14 @@ const buildPill = (
 const buildMonitorTooltipMarkup = (monitor: NetworkCoverageMonitor) => {
   const typeColor = monitorTypeStyles[monitor.type];
   const statusColor = statusStyles[monitor.status];
-  const latitudeText = Number.isFinite(monitor.latitude)
-    ? `${Math.abs(monitor.latitude).toFixed(4)}°${monitor.latitude < 0 ? 'S' : 'N'}`
-    : '--';
-  const longitudeText = Number.isFinite(monitor.longitude)
-    ? `${Math.abs(monitor.longitude).toFixed(4)}°${monitor.longitude < 0 ? 'W' : 'E'}`
-    : '--';
+  const latitudeText =
+    typeof monitor.latitude === 'number' && Number.isFinite(monitor.latitude)
+      ? `${Math.abs(monitor.latitude).toFixed(4)}°${monitor.latitude < 0 ? 'S' : 'N'}`
+      : '--';
+  const longitudeText =
+    typeof monitor.longitude === 'number' && Number.isFinite(monitor.longitude)
+      ? `${Math.abs(monitor.longitude).toFixed(4)}°${monitor.longitude < 0 ? 'W' : 'E'}`
+      : '--';
 
   return `
     <div style="width:auto;max-width:320px;min-width:0;box-sizing:border-box;overflow-wrap:anywhere;word-break:break-word;">
@@ -266,6 +268,15 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       zoomLevel < 4 ? 1 : zoomLevel < 5.2 ? 2 : zoomLevel < 7.2 ? 3 : 4;
 
     visibleMonitors.forEach((monitor) => {
+      if (
+        typeof monitor.latitude !== 'number' ||
+        typeof monitor.longitude !== 'number' ||
+        !Number.isFinite(monitor.latitude) ||
+        !Number.isFinite(monitor.longitude)
+      ) {
+        return;
+      }
+
       const key = `${monitor.latitude.toFixed(precision)}:${monitor.longitude.toFixed(precision)}:${monitor.type}`;
       const existing = grouped.get(key);
       if (existing) {
@@ -301,11 +312,14 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
   };
 
   useEffect(() => {
-    if (
-      typeof window === 'undefined' ||
-      !(window as any).mapboxgl ||
-      mapRef.current
-    ) {
+    if (typeof window === 'undefined' || mapRef.current) {
+      return;
+    }
+
+    if (!(window as any).mapboxgl) {
+      setMapInitError(
+        'Map library is not available. Mapbox script failed to load.',
+      );
       return;
     }
 
@@ -433,6 +447,7 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
+        setMapLoaded(false);
       }
     };
   }, [mapStyle]);
@@ -816,7 +831,14 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
     if (selectedCountry && selectedCountry.monitors.length > 0) {
       const bounds = new (window as any).mapboxgl.LngLatBounds();
       selectedCountry.monitors.forEach((monitor) => {
-        bounds.extend([monitor.longitude, monitor.latitude]);
+        if (
+          typeof monitor.longitude === 'number' &&
+          typeof monitor.latitude === 'number' &&
+          Number.isFinite(monitor.longitude) &&
+          Number.isFinite(monitor.latitude)
+        ) {
+          bounds.extend([monitor.longitude, monitor.latitude]);
+        }
       });
       map.fitBounds(bounds, {
         padding: { top: 120, right: 70, bottom: 90, left: 70 },

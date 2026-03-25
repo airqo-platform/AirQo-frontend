@@ -13,8 +13,8 @@ export interface NetworkCoverageMonitor {
   country: string;
   countryId: string;
   iso2: string;
-  latitude: number;
-  longitude: number;
+  latitude: number | null;
+  longitude: number | null;
   type: MonitorType;
   status: MonitorStatus;
   lastActive: string;
@@ -152,7 +152,11 @@ const normalizeString = (value: unknown, fallback = ''): string => {
   return String(value).trim();
 };
 
-const normalizeNumber = (value: unknown, fallback = 0): number => {
+const normalizeNumber = (
+  value: unknown,
+  fallback: number | null = null,
+): number | null => {
+  if (value === null || value === undefined || value === '') return fallback;
   const parsed = typeof value === 'number' ? value : Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
 };
@@ -207,69 +211,90 @@ const normalizeArray = (value: unknown): string[] => {
 export const normalizeNetworkCoverageMonitor = (
   monitor: any,
 ): NetworkCoverageMonitor => {
-  const type = normalizeMonitorType(monitor.type);
-  const country = normalizeString(monitor.country);
-  const iso2 = normalizeIso2(monitor.iso2, '');
+  const source = monitor ?? {};
+  const type = normalizeMonitorType(source.type);
+  const country = normalizeString(source.country);
+  const iso2 = normalizeIso2(source.iso2, '');
+
+  const lookupIso2ForCountry = (name?: string) => {
+    if (!name) return '';
+    const found = AFRICAN_COUNTRY_LIST.find(
+      (item) => item.country.toLowerCase() === name.toLowerCase(),
+    );
+    return found ? found.iso2 : '';
+  };
 
   return {
-    id: normalizeString(monitor.id || monitor._id || monitor.site_id),
-    name: normalizeString(monitor.name),
-    city: normalizeString(monitor.city),
+    id: normalizeString(source.id || source._id || source.site_id),
+    name: normalizeString(source.name),
+    city: normalizeString(source.city),
     country,
     countryId: normalizeString(
-      monitor.countryId || monitor.country_id || normalizeCountryId(country),
+      source.countryId || source.country_id || normalizeCountryId(country),
     ),
-    iso2: iso2 || normalizeIso2(country.slice(0, 2), ''),
-    latitude: normalizeNumber(monitor.latitude ?? monitor.approximate_latitude),
+    iso2: iso2 || lookupIso2ForCountry(country) || normalizeIso2(country, ''),
+    latitude: normalizeNumber(source.latitude ?? source.approximate_latitude),
     longitude: normalizeNumber(
-      monitor.longitude ?? monitor.approximate_longitude,
+      source.longitude ?? source.approximate_longitude,
     ),
     type,
-    status: normalizeMonitorStatus(monitor.status, type),
+    status: normalizeMonitorStatus(source.status, type),
     lastActive: normalizeString(
-      monitor.lastActive || monitor.last_active || monitor.last_active_at,
+      source.lastActive || source.last_active || source.last_active_at,
     ),
-    network: normalizeString(monitor.network),
-    operator: normalizeString(monitor.operator),
-    equipment: normalizeString(monitor.equipment),
-    manufacturer: normalizeString(monitor.manufacturer),
-    pollutants: normalizeArray(monitor.pollutants),
-    resolution: normalizeString(monitor.resolution),
-    transmission: normalizeString(monitor.transmission),
-    site: normalizeString(monitor.site),
-    landUse: normalizeString(monitor.landUse || monitor.land_use),
-    deployed: normalizeString(monitor.deployed),
+    network: normalizeString(source.network),
+    operator: normalizeString(source.operator),
+    equipment: normalizeString(source.equipment),
+    manufacturer: normalizeString(source.manufacturer),
+    pollutants: normalizeArray(source.pollutants),
+    resolution: normalizeString(source.resolution),
+    transmission: normalizeString(source.transmission),
+    site: normalizeString(source.site),
+    landUse: normalizeString(source.landUse || source.land_use),
+    deployed: normalizeString(source.deployed),
     calibrationLastDate: normalizeString(
-      monitor.calibrationLastDate || monitor.calibration_last_date,
+      source.calibrationLastDate || source.calibration_last_date,
     ),
     calibrationMethod: normalizeString(
-      monitor.calibrationMethod || monitor.calibration_method,
+      source.calibrationMethod || source.calibration_method,
     ),
-    uptime30d: normalizeString(monitor.uptime30d),
-    publicData: normalizeYesNo(monitor.publicData),
-    organisation: normalizeString(monitor.organisation),
+    uptime30d: normalizeString(source.uptime30d),
+    publicData: normalizeYesNo(source.publicData),
+    organisation: normalizeString(source.organisation),
     coLocation:
       normalizeString(
-        monitor.coLocation || monitor.co_location,
+        source.coLocation || source.co_location,
         'Not available',
       ) || 'Not available',
     coLocationNote: normalizeString(
-      monitor.coLocationNote || monitor.co_location_note,
+      source.coLocationNote || source.co_location_note,
     ),
-    viewDataUrl: normalizeString(monitor.viewDataUrl || monitor.view_data_url),
+    viewDataUrl: normalizeString(source.viewDataUrl || source.view_data_url),
   };
 };
 
 export const normalizeNetworkCoverageCountry = (
   country: any,
 ): NetworkCoverageCountry => {
-  const countryName = normalizeString(country.country);
-  const rawMonitors = Array.isArray(country.monitors) ? country.monitors : [];
+  const source = country ?? {};
+  const countryName = normalizeString(source.country);
+  const rawMonitors = Array.isArray(source.monitors) ? source.monitors : [];
+
+  const lookupIso2ForCountry = (name?: string) => {
+    if (!name) return '';
+    const found = AFRICAN_COUNTRY_LIST.find(
+      (item) => item.country.toLowerCase() === name.toLowerCase(),
+    );
+    return found ? found.iso2 : '';
+  };
+
+  const iso2 =
+    normalizeIso2(source.iso2, '') || lookupIso2ForCountry(countryName);
 
   return {
-    id: normalizeString(country.id || normalizeCountryId(countryName)),
+    id: normalizeString(source.id || normalizeCountryId(countryName)),
     country: countryName,
-    iso2: normalizeIso2(country.iso2, ''),
+    iso2,
     monitors: rawMonitors.map((monitor: any) =>
       normalizeNetworkCoverageMonitor(monitor),
     ),
@@ -279,16 +304,17 @@ export const normalizeNetworkCoverageCountry = (
 export const normalizeNetworkCoverageSummary = (
   summary: any,
 ): NetworkCoverageSummaryResponse => {
-  const countries = Array.isArray(summary.countries)
-    ? summary.countries.map((country: any) =>
+  const source = summary ?? {};
+  const countries = Array.isArray(source.countries)
+    ? source.countries.map((country: any) =>
         normalizeNetworkCoverageCountry(country),
       )
     : [];
 
   return {
-    success: summary.success !== false,
+    success: source.success !== false,
     message: normalizeString(
-      summary.message,
+      source.message,
       'Network coverage data retrieved successfully',
     ),
     countries: countries.sort(
@@ -296,17 +322,22 @@ export const normalizeNetworkCoverageSummary = (
         left.country.localeCompare(right.country),
     ),
     meta: {
-      totalCountries: normalizeNumber(
-        summary.meta?.totalCountries,
+      totalCountries:
+        normalizeNumber(source.meta?.totalCountries, countries.length) ??
         countries.length,
-      ),
-      monitoredCountries: normalizeNumber(
-        summary.meta?.monitoredCountries,
+      monitoredCountries:
+        normalizeNumber(
+          source.meta?.monitoredCountries,
+          countries.filter(
+            (country: NetworkCoverageCountry) =>
+              country.monitors && country.monitors.length > 0,
+          ).length,
+        ) ??
         countries.filter(
-          (country: NetworkCoverageCountry) => country.monitors.length > 0,
+          (country: NetworkCoverageCountry) =>
+            country.monitors && country.monitors.length > 0,
         ).length,
-      ),
-      generatedAt: normalizeString(summary.meta?.generatedAt),
+      generatedAt: normalizeString(source.meta?.generatedAt),
     },
   };
 };

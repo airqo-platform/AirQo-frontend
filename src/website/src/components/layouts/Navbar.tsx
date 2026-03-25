@@ -79,7 +79,7 @@ const menuItems: MenuItems = {
     },
     {
       title: 'Network Coverage',
-      description: 'Explore our air quality monitoring network across Africa',
+      description: 'Explore air quality monitoring data across Africa',
       href: '/solutions/network-coverage',
       newTab: true,
     },

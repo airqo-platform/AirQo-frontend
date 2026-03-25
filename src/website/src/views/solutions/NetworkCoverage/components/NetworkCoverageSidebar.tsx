@@ -63,10 +63,9 @@ const formatMonthYear = (iso?: string) => {
   }
 };
 
-const formatCoordinates = (lat: number, lon: number) => {
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-    return '--';
-  }
+const formatCoordinates = (lat: number | null, lon: number | null) => {
+  if (typeof lat !== 'number' || typeof lon !== 'number') return '--';
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return '--';
 
   const latSuffix = lat < 0 ? 'S' : 'N';
   const lonSuffix = lon < 0 ? 'W' : 'E';

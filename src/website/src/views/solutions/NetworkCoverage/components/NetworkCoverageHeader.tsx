@@ -120,11 +120,7 @@ const NetworkCoverageHeader: React.FC<NetworkCoverageHeaderProps> = ({
 
         <button
           type="button"
-          onClick={() =>
-            onAddToNetwork
-              ? onAddToNetwork()
-              : window.alert('Add to Network - not implemented')
-          }
+          onClick={() => onAddToNetwork?.()}
           className="inline-flex items-center gap-2 rounded-lg border border-blue-700 bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 sm:px-4 sm:text-sm"
         >
           Add to Network
