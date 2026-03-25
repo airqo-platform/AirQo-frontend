@@ -1,4 +1,6 @@
 import 'package:airqo/src/app/auth/pages/welcome_screen.dart';
+import 'package:airqo/src/app/feedback/pages/feedback_screen.dart';
+import 'package:airqo/src/app/profile/bloc/user_bloc.dart';
 import 'package:airqo/src/app/profile/pages/languages/select_language_page.dart';
 import 'package:airqo/src/app/profile/pages/location_privacy_screen.dart';
 import 'package:airqo/src/app/profile/pages/research_settings_screen.dart';
@@ -205,6 +207,29 @@ class _SettingsWidgetState extends State<SettingsWidget> {
               },
               description:
                   "Change the language of the app to your preferred language",
+            ),
+
+            SizedBox(height: screenHeight * 0.02),
+
+            SettingsTile(
+              iconPath: "assets/images/shared/feedback_icon.svg",
+              title: "Send Feedback",
+              description:
+                  "Share your thoughts or report issues to help us improve AirQo",
+              onTap: () {
+                final userState = context.read<UserBloc>().state;
+                String? email;
+                if (userState is UserLoaded &&
+                    userState.model.users.isNotEmpty) {
+                  email = userState.model.users[0].email;
+                }
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        FeedbackScreen(initialEmail: email),
+                  ),
+                );
+              },
             ),
 
             Padding(
