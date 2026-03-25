@@ -265,6 +265,7 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
       AutoUpdateService().initialize(NavigationService.navigatorKey);
       NotificationHelper().initialize(context);
       NotificationHelper().subscribeToRelevantTopics();
+      NotificationHelper().checkAndShowPermissionPrompt(context);
       SessionTracker().startSession();
       EnhancedLocationServiceManager().startLocationTracking().catchError((_) {});
     });

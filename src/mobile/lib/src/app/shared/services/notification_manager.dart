@@ -44,6 +44,35 @@ class NotificationManager {
     Overlay.of(context).insert(_currentNotification!);
   }
 
+  /// Shows a toast prompting the user to enable notification permissions
+  void showPermissionToast(
+    BuildContext context, {
+    required VoidCallback onTap,
+    Duration duration = const Duration(seconds: 6),
+  }) {
+    hideCurrentNotification();
+
+    _currentNotification = OverlayEntry(
+      builder: (context) => Positioned(
+        bottom: 50,
+        left: 0,
+        right: 0,
+        child: Material(
+          color: Colors.transparent,
+          child: StatusNotification(
+            message: 'Enable notifications to receive air quality alerts. Tap to enable.',
+            isInfo: true,
+            duration: duration,
+            onDismissed: hideCurrentNotification,
+            onTap: onTap,
+          ),
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(_currentNotification!);
+  }
+
   /// Hides the current notification if one exists
   void hideCurrentNotification() {
     _currentNotification?.remove();

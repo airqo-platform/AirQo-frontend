@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +17,38 @@ class NotificationHelper with UiLoggy {
   static final NotificationHelper _instance = NotificationHelper._internal();
   factory NotificationHelper() => _instance;
   NotificationHelper._internal();
+
+  /// Check notification permission and show a toast if not granted
+  Future<void> checkAndShowPermissionPrompt(BuildContext context) async {
+    final hasPermission = await PushNotificationService().hasPermission();
+    if (hasPermission) return;
+    if (!context.mounted) return;
+
+    await Future.delayed(const Duration(milliseconds: 800));
+    if (!context.mounted) return;
+
+    NotificationManager().showPermissionToast(
+      context,
+      onTap: () async {
+        NotificationManager().hideCurrentNotification();
+        if (Platform.isIOS) {
+          // On iOS, system dialog only shows once; always open settings after that
+          final granted = await PushNotificationService().requestPermission();
+          if (!granted) {
+            await PushNotificationService().openNotificationSettings();
+          }
+        } else {
+          final isPermanentlyDenied =
+              await PushNotificationService().isPermissionPermanentlyDenied();
+          if (isPermanentlyDenied) {
+            await PushNotificationService().openNotificationSettings();
+          } else {
+            await PushNotificationService().requestPermission();
+          }
+        }
+      },
+    );
+  }
 
   /// Initialize notification handling
   void initialize(BuildContext context) {
