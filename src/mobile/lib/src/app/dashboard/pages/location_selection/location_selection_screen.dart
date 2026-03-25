@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:loggy/loggy.dart';
@@ -11,6 +12,8 @@ import 'package:airqo/src/app/dashboard/pages/location_selection/utils/location_
 import 'package:airqo/src/app/dashboard/pages/location_selection/components/location_search_bar.dart';
 import 'package:airqo/src/app/dashboard/repository/user_preferences_repository.dart';
 import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
+import 'package:airqo/src/app/dashboard/repository/sites_repository.dart';
+import 'package:airqo/src/app/dashboard/models/site_search_result.dart';
 import 'package:airqo/src/app/dashboard/models/user_preferences_model.dart';
 import 'package:airqo/src/app/auth/services/auth_helper.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
@@ -18,9 +21,15 @@ import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
 import 'package:airqo/src/app/auth/pages/login_page.dart';
 import 'package:airqo/src/app/auth/services/auth_validation_helper.dart';
 import 'package:airqo/src/app/shared/pages/error_page.dart';
+import 'package:airqo/src/app/shared/services/cache_manager.dart';
 
 class LocationSelectionScreen extends StatefulWidget with UiLoggy {
-  const LocationSelectionScreen({super.key});
+  final SitesRepository sitesRepository;
+
+  LocationSelectionScreen({
+    super.key,
+    SitesRepository? sitesRepository,
+  }) : sitesRepository = sitesRepository ?? SitesImpl();
 
   @override
   State<LocationSelectionScreen> createState() =>
@@ -35,7 +44,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
   Set<String> selectedLocations = {};
   TextEditingController searchController = TextEditingController();
   GooglePlacesBloc? googlePlacesBloc;
-  List<Measurement> localSearchResults = [];
+  List<SiteSearchResult> localSearchResults = [];
   List<Measurement> allMeasurements = [];
   List<Measurement> filteredMeasurements = [];
   String currentFilter = "All";
@@ -44,6 +53,9 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
   bool showLocationLimitError = false;
   static const int maxLocations = 4;
   final UserPreferencesRepository _preferencesRepo = UserPreferencesImpl();
+  late final SitesRepository _sitesRepository;
+  Timer? _searchDebounce;
+  int _searchRequestId = 0;
   bool isSaving = false;
   String? currentUserId;
   UserPreferencesModel? userPreferences;
@@ -54,6 +66,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
   @override
   void initState() {
     super.initState();
+    _sitesRepository = widget.sitesRepository;
     loggy.info('initState called');
     selectedLocations = {};
     _initializeUserData();
@@ -262,20 +275,84 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
 
   void _handleSearch(String value) {
     loggy.info('Search text changed to: "$value"');
+    _searchDebounce?.cancel();
+
     if (value.isEmpty) {
       loggy.info('Search cleared, resetting Google Places');
       googlePlacesBloc!.add(ResetGooglePlaces());
       setState(() {
         localSearchResults = [];
       });
-    } else {
-      loggy.info('Searching for: "$value"');
-      googlePlacesBloc!.add(SearchPlace(value));
+      return;
+    }
+
+    googlePlacesBloc!.add(SearchPlace(value));
+
+    final requestId = ++_searchRequestId;
+
+    _searchDebounce = Timer(const Duration(milliseconds: 400), () {
+      if (CacheManager().isConnected) {
+        _searchSitesFromApi(value, requestId);
+      } else {
+        loggy.info('Offline — using local search for: "$value"');
+        if (requestId != _searchRequestId) return;
+        setState(() {
+          localSearchResults = LocationHelper.searchAirQualityLocations(
+                  value, allMeasurements)
+              .where((m) => m.siteId != null)
+              .map((m) => SiteSearchResult(
+                    id: m.siteId!,
+                    name: m.siteDetails?.name,
+                    searchName: m.siteDetails?.searchName,
+                    city: m.siteDetails?.city,
+                    town: m.siteDetails?.town,
+                    district: m.siteDetails?.district,
+                    country: m.siteDetails?.country,
+                    formattedName: m.siteDetails?.formattedName,
+                    locationName: m.siteDetails?.locationName,
+                  ))
+              .toList();
+        });
+      }
+    });
+  }
+
+  Future<void> _searchSitesFromApi(String query, int requestId) async {
+    loggy.info('Fetching search results from API for: "$query"');
+    try {
+      final results = await _sitesRepository.searchSites(query);
+      if (requestId != _searchRequestId || !mounted) return;
       setState(() {
-        localSearchResults =
-            LocationHelper.searchAirQualityLocations(value, allMeasurements);
+        localSearchResults = results;
+      });
+    } catch (e) {
+      loggy.error('API search failed, falling back to local search: $e');
+      if (requestId != _searchRequestId || !mounted) return;
+      setState(() {
+        localSearchResults = LocationHelper.searchAirQualityLocations(
+                query, allMeasurements)
+            .where((m) => m.siteId != null)
+            .map((m) => SiteSearchResult(
+                  id: m.siteId!,
+                  name: m.siteDetails?.name,
+                  searchName: m.siteDetails?.searchName,
+                  city: m.siteDetails?.city,
+                  town: m.siteDetails?.town,
+                  district: m.siteDetails?.district,
+                  country: m.siteDetails?.country,
+                  formattedName: m.siteDetails?.formattedName,
+                  locationName: m.siteDetails?.locationName,
+                ))
+            .toList();
       });
     }
+  }
+
+  @override
+  void dispose() {
+    _searchDebounce?.cancel();
+    searchController.dispose();
+    super.dispose();
   }
 
   void _filterByCountry(String country) {
@@ -312,11 +389,18 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
     }
   }
 
-  void _toggleLocationSelection(Measurement measurement, bool selected) {
-    final String? siteId = measurement.siteId;
+  void _toggleSiteSelection(SiteSearchResult site, bool selected) {
+    _toggleLocationSelectionById(site.id, selected);
+  }
 
-    if (siteId != null) {
-      setState(() {
+  void _toggleLocationSelection(Measurement measurement, bool selected) {
+    if (measurement.siteId != null) {
+      _toggleLocationSelectionById(measurement.siteId!, selected);
+    }
+  }
+
+  void _toggleLocationSelectionById(String siteId, bool selected) {
+    setState(() {
         _isUserSelecting = true; // Mark that user is actively selecting
         if (selected) {
           if (selectedLocations.length >= maxLocations) {
@@ -381,7 +465,6 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
           );
         }
       });
-    }
   }
 
   void _retryLoading() {
@@ -573,6 +656,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
             localSearchResults: localSearchResults,
             selectedLocations: selectedLocations,
             onToggleSelection: _toggleLocationSelection,
+            onToggleSiteSelection: _toggleSiteSelection,
             onViewDetails: _viewDetails,
             onResetFilter: _resetFilter,
           ),

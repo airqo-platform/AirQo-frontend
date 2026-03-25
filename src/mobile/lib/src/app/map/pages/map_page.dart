@@ -1,5 +1,6 @@
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+import 'package:airqo/src/app/dashboard/pages/location_selection/utils/location_helpers.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_card.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_details.dart';
 import 'package:airqo/src/app/dashboard/widgets/google_places_loader.dart';
@@ -192,35 +193,6 @@ class _MapScreenState extends State<MapScreen>
     }
   }
 
-  List<Measurement> searchAirQualityLocations(
-      String query, List<Measurement> measurements) {
-    query = query.toLowerCase();
-    return measurements.where((measurement) {
-      if (measurement.siteDetails != null) {
-        return (measurement.siteDetails!.city?.toLowerCase().contains(query) ??
-                false) ||
-            (measurement.siteDetails!.locationName
-                    ?.toLowerCase()
-                    .contains(query) ??
-                false) ||
-            (measurement.siteDetails!.name?.toLowerCase().contains(query) ??
-                false) ||
-            (measurement.siteDetails!.searchName
-                    ?.toLowerCase()
-                    .contains(query) ??
-                false) ||
-            (measurement.siteDetails!.formattedName
-                    ?.toLowerCase()
-                    .contains(query) ??
-                false) ||
-            (measurement.siteDetails!.town?.toLowerCase().contains(query) ??
-                false) ||
-            (measurement.siteDetails!.district?.toLowerCase().contains(query) ??
-                false);
-      }
-      return false;
-    }).toList();
-  }
 
   void filterByCountry(String country, List<Measurement> measurements) {
     if (mounted) {
@@ -1077,7 +1049,7 @@ class _MapScreenState extends State<MapScreen>
                         if (mounted) {
                           setState(() {
                             localSearchResults =
-                                searchAirQualityLocations(value, allMeasurements);
+                                LocationHelper.searchAirQualityLocations(value, allMeasurements);
                           });
                         }
                       }
