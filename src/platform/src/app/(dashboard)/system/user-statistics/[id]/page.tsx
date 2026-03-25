@@ -155,6 +155,21 @@ const UserStatisticsDetailsPage: React.FC = () => {
     );
   }
 
+  /*
+    WARNING: The error / not-found UI below is rendered outside the PermissionGuard
+    (the PermissionGuard is applied later in the component). This means an
+    unauthorized user could see the "Failed to load user details" message or
+    "User not found" content even when they should instead receive the
+    access-restricted UI.
+
+    Suggested fixes:
+    - Move this conditional rendering inside the PermissionGuard so access is
+      checked before showing any user-specific error content.
+    - OR wrap the entire component return value with PermissionGuard and
+      render the error UI inside it.
+
+    Verify behavior for authorized users after moving the block.
+  */
   if (userError || !user) {
     return (
       <div className="space-y-6">
