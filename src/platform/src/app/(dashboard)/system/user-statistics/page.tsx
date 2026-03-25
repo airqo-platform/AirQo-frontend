@@ -1,19 +1,27 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
-import PageHeading from '@/shared/components/ui/page-heading';
+import { Button, PageHeading } from '@/shared/components/ui';
 import { useUserStatistics } from '@/shared/hooks/useAdmin';
 import { LoadingState } from '@/shared/components/ui/loading-state';
 import { ErrorBanner } from '@/shared/components/ui/banner';
 import { PermissionGuard } from '@/shared/components';
-import { AqUsers01, AqUsersCheck, AqKey01 } from '@airqo/icons-react';
+import { AqUsers01, AqUsersCheck, AqKey01, AqEye } from '@airqo/icons-react';
 import { Card } from '@/shared/components/ui/card';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import type { UserStatisticsUser } from '@/shared/types/api';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/shared/components/ui';
 
 const UserStatisticsPage: React.FC = () => {
+  const router = useRouter();
   const { data, isLoading, error, mutate } = useUserStatistics();
 
   // State for tabs
@@ -66,6 +74,13 @@ const UserStatisticsPage: React.FC = () => {
     setPage(1);
   }, [search]);
 
+  const handleViewDetails = useCallback(
+    (userId: string) => {
+      router.push(`/system/user-statistics/${userId}`);
+    },
+    [router]
+  );
+
   // Table columns
   const columns = useMemo(
     () => [
@@ -105,8 +120,34 @@ const UserStatisticsPage: React.FC = () => {
           </div>
         ),
       },
+      {
+        key: 'actions',
+        label: 'Actions',
+        render: (value: unknown, user: UserStatisticsUser) => (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                paddingStyles="h-8 w-8 p-0"
+                className="text-muted-foreground hover:text-foreground"
+                aria-label={`Actions for ${user.firstName} ${user.lastName}`}
+              >
+                ...
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" minWidth={180}>
+              <DropdownMenuItem onClick={() => handleViewDetails(user._id)}>
+                <span className="flex items-center gap-2">
+                  <AqEye className="w-4 h-4" />
+                  View Details
+                </span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ),
+      },
     ],
-    []
+    [handleViewDetails]
   );
 
   // Stats cards data

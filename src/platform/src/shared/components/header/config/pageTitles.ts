@@ -69,6 +69,10 @@ export const getPageTitle = (pathname: string): string => {
 
   // Handle system routes
   if (pathname.startsWith('/system/')) {
+    if (pathname.startsWith('/system/user-statistics/')) {
+      return 'User Details';
+    }
+
     const parts = pathname.split('/');
     if (parts.length >= 3) {
       const route = `/system/${parts[2]}`;

@@ -101,6 +101,44 @@ export interface GetRolesResponse {
   roles: RoleDetails[];
 }
 
+export interface UserRoleSummaryPermission {
+  _id: string;
+  permission: string;
+}
+
+export interface UserRoleSummaryGroup {
+  _id: string;
+  grp_title: string;
+  grp_description?: string;
+}
+
+export interface UserRoleSummary {
+  _id: string;
+  role_status: string;
+  role_permissions: UserRoleSummaryPermission[];
+  role_name: string;
+  user_count: number;
+  group: UserRoleSummaryGroup;
+}
+
+export interface GetRolesSummaryResponse {
+  success: boolean;
+  message: string;
+  meta: {
+    total: number;
+    skip: number;
+    limit: number;
+    page: number;
+    pages: number;
+  };
+  roles: UserRoleSummary[];
+}
+
+export interface UpdateUserRoleResponse {
+  success: boolean;
+  message: string;
+}
+
 export interface GetRoleByIdResponse {
   success: boolean;
   message: string;

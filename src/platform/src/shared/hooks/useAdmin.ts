@@ -232,3 +232,38 @@ export const useUserStatistics = () => {
     }
   );
 };
+
+// Get all roles and permissions summary across all pages
+export const useRolesSummary = () => {
+  return useSWR(
+    'admin/roles/summary/all',
+    () => userService.getAllRolesSummary(),
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    }
+  );
+};
+
+// Update a user's role
+export const useUpdateUserRole = () => {
+  const { mutate } = useSWRConfig();
+
+  return useSWRMutation(
+    'admin/update-user-role',
+    async (key, { arg }: { arg: { userId: string; roleId: string } }) => {
+      return await userService.updateUserRole(arg.userId, arg.roleId);
+    },
+    {
+      onSuccess: () => {
+        mutate(
+          key =>
+            typeof key === 'string' &&
+            (key.startsWith('user/details/') ||
+              key === 'admin/roles/summary/all' ||
+              key === 'admin/user-statistics')
+        );
+      },
+    }
+  );
+};
