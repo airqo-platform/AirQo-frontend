@@ -150,7 +150,7 @@ jobs:
             --registry-server ${{ env.REGISTRY_URL }} \
             --registry-username airqoacr \
             --registry-password ${{ secrets.ACR_PASSWORD }} \
-            --env-vars ${ENV_VARS[@]}"
+            --env-vars "${ENV_VARS[@]}"
 
       - id: preview
         run: |

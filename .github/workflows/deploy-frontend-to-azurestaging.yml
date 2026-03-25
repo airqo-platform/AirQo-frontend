@@ -161,7 +161,7 @@ jobs:
               --registry-server ${{ env.REGISTRY_URL }} \
               --registry-username airqoacr \
               --registry-password ${{ secrets.ACR_PASSWORD }} \
-              --set-env-vars ${ENV_VARS[@]}"
+              --set-env-vars "${ENV_VARS[@]}"
 
           else
             az containerapp create \
@@ -170,7 +170,7 @@ jobs:
               --environment ${{ env.STAGING_ENV }} \
               --image ${{ env.REGISTRY_URL }}/website2-staging:${{ needs.image-tag.outputs.build_id }} \
               --target-port 8080 \
-              --env-vars ${ENV_VARS[@]}"\
+              --env-vars "${ENV_VARS[@]}"\
               --cpu 1.0 --memory 2.0Gi \
               --ingress external \
               --min-replicas 1 \
