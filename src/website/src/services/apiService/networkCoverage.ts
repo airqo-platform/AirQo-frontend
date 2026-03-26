@@ -64,7 +64,9 @@ class NetworkCoverageService extends BaseApiService {
     if (params.types) queryParams.types = params.types;
 
     const response = await this.get<NetworkCoverageCountryResponse>(
-      `${NETWORK_COVERAGE_ENDPOINTS.COUNTRY_MONITORS}/${countryId}/monitors`,
+      `${NETWORK_COVERAGE_ENDPOINTS.COUNTRY_MONITORS}/${encodeURIComponent(
+        countryId,
+      )}/monitors`,
       queryParams,
       { ...options, throwOnError: false },
     );
@@ -93,7 +95,9 @@ class NetworkCoverageService extends BaseApiService {
     if (params.tenant) queryParams.tenant = params.tenant;
 
     const response = await this.get<NetworkCoverageMonitorResponse>(
-      `${NETWORK_COVERAGE_ENDPOINTS.MONITOR_DETAIL}/${monitorId}`,
+      `${NETWORK_COVERAGE_ENDPOINTS.MONITOR_DETAIL}/${encodeURIComponent(
+        monitorId,
+      )}`,
       queryParams,
       { ...options, throwOnError: false },
     );

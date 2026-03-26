@@ -22,12 +22,12 @@ interface NetworkProviderOption {
 
 const providers: NetworkProviderOption[] = [
   {
-    id: 'airqo',
-    name: 'AirQo',
-    badge: 'African city network',
+    id: 'recommended',
+    name: 'Recommended platform',
+    badge: 'Regional provider',
     summary:
-      'Built for African cities with a strong focus on public monitoring, analytics, and device-to-platform connectivity.',
-    note: 'Recommended for AirQo-compatible network deployments.',
+      'A recommended platform for regional air quality monitoring deployments, focusing on public monitoring and device-to-platform connectivity.',
+    note: 'Recommended for compatible network deployments.',
   },
   {
     id: 'miri',
@@ -95,10 +95,9 @@ const NetworkCoverageAddToNetworkDialog = ({
           </DialogTitle>
           <DialogDescription className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
             Select the monitor manufacturer or platform that best matches your
-            devices. This is a curated list of widely used air quality monitor
-            families across Africa and related research or institutional
-            deployments. After selecting a provider, continue to Vertex to link
-            devices and stream your data.
+            devices. This list contains common air quality monitor families and
+            related deployment options. After selecting a provider, continue to
+            Vertex to link devices and stream your data.
           </DialogDescription>
         </DialogHeader>
 
@@ -177,7 +176,7 @@ const NetworkCoverageAddToNetworkDialog = ({
                 disabled={!selectedProvider}
                 className="bg-blue-600 text-white hover:bg-blue-700"
               >
-                Continue to Vertex
+                Add monitor
               </Button>
             </div>
           </div>

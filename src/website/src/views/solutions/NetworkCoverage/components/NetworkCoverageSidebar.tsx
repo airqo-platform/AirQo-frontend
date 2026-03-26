@@ -76,11 +76,7 @@ const displayText = (value?: string | null) =>
   value && value.trim() ? value : '--';
 
 const formatNetworkName = (value?: string | null) =>
-  value && value.trim()
-    ? value.trim().toLowerCase() === 'airqo'
-      ? 'AirQo'
-      : value.trim()
-    : '--';
+  value && value.trim() ? value.trim() : '--';
 
 const StatLine = ({
   label,
@@ -114,6 +110,7 @@ interface NetworkCoverageSidebarProps {
   onToggleActiveOnly: () => void;
   onSelectCountry: (countryId: string) => void;
   onSelectMonitor: (monitorId: string, countryId: string) => void;
+  onOpenAddToNetwork?: () => void;
   onClosePrompt: () => void;
   onResetToOverview: () => void;
   onRetry?: () => void;
@@ -134,6 +131,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
   onToggleActiveOnly,
   onSelectCountry,
   onSelectMonitor,
+  onOpenAddToNetwork,
   onClosePrompt,
   onResetToOverview,
   onRetry,
@@ -144,6 +142,9 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
   isSearching = false,
 }) => {
   const q = (searchQuery || '').trim().toLowerCase();
+
+  const scrollRef = React.useRef<HTMLDivElement | null>(null);
+  const [promptTop, setPromptTop] = React.useState<number | null>(null);
 
   const filteredCountries = React.useMemo(() => {
     if (!q) return countries;
@@ -283,7 +284,10 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
       </div>
 
       {/* ── Scrollable body ── */}
-      <div className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-3">
+      <div
+        ref={scrollRef}
+        className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-3"
+      >
         {/* Error state */}
         {error && countries.length === 0 && !selectedCountry ? (
           <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm">
@@ -354,13 +358,35 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                 const isPromptOpen = showAddMonitorPromptFor === country.id;
 
                 return (
-                  <div key={country.id} className="relative">
+                  <div key={country.id}>
                     <button
                       type="button"
-                      onClick={() => onSelectCountry(country.id)}
+                      onClick={(event) => {
+                        if (isNoData) {
+                          try {
+                            const buttonEl = event.currentTarget as HTMLElement;
+                            const containerEl = scrollRef.current;
+                            if (containerEl && buttonEl) {
+                              const containerRect =
+                                containerEl.getBoundingClientRect();
+                              const buttonRect =
+                                buttonEl.getBoundingClientRect();
+                              const top =
+                                buttonRect.top -
+                                containerRect.top +
+                                containerEl.scrollTop -
+                                8;
+                              setPromptTop(Math.max(8, Math.round(top)));
+                            }
+                          } catch {
+                            setPromptTop(null);
+                          }
+                        }
+                        onSelectCountry(country.id);
+                      }}
                       className={`group w-full rounded-xl border px-3.5 py-3 text-left transition-all duration-150 ${
                         isNoData
-                          ? 'cursor-default border-slate-100 bg-slate-50 text-slate-400'
+                          ? 'cursor-pointer border-slate-100 bg-slate-50 text-slate-400'
                           : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/20 hover:shadow-sm active:bg-blue-50/40'
                       }`}
                     >
@@ -375,7 +401,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                           </h3>
                           {isNoData ? (
                             <p className="mt-0.5 text-xs text-slate-400">
-                              No monitors installed
+                              No monitors registered
                             </p>
                           ) : (
                             <p className="mt-0.5 text-xs text-slate-500">
@@ -426,25 +452,40 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                     </button>
 
                     {isPromptOpen && (
-                      <div className="absolute left-4 right-4 top-[76px] z-30 rounded-2xl border border-slate-200 bg-white p-4 shadow-xl">
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <h4 className="font-semibold text-slate-900">
-                              No monitors in {country.country} yet
-                            </h4>
-                            <p className="mt-1 text-sm text-slate-500">
-                              Contact AirQo to help extend air quality
-                              monitoring to this region.
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={onClosePrompt}
-                            className="rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
-                          >
-                            <FiX className="h-4 w-4" />
-                          </button>
-                        </div>
+                      <div
+                        className="absolute left-4 right-4 z-50 pointer-events-auto rounded-2xl border border-slate-200 bg-white p-4 shadow-xl"
+                        style={{ top: promptTop ?? 76 }}
+                      >
+                        <button
+                          type="button"
+                          onClick={onClosePrompt}
+                          className="absolute right-3 top-3 rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+                          aria-label="Close prompt"
+                        >
+                          <FiX className="h-4 w-4" />
+                        </button>
+
+                        <h4 className="mb-2 text-lg font-semibold text-slate-900">
+                          No monitors registered in {country.country}
+                        </h4>
+                        <p className="mb-3 text-sm text-slate-500">
+                          No monitors are registered. Add a monitor to start
+                          collecting data for this country.
+                        </p>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            window.open(
+                              'https://vertex.airqo.net',
+                              '_blank',
+                              'noopener,noreferrer',
+                            )
+                          }
+                          className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                        >
+                          Add monitor
+                        </button>
                       </div>
                     )}
                   </div>

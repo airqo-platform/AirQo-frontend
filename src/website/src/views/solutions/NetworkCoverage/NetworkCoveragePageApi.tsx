@@ -14,7 +14,7 @@ import {
 } from '@/hooks/useApiHooks';
 import { networkCoverageService } from '@/services/apiService';
 
-import NetworkCoverageAddToNetworkDialog from './components/NetworkCoverageAddToNetworkDialog';
+// Add-to-network dialog is not used — sidebar prompts link directly to Vertex
 import NetworkCoverageHeader from './components/NetworkCoverageHeader';
 import NetworkCoverageLegend from './components/NetworkCoverageLegend';
 import NetworkCoverageMap from './components/NetworkCoverageMap';
@@ -24,6 +24,7 @@ import {
   type NetworkCoverageCountry,
   type ViewMode,
   AFRICAN_COUNTRY_LIST,
+  normalizeCountryId,
 } from './networkCoverageTypes';
 
 const DEFAULT_TENANT = 'airqo';
@@ -119,6 +120,40 @@ const NetworkCoveragePage = () => {
     [summaryQuery.data],
   );
 
+  const allCountries = useMemo<NetworkCoverageCountry[]>(() => {
+    const normalizeForMatch = (value?: string) => {
+      if (!value) return '';
+      // Strip parenthetical notes like "(TH)", trim, lower-case and remove leading 'the '
+      return value
+        .replace(/\([^)]*\)/g, '')
+        .replace(/^the\s+/i, '')
+        .trim()
+        .toLowerCase();
+    };
+
+    const apiByIso = new Map(
+      countries.map((c) => [c.iso2?.toUpperCase() ?? '', c]),
+    );
+
+    const apiByName = new Map(
+      countries.map((c) => [normalizeForMatch(c.country), c]),
+    );
+
+    return AFRICAN_COUNTRY_LIST.map((item) => {
+      const iso = item.iso2.toUpperCase();
+      const normalized = normalizeForMatch(item.country);
+      const apiCountry = apiByIso.get(iso) || apiByName.get(normalized);
+      if (apiCountry) return apiCountry;
+
+      return {
+        id: normalizeCountryId(item.country),
+        country: item.country,
+        iso2: iso,
+        monitors: [],
+      } as NetworkCoverageCountry;
+    });
+  }, [countries]);
+
   const countryMonitorsQuery = useNetworkCoverageCountryMonitors(
     selectedCountryId,
     {
@@ -171,13 +206,14 @@ const NetworkCoveragePage = () => {
   };
 
   const selectCountry = (countryId: string) => {
-    const country = countries.find((item) => item.id === countryId);
-    if (!country) {
-      return;
-    }
+    const country = allCountries.find((item) => item.id === countryId);
+    if (!country) return;
 
     if (country.monitors.length === 0) {
+      // Show the in-sidebar prompt for adding a monitor (no dialog)
       setShowAddMonitorPromptFor(countryId);
+      // keep sidebar open so the user sees the prompt
+      setIsSidebarOpen(true);
       return;
     }
 
@@ -500,10 +536,7 @@ const NetworkCoveragePage = () => {
           isDownloading={isDownloading}
         />
 
-        <NetworkCoverageAddToNetworkDialog
-          isOpen={isAddToNetworkDialogOpen}
-          onOpenChange={setIsAddToNetworkDialogOpen}
-        />
+        {/* Add-to-network dialog removed — sidebar prompt opens Vertex directly */}
 
         <main className="relative mt-2 flex min-h-0 flex-1 overflow-hidden rounded-xl border border-slate-200 bg-[#f6f6f7]">
           <div
@@ -521,7 +554,7 @@ const NetworkCoveragePage = () => {
             }`}
           >
             <NetworkCoverageSidebar
-              countries={countries}
+              countries={allCountries}
               query={query}
               searchQuery={debouncedQuery}
               isSearching={isSearching}
@@ -537,6 +570,14 @@ const NetworkCoveragePage = () => {
               onToggleActiveOnly={() => setActiveOnly((previous) => !previous)}
               onSelectCountry={selectCountry}
               onSelectMonitor={selectMonitor}
+              // sidebar prompt opens Vertex directly
+              onOpenAddToNetwork={() =>
+                window.open(
+                  'https://vertex.airqo.net',
+                  '_blank',
+                  'noopener,noreferrer',
+                )
+              }
               onClosePrompt={() => setShowAddMonitorPromptFor(null)}
               onResetToOverview={resetToOverview}
               onRetry={() => summaryQuery.refetch()}

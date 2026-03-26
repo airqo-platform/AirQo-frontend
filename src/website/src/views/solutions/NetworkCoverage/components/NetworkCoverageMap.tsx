@@ -64,7 +64,6 @@ const escapeHtml = (value: string): string =>
 const formatNetworkName = (value?: string | null) => {
   if (!value || !value.trim()) return '--';
   const trimmed = value.trim();
-  if (trimmed.toLowerCase() === 'airqo') return 'AirQo';
   return trimmed;
 };
 
@@ -145,7 +144,7 @@ const buildMonitorTooltipMarkup = (monitor: NetworkCoverageMonitor) => {
             ${escapeHtml(monitor.name)}
           </div>
           <div style="margin-top:6px;font-size:13px;line-height:1.45;color:#64748B;word-break:break-word;overflow-wrap:anywhere;white-space:normal;">
-            ${escapeHtml(monitor.operator || 'AirQo')} · ${escapeHtml(monitor.city)}, ${escapeHtml(monitor.country)}
+            ${escapeHtml(monitor.operator || '--')} · ${escapeHtml(monitor.city)}, ${escapeHtml(monitor.country)}
           </div>
         </div>
       </div>
@@ -380,7 +379,9 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
         // instead of a blank/empty image (WebGL clears buffer by default).
         preserveDrawingBuffer: true,
         attributionControl: true,
-        customAttribution: ['Powered by <a href="/" rel="noopener">AirQo</a>'],
+        customAttribution: [
+          'Powered by <a href="/" rel="noopener">Platform</a>',
+        ],
       });
       setMapInitError(null);
     } catch {
