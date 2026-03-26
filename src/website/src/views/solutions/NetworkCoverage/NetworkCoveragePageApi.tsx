@@ -76,8 +76,6 @@ const NetworkCoveragePage = () => {
     string | null
   >(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isAddToNetworkDialogOpen, setIsAddToNetworkDialogOpen] =
-    useState(false);
   const [mapStyle, setMapStyle] = useState(
     'mapbox://styles/mapbox/streets-v12',
   );
@@ -570,14 +568,7 @@ const NetworkCoveragePage = () => {
               onToggleActiveOnly={() => setActiveOnly((previous) => !previous)}
               onSelectCountry={selectCountry}
               onSelectMonitor={selectMonitor}
-              // sidebar prompt opens Vertex directly
-              onOpenAddToNetwork={() =>
-                window.open(
-                  'https://vertex.airqo.net',
-                  '_blank',
-                  'noopener,noreferrer',
-                )
-              }
+              // sidebar prompt opens Vertex directly (handled inside sidebar)
               onClosePrompt={() => setShowAddMonitorPromptFor(null)}
               onResetToOverview={resetToOverview}
               onRetry={() => summaryQuery.refetch()}

@@ -110,7 +110,6 @@ interface NetworkCoverageSidebarProps {
   onToggleActiveOnly: () => void;
   onSelectCountry: (countryId: string) => void;
   onSelectMonitor: (monitorId: string, countryId: string) => void;
-  onOpenAddToNetwork?: () => void;
   onClosePrompt: () => void;
   onResetToOverview: () => void;
   onRetry?: () => void;
@@ -131,7 +130,6 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
   onToggleActiveOnly,
   onSelectCountry,
   onSelectMonitor,
-  onOpenAddToNetwork,
   onClosePrompt,
   onResetToOverview,
   onRetry,
