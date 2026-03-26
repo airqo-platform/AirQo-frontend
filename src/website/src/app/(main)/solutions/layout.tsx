@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import React from 'react';
 
-import MainLayout from '@/components/layouts/MainLayout';
+import SolutionsContentLayout from '@/components/layouts/SolutionsContentLayout';
 
 export const metadata: Metadata = {
   title: {
@@ -21,7 +21,7 @@ type SolutionsLayoutLayoutProps = {
 const SolutionsLayout: React.FC<SolutionsLayoutLayoutProps> = ({
   children,
 }) => {
-  return <MainLayout>{children}</MainLayout>;
+  return <SolutionsContentLayout>{children}</SolutionsContentLayout>;
 };
 
 export default SolutionsLayout;

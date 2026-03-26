@@ -1,4 +1,7 @@
 export async function GET() {
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? 'https://airqo.net';
+
   const robots = `User-agent: *
 Allow: /
 
@@ -37,9 +40,7 @@ Allow: /apple-icon.png
 Allow: /web-app-manifest-192x192.png
 
 # Sitemap locations (multiple for better discovery)
-Sitemap: https://airqo.net/sitemap.xml
-Sitemap: https://www.airqo.net/sitemap.xml
-Sitemap: https://airqo.africa/sitemap.xml
+Sitemap: ${siteUrl}/sitemap.xml
 
 # Additional directives for better SEO
 User-agent: Bingbot

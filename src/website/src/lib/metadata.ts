@@ -726,15 +726,15 @@ export const METADATA_CONFIGS = {
   },
   solutionsNetworkCoverage: {
     title:
-      'Network Coverage Map | 400+ Air Quality Monitors Across 14 African Countries - AirQo',
+      'Africa Air Sensor Network | AirQo — Coverage Map, Sensors & Real-Time Data',
     description:
-      "Explore AirQo's network of 400+ real-time air quality monitoring stations across 14 African countries: Uganda (171 monitors), Kenya (105), Nigeria (46), Ghana (12), Gambia (16), South Africa (17), Senegal (3), Zambia (2), Rwanda (1), Mozambique (1), Burundi (8), Cameroon (19), DRC (1), Ethiopia (6). Live PM2.5 measurements from Kampala, Nairobi, Lagos, Accra, Johannesburg and more.",
+      'Discover the Africa Air Sensor Network: an interactive coverage map of AirQo sensors and monitoring stations across African countries. Find real-time PM2.5 measurements, station locations, and sensor metadata for researchers, policymakers, and developers. Source for air sensor networks in Africa — Kampala, Nairobi, Lagos, Accra and more.',
     keywords:
-      'AirQo network coverage, air quality network map Africa, monitoring stations Uganda, monitoring stations Kenya, monitoring stations Nigeria, air quality sensors Ghana, pollution monitors Gambia, air quality South Africa, Rwanda air monitoring, Senegal air quality, Zambia pollution monitors, Mozambique air quality, Burundi air monitoring, Cameroon air quality network, DRC air quality, Ethiopia pollution monitors, Kampala air quality stations, Nairobi monitoring network, Lagos air sensors, Accra air quality monitors, Johannesburg pollution network, 400 air quality monitors, African air quality infrastructure, real-time monitoring sites Africa, air quality coverage map',
+      'Africa air sensor network, air quality sensors Africa, air sensor network map, PM2.5 monitors Africa, air quality monitoring stations, Africa sensor data, environmental sensors Africa, AirQo network, real-time air quality Africa, sensor network coverage map, African air monitoring, Kampala air sensors, Nairobi air sensors, Lagos air sensors, Accra air sensors, air quality infrastructure Africa',
     url: '/solutions/network-coverage',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png',
-      alt: 'AirQo Network Coverage Map - 400+ Stations Across 14 African Countries',
+      alt: 'Africa Air Sensor Network - Coverage Map & Sensor Locations',
       width: 1200,
       height: 630,
       type: 'image/png',

@@ -13,6 +13,7 @@ export { default as forumEventsService } from './forumEvents';
 export { default as gridsService } from './grids';
 export { default as highlightsService } from './highlights';
 export { default as impactNumbersService } from './impactNumbers';
+export { default as networkCoverageService } from './networkCoverage';
 export { default as partnersService } from './partners';
 export { default as paymentsService } from './payments';
 export { default as predictService } from './predict';
