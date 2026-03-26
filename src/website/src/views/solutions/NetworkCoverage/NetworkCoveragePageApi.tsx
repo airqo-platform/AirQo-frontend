@@ -76,8 +76,6 @@ const NetworkCoveragePage = () => {
     string | null
   >(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isAddToNetworkDialogOpen, setIsAddToNetworkDialogOpen] =
-    useState(false);
   const [mapStyle, setMapStyle] = useState(
     'mapbox://styles/mapbox/streets-v12',
   );
