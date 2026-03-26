@@ -547,6 +547,19 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       return;
     }
 
+    // When switching to coverage view, reset to default Africa overview
+    if (viewMode === 'coverage') {
+      try {
+        mapRef.current?.flyTo({
+          center: [15.751726790157534, 1.5627232057281049],
+          zoom: 2.914761576947509,
+          duration: 650,
+        });
+      } catch {
+        // ignore
+      }
+    }
+
     const map = mapRef.current;
     const expression: any[] = ['match', ['get', 'iso_3166_1']];
 
