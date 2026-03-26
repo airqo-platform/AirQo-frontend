@@ -6,14 +6,12 @@ interface NetworkCoverageHeaderProps {
   onToggleSidebar: () => void;
   onDownload: () => void;
   isDownloading?: boolean;
-  onAddToNetwork?: () => void;
 }
 
 const NetworkCoverageHeader: React.FC<NetworkCoverageHeaderProps> = ({
   onToggleSidebar,
   onDownload,
   isDownloading = false,
-  onAddToNetwork,
 }) => {
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);

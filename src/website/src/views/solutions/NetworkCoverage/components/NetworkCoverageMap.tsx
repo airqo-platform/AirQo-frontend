@@ -42,12 +42,7 @@ type SnapshotModalState = {
   loading: boolean;
 };
 
-// AFRICA bounding box used to constrain the map view to Africa.
-// This map is locked to these bounds so users cannot pan outside Africa.
-const AFRICA_BOUNDS: [[number, number], [number, number]] = [
-  [-30, -43],
-  [64, 45],
-];
+// AFRICA bounding box was removed — map is not locked to Africa by default.
 
 const bucketColor = (count: number): string => {
   if (count === 0) return '#ECEFF4';

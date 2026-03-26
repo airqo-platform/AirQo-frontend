@@ -498,7 +498,6 @@ const NetworkCoveragePage = () => {
           onToggleSidebar={() => setIsSidebarOpen((previous) => !previous)}
           onDownload={handleDownload}
           isDownloading={isDownloading}
-          onAddToNetwork={() => setIsAddToNetworkDialogOpen(true)}
         />
 
         <NetworkCoverageAddToNetworkDialog
