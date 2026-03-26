@@ -42,8 +42,8 @@ type SnapshotModalState = {
   loading: boolean;
 };
 
-// AFRICA bounding box used to frame the initial view. We no longer lock
-// the map to these bounds, but we use them once on load to frame Africa.
+// AFRICA bounding box used to constrain the map view to Africa.
+// This map is locked to these bounds so users cannot pan outside Africa.
 const AFRICA_BOUNDS: [[number, number], [number, number]] = [
   [-30, -43],
   [64, 45],
@@ -228,7 +228,8 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
   const markersRef = useRef<MarkerResource[]>([]);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapInitError, setMapInitError] = useState<string | null>(null);
-  const [zoomLevel, setZoomLevel] = useState(2.6);
+  // Initialize zoom to the user's requested value so UI controls reflect it.
+  const [zoomLevel, setZoomLevel] = useState(2.914761576947509);
   const [snapshotModal, setSnapshotModal] = useState<SnapshotModalState>({
     open: false,
     imageUrl: null,
@@ -239,6 +240,10 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
   // not cause heavyweight effects (marker rebuild, handler swap) to re-run.
   const onMonitorSelectRef = useRef(onMonitorSelect);
   const onCountrySelectByIsoRef = useRef(onCountrySelectByIso);
+  // Track that we've applied the user's requested initial view so that
+  // subsequent effects (like selected-country fitBounds) don't override it
+  // on first render.
+  const hasAppliedInitialViewRef = useRef(false);
   const allMonitorsRef = useRef<typeof allMonitors>([]);
   // Keep refs up-to-date without triggering re-renders.
   onMonitorSelectRef.current = onMonitorSelect;
@@ -370,8 +375,9 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
         style: mapStyle,
         // Use pre-calculated Africa center so the map starts at the correct
         // position without a fitBounds animation on load (eliminates jump).
-        center: [17, -2] as [number, number],
-        zoom: 3.15,
+        center: [15.751726790157534, 1.5627232057281049] as [number, number],
+        zoom: 2.914761576947509,
+        // Start the map focused on the user's requested Africa view.
         projection: 'mercator',
         minZoom: 1.7,
         maxZoom: 13,
@@ -394,16 +400,17 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
     mapRef.current.on('load', () => {
       const map = mapRef.current;
 
-      // Frame Africa immediately on first load so the whole continent is
-      // visible by default (no bounds lock; user can pan/zoom afterwards).
+      // Ensure the map is constrained to AFRICA_BOUNDS and start at the
+      // exact center/zoom requested by the user.
       try {
-        map.fitBounds(AFRICA_BOUNDS, {
-          padding: { top: 44, right: 44, bottom: 56, left: 44 },
-          maxZoom: 3.45,
-          duration: 0,
+        map.jumpTo({
+          center: [15.751726790157534, 1.5627232057281049],
+          zoom: 2.914761576947509,
         });
+        // Mark that we've applied the initial view so other effects know.
+        hasAppliedInitialViewRef.current = true;
       } catch {
-        // ignore fitBounds errors
+        // ignore jump errors
       }
 
       // Initial position is also set via center/zoom in the constructor as fallback.
@@ -917,6 +924,12 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       selectedCountryIso2,
     ]);
 
+    // Avoid overriding the explicit initial view set by the user on first
+    // load. Only auto-fit when a country is selected after initial view.
+    if (!hasAppliedInitialViewRef.current) {
+      return;
+    }
+
     if (selectedCountry && selectedCountry.monitors.length > 0) {
       const bounds = new (window as any).mapboxgl.LngLatBounds();
       selectedCountry.monitors.forEach((monitor) => {
@@ -937,9 +950,9 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       return;
     }
 
-    // Do not force-fit to AFRICA_BOUNDS on every render; the map should be
-    // free to pan/zoom. We start focused on Africa via the constructor
-    // initial `center`/`zoom`. The reset control will return to that view.
+    // The map is constrained to AFRICA_BOUNDS so users cannot pan outside
+    // the continent. We still allow selected-country fitBounds to zoom in.
+    // The reset control returns the view to the locked default center/zoom.
   }, [allMonitors, mapLoaded, selectedCountry, selectedCountryId]);
 
   // Fly to a specific monitor when parent requests it (triggered after details load)
@@ -1012,11 +1025,10 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
           type="button"
           onClick={() => {
             try {
-              // Fly back to the initial Africa-focused center/zoom without
-              // locking the map to any bounds.
+              // Fly back to the user-requested locked Africa center/zoom.
               mapRef.current?.flyTo({
-                center: [17, -2],
-                zoom: 3.45,
+                center: [15.751726790157534, 1.5627232057281049],
+                zoom: 2.914761576947509,
                 duration: 650,
               });
             } catch {
@@ -1045,7 +1057,7 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
                   Snapshot Preview
                 </div>
                 <div className="text-lg font-bold text-slate-900">
-                  Africa map capture
+                  Map capture
                 </div>
               </div>
               <div className="flex items-center gap-2">
