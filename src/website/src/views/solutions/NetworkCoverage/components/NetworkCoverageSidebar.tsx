@@ -674,9 +674,9 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                       'noopener,noreferrer',
                     )
                   }
-                  className="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-100 active:bg-blue-200"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-100 active:bg-blue-200"
                 >
-                  View data on Analytics
+                  View Data
                   <FiChevronRight className="h-4 w-4" />
                 </button>
               </div>
