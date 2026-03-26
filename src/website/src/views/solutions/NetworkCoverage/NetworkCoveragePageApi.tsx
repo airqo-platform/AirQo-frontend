@@ -104,11 +104,12 @@ const NetworkCoveragePage = () => {
   const summaryParams = useMemo(
     () => ({
       tenant: DEFAULT_TENANT,
-      search: debouncedQuery.trim() || undefined,
+      // Search should only filter the sidebar client-side.
+      // Do not include `search` here so the map receives the full dataset.
       activeOnly: activeOnly ? true : undefined,
       types: selectedTypes.length === 3 ? undefined : selectedTypes.join(','),
     }),
-    [activeOnly, debouncedQuery, selectedTypes],
+    [activeOnly, selectedTypes],
   );
 
   const summaryQuery = useNetworkCoverageSummary(summaryParams);
@@ -160,6 +161,8 @@ const NetworkCoveragePage = () => {
   }, [selectedCountryId]);
 
   const mapCountries = countries;
+
+  const isSearching = query !== debouncedQuery && query.trim() !== '';
 
   const resetToOverview = () => {
     setSelectedCountryId(null);
@@ -521,6 +524,8 @@ const NetworkCoveragePage = () => {
             <NetworkCoverageSidebar
               countries={countries}
               query={query}
+              searchQuery={debouncedQuery}
+              isSearching={isSearching}
               selectedTypes={selectedTypes}
               activeOnly={activeOnly}
               selectedCountry={selectedCountry}

@@ -100,6 +100,8 @@ const StatLine = ({
 interface NetworkCoverageSidebarProps {
   countries: NetworkCoverageCountry[];
   query: string;
+  searchQuery?: string;
+  isSearching?: boolean;
   selectedTypes: MonitorType[];
   activeOnly: boolean;
   selectedCountry: NetworkCoverageCountry | null;
@@ -121,6 +123,7 @@ interface NetworkCoverageSidebarProps {
 const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
   countries,
   query,
+  searchQuery,
   selectedTypes,
   activeOnly,
   selectedCountry,
@@ -137,14 +140,40 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
   isLoading = false,
   error = null,
   monitorLoading = false,
+  // `isSearching` indicates the user is typing and debounce hasn't settled
+  isSearching = false,
 }) => {
-  const monitoredCountriesCount = countries.filter(
+  const q = (searchQuery || '').trim().toLowerCase();
+
+  const filteredCountries = React.useMemo(() => {
+    if (!q) return countries;
+    return countries.filter((country) => {
+      if (country.country.toLowerCase().includes(q)) return true;
+      return country.monitors.some((monitor) => {
+        return (
+          (monitor.name || '').toLowerCase().includes(q) ||
+          (monitor.city || '').toLowerCase().includes(q) ||
+          (monitor.network || '').toLowerCase().includes(q)
+        );
+      });
+    });
+  }, [countries, q]);
+
+  const monitoredCountriesCount = filteredCountries.filter(
     (country) => country.monitors.length > 0,
   ).length;
 
-  const filteredCountryMonitors = selectedCountry
-    ? selectedCountry.monitors
-    : [];
+  const filteredCountryMonitors = React.useMemo(() => {
+    if (!selectedCountry) return [];
+    if (!q) return selectedCountry.monitors;
+    return selectedCountry.monitors.filter((monitor) => {
+      return (
+        (monitor.name || '').toLowerCase().includes(q) ||
+        (monitor.city || '').toLowerCase().includes(q) ||
+        (monitor.network || '').toLowerCase().includes(q)
+      );
+    });
+  }, [selectedCountry, q]);
 
   const isOverviewLoading = isLoading && !selectedCountry;
 
@@ -275,7 +304,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
         ) : null}
 
         {/* Structured loading skeletons */}
-        {isOverviewLoading ? (
+        {isOverviewLoading || (!selectedCountry && isSearching) ? (
           <div className="space-y-2">
             {[...Array(6)].map((_, index) => (
               <div
@@ -304,128 +333,130 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
         ) : null}
 
         {/* ── Country overview list ── */}
-        {!selectedCountry && !isOverviewLoading && countries.length > 0 && (
-          <div className="space-y-1.5">
-            {countries.map((country) => {
-              const counts = country.monitors.reduce(
-                (accumulator, monitor) => {
-                  accumulator[monitor.type] += 1;
-                  return accumulator;
-                },
-                { LCS: 0, Reference: 0, Inactive: 0 },
-              );
+        {!selectedCountry &&
+          !isOverviewLoading &&
+          filteredCountries.length > 0 && (
+            <div className="space-y-1.5">
+              {filteredCountries.map((country) => {
+                const counts = country.monitors.reduce(
+                  (accumulator, monitor) => {
+                    accumulator[monitor.type] += 1;
+                    return accumulator;
+                  },
+                  { LCS: 0, Reference: 0, Inactive: 0 },
+                );
 
-              const totalMonitors = country.monitors.length;
-              const activeMonitors = country.monitors.filter(
-                (m) => m.status === 'active',
-              ).length;
-              const isNoData = totalMonitors === 0;
-              const isPromptOpen = showAddMonitorPromptFor === country.id;
+                const totalMonitors = country.monitors.length;
+                const activeMonitors = country.monitors.filter(
+                  (m) => m.status === 'active',
+                ).length;
+                const isNoData = totalMonitors === 0;
+                const isPromptOpen = showAddMonitorPromptFor === country.id;
 
-              return (
-                <div key={country.id} className="relative">
-                  <button
-                    type="button"
-                    onClick={() => onSelectCountry(country.id)}
-                    className={`group w-full rounded-xl border px-3.5 py-3 text-left transition-all duration-150 ${
-                      isNoData
-                        ? 'cursor-default border-slate-100 bg-slate-50 text-slate-400'
-                        : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/20 hover:shadow-sm active:bg-blue-50/40'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 flex-1">
-                        <h3
-                          className={`truncate text-[15px] font-semibold leading-6 ${
-                            isNoData ? 'text-slate-400' : 'text-slate-900'
-                          }`}
-                        >
-                          {country.country}
-                        </h3>
-                        {isNoData ? (
-                          <p className="mt-0.5 text-xs text-slate-400">
-                            No monitors installed
-                          </p>
-                        ) : (
-                          <p className="mt-0.5 text-xs text-slate-500">
-                            <span className="font-medium text-slate-700">
-                              {totalMonitors}
-                            </span>{' '}
-                            monitor{totalMonitors !== 1 ? 's' : ''}
-                            {' · '}
-                            <span
-                              className={
-                                activeMonitors > 0
-                                  ? 'font-medium text-emerald-600'
-                                  : 'text-slate-400'
-                              }
-                            >
-                              {activeMonitors} active
-                            </span>
-                          </p>
+                return (
+                  <div key={country.id} className="relative">
+                    <button
+                      type="button"
+                      onClick={() => onSelectCountry(country.id)}
+                      className={`group w-full rounded-xl border px-3.5 py-3 text-left transition-all duration-150 ${
+                        isNoData
+                          ? 'cursor-default border-slate-100 bg-slate-50 text-slate-400'
+                          : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/20 hover:shadow-sm active:bg-blue-50/40'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <h3
+                            className={`truncate text-[15px] font-semibold leading-6 ${
+                              isNoData ? 'text-slate-400' : 'text-slate-900'
+                            }`}
+                          >
+                            {country.country}
+                          </h3>
+                          {isNoData ? (
+                            <p className="mt-0.5 text-xs text-slate-400">
+                              No monitors installed
+                            </p>
+                          ) : (
+                            <p className="mt-0.5 text-xs text-slate-500">
+                              <span className="font-medium text-slate-700">
+                                {totalMonitors}
+                              </span>{' '}
+                              monitor{totalMonitors !== 1 ? 's' : ''}
+                              {' · '}
+                              <span
+                                className={
+                                  activeMonitors > 0
+                                    ? 'font-medium text-emerald-600'
+                                    : 'text-slate-400'
+                                }
+                              >
+                                {activeMonitors} active
+                              </span>
+                            </p>
+                          )}
+                        </div>
+                        {!isNoData && (
+                          <FiChevronRight className="mt-0.5 h-4 w-4 flex-shrink-0 text-slate-300 transition-colors group-hover:text-blue-400" />
                         )}
                       </div>
-                      {!isNoData && (
-                        <FiChevronRight className="mt-0.5 h-4 w-4 flex-shrink-0 text-slate-300 transition-colors group-hover:text-blue-400" />
-                      )}
-                    </div>
 
-                    {!isNoData && (
-                      <div className="mt-2 flex flex-wrap gap-1.5">
-                        {counts.LCS > 0 && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-600">
-                            <span className="h-1.5 w-1.5 rounded-full bg-blue-600" />
-                            {typeLabels['LCS']} · {counts.LCS}
-                          </span>
-                        )}
-                        {counts.Reference > 0 && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-600">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
-                            {typeLabels['Reference']} · {counts.Reference}
-                          </span>
-                        )}
-                        {counts.Inactive > 0 && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500">
-                            <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
-                            Inactive · {counts.Inactive}
-                          </span>
-                        )}
+                      {!isNoData && (
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {counts.LCS > 0 && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-600">
+                              <span className="h-1.5 w-1.5 rounded-full bg-blue-600" />
+                              {typeLabels['LCS']} · {counts.LCS}
+                            </span>
+                          )}
+                          {counts.Reference > 0 && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-600">
+                              <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
+                              {typeLabels['Reference']} · {counts.Reference}
+                            </span>
+                          )}
+                          {counts.Inactive > 0 && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500">
+                              <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                              Inactive · {counts.Inactive}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </button>
+
+                    {isPromptOpen && (
+                      <div className="absolute left-4 right-4 top-[76px] z-30 rounded-2xl border border-slate-200 bg-white p-4 shadow-xl">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <h4 className="font-semibold text-slate-900">
+                              No monitors in {country.country} yet
+                            </h4>
+                            <p className="mt-1 text-sm text-slate-500">
+                              Contact AirQo to help extend air quality
+                              monitoring to this region.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={onClosePrompt}
+                            className="rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+                          >
+                            <FiX className="h-4 w-4" />
+                          </button>
+                        </div>
                       </div>
                     )}
-                  </button>
-
-                  {isPromptOpen && (
-                    <div className="absolute left-4 right-4 top-[76px] z-30 rounded-2xl border border-slate-200 bg-white p-4 shadow-xl">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <h4 className="font-semibold text-slate-900">
-                            No monitors in {country.country} yet
-                          </h4>
-                          <p className="mt-1 text-sm text-slate-500">
-                            Contact AirQo to help extend air quality monitoring
-                            to this region.
-                          </p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={onClosePrompt}
-                          className="rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
-                        >
-                          <FiX className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
         {/* Empty search result state */}
         {!selectedCountry &&
         !isOverviewLoading &&
-        countries.length === 0 &&
+        filteredCountries.length === 0 &&
         !error ? (
           <div className="rounded-xl border border-slate-200 bg-slate-50 p-6 text-center">
             <AqSearchRefraction className="mx-auto h-7 w-7 text-slate-300" />
