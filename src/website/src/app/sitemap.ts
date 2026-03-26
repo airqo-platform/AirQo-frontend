@@ -32,6 +32,7 @@ const FORUM_TITLES_ENDPOINT = '/forum-event-titles/';
 const EVENTS_ENDPOINT = '/events/';
 const CAREERS_ENDPOINT = '/careers/';
 const PARTNERS_ENDPOINT = '/partners/';
+const GRID_SUMMARY_ENDPOINT = '/devices/grids/summary';
 const MAX_PAGINATED_API_PAGES = 20;
 const DEFAULT_FORUM_FETCH_TIMEOUT_MS = 8000;
 
@@ -54,6 +55,19 @@ interface ContentRouteItem {
   updated_at?: string;
   created?: string;
   modified?: string;
+}
+
+interface GridSummaryRouteItem {
+  name?: string;
+  long_name?: string;
+  createdAt?: string;
+}
+
+interface GridSummaryApiResponse {
+  grids?: GridSummaryRouteItem[];
+  meta?: {
+    totalPages?: number;
+  };
 }
 
 type SitemapChangeFrequency = NonNullable<
@@ -357,6 +371,94 @@ const buildContentDetailRoutes = ({
   });
 };
 
+const normalizeBillboardGridSlug = (value: string): string =>
+  value.trim().toLowerCase().replace(/\s+/g, '-');
+
+const fetchBillboardGridRoutes = async (
+  baseUrl: string,
+  currentDate: Date,
+): Promise<MetadataRoute.Sitemap> => {
+  const apiConfig = getSitemapApiConfig();
+  if (!apiConfig) return [];
+
+  const { apiBaseUrl, fetchTimeoutMs, authHeaders } = apiConfig;
+  const allGrids: GridSummaryRouteItem[] = [];
+  let currentPage = 1;
+  let totalPages: number | null = null;
+
+  while (!totalPages || currentPage <= totalPages) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), fetchTimeoutMs);
+
+    try {
+      const nextUrl = new URL(`${apiBaseUrl}${GRID_SUMMARY_ENDPOINT}`);
+      nextUrl.searchParams.set('admin_level', 'country');
+      nextUrl.searchParams.set('page_size', '100');
+      nextUrl.searchParams.set('page', String(currentPage));
+
+      const response = await fetch(nextUrl.toString(), {
+        next: { revalidate: 86400 },
+        headers: authHeaders,
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        if (response.status === 404 && currentPage === 1) {
+          break;
+        }
+
+        console.error('Billboard grid sitemap fetch failed:', {
+          url: nextUrl.toString(),
+          status: response.status,
+          statusText: response.statusText,
+        });
+        break;
+      }
+
+      const data = (await response.json()) as GridSummaryApiResponse;
+      const pageGrids = (data.grids || []).filter(
+        (item): item is Required<Pick<GridSummaryRouteItem, 'name'>> =>
+          typeof item?.name === 'string' && item.name.trim().length > 0,
+      );
+
+      allGrids.push(...pageGrids);
+      totalPages = data.meta?.totalPages ?? null;
+
+      if (!totalPages || currentPage >= totalPages) {
+        break;
+      }
+
+      currentPage += 1;
+    } catch (error) {
+      const typedError = error as Error;
+      console.error('Billboard grid sitemap request failed:', {
+        page: currentPage,
+        message: typedError.message,
+        name: typedError.name,
+      });
+      break;
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  return allGrids.flatMap((grid) => {
+    const sourceName = grid.name || grid.long_name;
+    if (!sourceName) return [];
+
+    const slug = normalizeBillboardGridSlug(sourceName);
+
+    return [
+      {
+        url: `${baseUrl}/billboard/grid/${encodeURIComponent(slug)}`,
+        lastModified: parseValidDate(grid.createdAt) ?? currentDate,
+        changeFrequency: 'weekly' as const,
+        priority: 0.8,
+      },
+    ];
+  });
+};
+
 export const revalidate = 86400; // refresh daily
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -370,6 +472,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: number;
   }> = [
     { path: '/', changeFrequency: 'daily', priority: 1 },
+    { path: '/home', changeFrequency: 'daily', priority: 1 },
     {
       path: '/billboard/interactive',
       changeFrequency: 'hourly',
@@ -457,6 +560,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       fetchContentRouteItems(PARTNERS_ENDPOINT),
     ]);
 
+  const billboardGridRoutes = await fetchBillboardGridRoutes(
+    baseUrl,
+    currentDate,
+  );
+
   const forumEventRoutes: MetadataRoute.Sitemap = forumEvents.flatMap(
     (event) => {
       const encodedTitle = encodeURIComponent(event.unique_title);
@@ -503,6 +611,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     ...staticRoutes,
+    ...billboardGridRoutes,
     ...forumEventRoutes,
     ...eventDetailRoutes,
     ...careerDetailRoutes,

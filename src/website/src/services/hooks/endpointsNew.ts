@@ -19,6 +19,7 @@ import {
   gridsService,
   highlightsService,
   impactNumbersService,
+  networkCoverageService,
   partnersService,
   predictService,
   pressService,
@@ -36,7 +37,9 @@ type ServiceQueryResult<T> = {
   data: T | undefined;
   error: Error | null;
   isLoading: boolean;
+  isFetching: boolean;
   isValidating: boolean;
+  isSuccess: boolean;
   refetch: UseQueryResult<T, Error>['refetch'];
 };
 
@@ -55,7 +58,9 @@ function useServiceQuery<T>(
     data: query.data,
     error: query.error ?? null,
     isLoading: query.isLoading,
+    isFetching: query.isFetching,
     isValidating: query.isFetching,
+    isSuccess: query.isSuccess,
     refetch: query.refetch,
   };
 }
@@ -434,6 +439,69 @@ export const useGridsSummary = (
     {
       enabled: !!params,
       staleTime: 5 * 60 * 1000,
+      ...queryOptions,
+    },
+  );
+
+export const useNetworkCoverageSummary = (
+  params?: {
+    tenant?: string;
+    search?: string;
+    activeOnly?: boolean;
+    types?: string;
+  },
+  queryOptions?: ServiceQueryOptions<any>,
+) =>
+  useServiceQuery(
+    apiQueryKeys.networkCoverageSummary(params),
+    () => networkCoverageService.getNetworkCoverageSummary(params || {}),
+    {
+      staleTime: 15 * 60 * 1000,
+      placeholderData: keepPreviousData,
+      ...queryOptions,
+    },
+  );
+
+export const useNetworkCoverageCountryMonitors = (
+  countryId: string | null,
+  params?: {
+    tenant?: string;
+    activeOnly?: boolean;
+    types?: string;
+  },
+  queryOptions?: ServiceQueryOptions<any>,
+) =>
+  useServiceQuery(
+    apiQueryKeys.networkCoverageCountryMonitors(countryId, params),
+    () =>
+      networkCoverageService.getNetworkCoverageCountryMonitors(
+        countryId as string,
+        params || {},
+      ),
+    {
+      enabled: !!countryId,
+      staleTime: 15 * 60 * 1000,
+      ...queryOptions,
+    },
+  );
+
+export const useNetworkCoverageMonitor = (
+  monitorId: string | null,
+  params?: {
+    tenant?: string;
+  },
+  queryOptions?: ServiceQueryOptions<any>,
+) =>
+  useServiceQuery(
+    apiQueryKeys.networkCoverageMonitor(monitorId, params),
+    () =>
+      networkCoverageService.getNetworkCoverageMonitor(
+        monitorId as string,
+        params || {},
+      ),
+    {
+      enabled: !!monitorId,
+      staleTime: 30 * 60 * 1000,
       ...queryOptions,
     },
   );

@@ -3,7 +3,7 @@ import {
   generateViewport,
   METADATA_CONFIGS,
 } from '@/lib/metadata';
-import NetworkCoveragePage from '@/views/solutions/NetworkCoverage/NetworkCoveragePage';
+import NetworkCoveragePage from '@/views/solutions/NetworkCoverage/NetworkCoveragePageApi';
 
 // Generate metadata using the centralized utility
 export const metadata = createMetadata(
