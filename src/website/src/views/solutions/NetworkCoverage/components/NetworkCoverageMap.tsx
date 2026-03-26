@@ -1,7 +1,11 @@
 'use client';
 
+/* eslint-disable simple-import-sort/imports */
+
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { FiMinus, FiPlus } from 'react-icons/fi';
+import Image from 'next/image';
+import { FiMinus, FiPlus, FiCamera } from 'react-icons/fi';
+import html2canvas from 'html2canvas';
 
 import {
   africanIso2Codes,
@@ -21,6 +25,7 @@ interface NetworkCoverageMapProps {
   onMonitorSelect: (monitorId: string, countryId: string) => void;
   onResetView: () => void;
   flyToMonitorId?: string | null;
+  onRegisterSnapshot?: (fn: (() => Promise<string | null>) | null) => void;
 }
 
 type MarkerResource = {
@@ -31,6 +36,14 @@ type MarkerResource = {
   handleMouseLeave: () => void;
 };
 
+type SnapshotModalState = {
+  open: boolean;
+  imageUrl: string | null;
+  loading: boolean;
+};
+
+// AFRICA bounding box used to frame the initial view. We no longer lock
+// the map to these bounds, but we use them once on load to frame Africa.
 const AFRICA_BOUNDS: [[number, number], [number, number]] = [
   [-30, -43],
   [64, 45],
@@ -62,7 +75,7 @@ const formatNetworkName = (value?: string | null) => {
 
 const monitorTypeLabel: Record<MonitorType, string> = {
   Reference: 'Reference',
-  LCS: 'Low Cost Sensor (LCS)',
+  LCS: 'Low-Cost Sensor (LCS)',
   Inactive: 'Inactive',
 };
 
@@ -200,6 +213,7 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
   onMonitorSelect,
   onResetView,
   flyToMonitorId,
+  onRegisterSnapshot,
 }) => {
   const mapRef = useRef<any>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -215,6 +229,20 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapInitError, setMapInitError] = useState<string | null>(null);
   const [zoomLevel, setZoomLevel] = useState(2.6);
+  const [snapshotModal, setSnapshotModal] = useState<SnapshotModalState>({
+    open: false,
+    imageUrl: null,
+    loading: false,
+  });
+
+  // Stable refs so that changing prop identity on every parent render does
+  // not cause heavyweight effects (marker rebuild, handler swap) to re-run.
+  const onMonitorSelectRef = useRef(onMonitorSelect);
+  const onCountrySelectByIsoRef = useRef(onCountrySelectByIso);
+  const allMonitorsRef = useRef<typeof allMonitors>([]);
+  // Keep refs up-to-date without triggering re-renders.
+  onMonitorSelectRef.current = onMonitorSelect;
+  onCountrySelectByIsoRef.current = onCountrySelectByIso;
 
   const countryById = useMemo(() => {
     const result: Record<string, NetworkCoverageCountry> = {};
@@ -244,6 +272,9 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
     () => countries.flatMap((country) => country.monitors),
     [countries],
   );
+  // Keep allMonitorsRef in sync so flyTo can read the latest value without
+  // needing allMonitors in the flyTo effect dependency array.
+  allMonitorsRef.current = allMonitors;
 
   const selectedCountry = selectedCountryId
     ? countryById[selectedCountryId]
@@ -337,14 +368,17 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       mapInstance = new mapboxgl.Map({
         container: mapContainerRef.current,
         style: mapStyle,
-        center: [20, 2],
-        zoom: 2.6,
+        // Use pre-calculated Africa center so the map starts at the correct
+        // position without a fitBounds animation on load (eliminates jump).
+        center: [17, -2] as [number, number],
+        zoom: 3.15,
         projection: 'mercator',
-        maxBounds: AFRICA_BOUNDS,
-        minZoom: 2.2,
+        minZoom: 1.7,
         maxZoom: 13,
+        // Required for canvas.toDataURL() snapshot to return actual pixels
+        // instead of a blank/empty image (WebGL clears buffer by default).
+        preserveDrawingBuffer: true,
         attributionControl: true,
-        // Provide HTML so the "AirQo" text is a clickable link to the site homepage
         customAttribution: ['Powered by <a href="/" rel="noopener">AirQo</a>'],
       });
       setMapInitError(null);
@@ -360,12 +394,19 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
     mapRef.current.on('load', () => {
       const map = mapRef.current;
 
-      map.fitBounds(AFRICA_BOUNDS, {
-        padding: { top: 95, right: 110, bottom: 130, left: 100 },
-        maxZoom: 2.4,
-        duration: 0,
-      });
+      // Frame Africa immediately on first load so the whole continent is
+      // visible by default (no bounds lock; user can pan/zoom afterwards).
+      try {
+        map.fitBounds(AFRICA_BOUNDS, {
+          padding: { top: 44, right: 44, bottom: 56, left: 44 },
+          maxZoom: 3.45,
+          duration: 0,
+        });
+      } catch {
+        // ignore fitBounds errors
+      }
 
+      // Initial position is also set via center/zoom in the constructor as fallback.
       map.addSource('africa-country-boundaries', {
         type: 'vector',
         url: 'mapbox://mapbox.country-boundaries-v1',
@@ -428,10 +469,26 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
 
       setMapLoaded(true);
       setZoomLevel(map.getZoom());
+      console.log('[NetworkCoverageMap] initial view', {
+        zoom: map.getZoom(),
+        center: map.getCenter().toArray(),
+      });
     });
 
     mapRef.current.on('zoomend', () => {
-      setZoomLevel(mapRef.current.getZoom());
+      const currentZoom = mapRef.current.getZoom();
+      setZoomLevel(currentZoom);
+      console.log('[NetworkCoverageMap] zoomend', {
+        zoom: currentZoom,
+        center: mapRef.current.getCenter().toArray(),
+      });
+    });
+
+    mapRef.current.on('moveend', () => {
+      console.log('[NetworkCoverageMap] moveend', {
+        zoom: mapRef.current.getZoom(),
+        center: mapRef.current.getCenter().toArray(),
+      });
     });
 
     return () => {
@@ -451,6 +508,36 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       }
     };
   }, [mapStyle]);
+
+  // Expose a snapshot getter to the parent PDF generator.
+  const captureSnapshot = async (): Promise<string | null> => {
+    try {
+      if (!mapContainerRef.current) return null;
+
+      await new Promise((resolve) => window.requestAnimationFrame(resolve));
+
+      const canvas = await html2canvas(mapContainerRef.current, {
+        backgroundColor: null,
+        useCORS: true,
+        allowTaint: true,
+        scale: Math.min(window.devicePixelRatio || 1, 2),
+        logging: false,
+      });
+
+      return canvas.toDataURL('image/png');
+    } catch {
+      return null;
+    }
+  };
+
+  // Expose a snapshot getter to the parent PDF generator.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!onRegisterSnapshot) return;
+
+    onRegisterSnapshot(captureSnapshot);
+    return () => onRegisterSnapshot(null);
+  }, [onRegisterSnapshot, mapLoaded]);
 
   useEffect(() => {
     if (!mapLoaded || !mapRef.current) {
@@ -521,7 +608,8 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       const feature = event?.features?.[0];
       const iso2 = feature?.properties?.iso_3166_1;
       if (iso2) {
-        onCountrySelectByIso(iso2);
+        // Use ref so effect doesn't need to re-run when prop identity changes.
+        onCountrySelectByIsoRef.current(iso2);
       }
     };
 
@@ -538,7 +626,7 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
         coverageClickHandlerRef.current = null;
       }
     };
-  }, [mapLoaded, onCountrySelectByIso]);
+  }, [mapLoaded]);
 
   useEffect(() => {
     if (!mapLoaded || !mapRef.current) {
@@ -728,7 +816,7 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
           group.monitors[0];
         const country = countryByIso2[nextMonitor.iso2];
         if (country) {
-          onMonitorSelect(nextMonitor.id, country.id);
+          onMonitorSelectRef.current(nextMonitor.id, country.id);
         }
       };
 
@@ -807,7 +895,8 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
     countryByIso2,
     groupedNodes,
     mapLoaded,
-    onMonitorSelect,
+    // onMonitorSelect intentionally omitted – accessed via ref to prevent
+    // clearing and rebuilding all markers on every parent render.
     selectedMonitorId,
     viewMode,
   ]);
@@ -848,13 +937,9 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       return;
     }
 
-    if (!selectedCountryId) {
-      map.fitBounds(AFRICA_BOUNDS, {
-        padding: { top: 115, right: 110, bottom: 140, left: 100 },
-        maxZoom: 2.4,
-        duration: 850,
-      });
-    }
+    // Do not force-fit to AFRICA_BOUNDS on every render; the map should be
+    // free to pan/zoom. We start focused on Africa via the constructor
+    // initial `center`/`zoom`. The reset control will return to that view.
   }, [allMonitors, mapLoaded, selectedCountry, selectedCountryId]);
 
   // Fly to a specific monitor when parent requests it (triggered after details load)
@@ -862,7 +947,10 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
     if (!mapLoaded || !mapRef.current || !flyToMonitorId) return;
 
     const map = mapRef.current;
-    const monitor = allMonitors.find((item) => item.id === flyToMonitorId);
+    // Use ref so that data refreshes don't re-trigger this effect.
+    const monitor = allMonitorsRef.current.find(
+      (item) => item.id === flyToMonitorId,
+    );
     if (monitor) {
       map.flyTo({
         center: [monitor.longitude, monitor.latitude],
@@ -871,7 +959,7 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
         curve: 1.2,
       });
     }
-  }, [flyToMonitorId, mapLoaded, allMonitors]);
+  }, [flyToMonitorId, mapLoaded]);
 
   return (
     <div className="relative h-full w-full">
@@ -896,11 +984,39 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
         </button>
         <button
           type="button"
+          onClick={async () => {
+            try {
+              setSnapshotModal((current) => ({
+                ...current,
+                open: true,
+                loading: true,
+                imageUrl: null,
+              }));
+              const dataUrl = await captureSnapshot();
+              setSnapshotModal({
+                open: true,
+                loading: false,
+                imageUrl: dataUrl,
+              });
+            } catch {
+              setSnapshotModal({ open: true, loading: false, imageUrl: null });
+            }
+          }}
+          className="grid h-12 w-12 place-items-center border-t border-slate-200 bg-white text-slate-700 transition-colors hover:bg-slate-50"
+          aria-label="Capture map snapshot"
+          title="Capture map snapshot"
+        >
+          <FiCamera className="h-5 w-5" />
+        </button>
+        <button
+          type="button"
           onClick={() => {
             try {
-              mapRef.current?.fitBounds(AFRICA_BOUNDS, {
-                padding: { top: 115, right: 110, bottom: 140, left: 100 },
-                maxZoom: 2.4,
+              // Fly back to the initial Africa-focused center/zoom without
+              // locking the map to any bounds.
+              mapRef.current?.flyTo({
+                center: [17, -2],
+                zoom: 3.45,
                 duration: 650,
               });
             } catch {
@@ -919,6 +1035,75 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
           <span className="text-xs font-semibold">Reset</span>
         </button>
       </div>
+
+      {snapshotModal.open && (
+        <div className="absolute inset-0 z-40 flex items-center justify-center bg-slate-950/70 px-4 py-6 backdrop-blur-sm">
+          <div className="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-3xl bg-white shadow-[0_30px_90px_rgba(15,23,42,0.45)]">
+            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+              <div>
+                <div className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  Snapshot Preview
+                </div>
+                <div className="text-lg font-bold text-slate-900">
+                  Africa map capture
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSnapshotModal({
+                      open: false,
+                      imageUrl: null,
+                      loading: false,
+                    })
+                  }
+                  className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!snapshotModal.imageUrl) return;
+                    const a = document.createElement('a');
+                    a.href = snapshotModal.imageUrl;
+                    a.download = `africa-map-snapshot-${new Date().toISOString().split('T')[0]}.png`;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                  }}
+                  disabled={!snapshotModal.imageUrl || snapshotModal.loading}
+                  className="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
+                >
+                  Download
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 bg-slate-100 p-4">
+              {snapshotModal.loading ? (
+                <div className="flex h-[70vh] items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white text-slate-600">
+                  Generating preview...
+                </div>
+              ) : snapshotModal.imageUrl ? (
+                <Image
+                  src={snapshotModal.imageUrl}
+                  alt="Map snapshot preview"
+                  unoptimized
+                  width={1920}
+                  height={1080}
+                  className="max-h-[70vh] w-full rounded-2xl object-contain shadow-sm"
+                />
+              ) : (
+                <div className="flex h-[70vh] items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white text-slate-600">
+                  Snapshot could not be generated. Try again after the map
+                  finishes loading.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {mapInitError && (
         <div className="absolute inset-0 z-30 grid place-items-center bg-[#f6f6f7]">

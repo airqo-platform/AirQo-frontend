@@ -4,7 +4,7 @@ import { FiChevronDown, FiMenu } from 'react-icons/fi';
 
 interface NetworkCoverageHeaderProps {
   onToggleSidebar: () => void;
-  onDownload: (format: 'csv' | 'pdf') => void;
+  onDownload: () => void;
   isDownloading?: boolean;
   onAddToNetwork?: () => void;
 }
@@ -42,7 +42,7 @@ const NetworkCoverageHeader: React.FC<NetworkCoverageHeaderProps> = ({
           <FiMenu className="h-5 w-5" />
         </button>
         <h1 className="text-lg font-semibold leading-none text-slate-900 sm:text-xl">
-          Africa Air Sensor Coverages
+          Africa Air Quality Monitoring Network Coverage
         </h1>
       </div>
 
@@ -93,20 +93,11 @@ const NetworkCoverageHeader: React.FC<NetworkCoverageHeaderProps> = ({
           {showDownloadMenu && !isDownloading && (
             <div className="absolute right-0 z-40 mt-2 w-44 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
               <div className="p-1.5">
+                {/* CSV export removed per request - keep PDF only */}
                 <button
                   type="button"
                   onClick={() => {
-                    onDownload('csv');
-                    setShowDownloadMenu(false);
-                  }}
-                  className="w-full rounded-md px-3 py-2 text-left text-sm font-semibold text-slate-800 hover:bg-slate-50"
-                >
-                  Export as CSV
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onDownload('pdf');
+                    onDownload();
                     setShowDownloadMenu(false);
                   }}
                   className="mt-1 w-full rounded-md px-3 py-2 text-left text-sm font-semibold text-slate-800 hover:bg-slate-50"

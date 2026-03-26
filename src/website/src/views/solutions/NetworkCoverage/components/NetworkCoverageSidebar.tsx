@@ -18,7 +18,7 @@ const typeDotClass: Record<MonitorType, string> = {
 
 const typeLabels: Record<MonitorType, string> = {
   Reference: 'Reference',
-  LCS: 'Low Cost Sensor (LCS)',
+  LCS: 'Low-Cost Sensor (LCS)',
   Inactive: 'Inactive',
 };
 
@@ -375,13 +375,13 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                         {counts.LCS > 0 && (
                           <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-600">
                             <span className="h-1.5 w-1.5 rounded-full bg-blue-600" />
-                            LCS · {counts.LCS}
+                            {typeLabels['LCS']} · {counts.LCS}
                           </span>
                         )}
                         {counts.Reference > 0 && (
                           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-600">
                             <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
-                            Ref · {counts.Reference}
+                            {typeLabels['Reference']} · {counts.Reference}
                           </span>
                         )}
                         {counts.Inactive > 0 && (
@@ -488,7 +488,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                               : 'bg-slate-100 text-slate-500'
                         }`}
                       >
-                        {monitor.type}
+                        {typeLabels[monitor.type]}
                       </span>
                       <span
                         className={`flex items-center gap-1 text-xs font-medium ${
@@ -540,10 +540,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
               <div
                 className={getBadgeClassesForMonitorType(selectedMonitor.type)}
               >
-                {selectedMonitor.type === 'LCS'
-                  ? 'Low Cost Sensor (LCS)'
-                  : selectedMonitor.type}{' '}
-                Monitor
+                {typeLabels[selectedMonitor.type]} Monitor
               </div>
               <h3 className="mt-2 text-xl font-bold leading-tight text-slate-900 sm:text-2xl">
                 {selectedMonitor.name}

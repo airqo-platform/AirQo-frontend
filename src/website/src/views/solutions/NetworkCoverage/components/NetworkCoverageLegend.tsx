@@ -9,7 +9,7 @@ interface NetworkCoverageLegendProps {
 const NetworkCoverageLegend: React.FC<NetworkCoverageLegendProps> = ({
   viewMode,
 }) => {
-  const [collapsed, setCollapsed] = React.useState<boolean>(true);
+  const [collapsed, setCollapsed] = React.useState<boolean>(false);
 
   const toggle = () => setCollapsed((s) => !s);
 
@@ -20,7 +20,7 @@ const NetworkCoverageLegend: React.FC<NetworkCoverageLegendProps> = ({
       </p>
       <div className="flex flex-col gap-1.5">
         <div className="flex w-full items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-full bg-blue-600" /> Low Cost
+          <span className="h-2.5 w-2.5 rounded-full bg-blue-600" /> Low-Cost
           Sensor (LCS)
         </div>
         <div className="flex w-full items-center gap-2">

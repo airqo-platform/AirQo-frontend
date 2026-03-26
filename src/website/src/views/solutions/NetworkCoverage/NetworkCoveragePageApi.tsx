@@ -1,9 +1,10 @@
 'use client';
+/* eslint-disable simple-import-sort/imports */
 
 import { AqLoading02 } from '@airqo/icons-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { MapLoader } from '@/components/map';
 import {
@@ -21,37 +22,13 @@ import NetworkCoverageSidebar from './components/NetworkCoverageSidebar';
 import {
   type MonitorType,
   type NetworkCoverageCountry,
-  type NetworkCoverageMonitor,
   type ViewMode,
+  AFRICAN_COUNTRY_LIST,
 } from './networkCoverageTypes';
 
 const DEFAULT_TENANT = 'airqo';
 
-const downloadBlob = (blob: Blob, filename: string) => {
-  const link = document.createElement('a');
-  const url = URL.createObjectURL(blob);
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-};
-
-const formatPdfText = (value?: string | null) => {
-  if (!value || !value.trim()) {
-    return '--';
-  }
-
-  return value.trim();
-};
-
-const formatNetworkName = (value?: string | null) => {
-  if (!value || !value.trim()) return '--';
-  const trimmed = value.trim();
-  if (trimmed.toLowerCase() === 'airqo') return 'AirQo';
-  return trimmed;
-};
+// CSV download removed; blob helper not required here
 
 const formatPdfDateTime = (value?: string) => {
   if (!value) {
@@ -68,29 +45,9 @@ const formatPdfDateTime = (value?: string) => {
   }
 };
 
-const formatCoordinates = (lat: number | null, lon: number | null) => {
-  if (typeof lat !== 'number' || typeof lon !== 'number') return '--';
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return '--';
+// formatCoordinates helper is implemented in sidebar/map components where needed
 
-  const latSuffix = lat < 0 ? 'S' : 'N';
-  const lonSuffix = lon < 0 ? 'W' : 'E';
-
-  return `${Math.abs(lat).toFixed(4)}°${latSuffix} ${Math.abs(lon).toFixed(4)}°${lonSuffix}`;
-};
-
-const buildPdfRow = (monitor: NetworkCoverageMonitor) => [
-  formatPdfText(monitor.country),
-  formatPdfText(monitor.city),
-  formatPdfText(monitor.name),
-  monitor.type,
-  monitor.status,
-  formatNetworkName(monitor.network),
-  formatPdfText(monitor.operator),
-  formatCoordinates(monitor.latitude, monitor.longitude),
-  formatPdfText(monitor.uptime30d),
-  formatPdfDateTime(monitor.lastActive),
-  formatPdfText(monitor.publicData),
-];
+// buildPdfRow removed — report now summarizes monitors instead of listing them all
 
 const buildPdfFileName = (scope: string) => {
   const dateSuffix = new Date().toISOString().split('T')[0];
@@ -126,6 +83,7 @@ const NetworkCoveragePage = () => {
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [flyToMonitorId, setFlyToMonitorId] = useState<string | null>(null);
+  const snapshotGetterRef = useRef<(() => Promise<string | null>) | null>(null);
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -192,16 +150,7 @@ const NetworkCoveragePage = () => {
 
   const selectedMonitor = monitorDetailQuery.data?.monitor ?? null;
 
-  const exportQueryParams = useMemo(
-    () => ({
-      tenant: DEFAULT_TENANT,
-      search: debouncedQuery.trim() || undefined,
-      activeOnly: activeOnly ? true : undefined,
-      types: selectedTypes.length === 3 ? undefined : selectedTypes.join(','),
-      countryId: selectedCountryId ?? undefined,
-    }),
-    [activeOnly, debouncedQuery, selectedCountryId, selectedTypes],
-  );
+  // exportQueryParams removed — CSV export was removed and PDF uses current state directly
 
   useEffect(() => {
     if (!selectedCountryId) {
@@ -295,6 +244,12 @@ const NetworkCoveragePage = () => {
     return response.monitors;
   };
 
+  const getTypeLabel = (type: string) => {
+    if (!type) return type;
+    if (type === 'LCS') return 'Low-Cost Sensor (LCS)';
+    return type;
+  };
+
   const downloadPdf = async () => {
     setIsDownloading(true);
     setDownloadError(null);
@@ -307,103 +262,214 @@ const NetworkCoveragePage = () => {
         'All monitored countries';
       const scopeLabel =
         selectedCountry?.country ?? selectedCountryId ?? 'all-countries';
+
       const doc = new jsPDF({
         orientation: 'landscape',
         unit: 'mm',
         format: 'a4',
       });
+      const PAGE_W = 297; // A4 landscape
+      const MARGIN = 14;
+      const CONTENT_W = PAGE_W - MARGIN * 2; // 269 mm
 
+      // ── Document metadata ────────────────────────────────────────────────
       doc.setProperties({
-        title: 'AirQo Network Coverage Report',
+        title: 'Africa Air Quality Monitoring Network Coverage Report',
         subject: 'Network coverage monitors export',
-        author: 'AirQo',
+        author: 'Africa Air Quality Monitoring Network',
       });
 
+      // ── Dark navy header banner ──────────────────────────────────────────
+      const NAVY: [number, number, number] = [12, 28, 90];
+      const HEADER_H = 18;
+      doc.setFillColor(...NAVY);
+      doc.rect(0, 0, PAGE_W, HEADER_H, 'F');
+
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(18);
-      doc.text('AirQo Network Coverage Report', 14, 16);
+      doc.setFontSize(13);
+      doc.setTextColor(255, 255, 255);
+      doc.text(
+        'Africa Air Quality Monitoring — Network Coverage Report',
+        MARGIN,
+        12,
+      );
 
+      // ── Light metadata strip ──────────────────────────────────────────────
+      const STRIP_Y = HEADER_H; // immediately below header — no gap
+      const STRIP_H = 9;
+      doc.setFillColor(240, 242, 248);
+      doc.rect(0, STRIP_Y, PAGE_W, STRIP_H, 'F');
+
+      const filtersLabel = `${selectedTypes.map(getTypeLabel).join(', ')}${activeOnly ? ' · Active only' : ''}`;
+      const metaLine = `Scope: ${scopeText}  ·  Filters: ${filtersLabel}  ·  Generated: ${formatPdfDateTime(new Date().toISOString())}`;
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(10);
-      doc.text(`Scope: ${scopeText}`, 14, 23);
-      doc.text(
-        `Filters: ${selectedTypes.join(', ')}${activeOnly ? ' | Active only' : ''}`,
-        14,
-        29,
+      doc.setFontSize(7.5);
+      doc.setTextColor(60, 70, 100);
+      doc.text(metaLine, MARGIN, STRIP_Y + 6);
+
+      // ── Build statistics ──────────────────────────────────────────────────
+      const totalMonitors = rows.length;
+      const uniqueCountries = new Set(
+        rows.map((r) => r.country).filter(Boolean),
       );
-      doc.text(
-        `Generated: ${formatPdfDateTime(new Date().toISOString())}`,
-        14,
-        35,
+      const countriesMonitored = uniqueCountries.size;
+      const totalAfricanCountries = AFRICAN_COUNTRY_LIST.length;
+
+      const countsByType: Record<string, number> = { Reference: 0, LCS: 0 };
+      const countsByStatus: Record<string, number> = { active: 0, inactive: 0 };
+      const monitorsByCountry: Record<
+        string,
+        { iso2?: string; country: string; count: number }
+      > = {};
+
+      rows.forEach((m) => {
+        const t = m.type || 'LCS';
+        countsByType[t] = (countsByType[t] || 0) + 1;
+        const s = m.status || 'active';
+        countsByStatus[s] = (countsByStatus[s] || 0) + 1;
+        const key = (m.country || m.iso2 || 'Unknown').toString();
+        if (!monitorsByCountry[key]) {
+          monitorsByCountry[key] = {
+            iso2: m.iso2,
+            country: m.country || key,
+            count: 0,
+          };
+        }
+        monitorsByCountry[key].count += 1;
+      });
+
+      // All countries sorted by monitor count — no truncation
+      const topCountries = Object.values(monitorsByCountry).sort(
+        (a, b) => b.count - a.count,
       );
 
-      const tableRows =
-        rows.length > 0
-          ? rows.map((monitor) => buildPdfRow(monitor))
-          : [
-              [
-                'No data available',
-                '--',
-                '--',
-                '--',
-                '--',
-                '--',
-                '--',
-                '--',
-                '--',
-                '--',
-                '--',
-              ],
-            ];
+      // ── Single-column layout: summary above, countries list below ──────
+      const BODY_Y = STRIP_Y + STRIP_H + 6;
+      const SECTION_HEAD_COLOR: [number, number, number] = NAVY;
+      const ALT_ROW: [number, number, number] = [245, 247, 252];
+      const COMMON_STYLES = {
+        font: 'helvetica' as const,
+        fontSize: 9,
+        cellPadding: 3,
+      };
 
-      autoTable(doc, {
-        startY: 42,
-        head: [
+      const summaryTable = autoTable(doc, {
+        startY: BODY_Y,
+        head: [['Metric', 'Value']],
+        body: [
+          ['Total monitors', String(totalMonitors)],
           [
-            'Country',
-            'City',
-            'Monitor',
-            'Type',
-            'Status',
-            'Network',
-            'Operator',
-            'Coordinates',
-            'Uptime (30d)',
-            'Last Active',
-            'Public Data',
+            'Countries covered',
+            `${countriesMonitored} / ${totalAfricanCountries}`,
           ],
+          ['Reference monitors', String(countsByType.Reference || 0)],
+          ['Low-Cost Sensor (LCS) monitors', String(countsByType.LCS || 0)],
+          ['Active monitors', String(countsByStatus.active || 0)],
+          ['Inactive monitors', String(countsByStatus.inactive || 0)],
         ],
-        body: tableRows,
-        margin: { left: 14, right: 14 },
-        styles: {
-          font: 'helvetica',
-          fontSize: 8,
-          cellPadding: 2,
-          valign: 'middle',
-          overflow: 'linebreak',
-        },
+        theme: 'grid',
+        styles: COMMON_STYLES,
         headStyles: {
-          fillColor: [30, 64, 175],
+          fillColor: SECTION_HEAD_COLOR,
           textColor: 255,
           fontStyle: 'bold',
         },
-        alternateRowStyles: {
-          fillColor: [248, 250, 252],
-        },
+        alternateRowStyles: { fillColor: ALT_ROW },
         columnStyles: {
-          0: { cellWidth: 25 },
-          1: { cellWidth: 23 },
-          2: { cellWidth: 35 },
-          3: { cellWidth: 18 },
-          4: { cellWidth: 18 },
-          5: { cellWidth: 24 },
-          6: { cellWidth: 28 },
-          7: { cellWidth: 35 },
-          8: { cellWidth: 22 },
-          9: { cellWidth: 28 },
-          10: { cellWidth: 22 },
+          0: { cellWidth: CONTENT_W * 0.6 },
+          1: { cellWidth: CONTENT_W * 0.4, halign: 'right' },
         },
+        margin: { left: MARGIN, right: MARGIN },
       });
+
+      const startYForCountries = (summaryTable as any)?.finalY
+        ? (summaryTable as any).finalY + 8
+        : BODY_Y + 50;
+
+      autoTable(doc, {
+        startY: startYForCountries,
+        head: [['Country', 'ISO', 'Monitors']],
+        body: topCountries.map((c) => [
+          c.country,
+          c.iso2 || '',
+          String(c.count),
+        ]),
+        theme: 'grid',
+        styles: COMMON_STYLES,
+        headStyles: {
+          fillColor: SECTION_HEAD_COLOR,
+          textColor: 255,
+          fontStyle: 'bold',
+        },
+        alternateRowStyles: { fillColor: ALT_ROW },
+        columnStyles: {
+          0: { cellWidth: CONTENT_W * 0.6 },
+          1: { cellWidth: CONTENT_W * 0.15, halign: 'center' },
+          2: { cellWidth: CONTENT_W * 0.25, halign: 'right' },
+        },
+        margin: { left: MARGIN, right: MARGIN },
+      });
+
+      // ── Page 1 footer ────────────────────────────────────────────────────
+      const PAGE_H = 210; // A4 landscape height
+      const FOOTER_Y = PAGE_H - 8;
+      doc.setDrawColor(180, 185, 210);
+      doc.setLineWidth(0.3);
+      doc.line(MARGIN, FOOTER_Y - 2, PAGE_W - MARGIN, FOOTER_Y - 2);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7);
+      doc.setTextColor(120, 130, 160);
+      doc.text('Africa Air Quality Monitoring Network', MARGIN, FOOTER_Y);
+      doc.text('Page 1', PAGE_W - MARGIN, FOOTER_Y, { align: 'right' });
+
+      // ── Map snapshot on page 2 (only when available) ──────────────────
+      try {
+        if (snapshotGetterRef.current) {
+          // Await async capture — html-to-image serialises both the WebGL
+          // canvas AND the HTML marker overlay into one PNG.
+          const dataUrl = await snapshotGetterRef.current();
+          if (dataUrl && dataUrl.length > 100) {
+            doc.addPage('a4', 'landscape');
+
+            // Repeat header banner on page 2
+            doc.setFillColor(...NAVY);
+            doc.rect(0, 0, PAGE_W, HEADER_H, 'F');
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(12);
+            doc.setTextColor(255, 255, 255);
+            doc.text(
+              'Map Snapshot — Africa Air Quality Monitoring Network',
+              MARGIN,
+              10,
+            );
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(8);
+            doc.setTextColor(180, 200, 255);
+            doc.text(
+              `Scope: ${scopeText}  ·  ${formatPdfDateTime(new Date().toISOString())}`,
+              MARGIN,
+              16,
+            );
+
+            // Full-width map image below header
+            const IMG_Y = HEADER_H + 4;
+            const IMG_H = PAGE_H - IMG_Y - 14;
+            doc.addImage(dataUrl, 'PNG', MARGIN, IMG_Y, CONTENT_W, IMG_H);
+
+            // Page 2 footer
+            doc.setDrawColor(180, 185, 210);
+            doc.setLineWidth(0.3);
+            doc.line(MARGIN, FOOTER_Y - 2, PAGE_W - MARGIN, FOOTER_Y - 2);
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(7);
+            doc.setTextColor(120, 130, 160);
+            doc.text('Africa Air Quality Monitoring Network', MARGIN, FOOTER_Y);
+            doc.text('Page 2', PAGE_W - MARGIN, FOOTER_Y, { align: 'right' });
+          }
+        }
+      } catch {
+        // Snapshot failed — omit page 2, report is still complete
+      }
 
       doc.save(buildPdfFileName(scopeLabel));
     } catch (error) {
@@ -415,36 +481,7 @@ const NetworkCoveragePage = () => {
     }
   };
 
-  const downloadCsv = async () => {
-    setIsDownloading(true);
-    setDownloadError(null);
-
-    try {
-      const blob = await networkCoverageService.downloadNetworkCoverageCsv({
-        ...exportQueryParams,
-      });
-
-      const dateSuffix = new Date().toISOString().split('T')[0];
-      const fileName = selectedCountryId
-        ? `network-coverage-${selectedCountryId}-${dateSuffix}.csv`
-        : `network-coverage-${dateSuffix}.csv`;
-
-      downloadBlob(blob, fileName);
-    } catch (error) {
-      setDownloadError(
-        error instanceof Error ? error.message : 'CSV download failed',
-      );
-    } finally {
-      setIsDownloading(false);
-    }
-  };
-
-  const handleDownload = async (format: 'csv' | 'pdf') => {
-    if (format === 'csv') {
-      await downloadCsv();
-      return;
-    }
-
+  const handleDownload = async () => {
     await downloadPdf();
   };
 
@@ -523,8 +560,21 @@ const NetworkCoveragePage = () => {
                 onMonitorSelect={selectMonitor}
                 onResetView={resetToOverview}
                 flyToMonitorId={flyToMonitorId}
+                onRegisterSnapshot={(fn) => {
+                  snapshotGetterRef.current = fn;
+                }}
               />
             </MapLoader>
+            {/* Show spinner overlay while coverage or country monitors data is loading */}
+            {(summaryQuery.isLoading ||
+              countryMonitorsQuery.isLoading ||
+              monitorDetailQuery.isLoading) && (
+              <div className="absolute inset-0 z-30 flex items-center justify-center bg-[#f6f6f7]/70">
+                <div className="text-blue-600">
+                  <AqLoading02 className="animate-spin" />
+                </div>
+              </div>
+            )}
             {/* initial loading handled by MapLoader spinner; remove redundant message */}
             {summaryError && !countries.length ? (
               <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#f6f6f7]/80 px-6">
