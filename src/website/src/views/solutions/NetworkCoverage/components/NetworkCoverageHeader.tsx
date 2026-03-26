@@ -41,7 +41,7 @@ const NetworkCoverageHeader: React.FC<NetworkCoverageHeaderProps> = ({
         >
           <FiMenu className="h-5 w-5" />
         </button>
-        <h1 className="text-lg font-semibold leading-none text-slate-900 sm:text-xl">
+        <h1 className="hidden md:block text-lg font-semibold leading-none text-slate-900 md:text-xl">
           Africa Air Quality Monitoring Network Coverage
         </h1>
       </div>
@@ -109,13 +109,7 @@ const NetworkCoverageHeader: React.FC<NetworkCoverageHeaderProps> = ({
           )}
         </div>
 
-        <button
-          type="button"
-          onClick={() => onAddToNetwork?.()}
-          className="inline-flex items-center gap-2 rounded-lg border border-blue-700 bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 sm:px-4 sm:text-sm"
-        >
-          Add to Network
-        </button>
+        {/* Add to Network button intentionally hidden for now */}
       </div>
     </header>
   );
