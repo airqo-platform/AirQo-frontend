@@ -110,7 +110,7 @@ const processDevicePerformance = (device: AirQloudDetailData['devices'][0]): Pro
     daily_uptime_percentage: (device.uptime || 0) * 100,
     average_error_margin: device.sensor_error_margin || 0,
     data_points: deviceData.length,
-    last_active: device.lastActive || device.lastRawData || null,
+    last_active: device.lastRawData || device.lastRawData || null,
     uptime_history: uptimeHistory,
     error_margin_history: errorMarginHistory
   }
