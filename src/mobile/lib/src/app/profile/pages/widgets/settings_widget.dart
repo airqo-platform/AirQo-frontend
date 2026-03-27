@@ -1,4 +1,5 @@
 import 'package:airqo/src/app/auth/pages/welcome_screen.dart';
+import 'package:airqo/src/app/profile/pages/languages/select_language_page.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
@@ -8,6 +9,7 @@ import 'package:airqo/src/app/profile/pages/widgets/account_deletion_handler.dar
 import 'package:flutter_svg/svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 
 class SettingsWidget extends StatefulWidget {
   const SettingsWidget({super.key});
@@ -97,7 +99,7 @@ void _showLogoutConfirmation() {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
-      title: Text(
+      title: TranslatedText(
         'Confirm Logout',
         style: TextStyle(
           fontSize: 20,
@@ -107,7 +109,7 @@ void _showLogoutConfirmation() {
               : AppColors.boldHeadlineColor5,
         ),
       ),
-      content: Text(
+      content: TranslatedText(
         'Are you sure you want to log out?',
         style: TextStyle(
           fontSize: 16,
@@ -125,7 +127,7 @@ void _showLogoutConfirmation() {
                 : Colors.grey[700],
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
-          child: Text(
+          child: TranslatedText(
             'Cancel',
             style: TextStyle(
               fontSize: 16,
@@ -144,7 +146,7 @@ void _showLogoutConfirmation() {
             elevation: 0,
           ),
           onPressed: () => _handleLogout(dialogContext),
-          child: Text(
+          child: TranslatedText(
             'Log Out',
             style: TextStyle(
               fontSize: 16,
@@ -219,6 +221,22 @@ void _showLogoutConfirmation() {
 
             SizedBox(height: screenHeight * 0.02),
 
+            SettingsTile(
+              iconPath: "assets/images/shared/language_icon.svg",
+              title: "Languages",
+              description:
+                  "Change the language of the app to your preferred language",
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => SelectLanguagePage(),
+                  ),
+                );
+              },
+            ),
+
+            SizedBox(height: screenHeight * 0.02),
+
             Padding(
               padding: EdgeInsets.symmetric(vertical: screenHeight * 0.05),
               child: Center(
@@ -240,11 +258,13 @@ void _showLogoutConfirmation() {
                         children: [
                           Icon(Icons.logout, color: Colors.white, size: 20),
                           SizedBox(width: 10),
-                          Text(
-                            "Log out",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
+                          Flexible(
+                            child: TranslatedText(
+                              "Log out",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ],
@@ -268,11 +288,13 @@ void _showLogoutConfirmation() {
                         children: [
                           Icon(Icons.delete_forever, color: Colors.red, size: 20),
                           SizedBox(width: 10),
-                          Text(
-                            "Delete Account",
-                            style: TextStyle(
-                              color: Colors.red,
-                              fontWeight: FontWeight.bold,
+                          Flexible(
+                            child: TranslatedText(
+                              "Delete Account",
+                              style: TextStyle(
+                                color: Colors.red,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ],
@@ -302,7 +324,7 @@ void _showLogoutConfirmation() {
                     ),
                   ),
                   SizedBox(height: screenHeight * 0.01),
-                  Text(
+                  TranslatedText(
                     "A PROJECT BY",
                     style: TextStyle(
                       color: isDarkMode ? Colors.grey[400] : Colors.grey,

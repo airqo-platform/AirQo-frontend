@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:airqo/src/app/shared/services/sunbird_translation_service.dart';
 
 part 'language_event.dart';
 part 'language_state.dart';
@@ -23,6 +24,7 @@ class LanguageBloc extends Bloc<LanguageEvent, LanguageState> {
         languageName: languageName,
         locale: Locale(languageCode),
       ));
+      SunbirdTranslationService().prewarm(targetLocale: languageCode);
     } catch (e) {
       emit(LanguageError('Failed to load language settings'));
     }
@@ -32,14 +34,15 @@ class LanguageBloc extends Bloc<LanguageEvent, LanguageState> {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('languageCode', event.languageCode);
-      
+
       final languageName = _getLanguageName(event.languageCode);
-      
+
       emit(LanguageLoaded(
         languageCode: event.languageCode,
         languageName: languageName,
         locale: Locale(event.languageCode),
       ));
+      SunbirdTranslationService().prewarm(targetLocale: event.languageCode);
     } catch (e) {
       emit(LanguageError('Failed to change language'));
     }

@@ -5,6 +5,7 @@ import 'package:airqo/src/app/auth/pages/login_page.dart';
 import 'package:airqo/src/app/shared/widgets/airqo_button.dart';
 import 'package:airqo/src/app/shared/widgets/form_field.dart';
 import 'package:airqo/src/app/shared/widgets/spinner.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -80,7 +81,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
               }
             },
           ),
-          title: Text(
+          title: TranslatedText(
             "Create Account",
             style: TextStyle(
                 fontSize: 17,
@@ -146,7 +147,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                     color: AppColors.primaryColor,
                                     borderRadius: BorderRadius.circular(4)),
                                 child: Center(
-                                  child: Text(
+                                  child: TranslatedText(
                                     "Next",
                                     style: TextStyle(
                                       fontWeight: FontWeight.w500,
@@ -274,7 +275,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                     child: Center(
                                       child: loading
                                           ? Spinner()
-                                          : Text(
+                                          : TranslatedText(
                                               "Create Account",
                                               style: TextStyle(
                                                 fontWeight: FontWeight.w500,
@@ -290,17 +291,19 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                             Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text("Already have an account?",
-                                      style: TextStyle(
-                                          color: AppColors.boldHeadlineColor,
-                                          fontWeight: FontWeight.w500)),
+                                  Flexible(
+                                    child: TranslatedText("Already have an account?",
+                                        style: TextStyle(
+                                            color: AppColors.boldHeadlineColor,
+                                            fontWeight: FontWeight.w500)),
+                                  ),
                                   InkWell(
                                     onTap: () => Navigator.of(context).push(
                                         MaterialPageRoute(
                                             builder: (context) =>
                                                 LoginPage())),
-                                    child: Text(
-                                      "Login",
+                                    child: TranslatedText(
+                                      " Login",
                                       style: TextStyle(
                                           fontWeight: FontWeight.w500,
                                           color: AppColors.primaryColor),
@@ -316,11 +319,11 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           SizedBox(height: 8),
-                          Text("Please confirm your email address.",
+                          TranslatedText("Please confirm your email address.",
                               style: TextStyle(
                                   fontSize: 20, fontWeight: FontWeight.bold)),
                           SizedBox(height: 8),
-                          Text(
+                          TranslatedText(
                               "An email with confirmation instructions has been sent to:",
                               style: TextStyle(
                                   fontSize: 15, fontWeight: FontWeight.w500)),
@@ -347,7 +350,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                   color: AppColors.primaryColor,
                                   borderRadius: BorderRadius.circular(4)),
                               child: Center(
-                                child: Text(
+                                child: TranslatedText(
                                   "Proceed to Login",
                                   style: TextStyle(
                                     fontWeight: FontWeight.w500,
@@ -361,7 +364,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                           Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Text("Can't see the email?",
+                                TranslatedText("Can't see the email?",
                                     style: TextStyle(
                                         color: AppColors.boldHeadlineColor,
                                         fontWeight: FontWeight.w500)),
@@ -382,7 +385,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                               "assets/images/auth/location-permission.svg"),
                         ),
                         SizedBox(height: 32),
-                        Text(
+                        TranslatedText(
                           "Enable Locations",
                           style: TextStyle(
                             fontSize: 24,
@@ -390,7 +393,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                           ),
                         ),
                         SizedBox(height: 8),
-                        Text(
+                        TranslatedText(
                             "Allow AirQo to send you location air quality updates for the places you care about",
                             textAlign: TextAlign.center,
                             style: TextStyle(fontSize: 14)),
@@ -406,7 +409,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             mainAxisSize: MainAxisSize.max,
                             children: [
-                              Text("No, Thanks",
+                              TranslatedText("No, Thanks",
                                   style: TextStyle(fontSize: 12)),
                               SizedBox(width: 4),
                               Icon(
@@ -424,7 +427,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                               "assets/images/auth/notification.svg"),
                         ),
                         SizedBox(height: 32),
-                        Text(
+                        TranslatedText(
                           "Know Your Air In Real Time",
                           style: TextStyle(
                             fontSize: 24,
@@ -432,7 +435,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                           ),
                         ),
                         SizedBox(height: 8),
-                        Text(
+                        TranslatedText(
                             "Get notified when air quality is \n getting better or worse",
                             textAlign: TextAlign.center,
                             style: TextStyle(fontSize: 14)),
@@ -448,7 +451,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             mainAxisSize: MainAxisSize.max,
                             children: [
-                              Text("No, Thanks",
+                              TranslatedText("No, Thanks",
                                   style: TextStyle(fontSize: 12)),
                               SizedBox(width: 4),
                               Icon(

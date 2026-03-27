@@ -5,6 +5,7 @@ import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_details.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/meta/utils/utils.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 
 class ExpandedAnalyticsCard extends StatefulWidget {
   final Measurement measurement;
@@ -324,12 +325,14 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
                       size: 24,
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      "Today's health tip",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).textTheme.bodyMedium?.color,
+                    Flexible(
+                      child: TranslatedText(
+                        "Today's health tip",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).textTheme.bodyMedium?.color,
+                        ),
                       ),
                     ),
                   ],
@@ -344,7 +347,7 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
                           color: Theme.of(context).textTheme.bodyLarge?.color,
                         ),
                       )
-                    : Text(
+                    : TranslatedText(
                         "Health tip not available for this air quality level.",
                         style: TextStyle(
                           fontSize: 15,

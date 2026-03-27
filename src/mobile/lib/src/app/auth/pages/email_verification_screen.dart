@@ -1,6 +1,7 @@
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
 import 'package:airqo/src/app/auth/pages/login_page.dart';
 import 'package:airqo/src/app/shared/widgets/airqo_button.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -101,7 +102,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(
+          title: TranslatedText(
             "Verify Your Email",
             style: TextStyle(
               fontSize: 17,
@@ -141,7 +142,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                Text(
+                TranslatedText(
                   "Please verify your email address",
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -151,7 +152,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                Text(
+                TranslatedText(
                   "Enter the 5-digit verification code sent to ${_maskEmail(widget.email)}",
                   textAlign: TextAlign.center,
                   style: TextStyle(

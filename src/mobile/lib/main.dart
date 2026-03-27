@@ -32,7 +32,6 @@ import 'package:airqo/src/app/shared/pages/no_internet_banner.dart';
 import 'package:loggy/loggy.dart';
 import 'core/utils/app_loggy_setup.dart';
 import 'package:airqo/src/app/other/language/bloc/language_bloc.dart';
-import 'package:airqo/src/app/other/language/services/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 
@@ -162,13 +161,10 @@ class AirqoMobile extends StatelessWidget {
                 locale: currentLocale,
                 supportedLocales: const [
                   Locale('en', ''),
-                  Locale('fr', ''),
                   Locale('sw', ''),
-                  // Locale('lg', ''),
-                  Locale('pt', ''),
+                  Locale('fr', ''),
                 ],
                 localizationsDelegates: const [
-                  AppLocalizations.delegate,
                   GlobalMaterialLocalizations.delegate,
                   GlobalWidgetsLocalizations.delegate,
                   GlobalCupertinoLocalizations.delegate,
