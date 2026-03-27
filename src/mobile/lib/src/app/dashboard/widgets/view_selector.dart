@@ -1,5 +1,6 @@
 import 'package:airqo/src/app/dashboard/models/country_model.dart';
 import 'package:airqo/src/app/shared/widgets/country_button';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
 import '../../../meta/utils/colors.dart';
 import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
@@ -205,7 +206,7 @@ class _ViewSelectorState extends State<ViewSelector> {
                   : AppColors.dividerColorlight,
           borderRadius: BorderRadius.circular(30),
         ),
-        child: Text(
+        child: TranslatedText(
           label,
           style: TextStyle(
             color: isSelected
