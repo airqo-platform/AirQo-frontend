@@ -31,6 +31,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:airqo/src/app/shared/pages/no_internet_banner.dart';
 import 'package:loggy/loggy.dart';
 import 'core/utils/app_loggy_setup.dart';
+import 'core/utils/hive_box_setup.dart';
 import 'package:airqo/src/app/other/language/bloc/language_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
@@ -42,6 +43,7 @@ void main() async {
       try {
         WidgetsFlutterBinding.ensureInitialized();
 
+        await HiveBoxSetup.initializeBoxes();
         await CacheManager().initialize();
 
         const bool kReleaseMode = bool.fromEnvironment('dart.vm.product');

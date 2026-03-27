@@ -8,6 +8,8 @@ part 'language_event.dart';
 part 'language_state.dart';
 
 class LanguageBloc extends Bloc<LanguageEvent, LanguageState> {
+  static const Set<String> _supportedLanguages = {'en', 'lg', 'sw', 'fr'};
+
   LanguageBloc() : super(LanguageInitial()) {
     on<LoadLanguage>(_onLoadLanguage);
     on<ChangeLanguage>(_onChangeLanguage);
@@ -16,9 +18,14 @@ class LanguageBloc extends Bloc<LanguageEvent, LanguageState> {
   Future<void> _onLoadLanguage(LoadLanguage event, Emitter<LanguageState> emit) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final languageCode = prefs.getString('languageCode') ?? 'en';
+      final rawCode = prefs.getString('languageCode') ?? 'en';
+      final languageCode =
+          _supportedLanguages.contains(rawCode) ? rawCode : 'en';
+      if (languageCode != rawCode) {
+        await prefs.setString('languageCode', 'en');
+      }
       final languageName = _getLanguageName(languageCode);
-      
+
       emit(LanguageLoaded(
         languageCode: languageCode,
         languageName: languageName,

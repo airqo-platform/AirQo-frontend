@@ -49,6 +49,7 @@ class _TranslatedTextState extends State<TranslatedText> {
       return;
     }
 
+    final requestLocale = localeCode;
     final future = isSunbird
         ? SunbirdTranslationService()
             .translate(widget.text, targetLocale: localeCode)
@@ -56,7 +57,7 @@ class _TranslatedTextState extends State<TranslatedText> {
             .translate(widget.text, targetLocale: localeCode);
 
     future.then((result) {
-      if (mounted && _displayed != result) {
+      if (mounted && requestLocale == _lastLocale && _displayed != result) {
         setState(() => _displayed = result);
       }
     });

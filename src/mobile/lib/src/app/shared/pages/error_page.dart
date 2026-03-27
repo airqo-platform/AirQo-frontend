@@ -11,7 +11,7 @@ class ErrorPage extends StatelessWidget {
       children: [
         SvgPicture.asset('assets/icons/error_occured.svg'),
         SizedBox(height: 16),
-        TranslatedText("An Error Occured",
+        TranslatedText("An Error Occurred",
             style: Theme.of(context)
                 .textTheme
                 .headlineLarge!
