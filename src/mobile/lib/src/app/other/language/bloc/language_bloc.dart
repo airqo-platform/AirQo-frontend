@@ -2,11 +2,14 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:airqo/src/app/shared/services/sunbird_translation_service.dart';
 
 part 'language_event.dart';
 part 'language_state.dart';
 
 class LanguageBloc extends Bloc<LanguageEvent, LanguageState> {
+  static const Set<String> _supportedLanguages = {'en', 'lg', 'sw', 'fr'};
+
   LanguageBloc() : super(LanguageInitial()) {
     on<LoadLanguage>(_onLoadLanguage);
     on<ChangeLanguage>(_onChangeLanguage);
@@ -15,14 +18,20 @@ class LanguageBloc extends Bloc<LanguageEvent, LanguageState> {
   Future<void> _onLoadLanguage(LoadLanguage event, Emitter<LanguageState> emit) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final languageCode = prefs.getString('languageCode') ?? 'en';
+      final rawCode = prefs.getString('languageCode') ?? 'en';
+      final languageCode =
+          _supportedLanguages.contains(rawCode) ? rawCode : 'en';
+      if (languageCode != rawCode) {
+        await prefs.setString('languageCode', 'en');
+      }
       final languageName = _getLanguageName(languageCode);
-      
+
       emit(LanguageLoaded(
         languageCode: languageCode,
         languageName: languageName,
         locale: Locale(languageCode),
       ));
+      SunbirdTranslationService().prewarm(targetLocale: languageCode);
     } catch (e) {
       emit(LanguageError('Failed to load language settings'));
     }
@@ -32,14 +41,15 @@ class LanguageBloc extends Bloc<LanguageEvent, LanguageState> {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('languageCode', event.languageCode);
-      
+
       final languageName = _getLanguageName(event.languageCode);
-      
+
       emit(LanguageLoaded(
         languageCode: event.languageCode,
         languageName: languageName,
         locale: Locale(event.languageCode),
       ));
+      SunbirdTranslationService().prewarm(targetLocale: event.languageCode);
     } catch (e) {
       emit(LanguageError('Failed to change language'));
     }

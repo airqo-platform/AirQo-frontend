@@ -1,4 +1,5 @@
 import 'package:airqo/src/app/auth/pages/login_page.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/app/auth/pages/register_page.dart';
 import 'package:airqo/src/app/auth/widgets/breathe_clean.dart';
 import 'package:airqo/src/app/auth/widgets/know_your_air.dart';
@@ -110,7 +111,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Center(
-                          child: Text(
+                          child: TranslatedText(
                             "Create Account",
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
@@ -134,7 +135,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Center(
-                          child: Text(
+                          child: TranslatedText(
                             "Login Here",
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
@@ -156,7 +157,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
+                            TranslatedText(
                               "Continue as guest ",
                               style: TextStyle(
                                 color: Theme.of(context)

@@ -1,6 +1,7 @@
 import 'package:airqo/src/app/auth/pages/register_page.dart';
 import 'package:airqo/src/app/learn/models/lesson_response_model.dart';
 import 'package:airqo/src/app/learn/pages/lesson_finished.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:flutter/material.dart';
 
@@ -44,7 +45,7 @@ class _LessonPageState extends State<LessonPage> {
       color: Theme.of(context).scaffoldBackgroundColor,
       child: Scaffold(
         appBar: AppBar(
-          title: Text("Lesson"),
+          title: TranslatedText("Lesson"),
           centerTitle: true,
         ),
         body: finished
@@ -175,7 +176,7 @@ class CardContent extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                TranslatedText(
                   data.title,
                   style: TextStyle(
                       fontSize: 24,
@@ -183,7 +184,7 @@ class CardContent extends StatelessWidget {
                       color: Colors.black),
                 ),
                 SizedBox(height: 8),
-                Text(
+                TranslatedText(
                   data.content,
                   style: TextStyle(
                       fontSize: 20,

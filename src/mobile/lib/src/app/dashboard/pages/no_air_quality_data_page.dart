@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -20,7 +21,7 @@ class NoAirQualityDataPage extends StatelessWidget {
               height: maxWidth * 0.5,
             ),
             SizedBox(height: maxHeight * 0.05),
-            Text(
+            TranslatedText(
               "No Air Quality Data",
               style: Theme.of(context).textTheme.headlineLarge!.copyWith(
                     fontSize: maxWidth * 0.06,
@@ -28,7 +29,7 @@ class NoAirQualityDataPage extends StatelessWidget {
                   ),
             ),
             SizedBox(height: maxHeight * 0.02),
-            Text(
+            TranslatedText(
               "We're having issues with our network\nno worries, we'll be back up soon.",
               textAlign: TextAlign.center,
               style: TextStyle(

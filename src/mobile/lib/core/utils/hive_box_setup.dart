@@ -15,6 +15,8 @@ class HiveBoxSetup {
       await Hive.openBox('authBox');
       await Hive.openBox('preferencesBox');
       await Hive.openBox('cacheBox');
+      await Hive.openBox('sunbirdTranslationBox');
+      await Hive.openBox('mlkitTranslationBox');
 
       _logger.info('All Hive boxes initialized successfully');
     } catch (e) {
