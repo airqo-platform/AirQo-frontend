@@ -163,6 +163,7 @@ class AirqoMobile extends StatelessWidget {
                 locale: currentLocale,
                 supportedLocales: const [
                   Locale('en', ''),
+                  Locale('lg', ''),
                   Locale('sw', ''),
                   Locale('fr', ''),
                 ],
