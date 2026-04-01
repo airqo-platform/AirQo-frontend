@@ -96,18 +96,7 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
       loggy.info('Response status code: ${response.statusCode}');
 
       if (response.statusCode == 401) {
-        loggy.warning('GET preferences returned 401 with user token, retrying with app token');
-        final appHeaders = await _getHeaders(useAppToken: true);
-        final retryResponse = await http.get(Uri.parse(url), headers: appHeaders);
-        loggy.info('App token retry status: ${retryResponse.statusCode}');
-
-        if (retryResponse.statusCode == 200) {
-          final retryData = json.decode(retryResponse.body) as Map<String, dynamic>;
-          await _cachePreferences(userId, groupId ?? '', retryData);
-          return retryData;
-        }
-
-        loggy.warning('App token retry also failed, falling back to local cache');
+        loggy.warning('GET preferences returned 401 - session may be expired');
         final cached = await _getCachedPreferences(userId, groupId ?? '');
         if (cached != null) return cached;
         return {
