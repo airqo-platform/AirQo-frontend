@@ -13,35 +13,72 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
   final String apiBaseUrl = '${dotenv.env["AIRQO_API_URL"]}/api/v2';
   final String preferencesEndpoint = '/users/preferences';
 
-  Future<Map<String, String>> _getHeaders() async {
-    final userToken = await HiveRepository.getData('token', HiveBoxNames.authBox);
+  String _cacheKey(String userId) => 'user_preferences_$userId';
 
+  Future<Map<String, String>> _getHeaders({bool useAppToken = false}) async {
     final headers = {
       "Accept": "application/json",
       "Content-Type": "application/json"
     };
 
-    if (userToken != null && userToken.isNotEmpty) {
-      loggy.info('Using user authentication token');
-      headers["Authorization"] = "JWT $userToken";
-    } else {
-
-      loggy.info('Using application token from environment');
-      final appToken = dotenv.env["AIRQO_MOBILE_TOKEN"];
-      if (appToken != null && appToken.isNotEmpty) {
-        headers["Authorization"] = "JWT $appToken";
-      } else {
-        loggy.warning('No authentication token available');
+    if (!useAppToken) {
+      final userToken = await HiveRepository.getData('token', HiveBoxNames.authBox);
+      if (userToken != null && userToken.isNotEmpty) {
+        loggy.info('Using user authentication token');
+        headers["Authorization"] = "JWT $userToken";
+        return headers;
       }
+    }
+
+    loggy.info('Using application token from environment');
+    final appToken = dotenv.env["AIRQO_MOBILE_TOKEN"];
+    if (appToken != null && appToken.isNotEmpty) {
+      headers["Authorization"] = "JWT $appToken";
+    } else {
+      loggy.warning('No authentication token available');
     }
 
     return headers;
   }
 
+  static dynamic _deepConvert(dynamic value) {
+    if (value is Map) {
+      return Map<String, dynamic>.fromEntries(
+        value.entries.map((e) => MapEntry(e.key.toString(), _deepConvert(e.value))),
+      );
+    }
+    if (value is List) {
+      return value.map(_deepConvert).toList();
+    }
+    return value;
+  }
+
+  Future<Map<String, dynamic>?> _getCachedPreferences(String userId) async {
+    try {
+      final cached = await HiveRepository.getCache(_cacheKey(userId));
+      if (cached != null && cached is Map) {
+        loggy.info('Serving preferences from local cache for user: $userId');
+        return _deepConvert(cached) as Map<String, dynamic>;
+      }
+    } catch (e) {
+      loggy.warning('Error reading cached preferences: $e');
+    }
+    return null;
+  }
+
+  Future<void> _cachePreferences(String userId, Map<String, dynamic> data) async {
+    try {
+      await HiveRepository.saveCache(_cacheKey(userId), data);
+      loggy.info('Cached preferences for user: $userId');
+    } catch (e) {
+      loggy.warning('Error caching preferences: $e');
+    }
+  }
+
   @override
   Future<Map<String, dynamic>> getUserPreferences(String userId, {String? groupId}) async {
     String url = '$apiBaseUrl$preferencesEndpoint/$userId';
-    
+
     if (groupId != null && groupId.isNotEmpty) {
       url += '?group_id=$groupId';
     }
@@ -56,7 +93,20 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
       loggy.info('Response status code: ${response.statusCode}');
 
       if (response.statusCode == 401) {
-        loggy.warning('Authentication error (401): Token might be expired or invalid');
+        loggy.warning('GET preferences returned 401 with user token, retrying with app token');
+        final appHeaders = await _getHeaders(useAppToken: true);
+        final retryResponse = await http.get(Uri.parse(url), headers: appHeaders);
+        loggy.info('App token retry status: ${retryResponse.statusCode}');
+
+        if (retryResponse.statusCode == 200) {
+          final retryData = json.decode(retryResponse.body) as Map<String, dynamic>;
+          await _cachePreferences(userId, retryData);
+          return retryData;
+        }
+
+        loggy.warning('App token retry also failed, falling back to local cache');
+        final cached = await _getCachedPreferences(userId);
+        if (cached != null) return cached;
         return {
           'success': false,
           'message': 'Authentication failed. Please log in again.',
@@ -66,6 +116,8 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
 
       if (response.body.trim().startsWith('<') || response.body.trim() == 'Unauthorized') {
         loggy.error('Received non-JSON response: ${response.body.substring(0, min(50, response.body.length))}');
+        final cached = await _getCachedPreferences(userId);
+        if (cached != null) return cached;
         return {
           'success': false,
           'message': 'Server returned invalid response. Please try again later.',
@@ -76,6 +128,8 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
       final Map<String, dynamic> data = json.decode(response.body);
 
       if (response.statusCode != 200) {
+        final cached = await _getCachedPreferences(userId);
+        if (cached != null) return cached;
         return {
           'success': false,
           'message': data['message'] ?? 'Failed to fetch user preferences',
@@ -83,9 +137,13 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
         };
       }
 
+      await _cachePreferences(userId, data);
       return data;
     } catch (e) {
       loggy.error('Error fetching user preferences: $e');
+
+      final cached = await _getCachedPreferences(userId);
+      if (cached != null) return cached;
 
       final bool isAuthError = e.toString().contains('401') ||
           e.toString().contains('Unauthorized') ||
@@ -105,34 +163,17 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
   Future<Map<String, dynamic>> replacePreference(Map<String, dynamic> data) async {
     final String url = '$apiBaseUrl$preferencesEndpoint/replace';
     final userId = data['user_id'];
-    
+
     if (userId == null || userId.isEmpty) {
       return {
         'success': false,
         'message': 'User ID is required',
       };
     }
-    
+
     loggy.info('Replacing preferences for user ID: $userId');
 
-    Map<String, dynamic>? oldPreferencesData;
-
     try {
-
-      final currentPrefsResponse = await getUserPreferences(userId);
-      if (currentPrefsResponse['success'] == true) {
-        if (currentPrefsResponse['data'] != null && 
-            currentPrefsResponse['data'] is Map<String, dynamic>) {
-          oldPreferencesData = Map<String, dynamic>.from(currentPrefsResponse['data']);
-          loggy.info('Backed up current preferences before update');
-        } else if (currentPrefsResponse['preferences'] is List && 
-                  currentPrefsResponse['preferences'].isNotEmpty) {
-          oldPreferencesData = Map<String, dynamic>.from(
-              currentPrefsResponse['preferences'].first);
-          loggy.info('Backed up current preferences from preferences list');
-        }
-      }
-
       final headers = await _getHeaders();
 
       loggy.info('Sending replacement preferences to: $url');
@@ -159,6 +200,7 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
         try {
           final result = json.decode(updateResponse.body);
           loggy.info('Successfully updated preferences');
+          await _cachePreferences(userId, result);
           return result;
         } catch (e) {
           loggy.error('Error parsing success response: $e');
@@ -171,80 +213,16 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
 
       loggy.error('Failed to update preferences');
 
-      if (oldPreferencesData != null &&
-          oldPreferencesData.containsKey('selected_sites')) {
-        return await _attemptRollback(userId, oldPreferencesData, headers, url);
-      }
-
       return {
         'success': false,
-        'message': 'Failed to update preferences, and rollback was not possible',
+        'message': 'Failed to update preferences',
       };
     } catch (e) {
       loggy.error('Error replacing preferences: $e');
 
-
-      if (oldPreferencesData != null) {
-        final headers = await _getHeaders();
-        return await _attemptRollback(userId, oldPreferencesData, headers, url);
-      }
-
       return {
         'success': false,
         'message': 'An error occurred: ${e.toString()}',
-      };
-    }
-  }
-
-  Future<Map<String, dynamic>> _attemptRollback(
-      String userId,
-      Map<String, dynamic> oldPreferencesData,
-      Map<String, String> headers,
-      String url) async {
-    try {
-      loggy.info('Attempting to rollback to previous preferences');
-
-      final rollbackPayload = {
-        "user_id": userId,
-        "selected_sites": oldPreferencesData['selected_sites'] ?? [],
-        ...oldPreferencesData
-      };
-
-      rollbackPayload.remove('_id');
-      rollbackPayload.remove('createdAt');
-      rollbackPayload.remove('updatedAt');
-
-      final rollbackResponse = await http.patch(
-        Uri.parse(url),
-        headers: headers,
-        body: jsonEncode(rollbackPayload),
-      );
-
-      if (rollbackResponse.statusCode >= 200 &&
-          rollbackResponse.statusCode < 300) {
-        loggy.info('Rollback successful');
-        return {
-          'success': false,
-          'message': 'Failed to save your location selections. Your previous favorites have been restored. Please try again.',
-          'rolled_back': true,
-          'show_retry': true
-        };
-      } else {
-        loggy.error('Failed to rollback preferences: ${rollbackResponse.body}');
-        return {
-          'success': false,
-          'message': 'Failed to save locations and restore previous state. Your saved locations may be temporarily unavailable. Please try again later.',
-          'rolled_back': false,
-          'show_retry': true
-        };
-      }
-    } catch (e) {
-      loggy.error('Error during rollback: $e');
-      return {
-        'success': false,
-        'message': 'Critical error: Could not save your location selections or restore previous state. Please try again later.',
-        'rolled_back': false,
-        'show_retry': true
       };
     }
   }
