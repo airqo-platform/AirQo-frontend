@@ -13,7 +13,7 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
   final String apiBaseUrl = '${dotenv.env["AIRQO_API_URL"]}/api/v2';
   final String preferencesEndpoint = '/users/preferences';
 
-  String _cacheKey(String userId) => 'user_preferences_$userId';
+  String _cacheKey(String userId, String groupId) => 'user_preferences_${userId}_$groupId';
 
   Future<Map<String, String>> _getHeaders({bool useAppToken = false}) async {
     final headers = {
@@ -26,8 +26,10 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
       if (userToken != null && userToken.isNotEmpty) {
         loggy.info('Using user authentication token');
         headers["Authorization"] = "JWT $userToken";
-        return headers;
+      } else {
+        loggy.warning('No user session token available');
       }
+      return headers;
     }
 
     loggy.info('Using application token from environment');
@@ -53,9 +55,9 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
     return value;
   }
 
-  Future<Map<String, dynamic>?> _getCachedPreferences(String userId) async {
+  Future<Map<String, dynamic>?> _getCachedPreferences(String userId, String groupId) async {
     try {
-      final cached = await HiveRepository.getCache(_cacheKey(userId));
+      final cached = await HiveRepository.getCache(_cacheKey(userId, groupId));
       if (cached != null && cached is Map) {
         loggy.info('Serving preferences from local cache for user: $userId');
         return _deepConvert(cached) as Map<String, dynamic>;
@@ -66,9 +68,9 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
     return null;
   }
 
-  Future<void> _cachePreferences(String userId, Map<String, dynamic> data) async {
+  Future<void> _cachePreferences(String userId, String groupId, Map<String, dynamic> data) async {
     try {
-      await HiveRepository.saveCache(_cacheKey(userId), data);
+      await HiveRepository.saveCache(_cacheKey(userId, groupId), data);
       loggy.info('Cached preferences for user: $userId');
     } catch (e) {
       loggy.warning('Error caching preferences: $e');
@@ -100,12 +102,12 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
 
         if (retryResponse.statusCode == 200) {
           final retryData = json.decode(retryResponse.body) as Map<String, dynamic>;
-          await _cachePreferences(userId, retryData);
+          await _cachePreferences(userId, groupId ?? '', retryData);
           return retryData;
         }
 
         loggy.warning('App token retry also failed, falling back to local cache');
-        final cached = await _getCachedPreferences(userId);
+        final cached = await _getCachedPreferences(userId, groupId ?? '');
         if (cached != null) return cached;
         return {
           'success': false,
@@ -116,7 +118,7 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
 
       if (response.body.trim().startsWith('<') || response.body.trim() == 'Unauthorized') {
         loggy.error('Received non-JSON response: ${response.body.substring(0, min(50, response.body.length))}');
-        final cached = await _getCachedPreferences(userId);
+        final cached = await _getCachedPreferences(userId, groupId ?? '');
         if (cached != null) return cached;
         return {
           'success': false,
@@ -128,7 +130,7 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
       final Map<String, dynamic> data = json.decode(response.body);
 
       if (response.statusCode != 200) {
-        final cached = await _getCachedPreferences(userId);
+        final cached = await _getCachedPreferences(userId, groupId ?? '');
         if (cached != null) return cached;
         return {
           'success': false,
@@ -137,12 +139,12 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
         };
       }
 
-      await _cachePreferences(userId, data);
+      await _cachePreferences(userId, groupId ?? '', data);
       return data;
     } catch (e) {
       loggy.error('Error fetching user preferences: $e');
 
-      final cached = await _getCachedPreferences(userId);
+      final cached = await _getCachedPreferences(userId, groupId ?? '');
       if (cached != null) return cached;
 
       final bool isAuthError = e.toString().contains('401') ||
@@ -163,6 +165,7 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
   Future<Map<String, dynamic>> replacePreference(Map<String, dynamic> data) async {
     final String url = '$apiBaseUrl$preferencesEndpoint/replace';
     final userId = data['user_id'];
+    final String groupId = (data['group_id'] as String?) ?? '';
 
     if (userId == null || userId.isEmpty) {
       return {
@@ -200,7 +203,13 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
         try {
           final result = json.decode(updateResponse.body);
           loggy.info('Successfully updated preferences');
-          await _cachePreferences(userId, result);
+          final hasPreferencesData = result is Map &&
+              (result.containsKey('preference') ||
+               result.containsKey('preferences') ||
+               result.containsKey('data'));
+          if (hasPreferencesData) {
+            await _cachePreferences(userId, groupId, result as Map<String, dynamic>);
+          }
           return result;
         } catch (e) {
           loggy.error('Error parsing success response: $e');

@@ -360,7 +360,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
           cohortId: currentState.userPreferences?.cohortId,
           networkId: currentState.userPreferences?.networkId,
           groupId: currentState.userPreferences?.groupId,
-          siteIds: currentState.userPreferences?.siteIds,
+          siteIds: selectedSites.map((s) => SelectedSite.fromJson(s)).map((s) => s.id).toList(),
           deviceIds: currentState.userPreferences?.deviceIds,
           period: currentState.userPreferences?.period,
         );

@@ -86,11 +86,12 @@ static Future<Box> _openBox(String boxName) async {
       _logger.info('Cache miss for key: $key');
       return null;
     }
-    final cacheData = raw is Map<String, dynamic>
-        ? raw
-        : Map<String, dynamic>.from(raw as Map);
-
     try {
+      if (raw is! Map) {
+        _logger.warning('Cache entry for key $key has unexpected type, discarding');
+        return null;
+      }
+      final cacheData = Map<String, dynamic>.from(raw);
       final timestamp = cacheData['timestamp'] as int;
       final expiry = cacheData['expiry'] as int?;
 
