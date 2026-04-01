@@ -112,7 +112,6 @@ const ApiClientPage: React.FC = () => {
           <TokenDisplay
             token={item.access_token.token}
             expiresAt={item.access_token.expires}
-            onRegenerate={() => handleGenerateToken(item)}
           />
         );
       }
