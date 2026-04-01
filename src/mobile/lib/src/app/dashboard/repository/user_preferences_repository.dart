@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:loggy/loggy.dart';
 import 'package:airqo/src/app/shared/repository/hive_repository.dart';
+import 'package:airqo/src/app/shared/repository/secure_storage_repository.dart';
 
 abstract class UserPreferencesRepository {
   Future<Map<String, dynamic>> getUserPreferences(String userId, {String? groupId});
@@ -22,7 +23,7 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
     };
 
     if (!useAppToken) {
-      final userToken = await HiveRepository.getData('token', HiveBoxNames.authBox);
+      final userToken = await SecureStorageRepository.instance.getSecureData(SecureStorageKeys.authToken);
       if (userToken != null && userToken.isNotEmpty) {
         loggy.info('Using user authentication token');
         headers["Authorization"] = "JWT $userToken";
