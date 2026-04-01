@@ -39,11 +39,11 @@ const UserStatisticsPage: React.FC = () => {
     if (!stats) return [];
     switch (activeTab) {
       case 'active':
-        return stats.active_users.details;
+        return stats.active_users?.details ?? [];
       case 'api':
-        return stats.api_users.details;
+        return stats.api_users?.details ?? [];
       default:
-        return stats.users.details;
+        return stats.users?.details ?? [];
     }
   }, [stats, activeTab]);
 
@@ -177,17 +177,24 @@ const UserStatisticsPage: React.FC = () => {
 
   const exportToCSV = () => {
     const headers = ['First Name', 'Last Name', 'Email', 'Username', 'User ID'];
-    const csvData = currentData.map(user => [
-      (user.firstName || '').replace(/"/g, '""'),
-      (user.lastName || '').replace(/"/g, '""'),
-      (user.email || '').replace(/"/g, '""'),
-      (user.userName || '').replace(/"/g, '""'),
-      user._id.replace(/"/g, '""'),
-    ]);
-    const csvContent = [headers, ...csvData]
-      .map(row => row.map(field => `"${field}"`).join(','))
-      .join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+
+    const csvData = currentData.map(user => {
+      const firstName = ((user as any).firstName || (user as any).firstname || '').toString();
+      const lastName = ((user as any).lastName || (user as any).lastname || '').toString();
+      const email = ((user as any).email || (user as any).userEmail || '').toString();
+      const userName = ((user as any).userName || (user as any).username || '').toString();
+      const id = ((user as any)._id || (user as any).id || '').toString();
+
+      // Escape double quotes
+      const esc = (s: string) => s.replace(/"/g, '""');
+
+      return [esc(firstName), esc(lastName), esc(email), esc(userName), esc(id)];
+    });
+
+    const rows = [headers, ...csvData];
+    const csvContent = rows.map(row => row.map(field => `"${field}"`).join(',')).join('\n');
+    // Add BOM for better Excel compatibility
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -199,32 +206,49 @@ const UserStatisticsPage: React.FC = () => {
   };
 
   const exportToPDF = () => {
-    const doc = new jsPDF();
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+
+    // Header
     doc.setFontSize(18);
-    doc.text('User Statistics Report', 14, 20);
-    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('AirQo User Statistics Report', 40, 50);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
     doc.text(
       `Category: ${activeTab === 'all' ? 'All Users' : activeTab === 'active' ? 'Active Users' : 'API Users'}`,
-      14,
-      30
+      40,
+      70
     );
-    doc.text(`Total Records: ${currentData.length}`, 14, 35);
-    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 40);
-    const tableData = currentData.map(user => [
-      user.firstName || '',
-      user.lastName || '',
-      user.email || '',
-      user.userName || '',
-      user._id,
-    ]);
+    doc.text(`Total Records: ${currentData.length}`, 40, 85);
+    doc.text(`Generated on: ${new Date().toLocaleString()}`, 40, 100);
+
+    const tableData = currentData.map(user => {
+      const firstName = ((user as any).firstName || (user as any).firstname || '').toString();
+      const lastName = ((user as any).lastName || (user as any).lastname || '').toString();
+      const email = ((user as any).email || (user as any).userEmail || '').toString();
+      const userName = ((user as any).userName || (user as any).username || '').toString();
+      const id = ((user as any)._id || (user as any).id || '').toString();
+      return [firstName, lastName, email, userName, id];
+    });
+
     autoTable(doc, {
       head: [['First Name', 'Last Name', 'Email', 'Username', 'User ID']],
       body: tableData,
-      startY: 50,
+      startY: 120,
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [22, 78, 99] },
+      alternateRowStyles: { fillColor: [245, 245, 245] },
+      margin: { left: 40, right: 40 },
+      didDrawPage: (dataArg) => {
+        // Footer with page number
+        const pageCount = doc.getNumberOfPages();
+        const page = doc.getCurrentPageInfo().pageNumber;
+        doc.setFontSize(9);
+        doc.text(`Page ${page} of ${pageCount}`, dataArg.settings.margin.left, doc.internal.pageSize.height - 30);
+      },
     });
-    doc.save(
-      `user-statistics-${activeTab}-${new Date().toISOString().split('T')[0]}.pdf`
-    );
+
+    doc.save(`user-statistics-${activeTab}-${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
   const handleRefresh = () => {
