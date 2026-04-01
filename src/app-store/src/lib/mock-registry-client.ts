@@ -1,4 +1,4 @@
-import { AppManifest, mockApps, AppRegistryClient } from '@airqo/app-store-types';
+import { AppRegistryClient, appRegistry } from '@airqo/app-store-modules';
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -9,7 +9,7 @@ export const mockRegistryClient: AppRegistryClient = {
     const category = params?.category?.toLowerCase();
     const target = params?.target?.toLowerCase();
 
-    return mockApps.filter(app => {
+    return appRegistry.map(entry => entry.manifest).filter(app => {
       const matchesSearch = !search
         ? true
         : app.name.toLowerCase().includes(search) ||
@@ -25,7 +25,7 @@ export const mockRegistryClient: AppRegistryClient = {
   },
   async getApp(id: string) {
     await delay(120);
-    return mockApps.find(app => app.id === id) ?? null;
+    return appRegistry.map(entry => entry.manifest).find(app => app.id === id) ?? null;
   },
   async listInstalled() {
     await delay(80);
@@ -39,5 +39,5 @@ export const mockRegistryClient: AppRegistryClient = {
   },
 };
 
-export const getAppById = (id: string): AppManifest | undefined =>
-  mockApps.find(app => app.id === id);
+export const getAppById = (id: string) =>
+  appRegistry.find(entry => entry.manifest.id === id)?.manifest;

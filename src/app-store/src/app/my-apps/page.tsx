@@ -1,12 +1,14 @@
 'use client';
 
-import { mockApps } from '@airqo/app-store-types';
+import { appRegistry } from '@airqo/app-store-modules';
 import { AppCard } from '@/components/app-card';
 import { useInstalledApps } from '@/lib/use-installed-apps';
 
 export default function MyAppsPage() {
   const { installedIds } = useInstalledApps();
-  const installedApps = mockApps.filter(app => installedIds.includes(app.id));
+  const installedApps = appRegistry
+    .map(entry => entry.manifest)
+    .filter(app => installedIds.includes(app.id));
 
   return (
     <div className="space-y-6">

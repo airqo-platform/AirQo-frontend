@@ -20,7 +20,9 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@airqo/app-store-types": ["../../packages/app-store-types/src/index.ts"]
+      "@airqo/app-store-modules": [
+        "../../packages/app-store-modules/src/index.ts"
+      ]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

@@ -1,19 +1,19 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { mockInstalledAppIds } from '@airqo/app-store-types';
+import { defaultInstalledAppIds } from '@airqo/app-store-modules';
 
 const STORAGE_KEY = 'airqo-installed-apps';
 
 const readInstalled = (): string[] => {
-  if (typeof window === 'undefined') return [...mockInstalledAppIds];
+  if (typeof window === 'undefined') return [...defaultInstalledAppIds];
   const raw = window.localStorage.getItem(STORAGE_KEY);
-  if (!raw) return [...mockInstalledAppIds];
+  if (!raw) return [...defaultInstalledAppIds];
   try {
     const parsed = JSON.parse(raw) as string[];
-    return Array.isArray(parsed) ? parsed : [...mockInstalledAppIds];
+    return Array.isArray(parsed) ? parsed : [...defaultInstalledAppIds];
   } catch {
-    return [...mockInstalledAppIds];
+    return [...defaultInstalledAppIds];
   }
 };
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { mockApps } from '@airqo/app-store-types';
+import { appRegistry } from '@airqo/app-store-modules';
 import { AppCard } from '@/components/app-card';
 import { useInstalledApps } from '@/lib/use-installed-apps';
 
@@ -11,8 +11,9 @@ export default function BrowsePage() {
 
   const filteredApps = useMemo(() => {
     const query = search.trim().toLowerCase();
-    if (!query) return mockApps;
-    return mockApps.filter(app =>
+    const apps = appRegistry.map(entry => entry.manifest);
+    if (!query) return apps;
+    return apps.filter(app =>
       [app.name, app.description, app.category].some(value =>
         value.toLowerCase().includes(query)
       )

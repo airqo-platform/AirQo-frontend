@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { mockApps } from '@airqo/app-store-types';
+import { appRegistry } from '@airqo/app-store-modules';
 import { useInstalledApps } from '@/lib/use-installed-apps';
 
 export default function AppDetailPage() {
@@ -12,7 +12,7 @@ export default function AppDetailPage() {
 
   const app = useMemo(() => {
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
-    return mockApps.find(item => item.id === id);
+    return appRegistry.map(entry => entry.manifest).find(item => item.id === id);
   }, [params.id]);
 
   if (!app) {
@@ -59,6 +59,17 @@ export default function AppDetailPage() {
           </div>
         </div>
       </section>
+
+      {app.runtime === 'iframe' && app.hostedUrl && (
+        <section className="rounded-2xl border border-border bg-card p-4">
+          <iframe
+            title={app.name}
+            src={app.hostedUrl}
+            className="h-[420px] w-full rounded-xl border border-border"
+            sandbox="allow-scripts allow-same-origin"
+          />
+        </section>
+      )}
 
       <section className="grid gap-4 md:grid-cols-2">
         <div className="rounded-2xl border border-border bg-card p-5">

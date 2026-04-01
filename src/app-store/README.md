@@ -19,11 +19,12 @@ localStorage.setItem('airqo-mock-roles', 'USER,SUPER_ADMIN');
 
 ## Manifest Contract
 
-See `packages/app-store-types/src/index.ts` for the `AppManifest` schema and `AirQoAppProps` contract.
+See `packages/app-store-modules/src/index.ts` for the `AppManifest` schema and `AirQoAppProps` contract.
+Internal app manifests live under `src/app-store-projects/apps/**/manifest.ts`.
 
 ## Mock App Runtime
 
 - Internal apps render directly inside Analytics.
 - External apps use a sandboxed iframe and postMessage bridge.
 
-The mock external app is served from `src/platform/public/mock-apps/hello-app.html`.
+The mock external app is served from `src/app-store/public/mock-apps/hello-app.html`.
