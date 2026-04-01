@@ -14,9 +14,17 @@ export const getEnvironmentAwareUrl = (baseUrl: string): string => {
       currentHost === '::1' ||
       currentHost === '0.0.0.0';
 
-    const isStaging =
-      href.toLowerCase().includes('staging') ||
-      currentHost.toLowerCase().includes('staging');
+    // Determine staging by hostname only (avoid matching path/query)
+    let isStaging = false;
+    try {
+      const hrefHostname = new URL(href).hostname.toLowerCase();
+      isStaging =
+        hrefHostname.includes('staging') ||
+        currentHost.toLowerCase().includes('staging');
+    } catch {
+      // If href is somehow invalid/relative, fall back to currentHost check
+      isStaging = currentHost.toLowerCase().includes('staging');
+    }
 
     // Only map to staging hosts when we're on a staging URL or running locally
     if (!isStaging && !isLocalhost) {

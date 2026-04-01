@@ -4,7 +4,7 @@ import React from 'react';
 import { Button } from '@/shared/components/ui';
 import { toast } from '@/shared/components/ui';
 import { AqCopy06 } from '@airqo/icons-react';
-import { formatDate } from '@/shared/utils';
+import { formatDate, parseDate } from '@/shared/utils';
 
 interface TokenDisplayProps {
   token: string;
@@ -23,13 +23,14 @@ const TokenDisplay: React.FC<TokenDisplayProps> = ({ token, expiresAt }) => {
 
   const maskedToken = `${token.slice(0, 8)}...${token.slice(-8)}`;
 
-  // Determine expiry status
-  const expiryDate = expiresAt ? new Date(expiresAt) : null;
   const now = Date.now();
-  const expiresAtTime = expiryDate ? expiryDate.getTime() : null;
-  const expired = expiresAtTime ? expiresAtTime <= now : false;
+  // Parse and validate expiry date safely; treat epoch 0 as valid
+  const expiryDate = expiresAt != null ? parseDate(expiresAt) : null;
+  const isExpiryValid = expiryDate !== null;
+  const expiresAtTime = isExpiryValid ? expiryDate!.getTime() : null;
+  const expired = expiresAtTime !== null ? expiresAtTime <= now : false;
   const expiringSoon =
-    expiresAtTime &&
+    expiresAtTime !== null &&
     expiresAtTime > now &&
     expiresAtTime - now <= 7 * 24 * 60 * 60 * 1000;
 
@@ -72,16 +73,13 @@ const TokenDisplay: React.FC<TokenDisplayProps> = ({ token, expiresAt }) => {
             className={`${expired ? 'text-red-700' : 'text-gray-500 dark:text-gray-400'} text-xs`}
           >
             Expires:{' '}
-            {expiryDate
-              ? formatDate(expiryDate.toISOString(), {
+            {isExpiryValid
+              ? formatDate(expiryDate, {
                   year: 'numeric',
                   month: 'short',
                   day: 'numeric',
                 })
               : '—'}
-            {expired && expiryDate
-              ? ` (expired ${Math.floor((now - expiryDate.getTime()) / (1000 * 60 * 60 * 24))}d ago)`
-              : ''}
           </p>
         </div>
       </div>

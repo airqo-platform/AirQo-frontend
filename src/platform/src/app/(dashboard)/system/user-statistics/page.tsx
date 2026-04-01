@@ -191,7 +191,22 @@ const UserStatisticsPage: React.FC = () => {
       return '';
     };
 
-    const esc = (s: string) => s.replace(/"/g, '""');
+    const esc = (s: string) => {
+      if (!s) return '';
+      // Neutralize potential spreadsheet formulas by prefixing a single quote
+      // when the value begins with =, +, -, or @ (after leading whitespace),
+      // or when it literally starts with a tab or carriage return.
+      const firstNonWS = s.trimStart().charAt(0);
+      const startsWithFormulaChar =
+        firstNonWS === '=' ||
+        firstNonWS === '+' ||
+        firstNonWS === '-' ||
+        firstNonWS === '@';
+      const startsWithTabOrCR = s.charAt(0) === '\t' || s.charAt(0) === '\r';
+      const needsNeutralize = startsWithFormulaChar || startsWithTabOrCR;
+      const prefixed = needsNeutralize ? `'${s}` : s;
+      return prefixed.replace(/"/g, '""');
+    };
 
     const csvData = currentData.map(user => {
       const firstName = getField(user, 'firstName', 'firstname');
@@ -273,18 +288,21 @@ const UserStatisticsPage: React.FC = () => {
       headStyles: { fillColor: [22, 78, 99] },
       alternateRowStyles: { fillColor: [245, 245, 245] },
       margin: { left: 40, right: 40 },
-      didDrawPage: dataArg => {
-        // Footer with page number
-        const pageCount = doc.getNumberOfPages();
-        const page = doc.getCurrentPageInfo().pageNumber;
-        doc.setFontSize(9);
-        doc.text(
-          `Page ${page} of ${pageCount}`,
-          dataArg.settings.margin.left,
-          doc.internal.pageSize.height - 30
-        );
-      },
+      // Note: page footers are rendered after autoTable completes to ensure
+      // the correct total page count is available.
     });
+
+    // Add "Page X of Y" footer on each page after table generation
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(9);
+      doc.text(
+        `Page ${i} of ${pageCount}`,
+        40,
+        doc.internal.pageSize.height - 30
+      );
+    }
 
     doc.save(
       `user-statistics-${activeTab}-${new Date().toISOString().split('T')[0]}.pdf`
