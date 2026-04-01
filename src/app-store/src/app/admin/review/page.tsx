@@ -1,9 +1,12 @@
- 'use client';
+'use client';
 
-import { hasRole } from '@/lib/mock-auth';
+import { useSession } from 'next-auth/react';
 
 export default function AdminReviewPage() {
-  if (!hasRole('SUPER_ADMIN')) {
+  const { data: session } = useSession();
+  const privilege = session?.user && 'privilege' in session.user ? session.user.privilege : undefined;
+
+  if (privilege !== 'SUPER_ADMIN' && privilege !== 'SYSTEM_ADMIN') {
     return (
       <div className="rounded-2xl border border-dashed border-border bg-card p-6 text-sm text-muted-foreground">
         Admin review queue is only visible to SUPER_ADMIN accounts.

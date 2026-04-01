@@ -7,7 +7,7 @@
 ## Version 0.1.0
 **Released:** April 01, 2026
 
-### Initial Frontend MVP (Theme-Aligned)
+### Initial Frontend MVP (Theme-Aligned) + Auth Foundation
 
 <details>
 <summary><strong>Features Added (6)</strong></summary>
@@ -18,6 +18,7 @@
 - **Browse & Detail Views**: Implemented app browsing, search, and detailed view pages.
 - **Install State Mocking**: Added a localStorage-backed install state for frontend testing.
 - **Developer & Admin Stubs**: Added placeholder screens for developer submission and admin review.
+- **App Store Auth**: Added NextAuth credentials login and protected routes for App Store access.
 
 </details>
 
@@ -28,6 +29,7 @@
 - **Mock Registry Client**: Implemented mock registry client to support frontend-only workflows.
 - **App Store Projects**: Created `src/app-store-projects` to host standalone internal app code.
 - **Changelog Tracking**: Introduced this changelog to document ongoing App Store changes.
+- **Core/Auth Modules**: Added `core` + `lib` layers for API access, auth, and utilities.
 
 </details>
 

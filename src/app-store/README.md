@@ -9,6 +9,15 @@ npm install
 npm run dev
 ```
 
+### Environment
+
+Copy `.env.example` to `.env` and set:
+
+- `NEXT_PUBLIC_API_URL`
+- `NEXT_PUBLIC_ANALYTICS_URL`
+- `NEXTAUTH_SECRET`
+- `NEXTAUTH_URL`
+
 ## Mock Roles
 
 To simulate roles, set roles in localStorage:

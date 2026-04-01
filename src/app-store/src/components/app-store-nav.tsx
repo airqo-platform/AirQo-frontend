@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { cn } from '@/lib/utils';
-import { hasRole } from '@/lib/mock-auth';
 
 const navItems = [
   { href: '/', label: 'Browse' },
@@ -13,7 +13,9 @@ const navItems = [
 
 export function AppStoreNav() {
   const pathname = usePathname();
-  const showAdmin = hasRole('SUPER_ADMIN');
+  const { data: session } = useSession();
+  const privilege = session?.user && 'privilege' in session.user ? session.user.privilege : undefined;
+  const showAdmin = privilege === 'SUPER_ADMIN' || privilege === 'SYSTEM_ADMIN';
 
   return (
     <nav className="flex flex-wrap items-center gap-2 text-sm">
