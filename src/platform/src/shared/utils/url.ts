@@ -41,7 +41,7 @@ export const getEnvironmentAwareUrl = (baseUrl: string): string => {
 
     // Leave other hosts unchanged.
     return baseUrl;
-  } catch (err) {
+  } catch {
     return baseUrl;
   }
 };

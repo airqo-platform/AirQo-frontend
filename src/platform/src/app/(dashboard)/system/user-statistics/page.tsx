@@ -35,7 +35,7 @@ const UserStatisticsPage: React.FC = () => {
   const stats = data?.users_stats;
 
   // Get current data based on active tab
-  const currentData = useMemo(() => {
+  const currentData = useMemo<UserStatisticsUser[]>(() => {
     if (!stats) return [];
     switch (activeTab) {
       case 'active':
@@ -178,31 +178,27 @@ const UserStatisticsPage: React.FC = () => {
   const exportToCSV = () => {
     const headers = ['First Name', 'Last Name', 'Email', 'Username', 'User ID'];
 
-    const csvData = currentData.map(user => {
-      const firstName = (
-        (user as any).firstName ||
-        (user as any).firstname ||
-        ''
-      ).toString();
-      const lastName = (
-        (user as any).lastName ||
-        (user as any).lastname ||
-        ''
-      ).toString();
-      const email = (
-        (user as any).email ||
-        (user as any).userEmail ||
-        ''
-      ).toString();
-      const userName = (
-        (user as any).userName ||
-        (user as any).username ||
-        ''
-      ).toString();
-      const id = ((user as any)._id || (user as any).id || '').toString();
+    // Helper to safely extract string fields from possibly inconsistent shapes
+    const getField = (obj: unknown, ...keys: string[]): string => {
+      if (!obj || typeof obj !== 'object') return '';
+      const rec = obj as Record<string, unknown>;
+      for (const k of keys) {
+        const v = rec[k as string];
+        if (v == null) continue;
+        if (typeof v === 'string') return v;
+        if (typeof v === 'number') return String(v);
+      }
+      return '';
+    };
 
-      // Escape double quotes
-      const esc = (s: string) => s.replace(/"/g, '""');
+    const esc = (s: string) => s.replace(/"/g, '""');
+
+    const csvData = currentData.map(user => {
+      const firstName = getField(user, 'firstName', 'firstname');
+      const lastName = getField(user, 'lastName', 'lastname');
+      const email = getField(user, 'email', 'userEmail');
+      const userName = getField(user, 'userName', 'username');
+      const id = getField(user, '_id', 'id');
 
       return [
         esc(firstName),
@@ -248,28 +244,24 @@ const UserStatisticsPage: React.FC = () => {
     doc.text(`Total Records: ${currentData.length}`, 40, 85);
     doc.text(`Generated on: ${new Date().toLocaleString()}`, 40, 100);
 
+    const getField = (obj: unknown, ...keys: string[]): string => {
+      if (!obj || typeof obj !== 'object') return '';
+      const rec = obj as Record<string, unknown>;
+      for (const k of keys) {
+        const v = rec[k as string];
+        if (v == null) continue;
+        if (typeof v === 'string') return v;
+        if (typeof v === 'number') return String(v);
+      }
+      return '';
+    };
+
     const tableData = currentData.map(user => {
-      const firstName = (
-        (user as any).firstName ||
-        (user as any).firstname ||
-        ''
-      ).toString();
-      const lastName = (
-        (user as any).lastName ||
-        (user as any).lastname ||
-        ''
-      ).toString();
-      const email = (
-        (user as any).email ||
-        (user as any).userEmail ||
-        ''
-      ).toString();
-      const userName = (
-        (user as any).userName ||
-        (user as any).username ||
-        ''
-      ).toString();
-      const id = ((user as any)._id || (user as any).id || '').toString();
+      const firstName = getField(user, 'firstName', 'firstname');
+      const lastName = getField(user, 'lastName', 'lastname');
+      const email = getField(user, 'email', 'userEmail');
+      const userName = getField(user, 'userName', 'username');
+      const id = getField(user, '_id', 'id');
       return [firstName, lastName, email, userName, id];
     });
 
