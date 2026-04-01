@@ -60,6 +60,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
       );
 
       UserPreferencesModel? preferences;
+      bool prefsAuthError = false;
 
       try {
         final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
@@ -67,9 +68,9 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
           loggy.info('Loading preferences during dashboard load for user: $userId');
           final prefsResponse = await preferencesRepo.getUserPreferences(userId);
 
-          loggy.info('Preference response structure: ${prefsResponse.keys.toList()}');
-
-          if (prefsResponse['success'] == true) {
+          if (prefsResponse['auth_error'] == true) {
+            prefsAuthError = true;
+          } else if (prefsResponse['success'] == true) {
             try {
               if (prefsResponse['preferences'] is List &&
                   prefsResponse['preferences'].isNotEmpty) {
@@ -121,7 +122,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
         lastUpdated: DateTime.now(),
       ));
 
-      if (preferences == null) {
+      if (preferences == null && !prefsAuthError) {
         loggy.info('Preferences not loaded initially, retrying as separate event');
         add(LoadUserPreferences());
       }
@@ -324,9 +325,52 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
 
       if (response['success'] == true) {
         loggy.info('Successfully updated preferences');
-        // Wait briefly for backend persistence before reloading
-        await Future.delayed(Duration(milliseconds: 500));
-        add(LoadUserPreferences());
+
+        // Build updated preferences directly from the sites we sent to avoid
+        // the GET /preferences/{userId} endpoint which returns 401.
+        UserPreferencesModel? updatedPreferences;
+
+        // Try parsing from PATCH response first
+        try {
+          final prefData = response['preference'] ?? response['data'];
+          if (prefData is Map<String, dynamic>) {
+            updatedPreferences = UserPreferencesModel.fromJson(prefData);
+          } else if (response['preferences'] is List &&
+              (response['preferences'] as List).isNotEmpty) {
+            updatedPreferences = UserPreferencesModel.fromJson(
+                response['preferences'].first as Map<String, dynamic>);
+          }
+        } catch (_) {}
+
+        // Fall back to constructing from what we sent
+        updatedPreferences ??= UserPreferencesModel(
+          id: currentState.userPreferences?.id ?? '',
+          userId: userId,
+          selectedSites:
+              selectedSites.map((s) => SelectedSite.fromJson(s)).toList(),
+          pollutant: currentState.userPreferences?.pollutant,
+          frequency: currentState.userPreferences?.frequency,
+          startDate: currentState.userPreferences?.startDate,
+          endDate: currentState.userPreferences?.endDate,
+          chartType: currentState.userPreferences?.chartType,
+          chartTitle: currentState.userPreferences?.chartTitle,
+          chartSubTitle: currentState.userPreferences?.chartSubTitle,
+          airqloudId: currentState.userPreferences?.airqloudId,
+          gridId: currentState.userPreferences?.gridId,
+          cohortId: currentState.userPreferences?.cohortId,
+          networkId: currentState.userPreferences?.networkId,
+          groupId: currentState.userPreferences?.groupId,
+          siteIds: selectedSites.map((s) => SelectedSite.fromJson(s)).map((s) => s.id).toList(),
+          deviceIds: currentState.userPreferences?.deviceIds,
+          period: currentState.userPreferences?.period,
+        );
+
+        emit(DashboardLoaded(
+          currentState.response,
+          userPreferences: updatedPreferences,
+          isOffline: currentState.isOffline,
+          lastUpdated: currentState.lastUpdated,
+        ));
       } else {
         loggy.warning('Failed to update preferences: ${response["message"]}');
 
