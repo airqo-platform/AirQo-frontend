@@ -179,22 +179,48 @@ const UserStatisticsPage: React.FC = () => {
     const headers = ['First Name', 'Last Name', 'Email', 'Username', 'User ID'];
 
     const csvData = currentData.map(user => {
-      const firstName = ((user as any).firstName || (user as any).firstname || '').toString();
-      const lastName = ((user as any).lastName || (user as any).lastname || '').toString();
-      const email = ((user as any).email || (user as any).userEmail || '').toString();
-      const userName = ((user as any).userName || (user as any).username || '').toString();
+      const firstName = (
+        (user as any).firstName ||
+        (user as any).firstname ||
+        ''
+      ).toString();
+      const lastName = (
+        (user as any).lastName ||
+        (user as any).lastname ||
+        ''
+      ).toString();
+      const email = (
+        (user as any).email ||
+        (user as any).userEmail ||
+        ''
+      ).toString();
+      const userName = (
+        (user as any).userName ||
+        (user as any).username ||
+        ''
+      ).toString();
       const id = ((user as any)._id || (user as any).id || '').toString();
 
       // Escape double quotes
       const esc = (s: string) => s.replace(/"/g, '""');
 
-      return [esc(firstName), esc(lastName), esc(email), esc(userName), esc(id)];
+      return [
+        esc(firstName),
+        esc(lastName),
+        esc(email),
+        esc(userName),
+        esc(id),
+      ];
     });
 
     const rows = [headers, ...csvData];
-    const csvContent = rows.map(row => row.map(field => `"${field}"`).join(',')).join('\n');
+    const csvContent = rows
+      .map(row => row.map(field => `"${field}"`).join(','))
+      .join('\n');
     // Add BOM for better Excel compatibility
-    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob(['\uFEFF' + csvContent], {
+      type: 'text/csv;charset=utf-8;',
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -223,10 +249,26 @@ const UserStatisticsPage: React.FC = () => {
     doc.text(`Generated on: ${new Date().toLocaleString()}`, 40, 100);
 
     const tableData = currentData.map(user => {
-      const firstName = ((user as any).firstName || (user as any).firstname || '').toString();
-      const lastName = ((user as any).lastName || (user as any).lastname || '').toString();
-      const email = ((user as any).email || (user as any).userEmail || '').toString();
-      const userName = ((user as any).userName || (user as any).username || '').toString();
+      const firstName = (
+        (user as any).firstName ||
+        (user as any).firstname ||
+        ''
+      ).toString();
+      const lastName = (
+        (user as any).lastName ||
+        (user as any).lastname ||
+        ''
+      ).toString();
+      const email = (
+        (user as any).email ||
+        (user as any).userEmail ||
+        ''
+      ).toString();
+      const userName = (
+        (user as any).userName ||
+        (user as any).username ||
+        ''
+      ).toString();
       const id = ((user as any)._id || (user as any).id || '').toString();
       return [firstName, lastName, email, userName, id];
     });
@@ -239,16 +281,22 @@ const UserStatisticsPage: React.FC = () => {
       headStyles: { fillColor: [22, 78, 99] },
       alternateRowStyles: { fillColor: [245, 245, 245] },
       margin: { left: 40, right: 40 },
-      didDrawPage: (dataArg) => {
+      didDrawPage: dataArg => {
         // Footer with page number
         const pageCount = doc.getNumberOfPages();
         const page = doc.getCurrentPageInfo().pageNumber;
         doc.setFontSize(9);
-        doc.text(`Page ${page} of ${pageCount}`, dataArg.settings.margin.left, doc.internal.pageSize.height - 30);
+        doc.text(
+          `Page ${page} of ${pageCount}`,
+          dataArg.settings.margin.left,
+          doc.internal.pageSize.height - 30
+        );
       },
     });
 
-    doc.save(`user-statistics-${activeTab}-${new Date().toISOString().split('T')[0]}.pdf`);
+    doc.save(
+      `user-statistics-${activeTab}-${new Date().toISOString().split('T')[0]}.pdf`
+    );
   };
 
   const handleRefresh = () => {
