@@ -15,12 +15,14 @@ export function OrganizationSelector() {
   const [searchTerm, setSearchTerm] = useState('');
   const router = useRouter();
   const { groups, activeGroup, switchGroupById } = useUserActions();
+  // Ensure we always operate on a safe array to avoid runtime errors
+  const safeGroups = Array.isArray(groups) ? groups : [];
 
   const handleOpen = () => setIsOpen(true);
   const handleClose = () => setIsOpen(false);
 
   const handleGroupSwitch = (groupId: string) => {
-    const selectedGroup = groups.find(g => g.id === groupId);
+    const selectedGroup = safeGroups.find(g => g.id === groupId);
     if (!selectedGroup) return;
 
     // Determine navigation target based on group type BEFORE switching
@@ -87,7 +89,7 @@ export function OrganizationSelector() {
         onClose={handleClose}
         title="Organizations"
         size="lg"
-        subtitle={`${groups.length} of ${groups.length} available`}
+        subtitle={`${safeGroups.length} of ${safeGroups.length} available`}
         primaryAction={{
           label: 'Request New Organization',
           onClick: () => {
@@ -109,8 +111,8 @@ export function OrganizationSelector() {
           </div>
 
           <div className="max-h-80 overflow-y-auto space-y-1">
-            {groups.length > 0 ? (
-              groups.map(group => {
+            {safeGroups.length > 0 ? (
+              safeGroups.map(group => {
                 return (
                   <button
                     key={group.id}

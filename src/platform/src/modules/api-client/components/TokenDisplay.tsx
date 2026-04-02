@@ -39,11 +39,14 @@ const TokenDisplay: React.FC<TokenDisplayProps> = ({
   let expiringSoon = false;
 
   if (typeof tokenStatus === 'string') {
-    expired = tokenStatus === 'expired';
-    if (!expired && expiresAtTime !== null) {
-      expiringSoon =
-        expiresAtTime > now && expiresAtTime - now <= 7 * 24 * 60 * 60 * 1000;
-    }
+    // Respect server-provided status but always fallback to expiry date when present
+    expired =
+      tokenStatus === 'expired' ||
+      (expiresAtTime !== null ? expiresAtTime <= now : false);
+    expiringSoon =
+      expiresAtTime !== null &&
+      expiresAtTime > now &&
+      expiresAtTime - now <= 7 * 24 * 60 * 60 * 1000;
   } else {
     expired = expiresAtTime !== null ? expiresAtTime <= now : false;
     expiringSoon =

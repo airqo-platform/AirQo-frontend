@@ -29,6 +29,9 @@ const ApiClientPage: React.FC = () => {
   });
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [activeGeneratingTokenId, setActiveGeneratingTokenId] = useState<
+    string | null
+  >(null);
   const [editDialogState, setEditDialogState] = useState<{
     isOpen: boolean;
     client: Client | null;
@@ -70,6 +73,7 @@ const ApiClientPage: React.FC = () => {
         return;
       }
 
+      setActiveGeneratingTokenId(client._id);
       try {
         await generateToken({
           name: client.name,
@@ -81,6 +85,8 @@ const ApiClientPage: React.FC = () => {
       } catch (error) {
         toast.error(getUserFriendlyErrorMessage(error));
         console.error('Generate token error:', error);
+      } finally {
+        setActiveGeneratingTokenId(null);
       }
     },
     [generateToken, mutate]
@@ -119,6 +125,9 @@ const ApiClientPage: React.FC = () => {
           if (expiryDate) expired = expiryDate.getTime() <= Date.now();
         }
 
+        const isGeneratingForThis =
+          isGeneratingToken && activeGeneratingTokenId === item._id;
+
         if (expired) {
           return (
             <div className="flex flex-col items-start gap-2 min-w-0">
@@ -134,9 +143,9 @@ const ApiClientPage: React.FC = () => {
                   size="sm"
                   variant="outlined"
                   onClick={() => handleGenerateToken(item)}
-                  disabled={isGeneratingToken}
+                  disabled={isGeneratingForThis}
                 >
-                  {isGeneratingToken ? 'Refreshing...' : 'Refresh'}
+                  {isGeneratingForThis ? 'Refreshing...' : 'Refresh'}
                 </Button>
               </div>
             </div>
@@ -156,18 +165,21 @@ const ApiClientPage: React.FC = () => {
         );
       }
 
+      const isGeneratingForThis =
+        isGeneratingToken && activeGeneratingTokenId === item._id;
+
       return (
         <Button
           size="sm"
           variant="outlined"
           onClick={() => handleGenerateToken(item)}
-          disabled={isGeneratingToken}
+          disabled={isGeneratingForThis}
         >
-          Generate Token
+          {isGeneratingForThis ? 'Generating...' : 'Generate Token'}
         </Button>
       );
     },
-    [isGeneratingToken, handleGenerateToken]
+    [isGeneratingToken, handleGenerateToken, activeGeneratingTokenId]
   );
 
   const renderCreatedDate = useCallback((value: unknown, item: TableClient) => {
@@ -346,6 +358,10 @@ const ApiClientPage: React.FC = () => {
             })
           }
           client={editDialogState.client}
+          onSuccess={() => {
+            setEditDialogState({ isOpen: false, client: null });
+            mutate();
+          }}
         />
       )}
     </div>
