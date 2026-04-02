@@ -9,9 +9,14 @@ import { formatDate, parseDate } from '@/shared/utils';
 interface TokenDisplayProps {
   token: string;
   expiresAt?: string | null;
+  tokenStatus?: 'active' | 'expired';
 }
 
-const TokenDisplay: React.FC<TokenDisplayProps> = ({ token, expiresAt }) => {
+const TokenDisplay: React.FC<TokenDisplayProps> = ({
+  token,
+  expiresAt,
+  tokenStatus,
+}) => {
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(token);
@@ -28,11 +33,27 @@ const TokenDisplay: React.FC<TokenDisplayProps> = ({ token, expiresAt }) => {
   const expiryDate = expiresAt != null ? parseDate(expiresAt) : null;
   const isExpiryValid = expiryDate !== null;
   const expiresAtTime = isExpiryValid ? expiryDate!.getTime() : null;
-  const expired = expiresAtTime !== null ? expiresAtTime <= now : false;
-  const expiringSoon =
-    expiresAtTime !== null &&
-    expiresAtTime > now &&
-    expiresAtTime - now <= 7 * 24 * 60 * 60 * 1000;
+
+  // Prefer server-provided `tokenStatus` when available; otherwise infer from expiry date
+  let expired = false;
+  let expiringSoon = false;
+
+  if (typeof tokenStatus === 'string') {
+    // Respect server-provided status but always fallback to expiry date when present
+    expired =
+      tokenStatus === 'expired' ||
+      (expiresAtTime !== null ? expiresAtTime <= now : false);
+    expiringSoon =
+      expiresAtTime !== null &&
+      expiresAtTime > now &&
+      expiresAtTime - now <= 7 * 24 * 60 * 60 * 1000;
+  } else {
+    expired = expiresAtTime !== null ? expiresAtTime <= now : false;
+    expiringSoon =
+      expiresAtTime !== null &&
+      expiresAtTime > now &&
+      expiresAtTime - now <= 7 * 24 * 60 * 60 * 1000;
+  }
 
   const containerCodeClass = expired
     ? 'font-mono text-sm truncate min-w-0 bg-red-50 text-red-800 px-2 py-1 rounded border border-red-200'
@@ -60,19 +81,19 @@ const TokenDisplay: React.FC<TokenDisplayProps> = ({ token, expiresAt }) => {
 
         <div className="flex items-center gap-2 min-w-0">
           {expired ? (
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-red-600 text-white">
+            <span className="inline-flex items-center whitespace-nowrap px-3 py-0.5 rounded-full text-xs font-semibold bg-red-600 text-white">
               Expired
             </span>
           ) : expiringSoon ? (
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-600 text-white">
+            <span className="inline-flex items-center whitespace-nowrap px-3 py-0.5 rounded-full text-xs font-semibold bg-yellow-600 text-white">
               Expires soon
             </span>
           ) : null}
 
           <p
-            className={`${expired ? 'text-red-700' : 'text-gray-500 dark:text-gray-400'} text-xs`}
+            className={`${expired ? 'text-red-700' : 'text-gray-500 dark:text-gray-400'} text-xs whitespace-nowrap`}
           >
-            Expires:{' '}
+            {expired ? 'Expired:' : 'Expires:'}{' '}
             {isExpiryValid
               ? formatDate(expiryDate, {
                   year: 'numeric',

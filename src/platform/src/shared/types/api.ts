@@ -340,6 +340,7 @@ export interface Client {
     expires: string;
     createdAt: string;
     updatedAt: string;
+    token_status?: 'active' | 'expired';
     __v: number;
   };
 }
@@ -842,6 +843,7 @@ export interface Client {
     expires: string;
     createdAt: string;
     updatedAt: string;
+    token_status?: 'active' | 'expired';
     __v: number;
   };
 }
@@ -909,6 +911,7 @@ export interface GenerateTokenResponse {
     expires: string;
     createdAt: string;
     updatedAt: string;
+    token_status?: 'active' | 'expired';
     __v: number;
   };
 }
