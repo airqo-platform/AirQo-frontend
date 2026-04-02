@@ -7,10 +7,11 @@ import { useSession } from 'next-auth/react';
 import { useUserAccess } from '@/core/hooks/useUserAccess';
 
 const navItems = [
-  { href: '/', label: 'Browse', requiresAuth: false },
-  { href: '/my-apps', label: 'My Apps', requiresAuth: true },
+  { href: '/', label: 'Home', requiresAuth: false },
+  { href: '/docs/getting-started', label: 'Getting Started', requiresAuth: false },
+  { href: '/data-apps', label: 'Browse Data Apps', requiresAuth: true },
+  { href: '/publish', label: 'Publish', requiresAuth: true },
   { href: '/developer', label: 'Developer', requiresAuth: true },
-  { href: '/usage', label: 'Usage', requiresAuth: true },
 ];
 
 export function AppStoreSidebar() {

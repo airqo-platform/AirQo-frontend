@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 const authRoutes = ['/login', '/forgot-password'];
-const publicRoutes = ['/', '/apps', '/apps/'];
+const publicRoutes = ['/', '/docs', '/docs/'];
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { status, data: session } = useSession();

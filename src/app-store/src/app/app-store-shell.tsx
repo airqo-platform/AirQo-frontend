@@ -43,9 +43,9 @@ export function AppStoreShell({ children }: { children: React.ReactNode }) {
 
   const handleSubmitApp = () => {
     if (isAuthenticated) {
-      router.push('/developer');
+      router.push('/publish');
     } else {
-      router.push('/login?callbackUrl=/developer');
+      router.push('/login?callbackUrl=/publish');
     }
   };
 
@@ -57,7 +57,7 @@ export function AppStoreShell({ children }: { children: React.ReactNode }) {
             <div className="flex h-9 w-9 items-center justify-center rounded-lg">
               <Image src="/images/airqo_logo.svg" alt="AirQo" width={32} height={32} />
             </div>
-            <span className="font-medium text-lg tracking-tight">App Store</span>
+            <span className="font-medium text-lg tracking-tight">Data Apps</span>
           </div>
           <div className="flex items-center gap-3">
             {!isAuthenticated && (
@@ -73,7 +73,7 @@ export function AppStoreShell({ children }: { children: React.ReactNode }) {
               className="rounded-full px-4 py-2"
               onClick={handleSubmitApp}
             >
-              Submit an App
+              Publish an App
             </ReusableButton>
             {isAuthenticated && (
               <div className="relative">

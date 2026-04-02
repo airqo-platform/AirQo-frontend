@@ -103,7 +103,7 @@ export default function LoginPage() {
           <div className="mb-4">
             <Image src="/images/airqo_logo.svg" alt="Logo" width={50} height={50} />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">Welcome back to AirQo App Store</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Welcome back to AirQo Data Apps</h1>
           <div className="text-center text-sm">
             Need an account?{' '}
             <Link href={signUpUrl || 'https://analytics.airqo.net'} className="font-medium text-primary hover:underline">
