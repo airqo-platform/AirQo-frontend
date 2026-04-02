@@ -65,17 +65,17 @@ const gridResponse = await FileAttachment("data/uganda-grid.geo.json").json();
 const measurementsResponse = await FileAttachment("data/measurements.json").json();
 
 const gridShape = gridResponse;
-const features = gridShape-.type === "FeatureCollection"
-  - gridShape.features
-  : gridShape-.type === "Feature"
-    - [gridShape]
+const features = gridShape?.type === "FeatureCollection"
+  ? gridShape.features
+  : gridShape?.type === "Feature"
+    ? [gridShape]
     : [];
 
-const measurements = measurementsResponse-.measurements || [];
+const measurements = measurementsResponse?.measurements || [];
 
 const districtBuckets = new Map();
 for (const item of measurements) {
-  const district = normalizeDistrict(item.siteDetails-.district);
+  const district = normalizeDistrict(item.siteDetails?.district);
   if (!district) continue;
   if (!districtBuckets.has(district)) districtBuckets.set(district, []);
   districtBuckets.get(district).push(item);
@@ -93,7 +93,7 @@ for (const [district, items] of districtBuckets.entries()) {
   if (!sorted.length) continue;
 
   const values = sorted
-    .map((entry) => entry[pollutant]-.value)
+    .map((entry) => entry[pollutant]?.value)
     .filter((value) => typeof value === "number");
 
   if (values.length) {
@@ -104,16 +104,16 @@ for (const [district, items] of districtBuckets.entries()) {
     trendSeries = sorted
       .map((entry) => ({
         time: new Date(entry.time),
-        value: entry[pollutant]-.value
+        value: entry[pollutant]?.value
       }))
       .filter((entry) => typeof entry.value === "number");
   }
 }
 
 const valuesArray = Object.values(districtValues).filter((value) => Number.isFinite(value));
-const avgValue = valuesArray.length - valuesArray.reduce((sum, value) => sum + value, 0) / valuesArray.length : null;
-const maxValue = valuesArray.length - Math.max(...valuesArray) : null;
-const pollutantLabel = pollutant === "pm2_5" - "PM2.5" : "PM10";
+const avgValue = valuesArray.length ? valuesArray.reduce((sum, value) => sum + value, 0) / valuesArray.length : null;
+const maxValue = valuesArray.length ? Math.max(...valuesArray) : null;
+const pollutantLabel = pollutant === "pm2_5" ? "PM2.5" : "PM10";
 ```
 
 ```js
@@ -124,15 +124,15 @@ html`<div class="grid-4">
   </div>
   <div class="card">
     <div class="card-title">Average ${pollutantLabel}</div>
-    <div class="metric">${avgValue - avgValue.toFixed(1) : "—"}</div>
+    <div class="metric">${avgValue ? avgValue.toFixed(1) : "—"}</div>
   </div>
   <div class="card">
     <div class="card-title">Max ${pollutantLabel}</div>
-    <div class="metric">${maxValue - maxValue.toFixed(1) : "—"}</div>
+    <div class="metric">${maxValue ? maxValue.toFixed(1) : "—"}</div>
   </div>
   <div class="card">
     <div class="card-title">Trend District</div>
-    <div class="metric">${trendDistrict - trendDistrict.charAt(0).toUpperCase() + trendDistrict.slice(1) : "—"}</div>
+    <div class="metric">${trendDistrict ? trendDistrict.charAt(0).toUpperCase() + trendDistrict.slice(1) : "—"}</div>
   </div>
 </div>`;
 ```
@@ -140,7 +140,7 @@ html`<div class="grid-4">
 ## Uganda District Map
 
 ```js
-const mapWidth = typeof width === "number" - width : 900;
+const mapWidth = typeof width === "number" ? width : 900;
 const mapHeight = Math.round(mapWidth * 0.6);
 
 Plot.plot({
@@ -160,12 +160,12 @@ Plot.plot({
 
 ```js
 html`<div style="display:flex;flex-wrap:wrap;gap:8px;font-size:12px;color:#64748b;">
-  ${COLOR_BINS.map((bin) => `
+  ${COLOR_BINS.map((bin) => html`
     <div style="display:flex;align-items:center;gap:6px;">
       <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${bin.color};"></span>
       ${bin.label}
     </div>
-  `).join("")}
+  `)}
 </div>`
 ```
 
@@ -173,7 +173,7 @@ html`<div style="display:flex;flex-wrap:wrap;gap:8px;font-size:12px;color:#64748
 
 ```js
 districts.length === 0
-  - html`<div class="subtitle">No district readings available yet.</div>`
+  ? html`<div class="subtitle">No district readings available yet.</div>`
   :
 table(
   Object.entries(districtValues)
@@ -196,7 +196,7 @@ const sortedSeries = trendSeries
 const movingAverageSeries = movingAverage(sortedSeries, 24);
 
 Plot.plot({
-  width: typeof width === "number" - width : 900,
+  width: typeof width === "number" ? width : 900,
   height: 300,
   y: { grid: true },
   x: { grid: true },
