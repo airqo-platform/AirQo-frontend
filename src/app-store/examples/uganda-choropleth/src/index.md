@@ -1,5 +1,7 @@
 ---
 title: Uganda Hourly Air Quality
+theme: dashboard
+toc: false
 ---
 
 ```js
@@ -8,10 +10,7 @@ import { radio, table } from "@observablehq/inputs";
 import { html } from "htl";
 ```
 
-# Uganda Hourly Air Quality — Choropleth
-
-An Observable Framework example showing Uganda district-level hourly air quality trends.  
-This example reads the API token from the environment (`NEXT_PUBLIC_API_TOKEN`).
+# Uganda Hourly Air Quality Trend Analysis
 
 ```js
 const pollutant = view(
@@ -117,7 +116,7 @@ const pollutantLabel = pollutant === "pm2_5" ? "PM2.5" : "PM10";
 ```
 
 ```js
-html`<div class="grid-4">
+html`<div class="grid grid-cols-4">
   <div class="card">
     <div class="card-title">Districts</div>
     <div class="metric">${districts.length || "—"}</div>
@@ -137,7 +136,9 @@ html`<div class="grid-4">
 </div>`;
 ```
 
-## Uganda District Map
+<div class="grid grid-cols-2" style="margin-top: 2rem;">
+  <div class="card">
+    <h2>Uganda District Map</h2>
 
 ```js
 const mapWidth = typeof width === "number" ? width : 900;
@@ -169,7 +170,9 @@ html`<div style="display:flex;flex-wrap:wrap;gap:8px;font-size:12px;color:#64748
 </div>`
 ```
 
-## District Readings
+  </div>
+  <div class="card">
+    <h2>District Readings</h2>
 
 ```js
 districts.length === 0
@@ -186,7 +189,11 @@ table(
 )
 ```
 
-## Hourly Moving Average (24-hour)
+  </div>
+</div>
+
+<div class="card">
+  <h2>Hourly Moving Average (24-hour)</h2>
 
 ```js
 const sortedSeries = trendSeries
@@ -206,3 +213,4 @@ display(Plot.plot({
   ]
 }))
 ```
+</div>
