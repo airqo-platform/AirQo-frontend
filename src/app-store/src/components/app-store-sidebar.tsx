@@ -4,22 +4,19 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useSession } from 'next-auth/react';
-import { useUserAccess } from '@/core/hooks/useUserAccess';
 
 const navItems = [
   { href: '/', label: 'Home', requiresAuth: false },
   { href: '/docs/getting-started', label: 'Getting Started', requiresAuth: false },
   { href: '/data-apps', label: 'Browse Data Apps', requiresAuth: true },
   { href: '/publish', label: 'Publish', requiresAuth: true },
-  { href: '/developer', label: 'Developer', requiresAuth: true },
+  { href: '/my-apps', label: 'My Apps', requiresAuth: true },
 ];
 
 export function AppStoreSidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const { isAdmin } = useUserAccess();
   const isAuthenticated = !!session;
-  const showAdmin = isAdmin;
 
   return (
     <aside className="w-64 shrink-0 rounded-2xl border border-border bg-card p-4">
@@ -46,19 +43,6 @@ export function AppStoreSidebar() {
               </Link>
             );
           })}
-        {showAdmin && (
-          <Link
-            href="/admin/review"
-            className={cn(
-              'rounded-xl px-3 py-2 text-sm font-medium transition',
-              pathname === '/admin/review'
-                ? 'bg-primary text-primary-foreground'
-                : 'text-foreground hover:bg-muted'
-            )}
-          >
-            Admin Review
-          </Link>
-        )}
       </nav>
     </aside>
   );

@@ -6,17 +6,16 @@ import { useSession } from 'next-auth/react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { href: '/', label: 'Browse', requiresAuth: false },
+  { href: '/', label: 'Home', requiresAuth: false },
+  { href: '/docs/getting-started', label: 'Getting Started', requiresAuth: false },
+  { href: '/data-apps', label: 'Browse Data Apps', requiresAuth: true },
   { href: '/my-apps', label: 'My Apps', requiresAuth: true },
-  { href: '/developer', label: 'Developer', requiresAuth: true },
+  { href: '/publish', label: 'Publish', requiresAuth: true },
 ];
 
 export function AppStoreNav() {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const privilege =
-    session?.user && 'privilege' in session.user ? session.user.privilege : undefined;
-  const showAdmin = privilege === 'SUPER_ADMIN' || privilege === 'SYSTEM_ADMIN';
   const isAuthenticated = !!session;
 
   return (
@@ -40,19 +39,6 @@ export function AppStoreNav() {
           </Link>
         );
       })}
-      {showAdmin && (
-        <Link
-          href="/admin/review"
-          className={cn(
-            'rounded-full px-4 py-2 text-sm font-medium transition',
-            pathname === '/admin/review'
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-secondary text-secondary-foreground hover:bg-muted'
-          )}
-        >
-          Admin Review
-        </Link>
-      )}
     </nav>
   );
 }
