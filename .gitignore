@@ -15,3 +15,5 @@ secret
 .stage-env.yaml
 .prod-env.yaml
 .idea/*
+.observablehq/
+**/.observablehq/

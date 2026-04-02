@@ -1,0 +1,19 @@
+{
+  "id": "uganda-choropleth-hourly",
+  "name": "Uganda Hourly Air Quality Choropleth",
+  "version": "0.1.0",
+  "description": "An Observable Framework data app showing a Uganda district-level choropleth, hourly trends, and a district table based on AirQo grid measurements.",
+  "author": {
+    "name": "AirQo Data Team",
+    "email": "data@airqo.net",
+    "organisation": "AirQo"
+  },
+  "category": "visualisation",
+  "tags": ["uganda", "choropleth", "hourly", "pm2.5", "pm10"],
+  "youtubeUrl": "https://www.youtube.com/watch?v=VIDEO_ID",
+  "apis": ["devices/measurements/grids"],
+  "parameterised": false,
+  "parameters": {
+    "pollutant": { "type": "string", "default": "pm2_5" }
+  }
+}

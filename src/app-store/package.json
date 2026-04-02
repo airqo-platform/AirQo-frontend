@@ -8,11 +8,14 @@
     "start": "next start",
     "lint": "next lint",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "example:uganda": "cd examples/uganda-choropleth && npx @observablehq/framework@latest preview"
   },
   "dependencies": {
     "@airqo/icons-react": "0.2.7",
     "@hookform/resolvers": "^5.2.2",
+    "@observablehq/inputs": "^0.12.0",
+    "@observablehq/plot": "^0.6.17",
     "@radix-ui/react-label": "^2.1.2",
     "@radix-ui/react-slot": "^1.1.2",
     "axios": "1.13.6",
