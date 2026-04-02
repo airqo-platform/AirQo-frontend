@@ -18,7 +18,12 @@ export function AppStoreSidebar() {
   const isAuthenticated = !!session;
   const privilege =
     session?.user && 'privilege' in session.user ? session.user.privilege : undefined;
-  const showAdmin = privilege === 'SUPER_ADMIN' || privilege === 'SYSTEM_ADMIN';
+  const email =
+    session?.user && 'email' in session.user ? session.user.email : undefined;
+  const isAirqoEmail =
+    typeof email === 'string' && email.toLowerCase().endsWith('@airqo.net');
+  const showAdmin =
+    isAirqoEmail && (privilege === 'SUPER_ADMIN' || privilege === 'SYSTEM_ADMIN');
 
   return (
     <aside className="w-64 shrink-0 rounded-2xl border border-border bg-card p-4">
