@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useSession } from 'next-auth/react';
 import { cn } from '@/lib/utils';
+import { useSession } from 'next-auth/react';
+import { useUserAccess } from '@/core/hooks/useUserAccess';
 
 const navItems = [
   { href: '/', label: 'Browse', requiresAuth: false },
@@ -15,15 +16,9 @@ const navItems = [
 export function AppStoreSidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
+  const { isAdmin } = useUserAccess();
   const isAuthenticated = !!session;
-  const privilege =
-    session?.user && 'privilege' in session.user ? session.user.privilege : undefined;
-  const email =
-    session?.user && 'email' in session.user ? session.user.email : undefined;
-  const isAirqoEmail =
-    typeof email === 'string' && email.toLowerCase().endsWith('@airqo.net');
-  const showAdmin =
-    isAirqoEmail && (privilege === 'SUPER_ADMIN' || privilege === 'SYSTEM_ADMIN');
+  const showAdmin = isAdmin;
 
   return (
     <aside className="w-64 shrink-0 rounded-2xl border border-border bg-card p-4">

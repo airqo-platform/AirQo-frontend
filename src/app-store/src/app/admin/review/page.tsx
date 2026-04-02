@@ -1,20 +1,11 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
+import { useUserAccess } from '@/core/hooks/useUserAccess';
 
 export default function AdminReviewPage() {
-  const { data: session } = useSession();
-  const privilege =
-    session?.user && 'privilege' in session.user ? session.user.privilege : undefined;
-  const email =
-    session?.user && 'email' in session.user ? session.user.email : undefined;
-  const isAirqoEmail =
-    typeof email === 'string' && email.toLowerCase().endsWith('@airqo.net');
+  const { isAdmin } = useUserAccess();
 
-  if (
-    !isAirqoEmail ||
-    (privilege !== 'SUPER_ADMIN' && privilege !== 'SYSTEM_ADMIN')
-  ) {
+  if (!isAdmin) {
     return (
       <div className="rounded-2xl border border-dashed border-border bg-card p-6 text-sm text-muted-foreground">
         Admin review queue is only visible to AirQo SUPER_ADMIN accounts.
