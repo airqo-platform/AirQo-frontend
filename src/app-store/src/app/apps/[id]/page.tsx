@@ -2,12 +2,16 @@
 
 import { useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { appRegistry } from '@airqo/app-store-modules';
 import { useInstalledApps } from '@/lib/use-installed-apps';
+import ReusableButton from '@/components/shared/button/ReusableButton';
+import ReusableToast from '@/components/shared/toast/ReusableToast';
 
 export default function AppDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { data: session } = useSession();
   const { installedIds, install, uninstall } = useInstalledApps();
 
   const app = useMemo(() => {
@@ -30,6 +34,7 @@ export default function AppDetailPage() {
   }
 
   const isInstalled = installedIds.includes(app.id);
+  const isAuthenticated = !!session;
 
   return (
     <div className="space-y-6">
@@ -43,16 +48,41 @@ export default function AppDetailPage() {
             <p className="mt-2 text-sm text-muted-foreground">{app.description}</p>
           </div>
           <div className="flex flex-col gap-2">
-            <button
-              onClick={() => (isInstalled ? uninstall(app.id) : install(app.id))}
-              className={`rounded-full px-5 py-2 text-sm font-semibold transition ${
-                isInstalled
-                  ? 'bg-destructive text-destructive-foreground'
-                  : 'bg-primary text-primary-foreground'
-              }`}
-            >
-              {isInstalled ? 'Uninstall' : 'Install'}
-            </button>
+            {!isAuthenticated && (
+              <ReusableButton
+                type="button"
+                className="rounded-full px-5 py-2"
+                onClick={() =>
+                  router.push(`/login?callbackUrl=/apps/${app.id}`)
+                }
+              >
+                Login to install
+              </ReusableButton>
+            )}
+            {isAuthenticated && (
+              <ReusableButton
+                type="button"
+                className="rounded-full px-5 py-2"
+                variant={isInstalled ? 'outlined' : 'filled'}
+                onClick={() => {
+                  if (isInstalled) {
+                    uninstall(app.id);
+                    ReusableToast({
+                      message: `${app.name} uninstalled`,
+                      type: 'INFO',
+                    });
+                  } else {
+                    install(app.id);
+                    ReusableToast({
+                      message: `${app.name} installed`,
+                      type: 'SUCCESS',
+                    });
+                  }
+                }}
+              >
+                {isInstalled ? 'Uninstall' : 'Install'}
+              </ReusableButton>
+            )}
             <span className="text-xs text-muted-foreground">
               Version {app.version}
             </span>

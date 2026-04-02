@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { AppStoreNav } from '@/components/app-store-nav';
+import { AppStoreSidebar } from '@/components/app-store-sidebar';
 
 const authRoutes = ['/login', '/forgot-password'];
 
@@ -20,31 +20,20 @@ export function AppStoreShell({ children }: { children: React.ReactNode }) {
       <header className="border-b border-border bg-background/80 backdrop-blur">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-card">
-              <Image
-                src="/images/airqo_logo.svg"
-                alt="AirQo"
-                width={28}
-                height={28}
-              />
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg">
+              <Image src="/images/airqo_logo.svg" alt="AirQo" width={32} height={32} />
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">AirQo</p>
-              <p className="text-lg font-semibold text-heading">App Store</p>
-            </div>
+            <p className="text-lg font-semibold text-heading mb-0">App Store</p>
           </div>
-          <Link
-            href="/"
-            className="text-sm font-medium text-muted-foreground hover:text-foreground"
-          >
+          <Link href="/" className="text-sm font-medium text-muted-foreground hover:text-foreground">
             apps.airqo.net
           </Link>
         </div>
-        <div className="mx-auto w-full max-w-6xl px-6 pb-4">
-          <AppStoreNav />
-        </div>
       </header>
-      <main className="mx-auto w-full max-w-6xl px-6 py-8">{children}</main>
+      <div className="mx-auto flex w-full max-w-6xl gap-6 px-6 py-8">
+        <AppStoreSidebar />
+        <main className="flex-1">{children}</main>
+      </div>
     </div>
   );
 }
