@@ -143,10 +143,10 @@ html`<div class="grid-4">
 const mapWidth = typeof width === "number" ? width : 900;
 const mapHeight = Math.round(mapWidth * 0.6);
 
-Plot.plot({
+display(Plot.plot({
   width: mapWidth,
   height: mapHeight,
-  projection: { type: "mercator", fit: features },
+  projection: { type: "mercator", domain: gridShape },
   color: { type: "identity" },
   marks: [
     Plot.geo(features, {
@@ -155,7 +155,7 @@ Plot.plot({
       strokeWidth: 0.5
     })
   ]
-})
+}))
 ```
 
 ```js
@@ -195,7 +195,7 @@ const sortedSeries = trendSeries
 
 const movingAverageSeries = movingAverage(sortedSeries, 24);
 
-Plot.plot({
+display(Plot.plot({
   width: typeof width === "number" ? width : 900,
   height: 300,
   y: { grid: true },
@@ -204,5 +204,5 @@ Plot.plot({
     Plot.line(sortedSeries, { x: "time", y: "value", stroke: "#94A3B8" }),
     Plot.line(movingAverageSeries, { x: "time", y: "value", stroke: "#FF7A1A", strokeWidth: 2 })
   ]
-})
+}))
 ```
