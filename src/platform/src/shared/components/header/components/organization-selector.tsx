@@ -45,19 +45,15 @@ export function OrganizationSelector() {
     }
   };
 
-  // const filteredGroups = useMemo(() => {
-  //   if (!searchTerm.trim()) return groups;
-  //   return groups.filter(
-  //     group =>
-  //       group.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //       group.organizationSlug
-  //         ?.toLowerCase()
-  //         .includes(searchTerm.toLowerCase()) ||
-  //       cleanDisplayText(group.title)
-  //         .toLowerCase()
-  //         .includes(searchTerm.toLowerCase())
-  //   );
-  // }, [groups, searchTerm]);
+  const filteredGroups = React.useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    if (!q) return safeGroups;
+    return safeGroups.filter(group => {
+      const title = (group.title || '').toLowerCase();
+      const slug = (group.organizationSlug || '').toLowerCase();
+      return title.includes(q) || slug.includes(q);
+    });
+  }, [safeGroups, searchTerm]);
 
   // Hide component if loading or no groups available
   // if (isLoading || groups.length === 0) {
@@ -89,7 +85,7 @@ export function OrganizationSelector() {
         onClose={handleClose}
         title="Organizations"
         size="lg"
-        subtitle={`${safeGroups.length} of ${safeGroups.length} available`}
+        subtitle={`${filteredGroups.length} of ${safeGroups.length} available`}
         primaryAction={{
           label: 'Request New Organization',
           onClick: () => {
@@ -111,8 +107,8 @@ export function OrganizationSelector() {
           </div>
 
           <div className="max-h-80 overflow-y-auto space-y-1">
-            {safeGroups.length > 0 ? (
-              safeGroups.map(group => {
+            {filteredGroups.length > 0 ? (
+              filteredGroups.map(group => {
                 return (
                   <button
                     key={group.id}
