@@ -438,25 +438,15 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       });
 
       setMapLoaded(true);
-      console.log('[NetworkCoverageMap] initial view', {
-        zoom: map.getZoom(),
-        center: map.getCenter().toArray(),
-      });
     });
 
     mapRef.current.on('zoomend', () => {
+      // zoom end handler (no-op logging removed)
       const currentZoom = mapRef.current.getZoom();
-      console.log('[NetworkCoverageMap] zoomend', {
-        zoom: currentZoom,
-        center: mapRef.current.getCenter().toArray(),
-      });
     });
 
     mapRef.current.on('moveend', () => {
-      console.log('[NetworkCoverageMap] moveend', {
-        zoom: mapRef.current.getZoom(),
-        center: mapRef.current.getCenter().toArray(),
-      });
+      // move end handler (no-op logging removed)
     });
 
     return () => {
