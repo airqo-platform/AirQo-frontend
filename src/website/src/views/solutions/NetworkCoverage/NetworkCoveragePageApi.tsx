@@ -527,7 +527,7 @@ const NetworkCoveragePage = () => {
 
   return (
     <div className="h-screen w-full overflow-hidden bg-[#f6f6f7]">
-      <div className="flex h-full flex-col p-2">
+      <div className="flex h-full flex-col gap-2 p-2">
         <NetworkCoverageHeader
           onToggleSidebar={() => setIsSidebarOpen((previous) => !previous)}
           onDownload={handleDownload}
@@ -536,7 +536,7 @@ const NetworkCoveragePage = () => {
 
         {/* Add-to-network dialog removed — sidebar prompt opens Vertex directly */}
 
-        <main className="relative mt-2 flex min-h-0 flex-1 overflow-hidden rounded-xl border border-slate-200 bg-[#f6f6f7]">
+        <main className="relative flex min-h-0 flex-1 overflow-hidden rounded-xl border border-slate-200 bg-[#f6f6f7]">
           <div
             className={`absolute inset-0 z-30 bg-black/30 transition-opacity lg:hidden ${
               isSidebarOpen

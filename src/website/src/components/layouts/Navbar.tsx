@@ -200,6 +200,18 @@ const Navbar: React.FC = () => {
     setExpandedMenu(null);
   }, []);
 
+  // Lock body scroll while mobile drawer is open
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [menuOpen]);
+
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
@@ -243,12 +255,16 @@ const Navbar: React.FC = () => {
             />
           </Link>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Menu Hamburger */}
           <button
             onClick={toggleMenu}
-            className="text-gray-800 focus:outline-none md:hidden"
+            className="grid h-9 w-9 place-items-center rounded-lg text-gray-800 transition-colors hover:bg-gray-100 focus:outline-none md:hidden"
+            aria-label={
+              menuOpen ? 'Close navigation menu' : 'Open navigation menu'
+            }
+            aria-expanded={menuOpen}
           >
-            {menuOpen ? <RiCloseFill size={24} /> : <TbMenu size={30} />}
+            <TbMenu size={26} />
           </button>
 
           {/* Desktop Navigation */}
@@ -293,79 +309,164 @@ const Navbar: React.FC = () => {
               Explore data
             </CustomButton>
           </div>
-          {/* Mobile Navigation */}
-          {menuOpen && (
-            <div className="absolute top-full left-0 w-full bg-white shadow-lg p-4 md:hidden z-[9998]">
-              {Object.entries(menuItems).map(([title, items]) => (
-                <div key={title} className="mb-4">
-                  <button
-                    onClick={() => toggleExpandedMenu(title)}
-                    className="text-gray-800 font-medium w-full text-left flex items-center justify-between translate-element"
-                  >
-                    {title}
-                    <TbChevronDown
-                      className={`ml-2 transition-transform duration-300 ${expandedMenu === title ? 'rotate-180' : 'rotate-0'}`}
-                    />
-                  </button>
-                  <div
-                    className={`overflow-hidden transition-max-height duration-300 ease-in-out ${expandedMenu === title ? 'max-h-screen' : 'max-h-0'}`}
-                  >
-                    {items.map((item) => {
-                      const isExternal = item.href.startsWith('http');
-                      const shouldOpenInNewTab = isExternal || item.newTab;
-                      return (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          target={shouldOpenInNewTab ? '_blank' : undefined}
-                          rel={
-                            shouldOpenInNewTab
-                              ? 'noopener noreferrer'
-                              : undefined
-                          }
-                          onClick={handleLinkClick}
-                          className="block px-4 py-2 text-gray-700 hover:bg-blue-50 transition rounded translate-element"
-                        >
-                          {item.title}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-              <CustomButton
-                onClick={() => {
-                  trackEvent({
-                    action: 'button_click',
-                    category: 'engagement',
-                    label: 'get_involved',
-                  });
-                  dispatch(openModal());
-                  handleLinkClick();
-                }}
-                className="w-full text-blue-600 bg-blue-50 hover:bg-blue-100 transition rounded-none mb-2"
-              >
-                Get involved
-              </CustomButton>
-              <CustomButton
-                onClick={() => {
-                  trackEvent({
-                    action: 'button_click',
-                    category: 'navigation',
-                    label: 'explore_data',
-                  });
-                  router.push('/explore-data');
-                  handleLinkClick();
-                }}
-                className="w-full rounded-none"
-              >
-                Explore data
-              </CustomButton>
-            </div>
-          )}
         </div>
-        {/* Removed clean-air-network tab navigation */}
       </nav>
+
+      {/* ── Mobile Navigation Drawer ── */}
+      {/* Backdrop */}
+      <div
+        aria-hidden="true"
+        className={`fixed inset-0 z-[9990] bg-black/40 backdrop-blur-sm transition-opacity duration-300 md:hidden ${
+          menuOpen
+            ? 'pointer-events-auto opacity-100'
+            : 'pointer-events-none opacity-0'
+        }`}
+        onClick={handleLinkClick}
+      />
+
+      {/* Drawer panel */}
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Site navigation"
+        className={`fixed inset-y-0 left-0 z-[9995] flex w-[300px] max-w-[88vw] flex-col bg-white shadow-2xl transition-transform duration-300 ease-in-out md:hidden ${
+          menuOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        {/* Drawer Header */}
+        <div className="flex flex-shrink-0 items-center justify-between border-b border-gray-100 px-4 py-3.5">
+          <Link href={mainConfig.homePageUrl} onClick={handleLinkClick}>
+            <Image
+              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728138368/website/Logos/logo_rus4my.png"
+              alt="AirQo"
+              width={64}
+              height={44}
+              className="h-8 w-auto"
+            />
+          </Link>
+          <button
+            type="button"
+            onClick={handleLinkClick}
+            className="grid h-8 w-8 place-items-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
+            aria-label="Close navigation menu"
+          >
+            <RiCloseFill size={20} />
+          </button>
+        </div>
+
+        {/* Scrollable Nav Content */}
+        <div className="flex-1 overflow-y-auto">
+          {Object.entries(menuItems).map(([title, items]) => (
+            <div key={title} className="border-b border-gray-100 last:border-0">
+              <button
+                onClick={() => toggleExpandedMenu(title)}
+                className="flex w-full items-center justify-between px-5 py-3.5 text-left transition-colors hover:bg-gray-50"
+                aria-expanded={expandedMenu === title}
+              >
+                <span className="text-sm font-semibold text-gray-800 translate-element">
+                  {title}
+                </span>
+                <TbChevronDown
+                  className={`h-4 w-4 flex-shrink-0 text-gray-400 transition-transform duration-200 ${
+                    expandedMenu === title ? 'rotate-180' : 'rotate-0'
+                  }`}
+                />
+              </button>
+              <div
+                className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                  expandedMenu === title
+                    ? 'max-h-[500px] opacity-100'
+                    : 'max-h-0 opacity-0'
+                }`}
+              >
+                <ul className="space-y-0.5 px-3 pb-3">
+                  {items.map((item) => {
+                    const isExternal = item.href.startsWith('http');
+                    const shouldOpenInNewTab = isExternal || item.newTab;
+                    return (
+                      <li key={item.href}>
+                        {shouldOpenInNewTab ? (
+                          <a
+                            href={item.href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={handleLinkClick}
+                            className="flex flex-col rounded-lg px-3 py-2 transition-colors hover:bg-blue-50"
+                          >
+                            <span className="text-sm font-medium text-gray-800 hover:text-blue-700 translate-element">
+                              {item.title}
+                            </span>
+                            {item.description && (
+                              <span className="mt-0.5 text-xs leading-snug text-gray-500 translate-element">
+                                {item.description}
+                              </span>
+                            )}
+                          </a>
+                        ) : (
+                          <Link
+                            href={item.href}
+                            target={shouldOpenInNewTab ? '_blank' : undefined}
+                            rel={
+                              shouldOpenInNewTab
+                                ? 'noopener noreferrer'
+                                : undefined
+                            }
+                            onClick={handleLinkClick}
+                            className="flex flex-col rounded-lg px-3 py-2 transition-colors hover:bg-blue-50 translate-element"
+                          >
+                            <span className="text-sm font-medium text-gray-800 hover:text-blue-700 translate-element">
+                              {item.title}
+                            </span>
+                            {item.description && (
+                              <span className="mt-0.5 text-xs leading-snug text-gray-500 translate-element">
+                                {item.description}
+                              </span>
+                            )}
+                          </Link>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Drawer Footer CTAs */}
+        <div className="flex flex-shrink-0 flex-col gap-2 border-t border-gray-200 bg-gray-50 px-4 py-4">
+          <button
+            type="button"
+            onClick={() => {
+              trackEvent({
+                action: 'button_click',
+                category: 'engagement',
+                label: 'get_involved',
+              });
+              dispatch(openModal());
+              handleLinkClick();
+            }}
+            className="w-full rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-100"
+          >
+            Get involved
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              trackEvent({
+                action: 'button_click',
+                category: 'navigation',
+                label: 'explore_data',
+              });
+              router.push('/explore-data');
+              handleLinkClick();
+            }}
+            className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+          >
+            Explore data
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
