@@ -2,6 +2,7 @@
 /* eslint-disable simple-import-sort/imports */
 
 import { AqLoading02 } from '@airqo/icons-react';
+import { FiMenu } from 'react-icons/fi';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -529,7 +530,6 @@ const NetworkCoveragePage = () => {
     <div className="h-screen w-full overflow-hidden bg-[#f6f6f7]">
       <div className="flex h-full flex-col gap-2 p-2">
         <NetworkCoverageHeader
-          onToggleSidebar={() => setIsSidebarOpen((previous) => !previous)}
           onDownload={handleDownload}
           isDownloading={isDownloading}
         />
@@ -683,6 +683,15 @@ const NetworkCoveragePage = () => {
                 </option>
               </select>
             </div>
+            {/* Mobile map sidebar toggle — absolute and positioned slightly below the style selector */}
+            <button
+              type="button"
+              onClick={() => setIsSidebarOpen((previous) => !previous)}
+              aria-label="Toggle country sidebar"
+              className="lg:hidden absolute left-4 top-12 z-20 grid h-8 w-8 place-items-center rounded-md border border-slate-200 bg-white text-slate-500 shadow-sm transition-colors hover:bg-slate-50"
+            >
+              <FiMenu className="h-5 w-5" />
+            </button>
           </section>
         </main>
       </div>

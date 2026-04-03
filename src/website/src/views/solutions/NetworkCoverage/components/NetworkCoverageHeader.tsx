@@ -1,6 +1,6 @@
 import { AqDownload01 } from '@airqo/icons-react';
 import React, { useEffect, useRef, useState } from 'react';
-import { FiChevronDown, FiMenu } from 'react-icons/fi';
+import { FiChevronDown } from 'react-icons/fi';
 import { TbMenu2 } from 'react-icons/tb';
 
 import NetworkCoverageNavDrawer from './NetworkCoverageNavDrawer';
@@ -9,13 +9,11 @@ const INTRO_TEXT =
   'Spanning 54 nations across Africa, this platform provides a unified view of the continent’s air quality monitoring landscape. It integrates low-cost sensors deployed in urban communities with high-precision reference stations at strategic research locations, offering both scale and technical depth. Users can explore the geographic distribution of monitoring stations by country, identify active coverage, and understand the types of instrumentation in use. Designed to support evidence-based planning, collaboration, and environmental stewardship, the platform presents a structured and comprehensive overview of Africa’s air quality monitoring infrastructure.';
 
 interface NetworkCoverageHeaderProps {
-  onToggleSidebar: () => void;
   onDownload: () => void;
   isDownloading?: boolean;
 }
 
 const NetworkCoverageHeader: React.FC<NetworkCoverageHeaderProps> = ({
-  onToggleSidebar,
   onDownload,
   isDownloading = false,
 }) => {
@@ -63,15 +61,7 @@ const NetworkCoverageHeader: React.FC<NetworkCoverageHeaderProps> = ({
             Africa Air Quality Monitoring Network Coverage
           </h1>
 
-          {/* Mobile sidebar toggle */}
-          <button
-            type="button"
-            onClick={onToggleSidebar}
-            className="grid h-8 w-8 flex-shrink-0 place-items-center rounded-md text-slate-500 transition-colors hover:bg-slate-100 lg:hidden"
-            aria-label="Toggle country sidebar"
-          >
-            <FiMenu className="h-5 w-5" />
-          </button>
+          {/* Mobile sidebar toggle moved into the map for absolute positioning */}
 
           {/* Download button */}
           <div ref={menuRef} className="relative flex-shrink-0">
