@@ -184,19 +184,17 @@ const buildCoverageTooltipMarkup = (name: string, count: number) => `
 const monitorNodeMarkup = (
   isOnline: boolean,
   ringColor: string,
-  count: number,
-  selected: boolean,
+  _count: number,
+  _selected: boolean,
 ) => {
+  void _count; // referenced to satisfy linter
+  void _selected; // referenced to satisfy linter
+
   return `
     <div style="position:relative;">
-      <span style="display:grid;place-items:center;height:28px;width:28px;border-radius:9999px;border:2px solid ${ringColor};background:#ffffff;box-shadow:0 6px 12px rgba(15,23,42,0.12);${selected ? 'box-shadow:0 0 0 6px rgba(59,130,246,0.12),0 6px 14px rgba(15,23,42,0.18);' : ''}">
+      <span style="display:grid;place-items:center;height:28px;width:28px;border-radius:9999px;border:2px solid ${ringColor};background:#ffffff;">
         <span style="width:10px;height:10px;border-radius:9999px;background:${ringColor};display:block;"></span>
       </span>
-      ${
-        count > 1
-          ? `<span style="position:absolute;right:-8px;top:-8px;border-radius:9999px;background:#2563eb;color:#fff;font-weight:700;font-size:11px;line-height:1;padding:3px 6px;">+${count - 1}</span>`
-          : ''
-      }
     </div>`;
 };
 
@@ -225,8 +223,6 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
   const markersRef = useRef<MarkerResource[]>([]);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapInitError, setMapInitError] = useState<string | null>(null);
-  // Initialize zoom to the user's requested value so UI controls reflect it.
-  const [zoomLevel, setZoomLevel] = useState(2.914761576947509);
   const [snapshotModal, setSnapshotModal] = useState<SnapshotModalState>({
     open: false,
     imageUrl: null,
@@ -286,46 +282,23 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
     return allMonitors;
   }, [allMonitors]);
 
+  // Render each monitor as its own node (no clustering).
   const groupedNodes = useMemo(() => {
-    const grouped = new Map<
-      string,
-      {
-        monitors: NetworkCoverageMonitor[];
-        latitude: number;
-        longitude: number;
-        type: MonitorType;
-      }
-    >();
-
-    const precision =
-      zoomLevel < 4 ? 1 : zoomLevel < 5.2 ? 2 : zoomLevel < 7.2 ? 3 : 4;
-
-    visibleMonitors.forEach((monitor) => {
-      if (
-        typeof monitor.latitude !== 'number' ||
-        typeof monitor.longitude !== 'number' ||
-        !Number.isFinite(monitor.latitude) ||
-        !Number.isFinite(monitor.longitude)
-      ) {
-        return;
-      }
-
-      const key = `${monitor.latitude.toFixed(precision)}:${monitor.longitude.toFixed(precision)}:${monitor.type}`;
-      const existing = grouped.get(key);
-      if (existing) {
-        existing.monitors.push(monitor);
-      } else {
-        grouped.set(key, {
-          monitors: [monitor],
-          latitude: monitor.latitude,
-          longitude: monitor.longitude,
-          type: monitor.type,
-        });
-      }
-    });
-
-    return Array.from(grouped.values());
-  }, [visibleMonitors, zoomLevel]);
+    return visibleMonitors
+      .filter(
+        (monitor) =>
+          typeof monitor.latitude === 'number' &&
+          typeof monitor.longitude === 'number' &&
+          Number.isFinite(monitor.latitude) &&
+          Number.isFinite(monitor.longitude),
+      )
+      .map((monitor) => ({
+        monitors: [monitor],
+        latitude: monitor.latitude,
+        longitude: monitor.longitude,
+        type: monitor.type,
+      }));
+  }, [visibleMonitors]);
 
   const clearMarkers = () => {
     markersRef.current.forEach((resource) => {
@@ -472,7 +445,6 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       });
 
       setMapLoaded(true);
-      setZoomLevel(map.getZoom());
       console.log('[NetworkCoverageMap] initial view', {
         zoom: map.getZoom(),
         center: map.getCenter().toArray(),
@@ -481,7 +453,6 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
 
     mapRef.current.on('zoomend', () => {
       const currentZoom = mapRef.current.getZoom();
-      setZoomLevel(currentZoom);
       console.log('[NetworkCoverageMap] zoomend', {
         zoom: currentZoom,
         center: mapRef.current.getCenter().toArray(),
@@ -822,16 +793,7 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       );
 
       const handleClick = () => {
-        if (group.monitors.length > 1 && map.getZoom() < 8.6) {
-          map.flyTo({
-            center: [group.longitude, group.latitude],
-            zoom: Math.min(map.getZoom() + 1.6, 9.4),
-            speed: 0.9,
-            curve: 1.2,
-          });
-          return;
-        }
-
+        // Always select the monitor (no cluster zoom behavior).
         const nextMonitor =
           group.monitors.find((monitor) => monitor.status === 'active') ??
           group.monitors[0];
@@ -849,38 +811,7 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
           return;
         }
 
-        if (group.monitors.length > 1) {
-          const previewNames = group.monitors
-            .slice(0, 3)
-            .map(
-              (monitor) =>
-                `<div style="display:flex;align-items:center;gap:7px;min-width:0;"><span style="width:5px;height:5px;border-radius:9999px;background:#2563EB;flex-shrink:0;"></span><span style="min-width:0;overflow-wrap:anywhere;word-break:break-word;">${escapeHtml(monitor.name)}</span></div>`,
-            )
-            .join('');
-          const remaining = group.monitors.length - 3;
-          monitorPopupRef.current
-            .setLngLat([group.longitude, group.latitude])
-            .setHTML(
-              `
-                  <div style="min-width:0;max-width:min(72vw,520px);width:auto;box-sizing:border-box;overflow-wrap:anywhere;word-break:break-word;white-space:normal;">
-                  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-                    <div>
-                      <div style="font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#64748B;">Cluster</div>
-                      <div style="margin-top:4px;font-size:16px;font-weight:800;line-height:1.25;color:#0F172A;">${group.monitors.length} monitors</div>
-                    </div>
-                    <span style="border-radius:9999px;background:#EFF6FF;color:#2563EB;padding:5px 8px;font-size:11px;font-weight:700;white-space:nowrap;">Zoom in</span>
-                  </div>
-                  <div style="margin-top:12px;display:flex;flex-direction:column;gap:7px;font-size:12px;line-height:1.45;color:#475569;padding-top:12px;border-top:1px solid rgba(148,163,184,0.18);">
-                    ${previewNames}
-                    ${remaining > 0 ? `<div style="color:#2563EB;font-weight:700;">+${remaining} more</div>` : ''}
-                  </div>
-                </div>
-              `,
-            )
-            .addTo(map);
-          return;
-        }
-
+        // Always show the monitor tooltip for the first monitor in the group.
         const node = group.monitors[0];
         monitorPopupRef.current
           .setLngLat([group.longitude, group.latitude])
