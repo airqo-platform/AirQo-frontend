@@ -327,7 +327,7 @@ const NetworkCoveragePage = () => {
       doc.setFontSize(13);
       doc.setTextColor(255, 255, 255);
       doc.text(
-        'Africa Air Quality Monitoring — Network Coverage Report',
+        'Africa Air Quality Monitoring - Network Coverage Report',
         MARGIN,
         12,
       );
@@ -391,20 +391,33 @@ const NetworkCoveragePage = () => {
         cellPadding: 3,
       };
 
+      const summaryBody: string[][] = [];
+      summaryBody.push(['Total monitors', String(totalMonitors)]);
+      // Omit 'Countries covered' when a single country is selected
+      if (!selectedCountryId) {
+        summaryBody.push([
+          'Countries covered',
+          `${countriesMonitored} / ${totalAfricanCountries}`,
+        ]);
+      }
+      summaryBody.push([
+        'Reference monitors',
+        String(countsByType.Reference || 0),
+      ]);
+      summaryBody.push([
+        'Low-Cost Sensor (LCS) monitors',
+        String(countsByType.LCS || 0),
+      ]);
+      summaryBody.push(['Active monitors', String(countsByStatus.active || 0)]);
+      summaryBody.push([
+        'Inactive monitors',
+        String(countsByStatus.inactive || 0),
+      ]);
+
       const summaryTable = autoTable(doc, {
         startY: BODY_Y,
         head: [['Metric', 'Value']],
-        body: [
-          ['Total monitors', String(totalMonitors)],
-          [
-            'Countries covered',
-            `${countriesMonitored} / ${totalAfricanCountries}`,
-          ],
-          ['Reference monitors', String(countsByType.Reference || 0)],
-          ['Low-Cost Sensor (LCS) monitors', String(countsByType.LCS || 0)],
-          ['Active monitors', String(countsByStatus.active || 0)],
-          ['Inactive monitors', String(countsByStatus.inactive || 0)],
-        ],
+        body: summaryBody,
         theme: 'grid',
         styles: COMMON_STYLES,
         headStyles: {
@@ -476,7 +489,7 @@ const NetworkCoveragePage = () => {
             doc.setFontSize(12);
             doc.setTextColor(255, 255, 255);
             doc.text(
-              'Map Snapshot — Africa Air Quality Monitoring Network',
+              'Map Snapshot - Africa Air Quality Monitoring Network',
               MARGIN,
               10,
             );
@@ -489,10 +502,31 @@ const NetworkCoveragePage = () => {
               16,
             );
 
-            // Full-width map image below header
+            // Full-width map image below header — preserve aspect ratio and center
             const IMG_Y = HEADER_H + 4;
             const IMG_H = PAGE_H - IMG_Y - 14;
-            doc.addImage(dataUrl, 'PNG', MARGIN, IMG_Y, CONTENT_W, IMG_H);
+
+            // Measure image natural size to preserve aspect ratio
+            const img = new Image();
+            img.src = dataUrl;
+            await new Promise((resolve) => {
+              img.onload = () => resolve(null);
+              img.onerror = () => resolve(null);
+            });
+
+            const imgRatio =
+              img.naturalWidth && img.naturalHeight
+                ? img.naturalWidth / img.naturalHeight
+                : CONTENT_W / IMG_H;
+            let targetW = CONTENT_W;
+            let targetH = CONTENT_W / imgRatio;
+            if (targetH > IMG_H) {
+              targetH = IMG_H;
+              targetW = IMG_H * imgRatio;
+            }
+
+            const targetX = MARGIN + (CONTENT_W - targetW) / 2;
+            doc.addImage(dataUrl, 'PNG', targetX, IMG_Y, targetW, targetH);
 
             // Page 2 footer
             doc.setDrawColor(180, 185, 210);

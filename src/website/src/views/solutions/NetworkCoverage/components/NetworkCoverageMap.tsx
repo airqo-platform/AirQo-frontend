@@ -520,11 +520,15 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
 
       await new Promise((resolve) => window.requestAnimationFrame(resolve));
 
+      const deviceScale = window.devicePixelRatio || 1;
+      // Increase capture scale for higher-resolution snapshots (cap to 4x)
+      const captureScale = Math.min(deviceScale * 2, 4);
+
       const canvas = await html2canvas(mapContainerRef.current, {
         backgroundColor: null,
         useCORS: true,
         allowTaint: true,
-        scale: Math.min(window.devicePixelRatio || 1, 2),
+        scale: captureScale,
         logging: false,
       });
 
