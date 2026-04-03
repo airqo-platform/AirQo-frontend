@@ -1,14 +1,12 @@
 import React from 'react';
 
 interface MonitorNodeProps {
-  isOnline: boolean;
   ringColor: string;
   count?: number;
   selected?: boolean;
 }
 
 const MonitorNode: React.FC<MonitorNodeProps> = ({
-  isOnline,
   ringColor,
   count,
   selected = false,
