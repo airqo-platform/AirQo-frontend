@@ -623,7 +623,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
 
             {/* Network */}
             <div className="border-b border-slate-100 p-4">
-              <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400">
+              <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
                 Network
               </h4>
               <p className="mb-2 text-base font-semibold text-slate-900">
@@ -651,7 +651,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
 
             {/* Equipment */}
             <div className="border-b border-slate-100 p-4">
-              <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400">
+              <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
                 Equipment
               </h4>
               <StatLine
@@ -682,7 +682,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
 
             {/* Location */}
             <div className="border-b border-slate-100 p-4">
-              <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400">
+              <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
                 Location
               </h4>
               <StatLine
@@ -708,7 +708,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
 
             {/* Calibration */}
             <div className="border-b border-slate-100 p-4">
-              <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400">
+              <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
                 Calibration
               </h4>
               <StatLine
@@ -727,7 +727,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
 
             {/* Data Access */}
             <div className="border-b border-slate-100 p-4">
-              <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400">
+              <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
                 Data Access
               </h4>
               <StatLine
@@ -783,12 +783,17 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
 
             {/* Organisation */}
             <div className="p-4">
-              <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400">
+              <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
                 Organisation
               </h4>
               <StatLine
                 label="Organisation"
-                value={displayText(selectedMonitor.organisation)}
+                value={
+                  selectedMonitor.organisation &&
+                  selectedMonitor.organisation.trim().toLowerCase() === 'airqo'
+                    ? 'AirQo'
+                    : displayText(selectedMonitor.organisation)
+                }
               />
               <StatLine
                 label="Co-location"
