@@ -22,7 +22,11 @@ interface NetworkCoverageMapProps {
   viewMode: ViewMode;
   mapStyle: string;
   onCountrySelectByIso: (iso2: string) => void;
-  onMonitorSelect: (monitorId: string, countryId: string) => void;
+  onMonitorSelect: (
+    monitorId: string,
+    countryId: string,
+    fromMap?: boolean,
+  ) => void;
   onResetView: () => void;
   flyToMonitorId?: string | null;
   onRegisterSnapshot?: (fn: (() => Promise<string | null>) | null) => void;
@@ -802,7 +806,8 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
           group.monitors[0];
         const country = countryByIso2[nextMonitor.iso2];
         if (country) {
-          onMonitorSelectRef.current(nextMonitor.id, country.id);
+          // Indicate selection came from the map so parent can open sidebar on mobile.
+          onMonitorSelectRef.current(nextMonitor.id, country.id, true);
         }
       };
 

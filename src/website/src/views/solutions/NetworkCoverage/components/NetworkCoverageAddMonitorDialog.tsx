@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { FiX } from 'react-icons/fi';
 
 import { networkCoverageService } from '@/services/apiService';
@@ -309,14 +309,18 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
             </div>
 
             <div className="sm:col-span-2">
-              <button
-                type="button"
-                onClick={() => setMapVisible((p) => !p)}
-                className="text-xs text-slate-600 underline"
-                aria-pressed={mapVisible}
-              >
-                {mapVisible ? 'Hide map picker' : 'Use map to pick coordinates'}
-              </button>
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setMapVisible((p) => !p)}
+                  className="text-xs text-slate-600 underline"
+                  aria-pressed={mapVisible}
+                >
+                  {mapVisible
+                    ? 'Hide map picker'
+                    : 'Use map to pick coordinates'}
+                </button>
+              </div>
 
               {mapVisible && (
                 <div className="mt-3 rounded-md border border-slate-200">

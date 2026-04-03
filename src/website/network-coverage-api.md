@@ -22,10 +22,10 @@ YesNo         : "Yes" | "No"
 
 The API unions two data sources at query time — no manual sync is required.
 
-| Source | Description |
-|---|---|
-| **AirQo pipeline sites** | Sites from the internal `Site` collection that have at least one device with `isActive: true`. Automatically included whenever a device is deployed via the standard activity pipeline. |
-| **Standalone registry entries** | External monitors contributed by open data contributors (Wikipedia-style). All fields, including location and status, live in the `NetworkCoverageRegistry` collection. |
+| Source                          | Description                                                                                                                                                                             |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **AirQo pipeline sites**        | Sites from the internal `Site` collection that have at least one device with `isActive: true`. Automatically included whenever a device is deployed via the standard activity pipeline. |
+| **Standalone registry entries** | External monitors contributed by open data contributors (Wikipedia-style). All fields, including location and status, live in the `NetworkCoverageRegistry` collection.                 |
 
 ---
 
@@ -33,9 +33,9 @@ The API unions two data sources at query time — no manual sync is required.
 
 The following parameter is accepted by every endpoint.
 
-| Param | Type | Required | Description |
-|---|---|---|---|
-| `tenant` | string | No | Tenant identifier. Defaults to `airqo`. |
+| Param    | Type   | Required | Description                             |
+| -------- | ------ | -------- | --------------------------------------- |
+| `tenant` | string | No       | Tenant identifier. Defaults to `airqo`. |
 
 ---
 
@@ -51,11 +51,11 @@ Returns all countries and their monitor points. This is the main endpoint — it
 
 #### Query Parameters
 
-| Param | Type | Required | Description |
-|---|---|---|---|
-| `search` | string | No | Filter by country name, city, monitor name, or network. |
-| `activeOnly` | `true` \| `false` | No | When `true`, returns only monitors where `status = active`. |
-| `types` | CSV string | No | Filter by monitor type. Allowed values: `Reference`, `LCS`, `Inactive`. |
+| Param        | Type              | Required | Description                                                             |
+| ------------ | ----------------- | -------- | ----------------------------------------------------------------------- |
+| `search`     | string            | No       | Filter by country name, city, monitor name, or network.                 |
+| `activeOnly` | `true` \| `false` | No       | When `true`, returns only monitors where `status = active`.             |
+| `types`      | CSV string        | No       | Filter by monitor type. Allowed values: `Reference`, `LCS`, `Inactive`. |
 
 #### Example Request
 
@@ -130,9 +130,9 @@ Returns the full detail record for one monitor. Used when the map node or sideba
 
 #### Path Parameters
 
-| Param | Type | Required | Description |
-|---|---|---|---|
-| `monitorId` | ObjectId string | Yes | The monitor identifier. |
+| Param       | Type            | Required | Description             |
+| ----------- | --------------- | -------- | ----------------------- |
+| `monitorId` | ObjectId string | Yes      | The monitor identifier. |
 
 #### Example Request
 
@@ -191,25 +191,25 @@ Returns all monitors for a specific country. Useful when countries are loaded fi
 
 `countryId` is the URL-slug form of the country name — Unicode diacritics normalised and removed, lowercased, spaces replaced with hyphens, remaining special characters stripped.
 
-| Country name | `countryId` |
-|---|---|
-| Uganda | `uganda` |
-| South Africa | `south-africa` |
+| Country name                     | `countryId`                        |
+| -------------------------------- | ---------------------------------- |
+| Uganda                           | `uganda`                           |
+| South Africa                     | `south-africa`                     |
 | Democratic Republic of the Congo | `democratic-republic-of-the-congo` |
-| Côte d'Ivoire | `cote-divoire` |
+| Côte d'Ivoire                    | `cote-divoire`                     |
 
 #### Path Parameters
 
-| Param | Type | Required | Description |
-|---|---|---|---|
-| `countryId` | string | Yes | URL slug of the country name. |
+| Param       | Type   | Required | Description                   |
+| ----------- | ------ | -------- | ----------------------------- |
+| `countryId` | string | Yes      | URL slug of the country name. |
 
 #### Query Parameters
 
-| Param | Type | Required | Description |
-|---|---|---|---|
-| `activeOnly` | `true` \| `false` | No | Active monitors only. |
-| `types` | CSV string | No | `Reference`, `LCS`, `Inactive`. |
+| Param        | Type              | Required | Description                     |
+| ------------ | ----------------- | -------- | ------------------------------- |
+| `activeOnly` | `true` \| `false` | No       | Active monitors only.           |
+| `types`      | CSV string        | No       | `Reference`, `LCS`, `Inactive`. |
 
 #### Example Request
 
@@ -273,12 +273,12 @@ Downloads a CSV file of all (filtered) monitors. Response `Content-Type` is `tex
 
 #### Query Parameters
 
-| Param | Type | Required | Description |
-|---|---|---|---|
-| `countryId` | string | No | Slug — limits export to one country. |
-| `activeOnly` | `true` \| `false` | No | Active monitors only. |
-| `types` | CSV string | No | `Reference`, `LCS`, `Inactive`. |
-| `search` | string | No | Filter by country, city, monitor name, or network. |
+| Param        | Type              | Required | Description                                        |
+| ------------ | ----------------- | -------- | -------------------------------------------------- |
+| `countryId`  | string            | No       | Slug — limits export to one country.               |
+| `activeOnly` | `true` \| `false` | No       | Active monitors only.                              |
+| `types`      | CSV string        | No       | `Reference`, `LCS`, `Inactive`.                    |
+| `search`     | string            | No       | Filter by country, city, monitor name, or network. |
 
 #### Example Request
 
@@ -409,36 +409,36 @@ Use when adding a monitor that is **not** part of the AirQo data pipeline — fo
 
 #### Full Request Body Reference
 
-| Field | Type | Required | Notes |
-|---|---|---|---|
-| `site_id` | ObjectId string | Conditional | Required for Shape A. Omit for Shape B. |
-| `name` | string | Shape B only | Monitor display name. |
-| `city` | string | No | City or town name. |
-| `country` | string | Shape B only | Full country name (e.g. `"Uganda"`, not `"UG"`). |
-| `latitude` | number | Shape B only | Decimal degrees, -90 to 90. |
-| `longitude` | number | Shape B only | Decimal degrees, -180 to 180. |
-| `iso2` | string (2 chars) | No | ISO 3166-1 alpha-2 code. Derived automatically from `country` when absent. |
-| `type` | `MonitorType` | No | `Reference`, `LCS`, or `Inactive`. Defaults to `LCS`. |
-| `status` | `MonitorStatus` | No | `active` or `inactive`. Shape B only — AirQo sites derive status from live data. Defaults to `active`. |
-| `lastActive` | ISO 8601 string | No | Shape B only. |
-| `network` | string | No | Network name (e.g. `"airqo"`, `"Cairo AQ"`). |
-| `operator` | string | No | Organisation operating the monitor. |
-| `equipment` | string | No | Instrument model (e.g. `"AirQo v3"`, `"AQM 65"`). |
-| `manufacturer` | string | No | Instrument manufacturer. |
-| `pollutants` | string[] | No | e.g. `["PM2.5", "PM10", "NO2"]`. Defaults to `[]`. |
-| `resolution` | string | No | Measurement frequency (e.g. `"Hourly"`, `"Daily"`). |
-| `transmission` | string | No | Data transmission method (e.g. `"GSM"`, `"Fiber"`, `"WiFi"`). |
-| `site` | string | No | Human-readable site description. |
-| `landUse` | string | No | e.g. `"Urban"`, `"Rural"`, `"Industrial"`. |
-| `deployed` | string | No | Deployment date in readable form (e.g. `"Dec 2020"`). |
-| `calibrationLastDate` | string | No | e.g. `"Sep 2025"`. |
-| `calibrationMethod` | string | No | e.g. `"Annual lab calibration"`. |
-| `uptime30d` | string | No | 30-day uptime percentage (e.g. `"96%"`). |
-| `publicData` | `YesNo` | No | `"Yes"` or `"No"`. Defaults to `"No"`. |
-| `organisation` | string | No | Institutional owner / operating organisation. |
-| `coLocation` | string | No | Defaults to `"Not available"`. |
-| `coLocationNote` | string | No | Additional co-location context. |
-| `viewDataUrl` | URL string | No | Deep-link to a data portal for this specific monitor. |
+| Field                 | Type             | Required     | Notes                                                                                                  |
+| --------------------- | ---------------- | ------------ | ------------------------------------------------------------------------------------------------------ |
+| `site_id`             | ObjectId string  | Conditional  | Required for Shape A. Omit for Shape B.                                                                |
+| `name`                | string           | Shape B only | Monitor display name.                                                                                  |
+| `city`                | string           | No           | City or town name.                                                                                     |
+| `country`             | string           | Shape B only | Full country name (e.g. `"Uganda"`, not `"UG"`).                                                       |
+| `latitude`            | number           | Shape B only | Decimal degrees, -90 to 90.                                                                            |
+| `longitude`           | number           | Shape B only | Decimal degrees, -180 to 180.                                                                          |
+| `iso2`                | string (2 chars) | No           | ISO 3166-1 alpha-2 code. Derived automatically from `country` when absent.                             |
+| `type`                | `MonitorType`    | No           | `Reference`, `LCS`, or `Inactive`. Defaults to `LCS`.                                                  |
+| `status`              | `MonitorStatus`  | No           | `active` or `inactive`. Shape B only — AirQo sites derive status from live data. Defaults to `active`. |
+| `lastActive`          | ISO 8601 string  | No           | Shape B only.                                                                                          |
+| `network`             | string           | No           | Network name (e.g. `"airqo"`, `"Cairo AQ"`).                                                           |
+| `operator`            | string           | No           | Organisation operating the monitor.                                                                    |
+| `equipment`           | string           | No           | Instrument model (e.g. `"AirQo v3"`, `"AQM 65"`).                                                      |
+| `manufacturer`        | string           | No           | Instrument manufacturer.                                                                               |
+| `pollutants`          | string[]         | No           | e.g. `["PM2.5", "PM10", "NO2"]`. Defaults to `[]`.                                                     |
+| `resolution`          | string           | No           | Measurement frequency (e.g. `"Hourly"`, `"Daily"`).                                                    |
+| `transmission`        | string           | No           | Data transmission method (e.g. `"GSM"`, `"Fiber"`, `"WiFi"`).                                          |
+| `site`                | string           | No           | Human-readable site description.                                                                       |
+| `landUse`             | string           | No           | e.g. `"Urban"`, `"Rural"`, `"Industrial"`.                                                             |
+| `deployed`            | string           | No           | Deployment date in readable form (e.g. `"Dec 2020"`).                                                  |
+| `calibrationLastDate` | string           | No           | e.g. `"Sep 2025"`.                                                                                     |
+| `calibrationMethod`   | string           | No           | e.g. `"Annual lab calibration"`.                                                                       |
+| `uptime30d`           | string           | No           | 30-day uptime percentage (e.g. `"96%"`).                                                               |
+| `publicData`          | `YesNo`          | No           | `"Yes"` or `"No"`. Defaults to `"No"`.                                                                 |
+| `organisation`        | string           | No           | Institutional owner / operating organisation.                                                          |
+| `coLocation`          | string           | No           | Defaults to `"Not available"`.                                                                         |
+| `coLocationNote`      | string           | No           | Additional co-location context.                                                                        |
+| `viewDataUrl`         | URL string       | No           | Deep-link to a data portal for this specific monitor.                                                  |
 
 #### Example Response
 
@@ -474,9 +474,9 @@ Removes a registry entry by its document `_id`. Works for both Shape A (AirQo-si
 
 #### Path Parameters
 
-| Param | Type | Required | Description |
-|---|---|---|---|
-| `registryId` | ObjectId string | Yes | The registry document `_id`. |
+| Param        | Type            | Required | Description                  |
+| ------------ | --------------- | -------- | ---------------------------- |
+| `registryId` | ObjectId string | Yes      | The registry document `_id`. |
 
 #### Example Request
 
@@ -499,36 +499,36 @@ DELETE /api/v2/devices/network-coverage/registry/64c3d4e5f6a7b8c9d0e1f2a3
 
 Every monitor object returned across all endpoints shares this shape.
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | string | Globally unique, stable identifier. Site `_id` for AirQo monitors; registry `_id` for external entries. |
-| `name` | string | Display name of the monitor. |
-| `city` | string | City or town. |
-| `country` | string | Full country name. |
-| `iso2` | string | ISO 3166-1 alpha-2 country code. |
-| `latitude` | number | Approximate latitude (decimal degrees). Always numeric. |
-| `longitude` | number | Approximate longitude (decimal degrees). Always numeric. |
-| `type` | `MonitorType` | `Reference`, `LCS`, or `Inactive`. |
-| `status` | `MonitorStatus` | `active` — currently streaming data. `inactive` — deployed but not currently streaming. |
-| `lastActive` | ISO 8601 string | Last known activity timestamp. Empty string if unknown. |
-| `network` | string | Network name. |
-| `operator` | string | Organisation operating the monitor. |
-| `equipment` | string | Instrument model. |
-| `manufacturer` | string | Instrument manufacturer. |
-| `pollutants` | string[] | Measured parameters. Empty array if unknown — never null. |
-| `resolution` | string | Measurement frequency. |
-| `transmission` | string | Data transmission method. |
-| `site` | string | Human-readable site description. |
-| `landUse` | string | Land-use classification. |
-| `deployed` | string | Deployment date. |
-| `calibrationLastDate` | string | Date of most recent calibration. |
-| `calibrationMethod` | string | Calibration approach. |
-| `uptime30d` | string | 30-day uptime percentage. |
-| `publicData` | `YesNo` | Whether data is publicly accessible. |
-| `organisation` | string | Institutional owner. |
-| `coLocation` | string | Co-location status. |
-| `coLocationNote` | string | Additional co-location context. |
-| `viewDataUrl` | string | Deep-link to a monitor-specific data portal. Empty string if not available. |
+| Field                 | Type            | Description                                                                                             |
+| --------------------- | --------------- | ------------------------------------------------------------------------------------------------------- |
+| `id`                  | string          | Globally unique, stable identifier. Site `_id` for AirQo monitors; registry `_id` for external entries. |
+| `name`                | string          | Display name of the monitor.                                                                            |
+| `city`                | string          | City or town.                                                                                           |
+| `country`             | string          | Full country name.                                                                                      |
+| `iso2`                | string          | ISO 3166-1 alpha-2 country code.                                                                        |
+| `latitude`            | number          | Approximate latitude (decimal degrees). Always numeric.                                                 |
+| `longitude`           | number          | Approximate longitude (decimal degrees). Always numeric.                                                |
+| `type`                | `MonitorType`   | `Reference`, `LCS`, or `Inactive`.                                                                      |
+| `status`              | `MonitorStatus` | `active` — currently streaming data. `inactive` — deployed but not currently streaming.                 |
+| `lastActive`          | ISO 8601 string | Last known activity timestamp. Empty string if unknown.                                                 |
+| `network`             | string          | Network name.                                                                                           |
+| `operator`            | string          | Organisation operating the monitor.                                                                     |
+| `equipment`           | string          | Instrument model.                                                                                       |
+| `manufacturer`        | string          | Instrument manufacturer.                                                                                |
+| `pollutants`          | string[]        | Measured parameters. Empty array if unknown — never null.                                               |
+| `resolution`          | string          | Measurement frequency.                                                                                  |
+| `transmission`        | string          | Data transmission method.                                                                               |
+| `site`                | string          | Human-readable site description.                                                                        |
+| `landUse`             | string          | Land-use classification.                                                                                |
+| `deployed`            | string          | Deployment date.                                                                                        |
+| `calibrationLastDate` | string          | Date of most recent calibration.                                                                        |
+| `calibrationMethod`   | string          | Calibration approach.                                                                                   |
+| `uptime30d`           | string          | 30-day uptime percentage.                                                                               |
+| `publicData`          | `YesNo`         | Whether data is publicly accessible.                                                                    |
+| `organisation`        | string          | Institutional owner.                                                                                    |
+| `coLocation`          | string          | Co-location status.                                                                                     |
+| `coLocationNote`      | string          | Additional co-location context.                                                                         |
+| `viewDataUrl`         | string          | Deep-link to a monitor-specific data portal. Empty string if not available.                             |
 
 ---
 
@@ -546,12 +546,12 @@ All error responses use this shape.
 }
 ```
 
-| HTTP Status | When |
-|---|---|
-| `400 Bad Request` | Validation errors in query params or request body. |
-| `404 Not Found` | Monitor, country, or registry entry does not exist. |
-| `500 Internal Server Error` | Unexpected server-side failure. |
-| `501 Not Implemented` | PDF export endpoint. |
+| HTTP Status                 | When                                                |
+| --------------------------- | --------------------------------------------------- |
+| `400 Bad Request`           | Validation errors in query params or request body.  |
+| `404 Not Found`             | Monitor, country, or registry entry does not exist. |
+| `500 Internal Server Error` | Unexpected server-side failure.                     |
+| `501 Not Implemented`       | PDF export endpoint.                                |
 
 ---
 

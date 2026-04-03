@@ -41,7 +41,7 @@ const NetworkCoverageHeader: React.FC<NetworkCoverageHeaderProps> = ({
         onClose={() => setNavDrawerOpen(false)}
       />
 
-      <header className="flex-shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <header className="flex-shrink-0 overflow-visible lg:overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         {/* ── Top control bar ── */}
         <div className="flex items-center gap-2 px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3">
           {/* Hamburger for global nav drawer */}

@@ -229,7 +229,14 @@ const NetworkCoveragePage = () => {
     setSelectedMonitorId(null);
     setShowAddMonitorPromptFor(null);
     setViewMode('monitors');
-    setIsSidebarOpen(true);
+    // Close the sidebar on mobile so the map is revealed; keep it open on larger screens.
+    try {
+      const isMobile =
+        typeof window !== 'undefined' && window.innerWidth < 1024;
+      setIsSidebarOpen(!isMobile);
+    } catch {
+      setIsSidebarOpen(true);
+    }
   };
 
   const handleOpenAddMonitor = (countryId: string, countryName?: string) => {
@@ -246,12 +253,30 @@ const NetworkCoveragePage = () => {
     selectCountry(country.id);
   };
 
-  const selectMonitor = (monitorId: string, countryId: string) => {
+  const selectMonitor = (
+    monitorId: string,
+    countryId: string,
+    fromMap = false,
+  ) => {
     setSelectedCountryId(countryId);
     setSelectedMonitorId(monitorId);
     setShowAddMonitorPromptFor(null);
     setViewMode('monitors');
-    setIsSidebarOpen(true);
+
+    // If the selection originates from the map, open the sidebar on mobile
+    // so users can see details; otherwise (sidebar selection) close the
+    // sidebar on small screens to reveal the map.
+    try {
+      const isMobile =
+        typeof window !== 'undefined' && window.innerWidth < 1024;
+      if (fromMap) {
+        setIsSidebarOpen(true);
+      } else {
+        setIsSidebarOpen(!isMobile);
+      }
+    } catch {
+      setIsSidebarOpen(true);
+    }
   };
 
   useEffect(() => {
@@ -267,11 +292,17 @@ const NetworkCoveragePage = () => {
 
   const toggleType = (type: MonitorType) => {
     setSelectedTypes((previous) => {
-      if (previous.includes(type)) {
-        if (previous.length === 1) {
-          return previous;
-        }
+      const has = previous.includes(type);
+      if (has) {
+        if (previous.length === 1) return previous;
         return previous.filter((item) => item !== type);
+      }
+
+      // If multiple types are already selected and the user clicks a new
+      // type (e.g. "Inactive"), assume they intend to isolate that type
+      // and show only it. This makes it easy to view "Inactive only".
+      if (previous.length > 1) {
+        return [type];
       }
 
       return [...previous, type];
