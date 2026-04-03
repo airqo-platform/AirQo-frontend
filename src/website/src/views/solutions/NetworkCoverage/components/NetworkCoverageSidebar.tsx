@@ -75,8 +75,11 @@ const formatCoordinates = (lat: number | null, lon: number | null) => {
 const displayText = (value?: string | null) =>
   value && value.trim() ? value : '--';
 
-const formatNetworkName = (value?: string | null) =>
-  value && value.trim() ? value.trim() : '--';
+const formatNetworkName = (value?: string | null) => {
+  if (!value || !value.trim()) return '--';
+  const trimmed = value.trim();
+  return trimmed.toLowerCase() === 'airqo' ? 'AirQo' : trimmed;
+};
 
 const StatLine = ({
   label,

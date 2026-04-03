@@ -64,6 +64,7 @@ const escapeHtml = (value: string): string =>
 const formatNetworkName = (value?: string | null) => {
   if (!value || !value.trim()) return '--';
   const trimmed = value.trim();
+  if (trimmed.toLowerCase() === 'airqo') return 'AirQo';
   return trimmed;
 };
 
