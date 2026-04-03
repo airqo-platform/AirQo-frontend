@@ -1,5 +1,4 @@
 import { AqDownload01 } from '@airqo/icons-react';
-import Image from 'next/image';
 import React, { useEffect, useRef, useState } from 'react';
 import { FiChevronDown, FiMenu } from 'react-icons/fi';
 import { TbMenu2 } from 'react-icons/tb';
@@ -7,7 +6,7 @@ import { TbMenu2 } from 'react-icons/tb';
 import NetworkCoverageNavDrawer from './NetworkCoverageNavDrawer';
 
 const INTRO_TEXT =
-  "Spanning 54 nations across the African continent, AirQo's open monitoring network delivers unprecedented visibility into the air quality millions breathe every day. From low-cost sensors in dense urban neighborhoods to precision reference stations at key research hubs, each data point reflects a commitment to environmental justice and public health. Browse real-time and historical readings, discover active monitoring stations by country, and download open datasets to power research, policy-making, and community advocacy. This platform is Africa's most comprehensive public record of air quality monitoring infrastructure — built to inform, empower, and ignite measurable change.";
+  'Spanning 54 nations across Africa, this platform provides a unified view of the continent’s air quality monitoring landscape. It integrates low-cost sensors deployed in urban communities with high-precision reference stations at strategic research locations, offering both scale and technical depth. Users can explore the geographic distribution of monitoring stations by country, identify active coverage, and understand the types of instrumentation in use. Designed to support evidence-based planning, collaboration, and environmental stewardship, the platform presents a structured and comprehensive overview of Africa’s air quality monitoring infrastructure.';
 
 interface NetworkCoverageHeaderProps {
   onToggleSidebar: () => void;
@@ -57,24 +56,7 @@ const NetworkCoverageHeader: React.FC<NetworkCoverageHeaderProps> = ({
             <TbMenu2 className="h-5 w-5" />
           </button>
 
-          {/* AirQo logo */}
-          <a
-            href="/home"
-            className="flex-shrink-0 opacity-90 transition-opacity hover:opacity-100"
-            aria-label="AirQo home"
-          >
-            <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728138368/website/Logos/logo_rus4my.png"
-              alt="AirQo"
-              width={56}
-              height={36}
-              className="h-7 w-auto sm:h-8"
-              priority
-            />
-          </a>
-
-          {/* Divider */}
-          <span className="hidden h-6 w-px flex-shrink-0 bg-slate-200 sm:block" />
+          {/* AirQo logo removed for Network Coverage page */}
 
           {/* Title */}
           <h1 className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-900 sm:text-base lg:text-lg">
