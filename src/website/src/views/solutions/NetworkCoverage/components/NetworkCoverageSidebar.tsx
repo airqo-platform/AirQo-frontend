@@ -762,7 +762,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                       : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                   }`}
                 >
-                  View data
+                  Visit website
                   <FiChevronRight className="h-4 w-4" />
                 </button>
 
