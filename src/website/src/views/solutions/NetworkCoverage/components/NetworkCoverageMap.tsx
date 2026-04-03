@@ -3,9 +3,9 @@
 /* eslint-disable simple-import-sort/imports */
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import Image from 'next/image';
 import { FiMinus, FiPlus, FiCamera } from 'react-icons/fi';
 import html2canvas from 'html2canvas';
+import toast, { Toaster } from 'react-hot-toast';
 
 import {
   africanIso2Codes,
@@ -34,12 +34,6 @@ type MarkerResource = {
   handleClick: () => void;
   handleMouseEnter: () => void;
   handleMouseLeave: () => void;
-};
-
-type SnapshotModalState = {
-  open: boolean;
-  imageUrl: string | null;
-  loading: boolean;
 };
 
 // AFRICA bounding box was removed — map is not locked to Africa by default.
@@ -223,11 +217,6 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
   const markersRef = useRef<MarkerResource[]>([]);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapInitError, setMapInitError] = useState<string | null>(null);
-  const [snapshotModal, setSnapshotModal] = useState<SnapshotModalState>({
-    open: false,
-    imageUrl: null,
-    loading: false,
-  });
 
   // Stable refs so that changing prop identity on every parent render does
   // not cause heavyweight effects (marker rebuild, handler swap) to re-run.
@@ -944,20 +933,21 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
           type="button"
           onClick={async () => {
             try {
-              setSnapshotModal((current) => ({
-                ...current,
-                open: true,
-                loading: true,
-                imageUrl: null,
-              }));
               const dataUrl = await captureSnapshot();
-              setSnapshotModal({
-                open: true,
-                loading: false,
-                imageUrl: dataUrl,
-              });
+              if (!dataUrl) return;
+              const a = document.createElement('a');
+              a.href = dataUrl;
+              a.download = `africa-map-snapshot-${new Date().toISOString().split('T')[0]}.png`;
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+              try {
+                toast.success('Screenshot downloaded', { duration: 2500 });
+              } catch {
+                // ignore toast errors
+              }
             } catch {
-              setSnapshotModal({ open: true, loading: false, imageUrl: null });
+              // ignore capture errors
             }
           }}
           className="grid h-12 w-12 place-items-center border-t border-slate-200 bg-white text-slate-700 transition-colors hover:bg-slate-50"
@@ -993,74 +983,8 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
         </button>
       </div>
 
-      {snapshotModal.open && (
-        <div className="absolute inset-0 z-40 flex items-center justify-center bg-slate-950/70 px-4 py-6 backdrop-blur-sm">
-          <div className="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-3xl bg-white shadow-[0_30px_90px_rgba(15,23,42,0.45)]">
-            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-              <div>
-                <div className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
-                  Snapshot Preview
-                </div>
-                <div className="text-lg font-bold text-slate-900">
-                  Map capture
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setSnapshotModal({
-                      open: false,
-                      imageUrl: null,
-                      loading: false,
-                    })
-                  }
-                  className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
-                >
-                  Close
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!snapshotModal.imageUrl) return;
-                    const a = document.createElement('a');
-                    a.href = snapshotModal.imageUrl;
-                    a.download = `africa-map-snapshot-${new Date().toISOString().split('T')[0]}.png`;
-                    document.body.appendChild(a);
-                    a.click();
-                    a.remove();
-                  }}
-                  disabled={!snapshotModal.imageUrl || snapshotModal.loading}
-                  className="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
-                >
-                  Download
-                </button>
-              </div>
-            </div>
-            <div className="flex-1 bg-slate-100 p-4">
-              {snapshotModal.loading ? (
-                <div className="flex h-[70vh] items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white text-slate-600">
-                  Generating preview...
-                </div>
-              ) : snapshotModal.imageUrl ? (
-                <Image
-                  src={snapshotModal.imageUrl}
-                  alt="Map snapshot preview"
-                  unoptimized
-                  width={1920}
-                  height={1080}
-                  className="max-h-[70vh] w-full rounded-2xl object-contain shadow-sm"
-                />
-              ) : (
-                <div className="flex h-[70vh] items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white text-slate-600">
-                  Snapshot could not be generated. Try again after the map
-                  finishes loading.
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Snapshot preview modal removed — camera now downloads immediately */}
+      <Toaster position="bottom-right" containerStyle={{ zIndex: 40000 }} />
 
       {mapInitError && (
         <div className="absolute inset-0 z-30 grid place-items-center bg-[#f6f6f7]">
