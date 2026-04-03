@@ -133,7 +133,7 @@ const buildMonitorTooltipMarkup = (monitor: NetworkCoverageMonitor) => {
       : '--';
 
   return `
-    <div style="width:auto;max-width:320px;min-width:0;box-sizing:border-box;overflow-wrap:anywhere;word-break:break-word;">
+    <div style="width:auto;max-width:min(72vw,520px);min-width:0;box-sizing:border-box;overflow-wrap:anywhere;word-break:break-word;white-space:normal;">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
         <div style="min-width:0;flex:1;">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
@@ -169,7 +169,7 @@ const buildMonitorTooltipMarkup = (monitor: NetworkCoverageMonitor) => {
 };
 
 const buildCoverageTooltipMarkup = (name: string, count: number) => `
-  <div style="min-width:0;max-width:240px;overflow-wrap:anywhere;word-break:break-word;">
+  <div style="min-width:0;max-width:min(60vw,420px);overflow-wrap:anywhere;word-break:break-word;white-space:normal;">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
       <div style="min-width:0;flex:1;">
         <div style="font-size:14px;font-weight:800;line-height:1.25;color:#F8FAFC;word-break:break-word;overflow-wrap:anywhere;">${escapeHtml(name)}</div>
@@ -857,7 +857,7 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
             .setLngLat([group.longitude, group.latitude])
             .setHTML(
               `
-                <div style="min-width:240px;max-width:280px;">
+                  <div style="min-width:0;max-width:min(72vw,520px);width:auto;box-sizing:border-box;overflow-wrap:anywhere;word-break:break-word;white-space:normal;">
                   <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
                     <div>
                       <div style="font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#64748B;">Cluster</div>
@@ -1142,6 +1142,11 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
           border: 1px solid rgba(255, 255, 255, 0.12);
           padding: 12px 14px;
           box-shadow: 0 18px 36px rgba(2, 6, 23, 0.42);
+          width: auto;
+          display: inline-block;
+          max-width: min(70vw, 520px);
+          white-space: normal;
+          overflow: visible !important;
         }
 
         .network-coverage-tooltip .mapboxgl-popup-tip {
@@ -1156,8 +1161,11 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
           border: 0;
           padding: 16px 16px 15px;
           box-shadow: 0 18px 44px rgba(15, 23, 42, 0.22);
-          max-width: 320px;
-          overflow: visible;
+          width: auto;
+          display: inline-block;
+          max-width: min(72vw, 520px);
+          white-space: normal;
+          overflow: visible !important;
         }
 
         .network-monitor-tooltip .mapboxgl-popup-tip {
