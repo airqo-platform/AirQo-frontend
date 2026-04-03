@@ -8,6 +8,7 @@ toc: false
 import * as Plot from "@observablehq/plot";
 import { radio, table } from "@observablehq/inputs";
 import { html } from "htl";
+import * as d3 from "npm:d3";
 ```
 
 # Uganda Hourly Air Quality Trend Analysis
@@ -73,14 +74,23 @@ const features = gridShape?.type === "FeatureCollection"
 const measurements = measurementsResponse?.measurements || [];
 
 const districtBuckets = new Map();
+const kampalaSiteBuckets = new Map();
 for (const item of measurements) {
   const district = normalizeDistrict(item.siteDetails?.district);
   if (!district) continue;
   if (!districtBuckets.has(district)) districtBuckets.set(district, []);
   districtBuckets.get(district).push(item);
+
+  if (district === "kampala" || district.includes("kampala")) {
+    let siteName = item.siteDetails?.search_name || item.siteDetails?.name || "Unknown Site";
+    siteName = siteName.split(",")[0].trim();
+    if (!kampalaSiteBuckets.has(siteName)) kampalaSiteBuckets.set(siteName, []);
+    kampalaSiteBuckets.get(siteName).push(item);
+  }
 }
 
 const districtValues = {};
+const kampalaSiteValues = {};
 let trendSeries = [];
 const districts = Array.from(districtBuckets.keys());
 const trendDistrict = districts[0];
@@ -106,6 +116,15 @@ for (const [district, items] of districtBuckets.entries()) {
         value: entry[pollutant]?.value
       }))
       .filter((entry) => typeof entry.value === "number");
+  }
+}
+
+for (const [site, items] of kampalaSiteBuckets.entries()) {
+  const values = items
+    .map((entry) => entry[pollutant]?.value)
+    .filter((value) => typeof value === "number");
+  if (values.length) {
+    kampalaSiteValues[site] = values.reduce((sum, value) => sum + value, 0) / values.length;
   }
 }
 
@@ -172,21 +191,90 @@ html`<div style="display:flex;flex-wrap:wrap;gap:8px;font-size:12px;color:#64748
 
   </div>
   <div class="card">
-    <h2>District Readings</h2>
+    <h2>Kampala Site Readings</h2>
 
 ```js
-districts.length === 0
-  ? html`<div class="subtitle">No district readings available yet.</div>`
-  :
-table(
-  Object.entries(districtValues)
-    .map(([district, value]) => ({
-      district: district.charAt(0).toUpperCase() + district.slice(1),
-      value: Number(value).toFixed(1)
+const kampalaSitesCount = Object.keys(kampalaSiteValues).length;
+if (kampalaSitesCount === 0) {
+  display(html`<div class="subtitle">No Kampala sites available.</div>`);
+} else {
+  const chartWidth = Math.max(800, typeof width !== "undefined" ? width : 800);
+  const chartHeight = chartWidth;
+  const innerRadius = chartWidth / 18;
+  const outerRadius = chartWidth / 2.2;
+
+  const data = Object.entries(kampalaSiteValues)
+    .map(([district, value]) => ({ // Map site name to district variable natively to avoid renaming x/y references below
+      district: district.length > 22 ? district.substring(0, 20) + "..." : district,
+      value: value
     }))
-    .sort((a, b) => a.district.localeCompare(b.district)),
-  { columns: ["district", "value"], header: { district: "District", value: pollutantLabel } }
-)
+    .sort((a, b) => b.value - a.value);
+
+  const svg = d3.create("svg")
+      .attr("width", chartWidth)
+      .attr("height", chartHeight)
+      .attr("viewBox", [-chartWidth / 2, -chartHeight / 2, chartWidth, chartHeight])
+      .attr("style", "max-width: 100%; height: auto; font-family: ui-sans-serif, system-ui, sans-serif;");
+
+  const x = d3.scaleBand()
+      .domain(data.map(d => d.district))
+      .range([0, 2 * Math.PI])
+      .align(0);
+
+  const y = d3.scaleRadial()
+      .domain([0, d3.max(data, d => d.value)])
+      .range([innerRadius, outerRadius]);
+
+  const arc = d3.arc()
+      .innerRadius(innerRadius)
+      .outerRadius(d => y(d.value))
+      .startAngle(d => x(d.district))
+      .endAngle(d => x(d.district) + x.bandwidth())
+      .padAngle(0.02)
+      .padRadius(innerRadius);
+
+  svg.append("g")
+    .selectAll("path")
+    .data(data)
+    .join("path")
+      .attr("fill", d => pickColor(d.value))
+      .attr("stroke", "white")
+      .attr("stroke-width", 0.75)
+      .attr("d", arc);
+
+  svg.append("g")
+    .selectAll("text")
+    .data(data)
+    .join("text")
+    .attr("transform", (d) => {
+      const a = x(d.district) + x.bandwidth() / 2;
+      const textAngle = a - Math.PI / 2;
+      const rotate = (textAngle * 180) / Math.PI;
+      const flip = textAngle < -Math.PI / 2 || textAngle > Math.PI / 2 ? 180 : 0;
+      return `rotate(${rotate}) translate(${y(d.value) + 14}, 0) rotate(${flip})`;
+    })
+    .attr("text-anchor", (d) => {
+      const a = x(d.district) + x.bandwidth() / 2;
+      const textAngle = a - Math.PI / 2;
+      return textAngle < -Math.PI / 2 || textAngle > Math.PI / 2 ? "end" : "start";
+    })
+    .attr("dominant-baseline", "middle")
+    .attr("font-size", "16px")
+    .attr("fill", "currentColor")
+    .attr("font-weight", "600")
+    .text(d => d.district)
+    .each(function (d) {
+      d3.select(this)
+        .append("tspan")
+        .attr("dx", "0.5em")
+        .attr("fill", "#8a8a8a")
+        .attr("font-size", "20px")
+        .attr("font-weight", "normal")
+        .text(d.value.toFixed(1));
+    });
+
+  display(svg.node());
+}
 ```
 
   </div>
