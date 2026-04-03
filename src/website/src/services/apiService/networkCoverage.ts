@@ -14,6 +14,7 @@ const NETWORK_COVERAGE_ENDPOINTS = {
   MONITOR_DETAIL: 'devices/network-coverage/monitors',
   COUNTRY_MONITORS: 'devices/network-coverage/countries',
   EXPORT_CSV: 'devices/network-coverage/export.csv',
+  REGISTRY: 'devices/network-coverage/registry',
 } as const;
 
 class NetworkCoverageService extends BaseApiService {
@@ -155,6 +156,23 @@ class NetworkCoverageService extends BaseApiService {
     }
 
     return response.blob();
+  }
+
+  async upsertNetworkCoverageRegistry(
+    body: Record<string, unknown>,
+    options: ServiceOptions = {},
+  ): Promise<any> {
+    const response = await this.post(
+      NETWORK_COVERAGE_ENDPOINTS.REGISTRY,
+      body,
+      { ...options, throwOnError: false },
+    );
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+
+    throw new Error(response.message || 'Failed to save registry record');
   }
 }
 

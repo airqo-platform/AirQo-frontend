@@ -526,14 +526,28 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
     }
 
     const map = mapRef.current;
-    const expression: any[] = ['match', ['get', 'iso_3166_1']];
 
-    countries.forEach((country) => {
-      expression.push(country.iso2, bucketColor(country.monitors.length));
-    });
-    expression.push('#E8ECF3');
+    // Build a safe 'match' expression only when we have at least one ISO->color pair.
+    const isoColorPairs = countries
+      .map((country) => ({
+        iso: country.iso2,
+        color: bucketColor(country.monitors.length),
+      }))
+      .filter((p) => typeof p.iso === 'string' && p.iso.trim() !== '');
 
-    map.setPaintProperty('africa-country-fill', 'fill-color', expression);
+    if (isoColorPairs.length > 0) {
+      const expression: any[] = ['match', ['get', 'iso_3166_1']];
+      isoColorPairs.forEach((p) => {
+        expression.push(p.iso, p.color);
+      });
+      // default color
+      expression.push('#E8ECF3');
+      map.setPaintProperty('africa-country-fill', 'fill-color', expression);
+    } else {
+      // If no countries available, set a static default color to avoid an invalid expression
+      map.setPaintProperty('africa-country-fill', 'fill-color', '#E8ECF3');
+    }
+
     map.setPaintProperty(
       'africa-country-fill',
       'fill-opacity',

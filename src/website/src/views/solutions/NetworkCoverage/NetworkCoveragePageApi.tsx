@@ -13,6 +13,8 @@ import {
   useNetworkCoverageMonitor,
   useNetworkCoverageSummary,
 } from '@/hooks/useApiHooks';
+import NetworkCoverageAddMonitorDialog from './components/NetworkCoverageAddMonitorDialog';
+import { useQueryClient } from '@tanstack/react-query';
 import { networkCoverageService } from '@/services/apiService';
 
 // Add-to-network dialog is not used — sidebar prompts link directly to Vertex
@@ -84,6 +86,13 @@ const NetworkCoveragePage = () => {
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [flyToMonitorId, setFlyToMonitorId] = useState<string | null>(null);
   const snapshotGetterRef = useRef<(() => Promise<string | null>) | null>(null);
+  const queryClient = useQueryClient();
+
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [addDialogCountry, setAddDialogCountry] = useState<{
+    id: string;
+    country?: string;
+  } | null>(null);
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -223,6 +232,12 @@ const NetworkCoveragePage = () => {
     setIsSidebarOpen(true);
   };
 
+  const handleOpenAddMonitor = (countryId: string, countryName?: string) => {
+    setAddDialogCountry({ id: countryId, country: countryName });
+    setIsAddDialogOpen(true);
+    setIsSidebarOpen(true);
+  };
+
   const selectCountryByIso = (iso2: string) => {
     const country = countries.find((item) => item.iso2 === iso2);
     if (!country) {
@@ -261,6 +276,34 @@ const NetworkCoveragePage = () => {
 
       return [...previous, type];
     });
+  };
+
+  const handleAddSaved = async (response: any) => {
+    setIsAddDialogOpen(false);
+
+    const createdId = response?.registry?._id || response?.registry?.id;
+
+    // Invalidate coverage queries so UI reflects the added monitor
+    queryClient.invalidateQueries({
+      predicate: (query) => {
+        const k = Array.isArray(query.queryKey)
+          ? query.queryKey[0]
+          : query.queryKey;
+        return (
+          k === 'networkCoverageSummary' ||
+          k === 'networkCoverageCountryMonitors' ||
+          k === 'networkCoverageMonitor'
+        );
+      },
+    });
+
+    if (addDialogCountry?.id) {
+      setSelectedCountryId(addDialogCountry.id);
+      if (createdId) setSelectedMonitorId(createdId);
+      setIsSidebarOpen(true);
+    }
+
+    setAddDialogCountry(null);
   };
 
   const getPdfRows = async () => {
@@ -568,7 +611,13 @@ const NetworkCoveragePage = () => {
           isDownloading={isDownloading}
         />
 
-        {/* Add-to-network dialog removed — sidebar prompt opens Vertex directly */}
+        <NetworkCoverageAddMonitorDialog
+          isOpen={isAddDialogOpen}
+          onClose={() => setIsAddDialogOpen(false)}
+          initialCountryId={addDialogCountry?.id ?? undefined}
+          initialCountryName={addDialogCountry?.country}
+          onSaved={handleAddSaved}
+        />
 
         <main className="relative flex min-h-0 flex-1 overflow-hidden rounded-xl border border-slate-200 bg-[#f6f6f7]">
           <div
@@ -602,7 +651,8 @@ const NetworkCoveragePage = () => {
               onToggleActiveOnly={() => setActiveOnly((previous) => !previous)}
               onSelectCountry={selectCountry}
               onSelectMonitor={selectMonitor}
-              // sidebar prompt opens Vertex directly (handled inside sidebar)
+              // sidebar prompt opens our dialog via onOpenAddMonitor
+              onOpenAddMonitor={handleOpenAddMonitor}
               onClosePrompt={() => setShowAddMonitorPromptFor(null)}
               onResetToOverview={resetToOverview}
               onRetry={() => summaryQuery.refetch()}
