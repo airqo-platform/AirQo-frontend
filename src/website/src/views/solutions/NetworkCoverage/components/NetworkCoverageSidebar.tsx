@@ -734,7 +734,36 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                 label="Public Data"
                 value={displayText(selectedMonitor.publicData)}
               />
-              <div className="mt-3">
+              <div className="mt-3 flex flex-wrap gap-2">
+                {/* View data (from monitor.viewDataUrl) */}
+                {/**
+                 * If monitor provides a `viewDataUrl`, enable the button and
+                 * open it in a new tab. Otherwise keep the button disabled.
+                 */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const url = selectedMonitor.viewDataUrl?.trim();
+                    if (url) {
+                      window.open(url, '_blank', 'noopener,noreferrer');
+                    }
+                  }}
+                  disabled={
+                    !selectedMonitor.viewDataUrl ||
+                    !selectedMonitor.viewDataUrl.trim()
+                  }
+                  className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors ${
+                    selectedMonitor.viewDataUrl &&
+                    selectedMonitor.viewDataUrl.trim()
+                      ? 'bg-blue-600 text-white hover:bg-blue-700'
+                      : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                  }`}
+                >
+                  View data
+                  <FiChevronRight className="h-4 w-4" />
+                </button>
+
+                {/* View on analytics (generic analytics app) */}
                 <button
                   type="button"
                   onClick={() =>
@@ -746,7 +775,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                   }
                   className="inline-flex items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-100 active:bg-blue-200"
                 >
-                  View Data
+                  View on analytics
                   <FiChevronRight className="h-4 w-4" />
                 </button>
               </div>
