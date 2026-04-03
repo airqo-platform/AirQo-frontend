@@ -9,6 +9,7 @@ import { TbChevronDown, TbMenu } from 'react-icons/tb';
 import { CustomButton } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
 import { useDispatch } from '@/hooks';
+import { NAV_ITEMS } from '@/lib/navItems';
 import { openModal } from '@/store/slices/modalSlice';
 
 import { trackEvent } from '../GoogleAnalytics';
@@ -23,95 +24,10 @@ type MenuItem = {
   newTab?: boolean;
 };
 
-type MenuItems = {
-  [key: string]: MenuItem[];
-};
+// MenuItems type is no longer needed (nav comes from shared NAV_ITEMS)
 
-// Data for menu items
-const menuItems: MenuItems = {
-  Products: [
-    {
-      title: 'Binos Monitor',
-      description: 'Built in Africa for African cities',
-      href: '/products/monitor',
-    },
-    {
-      title: 'Analytics Dashboard',
-      description: 'Air quality analytics for African cities',
-      href: '/products/analytics',
-    },
-    {
-      title: 'Mobile App',
-      description: 'Discover the quality of air around you',
-      href: '/products/mobile-app',
-    },
-    {
-      title: 'Air Quality API',
-      description: 'Access raw and calibrated data',
-      href: '/products/api',
-    },
-    {
-      title: 'AirQalibrate',
-      description: 'Calibrate your low-cost sensor data',
-      href: '/products/calibrate',
-    },
-  ],
-  Solutions: [
-    {
-      title: 'For African Cities',
-      description: 'Advancing air quality management in African Cities',
-      href: '/solutions/african-cities',
-    },
-    {
-      title: 'For Communities',
-      description: 'Empowering communities with air quality information',
-      href: '/solutions/communities',
-    },
-    {
-      title: 'For Research',
-      description: 'Advancing knowledge and evidence on air quality issues',
-      href: '/solutions/research',
-    },
-    {
-      title: 'Kampala Air Quality Study',
-      description: 'Join our real-time air pollution research study',
-      href: '/solutions/kampala-study',
-    },
-    {
-      title: 'Network Coverage',
-      description: 'Explore air quality monitoring data across Africa',
-      href: '/solutions/network-coverage',
-      newTab: true,
-    },
-  ],
-  About: [
-    { title: 'About Us', href: '/about-us' },
-    { title: 'Resources', href: '/resources' },
-    { title: 'Careers', href: '/careers' },
-    { title: 'Contact Us', href: '/contact' },
-    { title: 'Events', href: '/events' },
-    { title: 'Press', href: '/press' },
-    { title: 'FAQs', href: '/faqs' },
-    { title: 'Africa Clean Air Forum', href: '/africa-clean-air-forum' },
-  ],
-  Developers: [
-    {
-      title: 'Packages',
-      description: 'Open source libraries and developer tools',
-      href: '/packages',
-    },
-    {
-      title: 'Documentation',
-      description: 'API guides and technical resources',
-      href: 'https://docs.airqo.net/airqo-rest-api-documentation/',
-    },
-    {
-      title: 'GitHub',
-      description: 'Explore our open source projects',
-      href: 'https://github.com/airqo-platform',
-    },
-  ],
-};
+// Nav items are sourced from a shared utility to avoid duplication
+// See: src/lib/navItems.ts
 
 // Helper component for rendering dropdown items with translation support
 const DropdownMenuContent: React.FC<{
@@ -269,7 +185,7 @@ const Navbar: React.FC = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex space-x-6 items-center">
-            {Object.entries(menuItems).map(([title, items]) => (
+            {Object.entries(NAV_ITEMS).map(([title, items]) => (
               <div key={title} className="relative group">
                 <button className="text-gray-800 font-medium hover:text-blue-600 text-sm transition-colors translate-element flex items-center">
                   {title}
@@ -356,7 +272,7 @@ const Navbar: React.FC = () => {
 
         {/* Scrollable Nav Content */}
         <div className="flex-1 overflow-y-auto">
-          {Object.entries(menuItems).map(([title, items]) => (
+          {Object.entries(NAV_ITEMS).map(([title, items]) => (
             <div key={title} className="border-b border-gray-100 last:border-0">
               <button
                 onClick={() => toggleExpandedMenu(title)}
