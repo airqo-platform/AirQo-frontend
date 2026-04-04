@@ -70,7 +70,7 @@ const NetworkCoverageNavDrawer: React.FC<NetworkCoverageNavDrawerProps> = ({
       >
         {/* Drawer header */}
         <div className="flex flex-shrink-0 items-center justify-between border-b border-slate-100 bg-white px-4 py-3.5">
-          <a href="/home" className="flex items-center" onClick={onClose}>
+          <Link href="/home" className="flex items-center" onClick={onClose}>
             <Image
               src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728138368/website/Logos/logo_rus4my.png"
               alt="AirQo"
@@ -78,10 +78,11 @@ const NetworkCoverageNavDrawer: React.FC<NetworkCoverageNavDrawerProps> = ({
               height={44}
               className="h-8 w-auto"
             />
-          </a>
+          </Link>
           <button
             type="button"
             onClick={onClose}
+            autoFocus={true}
             className="grid h-8 w-8 place-items-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
             aria-label="Close navigation menu"
           >
@@ -183,20 +184,20 @@ const NetworkCoverageNavDrawer: React.FC<NetworkCoverageNavDrawerProps> = ({
 
         {/* Footer CTAs */}
         <div className="flex flex-shrink-0 flex-col gap-2 border-t border-slate-200 bg-slate-50 px-4 py-4">
-          <a
+          <Link
             href="/explore-data"
             onClick={onClose}
             className="flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
           >
             Explore Data
-          </a>
-          <a
+          </Link>
+          <Link
             href="/home"
             onClick={onClose}
             className="flex w-full items-center justify-center rounded-lg border border-blue-200 bg-white px-4 py-2.5 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-50"
           >
             Back to Main Site
-          </a>
+          </Link>
         </div>
       </div>
     </>
