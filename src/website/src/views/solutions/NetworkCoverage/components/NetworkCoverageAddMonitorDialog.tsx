@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { FiX } from 'react-icons/fi';
+import { FiX, FiMinus, FiPlus } from 'react-icons/fi';
 
 import { networkCoverageService } from '@/services/apiService';
 
@@ -8,6 +8,7 @@ interface Props {
   onClose: () => void;
   initialCountryId?: string;
   initialCountryName?: string;
+  initialCountryIso2?: string;
   onSaved?: (response: any) => void;
 }
 
@@ -16,6 +17,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
   onClose,
   initialCountryId,
   initialCountryName,
+  initialCountryIso2,
   onSaved,
 }) => {
   const [name, setName] = useState('');
@@ -116,6 +118,112 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
 
     map.on('click', onClick);
 
+    // If a country ISO was provided, add the Mapbox country-boundaries source
+    // and fit the map to the country's polygon bounds. Also set max bounds
+    // so users are encouraged to pick coordinates within the country.
+    if (initialCountryIso2) {
+      try {
+        map.on('load', () => {
+          try {
+            // Add vector source for country boundaries
+            if (!map.getSource('add-dialog-country-boundaries')) {
+              map.addSource('add-dialog-country-boundaries', {
+                type: 'vector',
+                url: 'mapbox://mapbox.country-boundaries-v1',
+                promoteId: 'iso_3166_1',
+              });
+            }
+
+            // Add a simple fill layer for the selected country
+            if (!map.getLayer('add-dialog-country-fill')) {
+              map.addLayer({
+                id: 'add-dialog-country-fill',
+                type: 'fill',
+                source: 'add-dialog-country-boundaries',
+                'source-layer': 'country_boundaries',
+                filter: ['==', ['get', 'iso_3166_1'], initialCountryIso2],
+                paint: { 'fill-color': '#E8ECF3', 'fill-opacity': 0.45 },
+              });
+            }
+
+            if (!map.getLayer('add-dialog-country-outline')) {
+              map.addLayer({
+                id: 'add-dialog-country-outline',
+                type: 'line',
+                source: 'add-dialog-country-boundaries',
+                'source-layer': 'country_boundaries',
+                filter: ['==', ['get', 'iso_3166_1'], initialCountryIso2],
+                paint: { 'line-color': '#145DFF', 'line-width': 2 },
+              });
+            }
+
+            // Wait until tiles & layer rendered then compute bounds
+            map.once('idle', () => {
+              try {
+                const features = map.queryRenderedFeatures({
+                  layers: ['add-dialog-country-fill'],
+                });
+                if (features && features.length > 0) {
+                  const bounds = new mapboxgl.LngLatBounds();
+
+                  const extendFromCoords = (coords: any) => {
+                    if (!coords) return;
+                    if (
+                      typeof coords[0] === 'number' &&
+                      typeof coords[1] === 'number'
+                    ) {
+                      bounds.extend([coords[0], coords[1]]);
+                      return;
+                    }
+                    for (const c of coords) {
+                      extendFromCoords(c);
+                    }
+                  };
+
+                  features.forEach((f: any) => {
+                    extendFromCoords(f.geometry?.coordinates);
+                  });
+
+                  if (!bounds.isEmpty()) {
+                    // Pad bounds a bit so markers near the edges are visible
+                    const west = bounds.getWest();
+                    const south = bounds.getSouth();
+                    const east = bounds.getEast();
+                    const north = bounds.getNorth();
+                    const lngPad = Math.max((east - west) * 0.12, 0.15);
+                    const latPad = Math.max((north - south) * 0.12, 0.15);
+
+                    const padded = new mapboxgl.LngLatBounds(
+                      [west - lngPad, south - latPad],
+                      [east + lngPad, north + latPad],
+                    );
+
+                    try {
+                      map.fitBounds(padded, {
+                        padding: 20,
+                        maxZoom: 8,
+                        duration: 700,
+                      });
+                    } catch {}
+
+                    try {
+                      map.setMaxBounds(padded);
+                    } catch {}
+                  }
+                }
+              } catch {
+                // ignore errors computing bounds
+              }
+            });
+          } catch {
+            // ignore source/layer errors
+          }
+        });
+      } catch {
+        // ignore
+      }
+    }
+
     // If initial coordinates exist, show marker
     if (latitude && longitude) {
       const latN = Number(latitude);
@@ -138,7 +246,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
       mapInstanceRef.current = null;
       mapMarkerRef.current = null;
     };
-  }, [mapVisible]);
+  }, [mapVisible, initialCountryIso2]);
 
   // Keep marker in sync when lat/lon inputs change while map is visible
   useEffect(() => {
@@ -323,12 +431,44 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
               </div>
 
               {mapVisible && (
-                <div className="mt-3 rounded-md border border-slate-200">
+                <div className="mt-3 rounded-md border border-slate-200 relative">
                   <div
                     ref={mapElRef}
                     className="h-64 w-full rounded-md"
                     aria-hidden={!mapVisible}
                   />
+
+                  <div className="absolute bottom-3 right-3 z-30 overflow-hidden rounded-[14px] border border-slate-200 bg-white shadow-sm">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        try {
+                          mapInstanceRef.current?.zoomIn({ duration: 300 });
+                        } catch {
+                          // ignore
+                        }
+                      }}
+                      aria-label="Zoom in"
+                      className="grid h-10 w-10 place-items-center bg-white text-slate-700 transition-colors hover:bg-slate-50"
+                    >
+                      <FiPlus className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        try {
+                          mapInstanceRef.current?.zoomOut({ duration: 300 });
+                        } catch {
+                          // ignore
+                        }
+                      }}
+                      aria-label="Zoom out"
+                      className="grid h-10 w-10 place-items-center border-t border-slate-200 bg-white text-slate-700 transition-colors hover:bg-slate-50"
+                    >
+                      <FiMinus className="h-4 w-4" />
+                    </button>
+                  </div>
+
                   <p className="mt-2 px-2 pb-2 text-xs text-slate-500">
                     Click on the map to place a marker and set
                     latitude/longitude.

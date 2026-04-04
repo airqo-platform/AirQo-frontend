@@ -116,7 +116,11 @@ interface NetworkCoverageSidebarProps {
   onClosePrompt: () => void;
   onResetToOverview: () => void;
   onRetry?: () => void;
-  onOpenAddMonitor?: (countryId: string, countryName?: string) => void;
+  onOpenAddMonitor?: (
+    countryId: string,
+    countryName?: string,
+    iso2?: string,
+  ) => void;
   monitorLoading?: boolean;
 }
 
@@ -480,7 +484,11 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                           type="button"
                           onClick={() =>
                             onOpenAddMonitor
-                              ? onOpenAddMonitor(country.id, country.country)
+                              ? onOpenAddMonitor(
+                                  country.id,
+                                  country.country,
+                                  country.iso2,
+                                )
                               : window.open(
                                   'https://vertex.airqo.net',
                                   '_blank',
@@ -541,6 +549,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                         ? onOpenAddMonitor(
                             selectedCountry.id,
                             selectedCountry.country,
+                            selectedCountry.iso2,
                           )
                         : window.open(
                             'https://vertex.airqo.net',

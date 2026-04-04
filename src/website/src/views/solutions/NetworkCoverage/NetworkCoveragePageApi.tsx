@@ -92,6 +92,7 @@ const NetworkCoveragePage = () => {
   const [addDialogCountry, setAddDialogCountry] = useState<{
     id: string;
     country?: string;
+    iso2?: string;
   } | null>(null);
 
   useEffect(() => {
@@ -239,8 +240,12 @@ const NetworkCoveragePage = () => {
     }
   };
 
-  const handleOpenAddMonitor = (countryId: string, countryName?: string) => {
-    setAddDialogCountry({ id: countryId, country: countryName });
+  const handleOpenAddMonitor = (
+    countryId: string,
+    countryName?: string,
+    iso2?: string,
+  ) => {
+    setAddDialogCountry({ id: countryId, country: countryName, iso2 });
     setIsAddDialogOpen(true);
     setIsSidebarOpen(true);
   };
@@ -647,6 +652,7 @@ const NetworkCoveragePage = () => {
           onClose={() => setIsAddDialogOpen(false)}
           initialCountryId={addDialogCountry?.id ?? undefined}
           initialCountryName={addDialogCountry?.country}
+          initialCountryIso2={addDialogCountry?.iso2}
           onSaved={handleAddSaved}
         />
 
