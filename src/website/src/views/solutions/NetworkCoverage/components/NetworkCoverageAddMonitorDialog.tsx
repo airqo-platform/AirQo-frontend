@@ -95,12 +95,19 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
   }, [isOpen, initialCountryName, initialCountryIso2]);
 
   // Initialize map when the picker is opened
+  // Initialize map when the picker is opened. Include `latitude` and
+  // `longitude` in deps but guard against re-initialization — if a map
+  // instance already exists we skip creating another one. Marker/center
+  // updates are handled in a separate effect.
   useEffect(() => {
     if (!mapVisible) return undefined;
     if (typeof window === 'undefined' || !(window as any).mapboxgl) {
       // Mapbox not available — keep picker closed and show nothing
       return undefined;
     }
+
+    // If map is already initialized, skip re-initialization
+    if (mapInstanceRef.current) return undefined;
 
     const mapboxgl = (window as any).mapboxgl;
     const map = new mapboxgl.Map({
@@ -272,7 +279,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
       mapInstanceRef.current = null;
       mapMarkerRef.current = null;
     };
-  }, [mapVisible, initialCountryIso2]);
+  }, [mapVisible, initialCountryIso2, latitude, longitude]);
 
   // Keep marker in sync when lat/lon inputs change while map is visible
   useEffect(() => {
@@ -292,7 +299,8 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
   // Dialog focus management & Escape handling
   useEffect(() => {
     if (!isOpen) return;
-    previousActiveElementRef.current = document.activeElement as HTMLElement | null;
+    previousActiveElementRef.current =
+      document.activeElement as HTMLElement | null;
     const dialog = dialogRef.current;
 
     const focusFirst = () => {
@@ -454,7 +462,9 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
         className="relative z-60 w-[95vw] max-w-2xl rounded-lg bg-white shadow-xl"
       >
         <div className="flex items-center justify-between border-b px-4 py-3">
-          <h3 id="add-monitor-dialog-title" className="text-sm font-semibold">Add monitor to network</h3>
+          <h3 id="add-monitor-dialog-title" className="text-sm font-semibold">
+            Add monitor to network
+          </h3>
           <button
             type="button"
             onClick={onClose}

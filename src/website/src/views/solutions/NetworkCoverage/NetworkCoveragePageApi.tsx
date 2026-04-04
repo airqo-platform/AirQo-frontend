@@ -356,9 +356,13 @@ const NetworkCoveragePage = () => {
     let monitorPresent = false;
     if (createdId && addDialogCountry?.id) {
       try {
-        const refreshed = await networkCoverageService.getNetworkCoverageCountryMonitors(addDialogCountry.id, {
-          tenant: DEFAULT_TENANT,
-        });
+        const refreshed =
+          await networkCoverageService.getNetworkCoverageCountryMonitors(
+            addDialogCountry.id,
+            {
+              tenant: DEFAULT_TENANT,
+            },
+          );
         if (refreshed && Array.isArray(refreshed.monitors)) {
           monitorPresent = refreshed.monitors.some(
             (m: any) => m.id === createdId || m._id === createdId,

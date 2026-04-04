@@ -1,79 +1,70 @@
+/* eslint-disable simple-import-sort/imports */
 import { AqMarkerPin01, AqSearchRefraction } from '@airqo/icons-react';
 import React from 'react';
 import { FiChevronLeft, FiChevronRight, FiX } from 'react-icons/fi';
-            {/* Data Access */}
-            {(() => {
-              // Validate viewDataUrl to ensure it is an absolute http(s) URL
-              const urlStr = selectedMonitor?.viewDataUrl?.trim();
-              let validatedViewDataUrl: string | null = null;
-              if (urlStr) {
-                try {
-                  const parsed = new URL(urlStr);
-                  if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
-                    validatedViewDataUrl = parsed.href;
-                  }
-                } catch {
-                  validatedViewDataUrl = null;
-                }
-              }
+import {
+  type MonitorType,
+  type NetworkCoverageCountry,
+  type NetworkCoverageMonitor,
+} from '../networkCoverageTypes';
 
-              return (
-                <div className="border-b border-slate-100 p-4">
-                  <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
-                    Data Access
-                  </h4>
-                  <StatLine
-                    label="Public Data"
-                    value={displayText(selectedMonitor.publicData)}
-                  />
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {/* View data (from monitor.viewDataUrl) */}
-                    {/**
-                     * If monitor provides a validated absolute `viewDataUrl`, enable the button and
-                     * open it in a new tab. Otherwise keep the button disabled.
-                     */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (validatedViewDataUrl) {
-                          window.open(validatedViewDataUrl, '_blank', 'noopener,noreferrer');
-                        }
-                      }}
-                      disabled={!validatedViewDataUrl}
-                      className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors ${
-                        validatedViewDataUrl
-                          ? 'bg-blue-600 text-white hover:bg-blue-700'
-                          : 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                      }`}
-                    >
-                      Visit website
-                      <FiChevronRight className="h-4 w-4" />
-                    </button>
+const formatRelativeTime = (value?: string | null) => {
+  try {
+    if (!value) return '--';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return '--';
+    const diff = Date.now() - d.getTime();
+    const sec = Math.floor(diff / 1000);
+    if (sec < 60) return `${sec}s ago`;
+    const min = Math.floor(sec / 60);
+    if (min < 60) return `${min}m ago`;
+    const hr = Math.floor(min / 60);
+    if (hr < 24) return `${hr}h ago`;
+    const days = Math.floor(hr / 24);
+    if (days < 30) return `${days}d ago`;
+    return d.toLocaleDateString();
+  } catch {
+    return '--';
+  }
+};
 
-                    {/* View on analytics (generic analytics app) */}
-                    <button
-                      type="button"
-                      onClick={() =>
-                        window.open(
-                          ANALYTICS_APP_URL,
-                          '_blank',
-                          'noopener,noreferrer',
-                        )
-                      }
-                      className="inline-flex items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-100 active:bg-blue-200"
-                    >
-                      View on analytics
-                      <FiChevronRight className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-              );
-            })()}
+const formatMonthYear = (value?: string | null) => {
+  try {
+    if (!value) return '--';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return '--';
     return d.toLocaleString(undefined, { month: 'short', year: 'numeric' });
   } catch {
     return '--';
   }
 };
+
+const typeLabels: Record<MonitorType, string> = {
+  Reference: 'Reference',
+  LCS: 'Low-Cost Sensor (LCS)',
+  Inactive: 'Inactive',
+};
+
+const typeDotClass: Record<MonitorType, string> = {
+  Reference: 'bg-emerald-400',
+  LCS: 'bg-blue-400',
+  Inactive: 'bg-slate-300',
+};
+
+const getBadgeClassesForMonitorType = (t: MonitorType) => {
+  if (t === 'Reference')
+    return 'inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700';
+  if (t === 'LCS')
+    return 'inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700';
+  return 'inline-flex items-center gap-2 rounded-full bg-slate-50 px-3 py-1 text-sm font-semibold text-slate-700';
+};
+
+const getStatusBadgeClasses = (status: 'active' | 'inactive') =>
+  status === 'active'
+    ? 'inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700'
+    : 'inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600';
+
+const ANALYTICS_APP_URL = 'https://analytics.airqo.net';
 
 const formatCoordinates = (lat: number | null, lon: number | null) => {
   if (typeof lat !== 'number' || typeof lon !== 'number') return '--';

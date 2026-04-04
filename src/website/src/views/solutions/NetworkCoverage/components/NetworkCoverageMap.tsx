@@ -491,7 +491,8 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       console.error('Snapshot capture failed', err);
       try {
         toast.error(
-          'Failed to capture map snapshot: ' + (err?.message || 'Unknown error'),
+          'Failed to capture map snapshot: ' +
+            (err?.message || 'Unknown error'),
         );
       } catch {}
       return null;
