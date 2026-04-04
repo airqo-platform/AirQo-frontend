@@ -117,6 +117,15 @@ const Navbar: React.FC = () => {
   }, []);
 
   // Lock body scroll while mobile drawer is open
+  // NOTE: This implementation writes directly to `document.body.style.overflow`.
+  // Potential issues:
+  // - If the viewport crosses the `md` breakpoint the drawer may become hidden
+  //   via CSS (e.g. `md:hidden`) while the body remains locked.
+  // - Multiple overlays (modals/drawers) can clobber each other's locks when
+  //   each writes '' on unmount/close.
+  // Recommendation: use a shared scroll-lock utility (e.g. `useLockBodyScroll`)
+  // or a lock-counter service and make the behavior breakpoint-aware
+  // (matchMedia) so locks are never cleared prematurely.
   useEffect(() => {
     if (menuOpen) {
       document.body.style.overflow = 'hidden';
@@ -172,6 +181,11 @@ const Navbar: React.FC = () => {
           </Link>
 
           {/* Mobile Menu Hamburger */}
+          {/* Accessibility: `focus:outline-none` on the toggle removes the
+              visible keyboard focus indicator. Consider removing
+              `focus:outline-none` or adding a visible focus style such as
+              `focus-visible:ring` and `focus-visible:ring-offset` so keyboard
+              users can see when the control has focus. */}
           <button
             onClick={toggleMenu}
             className="grid h-9 w-9 place-items-center rounded-lg text-gray-800 transition-colors hover:bg-gray-100 focus:outline-none md:hidden"
@@ -229,6 +243,17 @@ const Navbar: React.FC = () => {
       </nav>
 
       {/* ── Mobile Navigation Drawer ── */}
+      {/* Accessibility: The drawer below renders raw DOM elements with
+          `role="dialog"` and `aria-modal="true"` but does not manage focus,
+          trap tabbing, or handle Escape key dismissal. This can leave keyboard
+          users able to tab out of the drawer or unaware that a modal is open.
+          The codebase already provides a `Dialog` primitive (e.g.
+          `@/components/ui/dialog`) used by other overlays which handles focus
+          management, tab trapping, and backdrop/Escape handling—prefer using
+          that here and wiring `menuOpen` and `handleLinkClick` into it. If you
+          keep the manual implementation, add a focus-trap, an initial focus
+          target, Escape key handler, and rely on a shared scroll-lock utility.
+      */}
       {menuOpen && (
         <>
           {/* Backdrop */}
