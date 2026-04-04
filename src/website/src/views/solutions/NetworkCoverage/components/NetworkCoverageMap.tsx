@@ -914,8 +914,64 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
         speed: 0.9,
         curve: 1.2,
       });
+      // Show popup when the flyTo animation completes so the user sees
+      // the selected monitor's tooltip anchored to the node.
+      try {
+        map.once('moveend', () => {
+          try {
+            if (!monitorPopupRef.current) return;
+            monitorPopupRef.current
+              .setLngLat([monitor.longitude, monitor.latitude])
+              .setHTML(buildMonitorTooltipMarkup(monitor))
+              .addTo(map);
+          } catch {
+            // ignore popup errors
+          }
+        });
+      } catch {
+        // ignore
+      }
     }
   }, [flyToMonitorId, mapLoaded]);
+
+  // Automatically show the monitor popup when a node is selected from the
+  // sidebar or map. Removing the popup when selection clears.
+  useEffect(() => {
+    if (!mapLoaded || !mapRef.current) return;
+
+    const map = mapRef.current;
+
+    if (!selectedMonitorId) {
+      try {
+        monitorPopupRef.current?.remove();
+      } catch {}
+      return;
+    }
+
+    const monitor = allMonitorsRef.current.find(
+      (item) => item.id === selectedMonitorId,
+    );
+    if (!monitor) return;
+
+    try {
+      if (!monitorPopupRef.current) {
+        const mapboxgl = (window as any).mapboxgl;
+        monitorPopupRef.current = new mapboxgl.Popup({
+          closeButton: false,
+          closeOnClick: false,
+          className: 'network-monitor-tooltip',
+          offset: 18,
+        });
+      }
+
+      monitorPopupRef.current
+        .setLngLat([monitor.longitude, monitor.latitude])
+        .setHTML(buildMonitorTooltipMarkup(monitor))
+        .addTo(map);
+    } catch {
+      // ignore
+    }
+  }, [selectedMonitorId, mapLoaded]);
 
   return (
     <div className="relative h-full w-full">
