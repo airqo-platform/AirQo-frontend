@@ -2,8 +2,9 @@
 import Link from 'next/link';
 import type { ComponentType, SVGProps } from 'react';
 import React, { useEffect, useRef, useState } from 'react';
-import useLockBodyScroll from '@/hooks/useLockBodyScroll';
 import toast from 'react-hot-toast';
+
+import useLockBodyScroll from '@/hooks/useLockBodyScroll';
 
 interface IconMetadata {
   name: string;

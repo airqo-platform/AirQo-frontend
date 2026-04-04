@@ -3,10 +3,10 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
-import useLockBodyScroll from '@/hooks/useLockBodyScroll';
 import { FiChevronDown, FiX } from 'react-icons/fi';
 import { HiOutlineArrowTopRightOnSquare } from 'react-icons/hi2';
 
+import useLockBodyScroll from '@/hooks/useLockBodyScroll';
 import { NAV_ITEMS } from '@/lib/navItems';
 // Nav item types are defined in src/lib/navItems.ts; this component uses the shared NAV_ITEMS constant.
 
