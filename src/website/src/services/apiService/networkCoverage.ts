@@ -168,8 +168,12 @@ class NetworkCoverageService extends BaseApiService {
       { ...options, throwOnError: false },
     );
 
-    if (response.success && response.data) {
-      return response.data;
+    if (response.success) {
+      // Treat any successful response as success even if the server
+      // returns no payload (e.g., 201/204 responses). Return the data
+      // when present, otherwise return null to indicate success with
+      // no payload.
+      return response.data ?? null;
     }
 
     throw new Error(response.message || 'Failed to save registry record');

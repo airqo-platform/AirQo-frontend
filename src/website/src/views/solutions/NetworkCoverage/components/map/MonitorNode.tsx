@@ -16,7 +16,7 @@ const MonitorNode: React.FC<MonitorNodeProps> = ({
       className={`relative transition-transform ${selected ? 'scale-110' : ''}`}
     >
       <span
-        className={`grid h-7 w-7 place-items-center rounded-full border-2 bg-white shadow-sm ${
+        className={`grid h-11 w-11 place-items-center rounded-full border-2 bg-white shadow-sm ${
           selected ? 'ring-4 ring-blue-200' : ''
         }`}
         style={{ borderColor: ringColor }}
