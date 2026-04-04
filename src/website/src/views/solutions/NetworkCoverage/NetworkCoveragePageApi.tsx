@@ -2,6 +2,7 @@
 /* eslint-disable simple-import-sort/imports */
 
 import { AqLoading02 } from '@airqo/icons-react';
+import { FiMenu } from 'react-icons/fi';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -12,6 +13,8 @@ import {
   useNetworkCoverageMonitor,
   useNetworkCoverageSummary,
 } from '@/hooks/useApiHooks';
+import NetworkCoverageAddMonitorDialog from './components/NetworkCoverageAddMonitorDialog';
+import { useQueryClient } from '@tanstack/react-query';
 import { networkCoverageService } from '@/services/apiService';
 
 // Add-to-network dialog is not used — sidebar prompts link directly to Vertex
@@ -83,6 +86,14 @@ const NetworkCoveragePage = () => {
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [flyToMonitorId, setFlyToMonitorId] = useState<string | null>(null);
   const snapshotGetterRef = useRef<(() => Promise<string | null>) | null>(null);
+  const queryClient = useQueryClient();
+
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [addDialogCountry, setAddDialogCountry] = useState<{
+    id: string;
+    country?: string;
+    iso2?: string;
+  } | null>(null);
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -219,7 +230,26 @@ const NetworkCoveragePage = () => {
     setSelectedMonitorId(null);
     setShowAddMonitorPromptFor(null);
     setViewMode('monitors');
+    // Close the sidebar on mobile so the map is revealed; keep it open on larger screens.
+    try {
+      const isMobile =
+        typeof window !== 'undefined' && window.innerWidth < 1024;
+      setIsSidebarOpen(!isMobile);
+    } catch {
+      setIsSidebarOpen(true);
+    }
+  };
+
+  const handleOpenAddMonitor = (
+    countryId: string,
+    countryName?: string,
+    iso2?: string,
+  ) => {
+    setAddDialogCountry({ id: countryId, country: countryName, iso2 });
+    setIsAddDialogOpen(true);
     setIsSidebarOpen(true);
+    // Clear any stale empty-country prompt when opening the dialog
+    setShowAddMonitorPromptFor(null);
   };
 
   const selectCountryByIso = (iso2: string) => {
@@ -230,12 +260,30 @@ const NetworkCoveragePage = () => {
     selectCountry(country.id);
   };
 
-  const selectMonitor = (monitorId: string, countryId: string) => {
+  const selectMonitor = (
+    monitorId: string,
+    countryId: string,
+    fromMap = false,
+  ) => {
     setSelectedCountryId(countryId);
     setSelectedMonitorId(monitorId);
     setShowAddMonitorPromptFor(null);
     setViewMode('monitors');
-    setIsSidebarOpen(true);
+
+    // If the selection originates from the map, open the sidebar on mobile
+    // so users can see details; otherwise (sidebar selection) close the
+    // sidebar on small screens to reveal the map.
+    try {
+      const isMobile =
+        typeof window !== 'undefined' && window.innerWidth < 1024;
+      if (fromMap) {
+        setIsSidebarOpen(true);
+      } else {
+        setIsSidebarOpen(!isMobile);
+      }
+    } catch {
+      setIsSidebarOpen(true);
+    }
   };
 
   useEffect(() => {
@@ -251,15 +299,87 @@ const NetworkCoveragePage = () => {
 
   const toggleType = (type: MonitorType) => {
     setSelectedTypes((previous) => {
-      if (previous.includes(type)) {
-        if (previous.length === 1) {
-          return previous;
-        }
+      const has = previous.includes(type);
+      if (has) {
+        if (previous.length === 1) return previous;
         return previous.filter((item) => item !== type);
+      }
+
+      // If multiple types are already selected and the user clicks a new
+      // type (e.g. "Inactive"), assume they intend to isolate that type
+      // and show only it. This makes it easy to view "Inactive only".
+      if (previous.length > 1) {
+        return [type];
       }
 
       return [...previous, type];
     });
+  };
+
+  const handleAddSaved = async (response: any) => {
+    setIsAddDialogOpen(false);
+
+    const createdId = response?.registry?._id || response?.registry?.id;
+
+    // Invalidate coverage queries so UI reflects the added monitor
+    queryClient.invalidateQueries({
+      predicate: (query) => {
+        const k = Array.isArray(query.queryKey)
+          ? query.queryKey[0]
+          : query.queryKey;
+        return (
+          k === 'networkCoverageSummary' ||
+          k === 'networkCoverageCountryMonitors' ||
+          k === 'networkCoverageMonitor'
+        );
+      },
+    });
+
+    try {
+      // Ensure queries are refetched before attempting to select the new monitor
+      await queryClient.refetchQueries({
+        predicate: (query) => {
+          const k = Array.isArray(query.queryKey)
+            ? query.queryKey[0]
+            : query.queryKey;
+          return (
+            k === 'networkCoverageSummary' ||
+            k === 'networkCoverageCountryMonitors' ||
+            k === 'networkCoverageMonitor'
+          );
+        },
+      });
+    } catch {
+      // ignore refetch errors; we'll still attempt to select if possible
+    }
+
+    let monitorPresent = false;
+    if (createdId && addDialogCountry?.id) {
+      try {
+        const refreshed =
+          await networkCoverageService.getNetworkCoverageCountryMonitors(
+            addDialogCountry.id,
+            {
+              tenant: DEFAULT_TENANT,
+            },
+          );
+        if (refreshed && Array.isArray(refreshed.monitors)) {
+          monitorPresent = refreshed.monitors.some(
+            (m: any) => m.id === createdId || m._id === createdId,
+          );
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    if (addDialogCountry?.id) {
+      setSelectedCountryId(addDialogCountry.id);
+      if (createdId && monitorPresent) setSelectedMonitorId(createdId);
+      setIsSidebarOpen(true);
+    }
+
+    setAddDialogCountry(null);
   };
 
   const getPdfRows = async () => {
@@ -326,7 +446,7 @@ const NetworkCoveragePage = () => {
       doc.setFontSize(13);
       doc.setTextColor(255, 255, 255);
       doc.text(
-        'Africa Air Quality Monitoring — Network Coverage Report',
+        'Africa Air Quality Monitoring - Network Coverage Report',
         MARGIN,
         12,
       );
@@ -390,20 +510,33 @@ const NetworkCoveragePage = () => {
         cellPadding: 3,
       };
 
+      const summaryBody: string[][] = [];
+      summaryBody.push(['Total monitors', String(totalMonitors)]);
+      // Omit 'Countries covered' when a single country is selected
+      if (!selectedCountryId) {
+        summaryBody.push([
+          'Countries covered',
+          `${countriesMonitored} / ${totalAfricanCountries}`,
+        ]);
+      }
+      summaryBody.push([
+        'Reference monitors',
+        String(countsByType.Reference || 0),
+      ]);
+      summaryBody.push([
+        'Low-Cost Sensor (LCS) monitors',
+        String(countsByType.LCS || 0),
+      ]);
+      summaryBody.push(['Active monitors', String(countsByStatus.active || 0)]);
+      summaryBody.push([
+        'Inactive monitors',
+        String(countsByStatus.inactive || 0),
+      ]);
+
       const summaryTable = autoTable(doc, {
         startY: BODY_Y,
         head: [['Metric', 'Value']],
-        body: [
-          ['Total monitors', String(totalMonitors)],
-          [
-            'Countries covered',
-            `${countriesMonitored} / ${totalAfricanCountries}`,
-          ],
-          ['Reference monitors', String(countsByType.Reference || 0)],
-          ['Low-Cost Sensor (LCS) monitors', String(countsByType.LCS || 0)],
-          ['Active monitors', String(countsByStatus.active || 0)],
-          ['Inactive monitors', String(countsByStatus.inactive || 0)],
-        ],
+        body: summaryBody,
         theme: 'grid',
         styles: COMMON_STYLES,
         headStyles: {
@@ -475,7 +608,7 @@ const NetworkCoveragePage = () => {
             doc.setFontSize(12);
             doc.setTextColor(255, 255, 255);
             doc.text(
-              'Map Snapshot — Africa Air Quality Monitoring Network',
+              'Map Snapshot - Africa Air Quality Monitoring Network',
               MARGIN,
               10,
             );
@@ -488,10 +621,31 @@ const NetworkCoveragePage = () => {
               16,
             );
 
-            // Full-width map image below header
+            // Full-width map image below header — preserve aspect ratio and center
             const IMG_Y = HEADER_H + 4;
             const IMG_H = PAGE_H - IMG_Y - 14;
-            doc.addImage(dataUrl, 'PNG', MARGIN, IMG_Y, CONTENT_W, IMG_H);
+
+            // Measure image natural size to preserve aspect ratio
+            const img = new Image();
+            img.src = dataUrl;
+            await new Promise((resolve) => {
+              img.onload = () => resolve(null);
+              img.onerror = () => resolve(null);
+            });
+
+            const imgRatio =
+              img.naturalWidth && img.naturalHeight
+                ? img.naturalWidth / img.naturalHeight
+                : CONTENT_W / IMG_H;
+            let targetW = CONTENT_W;
+            let targetH = CONTENT_W / imgRatio;
+            if (targetH > IMG_H) {
+              targetH = IMG_H;
+              targetW = IMG_H * imgRatio;
+            }
+
+            const targetX = MARGIN + (CONTENT_W - targetW) / 2;
+            doc.addImage(dataUrl, 'PNG', targetX, IMG_Y, targetW, targetH);
 
             // Page 2 footer
             doc.setDrawColor(180, 185, 210);
@@ -527,16 +681,22 @@ const NetworkCoveragePage = () => {
 
   return (
     <div className="h-screen w-full overflow-hidden bg-[#f6f6f7]">
-      <div className="flex h-full flex-col p-2">
+      <div className="flex h-full flex-col gap-2 p-2">
         <NetworkCoverageHeader
-          onToggleSidebar={() => setIsSidebarOpen((previous) => !previous)}
           onDownload={handleDownload}
           isDownloading={isDownloading}
         />
 
-        {/* Add-to-network dialog removed — sidebar prompt opens Vertex directly */}
+        <NetworkCoverageAddMonitorDialog
+          isOpen={isAddDialogOpen}
+          onClose={() => setIsAddDialogOpen(false)}
+          initialCountryId={addDialogCountry?.id ?? undefined}
+          initialCountryName={addDialogCountry?.country}
+          initialCountryIso2={addDialogCountry?.iso2}
+          onSaved={handleAddSaved}
+        />
 
-        <main className="relative mt-2 flex min-h-0 flex-1 overflow-hidden rounded-xl border border-slate-200 bg-[#f6f6f7]">
+        <main className="relative flex min-h-0 flex-1 overflow-hidden rounded-xl border border-slate-200 bg-[#f6f6f7]">
           <div
             className={`absolute inset-0 z-30 bg-black/30 transition-opacity lg:hidden ${
               isSidebarOpen
@@ -568,7 +728,8 @@ const NetworkCoveragePage = () => {
               onToggleActiveOnly={() => setActiveOnly((previous) => !previous)}
               onSelectCountry={selectCountry}
               onSelectMonitor={selectMonitor}
-              // sidebar prompt opens Vertex directly (handled inside sidebar)
+              // sidebar prompt opens our dialog via onOpenAddMonitor
+              onOpenAddMonitor={handleOpenAddMonitor}
               onClosePrompt={() => setShowAddMonitorPromptFor(null)}
               onResetToOverview={resetToOverview}
               onRetry={() => summaryQuery.refetch()}
@@ -683,6 +844,15 @@ const NetworkCoveragePage = () => {
                 </option>
               </select>
             </div>
+            {/* Mobile map sidebar toggle — absolute and positioned slightly below the style selector */}
+            <button
+              type="button"
+              onClick={() => setIsSidebarOpen((previous) => !previous)}
+              aria-label="Toggle country sidebar"
+              className="lg:hidden absolute left-4 top-12 z-20 grid h-8 w-8 place-items-center rounded-md border border-slate-200 bg-white text-slate-500 shadow-sm transition-colors hover:bg-slate-50"
+            >
+              <FiMenu className="h-5 w-5" />
+            </button>
           </section>
         </main>
       </div>
