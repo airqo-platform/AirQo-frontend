@@ -24,6 +24,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
   const [name, setName] = useState('');
   const [city, setCity] = useState('');
   const [country, setCountry] = useState(initialCountryName || '');
+  const [iso2State, setIso2State] = useState(initialCountryIso2 || '');
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
   const [type, setType] = useState<'Reference' | 'LCS' | 'Inactive'>('LCS');
@@ -35,6 +36,16 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
   const [pollutants, setPollutants] = useState('');
   const [viewDataUrl, setViewDataUrl] = useState('');
   const [publicData, setPublicData] = useState<'Yes' | 'No'>('No');
+  const [site, setSite] = useState('');
+  const [deployed, setDeployed] = useState('');
+  const [calibrationLastDate, setCalibrationLastDate] = useState('');
+  const [calibrationMethod, setCalibrationMethod] = useState('');
+  const [uptime30d, setUptime30d] = useState('');
+  const [organisation, setOrganisation] = useState('');
+  const [coLocation, setCoLocation] = useState('');
+  const [coLocationNote, setCoLocationNote] = useState('');
+  const [resolution, setResolution] = useState('');
+  const [transmission, setTransmission] = useState('');
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [mapVisible, setMapVisible] = useState(false);
   const mapElRef = useRef<HTMLDivElement | null>(null);
@@ -51,6 +62,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
       setName('');
       setCity('');
       setCountry(initialCountryName || '');
+      setIso2State(initialCountryIso2 || '');
       setLatitude('');
       setLongitude('');
       setType('LCS');
@@ -62,12 +74,22 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
       setPollutants('');
       setViewDataUrl('');
       setPublicData('No');
+      setSite('');
+      setDeployed('');
+      setCalibrationLastDate('');
+      setCalibrationMethod('');
+      setUptime30d('');
+      setOrganisation('');
+      setCoLocation('');
+      setCoLocationNote('');
+      setResolution('');
+      setTransmission('');
       setAdvancedOpen(false);
       setMapVisible(false);
       setError(null);
       setSuccess(null);
     }
-  }, [isOpen, initialCountryName]);
+  }, [isOpen, initialCountryName, initialCountryIso2]);
 
   // Initialize map when the picker is opened
   useEffect(() => {
@@ -305,6 +327,19 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
       if (operator.trim()) payload.operator = operator.trim();
       if (equipment.trim()) payload.equipment = equipment.trim();
       if (manufacturer.trim()) payload.manufacturer = manufacturer.trim();
+      if (site.trim()) payload.site = site.trim();
+      if (deployed.trim()) payload.deployed = deployed.trim();
+      if (calibrationLastDate.trim())
+        payload.calibrationLastDate = calibrationLastDate.trim();
+      if (calibrationMethod.trim())
+        payload.calibrationMethod = calibrationMethod.trim();
+      if (uptime30d.trim()) payload.uptime30d = uptime30d.trim();
+      if (organisation.trim()) payload.organisation = organisation.trim();
+      if (coLocation.trim()) payload.coLocation = coLocation.trim();
+      if (coLocationNote.trim()) payload.coLocationNote = coLocationNote.trim();
+      if (resolution.trim()) payload.resolution = resolution.trim();
+      if (transmission.trim()) payload.transmission = transmission.trim();
+      if (iso2State.trim()) payload.iso2 = iso2State.trim();
       if (pollutants.trim())
         payload.pollutants = pollutants
           .split(',')
@@ -607,7 +642,136 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
                   <div className="mb-1 text-xs font-semibold text-slate-500">
                     Co-location
                   </div>
-                  <input className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300" />
+                  <input
+                    value={coLocation}
+                    onChange={(e) => setCoLocation(e.target.value)}
+                    placeholder="Yes / Not available / Location details"
+                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                  />
+                </label>
+              </div>
+            </div>
+          )}
+
+          {advancedOpen && (
+            <div className="mt-3 space-y-3">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="block sm:col-span-2">
+                  <div className="mb-1 text-xs font-semibold text-slate-500">
+                    Site
+                  </div>
+                  <input
+                    value={site}
+                    onChange={(e) => setSite(e.target.value)}
+                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                  />
+                </label>
+
+                <label className="block">
+                  <div className="mb-1 text-xs font-semibold text-slate-500">
+                    Organisation
+                  </div>
+                  <input
+                    value={organisation}
+                    onChange={(e) => setOrganisation(e.target.value)}
+                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                  />
+                </label>
+
+                <label className="block">
+                  <div className="mb-1 text-xs font-semibold text-slate-500">
+                    Deployed
+                  </div>
+                  <input
+                    value={deployed}
+                    onChange={(e) => setDeployed(e.target.value)}
+                    placeholder="e.g. Dec 2020"
+                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                  />
+                </label>
+
+                <label className="block">
+                  <div className="mb-1 text-xs font-semibold text-slate-500">
+                    Uptime (30d)
+                  </div>
+                  <input
+                    value={uptime30d}
+                    onChange={(e) => setUptime30d(e.target.value)}
+                    placeholder="e.g. 96%"
+                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                  />
+                </label>
+
+                <label className="block">
+                  <div className="mb-1 text-xs font-semibold text-slate-500">
+                    Calibration last date
+                  </div>
+                  <input
+                    value={calibrationLastDate}
+                    onChange={(e) => setCalibrationLastDate(e.target.value)}
+                    placeholder="e.g. Sep 2025"
+                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                  />
+                </label>
+
+                <label className="block">
+                  <div className="mb-1 text-xs font-semibold text-slate-500">
+                    Calibration method
+                  </div>
+                  <input
+                    value={calibrationMethod}
+                    onChange={(e) => setCalibrationMethod(e.target.value)}
+                    placeholder="e.g. Field co-location"
+                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                  />
+                </label>
+
+                <label className="block">
+                  <div className="mb-1 text-xs font-semibold text-slate-500">
+                    Co-location note
+                  </div>
+                  <input
+                    value={coLocationNote}
+                    onChange={(e) => setCoLocationNote(e.target.value)}
+                    placeholder="Extra context about co-location"
+                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                  />
+                </label>
+
+                <label className="block">
+                  <div className="mb-1 text-xs font-semibold text-slate-500">
+                    Resolution
+                  </div>
+                  <input
+                    value={resolution}
+                    onChange={(e) => setResolution(e.target.value)}
+                    placeholder="e.g. Hourly"
+                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                  />
+                </label>
+
+                <label className="block">
+                  <div className="mb-1 text-xs font-semibold text-slate-500">
+                    Transmission
+                  </div>
+                  <input
+                    value={transmission}
+                    onChange={(e) => setTransmission(e.target.value)}
+                    placeholder="e.g. GSM, Fiber"
+                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                  />
+                </label>
+
+                <label className="block">
+                  <div className="mb-1 text-xs font-semibold text-slate-500">
+                    ISO2 (optional)
+                  </div>
+                  <input
+                    value={iso2State}
+                    onChange={(e) => setIso2State(e.target.value)}
+                    placeholder="e.g. UG"
+                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                  />
                 </label>
               </div>
             </div>
