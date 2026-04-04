@@ -519,16 +519,41 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
         {selectedCountry && !selectedMonitor && (
           <div className="space-y-2">
             <div className="rounded-xl border border-slate-100 bg-gradient-to-br from-blue-50/70 to-slate-50 p-4">
-              <h3 className="text-xl font-bold text-slate-900">
-                {selectedCountry.country}
-              </h3>
-              <p className="mt-0.5 text-sm text-slate-500">
-                <span className="font-medium text-slate-700">
-                  {filteredCountryMonitors.length}
-                </span>{' '}
-                monitor{filteredCountryMonitors.length !== 1 ? 's' : ''}{' '}
-                available
-              </p>
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <h3 className="text-xl font-bold text-slate-900">
+                    {selectedCountry.country}
+                  </h3>
+                  <p className="mt-0.5 text-sm text-slate-500">
+                    <span className="font-medium text-slate-700">
+                      {filteredCountryMonitors.length}
+                    </span>{' '}
+                    monitor{filteredCountryMonitors.length !== 1 ? 's' : ''}{' '}
+                    available
+                  </p>
+                </div>
+
+                <div className="flex-shrink-0">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onOpenAddMonitor
+                        ? onOpenAddMonitor(
+                            selectedCountry.id,
+                            selectedCountry.country,
+                          )
+                        : window.open(
+                            'https://vertex.airqo.net',
+                            '_blank',
+                            'noopener,noreferrer',
+                          )
+                    }
+                    className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                  >
+                    Add monitor
+                  </button>
+                </div>
+              </div>
             </div>
 
             {filteredCountryMonitors.length === 0 ? (
