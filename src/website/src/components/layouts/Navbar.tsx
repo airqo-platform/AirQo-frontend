@@ -315,7 +315,9 @@ const Navbar: React.FC = () => {
                             ) : (
                               <Link
                                 href={item.href}
-                                target={shouldOpenInNewTab ? '_blank' : undefined}
+                                target={
+                                  shouldOpenInNewTab ? '_blank' : undefined
+                                }
                                 rel={
                                   shouldOpenInNewTab
                                     ? 'noopener noreferrer'
