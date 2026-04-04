@@ -1,19 +1,42 @@
+/* eslint-disable simple-import-sort/imports */
 import { AqMarkerPin01, AqSearchRefraction } from '@airqo/icons-react';
 import React from 'react';
 import { FiChevronLeft, FiChevronRight, FiX } from 'react-icons/fi';
-
 import {
   type MonitorType,
   type NetworkCoverageCountry,
   type NetworkCoverageMonitor,
 } from '../networkCoverageTypes';
 
-const ANALYTICS_APP_URL = 'https://analytics.airqo.net';
+const formatRelativeTime = (value?: string | null) => {
+  try {
+    if (!value) return '--';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return '--';
+    const diff = Date.now() - d.getTime();
+    const sec = Math.floor(diff / 1000);
+    if (sec < 60) return `${sec}s ago`;
+    const min = Math.floor(sec / 60);
+    if (min < 60) return `${min}m ago`;
+    const hr = Math.floor(min / 60);
+    if (hr < 24) return `${hr}h ago`;
+    const days = Math.floor(hr / 24);
+    if (days < 30) return `${days}d ago`;
+    return d.toLocaleDateString();
+  } catch {
+    return '--';
+  }
+};
 
-const typeDotClass: Record<MonitorType, string> = {
-  LCS: 'bg-blue-600',
-  Reference: 'bg-emerald-600',
-  Inactive: 'bg-slate-400',
+const formatMonthYear = (value?: string | null) => {
+  try {
+    if (!value) return '--';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return '--';
+    return d.toLocaleString(undefined, { month: 'short', year: 'numeric' });
+  } catch {
+    return '--';
+  }
 };
 
 const typeLabels: Record<MonitorType, string> = {
@@ -22,46 +45,26 @@ const typeLabels: Record<MonitorType, string> = {
   Inactive: 'Inactive',
 };
 
-const getBadgeClassesForMonitorType = (type: MonitorType) => {
-  if (type === 'Reference')
-    return 'inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700';
-  if (type === 'LCS')
-    return 'inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-700';
-  return 'inline-flex items-center rounded-full bg-slate-200 px-3 py-1 text-sm font-semibold text-slate-600';
+const typeDotClass: Record<MonitorType, string> = {
+  Reference: 'bg-emerald-400',
+  LCS: 'bg-blue-400',
+  Inactive: 'bg-slate-300',
 };
 
-const getStatusBadgeClasses = (status: string) => {
-  if (status === 'active')
-    return 'inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-sm font-semibold text-emerald-700';
-  if (status === 'inactive')
-    return 'inline-flex rounded-full bg-slate-200 px-2 py-0.5 text-sm font-semibold text-slate-600';
-  return 'inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-sm font-semibold text-slate-700';
+const getBadgeClassesForMonitorType = (t: MonitorType) => {
+  if (t === 'Reference')
+    return 'inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700';
+  if (t === 'LCS')
+    return 'inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700';
+  return 'inline-flex items-center gap-2 rounded-full bg-slate-50 px-3 py-1 text-sm font-semibold text-slate-700';
 };
 
-const formatRelativeTime = (iso?: string) => {
-  if (!iso) return '--';
-  try {
-    const then = new Date(iso).getTime();
-    const now = Date.now();
-    const diff = Math.floor((now - then) / 1000);
-    if (diff < 60) return `${diff}s ago`;
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-    return `${Math.floor(diff / 86400)}d ago`;
-  } catch {
-    return '--';
-  }
-};
+const getStatusBadgeClasses = (status: 'active' | 'inactive') =>
+  status === 'active'
+    ? 'inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700'
+    : 'inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600';
 
-const formatMonthYear = (iso?: string) => {
-  if (!iso) return '--';
-  try {
-    const d = new Date(iso);
-    return d.toLocaleString(undefined, { month: 'short', year: 'numeric' });
-  } catch {
-    return '--';
-  }
-};
+const ANALYTICS_APP_URL = 'https://analytics.airqo.net';
 
 const formatCoordinates = (lat: number | null, lon: number | null) => {
   if (typeof lat !== 'number' || typeof lon !== 'number') return '--';
@@ -75,8 +78,11 @@ const formatCoordinates = (lat: number | null, lon: number | null) => {
 const displayText = (value?: string | null) =>
   value && value.trim() ? value : '--';
 
-const formatNetworkName = (value?: string | null) =>
-  value && value.trim() ? value.trim() : '--';
+const formatNetworkName = (value?: string | null) => {
+  if (!value || !value.trim()) return '--';
+  const trimmed = value.trim();
+  return trimmed.toLowerCase() === 'airqo' ? 'AirQo' : trimmed;
+};
 
 const StatLine = ({
   label,
@@ -113,6 +119,11 @@ interface NetworkCoverageSidebarProps {
   onClosePrompt: () => void;
   onResetToOverview: () => void;
   onRetry?: () => void;
+  onOpenAddMonitor?: (
+    countryId: string,
+    countryName?: string,
+    iso2?: string,
+  ) => void;
   monitorLoading?: boolean;
 }
 
@@ -133,6 +144,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
   onClosePrompt,
   onResetToOverview,
   onRetry,
+  onOpenAddMonitor,
   isLoading = false,
   error = null,
   monitorLoading = false,
@@ -175,6 +187,26 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
   }, [selectedCountry, q]);
 
   const isOverviewLoading = isLoading && !selectedCountry;
+
+  // Validate the monitor-provided view URL before enabling navigation.
+  // Only absolute http(s) URLs are allowed to avoid opening non-web schemes.
+  const validatedViewDataUrl = React.useMemo(() => {
+    try {
+      const raw = selectedMonitor?.viewDataUrl?.trim();
+      if (!raw) return null;
+      try {
+        const parsed = new URL(raw);
+        if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+          return parsed.href;
+        }
+        return null;
+      } catch {
+        return null;
+      }
+    } catch {
+      return null;
+    }
+  }, [selectedMonitor?.viewDataUrl]);
 
   return (
     <aside className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm lg:rounded-none lg:border-0 lg:border-r lg:border-slate-200 lg:shadow-none">
@@ -474,11 +506,17 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                         <button
                           type="button"
                           onClick={() =>
-                            window.open(
-                              'https://vertex.airqo.net',
-                              '_blank',
-                              'noopener,noreferrer',
-                            )
+                            onOpenAddMonitor
+                              ? onOpenAddMonitor(
+                                  country.id,
+                                  country.country,
+                                  country.iso2,
+                                )
+                              : window.open(
+                                  'https://vertex.airqo.net',
+                                  '_blank',
+                                  'noopener,noreferrer',
+                                )
                           }
                           className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700"
                         >
@@ -512,16 +550,42 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
         {selectedCountry && !selectedMonitor && (
           <div className="space-y-2">
             <div className="rounded-xl border border-slate-100 bg-gradient-to-br from-blue-50/70 to-slate-50 p-4">
-              <h3 className="text-xl font-bold text-slate-900">
-                {selectedCountry.country}
-              </h3>
-              <p className="mt-0.5 text-sm text-slate-500">
-                <span className="font-medium text-slate-700">
-                  {filteredCountryMonitors.length}
-                </span>{' '}
-                monitor{filteredCountryMonitors.length !== 1 ? 's' : ''}{' '}
-                available
-              </p>
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <h3 className="text-xl font-bold text-slate-900">
+                    {selectedCountry.country}
+                  </h3>
+                  <p className="mt-0.5 text-sm text-slate-500">
+                    <span className="font-medium text-slate-700">
+                      {filteredCountryMonitors.length}
+                    </span>{' '}
+                    monitor{filteredCountryMonitors.length !== 1 ? 's' : ''}{' '}
+                    available
+                  </p>
+                </div>
+
+                <div className="flex-shrink-0">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onOpenAddMonitor
+                        ? onOpenAddMonitor(
+                            selectedCountry.id,
+                            selectedCountry.country,
+                            selectedCountry.iso2,
+                          )
+                        : window.open(
+                            'https://vertex.airqo.net',
+                            '_blank',
+                            'noopener,noreferrer',
+                          )
+                    }
+                    className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                  >
+                    Add monitor
+                  </button>
+                </div>
+              </div>
             </div>
 
             {filteredCountryMonitors.length === 0 ? (
@@ -623,7 +687,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
 
             {/* Network */}
             <div className="border-b border-slate-100 p-4">
-              <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400">
+              <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
                 Network
               </h4>
               <p className="mb-2 text-base font-semibold text-slate-900">
@@ -651,7 +715,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
 
             {/* Equipment */}
             <div className="border-b border-slate-100 p-4">
-              <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400">
+              <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
                 Equipment
               </h4>
               <StatLine
@@ -682,7 +746,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
 
             {/* Location */}
             <div className="border-b border-slate-100 p-4">
-              <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400">
+              <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
                 Location
               </h4>
               <StatLine
@@ -708,7 +772,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
 
             {/* Calibration */}
             <div className="border-b border-slate-100 p-4">
-              <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400">
+              <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
                 Calibration
               </h4>
               <StatLine
@@ -727,14 +791,41 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
 
             {/* Data Access */}
             <div className="border-b border-slate-100 p-4">
-              <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400">
+              <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
                 Data Access
               </h4>
               <StatLine
                 label="Public Data"
                 value={displayText(selectedMonitor.publicData)}
               />
-              <div className="mt-3">
+              <div className="mt-3 flex flex-wrap gap-2">
+                {/* View data (from monitor.viewDataUrl) */}
+                {/**
+                 * If monitor provides a `viewDataUrl`, enable the button and
+                 * open it in a new tab. Otherwise keep the button disabled.
+                 */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!validatedViewDataUrl) return;
+                    window.open(
+                      validatedViewDataUrl,
+                      '_blank',
+                      'noopener,noreferrer',
+                    );
+                  }}
+                  disabled={!validatedViewDataUrl}
+                  className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors ${
+                    validatedViewDataUrl
+                      ? 'bg-blue-600 text-white hover:bg-blue-700'
+                      : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                  }`}
+                >
+                  Visit website
+                  <FiChevronRight className="h-4 w-4" />
+                </button>
+
+                {/* View on analytics (generic analytics app) */}
                 <button
                   type="button"
                   onClick={() =>
@@ -746,7 +837,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                   }
                   className="inline-flex items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-100 active:bg-blue-200"
                 >
-                  View Data
+                  View on analytics
                   <FiChevronRight className="h-4 w-4" />
                 </button>
               </div>
@@ -754,12 +845,17 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
 
             {/* Organisation */}
             <div className="p-4">
-              <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400">
+              <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
                 Organisation
               </h4>
               <StatLine
                 label="Organisation"
-                value={displayText(selectedMonitor.organisation)}
+                value={
+                  selectedMonitor.organisation &&
+                  selectedMonitor.organisation.trim().toLowerCase() === 'airqo'
+                    ? 'AirQo'
+                    : displayText(selectedMonitor.organisation)
+                }
               />
               <StatLine
                 label="Co-location"

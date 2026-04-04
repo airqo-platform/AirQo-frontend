@@ -4,6 +4,8 @@ import type { ComponentType, SVGProps } from 'react';
 import React, { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 
+import useLockBodyScroll from '@/hooks/useLockBodyScroll';
+
 interface IconMetadata {
   name: string;
   component: ComponentType<SVGProps<SVGSVGElement>>;
@@ -29,6 +31,10 @@ export default function IconPreviewDialog({
 
   const modalRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  // Coordinate body scroll locking with a shared hook so other overlays
+  // don't clobber the page scroll state.
+  useLockBodyScroll(isOpen);
 
   // Handle Escape key to close dialog and focus trapping
   useEffect(() => {
@@ -68,8 +74,6 @@ export default function IconPreviewDialog({
 
       document.addEventListener('keydown', handleEscape);
       document.addEventListener('keydown', handleTab);
-      // Prevent body scroll when dialog is open
-      document.body.style.overflow = 'hidden';
 
       // Focus the first focusable element in the modal
       setTimeout(() => {
@@ -87,7 +91,6 @@ export default function IconPreviewDialog({
     return () => {
       document.removeEventListener('keydown', handleEscape);
       document.removeEventListener('keydown', handleTab);
-      document.body.style.overflow = 'unset';
 
       // Restore focus when modal closes
       if (previousFocusRef.current) {
