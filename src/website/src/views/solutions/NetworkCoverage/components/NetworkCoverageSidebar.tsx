@@ -1,62 +1,74 @@
 import { AqMarkerPin01, AqSearchRefraction } from '@airqo/icons-react';
 import React from 'react';
 import { FiChevronLeft, FiChevronRight, FiX } from 'react-icons/fi';
+            {/* Data Access */}
+            {(() => {
+              // Validate viewDataUrl to ensure it is an absolute http(s) URL
+              const urlStr = selectedMonitor?.viewDataUrl?.trim();
+              let validatedViewDataUrl: string | null = null;
+              if (urlStr) {
+                try {
+                  const parsed = new URL(urlStr);
+                  if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+                    validatedViewDataUrl = parsed.href;
+                  }
+                } catch {
+                  validatedViewDataUrl = null;
+                }
+              }
 
-import {
-  type MonitorType,
-  type NetworkCoverageCountry,
-  type NetworkCoverageMonitor,
-} from '../networkCoverageTypes';
+              return (
+                <div className="border-b border-slate-100 p-4">
+                  <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
+                    Data Access
+                  </h4>
+                  <StatLine
+                    label="Public Data"
+                    value={displayText(selectedMonitor.publicData)}
+                  />
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {/* View data (from monitor.viewDataUrl) */}
+                    {/**
+                     * If monitor provides a validated absolute `viewDataUrl`, enable the button and
+                     * open it in a new tab. Otherwise keep the button disabled.
+                     */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (validatedViewDataUrl) {
+                          window.open(validatedViewDataUrl, '_blank', 'noopener,noreferrer');
+                        }
+                      }}
+                      disabled={!validatedViewDataUrl}
+                      className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors ${
+                        validatedViewDataUrl
+                          ? 'bg-blue-600 text-white hover:bg-blue-700'
+                          : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                      }`}
+                    >
+                      Visit website
+                      <FiChevronRight className="h-4 w-4" />
+                    </button>
 
-const ANALYTICS_APP_URL = 'https://analytics.airqo.net';
-
-const typeDotClass: Record<MonitorType, string> = {
-  LCS: 'bg-blue-600',
-  Reference: 'bg-emerald-600',
-  Inactive: 'bg-slate-400',
-};
-
-const typeLabels: Record<MonitorType, string> = {
-  Reference: 'Reference',
-  LCS: 'Low-Cost Sensor (LCS)',
-  Inactive: 'Inactive',
-};
-
-const getBadgeClassesForMonitorType = (type: MonitorType) => {
-  if (type === 'Reference')
-    return 'inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700';
-  if (type === 'LCS')
-    return 'inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-700';
-  return 'inline-flex items-center rounded-full bg-slate-200 px-3 py-1 text-sm font-semibold text-slate-600';
-};
-
-const getStatusBadgeClasses = (status: string) => {
-  if (status === 'active')
-    return 'inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-sm font-semibold text-emerald-700';
-  if (status === 'inactive')
-    return 'inline-flex rounded-full bg-slate-200 px-2 py-0.5 text-sm font-semibold text-slate-600';
-  return 'inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-sm font-semibold text-slate-700';
-};
-
-const formatRelativeTime = (iso?: string) => {
-  if (!iso) return '--';
-  try {
-    const then = new Date(iso).getTime();
-    const now = Date.now();
-    const diff = Math.floor((now - then) / 1000);
-    if (diff < 60) return `${diff}s ago`;
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-    return `${Math.floor(diff / 86400)}d ago`;
-  } catch {
-    return '--';
-  }
-};
-
-const formatMonthYear = (iso?: string) => {
-  if (!iso) return '--';
-  try {
-    const d = new Date(iso);
+                    {/* View on analytics (generic analytics app) */}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        window.open(
+                          ANALYTICS_APP_URL,
+                          '_blank',
+                          'noopener,noreferrer',
+                        )
+                      }
+                      className="inline-flex items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-100 active:bg-blue-200"
+                    >
+                      View on analytics
+                      <FiChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
     return d.toLocaleString(undefined, { month: 'short', year: 'numeric' });
   } catch {
     return '--';

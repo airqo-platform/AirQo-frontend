@@ -52,6 +52,8 @@ const NetworkCoverageNavDrawer: React.FC<NetworkCoverageNavDrawerProps> = ({
     setExpandedSection((prev) => (prev === title ? null : title));
   };
 
+  if (!isOpen) return null;
+
   return (
     <>
       {/* Backdrop */}

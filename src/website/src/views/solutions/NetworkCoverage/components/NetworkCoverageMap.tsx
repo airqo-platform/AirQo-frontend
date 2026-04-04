@@ -474,8 +474,9 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       await new Promise((resolve) => window.requestAnimationFrame(resolve));
 
       const deviceScale = window.devicePixelRatio || 1;
-      // Increase capture scale for higher-resolution snapshots (cap to 4x)
-      const captureScale = Math.min(deviceScale * 2, 4);
+      // Use a conservative cap for snapshot scale to avoid extremely large canvases
+      // on high-DPI devices. Limit to 2x to keep memory usage reasonable.
+      const captureScale = Math.min(deviceScale, 2);
 
       const canvas = await html2canvas(mapContainerRef.current, {
         backgroundColor: null,
@@ -486,7 +487,13 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       });
 
       return canvas.toDataURL('image/png');
-    } catch {
+    } catch (err: any) {
+      console.error('Snapshot capture failed', err);
+      try {
+        toast.error(
+          'Failed to capture map snapshot: ' + (err?.message || 'Unknown error'),
+        );
+      } catch {}
       return null;
     }
   };

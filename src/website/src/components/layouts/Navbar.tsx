@@ -229,26 +229,22 @@ const Navbar: React.FC = () => {
       </nav>
 
       {/* ── Mobile Navigation Drawer ── */}
-      {/* Backdrop */}
-      <div
-        aria-hidden="true"
-        className={`fixed inset-0 z-[9990] bg-black/40 backdrop-blur-sm transition-opacity duration-300 md:hidden ${
-          menuOpen
-            ? 'pointer-events-auto opacity-100'
-            : 'pointer-events-none opacity-0'
-        }`}
-        onClick={handleLinkClick}
-      />
+      {menuOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            aria-hidden="true"
+            className="fixed inset-0 z-[9990] bg-black/40 backdrop-blur-sm md:hidden pointer-events-auto opacity-100"
+            onClick={handleLinkClick}
+          />
 
-      {/* Drawer panel */}
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label="Site navigation"
-        className={`fixed inset-y-0 left-0 z-[9995] flex w-[300px] max-w-[88vw] flex-col bg-white shadow-2xl transition-transform duration-300 ease-in-out md:hidden ${
-          menuOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
+          {/* Drawer panel */}
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Site navigation"
+            className="fixed inset-y-0 left-0 z-[9995] flex w-[300px] max-w-[88vw] flex-col bg-white shadow-2xl md:hidden translate-x-0"
+          >
         {/* Drawer Header */}
         <div className="flex flex-shrink-0 items-center justify-between border-b border-gray-100 px-4 py-3.5">
           <Link href={mainConfig.homePageUrl} onClick={handleLinkClick}>
@@ -382,7 +378,8 @@ const Navbar: React.FC = () => {
             Explore data
           </button>
         </div>
-      </div>
+      </>
+    )}
     </div>
   );
 };

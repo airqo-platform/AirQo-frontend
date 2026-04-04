@@ -52,6 +52,9 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
   const mapInstanceRef = useRef<any | null>(null);
   const mapMarkerRef = useRef<any | null>(null);
 
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  const previousActiveElementRef = useRef<HTMLElement | null>(null);
+
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -269,7 +272,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
       mapInstanceRef.current = null;
       mapMarkerRef.current = null;
     };
-  }, [mapVisible, initialCountryIso2, latitude, longitude]);
+  }, [mapVisible, initialCountryIso2]);
 
   // Keep marker in sync when lat/lon inputs change while map is visible
   useEffect(() => {
@@ -286,6 +289,68 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
     }
   }, [latitude, longitude, mapVisible]);
 
+  // Dialog focus management & Escape handling
+  useEffect(() => {
+    if (!isOpen) return;
+    previousActiveElementRef.current = document.activeElement as HTMLElement | null;
+    const dialog = dialogRef.current;
+
+    const focusFirst = () => {
+      try {
+        if (dialog) {
+          const focusable = dialog.querySelectorAll<HTMLElement>(
+            'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+          );
+          if (focusable.length) {
+            focusable[0].focus();
+            return;
+          }
+        }
+        dialog?.focus();
+      } catch {}
+    };
+
+    focusFirst();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (!isSaving) {
+          e.preventDefault();
+          onClose();
+        }
+      }
+
+      if (e.key === 'Tab' && dialog) {
+        const focusable = Array.from(
+          dialog.querySelectorAll<HTMLElement>(
+            'a[href], area[href], input:not([disabled]):not([tabindex="-1"]), select:not([disabled]):not([tabindex="-1"]), textarea:not([disabled]):not([tabindex="-1"]), button:not([disabled]):not([tabindex="-1"]), [tabindex]:not([tabindex="-1"])',
+          ),
+        ).filter(Boolean) as HTMLElement[];
+        if (focusable.length === 0) {
+          e.preventDefault();
+          return;
+        }
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        } else if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      try {
+        previousActiveElementRef.current?.focus();
+      } catch {}
+    };
+  }, [isOpen, isSaving, onClose]);
+
   if (!isOpen) return null;
 
   const validate = () => {
@@ -297,6 +362,9 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
     const lon = Number(longitude);
     if (!Number.isFinite(lat) || !Number.isFinite(lon))
       return 'Coordinates must be valid numbers';
+    if (lat < -90 || lat > 90) return 'Latitude must be between -90 and 90';
+    if (lon < -180 || lon > 180)
+      return 'Longitude must be between -180 and 180';
     return null;
   };
 
@@ -322,7 +390,11 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
         status,
       };
 
-      if (initialCountryId) payload.countryId = initialCountryId;
+      if (
+        initialCountryId &&
+        country.trim() === (initialCountryName || '').trim()
+      )
+        payload.countryId = initialCountryId;
       if (network.trim()) payload.network = network.trim();
       if (operator.trim()) payload.operator = operator.trim();
       if (equipment.trim()) payload.equipment = equipment.trim();
@@ -373,9 +445,16 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
         }}
       />
 
-      <div className="relative z-60 w-[95vw] max-w-2xl rounded-lg bg-white shadow-xl">
+      <div
+        ref={dialogRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="add-monitor-dialog-title"
+        className="relative z-60 w-[95vw] max-w-2xl rounded-lg bg-white shadow-xl"
+      >
         <div className="flex items-center justify-between border-b px-4 py-3">
-          <h3 className="text-sm font-semibold">Add monitor to network</h3>
+          <h3 id="add-monitor-dialog-title" className="text-sm font-semibold">Add monitor to network</h3>
           <button
             type="button"
             onClick={onClose}

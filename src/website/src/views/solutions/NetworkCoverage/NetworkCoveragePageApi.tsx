@@ -248,6 +248,8 @@ const NetworkCoveragePage = () => {
     setAddDialogCountry({ id: countryId, country: countryName, iso2 });
     setIsAddDialogOpen(true);
     setIsSidebarOpen(true);
+    // Clear any stale empty-country prompt when opening the dialog
+    setShowAddMonitorPromptFor(null);
   };
 
   const selectCountryByIso = (iso2: string) => {
@@ -333,9 +335,43 @@ const NetworkCoveragePage = () => {
       },
     });
 
+    try {
+      // Ensure queries are refetched before attempting to select the new monitor
+      await queryClient.refetchQueries({
+        predicate: (query) => {
+          const k = Array.isArray(query.queryKey)
+            ? query.queryKey[0]
+            : query.queryKey;
+          return (
+            k === 'networkCoverageSummary' ||
+            k === 'networkCoverageCountryMonitors' ||
+            k === 'networkCoverageMonitor'
+          );
+        },
+      });
+    } catch {
+      // ignore refetch errors; we'll still attempt to select if possible
+    }
+
+    let monitorPresent = false;
+    if (createdId && addDialogCountry?.id) {
+      try {
+        const refreshed = await networkCoverageService.getNetworkCoverageCountryMonitors(addDialogCountry.id, {
+          tenant: DEFAULT_TENANT,
+        });
+        if (refreshed && Array.isArray(refreshed.monitors)) {
+          monitorPresent = refreshed.monitors.some(
+            (m: any) => m.id === createdId || m._id === createdId,
+          );
+        }
+      } catch {
+        // ignore
+      }
+    }
+
     if (addDialogCountry?.id) {
       setSelectedCountryId(addDialogCountry.id);
-      if (createdId) setSelectedMonitorId(createdId);
+      if (createdId && monitorPresent) setSelectedMonitorId(createdId);
       setIsSidebarOpen(true);
     }
 
