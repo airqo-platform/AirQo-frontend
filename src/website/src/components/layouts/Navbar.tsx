@@ -284,58 +284,61 @@ const Navbar: React.FC = () => {
                   className={`overflow-hidden transition-all duration-300 ease-in-out ${
                     expandedMenu === title
                       ? 'max-h-[500px] opacity-100'
-                      : 'max-h-0 opacity-0'
+                      : 'max-h-0 opacity-0 pointer-events-none'
                   }`}
+                  aria-hidden={expandedMenu !== title}
                 >
-                  <ul className="space-y-0.5 px-3 pb-3">
-                    {items.map((item) => {
-                      const isExternal = item.href.startsWith('http');
-                      const shouldOpenInNewTab = isExternal || item.newTab;
-                      return (
-                        <li key={item.href}>
-                          {shouldOpenInNewTab ? (
-                            <a
-                              href={item.href}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={handleLinkClick}
-                              className="flex flex-col rounded-lg px-3 py-2 transition-colors hover:bg-blue-50"
-                            >
-                              <span className="text-sm font-medium text-gray-800 hover:text-blue-700 translate-element">
-                                {item.title}
-                              </span>
-                              {item.description && (
-                                <span className="mt-0.5 text-xs leading-snug text-gray-500 translate-element">
-                                  {item.description}
+                  {expandedMenu === title && (
+                    <ul className="space-y-0.5 px-3 pb-3">
+                      {items.map((item) => {
+                        const isExternal = item.href.startsWith('http');
+                        const shouldOpenInNewTab = isExternal || item.newTab;
+                        return (
+                          <li key={item.href}>
+                            {shouldOpenInNewTab ? (
+                              <a
+                                href={item.href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={handleLinkClick}
+                                className="flex flex-col rounded-lg px-3 py-2 transition-colors hover:bg-blue-50"
+                              >
+                                <span className="text-sm font-medium text-gray-800 hover:text-blue-700 translate-element">
+                                  {item.title}
                                 </span>
-                              )}
-                            </a>
-                          ) : (
-                            <Link
-                              href={item.href}
-                              target={shouldOpenInNewTab ? '_blank' : undefined}
-                              rel={
-                                shouldOpenInNewTab
-                                  ? 'noopener noreferrer'
-                                  : undefined
-                              }
-                              onClick={handleLinkClick}
-                              className="flex flex-col rounded-lg px-3 py-2 transition-colors hover:bg-blue-50 translate-element"
-                            >
-                              <span className="text-sm font-medium text-gray-800 hover:text-blue-700 translate-element">
-                                {item.title}
-                              </span>
-                              {item.description && (
-                                <span className="mt-0.5 text-xs leading-snug text-gray-500 translate-element">
-                                  {item.description}
+                                {item.description && (
+                                  <span className="mt-0.5 text-xs leading-snug text-gray-500 translate-element">
+                                    {item.description}
+                                  </span>
+                                )}
+                              </a>
+                            ) : (
+                              <Link
+                                href={item.href}
+                                target={shouldOpenInNewTab ? '_blank' : undefined}
+                                rel={
+                                  shouldOpenInNewTab
+                                    ? 'noopener noreferrer'
+                                    : undefined
+                                }
+                                onClick={handleLinkClick}
+                                className="flex flex-col rounded-lg px-3 py-2 transition-colors hover:bg-blue-50 translate-element"
+                              >
+                                <span className="text-sm font-medium text-gray-800 hover:text-blue-700 translate-element">
+                                  {item.title}
                                 </span>
-                              )}
-                            </Link>
-                          )}
-                        </li>
-                      );
-                    })}
-                  </ul>
+                                {item.description && (
+                                  <span className="mt-0.5 text-xs leading-snug text-gray-500 translate-element">
+                                    {item.description}
+                                  </span>
+                                )}
+                              </Link>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
                 </div>
               </div>
             ))}
