@@ -1,5 +1,6 @@
 /* eslint-disable simple-import-sort/imports */
 import React, { useEffect, useRef, useState } from 'react';
+import HCaptcha from '@hcaptcha/react-hcaptcha';
 import { FiX, FiMinus, FiPlus } from 'react-icons/fi';
 
 import { networkCoverageService } from '@/services/apiService';
@@ -54,6 +55,11 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
 
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const previousActiveElementRef = useRef<HTMLElement | null>(null);
+
+  // hCaptcha token
+  const [captchaToken, setCaptchaToken] = useState('');
+  const captchaRef = useRef<any>(null);
+  const siteKey = process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY;
 
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -385,6 +391,13 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
       return;
     }
 
+    // If hCaptcha site key is configured, require a captcha token before submitting
+    const siteKey = process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY;
+    if (siteKey && !captchaToken) {
+      setError('Please complete the CAPTCHA to continue.');
+      return;
+    }
+
     setIsSaving(true);
 
     try {
@@ -428,11 +441,18 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
       if (viewDataUrl.trim()) payload.viewDataUrl = viewDataUrl.trim();
       if (publicData) payload.publicData = publicData;
 
+      if (siteKey && captchaToken) payload.captchaToken = captchaToken;
+
       const response =
         await networkCoverageService.upsertNetworkCoverageRegistry(payload);
 
       setSuccess('Monitor saved');
       if (onSaved) onSaved(response);
+      // reset captcha token (if any)
+      try {
+        setCaptchaToken('');
+        (captchaRef.current as any)?.resetCaptcha?.();
+      } catch {}
       // small delay to show success then close
       setTimeout(() => {
         setIsSaving(false);
@@ -440,6 +460,11 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
       }, 600);
     } catch (err: any) {
       setError(err?.message || 'Failed to save monitor');
+      // allow retry; reset captcha so user can re-run challenge
+      try {
+        setCaptchaToken('');
+        (captchaRef.current as any)?.resetCaptcha?.();
+      } catch {}
       setIsSaving(false);
     }
   };
@@ -461,7 +486,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
         aria-labelledby="add-monitor-dialog-title"
         className="relative z-60 w-[95vw] max-w-2xl rounded-lg bg-white shadow-xl"
       >
-          <div className="flex items-center justify-between border-b px-4 py-3">
+        <div className="flex items-center justify-between border-b px-4 py-3">
           <h3 id="add-monitor-dialog-title" className="text-sm font-semibold">
             Add monitor to network
           </h3>
@@ -871,6 +896,21 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
             </div>
           )}
 
+          {/* CAPTCHA (hCaptcha) — optional when NEXT_PUBLIC_HCAPTCHA_SITE_KEY is set */}
+          <div className="px-4 pb-4">
+            {siteKey ? (
+              <HCaptcha
+                sitekey={siteKey}
+                onVerify={(token: string) => setCaptchaToken(token)}
+                onExpire={() => setCaptchaToken('')}
+                onError={() =>
+                  setError('Captcha validation failed. Please try again.')
+                }
+                ref={captchaRef}
+              />
+            ) : null}
+          </div>
+
           {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
           {success && (
             <p className="mt-3 text-sm text-emerald-700">{success}</p>
@@ -889,8 +929,9 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={isSaving}
-            className="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-700"
+            disabled={isSaving || (siteKey ? !captchaToken : false)}
+            aria-disabled={isSaving || (siteKey ? !captchaToken : false)}
+            className="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSaving ? 'Saving…' : 'Save monitor'}
           </button>

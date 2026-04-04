@@ -808,7 +808,11 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                   type="button"
                   onClick={() => {
                     if (!validatedViewDataUrl) return;
-                    window.open(validatedViewDataUrl, '_blank', 'noopener,noreferrer');
+                    window.open(
+                      validatedViewDataUrl,
+                      '_blank',
+                      'noopener,noreferrer',
+                    );
                   }}
                   disabled={!validatedViewDataUrl}
                   className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors ${
