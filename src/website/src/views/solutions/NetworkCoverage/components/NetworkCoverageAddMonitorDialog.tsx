@@ -1,3 +1,4 @@
+/* eslint-disable simple-import-sort/imports */
 import React, { useEffect, useRef, useState } from 'react';
 import { FiX, FiMinus, FiPlus } from 'react-icons/fi';
 
@@ -246,7 +247,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
       mapInstanceRef.current = null;
       mapMarkerRef.current = null;
     };
-  }, [mapVisible, initialCountryIso2]);
+  }, [mapVisible, initialCountryIso2, latitude, longitude]);
 
   // Keep marker in sync when lat/lon inputs change while map is visible
   useEffect(() => {

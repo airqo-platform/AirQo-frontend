@@ -442,7 +442,6 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
 
     mapRef.current.on('zoomend', () => {
       // zoom end handler (no-op logging removed)
-      const currentZoom = mapRef.current.getZoom();
     });
 
     mapRef.current.on('moveend', () => {
