@@ -188,6 +188,26 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
 
   const isOverviewLoading = isLoading && !selectedCountry;
 
+  // Validate the monitor-provided view URL before enabling navigation.
+  // Only absolute http(s) URLs are allowed to avoid opening non-web schemes.
+  const validatedViewDataUrl = React.useMemo(() => {
+    try {
+      const raw = selectedMonitor?.viewDataUrl?.trim();
+      if (!raw) return null;
+      try {
+        const parsed = new URL(raw);
+        if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+          return parsed.href;
+        }
+        return null;
+      } catch {
+        return null;
+      }
+    } catch {
+      return null;
+    }
+  }, [selectedMonitor?.viewDataUrl]);
+
   return (
     <aside className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm lg:rounded-none lg:border-0 lg:border-r lg:border-slate-200 lg:shadow-none">
       {/* ── Header ── */}
@@ -787,18 +807,12 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                 <button
                   type="button"
                   onClick={() => {
-                    const url = selectedMonitor.viewDataUrl?.trim();
-                    if (url) {
-                      window.open(url, '_blank', 'noopener,noreferrer');
-                    }
+                    if (!validatedViewDataUrl) return;
+                    window.open(validatedViewDataUrl, '_blank', 'noopener,noreferrer');
                   }}
-                  disabled={
-                    !selectedMonitor.viewDataUrl ||
-                    !selectedMonitor.viewDataUrl.trim()
-                  }
+                  disabled={!validatedViewDataUrl}
                   className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors ${
-                    selectedMonitor.viewDataUrl &&
-                    selectedMonitor.viewDataUrl.trim()
+                    validatedViewDataUrl
                       ? 'bg-blue-600 text-white hover:bg-blue-700'
                       : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                   }`}

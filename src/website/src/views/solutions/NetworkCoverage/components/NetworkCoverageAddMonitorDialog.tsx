@@ -461,14 +461,19 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
         aria-labelledby="add-monitor-dialog-title"
         className="relative z-60 w-[95vw] max-w-2xl rounded-lg bg-white shadow-xl"
       >
-        <div className="flex items-center justify-between border-b px-4 py-3">
+          <div className="flex items-center justify-between border-b px-4 py-3">
           <h3 id="add-monitor-dialog-title" className="text-sm font-semibold">
             Add monitor to network
           </h3>
           <button
             type="button"
-            onClick={onClose}
-            className="rounded-md p-1 text-slate-500 hover:bg-slate-100"
+            onClick={() => {
+              if (isSaving) return;
+              onClose();
+            }}
+            disabled={isSaving}
+            aria-disabled={isSaving}
+            className="rounded-md p-1 text-slate-500 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Close dialog"
           >
             <FiX className="h-5 w-5" />

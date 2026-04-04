@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
+import useLockBodyScroll from '@/hooks/useLockBodyScroll';
 import { FiChevronDown, FiX } from 'react-icons/fi';
 import { HiOutlineArrowTopRightOnSquare } from 'react-icons/hi2';
 
@@ -31,18 +32,8 @@ const NetworkCoverageNavDrawer: React.FC<NetworkCoverageNavDrawerProps> = ({
     return undefined;
   }, [isOpen]);
 
-  // Lock body scroll while drawer is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
+  // Use shared scroll-lock so multiple overlays don't clobber each other.
+  useLockBodyScroll(isOpen);
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Escape') onClose();

@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useState } from 'react';
+import useLockBodyScroll from '@/hooks/useLockBodyScroll';
 import { RiCloseFill } from 'react-icons/ri';
 import { TbChevronDown, TbMenu } from 'react-icons/tb';
 
@@ -116,26 +117,8 @@ const Navbar: React.FC = () => {
     setExpandedMenu(null);
   }, []);
 
-  // Lock body scroll while mobile drawer is open
-  // NOTE: This implementation writes directly to `document.body.style.overflow`.
-  // Potential issues:
-  // - If the viewport crosses the `md` breakpoint the drawer may become hidden
-  //   via CSS (e.g. `md:hidden`) while the body remains locked.
-  // - Multiple overlays (modals/drawers) can clobber each other's locks when
-  //   each writes '' on unmount/close.
-  // Recommendation: use a shared scroll-lock utility (e.g. `useLockBodyScroll`)
-  // or a lock-counter service and make the behavior breakpoint-aware
-  // (matchMedia) so locks are never cleared prematurely.
-  useEffect(() => {
-    if (menuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [menuOpen]);
+  // Use shared scroll-lock so multiple overlays don't clobber each other.
+  useLockBodyScroll(menuOpen);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -188,7 +171,7 @@ const Navbar: React.FC = () => {
               users can see when the control has focus. */}
           <button
             onClick={toggleMenu}
-            className="grid h-9 w-9 place-items-center rounded-lg text-gray-800 transition-colors hover:bg-gray-100 focus:outline-none md:hidden"
+            className="grid h-9 w-9 place-items-center rounded-lg text-gray-800 transition-colors hover:bg-gray-100 focus-visible:ring focus-visible:ring-offset-2 focus-visible:ring-blue-400 md:hidden"
             aria-label={
               menuOpen ? 'Close navigation menu' : 'Open navigation menu'
             }
