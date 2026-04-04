@@ -69,6 +69,7 @@ src/app/
 ### What are Route Groups?
 
 Route groups are folders wrapped in parentheses `(name)` that organize routes **without affecting the URL path**. They're perfect for:
+
 - Logical organization
 - Applying different layouts to route sections
 - Splitting large applications into manageable parts
@@ -78,11 +79,13 @@ Route groups are folders wrapped in parentheses `(name)` that organize routes **
 **Purpose:** Contains all existing main website content
 
 **URL Impact:** None - routes in `(main)` are accessible at their original URLs
+
 - `(main)/about-us/` → `airqo.net/about-us`
 - `(main)/products/api/` → `airqo.net/products/api`
 - `(main)/home/` → `airqo.net/home`
 
 **Why use it?**
+
 - Separates main content from new sections (packages, blog)
 - Keeps existing routes organized
 - Allows for section-specific configurations if needed in the future
@@ -94,10 +97,12 @@ Route groups are folders wrapped in parentheses `(name)` that organize routes **
 **Location:** `(main)/(about)/`
 
 **URL Impact:** None - nested route groups also don't affect URLs
+
 - `(main)/(about)/careers/` → `airqo.net/careers`
 - `(main)/(about)/events/` → `airqo.net/events`
 
 **Benefits:**
+
 - Logical grouping of related pages
 - Shared layout across about pages
 - Easier code navigation
@@ -111,6 +116,7 @@ Route groups are folders wrapped in parentheses `(name)` that organize routes **
 **Purpose:** Showcase AirQo open source packages and developer tools
 
 **Structure:**
+
 ```
 packages/
 ├── layout.tsx              # MainLayout wrapper with packages metadata
@@ -122,6 +128,7 @@ packages/
 ```
 
 **Key Features:**
+
 - Multi-package support with dynamic routes
 - Framework badges (React, Vue, Flutter, TypeScript)
 - Code examples with syntax highlighting
@@ -129,12 +136,14 @@ packages/
 - Links to npm, pub.dev, GitHub
 
 **Configuration:**
+
 - Types: `src/types/packages.ts`
 - Config: `src/configs/packagesConfig.ts`
 - Views: `src/views/packages/`
 - Components: `src/components/packages/`
 
 **URLs:**
+
 - Landing: `/packages`
 - Icons: `/packages/icons`
 - Future: `/packages/[package-name]`
@@ -146,6 +155,7 @@ packages/
 **Purpose:** News, insights, and stories (Coming Soon)
 
 **Structure:**
+
 ```
 blog/
 ├── layout.tsx              # MainLayout wrapper with blog metadata
@@ -157,6 +167,7 @@ blog/
 **Status:** Skeleton ready - awaiting content implementation
 
 **URLs:**
+
 - Landing: `/blog`
 - Future posts: `/blog/[post-slug]`
 
@@ -165,6 +176,7 @@ blog/
 ### Root Layout (`app/layout.tsx`)
 
 **What it provides:**
+
 - Font configuration (Inter variable)
 - Global providers (Redux, SWR)
 - Cookie consent, Google Translate, Google Analytics
@@ -177,6 +189,7 @@ blog/
 **Location:** `src/components/layouts/MainLayout.tsx`
 
 **What it provides:**
+
 - Navbar
 - Page transition animations
 - Footer
@@ -185,6 +198,7 @@ blog/
 **Used by:** Almost all pages (main, packages, blog)
 
 **Exceptions:**
+
 - Contact pages (Navbar only, no footer)
 - Partner pages (Navbar only)
 - Forum pages (Custom layout with ForumDataProvider)
@@ -192,16 +206,19 @@ blog/
 ### Section Layouts
 
 **packages/layout.tsx:**
+
 - Wraps `MainLayout`
 - Adds packages-specific metadata template
 - Title template: `%s | AirQo Packages`
 
 **blog/layout.tsx:**
+
 - Wraps `MainLayout`
 - Adds blog-specific metadata template
 - Title template: `%s | AirQo Blog`
 
 **(main)/(about)/layout.tsx:**
+
 - Wraps `MainLayout`
 - Adds "About AirQo" metadata template
 
@@ -216,12 +233,14 @@ src/views/[route]/[Name]Page.tsx → Actual page component (logic, UI)
 ```
 
 **Benefits:**
+
 - Clean page files focused on Next.js configurations
 - Reusable view components
 - Easier testing
 - Better code organization
 
 **Examples:**
+
 - `app/packages/page.tsx` → `views/packages/PackagesPage.tsx`
 - `app/packages/icons/page.tsx` → `views/packages/IconsPackagePage.tsx`
 
@@ -248,6 +267,7 @@ src/views/[route]/[Name]Page.tsx → Actual page component (logic, UI)
 ### Sitemap (`app/sitemap.ts`)
 
 **New Entries:**
+
 ```typescript
 {
   url: '/packages',
@@ -271,11 +291,13 @@ src/views/[route]/[Name]Page.tsx → Actual page component (logic, UI)
 Each section has comprehensive metadata:
 
 **Packages:**
+
 - Title template: `%s | AirQo Packages`
 - Keywords: open source, developer tools, icons, React, Vue, Flutter
 - OpenGraph images for social sharing
 
 **Blog:**
+
 - Title template: `%s | AirQo Blog`
 - Keywords: air quality news, environmental monitoring, Africa
 - Prepared for article-level metadata
@@ -285,6 +307,7 @@ Each section has comprehensive metadata:
 ### Adding a New Package
 
 1. **Update config** (`src/configs/packagesConfig.ts`):
+
 ```typescript
 {
   slug: 'new-package',
@@ -332,17 +355,21 @@ Each section has comprehensive metadata:
 ### What Changed
 
 ✅ **File Locations:**
+
 - All main routes moved from `app/[route]` to `app/(main)/[route]`
 - New sections added at `app/packages` and `app/blog`
 
 ✅ **URLs:**
+
 - **No changes** - all URLs remain identical due to route groups
 
 ✅ **Navigation:**
+
 - Added "Developers" dropdown with Packages
 - Added "Blog" link
 
 ✅ **Sitemap:**
+
 - Added `/packages`, `/packages/icons`, `/blog`
 
 ### What Didn't Change
@@ -362,11 +389,13 @@ Each section has comprehensive metadata:
 ### When to Use Route Groups
 
 ✅ **Good use cases:**
+
 - Organizing related routes (`(main)`, `(about)`)
 - Applying different layouts without URL changes
 - Separating major application sections
 
 ❌ **Don't use when:**
+
 - You actually want URL nesting
 - Creating a single page
 - Already have good organization
@@ -374,6 +403,7 @@ Each section has comprehensive metadata:
 ### Component Organization
 
 **Follow this structure:**
+
 ```
 src/
 ├── app/              # Next.js pages (thin wrappers)
@@ -395,6 +425,7 @@ src/
 **Issue:** Getting 404 errors on existing routes
 
 **Solution:**
+
 - Clear Next.js cache: `rm -rf .next`
 - Rebuild: `npm run build`
 - Restart dev server: `npm run dev`
@@ -404,6 +435,7 @@ src/
 **Issue:** Seeing `(main)` or `(about)` in URLs
 
 **Solution:**
+
 - Route groups shouldn't appear in URLs
 - Check for hardcoded links with group names
 - Ensure using Link components correctly
@@ -413,6 +445,7 @@ src/
 **Issue:** `/packages` page shows errors
 
 **Solution:**
+
 - Verify all package components are created
 - Check imports in view files
 - Ensure `packagesConfig.ts` is valid
@@ -423,6 +456,7 @@ src/
 **Issue:** New menu items not showing
 
 **Solution:**
+
 - Check `Navbar.tsx` has `Developers` and `Blog` entries
 - Clear browser cache
 - Verify menuItems object structure
@@ -432,6 +466,7 @@ src/
 ### Static Generation
 
 **All routes use static generation where possible:**
+
 - Packages: Static at build time
 - Blog: Will use ISR (Incremental Static Regeneration) when content added
 - Main content: Mostly static with revalidation
@@ -454,6 +489,7 @@ src/
 ### Scalability
 
 The new structure supports:
+
 - Unlimited packages via dynamic routes
 - Unlimited blog posts via dynamic routes
 - Additional major sections at app root level
@@ -469,6 +505,7 @@ The new structure supports:
 ## Support
 
 For questions or issues with the new structure:
+
 - Create an issue on the GitHub repository
 - Contact the AirQo development team
 - Review this documentation and related files
