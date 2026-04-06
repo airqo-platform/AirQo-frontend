@@ -3,6 +3,52 @@
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
 ---
+ 
+ ## Version 1.23.24
+ **Released:** April 07, 2026
+ 
+ ### Login Page Revamp & Context Header Redesign
+ 
+ Redesigned the login experience for better branding and added a personalized, permanent context header to the dashboard to improve user orientation.
+ 
+ <details>
+ <summary><strong>Login Experience (4)</strong></summary>
+ 
+ - **Centered Layout**: Refined the login page to a clean, centered layout with improved typography and spacing.
+ - **Desktop App Links**: Added an intelligent "Download desktop app" link that automatically detects the user's operating system (macOS vs Windows) and provides the correct artifact.
+ - **Logo Positioning**: Moved the AirQo logo to the top-left corner of the viewport to create a more modern, spacious brand presence.
+ - **Vertical Scroll Support**: Fixed an issue where long content (like recent account lists) could be clipped on shorter screens; the form now scrolls safely.
+ 
+ </details>
+ 
+ <details>
+ <summary><strong>Dashboard UX (3)</strong></summary>
+ 
+ - **Personalized Greeting**: Introduced a "Hi, {Name} 👋" greeting in the dashboard header using Redux-backed user details.
+ - **Permanent Context Header**: Redesigned the `ContextHeader` into a non-dismissible, light blue alert component that explicitly clarifies which organizational or personal workspace is active.
+ - **Integrated Description**: Merged the workspace title and description into a unified information box with a clean `Info` icon and consistent blue styling.
+ 
+ </details>
+ 
+ <details>
+ <summary><strong>Home Empty State (2)</strong></summary>
+ 
+ - **Header Integration**: Added the `ContextHeader` to the `HomeEmptyState` component so users maintain context even when their device list is empty.
+ - **Layout Refinement**: Optimized the empty state vertical padding and ensured the header remains pinned to the top while the call-to-action remains centered.
+ 
+ </details>
+ 
+ <details>
+ <summary><strong>Files Modified (4)</strong></summary>
+ 
+ - `app/login/page.tsx`
+ - `components/features/home/context-header.tsx`
+ - `components/features/home/HomeEmptyState.tsx`
+ - `app/changelog.md`
+ 
+ </details>
+ 
+ ---
 
 ## Version 1.23.23
 **Released:** March 19, 2026
