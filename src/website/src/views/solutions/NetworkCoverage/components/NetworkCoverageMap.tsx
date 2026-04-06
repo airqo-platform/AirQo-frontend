@@ -3,9 +3,9 @@
 /* eslint-disable simple-import-sort/imports */
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import Image from 'next/image';
 import { FiMinus, FiPlus, FiCamera } from 'react-icons/fi';
 import html2canvas from 'html2canvas';
+import toast, { Toaster } from 'react-hot-toast';
 
 import {
   africanIso2Codes,
@@ -22,7 +22,11 @@ interface NetworkCoverageMapProps {
   viewMode: ViewMode;
   mapStyle: string;
   onCountrySelectByIso: (iso2: string) => void;
-  onMonitorSelect: (monitorId: string, countryId: string) => void;
+  onMonitorSelect: (
+    monitorId: string,
+    countryId: string,
+    fromMap?: boolean,
+  ) => void;
   onResetView: () => void;
   flyToMonitorId?: string | null;
   onRegisterSnapshot?: (fn: (() => Promise<string | null>) | null) => void;
@@ -34,12 +38,6 @@ type MarkerResource = {
   handleClick: () => void;
   handleMouseEnter: () => void;
   handleMouseLeave: () => void;
-};
-
-type SnapshotModalState = {
-  open: boolean;
-  imageUrl: string | null;
-  loading: boolean;
 };
 
 // AFRICA bounding box was removed — map is not locked to Africa by default.
@@ -64,6 +62,7 @@ const escapeHtml = (value: string): string =>
 const formatNetworkName = (value?: string | null) => {
   if (!value || !value.trim()) return '--';
   const trimmed = value.trim();
+  if (trimmed.toLowerCase() === 'airqo') return 'AirQo';
   return trimmed;
 };
 
@@ -133,7 +132,7 @@ const buildMonitorTooltipMarkup = (monitor: NetworkCoverageMonitor) => {
       : '--';
 
   return `
-    <div style="width:auto;max-width:320px;min-width:0;box-sizing:border-box;overflow-wrap:anywhere;word-break:break-word;">
+    <div style="width:auto;max-width:min(72vw,520px);min-width:0;box-sizing:border-box;overflow-wrap:anywhere;word-break:break-word;white-space:normal;">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
         <div style="min-width:0;flex:1;">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
@@ -169,11 +168,11 @@ const buildMonitorTooltipMarkup = (monitor: NetworkCoverageMonitor) => {
 };
 
 const buildCoverageTooltipMarkup = (name: string, count: number) => `
-  <div style="min-width:0;max-width:240px;overflow-wrap:anywhere;word-break:break-word;">
+  <div style="min-width:0;max-width:min(60vw,420px);overflow-wrap:anywhere;word-break:break-word;white-space:normal;">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
       <div style="min-width:0;flex:1;">
         <div style="font-size:14px;font-weight:800;line-height:1.25;color:#F8FAFC;word-break:break-word;overflow-wrap:anywhere;">${escapeHtml(name)}</div>
-        <div style="margin-top:4px;font-size:12px;line-height:1.4;color:rgba(248,250,252,0.78);">${count} monitor${count === 1 ? '' : 's'} tracked</div>
+        <div style="margin-top:4px;font-size:12px;line-height:1.4;color:rgba(248,250,252,0.78);">${count} monitor${count === 1 ? '' : 's'} registered</div>
       </div>
       <span style="flex-shrink:0;border-radius:9999px;background:rgba(255,255,255,0.14);padding:4px 8px;font-size:11px;font-weight:700;color:#FFFFFF;white-space:nowrap;">${count}</span>
     </div>
@@ -183,18 +182,18 @@ const buildCoverageTooltipMarkup = (name: string, count: number) => `
 const monitorNodeMarkup = (
   isOnline: boolean,
   ringColor: string,
-  count: number,
-  selected: boolean,
+  _count: number,
+  _selected: boolean,
 ) => {
-  const icon = isOnline
-    ? `<svg viewBox="0 0 24 24" aria-hidden="true" style="width:20px;height:20px;color:${ringColor};"><path fill="currentColor" d="M12 18.2a1.2 1.2 0 1 0 0 2.4a1.2 1.2 0 0 0 0-2.4Zm0-4.1a4.7 4.7 0 0 0-3.35 1.4a1 1 0 1 0 1.4 1.42a2.7 2.7 0 0 1 3.9 0a1 1 0 0 0 1.4-1.42A4.7 4.7 0 0 0 12 14.1Zm0-4.5a9.2 9.2 0 0 0-6.54 2.7a1 1 0 1 0 1.41 1.42a7.2 7.2 0 0 1 10.26 0a1 1 0 1 0 1.41-1.42A9.2 9.2 0 0 0 12 9.6Z"/></svg>`
-    : `<svg viewBox="0 0 24 24" aria-hidden="true" style="width:20px;height:20px;color:${ringColor};"><path fill="currentColor" d="M3.7 3.7a1 1 0 0 0-1.4 1.4l2.35 2.35a9.1 9.1 0 0 0-.6.5a1 1 0 0 0 1.41 1.42c.11-.1.22-.2.34-.29l1.45 1.45a4.8 4.8 0 0 0-1.9 1.14a1 1 0 1 0 1.41 1.42a2.8 2.8 0 0 1 1.93-.8l1.26 1.26a1.2 1.2 0 1 0 1.43 1.43l1.29 1.29a1.2 1.2 0 0 0 1.7-1.7l-11-11Zm8.3 7.8a4.8 4.8 0 0 1 2.6.78a1 1 0 0 0 1.07-1.69a6.8 6.8 0 0 0-3.67-1.09a1 1 0 1 0 0 2Zm0-4.4a9.2 9.2 0 0 1 6.54 2.7a1 1 0 0 0 1.41-1.42A11.2 11.2 0 0 0 12 5.1a1 1 0 1 0 0 2Z"/></svg>`;
+  void _count; // referenced to satisfy linter
+  void _selected; // referenced to satisfy linter
 
-  return `<div style="position:relative;"><span style="display:grid;place-items:center;height:46px;width:46px;border-radius:9999px;border:2px solid ${ringColor};background:#fff;box-shadow:0 6px 14px rgba(15,23,42,.24);${selected ? 'box-shadow:0 0 0 6px rgba(59,130,246,.12),0 6px 14px rgba(15,23,42,.24);' : ''}">${icon}</span>${
-    count > 1
-      ? `<span style="position:absolute;right:-5px;top:-5px;border-radius:9999px;background:#2563eb;color:#fff;font-weight:700;font-size:11px;line-height:1;padding:3px 6px;">+${count - 1}</span>`
-      : ''
-  }</div>`;
+  return `
+    <div style="position:relative;">
+      <span style="display:grid;place-items:center;height:28px;width:28px;border-radius:9999px;border:2px solid ${ringColor};background:#ffffff;">
+        <span style="width:10px;height:10px;border-radius:9999px;background:${ringColor};display:block;"></span>
+      </span>
+    </div>`;
 };
 
 const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
@@ -222,13 +221,6 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
   const markersRef = useRef<MarkerResource[]>([]);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapInitError, setMapInitError] = useState<string | null>(null);
-  // Initialize zoom to the user's requested value so UI controls reflect it.
-  const [zoomLevel, setZoomLevel] = useState(2.914761576947509);
-  const [snapshotModal, setSnapshotModal] = useState<SnapshotModalState>({
-    open: false,
-    imageUrl: null,
-    loading: false,
-  });
 
   // Stable refs so that changing prop identity on every parent render does
   // not cause heavyweight effects (marker rebuild, handler swap) to re-run.
@@ -283,46 +275,23 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
     return allMonitors;
   }, [allMonitors]);
 
+  // Render each monitor as its own node (no clustering).
   const groupedNodes = useMemo(() => {
-    const grouped = new Map<
-      string,
-      {
-        monitors: NetworkCoverageMonitor[];
-        latitude: number;
-        longitude: number;
-        type: MonitorType;
-      }
-    >();
-
-    const precision =
-      zoomLevel < 4 ? 1 : zoomLevel < 5.2 ? 2 : zoomLevel < 7.2 ? 3 : 4;
-
-    visibleMonitors.forEach((monitor) => {
-      if (
-        typeof monitor.latitude !== 'number' ||
-        typeof monitor.longitude !== 'number' ||
-        !Number.isFinite(monitor.latitude) ||
-        !Number.isFinite(monitor.longitude)
-      ) {
-        return;
-      }
-
-      const key = `${monitor.latitude.toFixed(precision)}:${monitor.longitude.toFixed(precision)}:${monitor.type}`;
-      const existing = grouped.get(key);
-      if (existing) {
-        existing.monitors.push(monitor);
-      } else {
-        grouped.set(key, {
-          monitors: [monitor],
-          latitude: monitor.latitude,
-          longitude: monitor.longitude,
-          type: monitor.type,
-        });
-      }
-    });
-
-    return Array.from(grouped.values());
-  }, [visibleMonitors, zoomLevel]);
+    return visibleMonitors
+      .filter(
+        (monitor) =>
+          typeof monitor.latitude === 'number' &&
+          typeof monitor.longitude === 'number' &&
+          Number.isFinite(monitor.latitude) &&
+          Number.isFinite(monitor.longitude),
+      )
+      .map((monitor) => ({
+        monitors: [monitor],
+        latitude: monitor.latitude,
+        longitude: monitor.longitude,
+        type: monitor.type,
+      }));
+  }, [visibleMonitors]);
 
   const clearMarkers = () => {
     markersRef.current.forEach((resource) => {
@@ -379,9 +348,7 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
         // instead of a blank/empty image (WebGL clears buffer by default).
         preserveDrawingBuffer: true,
         attributionControl: true,
-        customAttribution: [
-          'Powered by <a href="/" rel="noopener">Platform</a>',
-        ],
+        customAttribution: ['Powered by <a href="/" rel="noopener">AirQo</a>'],
       });
       setMapInitError(null);
     } catch {
@@ -471,27 +438,14 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       });
 
       setMapLoaded(true);
-      setZoomLevel(map.getZoom());
-      console.log('[NetworkCoverageMap] initial view', {
-        zoom: map.getZoom(),
-        center: map.getCenter().toArray(),
-      });
     });
 
     mapRef.current.on('zoomend', () => {
-      const currentZoom = mapRef.current.getZoom();
-      setZoomLevel(currentZoom);
-      console.log('[NetworkCoverageMap] zoomend', {
-        zoom: currentZoom,
-        center: mapRef.current.getCenter().toArray(),
-      });
+      // zoom end handler (no-op logging removed)
     });
 
     mapRef.current.on('moveend', () => {
-      console.log('[NetworkCoverageMap] moveend', {
-        zoom: mapRef.current.getZoom(),
-        center: mapRef.current.getCenter().toArray(),
-      });
+      // move end handler (no-op logging removed)
     });
 
     return () => {
@@ -519,16 +473,28 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
 
       await new Promise((resolve) => window.requestAnimationFrame(resolve));
 
+      const deviceScale = window.devicePixelRatio || 1;
+      // Use a conservative cap for snapshot scale to avoid extremely large canvases
+      // on high-DPI devices. Limit to 2x to keep memory usage reasonable.
+      const captureScale = Math.min(deviceScale, 2);
+
       const canvas = await html2canvas(mapContainerRef.current, {
         backgroundColor: null,
         useCORS: true,
         allowTaint: true,
-        scale: Math.min(window.devicePixelRatio || 1, 2),
+        scale: captureScale,
         logging: false,
       });
 
       return canvas.toDataURL('image/png');
-    } catch {
+    } catch (err: any) {
+      console.error('Snapshot capture failed', err);
+      try {
+        toast.error(
+          'Failed to capture map snapshot: ' +
+            (err?.message || 'Unknown error'),
+        );
+      } catch {}
       return null;
     }
   };
@@ -561,14 +527,28 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
     }
 
     const map = mapRef.current;
-    const expression: any[] = ['match', ['get', 'iso_3166_1']];
 
-    countries.forEach((country) => {
-      expression.push(country.iso2, bucketColor(country.monitors.length));
-    });
-    expression.push('#E8ECF3');
+    // Build a safe 'match' expression only when we have at least one ISO->color pair.
+    const isoColorPairs = countries
+      .map((country) => ({
+        iso: country.iso2,
+        color: bucketColor(country.monitors.length),
+      }))
+      .filter((p) => typeof p.iso === 'string' && p.iso.trim() !== '');
 
-    map.setPaintProperty('africa-country-fill', 'fill-color', expression);
+    if (isoColorPairs.length > 0) {
+      const expression: any[] = ['match', ['get', 'iso_3166_1']];
+      isoColorPairs.forEach((p) => {
+        expression.push(p.iso, p.color);
+      });
+      // default color
+      expression.push('#E8ECF3');
+      map.setPaintProperty('africa-country-fill', 'fill-color', expression);
+    } else {
+      // If no countries available, set a static default color to avoid an invalid expression
+      map.setPaintProperty('africa-country-fill', 'fill-color', '#E8ECF3');
+    }
+
     map.setPaintProperty(
       'africa-country-fill',
       'fill-opacity',
@@ -817,22 +797,14 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       );
 
       const handleClick = () => {
-        if (group.monitors.length > 1 && map.getZoom() < 8.6) {
-          map.flyTo({
-            center: [group.longitude, group.latitude],
-            zoom: Math.min(map.getZoom() + 1.6, 9.4),
-            speed: 0.9,
-            curve: 1.2,
-          });
-          return;
-        }
-
+        // Always select the monitor (no cluster zoom behavior).
         const nextMonitor =
           group.monitors.find((monitor) => monitor.status === 'active') ??
           group.monitors[0];
         const country = countryByIso2[nextMonitor.iso2];
         if (country) {
-          onMonitorSelectRef.current(nextMonitor.id, country.id);
+          // Indicate selection came from the map so parent can open sidebar on mobile.
+          onMonitorSelectRef.current(nextMonitor.id, country.id, true);
         }
       };
 
@@ -844,38 +816,7 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
           return;
         }
 
-        if (group.monitors.length > 1) {
-          const previewNames = group.monitors
-            .slice(0, 3)
-            .map(
-              (monitor) =>
-                `<div style="display:flex;align-items:center;gap:7px;min-width:0;"><span style="width:5px;height:5px;border-radius:9999px;background:#2563EB;flex-shrink:0;"></span><span style="min-width:0;overflow-wrap:anywhere;word-break:break-word;">${escapeHtml(monitor.name)}</span></div>`,
-            )
-            .join('');
-          const remaining = group.monitors.length - 3;
-          monitorPopupRef.current
-            .setLngLat([group.longitude, group.latitude])
-            .setHTML(
-              `
-                <div style="min-width:240px;max-width:280px;">
-                  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-                    <div>
-                      <div style="font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#64748B;">Cluster</div>
-                      <div style="margin-top:4px;font-size:16px;font-weight:800;line-height:1.25;color:#0F172A;">${group.monitors.length} monitors</div>
-                    </div>
-                    <span style="border-radius:9999px;background:#EFF6FF;color:#2563EB;padding:5px 8px;font-size:11px;font-weight:700;white-space:nowrap;">Zoom in</span>
-                  </div>
-                  <div style="margin-top:12px;display:flex;flex-direction:column;gap:7px;font-size:12px;line-height:1.45;color:#475569;padding-top:12px;border-top:1px solid rgba(148,163,184,0.18);">
-                    ${previewNames}
-                    ${remaining > 0 ? `<div style="color:#2563EB;font-weight:700;">+${remaining} more</div>` : ''}
-                  </div>
-                </div>
-              `,
-            )
-            .addTo(map);
-          return;
-        }
-
+        // Always show the monitor tooltip for the first monitor in the group.
         const node = group.monitors[0];
         monitorPopupRef.current
           .setLngLat([group.longitude, group.latitude])
@@ -980,8 +921,64 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
         speed: 0.9,
         curve: 1.2,
       });
+      // Show popup when the flyTo animation completes so the user sees
+      // the selected monitor's tooltip anchored to the node.
+      try {
+        map.once('moveend', () => {
+          try {
+            if (!monitorPopupRef.current) return;
+            monitorPopupRef.current
+              .setLngLat([monitor.longitude, monitor.latitude])
+              .setHTML(buildMonitorTooltipMarkup(monitor))
+              .addTo(map);
+          } catch {
+            // ignore popup errors
+          }
+        });
+      } catch {
+        // ignore
+      }
     }
   }, [flyToMonitorId, mapLoaded]);
+
+  // Automatically show the monitor popup when a node is selected from the
+  // sidebar or map. Removing the popup when selection clears.
+  useEffect(() => {
+    if (!mapLoaded || !mapRef.current) return;
+
+    const map = mapRef.current;
+
+    if (!selectedMonitorId) {
+      try {
+        monitorPopupRef.current?.remove();
+      } catch {}
+      return;
+    }
+
+    const monitor = allMonitorsRef.current.find(
+      (item) => item.id === selectedMonitorId,
+    );
+    if (!monitor) return;
+
+    try {
+      if (!monitorPopupRef.current) {
+        const mapboxgl = (window as any).mapboxgl;
+        monitorPopupRef.current = new mapboxgl.Popup({
+          closeButton: false,
+          closeOnClick: false,
+          className: 'network-monitor-tooltip',
+          offset: 18,
+        });
+      }
+
+      monitorPopupRef.current
+        .setLngLat([monitor.longitude, monitor.latitude])
+        .setHTML(buildMonitorTooltipMarkup(monitor))
+        .addTo(map);
+    } catch {
+      // ignore
+    }
+  }, [selectedMonitorId, mapLoaded]);
 
   return (
     <div className="relative h-full w-full">
@@ -1008,20 +1005,21 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
           type="button"
           onClick={async () => {
             try {
-              setSnapshotModal((current) => ({
-                ...current,
-                open: true,
-                loading: true,
-                imageUrl: null,
-              }));
               const dataUrl = await captureSnapshot();
-              setSnapshotModal({
-                open: true,
-                loading: false,
-                imageUrl: dataUrl,
-              });
+              if (!dataUrl) return;
+              const a = document.createElement('a');
+              a.href = dataUrl;
+              a.download = `africa-map-snapshot-${new Date().toISOString().split('T')[0]}.png`;
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+              try {
+                toast.success('Screenshot downloaded', { duration: 2500 });
+              } catch {
+                // ignore toast errors
+              }
             } catch {
-              setSnapshotModal({ open: true, loading: false, imageUrl: null });
+              // ignore capture errors
             }
           }}
           className="grid h-12 w-12 place-items-center border-t border-slate-200 bg-white text-slate-700 transition-colors hover:bg-slate-50"
@@ -1057,74 +1055,8 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
         </button>
       </div>
 
-      {snapshotModal.open && (
-        <div className="absolute inset-0 z-40 flex items-center justify-center bg-slate-950/70 px-4 py-6 backdrop-blur-sm">
-          <div className="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-3xl bg-white shadow-[0_30px_90px_rgba(15,23,42,0.45)]">
-            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-              <div>
-                <div className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
-                  Snapshot Preview
-                </div>
-                <div className="text-lg font-bold text-slate-900">
-                  Map capture
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setSnapshotModal({
-                      open: false,
-                      imageUrl: null,
-                      loading: false,
-                    })
-                  }
-                  className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
-                >
-                  Close
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!snapshotModal.imageUrl) return;
-                    const a = document.createElement('a');
-                    a.href = snapshotModal.imageUrl;
-                    a.download = `africa-map-snapshot-${new Date().toISOString().split('T')[0]}.png`;
-                    document.body.appendChild(a);
-                    a.click();
-                    a.remove();
-                  }}
-                  disabled={!snapshotModal.imageUrl || snapshotModal.loading}
-                  className="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
-                >
-                  Download
-                </button>
-              </div>
-            </div>
-            <div className="flex-1 bg-slate-100 p-4">
-              {snapshotModal.loading ? (
-                <div className="flex h-[70vh] items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white text-slate-600">
-                  Generating preview...
-                </div>
-              ) : snapshotModal.imageUrl ? (
-                <Image
-                  src={snapshotModal.imageUrl}
-                  alt="Map snapshot preview"
-                  unoptimized
-                  width={1920}
-                  height={1080}
-                  className="max-h-[70vh] w-full rounded-2xl object-contain shadow-sm"
-                />
-              ) : (
-                <div className="flex h-[70vh] items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white text-slate-600">
-                  Snapshot could not be generated. Try again after the map
-                  finishes loading.
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Snapshot preview modal removed — camera now downloads immediately */}
+      <Toaster position="bottom-right" containerStyle={{ zIndex: 40000 }} />
 
       {mapInitError && (
         <div className="absolute inset-0 z-30 grid place-items-center bg-[#f6f6f7]">
@@ -1142,6 +1074,11 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
           border: 1px solid rgba(255, 255, 255, 0.12);
           padding: 12px 14px;
           box-shadow: 0 18px 36px rgba(2, 6, 23, 0.42);
+          width: auto;
+          display: inline-block;
+          max-width: min(70vw, 520px);
+          white-space: normal;
+          overflow: visible !important;
         }
 
         .network-coverage-tooltip .mapboxgl-popup-tip {
@@ -1156,8 +1093,11 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
           border: 0;
           padding: 16px 16px 15px;
           box-shadow: 0 18px 44px rgba(15, 23, 42, 0.22);
-          max-width: 320px;
-          overflow: visible;
+          width: auto;
+          display: inline-block;
+          max-width: min(72vw, 520px);
+          white-space: normal;
+          overflow: visible !important;
         }
 
         .network-monitor-tooltip .mapboxgl-popup-tip {

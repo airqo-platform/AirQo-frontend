@@ -81,14 +81,17 @@ static Future<Box> _openBox(String boxName) async {
   }
 
   static Future<dynamic> getCache(String key) async {
-    final cacheData =
-        await getData<Map<String, dynamic>>(key, HiveBoxNames.cacheBox);
-    if (cacheData == null) {
+    final raw = await getData<dynamic>(key, HiveBoxNames.cacheBox);
+    if (raw == null) {
       _logger.info('Cache miss for key: $key');
       return null;
     }
-
     try {
+      if (raw is! Map) {
+        _logger.warning('Cache entry for key $key has unexpected type, discarding');
+        return null;
+      }
+      final cacheData = Map<String, dynamic>.from(raw);
       final timestamp = cacheData['timestamp'] as int;
       final expiry = cacheData['expiry'] as int?;
 

@@ -252,11 +252,15 @@ const ClientsAdminPage: React.FC = () => {
 
   const renderCreatedDate = useCallback((value: unknown, item: TableClient) => {
     if (item.access_token?.createdAt) {
-      return formatDate(item.access_token.createdAt, {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      });
+      return (
+        <span className="whitespace-nowrap">
+          {formatDate(item.access_token.createdAt, {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+          })}
+        </span>
+      );
     }
     return '-';
   }, []);

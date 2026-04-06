@@ -42,6 +42,7 @@ SEO metadata enhancements and structured data.
 **Key Pages**: `/billboard/interactive`, `/solutions/network-coverage`
 
 **New Sections**:
+
 - `/packages` - Open source packages and developer tools
 - `/blog` - News, insights, and stories (coming soon)
 
