@@ -33,6 +33,7 @@ const loginSchema = z.object({
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [rememberedAccounts, setRememberedAccounts] = useState<RememberedAccount[]>([]);
+  const [downloadUrl, setDownloadUrl] = useState("https://github.com/airqo-platform/AirQo-frontend/releases/download/v0.1.0/vertex-desktop-v0.1.0.exe");
   const searchParams = useSearchParams();
   const callbackUrl = useMemo(() => {
     const raw = searchParams.get("callbackUrl");
@@ -62,6 +63,13 @@ export default function LoginPage() {
     // Reset logout state when login page mounts - this ensures suppression flags persist until we land here
     dispatch(setLoggingOut(false));
     setRememberedAccounts(getRememberedAccounts());
+
+    // OS Detection for download link
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    if (userAgent.includes('mac')) {
+      setDownloadUrl("https://github.com/airqo-platform/AirQo-frontend/releases/download/v0.1.0/vertex-desktop-v0.1.0-arm64.dmg");
+    }
+
     return () => {
       isMounted.current = false;
     };
@@ -128,123 +136,115 @@ export default function LoginPage() {
   }, [rememberedAccounts, callbackUrl]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-background to-muted/30 p-4">
-      <div className="w-full max-w-md space-y-8">
-        <div className="flex flex-col items-center justify-center space-y-2 text-center">
-          <div className="mb-4">
-            <Image
-              src="/images/airqo_logo.svg"
-              alt="Logo"
-              width={50}
-              height={50}
-            />
+    <div className="flex min-h-screen lg:h-screen w-full bg-background relative">
+      <div className="absolute left-6 top-6 sm:left-8 sm:top-8">
+        <Image
+          src="/images/airqo_logo.svg"
+          alt="AirQo Logo"
+          width={40}
+          height={40}
+        />
+      </div>
+      {/* Main Column: Branding and Form */}
+      <div className="flex flex-1 flex-col overflow-y-auto px-4 py-12 sm:px-6">
+        <div className="mx-auto w-full max-w-[400px] my-auto">
+          <div className="mb-10">
+            <h1 className="mt-8 text-center text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+              Deploy and track air quality devices
+            </h1>
+            <p className="mt-4 text-center text-base text-muted-foreground leading-relaxed max-w-sm">
+              Unified device management with AirQo Vertex.
+            </p>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">Welcome back to Vertex</h1>
-          <div className="text-center text-sm">
-            Don&apos;t have an account?{" "}
-            <Link href={signUpUrl} className="font-medium text-primary hover:underline">
-              Sign up
-            </Link>
-          </div>
-        </div>
-        <div className="flex flex-col">
-          {rememberedAccounts.length > 0 && (
-            <div className="mb-5 rounded-lg border border-border bg-card p-3">
-              <p className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">Recently used accounts</p>
-              <div className="space-y-2">
-                {rememberedAccounts.map((account) => (
-                  <div key={account.id} className="flex items-center justify-between gap-2 rounded-md border border-border px-3 py-2">
-                    <button
-                      type="button"
-                      onClick={() => handleUseRememberedAccount(account.email)}
-                      className="flex min-w-0 flex-1 items-center gap-2 text-left"
-                    >
-                      <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-semibold">
-                        {(account.displayName || account.email).charAt(0).toUpperCase()}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-foreground">
-                          {account.displayName || account.email}
-                        </p>
-                        <p className="truncate text-xs text-muted-foreground">{account.email}</p>
-                      </div>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveRememberedAccount(account.id)}
-                      className="text-xs text-muted-foreground hover:text-red-600"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  form.setValue("userName", "");
-                  form.setValue("password", "");
-                  form.setFocus("userName");
-                }}
-                className="mt-3 text-sm text-primary hover:underline"
-              >
-                Use a different account
-              </button>
-            </div>
-          )}
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="userName"
-                render={({ field, fieldState }) => (
-                  <ReusableInputField
-                    label="Email"
-                    placeholder="login@airqo.net"
-                    type="email"
-                    required
-                    error={fieldState.error?.message}
-                    disabled={isLoading}
-                    {...field}
-                  />
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field, fieldState }) => (
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-200">Password</label>
-                      <Link href={forgotPasswordUrl} className="text-xs text-primary hover:underline">
-                        Forgot password?
-                      </Link>
-                    </div>
+
+
+          <div className="flex flex-col">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+                <FormField
+                  control={form.control}
+                  name="userName"
+                  render={({ field, fieldState }) => (
                     <ReusableInputField
-                      type={"password"}
-                      id="password"
-                      autoComplete="current-password"
-                      placeholder="••••••••"
+                      label="Email"
+                      placeholder="login@airqo.net"
+                      type="email"
                       required
                       error={fieldState.error?.message}
-                      className="mt-2"
                       disabled={isLoading}
                       {...field}
                     />
-                  </div>
-                )}
-              />
-              <ReusableButton type="submit" className="max-w-xs w-full mx-auto" disabled={isLoading} loading={isLoading} variant="filled">
-                {isLoading ? (
-                  <span className="flex items-center gap-2">
-                    <span>Signing in...</span>
-                  </span>
-                ) : (
-                  "Login"
-                )}
-              </ReusableButton>
-            </form>
-          </Form>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field, fieldState }) => (
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label htmlFor="password" className="text-sm font-medium text-foreground">Password</label>
+                        <Link href={forgotPasswordUrl} className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">
+                          Forgot password?
+                        </Link>
+                      </div>
+                      <ReusableInputField
+                        type={"password"}
+                        id="password"
+                        autoComplete="current-password"
+                        placeholder="••••••••"
+                        required
+                        error={fieldState.error?.message}
+                        disabled={isLoading}
+                        {...field}
+                      />
+                    </div>
+                  )}
+                />
+                <ReusableButton
+                  type="submit"
+                  className="w-full mt-2 font-medium bg-primary hover:bg-primary/90"
+                  disabled={isLoading}
+                  loading={isLoading}
+                  variant="filled"
+                >
+                  {isLoading ? "Signing in..." : "Login"}
+                </ReusableButton>
+              </form>
+            </Form>
+            <div className="text-sm text-center my-6 text-muted-foreground">
+              Don&apos;t have an account?{" "}
+              <Link href={signUpUrl} className="font-semibold text-primary hover:text-primary/80 transition-colors">
+                Sign up
+              </Link>
+            </div>
+
+            <div className="pt-1 flex justify-center">
+              <a
+                href={downloadUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-lg border border-border bg-transparent px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="opacity-70"
+                >
+                  <rect width="20" height="14" x="2" y="3" rx="2" />
+                  <line x1="8" x2="16" y1="21" y2="21" />
+                  <line x1="12" x2="12" y1="17" y2="21" />
+                </svg>
+                Download desktop app
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </div>
