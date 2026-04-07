@@ -124,7 +124,7 @@ export default function LoginPage() {
       ReusableToast({ message, type: "ERROR" });
       setIsLoading(false);
     }
-  }, [rememberedAccounts, callbackUrl]);
+  }, [callbackUrl]);
 
   return (
     <div className="flex min-h-screen lg:h-screen w-full flex-col bg-background text-foreground">

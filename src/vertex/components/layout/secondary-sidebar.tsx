@@ -48,6 +48,24 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
     useUserContext();
   const contextPermissions = getContextPermissions();
 
+  const [platform, setPlatform] = React.useState<'mac' | 'win' | 'linux' | 'other' | null>(null);
+  const [downloadUrl, setDownloadUrl] = React.useState("");
+
+  React.useEffect(() => {
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    if (userAgent.includes('mac')) {
+      setPlatform('mac');
+      setDownloadUrl("https://github.com/airqo-platform/AirQo-frontend/releases/download/v0.1.0/vertex-desktop-v0.1.0-arm64.dmg");
+    } else if (userAgent.includes('win')) {
+      setPlatform('win');
+      setDownloadUrl("https://github.com/airqo-platform/AirQo-frontend/releases/download/v0.1.0/vertex-desktop-v0.1.0.exe");
+    } else if (userAgent.includes('linux')) {
+      setPlatform('linux');
+    } else {
+      setPlatform('other');
+    }
+  }, []);
+
   return (
     <aside
       data-vertex-secondary-sidebar
@@ -76,6 +94,27 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
           overflow
           overflowType="auto"
           contentClassName={`flex flex-col h-full overflow-x-hidden scrollbar-thin ${styles.scrollbar}`}
+          footer={!isCollapsed && (platform === 'mac' || platform === 'win') && (
+            <div className="px-1 pb-2">
+              <a
+                href={downloadUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 w-full rounded-md border border-border bg-primary px-4 py-2 text-sm font-medium text-white transition-all hover:bg-primary/80 hover:border-foreground/20 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              >
+                {platform === 'mac' ? (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.1 2.48-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .76-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.36 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
+                  </svg>
+                ) : (
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M0 3.449L9.75 2.1V11.7H0V3.449zm0 9.151h9.75v9.6L0 20.551V12.6zm10.55-10.701L24 0v11.7h-13.45V1.899zm0 10.701H24V24l-13.45-1.899V12.6z" />
+                  </svg>
+                )}
+                <span className="truncate">Download for {platform === 'mac' ? 'macOS' : 'Windows'}</span>
+              </a>
+            </div>
+          )}
         >
           {/* Device Management Module - Personal devices for all users */}
           {activeModule === 'devices' && (
