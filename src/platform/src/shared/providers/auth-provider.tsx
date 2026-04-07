@@ -374,24 +374,30 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     }
   }, [handleUnauthorized]);
 
-  // If authenticated and on a public page (except org-invite), redirect based on active group
-  // Note: /org-invite should be accessible to both authenticated and unauthenticated users
   useEffect(() => {
-    if (status === 'authenticated' && isPublicRoute && activeGroup) {
-      // Allow /org-invite to be accessed by authenticated users
-      if (pathname.startsWith('/org-invite')) return;
+    if (status !== 'authenticated' || !isPublicRoute) {
+      return;
+    }
 
-      if (callbackUrl) {
-        router.replace(callbackUrl);
-        return;
-      }
+    if (pathname.startsWith('/org-invite')) {
+      return;
+    }
 
+    if (callbackUrl) {
+      router.replace(callbackUrl);
+      return;
+    }
+
+    if (activeGroup) {
       if (activeGroup.title.toLowerCase() === 'airqo') {
         router.replace('/user/home');
       } else {
         router.replace(`/org/${activeGroup.organizationSlug}/dashboard`);
       }
+      return;
     }
+
+    router.replace('/user/home');
   }, [status, isPublicRoute, activeGroup, router, pathname, callbackUrl]);
 
   useEffect(() => {
@@ -463,17 +469,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const bootstrap = async () => {
       try {
         if (isCurrentPublicRoute) {
-          const nextAuthSession = await getSession();
-          if (!isMounted) return;
-
           if (shouldSkipBackendOAuthBootstrap()) {
             setBootstrapSession(null);
             return;
           }
 
+          const nextAuthSession = await getSession();
+          if (!isMounted) return;
+
           if (nextAuthSession?.user) {
             clearBackendOAuthSignedOutFlag();
             setBootstrapSession(nextAuthSession as BackendOAuthSession);
+            return;
+          }
+
+          const backendProfile = await verifyBackendOAuthSession();
+          if (!isMounted) return;
+
+          if (backendProfile) {
+            clearBackendOAuthSignedOutFlag();
+            setBootstrapSession(buildSessionFromProfile(backendProfile));
             return;
           }
 
