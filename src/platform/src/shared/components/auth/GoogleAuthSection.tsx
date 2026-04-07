@@ -60,7 +60,7 @@ export default function GoogleAuthSection({
         onClick={handleGoogleAuth}
         className="border-slate-300 bg-white text-gray-900 hover:bg-slate-50 hover:text-gray-900 dark:border-slate-700 dark:bg-transparent dark:text-gray-100 dark:hover:bg-slate-800"
       >
-        {label}
+        <span style={{ color: 'rgb(17 24 39)' }}>{label}</span>
       </Button>
     </div>
   );
