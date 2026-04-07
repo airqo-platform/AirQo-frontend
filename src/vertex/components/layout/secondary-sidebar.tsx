@@ -15,6 +15,7 @@ import { useUserContext } from '@/core/hooks/useUserContext';
 import { ROUTE_LINKS } from '@/core/routes';
 import Card from '../shared/card/CardWrapper';
 import { NavItem } from './NavItem';
+import { getMacArchitecture } from '@/core/utils/platform';
 
 interface SecondarySidebarProps {
   isCollapsed: boolean;
@@ -49,6 +50,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   const contextPermissions = getContextPermissions();
 
   const [platform, setPlatform] = React.useState<'mac' | 'win' | 'linux' | 'other' | null>(null);
+  const [architecture, setArchitecture] = React.useState<'arm64' | 'x64' | 'unknown'>('unknown');
   const [downloadUrl, setDownloadUrl] = React.useState("");
   const [isElectron, setIsElectron] = React.useState(false);
 
@@ -57,6 +59,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
     setIsElectron(userAgent.includes('electron'));
     if (userAgent.includes('mac')) {
       setPlatform('mac');
+      getMacArchitecture().then(setArchitecture);
       setDownloadUrl("https://github.com/airqo-platform/AirQo-frontend/releases/download/v0.1.0/vertex-desktop-v0.1.0-arm64.dmg");
     } else if (userAgent.includes('win')) {
       setPlatform('win');
@@ -96,7 +99,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
           overflow
           overflowType="auto"
           contentClassName={`flex flex-col h-full overflow-x-hidden scrollbar-thin ${styles.scrollbar}`}
-          footer={!isCollapsed && !isElectron && (platform === 'mac' || platform === 'win') && (
+          footer={!isCollapsed && !isElectron && (platform === 'win' || (platform === 'mac' && architecture === 'arm64')) && (
             <div className="px-1 pb-2">
               <a
                 href={downloadUrl}

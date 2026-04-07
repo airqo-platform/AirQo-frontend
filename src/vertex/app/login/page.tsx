@@ -20,6 +20,7 @@ import {
   setLoggingOut,
 } from "@/core/redux/slices/userSlice";
 import { getLastActiveModule } from "@/core/utils/userPreferences";
+import { getMacArchitecture } from "@/core/utils/platform";
 
 const loginSchema = z.object({
   userName: z.string().email({ message: "Please enter a valid email address" }),
@@ -54,6 +55,7 @@ export default function LoginPage() {
   const isMounted = useRef(true);
 
   const [platform, setPlatform] = useState<'mac' | 'win' | 'linux' | 'other' | null>(null);
+  const [architecture, setArchitecture] = useState<'arm64' | 'x64' | 'unknown'>('unknown');
   const [isElectron, setIsElectron] = useState(false);
 
   useEffect(() => {
@@ -70,6 +72,7 @@ export default function LoginPage() {
     
     if (isMac) {
       setPlatform('mac');
+      getMacArchitecture().then(setArchitecture);
       setDownloadUrl("https://github.com/airqo-platform/AirQo-frontend/releases/download/v0.1.0/vertex-desktop-v0.1.0-arm64.dmg");
     } else if (isWin) {
       setPlatform('win');
@@ -144,7 +147,7 @@ export default function LoginPage() {
             />
           </div>
           
-          {!isElectron && (platform === 'mac' || platform === 'win') && (
+          {!isElectron && (platform === 'win' || (platform === 'mac' && architecture === 'arm64')) && (
             <div className="flex items-center">
               <a
                 href={downloadUrl}

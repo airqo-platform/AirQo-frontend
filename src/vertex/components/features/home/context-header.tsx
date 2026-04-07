@@ -16,7 +16,9 @@ const ContextHeader = () => {
             case "personal":
                 return "your personal workspace";
             case "external-org":
-                return `${activeGroup?.grp_title?.split("_").join(" ")} workspace` || "Organization";
+                return activeGroup?.grp_title
+                    ? `${activeGroup.grp_title.split("_").join(" ")} workspace`
+                    : "organization workspace";
             default:
                 return "Dashboard";
         }
