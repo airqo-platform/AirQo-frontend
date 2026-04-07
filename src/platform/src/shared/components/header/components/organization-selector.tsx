@@ -15,8 +15,10 @@ export function OrganizationSelector() {
   const [searchTerm, setSearchTerm] = useState('');
   const router = useRouter();
   const { groups, activeGroup, switchGroupById } = useUserActions();
-  // Ensure we always operate on a safe array to avoid runtime errors
-  const safeGroups = Array.isArray(groups) ? groups : [];
+  const safeGroups = React.useMemo(
+    () => (Array.isArray(groups) ? groups : []),
+    [groups]
+  );
 
   const handleOpen = () => setIsOpen(true);
   const handleClose = () => setIsOpen(false);

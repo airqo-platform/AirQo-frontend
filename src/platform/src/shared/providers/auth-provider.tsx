@@ -14,10 +14,10 @@ import { SWRProvider } from '@/shared/providers/swr-provider';
 import { QueryProvider } from '@/shared/providers/query-provider';
 import { runClientCacheMaintenance } from '@/shared/lib/clientCache';
 import { normalizeCallbackUrl } from '@/shared/lib/auth-redirect';
-import type { Session } from 'next-auth';
 import {
   clearBackendOAuthSignedOutFlag,
   buildSessionFromProfile,
+  type BackendOAuthSession,
   shouldSkipBackendOAuthBootstrap,
   verifyBackendOAuthSession,
 } from '@/shared/lib/oauth-session';
@@ -440,7 +440,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [bootstrapSession, setBootstrapSession] = useState<
-    Session | null | undefined
+    BackendOAuthSession | null | undefined
   >(undefined);
 
   useEffect(() => {
@@ -459,7 +459,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (nextAuthSession?.user) {
           clearBackendOAuthSignedOutFlag();
-          setBootstrapSession(nextAuthSession as Session);
+          setBootstrapSession(nextAuthSession as BackendOAuthSession);
           return;
         }
 

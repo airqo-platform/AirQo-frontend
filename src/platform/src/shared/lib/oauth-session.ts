@@ -1,5 +1,3 @@
-import type { Session } from 'next-auth';
-
 const DEFAULT_API_BASE_URL = 'https://staging-api.airqo.net';
 const DEFAULT_TENANT = 'airqo';
 const OAUTH_SIGNED_OUT_FLAG = 'airqo:oauth-signed-out';
@@ -17,6 +15,18 @@ export interface BackendOAuthProfileResponse {
   success: boolean;
   message?: string;
   data?: BackendOAuthProfile;
+}
+
+export interface BackendOAuthSession {
+  expires: string;
+  user: {
+    _id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    name: string;
+    image: string;
+  };
 }
 
 const normalizeApiBaseUrl = (baseUrl: string): string => {
@@ -76,7 +86,7 @@ export const buildOAuthInitiationUrl = (
 
 export const buildSessionFromProfile = (
   profile: BackendOAuthProfile
-): Session => {
+): BackendOAuthSession => {
   const fullName = [profile.firstName, profile.lastName]
     .filter(Boolean)
     .join(' ')
