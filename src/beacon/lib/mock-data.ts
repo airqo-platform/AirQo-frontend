@@ -6,7 +6,7 @@
 
 // ─── Toggle ───────────────────────────────────────────────────────────────────
 // Set to `true` to use dummy data, `false` to use real backend APIs
-const USE_MOCK_DATA = true
+const USE_MOCK_DATA = false
 
 export function isMockMode(): boolean {
   return USE_MOCK_DATA

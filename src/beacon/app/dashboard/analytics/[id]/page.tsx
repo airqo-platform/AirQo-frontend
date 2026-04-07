@@ -249,8 +249,12 @@ export default function AirQloudDetailPage() {
         setError(null)
 
         const endDate = new Date()
-        const startDate = new Date()
-        startDate.setDate(endDate.getDate() - 14)
+        endDate.setDate(endDate.getDate() - 1)
+        endDate.setHours(23, 59, 59, 999)
+
+        const startDate = new Date(endDate)
+        startDate.setDate(endDate.getDate() - 13) // 14 days total including yesterday
+        startDate.setHours(0, 0, 0, 0)
 
         const response = await airQloudService.getAirQloudById(
           airqloudId,

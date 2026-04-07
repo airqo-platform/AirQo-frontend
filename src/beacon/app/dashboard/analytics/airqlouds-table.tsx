@@ -119,8 +119,12 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
       const skip = (page - 1) * pageSize
 
       const endDate = new Date()
-      const startDate = new Date()
-      startDate.setDate(endDate.getDate() - performanceDays)
+      endDate.setDate(endDate.getDate() - 1)
+      endDate.setHours(23, 59, 59, 999)
+
+      const startDate = new Date(endDate)
+      startDate.setDate(endDate.getDate() - performanceDays + 1)
+      startDate.setHours(0, 0, 0, 0)
 
       const response = await airQloudService.getAirQlouds({
         includePerformance: true,
@@ -280,8 +284,12 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
       const limit = totalItems > 0 ? totalItems : 1000
 
       const endDate = new Date()
-      const startDate = new Date()
-      startDate.setDate(endDate.getDate() - performanceDays)
+      endDate.setDate(endDate.getDate() - 1)
+      endDate.setHours(23, 59, 59, 999)
+
+      const startDate = new Date(endDate)
+      startDate.setDate(endDate.getDate() - performanceDays + 1)
+      startDate.setHours(0, 0, 0, 0)
 
       const response = await airQloudService.getAirQlouds({
         includePerformance: true,

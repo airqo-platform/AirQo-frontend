@@ -23,7 +23,14 @@ import {
   Activity,
   AlertTriangle,
   BarChart3,
+  Loader2,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react"
+
+import { fetchCollocationSites } from "@/lib/api"
+import { isMockMode } from "@/lib/mock-data"
+import { useEffect, useCallback, useMemo } from "react"
 
 // --- Types ---
 
@@ -114,7 +121,7 @@ function UptimeMiniGraph({ uptimeHistory, averageUptime }: { uptimeHistory: Hist
     return <span className="text-muted-foreground">N/A</span>
   }
 
-  const values = uptimeHistory.slice(-14)
+  const values = uptimeHistory.slice(-14).filter((item) => item.value !== undefined)
 
   const getBarColor = (value: number) => {
     if (value >= 75) return "bg-green-500 hover:bg-green-600"
@@ -143,13 +150,13 @@ function UptimeMiniGraph({ uptimeHistory, averageUptime }: { uptimeHistory: Hist
               <TooltipTrigger asChild>
                 <div
                   className={`w-1.5 rounded-t-full ${getBarColor(item.value)} transition-all cursor-pointer`}
-                  style={{ height: `${Math.max(4, (item.value / 100) * 32)}px` }}
+                  style={{ height: `${Math.max(4, ((item.value ?? 0) / 100) * 32)}px` }}
                 />
               </TooltipTrigger>
               <TooltipContent className={`${getTooltipBgColor(item.value)} text-white border`}>
                 <div className="text-xs font-medium">
                   <div>{formatDate(item.timestamp)}</div>
-                  <div>Uptime: {item.value.toFixed(1)}%</div>
+                  <div>Uptime: {(item.value ?? 0).toFixed(1)}%</div>
                 </div>
               </TooltipContent>
             </Tooltip>
@@ -165,7 +172,7 @@ function ErrorMarginMiniGraph({ errorMarginHistory, averageMargin }: { errorMarg
     return <span className="text-muted-foreground">N/A</span>
   }
 
-  const values = errorMarginHistory.slice(-14)
+  const values = errorMarginHistory.slice(-14).filter((item) => item.value !== undefined)
   const maxMargin = 10
 
   const getBarColor = (value: number) => {
@@ -201,13 +208,13 @@ function ErrorMarginMiniGraph({ errorMarginHistory, averageMargin }: { errorMarg
               <TooltipTrigger asChild>
                 <div
                   className={`w-1.5 rounded-t-full ${getBarColor(item.value)} transition-all cursor-pointer`}
-                  style={{ height: `${Math.max(4, (item.value / maxMargin) * 32)}px` }}
+                  style={{ height: `${Math.max(4, ((item.value ?? 0) / maxMargin) * 32)}px` }}
                 />
               </TooltipTrigger>
               <TooltipContent className={`${getTooltipBgColor(item.value)} text-white border`}>
                 <div className="text-xs font-medium">
                   <div>{formatDate(item.timestamp)}</div>
-                  <div>Error Margin: ±{item.value.toFixed(1)}%</div>
+                  <div>Error Margin: ±{(item.value ?? 0).toFixed(1)}%</div>
                 </div>
               </TooltipContent>
             </Tooltip>
@@ -222,20 +229,127 @@ function ErrorMarginMiniGraph({ errorMarginHistory, averageMargin }: { errorMarg
 
 export default function SiteCollocationPage() {
   const [searchTerm, setSearchTerm] = useState("")
+  const [sites, setSites] = useState<SiteCollocationEntry[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [showEmptySites, setShowEmptySites] = useState(false)
 
-  const filteredSites = mockSites.filter((s) =>
+  const fetchData = useCallback(async () => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      // Check if mock mode is enabled
+      if (isMockMode()) {
+        setSites(mockSites)
+        setIsLoading(false)
+        return
+      }
+
+      const end = new Date()
+      const start = new Date()
+      start.setDate(start.getDate() - 14)
+
+      const params = {
+        skip: 0,
+        limit: 30,
+        startDateTime: start.toISOString(),
+        endDateTime: end.toISOString(),
+        summary: true,
+      }
+
+      const response = await fetchCollocationSites(params)
+      
+      if (response.success && Array.isArray(response.sites)) {
+        const mappedSites: SiteCollocationEntry[] = response.sites.map((site: any) => {
+          const dailyData = site.data || []
+          return {
+            id: site._id,
+            name: site.name,
+            location: site.formatted_name || [site.city, site.district, site.country].filter(Boolean).join(", "),
+            category: site.network === "usembassy" ? "bam" : "lowcost",
+            uptime: (site.uptime || 0) * 100,
+            errorMargin: site.error_margin || 0,
+            uptimeHistory: dailyData.map((d: any) => ({
+              value: (d.uptime || 0) * 100,
+              timestamp: d.date,
+            })),
+            errorMarginHistory: dailyData.map((d: any) => ({
+              value: d.error_margin || 0,
+              timestamp: d.date,
+            })),
+            devices: {
+              total: site.numberOfDevices || 0,
+              lowcost: (site.devices || []).filter((d: any) => d.category === "lowcost").length,
+              lowcostOnline: (site.devices || []).filter((d: any) => d.category === "lowcost" && d.uptime > 0).length,
+              bam: (site.devices || []).filter((d: any) => d.category === "bam").length,
+              bamOnline: (site.devices || []).filter((d: any) => d.category === "bam" && d.uptime > 0).length,
+            }
+          }
+        })
+        setSites(mappedSites)
+      } else {
+        throw new Error(response.message || "Failed to fetch sites")
+      }
+    } catch (err: any) {
+      setError(err.message || "An error occurred while fetching data")
+      console.error("Fetch error:", err)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
+  const filteredSites = sites.filter((s) =>
     s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.location.toLowerCase().includes(searchTerm.toLowerCase())
   )
+
+  const summary = useMemo(() => {
+    if (sites.length === 0) return mockSummary
+    
+    const totalSites = sites.length
+    const lowcostSites = sites.filter(s => s.category === "lowcost").length
+    const bamSites = sites.filter(s => s.category === "bam").length
+    const overallUptime = sites.reduce((acc, s) => acc + s.uptime, 0) / totalSites
+    const overallErrorMargin = sites.reduce((acc, s) => acc + s.errorMargin, 0) / totalSites
+    
+    // For the summary graph, we'll use the data from the first few sites that have history
+    // or just use the mock history if none found (to keep it looking good)
+    const siteWithHistory = sites.find(s => s.uptimeHistory.length > 0)
+    const uptimeHistory = siteWithHistory?.uptimeHistory || mockSummary.uptimeHistory
+    const errorMarginHistory = siteWithHistory?.errorMarginHistory || mockSummary.errorMarginHistory
+
+    return {
+      totalSites,
+      lowcostSites,
+      bamSites,
+      overallUptime,
+      overallErrorMargin,
+      uptimeHistory,
+      errorMarginHistory,
+    }
+  }, [sites])
+
+  const sitesWithData = filteredSites.filter((s) => s.uptimeHistory.length > 0)
+  const emptySites = filteredSites.filter((s) => s.uptimeHistory.length === 0)
 
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Site Collocation</h1>
-        <Button variant="outline" size="sm" className="flex items-center">
-          <RefreshCw className="mr-2 h-4 w-4" />
-          Refresh Data
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="flex items-center" 
+          onClick={fetchData}
+          disabled={isLoading}
+        >
+          <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          {isLoading ? 'Refreshing...' : 'Refresh Data'}
         </Button>
       </div>
 
@@ -250,27 +364,27 @@ export default function SiteCollocationPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
-            <div className="text-3xl font-bold">{mockSummary.totalSites}</div>
+            <div className="text-3xl font-bold">{summary.totalSites}</div>
             <div className="flex items-center gap-4 mt-3">
               <div className="flex items-center gap-1.5">
                 <div className="h-3 w-3 rounded-full bg-blue-500"></div>
                 <span className="text-xs text-muted-foreground">Low Cost</span>
-                <span className="text-sm font-semibold">{mockSummary.lowcostSites}</span>
+                <span className="text-sm font-semibold">{summary.lowcostSites}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <div className="h-3 w-3 rounded-full bg-purple-500"></div>
                 <span className="text-xs text-muted-foreground">BAM</span>
-                <span className="text-sm font-semibold">{mockSummary.bamSites}</span>
+                <span className="text-sm font-semibold">{summary.bamSites}</span>
               </div>
             </div>
             <div className="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden flex">
               <div
                 className="h-full bg-blue-500 rounded-l-full"
-                style={{ width: `${(mockSummary.lowcostSites / mockSummary.totalSites) * 100}%` }}
+                style={{ width: `${(summary.lowcostSites / Math.max(1, summary.totalSites)) * 100}%` }}
               ></div>
               <div
                 className="h-full bg-purple-500 rounded-r-full"
-                style={{ width: `${(mockSummary.bamSites / mockSummary.totalSites) * 100}%` }}
+                style={{ width: `${(summary.bamSites / Math.max(1, summary.totalSites)) * 100}%` }}
               ></div>
             </div>
           </CardContent>
@@ -286,8 +400,8 @@ export default function SiteCollocationPage() {
           </CardHeader>
           <CardContent className="pt-4">
             <UptimeMiniGraph
-              uptimeHistory={mockSummary.uptimeHistory}
-              averageUptime={mockSummary.overallUptime}
+              uptimeHistory={summary.uptimeHistory}
+              averageUptime={summary.overallUptime}
             />
           </CardContent>
         </Card>
@@ -302,8 +416,8 @@ export default function SiteCollocationPage() {
           </CardHeader>
           <CardContent className="pt-4">
             <ErrorMarginMiniGraph
-              errorMarginHistory={mockSummary.errorMarginHistory}
-              averageMargin={mockSummary.overallErrorMargin}
+              errorMarginHistory={summary.errorMarginHistory}
+              averageMargin={summary.overallErrorMargin}
             />
           </CardContent>
         </Card>
@@ -316,6 +430,9 @@ export default function SiteCollocationPage() {
             <CardTitle className="flex items-center">
               <BarChart3 className="mr-2 h-5 w-5 text-primary" />
               Collocation Sites
+              {!isLoading && sitesWithData.length > 0 && (
+                <span className="ml-2 text-xs font-normal text-muted-foreground">({sitesWithData.length})</span>
+              )}
             </CardTitle>
           </div>
         </CardHeader>
@@ -346,14 +463,36 @@ export default function SiteCollocationPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredSites.length === 0 ? (
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={5} className="py-12">
+                      <div className="flex flex-col items-center justify-center text-muted-foreground">
+                        <Loader2 className="h-8 w-8 animate-spin mb-2" />
+                        <p>Loading sites data...</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : error ? (
+                  <tr>
+                    <td colSpan={5} className="py-12">
+                      <div className="flex flex-col items-center justify-center text-red-500">
+                        <AlertTriangle className="h-8 w-8 mb-2" />
+                        <p className="font-medium">Failed to load data</p>
+                        <p className="text-sm">{error}</p>
+                        <Button variant="outline" size="sm" className="mt-4" onClick={fetchData}>
+                          Try Again
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ) : filteredSites.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="py-8 text-center text-gray-500">
-                      No sites found matching your search.
+                      {searchTerm ? "No sites found matching your search." : "No sites available."}
                     </td>
                   </tr>
                 ) : (
-                  filteredSites.map((site) => (
+                  sitesWithData.map((site) => (
                     <tr
                       key={site.id}
                       className="border-b hover:bg-gray-50 transition-colors"
@@ -378,7 +517,7 @@ export default function SiteCollocationPage() {
                                   <div className="h-2 w-2 rounded-full bg-blue-500"></div>
                                   <span>Low Cost</span>
                                 </div>
-                                <span className="font-medium">{site.devices.lowcostOnline}/{site.devices.lowcost} online</span>
+                                <span className="font-medium tracking-tight whitespace-nowrap">{site.devices.lowcost} {site.devices.lowcost === 1 ? 'device' : 'devices'}</span>
                               </div>
                               {site.devices.bam > 0 && (
                                 <div className="flex items-center justify-between gap-4">
@@ -386,7 +525,7 @@ export default function SiteCollocationPage() {
                                     <div className="h-2 w-2 rounded-full bg-purple-500"></div>
                                     <span>BAM</span>
                                   </div>
-                                  <span className="font-medium">{site.devices.bamOnline}/{site.devices.bam} online</span>
+                                  <span className="font-medium tracking-tight whitespace-nowrap">{site.devices.bam} {site.devices.bam === 1 ? 'device' : 'devices'}</span>
                                 </div>
                               )}
                             </div>
@@ -412,6 +551,94 @@ export default function SiteCollocationPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Empty Sites Toggle */}
+          {!isLoading && !error && emptySites.length > 0 && (
+            <div className="mt-4 border-t pt-4">
+              <button
+                onClick={() => setShowEmptySites((v) => !v)}
+                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group"
+              >
+                {showEmptySites ? (
+                  <ChevronDown className="h-4 w-4 group-hover:text-primary transition-colors" />
+                ) : (
+                  <ChevronRight className="h-4 w-4 group-hover:text-primary transition-colors" />
+                )}
+                <span>
+                  {showEmptySites ? "Hide" : "Show"} sites with no data
+                  <span className="ml-1.5 inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                    {emptySites.length}
+                  </span>
+                </span>
+              </button>
+
+              {showEmptySites && (
+                <div className="mt-3 overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-amber-50">
+                        <th className="text-left py-3 px-4 font-medium text-gray-600">Name</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600">Location</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600">Devices</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600">Uptime</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600">Error Margin</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {emptySites.map((site) => (
+                        <tr
+                          key={site.id}
+                          className="border-b hover:bg-amber-50/50 transition-colors opacity-70"
+                        >
+                          <td className="py-3 px-4">
+                            <span className="font-medium">{site.name}</span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="text-sm text-gray-600">{site.location}</span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <HoverCard openDelay={100} closeDelay={100}>
+                              <HoverCardTrigger asChild>
+                                <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer transition-colors">
+                                  {site.devices.total} devices
+                                </span>
+                              </HoverCardTrigger>
+                              <HoverCardContent className="w-56 p-3" side="top">
+                                <div className="space-y-2 text-xs">
+                                  <div className="flex items-center justify-between gap-4">
+                                    <div className="flex items-center gap-1.5">
+                                      <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+                                      <span>Low Cost</span>
+                                    </div>
+                                    <span className="font-medium tracking-tight whitespace-nowrap">{site.devices.lowcost} {site.devices.lowcost === 1 ? 'device' : 'devices'}</span>
+                                  </div>
+                                  {site.devices.bam > 0 && (
+                                    <div className="flex items-center justify-between gap-4">
+                                      <div className="flex items-center gap-1.5">
+                                        <div className="h-2 w-2 rounded-full bg-purple-500"></div>
+                                        <span>BAM</span>
+                                      </div>
+                                      <span className="font-medium tracking-tight whitespace-nowrap">{site.devices.bam} {site.devices.bam === 1 ? 'device' : 'devices'}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </HoverCardContent>
+                            </HoverCard>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="text-muted-foreground text-sm">No data</span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="text-muted-foreground text-sm">No data</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
