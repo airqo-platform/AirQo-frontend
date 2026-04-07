@@ -1,4 +1,3 @@
-const DEFAULT_API_BASE_URL = 'https://staging-api.airqo.net';
 const DEFAULT_TENANT = 'airqo';
 const OAUTH_SIGNED_OUT_FLAG = 'airqo:oauth-signed-out';
 
@@ -40,7 +39,7 @@ const normalizeApiBaseUrl = (baseUrl: string): string => {
 };
 
 export const getApiBaseUrl = (): string => {
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || DEFAULT_API_BASE_URL;
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '';
   return normalizeApiBaseUrl(baseUrl);
 };
 
