@@ -12,12 +12,13 @@
  Redesigned the login experience for better branding and added a personalized, permanent context header to the dashboard to improve user orientation.
  
  <details>
- <summary><strong>Login Experience (4)</strong></summary>
+ <summary><strong>Login Experience (5)</strong></summary>
  
- - **Centered Layout**: Refined the login page to a clean, centered layout with improved typography and spacing.
- - **Desktop App Links**: Added an intelligent "Download desktop app" link that automatically detects the user's operating system (macOS vs Windows) and provides the correct artifact.
- - **Logo Positioning**: Moved the AirQo logo to the top-left corner of the viewport to create a more modern, spacious brand presence.
- - **Vertical Scroll Support**: Fixed an issue where long content (like recent account lists) could be clipped on shorter screens; the form now scrolls safely.
+ - **Sticky Topbar**: Introduced a compact, sticky `h-12` topbar to keep branding consistently visible while scrolling.
+ - **Platform-Aware Download Link**: Moved the desktop app download link to the topbar; it now automatically detects the user's OS and provides the appropriate `.exe` or `.dmg`.
+ - **Dynamic Brand Icons**: Added high-fidelity OS-specific icons (Apple logo for Mac, Windows squares for Win) to the download button for immediate visual feedback.
+ - **Adaptive Labels**: The button label now explicitly reflects the user's platform (e.g., "Download for macOS" vs "Download for Windows").
+ - **Mobile-Safe Interface**: The desktop download button is intelligently hidden on mobile browsers to reduce clutter on non-desktop platforms. 
  
  </details>
  
