@@ -16,14 +16,10 @@ import ReusableToast from "@/components/shared/toast/ReusableToast"
 import logger from "@/lib/logger"
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import { useAppDispatch } from "@/core/redux/hooks";
-import { setLoggingOut } from "@/core/redux/slices/userSlice";
-import { getLastActiveModule } from "@/core/utils/userPreferences";
 import {
-  getRememberedAccounts,
-  rememberAccount,
-  removeRememberedAccount,
-  type RememberedAccount,
-} from "@/core/utils/rememberedAccounts";
+  setLoggingOut,
+} from "@/core/redux/slices/userSlice";
+import { getLastActiveModule } from "@/core/utils/userPreferences";
 
 const loginSchema = z.object({
   userName: z.string().email({ message: "Please enter a valid email address" }),
@@ -32,7 +28,6 @@ const loginSchema = z.object({
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
-  const [rememberedAccounts, setRememberedAccounts] = useState<RememberedAccount[]>([]);
   const [downloadUrl, setDownloadUrl] = useState("https://github.com/airqo-platform/AirQo-frontend/releases/download/v0.1.0/vertex-desktop-v0.1.0.exe");
   const searchParams = useSearchParams();
   const callbackUrl = useMemo(() => {
@@ -64,7 +59,6 @@ export default function LoginPage() {
     isMounted.current = true;
     // Reset logout state when login page mounts
     dispatch(setLoggingOut(false));
-    setRememberedAccounts(getRememberedAccounts());
 
     // OS Detection for download link and platform check
     const userAgent = window.navigator.userAgent.toLowerCase();
@@ -89,16 +83,6 @@ export default function LoginPage() {
     };
   }, [dispatch]);
 
-  const handleUseRememberedAccount = useCallback((email: string) => {
-    form.setValue("userName", email, { shouldValidate: true });
-    form.setValue("password", "");
-    form.setFocus("password");
-  }, [form]);
-
-  const handleRemoveRememberedAccount = useCallback((id: string) => {
-    const updated = removeRememberedAccount(id);
-    setRememberedAccounts(updated);
-  }, []);
 
   const onSubmit = useCallback(async (values: z.infer<typeof loginSchema>) => {
     setIsLoading(true);
@@ -118,13 +102,6 @@ export default function LoginPage() {
       if (!isMounted.current) return;
 
       if (result?.ok) {
-        const existing = rememberedAccounts.find((item) => item.email.toLowerCase() === values.userName.toLowerCase());
-        rememberAccount({
-          email: values.userName,
-          displayName: existing?.displayName || values.userName,
-          profilePicture: existing?.profilePicture || "",
-        });
-        setRememberedAccounts(getRememberedAccounts());
         ReusableToast({ message: "Welcome back!", type: "SUCCESS" });
         window.location.href = redirectUrl;
       } else {
@@ -170,7 +147,7 @@ export default function LoginPage() {
                 href={downloadUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-all hover:bg-blue-50 hover:border-foreground/20 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                className="inline-flex items-center gap-2 rounded-md border border-border bg-primary px-4 py-2 text-sm font-medium text-white transition-all hover:bg-primary/80 hover:border-foreground/20 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
               >
                 {platform === 'mac' ? (
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
