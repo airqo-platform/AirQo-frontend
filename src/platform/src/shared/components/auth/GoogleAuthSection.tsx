@@ -64,7 +64,7 @@ export default function GoogleAuthSection({
         Icon={FcGoogle}
         iconPosition="start"
         onClick={handleGoogleAuth}
-        className="border-slate-300 bg-white text-gray-900 hover:bg-slate-50 hover:text-gray-900 disabled:border-slate-300 disabled:bg-white disabled:text-gray-400 disabled:hover:bg-white disabled:hover:text-gray-400 dark:border-slate-700 dark:bg-transparent dark:text-gray-100 dark:hover:bg-slate-800 dark:disabled:border-slate-700 dark:disabled:bg-transparent dark:disabled:text-gray-500"
+        className="!border-slate-300 !bg-white !text-gray-900 hover:!bg-slate-50 hover:!text-gray-900 disabled:!border-slate-300 disabled:!bg-white disabled:!text-gray-400 disabled:hover:!bg-white disabled:hover:!text-gray-400 dark:!border-slate-700 dark:!bg-transparent dark:!text-gray-100 dark:hover:!bg-slate-800 dark:hover:!text-gray-100 dark:disabled:!border-slate-700 dark:disabled:!bg-transparent dark:disabled:!text-gray-500"
       >
         <span className="text-current">{label}</span>
       </Button>
