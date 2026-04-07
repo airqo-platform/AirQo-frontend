@@ -208,7 +208,7 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                     setIsDropdownOpen(false);
                   }}
                   label="Sensor Manufacturers"
-                  subLabel="Manage and configure external devices"
+                  subLabel="Manage and configure devices"
                   isActive={pathname.startsWith(ROUTE_LINKS.ADMIN_NETWORKS)}
                 />
 

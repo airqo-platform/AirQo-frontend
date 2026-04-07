@@ -126,12 +126,12 @@ const NetworkVisibilityCard = () => {
                         </div>
                         <div>
                             <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-                                {isPrivate ? "Your network is Private" : "Your network is Public"}
+                                {isPrivate ? "Your devices are Private" : "Your devices are Public"}
                             </h3>
                             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-xl">
                                 {isPrivate
-                                    ? "Your sensors are hidden from the public. Data is visible only in your account."
-                                    : "Your sensors are visible to anyone on the AirQo Map. You are contributing to open data."
+                                    ? "Your devices are hidden from the public. Data is visible only in your account."
+                                    : "Your devices are visible to anyone on the AirQo Map. You are contributing to open data."
                                 }
                             </p>
                         </div>
@@ -195,8 +195,8 @@ const NetworkVisibilityCard = () => {
                 <div className="space-y-4 py-2">
                     <p className="text-gray-600 dark:text-gray-300">
                         {targetVisibility
-                            ? "You are about to make your entire network visible on the public AirQo Map. This means anyone can see your air quality readings."
-                            : "You are about to make your entire network private. Your data will only be visible to your organization and will not appear on the public map."
+                            ? "You are about to make your devices visible on the public AirQo Map. This means anyone can see your air quality readings."
+                            : "You are about to make your devices private. Your data will only be visible to your organization and will not appear on the public map."
                         }
                     </p>
                 </div>
