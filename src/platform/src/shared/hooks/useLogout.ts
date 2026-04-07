@@ -9,10 +9,12 @@ import { useCallback } from 'react';
 import logger from '@/shared/lib/logger';
 import { useSWRConfig } from 'swr';
 import { useQueryClient } from '@tanstack/react-query';
+import { setBackendOAuthSignedOutFlag } from '@/shared/lib/oauth-session';
 
 let sharedLogoutPromise: Promise<void> | null = null;
 let sharedIsLoggingOut = false;
 const ACCOUNT_DELETION_TTL_MS = 5 * 60 * 1000;
+const OAUTH_SIGNED_OUT_FLAG = 'airqo:oauth-signed-out';
 
 export const useLogout = (callbackUrl?: string) => {
   const dispatch = useDispatch();
@@ -50,6 +52,7 @@ export const useLogout = (callbackUrl?: string) => {
 
         // Clear any remaining application storage immediately
         if (typeof window !== 'undefined') {
+          setBackendOAuthSignedOutFlag();
           const keysToRemove = new Set<string>();
           const accountDeleted =
             localStorage.getItem('account_deleted') === 'true';
@@ -77,11 +80,14 @@ export const useLogout = (callbackUrl?: string) => {
               ])
             : new Set<string>();
 
+          crossTabSignalKeys.add(OAUTH_SIGNED_OUT_FLAG);
+
           for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
             if (
               key &&
               !key.startsWith('next-auth') &&
+              key !== OAUTH_SIGNED_OUT_FLAG &&
               !crossTabSignalKeys.has(key)
             ) {
               keysToRemove.add(key);
