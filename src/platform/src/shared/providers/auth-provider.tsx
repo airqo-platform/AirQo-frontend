@@ -1,7 +1,7 @@
 'use client';
 
 import { SessionProvider, useSession, getSession } from 'next-auth/react';
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { LoadingOverlay } from '@/shared/components/ui/loading-overlay';
@@ -14,6 +14,13 @@ import { SWRProvider } from '@/shared/providers/swr-provider';
 import { QueryProvider } from '@/shared/providers/query-provider';
 import { runClientCacheMaintenance } from '@/shared/lib/clientCache';
 import { normalizeCallbackUrl } from '@/shared/lib/auth-redirect';
+import {
+  clearBackendOAuthSignedOutFlag,
+  buildSessionFromProfile,
+  type BackendOAuthSession,
+  shouldSkipBackendOAuthBootstrap,
+  verifyBackendOAuthSession,
+} from '@/shared/lib/oauth-session';
 
 // Component to guard and redirect based on active group for all pages
 function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
@@ -60,6 +67,7 @@ const publicRoutes = [
   '/user/forgotPwd',
   '/user/forgotPwd/reset',
   '/user/delete/confirm', // covers /user/delete/confirm/[token]
+  '/user/oauth',
   '/org-invite', // Public invitation acceptance page
 ];
 
@@ -431,12 +439,115 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const isPublicRoute = isPublicAuthRoute(pathname);
+  const isOAuthCallbackRoute = pathname.startsWith('/user/oauth');
+  const shouldRenderImmediately = isPublicRoute && !isOAuthCallbackRoute;
+  const [bootstrapSession, setBootstrapSession] = useState<
+    BackendOAuthSession | null | undefined
+  >(shouldRenderImmediately ? null : undefined);
+
   useEffect(() => {
     runClientCacheMaintenance();
   }, []);
 
+  useEffect(() => {
+    let isMounted = true;
+    const currentPathname =
+      typeof window !== 'undefined' ? window.location.pathname : '';
+    const isCurrentOAuthCallbackRoute =
+      currentPathname.startsWith('/user/oauth');
+    const isCurrentPublicRoute =
+      isPublicAuthRoute(currentPathname) && !isCurrentOAuthCallbackRoute;
+
+    const bootstrap = async () => {
+      try {
+        if (isCurrentPublicRoute) {
+          const nextAuthSession = await getSession();
+          if (!isMounted) return;
+
+          if (shouldSkipBackendOAuthBootstrap()) {
+            setBootstrapSession(null);
+            return;
+          }
+
+          if (nextAuthSession?.user) {
+            clearBackendOAuthSignedOutFlag();
+            setBootstrapSession(nextAuthSession as BackendOAuthSession);
+            return;
+          }
+
+          setBootstrapSession(null);
+          return;
+        }
+
+        const nextAuthSession = await getSession();
+        if (!isMounted) return;
+
+        if (shouldSkipBackendOAuthBootstrap() && !isCurrentOAuthCallbackRoute) {
+          setBootstrapSession(null);
+          return;
+        }
+
+        if (nextAuthSession?.user) {
+          if (
+            shouldSkipBackendOAuthBootstrap() &&
+            !isCurrentOAuthCallbackRoute
+          ) {
+            setBootstrapSession(null);
+            return;
+          }
+
+          clearBackendOAuthSignedOutFlag();
+          setBootstrapSession(nextAuthSession as BackendOAuthSession);
+          return;
+        }
+
+        if (shouldSkipBackendOAuthBootstrap() && !isCurrentOAuthCallbackRoute) {
+          setBootstrapSession(null);
+          return;
+        }
+
+        const backendProfile = await verifyBackendOAuthSession();
+        if (!isMounted) return;
+
+        if (shouldSkipBackendOAuthBootstrap() && !isCurrentOAuthCallbackRoute) {
+          setBootstrapSession(null);
+          return;
+        }
+
+        if (backendProfile) {
+          clearBackendOAuthSignedOutFlag();
+          setBootstrapSession(buildSessionFromProfile(backendProfile));
+          return;
+        }
+
+        setBootstrapSession(null);
+      } catch (error) {
+        if (!isMounted) return;
+
+        logger.warn('Failed to bootstrap auth session', error);
+        setBootstrapSession(null);
+      }
+    };
+
+    void bootstrap();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  if (bootstrapSession === undefined) {
+    return <LoadingOverlay />;
+  }
+
   return (
-    <SessionProvider refetchOnWindowFocus={false} refetchInterval={0}>
+    <SessionProvider
+      session={bootstrapSession}
+      refetchOnWindowFocus={false}
+      refetchInterval={0}
+    >
       <AuthScopedCacheProviders>
         <AuthWrapper>{children}</AuthWrapper>
       </AuthScopedCacheProviders>

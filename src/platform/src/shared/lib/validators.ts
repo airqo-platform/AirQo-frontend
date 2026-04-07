@@ -16,9 +16,6 @@ export const registerSchema = z.object({
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
       'Password must include uppercase, lowercase, number, and special character'
     ),
-  agreed: z
-    .boolean()
-    .refine(val => val === true, 'You must agree to the terms'),
 });
 
 export const forgotPwdSchema = z.object({

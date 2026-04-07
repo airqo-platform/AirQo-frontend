@@ -2,22 +2,22 @@
 
 import AuthLayout from '@/shared/layouts/AuthLayout';
 import Link from 'next/link';
-import { Button, Input, Checkbox } from '@/shared/components/ui';
-import { useForm, Controller } from 'react-hook-form';
+import { Button, Input } from '@/shared/components/ui';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from '@/shared/components/ui';
 import { registerSchema, type RegisterFormData } from '@/shared/lib/validators';
 import { useRegister } from '@/shared/hooks/useAuth';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { normalizeCallbackUrl } from '@/shared/lib/auth-redirect';
+import GoogleAuthSection from '@/shared/components/auth/GoogleAuthSection';
 
 export default function RegisterPage() {
   const {
     register,
     handleSubmit,
     formState: { errors, isValid },
-    control,
-    watch,
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -25,23 +25,15 @@ export default function RegisterPage() {
       lastName: '',
       email: '',
       password: '',
-      agreed: false,
     },
     mode: 'onChange',
   });
 
   const { trigger: registerUser, isMutating } = useRegister();
   const router = useRouter();
-
-  // Watch all form fields to enable/disable button
-  const watchedFields = watch();
-  const isFormComplete =
-    isValid &&
-    watchedFields.agreed &&
-    watchedFields.firstName &&
-    watchedFields.lastName &&
-    watchedFields.email &&
-    watchedFields.password;
+  const searchParams = useSearchParams();
+  const callbackUrl =
+    normalizeCallbackUrl(searchParams.get('callbackUrl')) || '/user/home';
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
@@ -119,54 +111,44 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        <div className="flex items-center mt-4 mb-6">
-          <Controller
-            name="agreed"
-            control={control}
-            render={({ field }) => (
-              <Checkbox
-                id="agree"
-                checked={field.value}
-                onCheckedChange={field.onChange}
-                className="mr-2"
-              />
-            )}
-          />
-          <label htmlFor="agree" className="text-sm cursor-pointer">
-            I agree to the{' '}
-            <a
-              href="https://airqo.net/legal/terms-of-service"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:text-blue-800"
-            >
-              Terms of Service
-            </a>{' '}
-            and{' '}
-            <a
-              href="https://airqo.net/legal/privacy-policy"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:text-blue-800"
-            >
-              Privacy Policy
-            </a>
-          </label>
-        </div>
-        {errors.agreed && (
-          <p className="text-sm text-red-600 mb-4">{errors.agreed.message}</p>
-        )}
+        <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+          By continuing, you agree to the{' '}
+          <a
+            href="https://airqo.net/legal/terms-of-service"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:text-blue-800"
+          >
+            Terms of Service
+          </a>{' '}
+          and{' '}
+          <a
+            href="https://airqo.net/legal/privacy-policy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:text-blue-800"
+          >
+            Privacy Policy
+          </a>
+          .
+        </p>
 
         <Button
           type="submit"
           fullWidth
           loading={isMutating}
-          disabled={!isFormComplete}
+          disabled={!isValid || isMutating}
           className="mt-6"
         >
           Continue
         </Button>
       </form>
+
+      <GoogleAuthSection
+        mode="register"
+        callbackUrl={callbackUrl}
+        className="mt-6"
+      />
 
       <div className="w-full mt-6 text-center">
         <p className="text-sm">
