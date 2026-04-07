@@ -140,6 +140,7 @@ export default function LoginPage() {
               width={28}
               height={28}
               className="h-7 w-auto"
+              priority
             />
           </div>
           
@@ -168,7 +169,7 @@ export default function LoginPage() {
       </header>
 
       {/* Main Content Area */}
-      <div className="flex flex-1 overflow-y-auto">
+      <main className="flex flex-1 overflow-y-auto">
         <div className="flex flex-1 flex-col px-4 py-12 sm:px-6">
           <div className="mx-auto w-full max-w-[400px] my-auto">
             <div className="mb-10 text-center">
@@ -242,7 +243,7 @@ export default function LoginPage() {
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   )
 }
