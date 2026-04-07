@@ -168,7 +168,11 @@ export default function LoginPage() {
         </Button>
       </form>
 
-      <GoogleAuthSection mode="login" className="mt-6" />
+      <GoogleAuthSection
+        mode="login"
+        callbackUrl={callbackUrl}
+        className="mt-6"
+      />
 
       <div className="w-full mt-6 text-center">
         <p className="text-sm">

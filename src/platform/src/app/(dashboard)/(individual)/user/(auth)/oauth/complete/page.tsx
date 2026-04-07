@@ -29,7 +29,9 @@ export default function GoogleOAuthCompletePage() {
         'Google sign-in failed',
         'Please try again or use email and password.'
       );
-      router.replace('/user/login?error=google');
+      router.replace(
+        `/user/login?error=google&callbackUrl=${encodeURIComponent(callbackUrl)}`
+      );
       return;
     }
 

@@ -1,5 +1,6 @@
 const DEFAULT_TENANT = 'airqo';
 const OAUTH_SIGNED_OUT_FLAG = 'airqo:oauth-signed-out';
+const DEFAULT_FORUM_FETCH_TIMEOUT_MS = 8000;
 
 export interface BackendOAuthProfile {
   _id: string;
@@ -8,6 +9,7 @@ export interface BackendOAuthProfile {
   lastName: string;
   profilePicture?: string;
   verified?: boolean;
+  accessToken?: string;
 }
 
 export interface BackendOAuthProfileResponse {
@@ -18,6 +20,7 @@ export interface BackendOAuthProfileResponse {
 
 export interface BackendOAuthSession {
   expires: string;
+  accessToken?: string;
   user: {
     _id: string;
     email: string;
@@ -74,13 +77,19 @@ export const setBackendOAuthSignedOutFlag = (): void => {
 
 export const buildOAuthInitiationUrl = (
   provider = 'google',
-  tenant = DEFAULT_TENANT
+  tenant = DEFAULT_TENANT,
+  callbackUrl?: string
 ): string => {
-  return buildBackendApiUrl(
-    `/users/auth/${encodeURIComponent(provider)}?tenant=${encodeURIComponent(
-      tenant
-    )}`
+  const oauthUrl = new URL(
+    buildBackendApiUrl(`/users/auth/${encodeURIComponent(provider)}`)
   );
+  oauthUrl.searchParams.set('tenant', tenant);
+
+  if (callbackUrl) {
+    oauthUrl.searchParams.set('callbackUrl', callbackUrl);
+  }
+
+  return oauthUrl.toString();
 };
 
 export const buildSessionFromProfile = (
@@ -93,6 +102,7 @@ export const buildSessionFromProfile = (
 
   return {
     expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    accessToken: profile.accessToken,
     user: {
       _id: profile._id,
       email: profile.email,
@@ -106,11 +116,17 @@ export const buildSessionFromProfile = (
 
 export const verifyBackendOAuthSession =
   async (): Promise<BackendOAuthProfile | null> => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, DEFAULT_FORUM_FETCH_TIMEOUT_MS);
+
     try {
       const response = await fetch(
         buildBackendApiUrl('/users/profile/enhanced'),
         {
           method: 'GET',
+          signal: controller.signal,
           credentials: 'include',
           cache: 'no-store',
           headers: {
@@ -131,5 +147,7 @@ export const verifyBackendOAuthSession =
       return payload.data;
     } catch {
       return null;
+    } finally {
+      clearTimeout(timeoutId);
     }
   };
