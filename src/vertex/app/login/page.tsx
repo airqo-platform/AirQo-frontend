@@ -54,6 +54,7 @@ export default function LoginPage() {
   const isMounted = useRef(true);
 
   const [platform, setPlatform] = useState<'mac' | 'win' | 'linux' | 'other' | null>(null);
+  const [isElectron, setIsElectron] = useState(false);
 
   useEffect(() => {
     isMounted.current = true;
@@ -65,6 +66,7 @@ export default function LoginPage() {
     const isMac = userAgent.includes('mac');
     const isWin = userAgent.includes('win');
     const isLinux = userAgent.includes('linux');
+    setIsElectron(userAgent.includes('electron'));
     
     if (isMac) {
       setPlatform('mac');
@@ -141,7 +143,7 @@ export default function LoginPage() {
             />
           </div>
           
-          {(platform === 'mac' || platform === 'win') && (
+          {!isElectron && (platform === 'mac' || platform === 'win') && (
             <div className="flex items-center">
               <a
                 href={downloadUrl}

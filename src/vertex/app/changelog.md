@@ -23,11 +23,13 @@
  </details>
  
  <details>
- <summary><strong>Dashboard UX (3)</strong></summary>
+ <summary><strong>Dashboard UX (5)</strong></summary>
  
  - **Personalized Greeting**: Introduced a "Hi, {Name} 👋" greeting in the dashboard header using Redux-backed user details.
  - **Permanent Context Header**: Redesigned the `ContextHeader` into a non-dismissible, light blue alert component that explicitly clarifies which organizational or personal workspace is active.
  - **Integrated Description**: Merged the workspace title and description into a unified information box with a clean `Info` icon and consistent blue styling.
+ - **Sidebar Download Access**: Added a "Download for {OS}" button to the secondary sidebar footer (expanded view) for quick access to the desktop version.
+ - **Adaptive Environment Check**: Implemented Electron detection to hide the download button if the user is already accessing Vertex through the desktop app.
  
  </details>
  
@@ -40,11 +42,12 @@
  </details>
  
  <details>
- <summary><strong>Files Modified (4)</strong></summary>
+ <summary><strong>Files Modified (5)</strong></summary>
  
  - `app/login/page.tsx`
  - `components/features/home/context-header.tsx`
  - `components/features/home/HomeEmptyState.tsx`
+ - `components/layout/secondary-sidebar.tsx`
  - `app/changelog.md`
  
  </details>

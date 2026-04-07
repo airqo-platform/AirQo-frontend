@@ -50,9 +50,11 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
 
   const [platform, setPlatform] = React.useState<'mac' | 'win' | 'linux' | 'other' | null>(null);
   const [downloadUrl, setDownloadUrl] = React.useState("");
+  const [isElectron, setIsElectron] = React.useState(false);
 
   React.useEffect(() => {
     const userAgent = window.navigator.userAgent.toLowerCase();
+    setIsElectron(userAgent.includes('electron'));
     if (userAgent.includes('mac')) {
       setPlatform('mac');
       setDownloadUrl("https://github.com/airqo-platform/AirQo-frontend/releases/download/v0.1.0/vertex-desktop-v0.1.0-arm64.dmg");
@@ -94,7 +96,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
           overflow
           overflowType="auto"
           contentClassName={`flex flex-col h-full overflow-x-hidden scrollbar-thin ${styles.scrollbar}`}
-          footer={!isCollapsed && (platform === 'mac' || platform === 'win') && (
+          footer={!isCollapsed && !isElectron && (platform === 'mac' || platform === 'win') && (
             <div className="px-1 pb-2">
               <a
                 href={downloadUrl}
