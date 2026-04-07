@@ -3,6 +3,59 @@
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
 ---
+ 
+ ## Version 1.23.24
+ **Released:** April 07, 2026
+ 
+ ### Login Page Revamp & Context Header Redesign
+ 
+ Redesigned the login experience for better branding and added a personalized, permanent context header to the dashboard to improve user orientation.
+ 
+ <details>
+ <summary><strong>Login Experience (5)</strong></summary>
+ 
+ - **Sticky Topbar**: Introduced a compact, sticky `h-12` topbar to keep branding consistently visible while scrolling.
+ - **Platform-Aware Download Link**: Moved the desktop app download link to the topbar; it now automatically detects the user's OS and provides the appropriate `.exe` or `.dmg`.
+ - **Dynamic Brand Icons**: Added high-fidelity OS-specific icons (Apple logo for Mac, Windows squares for Win) to the download button for immediate visual feedback.
+ - **Adaptive Labels**: The button label now explicitly reflects the user's platform (e.g., "Download for macOS" vs "Download for Windows").
+ - **Mobile-Safe Interface**: The desktop download button is intelligently hidden on mobile browsers to reduce clutter on non-desktop platforms. 
+ 
+ </details>
+ 
+ <details>
+ <summary><strong>Dashboard UX (6)</strong></summary>
+ 
+ - **Personalized Greeting**: Introduced a "Hi, {Name} 👋" greeting in the dashboard header using Redux-backed user details.
+ - **Permanent Context Header**: Redesigned the `ContextHeader` into a non-dismissible, light blue alert component that explicitly clarifies which organizational or personal workspace is active.
+ - **Robust Context Guarding**: Implemented strict property guarding for `activeGroup` to prevent "undefined workspace" during initial load or context switches.
+ - **Integrated Description**: Merged the workspace title and description into a unified information box with a clean `Info` icon and consistent blue styling.
+ - **Sidebar Download Access**: Added a "Download for {OS}" button to the secondary sidebar footer (expanded view) for quick access to the desktop version.
+ - **Adaptive Environment Check**: Implemented Electron and macOS architecture detection (ARM64 vs Intel) to hide the download button for Intel Mac and desktop app users.
+ 
+ </details>
+ 
+ <details>
+ <summary><strong>Home Empty State (2)</strong></summary>
+ 
+ - **Header Integration**: Added the `ContextHeader` to the `HomeEmptyState` component so users maintain context even when their device list is empty.
+ - **Layout Refinement**: Optimized the empty state vertical padding and ensured the header remains pinned to the top while the call-to-action remains centered.
+ 
+ </details>
+ 
+ <details>
+ <summary><strong>Files Modified (7)</strong></summary>
+ 
+ - `app/login/page.tsx`
+ - `components/features/home/context-header.tsx`
+ - `components/features/home/HomeEmptyState.tsx`
+ - `components/layout/secondary-sidebar.tsx`
+ - `core/utils/platform.ts`
+ - `app/globals.css`
+ - `app/changelog.md`
+ 
+ </details>
+ 
+ ---
 
 ## Version 1.23.23
 **Released:** March 19, 2026
