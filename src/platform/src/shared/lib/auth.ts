@@ -91,9 +91,10 @@ export const authOptions: any = {
       if (user) {
         token.id = user.id;
         token._id = user._id;
-        token.accessToken = (user as any).accessToken;
-        token.firstName = (user as any).firstName;
-        token.lastName = (user as any).lastName;
+        token.accessToken =
+          typeof user.accessToken === 'string' ? user.accessToken : undefined;
+        token.firstName = user.firstName;
+        token.lastName = user.lastName;
       }
 
       return token;

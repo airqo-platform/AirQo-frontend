@@ -15,6 +15,7 @@ export interface BackendOAuthProfile {
 export interface BackendOAuthProfileResponse {
   success: boolean;
   message?: string;
+  accessToken?: string;
   data?: BackendOAuthProfile;
 }
 
@@ -144,7 +145,10 @@ export const verifyBackendOAuthSession =
         return null;
       }
 
-      return payload.data;
+      return {
+        ...payload.data,
+        accessToken: payload.data.accessToken ?? payload.accessToken,
+      };
     } catch {
       return null;
     } finally {

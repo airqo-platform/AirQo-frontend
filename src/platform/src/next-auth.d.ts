@@ -13,7 +13,7 @@ declare module 'next-auth' {
 
   interface Session extends DefaultSession {
     accessToken?: string;
-    user: DefaultSession['user'] & User;
+    user: (DefaultSession['user'] & User) | null;
   }
 }
 
