@@ -108,6 +108,18 @@ const MapPage: React.FC<MapPageProps> = ({
   >('pm2_5');
 
   const flyToTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const primaryCohortId = React.useMemo(() => {
+    if (!cohortId) {
+      return '';
+    }
+
+    return (
+      cohortId
+        .split(',')
+        .map(id => id.trim())
+        .find(Boolean) ?? ''
+    );
+  }, [cohortId]);
 
   // ── Cleanup ────────────────────────────────────────────────────────────────
   React.useEffect(() => {
@@ -128,16 +140,18 @@ const MapPage: React.FC<MapPageProps> = ({
     country: selectedCountry,
     cohort_id: cohortId,
   });
+  const mapCohortFilter = isOrganizationFlow
+    ? primaryCohortId || null
+    : undefined;
   const {
     readings,
     isLoading: mapDataLoading,
     refetch,
-  } = useMapReadings(cohortId);
+  } = useMapReadings(mapCohortFilter);
 
-  const firstCohortId = cohortId ? cohortId.split(',')[0] : '';
   const { data: cohortData } = useCohort(
-    firstCohortId,
-    isOrganizationFlow && !!firstCohortId
+    primaryCohortId,
+    isOrganizationFlow && !!primaryCohortId
   );
 
   const hasNoMapData =
