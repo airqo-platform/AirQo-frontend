@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { config } from "@/lib/config"
+import { isMockMode, getMockUsers } from "@/lib/mock-data"
 
 interface User {
   id: number
@@ -74,6 +75,12 @@ export default function UsersPage() {
     try {
       setLoading(true)
       setError(null)
+
+      if (isMockMode()) {
+        setUsers(getMockUsers() as any)
+        setLoading(false)
+        return
+      }
 
       let token
       try {

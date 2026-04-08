@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
+import { useSearchParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Activity, RefreshCw, CalendarIcon, AlertCircle, TrendingUp, BarChart3, Clock, ChevronDown, ChevronUp, Battery } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -12,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
 import { format, subDays } from "date-fns"
 import { getDevicePerformanceData } from "@/services/device-api.service"
+import { isMockMode } from "@/lib/mock-data"
 import { useToast } from "@/hooks/use-toast"
 import {
   Table,
@@ -77,6 +79,8 @@ interface DeviceSummary {
 
 export default function PerformanceTab({ deviceId, deviceName }: Readonly<PerformanceTabProps>) {
   const { toast } = useToast()
+  const searchParams = useSearchParams()
+  const isMock = searchParams.get('mock') === 'true'
   const [performanceData, setPerformanceData] = useState<PerformanceData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -105,6 +109,46 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
     try {
       setLoading(true)
       setError(null)
+
+      if (isMock || isMockMode()) {
+        // Provide dummy performance data
+        const mockRawData: RawDataPoint[] = []
+        const start = dateRange.from || fourteenDaysAgo
+        const end = dateRange.to || yesterday
+        const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 3600 * 24)) + 1
+        
+        for (let i = 0; i < days; i++) {
+          const date = new Date(start)
+          date.setDate(date.getDate() + i)
+          mockRawData.push({
+            datetime: date.toISOString(),
+            pm2_5: 10 + Math.random() * 20,
+            pm10: 15 + Math.random() * 25,
+            s1_pm2_5: 11 + Math.random() * 19,
+            s2_pm2_5: 9 + Math.random() * 21,
+            s1_pm10: 16 + Math.random() * 24,
+            s2_pm10: 14 + Math.random() * 26,
+            temperature: 22 + Math.random() * 8,
+            humidity: 50 + Math.random() * 30,
+            battery_voltage: 3.8 + Math.random() * 0.4,
+            device_name: deviceName,
+          })
+        }
+
+        const mockPerformance: PerformanceData = {
+          device_name: deviceName,
+          uptime: 95.5,
+          data_completeness: 98.2,
+          sensor_error_margin: 2.4,
+          raw_data: mockRawData,
+        }
+
+        // Simulate network delay
+        await new Promise(resolve => setTimeout(resolve, 500))
+        setPerformanceData([mockPerformance])
+        setLoading(false)
+        return
+      }
 
       if (!dateRange.from || !dateRange.to) {
         toast({

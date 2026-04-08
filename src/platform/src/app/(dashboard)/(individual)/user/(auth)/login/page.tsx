@@ -11,6 +11,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from '@/shared/components/ui';
 import { loginSchema, type LoginFormData } from '@/shared/lib/validators';
 import { normalizeCallbackUrl } from '@/shared/lib/auth-redirect';
+import GoogleAuthSection from '@/shared/components/auth/GoogleAuthSection';
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -166,6 +167,12 @@ export default function LoginPage() {
           {loading ? 'Signing in...' : 'Login'}
         </Button>
       </form>
+
+      <GoogleAuthSection
+        mode="login"
+        callbackUrl={callbackUrl}
+        className="mt-6"
+      />
 
       <div className="w-full mt-6 text-center">
         <p className="text-sm">

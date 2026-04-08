@@ -110,7 +110,7 @@ const processDevicePerformance = (device: AirQloudDetailData['devices'][0]): Pro
     daily_uptime_percentage: (device.uptime || 0) * 100,
     average_error_margin: device.sensor_error_margin || 0,
     data_points: deviceData.length,
-    last_active: device.lastActive || device.lastRawData || null,
+    last_active: device.lastRawData || device.lastRawData || null,
     uptime_history: uptimeHistory,
     error_margin_history: errorMarginHistory
   }
@@ -249,8 +249,12 @@ export default function AirQloudDetailPage() {
         setError(null)
 
         const endDate = new Date()
-        const startDate = new Date()
-        startDate.setDate(endDate.getDate() - 14)
+        endDate.setDate(endDate.getDate() - 1)
+        endDate.setHours(23, 59, 59, 999)
+
+        const startDate = new Date(endDate)
+        startDate.setDate(endDate.getDate() - 13) // 14 days total including yesterday
+        startDate.setHours(0, 0, 0, 0)
 
         const response = await airQloudService.getAirQloudById(
           airqloudId,

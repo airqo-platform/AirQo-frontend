@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Bell, LogOut, Loader2 } from "lucide-react"
-import { AqAirQo, AqAlignLeft } from '@airqo/icons-react'
+import { AqAirQo, AqAlignLeft } from '@/components/icons'
 import { Button } from "@/components/ui/button"
 import {
   AlertDialog,
@@ -99,7 +99,6 @@ export default function TopNav({
             className="flex items-center space-x-2 cursor-pointer" 
             onClick={() => router.push('/dashboard')}
           >
-            <AqAirQo size={48} color="#0A84FF" />
             <span className="text-xl font-bold text-gray-800">Beacon</span>
           </div>
         </div>

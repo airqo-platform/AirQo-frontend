@@ -1,5 +1,6 @@
 import { config } from '@/lib/config'
 import authService from './api-service'
+import { isMockMode, getMockDevices, getMockDeviceStats, getMockDeviceSummary, getMockDashboardSummary, getMockSystemHealth, getMockDataTransmission, getMockNetworkPerformance, getMockOfflineDevices, getMockUpcomingMaintenance, getMockMapData, getMockMaintenanceMapData, getMockDevicePerformanceData, getMockDeviceMetadata, getMockDeviceConfig } from '@/lib/mock-data'
 import {
   DeviceStatsResponse,
   Device,
@@ -203,6 +204,8 @@ class ApiService {
 
   // Device Stats API
   async getDeviceStats(params?: StatsQueryParams): Promise<DeviceStatsResponse> {
+    if (isMockMode()) return getMockDeviceStats() as any
+
     const queryString = this.buildQueryString({
       include_networks: params?.include_networks ?? true,
       include_categories: params?.include_categories ?? true,
@@ -222,6 +225,8 @@ class ApiService {
 
   // Device List API
   async getDevices(params?: DeviceQueryParams): Promise<Device[]> {
+    if (isMockMode()) return getMockDevices() as any
+
     const queryString = this.buildQueryString(params || {})
     const endpoint = this.getEndpoint('/devices/')
     const url = `${this.baseUrl}${endpoint}${queryString}`
@@ -232,6 +237,14 @@ class ApiService {
 
   // Device List API with Pagination
   async getDevicesPaginated(params?: DeviceQueryParams): Promise<PaginatedDeviceResponse> {
+    if (isMockMode()) {
+      const devices = getMockDevices() as any
+      return {
+        devices,
+        pagination: { total: devices.length, skip: 0, limit: 100, returned: devices.length, pages: 1, current_page: 1, has_next: false, has_previous: false }
+      }
+    }
+
     const queryString = this.buildQueryString(params || {})
     const endpoint = this.getEndpoint('/devices/')
     const url = `${this.baseUrl}${endpoint}${queryString}`
@@ -335,6 +348,11 @@ class ApiService {
 
   // Single Device API
   async getDevice(deviceId: string): Promise<Device> {
+    if (isMockMode()) {
+      const devices = getMockDevices() as any
+      return devices.find((d: any) => d._id === deviceId) || devices[0]
+    }
+
     const endpoint = this.getEndpoint('/devices/')
     const url = `${this.baseUrl}${endpoint}${encodeURIComponent(deviceId)}`
     return this.fetchWithRetry<Device>(url)
@@ -364,6 +382,8 @@ class ApiService {
 
   // Offline Devices API
   async getOfflineDevices(params?: OfflineQueryParams & { limit?: number }): Promise<OfflineDevicesResponse> {
+    if (isMockMode()) return getMockOfflineDevices() as any
+
     const queryString = this.buildQueryString({
       hours: params?.hours || 24,
       limit: params?.limit
@@ -410,6 +430,8 @@ class ApiService {
 
   // Dashboard Summary API (analytics prefix)
   async getDashboardSummary(): Promise<any> {
+    if (isMockMode()) return getMockDashboardSummary()
+
     const endpoint = this.getEndpoint('/analytics/dashboard')
     const url = `${this.baseUrl}${endpoint}`
     return this.fetchWithRetry<any>(url)
@@ -418,6 +440,8 @@ class ApiService {
   // Device Summary API (new endpoint)
   // Device Summary API (new endpoint)
   async getDeviceSummary(): Promise<DeviceSummaryResponse> {
+    if (isMockMode()) return Promise.resolve(getMockDeviceSummary())
+    
     // Return dummy data as the endpoint is no longer available
     return Promise.resolve({
       total_devices: 0,
@@ -431,6 +455,8 @@ class ApiService {
 
   // System Health API (analytics prefix)
   async getSystemHealth(): Promise<any> {
+    if (isMockMode()) return getMockSystemHealth()
+
     const endpoint = this.getEndpoint('/analytics/system-health')
     const url = `${this.baseUrl}${endpoint}`
     return this.fetchWithRetry<any>(url)
@@ -438,6 +464,8 @@ class ApiService {
 
   // Data Transmission Summary API (analytics prefix)
   async getDataTransmissionSummary(params?: { days?: number }): Promise<any> {
+    if (isMockMode()) return getMockDataTransmission()
+
     const queryString = this.buildQueryString({ days: params?.days || 7 })
     const endpoint = this.getEndpoint('/analytics/data-transmission/summary')
     const url = `${this.baseUrl}${endpoint}${queryString}`
@@ -446,6 +474,8 @@ class ApiService {
 
   // Network Performance API (analytics prefix)
   async getNetworkPerformance(params?: { days?: number }): Promise<any> {
+    if (isMockMode()) return getMockNetworkPerformance()
+
     const queryString = this.buildQueryString({ days: params?.days || 7 })
     const endpoint = this.getEndpoint('/analytics/network-performance')
     const url = `${this.baseUrl}${endpoint}${queryString}`
@@ -454,6 +484,8 @@ class ApiService {
 
   // Upcoming Maintenance API
   async getUpcomingMaintenance(params?: { days?: number; limit?: number }): Promise<any> {
+    if (isMockMode()) return getMockUpcomingMaintenance()
+
     const queryString = this.buildQueryString({
       days: params?.days || 30,
       limit: params?.limit
@@ -465,6 +497,8 @@ class ApiService {
 
   // Map Data API
   async getMapData(): Promise<any> {
+    if (isMockMode()) return getMockMapData()
+
     const endpoint = this.getEndpoint('/devices/map-data')
     const url = `${this.baseUrl}${endpoint}`
     return this.fetchWithRetry<any>(url)
@@ -532,6 +566,8 @@ class ApiService {
     device_id?: string
     category_name?: string
   }): Promise<any> {
+    if (isMockMode()) return getMockDeviceMetadata()
+
     const { device_id, category_name = 'lowcost', ...queryParams } = params || {}
 
     if (!device_id) {
@@ -555,6 +591,8 @@ class ApiService {
     skip?: number
     limit?: number
   }): Promise<any> {
+    if (isMockMode()) return getMockDeviceConfig()
+
     const { device_id, category_name = 'lowcost', ...queryParams } = params || {}
 
     if (!device_id) {
@@ -577,6 +615,8 @@ class ApiService {
     end: string
     deviceNames: string[]
   }): Promise<any> {
+    if (isMockMode()) return getMockDevicePerformanceData(data.deviceNames)
+
     const endpoint = this.getEndpoint('/devices/performance')
     // Use comma-separated device names
     const deviceNamesParam = data.deviceNames.join(',')
@@ -681,6 +721,8 @@ class ApiService {
   }
 
   async getMaintenanceMapData(period_days: number = 14, tags?: string): Promise<MaintenanceMapItem[]> {
+    if (isMockMode()) return getMockMaintenanceMapData() as any
+
     let query = `days=${period_days}`
     if (tags) query += `&tags=${tags}`
     const endpoint = config.isLocalhost
@@ -690,6 +732,24 @@ class ApiService {
 
     const response = await this.fetchWithRetry<MaintenanceMapResponse>(url)
     return response.data
+  }
+
+  // Sync Devices
+  async syncDevices(): Promise<any> {
+    const endpoint = this.getEndpoint('/devices/sync')
+    const url = `${this.baseUrl}${endpoint}`
+    return this.fetchWithRetry<any>(url, {
+      method: 'POST',
+    })
+  }
+
+  // Sync Device Performance
+  async syncDevicePerformance(): Promise<any> {
+    const endpoint = this.getEndpoint('/maintenance/sync-performance')
+    const url = `${this.baseUrl}${endpoint}?force=false&platform=true`
+    return this.fetchWithRetry<any>(url, {
+      method: 'POST',
+    })
   }
 }
 
@@ -732,3 +792,5 @@ export const getAirQloudStats = (body: MaintenanceStatsBody) => deviceApiService
 export const getDeviceStatsMaintenance = (body: MaintenanceStatsBody) => deviceApiService.getDeviceStatsMaintenance(body)
 export const getMaintenanceAnalytics = (period_days: number = 14) => deviceApiService.getMaintenanceAnalytics(period_days)
 export const getMaintenanceMapData = (period_days: number = 14, tags?: string) => deviceApiService.getMaintenanceMapData(period_days, tags)
+export const syncDevices = () => deviceApiService.syncDevices()
+export const syncDevicePerformance = () => deviceApiService.syncDevicePerformance()

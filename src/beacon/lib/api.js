@@ -1,5 +1,6 @@
-// lib/api.js
 // API utility functions for device management
+import { buildApiUrl } from './config';
+import authService from '@/services/api-service';
 
 /**
  * Fetch device statistics from API
@@ -39,4 +40,45 @@ export async function fetchDeviceFailures() {
  */
 export async function getDevices() {
   return fetchDeviceList();
+}
+
+/**
+ * Fetch collocation sites with query parameters.
+ * Sends the JWT from authService in the Authorization header.
+ */
+export async function fetchCollocationSites(params = {}) {
+  const query = new URLSearchParams(params).toString();
+  const path = `/collocation/sites${query ? `?${query}` : ''}`;
+  const url = buildApiUrl(path);
+
+  const headers = {};
+  const token = authService.getToken();
+  if (token) headers['Authorization'] = token;
+
+  const response = await fetch(url, { headers });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch collocation sites');
+  }
+  return response.json();
+}
+
+/**
+ * Fetch specific collocation site details with query parameters.
+ */
+export async function fetchCollocationSiteDetails(id, params = {}) {
+  const query = new URLSearchParams(params).toString();
+  const path = `/collocation/sites/${id}${query ? `?${query}` : ''}`;
+  const url = buildApiUrl(path);
+
+  const headers = {};
+  const token = authService.getToken();
+  if (token) headers['Authorization'] = token;
+
+  const response = await fetch(url, { headers });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch collocation site details');
+  }
+  return response.json();
 }
