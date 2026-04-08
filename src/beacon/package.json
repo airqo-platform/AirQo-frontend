@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@airqo/icons-react": "^0.2.7",
+    "@airqo/icons-react": "^0.2.8",
     "@hookform/resolvers": "^3.9.1",
     "@prisma/client": "^6.5.0",
     "@radix-ui/react-accordion": "^1.2.2",
@@ -50,6 +50,7 @@
     "cmdk": "1.0.4",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "8.5.1",
+    "html2canvas": "^1.4.1",
     "input-otp": "1.4.1",
     "jose": "^6.0.11",
     "jspdf": "^4.0.0",
@@ -78,6 +79,8 @@
     "@types/node": "^22.14.1",
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.1",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.5",
     "postcss": "^8",
     "prisma": "^6.5.0",
     "tailwindcss": "^3.4.17",
