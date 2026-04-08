@@ -473,8 +473,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const oauthTokenHandoff = consumeOAuthTokenHandoffFromUrl();
         if (oauthTokenHandoff?.token) {
-          clearBackendOAuthSignedOutFlag();
-
           const signInResult = await signIn('credentials', {
             redirect: false,
             callbackUrl: currentUrl,
@@ -489,12 +487,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               provider: oauthTokenHandoff.provider,
               error: signInResult.error,
             });
+          } else {
+            // Only clear the signed-out flag after the OAuth handoff has
+            // successfully become a NextAuth session; if the handoff fails,
+            // keep the flag so shouldSkipBackendOAuthBootstrap() preserves the
+            // logged-out state instead of trying verifyBackendOAuthSession().
+            clearBackendOAuthSignedOutFlag();
           }
-        }
-
-        if (shouldSkipBackendOAuthBootstrap()) {
-          setBootstrapSession(null);
-          return;
         }
 
         const nextAuthSession = await getSession();
@@ -503,6 +502,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (nextAuthSession?.user) {
           clearBackendOAuthSignedOutFlag();
           setBootstrapSession(nextAuthSession as BackendOAuthSession);
+          return;
+        }
+
+        if (shouldSkipBackendOAuthBootstrap()) {
+          setBootstrapSession(null);
           return;
         }
 

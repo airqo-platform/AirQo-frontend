@@ -28,7 +28,12 @@ export default function GoogleAuthSection({
     setIsRedirecting(true);
 
     try {
-      window.location.assign(buildOAuthInitiationUrl('google'));
+      window.location.assign(
+        buildOAuthInitiationUrl('google', {
+          prompt: 'select_account',
+          tenant: 'airqo',
+        })
+      );
     } catch (error) {
       setIsRedirecting(false);
       toast.error(

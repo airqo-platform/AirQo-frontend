@@ -138,8 +138,25 @@ export const setBackendOAuthSignedOutFlag = (): void => {
   localStorage.setItem(OAUTH_SIGNED_OUT_FLAG, 'true');
 };
 
-export const buildOAuthInitiationUrl = (provider = 'google'): string => {
-  return buildBackendApiUrl(`/users/auth/${encodeURIComponent(provider)}`);
+export const buildOAuthInitiationUrl = (
+  provider = 'google',
+  queryParams?: Record<string, string | undefined>
+): string => {
+  const baseUrl = buildBackendApiUrl(
+    `/users/auth/${encodeURIComponent(provider)}`
+  );
+  const params = new URLSearchParams();
+
+  if (queryParams) {
+    Object.entries(queryParams).forEach(([key, value]) => {
+      if (value) {
+        params.set(key, value);
+      }
+    });
+  }
+
+  const queryString = params.toString();
+  return queryString ? `${baseUrl}?${queryString}` : baseUrl;
 };
 
 export const buildSessionFromProfile = (
