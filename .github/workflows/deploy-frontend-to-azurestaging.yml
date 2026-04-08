@@ -135,6 +135,7 @@ jobs:
             --build-arg API_URL=${{ secrets.WEBSITE_STAGE_API_URL }} \
             --build-arg NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }} \
             --build-arg NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }} \
+            --build-arg NEXT_PUBLIC_HCAPTCHA_SITE_KEY=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_HCAPTCHA_SITE_KEY }} \
             --tag ${{ env.REGISTRY_URL }}/website2-staging:${{ needs.image-tag.outputs.build_id }}
           docker push ${{ env.REGISTRY_URL }}/website2-staging:${{ needs.image-tag.outputs.build_id }}
           docker tag ${{ env.REGISTRY_URL }}/website2-staging:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/website2-staging:latest
@@ -142,7 +143,7 @@ jobs:
 
       - name: Deploy to Container Apps
         run: |
-          ENV_VARS="SECRET=${{ secrets.WEBSITE_SECRET }} API_URL=${{ secrets.WEBSITE_STAGE_API_URL }} OPENCAGE_API_KEY=${{ secrets.WEBSITE_STAGE_OPENCAGE_API_KEY }} API_TOKEN=${{ secrets.WEBSITE_STAGE_API_TOKEN }} SLACK_WEBHOOK_URL=${{ secrets.WEBSITE_STAGE_SLACK_WEBHOOK_URL }} SLACK_CHANNEL=${{ secrets.WEBSITE_STAGE_SLACK_CHANNEL }} NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }} NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }}"
+          ENV_VARS="SECRET=${{ secrets.WEBSITE_SECRET }} API_URL=${{ secrets.WEBSITE_STAGE_API_URL }} OPENCAGE_API_KEY=${{ secrets.WEBSITE_STAGE_OPENCAGE_API_KEY }} API_TOKEN=${{ secrets.WEBSITE_STAGE_API_TOKEN }} SLACK_WEBHOOK_URL=${{ secrets.WEBSITE_STAGE_SLACK_WEBHOOK_URL }} SLACK_CHANNEL=${{ secrets.WEBSITE_STAGE_SLACK_CHANNEL }} NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }} NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }} NEXT_PUBLIC_HCAPTCHA_SITE_KEY=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_HCAPTCHA_SITE_KEY }}"
           
           if az containerapp show -g ${{ env.RG }} -n website-staging >/dev/null 2>&1; then
             az containerapp update \
