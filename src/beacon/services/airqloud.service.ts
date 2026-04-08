@@ -4,6 +4,7 @@
  */
 
 import { config } from '@/lib/config'
+import { isMockMode, getMockCohorts, getMockCohortPerformance } from '@/lib/mock-data'
 
 export interface DevicePerformance {
   device_id: string
@@ -219,6 +220,21 @@ class AirQloudService {
    * Get all Cohorts (formerly AirQlouds)
    */
   async getCohorts(params: AirQloudsQueryParams = {}): Promise<MappedAirQloudsResponse> {
+    if (isMockMode()) {
+      const data = getMockCohorts()
+      const mappedCohorts: AirQloudWithPerformance[] = data.cohorts.map((cohort: any) => ({
+        ...cohort,
+        id: cohort._id || cohort.name,
+        device_count: cohort.numberOfDevices,
+        is_active: cohort.visibility,
+        country: '',
+        freq: cohort.freq || [],
+        error_margin: cohort.error_margin || [],
+        timestamp: cohort.timestamp || [],
+      }))
+      return { airqlouds: mappedCohorts, meta: data.meta as AirQloudsMeta }
+    }
+
     const queryParams = new URLSearchParams()
 
     if (params.skip !== undefined) queryParams.append('skip', params.skip.toString())
@@ -302,6 +318,19 @@ class AirQloudService {
     startDateTime?: string,
     endDateTime?: string
   ): Promise<AirQloudWithPerformance> {
+    if (isMockMode()) {
+      const data = getMockCohorts()
+      const cohort = data.cohorts[0] as any
+      return {
+        ...cohort,
+        id: cohort._id || cohort.name,
+        device_count: cohort.numberOfDevices,
+        is_active: cohort.visibility,
+        country: '',
+        error_margin: cohort.error_margin,
+      }
+    }
+
     const endpoint = this.getEndpoint(`/cohorts/${airqloudId}`)
 
     const queryParams = new URLSearchParams()
@@ -446,6 +475,8 @@ class AirQloudService {
     end: string
     ids: string[]
   }): Promise<AirQloudPerformanceData[]> {
+    if (isMockMode()) return getMockCohortPerformance(params.ids) as any
+
     if (!params.ids || params.ids.length === 0) {
       return []
     }
@@ -498,6 +529,8 @@ class AirQloudService {
     force?: boolean
     run_in_background?: boolean
   } = {}): Promise<{ success: boolean; message: string; force: boolean }> {
+    if (isMockMode()) return { success: true, message: 'Sync completed (mock mode)', force: false }
+
     const queryParams = new URLSearchParams()
 
     if (params.force !== undefined) {

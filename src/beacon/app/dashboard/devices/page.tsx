@@ -29,7 +29,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Pagination } from "@/components/ui/pagination"
 import { useToast } from "@/components/ui/use-toast"
 import dynamic from "next/dynamic"
-import { getDeviceSummary, getDevicesForUIPaginated } from "@/services/device-api.service"
+import { getDeviceSummary, getDevicesForUIPaginated, syncDevices, syncDevicePerformance } from "@/services/device-api.service"
 import type { DeviceSummaryResponse, UIDevice } from "@/types/api.types"
 import UpdateDeviceDialog from "@/components/dashboard/update-device-dialog"
 
@@ -97,6 +97,7 @@ export default function DevicesPage() {
   const [networkFilter, setNetworkFilter] = useState("all")
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [isSyncing, setIsSyncing] = useState(false)
   const [showMap, setShowMap] = useState(false)
   const [viewMode, setViewMode] = useState<"list" | "map">("list")
   const [firmwareDialogOpen, setFirmwareDialogOpen] = useState(false)
@@ -192,6 +193,31 @@ export default function DevicesPage() {
   const refreshData = () => {
     setIsRefreshing(true)
     Promise.all([fetchDeviceCounts(), fetchDevices()])
+  }
+
+  // Sync devices and performance
+  const handleSyncDevices = async () => {
+    setIsSyncing(true)
+    try {
+      await Promise.all([
+        syncDevices(),
+        syncDevicePerformance()
+      ])
+      toast({
+        title: "Success",
+        description: "Devices synced successfully.",
+      })
+      refreshData()
+    } catch (err) {
+      console.error("Error syncing devices:", err)
+      toast({
+        variant: "destructive",
+        title: "Sync Failed",
+        description: "An error occurred while syncing devices.",
+      })
+    } finally {
+      setIsSyncing(false)
+    }
   }
 
   // Calculate percentages for the progress bars
@@ -372,9 +398,20 @@ export default function DevicesPage() {
           <Button
             variant="outline"
             size="sm"
+            className="flex items-center text-blue-600 border-blue-200 hover:bg-blue-50"
+            onClick={handleSyncDevices}
+            disabled={isSyncing || isRefreshing}
+          >
+            <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+            {isSyncing ? 'Syncing...' : 'Refresh Devices'}
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
             className="flex items-center"
             onClick={refreshData}
-            disabled={isRefreshing}
+            disabled={isRefreshing || isSyncing}
           >
             <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
             {isRefreshing ? 'Refreshing...' : 'Refresh Data'}

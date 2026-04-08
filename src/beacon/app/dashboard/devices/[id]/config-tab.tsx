@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Settings, RefreshCw, Save, AlertCircle, CheckCircle, ChevronLeft, ChevronRight, Edit, CalendarIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -65,6 +66,8 @@ interface ConfigData {
 
 export default function ConfigTab({ deviceId, deviceName, channelId }: ConfigTabProps) {
   const { toast } = useToast()
+  const searchParams = useSearchParams()
+  const isMock = searchParams.get('mock') === 'true'
   const [configData, setConfigData] = useState<ConfigData>({})
   const [configHistory, setConfigHistory] = useState<ConfigHistoryItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -101,6 +104,31 @@ export default function ConfigTab({ deviceId, deviceName, channelId }: ConfigTab
     try {
       setHistoryLoading(true)
       setError(null)
+
+      if (isMock) {
+        // Provide dummy config history
+        const skip = (page - 1) * itemsPerPage
+        const mockHistory: ConfigHistoryItem[] = Array.from({ length: itemsPerPage }, (_, i) => ({
+          id: `mock-config-${skip + i}`,
+          device_id: deviceId,
+          channel_id: channelId,
+          config1: 1,
+          config2: 0,
+          config3: 1,
+          config4: 300,
+          config5: 60,
+          config_updated: i === 0,
+          created_at: new Date(Date.now() - (skip + i) * 86400000).toISOString(),
+        }))
+
+        // Simulate network delay
+        await new Promise(resolve => setTimeout(resolve, 500))
+        setConfigHistory(mockHistory)
+        setTotalRecords(50)
+        setTotalPages(5)
+        setHistoryLoading(false)
+        return
+      }
 
       const skip = (page - 1) * itemsPerPage
       const params: any = {

@@ -1,7 +1,7 @@
 replicaCount: 2
 image:
   repository: airqoacr.azurecr.io/airqo-stage-beacon
-  tag: stage-1f72fa2e-1773854238
+  tag: stage-8ad62cf7-1775631618
   pullPolicy: IfNotPresent
 imagePullSecrets: []
 nameOverride: ''

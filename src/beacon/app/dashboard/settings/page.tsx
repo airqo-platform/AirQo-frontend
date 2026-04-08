@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { toast } from "@/components/ui/use-toast"
 import { RefreshCw, Save, User } from "lucide-react"
 import { config } from "@/lib/config"
+import { isMockMode, getMockProfile } from "@/lib/mock-data"
 
 interface UserProfile {
   id: number
@@ -57,6 +58,22 @@ export default function SettingsPage() {
     try {
       setLoading(true)
       setError(null)
+      
+      if (isMockMode()) {
+        const profileData = getMockProfile() as any
+        setProfile(profileData)
+        setFormData({
+          first_name: profileData.first_name || "",
+          last_name: profileData.last_name || "",
+          email: profileData.email || "",
+          phone: profileData.phone || "",
+          current_password: "",
+          new_password: "",
+          confirm_password: ""
+        })
+        setLoading(false)
+        return
+      }
       
       let token
       try {
@@ -358,7 +375,7 @@ export default function SettingsPage() {
           <div className="space-y-4 border-t pt-6">
             <h3 className="text-lg font-medium">Change Password</h3>
             <p className="text-sm text-gray-600">
-              Leave password fields empty if you don't want to change your password
+              Leave password fields empty if you don&apos;t want to change your password
             </p>
             
             <div className="space-y-4">
