@@ -193,7 +193,7 @@ export const useDataExportActions = (
           pollutants: selectedPollutants,
           locationCount: effectiveLocationCount,
           deviceCount:
-            activeTab === 'devices' ? selectedDevices.length : undefined,
+            activeTab === 'devices' ? selectedDeviceIds.length : undefined,
           startDate: dateRange.from.toISOString(),
           endDate: dateRange.to.toISOString(),
           durationDays,
@@ -229,7 +229,6 @@ export const useDataExportActions = (
       dateRange,
       activeTab,
       selectedSites,
-      selectedDevices,
       selectedSiteIds,
       selectedDeviceIds,
       selectedGridIds,
