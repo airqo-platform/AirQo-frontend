@@ -496,17 +496,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
-        if (shouldSkipBackendOAuthBootstrap()) {
-          setBootstrapSession(null);
-          return;
-        }
-
         const nextAuthSession = await getSession();
         if (!isMounted) return;
 
         if (nextAuthSession?.user) {
           clearBackendOAuthSignedOutFlag();
           setBootstrapSession(nextAuthSession as BackendOAuthSession);
+          return;
+        }
+
+        if (shouldSkipBackendOAuthBootstrap()) {
+          setBootstrapSession(null);
           return;
         }
 

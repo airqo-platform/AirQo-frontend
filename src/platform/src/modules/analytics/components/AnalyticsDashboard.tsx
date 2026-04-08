@@ -253,22 +253,20 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       // Show suggested locations when sites are available in the active group
       emptyStateContent = <SuggestedLocations />;
     } else if (isOrganizationFlow) {
-      // Organization-specific onboarding notice
-      emptyStateContent = (
-        <div className="space-y-4">
-          <EmptyAnalyticsState />
-          {hasSitesCountError && (
-            <EmptyState
-              title="Unable to refresh available locations"
-              description="We're showing onboarding in the meantime. Retry to check available locations again."
-              action={{
-                label: 'Retry',
-                onClick: retrySitesCountFetch,
-              }}
-              compact
-            />
-          )}
-        </div>
+      // When the location refresh fails, show only the recovery state so we
+      // do not stack it with the onboarding banner and create conflicting UI.
+      emptyStateContent = hasSitesCountError ? (
+        <EmptyState
+          title="Unable to refresh available locations"
+          description="We couldn't refresh your organization locations right now. Retry to check available locations again."
+          action={{
+            label: 'Retry',
+            onClick: retrySitesCountFetch,
+          }}
+          compact
+        />
+      ) : (
+        <EmptyAnalyticsState />
       );
     } else {
       // User flow should never show organization onboarding notice
