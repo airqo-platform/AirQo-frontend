@@ -67,7 +67,6 @@ const publicRoutes = [
   '/user/forgotPwd',
   '/user/forgotPwd/reset',
   '/user/delete/confirm', // covers /user/delete/confirm/[token]
-  '/user/oauth',
   '/org-invite', // Public invitation acceptance page
 ];
 
@@ -447,11 +446,9 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isPublicRoute = isPublicAuthRoute(pathname);
-  const isOAuthCallbackRoute = pathname.startsWith('/user/oauth');
-  const shouldRenderImmediately = isPublicRoute && !isOAuthCallbackRoute;
   const [bootstrapSession, setBootstrapSession] = useState<
     BackendOAuthSession | null | undefined
-  >(shouldRenderImmediately ? null : undefined);
+  >(isPublicRoute ? null : undefined);
 
   useEffect(() => {
     runClientCacheMaintenance();
@@ -461,28 +458,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let isMounted = true;
     const currentPathname =
       typeof window !== 'undefined' ? window.location.pathname : '';
-    const isCurrentOAuthCallbackRoute =
-      currentPathname.startsWith('/user/oauth');
-    const isCurrentPublicRoute =
-      isPublicAuthRoute(currentPathname) && !isCurrentOAuthCallbackRoute;
+    const isCurrentPublicRoute = isPublicAuthRoute(currentPathname);
 
     const bootstrap = async () => {
       try {
+        if (shouldSkipBackendOAuthBootstrap()) {
+          setBootstrapSession(null);
+          return;
+        }
+
+        const nextAuthSession = await getSession();
+        if (!isMounted) return;
+
+        if (nextAuthSession?.user) {
+          clearBackendOAuthSignedOutFlag();
+          setBootstrapSession(nextAuthSession as BackendOAuthSession);
+          return;
+        }
+
         if (isCurrentPublicRoute) {
-          if (shouldSkipBackendOAuthBootstrap()) {
-            setBootstrapSession(null);
-            return;
-          }
-
-          const nextAuthSession = await getSession();
-          if (!isMounted) return;
-
-          if (nextAuthSession?.user) {
-            clearBackendOAuthSignedOutFlag();
-            setBootstrapSession(nextAuthSession as BackendOAuthSession);
-            return;
-          }
-
           const backendProfile = await verifyBackendOAuthSession();
           if (!isMounted) return;
 
@@ -496,40 +490,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        const nextAuthSession = await getSession();
-        if (!isMounted) return;
-
-        if (shouldSkipBackendOAuthBootstrap() && !isCurrentOAuthCallbackRoute) {
-          setBootstrapSession(null);
-          return;
-        }
-
-        if (nextAuthSession?.user) {
-          if (
-            shouldSkipBackendOAuthBootstrap() &&
-            !isCurrentOAuthCallbackRoute
-          ) {
-            setBootstrapSession(null);
-            return;
-          }
-
-          clearBackendOAuthSignedOutFlag();
-          setBootstrapSession(nextAuthSession as BackendOAuthSession);
-          return;
-        }
-
-        if (shouldSkipBackendOAuthBootstrap() && !isCurrentOAuthCallbackRoute) {
-          setBootstrapSession(null);
-          return;
-        }
-
         const backendProfile = await verifyBackendOAuthSession();
         if (!isMounted) return;
-
-        if (shouldSkipBackendOAuthBootstrap() && !isCurrentOAuthCallbackRoute) {
-          setBootstrapSession(null);
-          return;
-        }
 
         if (backendProfile) {
           clearBackendOAuthSignedOutFlag();

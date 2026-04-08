@@ -9,8 +9,7 @@ import { toast } from '@/shared/components/ui';
 import { registerSchema, type RegisterFormData } from '@/shared/lib/validators';
 import { useRegister } from '@/shared/hooks/useAuth';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { normalizeCallbackUrl } from '@/shared/lib/auth-redirect';
+import { useRouter } from 'next/navigation';
 import GoogleAuthSection from '@/shared/components/auth/GoogleAuthSection';
 
 export default function RegisterPage() {
@@ -31,9 +30,6 @@ export default function RegisterPage() {
 
   const { trigger: registerUser, isMutating } = useRegister();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const callbackUrl =
-    normalizeCallbackUrl(searchParams.get('callbackUrl')) || '/user/home';
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
@@ -144,11 +140,7 @@ export default function RegisterPage() {
         </Button>
       </form>
 
-      <GoogleAuthSection
-        mode="register"
-        callbackUrl={callbackUrl}
-        className="mt-6"
-      />
+      <GoogleAuthSection mode="register" className="mt-6" />
 
       <div className="w-full mt-6 text-center">
         <p className="text-sm">
