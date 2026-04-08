@@ -1,6 +1,11 @@
 'use client';
 
-import { SessionProvider, useSession, getSession } from 'next-auth/react';
+import {
+  SessionProvider,
+  useSession,
+  getSession,
+  signIn,
+} from 'next-auth/react';
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useSelector } from 'react-redux';
@@ -16,6 +21,7 @@ import { runClientCacheMaintenance } from '@/shared/lib/clientCache';
 import { normalizeCallbackUrl } from '@/shared/lib/auth-redirect';
 import {
   clearBackendOAuthSignedOutFlag,
+  consumeOAuthTokenHandoffFromUrl,
   buildSessionFromProfile,
   type BackendOAuthSession,
   shouldSkipBackendOAuthBootstrap,
@@ -458,10 +464,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let isMounted = true;
     const currentPathname =
       typeof window !== 'undefined' ? window.location.pathname : '';
+    const currentSearch =
+      typeof window !== 'undefined' ? window.location.search : '';
+    const currentUrl = `${currentPathname || '/user/home'}${currentSearch}`;
     const isCurrentPublicRoute = isPublicAuthRoute(currentPathname);
 
     const bootstrap = async () => {
       try {
+        const oauthTokenHandoff = consumeOAuthTokenHandoffFromUrl();
+        if (oauthTokenHandoff?.token) {
+          clearBackendOAuthSignedOutFlag();
+
+          const signInResult = await signIn('credentials', {
+            redirect: false,
+            callbackUrl: currentUrl,
+            oauthToken: oauthTokenHandoff.token,
+            oauthProvider: oauthTokenHandoff.provider ?? undefined,
+          });
+
+          if (!isMounted) return;
+
+          if (signInResult?.error) {
+            logger.warn('OAuth token handoff sign-in failed', {
+              provider: oauthTokenHandoff.provider,
+              error: signInResult.error,
+            });
+          }
+        }
+
         if (shouldSkipBackendOAuthBootstrap()) {
           setBootstrapSession(null);
           return;
