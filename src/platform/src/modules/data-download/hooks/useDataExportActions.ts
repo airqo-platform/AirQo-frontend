@@ -9,6 +9,7 @@ import { trackDataDownload } from '@/shared/utils/enhancedAnalytics';
 import { useDataDownload } from '@/modules/analytics/hooks';
 import { DataDownloadRequest } from '@/shared/types/api';
 import { DateRange } from '@/shared/components/calendar/types';
+import { LARGE_DATE_RANGE_THRESHOLD } from '../constants/dataExportConstants';
 import { TabType, DeviceCategory, TableItem } from '../types/dataExportTypes';
 import {
   createSitesForVisualization,
@@ -99,6 +100,20 @@ export const useDataExportActions = (
         return;
       }
 
+      const startTime = dateRange.from.getTime();
+      const endTime = dateRange.to.getTime();
+      const durationDays = Math.ceil(
+        (endTime - startTime) / (1000 * 60 * 60 * 24)
+      );
+
+      if (durationDays > LARGE_DATE_RANGE_THRESHOLD) {
+        toast.error(
+          'Date Range Too Large',
+          `Please split this export into batches of ${LARGE_DATE_RANGE_THRESHOLD} days or fewer to avoid backend timeouts.`
+        );
+        return;
+      }
+
       // Extract sites for countries/cities
       const sitesForDownload: string[] = [];
       if (activeTab === 'countries' || activeTab === 'cities') {
@@ -137,7 +152,7 @@ export const useDataExportActions = (
             ? 'lowcost'
             : deviceCategory,
         ...(activeTab === 'sites' && { sites: selectedSites }),
-        ...(activeTab === 'devices' && { device_names: selectedDevices }),
+        ...(activeTab === 'devices' && { device_ids: selectedDeviceIds }),
         ...((activeTab === 'countries' || activeTab === 'cities') && {
           sites: sitesForDownload,
         }),
