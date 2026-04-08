@@ -25,6 +25,17 @@ interface ApiErrorResponse {
   metadata?: unknown;
 }
 
+const getCalendarDayDifference = (from: Date, to: Date) => {
+  const startUtc = Date.UTC(
+    from.getFullYear(),
+    from.getMonth(),
+    from.getDate()
+  );
+  const endUtc = Date.UTC(to.getFullYear(), to.getMonth(), to.getDate());
+
+  return Math.max(0, (endUtc - startUtc) / (1000 * 60 * 60 * 24));
+};
+
 /**
  * Custom hook for data export actions and event handlers
  */
@@ -100,10 +111,9 @@ export const useDataExportActions = (
         return;
       }
 
-      const startTime = dateRange.from.getTime();
-      const endTime = dateRange.to.getTime();
-      const durationDays = Math.ceil(
-        (endTime - startTime) / (1000 * 60 * 60 * 24)
+      const durationDays = getCalendarDayDifference(
+        dateRange.from,
+        dateRange.to
       );
 
       if (durationDays > LARGE_DATE_RANGE_THRESHOLD) {
@@ -162,11 +172,6 @@ export const useDataExportActions = (
         await downloadData(request, fileTitle || undefined);
 
         // Enhanced analytics tracking with comprehensive details
-        const durationDays = Math.ceil(
-          (dateRange.to.getTime() - dateRange.from.getTime()) /
-            (1000 * 60 * 60 * 24)
-        );
-
         // Use the same deviceCategory logic as the API request
         const effectiveDeviceCategory =
           activeTab === 'countries' || activeTab === 'cities'

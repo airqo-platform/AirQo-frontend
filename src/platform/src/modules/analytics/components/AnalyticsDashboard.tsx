@@ -93,12 +93,13 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   } = useAnalyticsChartData(filters, 'bar');
 
   // Get active group cohorts to check visibility
-  const { cohortIds } = useActiveGroupCohorts();
+  const { cohortIds, isLoading: cohortsLoading } = useActiveGroupCohorts();
 
   // Get cohort details for the first cohort to check visibility
+  const firstCohortId = cohortIds.length > 0 ? cohortIds[0] : '';
   const { data: cohortData } = useCohort(
-    cohortIds.length > 0 ? cohortIds[0] : '',
-    cohortIds.length > 0
+    firstCohortId,
+    !!firstCohortId && !cohortsLoading
   );
 
   // Helper function to extract unique sites from chart data
@@ -228,6 +229,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   const isInitialLoading =
     userContextLoading ||
     preferencesLoading ||
+    cohortsLoading ||
     (shouldCheckAvailableSites && sitesCountLoading);
 
   // Show single, coordinated loading state
