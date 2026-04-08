@@ -1,6 +1,5 @@
-const DEFAULT_TENANT = 'airqo';
 const OAUTH_SIGNED_OUT_FLAG = 'airqo:oauth-signed-out';
-const DEFAULT_FORUM_FETCH_TIMEOUT_MS = 8000;
+const DEFAULT_PROFILE_FETCH_TIMEOUT_MS = 8000;
 
 export interface BackendOAuthProfile {
   _id: string;
@@ -76,21 +75,8 @@ export const setBackendOAuthSignedOutFlag = (): void => {
   localStorage.setItem(OAUTH_SIGNED_OUT_FLAG, 'true');
 };
 
-export const buildOAuthInitiationUrl = (
-  provider = 'google',
-  tenant = DEFAULT_TENANT,
-  callbackUrl?: string
-): string => {
-  const oauthUrl = new URL(
-    buildBackendApiUrl(`/users/auth/${encodeURIComponent(provider)}`)
-  );
-  oauthUrl.searchParams.set('tenant', tenant);
-
-  if (callbackUrl) {
-    oauthUrl.searchParams.set('callbackUrl', callbackUrl);
-  }
-
-  return oauthUrl.toString();
+export const buildOAuthInitiationUrl = (provider = 'google'): string => {
+  return buildBackendApiUrl(`/users/auth/${encodeURIComponent(provider)}`);
 };
 
 export const buildSessionFromProfile = (
@@ -120,7 +106,7 @@ export const verifyBackendOAuthSession =
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, DEFAULT_FORUM_FETCH_TIMEOUT_MS);
+    }, DEFAULT_PROFILE_FETCH_TIMEOUT_MS);
 
     try {
       const response = await fetch(
