@@ -62,3 +62,23 @@ export async function fetchCollocationSites(params = {}) {
   }
   return response.json();
 }
+
+/**
+ * Fetch specific collocation site details with query parameters.
+ */
+export async function fetchCollocationSiteDetails(id, params = {}) {
+  const query = new URLSearchParams(params).toString();
+  const path = `/collocation/sites/${id}${query ? `?${query}` : ''}`;
+  const url = buildApiUrl(path);
+
+  const headers = {};
+  const token = authService.getToken();
+  if (token) headers['Authorization'] = token;
+
+  const response = await fetch(url, { headers });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch collocation site details');
+  }
+  return response.json();
+}

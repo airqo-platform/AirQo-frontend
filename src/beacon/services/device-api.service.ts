@@ -733,6 +733,24 @@ class ApiService {
     const response = await this.fetchWithRetry<MaintenanceMapResponse>(url)
     return response.data
   }
+
+  // Sync Devices
+  async syncDevices(): Promise<any> {
+    const endpoint = this.getEndpoint('/devices/sync')
+    const url = `${this.baseUrl}${endpoint}`
+    return this.fetchWithRetry<any>(url, {
+      method: 'POST',
+    })
+  }
+
+  // Sync Device Performance
+  async syncDevicePerformance(): Promise<any> {
+    const endpoint = this.getEndpoint('/maintenance/sync-performance')
+    const url = `${this.baseUrl}${endpoint}?force=false&platform=true`
+    return this.fetchWithRetry<any>(url, {
+      method: 'POST',
+    })
+  }
 }
 
 // Export singleton instance
@@ -774,3 +792,5 @@ export const getAirQloudStats = (body: MaintenanceStatsBody) => deviceApiService
 export const getDeviceStatsMaintenance = (body: MaintenanceStatsBody) => deviceApiService.getDeviceStatsMaintenance(body)
 export const getMaintenanceAnalytics = (period_days: number = 14) => deviceApiService.getMaintenanceAnalytics(period_days)
 export const getMaintenanceMapData = (period_days: number = 14, tags?: string) => deviceApiService.getMaintenanceMapData(period_days, tags)
+export const syncDevices = () => deviceApiService.syncDevices()
+export const syncDevicePerformance = () => deviceApiService.syncDevicePerformance()

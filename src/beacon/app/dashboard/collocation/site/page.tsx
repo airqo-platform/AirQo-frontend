@@ -28,6 +28,8 @@ import {
   ChevronRight,
 } from "lucide-react"
 
+import { useRouter } from "next/navigation"
+
 import { fetchCollocationSites } from "@/lib/api"
 import { isMockMode } from "@/lib/mock-data"
 import { useEffect, useCallback, useMemo } from "react"
@@ -228,6 +230,7 @@ function ErrorMarginMiniGraph({ errorMarginHistory, averageMargin }: { errorMarg
 // --- Component ---
 
 export default function SiteCollocationPage() {
+  const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
   const [sites, setSites] = useState<SiteCollocationEntry[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -495,7 +498,8 @@ export default function SiteCollocationPage() {
                   sitesWithData.map((site) => (
                     <tr
                       key={site.id}
-                      className="border-b hover:bg-gray-50 transition-colors"
+                      className="border-b hover:bg-gray-50 transition-colors cursor-pointer"
+                      onClick={() => router.push(`/dashboard/collocation/site/${site.id}`)}
                     >
                       <td className="py-3 px-4">
                         <span className="font-medium">{site.name}</span>
@@ -588,7 +592,8 @@ export default function SiteCollocationPage() {
                       {emptySites.map((site) => (
                         <tr
                           key={site.id}
-                          className="border-b hover:bg-amber-50/50 transition-colors opacity-70"
+                          className="border-b hover:bg-amber-50/50 transition-colors opacity-70 cursor-pointer"
+                          onClick={() => router.push(`/dashboard/collocation/site/${site.id}`)}
                         >
                           <td className="py-3 px-4">
                             <span className="font-medium">{site.name}</span>
