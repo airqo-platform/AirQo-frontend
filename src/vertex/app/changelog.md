@@ -4,6 +4,51 @@
 
 ---
  
+## Version 1.23.26
+**Released:** April 09, 2026
+
+### Login Copy Refresh, Windows-Only Downloads, and Info Banner Component
+
+Refined the login messaging, limited desktop downloads to Windows, and introduced a reusable Info Banner to standardize contextual messaging.
+
+<details>
+<summary><strong>Login Experience (3)</strong></summary>
+
+- **Updated Hero Copy**: Refreshed the login title and subtitle messaging to emphasize device deployment and data sharing.
+- **Two-Line Title Layout**: Split the login title across two lines for clearer visual hierarchy.
+- **Windows-Only Download**: Limited the login download button to Windows devices only.
+
+</details>
+
+<details>
+<summary><strong>Navigation & Sidebar (2)</strong></summary>
+
+- **Sidebar Download Restriction**: Secondary sidebar download button now appears only on Windows.
+- **macOS Logic Removal**: Removed macOS detection/architecture logic tied to download visibility.
+
+</details>
+
+<details>
+<summary><strong>UI Components (2)</strong></summary>
+
+- **Info Banner Component**: Added a reusable banner component (matching Platform) to Vertex UI.
+- **Context Header Upgrade**: Updated the home context header to use the new Info Banner.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (5)</strong></summary>
+
+- `app/login/page.tsx`
+- `components/layout/secondary-sidebar.tsx`
+- `components/ui/banner.tsx`
+- `components/features/home/context-header.tsx`
+- `app/changelog.md`
+
+</details>
+
+---
+
 ## Version 1.23.25
 **Released:** April 09, 2026
 
