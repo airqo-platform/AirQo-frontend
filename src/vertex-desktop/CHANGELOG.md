@@ -30,11 +30,12 @@ Aligned the native caption button area with the custom title bar styling and exp
 </details>
 
 <details>
-<summary><strong>Packaging & Distribution (3)</strong></summary>
+<summary><strong>Packaging & Distribution (4)</strong></summary>
 
-- **macOS Build Support**: Added mac build targets with hardened runtime + notarization settings.
-- **Entitlements File**: Added macOS entitlements for signed builds.
+- **macOS Build Support**: Added mac build targets with hardened runtime (notarization driven by env vars when enabled).
+- **Entitlements File**: Added macOS entitlements for signed builds (allow-jit only).
 - **Publish Script**: Added combined Windows + mac publish script for release automation.
+- **Windows-Only CI Release**: Temporarily scoped release workflow to Windows artifacts while macOS is deferred.
 
 </details>
 
