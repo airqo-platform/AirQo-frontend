@@ -37,7 +37,7 @@ const ContextHeader = () => {
 
     return (
         <div className="mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold text-[#101828] mb-5">
+            <h1 className="text-2xl md:text-3xl font-bold mb-5">
                 Hi, {firstName} 👋
             </h1>
 
