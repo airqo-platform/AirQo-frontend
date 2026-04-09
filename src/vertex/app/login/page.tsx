@@ -174,13 +174,14 @@ export default function LoginPage() {
       {/* Main Content Area */}
       <main className="flex flex-1 overflow-y-auto">
         <div className="flex flex-1 flex-col px-4 py-12 sm:px-6">
-          <div className="mx-auto w-full max-w-[400px] my-auto">
+          <div className="mx-auto w-full max-w-[450px] my-auto">
             <div className="mb-10 text-center">
               <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                Deploy and track air quality devices
+                <span className="block">Deploy devices,</span>
+                <span className="block">Share your data</span>
               </h1>
               <p className="mt-4 text-base text-muted-foreground leading-relaxed max-w-sm mx-auto">
-                Unified device management with AirQo Vertex.
+                Add your devices, manage their details, and stream live air quality data through AirQo&apos;s open data channels.
               </p>
             </div>
 
