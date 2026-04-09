@@ -1,4 +1,5 @@
 import 'package:airqo/src/app/shared/widgets/spinner.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
 
 class AirQoButton extends StatelessWidget {
@@ -39,7 +40,7 @@ class AirQoButton extends StatelessWidget {
                       SizedBox(
                         width: 4,
                       ),
-                      Text(
+                      TranslatedText(
                         label,
                         style: TextStyle(
                             fontSize: 15,

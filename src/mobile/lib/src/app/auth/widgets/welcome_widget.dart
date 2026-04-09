@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -37,8 +38,8 @@ class WelcomeWidget extends StatelessWidget {
                     height: 56.14,
                     child: SvgPicture.asset("assets/images/shared/logo.svg")),
                 Spacer(),
-                const Padding(
-                  padding: EdgeInsets.only(
+                Padding(
+                  padding: const EdgeInsets.only(
                     left: 20,
                     right: 20,
                   ),
@@ -46,10 +47,10 @@ class WelcomeWidget extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text(
+                      TranslatedText(
                         '👋 Welcome to AirQo!',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w400,
                           fontStyle: FontStyle.normal,
@@ -57,14 +58,14 @@ class WelcomeWidget extends StatelessWidget {
                           fontSize: 20,
                         ),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 10,
                       ),
-                      Text(
+                      TranslatedText(
                         'Clean Air for all African Cities.',
                         maxLines: 2,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w700,
                           fontSize: 35,

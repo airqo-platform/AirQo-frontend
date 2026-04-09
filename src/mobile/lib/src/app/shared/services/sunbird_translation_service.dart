@@ -310,6 +310,80 @@ class SunbirdTranslationService with UiLoggy {
     'Research Study',
     'Thank you for joining our research study!',
 
+    // Onboarding
+    '👋 Welcome to AirQo!',
+    'Clean Air for all African Cities.',
+    '🌿 Breathe Clean',
+    'Track and monitor the quality of air you breathe',
+    '✨ Know Your Air',
+    'Learn and reduce air pollution in your community',
+
+    // Dashboard empty / location selection
+    'Add places you love',
+    'Start by adding locations you care about.',
+    '+Add Location',
+    'Cannot Remove Default Location',
+    'You need to have at least one location in My Places. Add another location before removing this one.',
+    'Select Locations',
+    'Search Villages, Cities or Countries',
+    'Swipe left to remove location',
+    'Remove',
+    'Unknown location',
+    'Unknown',
+    'PM2.5',
+    'Low Cost Sensor',
+    'Reference Monitor',
+    'You can select up to',
+    'Location added to favorites',
+    'Location removed from favorites',
+    'Locations saved successfully',
+    'Maximum of',
+    'favorite locations reached',
+    'Your session has expired. Please log in again.',
+    'Authentication issue detected. Please log in again.',
+    'Clear All',
+    'Save',
+
+    // Health tip taglines
+    'Enjoy outdoor activities in good air quality',
+    'Air quality is acceptable for most people',
+    'Sensitive groups should limit outdoor exertion',
+    'Everyone should reduce prolonged outdoor activities',
+    'Everyone should avoid outdoor activities',
+    'Everyone should avoid all outdoor activities',
+    'Stay informed about air quality',
+
+    // Guest profile
+    'Guest User',
+
+    // Notifications
+    'No Notifications',
+    "Here you'll find all updates on our Air Quality network",
+    "You're all cleared up",
+    'You deserve some ice cream!',
+
+    // Maintenance
+    'The app is currently under maintenance',
+    "We're having issues with our network\nno worries, we'll be back up soon.",
+
+    // Profile / edit
+    'Image selected. Save to upload.',
+    'First name cannot be empty',
+    'Last name cannot be empty',
+    'Email cannot be empty',
+    'Please enter a valid email address',
+    'Profile image successfully added',
+    'Profile updated successfully',
+    'Unable to update profile. Please try again.',
+    'Check your internet connection and try again.',
+    'Something went wrong. Please try again later.',
+
+    // Settings snackbars
+    'Please enable location services in settings.',
+    'Location permission denied.',
+    'Location permission permanently denied. Please enable it in settings.',
+    'An unexpected error occurred during logout',
+
     // Shared / System
     'An Error Occurred',
     'Skip This Version',
