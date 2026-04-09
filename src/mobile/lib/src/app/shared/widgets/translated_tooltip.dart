@@ -65,18 +65,22 @@ class _TranslatedTooltipState extends State<TranslatedTooltip> {
     }
 
     final requestLocale = localeCode;
+    final requestMessage = widget.message;
     final future = isSunbird
         ? SunbirdTranslationService()
-            .translate(widget.message, targetLocale: localeCode)
+            .translate(requestMessage, targetLocale: localeCode)
         : MlKitTranslationService()
-            .translate(widget.message, targetLocale: localeCode);
+            .translate(requestMessage, targetLocale: localeCode);
 
     future.then((result) {
       if (mounted &&
           requestLocale == _lastLocale &&
+          requestMessage == _lastSourceMessage &&
           _translatedMessage != result) {
         setState(() => _translatedMessage = result);
       }
+    }).catchError((_) {
+      // Translation failed; keep showing the original message.
     });
   }
 
