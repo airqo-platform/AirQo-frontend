@@ -1,23 +1,5 @@
-import {
-  generateMetadata as createMetadata,
-  METADATA_CONFIGS,
-} from '@/lib/metadata';
-import SpeakersPage from '@/views/cleanairforum/speakers/SpeakersPage';
+import { redirect } from 'next/navigation';
 
-export function generateMetadata({
-  params,
-}: {
-  params: { uniqueTitle: string };
-}) {
-  const encodedTitle = encodeURIComponent(params.uniqueTitle);
-  return createMetadata({
-    ...METADATA_CONFIGS.cleanAirForumSpeakers,
-    url: `/africa-clean-air-forum/${encodedTitle}/speakers`,
-  });
+export default function Page() {
+  redirect('/africa-clean-air-forum');
 }
-
-const Page = () => {
-  return <SpeakersPage />;
-};
-
-export default Page;

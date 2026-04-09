@@ -1,13 +1,5 @@
-import {
-  generateMetadata as createMetadata,
-  METADATA_CONFIGS,
-} from '@/lib/metadata';
-import ProgramsPage from '@/views/cleanairforum/sessions-programs/ProgramsPage';
+import { redirect } from 'next/navigation';
 
-export const metadata = createMetadata(METADATA_CONFIGS.cleanAirForumSessions);
-
-const Page = () => {
-  return <ProgramsPage />;
-};
-
-export default Page;
+export default function Page() {
+  redirect('/africa-clean-air-forum');
+}
