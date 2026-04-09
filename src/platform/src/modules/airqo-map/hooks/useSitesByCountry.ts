@@ -82,7 +82,7 @@ export function useSitesByCountry({
         );
       }
 
-      return deviceService.getSitesSummaryAuthenticated(queryParams);
+      return deviceService.getSitesSummaryWithToken(queryParams);
     },
     getNextPageParam: lastPage => {
       const { page, totalPages } = lastPage.meta;

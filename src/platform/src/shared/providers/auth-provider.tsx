@@ -8,10 +8,14 @@ import {
 } from 'next-auth/react';
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { LoadingOverlay } from '@/shared/components/ui/loading-overlay';
 import { UserDataFetcher } from './UserDataFetcher';
-import { selectActiveGroup, selectLoggingOut } from '@/shared/store/selectors';
+import {
+  selectActiveGroup,
+  selectGroups,
+  selectLoggingOut,
+} from '@/shared/store/selectors';
 import { useLogout } from '@/shared/hooks/useLogout';
 import { toast } from '@/shared/components/ui/toast';
 import logger from '@/shared/lib/logger';
@@ -32,39 +36,90 @@ import {
   shouldSkipBackendOAuthBootstrap,
   verifyBackendOAuthSession,
 } from '@/shared/lib/oauth-session';
+import { setActiveGroup } from '@/shared/store/userSlice';
 
 // Component to guard and redirect based on active group for all pages
 function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
+  const dispatch = useDispatch();
   const activeGroup = useSelector(selectActiveGroup);
+  const groups = useSelector(selectGroups);
+
+  const normalizedPath = pathname.toLowerCase();
+  const isUserPath = normalizedPath.startsWith('/user/');
+  const isOrgPath = normalizedPath.startsWith('/org/');
+  const orgSlugFromPath = isOrgPath
+    ? pathname.split('/').filter(Boolean)[1]?.toLowerCase() ?? null
+    : null;
+  const airqoGroup = groups.find(group => {
+    const title = group.title.trim().toLowerCase();
+    const slug = group.organizationSlug.trim().toLowerCase();
+    return title === 'airqo' || slug === 'airqo';
+  });
+  const groupForCurrentOrgPath = orgSlugFromPath
+    ? groups.find(
+        group =>
+          group.organizationSlug.trim().toLowerCase() === orgSlugFromPath
+      )
+    : null;
+  const activeGroupSlug = activeGroup?.organizationSlug?.trim().toLowerCase();
+  const activeGroupTitle = activeGroup?.title?.trim().toLowerCase();
+  const isAirQoActiveGroup =
+    activeGroupTitle === 'airqo' || activeGroupSlug === 'airqo';
+  const shouldSyncToUserGroup =
+    isUserPath && !!airqoGroup && activeGroup?.id !== airqoGroup.id;
+  const shouldSyncToRouteOrgGroup =
+    isOrgPath &&
+    !!groupForCurrentOrgPath &&
+    activeGroup?.id !== groupForCurrentOrgPath.id;
 
   useEffect(() => {
+    if (shouldSyncToUserGroup && airqoGroup) {
+      dispatch(setActiveGroup(airqoGroup));
+      return;
+    }
+
+    if (shouldSyncToRouteOrgGroup && groupForCurrentOrgPath) {
+      dispatch(setActiveGroup(groupForCurrentOrgPath));
+      return;
+    }
+
     if (!activeGroup) return;
 
-    const isUserPath = pathname.startsWith('/user/');
-    const isOrgPath = pathname.startsWith('/org/');
-
-    if (activeGroup.title.toLowerCase() === 'airqo') {
-      // Airqo users should only access user paths
+    if (isAirQoActiveGroup) {
       if (isOrgPath) {
         router.push('/user/home');
       }
-    } else {
-      // Non-airqo users should only access their org paths
-      if (isUserPath) {
-        router.push(`/org/${activeGroup.organizationSlug}/dashboard`);
-      } else if (isOrgPath) {
-        const pathParts = pathname.split('/');
-        if (
-          pathParts.length >= 3 &&
-          pathParts[2] !== activeGroup.organizationSlug
-        ) {
-          router.push(`/org/${activeGroup.organizationSlug}/dashboard`);
-        }
-      }
+      return;
     }
-  }, [activeGroup, pathname, router]);
+
+    if (isUserPath) {
+      router.push(`/org/${activeGroup.organizationSlug}/dashboard`);
+      return;
+    }
+
+    if (isOrgPath && orgSlugFromPath && orgSlugFromPath !== activeGroupSlug) {
+      router.push(`/org/${activeGroup.organizationSlug}/dashboard`);
+    }
+  }, [
+    activeGroup,
+    activeGroupSlug,
+    airqoGroup,
+    dispatch,
+    groupForCurrentOrgPath,
+    isAirQoActiveGroup,
+    isOrgPath,
+    isUserPath,
+    orgSlugFromPath,
+    router,
+    shouldSyncToRouteOrgGroup,
+    shouldSyncToUserGroup,
+  ]);
+
+  if (shouldSyncToUserGroup || shouldSyncToRouteOrgGroup) {
+    return <LoadingOverlay />;
+  }
 
   return <>{children}</>;
 }

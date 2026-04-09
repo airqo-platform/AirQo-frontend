@@ -29,8 +29,9 @@ export function useCountries(cohort_id?: string | null): UseCountriesResult {
   } = useQuery<CountryData[], Error>({
     queryKey: ['map', 'countries', normalizedCohortId],
     queryFn: async () => {
-      const response: CountriesResponse =
-        await deviceService.getCountriesAuthenticated(cohort_id || undefined);
+      const response: CountriesResponse = cohort_id
+        ? await deviceService.getCountriesAuthenticated(cohort_id)
+        : await deviceService.getCountriesWithToken();
       return response.countries;
     },
     enabled,
