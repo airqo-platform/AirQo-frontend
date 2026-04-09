@@ -6,7 +6,7 @@ export async function GET() {
       // Connect to your FastAPI backend
       const endpoint = config.isLocalhost 
         ? '/valid-device-locations' 
-        : `${config.apiPrefix || '/api/v1'}/beacon/valid-device-locations`
+        : `${config.apiPrefix || ''}/beacon/valid-device-locations`
       const response = await fetch(`${config.apiUrl}${endpoint}`, {
         cache: 'no-store'
       })

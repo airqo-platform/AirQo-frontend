@@ -54,7 +54,7 @@ export default function AfricaMap({ devices = [], onDeviceSelect, selectedDevice
       
       const apiPath = config.isLocalhost ? 
         `/devices/map-data` :
-        `/api/v1/beacon/devices/map-data`
+        `/beacon/devices/map-data`
       
       const response = await fetch(`${config.apiUrl}${apiPath}`, {
         headers: {

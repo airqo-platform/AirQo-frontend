@@ -185,7 +185,7 @@ class AirQloudService {
 
   constructor() {
     this.baseUrl = config.apiUrl
-    this.apiPrefix = config.apiPrefix || '/api/v1'
+    this.apiPrefix = config.apiPrefix || ''
   }
 
   /**

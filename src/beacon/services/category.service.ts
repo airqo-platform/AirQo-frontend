@@ -22,7 +22,7 @@ class CategoryService {
   constructor() {
     // Use centralized config for API URL
     this.baseUrl = config.beaconApiUrl;
-    this.apiPrefix = config.apiPrefix || '/api/v1';
+    this.apiPrefix = config.apiPrefix || '';
   }
 
   /**
