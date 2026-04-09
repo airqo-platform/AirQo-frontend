@@ -26,6 +26,7 @@ export default function DesktopTitleBar() {
   const [canGoBack, setCanGoBack] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [brandingIcon, setBrandingIcon] = useState<string | null>(null);
 
   // Detect Electron and check initial nav state after mount
   useEffect(() => {
@@ -34,6 +35,11 @@ export default function DesktopTitleBar() {
 
       // Check initial back-button state
       window.vertexDesktop.canGoBack().then(setCanGoBack);
+      window.vertexDesktop.getBranding?.().then((branding) => {
+        if (branding?.iconDataUrl) {
+          setBrandingIcon(branding.iconDataUrl);
+        }
+      });
 
       // Helper: sync theme to both React state AND the native Win32 titlebar overlay
       const syncTheme = () => {
@@ -99,6 +105,7 @@ export default function DesktopTitleBar() {
   const text = isDark ? '#f8fafc' : '#111827';
   const mutedText = isDark ? '#94a3b8' : '#6b7280';
   const hoverBg = isDark ? '#334155' : '#e5e7eb';
+  const logoSrc = brandingIcon || '/images/airqo_logo.svg';
 
   return (
     <div
@@ -174,11 +181,11 @@ export default function DesktopTitleBar() {
           gap: 6,
         }}
       >
-        {/* AirQo dot logo mark */}
-        <svg width="16" height="16" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="16" cy="16" r="16" fill="#145FFF" />
-          <circle cx="16" cy="16" r="7" fill="white" />
-        </svg>
+        <img
+          src={logoSrc}
+          alt="AirQo"
+          style={{ height: 16, width: 'auto', display: 'block' }}
+        />
         <span style={{ fontSize: 12, fontWeight: 600, color: text, letterSpacing: '0.01em', transition: 'color 0.3s' }}>
           AirQo Vertex
         </span>

@@ -1,5 +1,6 @@
 interface VertexDesktopApi {
   getAppVersion: () => Promise<string>;
+  getBranding: () => Promise<{ name: string; iconDataUrl: string }>;
   retryAppLoad: () => Promise<boolean>;
   canGoBack: () => Promise<boolean>;
   navBack: () => Promise<void>;

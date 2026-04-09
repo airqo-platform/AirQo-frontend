@@ -3,6 +3,7 @@ import type { VertexDesktopApi } from "./api";
 
 const api: VertexDesktopApi = {
   getAppVersion: async () => ipcRenderer.invoke("vertex-desktop:get-app-version"),
+  getBranding: async () => ipcRenderer.invoke("vertex-desktop:get-branding"),
   retryAppLoad: async () => ipcRenderer.invoke("vertex-desktop:retry-app-load"),
   canGoBack: async () => ipcRenderer.invoke("vertex-desktop:can-go-back"),
   navBack: async () => { await ipcRenderer.invoke("vertex-desktop:nav-back"); },
