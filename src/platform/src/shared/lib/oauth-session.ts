@@ -167,7 +167,7 @@ export const buildSessionFromProfile = (
     .join(' ')
     .trim();
   const normalizedAccessToken = profile.accessToken
-    ? normalizeOAuthAccessToken(profile.accessToken)
+    ? normalizeOAuthAccessToken(profile.accessToken) || undefined
     : undefined;
 
   return {
@@ -217,9 +217,9 @@ export const verifyBackendOAuthSession =
       return {
         ...payload.data,
         accessToken: payload.data.accessToken
-          ? normalizeOAuthAccessToken(payload.data.accessToken)
+          ? normalizeOAuthAccessToken(payload.data.accessToken) || undefined
           : payload.accessToken
-            ? normalizeOAuthAccessToken(payload.accessToken)
+            ? normalizeOAuthAccessToken(payload.accessToken) || undefined
             : undefined,
       };
     } catch {
