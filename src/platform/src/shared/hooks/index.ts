@@ -56,6 +56,8 @@ export {
   useActiveGroupCohorts,
   useActiveGroupCohortSites,
   useActiveGroupCohortDevices,
+  useActiveGroupCohortSitesWithState,
+  useActiveGroupCohortDevicesWithState,
 } from './useDevice';
 
 // Sites data hooks
