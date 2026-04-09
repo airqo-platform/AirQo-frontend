@@ -1,5 +1,15 @@
-import { redirect } from 'next/navigation';
+import {
+  generateMetadata as createMetadata,
+  METADATA_CONFIGS,
+} from '@/lib/metadata';
+import CommitteePage from '@/views/cleanairforum/program-committee/CommitteePage';
 
-export default function Page() {
-  redirect('/africa-clean-air-forum');
-}
+export const metadata = createMetadata(
+  METADATA_CONFIGS.cleanAirForumProgramCommittee,
+);
+
+const Page = () => {
+  return <CommitteePage />;
+};
+
+export default Page;

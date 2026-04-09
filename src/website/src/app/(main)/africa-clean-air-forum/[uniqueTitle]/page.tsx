@@ -1,5 +1,19 @@
-import { redirect } from 'next/navigation';
+'use client';
 
-export default function ForumEventPage() {
-  redirect('/africa-clean-air-forum');
-}
+import { useParams, useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+
+const ForumEventPage = () => {
+  const params = useParams();
+  const router = useRouter();
+  const uniqueTitle = params.uniqueTitle as string;
+
+  useEffect(() => {
+    const encodedTitle = encodeURIComponent(uniqueTitle);
+    router.replace(`/africa-clean-air-forum/${encodedTitle}/about`);
+  }, [uniqueTitle, router]);
+
+  return null;
+};
+
+export default ForumEventPage;
