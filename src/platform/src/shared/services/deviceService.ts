@@ -4,7 +4,7 @@ import {
   createAuthenticatedClient,
   createServerClient,
 } from './apiClient';
-import { getSession } from 'next-auth/react';
+import { syncClientSessionToken } from './sessionAuthToken';
 import type {
   SitesSummaryResponse,
   SitesSummaryParams,
@@ -34,12 +34,7 @@ export class DeviceService {
   }
 
   private async ensureAuthenticated() {
-    const session = await getSession();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const token = (session as any)?.accessToken;
-    if (token) {
-      this.authenticatedClient.setAuthToken(token);
-    }
+    await syncClientSessionToken(this.authenticatedClient);
   }
 
   // Get sites summary - authenticated endpoint

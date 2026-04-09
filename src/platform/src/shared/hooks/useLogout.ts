@@ -10,6 +10,7 @@ import logger from '@/shared/lib/logger';
 import { useSWRConfig } from 'swr';
 import { useQueryClient } from '@tanstack/react-query';
 import { setBackendOAuthSignedOutFlag } from '@/shared/lib/oauth-session';
+import { clearCachedSessionAccessToken } from '@/shared/services/sessionAuthToken';
 
 let sharedLogoutPromise: Promise<void> | null = null;
 let sharedIsLoggingOut = false;
@@ -53,6 +54,7 @@ export const useLogout = (callbackUrl?: string) => {
         // Clear any remaining application storage immediately
         if (typeof window !== 'undefined') {
           setBackendOAuthSignedOutFlag();
+          clearCachedSessionAccessToken();
           const keysToRemove = new Set<string>();
           const accountDeleted =
             localStorage.getItem('account_deleted') === 'true';
