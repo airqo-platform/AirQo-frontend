@@ -8,16 +8,12 @@ import { buildOAuthInitiationUrl } from '@/shared/lib/oauth-session';
 
 interface GoogleAuthSectionProps {
   mode: 'login' | 'register';
-  tenant?: string;
-  callbackUrl?: string;
   disabled?: boolean;
   className?: string;
 }
 
 export default function GoogleAuthSection({
   mode,
-  tenant = 'airqo',
-  callbackUrl,
   disabled = false,
   className,
 }: GoogleAuthSectionProps) {
@@ -33,7 +29,10 @@ export default function GoogleAuthSection({
 
     try {
       window.location.assign(
-        buildOAuthInitiationUrl('google', tenant, callbackUrl)
+        buildOAuthInitiationUrl('google', {
+          prompt: 'select_account',
+          tenant: 'airqo',
+        })
       );
     } catch (error) {
       setIsRedirecting(false);
@@ -43,7 +42,7 @@ export default function GoogleAuthSection({
       );
       console.error('Failed to start Google OAuth flow:', error);
     }
-  }, [callbackUrl, disabled, tenant]);
+  }, [disabled]);
 
   return (
     <div className={cn('w-full space-y-4', className)}>

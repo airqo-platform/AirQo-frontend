@@ -11,27 +11,7 @@ export default withAuth(
   },
   {
     callbacks: {
-      authorized: ({ token, req }) => {
-        const pathname = req.nextUrl.pathname;
-        // Allow public auth routes
-        if (
-          pathname === '/user/login' ||
-          pathname === '/user/creation/individual/register' ||
-          pathname === '/user/creation/individual/verify-email' ||
-          pathname.match(
-            /^\/user\/creation\/individual\/interest\/[^\/]+\/[^\/]+$/
-          ) ||
-          pathname === '/user/forgotPwd' ||
-          pathname.match(/^\/user\/forgotPwd\/reset/) ||
-          pathname.match(/^\/user\/delete\/confirm\/[^\/]+$/) ||
-          pathname.match(/^\/org\/[^\/]+\/login$/) ||
-          pathname.match(/^\/org\/[^\/]+\/register$/) ||
-          pathname === '/org-invite'
-        ) {
-          return true;
-        }
-        return !!token;
-      },
+      authorized: () => true,
     },
     pages: {
       signIn: '/user/login',

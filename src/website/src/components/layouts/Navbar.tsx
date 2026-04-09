@@ -235,8 +235,9 @@ const Navbar: React.FC = () => {
         }}
       >
         <DialogContent
+          hideClose
           aria-label="Site navigation"
-          className={`fixed inset-y-0 left-0 z-[9995] flex w-[300px] max-w-[88vw] flex-col bg-white shadow-2xl md:hidden translate-x-0 data-[state=open]:translate-x-0 data-[state=closed]:-translate-x-full transition-transform duration-300 ease-in-out`}
+          className={`!fixed !inset-y-0 !left-0 !top-0 !z-[100001] !flex !h-[100svh] !max-h-[100svh] !translate-x-0 !translate-y-0 w-[300px] max-w-[88vw] flex-col bg-white shadow-2xl md:hidden transition-transform duration-300 ease-in-out`}
         >
           {/* Drawer Header */}
           <div className="flex flex-shrink-0 items-center justify-between border-b border-gray-100 px-4 py-3.5">

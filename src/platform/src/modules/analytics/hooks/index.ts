@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   useGetChartData,
   useGetRecentReadings,
@@ -24,19 +24,6 @@ export const useAnalyticsPreferences = () => {
   const userId = user?.id || '';
   const groupId = activeGroup?.id || '';
 
-  // Track the previous group ID to detect group changes
-  const prevGroupIdRef = useRef<string | undefined>(undefined);
-
-  // Update previous group ID after we've processed the current one
-  useEffect(() => {
-    // Only update if groupId is actually different and defined
-    if (groupId && prevGroupIdRef.current !== groupId) {
-      prevGroupIdRef.current = groupId;
-    }
-  }, [groupId]);
-
-  const prevGroupId = prevGroupIdRef.current;
-
   // Only fetch preferences if both userId and groupId are available
   const shouldFetchPreferences = !!(userId && groupId);
 
@@ -55,7 +42,7 @@ export const useAnalyticsPreferences = () => {
       return null;
     }
     // Sort by lastAccessed date (most recent first) and take the first one
-    return preferencesData.preferences.sort(
+    return [...preferencesData.preferences].sort(
       (a, b) =>
         new Date(b.lastAccessed || b.updatedAt).getTime() -
         new Date(a.lastAccessed || a.updatedAt).getTime()
@@ -64,13 +51,8 @@ export const useAnalyticsPreferences = () => {
 
   // Extract selected sites IDs
   const selectedSiteIds = useMemo(() => {
-    // If we're switching groups or don't have data yet, return empty array
-    // This prevents showing old group's selected sites while new data loads
-    if (
-      !currentPreference ||
-      preferencesLoading ||
-      (prevGroupId && prevGroupId !== groupId && prevGroupId !== undefined)
-    ) {
+    // While the current group's preferences are loading, avoid showing stale data.
+    if (!currentPreference || preferencesLoading) {
       return [];
     }
 
@@ -78,22 +60,17 @@ export const useAnalyticsPreferences = () => {
       return [];
     }
     return currentPreference.selected_sites.map((site: Site) => site._id);
-  }, [currentPreference, preferencesLoading, groupId, prevGroupId]);
+  }, [currentPreference, preferencesLoading]);
 
   // Get full selected sites data
   const selectedSites = useMemo(() => {
-    // If we're switching groups or don't have data yet, return empty array
-    // This prevents showing old group's selected sites while new data loads
-    if (
-      !currentPreference ||
-      preferencesLoading ||
-      (prevGroupId && prevGroupId !== groupId && prevGroupId !== undefined)
-    ) {
+    // While the current group's preferences are loading, avoid showing stale data.
+    if (!currentPreference || preferencesLoading) {
       return [];
     }
 
     return currentPreference?.selected_sites || [];
-  }, [currentPreference, preferencesLoading, groupId, prevGroupId]);
+  }, [currentPreference, preferencesLoading]);
 
   // Combined loading state - only show loading if we should fetch and are actually loading
   const isLoading =

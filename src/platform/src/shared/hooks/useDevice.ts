@@ -1,5 +1,5 @@
 import useSWR, { mutate } from 'swr';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { deviceService } from '../services/deviceService';
 import {
@@ -217,10 +217,29 @@ export const useActiveGroupCohorts = () => {
   const isLoading = useSelector(selectCohortsLoading);
   const error = useSelector(selectCohortsError);
   const lastFetchedGroupId = useSelector(selectLastFetchedGroupId);
+  const previousGroupIdRef = useRef<string | null>(null);
 
   const groupId = activeGroup?.id;
+  const hasStaleCohortsForGroup =
+    !!groupId && !!lastFetchedGroupId && lastFetchedGroupId !== groupId;
   const shouldFetch =
-    groupId && (!lastFetchedGroupId || lastFetchedGroupId !== groupId);
+    (!!groupId && !lastFetchedGroupId) || hasStaleCohortsForGroup;
+
+  useEffect(() => {
+    const previousGroupId = previousGroupIdRef.current;
+    previousGroupIdRef.current = groupId ?? null;
+
+    if (!groupId) {
+      if (activeGroupCohorts.length > 0 || lastFetchedGroupId) {
+        dispatch(clearCohorts());
+      }
+      return;
+    }
+
+    if (previousGroupId && previousGroupId !== groupId) {
+      dispatch(clearCohorts());
+    }
+  }, [groupId, activeGroupCohorts.length, lastFetchedGroupId, dispatch]);
 
   // Fetch cohorts for active group
   const { error: swrError } = useSWR<GroupCohortsResponse>(
@@ -248,16 +267,12 @@ export const useActiveGroupCohorts = () => {
     }
   );
 
-  // Clear cohorts when group changes or is cleared
-  useEffect(() => {
-    if (!groupId) {
-      dispatch(clearCohorts());
-    }
-  }, [groupId, dispatch]);
+  const resolvedCohortIds =
+    groupId && lastFetchedGroupId === groupId ? activeGroupCohorts : [];
 
   return {
-    cohortIds: activeGroupCohorts,
-    isLoading,
+    cohortIds: resolvedCohortIds,
+    isLoading: isLoading || (!!groupId && lastFetchedGroupId !== groupId),
     error: error || swrError,
     refetch: () => {
       if (groupId) {

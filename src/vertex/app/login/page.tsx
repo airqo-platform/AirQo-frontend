@@ -134,7 +134,7 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen lg:h-screen w-full flex-col bg-background text-foreground">
       {/* Sticky Topbar */}
-      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header data-vertex-topbar className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex h-12 items-center justify-between px-6 md:px-8">
           <div className="flex items-center">
             <Image

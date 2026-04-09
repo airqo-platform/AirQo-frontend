@@ -1,6 +1,7 @@
-const DEFAULT_TENANT = 'airqo';
 const OAUTH_SIGNED_OUT_FLAG = 'airqo:oauth-signed-out';
-const DEFAULT_FORUM_FETCH_TIMEOUT_MS = 8000;
+const DEFAULT_PROFILE_FETCH_TIMEOUT_MS = 8000;
+const OAUTH_FRAGMENT_TOKEN_KEY = 'token';
+const OAUTH_SUCCESS_PROVIDER_KEY = 'success';
 
 export interface BackendOAuthProfile {
   _id: string;
@@ -31,6 +32,67 @@ export interface BackendOAuthSession {
     image: string;
   };
 }
+
+export interface OAuthTokenHandoff {
+  token: string;
+  provider: string | null;
+}
+
+const safeDecodeURIComponent = (value: string): string => {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+};
+
+export const normalizeOAuthAccessToken = (token: string): string => {
+  return token
+    .replace(/^JWT\s+/i, '')
+    .replace(/^Bearer\s+/i, '')
+    .trim();
+};
+
+export const consumeOAuthTokenHandoffFromUrl = (): OAuthTokenHandoff | null => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  const rawHash = window.location.hash;
+  if (!rawHash || rawHash === '#') {
+    return null;
+  }
+
+  const hashParams = new URLSearchParams(
+    rawHash.startsWith('#') ? rawHash.slice(1) : rawHash
+  );
+  const hashToken = hashParams.get(OAUTH_FRAGMENT_TOKEN_KEY);
+  if (!hashToken) {
+    return null;
+  }
+
+  const token = normalizeOAuthAccessToken(safeDecodeURIComponent(hashToken));
+
+  window.history.replaceState(
+    {},
+    '',
+    `${window.location.pathname}${window.location.search}`
+  );
+
+  if (!token) {
+    return null;
+  }
+
+  const provider = new URLSearchParams(window.location.search)
+    .get(OAUTH_SUCCESS_PROVIDER_KEY)
+    ?.trim()
+    .toLowerCase();
+
+  return {
+    token,
+    provider: provider || null,
+  };
+};
 
 const normalizeApiBaseUrl = (baseUrl: string): string => {
   const trimmedBaseUrl = baseUrl.replace(/\/$/, '');
@@ -78,19 +140,23 @@ export const setBackendOAuthSignedOutFlag = (): void => {
 
 export const buildOAuthInitiationUrl = (
   provider = 'google',
-  tenant = DEFAULT_TENANT,
-  callbackUrl?: string
+  queryParams?: Record<string, string | undefined>
 ): string => {
-  const oauthUrl = new URL(
-    buildBackendApiUrl(`/users/auth/${encodeURIComponent(provider)}`)
+  const baseUrl = buildBackendApiUrl(
+    `/users/auth/${encodeURIComponent(provider)}`
   );
-  oauthUrl.searchParams.set('tenant', tenant);
+  const params = new URLSearchParams();
 
-  if (callbackUrl) {
-    oauthUrl.searchParams.set('callbackUrl', callbackUrl);
+  if (queryParams) {
+    Object.entries(queryParams).forEach(([key, value]) => {
+      if (value) {
+        params.set(key, value);
+      }
+    });
   }
 
-  return oauthUrl.toString();
+  const queryString = params.toString();
+  return queryString ? `${baseUrl}?${queryString}` : baseUrl;
 };
 
 export const buildSessionFromProfile = (
@@ -120,7 +186,7 @@ export const verifyBackendOAuthSession =
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, DEFAULT_FORUM_FETCH_TIMEOUT_MS);
+    }, DEFAULT_PROFILE_FETCH_TIMEOUT_MS);
 
     try {
       const response = await fetch(

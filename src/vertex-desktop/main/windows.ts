@@ -1,4 +1,4 @@
-import { BrowserWindow, shell } from "electron";
+import { BrowserWindow, shell, nativeTheme } from "electron";
 import path from "node:path";
 
 interface CreateWindowArgs {
@@ -8,6 +8,7 @@ interface CreateWindowArgs {
 
 export const createMainWindow = ({ startUrl, preloadPath }: CreateWindowArgs): BrowserWindow => {
   const iconPath = process.env.VERTEX_DESKTOP_ICON_PATH ?? path.join(__dirname, "..", "..", "assets", "icon.png");
+  const titleBarOverlayHeight = 37;
 
   const window = new BrowserWindow({
     title: "AirQo Vertex",
@@ -20,9 +21,9 @@ export const createMainWindow = ({ startUrl, preloadPath }: CreateWindowArgs): B
     backgroundColor: "#0b1324",
     titleBarStyle: "hidden",
     titleBarOverlay: {
-      color: "#0f1115",
-      symbolColor: "#e5e7eb",
-      height: 30
+      color: "rgba(0, 0, 0, 0)",
+      symbolColor: nativeTheme.shouldUseDarkColors ? "#f8fafc" : "#111827",
+      height: titleBarOverlayHeight
     },
     webPreferences: {
       preload: preloadPath,
