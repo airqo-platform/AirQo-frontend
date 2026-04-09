@@ -85,7 +85,7 @@ class _SettingsWidgetState extends State<SettingsWidget> {
 
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
+      SnackBar(content: TranslatedText(message)),
     );
   }
 

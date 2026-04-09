@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
 
 class BreatheClean extends StatelessWidget {
@@ -28,24 +29,24 @@ class BreatheClean extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text(
+                    TranslatedText(
                       '🌿 Breathe Clean',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontWeight: FontWeight.w400,
                         fontStyle: FontStyle.normal,
                         fontFamily: 'inter',
                         fontSize: 16,
                       ),
                     ),
-                    SizedBox(
+                    const SizedBox(
                       height: 16,
                     ),
-                    Text(
+                    TranslatedText(
                       'Track and monitor the quality of air you breathe',
                       maxLines: 2,
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 20,
                       ),

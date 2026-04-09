@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -22,16 +23,11 @@ class NoNotificationsScreen extends StatelessWidget {
                       color: Colors.grey[900],
                       shape: BoxShape.circle,
                     ),
-                    // child: Icon(
-                    //   Icons.notifications,
-                    //   color: Colors.white,
-                    //   size: maxWidth * 0.1,
-                    // ),
                     child: SvgPicture.asset(
                       "assets/icons/notification.svg",
                     )),
                 SizedBox(height: maxHeight * 0.05),
-                Text(
+                TranslatedText(
                   "No Notifications",
                   style: TextStyle(
                     color: Colors.white,
@@ -40,7 +36,7 @@ class NoNotificationsScreen extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: maxHeight * 0.02),
-                Text(
+                TranslatedText(
                   "Here you'll find all updates on our Air Quality network",
                   style: TextStyle(
                     color: Colors.grey,

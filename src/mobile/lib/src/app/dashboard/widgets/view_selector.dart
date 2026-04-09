@@ -1,6 +1,7 @@
 import 'package:airqo/src/app/dashboard/models/country_model.dart';
 import 'package:airqo/src/app/shared/widgets/country_button';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
+import 'package:airqo/src/app/shared/widgets/translated_tooltip.dart';
 import 'package:flutter/material.dart';
 import '../../../meta/utils/colors.dart';
 import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
@@ -100,8 +101,8 @@ class _ViewSelectorState extends State<ViewSelector> {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         children: [
           if (!widget.isGuestUser) ...[
-            Tooltip(
-              key: _nearbyTooltipKey,
+            TranslatedTooltip(
+              tooltipKey: _nearbyTooltipKey,
               message: "View air quality in locations closest to you",
               preferBelow: true,
               verticalOffset: 20,
@@ -122,8 +123,8 @@ class _ViewSelectorState extends State<ViewSelector> {
               ),
             ),
             SizedBox(width: 8),
-            Tooltip(
-              key: _myPlacesTooltipKey,
+            TranslatedTooltip(
+              tooltipKey: _myPlacesTooltipKey,
               message: "Save your most relevant locations in one place",
               preferBelow: true,
               verticalOffset: 20,
@@ -146,7 +147,7 @@ class _ViewSelectorState extends State<ViewSelector> {
             SizedBox(width: 8),
           ],
           if (widget.isGuestUser) ...[
-            Tooltip(
+            TranslatedTooltip(
               message: "View air quality in locations closest to you",
               preferBelow: true,
               verticalOffset: 20,

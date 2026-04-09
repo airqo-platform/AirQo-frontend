@@ -25,6 +25,7 @@ import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:loggy/loggy.dart';
+import 'package:airqo/src/app/shared/widgets/translated_tooltip.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -687,7 +688,7 @@ class _MapScreenState extends State<MapScreen>
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               mainAxisSize: MainAxisSize.min,
                               children: airQualityData.map((e) {
-                                return Tooltip(
+                                return TranslatedTooltip(
                                   preferBelow: false,
                                   textStyle: TextStyle(color: Colors.white),
                                   decoration: BoxDecoration(

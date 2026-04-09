@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:airqo/src/app/profile/bloc/user_bloc.dart';
 import 'package:airqo/src/app/profile/pages/widgets/profile_picture_selector.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
+import 'package:airqo/src/app/shared/widgets/translated_tooltip.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/auth/services/auth_helper.dart';
 import 'package:airqo/src/app/shared/repository/secure_storage_repository.dart';
@@ -586,7 +587,7 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
             actions: [
               TextButton(
                 onPressed: _isLoading ? null : _updateProfile,
-                child: Tooltip(
+                child: TranslatedTooltip(
                   message: _isLoading ? 'Uploading...' : 'Save changes',
                   child: _isLoading
                       ? SizedBox(

@@ -1,5 +1,6 @@
 import 'package:airqo/src/app/auth/pages/login_page.dart';
 import 'package:airqo/src/app/profile/pages/widgets/guest_settings_widget.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 //import 'package:airqo/src/app/profile/pages/widgets/settings_tile.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -72,7 +73,7 @@ class _GuestProfilePageState extends State<GuestProfilePage> {
                 ),
 
 
-                Text(
+                TranslatedText(
                   "Guest User",
                   style: TextStyle(
                     color: Theme.of(context).textTheme.headlineSmall?.color,
@@ -84,7 +85,7 @@ class _GuestProfilePageState extends State<GuestProfilePage> {
               SizedBox(height: 32),
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20),
-                child: Text(
+                child: TranslatedText(
                   'Settings',
                 style:TextStyle(
                   color: Theme.of(context).textTheme.headlineSmall?.color,
@@ -125,7 +126,7 @@ class _GuestProfilePageState extends State<GuestProfilePage> {
                   child: Center(
                     child: isLoading
                         ? Spinner()
-                        : Text(
+                        : TranslatedText(
                       "Create Account",
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
@@ -154,7 +155,7 @@ class _GuestProfilePageState extends State<GuestProfilePage> {
                   child: Center(
                     child: isLoading
                         ? Spinner()
-                        : Text(
+                        : TranslatedText(
                       "Login",
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
