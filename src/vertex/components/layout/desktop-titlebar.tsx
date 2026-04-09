@@ -12,11 +12,11 @@ import Image from 'next/image';
  * not in any individual page.
  *
  * Layout interaction:
- *   - Fixed at top: 0, height 38px — matching the titleBarOverlay height set
+ *   - Fixed at top: 0, height 37px — matching the titleBarOverlay height set
  *     in the Electron BrowserWindow config.
- *   - On Windows: padding-right 138px leaves space for native window controls
+ *   - On Windows: padding-right 148px leaves space for native window controls
  *     (minimize / maximize / close) provided by titleBarOverlay.
- *   - The preload script sets --vertex-ui-top-offset: 38px on <html> so that
+ *   - The preload script sets --vertex-ui-top-offset: 37px on <html> so that
  *     the web app's own header and sidebars sit below this bar automatically.
  */
 
@@ -37,12 +37,12 @@ export default function DesktopTitleBar() {
       setIsDesktop(true);
 
       // Check initial back-button state
-      window.vertexDesktop.canGoBack().then(setCanGoBack);
+      window.vertexDesktop.canGoBack().then(setCanGoBack).catch(() => setCanGoBack(false));
       window.vertexDesktop.getBranding?.().then((branding) => {
         if (branding?.iconDataUrl) {
           setBrandingIcon(branding.iconDataUrl);
         }
-      });
+      }).catch(() => setBrandingIcon(null));
 
       // Helper: sync theme to both React state AND the native Win32 titlebar overlay
       const syncTheme = () => {
@@ -69,12 +69,12 @@ export default function DesktopTitleBar() {
   }, []);
 
   // Re-sync back-button state on every route change. We piggy-back on the
-  // `vertex-desktop:navigation-state` IPC event emitted from the main process.
+  // `vertex-desktop:navigated` DOM event dispatched by the preload bridge.
   useEffect(() => {
     if (!isDesktop) return;
 
     const handleNavStateChange = () => {
-      window.vertexDesktop?.canGoBack().then(setCanGoBack);
+      window.vertexDesktop?.canGoBack().then(setCanGoBack).catch(() => setCanGoBack(false));
     };
 
     // Poll once on mount and listen for popstate (covers client-side SPA nav)
@@ -93,15 +93,18 @@ export default function DesktopTitleBar() {
     await window.vertexDesktop.navBack();
     // Give the webContents a moment then re-check nav state
     setTimeout(() => {
-      window.vertexDesktop?.canGoBack().then(setCanGoBack);
+      window.vertexDesktop?.canGoBack().then(setCanGoBack).catch(() => setCanGoBack(false));
     }, 150);
   }, []);
 
   const handleReload = useCallback(async () => {
     if (!window.vertexDesktop) return;
     setIsLoading(true);
-    await window.vertexDesktop.navReload();
-    setTimeout(() => setIsLoading(false), 1000);
+    try {
+      await window.vertexDesktop.navReload();
+    } finally {
+      setTimeout(() => setIsLoading(false), 1000);
+    }
   }, []);
 
   // Don't render anything in the browser (web-only) context
