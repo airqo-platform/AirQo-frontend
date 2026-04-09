@@ -40,7 +40,7 @@ const formatMonthYear = (value?: string | null) => {
 };
 
 const typeLabels: Record<MonitorType, string> = {
-  Reference: 'Reference',
+  Reference: 'Reference Monitor',
   LCS: 'Low-Cost Sensor (LCS)',
   Inactive: 'Inactive',
 };
@@ -674,7 +674,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
               <div
                 className={getBadgeClassesForMonitorType(selectedMonitor.type)}
               >
-                {typeLabels[selectedMonitor.type]} Monitor
+                {typeLabels[selectedMonitor.type]}
               </div>
               <h3 className="mt-2 text-xl font-bold leading-tight text-slate-900 sm:text-2xl">
                 {selectedMonitor.name}

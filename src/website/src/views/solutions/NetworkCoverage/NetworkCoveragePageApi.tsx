@@ -404,6 +404,7 @@ const NetworkCoveragePage = () => {
   const getTypeLabel = (type: string) => {
     if (!type) return type;
     if (type === 'LCS') return 'Low-Cost Sensor (LCS)';
+    if (type === 'Reference') return 'Reference Monitor';
     return type;
   };
 
