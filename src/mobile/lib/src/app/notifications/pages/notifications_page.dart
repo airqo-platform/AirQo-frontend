@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
 
 class NotificationItem {
@@ -68,7 +69,7 @@ class NotificationsScreen extends StatelessWidget {
                         color: Colors.blue,
                         borderRadius: BorderRadius.circular(4.0),
                       ),
-                      child: Text(
+                      child: TranslatedText(
                         'New',
                         style: TextStyle(
                           color: Colors.white,

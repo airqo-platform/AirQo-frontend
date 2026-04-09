@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -45,13 +46,13 @@ class AccountDeletionHandler {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
-            title: Text(
+            title: TranslatedText(
               'Delete Account',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
-                color: isDarkMode 
-                    ? AppColors.boldHeadlineColor2 
+                color: isDarkMode
+                    ? AppColors.boldHeadlineColor2
                     : AppColors.boldHeadlineColor5,
               ),
             ),
@@ -59,33 +60,33 @@ class AccountDeletionHandler {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                TranslatedText(
                   'Are you sure you want to permanently delete your account?',
                   style: TextStyle(
                     fontSize: 16,
-                    color: isDarkMode 
-                        ? AppColors.secondaryHeadlineColor2 
+                    color: isDarkMode
+                        ? AppColors.secondaryHeadlineColor2
                         : AppColors.secondaryHeadlineColor,
                   ),
                 ),
                 SizedBox(height: 12),
-                Text(
+                TranslatedText(
                   'This action will:',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: isDarkMode 
-                        ? AppColors.secondaryHeadlineColor2 
+                    color: isDarkMode
+                        ? AppColors.secondaryHeadlineColor2
                         : AppColors.secondaryHeadlineColor,
                   ),
                 ),
                 SizedBox(height: 8),
-                Text(
+                TranslatedText(
                   '• Permanently delete all your data\n• Remove your account information\n• Cannot be undone',
                   style: TextStyle(
                     fontSize: 14,
-                    color: isDarkMode 
-                        ? Colors.grey[400] 
+                    color: isDarkMode
+                        ? Colors.grey[400]
                         : Colors.grey[600],
                   ),
                 ),
@@ -107,12 +108,12 @@ class AccountDeletionHandler {
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
                 style: TextButton.styleFrom(
-                  foregroundColor: isDarkMode 
-                      ? Colors.grey[400] 
+                  foregroundColor: isDarkMode
+                      ? Colors.grey[400]
                       : Colors.grey[700],
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
-                child: Text(
+                child: TranslatedText(
                   'Cancel',
                   style: TextStyle(
                     fontSize: 16,
@@ -131,7 +132,7 @@ class AccountDeletionHandler {
                   elevation: 0,
                 ),
                 onPressed: () => _initiateAccountDeletion(context, dialogContext, userEmail),
-                child: Text(
+                child: TranslatedText(
                   'Send Code',
                   style: TextStyle(
                     fontSize: 16,
@@ -224,13 +225,13 @@ class _VerificationCodeDialogState extends State<_VerificationCodeDialog> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
-      title: Text(
+      title: TranslatedText(
         'Enter Verification Code',
         style: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.w700,
-          color: widget.isDarkMode 
-              ? AppColors.boldHeadlineColor2 
+          color: widget.isDarkMode
+              ? AppColors.boldHeadlineColor2
               : AppColors.boldHeadlineColor5,
         ),
       ),
@@ -282,7 +283,7 @@ class _VerificationCodeDialogState extends State<_VerificationCodeDialog> {
       actions: [
         TextButton(
           onPressed: isConfirming ? null : () => Navigator.pop(context),
-          child: Text(
+          child: TranslatedText(
             'Cancel',
             style: TextStyle(
               color: widget.isDarkMode ? Colors.grey[400] : Colors.grey[700],
@@ -374,7 +375,7 @@ class _VerificationCodeDialogState extends State<_VerificationCodeDialog> {
                     strokeWidth: 2,
                   ),
                 )
-              : Text('Delete Account'),
+              : TranslatedText('Delete Account'),
         ),
       ],
     );
