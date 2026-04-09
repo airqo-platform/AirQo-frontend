@@ -1,7 +1,7 @@
 import React from "react";
 import { useAppSelector } from "@/core/redux/hooks";
 import { useUserContext } from "@/core/hooks/useUserContext";
-import { Info } from "lucide-react";
+import { InfoBanner } from "@/components/ui/banner";
 
 const ContextHeader = () => {
     const { userContext } = useUserContext();
@@ -41,14 +41,14 @@ const ContextHeader = () => {
                 Hi, {firstName} 👋
             </h1>
 
-            <div className="bg-[#EFF8FF] border border-[#B2DDFF] rounded-xl p-4 md:p-5 flex gap-3 md:gap-4 items-start">
-                <div className="shrink-0 mt-0.5">
-                    <Info className="w-5 h-5 text-[#2E90FA]" />
-                </div>
-                <p className="text-[#175CD3] text-sm md:text-[14px] leading-relaxed font-medium">
-                    You&apos;re in <span className="capitalize">{getContextTitle()}.</span> {getContextDescription()}
-                </p>
-            </div>
+            <InfoBanner
+                message={
+                    <span className="font-medium">
+                        You&apos;re in <span className="capitalize">{getContextTitle()}.</span>{" "}
+                        {getContextDescription()}
+                    </span>
+                }
+            />
         </div>
     );
 };
