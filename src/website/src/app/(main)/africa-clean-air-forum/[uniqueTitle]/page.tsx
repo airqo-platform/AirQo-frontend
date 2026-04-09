@@ -9,12 +9,11 @@ const ForumEventPage = () => {
   const uniqueTitle = params.uniqueTitle as string;
 
   useEffect(() => {
-    // Redirect to the about page of the selected forum event
     const encodedTitle = encodeURIComponent(uniqueTitle);
     router.replace(`/africa-clean-air-forum/${encodedTitle}/about`);
   }, [uniqueTitle, router]);
 
-  return null; // This component only handles redirection
+  return null;
 };
 
 export default ForumEventPage;

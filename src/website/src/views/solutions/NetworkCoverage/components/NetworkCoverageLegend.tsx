@@ -28,7 +28,7 @@ const NetworkCoverageLegend: React.FC<NetworkCoverageLegendProps> = ({
             className="h-2.5 w-2.5 rounded-full"
             style={{ backgroundColor: '#12A86B' }}
           />
-          Reference
+          Reference Monitor
         </div>
         <div className="flex w-full items-center gap-2">
           <span className="h-2.5 w-2.5 rounded-full bg-slate-400" />

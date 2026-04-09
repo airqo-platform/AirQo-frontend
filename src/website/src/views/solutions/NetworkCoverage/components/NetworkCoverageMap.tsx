@@ -67,7 +67,7 @@ const formatNetworkName = (value?: string | null) => {
 };
 
 const monitorTypeLabel: Record<MonitorType, string> = {
-  Reference: 'Reference',
+  Reference: 'Reference Monitor',
   LCS: 'Low-Cost Sensor (LCS)',
   Inactive: 'Inactive',
 };

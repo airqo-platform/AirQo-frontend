@@ -90,12 +90,28 @@ export default function FloatingMiniBillboard({
     AIR_QUALITY_INFO[level as keyof typeof AIR_QUALITY_INFO]?.label ||
     'Unknown';
   const categoryColor = getAirQualityColor(category);
-  const badgeStyle = {
-    backgroundColor: hexToRgba(categoryColor, 0.14),
-    color: categoryColor,
-    border: `1px solid ${hexToRgba(categoryColor, 0.16)}`,
-    fontFamily: '"Times New Roman", Times, serif',
-  };
+  const badgeStyle = (() => {
+    // Emphasize high-risk levels with strong contrast. Treat 'unhealthy',
+    // 'very-unhealthy' and 'hazardous' the same so users clearly see danger.
+    const highContrastLevels = ['unhealthy', 'very-unhealthy', 'hazardous'];
+    if (highContrastLevels.includes(level)) {
+      return {
+        backgroundColor: categoryColor,
+        color: '#ffffff',
+        border: `1px solid ${hexToRgba(categoryColor, 0.9)}`,
+        boxShadow: 'inset 0 -2px 0 rgba(0,0,0,0.06)',
+        fontFamily: '"Helvetica Neue", Arial, sans-serif',
+      } as React.CSSProperties;
+    }
+
+    // Default subtle style for other categories
+    return {
+      backgroundColor: hexToRgba(categoryColor, 0.14),
+      color: categoryColor,
+      border: `1px solid ${hexToRgba(categoryColor, 0.16)}`,
+      fontFamily: '"Times New Roman", Times, serif',
+    } as React.CSSProperties;
+  })();
 
   // Check if we should hide on billboard pages
   const shouldHide = pathname?.startsWith('/billboard');
