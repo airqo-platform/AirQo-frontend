@@ -94,6 +94,31 @@ app.whenReady().then(async () => {
   ipcMain.handle("vertex-desktop:can-go-back", () => {
     return mainWindow?.webContents.canGoBack() ?? false;
   });
+
+  // Dynamically update the native Windows title-bar overlay colors
+  // when the web app switches between light and dark mode.
+  ipcMain.on("vertex-desktop:set-theme", (_event, theme: "light" | "dark") => {
+    if (!mainWindow || process.platform !== "win32") return;
+    const isDark = theme === "dark";
+    mainWindow.setTitleBarOverlay?.({
+      color: "rgba(0, 0, 0, 0)",
+      symbolColor: isDark ? "#f8fafc" : "#111827",
+      height: 37,
+    });
+  });
+
+  ipcMain.on(
+    "vertex-desktop:set-titlebar-colors",
+    (_event, colors: { color: string; symbolColor: string }) => {
+      if (!mainWindow || process.platform !== "win32") return;
+      mainWindow.setTitleBarOverlay?.({
+        color: colors.color,
+        symbolColor: colors.symbolColor,
+        height: 37,
+      });
+    }
+  );
+
   registerDeepLinkProtocol();
   setupMenu();
   setupPermissionHandlers();

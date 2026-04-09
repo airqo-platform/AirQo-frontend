@@ -4,6 +4,43 @@
 
 ---
  
+## Version 1.23.25
+**Released:** April 09, 2026
+
+### Desktop Title Bar Branding & Visual Alignment
+
+Improved the desktop title bar to better match the main app styling and official branding.
+
+<details>
+<summary><strong>Desktop UI Enhancements (4)</strong></summary>
+
+- **AirQo Logo in Title Bar**: Title bar now renders the packaged AirQo icon (with web fallback) instead of a placeholder mark.
+- **Background Match**: Title bar background now follows the app background color token for light/dark consistency.
+- **Cleaner Edge**: Removed the bottom border from the desktop title bar for a seamless blend into the app canvas.
+- **Native Window Controls Alignment**: Title bar reserves space for native window controls while keeping app controls interactive.
+
+</details>
+
+<details>
+<summary><strong>Desktop Shell Integration (2)</strong></summary>
+
+- **Root Layout Injection**: Desktop title bar now mounts from the root client layout to persist across page transitions.
+- **Stable Header Hook**: Added `data-vertex-topbar` to the login header for desktop layout alignment.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (4)</strong></summary>
+
+- `app/client-layout.tsx`
+- `app/login/page.tsx`
+- `components/layout/desktop-titlebar.tsx`
+- `types/vertex-desktop.d.ts`
+
+</details>
+
+---
+
  ## Version 1.23.24
  **Released:** April 07, 2026
  

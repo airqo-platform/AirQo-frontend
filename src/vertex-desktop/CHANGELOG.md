@@ -4,6 +4,54 @@
 
 ---
 
+## Version 0.1.6
+**Released:** April 09, 2026
+
+### Title Bar Overlay Styling + Branding Bridge
+
+Aligned the native caption button area with the custom title bar styling and exposed branding details to the renderer.
+
+<details>
+<summary><strong>Desktop UI Enhancements (4)</strong></summary>
+
+- **Transparent Caption Area**: Made the Windows title bar overlay background transparent so the custom title bar background shows through.
+- **Overlay Height Tuning**: Adjusted overlay height to avoid visual seams with the custom title bar.
+- **Branding Bridge**: Exposed a `getBranding()` API so the renderer can pull the packaged app icon.
+- **Renderer-Native Title Bar Sync**: Updated the preload bridge to broadcast navigation state changes for the React title bar.
+
+</details>
+
+<details>
+<summary><strong>IPC Extensions (2)</strong></summary>
+
+- **Title Bar Color Sync**: Added `set-titlebar-colors` to update overlay colors from the renderer when theme changes.
+- **Expanded Desktop Bridge**: Added navigation helpers (`canGoBack`, `navBack`, `navReload`) to the preload API.
+
+</details>
+
+<details>
+<summary><strong>Packaging & Distribution (3)</strong></summary>
+
+- **macOS Build Support**: Added mac build targets with hardened runtime + notarization settings.
+- **Entitlements File**: Added macOS entitlements for signed builds.
+- **Publish Script**: Added combined Windows + mac publish script for release automation.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (6)</strong></summary>
+
+- `main/index.ts`
+- `main/windows.ts`
+- `preload/index.ts`
+- `preload/api.ts`
+- `package.json`
+- `assets/entitlements.mac.plist`
+
+</details>
+
+---
+
 ## Version 0.1.5
 **Released:** February 17, 2026
 
