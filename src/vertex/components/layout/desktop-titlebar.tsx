@@ -20,7 +20,7 @@ import Image from 'next/image';
  *     the web app's own header and sidebars sit below this bar automatically.
  */
 
-const TITLEBAR_HEIGHT = 38;
+const TITLEBAR_HEIGHT = 37;
 type AppRegion = 'drag' | 'no-drag';
 type AppRegionStyle = React.CSSProperties & { WebkitAppRegion?: AppRegion };
 

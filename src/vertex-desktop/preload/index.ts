@@ -20,7 +20,7 @@ contextBridge.exposeInMainWorld("vertexDesktop", api);
 // Set a CSS variable on <html> so the web app's own header and sidebars know
 // to sit 38px below the top (matching the DesktopTitleBar React component
 // height AND the titleBarOverlay height in windows.ts).
-const TITLEBAR_HEIGHT = 38;
+const TITLEBAR_HEIGHT = 37;
 
 const applyDesktopStyles = (): void => {
   if (!window.location.protocol.startsWith("http")) return;
