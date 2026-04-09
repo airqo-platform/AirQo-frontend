@@ -1,10 +1,11 @@
 'use client';
+/* eslint-disable simple-import-sort/imports */
 
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import React, { ReactNode } from 'react';
 
 import MainLayout from '@/components/layouts/MainLayout';
-import { NoData } from '@/components/ui';
+import { NoData, CustomButton } from '@/components/ui';
 import ForumDetailSkeleton from '@/components/ui/ForumDetailSkeleton';
 import { ForumDataProvider } from '@/context/ForumDataContext';
 import { useForumEventDetails } from '@/hooks/useApiHooks';
@@ -20,6 +21,7 @@ type ForumEventLayoutProps = {
 const ForumEventLayout: React.FC<ForumEventLayoutProps> = ({ children }) => {
   const params = useParams();
   const uniqueTitle = params.uniqueTitle as string;
+  const router = useRouter();
 
   const {
     data: forumEventData,
@@ -70,7 +72,16 @@ const ForumEventLayout: React.FC<ForumEventLayoutProps> = ({ children }) => {
     return (
       <MainLayout>
         <div className="flex items-center justify-center min-h-[60vh]">
-          <NoData message="Error loading forum event. Please try again later." />
+          <div className="max-w-md w-full">
+            <NoData message="Error loading forum event. Please try again later." />
+            <div className="mt-6 flex justify-center">
+              <CustomButton
+                onClick={() => router.push('/africa-clean-air-forum')}
+              >
+                Back to Forum
+              </CustomButton>
+            </div>
+          </div>
         </div>
       </MainLayout>
     );
@@ -81,7 +92,16 @@ const ForumEventLayout: React.FC<ForumEventLayoutProps> = ({ children }) => {
     return (
       <MainLayout>
         <div className="flex items-center justify-center min-h-[60vh]">
-          <NoData message="Forum event not found" />
+          <div className="max-w-md w-full">
+            <NoData message="Forum event not found" />
+            <div className="mt-6 flex justify-center">
+              <CustomButton
+                onClick={() => router.push('/africa-clean-air-forum')}
+              >
+                Back to Forum
+              </CustomButton>
+            </div>
+          </div>
         </div>
       </MainLayout>
     );

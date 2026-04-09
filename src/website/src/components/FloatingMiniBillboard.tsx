@@ -91,8 +91,10 @@ export default function FloatingMiniBillboard({
     'Unknown';
   const categoryColor = getAirQualityColor(category);
   const badgeStyle = (() => {
-    // For the 'unhealthy' level use a solid color with white text for high contrast
-    if (level === 'unhealthy') {
+    // Emphasize high-risk levels with strong contrast. Treat 'unhealthy',
+    // 'very-unhealthy' and 'hazardous' the same so users clearly see danger.
+    const highContrastLevels = ['unhealthy', 'very-unhealthy', 'hazardous'];
+    if (highContrastLevels.includes(level)) {
       return {
         backgroundColor: categoryColor,
         color: '#ffffff',
