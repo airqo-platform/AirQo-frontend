@@ -181,6 +181,22 @@ class SunbirdTranslationService with UiLoggy {
     'Hazardous',
     'Unknown',
 
+    // Tooltip messages
+    'View air quality in locations closest to you',
+    'Save your most relevant locations in one place',
+    'Sign in or create an account',
+    'View your profile',
+    'Sign in to access your profile',
+    'Air Quality is Good',
+    'Air Quality is Moderate',
+    'Air Quality is Unhealthy for Sensitive Groups',
+    'Air Quality is Unhealthy',
+    'Air Quality is Very Unhealthy',
+    'Air Quality is Hazardous',
+    'Air Quality is Unknown',
+    'Uploading...',
+    'Save changes',
+
     // Auth
     'Login',
     'Cancel',
