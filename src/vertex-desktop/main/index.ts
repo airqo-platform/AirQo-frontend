@@ -101,11 +101,23 @@ app.whenReady().then(async () => {
     if (!mainWindow || process.platform !== "win32") return;
     const isDark = theme === "dark";
     mainWindow.setTitleBarOverlay?.({
-      color: isDark ? "#1d1f20" : "#f3f4f6",
+      color: "rgba(0, 0, 0, 0)",
       symbolColor: isDark ? "#f8fafc" : "#111827",
-      height: 38,
+      height: 37,
     });
   });
+
+  ipcMain.on(
+    "vertex-desktop:set-titlebar-colors",
+    (_event, colors: { color: string; symbolColor: string }) => {
+      if (!mainWindow || process.platform !== "win32") return;
+      mainWindow.setTitleBarOverlay?.({
+        color: colors.color,
+        symbolColor: colors.symbolColor,
+        height: 37,
+      });
+    }
+  );
 
   registerDeepLinkProtocol();
   setupMenu();

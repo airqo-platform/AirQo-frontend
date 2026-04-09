@@ -8,6 +8,7 @@ interface CreateWindowArgs {
 
 export const createMainWindow = ({ startUrl, preloadPath }: CreateWindowArgs): BrowserWindow => {
   const iconPath = process.env.VERTEX_DESKTOP_ICON_PATH ?? path.join(__dirname, "..", "..", "assets", "icon.png");
+  const titleBarOverlayHeight = 37;
 
   const window = new BrowserWindow({
     title: "AirQo Vertex",
@@ -20,9 +21,9 @@ export const createMainWindow = ({ startUrl, preloadPath }: CreateWindowArgs): B
     backgroundColor: "#0b1324",
     titleBarStyle: "hidden",
     titleBarOverlay: {
-      color: nativeTheme.shouldUseDarkColors ? "#1d1f20" : "#f3f4f6",
+      color: "rgba(0, 0, 0, 0)",
       symbolColor: nativeTheme.shouldUseDarkColors ? "#f8fafc" : "#111827",
-      height: 38
+      height: titleBarOverlayHeight
     },
     webPreferences: {
       preload: preloadPath,

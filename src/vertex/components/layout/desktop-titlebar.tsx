@@ -47,7 +47,11 @@ export default function DesktopTitleBar() {
         setIsDark(dark);
         // Tell the Electron main process to call setTitleBarOverlay() so the
         // native minimize/maximize/close buttons match the current theme.
-        window.vertexDesktop?.setTheme(dark ? 'dark' : 'light');
+        const color = 'rgba(0, 0, 0, 0)';
+        const symbolColor = dark ? '#f8fafc' : '#111827';
+        window.vertexDesktop?.setTitleBarColors?.({ color, symbolColor });
+        // Fallback for older desktop builds that don't expose setTitleBarColors.
+        window.vertexDesktop?.setTheme?.(dark ? 'dark' : 'light');
       };
 
       // Watch the <html> element for dark-mode class changes
@@ -100,7 +104,7 @@ export default function DesktopTitleBar() {
   // Don't render anything in the browser (web-only) context
   if (!isDesktop) return null;
 
-  const bg = isDark ? '#1d1f20' : '#f3f4f6';
+  const bg = 'rgb(var(--background))';
   const border = isDark ? '#334155' : '#e5e7eb';
   const text = isDark ? '#f8fafc' : '#111827';
   const mutedText = isDark ? '#94a3b8' : '#6b7280';
@@ -123,7 +127,7 @@ export default function DesktopTitleBar() {
         // Reserve space for the native Windows OS controls on the right
         paddingRight: 148,
         background: bg,
-        borderBottom: `1px solid ${border}`,
+        borderBottom: 'none',
         zIndex: 2147483647,
         // Make the bar draggable (moves the window) — buttons below use no-drag
         WebkitAppRegion: 'drag' as React.CSSProperties['WebkitAppRegion'],

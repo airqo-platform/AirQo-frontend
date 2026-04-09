@@ -9,6 +9,8 @@ const api: VertexDesktopApi = {
   navBack: async () => { await ipcRenderer.invoke("vertex-desktop:nav-back"); },
   navReload: async () => { await ipcRenderer.invoke("vertex-desktop:nav-reload"); },
   setTheme: (theme: 'light' | 'dark') => ipcRenderer.send("vertex-desktop:set-theme", theme),
+  setTitleBarColors: (colors: { color: string; symbolColor: string }) =>
+    ipcRenderer.send("vertex-desktop:set-titlebar-colors", colors),
 };
 
 contextBridge.exposeInMainWorld("vertexDesktop", api);

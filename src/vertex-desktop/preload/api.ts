@@ -6,6 +6,7 @@ export interface VertexDesktopApi {
   navBack: () => Promise<void>;
   navReload: () => Promise<void>;
   setTheme: (theme: 'light' | 'dark') => void;
+  setTitleBarColors: (colors: { color: string; symbolColor: string }) => void;
 }
 
 
