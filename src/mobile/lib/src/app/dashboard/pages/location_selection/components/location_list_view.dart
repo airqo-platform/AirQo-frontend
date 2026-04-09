@@ -249,13 +249,29 @@ class LocationListView extends StatelessWidget with UiLoggy {
                       ?.withOpacity(0.6),
                 ),
                 const SizedBox(height: 16),
-                TranslatedText(
-                  currentFilter == "All"
-                      ? "No locations available"
-                      : "No locations found in $currentFilter",
-                  style: TextStyle(
-                      color: Theme.of(context).textTheme.bodyMedium?.color),
-                ),
+                if (currentFilter == "All")
+                  TranslatedText(
+                    "No locations available",
+                    style: TextStyle(
+                        color: Theme.of(context).textTheme.bodyMedium?.color),
+                  )
+                else
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      TranslatedText(
+                        "No locations found in",
+                        style: TextStyle(
+                            color: Theme.of(context).textTheme.bodyMedium?.color),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        currentFilter,
+                        style: TextStyle(
+                            color: Theme.of(context).textTheme.bodyMedium?.color),
+                      ),
+                    ],
+                  ),
                 const SizedBox(height: 8),
                 TextButton(
                   onPressed: currentFilter == "All" ? onRetry : onResetFilter,

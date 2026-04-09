@@ -24,7 +24,7 @@ class ExposureWidget extends StatelessWidget {
                   color: AppColors.boldHeadlineColor)),
           SizedBox(height: 16),
           TranslatedText(
-              "You can add a locations you frequently visit like your home, office and parent’s house.",
+              "You can add locations you frequently visit like your home, office and your parents’ house.",
               textAlign: TextAlign.center,
               style: TextStyle(color: AppColors.secondaryHeadlineColor)),
           SizedBox(height: 32),

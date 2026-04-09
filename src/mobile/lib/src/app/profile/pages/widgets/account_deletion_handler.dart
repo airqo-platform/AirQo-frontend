@@ -25,7 +25,7 @@ class AccountDeletionHandler {
   static void _showSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
+        content: TranslatedText(message),
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -92,14 +92,28 @@ class AccountDeletionHandler {
                 ),
                 if (userEmail.isNotEmpty) ...[
                   SizedBox(height: 12),
-                  Text(
-                    'A verification code will be sent to: $userEmail',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isDarkMode 
-                          ? Colors.grey[500] 
-                          : Colors.grey[600],
-                    ),
+                  Wrap(
+                    children: [
+                      TranslatedText(
+                        'A verification code will be sent to:',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDarkMode
+                              ? Colors.grey[500]
+                              : Colors.grey[600],
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        userEmail,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDarkMode
+                              ? Colors.grey[500]
+                              : Colors.grey[600],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ],
@@ -299,7 +313,7 @@ class _VerificationCodeDialogState extends State<_VerificationCodeDialog> {
             final code = _codeController.text.trim();
             if (code.length != 5 || !RegExp(r'^\d{5}$').hasMatch(code)) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Please enter a valid 5-digit code')),
+                SnackBar(content: TranslatedText('Please enter a valid 5-digit code')),
               );
               return;
             }
@@ -316,7 +330,7 @@ class _VerificationCodeDialogState extends State<_VerificationCodeDialog> {
                 
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Account deleted successfully'),
+                    content: TranslatedText('Account deleted successfully'),
                     behavior: SnackBarBehavior.floating,
                   ),
                 );
