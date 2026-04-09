@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 
 /**
  * DesktopTitleBar
@@ -20,6 +21,8 @@ import React, { useState, useEffect, useCallback } from 'react';
  */
 
 const TITLEBAR_HEIGHT = 38;
+type AppRegion = 'drag' | 'no-drag';
+type AppRegionStyle = React.CSSProperties & { WebkitAppRegion?: AppRegion };
 
 export default function DesktopTitleBar() {
   const [isDesktop, setIsDesktop] = useState(false);
@@ -111,41 +114,45 @@ export default function DesktopTitleBar() {
   const hoverBg = isDark ? '#334155' : '#e5e7eb';
   const logoSrc = brandingIcon || '/images/airqo_logo.svg';
 
+  const titlebarStyle: AppRegionStyle = {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: TITLEBAR_HEIGHT,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    paddingLeft: 12,
+    // Reserve space for the native Windows OS controls on the right
+    paddingRight: 148,
+    background: bg,
+    borderBottom: 'none',
+    zIndex: 2147483647,
+    // Make the bar draggable (moves the window) â€” buttons below use no-drag
+    WebkitAppRegion: 'drag',
+    userSelect: 'none',
+    transition: 'background 0.3s, border-color 0.3s',
+    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+  };
+
+  const navControlsStyle: AppRegionStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 2,
+    paddingRight: 8,
+    borderRight: `1px solid ${border}`,
+    WebkitAppRegion: 'no-drag',
+  };
+
   return (
     <div
       id="vertex-desktop-titlebar"
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: TITLEBAR_HEIGHT,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        paddingLeft: 12,
-        // Reserve space for the native Windows OS controls on the right
-        paddingRight: 148,
-        background: bg,
-        borderBottom: 'none',
-        zIndex: 2147483647,
-        // Make the bar draggable (moves the window) — buttons below use no-drag
-        WebkitAppRegion: 'drag' as React.CSSProperties['WebkitAppRegion'],
-        userSelect: 'none',
-        transition: 'background 0.3s, border-color 0.3s',
-        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      }}
+      style={titlebarStyle}
     >
       {/* Navigation controls — no-drag so clicks register */}
       <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 2,
-          paddingRight: 8,
-          borderRight: `1px solid ${border}`,
-          WebkitAppRegion: 'no-drag' as React.CSSProperties['WebkitAppRegion'],
-        }}
+        style={navControlsStyle}
       >
         <NavButton
           title="Go Back"
@@ -185,9 +192,12 @@ export default function DesktopTitleBar() {
           gap: 6,
         }}
       >
-        <img
+        <Image
           src={logoSrc}
           alt="AirQo"
+          width={47}
+          height={32}
+          unoptimized
           style={{ height: 16, width: 'auto', display: 'block' }}
         />
         <span style={{ fontSize: 12, fontWeight: 600, color: text, letterSpacing: '0.01em', transition: 'color 0.3s' }}>
@@ -220,6 +230,24 @@ interface NavButtonProps {
 
 function NavButton({ children, onClick, title, disabled, hoverBg, color, style }: NavButtonProps) {
   const [hovered, setHovered] = useState(false);
+  const buttonStyle: AppRegionStyle = {
+    width: 26,
+    height: 26,
+    border: 0,
+    borderRadius: 5,
+    background: hovered && !disabled ? hoverBg : 'transparent',
+    color,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    opacity: disabled ? 0.35 : 1,
+    transition: 'background 0.15s, opacity 0.15s',
+    // Must be no-drag so click events fire
+    WebkitAppRegion: 'no-drag',
+    padding: 0,
+    ...style,
+  };
 
   return (
     <button
@@ -228,24 +256,7 @@ function NavButton({ children, onClick, title, disabled, hoverBg, color, style }
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      style={{
-        width: 26,
-        height: 26,
-        border: 0,
-        borderRadius: 5,
-        background: hovered && !disabled ? hoverBg : 'transparent',
-        color,
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        opacity: disabled ? 0.35 : 1,
-        transition: 'background 0.15s, opacity 0.15s',
-        // Must be no-drag so click events fire
-        WebkitAppRegion: 'no-drag' as React.CSSProperties['WebkitAppRegion'],
-        padding: 0,
-        ...style,
-      }}
+      style={buttonStyle}
     >
       {children}
     </button>
