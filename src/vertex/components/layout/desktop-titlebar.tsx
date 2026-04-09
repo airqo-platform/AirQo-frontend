@@ -90,11 +90,16 @@ export default function DesktopTitleBar() {
 
   const handleBack = useCallback(async () => {
     if (!window.vertexDesktop) return;
-    await window.vertexDesktop.navBack();
-    // Give the webContents a moment then re-check nav state
-    setTimeout(() => {
-      window.vertexDesktop?.canGoBack().then(setCanGoBack).catch(() => setCanGoBack(false));
-    }, 150);
+    try {
+      await window.vertexDesktop.navBack();
+    } catch {
+      // Ignore bridge failures; the state refresh below will fall back safely.
+    } finally {
+      // Give the webContents a moment then re-check nav state
+      setTimeout(() => {
+        window.vertexDesktop?.canGoBack().then(setCanGoBack).catch(() => setCanGoBack(false));
+      }, 150);
+    }
   }, []);
 
   const handleReload = useCallback(async () => {
