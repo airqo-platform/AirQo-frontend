@@ -4,6 +4,41 @@
 
 ---
 
+## Version 0.1.6
+**Released:** April 09, 2026
+
+### Title Bar Overlay Styling + Branding Bridge
+
+Aligned the native caption button area with the custom title bar styling and exposed branding details to the renderer.
+
+<details>
+<summary><strong>Desktop UI Enhancements (3)</strong></summary>
+
+- **Transparent Caption Area**: Made the Windows title bar overlay background transparent so the custom title bar background shows through.
+- **Overlay Height Tuning**: Adjusted overlay height to avoid visual seams with the custom title bar.
+- **Branding Bridge**: Exposed a `getBranding()` API so the renderer can pull the packaged app icon.
+
+</details>
+
+<details>
+<summary><strong>IPC Extensions (1)</strong></summary>
+
+- **Title Bar Color Sync**: Added `set-titlebar-colors` to update overlay colors from the renderer when theme changes.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (4)</strong></summary>
+
+- `main/index.ts`
+- `main/windows.ts`
+- `preload/index.ts`
+- `preload/api.ts`
+
+</details>
+
+---
+
 ## Version 0.1.5
 **Released:** February 17, 2026
 
