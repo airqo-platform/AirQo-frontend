@@ -166,10 +166,13 @@ export const buildSessionFromProfile = (
     .filter(Boolean)
     .join(' ')
     .trim();
+  const normalizedAccessToken = profile.accessToken
+    ? normalizeOAuthAccessToken(profile.accessToken) || undefined
+    : undefined;
 
   return {
     expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-    accessToken: profile.accessToken,
+    accessToken: normalizedAccessToken,
     user: {
       _id: profile._id,
       email: profile.email,
@@ -213,7 +216,11 @@ export const verifyBackendOAuthSession =
 
       return {
         ...payload.data,
-        accessToken: payload.data.accessToken ?? payload.accessToken,
+        accessToken: payload.data.accessToken
+          ? normalizeOAuthAccessToken(payload.data.accessToken) || undefined
+          : payload.accessToken
+            ? normalizeOAuthAccessToken(payload.accessToken) || undefined
+            : undefined,
       };
     } catch {
       return null;

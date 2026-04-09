@@ -20,6 +20,11 @@ import { QueryProvider } from '@/shared/providers/query-provider';
 import { runClientCacheMaintenance } from '@/shared/lib/clientCache';
 import { normalizeCallbackUrl } from '@/shared/lib/auth-redirect';
 import {
+  clearCachedSessionAccessToken,
+  getSessionAccessTokenFromSession,
+  setCachedSessionAccessToken,
+} from '@/shared/services/sessionAuthToken';
+import {
   clearBackendOAuthSignedOutFlag,
   consumeOAuthTokenHandoffFromUrl,
   buildSessionFromProfile,
@@ -500,10 +505,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!isMounted) return;
 
         if (nextAuthSession?.user) {
+          setCachedSessionAccessToken(
+            getSessionAccessTokenFromSession(nextAuthSession)
+          );
           clearBackendOAuthSignedOutFlag();
           setBootstrapSession(nextAuthSession as BackendOAuthSession);
           return;
         }
+
+        clearCachedSessionAccessToken();
 
         if (shouldSkipBackendOAuthBootstrap()) {
           setBootstrapSession(null);
@@ -515,6 +525,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (!isMounted) return;
 
           if (backendProfile) {
+            setCachedSessionAccessToken(backendProfile.accessToken);
             clearBackendOAuthSignedOutFlag();
             setBootstrapSession(buildSessionFromProfile(backendProfile));
             return;
@@ -528,6 +539,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!isMounted) return;
 
         if (backendProfile) {
+          setCachedSessionAccessToken(backendProfile.accessToken);
           clearBackendOAuthSignedOutFlag();
           setBootstrapSession(buildSessionFromProfile(backendProfile));
           return;
@@ -537,6 +549,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch (error) {
         if (!isMounted) return;
 
+        clearCachedSessionAccessToken();
         logger.warn('Failed to bootstrap auth session', error);
         setBootstrapSession(null);
       }

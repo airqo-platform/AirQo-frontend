@@ -5,6 +5,7 @@ import axios, {
   InternalAxiosRequestConfig,
 } from 'axios';
 import logger from '@/shared/lib/logger';
+import { normalizeOAuthAccessToken } from '@/shared/lib/oauth-session';
 
 const UNAUTHORIZED_EVENT_NAME = 'auth:unauthorized';
 const UNAUTHORIZED_EVENT_COOLDOWN_MS = 1500;
@@ -388,8 +389,12 @@ export class ApiClient {
 
   // Method to add JWT token for authenticated requests
   setAuthToken(token: string) {
-    // Handle edge case where token might already have "Bearer " prefix
-    const cleanToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+    const normalizedToken = normalizeOAuthAccessToken(token);
+    if (!normalizedToken) {
+      this.removeAuthToken();
+      return;
+    }
+    const cleanToken = `Bearer ${normalizedToken}`;
     this.client.defaults.headers.common['Authorization'] = cleanToken;
   }
 

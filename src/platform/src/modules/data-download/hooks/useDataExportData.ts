@@ -1,7 +1,8 @@
 import { useMemo, useEffect } from 'react';
 import {
-  useActiveGroupCohortSites,
-  useActiveGroupCohortDevices,
+  useActiveGroupCohorts,
+  useActiveGroupCohortSitesWithState,
+  useActiveGroupCohortDevicesWithState,
   useGridsSummary,
 } from '@/shared/hooks';
 import {
@@ -103,16 +104,21 @@ export const useDataExportData = (
     tabStates.cities.search,
   ]);
 
+  // Fetch active group cohorts once and share the result across tabs.
+  const activeGroupCohorts = useActiveGroupCohorts();
+
   // Fetch sites data
-  const sitesHook = useActiveGroupCohortSites(
+  const sitesHook = useActiveGroupCohortSitesWithState(
     sitesParams,
-    activeTab === 'sites'
+    activeTab === 'sites',
+    activeGroupCohorts
   );
 
   // Fetch devices data
-  const devicesHook = useActiveGroupCohortDevices(
+  const devicesHook = useActiveGroupCohortDevicesWithState(
     devicesParams,
-    activeTab === 'devices'
+    activeTab === 'devices',
+    activeGroupCohorts
   );
 
   // Fetch countries data

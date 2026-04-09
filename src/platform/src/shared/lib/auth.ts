@@ -67,7 +67,7 @@ const fetchOAuthProfile = async (
       cache: 'no-store',
       headers: {
         Accept: 'application/json',
-        Authorization: `JWT ${accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     });
 
@@ -166,9 +166,7 @@ export const authOptions: any = {
             lastName: loginData.lastName,
             image: loginData.profilePicture,
             _id: loginData._id,
-            accessToken: loginData.token.startsWith('JWT ')
-              ? loginData.token.substring(4)
-              : loginData.token,
+            accessToken: normalizeOAuthAccessToken(loginData.token),
           };
         } catch (error: any) {
           // Enhanced error handling to include status and full response data
@@ -223,18 +221,20 @@ export const authOptions: any = {
       // Check if token is expired and invalidate session
       const accessToken =
         typeof (token as any)?.accessToken === 'string'
-          ? ((token as any).accessToken as string)
+          ? normalizeOAuthAccessToken((token as any).accessToken as string) ||
+            undefined
           : undefined;
       if (isTokenInvalid(accessToken)) {
         return { user: null };
       }
 
       // Add access token and user ID to session
-      (session as any).accessToken = (token as any).accessToken as string;
+      (session as any).accessToken = accessToken;
       if (session.user) {
         (session.user as any)._id = (token as any)._id;
         (session.user as any).firstName = (token as any).firstName;
         (session.user as any).lastName = (token as any).lastName;
+        (session.user as any).accessToken = accessToken;
       }
       return session;
     },
