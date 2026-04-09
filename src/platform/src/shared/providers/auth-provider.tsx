@@ -95,18 +95,18 @@ function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
 
     if (isAirQoActiveGroup) {
       if (isOrgPath) {
-        router.push('/user/home');
+        router.replace('/user/home');
       }
       return;
     }
 
     if (isUserPath) {
-      router.push(`/org/${activeGroup.organizationSlug}/dashboard`);
+      router.replace(`/org/${activeGroup.organizationSlug}/dashboard`);
       return;
     }
 
     if (isOrgPath && orgSlugFromPath && orgSlugFromPath !== activeGroupSlug) {
-      router.push(`/org/${activeGroup.organizationSlug}/dashboard`);
+      router.replace(`/org/${activeGroup.organizationSlug}/dashboard`);
     }
   }, [
     activeGroup,
