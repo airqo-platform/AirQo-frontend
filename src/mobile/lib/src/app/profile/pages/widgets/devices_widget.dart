@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -15,14 +16,14 @@ class DevicesWidget extends StatelessWidget {
           SizedBox(height: 32),
           SvgPicture.asset("assets/images/shared/devices_icon.svg"),
           SizedBox(height: 32),
-          Text("This is where you’ll manage your AirQo devices.",
+          TranslatedText("This is where you’ll manage your AirQo devices.",
               textAlign: TextAlign.center,
               style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w500,
                   color: AppColors.boldHeadlineColor)),
           SizedBox(height: 16),
-          Text(
+          TranslatedText(
               "Access real-time updates on monitors remotely & find out when they’re up for maintenance. ",
               textAlign: TextAlign.center,
               style: TextStyle(color: AppColors.secondaryHeadlineColor)),

@@ -1,4 +1,5 @@
 import 'package:airqo/src/app/dashboard/bloc/forecast/forecast_bloc.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/app/shared/widgets/loading_widget.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/meta/utils/forecast_utils.dart';
@@ -106,7 +107,7 @@ class _AnalyticsForecastWidgetState extends State<AnalyticsForecastWidget> with 
                             color: Colors.amber,
                           ),
                           SizedBox(width: 4),
-                          Text(
+                          TranslatedText(
                             'Forecast data may be outdated',
                             style: TextStyle(
                               fontSize: 12,
@@ -126,7 +127,7 @@ class _AnalyticsForecastWidgetState extends State<AnalyticsForecastWidget> with 
                                     color: AppColors.primaryColor,
                                   ),
                                   SizedBox(width: 4),
-                                  Text(
+                                  TranslatedText(
                                     'Refresh',
                                     style: TextStyle(
                                       fontSize: 12,
@@ -185,7 +186,7 @@ class _AnalyticsForecastWidgetState extends State<AnalyticsForecastWidget> with 
             return Container(
               height: _getResponsiveHeight(context),
               child: Center(
-                child: Text(
+                child: TranslatedText(
                   "Weather forecast unavailable",
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     fontSize: MediaQuery.of(context).size.width * 0.03,
@@ -221,7 +222,7 @@ class _AnalyticsForecastWidgetState extends State<AnalyticsForecastWidget> with 
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                TranslatedText(
                   "Network issue",
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
@@ -250,7 +251,7 @@ class _AnalyticsForecastWidgetState extends State<AnalyticsForecastWidget> with 
               padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               minimumSize: Size(60, 36),
             ),
-            child: Text("Retry", style: TextStyle(color: Colors.white)),
+            child: TranslatedText("Retry", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -288,7 +289,7 @@ class _AnalyticsForecastWidgetState extends State<AnalyticsForecastWidget> with 
           SizedBox(width: 8),
           TextButton(
             onPressed: _refreshForecasts,
-            child: Text("Retry", style: TextStyle(color: AppColors.primaryColor)),
+            child: TranslatedText("Retry", style: TextStyle(color: AppColors.primaryColor)),
           ),
         ],
       ),
