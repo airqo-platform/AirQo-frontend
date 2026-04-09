@@ -60,10 +60,7 @@
       "target": [
         "dmg",
         "zip"
-      ],
-      "notarize": {
-        "teamId": "${APPLE_TEAM_ID}"
-      }
+      ]
     },
     "linux": {
       "icon": "assets/icon.png"
