@@ -101,7 +101,8 @@ export const Banner: React.FC<BannerProps> = ({
         config.borderColor,
         className
       )}
-      role="alert"
+      role={severity === 'error' ? 'alert' : 'status'}
+      aria-live={severity === 'error' ? 'assertive' : 'polite'}
     >
       {/* Icon */}
       {displayIcon && (
