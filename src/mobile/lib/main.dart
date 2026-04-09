@@ -164,9 +164,10 @@ class AirqoMobile extends StatelessWidget {
                 locale: currentLocale,
                 supportedLocales: const [
                   Locale('en', ''),
-                  Locale('lg', ''),
                   Locale('sw', ''),
                   Locale('fr', ''),
+                  // lg (Luganda) is excluded — not supported by GlobalMaterialLocalizations.
+                  // Luganda translation is handled dynamically via SunbirdTranslationService.
                 ],
                 localizationsDelegates: const [
                   AppLocalizations.delegate,
