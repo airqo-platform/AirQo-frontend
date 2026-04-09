@@ -166,6 +166,7 @@ const DataExportPage = () => {
   } = useDataExportData(
     activeTab,
     tabStates,
+    isOrgFlow,
     deviceCategory,
     selectedDeviceIds,
     selectedDevicesForActions,

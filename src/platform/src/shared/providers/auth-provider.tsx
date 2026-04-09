@@ -8,10 +8,14 @@ import {
 } from 'next-auth/react';
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { LoadingOverlay } from '@/shared/components/ui/loading-overlay';
 import { UserDataFetcher } from './UserDataFetcher';
-import { selectActiveGroup, selectLoggingOut } from '@/shared/store/selectors';
+import {
+  selectActiveGroup,
+  selectGroups,
+  selectLoggingOut,
+} from '@/shared/store/selectors';
 import { useLogout } from '@/shared/hooks/useLogout';
 import { toast } from '@/shared/components/ui/toast';
 import logger from '@/shared/lib/logger';
@@ -20,6 +24,11 @@ import { QueryProvider } from '@/shared/providers/query-provider';
 import { runClientCacheMaintenance } from '@/shared/lib/clientCache';
 import { normalizeCallbackUrl } from '@/shared/lib/auth-redirect';
 import {
+  clearCachedSessionAccessToken,
+  getSessionAccessTokenFromSession,
+  setCachedSessionAccessToken,
+} from '@/shared/services/sessionAuthToken';
+import {
   clearBackendOAuthSignedOutFlag,
   consumeOAuthTokenHandoffFromUrl,
   buildSessionFromProfile,
@@ -27,39 +36,96 @@ import {
   shouldSkipBackendOAuthBootstrap,
   verifyBackendOAuthSession,
 } from '@/shared/lib/oauth-session';
+import { useUserActions } from '@/shared/hooks';
 
 // Component to guard and redirect based on active group for all pages
 function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
+  // Use the centralized user actions helper when switching groups so that
+  // SWR caches related to the previous group are invalidated consistently.
+  // Do NOT call `dispatch(setActiveGroup(...))` here directly because that
+  // bypasses the cache invalidation implemented in `useUserActions.switchGroup`.
+  const { switchGroup } = useUserActions();
+  const dispatch = useDispatch();
   const activeGroup = useSelector(selectActiveGroup);
+  const groups = useSelector(selectGroups);
+
+  const normalizedPath = pathname.toLowerCase();
+  const isUserPath = normalizedPath.startsWith('/user/');
+  const isOrgPath = normalizedPath.startsWith('/org/');
+  const orgSlugFromPath = isOrgPath
+    ? (pathname.split('/').filter(Boolean)[1]?.toLowerCase() ?? null)
+    : null;
+  const airqoGroup = groups.find(group => {
+    const title = group.title.trim().toLowerCase();
+    const slug = group.organizationSlug.trim().toLowerCase();
+    return title === 'airqo' || slug === 'airqo';
+  });
+  const groupForCurrentOrgPath = orgSlugFromPath
+    ? groups.find(
+        group => group.organizationSlug.trim().toLowerCase() === orgSlugFromPath
+      )
+    : null;
+  const activeGroupSlug = activeGroup?.organizationSlug?.trim().toLowerCase();
+  const activeGroupTitle = activeGroup?.title?.trim().toLowerCase();
+  const isAirQoActiveGroup =
+    activeGroupTitle === 'airqo' || activeGroupSlug === 'airqo';
+  const shouldSyncToUserGroup =
+    isUserPath && !!airqoGroup && activeGroup?.id !== airqoGroup.id;
+  const shouldSyncToRouteOrgGroup =
+    isOrgPath &&
+    !!groupForCurrentOrgPath &&
+    activeGroup?.id !== groupForCurrentOrgPath.id;
 
   useEffect(() => {
+    if (shouldSyncToUserGroup && airqoGroup) {
+      // Use the shared helper to perform the group switch and trigger
+      // SWR cache invalidation to avoid stale cross-group data.
+      switchGroup(airqoGroup);
+      return;
+    }
+
+    if (shouldSyncToRouteOrgGroup && groupForCurrentOrgPath) {
+      switchGroup(groupForCurrentOrgPath);
+      return;
+    }
+
     if (!activeGroup) return;
 
-    const isUserPath = pathname.startsWith('/user/');
-    const isOrgPath = pathname.startsWith('/org/');
-
-    if (activeGroup.title.toLowerCase() === 'airqo') {
-      // Airqo users should only access user paths
+    if (isAirQoActiveGroup) {
       if (isOrgPath) {
-        router.push('/user/home');
+        router.replace('/user/home');
       }
-    } else {
-      // Non-airqo users should only access their org paths
-      if (isUserPath) {
-        router.push(`/org/${activeGroup.organizationSlug}/dashboard`);
-      } else if (isOrgPath) {
-        const pathParts = pathname.split('/');
-        if (
-          pathParts.length >= 3 &&
-          pathParts[2] !== activeGroup.organizationSlug
-        ) {
-          router.push(`/org/${activeGroup.organizationSlug}/dashboard`);
-        }
-      }
+      return;
     }
-  }, [activeGroup, pathname, router]);
+
+    if (isUserPath) {
+      router.replace(`/org/${activeGroup.organizationSlug}/dashboard`);
+      return;
+    }
+
+    if (isOrgPath && orgSlugFromPath && orgSlugFromPath !== activeGroupSlug) {
+      router.replace(`/org/${activeGroup.organizationSlug}/dashboard`);
+    }
+  }, [
+    activeGroup,
+    activeGroupSlug,
+    airqoGroup,
+    dispatch,
+    groupForCurrentOrgPath,
+    isAirQoActiveGroup,
+    isOrgPath,
+    isUserPath,
+    orgSlugFromPath,
+    router,
+    shouldSyncToRouteOrgGroup,
+    shouldSyncToUserGroup,
+  ]);
+
+  if (shouldSyncToUserGroup || shouldSyncToRouteOrgGroup) {
+    return <LoadingOverlay />;
+  }
 
   return <>{children}</>;
 }
@@ -500,10 +566,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!isMounted) return;
 
         if (nextAuthSession?.user) {
+          setCachedSessionAccessToken(
+            getSessionAccessTokenFromSession(nextAuthSession)
+          );
           clearBackendOAuthSignedOutFlag();
           setBootstrapSession(nextAuthSession as BackendOAuthSession);
           return;
         }
+
+        clearCachedSessionAccessToken();
 
         if (shouldSkipBackendOAuthBootstrap()) {
           setBootstrapSession(null);
@@ -515,6 +586,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (!isMounted) return;
 
           if (backendProfile) {
+            setCachedSessionAccessToken(backendProfile.accessToken);
             clearBackendOAuthSignedOutFlag();
             setBootstrapSession(buildSessionFromProfile(backendProfile));
             return;
@@ -528,6 +600,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!isMounted) return;
 
         if (backendProfile) {
+          setCachedSessionAccessToken(backendProfile.accessToken);
           clearBackendOAuthSignedOutFlag();
           setBootstrapSession(buildSessionFromProfile(backendProfile));
           return;
@@ -537,6 +610,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch (error) {
         if (!isMounted) return;
 
+        clearCachedSessionAccessToken();
         logger.warn('Failed to bootstrap auth session', error);
         setBootstrapSession(null);
       }

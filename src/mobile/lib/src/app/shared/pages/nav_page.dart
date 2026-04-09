@@ -1,6 +1,7 @@
 import 'package:airqo/src/app/dashboard/pages/dashboard_page.dart';
 import 'package:airqo/src/app/learn/pages/kya_page.dart';
 import 'package:airqo/src/app/map/pages/map_page.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -86,7 +87,7 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
           color: isSelected ? Theme.of(context).primaryColor : null,
         ),
         SizedBox(height: 5),
-        Text(
+        TranslatedText(
           label,
           style: TextStyle(
             fontSize: 12,

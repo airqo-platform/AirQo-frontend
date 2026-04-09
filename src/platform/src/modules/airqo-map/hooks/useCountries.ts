@@ -29,8 +29,16 @@ export function useCountries(cohort_id?: string | null): UseCountriesResult {
   } = useQuery<CountryData[], Error>({
     queryKey: ['map', 'countries', normalizedCohortId],
     queryFn: async () => {
-      const response: CountriesResponse =
-        await deviceService.getCountriesAuthenticated(cohort_id || undefined);
+      // NOTE: Do NOT infer authentication flow from `cohort_id`.
+      // `cohort_id` is a filter and should not be used to select the
+      // authentication/client path. Overloading `cohort_id` to choose between
+      // `getCountriesAuthenticated` and `getCountriesWithToken` makes an
+      // "unfiltered authenticated" request impossible and can change dataset
+      // and permission semantics. Prefer an explicit `isOrgFlow` (or similar)
+      // boolean parameter to pick the authenticated client instead.
+      const response: CountriesResponse = cohort_id
+        ? await deviceService.getCountriesAuthenticated(cohort_id)
+        : await deviceService.getCountriesWithToken();
       return response.countries;
     },
     enabled,

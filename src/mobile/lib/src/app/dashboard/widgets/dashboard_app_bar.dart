@@ -1,5 +1,6 @@
 import 'package:airqo/src/app/auth/pages/login_page.dart';
 import 'package:airqo/src/app/profile/pages/profile_page.dart';
+import 'package:airqo/src/app/shared/widgets/translated_tooltip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -71,7 +72,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   Widget _buildGuestAvatar(BuildContext context) {
-    return Tooltip(
+    return TranslatedTooltip(
       message: "Sign in or create an account",
       preferBelow: true,
       verticalOffset: 20,
@@ -118,7 +119,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
           String? firstName = user.firstName;
           String? lastName = user.lastName;
 
-          return Tooltip(
+          return TranslatedTooltip(
             message: "View your profile",
             preferBelow: true,
             verticalOffset: 20,
@@ -153,7 +154,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
           );
         } else if (userState is UserLoadingError) {
-          return Tooltip(
+          return TranslatedTooltip(
             message: "Sign in to access your profile",
             preferBelow: true,
             verticalOffset: 20,

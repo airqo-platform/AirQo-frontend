@@ -70,20 +70,20 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
 
     switch (widget.measurement.aqiCategory?.toLowerCase() ?? '') {
       case 'good':
-        return "Enjoy outdoor activities in good air quality";
+        return 'Enjoy outdoor activities in good air quality';
       case 'moderate':
-        return "Air quality is acceptable for most people";
+        return 'Air quality is acceptable for most people';
       case 'unhealthy for sensitive groups':
       case 'u4sg':
-        return "Sensitive groups should limit outdoor exertion";
+        return 'Sensitive groups should limit outdoor exertion';
       case 'unhealthy':
-        return "Everyone should reduce prolonged outdoor activities";
+        return 'Everyone should reduce prolonged outdoor activities';
       case 'very unhealthy':
-        return "Everyone should avoid outdoor activities";
+        return 'Everyone should avoid outdoor activities';
       case 'hazardous':
-        return "Everyone should avoid all outdoor activities";
+        return 'Everyone should avoid all outdoor activities';
       default:
-        return "Stay informed about air quality";
+        return 'Stay informed about air quality';
     }
   }
 
@@ -159,8 +159,8 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
                                         : 'assets/images/shared/pm_rating.svg',
                                   ),
                                   const SizedBox(width: 2),
-                                  Text(
-                                    " PM2.5",
+                                  TranslatedText(
+                                    "PM2.5",
                                     style: TextStyle(
                                       color: Theme.of(context)
                                           .textTheme
@@ -236,8 +236,8 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
                                   .withOpacity(0.15),
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            child: Text(
-                              widget.measurement.aqiCategory ?? "Unknown",
+                            child: TranslatedText(
+                              widget.measurement.aqiCategory ?? 'Unknown',
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
@@ -262,7 +262,7 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
                                     : const Color(0xFFEAEFF5),
                                 borderRadius: BorderRadius.circular(20),
                               ),
-                              child: Text(
+                              child: TranslatedText(
                                 _getDeviceCategoryLabel(widget.measurement
                                     .deviceCategories!.primaryCategory!),
                                 style: TextStyle(
@@ -291,7 +291,7 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
                     horizontal: 16,
                     vertical: 12,
                   ),
-                  child: Text(
+                  child: TranslatedText(
                     healthTipTagline,
                     style: TextStyle(
                       fontSize: 15,
@@ -339,7 +339,7 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
                 ),
                 const SizedBox(height: 16),
                 healthTipDescription != null
-                    ? Text(
+                    ? TranslatedText(
                         healthTipDescription,
                         style: TextStyle(
                           fontSize: 15,

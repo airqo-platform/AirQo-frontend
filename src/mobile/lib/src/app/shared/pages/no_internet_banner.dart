@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:airqo/src/app/shared/bloc/connectivity_bloc.dart';
@@ -24,7 +25,7 @@ class NoInternetBanner extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: Text(
+                  child: TranslatedText(
                     'Internet Connection Lost',
                     style: TextStyle(
                       color: Colors.white,

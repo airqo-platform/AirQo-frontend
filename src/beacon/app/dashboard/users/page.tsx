@@ -104,7 +104,7 @@ export default function UsersPage() {
         console.log("Fetching users...")
       }
 
-      const apiPath = config.isLocalhost ? '/users/' : `${config.apiPrefix || '/api/v1'}/beacon/users/`
+      const apiPath = config.isLocalhost ? '/users/' : `${config.apiPrefix || ''}/beacon/users/`
       const response = await fetch(`${config.apiUrl}${apiPath}`, { headers })
 
       if (response.status === 401 || response.status === 403) {
@@ -167,7 +167,7 @@ export default function UsersPage() {
         return
       }
 
-      const apiPath = config.isLocalhost ? '/users/' : `${config.apiPrefix || '/api/v1'}/beacon/users/`
+      const apiPath = config.isLocalhost ? '/users/' : `${config.apiPrefix || ''}/beacon/users/`
       const response = await fetch(`${config.apiUrl}${apiPath}`, {
         method: 'POST',
         headers: {

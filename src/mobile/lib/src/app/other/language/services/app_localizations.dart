@@ -26,23 +26,9 @@ class AppLocalizations with UiLoggy {
       loggy.info(
           'Loaded translations for ${locale.languageCode}: $_localizedStrings');
       return true;
-    } catch (e) {
-      loggy
-          .warning('Error loading translations for ${locale.languageCode}: $e');
-
-      if (locale.languageCode != 'en') {
-        try {
-          String jsonString =
-              await rootBundle.loadString('assets/lang/en.json');
-          Map<String, dynamic> jsonMap = json.decode(jsonString);
-          _localizedStrings = _flattenJson(jsonMap);
-          loggy.info(
-              'Loaded fallback translations for English: $_localizedStrings');
-          return true;
-        } catch (e) {
-          loggy.error('Error loading fallback translations: $e');
-        }
-      }
+    } catch (_) {
+      // Static JSON assets are not bundled for this locale.
+      // Translations are handled dynamically via SunbirdTranslationService.
       return false;
     }
   }

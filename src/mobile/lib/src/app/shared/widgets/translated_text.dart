@@ -50,16 +50,22 @@ class _TranslatedTextState extends State<TranslatedText> {
     }
 
     final requestLocale = localeCode;
+    final requestText = widget.text;
     final future = isSunbird
         ? SunbirdTranslationService()
-            .translate(widget.text, targetLocale: localeCode)
+            .translate(requestText, targetLocale: localeCode)
         : MlKitTranslationService()
-            .translate(widget.text, targetLocale: localeCode);
+            .translate(requestText, targetLocale: localeCode);
 
     future.then((result) {
-      if (mounted && requestLocale == _lastLocale && _displayed != result) {
+      if (mounted &&
+          requestLocale == _lastLocale &&
+          requestText == _lastSourceText &&
+          _displayed != result) {
         setState(() => _displayed = result);
       }
+    }).catchError((_) {
+      // Translation failed; keep showing the original text.
     });
   }
 

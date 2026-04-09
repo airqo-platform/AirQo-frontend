@@ -22,6 +22,7 @@ import 'package:airqo/src/app/auth/pages/login_page.dart';
 import 'package:airqo/src/app/auth/services/auth_validation_helper.dart';
 import 'package:airqo/src/app/shared/pages/error_page.dart';
 import 'package:airqo/src/app/shared/services/cache_manager.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 
 class LocationSelectionScreen extends StatefulWidget with UiLoggy {
   final SitesRepository sitesRepository;
@@ -133,7 +134,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: const Text(
+                content: const TranslatedText(
                     'Your session has expired. Please log in again.'),
                 duration: const Duration(seconds: 8),
                 action: SnackBarAction(
@@ -168,7 +169,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                  content: Text(
+                  content: TranslatedText(
                       'Authentication issue detected. Please log in again.')),
             );
           }
@@ -209,7 +210,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
       loggy.info('✅ Successfully dispatched update event');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
+          content: TranslatedText(
             'Locations saved successfully',
             style: TextStyle(color: Colors.white),
           ),
@@ -412,7 +413,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
                     Icon(Icons.warning_amber_rounded, color: Colors.white),
                     SizedBox(width: 8),
                     Expanded(
-                      child: Text(
+                      child: TranslatedText(
                         'Maximum of $maxLocations favorite locations reached',
                         style: TextStyle(color: Colors.white),
                       ),
@@ -439,7 +440,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
+              content: TranslatedText(
                 'Location added to favorites',
                 style: TextStyle(color: Colors.white),
               ),
@@ -454,7 +455,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
+              content: TranslatedText(
                 'Location removed from favorites',
                 style: TextStyle(color: Colors.white),
               ),
@@ -536,7 +537,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          title: Text(
+          title: TranslatedText(
             'Select Locations',
             style: TextStyle(
                 color: Theme.of(context).textTheme.headlineLarge?.color,
@@ -601,7 +602,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
         if (showLocationLimitError)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(
+            child: TranslatedText(
               'You can select up to $maxLocations locations only',
               style: TextStyle(
                 color: Colors.red[400],
@@ -614,7 +615,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
             children: [
-              Text(
+              TranslatedText(
                 'Selected: ${selectedLocations.length}/$maxLocations',
                 style: TextStyle(
                   color: Theme.of(context).textTheme.headlineSmall?.color,
@@ -631,7 +632,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
                     });
                   },
                   icon: Icon(Icons.clear_all, size: 18),
-                  label: Text(
+                  label: TranslatedText(
                     "Clear All",
                     style: TextStyle(
                       fontSize: 14,
@@ -689,7 +690,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
                         strokeWidth: 2,
                       ),
                     )
-                  : Text(
+                  : TranslatedText(
                       'Save ${selectedLocations.length} Location${selectedLocations.length != 1 ? 's' : ''}',
                       style: const TextStyle(
                         fontSize: 16,

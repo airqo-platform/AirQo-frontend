@@ -37,7 +37,7 @@ class ApiService {
 
   constructor() {
     this.baseUrl = config.apiUrl
-    this.apiPrefix = config.apiPrefix || '/api/v1'
+    this.apiPrefix = config.apiPrefix || ''
     this.defaultHeaders = {
       'Content-Type': 'application/json',
     }
