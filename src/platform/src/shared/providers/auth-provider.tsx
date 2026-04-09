@@ -36,12 +36,17 @@ import {
   shouldSkipBackendOAuthBootstrap,
   verifyBackendOAuthSession,
 } from '@/shared/lib/oauth-session';
-import { setActiveGroup } from '@/shared/store/userSlice';
+import { useUserActions } from '@/shared/hooks';
 
 // Component to guard and redirect based on active group for all pages
 function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
+  // Use the centralized user actions helper when switching groups so that
+  // SWR caches related to the previous group are invalidated consistently.
+  // Do NOT call `dispatch(setActiveGroup(...))` here directly because that
+  // bypasses the cache invalidation implemented in `useUserActions.switchGroup`.
+  const { switchGroup } = useUserActions();
   const dispatch = useDispatch();
   const activeGroup = useSelector(selectActiveGroup);
   const groups = useSelector(selectGroups);
@@ -50,7 +55,7 @@ function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
   const isUserPath = normalizedPath.startsWith('/user/');
   const isOrgPath = normalizedPath.startsWith('/org/');
   const orgSlugFromPath = isOrgPath
-    ? pathname.split('/').filter(Boolean)[1]?.toLowerCase() ?? null
+    ? (pathname.split('/').filter(Boolean)[1]?.toLowerCase() ?? null)
     : null;
   const airqoGroup = groups.find(group => {
     const title = group.title.trim().toLowerCase();
@@ -59,8 +64,7 @@ function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
   });
   const groupForCurrentOrgPath = orgSlugFromPath
     ? groups.find(
-        group =>
-          group.organizationSlug.trim().toLowerCase() === orgSlugFromPath
+        group => group.organizationSlug.trim().toLowerCase() === orgSlugFromPath
       )
     : null;
   const activeGroupSlug = activeGroup?.organizationSlug?.trim().toLowerCase();
@@ -76,12 +80,14 @@ function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (shouldSyncToUserGroup && airqoGroup) {
-      dispatch(setActiveGroup(airqoGroup));
+      // Use the shared helper to perform the group switch and trigger
+      // SWR cache invalidation to avoid stale cross-group data.
+      switchGroup(airqoGroup);
       return;
     }
 
     if (shouldSyncToRouteOrgGroup && groupForCurrentOrgPath) {
-      dispatch(setActiveGroup(groupForCurrentOrgPath));
+      switchGroup(groupForCurrentOrgPath);
       return;
     }
 

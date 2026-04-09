@@ -109,6 +109,13 @@ export const useDataExportData = (
   ]);
 
   // Fetch active group cohorts once and share the result across tabs.
+  // NOTE: `useActiveGroupCohorts()` reads Redux state; in public/token
+  // flows this can cause unnecessary selector reads. To avoid that, consider
+  // updating the hook to accept an `enabled` flag (or provide a noop fallback)
+  // so callers can avoid Redux reads when `isOrgFlow` is false. Keep in mind
+  // that hooks must be called unconditionally, so the safest change is to
+  // add an `enabled` parameter to the hook and early-return a safe noop
+  // result when disabled.
   const activeGroupCohorts = useActiveGroupCohorts();
 
   const orgSitesHook = useActiveGroupCohortSitesWithState(
