@@ -82,7 +82,13 @@ export function useSitesByCountry({
         );
       }
 
-      return deviceService.getSitesSummaryAuthenticated(queryParams);
+      // NOTE: Do NOT infer authentication flow from `cohort_id`.
+      // `cohort_id` is a filter and should not determine whether the
+      // authenticated or token-based client is used. Overloading `cohort_id`
+      // to select the auth flow prevents making an unfiltered authenticated
+      // request; prefer an explicit `isOrgFlow` flag to pick the appropriate
+      // client (e.g., `getSitesSummaryAuthenticated` vs `getSitesSummaryWithToken`).
+      return deviceService.getSitesSummaryWithToken(queryParams);
     },
     getNextPageParam: lastPage => {
       const { page, totalPages } = lastPage.meta;
