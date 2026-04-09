@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useUserContext } from '@/core/hooks/useUserContext';
 import { ROUTE_LINKS } from '@/core/routes';
+import { VERTEX_DESKTOP_DOWNLOADS } from '@/core/constants/app-downloads';
 import Card from '../shared/card/CardWrapper';
 import { NavItem } from './NavItem';
 
@@ -57,7 +58,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
     setIsElectron(userAgent.includes('electron'));
     if (userAgent.includes('win')) {
       setPlatform('win');
-      setDownloadUrl("https://github.com/airqo-platform/AirQo-frontend/releases/download/v0.1.0/vertex-desktop-v0.1.0.exe");
+      setDownloadUrl(VERTEX_DESKTOP_DOWNLOADS.windows);
     } else if (userAgent.includes('linux')) {
       setPlatform('linux');
     } else {

@@ -20,6 +20,7 @@ import {
   setLoggingOut,
 } from "@/core/redux/slices/userSlice";
 import { getLastActiveModule } from "@/core/utils/userPreferences";
+import { VERTEX_DESKTOP_DOWNLOADS } from "@/core/constants/app-downloads";
 
 const loginSchema = z.object({
   userName: z.string().email({ message: "Please enter a valid email address" }),
@@ -28,7 +29,7 @@ const loginSchema = z.object({
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
-  const [downloadUrl, setDownloadUrl] = useState("https://github.com/airqo-platform/AirQo-frontend/releases/download/v0.1.0/vertex-desktop-v0.1.0.exe");
+  const [downloadUrl, setDownloadUrl] = useState(VERTEX_DESKTOP_DOWNLOADS.windows);
   const searchParams = useSearchParams();
   const callbackUrl = useMemo(() => {
     const raw = searchParams.get("callbackUrl");
@@ -69,7 +70,7 @@ export default function LoginPage() {
     
     if (isWin) {
       setPlatform('win');
-      setDownloadUrl("https://github.com/airqo-platform/AirQo-frontend/releases/download/v0.1.7/AirQo-Vertex-Setup-0.1.7.exe");
+      setDownloadUrl(VERTEX_DESKTOP_DOWNLOADS.windows);
     } else if (isLinux) {
       setPlatform('linux');
     } else {
