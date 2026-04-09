@@ -20,9 +20,9 @@ export const createMainWindow = ({ startUrl, preloadPath }: CreateWindowArgs): B
     backgroundColor: "#0b1324",
     titleBarStyle: "hidden",
     titleBarOverlay: {
-      color: "#0f1115",
-      symbolColor: "#e5e7eb",
-      height: 30
+      color: "#f3f4f6",
+      symbolColor: "#111827",
+      height: 38
     },
     webPreferences: {
       preload: preloadPath,

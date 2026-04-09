@@ -17,11 +17,14 @@
     "dev:web": "npm --prefix ../vertex run dev",
     "dev:electron": "wait-on tcp:3000 && npm run build && electron .",
     "start": "npm run build && electron .",
-    "dist:win": "npm run build && electron-builder --win nsis"
+    "dist:win": "npm run build && electron-builder --win nsis",
+    "dist:mac": "npm run build && electron-builder --mac",
+    "publish": "npm run build && electron-builder --win --mac -p always"
   },
   "build": {
     "appId": "net.airqo.vertex.desktop",
     "productName": "AirQo Vertex",
+    "copyright": "Copyright © 2026 AirQo",
     "files": [
       "dist/**/*",
       "package.json"
@@ -48,7 +51,19 @@
       ]
     },
     "mac": {
-      "icon": "assets/icon.icns"
+      "icon": "assets/icon.icns",
+      "category": "public.app-category.productivity",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "assets/entitlements.mac.plist",
+      "entitlementsInherit": "assets/entitlements.mac.plist",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "notarize": {
+        "teamId": "${APPLE_TEAM_ID}"
+      }
     },
     "linux": {
       "icon": "assets/icon.png"
