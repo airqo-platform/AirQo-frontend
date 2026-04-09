@@ -172,7 +172,7 @@ export default function DesktopTitleBar() {
           onClick={handleReload}
           hoverBg={hoverBg}
           color={text}
-          style={isLoading ? { animation: 'vertex-spin 0.8s linear infinite' } : undefined}
+          style={isLoading ? { animation: 'vertex-titlebar-spin 0.8s linear infinite' } : undefined}
         >
           {/* RotateCw */}
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
