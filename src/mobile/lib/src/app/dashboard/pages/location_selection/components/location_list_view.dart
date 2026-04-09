@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -60,7 +61,7 @@ class LocationListView extends StatelessWidget with UiLoggy {
                   color: AppColors.primaryColor,
                 ),
                 const SizedBox(height: 16),
-                Text(
+                TranslatedText(
                   "Loading locations...",
                   style: TextStyle(
                       color: Theme.of(context).textTheme.bodyMedium?.color),
@@ -102,7 +103,7 @@ class LocationListView extends StatelessWidget with UiLoggy {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 24, vertical: 12),
                   ),
-                  child: const Text('Try Again'),
+                  child: const TranslatedText('Try Again'),
                 ),
               ],
             ),
@@ -132,7 +133,7 @@ class LocationListView extends StatelessWidget with UiLoggy {
             if (!hasLocalResults && !hasGoogleResults) {
               loggy.info('No search results found');
               return Center(
-                child: Text(
+                child: TranslatedText(
                   "No matching locations found",
                   style: TextStyle(
                       color: Theme.of(context).textTheme.bodyMedium?.color),
@@ -205,7 +206,7 @@ class LocationListView extends StatelessWidget with UiLoggy {
                   Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: Text(
+                    child: TranslatedText(
                       "Other Locations",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
@@ -248,17 +249,33 @@ class LocationListView extends StatelessWidget with UiLoggy {
                       ?.withOpacity(0.6),
                 ),
                 const SizedBox(height: 16),
-                Text(
-                  currentFilter == "All"
-                      ? "No locations available"
-                      : "No locations found in $currentFilter",
-                  style: TextStyle(
-                      color: Theme.of(context).textTheme.bodyMedium?.color),
-                ),
+                if (currentFilter == "All")
+                  TranslatedText(
+                    "No locations available",
+                    style: TextStyle(
+                        color: Theme.of(context).textTheme.bodyMedium?.color),
+                  )
+                else
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      TranslatedText(
+                        "No locations found in",
+                        style: TextStyle(
+                            color: Theme.of(context).textTheme.bodyMedium?.color),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        currentFilter,
+                        style: TextStyle(
+                            color: Theme.of(context).textTheme.bodyMedium?.color),
+                      ),
+                    ],
+                  ),
                 const SizedBox(height: 8),
                 TextButton(
                   onPressed: currentFilter == "All" ? onRetry : onResetFilter,
-                  child: Text(
+                  child: TranslatedText(
                     currentFilter == "All" ? "Refresh" : "Show All Locations",
                     style: TextStyle(color: AppColors.primaryColor),
                   ),
@@ -304,7 +321,7 @@ class LocationListView extends StatelessWidget with UiLoggy {
                       color: AppColors.primaryColor,
                     ),
                     const SizedBox(width: 8),
-                    Text(
+                    TranslatedText(
                       "Favorite Locations",
                       style: TextStyle(
                         fontSize: 15,
@@ -344,7 +361,7 @@ class LocationListView extends StatelessWidget with UiLoggy {
                     color: Theme.of(context).textTheme.headlineSmall?.color,
                   ),
                   const SizedBox(width: 8),
-                  Text(
+                  TranslatedText(
                     unselectedMeasurements.isEmpty &&
                             selectedMeasurements.isNotEmpty
                         ? "Other Locations"

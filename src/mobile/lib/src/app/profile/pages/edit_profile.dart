@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:airqo/src/app/profile/bloc/user_bloc.dart';
 import 'package:airqo/src/app/profile/pages/widgets/profile_picture_selector.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/auth/services/auth_helper.dart';
 import 'package:airqo/src/app/shared/repository/secure_storage_repository.dart';
@@ -531,14 +532,14 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
                     context: context,
                     builder: (context) => AlertDialog(
                       backgroundColor: cardColor,
-                      title: Text(
+                      title: TranslatedText(
                         'Discard Changes?',
                         style: TextStyle(
                           color: textColor,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      content: Text(
+                      content: TranslatedText(
                         'You have unsaved changes. Are you sure you want to go back?',
                         style: TextStyle(
                           color: subtitleColor,
@@ -547,7 +548,7 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.of(context).pop(),
-                          child: Text(
+                          child: TranslatedText(
                             'Cancel',
                             style: TextStyle(
                               color: subtitleColor,
@@ -563,7 +564,7 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
                             Navigator.of(context).pop();
                             Navigator.of(context).pop();
                           },
-                          child: Text('Discard'),
+                          child: TranslatedText('Discard'),
                         ),
                       ],
                     ),
@@ -573,7 +574,7 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
                 }
               },
             ),
-            title: Text(
+            title: TranslatedText(
               'Edit Profile',
               style: TextStyle(
                 color: textColor,
@@ -651,7 +652,7 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
+                                TranslatedText(
                                   'Edit your profile details here',
                                   style: TextStyle(
                                     color: textColor,
@@ -660,7 +661,7 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
                                   ),
                                 ),
                                 SizedBox(height: screenHeight * 0.005),
-                                Text(
+                                TranslatedText(
                                   'Update your information to keep your account current',
                                   style: TextStyle(
                                     color: subtitleColor,
@@ -731,7 +732,7 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        TranslatedText(
           label,
           style: TextStyle(
             color: textColor,

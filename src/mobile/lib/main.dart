@@ -33,6 +33,7 @@ import 'package:loggy/loggy.dart';
 import 'core/utils/app_loggy_setup.dart';
 import 'core/utils/hive_box_setup.dart';
 import 'package:airqo/src/app/other/language/bloc/language_bloc.dart';
+import 'package:airqo/src/app/other/language/services/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 
@@ -168,6 +169,7 @@ class AirqoMobile extends StatelessWidget {
                   Locale('fr', ''),
                 ],
                 localizationsDelegates: const [
+                  AppLocalizations.delegate,
                   GlobalMaterialLocalizations.delegate,
                   GlobalWidgetsLocalizations.delegate,
                   GlobalCupertinoLocalizations.delegate,

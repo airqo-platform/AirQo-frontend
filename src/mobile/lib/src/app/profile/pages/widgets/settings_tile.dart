@@ -1,4 +1,5 @@
 // ignore_for_file: must_be_immutable
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -58,7 +59,7 @@ class SettingsTile extends StatelessWidget {
             subtitle: description != null
                 ? Padding(
                     padding: const EdgeInsets.only(top: 6.0),
-                    child: Text(
+                    child: TranslatedText(
                       description!,
                       style: TextStyle(
                         color: descriptionColor,
@@ -95,7 +96,7 @@ class SettingsTile extends StatelessWidget {
                 ),
               ),
             ),
-            title: Text(
+            title: TranslatedText(
               title,
               style: TextStyle(
                 fontSize: 18,

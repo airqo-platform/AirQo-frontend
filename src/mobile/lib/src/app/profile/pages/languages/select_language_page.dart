@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
@@ -97,7 +98,7 @@ class _SelectLanguagePageState extends State<SelectLanguagePage> {
       appBar: AppBar(
         backgroundColor: backgroundColor,
         elevation: 0,
-        title: Text(
+        title: TranslatedText(
           'Select Language',
           style: TextStyle(
             fontSize: 22,
