@@ -124,7 +124,7 @@ export default function AlertsPage() {
         data = getMockAlertDevices()
       } else {
         // Using the devices-detail endpoint to get maintenance history
-        const apiPath = config.isLocalhost ? '/devices' : '/api/v1/beacon/devices'
+        const apiPath = config.isLocalhost ? '/devices' : '/beacon/devices'
         const response = await fetch(`${config.apiUrl}${apiPath}`, {
           headers: {
             'Authorization': authService.getToken() || '',

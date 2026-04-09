@@ -84,7 +84,7 @@ export default function SettingsPage() {
         return
       }
       
-      const apiPath = config.isLocalhost ? '/users/me/' : `${config.apiPrefix || '/api/v1'}/beacon/users/me/`
+      const apiPath = config.isLocalhost ? '/users/me/' : `${config.apiPrefix || ''}/beacon/users/me/`
       const response = await fetch(`${config.apiUrl}${apiPath}`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -197,7 +197,7 @@ export default function SettingsPage() {
         updatePayload.new_password = formData.new_password
       }
       
-      const apiPath = config.isLocalhost ? '/users/me/' : `${config.apiPrefix || '/api/v1'}/beacon/users/me/`
+      const apiPath = config.isLocalhost ? '/users/me/' : `${config.apiPrefix || ''}/beacon/users/me/`
       const response = await fetch(`${config.apiUrl}${apiPath}`, {
         method: 'PUT',
         headers: {
