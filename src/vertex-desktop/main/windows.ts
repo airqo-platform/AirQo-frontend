@@ -1,4 +1,4 @@
-import { BrowserWindow, shell } from "electron";
+import { BrowserWindow, shell, nativeTheme } from "electron";
 import path from "node:path";
 
 interface CreateWindowArgs {
@@ -20,8 +20,8 @@ export const createMainWindow = ({ startUrl, preloadPath }: CreateWindowArgs): B
     backgroundColor: "#0b1324",
     titleBarStyle: "hidden",
     titleBarOverlay: {
-      color: "#f3f4f6",
-      symbolColor: "#111827",
+      color: nativeTheme.shouldUseDarkColors ? "#1d1f20" : "#f3f4f6",
+      symbolColor: nativeTheme.shouldUseDarkColors ? "#f8fafc" : "#111827",
       height: 38
     },
     webPreferences: {

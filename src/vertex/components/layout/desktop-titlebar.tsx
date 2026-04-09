@@ -35,12 +35,21 @@ export default function DesktopTitleBar() {
       // Check initial back-button state
       window.vertexDesktop.canGoBack().then(setCanGoBack);
 
+      // Helper: sync theme to both React state AND the native Win32 titlebar overlay
+      const syncTheme = () => {
+        const dark = document.documentElement.classList.contains('dark');
+        setIsDark(dark);
+        // Tell the Electron main process to call setTitleBarOverlay() so the
+        // native minimize/maximize/close buttons match the current theme.
+        window.vertexDesktop?.setTheme(dark ? 'dark' : 'light');
+      };
+
       // Watch the <html> element for dark-mode class changes
-      const observer = new MutationObserver(() => {
-        setIsDark(document.documentElement.classList.contains('dark'));
-      });
+      const observer = new MutationObserver(syncTheme);
       observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-      setIsDark(document.documentElement.classList.contains('dark'));
+
+      // Sync immediately on mount — handles apps that start in dark mode
+      syncTheme();
 
       return () => observer.disconnect();
     }
