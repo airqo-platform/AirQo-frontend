@@ -20,7 +20,7 @@ import {
   setLoggingOut,
 } from "@/core/redux/slices/userSlice";
 import { getLastActiveModule } from "@/core/utils/userPreferences";
-import { getMacArchitecture } from "@/core/utils/platform";
+import { VERTEX_DESKTOP_DOWNLOADS } from "@/core/constants/app-downloads";
 
 const loginSchema = z.object({
   userName: z.string().email({ message: "Please enter a valid email address" }),
@@ -29,7 +29,7 @@ const loginSchema = z.object({
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
-  const [downloadUrl, setDownloadUrl] = useState("https://github.com/airqo-platform/AirQo-frontend/releases/download/v0.1.0/vertex-desktop-v0.1.0.exe");
+  const [downloadUrl, setDownloadUrl] = useState(VERTEX_DESKTOP_DOWNLOADS.windows);
   const searchParams = useSearchParams();
   const callbackUrl = useMemo(() => {
     const raw = searchParams.get("callbackUrl");
@@ -54,8 +54,7 @@ export default function LoginPage() {
   const dispatch = useAppDispatch();
   const isMounted = useRef(true);
 
-  const [platform, setPlatform] = useState<'mac' | 'win' | 'linux' | 'other' | null>(null);
-  const [architecture, setArchitecture] = useState<'arm64' | 'x64' | 'unknown'>('unknown');
+  const [platform, setPlatform] = useState<'win' | 'linux' | 'other' | null>(null);
   const [isElectron, setIsElectron] = useState(false);
 
   useEffect(() => {
@@ -65,18 +64,13 @@ export default function LoginPage() {
 
     // OS Detection for download link and platform check
     const userAgent = window.navigator.userAgent.toLowerCase();
-    const isMac = userAgent.includes('mac');
     const isWin = userAgent.includes('win');
     const isLinux = userAgent.includes('linux');
     setIsElectron(userAgent.includes('electron'));
     
-    if (isMac) {
-      setPlatform('mac');
-      getMacArchitecture().then(setArchitecture);
-      setDownloadUrl("https://github.com/airqo-platform/AirQo-frontend/releases/download/v0.1.0/vertex-desktop-v0.1.0-arm64.dmg");
-    } else if (isWin) {
+    if (isWin) {
       setPlatform('win');
-      setDownloadUrl("https://github.com/airqo-platform/AirQo-frontend/releases/download/v0.1.0/vertex-desktop-v0.1.0.exe");
+      setDownloadUrl(VERTEX_DESKTOP_DOWNLOADS.windows);
     } else if (isLinux) {
       setPlatform('linux');
     } else {
@@ -147,7 +141,7 @@ export default function LoginPage() {
             />
           </div>
           
-          {!isElectron && (platform === 'win' || (platform === 'mac' && architecture === 'arm64')) && (
+          {!isElectron && platform === 'win' && (
             <div className="flex items-center">
               <a
                 href={downloadUrl}
@@ -155,16 +149,10 @@ export default function LoginPage() {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-md border border-border bg-primary px-4 py-2 text-sm font-medium text-white transition-all hover:bg-primary/80 hover:border-foreground/20 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
               >
-                {platform === 'mac' ? (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.1 2.48-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .76-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.36 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-                  </svg>
-                ) : (
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M0 3.449L9.75 2.1V11.7H0V3.449zm0 9.151h9.75v9.6L0 20.551V12.6zm10.55-10.701L24 0v11.7h-13.45V1.899zm0 10.701H24V24l-13.45-1.899V12.6z"/>
-                  </svg>
-                )}
-                Download for {platform === 'mac' ? 'macOS' : 'Windows'}
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M0 3.449L9.75 2.1V11.7H0V3.449zm0 9.151h9.75v9.6L0 20.551V12.6zm10.55-10.701L24 0v11.7h-13.45V1.899zm0 10.701H24V24l-13.45-1.899V12.6z"/>
+                </svg>
+                Download for Windows
               </a>
             </div>
           )}
@@ -174,13 +162,14 @@ export default function LoginPage() {
       {/* Main Content Area */}
       <main className="flex flex-1 overflow-y-auto">
         <div className="flex flex-1 flex-col px-4 py-12 sm:px-6">
-          <div className="mx-auto w-full max-w-[400px] my-auto">
+          <div className="mx-auto w-full max-w-[450px] my-auto">
             <div className="mb-10 text-center">
               <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                Deploy and track air quality devices
+                <span className="block">Deploy devices,</span>
+                <span className="block">Share your data</span>
               </h1>
               <p className="mt-4 text-base text-muted-foreground leading-relaxed max-w-sm mx-auto">
-                Unified device management with AirQo Vertex.
+                Add your devices, manage their details, and stream live air quality data through AirQo&apos;s open data channels.
               </p>
             </div>
 
