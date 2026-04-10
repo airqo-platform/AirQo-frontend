@@ -97,8 +97,8 @@ export const config = {
   apiVersion: process.env.AIRQO_API_VERSION || 'v2',
   
   // API prefixes
-  apiPrefix: isLocalhost ? '' : '',
-  beaconApiPrefix: isLocalhost ? '' : '/beacon',
+  apiPrefix: '/api/v1',
+  beaconApiPrefix: isLocalhost ? '/api/v1' : '/api/v1/beacon',
   
   // Auth settings
   requiresAuth: !isLocalhost && isProduction,
