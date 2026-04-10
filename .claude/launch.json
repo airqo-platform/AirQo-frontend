@@ -1,0 +1,59 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "exposure-prototype",
+      "runtimeExecutable": "/opt/homebrew/bin/python3",
+      "runtimeArgs": ["-m", "http.server", "7823", "--directory", "."],
+      "port": 7823
+    },
+    {
+      "name": "mobile-dashboard",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "src/mobile-dashboard"],
+      "port": 3000
+    },
+    {
+      "name": "platform",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "src/platform"],
+      "port": 3000
+    },
+    {
+      "name": "vertex",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "src/vertex"],
+      "port": 3000
+    },
+    {
+      "name": "vertex-desktop",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "src/vertex-desktop"],
+      "port": 3000
+    },
+    {
+      "name": "website",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "src/website"],
+      "port": 3000
+    },
+    {
+      "name": "beacon",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "src/beacon"],
+      "port": 3000
+    },
+    {
+      "name": "calibrate",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "src/calibrate"],
+      "port": 3000
+    },
+    {
+      "name": "docs-website",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["start", "--prefix", "src/docs-website"],
+      "port": 3000
+    }
+  ]
+}
