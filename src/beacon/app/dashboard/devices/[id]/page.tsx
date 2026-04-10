@@ -230,9 +230,8 @@ export default function DeviceDetailPage() {
       }
 
       // Use consistent endpoint path as per user request
-      const apiPath = config.isLocalhost ?
-        `/devices/${deviceId}` :
-        `/beacon/devices/${deviceId}`
+      const prefix = config.beaconApiPrefix || (config.isLocalhost ? '/api/v1' : '/api/v1/beacon')
+      const apiPath = `${prefix}/devices/${deviceId}`
 
       const response = await fetch(`${config.apiUrl}${apiPath}`, {
         headers: {

@@ -19,7 +19,8 @@ export default function HealthTipsSection({ deviceId, readingKey, airQuality }) 
 
         // Helper function to get the correct API path
         const getApiPath = (path: string) => {
-          return config.isLocalhost ? path : `${config.apiPrefix || ''}/beacon${path}`
+          const prefix = config.beaconApiPrefix || (config.isLocalhost ? '/api/v1' : '/api/v1/beacon')
+          return `${prefix}${path}`
         }
 
         let endpoint
