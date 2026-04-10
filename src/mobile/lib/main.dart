@@ -35,6 +35,7 @@ import 'core/utils/hive_box_setup.dart';
 import 'package:airqo/src/app/other/language/bloc/language_bloc.dart';
 import 'package:airqo/src/app/other/language/services/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:posthog_flutter/posthog_flutter.dart';
 
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -58,6 +59,20 @@ void main() async {
 
         await dotenv.load(fileName: ".env.prod");
 
+        // Initialize PostHog for analytics and feature flags
+        final postHogApiKey = dotenv.env['POSTHOG_API_KEY'] ?? '';
+        final postHogHost = dotenv.env['POSTHOG_HOST'] ?? 'https://us.i.posthog.com';
+        final postHogConfig = PostHogConfig(postHogApiKey);
+        postHogConfig.host = postHogHost;
+        postHogConfig.debug = !kReleaseMode;
+        postHogConfig.captureApplicationLifecycleEvents = true;
+        postHogConfig.personProfiles = PostHogPersonProfiles.always;
+        try {
+          await Posthog().setup(postHogConfig);
+          Object().logInfo('PostHog initialized successfully');
+        } catch (e) {
+          Object().logError('PostHog init failed', e, null);
+        }
 
         Bloc.observer = LoggingBlocObserver();
 

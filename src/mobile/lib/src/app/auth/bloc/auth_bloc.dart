@@ -1,5 +1,7 @@
 import 'package:airqo/src/app/auth/models/input_model.dart';
 import 'package:airqo/src/app/auth/repository/auth_repository.dart';
+import 'package:airqo/src/app/auth/services/auth_helper.dart';
+import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
@@ -27,7 +29,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
 
     on<SessionExpired>(_onSessionExpired);
 
-    on<UseAsGuest>((event, emit) => emit(GuestUser()));
+    on<UseAsGuest>((event, emit) async {
+      await AnalyticsService().trackGuestModeAccessed();
+      emit(GuestUser());
+    });
 
     on<VerifyEmailCode>(_onVerifyEmailCode);
   }
@@ -38,6 +43,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
       final token = await SecureStorageRepository.instance.getSecureData(SecureStorageKeys.authToken);
 
       if (token != null && token.isNotEmpty) {
+        final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
+        if (userId != null) {
+          await AnalyticsService().setUserIdentity(userId: userId);
+        }
         emit(AuthLoaded(AuthPurpose.login));
       } else {
         emit(GuestUser());
@@ -53,6 +62,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
   try {
     await authRepository.loginWithEmailAndPassword(
         event.username, event.password);
+
+    await AnalyticsService().trackUserLoggedIn();
+    final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
+    if (userId != null) {
+      await AnalyticsService().setUserIdentity(
+        userId: userId,
+        userProperties: {'email': event.username},
+      );
+    }
 
     emit(AuthLoaded(AuthPurpose.login));
   } catch (e) {
@@ -75,6 +93,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
     emit(AuthLoading());
     try {
       await authRepository.registerWithEmailAndPassword(event.model);
+      await AnalyticsService().trackUserRegistered();
+      final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
+      if (userId != null) {
+        await AnalyticsService().setUserIdentity(
+          userId: userId,
+          userProperties: {'email': event.model.email ?? ''},
+        );
+      }
       emit(AuthLoaded(AuthPurpose.register));
     } catch (e) {
       debugPrint("Registration error: $e");
@@ -105,6 +131,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
 
       loggy.info('Clearing all cached data on logout');
       await CacheManager().clearAll();
+      await AnalyticsService().trackUserLoggedOut();
+      await AnalyticsService().resetUser();
 
       emit(GuestUser());
     } catch (e) {
