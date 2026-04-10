@@ -61,7 +61,7 @@ function parseSSEChunk(buffer: string): { events: Array<{ event: string; data: s
  * Mirrors the pattern from ApiService.getEndpoint() + buildQueryString().
  */
 function buildStreamUrl(days: number, tags?: string): string {
-    const apiPrefix = config.apiPrefix || ""
+    const apiPrefix = config.apiPrefix || "/api/v1"
     const base = config.apiUrl
 
     let path: string
@@ -82,7 +82,7 @@ function buildStreamUrl(days: number, tags?: string): string {
  * Build the REST fallback URL (existing /map-view endpoint).
  */
 function buildFallbackUrl(days: number, tags?: string): string {
-    const apiPrefix = config.apiPrefix || ""
+    const apiPrefix = config.apiPrefix || "/api/v1"
     const base = config.apiUrl
 
     let path: string

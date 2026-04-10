@@ -23,14 +23,15 @@ class FirmwareService {
   constructor() {
     // Use centralized config for API URL
     this.baseUrl = config.beaconApiUrl;
-    this.apiPrefix = config.apiPrefix || '';
+    this.apiPrefix = config.beaconApiPrefix || (config.isLocalhost ? '/api/v1' : '/api/v1/beacon');
   }
 
   /**
    * Get the appropriate endpoint based on environment
    */
   private getEndpoint(path: string): string {
-    return config.isLocalhost ? path : `${this.apiPrefix}/beacon${path}`;
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    return `${this.apiPrefix}${cleanPath}`;
   }
 
   /**

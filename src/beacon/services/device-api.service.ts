@@ -37,7 +37,7 @@ class ApiService {
 
   constructor() {
     this.baseUrl = config.apiUrl
-    this.apiPrefix = config.apiPrefix || ''
+    this.apiPrefix = config.beaconApiPrefix || (config.isLocalhost ? '/api/v1' : '/api/v1/beacon')
     this.defaultHeaders = {
       'Content-Type': 'application/json',
     }
@@ -49,14 +49,7 @@ class ApiService {
    */
   private getEndpoint(resource: string): string {
     const cleanPath = resource.startsWith('/') ? resource : `/${resource}`;
-
-    // For local development, use path as is (base URL handles the rest)
-    if (config.isLocalhost) {
-      return cleanPath;
-    }
-
-    // For production/staging, prefix with configured API prefix + service name
-    return `${this.apiPrefix}/beacon${cleanPath}`;
+    return `${this.apiPrefix}${cleanPath}`;
   }
 
   private getAuthHeaders(): HeadersInit {
@@ -534,7 +527,7 @@ class ApiService {
     end_date?: string
   }): Promise<any> {
     const queryString = this.buildQueryString(params || {})
-    const endpoint = config.isLocalhost ? '/locations/countries/' : `${this.apiPrefix}/beacon/analytics/locations/countries/`
+    const endpoint = this.getEndpoint('/analytics/locations/countries/')
     const url = `${this.baseUrl}${endpoint}${encodeURIComponent(countryId)}/analytics${queryString}`
     return this.fetchWithRetry<any>(url)
   }
@@ -544,7 +537,7 @@ class ApiService {
     end_date?: string
   }): Promise<any> {
     const queryString = this.buildQueryString(params || {})
-    const endpoint = config.isLocalhost ? '/locations/regions/' : `${this.apiPrefix}/beacon/analytics/locations/regions/`
+    const endpoint = this.getEndpoint('/analytics/locations/regions/')
     const url = `${this.baseUrl}${endpoint}${encodeURIComponent(regionId)}/analytics${queryString}`
     return this.fetchWithRetry<any>(url)
   }
@@ -554,7 +547,7 @@ class ApiService {
     end_date?: string
   }): Promise<any> {
     const queryString = this.buildQueryString(params || {})
-    const endpoint = config.isLocalhost ? '/locations/districts/' : `${this.apiPrefix}/beacon/analytics/locations/districts/`
+    const endpoint = this.getEndpoint('/analytics/locations/districts/')
     const url = `${this.baseUrl}${endpoint}${encodeURIComponent(districtId)}/analytics${queryString}`
     return this.fetchWithRetry<any>(url)
   }
@@ -574,9 +567,7 @@ class ApiService {
       throw new Error('Device ID is required for fetching metadata')
     }
 
-    const endpoint = config.isLocalhost
-      ? `/devices/${device_id}/metadata/${category_name}`
-      : this.getEndpoint(`/devices/${device_id}/metadata/${category_name}`)
+    const endpoint = this.getEndpoint(`/devices/${device_id}/metadata/${category_name}`)
 
     const queryString = this.buildQueryString(queryParams)
     const url = `${this.baseUrl}${endpoint}${queryString}`
@@ -599,9 +590,7 @@ class ApiService {
       throw new Error('Device ID is required for fetching config history')
     }
 
-    const endpoint = config.isLocalhost
-      ? `/devices/${device_id}/configdata/${category_name}`
-      : this.getEndpoint(`/devices/${device_id}/configdata/${category_name}`)
+    const endpoint = this.getEndpoint(`/devices/${device_id}/configdata/${category_name}`)
 
     const queryString = this.buildQueryString(queryParams)
     const url = `${this.baseUrl}${endpoint}${queryString}`
