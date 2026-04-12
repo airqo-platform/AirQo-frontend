@@ -107,9 +107,8 @@ def fetch_all_pages(base_payload, token):
             payload['cursor'] = cursor
 
         response = requests.post(
-            "https://api.airqo.net/api/v3/public/analytics/data-download",
-            json=payload,
-            headers={"Authorization": f"Bearer {token}"}
+            f"https://api.airqo.net/api/v3/public/analytics/data-download?token={token}",
+            json=payload
         ).json()
 
         all_records.extend(response['data'])
@@ -133,12 +132,11 @@ async function fetchAllPages(basePayload, token) {
     const payload = cursor ? { ...basePayload, cursor } : basePayload;
 
     const response = await fetch(
-      'https://api.airqo.net/api/v3/public/analytics/data-download',
+      `https://api.airqo.net/api/v3/public/analytics/data-download?token=${token}`,
       {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
       }

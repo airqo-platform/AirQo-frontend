@@ -22,9 +22,8 @@ To query historical data for your Grid, use the site names or device names from 
 ## Endpoint
 
 ```
-POST https://api.airqo.net/api/v3/public/analytics/data-download
+POST https://api.airqo.net/api/v3/public/analytics/data-download?token=YOUR_SECRET_TOKEN
 Content-Type: application/json
-Authorization: Bearer YOUR_SECRET_TOKEN
 ```
 
 ---
@@ -51,9 +50,8 @@ Authorization: Bearer YOUR_SECRET_TOKEN
 ## Example request — daily aggregated data for a city
 
 ```bash
-curl -X POST "https://api.airqo.net/api/v3/public/analytics/data-download" \
+curl -X POST "https://api.airqo.net/api/v3/public/analytics/data-download?token=YOUR_SECRET_TOKEN" \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_SECRET_TOKEN" \
   -d '{
     "network": "airqo",
     "datatype": "calibrated",
@@ -95,9 +93,8 @@ while True:
         payload['cursor'] = cursor
 
     response = requests.post(
-        "https://api.airqo.net/api/v3/public/analytics/data-download",
-        json=payload,
-        headers={"Authorization": f"Bearer {token}"}
+        f"https://api.airqo.net/api/v3/public/analytics/data-download?token={token}",
+        json=payload
     ).json()
 
     all_records.extend(response['data'])
@@ -133,12 +130,11 @@ async function fetchAllCityHistory(siteIds, token) {
     const payload = cursor ? { ...basePayload, cursor } : basePayload;
 
     const response = await fetch(
-      'https://api.airqo.net/api/v3/public/analytics/data-download',
+      `https://api.airqo.net/api/v3/public/analytics/data-download?token=${token}`,
       {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
       }

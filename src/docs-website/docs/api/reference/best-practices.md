@@ -54,12 +54,11 @@ Follow these guidelines to build reliable, efficient integrations with the AirQo
 import time
 import requests
 
-def api_request_with_backoff(url, payload, token, max_retries=4):
+def api_request_with_backoff(url, token, payload, max_retries=4):
     for attempt in range(max_retries):
         response = requests.post(
-            url,
-            json=payload,
-            headers={"Authorization": f"Bearer {token}"}
+            f"{url}?token={token}",
+            json=payload
         )
         if response.status_code in (429, 500):
             wait = 2 ** attempt

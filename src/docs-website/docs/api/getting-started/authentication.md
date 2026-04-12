@@ -33,22 +33,19 @@ Your `SECRET TOKEN` grants access to all data your account is authorised for. Tr
 
 ## Step 3 — Using your credentials
 
-### GET endpoints (measurements, heatmaps, forecasts)
+All AirQo API endpoints — both GET and POST — authenticate via the `token` query parameter. Append `?token=YOUR_SECRET_TOKEN` to every request URL.
 
-Pass your `SECRET TOKEN` as a query parameter:
+**GET request example:**
 
 ```
 GET https://api.airqo.net/api/v2/devices/measurements/cohorts/{COHORT_ID}?token=YOUR_SECRET_TOKEN
 ```
 
-### POST endpoints (Analytics API)
+**POST request example:**
 
-Pass your token in the `Authorization` header:
-
-```http
-POST https://api.airqo.net/api/v3/public/analytics/raw-data
+```
+POST https://api.airqo.net/api/v3/public/analytics/raw-data?token=YOUR_SECRET_TOKEN
 Content-Type: application/json
-Authorization: Bearer YOUR_SECRET_TOKEN
 ```
 
 ---

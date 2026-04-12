@@ -59,7 +59,7 @@ https://api.airqo.net
 
 ## Authentication
 
-All endpoints require authentication via a `token` query parameter (for GET requests) or a `Bearer` token in the `Authorization` header (for POST analytics endpoints).
+All endpoints require authentication via a `token` query parameter. Pass your `SECRET TOKEN` as `?token=YOUR_SECRET_TOKEN` on every request — both GET and POST.
 
 See [Authentication & Setup](./getting-started/authentication) for step-by-step instructions on generating your credentials.
 

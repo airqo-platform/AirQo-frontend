@@ -16,9 +16,8 @@ Requires a **Standard Tier** subscription or above.
 ## Endpoint
 
 ```
-POST https://api.airqo.net/api/v3/public/analytics/raw-data
+POST https://api.airqo.net/api/v3/public/analytics/raw-data?token=YOUR_SECRET_TOKEN
 Content-Type: application/json
-Authorization: Bearer YOUR_SECRET_TOKEN
 ```
 
 ---
@@ -57,9 +56,8 @@ Authorization: Bearer YOUR_SECRET_TOKEN
 ## Example request
 
 ```bash
-curl -X POST "https://api.airqo.net/api/v3/public/analytics/raw-data" \
+curl -X POST "https://api.airqo.net/api/v3/public/analytics/raw-data?token=YOUR_SECRET_TOKEN" \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_SECRET_TOKEN" \
   -d '{
     "network": "airqo",
     "startDateTime": "2025-01-01T00:00:00Z",
@@ -91,9 +89,8 @@ payload = {
 }
 
 response = requests.post(
-    "https://api.airqo.net/api/v3/public/analytics/raw-data",
-    json=payload,
-    headers={"Authorization": f"Bearer {token}"}
+    f"https://api.airqo.net/api/v3/public/analytics/raw-data?token={token}",
+    json=payload
 )
 data = response.json()
 
@@ -104,12 +101,11 @@ print(f"Retrieved {len(data['data'])} raw readings")
 
 ```js
 const response = await fetch(
-  'https://api.airqo.net/api/v3/public/analytics/raw-data',
+  `https://api.airqo.net/api/v3/public/analytics/raw-data?token=${token}`,
   {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      Authorization: 'Bearer YOUR_SECRET_TOKEN'
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify({
       network: 'airqo',
@@ -190,9 +186,8 @@ while True:
         payload['cursor'] = cursor
 
     response = requests.post(
-        "https://api.airqo.net/api/v3/public/analytics/raw-data",
-        json=payload,
-        headers={"Authorization": f"Bearer {token}"}
+        f"https://api.airqo.net/api/v3/public/analytics/raw-data?token={token}",
+        json=payload
     ).json()
 
     all_records.extend(response['data'])

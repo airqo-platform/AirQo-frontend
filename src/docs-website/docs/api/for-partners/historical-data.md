@@ -22,9 +22,8 @@ Historical data for your Cohort is fetched via the Analytics API by specifying t
 ## Endpoint
 
 ```
-POST https://api.airqo.net/api/v3/public/analytics/data-download
+POST https://api.airqo.net/api/v3/public/analytics/data-download?token=YOUR_SECRET_TOKEN
 Content-Type: application/json
-Authorization: Bearer YOUR_SECRET_TOKEN
 ```
 
 ---
@@ -50,9 +49,8 @@ Authorization: Bearer YOUR_SECRET_TOKEN
 ## Example request — hourly calibrated data
 
 ```bash
-curl -X POST "https://api.airqo.net/api/v3/public/analytics/data-download" \
+curl -X POST "https://api.airqo.net/api/v3/public/analytics/data-download?token=YOUR_SECRET_TOKEN" \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_SECRET_TOKEN" \
   -d '{
     "network": "airqo",
     "datatype": "calibrated",
@@ -86,9 +84,8 @@ payload = {
 }
 
 response = requests.post(
-    "https://api.airqo.net/api/v3/public/analytics/data-download",
-    json=payload,
-    headers={"Authorization": f"Bearer {token}"}
+    f"https://api.airqo.net/api/v3/public/analytics/data-download?token={token}",
+    json=payload
 )
 
 data = response.json()
@@ -99,12 +96,11 @@ print(f"Retrieved {len(data['data'])} records. More available: {data['metadata']
 
 ```js
 const response = await fetch(
-  'https://api.airqo.net/api/v3/public/analytics/data-download',
+  `https://api.airqo.net/api/v3/public/analytics/data-download?token=${token}`,
   {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer YOUR_SECRET_TOKEN'
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify({
       network: 'airqo',
@@ -183,9 +179,8 @@ while True:
         payload['cursor'] = cursor
 
     response = requests.post(
-        "https://api.airqo.net/api/v3/public/analytics/data-download",
-        json=payload,
-        headers={"Authorization": f"Bearer {token}"}
+        f"https://api.airqo.net/api/v3/public/analytics/data-download?token={token}",
+        json=payload
     ).json()
 
     all_records.extend(response['data'])

@@ -16,9 +16,8 @@ Requires a **Standard Tier** subscription or above.
 ## Endpoint
 
 ```
-POST https://api.airqo.net/api/v3/public/analytics/data-download
+POST https://api.airqo.net/api/v3/public/analytics/data-download?token=YOUR_SECRET_TOKEN
 Content-Type: application/json
-Authorization: Bearer YOUR_SECRET_TOKEN
 ```
 
 ---
@@ -46,9 +45,8 @@ Authorization: Bearer YOUR_SECRET_TOKEN
 ## Example request — hourly calibrated data
 
 ```bash
-curl -X POST "https://api.airqo.net/api/v3/public/analytics/data-download" \
+curl -X POST "https://api.airqo.net/api/v3/public/analytics/data-download?token=YOUR_SECRET_TOKEN" \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_SECRET_TOKEN" \
   -d '{
     "network": "airqo",
     "datatype": "calibrated",
@@ -82,9 +80,8 @@ payload = {
 }
 
 response = requests.post(
-    "https://api.airqo.net/api/v3/public/analytics/data-download",
-    json=payload,
-    headers={"Authorization": f"Bearer {token}"}
+    f"https://api.airqo.net/api/v3/public/analytics/data-download?token={token}",
+    json=payload
 )
 data = response.json()
 
@@ -96,12 +93,11 @@ for record in data['data']:
 
 ```js
 const response = await fetch(
-  'https://api.airqo.net/api/v3/public/analytics/data-download',
+  `https://api.airqo.net/api/v3/public/analytics/data-download?token=${token}`,
   {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      Authorization: 'Bearer YOUR_SECRET_TOKEN'
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify({
       network: 'airqo',
