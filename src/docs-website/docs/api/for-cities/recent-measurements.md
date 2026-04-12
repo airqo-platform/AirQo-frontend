@@ -15,7 +15,7 @@ Available on all tiers including Free.
 
 ## Endpoint
 
-```
+```http
 GET https://api.airqo.net/api/v2/devices/measurements/grids/{GRID_ID}?token={SECRET_TOKEN}
 ```
 

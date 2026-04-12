@@ -37,13 +37,13 @@ All AirQo API endpoints — both GET and POST — authenticate via the `token` q
 
 **GET request example:**
 
-```
+```http
 GET https://api.airqo.net/api/v2/devices/measurements/cohorts/{COHORT_ID}?token=YOUR_SECRET_TOKEN
 ```
 
 **POST request example:**
 
-```
+```http
 POST https://api.airqo.net/api/v3/public/analytics/raw-data?token=YOUR_SECRET_TOKEN
 Content-Type: application/json
 ```

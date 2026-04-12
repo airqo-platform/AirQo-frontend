@@ -21,7 +21,7 @@ To query historical data for your Grid, use the site names or device names from 
 
 ## Endpoint
 
-```
+```http
 POST https://api.airqo.net/api/v3/public/analytics/data-download?token=YOUR_SECRET_TOKEN
 Content-Type: application/json
 ```

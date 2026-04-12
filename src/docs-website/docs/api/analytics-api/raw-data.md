@@ -15,7 +15,7 @@ Requires a **Standard Tier** subscription or above.
 
 ## Endpoint
 
-```
+```http
 POST https://api.airqo.net/api/v3/public/analytics/raw-data?token=YOUR_SECRET_TOKEN
 Content-Type: application/json
 ```

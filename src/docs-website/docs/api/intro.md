@@ -51,7 +51,7 @@ Partners and organisations typically use **Cohort ID** because it groups their d
 
 All API requests are made to:
 
-```
+```text
 https://api.airqo.net
 ```
 

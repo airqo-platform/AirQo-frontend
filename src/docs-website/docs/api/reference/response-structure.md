@@ -81,6 +81,7 @@ Used by: Site ID, Device ID, Cohort ID, and Grid ID recent measurement endpoints
 | `pages` | number | Total pages |
 | `startTime` | string | Query start (ISO 8601) |
 | `endTime` | string | Query end (ISO 8601) |
+| `optimized` | boolean | `true` when the query used an optimized execution path (e.g. index scan, caching, or approximation) |
 
 **Measurement record**
 
