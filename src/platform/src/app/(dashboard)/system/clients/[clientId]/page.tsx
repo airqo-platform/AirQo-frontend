@@ -43,7 +43,6 @@ const ClientDetailsPage: React.FC = () => {
   const [isRefreshingSecret, setIsRefreshingSecret] = useState(false);
   const [isActivating, setIsActivating] = useState(false);
   const [isGeneratingToken, setIsGeneratingToken] = useState(false);
-  const [showFullSecret, setShowFullSecret] = useState(false);
   const [inactiveDialogState, setInactiveDialogState] = useState<{
     isOpen: boolean;
     clientId: string;
@@ -186,6 +185,12 @@ const ClientDetailsPage: React.FC = () => {
     } catch {
       toast.error(`Failed to copy ${label}`);
     }
+  };
+
+  const maskSecret = (secret?: string) => {
+    if (!secret) return '—';
+    const last = secret.slice(-4);
+    return `••••••••••••${last}`;
   };
 
   if (isLoading) {
@@ -404,17 +409,8 @@ const ClientDetailsPage: React.FC = () => {
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <code className="flex-1 text-sm bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded font-mono break-all">
-                {showFullSecret || client.client_secret.length <= 40
-                  ? client.client_secret
-                  : `${client.client_secret.slice(0, 20)}...${client.client_secret.slice(-20)}`}
+                {maskSecret(client.client_secret)}
               </code>
-              <Button
-                size="sm"
-                variant="outlined"
-                onClick={() => setShowFullSecret(!showFullSecret)}
-              >
-                {showFullSecret ? 'Hide' : 'Show'}
-              </Button>
               <Button
                 size="sm"
                 variant="outlined"
@@ -425,7 +421,8 @@ const ClientDetailsPage: React.FC = () => {
               />
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              Keep this secret secure. Do not share it publicly.
+              Keep this secret secure. Use the copy button to copy it to your
+              clipboard.
             </p>
           </div>
         </Card>
