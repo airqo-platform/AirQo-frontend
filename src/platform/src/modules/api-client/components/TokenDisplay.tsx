@@ -25,8 +25,11 @@ const TokenDisplay: React.FC<TokenDisplayProps> = ({
       toast.error('Failed to copy token');
     }
   };
-
-  const maskedToken = `${token.slice(0, 8)}...${token.slice(-8)}`;
+  const maskedToken = token
+    ? token.length > 4
+      ? `••••••••${token.slice(-4)}`
+      : '••••••••'
+    : '—';
 
   const now = Date.now();
   // Parse and validate expiry date safely; treat epoch 0 as valid
@@ -65,18 +68,20 @@ const TokenDisplay: React.FC<TokenDisplayProps> = ({
     <div className="max-w-full min-w-0">
       <div className="flex flex-col items-start gap-1 min-w-0">
         <div className="flex items-center gap-2 min-w-0 w-full">
-          <code className={`${containerCodeClass} truncate`} title={token}>
+          <code className={`${containerCodeClass} truncate`}>
             {maskedToken}
           </code>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={copyToClipboard}
-            className="p-1 h-6 w-6 flex-shrink-0"
-            aria-label="Copy token"
-          >
-            <AqCopy06 className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={copyToClipboard}
+              className="p-1 h-6 w-6 flex-shrink-0"
+              aria-label="Copy token"
+            >
+              <AqCopy06 className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
 
         <div className="flex items-center gap-2 min-w-0">
