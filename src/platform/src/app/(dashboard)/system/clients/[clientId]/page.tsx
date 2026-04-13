@@ -189,8 +189,8 @@ const ClientDetailsPage: React.FC = () => {
 
   const maskSecret = (secret?: string) => {
     if (!secret) return '—';
-    const last = secret.slice(-4);
-    return `••••••••••••${last}`;
+    const MASK = '••••••••••••';
+    return secret.length > 4 ? `${MASK}${secret.slice(-4)}` : MASK;
   };
 
   if (isLoading) {

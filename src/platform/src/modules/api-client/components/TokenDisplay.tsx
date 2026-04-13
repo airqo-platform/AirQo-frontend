@@ -25,7 +25,11 @@ const TokenDisplay: React.FC<TokenDisplayProps> = ({
       toast.error('Failed to copy token');
     }
   };
-  const maskedToken = token ? `••••••••${token.slice(-4)}` : '—';
+  const maskedToken = token
+    ? token.length > 4
+      ? `••••••••${token.slice(-4)}`
+      : '••••••••'
+    : '—';
 
   const now = Date.now();
   // Parse and validate expiry date safely; treat epoch 0 as valid
