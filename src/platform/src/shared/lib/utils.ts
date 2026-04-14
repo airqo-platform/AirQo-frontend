@@ -21,13 +21,20 @@ export const isTokenExpired = (token: string): boolean => {
     return `${normalized}${'='.repeat(4 - paddingLength)}`;
   };
 
+  const decodeJwtPayload = (payload: string): string => {
+    const binary = atob(toBase64(payload));
+    const bytes = Uint8Array.from(binary, character => character.charCodeAt(0));
+
+    return new TextDecoder('utf-8').decode(bytes);
+  };
+
   try {
     const parts = token.split('.');
     if (parts.length !== 3) {
       return true;
     }
     const payload = parts[1];
-    const decoded = JSON.parse(atob(toBase64(payload)));
+    const decoded = JSON.parse(decodeJwtPayload(payload));
     if (!decoded?.exp) {
       return true;
     }

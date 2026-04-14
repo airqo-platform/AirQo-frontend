@@ -52,6 +52,9 @@ export function useMapReadings(
         ? `user:${sessionUserId}`
         : 'anonymous'
     : 'public';
+  const requestUserId = isCohortScopedRequest
+    ? sessionUserId || undefined
+    : undefined;
 
   const {
     data: readings = [],
@@ -64,7 +67,7 @@ export function useMapReadings(
       const response: MapReadingsResponse =
         await deviceService.getMapReadingsWithToken(
           cohort_id || undefined,
-          sessionUserId || undefined
+          requestUserId
         );
       return response.measurements;
     },

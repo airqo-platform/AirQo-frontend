@@ -21,7 +21,9 @@ import {
   trackFeatureUsage,
 } from '@/shared/utils/enhancedAnalytics';
 import { InfoBanner } from '@/shared/components/ui/banner';
+import { EmptyState } from '@/shared/components/ui/empty-state';
 import { useCohort } from '@/shared/hooks';
+import { AqAlertTriangle } from '@airqo/icons-react';
 
 interface MapPageProps {
   cohortId?: string;
@@ -68,7 +70,7 @@ const EmptyCohortBanner: React.FC<{ className?: string }> = ({ className }) => (
   >
     <InfoBanner
       title="No data available"
-      message={<>This cohort may be private or contain no deployed devices.</>}
+      message={<>This cohort contains no deployed devices yet.</>}
       className="shadow-lg bg-white/95 backdrop-blur-sm border-blue-200"
     />
   </div>
@@ -160,11 +162,12 @@ const MapPage: React.FC<MapPageProps> = ({
     isLoading: mapDataLoading,
     refetch,
   } = useMapReadings(mapCohortFilter);
-
-  const { data: cohortData, isLoading: cohortLoading } = useCohort(
-    primaryCohortId,
-    isOrganizationFlow && !!primaryCohortId
-  );
+  const {
+    data: cohortData,
+    isLoading: cohortLoading,
+    error: cohortError,
+    mutate: refetchCohort,
+  } = useCohort(primaryCohortId, isOrganizationFlow && !!primaryCohortId);
 
   const normalizedReadings = React.useMemo(() => {
     const airqoReadings = normalizeMapReadings(readings, selectedPollutant);
@@ -185,18 +188,46 @@ const MapPage: React.FC<MapPageProps> = ({
     return Array.from(dedupedReadings.values());
   }, [readings, selectedPollutant]);
 
+  const hasCohortError = Boolean(cohortError);
+
   const hasNoMapData =
     !cohortLoading &&
+    !hasCohortError &&
     isOrganizationFlow &&
-    cohortData?.cohorts[0]?.visibility === false;
+    cohortData?.cohorts?.[0]?.visibility === false;
 
   const showEmptyCohortState =
     !cohortLoading &&
+    !hasCohortError &&
     isOrganizationFlow &&
     !!primaryCohortId &&
     !mapDataLoading &&
     normalizedReadings.length === 0 &&
     !hasNoMapData;
+
+  const contentHeight = `calc(100dvh - ${navHeight}px)`;
+  const isMdUp = useMediaQuery({ minWidth: 768 });
+
+  if (hasCohortError) {
+    return (
+      <div className="flex min-h-[400px] w-full items-center justify-center p-6">
+        <EmptyState
+          title="Unable to load cohort"
+          description={
+            cohortError instanceof Error
+              ? cohortError.message
+              : 'We could not load this cohort. Please try again.'
+          }
+          icon={<AqAlertTriangle size={48} />}
+          action={{
+            label: 'Retry',
+            onClick: () => void refetchCohort(),
+          }}
+          className="min-h-[400px]"
+        />
+      </div>
+    );
+  }
 
   // ── Handlers ───────────────────────────────────────────────────────────────
   const handleSearch = (query: string) => setSearchQuery(query);
@@ -342,9 +373,6 @@ const MapPage: React.FC<MapPageProps> = ({
    * This lets MapPage control the height without MapSidebar needing props for it.
    * ─────────────────────────────────────────────────────────────────────────
    */
-  const contentHeight = `calc(100dvh - ${navHeight}px)`;
-  const isMdUp = useMediaQuery({ minWidth: 768 });
-
   return (
     <>
       {/* ── Desktop layout (md+) ─────────────────────────────────────────

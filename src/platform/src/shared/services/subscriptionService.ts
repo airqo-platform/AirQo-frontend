@@ -540,10 +540,6 @@ export class SubscriptionService {
 
   async getSubscription(): Promise<GetSubscriptionResponse> {
     const profile = await this.getUsersProfilePayload();
-    console.log(
-      'subscriptionService.getSubscription profile response:',
-      profile
-    );
 
     let tier = normalizeTier(profile.subscriptionTier);
     let status = normalizeStatus(profile.subscriptionStatus);
@@ -560,11 +556,6 @@ export class SubscriptionService {
         );
 
         const statusData = extractEnvelopeData<SubscriptionStatusPayload>(
-          statusResponse.data
-        );
-
-        console.log(
-          'subscriptionService.getSubscription subscription-status response:',
           statusResponse.data
         );
 
@@ -610,12 +601,6 @@ export class SubscriptionService {
 
     const usage = toUsage(rateLimits);
 
-    console.log(
-      'subscriptionService.getSubscription normalized subscription:',
-      subscription
-    );
-    console.log('subscriptionService.getSubscription normalized usage:', usage);
-
     return {
       success: true,
       message: 'Subscription retrieved successfully',
@@ -635,10 +620,7 @@ export class SubscriptionService {
     usage: ApiUsage;
   }> {
     const profile = await this.getUsersProfilePayload();
-    console.log('subscriptionService.getUsage profile response:', profile);
     const usage = toUsage(profile.apiRateLimits ?? null);
-
-    console.log('subscriptionService.getUsage normalized usage:', usage);
 
     return {
       success: true,
@@ -900,26 +882,9 @@ export class SubscriptionService {
       }
     );
 
-    console.log(
-      'subscriptionService.getTransactionHistory response:',
-      response.data
-    );
-
     const rawTransactions = extractArrayData<BackendTransaction>(response.data);
     const transactions = normalizeTransactions(rawTransactions);
     const meta = extractTransactionHistoryMeta(response.data);
-
-    console.log(
-      'subscriptionService.getTransactionHistory normalized transactions:',
-      transactions
-    );
-
-    if (meta) {
-      console.log(
-        'subscriptionService.getTransactionHistory pagination meta:',
-        meta
-      );
-    }
 
     return {
       success: true,

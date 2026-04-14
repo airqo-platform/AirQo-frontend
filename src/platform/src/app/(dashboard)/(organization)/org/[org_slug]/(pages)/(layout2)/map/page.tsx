@@ -29,10 +29,13 @@ const Page: React.FC<PageProps> = ({ params }) => {
     error: cohortsError,
     mutate: refetchGroupCohorts,
   } = useGroupCohorts(organizationGroupId, !!organizationGroupId);
-  const cohortIds = useMemo(
-    () => groupCohortsResponse?.data ?? [],
-    [groupCohortsResponse?.data]
-  );
+  const cohortIds = useMemo(() => {
+    const rawCohortIds = groupCohortsResponse?.data ?? [];
+
+    return Array.from(
+      new Set(rawCohortIds.map(cohortId => cohortId.trim()).filter(Boolean))
+    );
+  }, [groupCohortsResponse?.data]);
   const cohortIdString = useMemo(() => cohortIds.join(','), [cohortIds]);
 
   if (userLoading) {
