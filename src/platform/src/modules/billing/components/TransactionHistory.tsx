@@ -37,7 +37,7 @@ const TransactionHistory: React.FC = () => {
         throw new Error(response.message || 'Failed to load transactions');
       }
 
-      const items = response.transactions || response.data || [];
+      const items = response.data || [];
       setTransactions(items as TransactionTableItem[]);
     } catch (err) {
       setTransactions([]);

@@ -15,59 +15,6 @@ import CheckoutDialog from './CheckoutDialog';
 const BILLING_SERVICE_UNAVAILABLE_MESSAGE =
   'Billing service is temporarily unavailable. Please try again later.';
 
-const fallbackPlans: SubscriptionPlan[] = [
-  {
-    tier: 'Free',
-    name: 'Free',
-    price: 0,
-    currency: 'USD',
-    features: [
-      'Recent hourly measurements (7 days)',
-      'Spatial heatmaps',
-      'Community support',
-    ],
-    limits: {
-      hourly: 100,
-      daily: 1000,
-      monthly: 10000,
-    },
-  },
-  {
-    tier: 'Standard',
-    name: 'Standard',
-    price: 50,
-    currency: 'USD',
-    features: [
-      'Historical data access up to 1 year',
-      'Raw sensor data and daily aggregations',
-      'Bulk data exports',
-      'Email support',
-    ],
-    limits: {
-      hourly: 500,
-      daily: 5000,
-      monthly: 50000,
-    },
-  },
-  {
-    tier: 'Premium',
-    name: 'Premium',
-    price: 150,
-    currency: 'USD',
-    features: [
-      '7-day hourly and daily forecasts',
-      'Health recommendations',
-      'Higher rate limits',
-      'Priority support',
-    ],
-    limits: {
-      hourly: 2000,
-      daily: 20000,
-      monthly: 200000,
-    },
-  },
-];
-
 const statusBadgeStyles: Record<string, string> = {
   active:
     'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200',
@@ -81,7 +28,7 @@ const SubscriptionSection: React.FC = () => {
   const [subscription, setSubscription] = useState<UserSubscription | null>(
     null
   );
-  const [plans, setPlans] = useState<SubscriptionPlan[]>(fallbackPlans);
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(
@@ -104,24 +51,17 @@ const SubscriptionSection: React.FC = () => {
         subscriptionService.getPlans(),
       ]);
 
-      if (subscriptionResponse.success) {
-        const incoming =
-          subscriptionResponse.subscription ||
-          subscriptionResponse.data ||
-          null;
-        if (incoming) {
-          setSubscription((incoming as UserSubscription) || null);
-        }
-      }
+      setSubscription(
+        subscriptionResponse.success
+          ? (subscriptionResponse.subscription ?? null)
+          : null
+      );
 
-      const incomingPlans = plansResponse.plans;
-      if (
-        plansResponse.success &&
-        Array.isArray(incomingPlans) &&
-        incomingPlans.length
-      ) {
-        setPlans(incomingPlans);
-      }
+      setPlans(
+        plansResponse.success && Array.isArray(plansResponse.plans)
+          ? plansResponse.plans
+          : []
+      );
     } catch (error) {
       console.error('Error loading subscription view:', error);
       toast.error('Failed to load subscription data');
@@ -138,6 +78,7 @@ const SubscriptionSection: React.FC = () => {
     () => plans.find(plan => plan.tier === currentTier),
     [plans, currentTier]
   );
+  const hasPlans = plans.length > 0;
 
   const handleOpenCheckout = (plan: SubscriptionPlan) => {
     setSelectedPlan(plan);
@@ -454,72 +395,81 @@ const SubscriptionSection: React.FC = () => {
             Upgrade your API access based on your product and traffic needs.
           </p>
 
-          <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
-            {plans.map(plan => {
-              const isCurrent = plan.tier === currentTier;
-              const allowCheckout = !isCurrent && plan.tier !== 'Free';
+          {hasPlans ? (
+            <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
+              {plans.map(plan => {
+                const isCurrent = plan.tier === currentTier;
+                const allowCheckout = !isCurrent && plan.tier !== 'Free';
 
-              return (
-                <Card
-                  key={plan.tier}
-                  className={`p-5 flex flex-col ${
-                    isCurrent
-                      ? 'ring-2 ring-primary/60 border-primary/40'
-                      : 'hover:shadow-md transition-shadow'
-                  }`}
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h4 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                        {plan.name}
-                      </h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        {plan.currency} {plan.price}/month
+                return (
+                  <Card
+                    key={plan.tier}
+                    className={`p-5 flex flex-col ${
+                      isCurrent
+                        ? 'ring-2 ring-primary/60 border-primary/40'
+                        : 'hover:shadow-md transition-shadow'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h4 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                          {plan.name}
+                        </h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          {plan.currency} {plan.price}/month
+                        </p>
+                      </div>
+                      {isCurrent && (
+                        <span className="inline-flex items-center rounded-full bg-primary/15 px-3 py-1 text-xs font-medium text-primary">
+                          Current
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="mt-4 rounded-lg bg-gray-50 dark:bg-gray-900/40 p-3 text-xs text-gray-700 dark:text-gray-300">
+                      <p>{plan.limits.hourly.toLocaleString()} requests/hour</p>
+                      <p>{plan.limits.daily.toLocaleString()} requests/day</p>
+                      <p>
+                        {plan.limits.monthly.toLocaleString()} requests/month
                       </p>
                     </div>
-                    {isCurrent && (
-                      <span className="inline-flex items-center rounded-full bg-primary/15 px-3 py-1 text-xs font-medium text-primary">
-                        Current
-                      </span>
-                    )}
-                  </div>
 
-                  <div className="mt-4 rounded-lg bg-gray-50 dark:bg-gray-900/40 p-3 text-xs text-gray-700 dark:text-gray-300">
-                    <p>{plan.limits.hourly.toLocaleString()} requests/hour</p>
-                    <p>{plan.limits.daily.toLocaleString()} requests/day</p>
-                    <p>{plan.limits.monthly.toLocaleString()} requests/month</p>
-                  </div>
+                    <ul className="mt-4 space-y-2 flex-1">
+                      {plan.features.map(feature => (
+                        <li
+                          key={feature}
+                          className="flex items-start gap-2 text-sm"
+                        >
+                          <AqCheck className="w-4 h-4 mt-0.5 text-emerald-600 dark:text-emerald-400" />
+                          <span className="text-gray-700 dark:text-gray-300">
+                            {feature}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
 
-                  <ul className="mt-4 space-y-2 flex-1">
-                    {plan.features.map(feature => (
-                      <li
-                        key={feature}
-                        className="flex items-start gap-2 text-sm"
-                      >
-                        <AqCheck className="w-4 h-4 mt-0.5 text-emerald-600 dark:text-emerald-400" />
-                        <span className="text-gray-700 dark:text-gray-300">
-                          {feature}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <Button
-                    className="mt-5"
-                    variant={isCurrent ? 'outlined' : 'filled'}
-                    disabled={!allowCheckout}
-                    onClick={() => handleOpenCheckout(plan)}
-                  >
-                    {isCurrent
-                      ? 'Current plan'
-                      : allowCheckout
-                        ? `Upgrade to ${plan.name}`
-                        : 'Unavailable'}
-                  </Button>
-                </Card>
-              );
-            })}
-          </div>
+                    <Button
+                      className="mt-5"
+                      variant={isCurrent ? 'outlined' : 'filled'}
+                      disabled={!allowCheckout}
+                      onClick={() => handleOpenCheckout(plan)}
+                    >
+                      {isCurrent
+                        ? 'Current plan'
+                        : allowCheckout
+                          ? `Upgrade to ${plan.name}`
+                          : 'Unavailable'}
+                    </Button>
+                  </Card>
+                );
+              })}
+            </div>
+          ) : (
+            <Card className="border border-dashed border-gray-300 dark:border-gray-700 p-5 text-sm text-gray-600 dark:text-gray-400">
+              Subscription plans are unavailable right now. Please refresh the
+              page or try again later.
+            </Card>
+          )}
         </div>
       </div>
 

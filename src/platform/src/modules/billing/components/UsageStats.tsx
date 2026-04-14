@@ -15,7 +15,7 @@ interface UsagePeriod {
   title: string;
   data: {
     used: number | null;
-    limit: number;
+    limit: number | null;
     resetTime: string;
   };
   description: string;
@@ -64,8 +64,11 @@ const UsageStats: React.FC = () => {
     return `Resets in ${minutes} minute${minutes !== 1 ? 's' : ''}`;
   };
 
-  const getUsagePercentage = (used: number | null, limit: number): number => {
-    if (used === null || !limit) {
+  const getUsagePercentage = (
+    used: number | null,
+    limit: number | null
+  ): number => {
+    if (used === null || limit === null || !limit) {
       return 0;
     }
 
@@ -74,10 +77,18 @@ const UsageStats: React.FC = () => {
 
   const formatUsageValue = (used: number | null): string => {
     if (used === null) {
-      return 'N/A';
+      return '--';
     }
 
     return used.toLocaleString();
+  };
+
+  const formatLimitValue = (limit: number | null): string => {
+    if (limit === null) {
+      return '--';
+    }
+
+    return limit.toLocaleString();
   };
 
   const getProgressColor = (percentage: number): string => {
@@ -163,7 +174,7 @@ const UsageStats: React.FC = () => {
                     {formatUsageValue(period.data.used)}
                   </span>
                   <span className="text-sm text-gray-600 dark:text-gray-400">
-                    / {period.data.limit.toLocaleString()}
+                    / {formatLimitValue(period.data.limit)}
                   </span>
                 </div>
 

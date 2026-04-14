@@ -1566,17 +1566,17 @@ export interface UserSubscription {
 export interface ApiUsage {
   hourly: {
     used: number | null;
-    limit: number;
+    limit: number | null;
     resetTime: string;
   };
   daily: {
     used: number | null;
-    limit: number;
+    limit: number | null;
     resetTime: string;
   };
   monthly: {
     used: number | null;
-    limit: number;
+    limit: number | null;
     resetTime: string;
   };
 }

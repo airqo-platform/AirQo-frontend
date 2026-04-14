@@ -86,27 +86,6 @@ const USERS_PROFILE_CANDIDATE_PATHS = [
 
 const RETRYABLE_PROFILE_STATUSES = new Set([400, 404, 405]);
 
-const DEFAULT_RATE_LIMITS: Record<
-  SubscriptionTier,
-  Required<ApiRateLimitsPayload>
-> = {
-  Free: {
-    hourlyLimit: 100,
-    dailyLimit: 1000,
-    monthlyLimit: 10000,
-  },
-  Standard: {
-    hourlyLimit: 500,
-    dailyLimit: 5000,
-    monthlyLimit: 50000,
-  },
-  Premium: {
-    hourlyLimit: 2000,
-    dailyLimit: 20000,
-    monthlyLimit: 200000,
-  },
-};
-
 const getDefaultPlans = (): SubscriptionPlan[] => [
   {
     tier: 'Free',
@@ -225,23 +204,48 @@ const buildResetTime = (period: 'hourly' | 'daily' | 'monthly') => {
   return reset.toISOString();
 };
 
-const toUsage = (rateLimits: Required<ApiRateLimitsPayload>): ApiUsage => ({
+const toUsage = (rateLimits?: ApiRateLimitsPayload | null): ApiUsage => ({
   hourly: {
     used: null,
-    limit: rateLimits.hourlyLimit,
+    limit: rateLimits?.hourlyLimit ?? null,
     resetTime: buildResetTime('hourly'),
   },
   daily: {
     used: null,
-    limit: rateLimits.dailyLimit,
+    limit: rateLimits?.dailyLimit ?? null,
     resetTime: buildResetTime('daily'),
   },
   monthly: {
     used: null,
-    limit: rateLimits.monthlyLimit,
+    limit: rateLimits?.monthlyLimit ?? null,
     resetTime: buildResetTime('monthly'),
   },
 });
+
+const normalizeRateLimits = (
+  rateLimits?: ApiRateLimitsPayload | null
+):
+  | {
+      hourlyLimit: number;
+      dailyLimit: number;
+      monthlyLimit: number;
+    }
+  | undefined => {
+  if (
+    !rateLimits ||
+    typeof rateLimits.hourlyLimit !== 'number' ||
+    typeof rateLimits.dailyLimit !== 'number' ||
+    typeof rateLimits.monthlyLimit !== 'number'
+  ) {
+    return undefined;
+  }
+
+  return {
+    hourlyLimit: rateLimits.hourlyLimit,
+    dailyLimit: rateLimits.dailyLimit,
+    monthlyLimit: rateLimits.monthlyLimit,
+  };
+};
 
 const extractEnvelopeData = <T>(payload: unknown): T | null => {
   if (!payload || typeof payload !== 'object') {
@@ -489,16 +493,7 @@ export class SubscriptionService {
       }
     }
 
-    const profileRateLimits = profile.apiRateLimits || {};
-    const fallbackRateLimits = DEFAULT_RATE_LIMITS[tier];
-
-    const rateLimits = {
-      hourlyLimit:
-        profileRateLimits.hourlyLimit ?? fallbackRateLimits.hourlyLimit,
-      dailyLimit: profileRateLimits.dailyLimit ?? fallbackRateLimits.dailyLimit,
-      monthlyLimit:
-        profileRateLimits.monthlyLimit ?? fallbackRateLimits.monthlyLimit,
-    };
+    const rateLimits = profile.apiRateLimits ?? null;
 
     const subscription: UserSubscription = {
       tier,
@@ -512,7 +507,7 @@ export class SubscriptionService {
         currency: profile.currentPlanDetails?.currency ?? null,
         billingCycle: profile.currentPlanDetails?.billingCycle ?? null,
       },
-      apiRateLimits: rateLimits,
+      apiRateLimits: normalizeRateLimits(profile.apiRateLimits),
       autoRenewal: Boolean(profile.automaticRenewal),
       startDate: profile.lastRenewalDate || undefined,
       endDate: nextBillingDate || undefined,
@@ -543,17 +538,7 @@ export class SubscriptionService {
     usage: ApiUsage;
   }> {
     const profile = await this.getUsersProfilePayload();
-    const tier = normalizeTier(profile.subscriptionTier);
-    const fallbackLimits = DEFAULT_RATE_LIMITS[tier];
-
-    const usage = toUsage({
-      hourlyLimit:
-        profile.apiRateLimits?.hourlyLimit ?? fallbackLimits.hourlyLimit,
-      dailyLimit:
-        profile.apiRateLimits?.dailyLimit ?? fallbackLimits.dailyLimit,
-      monthlyLimit:
-        profile.apiRateLimits?.monthlyLimit ?? fallbackLimits.monthlyLimit,
-    });
+    const usage = toUsage(profile.apiRateLimits ?? null);
 
     return {
       success: true,
