@@ -188,13 +188,26 @@ const stripApiVersionPrefix = (path: string): string => {
   return path.replace(/^\/api\/v\d+/i, '');
 };
 
+const matchesPermissionScopedPath = (
+  path: string,
+  scopedPath: string
+): boolean => {
+  const normalizedPath = path.replace(/\/+$/, '') || '/';
+  const normalizedScopedPath = scopedPath.replace(/\/+$/, '') || '/';
+
+  return (
+    normalizedPath === normalizedScopedPath ||
+    normalizedPath.startsWith(`${normalizedScopedPath}/`)
+  );
+};
+
 const isPermissionScopedUnauthorizedPath = (url?: string): boolean => {
   const normalizedPath = stripApiVersionPrefix(toNormalizedPath(url));
 
   return (
-    normalizedPath.startsWith('/devices/readings/recent') ||
-    normalizedPath.startsWith('/devices/readings/map') ||
-    normalizedPath.startsWith('/analytics/data-download')
+    matchesPermissionScopedPath(normalizedPath, '/devices/readings/recent') ||
+    matchesPermissionScopedPath(normalizedPath, '/devices/readings/map') ||
+    matchesPermissionScopedPath(normalizedPath, '/analytics/data-download')
   );
 };
 

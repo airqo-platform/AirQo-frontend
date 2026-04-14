@@ -188,17 +188,17 @@ export const buildSessionFromProfile = (
 
 export const verifyBackendOAuthSession =
   async (): Promise<BackendOAuthProfile | null> => {
-    const profileUrl =
-      typeof window === 'undefined'
-        ? buildServerApiUrl('/users/profile/enhanced')
-        : buildBrowserApiUrl('/users/profile/enhanced');
-
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
       controller.abort();
     }, OAUTH_PROFILE_FETCH_TIMEOUT_MS);
 
     try {
+      const profileUrl =
+        typeof window === 'undefined'
+          ? buildServerApiUrl('/users/profile/enhanced')
+          : buildBrowserApiUrl('/users/profile/enhanced');
+
       const response = await fetch(profileUrl, {
         method: 'GET',
         signal: controller.signal,

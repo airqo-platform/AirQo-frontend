@@ -6,7 +6,7 @@ import { useUser } from '@/shared/hooks/useUser';
 import { useGroupCohorts } from '@/shared/hooks';
 import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
 import { EmptyState } from '@/shared/components/ui/empty-state';
-import { AqSearchRefraction } from '@airqo/icons-react';
+import { AqAlertTriangle, AqSearchRefraction } from '@airqo/icons-react';
 
 interface PageProps {
   params: {
@@ -23,8 +23,12 @@ const Page: React.FC<PageProps> = ({ params }) => {
   }, [groups, org_slug]);
 
   const organizationGroupId = activeGroup?.id || '';
-  const { data: groupCohortsResponse, isLoading: cohortsLoading } =
-    useGroupCohorts(organizationGroupId, !!organizationGroupId);
+  const {
+    data: groupCohortsResponse,
+    isLoading: cohortsLoading,
+    error: cohortsError,
+    mutate: refetchGroupCohorts,
+  } = useGroupCohorts(organizationGroupId, !!organizationGroupId);
   const cohortIds = useMemo(
     () => groupCohortsResponse?.data ?? [],
     [groupCohortsResponse?.data]
@@ -52,6 +56,27 @@ const Page: React.FC<PageProps> = ({ params }) => {
     return (
       <div className="flex items-center justify-center h-full w-full">
         <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (cohortsError) {
+    return (
+      <div className="h-full w-full p-6">
+        <EmptyState
+          title="Unable to load device groups"
+          description={
+            cohortsError instanceof Error
+              ? cohortsError.message
+              : 'We could not load the organization cohorts. Try again.'
+          }
+          icon={<AqAlertTriangle size={48} />}
+          action={{
+            label: 'Retry',
+            onClick: () => void refetchGroupCohorts(),
+          }}
+          className="min-h-[400px]"
+        />
       </div>
     );
   }

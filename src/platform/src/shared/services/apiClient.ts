@@ -108,24 +108,6 @@ const resolveApiToken = (): string => {
   return (process.env.API_TOKEN || '').trim();
 };
 
-const appendApiTokenToUrl = (inputUrl: string, token: string): string => {
-  if (!inputUrl || !token) {
-    return inputUrl;
-  }
-
-  const [urlWithoutHash, hashFragment] = inputUrl.split('#', 2);
-  const [path, queryString = ''] = urlWithoutHash.split('?', 2);
-  const searchParams = new URLSearchParams(queryString);
-
-  if (!searchParams.has('token')) {
-    searchParams.set('token', token);
-  }
-
-  const serializedQuery = searchParams.toString();
-  const nextUrl = serializedQuery ? `${path}?${serializedQuery}` : path;
-  return hashFragment ? `${nextUrl}#${hashFragment}` : nextUrl;
-};
-
 // Auth types
 export enum AuthType {
   NONE = 'none',
@@ -193,8 +175,15 @@ export class ApiClient {
           if (typeof window === 'undefined') {
             const apiToken = resolveApiToken();
 
-            if (apiToken && typeof config.url === 'string') {
-              config.url = appendApiTokenToUrl(config.url, apiToken);
+            if (apiToken) {
+              const existingParams =
+                config.params && typeof config.params === 'object'
+                  ? config.params
+                  : {};
+              config.params = {
+                ...existingParams,
+                token: apiToken,
+              };
             } else if (!apiToken && !hasLoggedMissingApiTokenWarning) {
               hasLoggedMissingApiTokenWarning = true;
               logger.warn(

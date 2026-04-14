@@ -227,17 +227,17 @@ const buildResetTime = (period: 'hourly' | 'daily' | 'monthly') => {
 
 const toUsage = (rateLimits: Required<ApiRateLimitsPayload>): ApiUsage => ({
   hourly: {
-    used: 0,
+    used: null,
     limit: rateLimits.hourlyLimit,
     resetTime: buildResetTime('hourly'),
   },
   daily: {
-    used: 0,
+    used: null,
     limit: rateLimits.dailyLimit,
     resetTime: buildResetTime('daily'),
   },
   monthly: {
-    used: 0,
+    used: null,
     limit: rateLimits.monthlyLimit,
     resetTime: buildResetTime('monthly'),
   },
@@ -647,6 +647,7 @@ export class SubscriptionService {
   }
 
   async enableAutoRenewal(subscriptionId?: string): Promise<MutationResponse> {
+    await this.ensureAuthenticated();
     const resolvedSubscriptionId =
       await this.resolveSubscriptionId(subscriptionId);
 
@@ -695,6 +696,7 @@ export class SubscriptionService {
   }
 
   async cancelSubscription(subscriptionId?: string): Promise<MutationResponse> {
+    await this.ensureAuthenticated();
     const resolvedSubscriptionId =
       await this.resolveSubscriptionId(subscriptionId);
 
@@ -743,6 +745,7 @@ export class SubscriptionService {
   async reactivateSubscription(
     subscriptionId?: string
   ): Promise<MutationResponse> {
+    await this.ensureAuthenticated();
     const resolvedSubscriptionId =
       await this.resolveSubscriptionId(subscriptionId);
 

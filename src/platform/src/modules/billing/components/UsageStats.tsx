@@ -14,7 +14,7 @@ import type { ApiUsage } from '@/shared/types/api';
 interface UsagePeriod {
   title: string;
   data: {
-    used: number;
+    used: number | null;
     limit: number;
     resetTime: string;
   };
@@ -64,12 +64,20 @@ const UsageStats: React.FC = () => {
     return `Resets in ${minutes} minute${minutes !== 1 ? 's' : ''}`;
   };
 
-  const getUsagePercentage = (used: number, limit: number): number => {
-    if (!limit) {
+  const getUsagePercentage = (used: number | null, limit: number): number => {
+    if (used === null || !limit) {
       return 0;
     }
 
     return Math.min((used / limit) * 100, 100);
+  };
+
+  const formatUsageValue = (used: number | null): string => {
+    if (used === null) {
+      return 'N/A';
+    }
+
+    return used.toLocaleString();
   };
 
   const getProgressColor = (percentage: number): string => {
@@ -110,9 +118,12 @@ const UsageStats: React.FC = () => {
     },
   ];
 
-  const nearLimit = usagePeriods.some(
-    period => getUsagePercentage(period.data.used, period.data.limit) >= 90
-  );
+  const hasUsageData = usagePeriods.some(period => period.data.used !== null);
+  const nearLimit = hasUsageData
+    ? usagePeriods.some(
+        period => getUsagePercentage(period.data.used, period.data.limit) >= 90
+      )
+    : false;
 
   return (
     <Card className="p-6">
@@ -149,7 +160,7 @@ const UsageStats: React.FC = () => {
               <div className="space-y-3">
                 <div className="flex justify-between items-baseline">
                   <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {period.data.used.toLocaleString()}
+                    {formatUsageValue(period.data.used)}
                   </span>
                   <span className="text-sm text-gray-600 dark:text-gray-400">
                     / {period.data.limit.toLocaleString()}
@@ -165,9 +176,11 @@ const UsageStats: React.FC = () => {
                   </div>
                   <div className="mt-1 flex items-center justify-between">
                     <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                      {percentage.toFixed(1)}% used
+                      {period.data.used === null
+                        ? 'Usage data unavailable'
+                        : `${percentage.toFixed(1)}% used`}
                     </span>
-                    {percentage >= 90 && (
+                    {period.data.used !== null && percentage >= 90 && (
                       <span className="text-xs font-medium text-red-600 dark:text-red-400">
                         Limit approaching
                       </span>

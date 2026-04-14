@@ -66,7 +66,7 @@ async function proxyRequest(request: NextRequest, pathSegments: string[]) {
       if (key.toLowerCase() === 'token') {
         return;
       }
-      targetUrl.searchParams.set(key, value);
+      targetUrl.searchParams.append(key, value);
     });
 
     targetUrl.searchParams.set('token', apiToken);
@@ -92,27 +92,39 @@ async function proxyRequest(request: NextRequest, pathSegments: string[]) {
       }
     }
 
-    const response = await fetch(targetUrl.toString(), init);
-    const responseBuffer = await response.arrayBuffer();
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, 10000);
 
-    const responseHeaders = new Headers();
-    const responseContentType = response.headers.get('content-type');
-    if (responseContentType) {
-      responseHeaders.set('Content-Type', responseContentType);
+    try {
+      init.signal = controller.signal;
+
+      const response = await fetch(targetUrl.toString(), init);
+
+      const responseHeaders = new Headers(response.headers);
+      responseHeaders.set(
+        'Cache-Control',
+        'no-store, no-cache, max-age=0, must-revalidate'
+      );
+      responseHeaders.set('Pragma', 'no-cache');
+      responseHeaders.set('Expires', '0');
+
+      return new NextResponse(response.body, {
+        status: response.status,
+        headers: responseHeaders,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  } catch (error) {
+    if ((error as { name?: string })?.name === 'AbortError') {
+      return NextResponse.json(
+        { success: false, message: 'Upstream request timed out' },
+        { status: 504 }
+      );
     }
 
-    responseHeaders.set(
-      'Cache-Control',
-      'no-store, no-cache, max-age=0, must-revalidate'
-    );
-    responseHeaders.set('Pragma', 'no-cache');
-    responseHeaders.set('Expires', '0');
-
-    return new NextResponse(responseBuffer, {
-      status: response.status,
-      headers: responseHeaders,
-    });
-  } catch (error) {
     console.error('Token proxy request failed:', error);
     return NextResponse.json(
       { success: false, message: 'Internal server error' },
