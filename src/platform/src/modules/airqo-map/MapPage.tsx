@@ -62,6 +62,18 @@ const PrivateOrgBanner: React.FC<{ className?: string }> = ({ className }) => (
   </div>
 );
 
+const EmptyCohortBanner: React.FC<{ className?: string }> = ({ className }) => (
+  <div
+    className={`absolute top-4 left-1/2 -translate-x-1/2 z-[10000] w-full max-w-2xl px-4 ${className ?? ''}`}
+  >
+    <InfoBanner
+      title="No data available"
+      message={<>This cohort may be private or contain no deployed devices.</>}
+      className="shadow-lg bg-white/95 backdrop-blur-sm border-blue-200"
+    />
+  </div>
+);
+
 // ─── MapPage ──────────────────────────────────────────────────────────────────
 
 const MapPage: React.FC<MapPageProps> = ({
@@ -149,17 +161,27 @@ const MapPage: React.FC<MapPageProps> = ({
     refetch,
   } = useMapReadings(mapCohortFilter);
 
-  const { data: cohortData } = useCohort(
+  const { data: cohortData, isLoading: cohortLoading } = useCohort(
     primaryCohortId,
     isOrganizationFlow && !!primaryCohortId
   );
 
-  const hasNoMapData =
-    isOrganizationFlow && cohortData?.cohorts[0]?.visibility === false;
-
   const normalizedReadings = React.useMemo(() => {
     return normalizeMapReadings(readings, selectedPollutant);
   }, [readings, selectedPollutant]);
+
+  const hasNoMapData =
+    !cohortLoading &&
+    isOrganizationFlow &&
+    cohortData?.cohorts[0]?.visibility === false;
+
+  const showEmptyCohortState =
+    !cohortLoading &&
+    isOrganizationFlow &&
+    !!primaryCohortId &&
+    !mapDataLoading &&
+    normalizedReadings.length === 0 &&
+    !hasNoMapData;
 
   // ── Handlers ───────────────────────────────────────────────────────────────
   const handleSearch = (query: string) => setSearchQuery(query);
@@ -339,7 +361,11 @@ const MapPage: React.FC<MapPageProps> = ({
 
         {/* Map wrapper — fills remaining width, clips map overflow */}
         <div className="flex-1 min-w-0 relative overflow-hidden">
-          {hasNoMapData && <PrivateOrgBanner />}
+          {hasNoMapData ? (
+            <PrivateOrgBanner />
+          ) : showEmptyCohortState ? (
+            <EmptyCohortBanner />
+          ) : null}
           {isMdUp && <EnhancedMap {...mapProps} />}
         </div>
       </div>
@@ -365,7 +391,11 @@ const MapPage: React.FC<MapPageProps> = ({
           className="relative overflow-hidden flex-none"
           style={{ height: '40dvh' }}
         >
-          {hasNoMapData && <PrivateOrgBanner className="text-sm" />}
+          {hasNoMapData ? (
+            <PrivateOrgBanner className="text-sm" />
+          ) : showEmptyCohortState ? (
+            <EmptyCohortBanner className="text-sm" />
+          ) : null}
           {!isMdUp && <EnhancedMap {...mapProps} />}
         </div>
 

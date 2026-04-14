@@ -111,6 +111,8 @@ export const CountryList: React.FC<CountryListProps> = ({
     [countries, selectedCountry]
   );
 
+  const hasNoCountries = !isLoading && countries.length === 0;
+
   if (isLoading) {
     return <CountryListSkeleton className={className} />;
   }
@@ -125,6 +127,21 @@ export const CountryList: React.FC<CountryListProps> = ({
       >
         <div className="text-sm text-red-500 dark:text-red-400">
           Failed to load countries
+        </div>
+      </div>
+    );
+  }
+
+  if (hasNoCountries) {
+    return (
+      <div
+        className={cn(
+          'pt-3 pb-3 px-4 border-b border-gray-100 dark:border-gray-700',
+          className
+        )}
+      >
+        <div className="text-sm text-muted-foreground">
+          No countries available for this cohort.
         </div>
       </div>
     );

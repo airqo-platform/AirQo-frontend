@@ -241,11 +241,15 @@ export class DeviceService {
 
   // Get map readings - API token endpoint
   async getMapReadingsWithToken(
-    cohort_id?: string
+    cohort_id?: string,
+    user_id?: string
   ): Promise<MapReadingsResponse> {
     const params: Record<string, string> = {};
     if (cohort_id) {
       params.cohort_id = cohort_id;
+    }
+    if (user_id) {
+      params.user_id = user_id;
     }
 
     const response = await this.serverClient.get<
