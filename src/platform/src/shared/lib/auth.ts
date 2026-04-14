@@ -10,7 +10,8 @@ const sessionCookieName = isProduction
   ? '__Secure-next-auth.session-token'
   : 'analytics.next-auth.session-token';
 
-const isJwtLikeToken = (token: string): boolean => token.split('.').length === 3;
+const isJwtLikeToken = (token: string): boolean =>
+  token.split('.').length === 3;
 
 const isExpiredAt = (value: unknown): boolean => {
   if (typeof value !== 'string' || !value.trim()) {
