@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { ApiUsage, SubscriptionTier } from '@/shared/types/api';
 import {
   extractEnvelopeData,
-  makeUsersApiRequest,
+  makeUsersProfileRequest,
   parseJsonSafe,
 } from '../_lib/paymentsProxy';
 
@@ -16,6 +16,10 @@ interface UsersMePayload {
     monthlyLimit?: number;
   } | null;
 }
+
+type UsersProfileEnvelope = UsersMePayload & {
+  user?: UsersMePayload | null;
+};
 
 const DEFAULT_LIMITS_BY_TIER: Record<
   SubscriptionTier,
@@ -61,7 +65,7 @@ const getResetTime = (period: 'hourly' | 'daily' | 'monthly'): string => {
 
 export async function GET() {
   try {
-    const profileResult = await makeUsersApiRequest('/me', { method: 'GET' });
+    const profileResult = await makeUsersProfileRequest();
 
     if ('error' in profileResult) {
       return profileResult.error;
@@ -85,7 +89,13 @@ export async function GET() {
       );
     }
 
-    const profile = extractEnvelopeData<UsersMePayload>(payload) || {};
+    const profileEnvelope =
+      extractEnvelopeData<UsersProfileEnvelope>(payload) ||
+      ({} as UsersProfileEnvelope);
+    const profile =
+      profileEnvelope.user && typeof profileEnvelope.user === 'object'
+        ? profileEnvelope.user
+        : profileEnvelope;
     const tier = normalizeTier(profile.subscriptionTier);
 
     const fallbackLimits = DEFAULT_LIMITS_BY_TIER[tier];

@@ -1,25 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { buildServerApiUrl } from '@/shared/lib/api-routing';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
-
-function buildBaseUrl(): string {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_API_BASE_URL || process.env.API_BASE_URL;
-  if (!baseUrl) {
-    throw new Error('API_BASE_URL is not defined in environment variables');
-  }
-
-  // Remove trailing slash
-  const cleanBaseUrl = baseUrl.replace(/\/+$/, '');
-
-  if (cleanBaseUrl.endsWith('/api/v2')) {
-    return cleanBaseUrl;
-  }
-
-  // If it doesn't end with /api/v2, add it
-  return `${cleanBaseUrl}/api/v2`;
-}
 
 export async function GET(
   request: NextRequest,
@@ -49,14 +32,17 @@ export async function PATCH(
   return proxyRequest(request, params.path);
 }
 
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { path: string[] } }
+) {
+  return proxyRequest(request, params.path);
+}
+
 async function proxyRequest(request: NextRequest, path: string[]) {
   try {
-    const baseUrl = buildBaseUrl();
-    const targetPath = path.join('/');
-    // Clean paths to avoid double slashes
-    const cleanBaseUrl = baseUrl.replace(/\/$/, '');
-    const cleanPath = targetPath.replace(/^\//, '');
-    const targetUrl = cleanPath ? `${cleanBaseUrl}/${cleanPath}` : cleanBaseUrl;
+    const targetPath = `/${path.join('/')}`;
+    const targetUrl = new URL(buildServerApiUrl(targetPath));
 
     const apiToken = process.env.API_TOKEN;
     if (!apiToken) {
@@ -66,16 +52,14 @@ async function proxyRequest(request: NextRequest, path: string[]) {
       );
     }
 
-    // Build the URL
-    const url = new URL(targetUrl);
-    url.searchParams.set('token', apiToken);
+    targetUrl.searchParams.set('token', apiToken);
 
     // Add original query params
     const originalUrl = new URL(request.url);
     originalUrl.searchParams.forEach((value, key) => {
       // Don't allow overriding the API token
       if (key === 'token') return;
-      url.searchParams.set(key, value);
+      targetUrl.searchParams.set(key, value);
     });
 
     // Prepare fetch options
@@ -106,7 +90,7 @@ async function proxyRequest(request: NextRequest, path: string[]) {
       }
     }
 
-    const response = await fetch(url.toString(), options);
+    const response = await fetch(targetUrl.toString(), options);
 
     const responseBody = await response.text();
 

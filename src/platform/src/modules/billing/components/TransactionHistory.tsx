@@ -1,12 +1,9 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import { formatDate } from '@/shared/utils';
-import type {
-  Transaction,
-  TransactionHistoryResponse,
-} from '@/shared/types/api';
+import type { Transaction } from '@/shared/types/api';
 
 type TransactionTableItem = Transaction & { [key: string]: unknown };
 
@@ -19,45 +16,9 @@ const statusColor: Record<string, string> = {
   refunded: 'text-blue-700 bg-blue-100 dark:bg-blue-900/40 dark:text-blue-200',
 };
 
+const SERVICE_UNAVAILABLE_MESSAGE = 'Service not available';
+
 const TransactionHistory: React.FC = () => {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchTransactions = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const response = await fetch('/api/payments?page=1&limit=20', {
-          cache: 'no-store',
-        });
-
-        const payload: TransactionHistoryResponse = await response.json();
-        if (!response.ok || !payload.success) {
-          throw new Error(
-            payload.message || 'Failed to load subscription transactions'
-          );
-        }
-
-        const items = payload.data || payload.transactions || [];
-        setTransactions(items);
-      } catch (err) {
-        const message =
-          err instanceof Error
-            ? err.message
-            : 'Failed to load transaction history';
-        setError(message);
-        console.error('Error fetching transaction history:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTransactions();
-  }, []);
-
   const columns = useMemo(
     () => [
       {
@@ -108,10 +69,10 @@ const TransactionHistory: React.FC = () => {
 
   return (
     <ServerSideTable
-      data={transactions as TransactionTableItem[]}
+      data={[] as TransactionTableItem[]}
       columns={columns}
-      loading={loading}
-      error={error}
+      loading={false}
+      error={SERVICE_UNAVAILABLE_MESSAGE}
       title="Transaction History"
       showClientPagination={true}
       className="border rounded-lg"

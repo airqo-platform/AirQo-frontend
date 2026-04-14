@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import { useSWRConfig } from 'swr';
 import { setActiveGroup, setActiveGroupById } from '@/shared/store/userSlice';
@@ -15,44 +16,70 @@ export const useUserActions = () => {
     useUser();
   const logout = useLogout();
 
-  const switchGroup = (group: NormalizedGroup) => {
-    const previousGroupId = activeGroup?.id;
+  const switchGroup = useCallback(
+    (group: NormalizedGroup) => {
+      const previousGroupId = activeGroup?.id;
 
-    // Only proceed if actually switching to a different group
-    if (previousGroupId === group.id) {
-      return; // No need to do anything if it's the same group
-    }
+      // Only proceed if actually switching to a different group
+      if (previousGroupId === group.id) {
+        return; // No need to do anything if it's the same group
+      }
 
-    // Switch to new group
-    dispatch(setActiveGroup(group));
+      // Switch to new group
+      dispatch(setActiveGroup(group));
 
-    // Invalidate all SWR cache related to preferences and themes
-    // This ensures fresh data is fetched for the new group and prevents cross-group data bleeding
-    mutate(
-      key => {
-        if (typeof key !== 'string') return false;
-        return (
-          key.startsWith('preferences/') ||
-          key.startsWith('preferences/theme/') ||
-          key.includes('/preferences') ||
-          key.includes('/theme') ||
-          key.includes(`/${previousGroupId}`) // Clear old group specific cache
-        );
-      },
-      undefined,
-      { revalidate: false } // Don't revalidate immediately, let components handle their own revalidation
-    );
-  };
+      // Invalidate all SWR cache related to preferences and themes
+      // This ensures fresh data is fetched for the new group and prevents cross-group data bleeding
+      mutate(
+        key => {
+          const keyText = Array.isArray(key)
+            ? key
+                .filter(
+                  (segment): segment is string | number =>
+                    typeof segment === 'string' || typeof segment === 'number'
+                )
+                .join(' ')
+            : typeof key === 'string'
+              ? key
+              : '';
 
-  const switchGroupById = (groupId: string) => {
-    const group = groups.find(g => g.id === groupId);
-    if (group) {
-      switchGroup(group);
-    } else {
-      // Fallback to just dispatching the action if group not found
-      dispatch(setActiveGroupById(groupId));
-    }
-  };
+          if (!keyText) {
+            return false;
+          }
+
+          return (
+            keyText.startsWith('preferences/') ||
+            keyText.startsWith('preferences/theme/') ||
+            keyText.includes('/preferences') ||
+            keyText.includes('/theme') ||
+            keyText.includes('group/cohorts') ||
+            keyText.includes('cohort/details') ||
+            keyText.includes('cohort/sites') ||
+            keyText.includes('cohort/devices') ||
+            keyText.includes('/devices/groups/') ||
+            keyText.includes('/devices/cohorts/') ||
+            (!!previousGroupId && keyText.includes(`/${previousGroupId}`)) // Clear old group specific cache
+          );
+        },
+        undefined,
+        { revalidate: false } // Don't revalidate immediately, let components handle their own revalidation
+      );
+    },
+    [activeGroup?.id, dispatch, mutate]
+  );
+
+  const switchGroupById = useCallback(
+    (groupId: string) => {
+      const group = groups.find(g => g.id === groupId);
+      if (group) {
+        switchGroup(group);
+      } else {
+        // Fallback to just dispatching the action if group not found
+        dispatch(setActiveGroupById(groupId));
+      }
+    },
+    [dispatch, groups, switchGroup]
+  );
 
   return {
     // State

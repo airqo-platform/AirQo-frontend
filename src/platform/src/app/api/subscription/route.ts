@@ -7,6 +7,7 @@ import type {
 import {
   extractEnvelopeData,
   makeUsersApiRequest,
+  makeUsersProfileRequest,
   parseJsonSafe,
 } from './_lib/paymentsProxy';
 
@@ -40,6 +41,10 @@ interface SubscriptionStatusPayload {
   tier?: string;
   nextBillingDate?: string | null;
 }
+
+type UsersProfileEnvelope = UsersMePayload & {
+  user?: UsersMePayload | null;
+};
 
 const DEFAULT_RATE_LIMITS: Record<
   SubscriptionTier,
@@ -141,11 +146,23 @@ const toUsage = (rateLimits: Required<ApiRateLimitsPayload>): ApiUsage => {
   };
 };
 
+const resolveUsersProfilePayload = (
+  payload: Record<string, unknown>
+): UsersMePayload => {
+  const envelope =
+    extractEnvelopeData<UsersProfileEnvelope>(payload) ||
+    ({} as UsersProfileEnvelope);
+
+  if (envelope.user && typeof envelope.user === 'object') {
+    return envelope.user;
+  }
+
+  return envelope;
+};
+
 export async function GET() {
   try {
-    const usersMeResult = await makeUsersApiRequest('/me', {
-      method: 'GET',
-    });
+    const usersMeResult = await makeUsersProfileRequest();
 
     if ('error' in usersMeResult) {
       return usersMeResult.error;
@@ -169,9 +186,7 @@ export async function GET() {
       );
     }
 
-    const profile =
-      extractEnvelopeData<UsersMePayload>(usersMePayload) ||
-      ({} as UsersMePayload);
+    const profile = resolveUsersProfilePayload(usersMePayload);
 
     let tier = normalizeTier(profile.subscriptionTier);
     let status = normalizeStatus(profile.subscriptionStatus);

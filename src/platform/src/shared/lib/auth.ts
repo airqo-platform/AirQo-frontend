@@ -2,13 +2,13 @@
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { isTokenExpired } from './utils';
 import { authService } from '../services/authService';
+import { buildServerApiUrl } from '@/shared/lib/api-routing';
 import { normalizeOAuthAccessToken } from './oauth-session';
 
 const isProduction = process.env.NODE_ENV === 'production';
 const sessionCookieName = isProduction
   ? '__Secure-next-auth.session-token'
   : 'analytics.next-auth.session-token';
-const DEFAULT_OAUTH_PROFILE_FETCH_TIMEOUT_MS = 8000;
 
 interface OAuthProfilePayload {
   _id: string;
@@ -24,46 +24,24 @@ interface OAuthProfileResponse {
   data?: OAuthProfilePayload;
 }
 
-const normalizeApiBaseUrl = (baseUrl: string): string => {
-  const trimmedBaseUrl = baseUrl.trim().replace(/\/$/, '');
-
-  if (trimmedBaseUrl.endsWith('/api/v2')) {
-    return trimmedBaseUrl.slice(0, -'/api/v2'.length);
-  }
-
-  return trimmedBaseUrl;
-};
-
-const buildBackendApiUrl = (path: string): string => {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_API_BASE_URL || process.env.API_BASE_URL || '';
-  const normalizedBaseUrl = normalizeApiBaseUrl(baseUrl);
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-
-  if (!normalizedBaseUrl) {
-    return '';
-  }
-
-  return `${normalizedBaseUrl}/api/v2${normalizedPath}`;
-};
-
 const fetchOAuthProfile = async (
   accessToken: string
 ): Promise<OAuthProfilePayload | null> => {
-  const profileUrl = buildBackendApiUrl('/users/profile/enhanced');
+  let profileUrl = '';
+
+  try {
+    profileUrl = buildServerApiUrl('/users/profile/enhanced');
+  } catch {
+    profileUrl = '';
+  }
+
   if (!profileUrl) {
     return null;
   }
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => {
-    controller.abort();
-  }, DEFAULT_OAUTH_PROFILE_FETCH_TIMEOUT_MS);
-
   try {
     const response = await fetch(profileUrl, {
       method: 'GET',
-      signal: controller.signal,
       cache: 'no-store',
       headers: {
         Accept: 'application/json',
@@ -83,8 +61,6 @@ const fetchOAuthProfile = async (
     return payload.data;
   } catch {
     return null;
-  } finally {
-    clearTimeout(timeoutId);
   }
 };
 

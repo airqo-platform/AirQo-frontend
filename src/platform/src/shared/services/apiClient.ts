@@ -5,6 +5,10 @@ import axios, {
   InternalAxiosRequestConfig,
 } from 'axios';
 import logger from '@/shared/lib/logger';
+import {
+  resolveApiOrigin,
+  resolveVersionedApiPath,
+} from '@/shared/lib/api-routing';
 import { normalizeOAuthAccessToken } from '@/shared/lib/oauth-session';
 
 const UNAUTHORIZED_EVENT_NAME = 'auth:unauthorized';
@@ -132,21 +136,11 @@ export class ApiClient {
       return '/api/external';
     }
 
-    const baseUrl =
-      process.env.NEXT_PUBLIC_API_BASE_URL || process.env.API_BASE_URL;
-    if (!baseUrl) {
-      throw new Error('API_BASE_URL is not defined in environment variables');
+    if (typeof window !== 'undefined') {
+      return '';
     }
 
-    // Remove trailing slash
-    const cleanBaseUrl = baseUrl.replace(/\/$/, '');
-
-    if (cleanBaseUrl.endsWith('/api/v2')) {
-      return cleanBaseUrl;
-    }
-
-    // If it doesn't end with /api/v2, add it
-    return `${cleanBaseUrl}/api/v2`;
+    return resolveApiOrigin();
   }
 
   private setupInterceptors() {
@@ -157,6 +151,13 @@ export class ApiClient {
         (config as RequestConfigWithMetadata).metadata = {
           startTime: Date.now(),
         };
+
+        if (
+          this.authType !== AuthType.API_TOKEN &&
+          typeof config.url === 'string'
+        ) {
+          config.url = resolveVersionedApiPath(config.url);
+        }
 
         // Log outgoing requests at debug level (dev only)
         // Only compute expensive data size when debug logging is actually enabled

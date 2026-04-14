@@ -23,7 +23,12 @@ import { openMoreInsights } from '@/shared/store/insightsSlice';
 import type { NormalizedChartData } from '@/shared/components/charts/types';
 import { trackEvent } from '@/shared/utils/analytics';
 import { useSitesData } from '@/shared/hooks/useSitesData';
-import { useActiveGroupCohorts, useCohort } from '@/shared/hooks';
+import {
+  useActiveGroupCohorts,
+  useCohort,
+  useGroupCohorts,
+  useUserActions,
+} from '@/shared/hooks';
 import { WarningBanner } from '@/shared/components/ui/banner';
 import { getEnvironmentAwareUrl } from '@/shared/utils/url';
 import { useUser } from '@/shared/hooks/useUser';
@@ -32,15 +37,18 @@ import logger from '@/shared/lib/logger';
 interface AnalyticsDashboardProps {
   className?: string;
   isOrganizationFlow: boolean;
+  organizationSlug?: string;
 }
 
 export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   className = '',
   isOrganizationFlow,
+  organizationSlug,
 }) => {
   const dispatch = useDispatch();
   const posthog = usePostHog();
-  const { activeGroup, isLoading: userContextLoading } = useUser();
+  const { activeGroup, groups, isLoading: userContextLoading } = useUser();
+  const { switchGroupById } = useUserActions();
 
   // Get filters from Redux
   const { filters } = useAnalytics();
@@ -92,8 +100,57 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     isLoading: barChartLoading,
   } = useAnalyticsChartData(filters, 'bar');
 
-  // Get active group cohorts to check visibility
-  const { cohortIds, isLoading: cohortsLoading } = useActiveGroupCohorts();
+  const organizationGroupId = React.useMemo(() => {
+    if (!isOrganizationFlow || !organizationSlug) {
+      return '';
+    }
+
+    return (
+      groups.find(group => group.organizationSlug === organizationSlug)?.id ||
+      ''
+    );
+  }, [groups, isOrganizationFlow, organizationSlug]);
+
+  // Get active group cohorts to check visibility in user flow.
+  const {
+    cohortIds: activeGroupCohortIds,
+    isLoading: activeGroupCohortsLoading,
+  } = useActiveGroupCohorts();
+
+  // In organization flow, fetch cohorts by org slug resolved group to avoid stale active-group lookups.
+  const {
+    data: organizationGroupCohorts,
+    isLoading: organizationCohortsLoading,
+  } = useGroupCohorts(
+    organizationGroupId,
+    isOrganizationFlow && !!organizationGroupId
+  );
+
+  const cohortIds = isOrganizationFlow
+    ? (organizationGroupCohorts?.data ?? [])
+    : activeGroupCohortIds;
+
+  const cohortsLoading = isOrganizationFlow
+    ? organizationCohortsLoading ||
+      (!!organizationSlug && !organizationGroupId && userContextLoading)
+    : activeGroupCohortsLoading;
+
+  useEffect(() => {
+    if (!isOrganizationFlow || !organizationGroupId) {
+      return;
+    }
+
+    if (activeGroup?.id === organizationGroupId) {
+      return;
+    }
+
+    switchGroupById(organizationGroupId);
+  }, [
+    isOrganizationFlow,
+    organizationGroupId,
+    activeGroup?.id,
+    switchGroupById,
+  ]);
 
   // Get cohort details for the first cohort to check visibility
   const firstCohortId = cohortIds.length > 0 ? cohortIds[0] : '';

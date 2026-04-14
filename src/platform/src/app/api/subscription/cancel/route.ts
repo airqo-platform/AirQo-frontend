@@ -3,6 +3,7 @@ import {
   extractEnvelopeData,
   isPaymentProviderUnavailable,
   makeUsersApiRequest,
+  makeUsersProfileRequest,
   parseJsonSafe,
 } from '../_lib/paymentsProxy';
 
@@ -15,6 +16,10 @@ interface CancelRequestBody {
 interface UsersMePayload {
   currentSubscriptionId?: string | null;
 }
+
+type UsersProfileEnvelope = UsersMePayload & {
+  user?: UsersMePayload | null;
+};
 
 const resolveSubscriptionId = async (
   request: NextRequest
@@ -33,9 +38,7 @@ const resolveSubscriptionId = async (
     return subscriptionId;
   }
 
-  const profileResult = await makeUsersApiRequest('/me', {
-    method: 'GET',
-  });
+  const profileResult = await makeUsersProfileRequest();
 
   if ('error' in profileResult) {
     return null;
@@ -44,7 +47,13 @@ const resolveSubscriptionId = async (
   const profilePayload = await parseJsonSafe<Record<string, unknown>>(
     profileResult.response
   );
-  const profile = extractEnvelopeData<UsersMePayload>(profilePayload);
+  const profileEnvelope =
+    extractEnvelopeData<UsersProfileEnvelope>(profilePayload) ||
+    ({} as UsersProfileEnvelope);
+  const profile =
+    profileEnvelope.user && typeof profileEnvelope.user === 'object'
+      ? profileEnvelope.user
+      : profileEnvelope;
 
   return (profile?.currentSubscriptionId || '').trim() || null;
 };

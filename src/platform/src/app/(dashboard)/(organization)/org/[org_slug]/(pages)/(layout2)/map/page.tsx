@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useMemo, useEffect, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { MapPage } from '@/modules/airqo-map';
 import { useUser } from '@/shared/hooks/useUser';
-import { useActiveGroupCohorts } from '@/shared/hooks';
+import { useGroupCohorts, useUserActions } from '@/shared/hooks';
 import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
 import { EmptyState } from '@/shared/components/ui/empty-state';
 import { AqSearchRefraction } from '@airqo/icons-react';
@@ -15,29 +15,38 @@ interface PageProps {
 }
 
 const Page: React.FC<PageProps> = ({ params }) => {
-  const { groups, isLoading: userLoading } = useUser();
+  const {
+    groups,
+    activeGroup: currentActiveGroup,
+    isLoading: userLoading,
+  } = useUser();
+  const { switchGroupById } = useUserActions();
   const { org_slug } = params;
-  const [cohortIdString, setCohortIdString] = useState<string | null>(null);
 
   const activeGroup = useMemo(() => {
     return groups?.find(g => g.organizationSlug === org_slug);
   }, [groups, org_slug]);
 
-  // Fetch cohort IDs for the organization
-  const { cohortIds, isLoading: cohortsLoading } = useActiveGroupCohorts();
+  const organizationGroupId = activeGroup?.id || '';
+  const { data: groupCohortsResponse, isLoading: cohortsLoading } =
+    useGroupCohorts(organizationGroupId, !!organizationGroupId);
+  const cohortIds = useMemo(
+    () => groupCohortsResponse?.data ?? [],
+    [groupCohortsResponse?.data]
+  );
+  const cohortIdString = useMemo(() => cohortIds.join(','), [cohortIds]);
 
-  // Convert cohort IDs array to comma-separated string when ready
   useEffect(() => {
-    if (!cohortsLoading && activeGroup) {
-      if (cohortIds && cohortIds.length > 0) {
-        // Join multiple cohort IDs with comma
-        setCohortIdString(cohortIds.join(','));
-      } else {
-        // Empty string means no cohorts exist for this organization
-        setCohortIdString('');
-      }
+    if (!organizationGroupId) {
+      return;
     }
-  }, [cohortIds, cohortsLoading, activeGroup]);
+
+    if (currentActiveGroup?.id === organizationGroupId) {
+      return;
+    }
+
+    switchGroupById(organizationGroupId);
+  }, [organizationGroupId, currentActiveGroup?.id, switchGroupById]);
 
   if (userLoading) {
     return (
@@ -56,7 +65,7 @@ const Page: React.FC<PageProps> = ({ params }) => {
   }
 
   // Show loading while fetching cohort IDs
-  if (cohortIdString === null || cohortsLoading) {
+  if (cohortsLoading) {
     return (
       <div className="flex items-center justify-center h-full w-full">
         <LoadingSpinner />
@@ -65,7 +74,7 @@ const Page: React.FC<PageProps> = ({ params }) => {
   }
 
   // If organization has no cohorts, show message
-  if (cohortIdString === '') {
+  if (!cohortIds.length) {
     return (
       <div className="h-full w-full p-6">
         <EmptyState
