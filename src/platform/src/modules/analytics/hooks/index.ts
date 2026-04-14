@@ -192,6 +192,8 @@ export const useAnalyticsSiteCards = () => {
   const isFetchingRef = useRef(false);
   const blockedUnauthorizedRequestKeyRef = useRef<string | null>(null);
   const lastHandledRequestKeyRef = useRef<string | null>(null);
+  const activeRequestKeyRef = useRef<string | null>(null);
+  const pendingRefetchRef = useRef(false);
   const selectedSitesRef = useRef(selectedSites);
   const selectedSiteIdsRef = useRef(selectedSiteIds);
   const pollutantRef = useRef(filters.pollutant);
@@ -211,6 +213,10 @@ export const useAnalyticsSiteCards = () => {
 
   useEffect(() => {
     getRecentReadingsRef.current = getRecentReadings;
+    blockedUnauthorizedRequestKeyRef.current = null;
+    lastHandledRequestKeyRef.current = null;
+    pendingRefetchRef.current = false;
+    activeRequestKeyRef.current = null;
   }, [getRecentReadings]);
 
   const selectedSiteIdsKey = useMemo(
@@ -220,14 +226,17 @@ export const useAnalyticsSiteCards = () => {
 
   // Fetch real site data using recent readings API
   const fetchSiteCards = useCallback(async () => {
-    const currentSelectedSiteIds = selectedSiteIdsRef.current;
-    const currentPollutant = pollutantRef.current;
-    const requestKey = `${currentSelectedSiteIds.join(',')}|${currentPollutant}`;
+    const localSelectedSites = selectedSitesRef.current;
+    const localSelectedSiteIds = selectedSiteIdsRef.current;
+    const localPollutant = pollutantRef.current;
+    const requestKey = `${localSelectedSiteIds.join(',')}|${localPollutant}`;
 
     // If no selected sites, show empty cards instead of returning early
-    if (!currentSelectedSiteIds.length) {
+    if (!localSelectedSiteIds.length) {
       blockedUnauthorizedRequestKeyRef.current = null;
       lastHandledRequestKeyRef.current = null;
+      activeRequestKeyRef.current = null;
+      pendingRefetchRef.current = false;
       setSiteCards([]);
       return;
     }
@@ -240,24 +249,31 @@ export const useAnalyticsSiteCards = () => {
     }
 
     if (isFetchingRef.current) {
+      pendingRefetchRef.current = true;
       return;
     }
 
     lastHandledRequestKeyRef.current = requestKey;
     isFetchingRef.current = true;
+    activeRequestKeyRef.current = requestKey;
 
     setIsLoading(true);
 
     try {
       // Join site IDs with comma
-      const siteIdsParam = currentSelectedSiteIds.join(',');
+      const siteIdsParam = localSelectedSiteIds.join(',');
 
       const response = await getRecentReadingsRef.current({
         site_id: siteIdsParam,
       });
 
+      if (activeRequestKeyRef.current !== requestKey) {
+        pendingRefetchRef.current = true;
+        return;
+      }
+
       // Create site cards for all selected sites
-      const cards: SiteData[] = selectedSitesRef.current.map(selectedSite => {
+      const cards: SiteData[] = localSelectedSites.map(selectedSite => {
         // Find matching measurement data
         const measurement = response?.measurements?.find(
           m => m.site_id === selectedSite._id
@@ -267,7 +283,7 @@ export const useAnalyticsSiteCards = () => {
           // Use the normalization for sites with data
           const normalized = normalizeRecentReadingsToSiteData(
             [measurement],
-            currentPollutant as 'pm2_5' | 'pm10'
+            localPollutant as 'pm2_5' | 'pm10'
           );
           return normalized[0];
         } else {
@@ -282,7 +298,7 @@ export const useAnalyticsSiteCards = () => {
             location: selectedSite.country || 'Unknown Country',
             value: 0,
             status: 'no-value' as const,
-            pollutant: currentPollutant as 'pm2_5' | 'pm10',
+            pollutant: localPollutant as 'pm2_5' | 'pm10',
             unit: 'μg/m³',
             trend: 'stable' as const,
             percentageDifference: 0,
@@ -293,16 +309,23 @@ export const useAnalyticsSiteCards = () => {
       setSiteCards(cards);
       blockedUnauthorizedRequestKeyRef.current = null;
     } catch (err) {
+      if (activeRequestKeyRef.current !== requestKey) {
+        pendingRefetchRef.current = true;
+        return;
+      }
+
       console.error('Error fetching recent readings:', err);
 
       const status = (err as { response?: { status?: number } })?.response
         ?.status;
       if (status === 401) {
         blockedUnauthorizedRequestKeyRef.current = requestKey;
+      } else {
+        blockedUnauthorizedRequestKeyRef.current = null;
       }
 
       // Still show selected sites even if API fails
-      const cards: SiteData[] = selectedSitesRef.current.map(selectedSite => {
+      const cards: SiteData[] = localSelectedSites.map(selectedSite => {
         return {
           _id: selectedSite._id,
           name:
@@ -313,7 +336,7 @@ export const useAnalyticsSiteCards = () => {
           location: selectedSite.country || 'Unknown Country',
           value: 0,
           status: 'no-value' as const,
-          pollutant: currentPollutant as 'pm2_5' | 'pm10',
+          pollutant: localPollutant as 'pm2_5' | 'pm10',
           unit: 'μg/m³',
           trend: 'stable' as const,
           percentageDifference: 0,
@@ -323,6 +346,14 @@ export const useAnalyticsSiteCards = () => {
     } finally {
       setIsLoading(false);
       isFetchingRef.current = false;
+      activeRequestKeyRef.current = null;
+
+      if (pendingRefetchRef.current) {
+        pendingRefetchRef.current = false;
+        blockedUnauthorizedRequestKeyRef.current = null;
+        lastHandledRequestKeyRef.current = null;
+        void fetchSiteCards();
+      }
     }
   }, []);
 
@@ -332,7 +363,9 @@ export const useAnalyticsSiteCards = () => {
   }, [fetchSiteCards, selectedSiteIdsKey, filters.pollutant]);
 
   const refetchSiteCards = useCallback(async () => {
+    blockedUnauthorizedRequestKeyRef.current = null;
     lastHandledRequestKeyRef.current = null;
+    pendingRefetchRef.current = false;
     await fetchSiteCards();
   }, [fetchSiteCards]);
 

@@ -9,15 +9,25 @@ export const isTokenExpired = (token: string): boolean => {
   if (!token || typeof token !== 'string') {
     return true;
   }
+
+  const toBase64 = (value: string): string => {
+    const normalized = value.replace(/-/g, '+').replace(/_/g, '/');
+    const paddingLength = normalized.length % 4;
+
+    if (!paddingLength) {
+      return normalized;
+    }
+
+    return `${normalized}${'='.repeat(4 - paddingLength)}`;
+  };
+
   try {
     const parts = token.split('.');
     if (parts.length !== 3) {
       return true;
     }
     const payload = parts[1];
-    const decoded = JSON.parse(
-      atob(payload.replace(/-/g, '+').replace(/_/g, '/'))
-    );
+    const decoded = JSON.parse(atob(toBase64(payload)));
     if (!decoded?.exp) {
       return true;
     }

@@ -1,4 +1,5 @@
 import axios, {
+  AxiosHeaders,
   AxiosInstance,
   AxiosRequestConfig,
   AxiosResponse,
@@ -112,7 +113,7 @@ const resolveApiToken = (): string => {
 export enum AuthType {
   NONE = 'none',
   JWT = 'jwt', // From next-auth session
-  API_TOKEN = 'api_token', // Adds token query param for token-authenticated endpoints
+  API_TOKEN = 'api_token', // Adds API token header for token-authenticated endpoints
 }
 
 // Base API client class
@@ -176,14 +177,9 @@ export class ApiClient {
             const apiToken = resolveApiToken();
 
             if (apiToken) {
-              const existingParams =
-                config.params && typeof config.params === 'object'
-                  ? config.params
-                  : {};
-              config.params = {
-                ...existingParams,
-                token: apiToken,
-              };
+              const headers = AxiosHeaders.from(config.headers);
+              headers.set('X-API-Token', apiToken);
+              config.headers = headers;
             } else if (!apiToken && !hasLoggedMissingApiTokenWarning) {
               hasLoggedMissingApiTokenWarning = true;
               logger.warn(
@@ -418,7 +414,7 @@ export class ApiClient {
       this.removeAuthToken();
       return;
     }
-    const cleanToken = `Bearer ${normalizedToken}`;
+    const cleanToken = `JWT ${normalizedToken}`;
     this.client.defaults.headers.common['Authorization'] = cleanToken;
   }
 

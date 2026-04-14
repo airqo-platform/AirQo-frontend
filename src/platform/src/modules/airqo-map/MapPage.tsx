@@ -167,7 +167,22 @@ const MapPage: React.FC<MapPageProps> = ({
   );
 
   const normalizedReadings = React.useMemo(() => {
-    return normalizeMapReadings(readings, selectedPollutant);
+    const airqoReadings = normalizeMapReadings(readings, selectedPollutant);
+    const dedupedReadings = new Map<string, (typeof airqoReadings)[number]>();
+
+    airqoReadings.forEach(reading => {
+      const dedupeKey = reading.siteId || reading.id;
+      const existingReading = dedupedReadings.get(dedupeKey);
+
+      if (
+        !existingReading ||
+        (!existingReading.isPrimary && reading.isPrimary)
+      ) {
+        dedupedReadings.set(dedupeKey, reading);
+      }
+    });
+
+    return Array.from(dedupedReadings.values());
   }, [readings, selectedPollutant]);
 
   const hasNoMapData =

@@ -277,6 +277,31 @@ const extractArrayData = <T>(payload: unknown): T[] => {
     envelope.transactions,
     envelope.items,
     envelope.results,
+    ...(envelope.data && typeof envelope.data === 'object'
+      ? [
+          (
+            envelope.data as {
+              transactions?: unknown;
+              items?: unknown;
+              results?: unknown;
+            }
+          ).transactions,
+          (
+            envelope.data as {
+              transactions?: unknown;
+              items?: unknown;
+              results?: unknown;
+            }
+          ).items,
+          (
+            envelope.data as {
+              transactions?: unknown;
+              items?: unknown;
+              results?: unknown;
+            }
+          ).results,
+        ]
+      : []),
     payload,
   ];
 
@@ -287,6 +312,63 @@ const extractArrayData = <T>(payload: unknown): T[] => {
   }
 
   return [];
+};
+
+const extractTransactionHistoryMeta = (
+  payload: unknown
+): TransactionHistoryResponse['meta'] | undefined => {
+  if (!payload || typeof payload !== 'object') {
+    return undefined;
+  }
+
+  const envelope = payload as {
+    meta?: unknown;
+    pagination?: unknown;
+    data?: unknown;
+  };
+
+  const candidates = [
+    envelope.meta,
+    envelope.pagination,
+    envelope.data && typeof envelope.data === 'object'
+      ? (envelope.data as { meta?: unknown }).meta
+      : undefined,
+  ];
+
+  for (const candidate of candidates) {
+    if (!candidate || typeof candidate !== 'object') {
+      continue;
+    }
+
+    const meta = candidate as {
+      total?: unknown;
+      page?: unknown;
+      totalPages?: unknown;
+      pages?: unknown;
+      limit?: unknown;
+    };
+
+    const total = Number(meta.total);
+    const page = Number(meta.page);
+    const totalPages = Number(meta.totalPages ?? meta.pages);
+    const limit = Number(meta.limit);
+
+    if (
+      Number.isFinite(total) &&
+      Number.isFinite(page) &&
+      Number.isFinite(totalPages) &&
+      Number.isFinite(limit)
+    ) {
+      return {
+        total,
+        page,
+        totalPages,
+        limit,
+      };
+    }
+  }
+
+  return undefined;
 };
 
 const extractMessage = (payload: unknown, fallback: string): string => {
@@ -458,6 +540,10 @@ export class SubscriptionService {
 
   async getSubscription(): Promise<GetSubscriptionResponse> {
     const profile = await this.getUsersProfilePayload();
+    console.log(
+      'subscriptionService.getSubscription profile response:',
+      profile
+    );
 
     let tier = normalizeTier(profile.subscriptionTier);
     let status = normalizeStatus(profile.subscriptionStatus);
@@ -474,6 +560,11 @@ export class SubscriptionService {
         );
 
         const statusData = extractEnvelopeData<SubscriptionStatusPayload>(
+          statusResponse.data
+        );
+
+        console.log(
+          'subscriptionService.getSubscription subscription-status response:',
           statusResponse.data
         );
 
@@ -519,6 +610,12 @@ export class SubscriptionService {
 
     const usage = toUsage(rateLimits);
 
+    console.log(
+      'subscriptionService.getSubscription normalized subscription:',
+      subscription
+    );
+    console.log('subscriptionService.getSubscription normalized usage:', usage);
+
     return {
       success: true,
       message: 'Subscription retrieved successfully',
@@ -538,7 +635,10 @@ export class SubscriptionService {
     usage: ApiUsage;
   }> {
     const profile = await this.getUsersProfilePayload();
+    console.log('subscriptionService.getUsage profile response:', profile);
     const usage = toUsage(profile.apiRateLimits ?? null);
+
+    console.log('subscriptionService.getUsage normalized usage:', usage);
 
     return {
       success: true,
@@ -800,8 +900,26 @@ export class SubscriptionService {
       }
     );
 
+    console.log(
+      'subscriptionService.getTransactionHistory response:',
+      response.data
+    );
+
     const rawTransactions = extractArrayData<BackendTransaction>(response.data);
     const transactions = normalizeTransactions(rawTransactions);
+    const meta = extractTransactionHistoryMeta(response.data);
+
+    console.log(
+      'subscriptionService.getTransactionHistory normalized transactions:',
+      transactions
+    );
+
+    if (meta) {
+      console.log(
+        'subscriptionService.getTransactionHistory pagination meta:',
+        meta
+      );
+    }
 
     return {
       success: true,
@@ -811,6 +929,7 @@ export class SubscriptionService {
       ),
       data: transactions,
       transactions,
+      ...(meta ? { meta } : {}),
     };
   }
 }

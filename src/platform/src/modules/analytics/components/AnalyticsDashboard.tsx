@@ -32,6 +32,7 @@ import { WarningBanner } from '@/shared/components/ui/banner';
 import { getEnvironmentAwareUrl } from '@/shared/utils/url';
 import { useUser } from '@/shared/hooks/useUser';
 import logger from '@/shared/lib/logger';
+import { AccessDenied } from '@/shared/components/AccessDenied';
 
 interface AnalyticsDashboardProps {
   className?: string;
@@ -104,10 +105,16 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     }
 
     return (
-      groups.find(group => group.organizationSlug === organizationSlug)?.id ||
+      groups?.find(group => group.organizationSlug === organizationSlug)?.id ||
       ''
     );
   }, [groups, isOrganizationFlow, organizationSlug]);
+
+  const unresolvedOrganizationSlug =
+    isOrganizationFlow &&
+    !!organizationSlug &&
+    !userContextLoading &&
+    !organizationGroupId;
 
   // Get active group cohorts to check visibility in user flow.
   const {
@@ -287,6 +294,18 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         className={`flex items-center justify-center min-h-[400px] ${className}`}
       >
         <LoadingState text="Loading dashboard..." />
+      </div>
+    );
+  }
+
+  if (unresolvedOrganizationSlug) {
+    return (
+      <div className={`min-h-[400px] ${className}`}>
+        <AccessDenied
+          title="Organization not found"
+          message="We could not resolve that organization slug or you do not have access to it."
+          showBackButton={false}
+        />
       </div>
     );
   }

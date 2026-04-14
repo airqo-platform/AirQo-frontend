@@ -26,7 +26,22 @@ const SubscriptionManagement: React.FC = () => {
       const data = await subscriptionService.getSubscription();
 
       if (data.success) {
-        setSubscription(data.subscription || null);
+        const subscription = data.subscription || null;
+        const normalizedSubscription = subscription
+          ? {
+              ...subscription,
+              automaticRenewal:
+                subscription.automaticRenewal ??
+                subscription.autoRenewal ??
+                false,
+              autoRenewal:
+                subscription.autoRenewal ??
+                subscription.automaticRenewal ??
+                false,
+            }
+          : null;
+
+        setSubscription(normalizedSubscription);
       }
     } catch (error) {
       console.error('Error fetching subscription:', error);

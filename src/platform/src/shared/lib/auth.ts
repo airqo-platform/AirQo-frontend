@@ -61,7 +61,7 @@ const fetchOAuthProfile = async (
       cache: 'no-store',
       headers: {
         Accept: 'application/json',
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `JWT ${accessToken}`,
       },
     });
 

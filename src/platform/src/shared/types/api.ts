@@ -1616,6 +1616,12 @@ export interface TransactionHistoryResponse {
   message: string;
   data?: Transaction[];
   transactions?: Transaction[];
+  meta?: {
+    total: number;
+    page: number;
+    totalPages: number;
+    limit: number;
+  };
 }
 
 // Accept Email Invitation Types

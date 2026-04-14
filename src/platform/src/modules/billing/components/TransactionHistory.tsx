@@ -9,6 +9,8 @@ import type { Transaction } from '@/shared/types/api';
 
 type TransactionTableItem = Transaction & { [key: string]: unknown };
 
+const DEFAULT_PAGE_SIZE = 20;
+
 const statusColor: Record<string, string> = {
   completed:
     'text-emerald-700 bg-emerald-100 dark:bg-emerald-900/40 dark:text-emerald-200',
@@ -22,30 +24,60 @@ const TransactionHistory: React.FC = () => {
   const [transactions, setTransactions] = useState<TransactionTableItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [pagination, setPagination] = useState<{
+    totalItems: number;
+    totalPages: number;
+  }>({
+    totalItems: 0,
+    totalPages: 1,
+  });
 
-  const loadTransactions = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const loadTransactions = useCallback(
+    async (page = 1, limit = DEFAULT_PAGE_SIZE) => {
+      setLoading(true);
+      setError(null);
 
-    try {
-      const response = await subscriptionService.getTransactionHistory({
-        page: 1,
-        limit: 100,
-      });
+      try {
+        const response = await subscriptionService.getTransactionHistory({
+          page,
+          limit,
+        });
 
-      if (!response.success) {
-        throw new Error(response.message || 'Failed to load transactions');
+        if (!response.success) {
+          throw new Error(response.message || 'Failed to load transactions');
+        }
+
+        const items = response.data || [];
+        setTransactions(items as TransactionTableItem[]);
+        setCurrentPage(page);
+        setPageSize(limit);
+
+        if (response.meta) {
+          setPagination({
+            totalItems: response.meta.total,
+            totalPages: response.meta.totalPages,
+          });
+        } else {
+          const hasMore = items.length === limit;
+          setPagination({
+            totalItems: hasMore
+              ? page * limit + limit
+              : (page - 1) * limit + items.length,
+            totalPages: hasMore ? page + 1 : page,
+          });
+        }
+      } catch (err) {
+        setTransactions([]);
+        setPagination({ totalItems: 0, totalPages: 1 });
+        setError(getUserFriendlyErrorMessage(err));
+      } finally {
+        setLoading(false);
       }
-
-      const items = response.data || [];
-      setTransactions(items as TransactionTableItem[]);
-    } catch (err) {
-      setTransactions([]);
-      setError(getUserFriendlyErrorMessage(err));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    },
+    []
+  );
 
   useEffect(() => {
     void loadTransactions();
@@ -106,10 +138,20 @@ const TransactionHistory: React.FC = () => {
       loading={loading}
       error={error}
       onRefresh={() => {
-        void loadTransactions();
+        void loadTransactions(currentPage, pageSize);
       }}
       title="Transaction History"
-      showClientPagination={true}
+      currentPage={currentPage}
+      totalPages={pagination.totalPages}
+      pageSize={pageSize}
+      totalItems={pagination.totalItems}
+      onPageChange={nextPage => {
+        void loadTransactions(nextPage, pageSize);
+      }}
+      onPageSizeChange={nextPageSize => {
+        void loadTransactions(1, nextPageSize);
+      }}
+      showClientPagination={false}
       className="border rounded-lg"
     />
   );
