@@ -267,7 +267,7 @@ export const useAnalyticsSiteCards = () => {
           // Use the normalization for sites with data
           const normalized = normalizeRecentReadingsToSiteData(
             [measurement],
-            filters.pollutant as 'pm2_5' | 'pm10'
+            currentPollutant as 'pm2_5' | 'pm10'
           );
           return normalized[0];
         } else {

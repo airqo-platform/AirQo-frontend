@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { MapPage } from '@/modules/airqo-map';
 import { useUser } from '@/shared/hooks/useUser';
-import { useGroupCohorts, useUserActions } from '@/shared/hooks';
+import { useGroupCohorts } from '@/shared/hooks';
 import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
 import { EmptyState } from '@/shared/components/ui/empty-state';
 import { AqSearchRefraction } from '@airqo/icons-react';
@@ -15,12 +15,7 @@ interface PageProps {
 }
 
 const Page: React.FC<PageProps> = ({ params }) => {
-  const {
-    groups,
-    activeGroup: currentActiveGroup,
-    isLoading: userLoading,
-  } = useUser();
-  const { switchGroupById } = useUserActions();
+  const { groups, isLoading: userLoading } = useUser();
   const { org_slug } = params;
 
   const activeGroup = useMemo(() => {
@@ -35,18 +30,6 @@ const Page: React.FC<PageProps> = ({ params }) => {
     [groupCohortsResponse?.data]
   );
   const cohortIdString = useMemo(() => cohortIds.join(','), [cohortIds]);
-
-  useEffect(() => {
-    if (!organizationGroupId) {
-      return;
-    }
-
-    if (currentActiveGroup?.id === organizationGroupId) {
-      return;
-    }
-
-    switchGroupById(organizationGroupId);
-  }, [organizationGroupId, currentActiveGroup?.id, switchGroupById]);
 
   if (userLoading) {
     return (

@@ -27,7 +27,6 @@ import {
   useActiveGroupCohorts,
   useCohort,
   useGroupCohorts,
-  useUserActions,
 } from '@/shared/hooks';
 import { WarningBanner } from '@/shared/components/ui/banner';
 import { getEnvironmentAwareUrl } from '@/shared/utils/url';
@@ -48,7 +47,6 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   const dispatch = useDispatch();
   const posthog = usePostHog();
   const { activeGroup, groups, isLoading: userContextLoading } = useUser();
-  const { switchGroupById } = useUserActions();
 
   // Get filters from Redux
   const { filters } = useAnalytics();
@@ -141,23 +139,6 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     ? organizationCohortsLoading ||
       (!!organizationSlug && !organizationGroupId && userContextLoading)
     : activeGroupCohortsLoading;
-
-  useEffect(() => {
-    if (!isOrganizationFlow || !organizationGroupId) {
-      return;
-    }
-
-    if (activeGroup?.id === organizationGroupId) {
-      return;
-    }
-
-    switchGroupById(organizationGroupId);
-  }, [
-    isOrganizationFlow,
-    organizationGroupId,
-    activeGroup?.id,
-    switchGroupById,
-  ]);
 
   // Get cohort details for the first cohort to check visibility
   const firstCohortId = React.useMemo(
