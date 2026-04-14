@@ -12,7 +12,8 @@ import type {
 } from '@/shared/types/api';
 import CheckoutDialog from './CheckoutDialog';
 
-const SERVICE_NOT_AVAILABLE_MESSAGE = 'Service is not yet available.';
+const BILLING_SERVICE_UNAVAILABLE_MESSAGE =
+  'Billing service is temporarily unavailable. Please try again later.';
 
 const fallbackPlans: SubscriptionPlan[] = [
   {
@@ -89,9 +90,6 @@ const SubscriptionSection: React.FC = () => {
   const [runningAction, setRunningAction] = useState<
     'checkout' | 'autoRenew' | 'cancel' | 'renew' | null
   >(null);
-  const [comingSoonMessage, setComingSoonMessage] = useState<string | null>(
-    null
-  );
 
   const currentTier: SubscriptionTier = subscription?.tier || 'Free';
   const currentStatus = subscription?.status || 'inactive';
@@ -142,7 +140,6 @@ const SubscriptionSection: React.FC = () => {
   );
 
   const handleOpenCheckout = (plan: SubscriptionPlan) => {
-    setComingSoonMessage(null);
     setSelectedPlan(plan);
     setDialogOpen(true);
   };
@@ -154,7 +151,6 @@ const SubscriptionSection: React.FC = () => {
 
     try {
       setRunningAction('checkout');
-      setComingSoonMessage(null);
 
       const currentUrl = new URL(window.location.href);
       const successUrl = `${currentUrl.origin}${currentUrl.pathname}?tab=subscription&checkout=success`;
@@ -169,9 +165,7 @@ const SubscriptionSection: React.FC = () => {
 
       if (!payload.success) {
         if (payload.comingSoon) {
-          const message = payload.message || SERVICE_NOT_AVAILABLE_MESSAGE;
-          setComingSoonMessage(message);
-          toast.warning(message);
+          toast.warning(BILLING_SERVICE_UNAVAILABLE_MESSAGE);
           return;
         }
 
@@ -206,7 +200,6 @@ const SubscriptionSection: React.FC = () => {
 
     try {
       setRunningAction('autoRenew');
-      setComingSoonMessage(null);
 
       const payload = await subscriptionService.enableAutoRenewal(
         currentSubscriptionId
@@ -214,9 +207,7 @@ const SubscriptionSection: React.FC = () => {
 
       if (!payload.success) {
         if (payload.comingSoon) {
-          setComingSoonMessage(
-            payload.message || SERVICE_NOT_AVAILABLE_MESSAGE
-          );
+          toast.warning(BILLING_SERVICE_UNAVAILABLE_MESSAGE);
           return;
         }
 
@@ -263,7 +254,6 @@ const SubscriptionSection: React.FC = () => {
 
     try {
       setRunningAction('cancel');
-      setComingSoonMessage(null);
 
       const payload = await subscriptionService.cancelSubscription(
         currentSubscriptionId
@@ -271,9 +261,7 @@ const SubscriptionSection: React.FC = () => {
 
       if (!payload.success) {
         if (payload.comingSoon) {
-          setComingSoonMessage(
-            payload.message || SERVICE_NOT_AVAILABLE_MESSAGE
-          );
+          toast.warning(BILLING_SERVICE_UNAVAILABLE_MESSAGE);
           return;
         }
 
@@ -309,7 +297,6 @@ const SubscriptionSection: React.FC = () => {
 
     try {
       setRunningAction('renew');
-      setComingSoonMessage(null);
 
       const payload = await subscriptionService.reactivateSubscription(
         currentSubscriptionId
@@ -317,9 +304,7 @@ const SubscriptionSection: React.FC = () => {
 
       if (!payload.success) {
         if (payload.comingSoon) {
-          setComingSoonMessage(
-            payload.message || SERVICE_NOT_AVAILABLE_MESSAGE
-          );
+          toast.warning(BILLING_SERVICE_UNAVAILABLE_MESSAGE);
           return;
         }
 
@@ -461,14 +446,6 @@ const SubscriptionSection: React.FC = () => {
           </div>
         </Card>
 
-        {comingSoonMessage && (
-          <Card className="p-4 border-amber-300 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-700">
-            <p className="text-sm text-amber-900 dark:text-amber-200">
-              {comingSoonMessage}
-            </p>
-          </Card>
-        )}
-
         <div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
             Pricing Tiers
@@ -530,7 +507,7 @@ const SubscriptionSection: React.FC = () => {
                   <Button
                     className="mt-5"
                     variant={isCurrent ? 'outlined' : 'filled'}
-                    disabled={!allowCheckout || runningAction === 'checkout'}
+                    disabled={!allowCheckout}
                     onClick={() => handleOpenCheckout(plan)}
                   >
                     {isCurrent
