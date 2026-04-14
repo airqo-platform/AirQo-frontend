@@ -121,6 +121,7 @@ function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
     router,
     shouldSyncToRouteOrgGroup,
     shouldSyncToUserGroup,
+    switchGroup,
   ]);
 
   if (shouldSyncToUserGroup || shouldSyncToRouteOrgGroup) {
