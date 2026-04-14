@@ -7,6 +7,7 @@ import WideDialog from '@/shared/components/ui/wide-dialog';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import { EmptyState } from '@/shared/components/ui/empty-state';
 import LocationCard from '@/shared/components/ui/location-card';
+import { areArraysEqual } from '@/shared/utils/arrays';
 import { useSitesData } from '@/shared/hooks/useSitesData';
 import { useUser } from '@/shared/hooks/useUser';
 import {
@@ -85,10 +86,19 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
       const favoriteIds = favoriteSites.map(site => site._id);
 
       // Set selected IDs
-      setSelectedIds(favoriteIds);
+      setSelectedIds(prev =>
+        areArraysEqual(prev, favoriteIds) ? prev : favoriteIds
+      );
 
       // Initialize cache with existing favorites
-      setSiteDataCache(new Map(favoriteSites.map(site => [site._id, site])));
+      setSiteDataCache(prev => {
+        const currentIds = Array.from(prev.keys());
+        if (areArraysEqual(currentIds, favoriteIds)) {
+          return prev;
+        }
+
+        return new Map(favoriteSites.map(site => [site._id, site]));
+      });
     }
   }, [currentPreference?.selected_sites, isOpen]);
 

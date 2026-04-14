@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { DateRange } from '@/shared/components/calendar/types';
+import { areArraysEqual } from '@/shared/utils/arrays';
 import {
   DataExportState,
   TabType,
@@ -14,6 +15,14 @@ import {
   DEFAULT_TAB_STATE,
 } from '../constants/dataExportConstants';
 import { getDefaultDateRange } from '../utils/dataExportUtils';
+
+type StringArrayField =
+  | 'selectedPollutants'
+  | 'selectedSites'
+  | 'selectedDevices'
+  | 'selectedSiteIds'
+  | 'selectedDeviceIds'
+  | 'selectedGridIds';
 
 /**
  * Custom hook for managing data export state
@@ -51,6 +60,22 @@ export const useDataExportState = () => {
   const updateState = useCallback((updates: Partial<DataExportState>) => {
     setState(prev => ({ ...prev, ...updates }));
   }, []);
+
+  const updateStringArrayField = useCallback(
+    (field: StringArrayField, values: string[]) => {
+      setState(prev => {
+        if (areArraysEqual(prev[field], values)) {
+          return prev;
+        }
+
+        return {
+          ...prev,
+          [field]: values,
+        } as DataExportState;
+      });
+    },
+    []
+  );
 
   const setActiveTab = useCallback(
     (tab: TabType) => {
@@ -103,51 +128,58 @@ export const useDataExportState = () => {
 
   const setSelectedPollutants = useCallback(
     (pollutants: string[] | ((prev: string[]) => string[])) => {
-      if (typeof pollutants === 'function') {
-        setState(prev => ({
+      setState(prev => {
+        const nextPollutants =
+          typeof pollutants === 'function'
+            ? pollutants(prev.selectedPollutants)
+            : pollutants;
+
+        if (areArraysEqual(prev.selectedPollutants, nextPollutants)) {
+          return prev;
+        }
+
+        return {
           ...prev,
-          selectedPollutants: pollutants(prev.selectedPollutants),
-        }));
-      } else {
-        updateState({ selectedPollutants: pollutants });
-      }
+          selectedPollutants: nextPollutants,
+        };
+      });
     },
-    [updateState]
+    []
   );
 
   const setSelectedSites = useCallback(
     (sites: string[]) => {
-      updateState({ selectedSites: sites });
+      updateStringArrayField('selectedSites', sites);
     },
-    [updateState]
+    [updateStringArrayField]
   );
 
   const setSelectedDevices = useCallback(
     (devices: string[]) => {
-      updateState({ selectedDevices: devices });
+      updateStringArrayField('selectedDevices', devices);
     },
-    [updateState]
+    [updateStringArrayField]
   );
 
   const setSelectedSiteIds = useCallback(
     (ids: string[]) => {
-      updateState({ selectedSiteIds: ids });
+      updateStringArrayField('selectedSiteIds', ids);
     },
-    [updateState]
+    [updateStringArrayField]
   );
 
   const setSelectedDeviceIds = useCallback(
     (ids: string[]) => {
-      updateState({ selectedDeviceIds: ids });
+      updateStringArrayField('selectedDeviceIds', ids);
     },
-    [updateState]
+    [updateStringArrayField]
   );
 
   const setSelectedGridIds = useCallback(
     (ids: string[]) => {
-      updateState({ selectedGridIds: ids });
+      updateStringArrayField('selectedGridIds', ids);
     },
-    [updateState]
+    [updateStringArrayField]
   );
 
   const setSelectedGridSites = useCallback(

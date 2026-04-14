@@ -10,6 +10,21 @@ const sessionCookieName = isProduction
   ? '__Secure-next-auth.session-token'
   : 'analytics.next-auth.session-token';
 
+const isJwtLikeToken = (token: string): boolean => token.split('.').length === 3;
+
+const isExpiredAt = (value: unknown): boolean => {
+  if (typeof value !== 'string' || !value.trim()) {
+    return false;
+  }
+
+  const expiresAt = new Date(value).getTime();
+  if (Number.isNaN(expiresAt)) {
+    return false;
+  }
+
+  return expiresAt <= Date.now();
+};
+
 interface OAuthProfilePayload {
   _id: string;
   email: string;
@@ -65,10 +80,22 @@ const fetchOAuthProfile = async (
 };
 
 // Helper function to check token expiration and log
-const isTokenInvalid = (accessToken: string | undefined): boolean => {
-  if (!accessToken || isTokenExpired(accessToken)) {
+const isTokenInvalid = (
+  accessToken: string | undefined,
+  expiresAt?: string | null
+): boolean => {
+  if (!accessToken) {
     return true;
   }
+
+  if (isExpiredAt(expiresAt)) {
+    return true;
+  }
+
+  if (isJwtLikeToken(accessToken) && isTokenExpired(accessToken)) {
+    return true;
+  }
+
   return false;
 };
 
@@ -143,6 +170,7 @@ export const authOptions: any = {
             image: loginData.profilePicture,
             _id: loginData._id,
             accessToken: normalizeOAuthAccessToken(loginData.token),
+            expiresAt: loginData.expiresAt,
           };
         } catch (error: any) {
           // Enhanced error handling to include status and full response data
@@ -186,6 +214,8 @@ export const authOptions: any = {
         token._id = user._id;
         token.accessToken =
           typeof user.accessToken === 'string' ? user.accessToken : undefined;
+        token.expiresAt =
+          typeof user.expiresAt === 'string' ? user.expiresAt : undefined;
         token.firstName = user.firstName;
         token.lastName = user.lastName;
       }
@@ -200,17 +230,23 @@ export const authOptions: any = {
           ? normalizeOAuthAccessToken((token as any).accessToken as string) ||
             undefined
           : undefined;
-      if (isTokenInvalid(accessToken)) {
+      const expiresAt =
+        typeof (token as any)?.expiresAt === 'string'
+          ? ((token as any).expiresAt as string)
+          : undefined;
+      if (isTokenInvalid(accessToken, expiresAt)) {
         return { user: null };
       }
 
       // Add access token and user ID to session
       (session as any).accessToken = accessToken;
+      (session as any).expiresAt = expiresAt;
       if (session.user) {
         (session.user as any)._id = (token as any)._id;
         (session.user as any).firstName = (token as any).firstName;
         (session.user as any).lastName = (token as any).lastName;
         (session.user as any).accessToken = accessToken;
+        (session.user as any).expiresAt = expiresAt;
       }
       return session;
     },

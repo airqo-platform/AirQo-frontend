@@ -12,6 +12,8 @@ import type {
 } from '@/shared/types/api';
 import CheckoutDialog from './CheckoutDialog';
 
+const SERVICE_NOT_AVAILABLE_MESSAGE = 'Service is not yet available.';
+
 const fallbackPlans: SubscriptionPlan[] = [
   {
     tier: 'Free',
@@ -167,9 +169,7 @@ const SubscriptionSection: React.FC = () => {
 
       if (!payload.success) {
         if (payload.comingSoon) {
-          const message =
-            payload.message ||
-            'Payments are temporarily unavailable while provider credentials are being configured.';
+          const message = payload.message || SERVICE_NOT_AVAILABLE_MESSAGE;
           setComingSoonMessage(message);
           toast.warning(message);
           return;
@@ -215,8 +215,7 @@ const SubscriptionSection: React.FC = () => {
       if (!payload.success) {
         if (payload.comingSoon) {
           setComingSoonMessage(
-            payload.message ||
-              'Automatic renewal is coming soon while payments are being enabled.'
+            payload.message || SERVICE_NOT_AVAILABLE_MESSAGE
           );
           return;
         }
@@ -273,8 +272,7 @@ const SubscriptionSection: React.FC = () => {
       if (!payload.success) {
         if (payload.comingSoon) {
           setComingSoonMessage(
-            payload.message ||
-              'Cancellation is coming soon while payments are being enabled.'
+            payload.message || SERVICE_NOT_AVAILABLE_MESSAGE
           );
           return;
         }
@@ -320,8 +318,7 @@ const SubscriptionSection: React.FC = () => {
       if (!payload.success) {
         if (payload.comingSoon) {
           setComingSoonMessage(
-            payload.message ||
-              'Manual renewal is coming soon while payments are being enabled.'
+            payload.message || SERVICE_NOT_AVAILABLE_MESSAGE
           );
           return;
         }

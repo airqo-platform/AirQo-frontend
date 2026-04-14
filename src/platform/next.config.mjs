@@ -18,7 +18,8 @@ const stripApiSuffix = baseUrl => {
 };
 
 const resolveApiOrigin = () => {
-  const configuredBaseUrl = process.env.API_BASE_URL || '';
+  const configuredBaseUrl =
+    process.env.API_BASE_URL || process.env.NEXT_PUBLIC_BASE_URL || '';
   return stripApiSuffix(configuredBaseUrl);
 };
 

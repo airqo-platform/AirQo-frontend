@@ -80,8 +80,8 @@ type BackendTransaction = {
 };
 
 const USERS_PROFILE_CANDIDATE_PATHS = [
-  '/users/me',
   '/users/profile/enhanced',
+  '/users/me',
 ] as const;
 
 const RETRYABLE_PROFILE_STATUSES = new Set([400, 404, 405]);
@@ -256,6 +256,35 @@ const extractEnvelopeData = <T>(payload: unknown): T | null => {
   return envelope.data as T;
 };
 
+const extractArrayData = <T>(payload: unknown): T[] => {
+  if (!payload || typeof payload !== 'object') {
+    return [];
+  }
+
+  const envelope = payload as {
+    data?: unknown;
+    transactions?: unknown;
+    items?: unknown;
+    results?: unknown;
+  };
+
+  const candidates = [
+    envelope.data,
+    envelope.transactions,
+    envelope.items,
+    envelope.results,
+    payload,
+  ];
+
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) {
+      return candidate as T[];
+    }
+  }
+
+  return [];
+};
+
 const extractMessage = (payload: unknown, fallback: string): string => {
   if (!payload || typeof payload !== 'object') {
     return fallback;
@@ -280,7 +309,8 @@ const isPaymentProviderUnavailable = (status: number, payload: unknown) => {
   return (
     envelope.status === 503 ||
     message.includes('payment service is not configured') ||
-    message.includes('payment provider is not configured')
+    message.includes('payment provider is not configured') ||
+    message.includes('service is not yet available')
   );
 };
 
@@ -307,17 +337,27 @@ const normalizePaymentMethod = (
   return 'Provider-hosted checkout';
 };
 
-const normalizeTransactions = (items: BackendTransaction[]): Transaction[] =>
-  items.map((item, index) => ({
-    id: item._id || item.id || `txn-${index + 1}`,
-    amount: Number(item.amount || 0),
-    currency: item.currency || 'USD',
-    status: item.status || 'pending',
-    description: item.description || 'Subscription transaction',
-    date: item.date || item.createdAt || new Date().toISOString(),
-    paymentMethod: normalizePaymentMethod(item.paymentMethod),
-    reference: item.reference,
-  }));
+const normalizeTransactions = (items: unknown): Transaction[] => {
+  if (!Array.isArray(items)) {
+    return [];
+  }
+
+  return items.map((item, index) => {
+    const transaction = item as BackendTransaction;
+
+    return {
+      id: transaction._id || transaction.id || `txn-${index + 1}`,
+      amount: Number(transaction.amount || 0),
+      currency: transaction.currency || 'USD',
+      status: transaction.status || 'pending',
+      description: transaction.description || 'Subscription transaction',
+      date:
+        transaction.date || transaction.createdAt || new Date().toISOString(),
+      paymentMethod: normalizePaymentMethod(transaction.paymentMethod),
+      reference: transaction.reference,
+    };
+  });
+};
 
 const resolveUsersProfilePayload = (payload: unknown): UsersMePayload => {
   const envelope = extractEnvelopeData<UsersMePayload>(payload) || {};
@@ -772,8 +812,8 @@ export class SubscriptionService {
       }
     );
 
-    const rawTransactions =
-      extractEnvelopeData<BackendTransaction[]>(response.data) || [];
+    const rawTransactions = extractArrayData<BackendTransaction>(response.data);
+    const transactions = normalizeTransactions(rawTransactions);
 
     return {
       success: true,
@@ -781,8 +821,8 @@ export class SubscriptionService {
         response.data,
         'Transaction history retrieved successfully'
       ),
-      data: normalizeTransactions(rawTransactions),
-      transactions: normalizeTransactions(rawTransactions),
+      data: transactions,
+      transactions,
     };
   }
 }

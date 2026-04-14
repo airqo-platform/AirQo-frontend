@@ -191,19 +191,51 @@ export const useAnalyticsSiteCards = () => {
   const [isLoading, setIsLoading] = useState(false);
   const isFetchingRef = useRef(false);
   const blockedUnauthorizedRequestKeyRef = useRef<string | null>(null);
+  const lastHandledRequestKeyRef = useRef<string | null>(null);
+  const selectedSitesRef = useRef(selectedSites);
+  const selectedSiteIdsRef = useRef(selectedSiteIds);
+  const pollutantRef = useRef(filters.pollutant);
+  const getRecentReadingsRef = useRef(getRecentReadings);
+
+  useEffect(() => {
+    selectedSitesRef.current = selectedSites;
+  }, [selectedSites]);
+
+  useEffect(() => {
+    selectedSiteIdsRef.current = selectedSiteIds;
+  }, [selectedSiteIds]);
+
+  useEffect(() => {
+    pollutantRef.current = filters.pollutant;
+  }, [filters.pollutant]);
+
+  useEffect(() => {
+    getRecentReadingsRef.current = getRecentReadings;
+  }, [getRecentReadings]);
+
+  const selectedSiteIdsKey = useMemo(
+    () => selectedSiteIds.join(','),
+    [selectedSiteIds]
+  );
 
   // Fetch real site data using recent readings API
   const fetchSiteCards = useCallback(async () => {
-    const requestKey = `${selectedSiteIds.join(',')}|${filters.pollutant}`;
+    const currentSelectedSiteIds = selectedSiteIdsRef.current;
+    const currentPollutant = pollutantRef.current;
+    const requestKey = `${currentSelectedSiteIds.join(',')}|${currentPollutant}`;
 
     // If no selected sites, show empty cards instead of returning early
-    if (!selectedSiteIds.length) {
+    if (!currentSelectedSiteIds.length) {
       blockedUnauthorizedRequestKeyRef.current = null;
+      lastHandledRequestKeyRef.current = null;
       setSiteCards([]);
       return;
     }
 
-    if (blockedUnauthorizedRequestKeyRef.current === requestKey) {
+    if (
+      blockedUnauthorizedRequestKeyRef.current === requestKey ||
+      lastHandledRequestKeyRef.current === requestKey
+    ) {
       return;
     }
 
@@ -211,20 +243,21 @@ export const useAnalyticsSiteCards = () => {
       return;
     }
 
+    lastHandledRequestKeyRef.current = requestKey;
     isFetchingRef.current = true;
 
     setIsLoading(true);
 
     try {
       // Join site IDs with comma
-      const siteIdsParam = selectedSiteIds.join(',');
+      const siteIdsParam = currentSelectedSiteIds.join(',');
 
-      const response = await getRecentReadings({
+      const response = await getRecentReadingsRef.current({
         site_id: siteIdsParam,
       });
 
       // Create site cards for all selected sites
-      const cards: SiteData[] = selectedSites.map(selectedSite => {
+      const cards: SiteData[] = selectedSitesRef.current.map(selectedSite => {
         // Find matching measurement data
         const measurement = response?.measurements?.find(
           m => m.site_id === selectedSite._id
@@ -249,7 +282,7 @@ export const useAnalyticsSiteCards = () => {
             location: selectedSite.country || 'Unknown Country',
             value: 0,
             status: 'no-value' as const,
-            pollutant: filters.pollutant as 'pm2_5' | 'pm10',
+            pollutant: currentPollutant as 'pm2_5' | 'pm10',
             unit: 'μg/m³',
             trend: 'stable' as const,
             percentageDifference: 0,
@@ -269,7 +302,7 @@ export const useAnalyticsSiteCards = () => {
       }
 
       // Still show selected sites even if API fails
-      const cards: SiteData[] = selectedSites.map(selectedSite => {
+      const cards: SiteData[] = selectedSitesRef.current.map(selectedSite => {
         return {
           _id: selectedSite._id,
           name:
@@ -280,7 +313,7 @@ export const useAnalyticsSiteCards = () => {
           location: selectedSite.country || 'Unknown Country',
           value: 0,
           status: 'no-value' as const,
-          pollutant: filters.pollutant as 'pm2_5' | 'pm10',
+          pollutant: currentPollutant as 'pm2_5' | 'pm10',
           unit: 'μg/m³',
           trend: 'stable' as const,
           percentageDifference: 0,
@@ -291,18 +324,23 @@ export const useAnalyticsSiteCards = () => {
       setIsLoading(false);
       isFetchingRef.current = false;
     }
-  }, [selectedSiteIds, selectedSites, getRecentReadings, filters.pollutant]);
+  }, []);
 
   // Auto-fetch when selectedSiteIds or pollutant changes
   useEffect(() => {
     fetchSiteCards();
+  }, [fetchSiteCards, selectedSiteIdsKey, filters.pollutant]);
+
+  const refetchSiteCards = useCallback(async () => {
+    lastHandledRequestKeyRef.current = null;
+    await fetchSiteCards();
   }, [fetchSiteCards]);
 
   return {
     siteCards,
     isLoading: isLoading || isMutating,
     error: null, // TODO: handle error from API
-    refetch: fetchSiteCards,
+    refetch: refetchSiteCards,
   };
 };
 
