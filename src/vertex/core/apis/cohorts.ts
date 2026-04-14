@@ -9,6 +9,7 @@ export interface GetCohortsSummaryParams {
   sortBy?: string;
   order?: "asc" | "desc";
   cohort_id?: string[];
+  tags?: string;
 }
 
 export const cohorts = {
@@ -26,9 +27,34 @@ export const cohorts = {
       if (params.cohort_id && params.cohort_id.length > 0) {
         queryParams.set("cohort_id", params.cohort_id.join(","));
       }
+      if (params.tags) queryParams.set("tags", params.tags);
 
       const response = await createSecureApiClient().get(
         `/devices/cohorts/summary?${queryParams.toString()}`,
+        { headers: { 'X-Auth-Type': 'JWT' } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  getUserCohortsSummary: async (params: GetCohortsSummaryParams): Promise<CohortsSummaryResponse> => {
+    try {
+      const { network, limit, skip, search, sortBy, order } = params;
+      const queryParams = new URLSearchParams();
+
+      if (network) queryParams.set("network", network);
+      if (limit !== undefined) queryParams.set("limit", String(limit));
+      if (skip !== undefined) queryParams.set("skip", String(skip));
+      if (search) queryParams.set("search", search);
+      if (sortBy) queryParams.set("sortBy", sortBy);
+      if (sortBy && order) queryParams.set("order", order);
+      if (params.cohort_id && params.cohort_id.length > 0) {
+        queryParams.set("cohort_id", params.cohort_id.join(","));
+      }
+
+      const response = await createSecureApiClient().get(
+        `/devices/cohorts/users?${queryParams.toString()}`,
         { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
@@ -47,7 +73,7 @@ export const cohorts = {
       throw error;
     }
   },
-  createCohort: async (payload: { name: string; network: string }) => {
+  createCohort: async (payload: { name: string; network: string; cohort_tags?: string[] }) => {
     try {
       const response = await createSecureApiClient().post(
         `/devices/cohorts`,
@@ -99,7 +125,19 @@ export const cohorts = {
       throw error;
     }
   },
-  createCohortFromCohorts: async (payload: { name: string; description?: string; cohort_ids: string[]; network?: string }) => {
+  updateCohortNameApi: async (cohortId: string, payload: { name: string; confirm_update: boolean; update_reason: string }) => {
+    try {
+      const response = await createSecureApiClient().put(
+        `/devices/cohorts/${cohortId}/name`,
+        payload,
+        { headers: { 'X-Auth-Type': 'JWT' } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  createCohortFromCohorts: async (payload: { name: string; description?: string; cohort_ids: string[]; network?: string; cohort_tags?: string[] }) => {
     try {
       const response = await createSecureApiClient().post(
         `/devices/cohorts/from-cohorts`,
@@ -177,6 +215,7 @@ export const cohorts = {
         success: boolean;
         message: string;
         errors?: { message: string };
+        cohort?: { name: string };
       };
     } catch (error) {
       throw error;

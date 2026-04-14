@@ -142,13 +142,13 @@ export function CreateGridForm() {
                 name="network"
                 render={({ field }) => (
                   <ReusableSelectInput
-                    label="Network"
+                    label="Sensor Manufacturer"
                     id="network"
                     value={field.value as string}
                     onChange={(e) => field.onChange(e.target.value)}
                     error={form.formState.errors.network?.message}
                     required
-                    placeholder={isLoadingNetworks ? "Loading networks..." : "Select a network"}
+                    placeholder={isLoadingNetworks ? "Loading Sensor Manufacturers..." : "Select a Sensor Manufacturer"}
                     disabled={isLoadingNetworks}
                   >
                     {networks.map((network) => (

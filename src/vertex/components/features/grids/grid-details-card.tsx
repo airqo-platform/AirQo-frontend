@@ -16,7 +16,7 @@ interface GridDetailsCardProps {
 
 const GridDetailsCard: React.FC<GridDetailsCardProps> = ({ grid, onEdit, loading }) => {
     if (loading) {
-        return <Card className="w-full rounded-lg bg-white flex flex-col justify-between items-center p-8"><Loader2 className="w-6 h-6 animate-spin" /></Card>;
+        return <Card className="w-full rounded-lg flex flex-col justify-between items-center p-8"><Loader2 className="w-6 h-6 animate-spin" /></Card>;
     }
 
     const handleCopy = (text: string) => {
@@ -27,7 +27,7 @@ const GridDetailsCard: React.FC<GridDetailsCardProps> = ({ grid, onEdit, loading
     };
 
     return (
-        <Card className="w-full rounded-lg bg-white flex flex-col justify-between">
+        <Card className="w-full rounded-lg flex flex-col justify-between">
             <div className="px-3 py-2 flex flex-col gap-4">
                 <h2 className="text-lg font-semibold">Grid Details</h2>
 

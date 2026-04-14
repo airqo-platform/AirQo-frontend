@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AqCollocation, AqPlus } from "@airqo/icons-react";
+import { Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useMyDevices, useDevices } from "@/core/hooks/useDevices";
@@ -10,6 +11,7 @@ import { useAppSelector } from "@/core/redux/hooks";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { DeviceAssignmentModal } from "@/components/features/devices/device-assignment-modal";
+import ImportDeviceModal from "@/components/features/devices/import-device-modal";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import ClientPaginatedDevicesTable from "@/components/features/devices/client-paginated-devices-table";
 
@@ -20,6 +22,7 @@ const MyDevicesPage = () => {
   const router = useRouter();
   const { userDetails, activeGroup } = useAppSelector((state) => state.user);
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
+  const [isImportDeviceOpen, setImportDeviceOpen] = useState(false);
 
   const { userScope } = useUserContext();
 
@@ -39,11 +42,43 @@ const MyDevicesPage = () => {
     enabled: userScope === 'organisation',
   });
 
-  const devices = userScope === 'personal'
-    ? myDevicesData?.devices || []
-    : orgDevices;
+  const devices = React.useMemo(() => {
+    return userScope === 'personal'
+      ? myDevicesData?.devices || []
+      : orgDevices;
+  }, [userScope, myDevicesData?.devices, orgDevices]);
   const isLoading = userScope === 'personal' ? isLoadingMyDevices : isLoadingOrgDevices;
   const error = userScope === 'personal' ? myDevicesError : orgDevicesError;
+  const searchParams = useSearchParams();
+  const rawStatus = searchParams.get("status");
+  const statusFilter = ["operational", "transmitting", "not_transmitting", "data_available"].includes(rawStatus || "")
+    ? rawStatus
+    : null;
+
+  const filteredDevices = React.useMemo(() => {
+    if (!devices) return [];
+    if (!statusFilter) return devices;
+
+    return devices.filter((device) => {
+      if (statusFilter === "operational") {
+        return device.rawOnlineStatus === true && device.isOnline === true;
+      }
+
+      if (statusFilter === "transmitting") {
+        return device.rawOnlineStatus === true && device.isOnline === false;
+      }
+
+      if (statusFilter === "not_transmitting") {
+        return device.rawOnlineStatus === false && device.isOnline === false;
+      }
+
+      if (statusFilter === "data_available") {
+        return device.rawOnlineStatus === false && device.isOnline === true;
+      }
+
+      return true;
+    });
+  }, [devices, statusFilter]);
 
   if (error) {
     return (
@@ -62,10 +97,19 @@ const MyDevicesPage = () => {
                 )}
               </p>
             </div>
-            <Button onClick={() => router.push("/devices/claim")}>
-              <AqPlus className="mr-2 h-4 w-4" />
-              Claim Device
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={() => router.push("/devices/claim")}>
+                <AqPlus className="mr-2 h-4 w-4" />
+                Claim Device
+              </Button>
+              <ReusableButton
+                variant="outlined"
+                onClick={() => setImportDeviceOpen(true)}
+                Icon={Upload}
+              >
+                Import External Device
+              </ReusableButton>
+            </div>
           </div>
 
           {/* Empty State */}
@@ -99,19 +143,34 @@ const MyDevicesPage = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <div>
-            <h1 className="text-2xl font-semibold">My Devices</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-semibold">My Devices</h1>
+              {statusFilter && (
+                <span className="text-sm px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
+                  Filtered: {statusFilter.replace("_", " ")}
+                </span>
+              )}
+            </div>
             <p className="text-muted-foreground">
               Manage your personal and shared devices
             </p>
           </div>
           <div className="flex gap-2 items-center">
-            <Button
+            <ReusableButton
               onClick={() => router.push("/devices/claim")}
               disabled={isLoading}
+              Icon={AqPlus}
             >
-              <AqPlus className="mr-2 h-4 w-4" />
-              Claim Device
-            </Button>
+              Claim AirQo Device
+            </ReusableButton>
+            <ReusableButton
+              variant="outlined"
+              onClick={() => setImportDeviceOpen(true)}
+              disabled={isLoading}
+              Icon={Upload}
+            >
+              Import External Device
+            </ReusableButton>
             {/* <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" disabled={isLoading}>
@@ -130,12 +189,16 @@ const MyDevicesPage = () => {
         {userDetails?._id && <OrphanedDevicesAlert userId={userDetails._id} />}
 
         <ClientPaginatedDevicesTable
-          devices={devices}
+          devices={filteredDevices}
           isLoading={isLoading}
           error={error}
         />
 
-        {/* Device Assignment Modal */}
+        {/* Modals */}
+        <ImportDeviceModal
+          open={isImportDeviceOpen}
+          onOpenChange={setImportDeviceOpen}
+        />
         <DeviceAssignmentModal
           devices={devices}
           isLoadingDevices={isLoading}

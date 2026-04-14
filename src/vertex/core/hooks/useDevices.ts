@@ -3,13 +3,15 @@ import {
   UseQueryOptions,
   useMutation,
   useQueryClient,
+  useInfiniteQuery,
 } from '@tanstack/react-query';
+import { usePathname } from 'next/navigation';
 import {
   DeviceDetailsResponse,
   devices,
-  type MaintenanceActivitiesResponse,
   GetDevicesSummaryParams,
   DeviceCountResponse,
+  type DeviceActivitiesResponse,
 } from '../apis/devices';
 import { useGroupCohorts } from './useCohorts';
 import { setError } from '@/core/redux/slices/devicesSlice';
@@ -52,7 +54,7 @@ interface ErrorResponse {
   };
 }
 
-export interface DeviceListingOptions {
+export type DeviceListingOptions = Partial<Device> & {
   page?: number;
   limit?: number;
   search?: string;
@@ -60,7 +62,8 @@ export interface DeviceListingOptions {
   order?: 'asc' | 'desc';
   network?: string;
   enabled?: boolean;
-}
+  filterStatus?: string;
+};
 
 export const useDevices = (options: DeviceListingOptions = {}) => {
   const activeGroup = useAppSelector(state => state.user.activeGroup);
@@ -74,15 +77,18 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
     }
   );
 
-  const { page = 1, limit = 100, search, sortBy, order, network } = options;
+  const { page = 1, limit = 100, search, sortBy, order, network, enabled: _enabled, filterStatus, ...rest } = options;
   const safePage = Math.max(1, page);
   const safeLimit = Math.max(1, limit);
   const skip = (safePage - 1) * safeLimit;
 
+  // Combine known params with dynamic rest params for the query key
+  const queryParams = { page, limit, search, sortBy, order, network, ...rest };
+
   const queryKey = [
     'devices',
     activeGroup?.grp_title,
-    { page, limit, search, sortBy, order, network },
+    queryParams,
     groupCohortIds,
   ];
 
@@ -92,6 +98,34 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
   >({
     queryKey,
     queryFn: async () => {
+      // 1. Hybrid Strategy: If a generic status filter is provided, use the optimized status endpoint
+      if (options.filterStatus) {
+        const commonParams = {
+          status: options.filterStatus,
+          limit: safeLimit,
+          skip,
+          ...(search && { search }),
+          ...(sortBy && { sortBy }),
+          ...(order && { order }),
+          ...(network && { network }),
+          ...rest,
+        };
+
+        if (isAirQoGroup) {
+          // Admin view: status across all (or filtered network)
+          return devices.getDevicesByStatusApi(commonParams);
+        } else {
+          // Org view: status scoped by organization cohorts
+          if (!groupCohortIds || groupCohortIds.length === 0) {
+            throw new Error('Cohort IDs are not available for this organization.');
+          }
+          return devices.getDevicesByStatusApi({
+            ...commonParams,
+            cohort_id: groupCohortIds,
+          });
+        }
+      }
+
       if (isAirQoGroup) {
         const params: GetDevicesSummaryParams = {
           limit: safeLimit,
@@ -100,6 +134,7 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
           ...(sortBy && { sortBy }),
           ...(order && { order }),
           ...(network && { network }),
+          ...rest,
         };
         return devices.getDevicesSummaryApi(params);
       }
@@ -117,6 +152,7 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
         ...(sortBy && { sortBy }),
         ...(order && { order }),
         ...(network && { network }),
+        ...rest,
       });
     },
     enabled:
@@ -174,46 +210,56 @@ export const useMyDevices = (
   });
 };
 
-export const useDeviceCount = (options: { enabled?: boolean } = {}) => {
+export const useDeviceCount = (options: { enabled?: boolean; cohortIds?: string[]; network?: string } = {}) => {
   const activeGroup = useAppSelector(state => state.user.activeGroup);
-  const { enabled = true } = options;
+  const { enabled = true, cohortIds, network } = options;
   const isAirQoGroup = activeGroup?.grp_title === 'airqo';
+
+  const shouldFetchGroupCohorts = !cohortIds && !isAirQoGroup && !!activeGroup?._id && enabled && !network;
 
   const { data: groupCohortIds, isLoading: isLoadingCohorts } = useGroupCohorts(
     activeGroup?._id,
     {
-      enabled: !isAirQoGroup && !!activeGroup?._id && enabled,
+      enabled: shouldFetchGroupCohorts,
     }
   );
+
+  const effectiveCohortIds = cohortIds || groupCohortIds;
+
+  const isQueryEnabled =
+    enabled &&
+    (!!network || isAirQoGroup || (!!effectiveCohortIds && effectiveCohortIds.length > 0));
 
   const query = useQuery<DeviceCountResponse, AxiosError<ErrorResponse>>({
     queryKey: [
       'deviceCount',
       activeGroup?._id,
-      isAirQoGroup ? null : groupCohortIds,
+      isAirQoGroup ? null : effectiveCohortIds,
+      network
     ],
     queryFn: () => {
+      if (network) {
+        return devices.getDeviceCountApi({ network });
+      }
+
       if (isAirQoGroup) {
         return devices.getDeviceCountApi({});
       }
 
-      if (!groupCohortIds || groupCohortIds.length === 0) {
+      if (!effectiveCohortIds || effectiveCohortIds.length === 0) {
         return Promise.reject(new Error('Cohort IDs must be provided.'));
       }
-      return devices.getDeviceCountApi({ cohort_id: groupCohortIds });
+      return devices.getDeviceCountApi({ cohort_id: effectiveCohortIds });
     },
-    enabled:
-      !!activeGroup?.grp_title &&
-      (isAirQoGroup || (!!groupCohortIds && groupCohortIds.length > 0)) &&
-      enabled,
+    enabled: isQueryEnabled,
     staleTime: 300_000, // 5 minutes
     refetchOnWindowFocus: false,
   });
 
   return {
     ...query,
-    isLoading: query.isLoading || (!isAirQoGroup && isLoadingCohorts),
-    isFetching: query.isFetching || (!isAirQoGroup && isLoadingCohorts),
+    isLoading: (shouldFetchGroupCohorts && isLoadingCohorts) || (isQueryEnabled && query.isLoading),
+    isFetching: (shouldFetchGroupCohorts && isLoadingCohorts) || (isQueryEnabled && query.isFetching),
   };
 };
 
@@ -499,6 +545,7 @@ export const useCreateDevice = () => {
       }
       queryClient.invalidateQueries({ queryKey: ['devices'] });
       queryClient.invalidateQueries({ queryKey: ['network-devices'] });
+      queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
     },
     onError: error => {
       ReusableToast({
@@ -511,8 +558,11 @@ export const useCreateDevice = () => {
 
 export const useImportDevice = () => {
   const queryClient = useQueryClient();
-  const activeGroup = useAppSelector(state => state.user.activeGroup);
-  const updateDeviceGroup = useUpdateDeviceGroup();
+  const pathname = usePathname();
+  const userContext = useAppSelector((state) => state.user.userContext);
+
+  // Determine active module based on pathname
+  const isAdminModule = pathname?.startsWith('/admin/');
 
   return useMutation<
     DeviceCreationResponse,
@@ -526,6 +576,9 @@ export const useImportDevice = () => {
       readKey?: string;
       description?: string;
       serial_number: string;
+      api_code?: string;
+      cohort_id?: string;
+      user_id: string;
     }
   >({
     mutationFn: devices.importDevice,
@@ -534,14 +587,21 @@ export const useImportDevice = () => {
         message: `${variables.long_name} has been imported.`,
         type: 'SUCCESS',
       });
-      if (data.created_device && activeGroup?.grp_title) {
-        updateDeviceGroup.mutate({
-          deviceId: data.created_device._id || '',
-          groupName: activeGroup.grp_title,
-        });
+
+      // Refresh based on active module
+      if (isAdminModule) {
+        queryClient.invalidateQueries({ queryKey: ['network-devices'] });
+      } else {
+        if (userContext === 'external-org') {
+          queryClient.invalidateQueries({ queryKey: ['devices'] });
+          queryClient.invalidateQueries({ queryKey: ['deviceCount'] });
+          queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
+        } else {
+          queryClient.invalidateQueries({ queryKey: ['myDevices'] });
+          queryClient.invalidateQueries({ queryKey: ['deviceCount'] });
+          queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
+        }
       }
-      queryClient.invalidateQueries({ queryKey: ['devices'] });
-      queryClient.invalidateQueries({ queryKey: ['network-devices'] });
     },
     onError: error => {
       ReusableToast({
@@ -568,6 +628,10 @@ export const useDeployDevice = () => {
       network: string;
       user_id: string;
       deployment_date: string | undefined;
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      userName?: string;
     }) => devices.deployDevice(deviceData),
     onSuccess: (data, variables) => {
       ReusableToast({
@@ -577,10 +641,25 @@ export const useDeployDevice = () => {
       queryClient.invalidateQueries({ queryKey: ['devices'] });
       queryClient.invalidateQueries({ queryKey: ['claimedDevices'] });
       queryClient.invalidateQueries({ queryKey: ['myDevices'] });
+      queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
     },
-    onError: error => {
+    onError: (error: AxiosError<any>) => {
+      let errorMessage = getApiErrorMessage(error);
+      const errorData = error.response?.data as any;
+
+      if (errorData?.failed_deployments?.length > 0) {
+        const failedMessages = errorData.failed_deployments
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .map((deployment: any) => deployment.error?.message)
+          .filter(Boolean);
+
+        if (failedMessages.length > 0) {
+          errorMessage = failedMessages.join(', ');
+        }
+      }
+
       ReusableToast({
-        message: `Deployment Failed: ${getApiErrorMessage(error)}`,
+        message: `Deployment Failed: ${errorMessage}`,
         type: 'ERROR',
       });
     },
@@ -600,6 +679,10 @@ export const useRecallDevice = () => {
         recallType: string;
         user_id: string;
         date: string;
+        firstName?: string;
+        lastName?: string;
+        email?: string;
+        userName?: string;
       };
     }) => devices.recallDevice(deviceName, recallData),
     onSuccess: (data, variables) => {
@@ -610,6 +693,7 @@ export const useRecallDevice = () => {
       queryClient.invalidateQueries({ queryKey: ['devices'] });
       queryClient.invalidateQueries({ queryKey: ['device-details'] });
       queryClient.invalidateQueries({ queryKey: ['myDevices'] });
+      queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
     },
     onError: error => {
       ReusableToast({
@@ -639,6 +723,7 @@ export const useAddMaintenanceLog = () => {
       queryClient.invalidateQueries({ queryKey: ['devices'] });
       queryClient.invalidateQueries({ queryKey: ['device-details'] });
       queryClient.invalidateQueries({ queryKey: ['deviceStatus'] });
+      queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
     },
     onError: error => {
       ReusableToast({
@@ -646,15 +731,6 @@ export const useAddMaintenanceLog = () => {
         type: 'ERROR',
       });
     },
-  });
-};
-
-export const useDeviceMaintenanceLogs = (deviceName: string) => {
-  return useQuery<MaintenanceActivitiesResponse, AxiosError<ErrorResponse>>({
-    queryKey: ['deviceMaintenanceLogs', deviceName],
-    queryFn: () => devices.getDeviceMaintenanceLogs(deviceName),
-    enabled: !!deviceName,
-    staleTime: 60_000,
   });
 };
 
@@ -777,5 +853,26 @@ export const useShippingBatchDetails = (batchId: string) => {
     queryFn: () => devices.getShippingBatchDetails(batchId),
     enabled: !!batchId,
     staleTime: 60_000,
+  });
+};
+
+export const useDeviceActivities = (deviceName: string) => {
+  return useInfiniteQuery<DeviceActivitiesResponse, AxiosError<ErrorResponse>>({
+    queryKey: ['deviceActivities', deviceName],
+    queryFn: ({ pageParam = 1 }) =>
+      devices.getDeviceActivities(deviceName, { page: pageParam as number, limit: 10 }),
+    getNextPageParam: (lastPage: DeviceActivitiesResponse, allPages: DeviceActivitiesResponse[]) => {
+        if (!lastPage.meta) {
+            if (!lastPage.site_activities || lastPage.site_activities.length < 10) return undefined;
+            return allPages.length + 1;
+        }
+        if (lastPage.meta.page < lastPage.meta.totalPages) {
+            return lastPage.meta.page + 1;
+        }
+        return undefined;
+    },
+    enabled: !!deviceName,
+    staleTime: 60_000,
+    initialPageParam: 1,
   });
 };

@@ -1,25 +1,13 @@
 'use client';
 
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-  useRef,
-} from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { AqWifiOff, AqSignal02, AqXClose } from '@airqo/icons-react';
 
-// =============================================================================
-// CONSTANTS
-// =============================================================================
 const DEBOUNCE_DELAY = 300;
 const AUTO_HIDE_DELAY = 5000;
+const API_DEGRADED_EVENT = 'vertex-network-degraded';
+const API_RECOVERED_EVENT = 'vertex-network-recovered';
 
-// =============================================================================
-// HOOKS
-// =============================================================================
-
-/** Simple debounce hook */
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
   useEffect(() => {
@@ -29,7 +17,6 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
-/** Hook to check if the component is mounted */
 function useMounted() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -40,13 +27,12 @@ interface NetworkStatus {
   isOnline: boolean;
 }
 
-/**
- * Network status hook (client-only)
- */
-function useNetworkStatus(): NetworkStatus {
-  const initialOnline =
-    typeof navigator !== 'undefined' ? navigator.onLine : true;
+interface ApiHealthStatus {
+  hasConnectivityIssue: boolean;
+}
 
+function useNetworkStatus(): NetworkStatus {
+  const initialOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
   const [isOnline, setIsOnline] = useState<boolean>(initialOnline);
 
   useEffect(() => {
@@ -65,9 +51,38 @@ function useNetworkStatus(): NetworkStatus {
   return { isOnline };
 }
 
-// =============================================================================
-// TYPES
-// =============================================================================
+function useApiHealthStatus(): ApiHealthStatus {
+  const [hasConnectivityIssue, setHasConnectivityIssue] = useState(false);
+  const clearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const handleNetworkDegraded = () => {
+      setHasConnectivityIssue(true);
+      if (clearTimerRef.current) clearTimeout(clearTimerRef.current);
+      clearTimerRef.current = setTimeout(() => setHasConnectivityIssue(false), 12000);
+    };
+
+    const handleNetworkRecovered = () => {
+      setHasConnectivityIssue(false);
+      if (clearTimerRef.current) {
+        clearTimeout(clearTimerRef.current);
+        clearTimerRef.current = null;
+      }
+    };
+
+    window.addEventListener(API_DEGRADED_EVENT, handleNetworkDegraded as EventListener);
+    window.addEventListener(API_RECOVERED_EVENT, handleNetworkRecovered as EventListener);
+
+    return () => {
+      if (clearTimerRef.current) clearTimeout(clearTimerRef.current);
+      window.removeEventListener(API_DEGRADED_EVENT, handleNetworkDegraded as EventListener);
+      window.removeEventListener(API_RECOVERED_EVENT, handleNetworkRecovered as EventListener);
+    };
+  }, []);
+
+  return { hasConnectivityIssue };
+}
+
 interface NetworkStatusBannerProps {
   position?: 'top' | 'bottom';
   className?: string;
@@ -76,9 +91,6 @@ interface NetworkStatusBannerProps {
   autoHideDelay?: number;
 }
 
-// =============================================================================
-// COMPONENT
-// =============================================================================
 export default function NetworkStatusBanner({
   position = 'top',
   className = '',
@@ -90,8 +102,9 @@ export default function NetworkStatusBanner({
   const [dismissed, setDismissed] = useState(false);
   const [showBackOnline, setShowBackOnline] = useState(false);
   const { isOnline } = useNetworkStatus();
+  const { hasConnectivityIssue } = useApiHealthStatus();
 
-  const hasIssue = !isOnline; // 🚨 Only show for offline
+  const hasIssue = !isOnline || hasConnectivityIssue;
   const shouldShow = useDebounce(hasIssue && !dismissed, DEBOUNCE_DELAY);
 
   const config = useMemo(() => {
@@ -100,11 +113,17 @@ export default function NetworkStatusBanner({
         message: 'You are offline. Check your internet connection.',
         bgClass: 'bg-red-600',
         Icon: AqWifiOff,
-        severity: 'critical' as const,
+      };
+    }
+    if (hasConnectivityIssue) {
+      return {
+        message: 'Connection is unstable. Some data may be temporarily unavailable.',
+        bgClass: 'bg-amber-600',
+        Icon: AqSignal02,
       };
     }
     return null;
-  }, [isOnline]);
+  }, [isOnline, hasConnectivityIssue]);
 
   const prevOnlineRef = useRef<boolean>(isOnline);
   useEffect(() => {
@@ -116,8 +135,8 @@ export default function NetworkStatusBanner({
   }, [isOnline]);
 
   useEffect(() => {
-    if (isOnline) setDismissed(false);
-  }, [isOnline]);
+    if (!hasIssue) setDismissed(false);
+  }, [hasIssue]);
 
   useEffect(() => {
     if (!autoHide || !showBackOnline) return;
@@ -129,7 +148,7 @@ export default function NetworkStatusBanner({
 
   if (!isMounted) return null;
 
-  if (showBackOnline && isOnline) {
+  if (showBackOnline && isOnline && !hasConnectivityIssue) {
     return (
       <div
         role="status"

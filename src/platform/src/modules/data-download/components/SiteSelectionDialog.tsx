@@ -5,6 +5,9 @@ import { Button } from '@/shared/components/ui';
 import { Input } from '@/shared/components/ui/input';
 import { GridSite } from '@/shared/types/api';
 
+const toNormalizedText = (value: unknown): string =>
+  typeof value === 'string' ? value.toLowerCase() : '';
+
 interface SiteSelectionDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -20,7 +23,7 @@ export const SiteSelectionDialog: React.FC<SiteSelectionDialogProps> = ({
   isOpen,
   onClose,
   onConfirm,
-  sites,
+  sites = [],
   initialSelectedSiteIds,
   gridName,
   gridType,
@@ -32,32 +35,39 @@ export const SiteSelectionDialog: React.FC<SiteSelectionDialogProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    setSelectedSiteIds(initialSelectedSiteIds);
-  }, [initialSelectedSiteIds]);
+    const validSiteIds = new Set(sites.map(site => site._id));
+    const uniqueInitialIds = Array.from(new Set(initialSelectedSiteIds));
+    const nextSelectedSiteIds = uniqueInitialIds.filter(id =>
+      validSiteIds.has(id)
+    );
+    setSelectedSiteIds(nextSelectedSiteIds);
+  }, [initialSelectedSiteIds, sites]);
 
   // Filter sites based on search term
   const filteredSites = useMemo(() => {
     if (!searchTerm.trim()) return sites;
-    const term = searchTerm.toLowerCase();
+    const term = searchTerm.trim().toLowerCase();
     return sites.filter(
       site =>
-        site.name.toLowerCase().includes(term) ||
-        site.city.toLowerCase().includes(term) ||
-        site.country.toLowerCase().includes(term) ||
-        site.location_name?.toLowerCase().includes(term)
+        toNormalizedText(site?.name).includes(term) ||
+        toNormalizedText(site?.city).includes(term) ||
+        toNormalizedText(site?.country).includes(term) ||
+        toNormalizedText(site?.location_name).includes(term)
     );
   }, [sites, searchTerm]);
 
   const handleSiteToggle = (siteId: string, checked: boolean) => {
     if (checked) {
-      setSelectedSiteIds(prev => [...prev, siteId]);
+      setSelectedSiteIds(prev =>
+        prev.includes(siteId) ? prev : [...prev, siteId]
+      );
     } else {
       setSelectedSiteIds(prev => prev.filter(id => id !== siteId));
     }
   };
 
   const handleSelectAll = () => {
-    setSelectedSiteIds(sites.map(site => site._id));
+    setSelectedSiteIds(Array.from(new Set(sites.map(site => site._id))));
   };
 
   const handleDeselectAll = () => {

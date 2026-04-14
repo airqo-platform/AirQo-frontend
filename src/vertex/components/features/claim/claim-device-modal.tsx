@@ -14,7 +14,8 @@ import { useRouter } from 'next/navigation';
 import { QRScanner } from '../devices/qr-scanner';
 import { useClaimDevice, useBulkClaimDevices } from '@/core/hooks/useDevices';
 import { useUserContext } from '@/core/hooks/useUserContext';
-import { useGroupCohorts, useVerifyCohort } from '@/core/hooks/useCohorts';
+import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
+import { useGroupCohorts, useVerifyCohort, useAssignCohortsToGroup, useAssignCohortsToUser } from '@/core/hooks/useCohorts';
 import { cohorts as cohortsApi } from '@/core/apis/cohorts';
 import logger from '@/lib/logger';
 import { FileUploadParser } from './FileUploadParser';
@@ -81,7 +82,7 @@ const claimDeviceSchema = z.object({
 
 type ClaimDeviceFormData = z.infer<typeof claimDeviceSchema>;
 
-export type FlowStep = 'method-select' | 'manual-input' | 'qr-scan' | 'confirmation' | 'claiming' | 'success' | 'bulk-input' | 'bulk-confirmation' | 'bulk-claiming' | 'bulk-results' | 'cohort-import';
+export type FlowStep = 'method-select' | 'manual-input' | 'qr-scan' | 'confirmation' | 'claiming' | 'success' | 'bulk-input' | 'bulk-confirmation' | 'bulk-claiming' | 'bulk-results' | 'cohort-import' | 'cohort-confirm' | 'assigning-cohort';
 
 export interface ClaimedDeviceInfo {
     deviceId: string;
@@ -93,7 +94,6 @@ export interface ClaimDeviceModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess?: (deviceInfo: ClaimedDeviceInfo) => void;
-    redirectOnSuccess?: boolean;
     initialStep?: FlowStep;
 }
 
@@ -101,7 +101,6 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     isOpen,
     onClose,
     onSuccess,
-    redirectOnSuccess = true,
     initialStep = 'method-select',
 }) => {
     const router = useRouter();
@@ -127,8 +126,13 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     const [cohortIdInput, setCohortIdInput] = useState('');
     const [previousStep, setPreviousStep] = useState<FlowStep>('method-select');
     const [isImportingCohort, setIsImportingCohort] = useState(false);
+    const [isCohortAssignmentSuccess, setIsCohortAssignmentSuccess] = useState(false);
+    const [verifiedCohort, setVerifiedCohort] = useState<{ id: string; name: string } | null>(null);
 
     const { mutateAsync: verifyCohort } = useVerifyCohort();
+
+    const { mutate: assignCohortsToGroup } = useAssignCohortsToGroup();
+    const { mutate: assignCohortsToUser } = useAssignCohortsToUser();
 
     const formMethods = useForm<ClaimDeviceFormData>({
         resolver: zodResolver(claimDeviceSchema),
@@ -147,6 +151,8 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
         setCohortIdInput('');
         setPreviousStep('method-select');
         setIsImportingCohort(false);
+        setIsCohortAssignmentSuccess(false);
+        setVerifiedCohort(null);
     }, [formMethods]);
 
     const handleClose = useCallback(() => {
@@ -207,7 +213,9 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
             setError(null);
             formMethods.reset();
         }
-    }, [isOpen, initialStep, formMethods]);
+        // We only want to reset when the modal opens.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOpen]);
 
     const handleClaimDevice = (deviceId: string, claimToken: string) => {
         if (!user?._id) {
@@ -331,20 +339,115 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
         }
     };
 
+    const handleConfirmCohortImport = () => {
+        if (!verifiedCohort) {
+            setError('Session expired or cohort details are missing. Please verify the cohort again.');
+            setStep('cohort-import');
+            return;
+        }
+
+        if (isExternalOrg && activeGroup?._id) {
+            setStep('assigning-cohort');
+            assignCohortsToGroup(
+                { groupId: activeGroup._id, cohortIds: [verifiedCohort.id] },
+                {
+                    onSuccess: () => {
+                        setTimeout(() => {
+                            setIsCohortAssignmentSuccess(true);
+                            setStep('success');
+                        }, 3000);
+                    },
+                    onError: (err) => {
+                        setError(getApiErrorMessage(err));
+                        setStep('cohort-import');
+                    },
+                }
+            );
+            return;
+        }
+
+        if (isPersonalContext) {
+            if (!user?._id) {
+                setError('User session not available. Please try again.');
+                setStep('cohort-import');
+                return;
+            }
+            setStep('assigning-cohort');
+            assignCohortsToUser(
+                { userId: user._id, cohortIds: [verifiedCohort.id] },
+                {
+                    onSuccess: () => {
+                        setTimeout(() => {
+                            setIsCohortAssignmentSuccess(true);
+                            setStep('success');
+                        }, 3000);
+                    },
+                    onError: (err) => {
+                        setError(getApiErrorMessage(err));
+                        setStep('cohort-import');
+                    },
+                }
+            );
+            return;
+        }
+
+        // Fallback if context is indeterminate
+        setError('Unable to determine assignment context. Please try again.');
+        setStep('cohort-import');
+    };
+
     const handleVerifyCohort = async () => {
-        if (!cohortIdInput.trim()) {
+        const input = cohortIdInput.trim();
+        if (!input) {
             setError('Please enter a valid Cohort ID');
             return;
         }
+
+        // Validate 24-char alphanumeric string
+        if (!/^[a-zA-Z0-9]{24}$/.test(input)) {
+            setError('Cohort ID must be a 24-character alphanumeric code.');
+            return;
+        }
+
         setError(null);
         setIsImportingCohort(true);
 
         try {
-            const result = await verifyCohort(cohortIdInput);
+            const result = await verifyCohort(input);
 
             if (result.success) {
+                const cohortName =
+                    (result as { data?: { name?: string } }).data?.name ||
+                    result?.cohort?.name ||
+                    '';
+                if (cohortName?.toLowerCase() === 'airqo') {
+                    setError('This cohort is not available.');
+                    setIsImportingCohort(false);
+                    return;
+                }
+
+                if (isExternalOrg) {
+                    if (!activeGroup?._id) {
+                        setError('No organization is selected. Please try again.');
+                        return;
+                    }
+                    setVerifiedCohort({ id: input, name: cohortName || input });
+                    setStep('cohort-confirm');
+                    return;
+                }
+
+                if (isPersonalContext) {
+                    if (!user?._id) {
+                        setError('User session not available. Please try again.');
+                        return;
+                    }
+                    setVerifiedCohort({ id: input, name: cohortName || input });
+                    setStep('cohort-confirm');
+                    return;
+                }
+
                 try {
-                    const cohortDetails = await cohortsApi.getCohortDetailsApi(cohortIdInput);
+                    const cohortDetails = await cohortsApi.getCohortDetailsApi(input);
                     const cohort = Array.isArray(cohortDetails?.cohorts) ? cohortDetails.cohorts[0] : null;
 
                     if (cohort && Array.isArray(cohort.devices) && cohort.devices.length > 0) {
@@ -400,9 +503,19 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                     ...baseConfig,
                     title: 'Import from Cohort',
                     showFooter: true,
-                    primaryAction: { label: isImportingCohort ? 'Verifying...' : 'Verify & Import', onClick: handleVerifyCohort, disabled: isImportingCohort },
+                    primaryAction: { label: isImportingCohort ? 'Verifying...' : 'Import', onClick: handleVerifyCohort, disabled: isImportingCohort },
                     secondaryAction: { label: 'Back', onClick: () => setStep('method-select'), variant: 'outline' as const },
                 };
+            case 'cohort-confirm':
+                return {
+                    ...baseConfig,
+                    title: 'Confirm Cohort Import',
+                    showFooter: true,
+                    primaryAction: { label: 'Confirm & Import', onClick: handleConfirmCohortImport },
+                    secondaryAction: { label: 'Cancel', onClick: () => setStep('cohort-import'), variant: 'outline' as const },
+                };
+            case 'assigning-cohort':
+                return { ...baseConfig, title: 'Assigning Cohort...', showCloseButton: false, preventBackdropClose: true, showFooter: false };
             case 'manual-input':
                 return {
                     ...baseConfig,
@@ -584,7 +697,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                 {step === 'cohort-import' && (
                     <div className="space-y-6">
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Enter the Cohort ID to automatically load its devices. You will only need to provide the claim tokens.
+                            Enter the Cohort ID to automatically load its devices.
                         </p>
                         <div className="space-y-4">
                             <ReusableInputField
@@ -604,6 +717,22 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                                 <span className="ml-2 text-sm text-gray-500">Verifying Cohort ID...</span>
                             </div>
                         )}
+                    </div>
+                )}
+
+                {step === 'cohort-confirm' && verifiedCohort && (
+                    <div className="space-y-4">
+                        <div className="rounded-lg border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20 p-4">
+                            <p className="text-sm text-blue-800 dark:text-blue-200">
+                                <strong>Cohort Name:</strong> {verifiedCohort.name}
+                            </p>
+                            <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
+                                This will add the devices from this cohort to your {isExternalOrg ? 'organization' : 'personal'} assets.
+                            </p>
+                        </div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Continue to import this cohort?
+                        </p>
                     </div>
                 )}
 
@@ -752,42 +881,46 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                     </div>
                 )}
 
-                {step === 'success' && claimData?.device && (
+                {step === 'assigning-cohort' && (
+                    <div className="flex flex-col items-center justify-center py-8 space-y-4">
+                        <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+                        <div className="text-center">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Assigning Cohort</h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Adding cohort devices to your {isExternalOrg ? 'organization' : 'personal'} assets...{' '}Please wait...</p>
+                        </div>
+                    </div>
+                )}
+
+                {step === 'success' && (claimData?.device || isCohortAssignmentSuccess) && (
                     <div className="flex flex-col items-center justify-center py-8 space-y-4">
                         <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
                             <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-400" />
                         </div>
                         <div className="text-center">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Device Claimed Successfully!</h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{redirectOnSuccess ? 'Redirecting you to your devices...' : 'You can now close this dialog.'}</p>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                {isCohortAssignmentSuccess ? 'Cohort Assigned Successfully!' : 'Device Claimed Successfully!'}
+                            </h3>
                         </div>
-                        <div className="w-full space-y-3 mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-gray-600 dark:text-gray-400">Device Name:</span>
-                                <span className="font-medium text-gray-900 dark:text-white">{claimData.device.long_name || claimData.device.name}</span>
+
+                        {claimData?.device && (
+                            <div className="w-full space-y-3 mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="text-gray-600 dark:text-gray-400">Device Name:</span>
+                                    <span className="font-medium text-gray-900 dark:text-white">{claimData.device.long_name || claimData.device.name}</span>
+                                </div>
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="text-gray-600 dark:text-gray-400">Device ID:</span>
+                                    <span className="font-mono text-xs text-gray-900 dark:text-white">{claimData.device.name}</span>
+                                </div>
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="text-gray-600 dark:text-gray-400">Status:</span>
+                                    <span className="inline-flex items-center gap-1 text-green-600 dark:text-green-400">
+                                        <CheckCircle2 className="w-3 h-3" />
+                                        Claimed
+                                    </span>
+                                </div>
                             </div>
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-gray-600 dark:text-gray-400">Device ID:</span>
-                                <span className="font-mono text-xs text-gray-900 dark:text-white">{claimData.device.name}</span>
-                            </div>
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-gray-600 dark:text-gray-400">Status:</span>
-                                <span className="inline-flex items-center gap-1 text-green-600 dark:text-green-400">
-                                    <CheckCircle2 className="w-3 h-3" />
-                                    Claimed
-                                </span>
-                            </div>
-                        </div>
-                        <div className="w-full space-y-2 mt-2">
-                            <div className="flex items-center gap-2 text-green-600 dark:text-green-400 text-sm">
-                                <CheckCircle2 className="w-4 h-4" />
-                                <span>Device claimed and added to your account</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-green-600 dark:text-green-400 text-sm">
-                                <CheckCircle2 className="w-4 h-4" />
-                                <span>Automatically added to your personal cohort</span>
-                            </div>
-                        </div>
+                        )}
                     </div>
                 )}
 
@@ -923,3 +1056,4 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
 };
 
 export default ClaimDeviceModal;
+

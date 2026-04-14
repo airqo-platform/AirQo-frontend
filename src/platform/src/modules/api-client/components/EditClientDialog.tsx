@@ -29,14 +29,12 @@ const EditClientDialog: React.FC<EditClientDialogProps> = ({
   useEffect(() => {
     if (isOpen && client) {
       setClientName(client.name);
-      setIpAddresses(
-        client.ip_addresses.length > 0 ? client.ip_addresses : ['']
-      );
-      setIpErrors(
-        client.ip_addresses.length > 0
-          ? client.ip_addresses.map(() => '')
-          : ['']
-      );
+      const ips =
+        client.ip_addresses && Array.isArray(client.ip_addresses)
+          ? client.ip_addresses
+          : [];
+      setIpAddresses(ips.length > 0 ? ips : ['']);
+      setIpErrors(ips.length > 0 ? ips.map(() => '') : ['']);
     }
   }, [isOpen, client]);
 

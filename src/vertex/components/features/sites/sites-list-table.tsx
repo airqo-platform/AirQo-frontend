@@ -1,14 +1,14 @@
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import ReusableTable, { TableColumn, TableItem } from "@/components/shared/table/ReusableTable";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Site } from "@/app/types/sites";
 import { useSites } from "@/core/hooks/useSites";
-import { useMemo, useRef, useEffect } from "react";
+import { useMemo } from "react";
 import { useServerSideTableState } from "@/core/hooks/useServerSideTableState";
 import {
   badgeColorClasses,
   formatDisplayDate,
-  getSimpleStatus,
+  getDeviceStatus,
 } from "@/core/utils/status";
 
 interface SitesTableProps {
@@ -29,7 +29,8 @@ export default function SitesTable({
   className,
 }: SitesTableProps) {
   const router = useRouter();
-  const tableRef = useRef<HTMLDivElement>(null);
+  const searchParams = useSearchParams();
+  const status = searchParams.get("status") || undefined;
 
   const {
     pagination, setPagination,
@@ -42,15 +43,9 @@ export default function SitesTable({
     limit: pagination.pageSize,
     search: searchTerm,
     sortBy: sorting[0]?.id,
-    order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined
+    order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined,
+    status
   });
-
-  // Scroll to top of table when page changes
-  useEffect(() => {
-    if (tableRef.current) {
-      tableRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, [pagination.pageIndex]);
 
   const pageCount = meta?.totalPages ?? 0;
 
@@ -133,7 +128,11 @@ export default function SitesTable({
           ? formatDisplayDate(site.lastActive)
           : null;
 
-        const status = getSimpleStatus(site.isOnline, lastActiveCheck);
+        const status = getDeviceStatus(
+          site.isOnline || false,
+          site.rawOnlineStatus,
+          lastActiveCheck
+        );
         const colors = badgeColorClasses[status.color];
         const Icon = status.icon;
 
@@ -151,7 +150,7 @@ export default function SitesTable({
   ];
 
   return (
-    <div ref={tableRef} className={`space-y-4 ${className}`}>
+    <div className={`space-y-4 ${className}`}>
       <ReusableTable
         title="Sites"
         data={sitesWithId}
@@ -170,13 +169,7 @@ export default function SitesTable({
         sorting={sorting}
         onSortingChange={setSorting}
         searchable
-        actions={multiSelect ? [
-          {
-            label: "Export Selected",
-            value: "export",
-            handler: () => { },
-          },
-        ] : []}
+
         emptyState={
           error ? (
             <div className="flex flex-col items-center gap-2">

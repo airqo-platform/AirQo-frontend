@@ -1,19 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
 import logger from '@/shared/lib/logger';
 
-const CLOUDINARY_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_NAME;
-const CLOUDINARY_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_PRESET;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+const ALLOWED_PROFILE_IMAGE_MIME_TYPES = [
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/webp',
+  'image/avif',
+];
 
 export async function POST(request: NextRequest) {
   try {
     // Enhanced validation with detailed logging for production debugging
+    const CLOUDINARY_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_NAME;
+    const CLOUDINARY_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_PRESET;
+
     if (!CLOUDINARY_NAME) {
       logger.error(
         'Cloudinary name not configured',
-        new Error('Missing CLOUDINARY_NAME')
+        new Error('Missing CLOUDINARY_NAME'),
+        {
+          hasPreset: !!CLOUDINARY_PRESET,
+        }
       );
       return NextResponse.json(
-        { error: 'Cloudinary API credentials not configured' },
+        { error: 'Cloudinary service not configured. Please contact support.' },
         { status: 500 }
       );
     }
@@ -21,10 +36,16 @@ export async function POST(request: NextRequest) {
     if (!CLOUDINARY_PRESET) {
       logger.error(
         'Cloudinary preset not configured',
-        new Error('Missing CLOUDINARY_PRESET')
+        new Error('Missing CLOUDINARY_PRESET'),
+        {
+          hasCloudName: !!CLOUDINARY_NAME,
+        }
       );
       return NextResponse.json(
-        { error: 'Cloudinary API credentials not configured' },
+        {
+          error:
+            'Cloudinary upload preset not configured. Please contact support.',
+        },
         { status: 500 }
       );
     }
@@ -40,13 +61,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate file type
-    if (!file.type.startsWith('image/')) {
-      return NextResponse.json({ error: 'Invalid file type' }, { status: 400 });
+    if (!ALLOWED_PROFILE_IMAGE_MIME_TYPES.includes(file.type)) {
+      return NextResponse.json(
+        {
+          error:
+            'Unsupported file format. Allowed formats: PNG, JPG, WebP, AVIF.',
+        },
+        { status: 400 }
+      );
     }
 
     // Validate file size (5MB max)
-    if (file.size > 5 * 1024 * 1024) {
-      return NextResponse.json({ error: 'File too large' }, { status: 400 });
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      return NextResponse.json(
+        { error: 'File is too large. Maximum allowed size is 5MB.' },
+        { status: 400 }
+      );
     }
 
     // Add upload preset if not provided
@@ -58,18 +88,61 @@ export async function POST(request: NextRequest) {
     const response = await fetch(CLOUDINARY_URL, {
       method: 'POST',
       body: formData,
+      cache: 'no-store',
     });
 
-    const result = await response.json();
-
     if (!response.ok) {
+      // Get response text first for better error handling
+      const responseText = await response.text();
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      let result;
+
+      try {
+        result = JSON.parse(responseText);
+      } catch (parseError) {
+        logger.error(
+          'Failed to parse Cloudinary response',
+          parseError instanceof Error ? parseError : new Error('Parse error'),
+          {
+            responseStatus: response.status,
+            responsePreview: responseText.substring(0, 200),
+          }
+        );
+        return NextResponse.json(
+          { error: 'Invalid response from upload service' },
+          { status: 500 }
+        );
+      }
+
+      logger.error(
+        'Cloudinary upload failed',
+        new Error(`Upload failed: ${result.error?.message || 'Unknown error'}`),
+        {
+          status: response.status,
+          cloudinaryError: result.error,
+        }
+      );
       return NextResponse.json(
         { error: result.error?.message || 'Upload failed' },
-        { status: response.status }
+        {
+          status: response.status,
+          headers: {
+            'Cache-Control': 'no-store, no-cache, max-age=0, must-revalidate',
+            Pragma: 'no-cache',
+            Expires: '0',
+          },
+        }
       );
     }
 
-    return NextResponse.json(result);
+    const result = await response.json();
+    return NextResponse.json(result, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, max-age=0, must-revalidate',
+        Pragma: 'no-cache',
+        Expires: '0',
+      },
+    });
   } catch (error: unknown) {
     const uploadError =
       error instanceof Error
@@ -84,7 +157,14 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       { error: 'Internal server error. Please check server logs.' },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          'Cache-Control': 'no-store, no-cache, max-age=0, must-revalidate',
+          Pragma: 'no-cache',
+          Expires: '0',
+        },
+      }
     );
   }
 }

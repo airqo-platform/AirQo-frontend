@@ -3,9 +3,11 @@
 import React, { useMemo, useState, useEffect, useRef, useId } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useParams, useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import AuthLayout from '@/shared/layouts/AuthLayout';
 import { Button } from '@/shared/components/ui/button';
-import { AqArrowNarrowLeft } from '@airqo/icons-react';
+import { Card, CardContent } from '@/shared/components/ui/card';
+import { AqArrowNarrowLeft, AqCheckCircle } from '@airqo/icons-react';
 import { SearchField } from '@/shared/components/ui/search-field';
 import Checkbox from '@/shared/components/ui/checkbox';
 import { TextInput } from '@/shared/components/ui/text-input';
@@ -104,6 +106,8 @@ const Page: React.FC = () => {
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
   const [selectedIndustry, setSelectedIndustry] = useState<string | null>(null);
   const [emailVerified, setEmailVerified] = useState<boolean>(false);
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [isNavigatingToLogin, setIsNavigatingToLogin] = useState(false);
 
   const hasVerifiedRef = useRef(false);
   const searchInputId = useId();
@@ -191,6 +195,110 @@ const Page: React.FC = () => {
 
   const finishDisabled =
     !selectedIndustry || isUpdatingPreferences || isUpdatingUserDetails;
+
+  const handleGoToLogin = () => {
+    setIsNavigatingToLogin(true);
+    router.push('/user/login');
+  };
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.3,
+        ease: [0.4, 0.0, 0.2, 1] as const,
+      },
+    },
+  };
+
+  const iconVariants = {
+    hidden: { scale: 0, rotate: -180 },
+    visible: {
+      scale: 1,
+      rotate: 0,
+      transition: {
+        type: 'spring' as const,
+        stiffness: 200,
+        damping: 15,
+      },
+    },
+  };
+
+  if (showWelcome) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-xl">
+          <CardContent className="pt-6">
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="flex flex-col items-center justify-center py-8 space-y-6"
+            >
+              {/* Animated Check Mark */}
+              <div className="relative">
+                <motion.div
+                  className="absolute inset-0 bg-green-100 dark:bg-green-900/20 rounded-full"
+                  initial={{ scale: 1, opacity: 0.75 }}
+                  animate={{
+                    scale: [1, 1.2, 1],
+                    opacity: [0.75, 0, 0.75],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }}
+                />
+                <motion.div
+                  variants={iconVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="relative bg-green-100 dark:bg-green-900/40 rounded-full p-4"
+                >
+                  <AqCheckCircle className="w-12 h-12 text-green-600 dark:text-green-400" />
+                </motion.div>
+              </div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="text-center space-y-3"
+              >
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  Welcome to AirQo!
+                </h2>
+                <p className="text-base text-muted-foreground max-w-sm">
+                  Your account has been successfully created. You can now log in
+                  to start exploring air quality data.
+                </p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                className="w-full mt-4"
+              >
+                <Button
+                  onClick={handleGoToLogin}
+                  variant="filled"
+                  className="w-full"
+                  disabled={isNavigatingToLogin}
+                >
+                  {isNavigatingToLogin ? 'Redirecting...' : 'Continue to Login'}
+                </Button>
+              </motion.div>
+            </motion.div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <AuthLayout
@@ -376,15 +484,8 @@ const Page: React.FC = () => {
                         }),
                       ]);
 
-                      showToast({
-                        title: 'Account Created',
-                        description:
-                          'Your account has been successfully created. You can now proceed to login.',
-                        variant: 'success',
-                      });
-
-                      // Redirect to login page
-                      router.push('/user/login');
+                      // Show welcome screen
+                      setShowWelcome(true);
                     } catch (error) {
                       const errorMessage = getUserFriendlyErrorMessage(error);
                       showToast({

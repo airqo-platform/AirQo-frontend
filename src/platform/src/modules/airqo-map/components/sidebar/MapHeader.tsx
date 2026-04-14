@@ -29,10 +29,10 @@ export const MapHeader: React.FC<MapHeaderProps> = ({
   };
 
   return (
-    <div className="p-4 border-b border-gray-100 dark:border-gray-700">
-      <div className="mb-4">
+    <div className="p-2 border-b border-gray-100 dark:border-gray-700 min-w-0 overflow-x-hidden">
+      <div className="mb-4 min-w-0">
         <h1 className="text-xl font-semibold mb-1">Air Quality Map</h1>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-600 break-words">
           Navigate air quality analytics with precision and actionable tips.
         </p>
       </div>

@@ -15,6 +15,9 @@ import { NavItem } from '@/shared/components/sidebar/components/nav-item';
 import { useUserActions } from '@/shared/hooks';
 import { getSidebarConfig } from '@/shared/components/sidebar/config';
 import { useRBAC } from '@/shared/hooks';
+import { SidebarSkeleton } from '@/shared/components/sidebar/components';
+import { usePathname } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 export const GlobalSidebar: React.FC = () => {
   const dispatch = useDispatch();
@@ -22,9 +25,16 @@ export const GlobalSidebar: React.FC = () => {
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const sidebarRef = useRef<HTMLDivElement>(null);
   const previousActiveElement = useRef<Element | null>(null);
-  const { activeGroup } = useUserActions();
-  const { hasPermission, isAirQoSuperAdminWithEmail } = useRBAC();
+  const pathname = usePathname();
+  const { status: sessionStatus } = useSession();
+  const { activeGroup, isLoading: userLoading } = useUserActions();
+  const {
+    hasPermission,
+    isAirQoSuperAdminWithEmail,
+    isLoading: rbacLoading,
+  } = useRBAC();
   const [imageError, setImageError] = React.useState(false);
+  const isLoading = userLoading || rbacLoading;
 
   // Helper function to determine if current group is AirQo
   const isAirQoGroup = React.useMemo(() => {
@@ -102,14 +112,22 @@ export const GlobalSidebar: React.FC = () => {
   const globalNavItems = React.useMemo(() => {
     const config = getSidebarConfig('global');
     let basePath = '/user';
-    let targetPath = '/favorites';
+    let homePath = '/home';
+    let dataAccessPath = '/favorites';
+
     if (flow === 'organization' && orgSlug) {
       basePath = `/org/${orgSlug}`;
-      targetPath = '/dashboard';
+      homePath = '/dashboard';
+      dataAccessPath = '/data-export';
     }
+
     return config.flatMap(group =>
       group.items
         .filter(item => {
+          // Only show system-management if user has AIRQO_SUPER_ADMIN or AIRQO_ADMIN role
+          if (item.id === 'system-management') {
+            return isAirQoSuperAdminWithEmail();
+          }
           // Only show admin-panel if user has GROUP_MANAGEMENT permission
           if (item.id === 'admin-panel') {
             return hasPermission('GROUP_MANAGEMENT');
@@ -118,34 +136,39 @@ export const GlobalSidebar: React.FC = () => {
         })
         .map(item => {
           let href = item.href;
-          // Change Administrative Panel href based on permissions
-          if (item.id === 'admin-panel') {
-            href = isAirQoSuperAdminWithEmail()
-              ? '/admin/org-requests'
-              : '/admin/members';
+          // Keep system management href as is
+          if (item.id === 'system-management') {
+            href = item.href;
+          } else if (item.id === 'admin-panel') {
+            // Change Organization Panel href based on permissions
+            href = '/admin/members';
+          } else if (item.id === 'home') {
+            // Home redirects to appropriate dashboard/home based on flow
+            href = `${basePath}${homePath}`;
+          } else if (item.id === 'data-access') {
+            // Data Access redirects to appropriate data access page based on flow
+            href = `${basePath}${dataAccessPath}`;
           } else {
-            href = href.replace('/data-access', `${basePath}${targetPath}`);
+            // For other items, replace base path if needed
+            href = href.replace('/data-access', `${basePath}${dataAccessPath}`);
           }
           return {
             ...item,
             href,
-            subroutes: item.subroutes?.filter(subroute => {
-              // Hide statistics, clients, and org-requests subroutes if user doesn't have AIRQO_SUPER_ADMIN role
-              if (
-                [
-                  'admin-statistics',
-                  'admin-clients',
-                  'admin-org-requests',
-                ].includes(subroute.id)
-              ) {
-                return isAirQoSuperAdminWithEmail();
-              }
-              return true;
-            }),
           };
         })
     );
   }, [flow, orgSlug, hasPermission, isAirQoSuperAdminWithEmail]);
+  const isProtectedSidebarRoute =
+    pathname.startsWith('/org/') ||
+    pathname.startsWith('/system/') ||
+    pathname.startsWith('/admin/');
+  const shouldWaitForActiveGroup = pathname.startsWith('/org/');
+  const shouldShowLoadingSkeleton =
+    isProtectedSidebarRoute &&
+    (sessionStatus === 'loading' ||
+      isLoading ||
+      (shouldWaitForActiveGroup && !activeGroup));
 
   // Focus management
   useEffect(() => {
@@ -238,16 +261,23 @@ export const GlobalSidebar: React.FC = () => {
                   <AqXClose className="text-foreground" />
                 </Button>
               </div>
-              <div className="space-y-1 relative overflow-visible">
-                {globalNavItems.map(item => (
-                  <NavItem
-                    key={item.id}
-                    item={item}
-                    onClick={handleNavItemClick}
-                    enableSubroutes={item.id === 'admin-panel'}
-                  />
-                ))}
-              </div>
+              {shouldShowLoadingSkeleton ? (
+                <SidebarSkeleton showBrand={false} className="pt-2" />
+              ) : (
+                <div className="space-y-1 relative overflow-visible">
+                  {globalNavItems.map(item => (
+                    <NavItem
+                      key={item.id}
+                      item={item}
+                      onClick={handleNavItemClick}
+                      enableSubroutes={
+                        item.id === 'admin-panel' ||
+                        item.id === 'system-management'
+                      }
+                    />
+                  ))}
+                </div>
+              )}
             </Card>
           </motion.div>
         </>

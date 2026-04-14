@@ -219,14 +219,16 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           <span className="sm:hidden">Favorites</span>
         </button>
 
-        <Button
-          variant="filled"
-          size="sm"
-          className="px-4 py-2 shadow-sm"
-          onClick={handleDownloadClick}
-        >
-          Download Data ({selectedSiteIds.length})
-        </Button>
+        <span title="Download openly available air quality data for your own use">
+          <Button
+            variant="filled"
+            size="sm"
+            className="px-4 py-2 shadow-sm"
+            onClick={handleDownloadClick}
+          >
+            Download Data ({selectedSiteIds.length})
+          </Button>
+        </span>
       </div>
 
       {/* Download Confirmation Dialog */}

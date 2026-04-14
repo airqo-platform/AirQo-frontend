@@ -1,8 +1,11 @@
 import { useMemo, useEffect } from 'react';
 import {
-  useActiveGroupCohortSites,
-  useActiveGroupCohortDevices,
+  useActiveGroupCohorts,
+  useActiveGroupCohortSitesWithState,
+  useActiveGroupCohortDevicesWithState,
   useGridsSummary,
+  useGridsSummaryWithToken,
+  useSitesSummaryWithToken,
 } from '@/shared/hooks';
 import {
   CohortSitesResponse,
@@ -11,6 +14,7 @@ import {
   CohortDevicesParams,
   GridsSummaryResponse,
   GridsSummaryParams,
+  SitesSummaryResponse,
 } from '@/shared/types/api';
 import {
   TabType,
@@ -31,9 +35,10 @@ import {
 export const useDataExportData = (
   activeTab: TabType,
   tabStates: Record<TabType, TabState>,
+  isOrgFlow: boolean,
   deviceCategory: DeviceCategory,
   selectedDeviceIds: string[],
-  devicesData: TableItem[],
+  selectedDevicesData: TableItem[],
   setSelectedDevices: (devices: string[]) => void
 ) => {
   // Sites params
@@ -103,17 +108,60 @@ export const useDataExportData = (
     tabStates.cities.search,
   ]);
 
-  // Fetch sites data
-  const sitesHook = useActiveGroupCohortSites(sitesParams);
+  // Fetch active group cohorts once and share the result across tabs.
+  // NOTE: `useActiveGroupCohorts()` reads Redux state; in public/token
+  // flows this can cause unnecessary selector reads. To avoid that, consider
+  // updating the hook to accept an `enabled` flag (or provide a noop fallback)
+  // so callers can avoid Redux reads when `isOrgFlow` is false. Keep in mind
+  // that hooks must be called unconditionally, so the safest change is to
+  // add an `enabled` parameter to the hook and early-return a safe noop
+  // result when disabled.
+  const activeGroupCohorts = useActiveGroupCohorts();
 
-  // Fetch devices data
-  const devicesHook = useActiveGroupCohortDevices(devicesParams);
+  const orgSitesHook = useActiveGroupCohortSitesWithState(
+    sitesParams,
+    isOrgFlow && activeTab === 'sites',
+    activeGroupCohorts
+  );
 
-  // Fetch countries data
-  const countriesHook = useGridsSummary(countriesParams);
+  const publicSitesHook = useSitesSummaryWithToken(
+    sitesParams,
+    !isOrgFlow && activeTab === 'sites'
+  );
 
-  // Fetch cities data
-  const citiesHook = useGridsSummary(citiesParams);
+  const devicesHook = useActiveGroupCohortDevicesWithState(
+    devicesParams,
+    activeTab === 'devices',
+    activeGroupCohorts
+  );
+
+  const orgCountriesHook = useGridsSummary(
+    countriesParams,
+    undefined,
+    isOrgFlow && activeTab === 'countries'
+  );
+
+  const publicCountriesHook = useGridsSummaryWithToken(
+    countriesParams,
+    undefined,
+    !isOrgFlow && activeTab === 'countries'
+  );
+
+  const orgCitiesHook = useGridsSummary(
+    citiesParams,
+    undefined,
+    isOrgFlow && activeTab === 'cities'
+  );
+
+  const publicCitiesHook = useGridsSummaryWithToken(
+    citiesParams,
+    undefined,
+    !isOrgFlow && activeTab === 'cities'
+  );
+
+  const sitesHook = isOrgFlow ? orgSitesHook : publicSitesHook;
+  const countriesHook = isOrgFlow ? orgCountriesHook : publicCountriesHook;
+  const citiesHook = isOrgFlow ? orgCitiesHook : publicCitiesHook;
 
   const currentHook =
     activeTab === 'sites'
@@ -126,7 +174,10 @@ export const useDataExportData = (
 
   // Process data for table display
   const processedSitesData = useMemo(
-    () => processSitesData((sitesHook.data as CohortSitesResponse)?.sites),
+    () =>
+      processSitesData(
+        (sitesHook.data as CohortSitesResponse | SitesSummaryResponse)?.sites
+      ),
     [sitesHook.data]
   );
 
@@ -158,13 +209,26 @@ export const useDataExportData = (
   // Update selected devices when device IDs change
   useEffect(() => {
     if (activeTab === 'devices' && selectedDeviceIds.length > 0) {
+      // Use cached selected rows across pages when available.
+      const deviceLookupSource =
+        selectedDevicesData.length > 0
+          ? selectedDevicesData
+          : processedDevicesData;
       const selectedDeviceNames = mapDeviceIdsToNames(
         selectedDeviceIds,
-        processedDevicesData
+        deviceLookupSource
       );
       setSelectedDevices(selectedDeviceNames);
+    } else if (activeTab === 'devices' && selectedDeviceIds.length === 0) {
+      setSelectedDevices([]);
     }
-  }, [activeTab, selectedDeviceIds, processedDevicesData, setSelectedDevices]);
+  }, [
+    activeTab,
+    selectedDeviceIds,
+    selectedDevicesData,
+    processedDevicesData,
+    setSelectedDevices,
+  ]);
 
   // Reset device pagination when category changes
   useEffect(() => {

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Settings, RefreshCw, Save, AlertCircle, CheckCircle, ChevronLeft, ChevronRight, Edit, CalendarIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -34,35 +35,39 @@ interface ConfigHistoryItem {
   id: string
   device_id: string
   channel_id: number
-  config1?: string
-  config2?: string
-  config3?: string
-  config4?: string
-  config5?: string
-  config6?: string
-  config7?: string
-  config8?: string
-  config9?: string
-  config10?: string
+  config1?: any
+  config2?: any
+  config3?: any
+  config4?: any
+  config5?: any
+  config6?: any
+  config7?: any
+  config8?: any
+  config9?: any
+  config10?: any
   config_updated: boolean
   created_at: string
+  [key: string]: any
 }
 
 interface ConfigData {
-  config1?: string
-  config2?: string
-  config3?: string
-  config4?: string
-  config5?: string
-  config6?: string
-  config7?: string
-  config8?: string
-  config9?: string
-  config10?: string
+  config1?: any
+  config2?: any
+  config3?: any
+  config4?: any
+  config5?: any
+  config6?: any
+  config7?: any
+  config8?: any
+  config9?: any
+  config10?: any
+  [key: string]: any
 }
 
 export default function ConfigTab({ deviceId, deviceName, channelId }: ConfigTabProps) {
   const { toast } = useToast()
+  const searchParams = useSearchParams()
+  const isMock = searchParams.get('mock') === 'true'
   const [configData, setConfigData] = useState<ConfigData>({})
   const [configHistory, setConfigHistory] = useState<ConfigHistoryItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -71,7 +76,7 @@ export default function ConfigTab({ deviceId, deviceName, channelId }: ConfigTab
   const [error, setError] = useState<string | null>(null)
   const [hasChanges, setHasChanges] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(0)
@@ -100,27 +105,54 @@ export default function ConfigTab({ deviceId, deviceName, channelId }: ConfigTab
       setHistoryLoading(true)
       setError(null)
 
+      if (isMock) {
+        // Provide dummy config history
+        const skip = (page - 1) * itemsPerPage
+        const mockHistory: ConfigHistoryItem[] = Array.from({ length: itemsPerPage }, (_, i) => ({
+          id: `mock-config-${skip + i}`,
+          device_id: deviceId,
+          channel_id: channelId,
+          config1: 1,
+          config2: 0,
+          config3: 1,
+          config4: 300,
+          config5: 60,
+          config_updated: i === 0,
+          created_at: new Date(Date.now() - (skip + i) * 86400000).toISOString(),
+        }))
+
+        // Simulate network delay
+        await new Promise(resolve => setTimeout(resolve, 500))
+        setConfigHistory(mockHistory)
+        setTotalRecords(50)
+        setTotalPages(5)
+        setHistoryLoading(false)
+        return
+      }
+
       const skip = (page - 1) * itemsPerPage
       const params: any = {
-        channel_id: channelId,
+        device_id: deviceId,
         skip,
         limit: itemsPerPage,
       }
 
+      // Include date range filters if selected
       if (dateRange.from) {
         const fromDate = new Date(dateRange.from)
         if (includeTime) {
-          const [hours, minutes] = timeRange.from.split(':')
-          fromDate.setHours(parseInt(hours), parseInt(minutes), 0, 0)
+          const [fromHours, fromMinutes] = timeRange.from.split(':').map(Number)
+          fromDate.setHours(fromHours, fromMinutes, 0, 0)
+        } else {
+          fromDate.setHours(0, 0, 0, 0)
         }
         params.start_date = fromDate.toISOString()
       }
-      
       if (dateRange.to) {
         const toDate = new Date(dateRange.to)
         if (includeTime) {
-          const [hours, minutes] = timeRange.to.split(':')
-          toDate.setHours(parseInt(hours), parseInt(minutes), 59, 999)
+          const [toHours, toMinutes] = timeRange.to.split(':').map(Number)
+          toDate.setHours(toHours, toMinutes, 59, 999)
         } else {
           toDate.setHours(23, 59, 59, 999)
         }
@@ -128,21 +160,26 @@ export default function ConfigTab({ deviceId, deviceName, channelId }: ConfigTab
       }
 
       const response = await getDeviceConfig(params)
-      
-      if (response.items && response.items.length > 0) {
-        setConfigHistory(response.items)
-        setTotalRecords(response.pagination?.total || 0)
-        setTotalPages(response.pagination?.pages || 0)
-        setCurrentPage(response.pagination?.current_page || 1)
-        
+
+      if (response && response.success && response.beacon_data) {
+        const configEntries = response.beacon_data.config_data || []
+        setConfigHistory(configEntries)
+
+        if (response.meta) {
+          setTotalRecords(response.meta.total || 0)
+          setTotalPages(response.meta.totalPages || Math.ceil((response.meta.total || 0) / itemsPerPage))
+          setCurrentPage(response.meta.page ? response.meta.page + 1 : 1) // API is 0-indexed, UI is 1-indexed usually? Check API response for page
+        }
+
         // Set the form with the latest config (first item) when opening dialog
-        if (response.items.length > 0) {
-          const latest = response.items[0]
+        // Or specific category details
+        if (response.beacon_data.category_details) {
+          const details = response.beacon_data.category_details
           const configs: ConfigData = {}
           for (let i = 1; i <= 10; i++) {
             const key = `config${i}` as keyof ConfigData
-            if (latest[key]) {
-              configs[key] = latest[key]
+            if (details[key]) {
+              configs[key] = details[key]
             }
           }
           setConfigData(configs)
@@ -208,7 +245,7 @@ export default function ConfigTab({ deviceId, deviceName, channelId }: ConfigTab
   const handleSave = async () => {
     try {
       setSaving(true)
-      
+
       await updateDeviceConfigs({
         device_ids: [deviceId],
         ...configData,
@@ -221,7 +258,7 @@ export default function ConfigTab({ deviceId, deviceName, channelId }: ConfigTab
 
       setHasChanges(false)
       setDialogOpen(false)
-      
+
       // Refresh history to show new entry
       setTimeout(() => {
         fetchConfigHistory(1)
@@ -244,7 +281,7 @@ export default function ConfigTab({ deviceId, deviceName, channelId }: ConfigTab
       const latest = configHistory[0]
       const configs: ConfigData = {}
       for (let i = 1; i <= 10; i++) {
-        const key = `config${i}` as keyof ConfigData
+        const key = `config${i}`
         if (latest[key]) {
           configs[key] = latest[key]
         }
@@ -261,7 +298,7 @@ export default function ConfigTab({ deviceId, deviceName, channelId }: ConfigTab
       const latest = configHistory[0]
       const configs: ConfigData = {}
       for (let i = 1; i <= 10; i++) {
-        const key = `config${i}` as keyof ConfigData
+        const key = `config${i}`
         if (latest[key]) {
           configs[key] = latest[key]
         }
@@ -372,7 +409,7 @@ export default function ConfigTab({ deviceId, deviceName, channelId }: ConfigTab
                           placeholder="End date"
                         />
                       </div>
-                      
+
                       {/* Time Inputs - Only show when includeTime is true */}
                       {includeTime && (
                         <div className="grid grid-cols-2 gap-2">
@@ -388,7 +425,7 @@ export default function ConfigTab({ deviceId, deviceName, channelId }: ConfigTab
                           />
                         </div>
                       )}
-                      
+
                       {/* Include Time Checkbox */}
                       <div className="flex items-center space-x-2">
                         <Checkbox
@@ -618,17 +655,17 @@ export default function ConfigTab({ deviceId, deviceName, channelId }: ConfigTab
               Modify configuration values for {deviceName}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => {
               const key = `config${num}` as keyof ConfigData
               return (
-                <div key={key}>
-                  <Label htmlFor={key} className="capitalize">
+                <div key={key as string}>
+                  <Label htmlFor={key as string} className="capitalize">
                     Configuration {num}
                   </Label>
                   <Input
-                    id={key}
+                    id={key as string}
                     type="text"
                     value={configData[key] || ''}
                     onChange={(e) => handleConfigChange(key, e.target.value)}

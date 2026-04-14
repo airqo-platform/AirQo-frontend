@@ -4,6 +4,7 @@
 
 @layer base {
   :root {
+    --vertex-ui-top-offset: 0px;
     /* Colors */
     --background: 246 246 247;
     --foreground: 28 29 32;
@@ -12,7 +13,7 @@
     --secondary: 241 245 249;
     --secondary-foreground: 15 23 42;
     --muted: 241 245 249;
-    --muted-foreground: 100 116 139;
+    --muted-foreground: 91 105 124;
     --accent: 241 245 249;
     --accent-foreground: 15 23 42;
     --destructive: 239 68 68;
@@ -121,7 +122,6 @@ html {
     line-height: var(--heading-line-height);
     letter-spacing: var(--heading-letter-spacing);
     margin: 0;
-    padding: 0;
   }
 
   /* Individual heading sizes */

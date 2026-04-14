@@ -38,7 +38,7 @@ export default function ClientPaginatedNetworksTable({
     if (text) {
       try {
         await navigator.clipboard.writeText(text);
-        ReusableToast({ message: "Network ID copied", type: "SUCCESS" });
+        ReusableToast({ message: "Sensor Manufacturer ID copied", type: "SUCCESS" });
       } catch {
         ReusableToast({ message: "Failed to copy ID", type: "ERROR" });
       }
@@ -70,7 +70,7 @@ export default function ClientPaginatedNetworksTable({
     },
     {
       key: "_id",
-      label: "Network ID",
+      label: "Sensor Manufacturer ID",
       render: (value) => {
         const id = typeof value === "string" ? value : "N/A";
         if (id === "N/A") {
@@ -82,7 +82,7 @@ export default function ClientPaginatedNetworksTable({
               type="button"
               onClick={(e) => handleCopy(id, e)}
               className="text-gray-500 hover:text-primary p-1 rounded-md focus:outline-none"
-              aria-label="Copy Network ID"
+              aria-label="Copy Sensor Manufacturer ID"
             >
               <AqCopy01 className="h-4 w-4" />
             </button>
@@ -119,7 +119,7 @@ export default function ClientPaginatedNetworksTable({
   return (
     <div className="space-y-4">
       <ReusableTable
-        title="Networks"
+        title=""
         data={networksWithId}
         columns={columns}
         loading={isLoading}
@@ -133,7 +133,7 @@ export default function ClientPaginatedNetworksTable({
               <p className="text-sm text-muted-foreground">{error.message}</p>
             </div>
           ) : (
-            "No networks available"
+            "No sensor manufacturers available"
           )
         }
         searchableColumns={["net_name"]}

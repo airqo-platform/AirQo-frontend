@@ -7,7 +7,7 @@ import { userService } from '../services/userService';
 // Get organization requests
 export const useOrganizationRequests = () => {
   return useSWR(
-    'admin/org-requests',
+    'system/org-requests',
     () => adminService.getOrganizationRequests(),
     {
       revalidateOnFocus: false,
@@ -21,14 +21,15 @@ export const useApproveOrganizationRequest = () => {
   const { mutate } = useSWRConfig();
 
   return useSWRMutation(
-    'admin/approve-org-request',
+    'system/approve-org-request',
     async (key, { arg }: { arg: { requestId: string } }) => {
       return await adminService.approveOrganizationRequest(arg.requestId);
     },
     {
       onSuccess: () => {
         mutate(
-          key => typeof key === 'string' && key.startsWith('admin/org-requests')
+          key =>
+            typeof key === 'string' && key.startsWith('system/org-requests')
         );
       },
     }
@@ -40,7 +41,7 @@ export const useRejectOrganizationRequest = () => {
   const { mutate } = useSWRConfig();
 
   return useSWRMutation(
-    'admin/reject-org-request',
+    'system/reject-org-request',
     async (
       key,
       { arg }: { arg: { requestId: string; rejection_reason?: string } }
@@ -53,7 +54,8 @@ export const useRejectOrganizationRequest = () => {
     {
       onSuccess: () => {
         mutate(
-          key => typeof key === 'string' && key.startsWith('admin/org-requests')
+          key =>
+            typeof key === 'string' && key.startsWith('system/org-requests')
         );
       },
     }
@@ -227,6 +229,41 @@ export const useUserStatistics = () => {
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
+    }
+  );
+};
+
+// Get all roles and permissions summary across all pages
+export const useRolesSummary = () => {
+  return useSWR(
+    'admin/roles/summary/all',
+    () => userService.getAllRolesSummary(),
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    }
+  );
+};
+
+// Update a user's role
+export const useUpdateUserRole = () => {
+  const { mutate } = useSWRConfig();
+
+  return useSWRMutation(
+    'admin/update-user-role',
+    async (key, { arg }: { arg: { userId: string; roleId: string } }) => {
+      return await userService.updateUserRole(arg.userId, arg.roleId);
+    },
+    {
+      onSuccess: () => {
+        mutate(
+          key =>
+            typeof key === 'string' &&
+            (key.startsWith('user/details/') ||
+              key === 'admin/roles/summary/all' ||
+              key === 'admin/user-statistics')
+        );
+      },
     }
   );
 };

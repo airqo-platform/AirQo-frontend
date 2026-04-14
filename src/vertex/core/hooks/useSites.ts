@@ -1,5 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
 import { sites, ApproximateCoordinatesResponse, GetSitesSummaryParams, SitesSummaryResponse, CreateSiteResponse } from "../apis/sites";
+import { DeviceActivitiesResponse } from "../apis/devices";
+
 import { useGroupCohorts } from "./useCohorts";
 import { useAppSelector } from "../redux/hooks";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
@@ -20,7 +22,28 @@ export interface SiteListingOptions {
   sortBy?: string;
   order?: "asc" | "desc";
   network?: string;
+  status?: string;
 }
+
+export const useSiteActivitiesInfinite = (siteId: string) => {
+  return useInfiniteQuery<DeviceActivitiesResponse, AxiosError<ErrorResponse>>({
+      queryKey: ["siteActivities", siteId],
+      queryFn: ({ pageParam = 1 }) => sites.getSiteActivities(siteId, { page: pageParam as number, limit: 10 }),
+      getNextPageParam: (lastPage, allPages) => {
+          if (!lastPage.meta) {
+            if (!lastPage.site_activities || lastPage.site_activities.length < 10) return undefined;
+            return allPages.length + 1;
+          }
+          if (lastPage.meta.page < lastPage.meta.totalPages) {
+              return lastPage.meta.page + 1;
+          }
+          return undefined;
+      },
+      enabled: !!siteId,
+      staleTime: 60_000,
+      initialPageParam: 1,
+  });
+};
 
 export const useSites = (options: SiteListingOptions = {}) => {
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
@@ -36,7 +59,7 @@ export const useSites = (options: SiteListingOptions = {}) => {
   const skip = (safePage - 1) * safeLimit;
 
   const sitesQuery = useQuery<SitesSummaryResponse, AxiosError<ErrorResponse>>({
-    queryKey: ["sites", network, activeGroup?.grp_title, { page, limit, search, sortBy, order }],
+    queryKey: ["sites", network, activeGroup?.grp_title, { page, limit, search, sortBy, order, status: options.status }],
     queryFn: async () => {
       if (isAirQoGroup) {
         const params: GetSitesSummaryParams = {
@@ -48,6 +71,13 @@ export const useSites = (options: SiteListingOptions = {}) => {
           ...(sortBy && { sortBy }),
           ...(order && { order }),
         };
+
+        if (options.status) {
+            return sites.getSitesByStatusApi({
+                status: options.status,
+                ...params
+            });
+        }
         return sites.getSitesSummary(params);
       }
 
@@ -78,6 +108,23 @@ export const useSites = (options: SiteListingOptions = {}) => {
     isFetching: sitesQuery.isFetching,
     error: sitesQuery.error,
   };
+};
+
+export const useSiteStatistics = (network?: string) => {
+    const activeGroup = useAppSelector((state) => state.user.activeGroup);
+
+    const query = useQuery({
+        queryKey: ["sites-count-summary", network, activeGroup?.grp_title],
+        queryFn: () => sites.getSitesSummaryCount({ network: network || "" }),
+        enabled: !!activeGroup?.grp_title,
+        staleTime: 300_000, 
+    });
+
+    return {
+        summary: query.data?.summary,
+        isLoading: query.isLoading,
+        error: query.error
+    };
 };
 
 export const useApproximateCoordinates = () => {

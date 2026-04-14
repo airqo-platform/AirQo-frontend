@@ -40,9 +40,13 @@ export default function RecallDeviceDialog({
           recallType,
           user_id: userDetails._id,
           date: new Date().toISOString(),
+          firstName: userDetails.firstName,
+          lastName: userDetails.lastName,
+          email: userDetails.email,
+          userName: userDetails.userName,
         },
       });
-      
+
       // Reset form and close dialog
       setRecallType("");
       onOpenChange(false);

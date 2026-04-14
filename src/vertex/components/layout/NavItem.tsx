@@ -36,11 +36,11 @@ export const NavItem = React.memo<NavItemProps>(
       'focus-visible:outline-none'
     );
 
-    const textClass = isActive ? 'text-blue-700' : 'text-foreground';
-    const iconColor = isActive ? 'text-blue-700' : 'text-foreground';
+    const textClass = isActive ? 'text-blue-700 dark:text-blue-500' : 'text-foreground dark:text-gray-300';
+    const iconColor = isActive ? 'text-blue-700 dark:text-blue-500' : 'text-gray-500 dark:text-gray-400';
     const bgClass = isActive
-      ? 'bg-blue-50'
-      : 'hover:bg-muted dark:hover:text-foreground';
+      ? 'bg-blue-50 dark:bg-blue-900/20'
+      : 'hover:bg-muted dark:hover:bg-zinc-800 dark:text-gray-300 dark:hover:text-white';
 
     // Handle disabled state
     const isDisabled = item.disabled;

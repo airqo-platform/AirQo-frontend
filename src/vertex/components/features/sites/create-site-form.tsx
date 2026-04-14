@@ -14,7 +14,7 @@ import { useAppSelector } from "@/core/redux/hooks";
 import "leaflet/dist/leaflet.css";
 import { useApproximateCoordinates, useCreateSite } from "@/core/hooks/useSites";
 import { AqPlus } from "@airqo/icons-react";
-import LocationAutocomplete from "@/components/LocationAutocomplete";
+import LocationAutocomplete from "@/components/features/location-autocomplete/LocationAutocomplete";
 import { Label } from "@/components/ui/label";
 import { useNetworks } from "@/core/hooks/useNetworks";
 import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
@@ -260,13 +260,13 @@ export function CreateSiteForm({ disabled = false }: CreateSiteFormProps) {
                   name="network"
                   render={({ field }) => (
                     <ReusableSelectInput
-                      label="Network"
+                      label="Sensor Manufacturer"
                       id="network"
                       value={field.value}
                       onChange={(e) => field.onChange(e.target.value)}
                       error={form.formState.errors.network?.message}
                       required
-                      placeholder={isLoadingNetworks ? "Loading networks..." : "Select a network"}
+                      placeholder={isLoadingNetworks ? "Loading Sensor Manufacturers..." : "Select a Sensor Manufacturer"}
                       disabled={isLoadingNetworks}
                     >
                       {networks.map((network) => (

@@ -25,9 +25,9 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { DynamicChartProps, ChartType } from '../../types';
+import type { LegendPayload } from 'recharts';
+import { DynamicChartProps, ChartType, NormalizedChartData } from '../../types';
 import { CustomTooltip } from '../ui/CustomTooltip';
-import { InteractiveLegend } from '../ui/CustomLegend';
 import { CustomReferenceLine } from '../ui/CustomReferenceLine';
 import {
   autoSelectChartType,
@@ -121,20 +121,42 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
     return { chartData: converted, seriesKeys: keys };
   }, [data, chartType, config.dataKey]);
 
-  // Handle legend toggle
-  const handleLegendToggle = useCallback(
-    (dataKey: string, visible: boolean) => {
-      setHiddenSeries(prev => {
-        const newSet = new Set(prev);
-        if (visible) {
-          newSet.delete(dataKey);
-        } else {
-          newSet.add(dataKey);
-        }
-        return newSet;
-      });
+  // Handle legend toggle using native Recharts legend events
+  const handleLegendClick = useCallback((entry: LegendPayload) => {
+    const seriesKey = String(entry.dataKey ?? entry.value ?? '').trim();
+    if (!seriesKey) return;
+
+    setHiddenSeries(prev => {
+      const next = new Set(prev);
+      if (next.has(seriesKey)) {
+        next.delete(seriesKey);
+      } else {
+        next.add(seriesKey);
+      }
+      return next;
+    });
+  }, []);
+
+  const formatLegendLabel = useCallback(
+    (value: string | number | undefined, entry: LegendPayload) => {
+      const seriesKey = String(entry.dataKey ?? entry.value ?? '').trim();
+      const isHidden = seriesKey ? hiddenSeries.has(seriesKey) : false;
+      const formattedValue = String(value ?? '')
+        .replace(/_/g, ' ')
+        .trim();
+
+      return (
+        <span
+          className={cn(
+            'text-foreground',
+            isHidden && 'opacity-50 line-through'
+          )}
+        >
+          {formattedValue}
+        </span>
+      );
     },
-    []
+    [hiddenSeries]
   );
 
   // Chart configuration
@@ -145,7 +167,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
 
   // Common props for all charts
   const commonProps = {
-    data: chartData,
+    data: chartData as unknown as NormalizedChartData[],
     margin: chartConfig.margin,
     ...CHART_ANIMATIONS[chartType as keyof typeof CHART_ANIMATIONS],
   };
@@ -200,6 +222,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
       <Tooltip
         content={<CustomTooltip pollutant={pollutant} frequency={frequency} />}
         wrapperStyle={{ zIndex: 9999 }}
+        wrapperClassName="recharts-tooltip"
       />
     );
   };
@@ -213,19 +236,16 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
         align="right"
         verticalAlign="bottom"
         layout="horizontal"
+        iconType="circle"
+        iconSize={8}
         wrapperStyle={{
           paddingTop: '20px',
           paddingBottom: '10px',
           fontSize: '12px',
+          cursor: 'pointer',
         }}
-        content={props => (
-          <InteractiveLegend
-            {...props}
-            onToggle={handleLegendToggle}
-            hiddenSeries={hiddenSeries}
-            className="flex justify-end items-center gap-2"
-          />
-        )}
+        formatter={formatLegendLabel}
+        onClick={handleLegendClick}
       />
     );
   };
@@ -348,7 +368,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
 
       case 'radar':
         const radarProps = {
-          data: chartData,
+          data: chartData as unknown as NormalizedChartData[],
           margin: { top: 20, right: 30, left: 20, bottom: 20 },
           ...CHART_ANIMATIONS.line,
         };
@@ -379,7 +399,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
 
       case 'pie':
         const pieProps = {
-          data: chartData,
+          data: chartData as unknown as NormalizedChartData[],
           margin: { top: 20, right: 30, left: 20, bottom: 20 },
           ...CHART_ANIMATIONS.line,
         };
@@ -434,9 +454,16 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
     chartConfig.width && typeof chartConfig.width === 'number'
       ? chartConfig.width
       : undefined;
+  const responsiveWidth =
+    typeof chartConfig.width === 'number'
+      ? chartConfig.width
+      : typeof chartConfig.width === 'string' &&
+          /^\d+%$/.test(chartConfig.width)
+        ? (chartConfig.width as `${number}%`)
+        : ('100%' as const);
 
   const containerProps = responsive
-    ? { width: '100%', height: chartConfig.height }
+    ? { width: responsiveWidth, height: chartConfig.height }
     : explicitMinWidth
       ? {
           style: {

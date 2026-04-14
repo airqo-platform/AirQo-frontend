@@ -4,7 +4,7 @@ import { options } from "../auth/[...nextauth]/options";
 import logger from "@/lib/logger";
 import { CreateNetworkPayload, CreateNetworkResponse } from "@/core/apis/networks";
 import axios from "axios";
-import { networkFormSchema } from "@/components/features/networks/create-network-form";
+import { networkFormSchema } from "@/components/features/networks/schema";
 
 /**
  * Retrieves the access token from the server-side session.
@@ -29,7 +29,7 @@ async function getAuthToken(): Promise<string | null> {
 
 export async function POST(req: NextRequest) {
   try {
-    logger.info("Network creation request received");
+    logger.info("Sensor Manufacturer creation request received");
     
     const body = await req.json();
     const validationResult = networkFormSchema.safeParse(body);
@@ -43,8 +43,7 @@ export async function POST(req: NextRequest) {
     }
 
     const networkData = validationResult.data;
-    logger.debug(`Network data parsed - fields: ${Object.keys(networkData).join(', ')}, net_name: ${networkData.net_name}`);
-
+    
     const token = await getAuthToken();
     if (!token) {
       logger.error("No JWT token found in session");
@@ -52,7 +51,6 @@ export async function POST(req: NextRequest) {
     }
 
     const authHeader = token.startsWith("JWT ") ? token : `JWT ${token}`;
-    logger.debug("JWT token retrieved and formatted");
 
     const adminSecret = process.env.ADMIN_SECRET;
     if (!adminSecret) {
@@ -66,7 +64,6 @@ export async function POST(req: NextRequest) {
     const payload: CreateNetworkPayload = { ...networkData, admin_secret: adminSecret };
 
     const backendApiUrl = `${process.env.NEXT_PUBLIC_API_URL}/users/networks`;
-    logger.info(`Calling backend API: ${backendApiUrl}`);
 
     const apiResponse = await axios.post<CreateNetworkResponse>(backendApiUrl, payload, {
       headers: {
@@ -76,7 +73,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    logger.info(`Network created successfully - ID: ${apiResponse.data.created_network?._id}`);
+    logger.info(`Sensor Manufacturer created successfully - ID: ${apiResponse.data.created_network?._id}`);
 
     return NextResponse.json(apiResponse.data, { status: 200 });
   } catch (error: unknown) {

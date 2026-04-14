@@ -30,7 +30,7 @@ function DeviceModel({ onLoad, onError }: Readonly<{ onLoad?: () => void; onErro
   const groupRef = useRef<THREE.Group>(null)
   
   // Load the GLB model - errors will be caught by error boundary
-  const { scene } = useGLTF('/gen6_assembly.glb')
+  const { scene } = useGLTF('/icons/gen6_assembly.glb')
   
   // Clone the scene to avoid issues with shared materials/textures
   const clonedScene = useMemo(() => {
@@ -186,4 +186,4 @@ export default function DeviceModel3D({ onModelLoaded, onModelFailed }: Readonly
 }
 
 // Preload the model
-useGLTF.preload('/gen6_assembly.glb')
+useGLTF.preload('/icons/gen6_assembly.glb')

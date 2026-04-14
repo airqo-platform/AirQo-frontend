@@ -7,6 +7,7 @@ import { cn } from '@/shared/lib/utils';
 import { NavItemProps } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AqChevronRight } from '@airqo/icons-react';
+import { createPortal } from 'react-dom';
 
 export const NavItem = React.memo<NavItemProps>(
   ({
@@ -21,6 +22,11 @@ export const NavItem = React.memo<NavItemProps>(
     const [hoverTimeout, setHoverTimeout] =
       React.useState<NodeJS.Timeout | null>(null);
     const navItemRef = React.useRef<HTMLDivElement>(null);
+    const [showTooltip, setShowTooltip] = React.useState(false);
+    const [tooltipPosition, setTooltipPosition] = React.useState({
+      top: 0,
+      left: 0,
+    });
 
     const isActive =
       pathname === item.href ||
@@ -72,6 +78,24 @@ export const NavItem = React.memo<NavItemProps>(
 
     // Only show subroutes if explicitly enabled and not on mobile
     const shouldShowSubroutes = hasSubroutes && !isMobile && enableSubroutes;
+
+    // Handle tooltip hover for collapsed state
+    const handleTooltipMouseEnter = React.useCallback(() => {
+      if (isCollapsed && navItemRef.current) {
+        const rect = navItemRef.current.getBoundingClientRect();
+        setTooltipPosition({
+          top: rect.top + rect.height / 2,
+          left: rect.right + 8,
+        });
+        setShowTooltip(true);
+      }
+    }, [isCollapsed]);
+
+    const handleTooltipMouseLeave = React.useCallback(() => {
+      if (isCollapsed) {
+        setShowTooltip(false);
+      }
+    }, [isCollapsed]);
 
     // Handle hover for subroutes (desktop only)
     const handleMouseEnter = () => {
@@ -133,6 +157,7 @@ export const NavItem = React.memo<NavItemProps>(
         if (hoverTimeout) {
           clearTimeout(hoverTimeout);
         }
+        setShowTooltip(false);
       };
     }, [hoverTimeout]);
 
@@ -156,23 +181,44 @@ export const NavItem = React.memo<NavItemProps>(
 
     if (isCollapsed) {
       return (
-        <div className="relative flex items-center justify-center">
-          <Link
-            href={item.href}
-            onClick={onClick}
-            className={cn(
-              baseStyles,
-              'w-10 h-10 rounded-lg justify-center',
-              bgClass,
-              disabledStyles,
-              className
-            )}
-            aria-current={isActive ? 'page' : undefined}
+        <>
+          <div
+            className="relative flex items-center justify-center"
+            ref={navItemRef}
+            onMouseEnter={handleTooltipMouseEnter}
+            onMouseLeave={handleTooltipMouseLeave}
           >
-            <Icon className={cn('flex-shrink-0 w-5 h-5', iconColor)} />
-            <span className="sr-only">{item.label}</span>
-          </Link>
-        </div>
+            <Link
+              href={item.href}
+              onClick={onClick}
+              className={cn(
+                baseStyles,
+                'w-10 h-10 rounded-lg justify-center',
+                bgClass,
+                disabledStyles,
+                className
+              )}
+              aria-current={isActive ? 'page' : undefined}
+            >
+              <Icon className={cn('flex-shrink-0 w-5 h-5', iconColor)} />
+              <span className="sr-only">{item.label}</span>
+            </Link>
+          </div>
+          {showTooltip &&
+            createPortal(
+              <div
+                className="fixed z-[10000] bg-black text-white text-sm px-3 py-2 rounded-md shadow-lg whitespace-nowrap pointer-events-none"
+                style={{
+                  top: tooltipPosition.top - 10, // Center vertically
+                  left: tooltipPosition.left,
+                  transform: 'translateY(-50%)',
+                }}
+              >
+                {item.label}
+              </div>,
+              document.body
+            )}
+        </>
       );
     }
 

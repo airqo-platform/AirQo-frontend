@@ -3,6 +3,1145 @@
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
 ---
+ 
+## Version 1.23.26
+**Released:** April 09, 2026
+
+### Login Copy Refresh, Windows-Only Downloads, and Info Banner Component
+
+Refined the login messaging, limited desktop downloads to Windows, and introduced a reusable Info Banner to standardize contextual messaging.
+
+<details>
+<summary><strong>Login Experience (3)</strong></summary>
+
+- **Updated Hero Copy**: Refreshed the login title and subtitle messaging to emphasize device deployment and data sharing.
+- **Two-Line Title Layout**: Split the login title across two lines for clearer visual hierarchy.
+- **Windows-Only Download**: Limited the login download button to Windows devices only.
+
+</details>
+
+<details>
+<summary><strong>Navigation & Sidebar (3)</strong></summary>
+
+- **Sidebar Download Restriction**: Secondary sidebar download button now appears only on Windows.
+- **macOS Logic Removal**: Removed macOS detection/architecture logic tied to download visibility.
+- **Centralized Download Link**: Desktop download URL now comes from a shared constant to keep sidebar and login in sync.
+
+</details>
+
+<details>
+<summary><strong>UI Components (3)</strong></summary>
+
+- **Info Banner Component**: Added a reusable banner component (matching Platform) to Vertex UI.
+- **Context Header Upgrade**: Updated the home context header to use the new Info Banner.
+- **Severity-Aware Live Regions**: Non-error banners now announce politely to reduce screen reader noise.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (6)</strong></summary>
+
+- `app/login/page.tsx`
+- `components/layout/secondary-sidebar.tsx`
+- `components/ui/banner.tsx`
+- `components/features/home/context-header.tsx`
+- `core/constants/app-downloads.ts`
+- `app/changelog.md`
+
+</details>
+
+---
+
+## Version 1.23.25
+**Released:** April 09, 2026
+
+### Desktop Title Bar Branding & Visual Alignment
+
+Improved the desktop title bar to better match the main app styling and official branding.
+
+<details>
+<summary><strong>Desktop UI Enhancements (4)</strong></summary>
+
+- **AirQo Logo in Title Bar**: Title bar now renders the packaged AirQo icon (with web fallback) instead of a placeholder mark.
+- **Background Match**: Title bar background now follows the app background color token for light/dark consistency.
+- **Cleaner Edge**: Removed the bottom border from the desktop title bar for a seamless blend into the app canvas.
+- **Native Window Controls Alignment**: Title bar reserves space for native window controls while keeping app controls interactive.
+
+</details>
+
+<details>
+<summary><strong>Desktop Shell Integration (2)</strong></summary>
+
+- **Root Layout Injection**: Desktop title bar now mounts from the root client layout to persist across page transitions.
+- **Stable Header Hook**: Added `data-vertex-topbar` to the login header for desktop layout alignment.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (4)</strong></summary>
+
+- `app/client-layout.tsx`
+- `app/login/page.tsx`
+- `components/layout/desktop-titlebar.tsx`
+- `types/vertex-desktop.d.ts`
+
+</details>
+
+---
+
+ ## Version 1.23.24
+ **Released:** April 07, 2026
+ 
+ ### Login Page Revamp & Context Header Redesign
+ 
+ Redesigned the login experience for better branding and added a personalized, permanent context header to the dashboard to improve user orientation.
+ 
+ <details>
+ <summary><strong>Login Experience (5)</strong></summary>
+ 
+ - **Sticky Topbar**: Introduced a compact, sticky `h-12` topbar to keep branding consistently visible while scrolling.
+ - **Platform-Aware Download Link**: Moved the desktop app download link to the topbar; it now automatically detects the user's OS and provides the appropriate `.exe` or `.dmg`.
+ - **Dynamic Brand Icons**: Added high-fidelity OS-specific icons (Apple logo for Mac, Windows squares for Win) to the download button for immediate visual feedback.
+ - **Adaptive Labels**: The button label now explicitly reflects the user's platform (e.g., "Download for macOS" vs "Download for Windows").
+ - **Mobile-Safe Interface**: The desktop download button is intelligently hidden on mobile browsers to reduce clutter on non-desktop platforms. 
+ 
+ </details>
+ 
+ <details>
+ <summary><strong>Dashboard UX (6)</strong></summary>
+ 
+ - **Personalized Greeting**: Introduced a "Hi, {Name} 👋" greeting in the dashboard header using Redux-backed user details.
+ - **Permanent Context Header**: Redesigned the `ContextHeader` into a non-dismissible, light blue alert component that explicitly clarifies which organizational or personal workspace is active.
+ - **Robust Context Guarding**: Implemented strict property guarding for `activeGroup` to prevent "undefined workspace" during initial load or context switches.
+ - **Integrated Description**: Merged the workspace title and description into a unified information box with a clean `Info` icon and consistent blue styling.
+ - **Sidebar Download Access**: Added a "Download for {OS}" button to the secondary sidebar footer (expanded view) for quick access to the desktop version.
+ - **Adaptive Environment Check**: Implemented Electron and macOS architecture detection (ARM64 vs Intel) to hide the download button for Intel Mac and desktop app users.
+ 
+ </details>
+ 
+ <details>
+ <summary><strong>Home Empty State (2)</strong></summary>
+ 
+ - **Header Integration**: Added the `ContextHeader` to the `HomeEmptyState` component so users maintain context even when their device list is empty.
+ - **Layout Refinement**: Optimized the empty state vertical padding and ensured the header remains pinned to the top while the call-to-action remains centered.
+ 
+ </details>
+ 
+ <details>
+ <summary><strong>Files Modified (7)</strong></summary>
+ 
+ - `app/login/page.tsx`
+ - `components/features/home/context-header.tsx`
+ - `components/features/home/HomeEmptyState.tsx`
+ - `components/layout/secondary-sidebar.tsx`
+ - `core/utils/platform.ts`
+ - `app/globals.css`
+ - `app/changelog.md`
+ 
+ </details>
+ 
+ ---
+
+## Version 1.23.23
+**Released:** March 19, 2026
+
+### Cohort Naming Workflow, Tag-Driven Forms, and Auth Stability
+
+<details>
+<summary><strong>Improvements (6)</strong></summary>
+
+- **Cohort Name Composition**: Organizational cohorts now build names from `city_project_funder` with sanitized input and live preview.
+- **Tag-Driven Inputs**: Tag selection is now first, and only the `organizational` tag requires city/project/funder inputs.
+- **Edit Cohort Behavior**: Organizational cohorts use the new naming endpoint with update reason; non‑organizational cohorts update via the original name edit path.
+- **Input Guardrails**: Special characters (including spaces) are ignored as users type, with a lightweight tooltip.
+- **Responsive Layout**: Cohort naming inputs render 3-up on desktop, 2-up on tablet, and 1-up on mobile.
+- **Device Assignment Search**: Added device search to the assign‑devices modal with server-side filtering.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (4)</strong></summary>
+
+- **New Cohort Name Utilities**: Added shared helpers for building and parsing cohort names.
+- **New Rename Hook**: Added `useUpdateCohortName` and API binding to the cohort naming endpoint.
+- **Auth Cookie Isolation**: Switched dev session cookie name and aligned middleware token parsing.
+- **Env Template Update**: Added NextAuth environment variables to the vertex example env file.
+
+</details>
+
+## Version 1.23.22
+**Released:** February 25, 2026
+
+### Cohort Import Confirmation & Personal Assignment Flow
+
+Refined the "Import from Cohort" flow to add an explicit confirmation step and align personal imports with cohort assignment, plus fixed a React render loop in cohort details.
+
+<details>
+<summary><strong>Improvements (3)</strong></summary>
+
+- **Cohort Import Confirmation**: Added a dedicated confirmation step after verifying Cohort ID, displaying the cohort name before assignment.
+- **Personal Import Assignment**: Personal-scope imports now assign the cohort to the user (no claim-token entry), matching the intended assignment flow.
+- **Reliable User Cohort Refresh**: Assignment to user now invalidates the `userDetails` query and `myDevices` to refresh cohort-aware views.
+
+</details>
+
+<details>
+<summary><strong>Fixes (1)</strong></summary>
+
+- **Cohort Details Render Loop**: Removed a default array prop that caused a `Maximum update depth exceeded` error on the cohort details page.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (3)</strong></summary>
+
+- `components/features/cohorts/cohort-detail-card.tsx`
+- `components/features/claim/claim-device-modal.tsx`
+- `core/hooks/useCohorts.ts`
+
+</details>
+
+## Version 1.23.21
+**Released:** February 20, 2026
+
+### Managed Cohorts Tag Defaults & Admin Tags Visibility
+
+Updated cohort tag behavior to improve Managed Cohorts filtering and make cohort tags visible directly in the admin cohorts table.
+
+<details>
+<summary><strong>Improvements (3)</strong></summary>
+
+- **Managed Cohorts Default Filter**: Clicking the **Managed Cohorts** tab now defaults to the `organizational` tag instead of `All`, so users immediately see organizational cohorts.
+- **Tag Rename to Misc**: Replaced the previous `external device` cohort tag option with `misc` (both value and label) for cleaner categorization.
+- **Admin Table Tag Visibility**: Added a **Tags** column to the admin cohorts table to display each cohort's tags as badges.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (2)</strong></summary>
+
+- `app/(authenticated)/admin/cohorts/page.tsx`
+- `core/constants/devices.ts`
+
+</details>
+
+## Version 1.23.20
+**Released:** February 20, 2026
+
+### Device Details Runtime Stability Fix
+
+Fixed a production runtime crash on the admin device details route caused by non-string values being passed into string/date parsing paths.
+
+<details>
+<summary><strong>Fixes (2)</strong></summary>
+
+- **Crash Prevention in Date Parsing**: Added strict runtime type guards before calling `parseISO(...)` in device detail cards to avoid `TypeError: e.split is not a function` when API fields are not strings.
+- **Safe Organization Name Formatting**: Hardened organization/group name rendering in device table columns to avoid calling `.split("_")` on non-string values.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (2)</strong></summary>
+
+- Introduced guarded date parsing paths in maintenance, activity, and device-status feed components.
+- Added resilient fallback formatting for non-string group values in device table column rendering.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (4)</strong></summary>
+
+- `components/features/devices/maintenance-status-card.tsx`
+- `components/features/devices/device-activity-item.tsx`
+- `components/features/devices/run-device-test-card.tsx`
+- `components/features/devices/utils/table-columns.tsx`
+
+</details>
+
+## Version 1.23.19
+**Released:** February 18, 2026
+
+### Cohort Tag Management & Managed View
+
+Refactored Cohort Tags to use a restricted multi-select system and overhauled the Managed Cohorts view with tag-based filtering and URL synchronization.
+
+<details>
+<summary><strong>Managed Cohorts View (3)</strong></summary>
+
+- **Renamed View**: The "Organization Cohorts" view has been renamed to **"Managed Cohorts"** to better reflect its purpose.
+- **Tag Filtering**: Introduced a tabbed filter bar for Managed Cohorts, allowing users to filter cohorts by category (e.g., "Organizational", "Individual").
+- **URL Synchronization**: Selected tags are now synced with the URL query parameter (`?tags=...`). The first available tag is selected by default if no parameter is present, ensuring a predictable initial state.
+
+</details>
+
+<details>
+<summary><strong>Cohort Tags Refactor (2)</strong></summary>
+
+- **Restricted Multi-Select**: Transitioned all cohort tag inputs (Create, Edit, Create from Selection) to a **Restricted Multi-Select** model. Users can select multiple tags but are restricted to the predefined list, preventing the creation of arbitrary tags.
+- **Array-Based Schema**: Updated form validation and API payloads to correctly handle tags as an array of strings, ensuring data consistency.
+
+</details>
+
+<details>
+<summary><strong>Improvements (1)</strong></summary>
+
+- **Device Deployment Feedback**: Enhanced the `useDeployDevice` hook to capture and display detailed error messages from the backend when deployments fail, improving troubleshooting visibility.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (9)</strong></summary>
+
+- `app/(authenticated)/admin/cohorts/page.tsx`
+- `components/features/cohorts/create-cohort.tsx`
+- `components/features/cohorts/cohort-detail-card.tsx`
+- `components/features/cohorts/create-cohort-from-cohorts.tsx`
+- `core/hooks/useCohorts.ts`
+- `core/hooks/useDevices.ts`
+- `components/ui/multi-select.tsx`
+- `core/apis/cohorts.ts`
+- `core/constants/devices.ts`
+
+</details>
+
+## Version 1.23.18
+**Released:** February 17, 2026
+
+### Startup UX, Offline Resilience, Account Re-Login, and SSO Foundation
+
+Reduced blank/slow startup perception, improved offline behavior, introduced remembered-account login flow, and added cross-subdomain SSO session groundwork.
+
+<details>
+<summary><strong>Startup & Performance (3)</strong></summary>
+
+- **No Blank Rehydration Screen**: Updated Redux persist gate to render `SessionLoadingState` during initialization instead of `null`.
+- **Clearer Loading Feedback**: Enhanced session loader with explicit "Loading workspace..." text for better perceived progress.
+- **Faster Dev Boot Defaults**: Changed default dev script to non-inspect mode and added a dedicated `dev:inspect` script.
+
+</details>
+
+<details>
+<summary><strong>Offline Resilience (3)</strong></summary>
+
+- **Network Error Normalization**: Standardized no-response API failures to predictable `status: 0` responses for safer downstream handling.
+- **Connectivity Events**: Added `vertex-network-degraded` and `vertex-network-recovered` events to reflect API-level connectivity state.
+- **Offline-First Query Tuning**: Improved React Query defaults and bootstrap query retry policy to reduce startup stalls during poor connectivity.
+
+</details>
+
+<details>
+<summary><strong>Authentication UX (2)</strong></summary>
+
+- **Remembered Accounts**: Added secure remembered-account list (email/display info only, no password storage) on login page.
+- **Quick Account Switching**: Added "Recently used accounts" selection, remove-account action, and "Use a different account" flow.
+
+</details>
+
+<details>
+<summary><strong>Cross-Subdomain SSO Session Foundation (3)</strong></summary>
+### Cross-Subdomain SSO Session Foundation
+
+Added Vertex-side configuration for shared NextAuth sessions across AirQo subdomains to support seamless login reuse between products.
+
+<details>
+<summary><strong>Authentication Updates (3)</strong></summary>
+
+- **Shared Cookie Domain Support**: Added optional `NEXTAUTH_COOKIE_DOMAIN` handling so the NextAuth session cookie can be set on a parent domain (for example, `.airqo.net`) and reused by sibling apps.
+- **Explicit Secret Configuration**: Added `NEXTAUTH_SECRET` binding in auth options to ensure consistent token signing/decryption across apps participating in SSO.
+- **Secure Cookie Behavior**: Enabled production-aware secure cookie behavior (`__Secure-next-auth.session-token` in production, standard cookie name in development).
+
+</details>
+
+<details>
+<summary><strong>Documentation (1)</strong></summary>
+
+- **Environment Variable Guide**: Added SSO-focused auth environment variable documentation for `NEXTAUTH_SECRET` and `NEXTAUTH_COOKIE_DOMAIN`.
+
+</details>
+
+<details>
+<summary><strong>Desktop Layout Contract (1)</strong></summary>
+
+- **Stable Layout Hooks**: Added `data-vertex-*` attributes on topbar/sidebars/main to provide a stable desktop wrapper integration contract.
+
+</details>
+
+<details>
+<summary><strong>Desktop Application (5)</strong></summary>
+
+- **Electron Wrapper Project**: Introduced the dedicated desktop project at `src/vertex-desktop` with isolated runtime/build configuration.
+- **Desktop Runtime Architecture**: Added main-process modules for window lifecycle, updater integration, deep-link support, and permission handling.
+- **Preload Bridge APIs**: Added typed desktop bridge APIs (for example, app version/retry actions) exposed via preload for safe renderer access.
+- **Title Bar Overlay UX**: Added desktop title bar controls and overlay behavior tailored for wrapped Vertex navigation.
+- **Windows Packaging & Installer**: Added Windows installer/package configuration and release workflow support for updater-ready artifacts.
+
+</details>
+
+<details>
+<summary><strong>Desktop Release Notes (1)</strong></summary>
+
+- **Detailed Desktop Changelog**: Desktop-specific release history is tracked in `src/vertex-desktop/CHANGELOG.md`.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (16)</strong></summary>
+
+- `package.json`
+- `app/providers.tsx`
+- `app/login/page.tsx`
+- `app/api/auth/[...nextauth]/options.ts`
+- `core/auth/authProvider.tsx`
+- `core/apis/axiosConfig.ts`
+- `core/utils/secureApiProxyClient.ts`
+- `core/hooks/useLogout.ts`
+- `core/utils/rememberedAccounts.ts`
+- `components/features/network-status-banner/index.tsx`
+- `components/layout/loading/session-loading.tsx`
+- `components/layout/topbar.tsx`
+- `components/layout/primary-sidebar.tsx`
+- `components/layout/secondary-sidebar.tsx`
+- `components/layout/layout.tsx`
+<summary><strong>Files Modified (2)</strong></summary>
+
+- `app/api/auth/[...nextauth]/options.ts`
+- `README.md`
+
+</details>
+
+---
+
+## Version 1.23.17
+**Released:** January 25, 2026
+
+### Cohort Import Security & Accessibility Improvements
+
+Restricted cohort imports ('airqo') and improved UI accessibility and validation logic across the platform.
+
+<details>
+<summary><strong>Security & Validation (2)</strong></summary>
+
+- **Restricted Cohort Import**: Implemented validation to prevent users from importing the reserved "airqo" cohort. The system now checks the cohort name and blocks the import with a clear error message if it matches.
+- **Strict ID Validation**: Enhanced the Cohort ID input validation to strictly enforce a 24-character alphanumeric format, preventing invalid inputs (e.g., URLs) and ensuring data integrity.
+
+</details>
+
+<details>
+<summary><strong>UI/UX Enhancements (2)</strong></summary>
+
+- **Static Device Icons**: Fixed an issue where "Static Devices" were incorrectly displaying a car icon. The logic now prioritizes the explicit deployment category ("static") to ensure the correct Map Pin icon is shown.
+- **Accessibility Labels**: Added `aria-label` attributes to icon-only buttons (e.g., Cohort Edit Button) to improve screen reader support and overall accessibility compliance.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (5)</strong></summary>
+
+- `core/apis/cohorts.ts`
+- `components/features/claim/claim-device-modal.tsx`
+- `components/features/devices/device-category-card.tsx`
+- `components/features/cohorts/cohort-detail-card.tsx`
+- `components/features/cohorts/edit-cohort-details-modal.tsx`
+
+</details>
+
+---
+
+## Version 1.23.16
+**Released:** January 06, 2026
+
+### Theme & Cohort UI Improvements
+
+Standardized the application to default to Light Mode upon entry and refined the Cohort management UI for a cleaner editing experience.
+
+<details>
+<summary><strong>Theme Updates (2)</strong></summary>
+
+- **Light Mode Default**: Updated the application configuration to default to **Light Mode** for all users, overriding system preferences to ensure a consistent initial experience.
+- **Smart Theme Toggle**: Fixed the topbar theme toggle logic to correctly identify the active theme. Even when using system defaults, the toggle now intelligently displays the option to switch to the *alternative* mode (e.g., "Switch to Light Mode" if system is Dark).
+
+</details>
+
+<details>
+<summary><strong>Cohort Management (2)</strong></summary>
+
+- **Streamlined Editing**: Removed the redundant "Edit details" button from the Cohort Details card. Users can now edit cohort details by clicking a new **Edit Pen** icon located directly next to the cohort name.
+- **Simplified Modal**: Refined the "Edit Cohort" modal to focus solely on renaming the cohort. Removed the "Visibility" field from this view to simplify the user workflow.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (4)</strong></summary>
+
+- `app/providers.tsx`
+- `components/layout/topbar.tsx`
+- `components/features/cohorts/cohort-detail-card.tsx`
+- `components/features/cohorts/edit-cohort-details-modal.tsx`
+
+</details>
+
+---
+
+## Version 1.23.15
+**Released:** January 04, 2026
+
+### Dark Mode & Type Safety Refinements
+
+Polished the application's comprehensive dark mode experience and introduced
+**cohort-level visibility controls**, alongside critical type safety improvements.
+
+<details>
+<summary><strong>Feature Updates (1)</strong></summary>
+
+- **Cohort Visibility Toggle**: Moved the visibility management (Public vs
+  Private) directly onto the **Cohort Details Card**. Users can now toggle a
+  cohort's visibility with a switch, complete with a confirmation dialog
+  explaining the privacy implications.
+
+</details>
+
+<details>
+<summary><strong>UI Enhancements (3)</strong></summary>
+
+- **Dark Mode Styling**:
+  - **Sidebar**: Standardized active state navigation to use a branded dark blue
+    theme (`dark:bg-blue-900/20`, `dark:text-blue-500`) across both Primary and
+    Secondary sidebars, ensuring high contrast and consistency.
+  - **Topbar**: Aligned the menu button hover state with the
+    `OrganizationPicker` styling (`dark:hover:bg-primary/10`) for a unified
+    look.
+  - **Organization Modal**: Updated list items to use proper dark mode active
+    states (`dark:bg-blue-900/20`) and text colors, preventing visibility
+    issues on dark backgrounds.
+  - **Network Visibility**: Refined the **Network Visibility Card** and Home
+    Accordion styling to ensure borders and separators render correctly in dark
+    mode (`dark:border-gray-600`).
+  - **General UI**: Applied consistent dark mode border styling to various
+    components including `Card`, `SiteInformationCard`, `CohortDetailCard`, and
+    `SiteMobileAppCard`.
+- **Toggle Refinement**: Updated the secondary sidebar collapse toggle to
+  support dark mode with appropriate background and border colors
+  (`dark:bg-zinc-950`, `dark:border-gray-700`).
+
+</details>
+
+<details>
+<summary><strong>Fixes (2)</strong></summary>
+
+- **Site Type Compatibility**:
+  - **Mobile App Card**: Updated the `SiteMobileAppCard` local interface to
+    accept optional properties (`search_name`, `location_name`, etc.), resolving
+    a TypeScript assignment error with the global `Site` type.
+  - **Robust Status Logic**: Updated `site-information-card.tsx` and
+    `sites-list-table.tsx` to safely handle optional `isOnline` and
+    `rawOnlineStatus` fields. preserved `undefined` values for
+    `rawOnlineStatus` to respect semantic meaning (unknown status) rather than
+    coercing to `false`.
+  - **Edit Site Validation**: Added a safety check in
+    `edit-site-details-dialog.tsx` to ensure `siteId` is present before
+    submission, preventing type errors.
+  - **Theme Provider Import**: Fixed the import path for `ThemeProviderProps` in
+    `theme-provider.tsx` to resolve a module resolution error.
+- **Lint Resolution**: Resolved an explicit `any` type in
+  `client-paginated-sites-table.tsx` by correctly casting to the `Site`
+  interface.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (13)</strong></summary>
+
+- `components/layout/primary-sidebar.tsx`
+- `components/layout/secondary-sidebar.tsx`
+- `components/layout/NavItem.tsx`
+- `components/layout/topbar.tsx`
+- `components/features/org-picker/organization-modal.tsx`
+- `components/features/sites/site-mobile-app-card.tsx`
+- `components/features/sites/client-paginated-sites-table.tsx`
+- `components/features/sites/edit-site-details-dialog.tsx`
+- `components/features/home/network-visibility-card.tsx`
+- `app/(authenticated)/home/page.tsx`
+- `components/ui/card.tsx`
+- `components/features/sites/site-information-card.tsx`
+- `components/features/cohorts/cohort-detail-card.tsx`
+
+</details>
+
+---
+
+
+
+## Version 1.23.14
+**Released:** January 03, 2026
+
+### Cohort Management Toggle & Performance
+
+Optimized large-scale cohort device assignment performance and introduced a dedicated toggle for managing User vs Organization cohorts with decoupled counts.
+
+<details>
+<summary><strong>Feature Updates (1)</strong></summary>
+
+- **Scope-Aware Cohort View**: Introduced a toggle on the Cohorts page (`/admin/cohorts`) allowing admins to switch between "Organization Cohorts" and "User Cohorts". Each view now displays an independent real-time count, styled with a distinct active/inactive design for clarity.
+
+</details>
+
+<details>
+<summary><strong>Performance Improvements (2)</strong></summary>
+
+- **Optimized Filtering**: Replaced O(n) array lookups with O(1) Set lookups in `assign-cohort-devices.tsx`, significantly improving filter performance when cross-referencing thousands of cohorts against organization permissions.
+- **Stable UI Counts**: Decoupled the data fetching logic for User/Org cohort counts from the main table data. This ensures that the counts on the toggle buttons remain stable and do not flicker or reload when searching or paginating the table.
+
+</details>
+
+<details>
+<summary><strong>Fixes (2)</strong></summary>
+
+- **Loading States**: Fixed an issue where the cohort assignment modal would display incomplete filtered results while background permissions were still loading. The UI now properly accounts for all loading states.
+- **Cache Consistency**: Implemented comprehensive cache invalidation for `['user-cohorts']` across all mutation hooks (create, update, assign/unassign), ensuring that the User Cohorts count is always accurate after any action.
+
+</details>
+
+<details>
+<summary><strong>UI Enhancements (2)</strong></summary>
+
+- **Refined Button Styles**: Updated the cohort toggle buttons to use a "Solid vs Outlined" style pattern (Blue background for active, transparent with border for inactive) for clearer state indication.
+- **Loading Skeletons**: Added inline skeleton loaders to button counts to provide visual feedback during data fetching.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (4)</strong></summary>
+
+- `components/features/cohorts/assign-cohort-devices.tsx`
+- `app/(authenticated)/admin/cohorts/page.tsx`
+- `core/hooks/useCohorts.ts`
+- `core/apis/cohorts.ts`
+
+</details>
+
+---
+
+
+
+## Version 1.23.13
+**Released:** December 22, 2025
+
+### External Organization Permissions & Cohort Search Enhancements
+
+Implemented strict permission controls for external organizations and enhanced the cohort selection experience with server-side search, debouncing, and loading states.
+
+<details>
+<summary><strong>Feature Updates (3)</strong></summary>
+
+- **Organization-Scoped Cohorts**: External organization users now only see cohorts that belong to their organization when adding devices to cohorts. The system fetches organization cohort IDs and filters results client-side to ensure data isolation.
+- **Server-Side Cohort Search**: Implemented debounced server-side search (300ms delay) in the cohort selection ComboBox, allowing users to search across all cohorts while maintaining organization-level filtering for external users.
+- **Search Loading States**: Added 3 animated skeleton items to the cohort ComboBox during search, providing visual feedback while API requests are in progress.
+
+</details>
+
+<details>
+<summary><strong>Permission Restrictions (1)</strong></summary>
+
+- **Cohort Management Restrictions**: External organization users can now only **add devices to cohorts**, but cannot **remove devices from cohorts**. The "Remove from Cohort" action is hidden from device list table actions for external org contexts.
+
+</details>
+
+<details>
+<summary><strong>UI/UX Improvements (2)</strong></summary>
+
+- **Smart Empty State Handling**: The cohort ComboBox now correctly shows/hides the "No cohorts found" message based on search results, preventing it from appearing alongside actual results.
+- **Smooth Search Experience**: Search now matches the polished experience of the cohorts table page with proper debouncing, preventing excessive API calls while maintaining responsive feedback.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (5)</strong></summary>
+
+- **ComboBox Enhancement**: Updated `combobox.tsx` to support server-side search via new `onSearchChange` and `isLoading` props, with `shouldFilter={false}` to disable internal Command filtering.
+- **Debounced Search**: Implemented proper debounce pattern using separate state for `cohortSearch` and `debouncedCohortSearch` with 300ms timeout.
+- **Organization Filtering**: Added `useGroupCohorts` hook integration to fetch organization-specific cohort IDs, then filter search results client-side using `useMemo`.
+- **Search Optimization**: Removed `cohort_id` parameter from search API calls to allow searching across all cohorts before client-side filtering for external orgs.
+- **Skeleton Component**: Integrated the `Skeleton` component to display loading placeholders during cohort data fetching.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (3)</strong></summary>
+
+- `components/features/devices/device-list-table.tsx`
+- `components/features/cohorts/assign-cohort-devices.tsx`
+- `components/ui/combobox.tsx`
+
+</details>
+
+---
+
+## Version 1.23.12
+**Released:** December 20, 2025
+
+### Site Statistics Optimization & Permission Enhancements
+
+Optimized site statistics implementation to use a dedicated summary endpoint and enhanced permission handling for shipping access with fallback permissions.
+
+<details>
+<summary><strong>Performance Improvements (1)</strong></summary>
+
+- **Efficient Stats Fetching**: Refactored site statistics to use the new `/devices/sites/summary/count` endpoint, replacing multiple parallel API calls with a single request. This significantly improves page load performance and reduces server load.
+
+</details>
+
+<details>
+<summary><strong>Feature Updates (1)</strong></summary>
+
+- **Flexible Shipping Access**: Added fallback permission logic for shipping access. Users with either `SHIPPING.VIEW` or `NETWORK.VIEW` permissions can now access the Shipping Management page, providing more flexible access control.
+
+</details>
+
+<details>
+<summary><strong>UI/UX Improvements (1)</strong></summary>
+
+- **Organization Modal Redesign**: Completely refactored the Organization Switcher modal to use the standardized `ReusableDialog` component with improved visuals matching the design system, including dynamic subtitle showing available organizations count and proper vertical scrolling for long lists.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (4)</strong></summary>
+
+- **API Update**: Added `getSitesSummaryCount` to `sites.ts` with corresponding `SitesSummaryCountResponse` interface.
+- **Hook Optimization**: Simplified `useSiteStatistics` to use a single query instead of multiple parallel queries.
+- **Permission System**: Enhanced `RouteGuard` to support multiple permissions via new `permissions` prop using OR logic.
+- **Component Refactor**: Migrated `organization-modal.tsx` from custom dialog implementation to `ReusableDialog` with proper flex layout for scrolling.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (7)</strong></summary>
+
+- `core/apis/sites.ts`
+- `core/hooks/useSites.ts`
+- `components/features/sites/site-stats-cards.tsx`
+- `components/layout/accessConfig/route-guard.tsx`
+- `app/(authenticated)/admin/shipping/page.tsx`
+- `components/layout/primary-sidebar.tsx`
+- `components/features/org-picker/organization-modal.tsx`
+
+</details>
+
+---
+
+## Version 1.23.11
+**Released:** December 19, 2025
+
+### Robust Site Statistics
+
+Fixed a critical regression in the Site Statistics component where missing metadata in API responses could cause the entire Sites page to crash.
+
+<details>
+<summary><strong>Fixes (1)</strong></summary>
+
+- **Crash Prevention**: Refactored the `SiteStatsCards` component to implement robust data handling similar to `NetworkStatsCards`. The UI now safely calculates metrics from raw API data using `useMemo`, ensuring that unexpected API responses (missing metadata) default to zero instead of unwrapping `undefined` values.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (2)</strong></summary>
+
+- `core/hooks/useSites.ts`
+- `components/features/sites/site-stats-cards.tsx`
+
+</details>
+
+---
+
+## Version 1.23.10
+**Released:** December 19, 2025
+### Cohort Import Refinements & Navigation Updates
+
+Streamlined the cohort assignment flow for external organizations and improved navigation for device claiming.
+
+<details>
+<summary><strong>Feature Updates (2)</strong></summary>
+
+- **Direct Cohort Assignment**: External Organizations now experience a seamless flow where verifying a Cohort ID directly triggers the assignment process, skipping the unnecessary bulk claim review step.
+- **Navigation Update**: The "Claim Device" button on the Device Overview page now directs users to the dedicated Claim page (`/devices/claim`) for a unified experience.
+
+</details>
+
+<details>
+<summary><strong>Improvements (3)</strong></summary>
+
+- **Transition UX**: Added a 3-second simulated delay to the cohort assignment success state to prevent UI flashing and provide reassuring feedback.
+- **Copy Refinement**: Updated button text from "Verify & Import" to "Import" on the Claim page for clarity.
+- **Success Feedback**: Enhanced the success message for cohort assignments to clearly indicate completion and offer a direct link to view devices.
+
+</details>
+
+<details>
+<summary><strong>Fixes (1)</strong></summary>
+
+- **Modal Stability**: Resolved a regression where the `ClaimDeviceModal` would reset to the initial step mid-flow due to unintended re-renders.
+
+</details>
+
+
+<details>
+<summary><strong>Files Modified (7)</strong></summary>
+
+- `app/(authenticated)/devices/claim/page.tsx`
+- `app/(authenticated)/devices/overview/page.tsx`
+- `app/(authenticated)/home/page.tsx`
+- `components/features/claim/claim-device-modal.tsx`
+- `components/features/cohorts/cohorts-empty-state.tsx`
+- `components/features/home/HomeEmptyState.tsx`
+- `core/hooks/useCohorts.ts`
+
+</details>
+
+---
+
+## Version 1.23.9
+**Released:** December 19, 2025
+
+### Intelligent Device Import & UX Refinements
+
+Refined the **Import Device** workflow with intelligent module-aware caching, streamlined cohort assignment for external organizations, and simplified import logic for personal users. Also improved accessibility for new network requests and updated navigation.
+
+<details>
+<summary><strong>Feature Updates (5)</strong></summary>
+
+- **Module-Aware Refresh**: The import process now intelligently detects the user's active module (`/admin` vs `/devices`) and refreshes the appropriate device list (`Network Devices` vs `My Devices`), eliminating the need for manual page reloads.
+- **Smart Cohort Assignment**: Simplified the default cohort logic to only auto-assign imports to a group cohort for **External Organizations**. Personal users (including AirQo staff) now import devices directly to their personal list without forced cohort association.
+- **Simplified Personal Import**: Individual users in the Personal scope now omit the `cohort_id` entirely during import, allowing the backend to automatically handle assignment to their personal cohort. This removes client-side complexity and ensures reliable assignment.
+- **Smart Cache Invalidation**: The application now intelligently invalidates both `['myDevices']` and `['devices']` caches for personal users after import, ensuring the UI always reflects the latest device list immediately.
+- **Network Request Flow**: Added a direct link ("Can't find your network?") to the import modal, allowing users to easily request new network additions via a dedicated form. This link is automatically hidden in administrative contexts.
+
+</details>
+
+<details>
+<summary><strong>Fixes (2)</strong></summary>
+
+- **Nested Validation Errors**: Fixed a parsing issue in `getApiErrorMessage.ts` that was ignoring simple string errors (e.g., `"serial_number": "must be unique"`), ensuring users see specific validation feedback instead of generic error messages.
+- **Navigation Reset**: Fixed an issue where the `import-device-modal` could retain old network selections by ensuring state is fully reset when the modal closes.
+
+</details>
+
+<details>
+<summary><strong>Improvements (2)</strong></summary>
+
+- **Enhanced My Devices**: Added the **"Import Existing Device"** button directly to the `My Devices` page header and error states, ensuring feature parity with the main Overview page.
+- **Clean Filtering**: Updated the "Network" dropdown in the import modal to filter out "AirQo" as a selectable network option to prevent redundant selection.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (5)</strong></summary>
+
+- **Hook Update**: Refactored `useImportDevice` to utilize `usePathname` for module detection and invalidate multiple query keys (including `['deviceCount']`) to ensure dashboard stats update instantly.
+- **Modal Logic**: Updated `import-device-modal.tsx` to conditionally fetch cohorts only for external organization contexts and strictly return `undefined` for personal cohort IDs.
+- **Component Reuse**: Implemented `ReusableButton` for the new network request link to ensure consistent styling and primary color inheritance.
+- **Utility Fix**: Enhanced `getApiErrorMessage` to handle `string` values within the `errors` object.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (5)</strong></summary>
+
+- `core/hooks/useDevices.ts`
+- `components/features/devices/import-device-modal.tsx`
+- `core/utils/getApiErrorMessage.ts`
+- `app/(authenticated)/devices/my-devices/page.tsx`
+- `app/(authenticated)/devices/overview/page.tsx`
+
+</details>
+
+
+## Version 1.23.8
+**Released:** December 19, 2025
+
+### Site Stats & Filtering
+
+Introduced interactive statistics cards to the Sites Admin page, allowing users to visualize and filter sites based on their operational status (Operational, Transmitting, Not Transmitting, Data Available).
+
+<details>
+<summary><strong>Feature Updates (2)</strong></summary>
+
+- **Site Stats Cards**: Added a new stats component to the Sites page (`/admin/sites`) displaying real-time counts for Total, Operational, Transmitting, Not Transmitting, and Data Available sites.
+- **Status Filtering**: Clicking on a stat card now filters the Sites table by that specific status, persisting the selection in the URL for shareability.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (3)</strong></summary>
+
+- **New API Endpoint**: Added `getSitesByStatusApi` to `sites.ts` to support fetching filtered site lists via the `/devices/sites/status/:status` endpoints.
+- **Parallel Stats Fetching**: Implemented `useSiteStatistics` hook using `useQueries` to fetch counts for all statuses in parallel.
+- **Hook Update**: Updated `useSites` to accept a `status` parameter and route requests to the appropriate tailored endpoint.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (5)</strong></summary>
+
+- `app/(authenticated)/admin/sites/page.tsx`
+- `components/features/sites/site-stats-cards.tsx` (New)
+- `components/features/sites/sites-list-table.tsx`
+- `core/apis/sites.ts`
+- `core/hooks/useSites.ts`
+
+</details>
+
+## Version 1.23.7
+**Released:** December 16, 2025
+
+### Network Stats & UI Refinements
+
+Enhanced the Network Details page with interactive statistics cards and refined the overall user experience with improved navigation and filtering logic.
+
+<details>
+<summary><strong>Feature Updates (3)</strong></summary>
+
+- **Network Stats Cards**: Added dedicated stats cards to the Network Details page (`/admin/networks/[id]`), offering a quick overview of device health specific to that network.
+- **Interactive Filtering**: Clicking on network stats cards (e.g., "Operational", "Transmitting") now automatically filters the device list below.
+- **Enhanced Table Filtering**: Added a robust "Filter" dropdown to device tables with support for clearing filters and visual indicators for active states.
+
+</details>
+
+<details>
+<summary><strong>Improvements (4)</strong></summary>
+
+- **Navigation Refinement**: Updated the "Back" button on the Network Details page to reliably redirect to the Networks list (`/admin/networks`) instead of relying on browser history.
+- **Reusable Stats Component**: Refactored `StatCard` into a fully reusable component with support for multiple sizes (`sm`, `md`, `lg`) and loading states.
+- **Loading State UX**: Disabled interactive elements (cursor, hover effects) on stats cards while they are loading to prevent confusion.
+- **Tooltips**: Added informative tooltips to Network Stats Cards to explain status definitions, mirroring the dashboard experience.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (3)</strong></summary>
+
+- **API Optimization**: Updated `getDeviceCountApi` and related hooks to support network-specific filtering on the server side.
+- **Code Cleanup**: Standardized status parameters to kebab-case and removed unused variables across multiple components.
+- **Performance**: Optimized `AssignCohortDevicesDialog` and `DeployDeviceComponent` to prevent duplicate API calls during interactions.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (9)</strong></summary>
+
+- `app/(authenticated)/admin/networks/[id]/page.tsx`
+- `components/features/networks/NetworkStatsCards.tsx` (New)
+- `components/features/dashboard/StatCard.tsx` (Refactored)
+- `components/features/dashboard/stats-cards.tsx`
+- `components/features/devices/device-list-table.tsx`
+- `components/features/networks/network-device-list-table.tsx`
+- `core/apis/devices.ts`
+- `core/hooks/useDevices.ts`
+- `core/hooks/useNetworks.ts`
+
+</details>
+
+## Version 1.23.6
+**Released:** December 16, 2025
+
+### Device Stats & Data Available Status
+
+Updated the Device Count API integration to support a modernized response structure and added support for the "Data Available" device status across the dashboard and device lists.
+
+<details>
+<summary><strong>Feature Updates (2)</strong></summary>
+
+- **Data Available Status**: 
+  - Added a new **"Data Available"** status to the Dashboard Stats Cards (Yellow icon).
+  - Updated Device List filtering to support filtering by `?status=data_available`.
+- **Personal Scope Stats**: 
+  - The stats cards now use the API to fetch counts for the Personal scope (instead of client-side calculation), ensuring consistency with the Organization scope.
+  - Optimized logic to gracefully handle users with no cohorts (defaults to 0 without API calls).
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (3)</strong></summary>
+
+- **API Update**: Updated `devices.ts` and `useDevices.ts` to consume the new `total_monitors`, `operational`, `transmitting`, `not_transmitting`, `data_available` fields from the API.
+- **Hook Optimization**: Refactored `useDeviceCount` to support optional cohort IDs for personal scope and return `isLoading: false` immediately if no cohorts are provided.
+- **Component Update**: Updated `stats-cards.tsx` to handle the new API response structure and explicitly manage loading states for safer UI rendering.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (4)</strong></summary>
+
+- `core/apis/devices.ts`
+- `core/hooks/useDevices.ts`
+- `components/features/dashboard/stats-cards.tsx`
+- `components/features/devices/device-list-table.tsx`
+
+</details>
+## Version 1.23.5
+**Released:** December 15, 2025
+
+### Dashboard UX & Status Alignment
+
+Overhauled the Home dashboard to improve usability and implemented strict logic alignment for device statuses across the platform.
+
+<details>
+<summary><strong>Feature Updates (3)</strong></summary>
+
+- **Dashboard Redesign**: 
+    - Moved primary actions ("Claim AirQo Device", "Import Device") to a dedicated header bar for visibility.
+    - Added a **"Device Health"** accordion containing Refactored Stats Cards.
+    - Added a dismissable "Welcome" context header to save screen space.
+    - Removed the bottom "Quick Access" section.
+- **Global Claim Modal**: The "Claim AirQo Device" button now opens the claim modal directly on the dashboard instead of redirecting to a separate page.
+- **Network Visibility**: Dedicated **Visibility Card** (External Orgs) with clear "Public" vs "Private" toggle states and safety confirmation.
+
+</details>
+
+<details>
+<summary><strong>Improvements (3)</strong></summary>
+
+- **Stats Logic Alignment**: 
+    - Updated Dashboard Stats Cards to strictly match documentation: **Operational** (Green), **Transmitting** (Blue), **Not Transmitting** (Gray).
+    - Removed ambiguous "Needs Attention" categories.
+    - Status colors are now applied to **icons** instead of card backgrounds for a cleaner look.
+- **Site Status Consistency**: 
+    - Updated Sites to use the same 4-state logic (`Operational`, `Transmitting`, `Data Available`, `Not Transmitting`) as Devices.
+    - Added tooltips to explain statuses in Site details.
+- **Filtering**: 
+    - Updated device list filtering to support new status query parameters (`?status=transmitting`, etc.).
+
+</details>
+
+<details>
+<summary><strong>Files Modified (6)</strong></summary>
+
+- `app/(authenticated)/home/page.tsx`
+- `components/features/dashboard/stats-cards.tsx`
+- `components/features/home/context-header.tsx`
+- `components/features/home/network-visibility-card.tsx`
+- `components/features/devices/device-list-table.tsx`
+- `core/utils/status.ts`
+
+</details>
+
+---
+
+## Version 1.23.4
+**Released:** December 13, 2025
+
+### Device Connection URL & Enhanced Cohort Creation
+
+Added a new "Device Connection URL" field to support external device integrations, and upgraded the Cohort Creation flow with confirmation and success steps.
+
+<details>
+<summary><strong>Features Added (1)</strong></summary>
+
+- **Device Connection URL**: Added a new input field (`api_code`) to the **Import Device** modal and **Device Details** (Edit Mode), allowing users to link devices to their external data source URLs (e.g., IQAir).
+
+</details>
+
+<details>
+<summary><strong>Improvements (1)</strong></summary>
+
+- **Cohort Creation Flow**: Added dedicated **Confirmation** and **Success** steps to the Create Cohort dialog, providing a safer and more polished user experience.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (5)</strong></summary>
+
+- `core/apis/devices.ts`
+- `core/hooks/useDevices.ts`
+- `components/features/devices/import-device-modal.tsx`
+- `components/features/devices/device-details-modal.tsx`
+- `components/features/cohorts/create-cohort.tsx`
+
+</details>
+
+---
+## Version 1.23.3
+**Released:** December 13, 2025
+
+### User-Specific Admin Module Redirection
+
+Implemented intelligent login redirection that remembers each user's last active module (Device Management or Administrative Panel) and redirects them accordingly, with strict user isolation to prevent state leakage on shared devices.
+
+<details>
+<summary><strong>Features Added (1)</strong></summary>
+
+- **Smart Login Redirection**: Users are now automatically redirected to their last active module upon login. If a user was last viewing the Administrative Panel before logout, they'll return directly to `/admin/networks`. Otherwise, they'll go to the default Home page. This preference is strictly isolated per user email, ensuring no cross-contamination when multiple users share the same browser.
+
+</details>
+
+<details>
+<summary><strong>Improvements (3)</strong></summary>
+
+- **UI Flash Prevention**: Optimized the layout initialization to prevent visual "flashing" between modules during login by reading the pathname immediately on mount.
+- **Logout State Capture**: Enhanced logout flow to explicitly save the user's current module before session cleanup, ensuring preferences are always preserved.
+- **Pre-Authentication Check**: Login now reads the user's preference before authentication completes, eliminating timing gaps that caused brief navigation flashes.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (4)</strong></summary>
+
+- **New Utility**: Created `core/utils/userPreferences.ts` with `getLastActiveModule` and `setLastActiveModule` functions that use user-specific localStorage keys (`lastActiveModule_${email}`).
+- **Layout Optimization**: Modified `layout.tsx` to initialize `activeModule` state based on the current pathname and only update state when the module actually changes, preventing unnecessary re-renders.
+- **Logout Enhancement**: Updated `useLogout.ts` to save the current module preference before clearing session data.
+- **Login Refactor**: Modified login flow to read preference before authentication and removed prefetch logic that contributed to visual flashing.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (4)</strong></summary>
+
+- `core/utils/userPreferences.ts` (New)
+- `core/hooks/useLogout.ts`
+- `components/layout/layout.tsx`
+- `app/login/page.tsx`
+
+</details>
+
+---
+## Version 1.23.2
+**Released:** December 13, 2025
+
+### Table UX & Upload Enhancements
+
+Improved table user experience by removing intrusive autoscroll behavior and fixing sticky layout shifts, alongside robustness improvements for file uploads.
+
+<details>
+<summary><strong>Improvements (3)</strong></summary>
+
+- **Removed Autoscroll**: Removed the forced "scroll to top" behavior on table page changes, allowing users to maintain their scroll position.
+- **Stable Sticky Header**: Fixed a layout shift issue where the sticky header would disappear during loading, causing visual jumping.
+- **Robust Uploads**: Refactored Cloudinary upload utility to support custom folders, tags, and better error handling.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (2)</strong></summary>
+
+- **Refactored `ReusableTable`**: Updated to keep sticky header visible during loading and removed redundant header from `TableSkeleton` to prevent layout shifts.
+- **Cleaned Up `useEffect`**: Removed `tableRef.current.scrollIntoView` calls across multiple pages.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (8)</strong></summary>
+
+- `core/apis/cloudinary.ts`
+- `components/shared/table/ReusableTable.tsx`
+- `components/features/devices/device-list-table.tsx`
+- `components/features/networks/network-device-list-table.tsx`
+- `components/features/sites/sites-list-table.tsx`
+- `app/(authenticated)/cohorts/page.tsx`
+- `app/(authenticated)/admin/cohorts/page.tsx`
+- `components/features/grids/grids-list-table.tsx`
+
+</details>
+
+---
 ## Version 1.23.1
 **Released:** December 12, 2025
 

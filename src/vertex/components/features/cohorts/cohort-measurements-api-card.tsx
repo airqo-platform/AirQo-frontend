@@ -12,7 +12,7 @@ interface CohortMeasurementsApiCardProps {
 
 const CohortMeasurementsApiCard: React.FC<CohortMeasurementsApiCardProps> = ({ cohortId }) => {
     return (
-        <Card className="w-full rounded-lg bg-white flex flex-col gap-4 px-3 py-2">
+        <Card className="w-full rounded-lg flex flex-col gap-4 px-3 py-2">
             <h2 className="text-lg font-semibold mb-2">Cohort Measurements API</h2>
             {/* Recent Measurements */}
             <div className="flex flex-col gap-1">

@@ -4,9 +4,9 @@ import axios from 'axios';
 interface ApiErrorResponse {
     message?: string;
     errors?:
-    | { [key: string]: { msg?: string; message?: string } | string[] } // Also supports arrays like { field: ["..."] }
-    | { message?: string } // For errors like { errors: { message: "..." } }
-    | string; // For errors like { errors: "..." }
+    | { [key: string]: { msg?: string; message?: string } | string[] | string } // Added string support
+    | { message?: string }
+    | string;
 }
 
 /**
@@ -24,11 +24,12 @@ export const getApiErrorMessage = (error: unknown): string => {
         if (error.response?.data) {
         const data = error.response.data as ApiErrorResponse;
 
-        // 1. Nested validation errors: { "errors": { "field": { "msg": "..." } } }
+        // 1. Nested validation errors: { "errors": { "field": { "msg": "..." } } } OR { "errors": { "field": "..." } }
         if (typeof data.errors === 'object' && data.errors !== null && !('message' in data.errors)) {
             const errorValues = Object.values(data.errors);
             if (errorValues.length > 0) {
                 const firstError = errorValues[0];
+                if (typeof firstError === 'string') return firstError; // Handle direct string errors
                 if (Array.isArray(firstError) && firstError[0]) return String(firstError[0]);
                 if (typeof firstError === 'object') {
                     const maybeMsg = (firstError as { msg?: string; message?: string }).msg ?? (firstError as { message?: string }).message;

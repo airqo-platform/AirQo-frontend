@@ -6,7 +6,8 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import { config } from '@/lib/config';
 import authService from './api-service';
-import { 
+import { isMockMode, getMockStockItems } from '@/lib/mock-data';
+import {
   ItemsStock,
   ItemsStockCreate,
   ItemsStockUpdate,
@@ -22,14 +23,16 @@ class StockService {
   constructor() {
     // Use centralized config for API URL
     this.baseUrl = config.beaconApiUrl;
-    this.apiPrefix = config.apiPrefix || '/api/v1';
+    this.apiPrefix = config.beaconApiPrefix || (config.isLocalhost ? '/api/v1' : '/api/v1/beacon');
   }
 
   /**
    * Get the appropriate endpoint based on environment
+   * @param resource - The resource path (e.g., '/items-stock/')
    */
-  private getEndpoint(path: string): string {
-    return config.isLocalhost ? path : `${this.apiPrefix}/beacon${path}`;
+  private getEndpoint(resource: string): string {
+    const cleanPath = resource.startsWith('/') ? resource : `/${resource}`;
+    return `${this.apiPrefix}${cleanPath}`;
   }
 
   /**
@@ -39,10 +42,10 @@ class StockService {
     if (config.isLocalhost) {
       return {};
     }
-    
+
     const token = authService.getToken();
     if (token) {
-      return { 'Authorization': token };
+      return { 'Authorization': `Bearer ${token}` };
     }
     return {};
   }
@@ -64,9 +67,11 @@ class StockService {
    * Get all stock items
    */
   async getAllItems(params?: ItemsStockListParams): Promise<ItemsStockResponse | ItemsStock[]> {
+    if (isMockMode()) return getMockStockItems() as any
+
     try {
       const queryParams = new URLSearchParams();
-      
+
       if (params?.page !== undefined) queryParams.append('page', params.page.toString());
       if (params?.page_size !== undefined) {
         // Ensure page_size doesn't exceed the maximum of 100
@@ -82,8 +87,8 @@ class StockService {
       if (params?.low_stock_threshold !== undefined) queryParams.append('low_stock_threshold', params.low_stock_threshold.toString());
       if (params?.return_list !== undefined) queryParams.append('return_list', params.return_list.toString());
 
-      const endpoint = this.getEndpoint('/items-stock');
-      const url = queryParams.toString() 
+      const endpoint = this.getEndpoint('/items-stock/');
+      const url = queryParams.toString()
         ? `${this.baseUrl}${endpoint}?${queryParams.toString()}`
         : `${this.baseUrl}${endpoint}`;
 
@@ -117,7 +122,7 @@ class StockService {
    */
   async createItem(data: ItemsStockCreate): Promise<ItemsStock> {
     try {
-      const endpoint = this.getEndpoint('/items-stock');
+      const endpoint = this.getEndpoint('/items-stock/');
       const response = await axios.post(`${this.baseUrl}${endpoint}`, data, this.getAxiosConfig());
       return response.data;
     } catch (error) {

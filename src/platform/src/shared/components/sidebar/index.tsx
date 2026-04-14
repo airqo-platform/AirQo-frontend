@@ -5,26 +5,32 @@ import { motion } from 'framer-motion';
 import { AqChevronLeft, AqChevronRight } from '@airqo/icons-react';
 import { cn } from '@/shared/lib/utils';
 import { Card } from '@/shared/components/ui/card';
-import { SidebarContent } from './components';
+import { SidebarContent, SidebarSkeleton } from './components';
 import { useAppDispatch, useAppSelector } from '@/shared/hooks/redux';
 import { toggleSidebar } from '@/shared/store/uiSlice';
 import { useUserActions } from '@/shared/hooks';
+import { useRBAC } from '@/shared/hooks';
 import { SidebarProps } from './types';
 import { useMediaQuery } from 'react-responsive';
 import { usePathname } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 export const Sidebar: React.FC<SidebarProps> = ({
   className,
   hideToggle = false,
   isCollapsed: propIsCollapsed,
+  isLoading: propIsLoading,
 }) => {
   const dispatch = useAppDispatch();
   const globalIsCollapsed = useAppSelector(state => state.ui.sidebarCollapsed);
   const isCollapsed =
     propIsCollapsed !== undefined ? propIsCollapsed : globalIsCollapsed;
   const { activeGroup } = useUserActions();
+  const { isLoading: rbacLoading } = useRBAC();
+  const { status: sessionStatus } = useSession();
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const pathname = usePathname();
+  const isLoading = propIsLoading ?? rbacLoading;
 
   const handleToggle = React.useCallback(() => {
     dispatch(toggleSidebar());
@@ -39,6 +45,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   // Determine flow type and org slug - memoized to prevent unnecessary re-renders
   const { flow, orgSlug } = React.useMemo(() => {
+    // Check if on system pages
+    if (pathname.startsWith('/system')) {
+      return { flow: 'system' as const, orgSlug: undefined };
+    }
+
     // Check if on admin pages
     if (pathname.startsWith('/admin')) {
       return { flow: 'admin' as const, orgSlug: undefined };
@@ -48,21 +59,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
       return { flow: 'user' as const, orgSlug: undefined };
     }
 
-    const isAirQoGroup =
-      // Check if title matches AIRQO (case insensitive)
-      activeGroup.title?.toLowerCase() === 'airqo' ||
-      // Check if organization slug is airqo
-      activeGroup.organizationSlug?.toLowerCase() === 'airqo' ||
-      // Check if no organization slug (default user flow)
-      !activeGroup.organizationSlug ||
-      // Fallback: check if title contains airqo
-      activeGroup.title?.toLowerCase().includes('airqo');
+    // Enhanced logic: Check organization slug first (more reliable than title)
+    // If organizationSlug exists and is not 'airqo', it's an organization flow
+    // Otherwise, it's a user flow (default AirQo group)
+    const hasOrgSlug =
+      activeGroup.organizationSlug &&
+      activeGroup.organizationSlug.toLowerCase() !== 'airqo';
 
     return {
-      flow: isAirQoGroup ? ('user' as const) : ('organization' as const),
-      orgSlug: activeGroup.organizationSlug || undefined,
+      flow: hasOrgSlug ? ('organization' as const) : ('user' as const),
+      orgSlug: hasOrgSlug ? activeGroup.organizationSlug : undefined,
     };
   }, [activeGroup, pathname]);
+  // Treat base and nested admin/system/org routes as protected so
+  // exact base paths like '/admin' and '/system' are handled consistently
+  // with the flow detection above (which uses startsWith('/admin')/('/system')).
+  const isProtectedSidebarRoute =
+    pathname.startsWith('/org') ||
+    pathname.startsWith('/system') ||
+    pathname.startsWith('/admin');
+  const shouldWaitForActiveGroup = pathname.startsWith('/org/');
+  const shouldShowLoadingSkeleton =
+    isProtectedSidebarRoute &&
+    (sessionStatus === 'loading' ||
+      isLoading ||
+      (shouldWaitForActiveGroup && !activeGroup));
 
   return (
     <>
@@ -72,7 +93,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
         transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
       >
         {/* allow the toggle button to visually overflow outside the Card by NOT clipping on the outer container */}
-        <Card className="flex flex-col h-full overflow-x-hidden overflow-y-auto">
+        <Card
+          className={cn(
+            'flex flex-col h-full',
+            isCollapsed
+              ? 'overflow-visible'
+              : 'overflow-x-hidden overflow-y-auto'
+          )}
+        >
           <motion.div
             className="absolute z-50 top-4 right-[-12px]"
             transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
@@ -98,12 +126,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </motion.div>
 
           {/* Navigation */}
-          <SidebarContent
-            flow={flow}
-            orgSlug={orgSlug}
-            isCollapsed={isCollapsed}
-            onItemClick={handleItemClick}
-          />
+          {shouldShowLoadingSkeleton ? (
+            <SidebarSkeleton isCollapsed={isCollapsed} />
+          ) : (
+            <SidebarContent
+              flow={flow}
+              orgSlug={orgSlug}
+              isCollapsed={isCollapsed}
+              onItemClick={handleItemClick}
+            />
+          )}
         </Card>
       </motion.div>
     </>

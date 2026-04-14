@@ -8,12 +8,12 @@ In this guide you will get an overview of the contribution workflow from opening
 
 To get an overview of each product, read the respective product READMEs:
 
-- [Analytics Platform](/platform/README.md)
+- [Analytics](/platform/README.md)
+- [Vertex](/vertex/README.md)
+- [Packages](/packages/README.md)
 - [Calibrate](/calibrate/README.md)
-- [Docs](/docs/README.md)
-- [Mobile app](/mobile/README.md)
-- [Netmanager](/netmanager/README.md)
-- [Website](/website/README.md)
+- [Mobile App](/mobile-v3/README.md)
+- [Website](/website2/README.md)
 
 Here are some resources to help you get started with open source contributions:
 

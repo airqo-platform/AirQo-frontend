@@ -120,6 +120,9 @@ type FilterValues = Record<
   string | number | boolean | (string | number | boolean)[] | unknown
 >;
 
+const normalizeText = (value: unknown): string =>
+  String(value ?? '').toLowerCase();
+
 // ============================================================================
 // COLUMN HEADER FILTER COMPONENT
 // ============================================================================
@@ -159,10 +162,12 @@ const ColumnHeaderFilter = <T extends TableItem>({
   const isMulti = column.filterMulti ?? true;
 
   const filteredOptions = useMemo(
-    () =>
-      filterOptions.filter(option =>
-        option.label.toLowerCase().includes(searchTerm.toLowerCase())
-      ),
+    () => {
+      const normalizedSearchTerm = normalizeText(searchTerm);
+      return filterOptions.filter(option =>
+        normalizeText(option.label).includes(normalizedSearchTerm)
+      );
+    },
     [filterOptions, searchTerm]
   );
 
@@ -345,10 +350,12 @@ const CustomFilter: React.FC<CustomFilterProps> = ({
   }, [isOpen]);
 
   const filteredOptions = useMemo(
-    () =>
-      options.filter(option =>
-        option.label.toLowerCase().includes(searchTerm.toLowerCase())
-      ),
+    () => {
+      const normalizedSearchTerm = normalizeText(searchTerm);
+      return options.filter(option =>
+        normalizeText(option.label).includes(normalizedSearchTerm)
+      );
+    },
     [options, searchTerm]
   );
 

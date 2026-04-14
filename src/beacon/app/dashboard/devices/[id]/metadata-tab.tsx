@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Box, RefreshCw, CalendarIcon, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -26,14 +27,28 @@ interface MetadataEntry {
 }
 
 interface MetadataResponse {
-  metadata: MetadataEntry[]
-  total: number
-  skip: number
-  limit: number
+  success: boolean
+  message: string
+  meta: {
+    total: number
+    limit: number
+    skip: number
+    page: number | null
+    totalPages: number | null
+    detailLevel: string | null
+    usedCache: boolean | null
+    nextPage: string | null
+  }
+  beacon_data: {
+    category_details: any
+    metadata: MetadataEntry[]
+  }
 }
 
 export default function MetadataTab({ deviceId, deviceName }: MetadataTabProps) {
   const { toast } = useToast()
+  const searchParams = useSearchParams()
+  const isMock = searchParams.get('mock') === 'true'
   const [metadata, setMetadata] = useState<MetadataEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -61,36 +76,44 @@ export default function MetadataTab({ deviceId, deviceName }: MetadataTabProps) 
       setLoading(true)
       setError(null)
 
+      if (isMock) {
+        // Provide dummy metadata
+        const mockMetadata: MetadataEntry[] = Array.from({ length: limit }, (_, i) => ({
+          entryID: 1000 + skip + i,
+          created_at: new Date(Date.now() - (skip + i) * 3600000).toISOString(),
+          pm2_5: (Math.random() * 50).toFixed(2),
+          pm10: (Math.random() * 60).toFixed(2),
+          temperature: (20 + Math.random() * 10).toFixed(1),
+          humidity: (40 + Math.random() * 20).toFixed(1),
+          battery: (3.7 + Math.random() * 0.5).toFixed(2),
+        }))
+
+        // Simulate network delay
+        await new Promise(resolve => setTimeout(resolve, 500))
+        setMetadata(mockMetadata)
+        setTotal(100) // Mock total records
+        setLoading(false)
+        return
+      }
+
       const params: any = {
         device_id: deviceId,
         skip,
         limit,
       }
 
-      if (dateRange.from) {
-        const fromDate = new Date(dateRange.from)
-        if (includeTime) {
-          const [hours, minutes] = timeRange.from.split(':')
-          fromDate.setHours(parseInt(hours), parseInt(minutes), 0, 0)
-        }
-        params.start_date = fromDate.toISOString()
-      }
-      
-      if (dateRange.to) {
-        const toDate = new Date(dateRange.to)
-        if (includeTime) {
-          const [hours, minutes] = timeRange.to.split(':')
-          toDate.setHours(parseInt(hours), parseInt(minutes), 59, 999)
-        } else {
-          toDate.setHours(23, 59, 59, 999)
-        }
-        params.end_date = toDate.toISOString()
-      }
+      // Date filtering is not supported by new API yet, or needs specific format
+      // For now we just pass pagination params as per user request example
 
       const response = await getDeviceMetadata(params)
-      
-      setMetadata(response.metadata || [])
-      setTotal(response.total || 0)
+
+      if (response && response.success) {
+        setMetadata(response.beacon_data?.metadata || [])
+        setTotal(response.meta?.total || 0)
+      } else {
+        setMetadata([])
+        setTotal(0)
+      }
     } catch (err: any) {
       console.error("Error fetching metadata:", err)
       setError(err.message || "Failed to load metadata")
@@ -220,7 +243,7 @@ export default function MetadataTab({ deviceId, deviceName }: MetadataTabProps) 
                         placeholder="End date"
                       />
                     </div>
-                    
+
                     {/* Time Inputs - Only show when includeTime is true */}
                     {includeTime && (
                       <div className="grid grid-cols-2 gap-2">
@@ -236,7 +259,7 @@ export default function MetadataTab({ deviceId, deviceName }: MetadataTabProps) 
                         />
                       </div>
                     )}
-                    
+
                     {/* Include Time Checkbox */}
                     <div className="flex items-center space-x-2">
                       <Checkbox

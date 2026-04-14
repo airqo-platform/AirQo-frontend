@@ -1,13 +1,14 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { useRouter } from "next/navigation";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { CreateCohortDialog } from "@/components/features/cohorts/create-cohort";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import ReusableTable, { TableColumn } from "@/components/shared/table/ReusableTable";
-import { useCohorts } from "@/core/hooks/useCohorts";
+import { useCohorts, useUserCohorts } from "@/core/hooks/useCohorts";
 import { Cohort } from "@/app/types/cohorts";
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useMemo } from "react";
 import { format } from 'date-fns';
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { AqPlus } from "@airqo/icons-react";
@@ -15,43 +16,91 @@ import { CreateCohortFromSelectionDialog } from "@/components/features/cohorts/c
 import { AssignCohortsToGroupDialog } from "@/components/features/cohorts/assign-cohorts-to-group";
 import { useServerSideTableState } from "@/core/hooks/useServerSideTableState";
 
+import { DEFAULT_COHORT_TAGS } from "@/core/constants/devices";
+
 type CohortRow = {
   id: string;
   name: string;
   numberOfDevices: number;
   visibility: boolean;
+  cohort_tags?: string[];
   dateCreated?: string;
 }
 
 export default function CohortsPage() {
   const router = useRouter();
-  const tableRef = useRef<HTMLDivElement>(null);
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
   const {
     pagination, setPagination,
     searchTerm, setSearchTerm,
     sorting, setSorting
   } = useServerSideTableState({ initialPageSize: 25 });
 
-  const { cohorts, meta, isFetching, error } = useCohorts({
+  const [view, setView] = useState<'organization' | 'user'>('organization');
+
+  // Tag Logic
+  const defaultTag = DEFAULT_COHORT_TAGS[0]?.value || "All";
+  const urlTag = searchParams.get('tags');
+  const selectedTag = urlTag || defaultTag;
+
+  const handleTagClick = (tag: string) => {
+    const params = new URLSearchParams(searchParams);
+    if (tag === 'All') {
+      params.delete('tags');
+      params.set('tags', 'All');
+    } else {
+      params.set('tags', tag);
+    }
+    setPagination(prev => ({ ...prev, pageIndex: 0 }));
+    router.replace(`${pathname}?${params.toString()}`);
+  };
+
+  // Count Queries (Stable, always enabled, minimal payload, no search/sort)
+  const { meta: orgCountMeta, isFetching: isFetchingOrgCount } = useCohorts({
+    page: 1,
+    limit: 1,
+  });
+
+  const { meta: userCountMeta, isFetching: isFetchingUserCount } = useUserCohorts({
+    page: 1,
+    limit: 1,
+  });
+
+  // Table Queries (Dynamic, enabled only when active)
+  const { cohorts: orgCohorts, meta: orgMeta, isFetching: isFetchingOrg, error: orgError } = useCohorts({
     page: pagination.pageIndex + 1,
     limit: pagination.pageSize,
     search: searchTerm,
     sortBy: sorting[0]?.id,
     order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined,
+    tags: selectedTag === "All" ? undefined : selectedTag,
+  }, {
+    enabled: view === 'organization'
   });
 
+  const { cohorts: userCohorts, meta: userMeta, isFetching: isFetchingUser, error: userError } = useUserCohorts({
+    page: pagination.pageIndex + 1,
+    limit: pagination.pageSize,
+    search: searchTerm,
+    sortBy: sorting[0]?.id,
+    order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined,
+  }, {
+    enabled: view === 'user'
+  });
+
+  const cohorts = view === 'organization' ? orgCohorts : userCohorts;
+  const meta = view === 'organization' ? orgMeta : userMeta;
+  const isFetching = view === 'organization' ? isFetchingOrg : isFetchingUser;
+  const error = view === 'organization' ? orgError : userError;
+
   const pageCount = meta?.totalPages ?? 0;
-  
+
   const [showCreateCohortModal, setShowCreateCohortModal] = useState(false);
   const [showCreateFromCohorts, setShowCreateFromCohorts] = useState(false);
   const [showAssignToGroup, setShowAssignToGroup] = useState(false);
   const [selectedCohortIds, setSelectedCohortIds] = useState<string[]>([]);
-
-  useEffect(() => {
-    if (tableRef.current) {
-      tableRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, [pagination.pageIndex]);
 
   const rows: CohortRow[] = useMemo(() => (cohorts || []).map((c: Cohort) => ({
     ...c,
@@ -79,6 +128,28 @@ export default function CohortsPage() {
       render: (v) => (
         <Badge variant={v ? "default" : "secondary"}>{v ? "Public" : "Private"}</Badge>
       )
+    },
+    {
+      key: "cohort_tags",
+      label: "Tags",
+      sortable: true,
+      render: (value) => {
+        const tags = Array.isArray(value) ? value : [];
+        if (tags.length === 0) return "-";
+        return (
+          <div className="flex flex-wrap gap-1 max-w-[220px]">
+            {tags.map((tag, index) => {
+              const normalized = String(tag || "").replace(/_/g, " ");
+              const displayTag = normalized.toLowerCase() === "external device" ? "misc" : normalized;
+              return (
+                <Badge key={`${String(tag)}-${index}`} variant="secondary" className="font-normal capitalize">
+                  {displayTag}
+                </Badge>
+              );
+            })}
+          </div>
+        );
+      }
     },
     {
       key: "dateCreated",
@@ -119,6 +190,67 @@ export default function CohortsPage() {
             <p className="text-sm text-muted-foreground">
               Manage and organize your device cohorts
             </p>
+            <div className="flex gap-2 mt-4">
+              <button
+                onClick={() => {
+                  setView('organization');
+                  setPagination(prev => ({ ...prev, pageIndex: 0 }));
+                  setSearchTerm("");
+                  handleTagClick("organizational");
+                }}
+                className={`flex items-center gap-1 px-4 py-2 rounded-md text-sm font-medium transition-colors border ${view === 'organization'
+                  ? "bg-blue-600 text-white border-blue-600"
+                  : "bg-transparent text-blue-600 border-blue-600 hover:bg-blue-50"
+                  }`}
+              >
+                Managed Cohorts
+                <span className="ml-1">
+                  ({isFetchingOrgCount && orgCountMeta?.total === undefined ? (
+                    <Skeleton className={`inline-block h-3 w-6 rounded-full ${view === 'organization' ? "bg-white/20" : "bg-blue-100"}`} />
+                  ) : (
+                    orgCountMeta?.total ?? 0
+                  )})
+                </span>
+              </button>
+              <button
+                onClick={() => {
+                  setView('user');
+                  setPagination(prev => ({ ...prev, pageIndex: 0 }));
+                  setSearchTerm("");
+                  handleTagClick("All");
+                }}
+                className={`flex items-center gap-1 px-4 py-2 rounded-md text-sm font-medium transition-colors border ${view === 'user'
+                  ? "bg-blue-600 text-white border-blue-600"
+                  : "bg-transparent text-blue-600 border-blue-600 hover:bg-blue-50"
+                  }`}
+              >
+                User Cohorts
+                <span className="ml-1">
+                  ({isFetchingUserCount && userCountMeta?.total === undefined ? (
+                    <Skeleton className={`inline-block h-3 w-6 rounded-full ${view === 'user' ? "bg-white/20" : "bg-blue-100"}`} />
+                  ) : (
+                    userCountMeta?.total ?? 0
+                  )})
+                </span>
+              </button>
+            </div>
+
+            {view === 'organization' && (
+              <div className="flex gap-2 mt-4 overflow-x-auto pb-2 p-1">
+                {[...DEFAULT_COHORT_TAGS.map(t => ({ value: t.value, label: t.label })), { value: 'All', label: 'All Cohorts' }].map(({ value: tag, label }) => (
+                  <button
+                    key={tag}
+                    onClick={() => handleTagClick(tag)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${selectedTag === tag
+                      ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 ring-1 ring-blue-600/20"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
+                      }`}
+                  >
+                    {label.charAt(0).toUpperCase() + label.slice(1)}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           <ReusableButton
             variant="filled"
@@ -131,7 +263,7 @@ export default function CohortsPage() {
           </ReusableButton>
         </div>
 
-        <div ref={tableRef}>
+        <div>
           <ReusableTable
             title="Cohorts"
             data={rows}

@@ -5,9 +5,11 @@ import { openMoreInsights } from '@/shared/store/insightsSlice';
 import { toast } from '@/shared/components/ui/toast';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { trackEvent } from '@/shared/utils/analytics';
+import { trackDataDownload } from '@/shared/utils/enhancedAnalytics';
 import { useDataDownload } from '@/modules/analytics/hooks';
 import { DataDownloadRequest } from '@/shared/types/api';
 import { DateRange } from '@/shared/components/calendar/types';
+import { LARGE_DATE_RANGE_THRESHOLD } from '../constants/dataExportConstants';
 import { TabType, DeviceCategory, TableItem } from '../types/dataExportTypes';
 import {
   createSitesForVisualization,
@@ -22,6 +24,17 @@ interface ApiErrorResponse {
   data?: unknown;
   metadata?: unknown;
 }
+
+const getCalendarDayDifference = (from: Date, to: Date) => {
+  const startUtc = Date.UTC(
+    from.getFullYear(),
+    from.getMonth(),
+    from.getDate()
+  );
+  const endUtc = Date.UTC(to.getFullYear(), to.getMonth(), to.getDate());
+
+  return Math.max(0, (endUtc - startUtc) / (1000 * 60 * 60 * 24));
+};
 
 /**
  * Custom hook for data export actions and event handlers
@@ -98,6 +111,19 @@ export const useDataExportActions = (
         return;
       }
 
+      const durationDays = getCalendarDayDifference(
+        dateRange.from,
+        dateRange.to
+      );
+
+      if (durationDays > LARGE_DATE_RANGE_THRESHOLD) {
+        toast.error(
+          'Date Range Too Large',
+          `Please split this export into batches of ${LARGE_DATE_RANGE_THRESHOLD} days or fewer to avoid backend timeouts.`
+        );
+        return;
+      }
+
       // Extract sites for countries/cities
       const sitesForDownload: string[] = [];
       if (activeTab === 'countries' || activeTab === 'cities') {
@@ -115,8 +141,13 @@ export const useDataExportActions = (
         });
       }
 
+      const effectiveDataType: 'calibrated' | 'raw' =
+        activeTab === 'devices' && deviceCategory === 'bam'
+          ? 'raw'
+          : (dataType as 'calibrated' | 'raw');
+
       const request: DataDownloadRequest = {
-        datatype: dataType as 'calibrated' | 'raw',
+        datatype: effectiveDataType,
         downloadType: fileType as 'csv' | 'json',
         startDateTime: dateRange.from.toISOString(),
         endDateTime: dateRange.to.toISOString(),
@@ -131,7 +162,7 @@ export const useDataExportActions = (
             ? 'lowcost'
             : deviceCategory,
         ...(activeTab === 'sites' && { sites: selectedSites }),
-        ...(activeTab === 'devices' && { device_names: selectedDevices }),
+        ...(activeTab === 'devices' && { device_ids: selectedDeviceIds }),
         ...((activeTab === 'countries' || activeTab === 'cities') && {
           sites: sitesForDownload,
         }),
@@ -140,37 +171,34 @@ export const useDataExportActions = (
       try {
         await downloadData(request, fileTitle || undefined);
 
-        posthog?.capture('data_download_initiated', {
-          data_type: dataType,
-          file_type: fileType,
-          frequency: frequency,
-          device_category: deviceCategory,
-          pollutants: selectedPollutants,
-          active_tab: activeTab,
-          sites_count: activeTab === 'sites' ? selectedSites.length : undefined,
-          devices_count:
-            activeTab === 'devices' ? selectedDevices.length : undefined,
-          grids_count:
-            activeTab === 'countries' || activeTab === 'cities'
-              ? selectedGridIds.length
-              : undefined,
-        });
+        // Enhanced analytics tracking with comprehensive details
+        // Use the same deviceCategory logic as the API request
+        const effectiveDeviceCategory =
+          activeTab === 'countries' || activeTab === 'cities'
+            ? 'lowcost'
+            : deviceCategory;
 
-        // Track to Google Analytics
-        trackEvent('data_download_initiated', {
-          data_type: dataType,
-          file_type: fileType,
-          frequency: frequency,
-          device_category: deviceCategory,
-          pollutants_count: selectedPollutants.length,
-          active_tab: activeTab,
-          sites_count: activeTab === 'sites' ? selectedSites.length : undefined,
-          devices_count:
-            activeTab === 'devices' ? selectedDevices.length : undefined,
-          grids_count:
-            activeTab === 'countries' || activeTab === 'cities'
-              ? selectedGridIds.length
-              : undefined,
+        // Calculate locationCount based on tab
+        const effectiveLocationCount =
+          activeTab === 'sites'
+            ? selectedSites.length
+            : activeTab === 'devices'
+              ? undefined
+              : sitesForDownload.length;
+
+        trackDataDownload(posthog, {
+          dataType: effectiveDataType,
+          fileType: fileType as 'csv' | 'json',
+          frequency: frequency as 'hourly' | 'daily' | 'monthly',
+          pollutants: selectedPollutants,
+          locationCount: effectiveLocationCount,
+          deviceCount:
+            activeTab === 'devices' ? selectedDeviceIds.length : undefined,
+          startDate: dateRange.from.toISOString(),
+          endDate: dateRange.to.toISOString(),
+          durationDays,
+          deviceCategory: effectiveDeviceCategory as 'lowcost' | 'reference',
+          source: activeTab,
         });
 
         toast.success(
@@ -201,7 +229,6 @@ export const useDataExportActions = (
       dateRange,
       activeTab,
       selectedSites,
-      selectedDevices,
       selectedSiteIds,
       selectedDeviceIds,
       selectedGridIds,

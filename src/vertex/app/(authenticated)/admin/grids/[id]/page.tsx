@@ -65,51 +65,6 @@ export default function GridDetailsPage() {
             </div>
             <ClientPaginatedSitesTable sites={gridDetails.sites} isLoading={isLoading} error={error} />
 
-            <div className="grid gap-6 md:grid-cols-2">
-              {/* Data Summary Report */}
-              {/* <Card>
-              <CardHeader>
-                <CardTitle>Generate Grid Data Summary Report</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Select the time period of your interest to generate the
-                  report for this grid.
-                </p>
-                <DateRangePicker />
-                <ReusableButton className="w-full" variant="outlined">
-                  Generate Data Summary Report
-                </ReusableButton>
-                <div className="h-32 flex items-center justify-center border rounded-md bg-muted/50">
-                  <p className="text-sm text-muted-foreground">
-                    Grid data summary report will appear here
-                  </p>
-                </div>
-              </CardContent>
-            </Card> */}
-
-              {/* Uptime Report */}
-              {/* <Card>
-              <CardHeader>
-                <CardTitle>Generate Grid Uptime Report</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Select the time period of your interest to view the
-                  uptime report for this grid.
-                </p>
-                <DateRangePicker />
-                <ReusableButton className="w-full" variant="outlined">
-                  Generate Uptime Report for the Grid
-                </ReusableButton>
-                <div className="h-32 flex items-center justify-center border rounded-md bg-muted/50">
-                  <p className="text-sm text-muted-foreground">
-                    Grid uptime report will appear here
-                  </p>
-                </div>
-              </CardContent>
-            </Card> */}
-            </div>
             <EditGridDetailsDialog open={isEditDialogOpen} onClose={() => setIsEditDialogOpen(false)} grid={gridDetails} />
           </>
         }

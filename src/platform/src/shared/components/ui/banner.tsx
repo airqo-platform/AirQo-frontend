@@ -23,6 +23,7 @@ export interface BannerProps {
   dismissible?: boolean;
   onDismiss?: () => void;
   className?: string;
+  dense?: boolean;
   showIcon?: boolean;
 }
 
@@ -41,28 +42,28 @@ const SEVERITY_CONFIG: Record<
   }
 > = {
   success: {
-    bgColor: 'bg-emerald-50 dark:bg-emerald-950/20',
+    bgColor: 'bg-emerald-100 dark:bg-emerald-950/20',
     borderColor: 'border-emerald-200 dark:border-emerald-800',
     textColor: 'text-emerald-800 dark:text-emerald-200',
     icon: <AqMessageCheckCircle className="h-5 w-5" />,
     iconColor: 'text-emerald-600 dark:text-emerald-400',
   },
   error: {
-    bgColor: 'bg-destructive/10',
-    borderColor: 'border-destructive/20',
+    bgColor: 'bg-destructive/20',
+    borderColor: 'border-destructive/30',
     textColor: 'text-destructive',
     icon: <AqMessageXCircle className="h-5 w-5" />,
     iconColor: 'text-destructive',
   },
   warning: {
-    bgColor: 'bg-amber-50 dark:bg-amber-950/20',
+    bgColor: 'bg-amber-100 dark:bg-amber-950/20',
     borderColor: 'border-amber-200 dark:border-amber-800',
     textColor: 'text-amber-800 dark:text-amber-200',
     icon: <AqAlertTriangle className="h-5 w-5" />,
     iconColor: 'text-amber-600 dark:text-amber-400',
   },
   info: {
-    bgColor: 'bg-blue-50 dark:bg-blue-950/20',
+    bgColor: 'bg-blue-100 dark:bg-blue-950/20',
     borderColor: 'border-blue-200 dark:border-blue-800',
     textColor: 'text-blue-800 dark:text-blue-200',
     icon: <AqAnnotationInfo className="h-5 w-5" />,
@@ -83,15 +84,19 @@ export const Banner: React.FC<BannerProps> = ({
   dismissible = false,
   onDismiss,
   className,
+  dense = false,
   showIcon = true,
 }) => {
   const config = SEVERITY_CONFIG[severity];
   const displayIcon = icon || (showIcon ? config.icon : null);
 
+  const paddingClass = dense ? 'py-2 px-3' : 'p-4';
+
   return (
     <div
       className={cn(
-        'flex items-start gap-3 rounded-md border p-4 shadow-sm',
+        'flex items-start gap-3 rounded-md border shadow-sm',
+        paddingClass,
         config.bgColor,
         config.borderColor,
         className
@@ -111,7 +116,13 @@ export const Banner: React.FC<BannerProps> = ({
         {message && (
           <div className={cn('mt-1 text-sm', config.textColor)}>{message}</div>
         )}
-        {actions && <div className="mt-3 flex gap-2">{actions}</div>}
+        {actions && (
+          <div
+            className={cn(dense ? 'mt-0' : 'mt-3', 'flex items-center gap-2')}
+          >
+            {actions}
+          </div>
+        )}
       </div>
 
       {/* Dismiss Button */}

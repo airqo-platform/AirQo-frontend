@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { usePostHog } from 'posthog-js/react';
-import { QuickAccessCard, EmptyAnalyticsState } from './';
+import { QuickAccessCard, EmptyAnalyticsState, SuggestedLocations } from './';
 import { ChartContainer } from '@/shared/components/charts';
 import { DynamicChart } from '@/shared/components/charts';
-import { InfoBanner } from '@/shared/components/ui/banner';
-import Link from 'next/link';
+import { LoadingState } from '@/shared/components/ui/loading-state';
+import { EmptyState } from '@/shared/components/ui/empty-state';
 import {
   useAnalyticsSiteCards,
   useAnalyticsPreferences,
@@ -22,47 +22,85 @@ import type { SiteData } from '../types';
 import { openMoreInsights } from '@/shared/store/insightsSlice';
 import type { NormalizedChartData } from '@/shared/components/charts/types';
 import { trackEvent } from '@/shared/utils/analytics';
+import { useSitesData } from '@/shared/hooks/useSitesData';
+import { useActiveGroupCohorts, useCohort } from '@/shared/hooks';
+import { WarningBanner } from '@/shared/components/ui/banner';
 import { getEnvironmentAwareUrl } from '@/shared/utils/url';
+import { useUser } from '@/shared/hooks/useUser';
+import logger from '@/shared/lib/logger';
 
 interface AnalyticsDashboardProps {
   className?: string;
+  isOrganizationFlow: boolean;
 }
 
 export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   className = '',
+  isOrganizationFlow,
 }) => {
   const dispatch = useDispatch();
   const posthog = usePostHog();
+  const { activeGroup, isLoading: userContextLoading } = useUser();
 
   // Get filters from Redux
   const { filters } = useAnalytics();
 
   // Local state for UI preferences (doesn't trigger data reloads)
   const [showIcons, setShowIcons] = useState(true);
+  const [isFavoritesDialogOpen, setIsFavoritesDialogOpen] = useState(false);
 
-  // Get user preferences and selected sites
+  // Get user preferences and selected sites (primary data - always fetch first)
   const {
     selectedSiteIds,
     selectedSites,
     isLoading: preferencesLoading,
   } = useAnalyticsPreferences();
 
-  // Get site cards data
+  // Determine if we need to check for available sites (only when user has no selected sites)
+  // This conditional loading prevents double loading and ensures proper sequencing
+  const hasSelectedSites = selectedSiteIds.length > 0;
+  const shouldCheckAvailableSites = !preferencesLoading && !hasSelectedSites;
+
+  // Check if there are sites available in the organization (only when needed)
+  // This is organization-specific via useActiveGroupCohortSites
+  // Only enabled after preferences load and when user has no selected sites
+  const {
+    totalSites: availableSitesCount,
+    isLoading: sitesCountLoading,
+    error: sitesCountError,
+    retry: retrySitesCountFetch,
+  } = useSitesData({
+    enabled: shouldCheckAvailableSites,
+    initialPageSize: 1,
+    maxLimit: 1,
+  });
+
+  // Get site cards data - only when user has selected sites
   const { siteCards, isLoading: siteCardsLoading } = useAnalyticsSiteCards();
 
-  // Get chart data for line chart
+  // Get chart data for line chart - only when user has selected sites
   const {
     chartData: lineChartData,
     refresh: refreshLineChart,
     isLoading: lineChartLoading,
   } = useAnalyticsChartData(filters, 'line');
 
-  // Get chart data for bar chart
+  // Get chart data for bar chart - only when user has selected sites
   const {
     chartData: barChartData,
     refresh: refreshBarChart,
     isLoading: barChartLoading,
   } = useAnalyticsChartData(filters, 'bar');
+
+  // Get active group cohorts to check visibility
+  const { cohortIds, isLoading: cohortsLoading } = useActiveGroupCohorts();
+
+  // Get cohort details for the first cohort to check visibility
+  const firstCohortId = cohortIds.length > 0 ? cohortIds[0] : '';
+  const { data: cohortData } = useCohort(
+    firstCohortId,
+    !!firstCohortId && !cohortsLoading
+  );
 
   // Helper function to extract unique sites from chart data
   const extractSitesFromChartData = (chartData: NormalizedChartData[]) => {
@@ -95,9 +133,6 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       .filter(site => site._id); // Remove any invalid entries
   };
 
-  // State for manage favorites dialog
-  const [isFavoritesDialogOpen, setIsFavoritesDialogOpen] = useState(false);
-
   // Handle manage favorites
   const handleManageFavorites = () => {
     posthog?.capture('manage_favorites_clicked');
@@ -110,12 +145,11 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     setIsFavoritesDialogOpen(false);
   };
 
-  // Handle refresh data for line chart
+  // Handle refresh data for charts
   const handleRefreshLineChart = async () => {
     return refreshLineChart?.();
   };
 
-  // Handle refresh data for bar chart
   const handleRefreshBarChart = async () => {
     return refreshBarChart?.();
   };
@@ -158,7 +192,6 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
   // Handle individual card click - open more insights for specific site
   const handleCardClick = (siteData: SiteData) => {
-    // Prepare data for the specific site
     const selectedSite = {
       _id: siteData._id,
       name: siteData.name,
@@ -168,15 +201,103 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
     dispatch(openMoreInsights({ sites: [selectedSite] }));
   };
+  // Determine if cohort data is private (not visible)
+  const isCohortPrivate = cohortData?.cohorts[0]?.visibility === false;
 
-  // Combined loading state for initial data
-  const isInitialLoading = preferencesLoading || siteCardsLoading;
+  useEffect(() => {
+    if (!sitesCountError) return;
 
-  // Show empty state only if not loading and no sites are selected
-  if (!isInitialLoading && selectedSiteIds.length === 0) {
+    logger.warn(
+      '[AnalyticsDashboard] Failed to fetch available sites count for empty state',
+      {
+        activeGroupId: activeGroup?.id ?? 'unknown',
+        errorType: typeof sitesCountError,
+      }
+    );
+
+    if (process.env.NODE_ENV === 'development') {
+      logger.debug(
+        '[AnalyticsDashboard] Sites count fetch error details',
+        sitesCountError
+      );
+    }
+  }, [sitesCountError, activeGroup?.id]);
+
+  // Combined loading state - coordinated to show loading only once
+  // When preferences are loading, we don't know if user has sites yet
+  // Only check for available sites count after preferences are loaded
+  const isInitialLoading =
+    userContextLoading ||
+    preferencesLoading ||
+    cohortsLoading ||
+    (shouldCheckAvailableSites && sitesCountLoading);
+
+  // Show single, coordinated loading state
+  if (isInitialLoading) {
+    return (
+      <div
+        className={`flex items-center justify-center min-h-[400px] ${className}`}
+      >
+        <LoadingState text="Loading dashboard..." />
+      </div>
+    );
+  }
+
+  // Determine what to show based on user's selected sites and available sites
+  const hasSitesAvailable = availableSitesCount > 0;
+
+  // Case 1: User has NO selected sites - check if sites are available for their organization
+  if (!hasSelectedSites) {
+    let emptyStateContent: React.ReactNode = null;
+    const hasSitesCountError = Boolean(sitesCountError);
+
+    if (hasSitesAvailable) {
+      // Show suggested locations when sites are available in the active group
+      emptyStateContent = <SuggestedLocations />;
+    } else if (isOrganizationFlow) {
+      // When the location refresh fails, show only the recovery state so we
+      // do not stack it with the onboarding banner and create conflicting UI.
+      emptyStateContent = hasSitesCountError ? (
+        <EmptyState
+          title="Unable to refresh available locations"
+          description="We couldn't refresh your organization locations right now. Retry to check available locations again."
+          action={{
+            label: 'Retry',
+            onClick: retrySitesCountFetch,
+          }}
+          compact
+        />
+      ) : (
+        <EmptyAnalyticsState />
+      );
+    } else {
+      // User flow should never show organization onboarding notice
+      emptyStateContent = (
+        <EmptyState
+          title="No favorite locations yet"
+          description={
+            hasSitesCountError
+              ? 'We could not verify available locations right now. Add locations to favorites to track trends and insights, or retry.'
+              : 'Add locations to favorites to track trends and insights.'
+          }
+          action={
+            hasSitesCountError
+              ? {
+                  label: 'Retry',
+                  onClick: retrySitesCountFetch,
+                }
+              : {
+                  label: 'Add favorite',
+                  onClick: handleManageFavorites,
+                }
+          }
+        />
+      );
+    }
+
     return (
       <div className={`space-y-8 ${className}`}>
-        <EmptyAnalyticsState onAddFavorites={handleManageFavorites} />
+        {emptyStateContent}
 
         {/* Add Favorites Dialog */}
         <AddFavorites
@@ -193,38 +314,32 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     );
   }
 
-  // Check if all site cards have no data (organization info is private)
-  const hasNoDataForAllSites =
-    !isInitialLoading &&
-    siteCards.length > 0 &&
-    siteCards.every(card => card.status === 'no-value');
-
+  // Case 2: User HAS selected sites - show analytics dashboard with cards and charts
   return (
     <div className={`space-y-4 ${className}`}>
-      {/* Info Banner for Private Organization Data */}
-      {hasNoDataForAllSites && (
-        <InfoBanner
+      {/* Show banner if cohort data is private */}
+      {isCohortPrivate && (
+        <WarningBanner
           title="Location card data unavailable"
           message={
             <>
-              Your organization&apos;s data is private. Update visibility
-              settings in{' '}
-              <Link
-                href={getEnvironmentAwareUrl('https://vertex.airqo.net')}
+              Your organization&apos;s information is set to private. Use{' '}
+              <a
+                href={getEnvironmentAwareUrl('https://vertex.airqo.net/')}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:text-blue-800 underline"
               >
-                Vertex
-              </Link>{' '}
-              to view measurements.
+                AirQo Vertex
+              </a>{' '}
+              to manage data visibility and make it public to view air quality
+              measurements.
             </>
           }
-          className="mb-4"
         />
       )}
 
-      {/* Quick Access Locations Card */}
+      {/* Favorite Locations Card */}
       <QuickAccessCard
         sites={siteCards}
         onManageFavorites={handleManageFavorites}

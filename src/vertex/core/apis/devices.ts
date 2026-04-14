@@ -48,12 +48,11 @@ export interface DeviceStatusResponse {
 }
 
 export interface DeviceCountSummary {
-  deployed: number;
-  recalled: number;
-  undeployed: number;
-  online: number;
-  offline: number;
-  maintenance_overdue: number;
+  total_monitors: number;
+  operational: number;
+  transmitting: number;
+  not_transmitting: number;
+  data_available: number;
 }
 
 export interface DeviceCountResponse {
@@ -67,50 +66,58 @@ export interface DeviceDetailsResponse {
   data: Device;
 }
 
-// Response for device maintenance activities
-export interface MaintenanceActivity {
+export interface DeviceActivity {
   _id: string;
-  activity_codes?: string[];
-  tags: string[];
   device: string;
   date: string;
-  description?: string;
-  activityType: "maintenance";
-  nextMaintenance?: string;
-  createdAt: string;
-  updatedAt: string;
+  description: string;
+  activityType: string;
+  activity_by?: {
+    user_id: string;
+    name: string;
+    email: string;
+  };
+  site_id?: string;
   network?: string;
+  nextMaintenance?: string;
+  deployment_type?: string;
+  tags?: string[];
+  createdAt: string;
+  updatedAt?: string;
 }
 
-export interface MaintenanceActivitiesResponse {
+export interface DeviceActivitiesResponse {
   success: boolean;
   message: string;
-  site_activities: MaintenanceActivity[];
+  site_activities: DeviceActivity[];
+  meta: {
+    total: number;
+    limit: number;
+    skip: number;
+    page: number;
+    totalPages: number;
+  };
 }
 
-export interface GetDevicesSummaryParams {
-  network?: string;
-  group?: string;
+export type GetDevicesSummaryParams = Partial<Device> & {
   limit?: number;
   skip?: number;
   search?: string;
   sortBy?: string;
   order?: "asc" | "desc";
-}
+  group?: string;
+};
 
 export const devices = {
   getDevicesSummaryApi: async (params: GetDevicesSummaryParams) => {
     try {
-      const { network, group, limit, skip, search, sortBy, order } = params;
       const queryParams = new URLSearchParams();
 
-      if (network) queryParams.set("network", network);
-      if (group) queryParams.set("group", group);
-      if (limit !== undefined) queryParams.set("limit", String(limit));
-      if (skip !== undefined) queryParams.set("skip", String(skip));
-      if (search) queryParams.set("search", search);
-      if (sortBy) queryParams.set("sortBy", sortBy);
-      if (sortBy && order) queryParams.set("order", order);
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          queryParams.set(key, String(value));
+        }
+      });
 
       const response = await jwtApiClient.get<DevicesSummaryResponse>(
         `/devices/summary?${queryParams.toString()}`,
@@ -122,7 +129,7 @@ export const devices = {
     }
   },
 
-  getDevicesByCohorts: async (params: {
+  getDevicesByCohorts: async (params: Partial<Device> & {
     cohort_ids: string[];
     limit?: number;
     skip?: number;
@@ -134,7 +141,7 @@ export const devices = {
       const { cohort_ids, ...rest } = params;
       const queryParams = new URLSearchParams();
       Object.entries(rest).forEach(([key, value]) => {
-        if (value !== undefined) {
+        if (value !== undefined && value !== null) {
           queryParams.set(key, String(value));
         }
       });
@@ -149,15 +156,55 @@ export const devices = {
       throw error;
     }
   },
-  getDeviceCountApi: async (params: {
+
+  getDevicesByStatusApi: async (params: {
+    status: string;
     cohort_id?: string[];
-  }): Promise<DeviceCountResponse> => {
+    limit?: number;
+    skip?: number;
+    search?: string;
+    sortBy?: string;
+    order?: "asc" | "desc";
+    network?: string;
+  }) => {
     try {
-      const { cohort_id } = params;
+      const { status, cohort_id, ...rest } = params;
       const queryParams = new URLSearchParams();
 
       if (cohort_id && cohort_id.length > 0) {
         queryParams.set("cohort_id", cohort_id.join(","));
+      }
+
+      Object.entries(rest).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          queryParams.set(key, String(value));
+        }
+      });
+
+      const formattedStatus = status.replace(/_/g, '-').replace(/ /g, '-');
+      const response = await jwtApiClient.get<DevicesSummaryResponse>(
+        `/devices/status/${formattedStatus}?${queryParams.toString()}`,
+        { headers: { "X-Auth-Type": "JWT" } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  getDeviceCountApi: async (params: {
+    cohort_id?: string[];
+    network?: string;
+  }): Promise<DeviceCountResponse> => {
+    try {
+      const { cohort_id, network } = params;
+      const queryParams = new URLSearchParams();
+
+      if (cohort_id && cohort_id.length > 0) {
+        queryParams.set("cohort_id", cohort_id.join(","));
+      }
+
+      if (network) {
+        queryParams.set("network", network);
       }
 
       const response = await jwtApiClient.get<DeviceCountResponse>(
@@ -307,6 +354,10 @@ export const devices = {
     network: string;
     user_id: string;
     deployment_date: string | undefined;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    userName?: string;
   }) => {
     try {
       const toIso = (d?: string) =>
@@ -328,7 +379,11 @@ export const devices = {
         network: deviceData.network,
         deviceName: deviceData.deviceName,
         height,
-        user_id: deviceData.user_id
+        user_id: deviceData.user_id,
+        firstName: deviceData.firstName,
+        lastName: deviceData.lastName,
+        email: deviceData.email,
+        userName: deviceData.userName
       }];
 
       const response = await jwtApiClient.post(
@@ -346,6 +401,10 @@ export const devices = {
     recallType: string;
     user_id: string;
     date: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    userName?: string;
   }) => {
     try {
       const response = await jwtApiClient.post(
@@ -386,6 +445,9 @@ export const devices = {
     readKey?: string;
     description?: string;
     serial_number: string;
+    api_code?: string;
+    cohort_id?: string;
+    user_id: string;
   }): Promise<DeviceCreationResponse> => {
     try {
       const response = await jwtApiClient.post(
@@ -432,24 +494,6 @@ export const devices = {
       const response = await jwtApiClient.post(
         `/devices/activities/maintain?deviceName=${deviceName}`,
         logData,
-        { headers: { 'X-Auth-Type': 'JWT' } }
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  getDeviceMaintenanceLogs: async (
-    deviceName: string
-  ): Promise<MaintenanceActivitiesResponse> => {
-    try {
-      const params = new URLSearchParams({
-        device: deviceName,
-        activity_type: "maintenance",
-      });
-      const response = await jwtApiClient.get<MaintenanceActivitiesResponse>(
-        `/devices/activities?${params.toString()}`,
         { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
@@ -613,6 +657,25 @@ export const devices = {
       const response = await jwtApiClient.get<ShippingBatchDetailsResponse>(
         `/devices/shipping-batches/${batchId}`,
         { headers: { "X-Auth-Type": "JWT" } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+
+  getDeviceActivities: async (deviceName: string, params: { page?: number; limit?: number } = {}): Promise<DeviceActivitiesResponse> => {
+    try {
+      const { page = 1, limit = 10 } = params;
+      const queryParams = new URLSearchParams({
+        device: deviceName,
+        page: String(page),
+        limit: String(limit)
+      });
+      const response = await jwtApiClient.get<DeviceActivitiesResponse>(
+        `/devices/activities?${queryParams.toString()}`,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {

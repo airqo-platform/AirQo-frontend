@@ -1,10 +1,12 @@
 import { signOut } from 'next-auth/react';
 import { logout as clearUser, setLoggingOut } from '@/core/redux/slices/userSlice';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { clearSessionData } from '../utils/sessionManager';
 import { clearTokenCache } from '../utils/secureApiProxyClient';
+import { setLastActiveModule } from '../utils/userPreferences';
+import { rememberAccount } from '../utils/rememberedAccounts';
 import logger from '@/lib/logger';
 import { useAppSelector, useAppDispatch } from '../redux/hooks';
 
@@ -16,8 +18,10 @@ import { useAppSelector, useAppDispatch } from '../redux/hooks';
 export const useLogout = (callbackUrl?: string) => {
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const pathname = usePathname();
   const queryClient = useQueryClient();
   const isLoggingOut = useAppSelector((state) => state.user.isLoggingOut);
+  const userDetails = useAppSelector((state) => state.user.userDetails);
 
   const logout = useCallback(async () => {
     if (isLoggingOut) {
@@ -25,7 +29,21 @@ export const useLogout = (callbackUrl?: string) => {
     }
 
     try {
-      logger.debug('[useLogout] Starting logout process...');
+      // Save current module state before clearing session
+      const email = userDetails?.email || userDetails?.userName;
+      if (email && pathname) {
+        const currentModule = pathname.startsWith('/admin/') ? 'admin' : 'devices';
+        setLastActiveModule(currentModule, email);
+      }
+
+      if (email) {
+        const displayName = `${userDetails?.firstName || ''} ${userDetails?.lastName || ''}`.trim() || userDetails?.userName || email;
+        rememberAccount({
+          email,
+          displayName,
+          profilePicture: userDetails?.profilePicture || '',
+        });
+      }
       
       dispatch(setLoggingOut(true));
 
@@ -42,7 +60,7 @@ export const useLogout = (callbackUrl?: string) => {
       logger.error('Logout error:', { error });
       router.push('/login');
     }
-  }, [isLoggingOut, dispatch, queryClient, router, callbackUrl]);
+  }, [isLoggingOut, dispatch, queryClient, router, pathname, userDetails, callbackUrl]);
 
   return logout;
 };

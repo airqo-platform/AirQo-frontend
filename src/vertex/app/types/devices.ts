@@ -35,6 +35,32 @@ export interface DeviceGrid {
   long_name: string;
 }
 
+export interface DeviceCategoryHierarchy {
+  level: string;
+  category: string;
+  description: string;
+}
+
+export interface DeviceCategoryRelationships {
+  type: string;
+  note: string;
+  belongs_to_equipment_category: string;
+  deployment_method: string;
+}
+
+export interface DeviceCategories {
+  primary_category: string;
+  deployment_category: string;
+  is_mobile: boolean;
+  is_static: boolean;
+  is_lowcost: boolean;
+  is_bam: boolean;
+  is_gas: boolean;
+  all_categories: string[];
+  category_hierarchy: DeviceCategoryHierarchy[];
+  category_relationships: DeviceCategoryRelationships;
+}
+
 export interface Device {
   _id?: string;
   id?: string;
@@ -65,6 +91,7 @@ export interface Device {
   height?: number;
   device_codes: string[];
   category: string;
+  device_categories?: DeviceCategories;
   cohorts: unknown[];
   device_number?: number | undefined | string;
   readKey?: string;

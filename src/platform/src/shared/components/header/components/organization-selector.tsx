@@ -1,48 +1,34 @@
 'use client';
 
 import * as React from 'react';
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Avatar } from '@/shared/components/ui/avatar';
 import { SearchField } from '@/shared/components/ui/search-field';
 import Dialog from '@/shared/components/ui/dialog';
 import { useUserActions } from '@/shared/hooks';
+import { isDefaultAirQoGroup } from '@/shared/utils/groupUtils';
 import { AqGrid01 } from '@airqo/icons-react';
 
-export const OrganizationSelector: React.FC = () => {
+export function OrganizationSelector() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const router = useRouter();
-  const { groups, activeGroup, switchGroupById, isLoading } = useUserActions();
+  const { groups, activeGroup, switchGroupById } = useUserActions();
+  const safeGroups = React.useMemo(
+    () => (Array.isArray(groups) ? groups : []),
+    [groups]
+  );
 
   const handleOpen = () => setIsOpen(true);
   const handleClose = () => setIsOpen(false);
 
-  // Utility function to clean up display text
-  const cleanDisplayText = (text: string | undefined): string => {
-    if (!text) return '';
-    return text
-      .replace(/_/g, ' ') // Replace underscores with spaces
-      .split(' ')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(' '); // Capitalize each word
-  };
-
   const handleGroupSwitch = (groupId: string) => {
-    const selectedGroup = groups.find(g => g.id === groupId);
+    const selectedGroup = safeGroups.find(g => g.id === groupId);
     if (!selectedGroup) return;
 
     // Determine navigation target based on group type BEFORE switching
-    // AIRQO group detection: check multiple conditions for robustness
-    const isAirQoGroup =
-      // Check if title matches AIRQO (case insensitive)
-      selectedGroup.title?.toLowerCase() === 'airqo' ||
-      // Check if organization slug is airqo
-      selectedGroup.organizationSlug?.toLowerCase() === 'airqo' ||
-      // Check if no organization slug (default user flow)
-      !selectedGroup.organizationSlug ||
-      // Fallback: check if title contains airqo
-      selectedGroup.title?.toLowerCase().includes('airqo');
+    const isAirQoGroup = isDefaultAirQoGroup(selectedGroup);
 
     // Switch the group first
     switchGroupById(groupId);
@@ -61,24 +47,20 @@ export const OrganizationSelector: React.FC = () => {
     }
   };
 
-  const filteredGroups = useMemo(() => {
-    if (!searchTerm.trim()) return groups;
-    return groups.filter(
-      group =>
-        group.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        group.organizationSlug
-          ?.toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        cleanDisplayText(group.title)
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase())
-    );
-  }, [groups, searchTerm]);
+  const filteredGroups = React.useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    if (!q) return safeGroups;
+    return safeGroups.filter(group => {
+      const title = (group.title || '').toLowerCase();
+      const slug = (group.organizationSlug || '').toLowerCase();
+      return title.includes(q) || slug.includes(q);
+    });
+  }, [safeGroups, searchTerm]);
 
   // Hide component if loading or no groups available
-  if (isLoading || groups.length === 0) {
-    return null;
-  }
+  // if (isLoading || groups.length === 0) {
+  //   return null;
+  // }
 
   return (
     <div className="flex items-center">
@@ -95,7 +77,7 @@ export const OrganizationSelector: React.FC = () => {
           className="flex-shrink-0"
         />
         <span className="hidden sm:inline uppercase font-medium truncate max-w-[120px]">
-          {cleanDisplayText(activeGroup?.title) || 'AIRQO'}
+          {activeGroup?.title || 'AIRQO'}
         </span>
         <AqGrid01 className="w-4 h-4 flex-shrink-0" />
       </button>
@@ -105,7 +87,7 @@ export const OrganizationSelector: React.FC = () => {
         onClose={handleClose}
         title="Organizations"
         size="lg"
-        subtitle={`${filteredGroups.length} of ${groups.length} available`}
+        subtitle={`${filteredGroups.length} of ${safeGroups.length} available`}
         primaryAction={{
           label: 'Request New Organization',
           onClick: () => {
@@ -128,17 +110,17 @@ export const OrganizationSelector: React.FC = () => {
 
           <div className="max-h-80 overflow-y-auto space-y-1">
             {filteredGroups.length > 0 ? (
-              filteredGroups.map(group => (
-                <button
-                  key={group.id}
-                  onClick={() => handleGroupSwitch(group.id)}
-                  className={`w-full text-left px-3 py-2.5 rounded-md transition-colors duration-150 flex items-center justify-between group relative ${
-                    activeGroup?.id === group.id
-                      ? 'bg-primary/10 border border-primary/20 shadow-sm'
-                      : 'hover:bg-muted border border-transparent'
-                  }`}
-                >
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
+              filteredGroups.map(group => {
+                return (
+                  <button
+                    key={group.id}
+                    onClick={() => handleGroupSwitch(group.id)}
+                    className={`w-full text-left px-3 py-2.5 rounded-md transition-colors duration-150 flex items-center gap-3 ${
+                      activeGroup?.id === group.id
+                        ? 'bg-primary/10 border border-primary/20 shadow-sm'
+                        : 'hover:bg-muted border border-transparent'
+                    }`}
+                  >
                     <Avatar
                       src={undefined}
                       fallback={group.title?.charAt(0)?.toUpperCase() || 'A'}
@@ -148,13 +130,13 @@ export const OrganizationSelector: React.FC = () => {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between">
                         <div className="font-medium text-sm text-foreground truncate uppercase">
-                          {cleanDisplayText(group.title)}
+                          {group.title}
                         </div>
                       </div>
                     </div>
-                  </div>
-                </button>
-              ))
+                  </button>
+                );
+              })
             ) : (
               <div className="text-center py-8 text-muted-foreground">
                 <div className="text-sm font-medium mb-1">
@@ -168,6 +150,6 @@ export const OrganizationSelector: React.FC = () => {
       </Dialog>
     </div>
   );
-};
+}
 
 export default OrganizationSelector;

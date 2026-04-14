@@ -4,16 +4,21 @@ import { useState } from 'react';
 import AuthLayout from '@/shared/layouts/AuthLayout';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button, Input } from '@/shared/components/ui';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from '@/shared/components/ui';
 import { loginSchema, type LoginFormData } from '@/shared/lib/validators';
+import { normalizeCallbackUrl } from '@/shared/lib/auth-redirect';
+import GoogleAuthSection from '@/shared/components/auth/GoogleAuthSection';
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl =
+    normalizeCallbackUrl(searchParams.get('callbackUrl')) || '/user/home';
 
   const {
     register,
@@ -36,6 +41,7 @@ export default function LoginPage() {
         redirect: false,
         email: data.email,
         password: data.password,
+        callbackUrl,
       });
 
       if (res?.error) {
@@ -109,8 +115,7 @@ export default function LoginPage() {
         toast.error(errorTitle, errorMessage);
       } else {
         toast.success('Welcome back!', 'You have successfully signed in.');
-        // Redirect to user home
-        router.push('/user/home');
+        router.replace(res?.url ?? callbackUrl);
       }
     } catch (error) {
       console.error('Unexpected login error:', error);
@@ -126,8 +131,10 @@ export default function LoginPage() {
   return (
     <AuthLayout
       pageTitle="Login"
-      heading={"Let's get started"}
-      subtitle={'Get access to air quality analytics across Africa'}
+      heading={'Access open air quality data and insights across Africa'}
+      subtitle={
+        'AirQo provides openly available air quality data to support research, policy, and public awareness.'
+      }
       rightText="What you've built here is so much better for air pollution monitoring than anything else on the market!"
     >
       <form onSubmit={handleSubmit(onSubmit)} className="w-full">
@@ -160,6 +167,8 @@ export default function LoginPage() {
           {loading ? 'Signing in...' : 'Login'}
         </Button>
       </form>
+
+      <GoogleAuthSection mode="login" className="mt-6" />
 
       <div className="w-full mt-6 text-center">
         <p className="text-sm">

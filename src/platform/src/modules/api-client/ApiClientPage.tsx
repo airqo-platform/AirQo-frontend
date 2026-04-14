@@ -4,7 +4,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { Button, MultiSelectTable, PageHeading } from '@/shared/components/ui';
 import { toast } from '@/shared/components/ui';
-import { formatDate } from '@/shared/utils';
+import { formatDate, parseDate } from '@/shared/utils';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { AqPlus, AqEdit05 } from '@airqo/icons-react';
 import { useClientsByUserId, useGenerateToken } from '@/shared/hooks/useClient';
@@ -30,6 +30,9 @@ const ApiClientPage: React.FC = () => {
   });
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [activeGeneratingTokenId, setActiveGeneratingTokenId] = useState<
+    string | null
+  >(null);
   const [editDialogState, setEditDialogState] = useState<{
     isOpen: boolean;
     client: Client | null;
@@ -71,18 +74,23 @@ const ApiClientPage: React.FC = () => {
         return;
       }
 
+      setActiveGeneratingTokenId(client._id);
       try {
         await generateToken({
           name: client.name,
           client_id: client._id,
         });
         toast.success('Token generated successfully');
+        // Refresh clients list to pick up the new/updated token
+        await mutate();
       } catch (error) {
         toast.error(getUserFriendlyErrorMessage(error));
         console.error('Generate token error:', error);
+      } finally {
+        setActiveGeneratingTokenId(null);
       }
     },
-    [generateToken]
+    [generateToken, mutate]
   );
 
   const handleEditClient = useCallback((client: TableClient) => {
@@ -108,35 +116,84 @@ const ApiClientPage: React.FC = () => {
 
   const renderTokenStatus = useCallback(
     (value: unknown, item: TableClient) => {
-      if (item.access_token) {
+      const token = item.access_token;
+
+      if (token) {
+        // Determine expired state: prefer server-provided token_status, otherwise infer from expiry date
+        let expired = token.token_status === 'expired';
+        if (!expired && token.expires) {
+          const expiryDate = parseDate(token.expires);
+          if (expiryDate) expired = expiryDate.getTime() <= Date.now();
+        }
+
+        const isGeneratingForThis =
+          isGeneratingToken && activeGeneratingTokenId === item._id;
+
+        if (expired) {
+          return (
+            <div className="flex flex-col items-start gap-2 min-w-0">
+              <div className="min-w-0 w-full">
+                <TokenDisplay
+                  token={token.token}
+                  expiresAt={token.expires}
+                  tokenStatus={token.token_status}
+                />
+              </div>
+              <div>
+                <Button
+                  size="sm"
+                  variant="outlined"
+                  onClick={() => handleGenerateToken(item)}
+                  disabled={isGeneratingForThis}
+                >
+                  {isGeneratingForThis ? 'Refreshing...' : 'Refresh'}
+                </Button>
+              </div>
+            </div>
+          );
+        }
+
         return (
-          <TokenDisplay
-            token={item.access_token.token}
-            expiresAt={item.access_token.expires}
-          />
+          <div className="flex items-center gap-2">
+            <div className="flex-1 min-w-0">
+              <TokenDisplay
+                token={token.token}
+                expiresAt={token.expires}
+                tokenStatus={token.token_status}
+              />
+            </div>
+          </div>
         );
       }
+
+      const isGeneratingForThis =
+        isGeneratingToken && activeGeneratingTokenId === item._id;
+
       return (
         <Button
           size="sm"
           variant="outlined"
           onClick={() => handleGenerateToken(item)}
-          disabled={isGeneratingToken}
+          disabled={isGeneratingForThis}
         >
-          Generate Token
+          {isGeneratingForThis ? 'Generating...' : 'Generate Token'}
         </Button>
       );
     },
-    [isGeneratingToken, handleGenerateToken]
+    [isGeneratingToken, handleGenerateToken, activeGeneratingTokenId]
   );
 
   const renderCreatedDate = useCallback((value: unknown, item: TableClient) => {
     if (item.access_token?.createdAt) {
-      return formatDate(item.access_token.createdAt, {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      });
+      return (
+        <span className="whitespace-nowrap">
+          {formatDate(item.access_token.createdAt, {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+          })}
+        </span>
+      );
     }
     return '-';
   }, []);
@@ -304,6 +361,10 @@ const ApiClientPage: React.FC = () => {
             })
           }
           client={editDialogState.client}
+          onSuccess={() => {
+            setEditDialogState({ isOpen: false, client: null });
+            mutate();
+          }}
         />
       )}
     </div>

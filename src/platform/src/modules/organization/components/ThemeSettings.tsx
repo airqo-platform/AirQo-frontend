@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useSWRConfig } from 'swr';
 import {
   AqPalette,
   AqSun,
@@ -27,6 +28,10 @@ import { Tooltip } from 'flowbite-react';
 import SettingsLayout from '@/modules/user-profile/components/SettingsLayout';
 import { toast } from '@/shared/components/ui/toast';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import {
+  applyThemeImmediately,
+  saveThemeToStorage,
+} from '@/modules/themes/utils/themeUtils';
 
 const presetColors = [
   { name: 'Blue', value: '#1649e5' },
@@ -41,6 +46,7 @@ const ThemeSettings: React.FC = () => {
   const [customColor, setCustomColor] = useState('#1649e5');
   const [showPreview, setShowPreview] = useState(false);
   const { activeGroup } = useUser();
+  const { mutate } = useSWRConfig();
   const { data: groupThemeData, isLoading: isLoadingGroupTheme } =
     useGroupTheme(activeGroup?.id || '');
   const { trigger: updateTheme, isMutating: isUpdatingTheme } =
@@ -100,13 +106,41 @@ const ThemeSettings: React.FC = () => {
     if (!activeGroup?.id || !draftTheme) return;
 
     try {
+      // Update organization group theme via API
       await updateTheme({
         groupId: activeGroup.id,
         data: draftTheme,
       });
+
+      // Apply the theme immediately to the current session
+      applyThemeImmediately({
+        primaryColor: draftTheme.primaryColor,
+        mode: draftTheme.mode,
+        interfaceStyle: draftTheme.interfaceStyle,
+        contentLayout: draftTheme.contentLayout,
+      });
+
+      // Save to localStorage for the current group
+      saveThemeToStorage(
+        {
+          primaryColor: draftTheme.primaryColor,
+          mode: draftTheme.mode,
+          interfaceStyle: draftTheme.interfaceStyle,
+          contentLayout: draftTheme.contentLayout,
+        },
+        activeGroup.id
+      );
+
+      // Invalidate all theme-related caches to ensure all users get fresh data
+      mutate(
+        key => typeof key === 'string' && key.startsWith('preferences/theme/')
+      );
+
       // Reset draft after successful save
       setDraftTheme(null);
-      toast.success('Theme settings updated successfully');
+      toast.success(
+        'Theme settings updated successfully. All organization members will see the new theme.'
+      );
     } catch (error) {
       const errorMessage = getUserFriendlyErrorMessage(error);
       toast.error(

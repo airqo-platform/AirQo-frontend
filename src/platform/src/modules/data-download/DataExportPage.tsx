@@ -8,6 +8,8 @@ import { DataExportPreview } from './components/DataExportPreview';
 import { DataExportHeader } from './components/DataExportHeader';
 import { DataExportTable } from './components/DataExportTable';
 import { DataExportBanner } from './components/DataExportBanner';
+import { DataExportHelpBanner } from './components/DataExportHelpBanner';
+import { VideoTutorialDialog } from './components/VideoTutorialDialog';
 import {
   CohortSitesResponse,
   CohortDevicesResponse,
@@ -19,6 +21,7 @@ import {
   FileType,
   DeviceCategory,
   TabType,
+  TableItem,
 } from './types/dataExportTypes';
 import { getTabConfig } from './utils/tableConfig';
 import { useDataExportState } from './hooks/useDataExportState';
@@ -26,6 +29,33 @@ import { useDataExportActions } from './hooks/useDataExportActions';
 import { useDataExportData } from './hooks/useDataExportData';
 import MoreInsights from '@/modules/location-insights/more-insights';
 import AddLocation from '@/modules/location-insights/add-location';
+
+const rebuildSelectionCache = (
+  selectedIds: string[],
+  currentPageData: TableItem[],
+  previousCache: Record<string, TableItem>
+): Record<string, TableItem> => {
+  const selectedIdSet = new Set(selectedIds);
+  const nextCache: Record<string, TableItem> = {};
+
+  // Keep previously captured metadata for still-selected rows.
+  selectedIds.forEach(id => {
+    const cachedItem = previousCache[id];
+    if (cachedItem) {
+      nextCache[id] = cachedItem;
+    }
+  });
+
+  // Refresh/add metadata from the currently loaded page.
+  currentPageData.forEach(item => {
+    const itemId = String(item.id);
+    if (selectedIdSet.has(itemId)) {
+      nextCache[itemId] = item;
+    }
+  });
+
+  return nextCache;
+};
 
 const DataExportPage = () => {
   const pathname = usePathname();
@@ -83,6 +113,20 @@ const DataExportPage = () => {
     grid: any; // eslint-disable-line @typescript-eslint/no-explicit-any
     gridType: 'countries' | 'cities';
   } | null>(null);
+  const [tutorialOpen, setTutorialOpen] = React.useState(false);
+  const [selectedSitesCache, setSelectedSitesCache] = React.useState<
+    Record<string, TableItem>
+  >({});
+  const [selectedDevicesCache, setSelectedDevicesCache] = React.useState<
+    Record<string, TableItem>
+  >({});
+  const [showHelpBanner, setShowHelpBanner] = React.useState(() => {
+    // Check if user has dismissed the banner before
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('hideDataExportHelpBanner') !== 'true';
+    }
+    return true;
+  });
 
   // Handle org flow: switch to sites tab if countries or cities is active
   React.useEffect(() => {
@@ -103,6 +147,15 @@ const DataExportPage = () => {
   );
 
   // Data fetching and processing (initial call with empty array)
+  const selectedDevicesForActions = useMemo(
+    () => Object.values(selectedDevicesCache),
+    [selectedDevicesCache]
+  );
+  const selectedSitesForActions = useMemo(
+    () => Object.values(selectedSitesCache),
+    [selectedSitesCache]
+  );
+
   const {
     currentHook,
     tableData,
@@ -113,9 +166,10 @@ const DataExportPage = () => {
   } = useDataExportData(
     activeTab,
     tabStates,
+    isOrgFlow,
     deviceCategory,
     selectedDeviceIds,
-    [], // Initial empty array
+    selectedDevicesForActions,
     setSelectedDevices
   );
 
@@ -137,8 +191,12 @@ const DataExportPage = () => {
       frequency,
       deviceCategory,
       fileTitle,
-      processedSitesData,
-      processedDevicesData,
+      selectedSitesForActions.length > 0
+        ? selectedSitesForActions
+        : processedSitesData,
+      selectedDevicesForActions.length > 0
+        ? selectedDevicesForActions
+        : processedDevicesData,
       processedCountriesData,
       processedCitiesData
     );
@@ -169,6 +227,13 @@ const DataExportPage = () => {
       setDeviceCategory('lowcost');
     }
   }, [activeTab, setDeviceCategory]);
+
+  // BAM device exports under Devices tab always use raw data type
+  useEffect(() => {
+    if (activeTab === 'devices' && deviceCategory === 'bam' && dataType !== 'raw') {
+      setDataType('raw');
+    }
+  }, [activeTab, deviceCategory, dataType, setDataType]);
 
   // Handle sidebar visibility based on screen size
   useEffect(() => {
@@ -212,9 +277,14 @@ const DataExportPage = () => {
       setSelectedSiteIds(stringIds);
       // For sites, IDs are the same as names for the API
       setSelectedSites(stringIds);
+      setSelectedSitesCache(prevCache =>
+        rebuildSelectionCache(stringIds, processedSitesData, prevCache)
+      );
     } else if (activeTab === 'devices') {
       setSelectedDeviceIds(stringIds);
-      // For devices, names are set by the data hook
+      setSelectedDevicesCache(prevCache =>
+        rebuildSelectionCache(stringIds, processedDevicesData, prevCache)
+      );
     } else if (activeTab === 'countries' || activeTab === 'cities') {
       // For countries/cities, select all sites by default
       setSelectedGridIds(stringIds);
@@ -239,6 +309,30 @@ const DataExportPage = () => {
       setSelectedGridSiteIds({}); // Reset custom selection
     }
   };
+
+  // Keep selected sites cache synchronized as table pages/search results change.
+  useEffect(() => {
+    if (selectedSiteIds.length === 0) {
+      setSelectedSitesCache({});
+      return;
+    }
+
+    setSelectedSitesCache(prevCache =>
+      rebuildSelectionCache(selectedSiteIds, processedSitesData, prevCache)
+    );
+  }, [selectedSiteIds, processedSitesData]);
+
+  // Keep selected devices cache synchronized as table pages/search results change.
+  useEffect(() => {
+    if (selectedDeviceIds.length === 0) {
+      setSelectedDevicesCache({});
+      return;
+    }
+
+    setSelectedDevicesCache(prevCache =>
+      rebuildSelectionCache(selectedDeviceIds, processedDevicesData, prevCache)
+    );
+  }, [selectedDeviceIds, processedDevicesData]);
 
   // Handle site selection dialog
   const handleSiteSelectionConfirm = async (selectedSiteIds: string[]) => {
@@ -270,6 +364,13 @@ const DataExportPage = () => {
     setSelectedGridForSites(null);
   };
 
+  const handleDismissHelpBanner = () => {
+    setShowHelpBanner(false);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('hideDataExportHelpBanner', 'true');
+    }
+  };
+
   return (
     <div className="flex flex-col">
       {/* Page Header */}
@@ -279,7 +380,7 @@ const DataExportPage = () => {
       />
 
       {/* Main Layout with Sidebar and Content */}
-      <div className="flex flex-col lg:flex-row flex-1 overflow-hidden relative">
+      <div className="flex flex-col lg:flex-row flex-1 lg:overflow-hidden relative">
         <DataExportSidebar
           fileTitle={fileTitle}
           setFileTitle={setFileTitle}
@@ -303,8 +404,16 @@ const DataExportPage = () => {
         />
 
         {/* Main Content */}
-        <main className="flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out">
+        <main className="flex-1 flex flex-col overflow-x-hidden overflow-y-auto lg:overflow-hidden transition-all duration-300 ease-in-out">
           <div className="gap-4 md:px-4 flex-col flex flex-1">
+            {/* Help Banner */}
+            {showHelpBanner && (
+              <DataExportHelpBanner
+                onShowTutorial={() => setTutorialOpen(true)}
+                onDismiss={handleDismissHelpBanner}
+              />
+            )}
+
             {/* Dynamic Banner Notification */}
             <DataExportBanner
               dateRange={dateRange}
@@ -440,6 +549,12 @@ const DataExportPage = () => {
           isDownloading={siteSelectionDownloading}
         />
       )}
+
+      {/* Video Tutorial Dialog */}
+      <VideoTutorialDialog
+        isOpen={tutorialOpen}
+        onClose={() => setTutorialOpen(false)}
+      />
     </div>
   );
 };

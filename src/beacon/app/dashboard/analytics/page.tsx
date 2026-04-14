@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Plus, FileText } from "lucide-react"
+import { RefreshCw } from "lucide-react"
 import AnalyticsFilters, { FilterState } from "./analytics-filters"
 import AirQloudsTable from "./airqlouds-table"
 import { Button } from "@/components/ui/button"
@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
+import { ExternalLink, Info } from "lucide-react"
 
 export default function AnalyticsPage() {
   const { toast } = useToast()
@@ -46,6 +47,7 @@ export default function AnalyticsPage() {
   const [isAnalysing, setIsAnalysing] = useState(false)
   const [open, setOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSyncing, setIsSyncing] = useState(false)
   const [includeDevices, setIncludeDevices] = useState(false)
   const [csvFile, setCsvFile] = useState<File | null>(null)
   const [csvColumns, setCsvColumns] = useState<string[]>([])
@@ -63,6 +65,34 @@ export default function AnalyticsPage() {
     console.log("Filters changed:", newFilters)
   }
 
+  const handleSyncAirQlouds = async () => {
+    setIsSyncing(true)
+    try {
+      const result = await airQloudService.syncAirQlouds({
+        force: false,
+        run_in_background: true
+      })
+
+      toast({
+        title: "Sync Triggered",
+        description: result.message || "Cohorts sync has been triggered successfully.",
+      })
+
+      // Refresh the table after a short delay to allow sync to complete
+      setTimeout(() => {
+        setRefreshKey(prev => prev + 1)
+      }, 2000)
+    } catch (error) {
+      toast({
+        title: "Sync Failed",
+        description: error instanceof Error ? error.message : "Failed to sync Cohorts.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSyncing(false)
+    }
+  }
+
   const handleAnalyse = async (filterState: FilterState) => {
     if (!filterState.dateRange.from || !filterState.dateRange.to) {
       toast({
@@ -76,7 +106,7 @@ export default function AnalyticsPage() {
     if (filterState.selectedItems.length === 0) {
       toast({
         title: "No Items Selected",
-        description: `Please select at least one ${filterState.filterType === 'airqlouds' ? 'AirQloud' : 'Device'} to analyse.`,
+        description: `Please select at least one ${filterState.filterType === 'airqlouds' ? 'Cohort' : 'Device'} to analyse.`,
         variant: "destructive",
       })
       return
@@ -92,7 +122,7 @@ export default function AnalyticsPage() {
       endDate.setHours(23, 59, 59, 999)
 
       let response
-      
+
       if (filterState.filterType === "airqlouds") {
         response = await airQloudService.getAirQloudPerformance({
           start: startDate.toISOString(),
@@ -104,7 +134,7 @@ export default function AnalyticsPage() {
         response = await deviceApiService.getDevicePerformanceData({
           start: startDate.toISOString(),
           end: endDate.toISOString(),
-          ids: filterState.selectedItems,
+          deviceNames: filterState.selectedItems,
         })
       }
 
@@ -115,7 +145,7 @@ export default function AnalyticsPage() {
         to: endDate.toISOString(),
       }))
       sessionStorage.setItem('analysisType', filterState.filterType)
-      
+
       router.push('/dashboard/analytics/analysis')
     } catch (error) {
       toast({
@@ -173,13 +203,13 @@ export default function AnalyticsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
-    
+
     // Close dialog immediately when submit is clicked
     setOpen(false)
 
     try {
       if (includeDevices && csvFile) {
-        // Create AirQloud with devices
+        // Create Cohort with devices
         const response = await airQloudService.createAirQloudWithDevices(
           csvFile,
           formData.name,
@@ -187,10 +217,10 @@ export default function AnalyticsPage() {
           undefined, // visibility not used
           columnMappings
         )
-        
+
         toast({
           title: "Success",
-          description: `AirQloud "${response.airqloud.name}" created with ${response.devices_added} devices added successfully.`,
+          description: `Cohort "${response.airqloud.name}" created with ${response.devices_added} devices added successfully.`,
           variant: "default",
         })
 
@@ -203,17 +233,17 @@ export default function AnalyticsPage() {
           console.error("Failed devices:", response.errors)
         }
       } else {
-        // Create simple AirQloud
+        // Create simple Cohort
         const payload = {
           name: formData.name,
           ...(formData.country && { country: formData.country }),
         }
 
         const response = await airQloudService.createAirQloud(payload)
-        
+
         toast({
           title: "Success",
-          description: `AirQloud "${response.name}" has been created successfully.`,
+          description: `Cohort "${response.name}" has been created successfully.`,
           variant: "default",
         })
       }
@@ -225,7 +255,7 @@ export default function AnalyticsPage() {
     } catch (error) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create AirQloud",
+        description: error instanceof Error ? error.message : "Failed to create Cohort",
         variant: "destructive",
       })
     } finally {
@@ -235,235 +265,9 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-6 p-6">
-      {/* <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">AirQloud Uptime</h1>
-      </div> */}
-
-      {/* Add Button with Dialog */}
-      <div className="flex justify-end">
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-              size="default"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Add AirQloud
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Add New AirQloud</DialogTitle>
-              <DialogDescription>
-                Create a new AirQloud {includeDevices ? "and add devices from a CSV file" : ""}.
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleSubmit}>
-              <div className="grid gap-4 py-4">
-                {/* Toggle for including devices */}
-                <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/50">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="include-devices" className="font-medium">
-                      Include Devices from CSV
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      Upload a CSV file to add devices to this AirQloud
-                    </p>
-                  </div>
-                  <Switch
-                    id="include-devices"
-                    checked={includeDevices}
-                    onCheckedChange={setIncludeDevices}
-                  />
-                </div>
-
-                {/* Basic Fields */}
-                <div className="grid gap-2">
-                  <Label htmlFor="name">
-                    AirQloud Name <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="name"
-                    placeholder="e.g., Kampala Central"
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="country">Country (optional)</Label>
-                  <Input
-                    id="country"
-                    placeholder="e.g., Uganda"
-                    value={formData.country}
-                    onChange={(e) =>
-                      setFormData({ ...formData, country: e.target.value })
-                    }
-                  />
-                </div>
-
-                {includeDevices && (
-                  <>
-                    {/* CSV Upload */}
-                    <div className="grid gap-2">
-                      <Label htmlFor="csv-file">
-                        CSV File <span className="text-red-500">*</span>
-                      </Label>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          id="csv-file"
-                          type="file"
-                          accept=".csv"
-                          onChange={handleFileChange}
-                          required={includeDevices}
-                          className="flex-1"
-                        />
-                        {csvFile && (
-                          <Badge variant="secondary" className="flex items-center gap-1">
-                            <FileText className="h-3 w-3" />
-                            {csvFile.name}
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        Upload a CSV file containing device information
-                      </p>
-                      {csvDeviceCount > 0 && (
-                        <div className="mt-2 p-2 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-md">
-                          <p className="text-sm text-green-700 dark:text-green-300 font-medium">
-                            📊 {csvDeviceCount} device{csvDeviceCount !== 1 ? 's' : ''} found in CSV
-                          </p>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Column Mappings */}
-                    {csvColumns.length > 0 && (
-                      <Card>
-                        <CardContent className="pt-4">
-                          <div className="space-y-3">
-                            <Label className="text-sm font-medium">
-                              Map CSV Columns to Device Fields
-                            </Label>
-                            <p className="text-xs text-muted-foreground">
-                              Map your CSV columns to the corresponding device fields
-                            </p>
-                            
-                            <div className="grid gap-3">
-                              <div className="grid gap-2">
-                                <Label htmlFor="device-mapping" className="text-xs">
-                                  Device ID Column
-                                </Label>
-                                <Select
-                                  value={columnMappings.device || "none"}
-                                  onValueChange={(value) => handleColumnMappingChange('device', value)}
-                                >
-                                  <SelectTrigger id="device-mapping">
-                                    <SelectValue placeholder="Select column for device_id" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="none">None</SelectItem>
-                                    {csvColumns.map((col) => (
-                                      <SelectItem key={col} value={col}>
-                                        {col}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-
-                              <div className="grid gap-2">
-                                <Label htmlFor="read-mapping" className="text-xs">
-                                  Read Key Column
-                                </Label>
-                                <Select
-                                  value={columnMappings.read || "none"}
-                                  onValueChange={(value) => handleColumnMappingChange('read', value)}
-                                >
-                                  <SelectTrigger id="read-mapping">
-                                    <SelectValue placeholder="Select column for read_key" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="none">None</SelectItem>
-                                    {csvColumns.map((col) => (
-                                      <SelectItem key={col} value={col}>
-                                        {col}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-
-                              <div className="grid gap-2">
-                                <Label htmlFor="channel-mapping" className="text-xs">
-                                  Channel ID Column
-                                </Label>
-                                <Select
-                                  value={columnMappings.channel || "none"}
-                                  onValueChange={(value) => handleColumnMappingChange('channel', value)}
-                                >
-                                  <SelectTrigger id="channel-mapping">
-                                    <SelectValue placeholder="Select column for channel_id" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="none">None</SelectItem>
-                                    {csvColumns.map((col) => (
-                                      <SelectItem key={col} value={col}>
-                                        {col}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            </div>
-
-                            <div className="mt-3 p-2 bg-blue-50 dark:bg-blue-950 rounded text-xs">
-                              <p className="font-medium mb-1">Mapping Preview:</p>
-                              <code className="text-xs block whitespace-pre">
-                                {JSON.stringify(
-                                  Object.entries({
-                                    ...(columnMappings.device && { [columnMappings.device]: 'device_id' }),
-                                    ...(columnMappings.read && { [columnMappings.read]: 'read_key' }),
-                                    ...(columnMappings.channel && { [columnMappings.channel]: 'channel_id' })
-                                  }).reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {}),
-                                  null,
-                                  2
-                                )}
-                              </code>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-                  </>
-                )}
-              </div>
-              <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setOpen(false)
-                    resetForm()
-                  }}
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Creating..." : includeDevices ? "Create with Devices" : "Create AirQloud"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
-
       {/* Filters Component */}
-      <AnalyticsFilters 
-        onFilterChange={handleFilterChange} 
+      <AnalyticsFilters
+        onFilterChange={handleFilterChange}
         onAnalyse={handleAnalyse}
         isAnalysing={isAnalysing}
       />

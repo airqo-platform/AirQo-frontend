@@ -2,10 +2,11 @@ export interface SidebarProps {
   className?: string;
   hideToggle?: boolean;
   isCollapsed?: boolean;
+  isLoading?: boolean;
 }
 
 export interface SidebarContentProps {
-  flow?: 'user' | 'organization' | 'admin';
+  flow?: 'user' | 'organization' | 'admin' | 'system';
   orgSlug?: string;
   isCollapsed?: boolean;
   onItemClick?: () => void;

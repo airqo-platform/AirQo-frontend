@@ -5,11 +5,12 @@ import {
   createServerClient,
   createOpenClient,
 } from './apiClient';
-import { getSession } from 'next-auth/react';
+import { syncClientSessionToken } from './sessionAuthToken';
 import type {
   UserDetailsResponse,
   UserRolesResponse,
   ApiErrorResponse,
+  GetRolesSummaryResponse,
   UpdatePreferencesRequest,
   UpdatePreferencesResponse,
   UpdateUserDetailsRequest,
@@ -19,7 +20,6 @@ import type {
   VerifyEmailResponse,
   CreateOrganizationRequest,
   CreateOrganizationResponse,
-  SlugAvailabilityResponse,
   InitiateAccountDeletionResponse,
   ConfirmAccountDeletionResponse,
   GetGroupJoinRequestsResponse,
@@ -29,6 +29,17 @@ import type {
   UpdateGroupDetailsRequest,
   UpdateGroupDetailsResponse,
   GetUserStatisticsResponse,
+  AcceptEmailInvitationRequest,
+  AcceptEmailInvitationResponse,
+  GetPendingInvitationsResponse,
+  AcceptInvitationResponse,
+  RejectInvitationResponse,
+  UnassignUserFromGroupResponse,
+  LeaveGroupResponse,
+  SetGroupManagerResponse,
+  UpdateGroupTitleRequest,
+  UpdateGroupTitleResponse,
+  UpdateUserRoleResponse,
 } from '../types/api';
 
 export class UserService {
@@ -43,12 +54,7 @@ export class UserService {
   }
 
   private async ensureAuthenticated() {
-    const session = await getSession();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const token = (session as any)?.accessToken;
-    if (token) {
-      this.authenticatedClient.setAuthToken(token);
-    }
+    await syncClientSessionToken(this.authenticatedClient);
   }
 
   // Get user details - authenticated endpoint
@@ -64,6 +70,67 @@ export class UserService {
     }
 
     return data as UserDetailsResponse;
+  }
+
+  // Get all roles and permissions summary - authenticated endpoint
+  async getRolesSummary(
+    page = 1,
+    limit = 100
+  ): Promise<GetRolesSummaryResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.get<
+      GetRolesSummaryResponse | ApiErrorResponse
+    >(`/users/roles/summary?page=${page}&limit=${limit}`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to get roles summary');
+    }
+
+    return data as GetRolesSummaryResponse;
+  }
+
+  // Get all roles and permissions summary across all pages - authenticated endpoint
+  async getAllRolesSummary(limit = 100): Promise<GetRolesSummaryResponse> {
+    const firstPage = await this.getRolesSummary(1, limit);
+    const roles = [...firstPage.roles];
+
+    const totalPages = firstPage.meta.pages || 1;
+    for (let page = 2; page <= totalPages; page += 1) {
+      const nextPage = await this.getRolesSummary(page, limit);
+      roles.push(...nextPage.roles);
+    }
+
+    return {
+      ...firstPage,
+      meta: {
+        ...firstPage.meta,
+        total: roles.length,
+        page: 1,
+        pages: 1,
+        skip: 0,
+        limit: roles.length || firstPage.meta.limit,
+      },
+      roles,
+    };
+  }
+
+  // Update a user's role - authenticated endpoint
+  async updateUserRole(
+    userId: string,
+    roleId: string
+  ): Promise<UpdateUserRoleResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.put<
+      UpdateUserRoleResponse | ApiErrorResponse
+    >(`/users/roles/${roleId}/user/${userId}`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to update user role');
+    }
+
+    return data as UpdateUserRoleResponse;
   }
 
   // Get user roles and permissions - authenticated endpoint
@@ -198,20 +265,6 @@ export class UserService {
     return data as CreateOrganizationResponse;
   }
 
-  // Check slug availability - open endpoint
-  async checkSlugAvailability(slug: string): Promise<SlugAvailabilityResponse> {
-    const response = await this.openClient.get<
-      SlugAvailabilityResponse | ApiErrorResponse
-    >(`/users/org-requests/slug-availability/${slug}`);
-    const data = response.data;
-
-    if ('success' in data && !data.success) {
-      throw new Error(data.message || 'Failed to check slug availability');
-    }
-
-    return data as SlugAvailabilityResponse;
-  }
-
   // Initiate account deletion - authenticated endpoint
   async initiateAccountDeletion(
     email: string
@@ -321,6 +374,38 @@ export class UserService {
     return data as { success: boolean; message: string };
   }
 
+  // Approve group join request - public endpoint (for invitation links)
+  async approveGroupJoinRequestPublic(
+    requestId: string
+  ): Promise<{ success: boolean; message: string }> {
+    const response = await this.openClient.post<
+      { success: boolean; message: string } | ApiErrorResponse
+    >(`/users/requests/${requestId}/approve`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to approve group join request');
+    }
+
+    return data as { success: boolean; message: string };
+  }
+
+  // Accept email invitation - public endpoint
+  async acceptEmailInvitation(
+    request: AcceptEmailInvitationRequest
+  ): Promise<AcceptEmailInvitationResponse> {
+    const response = await this.openClient.post<
+      AcceptEmailInvitationResponse | ApiErrorResponse
+    >('/users/requests/emails/accept', request);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to accept email invitation');
+    }
+
+    return data as AcceptEmailInvitationResponse;
+  }
+
   // Reject group join request - authenticated endpoint
   async rejectGroupJoinRequest(
     requestId: string
@@ -369,6 +454,147 @@ export class UserService {
     }
 
     return data as GetUserStatisticsResponse;
+  }
+
+  // Get pending invitations - authenticated endpoint
+  async getPendingInvitations(): Promise<GetPendingInvitationsResponse> {
+    try {
+      await this.ensureAuthenticated();
+      const response = await this.authenticatedClient.get<
+        GetPendingInvitationsResponse | ApiErrorResponse
+      >('/users/requests/pending/user');
+      const data = response.data;
+
+      if ('success' in data && !data.success) {
+        throw new Error(data.message || 'Failed to get pending invitations');
+      }
+
+      return data as GetPendingInvitationsResponse;
+    } catch (error: any) {
+      // Handle 404 gracefully - the endpoint might not exist yet
+      if (error.response?.status === 404) {
+        console.warn('Pending invitations endpoint not found (404)');
+        return {
+          success: true,
+          message: 'No invitations available',
+          invitations: [],
+        };
+      }
+      // Handle 401 gracefully - user not authenticated, return empty
+      if (error.response?.status === 401) {
+        console.warn('User not authenticated for pending invitations (401)');
+        return {
+          success: true,
+          message: 'No invitations available',
+          invitations: [],
+        };
+      }
+      // For other errors, throw to be caught by the hook
+      throw error;
+    }
+  }
+
+  // Accept invitation - authenticated endpoint
+  async acceptInvitation(
+    invitationId: string
+  ): Promise<AcceptInvitationResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.post<
+      AcceptInvitationResponse | ApiErrorResponse
+    >(`/users/requests/pending/${invitationId}/accept`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to accept invitation');
+    }
+
+    return data as AcceptInvitationResponse;
+  }
+
+  // Reject invitation - authenticated endpoint
+  async rejectInvitation(
+    invitationId: string
+  ): Promise<RejectInvitationResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.post<
+      RejectInvitationResponse | ApiErrorResponse
+    >(`/users/requests/pending/${invitationId}/reject`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to reject invitation');
+    }
+
+    return data as RejectInvitationResponse;
+  }
+
+  // Unassign user from group - authenticated endpoint
+  async unassignUserFromGroup(
+    groupId: string,
+    userId: string
+  ): Promise<UnassignUserFromGroupResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.delete<
+      UnassignUserFromGroupResponse | ApiErrorResponse
+    >(`/users/groups/${groupId}/unassign-user/${userId}`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to unassign user from group');
+    }
+
+    return data as UnassignUserFromGroupResponse;
+  }
+
+  // Leave group - authenticated endpoint
+  async leaveGroup(groupId: string): Promise<LeaveGroupResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.delete<
+      LeaveGroupResponse | ApiErrorResponse
+    >(`/users/groups/${groupId}/leave`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to leave group');
+    }
+
+    return data as LeaveGroupResponse;
+  }
+
+  // Set group manager - authenticated endpoint
+  async setGroupManager(
+    groupId: string,
+    userId: string
+  ): Promise<SetGroupManagerResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.put<
+      SetGroupManagerResponse | ApiErrorResponse
+    >(`/users/groups/${groupId}/set-manager/${userId}`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to set group manager');
+    }
+
+    return data as SetGroupManagerResponse;
+  }
+
+  // Update group title - authenticated endpoint
+  async updateGroupTitle(
+    groupId: string,
+    request: UpdateGroupTitleRequest
+  ): Promise<UpdateGroupTitleResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.patch<
+      UpdateGroupTitleResponse | ApiErrorResponse
+    >(`/users/groups/${groupId}/title`, request);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to update group title');
+    }
+
+    return data as UpdateGroupTitleResponse;
   }
 }
 

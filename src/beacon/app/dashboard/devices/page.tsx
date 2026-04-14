@@ -29,8 +29,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Pagination } from "@/components/ui/pagination"
 import { useToast } from "@/components/ui/use-toast"
 import dynamic from "next/dynamic"
-import { getDeviceStatsForUI, getDevicesForUIPaginated } from "@/services/device-api.service"
-import type { UIDeviceCounts, UIDevice } from "@/types/api.types"
+import { getDeviceSummary, getDevicesForUIPaginated, syncDevices, syncDevicePerformance } from "@/services/device-api.service"
+import type { DeviceSummaryResponse, UIDevice } from "@/types/api.types"
 import UpdateDeviceDialog from "@/components/dashboard/update-device-dialog"
 
 // Dynamically import the map component to avoid SSR issues with better error handling
@@ -68,24 +68,27 @@ const AfricaMap = dynamic(
   }
 )
 
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
+
 export default function DevicesPage() {
   const { toast } = useToast()
-  
+
   // State for device data
   const [devices, setDevices] = useState<UIDevice[]>([])
   const [totalDevices, setTotalDevices] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
   const [hasNext, setHasNext] = useState(false)
   const [hasPrevious, setHasPrevious] = useState(false)
-  const [deviceCounts, setDeviceCounts] = useState<UIDeviceCounts>({
+  const [deviceCounts, setDeviceCounts] = useState<DeviceSummaryResponse>({
     total_devices: 0,
-    active_devices: 0,
-    offline_devices: 0,
+    active_airqlouds: 0,
+    tracked_devices: 0,
     deployed_devices: 0,
-    not_deployed: 0,
-    recalled_devices: 0
+    tracked_online: 0,
+    tracked_offline: 0
   })
-  
+
   // UI states
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -94,66 +97,66 @@ export default function DevicesPage() {
   const [networkFilter, setNetworkFilter] = useState("all")
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [isSyncing, setIsSyncing] = useState(false)
   const [showMap, setShowMap] = useState(false)
-  const [viewMode, setViewMode] = useState<"list" | "map">("list") // New state for view toggle
+  const [viewMode, setViewMode] = useState<"list" | "map">("list")
   const [firmwareDialogOpen, setFirmwareDialogOpen] = useState(false)
   const [selectedFirmwareDevice, setSelectedFirmwareDevice] = useState<UIDevice | null>(null)
-  
+  const [showTracked, setShowTracked] = useState(true) // Default to tracked
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(25)
-  
+
   // Fetch device counts
   const fetchDeviceCounts = async () => {
     try {
-      const data = await getDeviceStatsForUI()
+      const data = await getDeviceSummary()
       setDeviceCounts(data)
     } catch (err) {
       console.error("Error fetching device counts:", err)
       // Don't set error for counts, just use defaults
     }
   }
-  
+
   // Fetch devices list with pagination
   const fetchDevices = async () => {
     try {
       setLoading(true)
       setError(null)
-      
+
       // Calculate skip based on current page
       const skip = (currentPage - 1) * itemsPerPage
-      
+
       // Prepare query params
       const params: any = {
         skip,
         limit: itemsPerPage
       }
-      
+
       // Add search term if provided (backend search)
       if (searchTerm && searchTerm.trim()) {
         params.search = searchTerm.trim()
       }
-      
-      // Always filter by airqo network
-      params.network = "airqo"
-      
-      // Add filters if they are set (currently commented out in UI)
+
+      // Network and status filters are currently handled by the backend's
+      // default scoping. UI filter controls are disabled until needed.
       // if (networkFilter !== "all") {
       //   params.network = networkFilter
       // }
       // if (statusFilter !== "all") {
       //   params.status = statusFilter
       // }
-      
+
       // Fetch from the /devices endpoint with pagination
       const data = await getDevicesForUIPaginated(params)
-      
+
       setDevices(data.devices)
       setTotalDevices(data.pagination.total)
       setTotalPages(data.pagination.pages)
       setHasNext(data.pagination.has_next)
       setHasPrevious(data.pagination.has_previous)
-      
+
       console.log('Pagination metadata:', data.pagination)
     } catch (err) {
       console.error("Error fetching devices:", err)
@@ -163,11 +166,11 @@ export default function DevicesPage() {
       setIsRefreshing(false)
     }
   }
-  
+
   // Initial data load
   useEffect(() => {
     Promise.all([fetchDeviceCounts(), fetchDevices()])
-    
+
     // Delay showing the map to avoid React reconciliation issues
     const timer = setTimeout(() => {
       setShowMap(true)
@@ -175,62 +178,99 @@ export default function DevicesPage() {
 
     return () => clearTimeout(timer)
   }, [])
-  
+
   // Refetch devices when pagination or search changes
   useEffect(() => {
     // Debounce search to avoid too many API calls
     const searchDebounce = setTimeout(() => {
       fetchDevices()
     }, 500) // Wait 500ms after user stops typing
-    
+
     return () => clearTimeout(searchDebounce)
-  }, [currentPage, itemsPerPage, searchTerm]) // Added searchTerm
-  
+  }, [currentPage, itemsPerPage, searchTerm, showTracked]) // Added searchTerm and showTracked
+
   // Refresh all data
   const refreshData = () => {
     setIsRefreshing(true)
     Promise.all([fetchDeviceCounts(), fetchDevices()])
   }
-  
-  // Calculate percentages for the progress bars
-  const calculatePercentage = useCallback((value: number) => {
-    return deviceCounts.total_devices > 0 
-      ? Math.round((value / deviceCounts.total_devices) * 100) 
-      : 0
-  }, [deviceCounts.total_devices])
 
-  const activePercentage = calculatePercentage(deviceCounts.active_devices)
-  const offlinePercentage = calculatePercentage(deviceCounts.offline_devices)
-  const deployedPercentage = calculatePercentage(deviceCounts.deployed_devices)
-  
+  // Sync devices and performance
+  const handleSyncDevices = async () => {
+    setIsSyncing(true)
+    try {
+      await Promise.all([
+        syncDevices(),
+        syncDevicePerformance()
+      ])
+      toast({
+        title: "Success",
+        description: "Devices synced successfully.",
+      })
+      refreshData()
+    } catch (err) {
+      console.error("Error syncing devices:", err)
+      toast({
+        variant: "destructive",
+        title: "Sync Failed",
+        description: "An error occurred while syncing devices.",
+      })
+    } finally {
+      setIsSyncing(false)
+    }
+  }
+
+  // Calculate percentages for the progress bars
+  // Calculate percentages for the progress bars
+  const calculatePercentage = useCallback((value: number, total: number) => {
+    return total > 0
+      ? Math.round((value / total) * 100)
+      : 0
+  }, [])
+
+  const trackedPercentage = calculatePercentage(deviceCounts.tracked_devices, deviceCounts.total_devices)
+  const onlinePercentage = calculatePercentage(deviceCounts.tracked_online, deviceCounts.tracked_devices)
+  const offlinePercentage = calculatePercentage(deviceCounts.tracked_offline, deviceCounts.tracked_devices)
+  const deployedPercentage = calculatePercentage(deviceCounts.deployed_devices, deviceCounts.total_devices)
+
   // Get unique networks for filter
   const uniqueNetworks = useMemo(() => {
     const networks = new Set(devices.map(d => d.network).filter(Boolean))
     return Array.from(networks)
   }, [devices])
-  
+
   // No client-side filtering needed - backend handles search
+  // Sort devices - online devices first, then by name
+  // Helper to check if device is online based on "previous day" logic
+  const isDeviceOnline = useCallback((device: UIDevice) => {
+    if (!device.last_updated) return false
+
+    // Check if timestamp is from yesterday or today (or later)
+    const updatedDate = new Date(device.last_updated)
+    const cutoffDate = new Date()
+    cutoffDate.setDate(cutoffDate.getDate() - 1) // Subtract 1 day
+    cutoffDate.setHours(0, 0, 0, 0) // Start of that day
+
+    return updatedDate >= cutoffDate
+  }, [])
+
   // Sort devices - online devices first, then by name
   const sortedDevices = useMemo(() => {
     return [...devices].sort((a, b) => {
-      // First sort by online status
-      if (a.is_online && !b.is_online) return -1;
-      if (!a.is_online && b.is_online) return 1;
-      
-      // Then sort by deployment status
+      // First sort by deployment status
       if (a.status === "deployed" && b.status !== "deployed") return -1;
       if (a.status !== "deployed" && b.status === "deployed") return 1;
-      
+
       // Then sort by name
       return (a.device_name || "").localeCompare(b.device_name || "");
     });
-  }, [devices]);
+  }, [devices, isDeviceOnline]);
 
   // Memoize map device data to avoid re-filtering/mapping on every render
   const mapDevices = useMemo(() => {
     return devices
-      .filter((device) => 
-        device.latitude != null && 
+      .filter((device) =>
+        device.latitude != null &&
         device.longitude != null &&
         !Number.isNaN(device.latitude) &&
         !Number.isNaN(device.longitude)
@@ -238,29 +278,29 @@ export default function DevicesPage() {
       .map((device) => ({
         id: device.device_id,
         name: device.device_name,
-        status: device.status ?? (device.is_online ? "online" : "offline"),
+        status: device.status ?? (isDeviceOnline(device) ? "online" : "offline"),
         lat: device.latitude,
         lng: device.longitude,
-        pm2_5: device.pm2_5,
-        pm10: device.pm10,
+        pm2_5: device.pm2_5 ?? undefined,
+        pm10: device.pm10 ?? undefined,
         reading_timestamp: device.reading_timestamp,
       }))
-  }, [devices])
-  
+  }, [devices, isDeviceOnline])
+
   // Display current items (no need for slicing since backend handles pagination)
   const currentItems = sortedDevices;
-  
+
   // Get status badge variant
   const getStatusBadge = useCallback((device: UIDevice) => {
-    if (device.is_online) {
+    if (isDeviceOnline(device)) {
       return { variant: "default", className: "bg-green-500 hover:bg-green-600", icon: Wifi, text: "Online" }
     }
     return { variant: "secondary", className: "bg-gray-500 hover:bg-gray-600", icon: WifiOff, text: "Offline" }
-  }, [])
-  
+  }, [isDeviceOnline])
+
   // Get deployment status badge
   const getDeploymentBadge = useCallback((status: string | undefined) => {
-    switch(status) {
+    switch (status) {
       case "deployed":
         return { variant: "default", className: "bg-green-100 text-green-700 hover:bg-green-200", text: "Deployed" }
       case "not deployed":
@@ -271,7 +311,7 @@ export default function DevicesPage() {
         return { variant: "outline", className: "", text: status || "Unknown" }
     }
   }, [])
-  
+
   // Get network badge color
   const getNetworkBadge = useCallback((network: string | undefined) => {
     const networkColors: { [key: string]: string } = {
@@ -282,7 +322,7 @@ export default function DevicesPage() {
     }
     return networkColors[network?.toLowerCase() || 'default'] || networkColors.default
   }, [])
-  
+
   // Get firmware badge info
   const getFirmwareBadge = useCallback((currentFirmware: string | undefined, targetFirmware: string | undefined, downloadState: string | undefined) => {
     // Both current and target are null - not set
@@ -293,7 +333,7 @@ export default function DevicesPage() {
         tooltip: "Firmware not set"
       }
     }
-    
+
     // Target is null - has updated firmware
     if (!targetFirmware) {
       return {
@@ -302,7 +342,7 @@ export default function DevicesPage() {
         tooltip: "Firmware is up to date"
       }
     }
-    
+
     // Current firmware matches target - green
     if (currentFirmware === targetFirmware) {
       return {
@@ -311,7 +351,7 @@ export default function DevicesPage() {
         tooltip: "Firmware is up to date"
       }
     }
-    
+
     // Current firmware differs from target - orange (pending update)
     return {
       color: "bg-orange-100 text-orange-700 hover:bg-orange-200",
@@ -319,26 +359,26 @@ export default function DevicesPage() {
       tooltip: `${downloadState === 'pending' ? 'Pending' : downloadState === 'failed' ? 'Failed' : 'Updating'} to ${targetFirmware}`
     }
   }, [])
-  
+
   // Handle device selection on map
   const handleDeviceSelect = useCallback((id: string) => {
     setSelectedDeviceId(id)
   }, [])
-  
+
   // Handle firmware badge click
   const handleFirmwareClick = useCallback((device: UIDevice, e: React.MouseEvent) => {
     e.stopPropagation() // Prevent row click
     setSelectedFirmwareDevice(device)
     setFirmwareDialogOpen(true)
   }, [])
-  
+
   // Handle network ID click
   const handleNetworkIdClick = useCallback((device: UIDevice, e: React.MouseEvent) => {
     e.stopPropagation() // Prevent row click
     setSelectedFirmwareDevice(device)
     setFirmwareDialogOpen(true)
   }, [])
-  
+
   // Handle successful device update
   const handleUpdateSuccess = useCallback(() => {
     refreshData()
@@ -355,14 +395,25 @@ export default function DevicesPage() {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Device Monitoring</h1>
         <div className="flex items-center space-x-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center text-blue-600 border-blue-200 hover:bg-blue-50"
+            onClick={handleSyncDevices}
+            disabled={isSyncing || isRefreshing}
+          >
+            <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+            {isSyncing ? 'Syncing...' : 'Refresh Devices'}
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
             className="flex items-center"
             onClick={refreshData}
-            disabled={isRefreshing}
+            disabled={isRefreshing || isSyncing}
           >
-            <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} /> 
+            <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
             {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
           </Button>
           {/* <Button className="bg-primary hover:bg-primary/90">
@@ -380,6 +431,7 @@ export default function DevicesPage() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Total & Tracked Devices */}
         <Card className="overflow-hidden border-l-4 border-l-primary hover:shadow-md transition-shadow">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center">
@@ -388,49 +440,29 @@ export default function DevicesPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
-            <div className="text-3xl font-bold">
-              {loading ? '...' : deviceCounts.total_devices}
+            <div className="flex justify-between items-end">
+              <div>
+                <div className="text-3xl font-bold">
+                  {loading ? '...' : deviceCounts.total_devices}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Registered devices</p>
+              </div>
+              <div className="text-right">
+                <div className="text-xl font-bold text-primary">
+                  {loading ? '...' : deviceCounts.tracked_devices}
+                </div>
+                <p className="text-xs text-muted-foreground">Tracked ({trackedPercentage}%)</p>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">All registered devices</p>
-          </CardContent>
-        </Card>
-
-        <Card className="overflow-hidden border-l-4 border-l-green-500 hover:shadow-md transition-shadow">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center">
-              <Activity className="mr-2 h-5 w-5 text-green-500" />
-              Online Devices
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="text-3xl font-bold">
-              {loading ? '...' : deviceCounts.active_devices}
-            </div>
-            <div className="flex items-center mt-1">
-              <div className="h-2 bg-green-500 rounded-full" style={{ width: `${activePercentage}%` }}></div>
-              <span className="text-xs text-muted-foreground ml-2">{activePercentage}%</span>
+            <div className="mt-3">
+              <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                <div className="h-full bg-primary" style={{ width: `${trackedPercentage}%` }}></div>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="overflow-hidden border-l-4 border-l-red-500 hover:shadow-md transition-shadow">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center">
-              <WifiOff className="mr-2 h-5 w-5 text-red-500" />
-              Offline Devices
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="text-3xl font-bold">
-              {loading ? '...' : deviceCounts.offline_devices}
-            </div>
-            <div className="flex items-center mt-1">
-              <div className="h-2 bg-red-500 rounded-full" style={{ width: `${offlinePercentage}%` }}></div>
-              <span className="text-xs text-muted-foreground ml-2">{offlinePercentage}%</span>
-            </div>
-          </CardContent>
-        </Card>
-
+        {/* Deployed Devices */}
         <Card className="overflow-hidden border-l-4 border-l-blue-500 hover:shadow-md transition-shadow">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center">
@@ -444,7 +476,45 @@ export default function DevicesPage() {
             </div>
             <div className="flex items-center mt-1">
               <div className="h-2 bg-blue-500 rounded-full" style={{ width: `${deployedPercentage}%` }}></div>
-              <span className="text-xs text-muted-foreground ml-2">{deployedPercentage}%</span>
+              <span className="text-xs text-muted-foreground ml-2">{deployedPercentage}% of total</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Online Devices */}
+        <Card className="overflow-hidden border-l-4 border-l-green-500 hover:shadow-md transition-shadow">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center">
+              <Wifi className="mr-2 h-5 w-5 text-green-500" />
+              Online (Tracked)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="text-3xl font-bold">
+              {loading ? '...' : deviceCounts.tracked_online}
+            </div>
+            <div className="flex items-center mt-1">
+              <div className="h-2 bg-green-500 rounded-full" style={{ width: `${onlinePercentage}%` }}></div>
+              <span className="text-xs text-muted-foreground ml-2">{onlinePercentage}%</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Offline Devices */}
+        <Card className="overflow-hidden border-l-4 border-l-red-500 hover:shadow-md transition-shadow">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center">
+              <WifiOff className="mr-2 h-5 w-5 text-red-500" />
+              Offline (Tracked)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="text-3xl font-bold">
+              {loading ? '...' : deviceCounts.tracked_offline}
+            </div>
+            <div className="flex items-center mt-1">
+              <div className="h-2 bg-red-500 rounded-full" style={{ width: `${offlinePercentage}%` }}></div>
+              <span className="text-xs text-muted-foreground ml-2">{offlinePercentage}%</span>
             </div>
           </CardContent>
         </Card>
@@ -467,7 +537,7 @@ export default function DevicesPage() {
                 </>
               )}
             </CardTitle>
-            
+
             {/* View Toggle Buttons */}
             <div className="flex items-center gap-2">
               <Button
@@ -491,14 +561,15 @@ export default function DevicesPage() {
             </div>
           </div>
         </CardHeader>
-        
+
         <CardContent className="p-4">
           {/* List View */}
           {viewMode === "list" && (
             <>
-              {/* Search Input - Backend Search Enabled */}
-              <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-2 mb-4">
-                <div className="relative flex-1">
+              {/* Controls Container */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
+                {/* Search Input */}
+                <div className="relative flex-1 max-w-md">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="search"
@@ -525,13 +596,11 @@ export default function DevicesPage() {
                     </Button>
                   )}
                 </div>
-                {searchTerm && (
-                  <div className="text-sm text-muted-foreground">
-                    Searching devices...
-                  </div>
-                )}
+
+
+
               </div>
-              
+
               {/* Filters - Temporarily Commented Out */}
               {/* <div className="flex items-center space-x-2">
                 <Filter className="h-4 w-4 text-muted-foreground" />
@@ -609,14 +678,14 @@ export default function DevicesPage() {
                         const deploymentInfo = getDeploymentBadge(device.status)
                         const StatusIcon = statusInfo.icon
                         const firmwareInfo = getFirmwareBadge(
-                          device.current_firmware, 
+                          device.current_firmware,
                           device.target_firmware,
                           device.firmware_download_state
                         )
-                        
+
                         return (
-                          <tr 
-                            key={device.device_id} 
+                          <tr
+                            key={device.device_id}
                             className="border-b hover:bg-gray-50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
                             onClick={() => handleRowClick(device.device_id)}
                             onKeyDown={(e) => {
@@ -630,10 +699,19 @@ export default function DevicesPage() {
                             aria-label={`View details for device ${device.device_name || device.device_id}`}
                           >
                             <td className="py-3 px-4">
-                              <div className="flex items-center gap-2" title={statusInfo.text}>
-                                <StatusIcon 
-                                  className={`h-4 w-4 ${device.is_online ? 'text-green-500' : 'text-gray-400'}`}
-                                />
+                              <div className="flex items-center gap-2">
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger>
+                                      <StatusIcon
+                                        className={`h-4 w-4 ${isDeviceOnline(device) ? 'text-green-500' : 'text-gray-400'}`}
+                                      />
+                                    </TooltipTrigger>
+                                    <TooltipContent className={isDeviceOnline(device) ? "bg-green-600 text-white border-green-600" : "bg-gray-600 text-white border-gray-600"}>
+                                      <p>Last updated: {device.last_updated ? new Date(device.last_updated).toLocaleDateString() : 'Never'}</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
                                 <span className="font-medium">{device.device_name || "Unnamed"}</span>
                               </div>
                             </td>
@@ -692,14 +770,14 @@ export default function DevicesPage() {
                       })}
                     </tbody>
                   </table>
-                  
+
                   {/* Pagination */}
                   <div className="mt-4 pt-4 border-t">
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                       <div className="flex items-center gap-2">
                         <span className="text-sm text-gray-600">Items per page:</span>
-                        <Select 
-                          value={itemsPerPage.toString()} 
+                        <Select
+                          value={itemsPerPage.toString()}
                           onValueChange={(value) => {
                             setItemsPerPage(Number(value));
                             setCurrentPage(1);
@@ -709,11 +787,11 @@ export default function DevicesPage() {
                             <SelectValue placeholder="Per page" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="5">5</SelectItem>
                             <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="15">15</SelectItem>
+                            <SelectItem value="20">20</SelectItem>
                             <SelectItem value="25">25</SelectItem>
-                            <SelectItem value="50">50</SelectItem>
-                            <SelectItem value="100">100</SelectItem>
+                            <SelectItem value="30">30</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -731,7 +809,7 @@ export default function DevicesPage() {
               )}
             </>
           )}
-          
+
           {/* Map View */}
           {viewMode === "map" && showMap && (
             <div className="h-[700px] w-full">
@@ -742,7 +820,7 @@ export default function DevicesPage() {
               />
             </div>
           )}
-          
+
           {viewMode === "map" && !showMap && (
             <div className="h-[700px] w-full flex items-center justify-center bg-gray-100 rounded-lg">
               <div className="text-center">
@@ -753,7 +831,7 @@ export default function DevicesPage() {
           )}
         </CardContent>
       </Card>
-      
+
       {/* Update Device Dialog */}
       <UpdateDeviceDialog
         open={firmwareDialogOpen}
@@ -761,6 +839,6 @@ export default function DevicesPage() {
         device={selectedFirmwareDevice}
         onUpdateSuccess={handleUpdateSuccess}
       />
-    </div>
+    </div >
   )
 }

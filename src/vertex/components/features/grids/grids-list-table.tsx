@@ -10,7 +10,7 @@ import ReusableTable, {
 import { format, parseISO } from "date-fns";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useServerSideTableState } from "@/core/hooks/useServerSideTableState";
-import { useMemo, useRef, useEffect } from "react";
+import { useMemo, useEffect } from "react";
 
 type TableGrid = TableItem<unknown> & Grid;
 
@@ -26,8 +26,7 @@ export default function GridsTable({
   className,
 }: GridsTableProps) {
   const router = useRouter();
-  const tableRef = useRef<HTMLDivElement>(null);
-
+  
   const {
     pagination, setPagination,
     searchTerm, setSearchTerm,
@@ -41,12 +40,6 @@ export default function GridsTable({
     sortBy: sorting[0]?.id,
     order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined,
   });
-
-  useEffect(() => {
-    if (tableRef.current) {
-      tableRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, [pagination.pageIndex]);
 
   const pageCount = meta?.totalPages ?? 0;
 
@@ -79,7 +72,7 @@ export default function GridsTable({
   ];
 
   return (
-    <div ref={tableRef} className={className ? `space-y-4 ${className}` : "space-y-4"}>
+    <div className={className ? `space-y-4 ${className}` : "space-y-4"}>
       <ReusableTable
         title="Grids"
         data={data}

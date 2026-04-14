@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { usePermission, useUserRole } from "@/core/hooks/usePermissions";
+import { usePermission, useUserRole, useHasAnyPermission } from "@/core/hooks/usePermissions";
 import { Permission, RoleName } from "@/core/permissions/constants";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -11,6 +11,7 @@ import { UserContext } from "@/core/redux/slices/userSlice";
 
 interface RouteGuardProps {
   permission?: Permission;
+  permissions?: Permission[];
   role?: RoleName;
   roles?: RoleName[];
   children: React.ReactNode;
@@ -27,6 +28,7 @@ interface RouteGuardProps {
 
 export const RouteGuard: React.FC<RouteGuardProps> = ({
   permission,
+  permissions,
   role,
   roles,
   children,
@@ -38,11 +40,12 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
   const router = useRouter();
   const { userContext, isLoading } = useUserContext();
   const hasPermission = usePermission(permission || '' as Permission, { resourceContext });
+  const hasAnyPermission = useHasAnyPermission(permissions || [], { resourceContext });
   const userRole = useUserRole(resourceContext?.organizationId);
 
   // Validate that at least one access control method is specified
-  if (!permission && !role && !roles) {
-    throw new Error('RouteGuard requires either permission, role, or roles prop');
+  if (!permission && !permissions && !role && !roles) {
+    throw new Error('RouteGuard requires either permission, permissions, role, or roles prop');
   }
 
   // Check role-based access
@@ -62,7 +65,7 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
   }, [role, roles, userRole]);
 
   // Check permission-based access
-  const hasPermissionAccess = permission ? hasPermission : false;
+  const hasPermissionAccess = permission ? hasPermission : (permissions ? hasAnyPermission : false);
 
   const hasValidContext = !allowedContexts || (userContext !== null && allowedContexts.includes(userContext));
 

@@ -1,8 +1,18 @@
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { AqFilterLines } from "@airqo/icons-react";
+import { Check, X } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 import { Device } from "@/app/types/devices";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import ReusableTable from "@/components/shared/table/ReusableTable";
-import { useState, useMemo, useRef, useEffect } from "react";
+import ReusableButton from "@/components/shared/button/ReusableButton";
+import { useState, useMemo } from "react";
 import { AssignCohortDevicesDialog } from "@/components/features/cohorts/assign-cohort-devices";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { UnassignCohortDevicesDialog } from "../cohorts/unassign-cohort-devices";
@@ -24,12 +34,30 @@ export default function DevicesTable({
   className,
 }: DevicesTableProps) {
   const router = useRouter();
-  const tableRef = useRef<HTMLDivElement>(null);
   const [selectedDeviceObjects, setSelectedDeviceObjects] = useState<TableDevice[]>([]);
   const [showAssignDialog, setShowAssignDialog] = useState(false);
   const [showUnassignDialog, setShowUnassignDialog] = useState(false);
-  const { userContext, activeGroup } = useUserContext();
+  const { userContext, activeGroup, isExternalOrg } = useUserContext();
   const isInternalView = userContext === "personal" && activeGroup?.grp_title?.toLowerCase() === "airqo";
+
+  const searchParams = useSearchParams();
+  const status = searchParams.get("status");
+
+  const filterOptions = useMemo(() => {
+    if (status === "operational") {
+      return { rawOnlineStatus: true, isOnline: true };
+    }
+    if (status === "transmitting") {
+      return { rawOnlineStatus: true, isOnline: false };
+    }
+    if (status === "not_transmitting") {
+      return { rawOnlineStatus: false, isOnline: false };
+    }
+    if (status === "data_available") {
+      return { rawOnlineStatus: false, isOnline: true };
+    }
+    return {};
+  }, [status]);
 
   const {
     pagination,
@@ -46,14 +74,9 @@ export default function DevicesTable({
     search: searchTerm,
     sortBy: sorting[0]?.id,
     order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined,
+    filterStatus: status || undefined,
+    ...filterOptions,
   });
-
-  // Scroll to top of table when page changes
-  useEffect(() => {
-    if (tableRef.current) {
-      tableRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, [pagination.pageIndex]);
 
   const pageCount = meta?.totalPages ?? 0;
 
@@ -96,7 +119,7 @@ export default function DevicesTable({
   const columns = useMemo(() => getColumns(isInternalView), [isInternalView]);
 
   return (
-    <div ref={tableRef} className={`space-y-4 ${className}`}>
+    <div className={`space-y-4 ${className}`}>
       <ReusableTable
         title="Devices"
         data={devicesWithId}
@@ -114,7 +137,7 @@ export default function DevicesTable({
                 value: "assign_cohort",
                 handler: handleAddCohortDeviceActionSubmit,
               },
-              ...(selectedDeviceObjects.length > 0
+              ...(selectedDeviceObjects.length > 0 && !isExternalOrg
                 ? [{
                   label: "Remove from Cohort",
                   value: "unassign_cohort",
@@ -146,6 +169,80 @@ export default function DevicesTable({
         sorting={sorting}
         onSortingChange={setSorting}
         searchable
+        customHeaderContent={
+          <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="h-8 gap-2 bg-white dark:bg-[#1d1f20] relative">
+                  <AqFilterLines className="w-3.5 h-3.5" />
+                  <span>Filter</span>
+                  {status && (
+                    <span className="flex items-center justify-center w-5 h-5 ml-1 text-[10px] font-bold text-white bg-blue-600 rounded-full">
+                      1
+                    </span>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-[200px]">
+                <DropdownMenuItem onClick={() => {
+                  const params = new URLSearchParams(searchParams.toString());
+                  params.delete("status");
+                  router.push(`?${params.toString()}`);
+                }} className="justify-between">
+                  All Devices
+                  {!status && <Check className="w-4 h-4 text-blue-600" />}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => {
+                  const params = new URLSearchParams(searchParams.toString());
+                  params.set("status", "operational");
+                  router.push(`?${params.toString()}`);
+                }} className={`justify-between ${status === 'operational' ? 'font-medium bg-accent' : ''}`}>
+                  Operational
+                  {status === 'operational' && <Check className="w-4 h-4 text-blue-600" />}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => {
+                  const params = new URLSearchParams(searchParams.toString());
+                  params.set("status", "transmitting");
+                  router.push(`?${params.toString()}`);
+                }} className={`justify-between ${status === 'transmitting' ? 'font-medium bg-accent' : ''}`}>
+                  Transmitting
+                  {status === 'transmitting' && <Check className="w-4 h-4 text-blue-600" />}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => {
+                  const params = new URLSearchParams(searchParams.toString());
+                  params.set("status", "not_transmitting");
+                  router.push(`?${params.toString()}`);
+                }} className={`justify-between ${status === 'not_transmitting' ? 'font-medium bg-accent' : ''}`}>
+                  Not Transmitting
+                  {status === 'not_transmitting' && <Check className="w-4 h-4 text-blue-600" />}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => {
+                  const params = new URLSearchParams(searchParams.toString());
+                  params.set("status", "data_available");
+                  router.push(`?${params.toString()}`);
+                }} className={`justify-between ${status === 'data_available' ? 'font-medium bg-accent' : ''}`}>
+                  Data Available
+                  {status === 'data_available' && <Check className="w-4 h-4 text-blue-600" />}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {status && (
+              <ReusableButton
+                variant="text"
+                className="h-8 px-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-transparent"
+                onClick={() => {
+                  const params = new URLSearchParams(searchParams.toString());
+                  params.delete("status");
+                  router.push(`?${params.toString()}`);
+                }}
+                Icon={X}
+              >
+                Clear filter
+              </ReusableButton>
+            )}
+          </div>
+        }
       />
 
       {/* Assign to Cohort Dialog */}

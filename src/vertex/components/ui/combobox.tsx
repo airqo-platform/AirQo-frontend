@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface ComboBoxOption {
   value: string
@@ -27,6 +28,8 @@ interface ComboBoxProps {
   onCustomAction?: () => void
   customActionLabel?: string
   customActionIcon?: React.ComponentType<{ className?: string }>
+  onSearchChange?: (search: string) => void
+  isLoading?: boolean
 }
 
 export function ComboBox({
@@ -42,6 +45,8 @@ export function ComboBox({
   onCustomAction,
   customActionLabel,
   customActionIcon: CustomActionIcon,
+  onSearchChange,
+  isLoading = false,
 }: ComboBoxProps) {
   const [open, setOpen] = React.useState(false)
   const [inputValue, setInputValue] = React.useState("")
@@ -54,8 +59,12 @@ export function ComboBox({
   React.useEffect(() => {
     if (open) {
       setInputValue("")
+      // Clear search when opening if using server-side search
+      if (onSearchChange) {
+        onSearchChange("")
+      }
     }
-  }, [open])
+  }, [open, onSearchChange])
 
   const handleSelect = (selectedValue: string) => {
     if (selectedValue === "__custom_action__" && onCustomAction) {
@@ -70,6 +79,11 @@ export function ComboBox({
 
   const handleInputChange = (newValue: string) => {
     setInputValue(newValue)
+
+    if (onSearchChange) {
+      onSearchChange(newValue)
+    }
+
     if (allowCustomInput) {
       onValueChange?.(newValue)
     }
@@ -82,7 +96,9 @@ export function ComboBox({
     }
   }
 
-  const filteredOptions = options.filter((option) => option.label.toLowerCase().includes(inputValue.toLowerCase()))
+  const filteredOptions = onSearchChange
+    ? options
+    : options.filter((option) => option.label.toLowerCase().includes(inputValue.toLowerCase()))
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -103,7 +119,7 @@ export function ComboBox({
         className="w-[--radix-popover-trigger-width] p-0 z-[12000] overflow-hidden max-h-80"
         align="start"
       >
-        <Command>
+        <Command shouldFilter={!onSearchChange}>
           <CommandInput
             placeholder={searchPlaceholder}
             value={inputValue}
@@ -111,17 +127,28 @@ export function ComboBox({
             onKeyDown={handleKeyDown}
           />
           <CommandList className="max-h-56">
-            <CommandEmpty>
-              {allowCustomInput ? (
-                <div className="py-2 text-center text-sm">
-                  <div className="text-muted-foreground">{emptyMessage}</div>
-                  <div className="mt-1 text-xs text-muted-foreground">Press Enter to use &quot;{inputValue}&quot;</div>
-                </div>
-              ) : (
-                emptyMessage
-              )}
-            </CommandEmpty>
-            {filteredOptions.length > 0 && (
+            {isLoading && (
+              <CommandGroup>
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-center px-2 py-1.5">
+                    <Skeleton className="h-4 w-full" />
+                  </div>
+                ))}
+              </CommandGroup>
+            )}
+            {!isLoading && filteredOptions.length === 0 && (
+              <CommandEmpty>
+                {allowCustomInput ? (
+                  <div className="py-2 text-center text-sm">
+                    <div className="text-muted-foreground">{emptyMessage}</div>
+                    <div className="mt-1 text-xs text-muted-foreground">Press Enter to use &quot;{inputValue}&quot;</div>
+                  </div>
+                ) : (
+                  emptyMessage
+                )}
+              </CommandEmpty>
+            )}
+            {!isLoading && filteredOptions.length > 0 && (
               <CommandGroup>
                 {filteredOptions.map((option) => (
                   <CommandItem

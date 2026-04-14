@@ -1,5 +1,5 @@
 import useSWR, { mutate } from 'swr';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { deviceService } from '../services/deviceService';
 import {
@@ -25,7 +25,76 @@ import type {
   GroupCohortsResponse,
   GridsSummaryResponse,
   GridsSummaryParams,
+  CohortResponse,
 } from '../types/api';
+
+const SWR_STABLE_REQUEST_OPTIONS = {
+  revalidateOnFocus: false,
+  revalidateOnReconnect: false,
+  shouldRetryOnError: false,
+  dedupingInterval: 5000,
+} as const;
+
+export interface ActiveGroupCohortsState {
+  cohortIds: string[];
+  isLoading: boolean;
+}
+
+const useCohortSitesQuery = (
+  cohortIds: string[],
+  params: CohortSitesParams = {},
+  enabled = true,
+  cohortsLoading = false
+) => {
+  const shouldFetch = enabled && cohortIds.length > 0 && !cohortsLoading;
+
+  const key = shouldFetch
+    ? ['cohort/sites/active-group', cohortIds, params]
+    : null;
+
+  const result = useSWR<CohortSitesResponse>(
+    key,
+    () => deviceService.getCohortSites({ cohort_ids: cohortIds }, params),
+    {
+      ...SWR_STABLE_REQUEST_OPTIONS,
+      isPaused: () => cohortsLoading,
+    }
+  );
+
+  return {
+    ...result,
+    isLoading: result.isLoading || cohortsLoading,
+    cohortIds,
+  };
+};
+
+const useCohortDevicesQuery = (
+  cohortIds: string[],
+  params: CohortDevicesParams = {},
+  enabled = true,
+  cohortsLoading = false
+) => {
+  const shouldFetch = enabled && cohortIds.length > 0 && !cohortsLoading;
+
+  const key = shouldFetch
+    ? ['cohort/devices/active-group', cohortIds, params]
+    : null;
+
+  const result = useSWR<CohortDevicesResponse>(
+    key,
+    () => deviceService.getCohortDevices({ cohort_ids: cohortIds }, params),
+    {
+      ...SWR_STABLE_REQUEST_OPTIONS,
+      isPaused: () => cohortsLoading,
+    }
+  );
+
+  return {
+    ...result,
+    isLoading: result.isLoading || cohortsLoading,
+    cohortIds,
+  };
+};
 
 // Authenticated sites summary hook
 export const useSitesSummary = (
@@ -37,10 +106,7 @@ export const useSitesSummary = (
   return useSWR<SitesSummaryResponse>(
     key,
     () => deviceService.getSitesSummaryAuthenticated(params),
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 5000,
-    }
+    SWR_STABLE_REQUEST_OPTIONS
   );
 };
 
@@ -54,10 +120,7 @@ export const useSitesSummaryWithToken = (
   return useSWR<SitesSummaryResponse>(
     key,
     () => deviceService.getSitesSummaryWithToken(params),
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 5000,
-    }
+    SWR_STABLE_REQUEST_OPTIONS
   );
 };
 
@@ -72,10 +135,7 @@ export const useGridsSummary = (
   return useSWR<GridsSummaryResponse>(
     key,
     () => deviceService.getGridsSummaryAuthenticated(params, cohort_id),
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 5000,
-    }
+    SWR_STABLE_REQUEST_OPTIONS
   );
 };
 
@@ -90,10 +150,7 @@ export const useGridsSummaryWithToken = (
   return useSWR<GridsSummaryResponse>(
     key,
     () => deviceService.getGridsSummaryWithToken(params, cohort_id),
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 5000,
-    }
+    SWR_STABLE_REQUEST_OPTIONS
   );
 };
 
@@ -103,18 +160,12 @@ export const useCohortSites = (
   params: CohortSitesParams = {},
   enabled = true
 ) => {
-  const key =
+  return useSWR<CohortSitesResponse>(
     enabled && cohortIds.length > 0
       ? ['cohort/sites', cohortIds, params]
-      : null;
-
-  return useSWR<CohortSitesResponse>(
-    key,
+      : null,
     () => deviceService.getCohortSites({ cohort_ids: cohortIds }, params),
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 5000,
-    }
+    SWR_STABLE_REQUEST_OPTIONS
   );
 };
 
@@ -125,59 +176,20 @@ export const useActiveGroupCohortSites = (
 ) => {
   const { cohortIds, isLoading: cohortsLoading } = useActiveGroupCohorts();
 
-  const shouldFetch = enabled && cohortIds.length > 0 && !cohortsLoading;
-
-  const key = shouldFetch
-    ? ['cohort/sites/active-group', cohortIds, params]
-    : null;
-
-  const result = useSWR<CohortSitesResponse>(
-    key,
-    () => deviceService.getCohortSites({ cohort_ids: cohortIds }, params),
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 5000,
-      // Don't fetch if cohorts are still loading
-      isPaused: () => cohortsLoading,
-    }
-  );
-
-  return {
-    ...result,
-    isLoading: result.isLoading || cohortsLoading,
-    cohortIds, // Expose the cohort IDs being used
-  };
+  return useCohortSitesQuery(cohortIds, params, enabled, cohortsLoading);
 };
 
-// Enhanced cohort devices hook with automatic active group cohorts
-export const useActiveGroupCohortDevices = (
-  params: CohortDevicesParams = {},
-  enabled = true
+export const useActiveGroupCohortSitesWithState = (
+  params: CohortSitesParams = {},
+  enabled = true,
+  activeGroupCohorts: ActiveGroupCohortsState
 ) => {
-  const { cohortIds, isLoading: cohortsLoading } = useActiveGroupCohorts();
-
-  const shouldFetch = enabled && cohortIds.length > 0 && !cohortsLoading;
-
-  const key = shouldFetch
-    ? ['cohort/devices/active-group', cohortIds, params]
-    : null;
-
-  const result = useSWR<CohortDevicesResponse>(
-    key,
-    () => deviceService.getCohortDevices({ cohort_ids: cohortIds }, params),
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 5000,
-      // Don't fetch if cohorts are still loading
-      isPaused: () => cohortsLoading,
-    }
+  return useCohortSitesQuery(
+    activeGroupCohorts.cohortIds,
+    params,
+    enabled,
+    activeGroupCohorts.isLoading
   );
-
-  return {
-    ...result,
-    isLoading: result.isLoading || cohortsLoading,
-    cohortIds, // Expose the cohort IDs being used
-  };
 };
 
 // Cohort devices hook
@@ -186,18 +198,12 @@ export const useCohortDevices = (
   params: CohortDevicesParams = {},
   enabled = true
 ) => {
-  const key =
+  return useSWR<CohortDevicesResponse>(
     enabled && cohortIds.length > 0
       ? ['cohort/devices', cohortIds, params]
-      : null;
-
-  return useSWR<CohortDevicesResponse>(
-    key,
+      : null,
     () => deviceService.getCohortDevices({ cohort_ids: cohortIds }, params),
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 5000,
-    }
+    SWR_STABLE_REQUEST_OPTIONS
   );
 };
 
@@ -208,10 +214,39 @@ export const useGroupCohorts = (groupId: string, enabled = true) => {
   return useSWR<GroupCohortsResponse>(
     key,
     () => deviceService.getGroupCohorts(groupId),
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 5000,
-    }
+    SWR_STABLE_REQUEST_OPTIONS
+  );
+};
+
+// Cohort details hook
+export const useCohort = (cohortId: string, enabled = true) => {
+  const key = enabled && cohortId ? ['cohort/details', cohortId] : null;
+
+  return useSWR<CohortResponse>(key, () => deviceService.getCohort(cohortId), {
+    ...SWR_STABLE_REQUEST_OPTIONS,
+  });
+};
+
+// Enhanced cohort devices hook with automatic active group cohorts
+export const useActiveGroupCohortDevices = (
+  params: CohortDevicesParams = {},
+  enabled = true
+) => {
+  const { cohortIds, isLoading: cohortsLoading } = useActiveGroupCohorts();
+
+  return useCohortDevicesQuery(cohortIds, params, enabled, cohortsLoading);
+};
+
+export const useActiveGroupCohortDevicesWithState = (
+  params: CohortDevicesParams = {},
+  enabled = true,
+  activeGroupCohorts: ActiveGroupCohortsState
+) => {
+  return useCohortDevicesQuery(
+    activeGroupCohorts.cohortIds,
+    params,
+    enabled,
+    activeGroupCohorts.isLoading
   );
 };
 
@@ -223,17 +258,36 @@ export const useActiveGroupCohorts = () => {
   const isLoading = useSelector(selectCohortsLoading);
   const error = useSelector(selectCohortsError);
   const lastFetchedGroupId = useSelector(selectLastFetchedGroupId);
+  const previousGroupIdRef = useRef<string | null>(null);
 
   const groupId = activeGroup?.id;
+  const hasStaleCohortsForGroup =
+    !!groupId && !!lastFetchedGroupId && lastFetchedGroupId !== groupId;
   const shouldFetch =
-    groupId && (!lastFetchedGroupId || lastFetchedGroupId !== groupId);
+    (!!groupId && !lastFetchedGroupId) || hasStaleCohortsForGroup;
+
+  useEffect(() => {
+    const previousGroupId = previousGroupIdRef.current;
+    previousGroupIdRef.current = groupId ?? null;
+
+    if (!groupId) {
+      if (activeGroupCohorts.length > 0 || lastFetchedGroupId) {
+        dispatch(clearCohorts());
+      }
+      return;
+    }
+
+    if (previousGroupId && previousGroupId !== groupId) {
+      dispatch(clearCohorts());
+    }
+  }, [groupId, activeGroupCohorts.length, lastFetchedGroupId, dispatch]);
 
   // Fetch cohorts for active group
   const { error: swrError } = useSWR<GroupCohortsResponse>(
     shouldFetch ? ['group/cohorts', groupId] : null,
     () => deviceService.getGroupCohorts(groupId!),
     {
-      revalidateOnFocus: false,
+      ...SWR_STABLE_REQUEST_OPTIONS,
       dedupingInterval: 30000, // Cache for 30 seconds
       onLoadingSlow: () => {
         dispatch(setCohortsLoading(true));
@@ -254,16 +308,12 @@ export const useActiveGroupCohorts = () => {
     }
   );
 
-  // Clear cohorts when group changes or is cleared
-  useEffect(() => {
-    if (!groupId) {
-      dispatch(clearCohorts());
-    }
-  }, [groupId, dispatch]);
+  const resolvedCohortIds =
+    groupId && lastFetchedGroupId === groupId ? activeGroupCohorts : [];
 
   return {
-    cohortIds: activeGroupCohorts,
-    isLoading,
+    cohortIds: resolvedCohortIds,
+    isLoading: isLoading || (!!groupId && lastFetchedGroupId !== groupId),
     error: error || swrError,
     refetch: () => {
       if (groupId) {

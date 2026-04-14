@@ -19,10 +19,12 @@ export {
   useUpdateUserDetails,
   useUpdatePassword,
   useCreateOrganizationRequest,
-  useCheckSlugAvailability,
   useInitiateAccountDeletion,
   useConfirmAccountDeletion,
   useUser,
+  usePendingInvitations,
+  useAcceptInvitation,
+  useRejectInvitation,
 } from './useUser';
 export { useUserActions } from './useUserActions';
 
@@ -50,9 +52,12 @@ export {
   useCohortSites,
   useCohortDevices,
   useGroupCohorts,
+  useCohort,
   useActiveGroupCohorts,
   useActiveGroupCohortSites,
   useActiveGroupCohortDevices,
+  useActiveGroupCohortSitesWithState,
+  useActiveGroupCohortDevicesWithState,
 } from './useDevice';
 
 // Sites data hooks
@@ -81,6 +86,7 @@ export {
   useApproveOrganizationRequest,
   useRejectOrganizationRequest,
   useRolesByGroup,
+  useRolesSummary,
   useRoleById,
   usePermissions,
   useCreateRole,
@@ -89,6 +95,7 @@ export {
   useUsersByRole,
   useAssignUsersToRole,
   useUnassignUsersFromRole,
+  useUpdateUserRole,
 } from './useAdmin';
 
 // Groups hooks
@@ -96,9 +103,13 @@ export {
   useGroupJoinRequests,
   useGroupDetails,
   useSendGroupInvite,
+  useUnassignUserFromGroup,
+  useLeaveGroup,
+  useSetGroupManager,
 } from './useGroups';
 
 // Utility hooks
 export { useAppDispatch, useAppSelector } from './redux';
 export { useLogout } from './useLogout';
 export { useResizeObserver } from './useResizeObserver';
+export { usePageTracking } from './usePageTracking';

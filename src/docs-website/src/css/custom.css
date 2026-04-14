@@ -1,0 +1,481 @@
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a CSS framework designed to
+ * work well for content-centric websites.
+ */
+
+/* You can override the default Infima variables here. */
+:root {
+  /* User Provided Variables */
+  --background: 246 246 247;
+  --foreground: 28 29 32;
+  --primary: 20 95 255;
+  --primary-foreground: 255 255 255;
+  --secondary: 241 245 249;
+  --secondary-foreground: 15 23 42;
+  --muted: 241 245 249;
+  --muted-foreground: 100 116 139;
+  --accent: 241 245 249;
+  --accent-foreground: 15 23 42;
+  --destructive: 239 68 68;
+  --destructive-foreground: 255 255 255;
+  --border: 226 232 240;
+  --input: 226 232 240;
+  --ring: 20 95 255;
+  --card: 255 255 255;
+  --card-foreground: 15 23 42;
+  --popover: 255 255 255;
+  --popover-foreground: 15 23 42;
+  --text: 31 41 55;
+  --heading: 16 24 40;
+
+  /* Primary color variations for highlights */
+  --primary-50: 239 246 255; /* Very light blue */
+  --primary-100: 219 234 254; /* Light blue */
+  --primary-700: 3 105 161; /* Dark blue */
+  --primary-800: 7 89 133; /* Darker blue */
+  --primary-900: 12 74 110; /* Darkest blue */
+
+  /* Map to Infima (Docusaurus) Variables */
+  --ifm-color-primary: rgb(var(--primary));
+  --ifm-color-primary-dark: rgb(var(--primary-700));
+  --ifm-color-primary-darker: rgb(var(--primary-800));
+  --ifm-color-primary-darkest: rgb(var(--primary-900));
+  --ifm-color-primary-light: rgb(var(--primary-100));
+  --ifm-color-primary-lighter: rgb(var(--primary-50));
+  --ifm-color-primary-lightest: rgb(var(--primary-50));
+
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+
+  /* Ensure consistent background across page, navbar */
+  --ifm-background-color: var(--ifm-navbar-background-color); 
+  /* Or actually more robust */
+  /* Floating Layout Colors (Light Mode) */
+  --ifm-background-color: rgb(var(--background));
+  --ifm-navbar-background-color: #ffffff;
+
+  /* Shadow for floating effect */
+  --floating-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+
+  /* Typography */
+  --ifm-font-family-base: 'Inter', system-ui, -apple-system, sans-serif;
+  --ifm-heading-font-family: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Heading Typography Variables */
+  --heading-weight: 500;
+  --heading-line-height: 1.25;
+  --heading-letter-spacing: -0.025em;
+
+  /* Map to Infima Heading Variables */
+  --ifm-h1-font-size: 2.25rem;
+  --ifm-h2-font-size: 1.875rem;
+  --ifm-h3-font-size: 1.5rem;
+  --ifm-h4-font-size: 1.25rem;
+  --ifm-h5-font-size: 1.125rem;
+  --ifm-h6-font-size: 1rem;
+  --ifm-heading-font-weight: var(--heading-weight);
+  --ifm-heading-line-height: var(--heading-line-height);
+  --ifm-heading-color: rgb(var(--heading));
+
+  --font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Base heading styles */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: rgb(var(--heading));
+  font-weight: var(--heading-weight);
+  line-height: var(--heading-line-height);
+  letter-spacing: var(--heading-letter-spacing);
+  /* margin: 0; */
+}
+
+/* Base paragraph styles */
+p {
+  color: rgb(var(--foreground));
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+/* Base link styles */
+a {
+  color: rgb(var(--primary));
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:focus {
+  outline: none;
+}
+
+/* Individual heading sizes */
+h1 {
+  font-size: 2.25rem;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+}
+
+h2 {
+  font-size: 1.875rem;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+}
+
+h3 {
+  font-size: 1.5rem;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+h4 {
+  font-size: 1.25rem;
+  line-height: 1.3;
+}
+
+h5 {
+  font-size: 1.125rem;
+  line-height: 1.4;
+}
+
+h6 {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* Blockquotes */
+blockquote {
+  border-left: 4px solid rgb(var(--border));
+  padding-left: 1rem;
+  margin: 1.5rem 0;
+  color: rgb(var(--muted-foreground));
+  font-style: italic;
+}
+
+/* Code blocks */
+code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  background: rgb(var(--muted));
+  color: rgb(var(--foreground));
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  border: 1px solid rgb(var(--border));
+}
+
+pre {
+  font-family: var(--font-mono);
+  background: rgb(var(--muted));
+  color: rgb(var(--foreground));
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(var(--border));
+  overflow-x: auto;
+  line-height: 1.5;
+}
+
+pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+/* For readability concerns, you should choose a lighter palette in dark mode. */
+[data-theme='dark'] {
+  --background: 29 31 32;
+  --foreground: 237 237 237;
+  --primary: 20 95 255;
+  --primary-foreground: 255 255 255;
+  --secondary: 30 41 59;
+  --secondary-foreground: 248 250 252;
+  --muted: 30 41 59;
+  --muted-foreground: 148 163 184;
+  --accent: 30 41 59;
+  --accent-foreground: 248 250 252;
+  --destructive: 220 38 38;
+  --destructive-foreground: 255 255 255;
+  --border: 51 65 85;
+  --input: 51 65 85;
+  --ring: 20 95 255;
+  --card: 29 31 32;
+  --card-foreground: 248 250 252;
+  --popover: 29 31 32;
+  --popover-foreground: 248 250 252;
+  --text: 249 250 251;
+  --heading: 255 255 255;
+  --scrollbar-track: 30 41 59;
+  --scrollbar-thumb: 148 163 184;
+  --scrollbar-hover: 51 65 85;
+
+  /* Using the same primary blue for consistency in dark mode */
+  --ifm-color-primary: rgb(var(--primary));
+  --ifm-color-primary-dark: rgb(var(--primary-700));
+  --ifm-color-primary-darker: rgb(var(--primary-800));
+  --ifm-color-primary-darkest: rgb(var(--primary-900));
+  --ifm-color-primary-light: rgb(var(--primary-100));
+  --ifm-color-primary-lighter: rgb(var(--primary-50));
+  --ifm-color-primary-lightest: rgb(var(--primary-50));
+
+  /* Floating Layout Colors (Dark Mode) */
+  --ifm-background-color: rgb(var(--background));
+  --ifm-font-color-base: rgb(var(--foreground));
+  
+  /* Navbar and Sidebar should match card color in dark mode */
+  --ifm-navbar-background-color: rgb(var(--card));
+}
+
+/* Responsive Floating Layout (Desktop Only) */
+@media (min-width: 997px) {
+  /* Floating Navbar Style */
+  .navbar {
+    margin: 0.5rem;
+    border-radius: 0.35rem;
+    box-shadow: var(--floating-shadow);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    width: calc(100% - 1rem);
+    height: 3rem;
+  }
+
+  /* Push content down to account for fixed navbar */
+  .main-wrapper {
+    margin-top: 4rem !important; 
+  }
+
+  /* Floating Sidebar Style */
+  /* Target the sidebar container */
+  aside[class^='theme-doc-sidebar-container'] {
+    margin: 0.5rem;
+    margin-top: 0;
+    background-color: var(--ifm-navbar-background-color);
+    border-radius: 0.35rem;
+    box-shadow: var(--floating-shadow);
+    border-right: none !important; /* Remove default border */
+    /* Sticky positioning */
+    position: sticky;
+    top: 4rem; /* Navbar height (3rem) + margin (0.5rem) + gap (0.5rem) */
+    height: calc(100vh - 4.5rem) !important; /* Adjust height for margins */
+    overflow-y: auto; /* Allow internal scrolling if content is long */
+    overflow-x: hidden;
+    padding: 0 !important; /* Remove inner padding */
+    
+    /* Ensure content aligns to top */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start !important;
+  }
+
+  /* NEW: Wrapper Styling for Sidebar + Dropdown */
+  .theme-doc-sidebar-wrapper {
+    margin: 0.5rem 0 0 0;
+    margin-top: 0;
+    background-color: var(--ifm-navbar-background-color);
+    border-radius: 0.35rem;
+    /* Sticky positioning */
+    position: sticky;
+    top: 4rem; /* Navbar height (3rem) + margin (0.5rem) + gap (0.5rem) */
+    height: calc(100vh - 4.5rem) !important; /* Adjust height for margins */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* When inside wrapper, reset aside and any internal sidebar div styles */
+  .theme-doc-sidebar-wrapper aside[class^='theme-doc-sidebar-container'],
+  .theme-doc-sidebar-wrapper > div[class*='sidebar_'], 
+  .theme-doc-sidebar-wrapper > div[class^='sidebar_'] {
+    margin: 0 !important;
+    background-color: transparent !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    position: static !important;
+    height: auto !important;
+    flex: 1;
+    overflow-y: auto;
+    border: none !important;
+    padding-top: 0 !important; /* Remove inner padding */
+    display: block !important; /* Ensure it doesn't flex awkwardly */
+  }
+
+  /* Target the internal nav/menu within the sidebar to ensure no extra padding there either */
+  .theme-doc-sidebar-wrapper aside[class^='theme-doc-sidebar-container'] > nav,
+  .theme-doc-sidebar-wrapper aside[class^='theme-doc-sidebar-container'] > div {
+    padding-top: 0 !important;
+  }
+}
+
+/* Sidebar Navigation Styling */
+.menu__link {
+  color: var(--ifm-font-color-base);
+  transition: all 0.2s ease;
+  position: relative;
+  border-radius: 0.5rem;
+  margin-bottom: 0.2rem;
+  margin-right: 0.5rem;
+  margin-left: 0.5rem;
+  padding-right: 1rem;
+  
+  /* Match p element typography */
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: calc(1.25 / 0.875);
+}
+
+.menu__link:hover {
+  color: var(--ifm-font-color-base);
+  background-color: var(--ifm-color-emphasis-100);
+  text-decoration: none;
+}
+
+/* Active Item Styling */
+.menu__link--active {
+  color: var(--ifm-color-primary) !important;
+  background-color: var(--ifm-color-primary-lightest);
+  font-weight: 600;
+}
+
+/* Dark mode specific overrides for active item */
+[data-theme='dark'] .menu__link--active {
+  background-color: rgba(20, 95, 255, 0.15);
+  color: var(--ifm-color-primary) !important; 
+}
+
+/* Parent categories should NOT have the active background if they are just expanded but not "active" in the sense of being the current page.
+   However, Docusaurus adds --active to parents of the active page. 
+   If user wants NO background on parents, we can exclude them.
+   For now, user only asked to remove the vertical bar from parents. */
+
+/* Active Indicator Line - ONLY for leaf links (not sublists) */
+.menu__link--active:not(.menu__link--sublist)::before {
+  content: '';
+  position: absolute;
+  /* Positioned relative to the item, slightly to the left */
+  left: -0.625rem; 
+  top: 50%;
+  transform: translateY(-50%);
+  height: 0.75rem;
+  width: 4px;
+  background-color: var(--ifm-color-primary);
+  border-radius: 4px;
+}
+
+/* Remove excess top spacing in sidebar */
+.menu {
+  padding-top: 1rem !important; /* Add slight top padding for breathing room, but ensure it starts from top */
+  padding-left: 0 !important; /* Ensure no container padding throws off balance */
+  padding-right: 0 !important;
+}
+
+/* Navbar Title Styling (H4) */
+.navbar__title {
+  font-size: 1.25rem !important; /* H4 font size */
+  line-height: 1.3 !important;
+  font-weight: 500 !important;
+  margin-left: 0.5rem; /* Add space between logo and title */
+}
+
+/* Responsive typography */
+@media (max-width: 640px) {
+  h1 {
+    font-size: 1.875rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+  }
+}
+
+/* Custom Scrollbar for Sidebar */
+/* Target multiple potential scrollable containers */
+
+/* 1. Target the main aside container */
+aside[class^='theme-doc-sidebar-container'],
+aside[class*='theme-doc-sidebar-container'],
+/* 2. Target any nav.menu inside */
+nav.menu,
+/* 3. Target the theme-specific scrollable wrapper if it exists */
+div[class*='sidebar'],
+div[class*='Sidebar'] {
+  /* Firefox Scrollbar Support */
+  scrollbar-width: thin !important;
+  scrollbar-color: transparent transparent !important;
+}
+
+/* Show scrollbar on hover for all targets */
+aside[class^='theme-doc-sidebar-container']:hover,
+aside[class*='theme-doc-sidebar-container']:hover,
+aside[class^='theme-doc-sidebar-container']:hover *,
+nav.menu:hover {
+  scrollbar-color: var(--ifm-color-primary) transparent !important;
+}
+
+/* Webkit Scrollbar for all potential containers */
+aside[class^='theme-doc-sidebar-container']::-webkit-scrollbar,
+aside[class*='theme-doc-sidebar-container']::-webkit-scrollbar,
+nav.menu::-webkit-scrollbar,
+div[class*='sidebar']::-webkit-scrollbar,
+div[class*='Sidebar']::-webkit-scrollbar {
+  width: 6px !important;
+  background-color: transparent !important;
+}
+
+aside[class^='theme-doc-sidebar-container']::-webkit-scrollbar-track,
+aside[class*='theme-doc-sidebar-container']::-webkit-scrollbar-track,
+nav.menu::-webkit-scrollbar-track,
+div[class*='sidebar']::-webkit-scrollbar-track,
+div[class*='Sidebar']::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+aside[class^='theme-doc-sidebar-container']::-webkit-scrollbar-thumb,
+aside[class*='theme-doc-sidebar-container']::-webkit-scrollbar-thumb,
+nav.menu::-webkit-scrollbar-thumb,
+div[class*='sidebar']::-webkit-scrollbar-thumb,
+div[class*='Sidebar']::-webkit-scrollbar-thumb {
+  background-color: transparent !important;
+  border-radius: 6px !important;
+}
+
+/* Show scrollbar thumb on hover */
+aside[class^='theme-doc-sidebar-container']:hover::-webkit-scrollbar-thumb,
+aside[class*='theme-doc-sidebar-container']:hover::-webkit-scrollbar-thumb,
+aside[class^='theme-doc-sidebar-container']:hover *::-webkit-scrollbar-thumb,
+nav.menu:hover::-webkit-scrollbar-thumb,
+div[class*='sidebar']:hover::-webkit-scrollbar-thumb,
+div[class*='Sidebar']:hover::-webkit-scrollbar-thumb {
+  background-color: var(--ifm-color-primary) !important;
+}
+
+/* ==========================================================================
+   Table of Contents Links
+   ========================================================================== */
+.table-of-contents__link:not(.table-of-contents__link--active) {
+  color: rgb(var(--muted-foreground)) !important;
+  font-weight: 400;
+}
+
+.table-of-contents__link:hover,
+.table-of-contents__link--active {
+  color: var(--ifm-color-primary) !important;
+  text-decoration: none;
+}
+
+.table-of-contents__link--active {
+  font-weight: 600;
+}

@@ -15,10 +15,8 @@ export default function NetworksPage() {
       <div>
         <div className="flex justify-between items-center mb-3">
           <div>
-            <h1 className="text-2xl font-semibold">Networks</h1>
-            <p className="text-sm text-muted-foreground">
-              Manage and organize your networks
-            </p>
+            <h1 className="text-2xl font-semibold">Sensor Manufacturers</h1>
+            
           </div>
           <CreateNetworkForm />
         </div>

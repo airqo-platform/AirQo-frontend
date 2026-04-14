@@ -13,7 +13,7 @@ import ReusableButton from "@/components/shared/button/ReusableButton";
 import {
   badgeColorClasses,
   formatDisplayDate,
-  getSimpleStatus,
+  getDeviceStatus,
   getStatusExplanation,
 } from "@/core/utils/status";
 
@@ -36,19 +36,23 @@ export const SiteInformationCard: React.FC<SiteInformationCardProps> = ({ site, 
     ? formatDisplayDate(site.lastActive)
     : null;
 
-  const status = getSimpleStatus(site.isOnline, lastActiveCheck);
+  const status = getDeviceStatus(
+    site.isOnline || false,
+    site.rawOnlineStatus,
+    lastActiveCheck
+  );
   const colors = badgeColorClasses[status.color];
   const Icon = status.icon;
   const explanation = getStatusExplanation(status.label, lastActiveCheck);
 
   return (
-    <Card className="w-full rounded-lg bg-white flex flex-col">
+    <Card className="w-full rounded-lg flex flex-col">
       <div className="px-3 py-2 flex flex-col gap-3">
         <h2 className="text-lg font-semibold">Site Details</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <DetailItem label="Name" value={site.name} />
           <DetailItem label="Description" value={site.description} />
-          <DetailItem label="Network" value={site.network} />
+          <DetailItem label="Sensor Manufacturer" value={site.network} />
           <DetailItem label="Latitude" value={<span className="font-mono">{site.latitude}</span>} />
           <DetailItem label="Longitude" value={<span className="font-mono">{site.longitude}</span>} />
           <DetailItem label="Parish" value={site.parish} />
@@ -80,7 +84,7 @@ export const SiteInformationCard: React.FC<SiteInformationCardProps> = ({ site, 
         </div>
       </div>
       {onEdit && (
-        <div className="border-t p-2 flex justify-end">
+        <div className="border-t border-t-gray-200 dark:border-t-gray-600 p-2 flex justify-end">
           <ReusableButton
             onClick={onEdit}
             Icon={AqEdit01}

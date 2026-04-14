@@ -95,10 +95,27 @@ const ThemeManager: React.FC = () => {
     >
       <div className="space-y-6">
         {/* Reset Button */}
-        <div className="flex justify-end">
+        <div className="flex justify-between items-center">
+          {!themesMatch && groupThemeData?.success && groupThemeData.data && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="w-2 h-2 bg-primary rounded-full"></div>
+              <span>Reset to organization theme</span>
+            </div>
+          )}
+          {themesMatch && (
+            <div className="text-sm text-muted-foreground">
+              {groupThemeData?.success && groupThemeData.data
+                ? 'Using organization theme'
+                : 'Using default theme'}
+            </div>
+          )}
           <Tooltip
             className="bg-black"
-            content={!themesMatch ? 'Use default theme' : 'Reset to defaults'}
+            content={
+              !themesMatch
+                ? 'Reset to organization theme'
+                : 'Reset to default theme'
+            }
             placement="bottom"
           >
             <div className="relative">
@@ -107,7 +124,11 @@ const ThemeManager: React.FC = () => {
                 size="sm"
                 onClick={handleResetDefaults}
                 className="h-8 w-8 p-0"
-                aria-label={!themesMatch ? 'Use default theme' : 'Reset'}
+                aria-label={
+                  !themesMatch
+                    ? 'Reset to organization theme'
+                    : 'Reset to default theme'
+                }
               >
                 <AqRefreshCcw02 size={14} />
               </Button>

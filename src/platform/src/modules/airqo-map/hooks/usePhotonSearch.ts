@@ -1,45 +1,41 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useDebounce } from '@/shared/hooks/useDebounce';
 import { photonService, PhotonSearchResult } from '../services/photonService';
 
 export type { PhotonSearchResult } from '../services/photonService';
 
 export const usePhotonSearch = (query: string, enabled = true) => {
-  const [results, setResults] = useState<PhotonSearchResult[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const debouncedQuery = useDebounce(query, 300);
 
-  const search = useCallback(
-    async (searchQuery: string) => {
-      if (!searchQuery.trim() || !enabled) {
-        setResults([]);
-        return;
-      }
+  const normalizedQuery = debouncedQuery.trim();
+  const shouldFetch = enabled && normalizedQuery.length > 0;
 
-      setIsLoading(true);
-      setError(null);
+  const {
+    data: results = [],
+    isLoading,
+    error,
+    refetch: refetchQuery,
+  } = useQuery<PhotonSearchResult[], Error>({
+    queryKey: ['map', 'photon-search', normalizedQuery],
+    queryFn: () => photonService.search(normalizedQuery, 10),
+    enabled: shouldFetch,
+    networkMode: 'online',
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 60 * 12,
+  });
 
-      try {
-        const searchResults = await photonService.search(searchQuery, 10);
-        setResults(searchResults);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Search failed');
-        setResults([]);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [enabled]
-  );
+  const refetch = useCallback(async () => {
+    if (!shouldFetch) return;
+    await refetchQuery();
+  }, [refetchQuery, shouldFetch]);
 
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      search(query);
-    }, 300); // Debounce 300ms
-
-    return () => clearTimeout(timeoutId);
-  }, [query, search]);
-
-  return { results, isLoading, error, refetch: () => search(query) };
+  return {
+    results: shouldFetch ? results : [],
+    isLoading: shouldFetch ? isLoading : false,
+    error: shouldFetch ? (error?.message ?? null) : null,
+    refetch,
+  };
 };

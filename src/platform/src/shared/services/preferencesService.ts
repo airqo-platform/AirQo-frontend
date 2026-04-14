@@ -12,7 +12,7 @@ import type {
   GetUserPreferencesListResponse,
   ApiErrorResponse,
 } from '../types/api';
-import { getSession } from 'next-auth/react';
+import { syncClientSessionToken } from './sessionAuthToken';
 
 interface EnhancedError extends Error {
   status: number;
@@ -28,12 +28,7 @@ export class PreferencesService {
   }
 
   private async ensureAuthenticated() {
-    const session = await getSession();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const token = (session as any)?.accessToken;
-    if (token) {
-      this.authenticatedClient.setAuthToken(token);
-    }
+    await syncClientSessionToken(this.authenticatedClient);
   }
 
   private createEnhancedError(
@@ -250,7 +245,9 @@ export class PreferencesService {
     try {
       const response = await this.authenticatedClient.put<
         UpdateOrganizationGroupThemeResponse | ApiErrorResponse
-      >(`/users/preferences/theme/organization/group/${groupId}`, data);
+      >(`/users/preferences/theme/organization/group/${groupId}`, {
+        theme: data,
+      });
       const result = response.data;
 
       if ('success' in result && !result.success) {

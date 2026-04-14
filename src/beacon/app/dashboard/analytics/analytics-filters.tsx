@@ -7,12 +7,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
-import { format } from "date-fns"
-import { CalendarIcon, Search } from "lucide-react"
+import { format, subDays } from "date-fns"
+import { CalendarIcon, Search, X } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
+import { useToast } from "@/components/ui/use-toast"
 import { airQloudService, type AirQloudBasic } from "@/services/airqloud.service"
 import { deviceApiService } from "@/services/device-api.service"
 import type { Device } from "@/types/api.types"
@@ -43,6 +44,7 @@ interface SelectedItem {
 }
 
 export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysing }: AnalyticsFiltersProps) {
+  const { toast } = useToast()
   const [filterType, setFilterType] = useState<"airqlouds" | "devices">("airqlouds")
   const [selectedItems, setSelectedItems] = useState<string[]>([])
   const [selectedItemsMap, setSelectedItemsMap] = useState<Map<string, SelectedItem>>(new Map())
@@ -52,6 +54,11 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
   const [devices, setDevices] = useState<Device[]>([])
   const [isLoadingAirqlouds, setIsLoadingAirqlouds] = useState(false)
   const [isLoadingDevices, setIsLoadingDevices] = useState(false)
+
+  // Cohort Tags State
+  const [cohortTags, setCohortTags] = useState<string[]>(["hardware"])
+  const availableTags = ["hardware", "software", "test", "production"] // Hardcoded for now, could be fetched
+
   const [dateRange, setDateRange] = useState<{
     from: Date | undefined
     to: Date | undefined
@@ -66,6 +73,8 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
     from: "12:00",
     to: "11:59",
   })
+
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false)
 
   // Load selected items from localStorage on mount
   useEffect(() => {
@@ -99,11 +108,22 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
       if (filterType === "airqlouds") {
         try {
           setIsLoadingAirqlouds(true)
-          const data = await airQloudService.getAirQloudsBasic({
+          const response = await airQloudService.getAirQloudsBasic({
             search: searchTerm || undefined,
+            tags: cohortTags.length > 0 ? cohortTags.join(",") : undefined,
             limit: 100,
           })
-          setAirqlouds(data)
+          // The API might return { airqlouds: [], meta: {} } or [] depending on the endpoint used in service
+          // getAirQloudsBasic was updated to use the same endpoint structure?
+          // Let's check airqloud.service.ts again. getAirQloudsBasic calls /airqlouds with include_performance=false
+          // The /airqlouds endpoint now returns { airqlouds: [], meta: {} }
+
+          if (Array.isArray(response)) {
+            setAirqlouds(response)
+          } else {
+            // It's the new format
+            setAirqlouds((response as any).airqlouds || [])
+          }
         } catch (error) {
           console.error('Error fetching airqlouds:', error)
         } finally {
@@ -117,7 +137,7 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
     }, 300)
 
     return () => clearTimeout(timer)
-  }, [filterType, searchTerm])
+  }, [filterType, searchTerm, cohortTags])
 
   // Fetch Devices from API
   useEffect(() => {
@@ -146,9 +166,9 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
     return () => clearTimeout(timer)
   }, [filterType, searchTerm])
 
-  const currentItems = filterType === "airqlouds" 
-    ? airqlouds.map(aq => ({ id: aq.id, name: aq.name }))
-    : devices.map(d => ({ id: d.device_id, name: d.device_name }))
+  const currentItems = filterType === "airqlouds"
+    ? airqlouds.map((aq: AirQloudBasic) => ({ id: aq.id, name: aq.name || '', isActive: (aq as any).is_active ?? true }))
+    : devices.map((d: Device) => ({ id: d.name || d.device_name || '', name: d.name || d.device_name || '', isActive: true }))
 
   const handleFilterTypeChange = (value: "airqlouds" | "devices") => {
     setFilterType(value)
@@ -157,10 +177,21 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
     notifyFilterChange(value, [], dateRange, timeRange, includeTime)
   }
 
-  const handleItemSelect = (itemId: string, itemName: string) => {
+  const handleItemSelect = (itemId: string, itemName: string, isActive: boolean = true) => {
+    // Check if trying to select an inactive airqloud
+    if (!isActive && filterType === "airqlouds") {
+      toast({
+        title: "Cannot select untracked Cohort",
+        description: "You need to activate this Cohort to track it. Go to the table below and click on 'Untracked' to enable tracking.",
+        variant: "destructive",
+        duration: 5000,
+      })
+      return
+    }
+
     let newMap = new Map(selectedItemsMap)
     let newSelection: string[]
-    
+
     if (selectedItems.includes(itemId)) {
       // Remove item
       newMap.delete(itemId)
@@ -170,7 +201,7 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
       newMap.set(itemId, { id: itemId, name: itemName })
       newSelection = [...selectedItems, itemId]
     }
-    
+
     setSelectedItemsMap(newMap)
     setSelectedItems(newSelection)
     notifyFilterChange(filterType, newSelection, dateRange, timeRange, includeTime)
@@ -214,19 +245,34 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
     const newMap = new Map(selectedItemsMap)
     newMap.delete(itemId)
     const newSelection = selectedItems.filter(id => id !== itemId)
-    
+
     setSelectedItemsMap(newMap)
     setSelectedItems(newSelection)
     notifyFilterChange(filterType, newSelection, dateRange, timeRange, includeTime)
   }
 
+  const toggleTag = (tag: string) => {
+    setCohortTags(prev =>
+      prev.includes(tag)
+        ? prev.filter(t => t !== tag)
+        : [...prev, tag]
+    )
+  }
+
   // No need for client-side filtering since API handles search
   const filteredItems = currentItems
+
+  // Helper to check if a date is today or in the future
+  const isDateDisabled = (date: Date) => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return date >= today
+  }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Airqloud Uptime Analysis</CardTitle>
+        <CardTitle>Cohort Performance Analysis</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -240,7 +286,7 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="airqlouds">AirQlouds</SelectItem>
+                  <SelectItem value="airqlouds">Cohorts</SelectItem>
                   <SelectItem value="devices">Devices</SelectItem>
                 </SelectContent>
               </Select>
@@ -248,9 +294,28 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
 
             {/* Search and Selection */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">
-                Select {filterType === "airqlouds" ? "AirQlouds" : "Devices"}
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium">
+                  Select {filterType === "airqlouds" ? "Cohorts" : "Devices"}
+                </label>
+              </div>
+
+              {/* Tag Filters for Cohorts */}
+              {filterType === "airqlouds" && (
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {availableTags.map(tag => (
+                    <Badge
+                      key={tag}
+                      variant={cohortTags.includes(tag) ? "default" : "outline"}
+                      className="cursor-pointer capitalize"
+                      onClick={() => toggleTag(tag)}
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -268,26 +333,39 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
                     Loading...
                   </div>
                 ) : filteredItems.length > 0 ? (
-                  filteredItems.map(item => (
-                    <div
-                      key={item.id}
-                      className={cn(
-                        "p-2 cursor-pointer hover:bg-accent transition-colors",
-                        selectedItems.includes(item.id) && "bg-accent"
-                      )}
-                      onClick={() => handleItemSelect(item.id, item.name)}
-                    >
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={selectedItems.includes(item.id)}
-                          onChange={() => {}}
-                          className="cursor-pointer"
-                        />
-                        <span className="text-sm">{item.name}</span>
+                  filteredItems.map(item => {
+                    const isInactive = filterType === "airqlouds" && !item.isActive
+                    return (
+                      <div
+                        key={item.id}
+                        className={cn(
+                          "p-2 cursor-pointer hover:bg-accent transition-colors",
+                          selectedItems.includes(item.id || '') && "bg-accent",
+                          isInactive && "opacity-60"
+                        )}
+                        onClick={() => handleItemSelect(item.id || '', item.name || 'Unknown', item.isActive)}
+                      >
+                        <div className="flex items-center gap-2">
+                          {isInactive ? (
+                            <X className="h-4 w-4 text-red-500 flex-shrink-0" />
+                          ) : (
+                            <input
+                              type="checkbox"
+                              checked={selectedItems.includes(item.id || '')}
+                              onChange={() => { }}
+                              className="cursor-pointer"
+                            />
+                          )}
+                          <span className={cn("text-sm flex-1", isInactive && "text-muted-foreground")}>
+                            {item.name || 'Unknown'}
+                          </span>
+                          {isInactive && (
+                            <span className="text-xs text-red-500">Untracked</span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    )
+                  })
                 ) : (
                   <div className="p-4 text-center text-sm text-muted-foreground">
                     No {filterType} found
@@ -304,7 +382,7 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
               <label className="text-sm font-medium">Date Range</label>
               <div className="grid grid-cols-2 gap-2">
                 {/* Date Range Picker - Half Width */}
-                <Popover>
+                <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
@@ -345,6 +423,7 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
                           })
                         }}
                         numberOfMonths={2}
+                        disabled={(date) => date >= new Date(new Date().setHours(0, 0, 0, 0))}
                       />
                       {/* Date Display */}
                       <div className="mt-4 pt-4 border-t space-y-2">
@@ -362,7 +441,7 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
                             placeholder="End date"
                           />
                         </div>
-                        
+
                         {/* Time Inputs - Only show when includeTime is true */}
                         {includeTime && (
                           <div className="grid grid-cols-2 gap-2">
@@ -378,7 +457,7 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
                             />
                           </div>
                         )}
-                        
+
                         {/* Include Time Checkbox */}
                         <div className="flex items-center space-x-2">
                           <Checkbox
@@ -390,13 +469,20 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
                             Include Time
                           </Label>
                         </div>
-                        
+
                         {/* Action Buttons */}
                         <div className="flex justify-end gap-2 mt-4">
-                          <Button variant="outline" size="sm">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsCalendarOpen(false)}
+                          >
                             Cancel
                           </Button>
-                          <Button size="sm">
+                          <Button
+                            size="sm"
+                            onClick={() => setIsCalendarOpen(false)}
+                          >
                             Apply
                           </Button>
                         </div>
@@ -492,7 +578,7 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
             {/* Selected Items Display */}
             <div className="space-y-2">
               <label className="text-sm font-medium">
-                Selected {filterType === "airqlouds" ? "AirQlouds" : "Devices"} ({selectedItems.length})
+                Selected {filterType === "airqlouds" ? "Cohorts" : "Devices"} ({selectedItems.length})
               </label>
               <div className="border rounded-md p-3 min-h-[100px] max-h-[150px] overflow-y-auto">
                 {selectedItems.length > 0 ? (
@@ -521,7 +607,7 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
             </div>
           </div>
         </div>
-        <Button 
+        <Button
           className="w-full mt-6"
           onClick={() => onAnalyse?.({
             filterType,

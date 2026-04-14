@@ -12,9 +12,10 @@ import { MobileSidebar } from '@/shared/components/ui/mobile-sidebar';
 import { BottomNavigation } from '@/shared/components/ui/bottom-navigation';
 import { SecondaryNavigation } from '@/shared/components/ui/secondary-navigation';
 import { Footer } from '@/shared/components/ui/footer';
+import { NotificationBanner } from '@/shared/components/NotificationBanner';
 import { useAppSelector } from '@/shared/hooks/redux';
-import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
 import { LoadingOverlay } from '@/shared/components/ui/loading-overlay';
+import { LoadingState } from '@/shared/components/ui/loading-state';
 import { useUser } from '@/shared/hooks/useUser';
 
 interface MainLayoutProps {
@@ -84,11 +85,15 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                     )}
                   >
                     {userLoading ? (
-                      <div className="flex items-center justify-center min-h-[400px]">
-                        <LoadingSpinner size={28} />
-                      </div>
+                      <LoadingState text="Loading..." />
                     ) : (
-                      children
+                      <>
+                        <NotificationBanner
+                          type="pending-invites"
+                          className="mb-6"
+                        />
+                        {children}
+                      </>
                     )}
                   </div>
                 </div>

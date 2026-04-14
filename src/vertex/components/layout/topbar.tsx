@@ -22,6 +22,7 @@ import { useLogout } from '@/core/hooks/useLogout';
 import AppDropdown from './AppDropdown';
 import { useSession } from 'next-auth/react';
 import type { UserDetails } from '@/app/types/users';
+import { useTheme } from "next-themes";
 
 interface TopbarProps {
   onMenuClick: () => void;
@@ -30,24 +31,21 @@ interface TopbarProps {
 const AirqoLogoRaw = '/images/airqo_logo.svg';
 
 const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
-  const [darkMode, setDarkMode] = useState(false);
+  const { setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const currentUser = useAppSelector(state => state.user.userDetails);
   const logout = useLogout();
   const router = useRouter();
   const { data: session } = useSession();
 
-  const user = (session?.user as unknown as Partial<UserDetails> & { image?: string | null }) || currentUser;
+  const user = currentUser || (session?.user as unknown as Partial<UserDetails> & { image?: string | null });
 
   useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
+    setMounted(true);
+  }, []);
 
   const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
+    setTheme(resolvedTheme === "dark" ? "light" : "dark");
   };
 
   const handleLogoClick = useCallback(() => {
@@ -95,13 +93,16 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
   };
 
   return (
-    <header className="fixed flex flex-col gap-2 px-1 md:px-2 py-1 top-0 left-0 right-0 z-[999]">
+    <header
+      data-vertex-topbar
+      className="fixed flex flex-col gap-2 px-1 md:px-2 py-1 top-[var(--vertex-ui-top-offset)] left-0 right-0 z-[999]"
+    >
       <Card className={`w-full bg-white`} padding="py-1 px-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             <button
               onClick={onMenuClick}
-              className="inline-flex items-center justify-center focus:outline-none min-h-[32px] hover:bg-blue-50 p-2 rounded-md"
+              className="inline-flex items-center justify-center focus:outline-none min-h-[32px] hover:bg-blue-50 p-2 rounded-md transition-colors duration-200 dark:hover:bg-primary/10"
             >
               <span>
                 <AqMenu01 className="text-foreground" />
@@ -126,7 +127,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
                 >
                   <Avatar className="h-10 w-10">
                     <AvatarImage
-                      src={user?.profilePicture || user?.image || ''}
+                      src={user?.profilePicture || ''}
                       alt={getUserName()}
                     />
                     <AvatarFallback className="bg-primary/10 text-primary">
@@ -139,7 +140,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
                 <div className="flex items-center">
                   <Avatar className="h-10 w-10">
                     <AvatarImage
-                      src={user?.profilePicture || user?.image || ''}
+                      src={user?.profilePicture || ''}
                       alt={getUserName()}
                     />
                     <AvatarFallback className="bg-primary/10 text-primary">
@@ -164,12 +165,12 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
                   onClick={toggleDarkMode}
                   className="flex items-center gap-2"
                 >
-                  {darkMode ? (
+                  {mounted && resolvedTheme === 'dark' ? (
                     <Sun className="h-4 w-4" />
                   ) : (
                     <Moon className="h-4 w-4" />
                   )}
-                  {darkMode ? 'Light Mode' : 'Dark Mode'}
+                  {mounted && resolvedTheme === 'dark' ? 'Light Mode' : 'Dark Mode'}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem

@@ -4,7 +4,7 @@ import {
   createAuthenticatedClient,
   createServerClient,
 } from './apiClient';
-import { getSession } from 'next-auth/react';
+import { syncClientSessionToken } from './sessionAuthToken';
 import type {
   AnalyticsChartRequest,
   AnalyticsChartResponse,
@@ -24,12 +24,7 @@ export class AnalyticsService {
   }
 
   private async ensureAuthenticated() {
-    const session = await getSession();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const token = (session as any)?.accessToken;
-    if (token) {
-      this.authenticatedClient.setAuthToken(token);
-    }
+    await syncClientSessionToken(this.authenticatedClient);
   }
 
   // Get chart data - authenticated endpoint
@@ -59,8 +54,8 @@ export class AnalyticsService {
   async downloadData(
     request: DataDownloadRequest
   ): Promise<DataDownloadResponse | string> {
-    await this.ensureAuthenticated();
-    const response = await this.authenticatedClient.post<
+    // Use server client with API_TOKEN instead of JWT authentication
+    const response = await this.serverClient.post<
       DataDownloadResponse | string
     >('/analytics/data-download', request);
     return response.data;

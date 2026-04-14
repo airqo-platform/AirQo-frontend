@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { ProfileForm, SecurityTab } from './components';
+import { useSearchParams } from 'next/navigation';
+import { ProfileForm, SecurityTab, OrgInvitesTab } from './components';
 import { ApiClientPage } from '../api-client';
 import ThemeManager from '../themes/components/ThemeManager';
 import BillingPage from '../billing/BillingPage';
@@ -12,6 +13,7 @@ import {
   AqKey01,
   AqPalette,
   AqCreditCard01,
+  AqMail04,
 } from '@airqo/icons-react';
 import { Card, LoadingSpinner } from '@/shared/components/ui';
 
@@ -27,9 +29,17 @@ interface ExtendedSessionUser {
 
 const ProfilePage: React.FC = () => {
   const { data: session, status } = useSession();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState(0);
 
   const userId = (session?.user as ExtendedSessionUser)?._id;
+
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'org-invites') {
+      setActiveTab(2); // Org Invites tab
+    }
+  }, [searchParams]);
 
   if (status === 'loading') {
     return (
@@ -53,6 +63,8 @@ const ProfilePage: React.FC = () => {
     { id: 1, title: 'Security', component: () => <SecurityTab /> },
     { id: 2, title: 'API', component: () => <ApiClientPage /> },
     { id: 3, title: 'Billing & Payments', component: () => <BillingPage /> },
+    { id: 2, title: 'Team Invites', component: () => <OrgInvitesTab /> },
+    { id: 3, title: 'API', component: () => <ApiClientPage /> },
     { id: 4, title: 'Theme', component: () => <ThemeManager /> },
   ];
 
@@ -82,6 +94,40 @@ const ProfilePage: React.FC = () => {
               </span>
             </button>
           ))}
+        <nav className="flex overflow-x-auto scrollbar-hide px-4 sm:px-6">
+          <div className="flex space-x-4 sm:space-x-8 min-w-max">
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => tab.component && setActiveTab(tab.id)}
+                disabled={!tab.component}
+                className={`py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${
+                  activeTab === tab.id
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
+                } ${!tab.component ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+              >
+                <span className="flex gap-1.5 sm:gap-2 items-center">
+                  {tab.id === 0 && (
+                    <AqUserCircle size={14} className="sm:w-4 sm:h-4" />
+                  )}
+                  {tab.id === 1 && (
+                    <AqLock02 size={14} className="sm:w-4 sm:h-4" />
+                  )}
+                  {tab.id === 2 && (
+                    <AqMail04 size={14} className="sm:w-4 sm:h-4" />
+                  )}
+                  {tab.id === 3 && (
+                    <AqKey01 size={14} className="sm:w-4 sm:h-4" />
+                  )}
+                  {tab.id === 4 && (
+                    <AqPalette size={14} className="sm:w-4 sm:h-4" />
+                  )}
+                  {tab.title}
+                </span>
+              </button>
+            ))}
+          </div>
         </nav>
       </Card>
 

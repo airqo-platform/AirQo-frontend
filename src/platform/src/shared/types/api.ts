@@ -90,7 +90,7 @@ export interface RoleDetails {
   createdAt: string;
   updatedAt: string;
   role_permissions: RolePermission[];
-  role_users: string[];
+  user_count: number;
   group: RoleGroupInfo;
 }
 
@@ -99,6 +99,44 @@ export interface GetRolesResponse {
   success: boolean;
   message: string;
   roles: RoleDetails[];
+}
+
+export interface UserRoleSummaryPermission {
+  _id: string;
+  permission: string;
+}
+
+export interface UserRoleSummaryGroup {
+  _id: string;
+  grp_title: string;
+  grp_description?: string;
+}
+
+export interface UserRoleSummary {
+  _id: string;
+  role_status: string;
+  role_permissions: UserRoleSummaryPermission[];
+  role_name: string;
+  user_count: number;
+  group: UserRoleSummaryGroup;
+}
+
+export interface GetRolesSummaryResponse {
+  success: boolean;
+  message: string;
+  meta: {
+    total: number;
+    skip: number;
+    limit: number;
+    page: number;
+    pages: number;
+  };
+  roles: UserRoleSummary[];
+}
+
+export interface UpdateUserRoleResponse {
+  success: boolean;
+  message: string;
 }
 
 export interface GetRoleByIdResponse {
@@ -302,6 +340,7 @@ export interface Client {
     expires: string;
     createdAt: string;
     updatedAt: string;
+    token_status?: 'active' | 'expired';
     __v: number;
   };
 }
@@ -500,6 +539,48 @@ export interface GroupCohortsResponse {
   data: string[];
 }
 
+export interface CohortDevice {
+  _id: string;
+  name: string;
+  long_name: string;
+  description: string;
+  device_number: number;
+  isActive: boolean;
+  isOnline: boolean;
+  rawOnlineStatus: boolean;
+  lastRawData: string;
+  lastActive: string;
+  status: string;
+  network: string;
+  createdAt: string;
+}
+
+export interface Cohort {
+  _id: string;
+  groups: string[];
+  visibility: boolean;
+  cohort_tags: string[];
+  cohort_codes: string[];
+  name: string;
+  network: string;
+  createdAt: string;
+  devices: CohortDevice[];
+  numberOfDevices: number;
+}
+
+export interface CohortResponse {
+  success: boolean;
+  message: string;
+  meta: {
+    total: number;
+    limit: number;
+    skip: number;
+    page: number;
+    totalPages: number;
+  };
+  cohorts: Cohort[];
+}
+
 // Grids summary types
 export interface GridSite {
   _id: string;
@@ -591,6 +672,19 @@ export interface Averages {
   };
 }
 
+export interface DeviceCategories {
+  primary_category?: string;
+  deployment_category?: string;
+  mobile_category?: string;
+  ownership_category?: string;
+  all_categories?: string[];
+  is_mobile?: boolean;
+  is_static?: boolean;
+  is_lowcost?: boolean;
+  is_bam?: boolean;
+  is_gas?: boolean;
+}
+
 export interface HealthTip {
   title: string;
   description: string;
@@ -632,6 +726,7 @@ export interface MapReading {
   averages: Averages;
   createdAt: string;
   device: string;
+  device_categories?: DeviceCategories;
   device_id: string;
   frequency: string;
   health_tips: HealthTip[];
@@ -748,6 +843,7 @@ export interface Client {
     expires: string;
     createdAt: string;
     updatedAt: string;
+    token_status?: 'active' | 'expired';
     __v: number;
   };
 }
@@ -815,6 +911,7 @@ export interface GenerateTokenResponse {
     expires: string;
     createdAt: string;
     updatedAt: string;
+    token_status?: 'active' | 'expired';
     __v: number;
   };
 }
@@ -1089,6 +1186,7 @@ export interface RecentReading {
   averages: Averages;
   createdAt: string;
   device: string;
+  device_categories?: DeviceCategories;
   device_id: string;
   frequency: string;
   health_tips: HealthTip[];
@@ -1115,31 +1213,27 @@ export interface BrandingSettings {
 }
 
 export interface CreateOrganizationRequest {
-  organization_name: string;
-  organization_slug: string;
+  city: string;
+  project_name: string;
+  projectName?: string;
+  funder_partner?: string;
+  funderPartner?: string;
   contact_email: string;
   contact_name: string;
-  contact_phone: string;
   use_case: string;
-  organization_type: string;
+  organization_type: 'academic' | 'government' | 'ngo' | 'private' | 'other';
   country: string;
-  branding_settings: BrandingSettings;
 }
 
 export interface CreateOrganizationResponse {
   success: boolean;
   message: string;
   data?: {
-    organization_id: string;
-    organization_slug: string;
+    organization_id?: string;
+    organization_slug?: string;
+    request_id?: string;
     status: string;
   };
-}
-
-export interface SlugAvailabilityResponse {
-  success: boolean;
-  message: string;
-  available: boolean;
 }
 
 // Account deletion
@@ -1159,14 +1253,19 @@ export interface OrganizationRequest {
   status: 'pending' | 'approved' | 'rejected';
   onboarding_completed: boolean;
   onboarding_method: string;
-  organization_name: string;
-  organization_slug: string;
+  organization_name?: string;
+  organization_slug?: string;
+  project_name?: string;
+  projectName?: string;
+  funder_partner?: string;
+  funderPartner?: string;
+  city?: string;
   contact_email: string;
   contact_name: string;
   use_case: string;
   organization_type: string;
   country: string;
-  branding_settings: BrandingSettings;
+  branding_settings?: BrandingSettings;
   createdAt: string;
   updatedAt: string;
   __v: number;
@@ -1339,6 +1438,64 @@ export interface UpdateGroupDetailsResponse {
   group: GroupDetails;
 }
 
+// Unassign User from Group Types
+export interface UnassignUserFromGroupResponse {
+  success: boolean;
+  message: string;
+  data: {
+    _id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    userName: string;
+  };
+}
+
+// Leave Group Types
+export interface LeaveGroupResponse {
+  success: boolean;
+  message: string;
+  left_group: {
+    _id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    userName: string;
+  };
+}
+
+// Set Group Manager Types
+export interface SetGroupManagerResponse {
+  success: boolean;
+  message: string;
+  data: {
+    updated_group: {
+      _id: string;
+      grp_manager: string;
+      grp_title?: string;
+      grp_description?: string;
+    };
+  };
+}
+
+// Update Group Title Types
+export interface UpdateGroupTitleRequest {
+  grp_title: string;
+}
+
+export interface UpdateGroupTitleResponse {
+  success: boolean;
+  message: string;
+  group: {
+    _id: string;
+    grp_title: string;
+    grp_status: string;
+    grp_description?: string;
+    grp_manager?: string;
+    organization_slug?: string;
+  };
+}
+
 // User Statistics Types
 export interface UserStatisticsUser {
   userName: string;
@@ -1437,4 +1594,81 @@ export interface TransactionHistoryResponse {
   success: boolean;
   message: string;
   transactions: Transaction[];
+// Accept Email Invitation Types
+export interface AcceptEmailInvitationRequest {
+  token: string;
+  target_id: string;
+}
+
+export interface AcceptEmailInvitationResponse {
+  success: boolean;
+  message: string;
+}
+
+// Pending Invitations Types
+export interface PendingInvitationEntity {
+  name: string;
+  description?: string;
+  slug: string;
+  type: string;
+}
+
+export interface PendingInvitationInviter {
+  name: string;
+  email: string;
+}
+
+export interface PendingInvitation {
+  invitation_id: string;
+  entity: PendingInvitationEntity;
+  inviter: PendingInvitationInviter | null;
+  invited_at: string;
+  expires_at: string;
+  request_type: string;
+  target_id: string;
+}
+
+export interface GetPendingInvitationsResponse {
+  success: boolean;
+  message: string;
+  invitations: PendingInvitation[];
+}
+
+// Accept Invitation Types
+export interface AcceptInvitationUser {
+  _id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface AcceptInvitationOrganization {
+  id: string;
+  name: string;
+  type: string;
+}
+
+export interface AcceptInvitationData {
+  user: AcceptInvitationUser;
+  organization: AcceptInvitationOrganization;
+  login_url: string;
+  isNewUser: boolean;
+}
+
+export interface AcceptInvitationResponse {
+  success: boolean;
+  message: string;
+  data: AcceptInvitationData;
+}
+
+// Reject Invitation Types
+export interface RejectInvitationData {
+  invitation_id: string;
+  status: string;
+}
+
+export interface RejectInvitationResponse {
+  success: boolean;
+  message: string;
+  data: RejectInvitationData;
 }

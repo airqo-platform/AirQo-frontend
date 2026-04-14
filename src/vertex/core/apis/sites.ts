@@ -1,6 +1,7 @@
 import createSecureApiClient from "../utils/secureApiProxyClient";
 import { Site } from "@/app/types/sites";
 import { PaginationMeta } from "@/app/types/devices";
+import { DeviceActivitiesResponse } from "./devices";
 
 interface ApproximateCoordinatesResponse {
   success: boolean;
@@ -14,6 +15,8 @@ interface ApproximateCoordinatesResponse {
     provided_longitude?: number;
   };
 }
+
+
 
 interface SiteDetailsResponse {
   message: string;
@@ -35,6 +38,17 @@ export interface GetSitesSummaryParams {
   search?: string;
   sortBy?: string;
   order?: "asc" | "desc";
+}
+
+export interface SitesSummaryCountResponse {
+  message: string;
+  summary: {
+    total_sites: number;
+    operational: number;
+    transmitting: number;
+    not_transmitting: number;
+    data_available: number;
+  };
 }
 
 interface UpdateSiteRequest {
@@ -103,6 +117,37 @@ export const sites = {
       const response = await createSecureApiClient().post<SitesSummaryResponse>(
         `/devices/cohorts/sites?${queryParams.toString()}`,
         { cohort_ids },
+        { headers: { "X-Auth-Type": "JWT" } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  getSitesByStatusApi: async (params: {
+    status: string;
+    limit?: number;
+    skip?: number;
+    search?: string;
+    sortBy?: string;
+    order?: "asc" | "desc";
+    network?: string;
+    group?: string;
+  }): Promise<SitesSummaryResponse> => {
+    try {
+      const { status, ...rest } = params;
+      const queryParams = new URLSearchParams();
+      
+      Object.entries(rest).forEach(([key, value]) => {
+        if (value !== undefined) {
+          queryParams.set(key, String(value));
+        }
+      });
+
+      const formattedStatus = status.replace(/_/g, '-').replace(/ /g, '-');
+      const response = await createSecureApiClient().get<SitesSummaryResponse>(
+        `/devices/sites/status/${formattedStatus}?${queryParams.toString()}`,
         { headers: { "X-Auth-Type": "JWT" } }
       );
       return response.data;
@@ -181,6 +226,40 @@ export const sites = {
       throw error;
     }
   },
+  getSitesSummaryCount: async (params: { network?: string }): Promise<SitesSummaryCountResponse> => {
+    try {
+      const { network } = params;
+      const queryParams = new URLSearchParams();
+      if (network) queryParams.set("network", network);
+
+      const response = await createSecureApiClient().get<SitesSummaryCountResponse>(
+        `/devices/sites/summary/count?${queryParams.toString()}`,
+        { headers: { "X-Auth-Type": "JWT" } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  getSiteActivities: async (siteId: string, params: { page?: number; limit?: number } = {}): Promise<DeviceActivitiesResponse> => {
+    try {
+        const { page = 1, limit = 10 } = params;
+        const queryParams = new URLSearchParams({
+            site_id: siteId,
+            page: String(page),
+            limit: String(limit)
+        });
+
+        const response = await createSecureApiClient().get<DeviceActivitiesResponse>(
+            `/devices/activities?${queryParams.toString()}`,
+            { headers: { "X-Auth-Type": "JWT" } }
+        );
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+  }
 };
 
 export type { ApproximateCoordinatesResponse };

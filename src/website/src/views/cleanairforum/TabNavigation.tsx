@@ -1,0 +1,77 @@
+// components/layouts/TabNavigation.tsx
+'use client';
+
+import { useParams, usePathname, useRouter } from 'next/navigation';
+import React from 'react';
+
+const TabNavigation: React.FC = () => {
+  const pathname = usePathname();
+  const params = useParams();
+  const router = useRouter();
+
+  // Get the uniqueTitle from the current URL params
+  const uniqueTitle = params.uniqueTitle as string;
+
+  // Function to check if the tab is active based on the current pathname.
+  const isActiveTab = (path: string) => {
+    const target = buildHref(path);
+    // Normalize for trailing slashes
+    const norm = (p: string) =>
+      p.endsWith('/') && p !== '/' ? p.slice(0, -1) : p;
+    return (
+      norm(pathname) === norm(target) ||
+      norm(pathname).startsWith(`${norm(target)}/`)
+    );
+  };
+
+  // Define the tabs list.
+  const tabs = [
+    { href: '/about', text: 'About' },
+    { href: '/program-committee', text: 'Programme Committee' },
+    { href: '/sessions', text: 'Schedule' },
+    { href: '/speakers', text: 'Speakers' },
+    { href: '/partners', text: 'Partners' },
+    { href: '/sponsorships', text: 'Sponsorships' },
+    { href: '/logistics', text: 'Travel Logistics' },
+    { href: '/glossary', text: 'Glossary' },
+    { href: '/resources', text: 'Resources' },
+  ];
+
+  // Build href with uniqueTitle if it exists
+  const buildHref = (href: string) => {
+    if (uniqueTitle) {
+      const encodedUniqueTitle = encodeURIComponent(uniqueTitle);
+      return `/africa-clean-air-forum/${encodedUniqueTitle}${href}`;
+    }
+    return `/africa-clean-air-forum${href}`;
+  };
+
+  const handleTabClick = (href: string) => {
+    router.push(buildHref(href));
+  };
+
+  return (
+    <div className="w-full py-10">
+      <div className="w-full bg-gray-50 py-4 overflow-x-auto">
+        <div className="max-w-5xl mx-auto flex flex-nowrap items-center space-x-6 px-4 lg:px-0">
+          {tabs.map((link, index) => (
+            <button
+              key={index}
+              onClick={() => handleTabClick(link.href)}
+              className={`relative flex-shrink-0 no-underline text-gray-700 hover:text-gray-900 transition ${
+                isActiveTab(link.href) ? 'font-semibold text-gray-900' : ''
+              }`}
+            >
+              {link.text}
+              {isActiveTab(link.href) && (
+                <span className="absolute left-0 -bottom-2 h-[2px] w-full bg-gray-900" />
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default TabNavigation;

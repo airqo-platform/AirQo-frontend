@@ -14,6 +14,7 @@ import CreateDeviceModal from "@/components/features/devices/create-device-modal
 import ImportDeviceModal from "@/components/features/devices/import-device-modal";
 import { useState } from "react";
 import { usePermission } from "@/core/hooks/usePermissions";
+import { NetworkStatsCards } from "@/components/features/networks/NetworkStatsCards";
 
 // Loading skeleton for content grid
 const ContentGridSkeleton = () => (
@@ -44,7 +45,7 @@ export default function NetworkDetailsPage() {
         <RouteGuard permission={PERMISSIONS.NETWORK.VIEW}>
             <div>
                 <div className="flex justify-between items-center">
-                    <ReusableButton variant="text" onClick={() => router.back()} Icon={AqArrowLeft}>
+                    <ReusableButton variant="text" onClick={() => router.push("/admin/networks")} Icon={AqArrowLeft}>
                         Back
                     </ReusableButton>
                     <div className="flex gap-2">
@@ -64,7 +65,7 @@ export default function NetworkDetailsPage() {
                                 Icon={Upload}
                                 permission={PERMISSIONS.DEVICE.UPDATE}
                             >
-                                Import Device
+                                Import External Device
                             </ReusableButton>
                         )}
                     </div>
@@ -85,12 +86,12 @@ export default function NetworkDetailsPage() {
                     <ContentGridSkeleton />
                 ) : error ? (
                     <div className="mt-6 text-sm text-muted-foreground">
-                        Unable to load network details:{" "}
+                        Unable to load Sensor Manufacturer details:{" "}
                         {String((error as Error)?.message || "Unknown error")}
                     </div>
                 ) : !network ? (
                     <div className="mt-6 text-sm text-muted-foreground">
-                        Network not found
+                        Sensor Manufacturer not found
                     </div>
                 ) : (
                     <div className="flex flex-col gap-6">
@@ -100,6 +101,14 @@ export default function NetworkDetailsPage() {
                                 name={network.net_name}
                                 id={network._id}
                                 loading={isLoading}
+                            />
+                        </div>
+
+                        {/* Network Stats Cards */}
+                        <div className="space-y-4">
+                            <NetworkStatsCards
+                                networkId={network._id}
+                                networkName={network.net_name}
                             />
                         </div>
 

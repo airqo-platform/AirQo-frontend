@@ -5,12 +5,31 @@ import axios, {
   InternalAxiosRequestConfig,
 } from 'axios';
 import logger from '@/shared/lib/logger';
+import { normalizeOAuthAccessToken } from '@/shared/lib/oauth-session';
+
+const UNAUTHORIZED_EVENT_NAME = 'auth:unauthorized';
+const UNAUTHORIZED_EVENT_COOLDOWN_MS = 1500;
+const API_FAILURE_NOTIFY_COOLDOWN_MS = 10 * 60 * 1000;
+
+const apiFailureNotificationCache = new Map<string, number>();
 
 // Extended type for config with metadata
 interface RequestConfigWithMetadata extends InternalAxiosRequestConfig {
   metadata?: {
     startTime: number;
   };
+}
+
+interface UnauthorizedEventDetail {
+  status: number;
+  data: unknown;
+  url?: string;
+}
+
+declare global {
+  interface Window {
+    __airqoUnauthorizedEventLastAt?: number;
+  }
 }
 
 // Safe JSON stringification to prevent circular reference errors and memory leaks
@@ -47,6 +66,39 @@ const safeStringify = (obj: unknown, maxLength = 1000): string => {
   }
 };
 
+const dispatchUnauthorizedEvent = (detail: UnauthorizedEventDetail) => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  const now = Date.now();
+  const lastEventAt = window.__airqoUnauthorizedEventLastAt || 0;
+  if (now - lastEventAt < UNAUTHORIZED_EVENT_COOLDOWN_MS) {
+    return;
+  }
+
+  window.__airqoUnauthorizedEventLastAt = now;
+  window.dispatchEvent(new CustomEvent(UNAUTHORIZED_EVENT_NAME, { detail }));
+};
+
+const shouldNotifyApiFailure = (key: string): boolean => {
+  const now = Date.now();
+
+  apiFailureNotificationCache.forEach((ts, cacheKey) => {
+    if (now - ts > API_FAILURE_NOTIFY_COOLDOWN_MS) {
+      apiFailureNotificationCache.delete(cacheKey);
+    }
+  });
+
+  const lastNotifiedAt = apiFailureNotificationCache.get(key);
+  if (lastNotifiedAt && now - lastNotifiedAt < API_FAILURE_NOTIFY_COOLDOWN_MS) {
+    return false;
+  }
+
+  apiFailureNotificationCache.set(key, now);
+  return true;
+};
+
 // Auth types
 export enum AuthType {
   NONE = 'none',
@@ -66,7 +118,6 @@ export class ApiClient {
 
     this.client = axios.create({
       baseURL: this.baseUrl,
-      timeout: 60000,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -143,7 +194,6 @@ export class ApiClient {
           status: error.response?.status,
           statusText: error.response?.statusText,
           baseURL: error.config?.baseURL,
-          timeout: error.config?.timeout,
           duration: error.config?.metadata?.startTime
             ? Date.now() - error.config.metadata.startTime
             : undefined,
@@ -154,6 +204,13 @@ export class ApiClient {
             : 0,
         };
 
+        const method = error.config?.method?.toUpperCase() || 'UNKNOWN';
+        const url = error.config?.url || 'unknown-url';
+        const status = error.response?.status;
+        const errorCode = error.code || 'no-code';
+        const notifyKey = `${method}:${url}:${status || errorCode}`;
+        const canNotify = shouldNotifyApiFailure(notifyKey);
+
         if (error.response?.status === 401) {
           // 401 Unauthorized - expected behavior, don't send to Slack
           // Log at warn level for debugging purposes only
@@ -163,17 +220,11 @@ export class ApiClient {
           });
 
           // Dispatch event with error details for smart handling
-          if (typeof window !== 'undefined') {
-            window.dispatchEvent(
-              new CustomEvent('auth:unauthorized', {
-                detail: {
-                  status: error.response.status,
-                  data: error.response.data,
-                  url: error.config?.url,
-                },
-              })
-            );
-          }
+          dispatchUnauthorizedEvent({
+            status: error.response.status,
+            data: error.response.data,
+            url: error.config?.url,
+          });
         } else if (error.response?.status === 403) {
           // 403 Forbidden - permission issue, log but don't spam Slack
           logger.warn('Forbidden API access', {
@@ -190,10 +241,17 @@ export class ApiClient {
             `API Server Error: ${error.response.status} ${error.response.statusText}`
           );
           apiError.name = 'APIServerError';
-          logger.critical('API server error occurred', apiError, {
-            ...errorContext,
-            responseData: error.response.data,
-          });
+          if (canNotify) {
+            logger.critical('API server error occurred', apiError, {
+              ...errorContext,
+              responseData: error.response.data,
+            });
+          } else {
+            logger.error('Suppressed duplicate API server error notification', {
+              ...errorContext,
+              responseData: error.response.data,
+            });
+          }
         } else if (error.response?.status === 429) {
           // 429 Rate Limit - warn but don't spam Slack
           logger.warn('API rate limit exceeded', {
@@ -203,20 +261,40 @@ export class ApiClient {
         } else if (error.response?.status >= 400) {
           // Other 4xx Client errors - log locally but only send serious ones to Slack
           // Avoid sending validation errors (400, 422) to Slack in production
-          const shouldNotifySlack =
-            error.response.status >= 405 && // Skip validation errors (400, 404 already handled)
-            error.response.status !== 408 && // Skip request timeout (client-side)
-            error.response.status !== 429; // Skip rate limiting (already handled)
-
-          if (shouldNotifySlack) {
-            const apiError = new Error(
-              `API Client Error: ${error.response.status} ${error.response.statusText}`
-            );
-            apiError.name = 'APIClientError';
-            logger.errorWithSlack('API client error occurred', apiError, {
+          const status = error.response.status;
+          if (status === 409) {
+            // 409 Conflict is often an expected business-rule outcome
+            // (e.g. duplicate account/email) and should not page on-call.
+            logger.warn('API conflict response', {
               ...errorContext,
               responseData: error.response.data,
             });
+            return Promise.reject(error);
+          }
+
+          const shouldNotifySlack =
+            status >= 405 && // Skip validation errors (400, 404 already handled)
+            status !== 429; // Skip rate limiting (already handled)
+
+          if (shouldNotifySlack) {
+            const apiError = new Error(
+              `API Client Error: ${status} ${error.response.statusText}`
+            );
+            apiError.name = 'APIClientError';
+            if (canNotify) {
+              logger.errorWithSlack('API client error occurred', apiError, {
+                ...errorContext,
+                responseData: error.response.data,
+              });
+            } else {
+              logger.error(
+                'Suppressed duplicate API client error notification',
+                {
+                  ...errorContext,
+                  responseData: error.response.data,
+                }
+              );
+            }
           } else {
             // Log validation and expected errors locally only
             logger.warn('API validation error', {
@@ -224,31 +302,27 @@ export class ApiClient {
               responseData: error.response.data,
             });
           }
-        } else if (
-          error.code === 'ECONNABORTED' ||
-          error.message?.includes('timeout')
-        ) {
-          // Timeout errors - notify Slack as these are serious connectivity issues
-          const timeoutError = new Error(
-            `API request timeout: ${error.config?.timeout}ms`
-          );
-          timeoutError.name = 'APITimeoutError';
-          logger.errorWithSlack(
-            'API request timed out',
-            timeoutError,
-            errorContext
-          );
         } else if (error.code === 'ERR_NETWORK' || !error.response) {
           // Network errors - critical infrastructure issues, notify Slack
           const networkError = new Error(
             `Network error: ${error.message || 'Unable to reach API'}`
           );
           networkError.name = 'APINetworkError';
-          logger.errorWithSlack(
-            'API network error occurred',
-            networkError,
-            errorContext
-          );
+          if (canNotify) {
+            logger.errorWithSlack(
+              'API network error occurred',
+              networkError,
+              errorContext
+            );
+          } else {
+            logger.error(
+              'Suppressed duplicate API network error notification',
+              {
+                ...errorContext,
+                errorCode,
+              }
+            );
+          }
         } else {
           // Unknown/other errors - log but evaluate if Slack notification is needed
           const otherError = new Error(`API error: ${error.message}`);
@@ -315,8 +389,12 @@ export class ApiClient {
 
   // Method to add JWT token for authenticated requests
   setAuthToken(token: string) {
-    // Handle edge case where token might already have "JWT " prefix
-    const cleanToken = token.startsWith('JWT ') ? token : `JWT ${token}`;
+    const normalizedToken = normalizeOAuthAccessToken(token);
+    if (!normalizedToken) {
+      this.removeAuthToken();
+      return;
+    }
+    const cleanToken = `Bearer ${normalizedToken}`;
     this.client.defaults.headers.common['Authorization'] = cleanToken;
   }
 

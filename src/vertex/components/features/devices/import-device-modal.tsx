@@ -8,6 +8,11 @@ import ReusableButton from "@/components/shared/button/ReusableButton";
 import { useImportDevice } from "@/core/hooks/useDevices";
 import { DEVICE_CATEGORIES } from "@/core/constants/devices";
 import { useNetworks } from "@/core/hooks/useNetworks";
+import { useUserContext } from "@/core/hooks/useUserContext";
+import { useGroupCohorts } from "@/core/hooks/useCohorts";
+import { useAppSelector } from "@/core/redux/hooks";
+import { usePathname } from "next/navigation";
+import logger from "@/lib/logger";
 
 interface ImportDeviceModalProps {
   open: boolean;
@@ -29,12 +34,25 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
     device_number: "",
     writeKey: "",
     readKey: "",
+    api_code: "",
   });
 
   const [showMore, setShowMore] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const importDevice = useImportDevice();
   const { networks, isLoading: isLoadingNetworks } = useNetworks();
+
+  const { userContext, activeGroup } = useUserContext();
+  const userDetails = useAppSelector((state) => state.user.userDetails);
+
+  const shouldFetchGroupCohorts = userContext === 'external-org' && !!activeGroup?._id;
+
+  const { data: groupCohorts } = useGroupCohorts(activeGroup?._id, {
+    enabled: shouldFetchGroupCohorts,
+  });
+
+  const pathname = usePathname();
+  const isAdminPage = pathname?.startsWith('/admin/');
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -43,15 +61,27 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       newErrors.long_name = "Device name is required";
     }
     if (!formData.network) {
-      newErrors.network = "Network is required";
+      newErrors.network = "Sensor Manufacturer is required";
     }
 
     if (!formData.serial_number.trim()) {
       newErrors.serial_number = "Serial number is required";
     }
 
+    if (!formData.api_code?.trim()) {
+      newErrors.api_code = "Device Connection URL is required";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const getCohortId = (): string | undefined => {
+    if (userContext === 'external-org' && groupCohorts && groupCohorts.length > 0) {
+      return groupCohorts[0];
+    }
+
+    return undefined;
   };
 
   const handleSubmit = () => {
@@ -61,16 +91,25 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
 
     const deviceDataToSend = { ...formData };
 
-    // Remove fields with empty values
     (Object.keys(deviceDataToSend) as Array<keyof typeof deviceDataToSend>).forEach((key) => {
       if (!deviceDataToSend[key]) {
         delete deviceDataToSend[key];
       }
     });
 
+    const cohortId = getCohortId();
+    const userId = userDetails?._id;
+
+    if (!userId) {
+      logger.warn("User ID is missing");
+      return;
+    }
+
     importDevice.mutate(
       {
         ...deviceDataToSend,
+        user_id: userId,
+        ...(cohortId && { cohort_id: cohortId }),
       },
       { onSuccess: () => onOpenChange(false) }
     );
@@ -106,6 +145,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         device_number: "",
         writeKey: "",
         readKey: "",
+        api_code: "",
       });
       setErrors({});
       setShowMore(false);
@@ -116,10 +156,10 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
     <ReusableDialog
       isOpen={open}
       onClose={handleClose}
-      title="Import Device"
+      title="Import External Device"
       size="md"
       primaryAction={{
-        label: importDevice.isPending ? "Importing..." : "Import Device",
+        label: importDevice.isPending ? "Importing..." : "Import External Device",
         onClick: handleSubmit,
         disabled: importDevice.isPending,
         className: "min-w-[100px]",
@@ -131,7 +171,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         variant: "outline",
       }}
     >
-      <div className="space-y-4">
+      <div className="space-y-2">
         {errors.general && (
           <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
             {errors.general}
@@ -148,22 +188,40 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
           required
         />
 
-        <ReusableSelectInput
-          label="Network"
-          id="network"
-          value={formData.network}
-          onChange={(e) => handleInputChange("network", e.target.value)}
-          error={errors.network}
-          required
-          placeholder={isLoadingNetworks ? "Loading networks..." : "Select a network"}
-          disabled={isLoadingNetworks}
-        >
-          {networks.map((network) => (
-            <option key={network.net_name} value={network.net_name}>
-              {network.net_name}
-            </option>
-          ))}
-        </ReusableSelectInput>
+        <div>
+          <ReusableSelectInput
+            label="Sensor Manufacturer"
+            id="network"
+            value={formData.network}
+            onChange={(e) => handleInputChange("network", e.target.value)}
+            error={errors.network}
+            required
+            placeholder={isLoadingNetworks ? "Loading Sensor Manufacturer..." : "Select a Sensor Manufacturer"}
+            disabled={isLoadingNetworks}
+          >
+            {networks
+              .filter((network) => network.net_name.toLowerCase() !== 'airqo')
+              .map((network) => (
+                <option key={network.net_name} value={network.net_name}>
+                  {network.net_name}
+                </option>
+              ))}
+          </ReusableSelectInput>
+
+          {!isAdminPage && (
+            <div className="flex justify-end">
+              <ReusableButton
+                path="https://forms.gle/EjKHDrHhzma1xz187"
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="text"
+                className="text-xs p-0 px-1 mt-1 h-auto"
+              >
+                Can&apos;t find your Sensor Manufacturer?
+              </ReusableButton>
+            </div>
+          )}
+        </div>
 
         <ReusableSelectInput
           label="Category"
@@ -187,6 +245,16 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
           onChange={(e) => handleInputChange("serial_number", e.target.value)}
           placeholder="Enter serial number"
           error={errors.serial_number}
+          required
+        />
+
+        <ReusableInputField
+          label="Device Connection URL"
+          id="api_code"
+          value={formData.api_code}
+          onChange={(e) => handleInputChange("api_code", e.target.value)}
+          placeholder="https://api.mair.com/v1/12345"
+          error={errors.api_code}
           required
         />
 

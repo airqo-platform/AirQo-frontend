@@ -4,3 +4,5 @@ export * from './cloudinaryUpload';
 export * from './dateUtils';
 export * from './errorMessages';
 export * from './userUtils';
+export * from './enhancedAnalytics';
+export * from './groupUtils';

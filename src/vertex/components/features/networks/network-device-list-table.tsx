@@ -1,8 +1,8 @@
 
 import { Device } from "@/app/types/devices";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import ReusableTable from "@/components/shared/table/ReusableTable";
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useNetworkDevices } from "@/core/hooks/useNetworks";
 import { getColumns, type TableDevice } from "@/components/features/devices/utils/table-columns";
 import { useServerSideTableState } from "@/core/hooks/useServerSideTableState";
@@ -26,11 +26,9 @@ export default function NetworkDevicesTable({
     className,
 }: NetworkDevicesTableProps) {
     const router = useRouter();
-    const tableRef = useRef<HTMLDivElement>(null);
     const [selectedDeviceObjects, setSelectedDeviceObjects] = useState<TableDevice[]>([]);
     const [showAssignDialog, setShowAssignDialog] = useState(false);
     const [showUnassignDialog, setShowUnassignDialog] = useState(false);
-
 
     const {
         pagination,
@@ -41,6 +39,9 @@ export default function NetworkDevicesTable({
         setSorting,
     } = useServerSideTableState({ initialPageSize: itemsPerPage });
 
+    const searchParams = useSearchParams();
+    const status = searchParams.get("status");
+
     const { devices, meta, isFetching, isLoading, error } = useNetworkDevices({
         page: pagination.pageIndex + 1,
         limit: pagination.pageSize,
@@ -48,14 +49,8 @@ export default function NetworkDevicesTable({
         sortBy: sorting[0]?.id,
         order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined,
         network: networkName,
+        filterStatus: status || undefined,
     });
-
-    // Scroll to top of table when page changes
-    useEffect(() => {
-        if (tableRef.current) {
-            tableRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-    }, [pagination.pageIndex]);
 
     const pageCount = meta?.totalPages ?? 0;
 
@@ -98,9 +93,9 @@ export default function NetworkDevicesTable({
     const columns = useMemo(() => getColumns(false), []);
 
     return (
-        <div ref={tableRef} className={`space-y-4 ${className}`}>
+        <div className={`space-y-4 ${className}`}>
             <ReusableTable
-                title="Network Devices"
+                title="Sensor Manufacturer Devices"
                 data={devicesWithId}
                 columns={columns}
                 loading={isFetching || isLoading}

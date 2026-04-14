@@ -341,7 +341,7 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
       )}
 
       <CardContent ref={exportRef} className="pl-1 pb-2 flex-1">
-        <div className="w-full h-full flex justify-center items-center min-h-[400px]">
+        <div className="relative w-full h-full flex justify-center items-center min-h-[400px]">
           {error && (
             <div className="flex items-center justify-center h-64 text-destructive">
               <div className="text-center">
@@ -390,18 +390,6 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
                 <LoadingSpinner />
                 <p className="text-sm text-muted-foreground">
                   Exporting chart...
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Refresh loading indicator */}
-          {isRefreshing && (
-            <div className="absolute top-4 right-4 bg-background/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg border z-20">
-              <div className="flex items-center space-x-2">
-                <LoadingSpinner className="h-4 w-4" />
-                <p className="text-xs text-muted-foreground">
-                  Refreshing data...
                 </p>
               </div>
             </div>

@@ -6,13 +6,14 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import { config } from '@/lib/config';
 import authService from './api-service';
-import { 
-  FirmwareVersion, 
-  FirmwareUploadData, 
+import { isMockMode, getMockFirmwareVersions } from '@/lib/mock-data';
+import {
+  FirmwareVersion,
+  FirmwareUploadData,
   FirmwareUpdateData,
   FirmwareListParams,
   FirmwareDownloadParams,
-  FirmwareType 
+  FirmwareType
 } from '@/types/firmware.types';
 
 class FirmwareService {
@@ -22,14 +23,15 @@ class FirmwareService {
   constructor() {
     // Use centralized config for API URL
     this.baseUrl = config.beaconApiUrl;
-    this.apiPrefix = config.apiPrefix || '/api/v1';
+    this.apiPrefix = config.beaconApiPrefix || (config.isLocalhost ? '/api/v1' : '/api/v1/beacon');
   }
 
   /**
    * Get the appropriate endpoint based on environment
    */
   private getEndpoint(path: string): string {
-    return config.isLocalhost ? path : `${this.apiPrefix}/beacon${path}`;
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    return `${this.apiPrefix}${cleanPath}`;
   }
 
   /**
@@ -39,7 +41,7 @@ class FirmwareService {
     if (config.isLocalhost) {
       return {};
     }
-    
+
     const token = authService.getToken();
     if (token) {
       return { 'Authorization': token };
@@ -64,6 +66,8 @@ class FirmwareService {
    * Get all firmware versions
    */
   async getAllFirmwares(params?: FirmwareListParams): Promise<FirmwareVersion[]> {
+    if (isMockMode()) return getMockFirmwareVersions() as any
+
     try {
       const queryParams = new URLSearchParams();
       if (params?.skip !== undefined) queryParams.append('skip', params.skip.toString());
@@ -86,6 +90,8 @@ class FirmwareService {
    * Get the latest firmware version
    */
   async getLatestFirmware(firmware_type?: FirmwareType): Promise<FirmwareVersion> {
+    if (isMockMode()) return getMockFirmwareVersions()[0] as any
+
     try {
       const queryParams = firmware_type ? `?firmware_type=${firmware_type}` : '';
       const endpoint = this.getEndpoint('/firmware/latest');
@@ -104,6 +110,11 @@ class FirmwareService {
    * Get specific firmware by ID
    */
   async getFirmwareById(firmwareId: string): Promise<FirmwareVersion> {
+    if (isMockMode()) {
+      const all = getMockFirmwareVersions() as any
+      return all.find((f: any) => f.id === firmwareId) || all[0]
+    }
+
     try {
       const endpoint = this.getEndpoint(`/firmware/${firmwareId}`);
       const response = await axios.get(
@@ -144,7 +155,7 @@ class FirmwareService {
       const response = await axios.post(
         `${this.baseUrl}${endpoint}`,
         formData,
-        this.getAxiosConfig({ headers: { 'Content-Type': 'multipart/form-data' } })
+        this.getAxiosConfig()
       );
 
       return response.data;
@@ -178,7 +189,7 @@ class FirmwareService {
   async downloadFirmware(params: FirmwareDownloadParams): Promise<Blob> {
     try {
       let url: string;
-      
+
       if (params.firmware_id) {
         const endpoint = this.getEndpoint(`/firmware/${params.firmware_id}/download/${params.file_type}`);
         url = `${this.baseUrl}${endpoint}`;
@@ -217,7 +228,7 @@ class FirmwareService {
    */
   formatFileSize(bytes?: number): string {
     if (bytes === undefined || bytes === null) return 'N/A';
-    
+
     if (bytes < 1024) return `${bytes} B`;
     else if (bytes < 1048576) return `${(bytes / 1024).toFixed(2)} KB`;
     else return `${(bytes / 1048576).toFixed(2)} MB`;
@@ -228,7 +239,7 @@ class FirmwareService {
    */
   getFirmwareTypeBadgeColor(type?: string | null): string {
     if (!type) return 'bg-gray-500';
-    
+
     switch (type.toLowerCase()) {
       case 'stable':
         return 'bg-green-500';

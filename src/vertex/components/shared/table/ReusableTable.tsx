@@ -225,6 +225,7 @@ interface TableHeaderProps<T> {
   exportable: boolean;
   onExportClick: () => void;
   hasData: boolean;
+  customHeaderContent?: ReactNode;
 }
 
 const TableHeader = <T extends TableItem>({
@@ -241,6 +242,7 @@ const TableHeader = <T extends TableItem>({
   exportable,
   onExportClick,
   hasData,
+  customHeaderContent,
 }: TableHeaderProps<T>) => {
   return (
     <div className="px-6 py-2 border-b bg-white border-gray-200 dark:border-gray-600 dark:bg-[#1d1f20] rounded-t-lg shadow-sm">
@@ -254,6 +256,7 @@ const TableHeader = <T extends TableItem>({
           )}
         </div>
         <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+          {customHeaderContent}
           {exportable && (
             <ReusableButton
               onClick={onExportClick}
@@ -562,6 +565,7 @@ interface ReusableTableProps<T extends TableItem> {
   searchTerm?: string;
   exportable?: boolean;
   onExport?: (format: 'csv', selectedColumns: string[]) => Promise<void>;
+  customHeaderContent?: ReactNode;
 }
 
 // Normalize any value to a searchable string
@@ -622,9 +626,10 @@ const ReusableTable = <T extends TableItem>({
   onSortingChange,
   onSearchChange,
   searchTerm: searchTermProp,
-  stickyHeader = true,
+  stickyHeader = false,
   exportable = true,
   onExport,
+  customHeaderContent,
 }: ReusableTableProps<T>) => {
   const router = useRouter();
   const pathname = usePathname();
@@ -725,24 +730,38 @@ const ReusableTable = <T extends TableItem>({
     setSearchInput(searchTerm);
   }, [searchTerm]);
 
+  // Helper to validate search input
+  const validateSearchInput = (input: string) => {
+    // Block URLs and common invalid patterns that might trigger WAFs or router loops
+    if (/https?:\/\/|www\./i.test(input)) return false;
+    return true;
+  };
+
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (searchInput !== searchTerm) {
-        if (serverSidePagination) {
-          onSearchChange?.(searchInput);
-          return;
-        }
-
-        if (tableId) { // client-side with URL persistence
-          updateUrlState({ search: searchInput, page: 1 });
-        } else {
-          setLocalSearchTerm(searchInput);
-          if (!serverSidePagination) setLocalCurrentPage(1);
-        }
+    if (searchInput !== searchTerm) {
+      // Validate input before processing
+      if (!validateSearchInput(searchInput)) {
+        return;
       }
-    }, 300); // 300ms debounce delay
 
-    return () => clearTimeout(timer);
+      if (serverSidePagination) {
+        const t = setTimeout(() => {
+          onSearchChange?.(searchInput);
+        }, 400);
+        return () => clearTimeout(t);
+      }
+
+      if (tableId) {
+        const t = setTimeout(() => {
+          updateUrlState({ search: searchInput, page: 1 });
+        }, 400);
+
+        return () => clearTimeout(t);
+      } else {
+        setLocalSearchTerm(searchInput);
+        if (!serverSidePagination) setLocalCurrentPage(1);
+      }
+    }
   }, [
     searchInput,
     searchTerm,
@@ -1278,7 +1297,7 @@ const ReusableTable = <T extends TableItem>({
   }, []);
 
   return (
-    <div className={`shadow p-0 rounded-lg w-full bg-white dark:bg-[#1d1f20] flex flex-col ${className}`}>
+    <div className={`shadow p-0 rounded-lg w-full bg-white dark:bg-[#1d1f20] border border-gray-200 dark:border-gray-600 flex flex-col ${className}`}>
       {/* 1. Header Section */}
       <div
         ref={stickyHeaderRef}
@@ -1298,6 +1317,7 @@ const ReusableTable = <T extends TableItem>({
           exportable={exportable}
           onExportClick={() => setIsExportModalOpen(true)}
           hasData={serverSidePagination ? data.length > 0 : filteredData.length > 0}
+          customHeaderContent={customHeaderContent}
         />
 
         {multiSelect && isAnySelected && (
@@ -1315,7 +1335,7 @@ const ReusableTable = <T extends TableItem>({
       <div className="relative flex-1 overflow-hidden">
         {/* Table Header (thead) - Sticky within the scrollable area */}
         {!loading && (
-          <div className="sticky top-0 z-10 bg-white dark:bg-[#1d1f20]">
+          <div className={`${stickyHeader ? 'sticky top-0 z-20' : ''} bg-white dark:bg-[#1d1f20]`}>
             <div
               ref={theadScrollRef}
               className="overflow-x-auto overflow-y-hidden scrollbar-hide"
@@ -1489,7 +1509,7 @@ ReusableTable.defaultProps = {
   multiSelect: false,
   actions: [],
   tableId: undefined,
-  stickyHeader: true,
+  stickyHeader: false,
 };
 
 export default ReusableTable;

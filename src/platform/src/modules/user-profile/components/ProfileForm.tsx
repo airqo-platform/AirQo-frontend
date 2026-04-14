@@ -14,13 +14,15 @@ import {
   PhoneNumberInput,
 } from '@/shared/components/ui';
 import { toast } from '@/shared/components/ui';
-import { useSession } from 'next-auth/react';
 import { useUpdateUserDetails, useUserDetails } from '@/shared/hooks';
 import { useChecklistIntegration } from '@/modules/user-checklist';
 import {
   uploadProfileImage,
   deleteFromCloudinary,
   extractPublicIdFromUrl,
+  validateImageFile,
+  PROFILE_IMAGE_ALLOWED_MIME_TYPES,
+  MAX_IMAGE_FILE_SIZE_BYTES,
 } from '@/shared/utils/cloudinaryUpload';
 import { profileSchema, type ProfileFormData } from '@/shared/lib/validators';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
@@ -34,7 +36,6 @@ interface ProfileFormProps {
 const ProfileForm: React.FC<ProfileFormProps> = ({ userId }) => {
   const [loading, setLoading] = useState(false);
   const [pendingImage, setPendingImage] = useState<File | null>(null); // <-- NEW
-  const { data: session } = useSession();
   const { data: userDetails, mutate: mutateUserDetails } =
     useUserDetails(userId);
   const updateUserDetails = useUpdateUserDetails();
@@ -115,6 +116,20 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ userId }) => {
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    try {
+      validateImageFile(file, {
+        allowedMimeTypes: [...PROFILE_IMAGE_ALLOWED_MIME_TYPES],
+        maxFileSizeBytes: MAX_IMAGE_FILE_SIZE_BYTES,
+      });
+    } catch (error) {
+      setPendingImage(null);
+      e.target.value = '';
+      const errorMessage = getUserFriendlyErrorMessage(error);
+      toast.error('Invalid image', errorMessage);
+      return;
+    }
+
     setPendingImage(file);
     // instant preview
     const reader = new FileReader();
@@ -162,31 +177,24 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ userId }) => {
         if (oldPublicId) {
           try {
             await deleteFromCloudinary(oldPublicId);
-          } catch (deleteError) {
-            console.warn(
-              'Failed to delete old profile picture from Cloudinary:',
-              deleteError
+            console.log(
+              'Successfully deleted old profile picture:',
+              oldPublicId
             );
-            // Don't block the update if deletion fails
+          } catch (deleteError) {
+            // Log but don't block - orphaned images are better than blocked uploads
+            console.warn(
+              'Failed to delete old profile picture from Cloudinary (non-critical):',
+              deleteError instanceof Error ? deleteError.message : deleteError
+            );
+            // Continue with upload regardless of deletion result
           }
         }
       }
 
       // Upload only when user pressed Save
       if (pendingImage) {
-        const sessionUser = session?.user as {
-          firstName?: string;
-          lastName?: string;
-          email?: string;
-        };
-        const userName =
-          sessionUser?.firstName && sessionUser?.lastName
-            ? `${sessionUser.firstName.charAt(0).toUpperCase()}${sessionUser.firstName
-                .slice(1)
-                .toLowerCase()}_${sessionUser.lastName.toLowerCase()}`
-            : sessionUser?.email?.split('@')[0] || 'user';
-
-        const uploadRes = await uploadProfileImage(pendingImage, userName);
+        const uploadRes = await uploadProfileImage(pendingImage);
         finalPictureUrl = uploadRes.secure_url;
       }
 
@@ -259,7 +267,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ userId }) => {
               <label className="bg-primary text-white p-2 rounded-full cursor-pointer hover:bg-primary/80 transition-colors shadow-lg">
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/png,image/jpeg,image/jpg,image/webp,image/avif"
                   onChange={handleImageSelect}
                   className="hidden"
                   disabled={loading}
@@ -306,9 +314,9 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ userId }) => {
           <div className="flex-1">
             <h3 className="text-lg font-medium ">Profile Picture</h3>
             <p className="text-sm text-gray-600 mt-1">
-              Upload a new profile picture (JPG, PNG or GIF, max 5MB) or click
-              the X button to remove it. Click &quot;Save Changes&quot; to apply
-              your updates.
+              Upload a new profile picture (PNG, JPG, WebP, or AVIF, max 5MB)
+              or click the X button to remove it. Click &quot;Save Changes&quot;
+              to apply your updates.
             </p>
           </div>
         </div>

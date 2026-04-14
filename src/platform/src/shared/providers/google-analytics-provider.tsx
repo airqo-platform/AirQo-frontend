@@ -4,7 +4,7 @@ import { useEffect, Suspense } from 'react';
 import { usePathname } from 'next/navigation';
 import ReactGA from 'react-ga4';
 
-const GA_MEASUREMENT_ID = 'G-L77J66DCL2';
+const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || '';
 
 export function GoogleAnalyticsProvider({
   children,
@@ -12,8 +12,10 @@ export function GoogleAnalyticsProvider({
   children: React.ReactNode;
 }) {
   useEffect(() => {
-    // Initialize Google Analytics
-    ReactGA.initialize(GA_MEASUREMENT_ID);
+    // Only initialize Google Analytics if measurement ID is configured
+    if (GA_MEASUREMENT_ID) {
+      ReactGA.initialize(GA_MEASUREMENT_ID);
+    }
   }, []);
 
   return (
@@ -28,7 +30,8 @@ function GAPageView() {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (pathname) {
+    // Only send pageview if GA is configured
+    if (pathname && GA_MEASUREMENT_ID) {
       // Send pageview to Google Analytics
       ReactGA.send({ hitType: 'pageview', page: pathname });
     }

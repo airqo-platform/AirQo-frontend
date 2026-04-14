@@ -4,7 +4,7 @@ import {
   createAuthenticatedClient,
   createServerClient,
 } from './apiClient';
-import { getSession } from 'next-auth/react';
+import { syncClientSessionToken } from './sessionAuthToken';
 import type {
   SitesSummaryResponse,
   SitesSummaryParams,
@@ -21,6 +21,7 @@ import type {
   CountriesResponse,
   MapReadingsResponse,
   ForecastResponse,
+  CohortResponse,
 } from '../types/api';
 
 export class DeviceService {
@@ -33,12 +34,7 @@ export class DeviceService {
   }
 
   private async ensureAuthenticated() {
-    const session = await getSession();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const token = (session as any)?.accessToken;
-    if (token) {
-      this.authenticatedClient.setAuthToken(token);
-    }
+    await syncClientSessionToken(this.authenticatedClient);
   }
 
   // Get sites summary - authenticated endpoint
@@ -125,6 +121,21 @@ export class DeviceService {
     return data as GroupCohortsResponse;
   }
 
+  // Get cohort details - authenticated endpoint
+  async getCohort(cohortId: string): Promise<CohortResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.get<
+      CohortResponse | ApiErrorResponse
+    >(`/devices/cohorts/${cohortId}`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to get cohort details');
+    }
+
+    return data as CohortResponse;
+  }
+
   // Get grids summary - authenticated endpoint
   async getGridsSummaryAuthenticated(
     params: GridsSummaryParams = {},
@@ -178,6 +189,24 @@ export class DeviceService {
       params.cohort_id = cohort_id;
     }
     const response = await this.authenticatedClient.get<
+      CountriesResponse | ApiErrorResponse
+    >('/devices/grids/countries', { params });
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to get countries');
+    }
+
+    return data as CountriesResponse;
+  }
+
+  // Get countries list - API token endpoint
+  async getCountriesWithToken(cohort_id?: string): Promise<CountriesResponse> {
+    const params: Record<string, string> = {};
+    if (cohort_id) {
+      params.cohort_id = cohort_id;
+    }
+    const response = await this.serverClient.get<
       CountriesResponse | ApiErrorResponse
     >('/devices/grids/countries', { params });
     const data = response.data;

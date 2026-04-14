@@ -23,6 +23,7 @@ export interface CohortListingOptions {
   sortBy?: string;
   order?: 'asc' | 'desc';
   cohort_id?: string[];
+  tags?: string;
   enabled?: boolean;
 }
 
@@ -40,7 +41,48 @@ export const useCohorts = (
     CohortsSummaryResponse,
     AxiosError<ErrorResponse>
   >({
-    queryKey: ['cohorts', { page, limit, search, sortBy, order, cohort_id: options.cohort_id }],
+    queryKey: ['cohorts', { page, limit, search, sortBy, order, cohort_id: options.cohort_id, tags: options.tags }],
+    queryFn: () => {
+      const params: GetCohortsSummaryParams = {
+        limit: safeLimit,
+        skip,
+        ...(search && { search }),
+        ...(sortBy && { sortBy }),
+        ...(order && { order }),
+        ...(options.cohort_id && { cohort_id: options.cohort_id }),
+        ...(options.tags && { tags: options.tags }),
+      };
+      return cohortsApi.getCohortsSummary(params);
+    },
+    staleTime: 300_000,
+    refetchOnWindowFocus: false,
+    enabled,
+  });
+
+  return {
+    cohorts: data?.cohorts ?? [],
+    meta: data?.meta,
+    isLoading,
+    isFetching,
+    error: error as Error | null,
+  };
+};
+
+export const useUserCohorts = (
+  options: CohortListingOptions = {},
+  queryOptions?: { enabled?: boolean }
+) => {
+  const { enabled = true } = queryOptions || {};
+  const { page = 1, limit = 25, search, sortBy, order } = options;
+  const safePage = Math.max(1, page);
+  const safeLimit = Math.max(1, limit);
+  const skip = (safePage - 1) * safeLimit;
+
+  const { data, isLoading, isFetching, error } = useQuery<
+    CohortsSummaryResponse,
+    AxiosError<ErrorResponse>
+  >({
+    queryKey: ['user-cohorts', { page, limit, search, sortBy, order, cohort_id: options.cohort_id }],
     queryFn: () => {
       const params: GetCohortsSummaryParams = {
         limit: safeLimit,
@@ -50,7 +92,7 @@ export const useCohorts = (
         ...(order && { order }),
         ...(options.cohort_id && { cohort_id: options.cohort_id }),
       };
-      return cohortsApi.getCohortsSummary(params);
+      return cohortsApi.getUserCohortsSummary(params);
     },
     staleTime: 300_000,
     refetchOnWindowFocus: false,
@@ -110,7 +152,7 @@ export const useUpdateCohortDetails = () => {
       data,
     }: {
       cohortId: string;
-      data: Partial<{ name: string; visibility: boolean }>;
+      data: Partial<{ name: string; visibility: boolean; cohort_tags: string[] }>;
     }) => cohortsApi.updateCohortDetailsApi(cohortId, data),
     onSuccess: (data, variables) => {
       ReusableToast({
@@ -121,10 +163,49 @@ export const useUpdateCohortDetails = () => {
         queryKey: ['cohort-details', variables.cohortId],
       });
       queryClient.invalidateQueries({ queryKey: ['cohorts'] });
+      queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
+      queryClient.invalidateQueries({ queryKey: ['groupCohorts'] });
     },
     onError: error => {
       ReusableToast({
         message: `Failed to update cohort: ${getApiErrorMessage(error)}`,
+        type: 'ERROR',
+      });
+    },
+  });
+};
+
+export const useUpdateCohortName = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      cohortId,
+      name,
+      updateReason,
+    }: {
+      cohortId: string;
+      name: string;
+      updateReason: string;
+    }) =>
+      cohortsApi.updateCohortNameApi(cohortId, {
+        name,
+        confirm_update: true,
+        update_reason: updateReason,
+      }),
+    onSuccess: (data, variables) => {
+      ReusableToast({
+        message: 'Cohort name updated successfully',
+        type: 'SUCCESS',
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['cohort-details', variables.cohortId],
+      });
+      queryClient.invalidateQueries({ queryKey: ['cohorts'] });
+      queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
+    },
+    onError: error => {
+      ReusableToast({
+        message: `Failed to update cohort name: ${getApiErrorMessage(error)}`,
         type: 'ERROR',
       });
     },
@@ -137,11 +218,13 @@ export const useCreateCohort = () => {
         mutationFn: async ({
             name,
             network,
+            cohort_tags,
         }: {
             name: string;
             network: string;
+            cohort_tags?: string[];
         }) => {
-            const createResp = await cohortsApi.createCohort({ name, network });
+            const createResp = await cohortsApi.createCohort({ name, network, cohort_tags });
             const cohortId = createResp?.cohort?._id;
             if (!cohortId) throw new Error('Cohort created but missing id');
             return createResp;
@@ -152,6 +235,7 @@ export const useCreateCohort = () => {
                 type: 'SUCCESS',
             });
             queryClient.invalidateQueries({ queryKey: ['cohorts'] });
+            queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
         },
         onError: error => {
             ReusableToast({
@@ -170,12 +254,14 @@ export const useCreateCohortWithDevices = () => {
       name,
       network,
       deviceIds,
+      cohort_tags,
     }: {
       name: string;
       network: string;
       deviceIds: string[];
+      cohort_tags?: string[];
     }) => {
-      const createResp = await cohortsApi.createCohort({ name, network });
+      const createResp = await cohortsApi.createCohort({ name, network, cohort_tags });
       const cohortId = createResp?.cohort?._id;
       if (!cohortId) throw new Error('Cohort created but missing id');
       if (Array.isArray(deviceIds) && deviceIds.length > 0) {
@@ -185,10 +271,11 @@ export const useCreateCohortWithDevices = () => {
     },
     onSuccess: (resp, variables) => {
       ReusableToast({
-        message: `${variables.name} created${variables.deviceIds?.length ? ' and devices assigned' : ''}.`,
+        message: `${variables.name} created`,
         type: 'SUCCESS',
       });
       queryClient.invalidateQueries({ queryKey: ['cohorts'] });
+      queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
     },
     onError: error => {
       ReusableToast({
@@ -209,17 +296,20 @@ export const useCreateCohortFromCohorts = () => {
       description,
       cohort_ids,
       network,
+      cohort_tags,
     }: {
       name: string;
       description?: string;
       cohort_ids: string[];
       network?: string;
+      cohort_tags?: string[];
     }) =>
       cohortsApi.createCohortFromCohorts({
         name,
         description,
         cohort_ids,
         network,
+        cohort_tags,
       }),
     onSuccess: (data, variables) => {
       ReusableToast({
@@ -229,6 +319,7 @@ export const useCreateCohortFromCohorts = () => {
       queryClient.invalidateQueries({
         queryKey: ['cohorts', activeNetwork?.net_name],
       });
+      queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
     },
     onError: error => {
       ReusableToast({
@@ -261,6 +352,7 @@ export const useAssignDevicesToCohort = () => {
         type: 'SUCCESS',
       });
       queryClient.invalidateQueries({ queryKey: ['cohorts'] });
+      queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
       queryClient.invalidateQueries({ queryKey: ['devices'], exact: false });
       queryClient.invalidateQueries({
         queryKey: ['cohort-details', variables.cohortId],
@@ -297,6 +389,7 @@ export const useUnassignDevicesFromCohort = () => {
         type: 'SUCCESS',
       });
       queryClient.invalidateQueries({ queryKey: ['cohorts'] });
+      queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
       queryClient.invalidateQueries({ queryKey: ['devices'], exact: false });
       queryClient.invalidateQueries({
         queryKey: ['cohort-details', variables.cohortId],
@@ -335,6 +428,10 @@ export const useAssignCohortsToGroup = () => {
       queryClient.invalidateQueries({
         queryKey: ['cohorts', activeNetwork?.net_name],
       });
+      queryClient.invalidateQueries({ queryKey: ['groupCohorts'] });
+      queryClient.invalidateQueries({ queryKey: ['deviceCount'] });
+      queryClient.invalidateQueries({ queryKey: ['devices'] });
+      queryClient.invalidateQueries({ queryKey: ['myDevices'] });
     },
     onError: error => {
       ReusableToast({
@@ -365,13 +462,17 @@ export const useAssignCohortsToUser = () => {
       }
       return cohortsApi.assignCohortsToUser(userId, cohortIds);
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
         queryKey: ['cohorts', activeNetwork?.net_name],
       });
       queryClient.invalidateQueries({
-        queryKey: ['my-devices'],
+        queryKey: ['userDetails', variables.userId],
       });
+      queryClient.invalidateQueries({
+        queryKey: ['myDevices'],
+      });
+      queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
     },
     onError: error => {
       ReusableToast({

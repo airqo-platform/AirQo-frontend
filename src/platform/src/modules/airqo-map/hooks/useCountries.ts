@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { deviceService } from '../../../shared/services/deviceService';
 import type { CountriesResponse, CountryData } from '../../../shared/types/api';
 
@@ -15,48 +16,56 @@ export interface UseCountriesResult {
  * Hook for fetching countries list
  * @param cohort_id - Optional comma-separated cohort IDs for filtering
  */
-export function useCountries(cohort_id?: string): UseCountriesResult {
-  const [countries, setCountries] = useState<CountryData[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export function useCountries(cohort_id?: string | null): UseCountriesResult {
+  const normalizedCohortId =
+    cohort_id === null ? 'disabled' : (cohort_id ?? 'all');
+  const enabled = cohort_id !== null;
 
-  const fetchCountries = async () => {
-    // If cohort_id is null, wait for it to be determined
-    if (cohort_id === null) {
-      return;
-    }
+  const {
+    data: countries = [],
+    isLoading,
+    error,
+    refetch: refetchQuery,
+  } = useQuery<CountryData[], Error>({
+    queryKey: ['map', 'countries', normalizedCohortId],
+    queryFn: async () => {
+      // NOTE: Do NOT infer authentication flow from `cohort_id`.
+      // `cohort_id` is a filter and should not be used to select the
+      // authentication/client path. Overloading `cohort_id` to choose between
+      // `getCountriesAuthenticated` and `getCountriesWithToken` makes an
+      // "unfiltered authenticated" request impossible and can change dataset
+      // and permission semantics. Prefer an explicit `isOrgFlow` (or similar)
+      // boolean parameter to pick the authenticated client instead.
+      const response: CountriesResponse = cohort_id
+        ? await deviceService.getCountriesAuthenticated(cohort_id)
+        : await deviceService.getCountriesWithToken();
+      return response.countries;
+    },
+    enabled,
+    networkMode: 'online',
+    staleTime: 1000 * 60 * 10,
+    gcTime: 1000 * 60 * 60 * 12,
+  });
 
-    // If cohort_id is empty string, no cohorts exist, so no countries
-    if (cohort_id === '') {
-      setCountries([]);
-      setIsLoading(false);
-      return;
-    }
+  const refetch = useCallback(async () => {
+    await refetchQuery();
+  }, [refetchQuery]);
 
-    try {
-      setIsLoading(true);
-      setError(null);
-      const response: CountriesResponse =
-        await deviceService.getCountriesAuthenticated(cohort_id);
-      setCountries(response.countries);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Failed to fetch countries'
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const noopRefetch = useCallback(async () => undefined, []);
 
-  useEffect(() => {
-    fetchCountries();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cohort_id]);
+  if (!enabled) {
+    return {
+      countries: [],
+      isLoading: false,
+      error: null,
+      refetch: noopRefetch,
+    };
+  }
 
   return {
     countries,
     isLoading,
-    error,
-    refetch: fetchCountries,
+    error: error?.message ?? null,
+    refetch,
   };
 }

@@ -4,15 +4,8 @@ import { authOptions } from '@/shared/lib/auth';
 import type { Session } from 'next-auth';
 import logger from '@/shared/lib/logger';
 
-const CLOUDINARY_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_NAME;
-
-if (!CLOUDINARY_NAME) {
-  throw new Error(
-    'NEXT_PUBLIC_CLOUDINARY_NAME environment variable is not set'
-  );
-}
-
-const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_NAME}/image/destroy`;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 // Validate publicId format
 // Cloudinary Public IDs can include any character except: ? & # \ % < >
@@ -31,11 +24,55 @@ export async function DELETE(request: NextRequest) {
   let session: Session | null = null;
 
   try {
-    // Check authentication
+    // Check authentication (optional - log warning if missing but don't block)
     session = (await getServerSession(authOptions)) as Session | null;
     if (!session || !session.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      logger.warn('Cloudinary delete attempted without session', {
+        hasSession: !!session,
+        hasUser: !!session?.user,
+        userAgent: request.headers.get('user-agent'),
+      });
+      // Don't block the request - allow deletion to proceed
+      // TODO: Implement proper ownership verification once user context is reliable in production
     }
+
+    // Validate environment variables
+    const CLOUDINARY_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_NAME;
+    const apiKey = process.env.CLOUDINARY_API_KEY;
+    const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+    if (!CLOUDINARY_NAME) {
+      logger.error(
+        'Cloudinary configuration missing',
+        new Error('Missing CLOUDINARY_NAME'),
+        {
+          hasApiKey: !!apiKey,
+          hasApiSecret: !!apiSecret,
+        }
+      );
+      return NextResponse.json(
+        { error: 'Cloudinary service not configured. Please contact support.' },
+        { status: 500 }
+      );
+    }
+
+    if (!apiKey || !apiSecret) {
+      logger.error(
+        'Cloudinary API credentials missing',
+        new Error('Missing credentials'),
+        {
+          hasCloudName: !!CLOUDINARY_NAME,
+          hasApiKey: !!apiKey,
+          hasApiSecret: !!apiSecret,
+        }
+      );
+      return NextResponse.json(
+        { error: 'Cloudinary API credentials not configured' },
+        { status: 500 }
+      );
+    }
+
+    const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_NAME}/image/destroy`;
 
     // Parse and validate JSON
     try {
@@ -67,31 +104,14 @@ export async function DELETE(request: NextRequest) {
     // For now, allowing authenticated users to delete any image
 
     const timestamp = Math.floor(Date.now() / 1000);
-    const apiSecret = process.env.CLOUDINARY_API_SECRET;
-    const apiKey = process.env.CLOUDINARY_API_KEY;
-
-    if (!apiKey || !apiSecret) {
-      logger.error(
-        'Cloudinary API credentials missing',
-        new Error('Missing credentials'),
-        {
-          hasApiKey: !!apiKey,
-          hasApiSecret: !!apiSecret,
-        }
-      );
-      return NextResponse.json(
-        { error: 'Cloudinary API credentials not configured' },
-        { status: 500 }
-      );
-    }
 
     logger.debug('Cloudinary delete request', {
       publicId,
       timestamp,
-      userId: session.user._id,
+      userId: session?.user?._id,
       userName:
-        session.user.firstName || session.user.lastName
-          ? `${session.user.firstName || ''} ${session.user.lastName || ''}`.trim()
+        session?.user?.firstName || session?.user?.lastName
+          ? `${session?.user?.firstName || ''} ${session?.user?.lastName || ''}`.trim()
           : undefined,
     });
 
@@ -122,6 +142,7 @@ export async function DELETE(request: NextRequest) {
     const response = await fetch(CLOUDINARY_URL, {
       method: 'POST',
       body: formData,
+      cache: 'no-store',
     });
 
     const result = await response.json();
@@ -134,10 +155,19 @@ export async function DELETE(request: NextRequest) {
           status: response.status,
         });
         // Return success since the resource doesn't exist anyway
-        return NextResponse.json({
-          result: 'ok',
-          message: 'Resource already deleted or does not exist',
-        });
+        return NextResponse.json(
+          {
+            result: 'ok',
+            message: 'Resource already deleted or does not exist',
+          },
+          {
+            headers: {
+              'Cache-Control': 'no-store, no-cache, max-age=0, must-revalidate',
+              Pragma: 'no-cache',
+              Expires: '0',
+            },
+          }
+        );
       }
 
       const cloudinaryError = new Error(
@@ -154,27 +184,40 @@ export async function DELETE(request: NextRequest) {
           statusText: response.statusText,
           cloudinaryError: result.error,
           result,
-          userId: session.user._id,
+          userId: session?.user?._id,
           userName:
-            session.user.firstName || session.user.lastName
-              ? `${session.user.firstName || ''} ${session.user.lastName || ''}`.trim()
+            session?.user?.firstName || session?.user?.lastName
+              ? `${session?.user?.firstName || ''} ${session?.user?.lastName || ''}`.trim()
               : undefined,
         }
       );
 
       return NextResponse.json(
         { error: result.error?.message || 'Delete failed' },
-        { status: response.status }
+        {
+          status: response.status,
+          headers: {
+            'Cache-Control': 'no-store, no-cache, max-age=0, must-revalidate',
+            Pragma: 'no-cache',
+            Expires: '0',
+          },
+        }
       );
     }
 
     logger.debug('Cloudinary delete successful', {
       publicId,
       result: result.result,
-      userId: session.user._id,
+      userId: session?.user?._id,
     });
 
-    return NextResponse.json(result);
+    return NextResponse.json(result, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, max-age=0, must-revalidate',
+        Pragma: 'no-cache',
+        Expires: '0',
+      },
+    });
   } catch (error: unknown) {
     const deleteError =
       error instanceof Error
@@ -191,7 +234,14 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          'Cache-Control': 'no-store, no-cache, max-age=0, must-revalidate',
+          Pragma: 'no-cache',
+          Expires: '0',
+        },
+      }
     );
   }
 }

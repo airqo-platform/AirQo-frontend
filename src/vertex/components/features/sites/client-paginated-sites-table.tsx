@@ -4,7 +4,12 @@ import ReusableTable, {
   TableItem,
 } from "@/components/shared/table/ReusableTable";
 import { useRouter } from "next/navigation";
-import { Site } from "@/core/redux/slices/sitesSlice";
+import {
+  badgeColorClasses,
+  formatDisplayDate,
+  getDeviceStatus,
+} from "@/core/utils/status";
+import { Site } from "@/app/types/sites";
 
 interface SitesTableProps {
   sites: Site[];
@@ -100,15 +105,27 @@ export default function ClientPaginatedSitesTable({
     {
       key: "isOnline",
       label: "Status",
-      render: (isOnline) => {
-        const status = Boolean(isOnline);
+      render: (isOnline, item) => {
+        const site = item as Site;
+        const lastActiveCheck = site.lastActive
+          ? formatDisplayDate(site.lastActive)
+          : null;
+
+        const status = getDeviceStatus(
+          site.isOnline || false,
+          site.rawOnlineStatus,
+          lastActiveCheck
+        );
+        const colors = badgeColorClasses[status.color];
+        const Icon = status.icon;
+
         return (
           <span
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-              status ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-            }`}
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colors}`}
+            title={status.description}
           >
-            {status ? "Online" : "Offline"}
+            <Icon className="w-4 h-4 mr-1" />
+            {status.label}
           </span>
         );
       },
@@ -126,13 +143,7 @@ export default function ClientPaginatedSitesTable({
         onRowClick={handleSiteClick}
         multiSelect={multiSelect}
         onSelectedIdsChange={handleSelectedItemsChange}
-        actions={multiSelect ? [
-          {
-            label: "Export Selected",
-            value: "export",
-            handler: () => {},
-          },
-        ] : []}
+
         emptyState={
           error ? (
             <div className="flex flex-col items-center gap-2">

@@ -19,7 +19,7 @@ interface RunDeviceTestCardProps {
  * Helper function to check for future dates.
  */
 const isDateInFuture = (dateString: string | null | undefined): boolean => {
-  if (!dateString) return false;
+  if (typeof dateString !== "string" || !dateString.trim()) return false;
 
   const date = parseISO(dateString);
   if (!isValid(date)) return false;
@@ -33,7 +33,7 @@ const RunDeviceTestCard: React.FC<RunDeviceTestCardProps> = ({ deviceNumber, get
   const statusFeed = useDeviceStatusFeed(deviceNumber);
 
   return (
-    <Card className="w-full rounded-lg bg-white md:col-span-2">
+    <Card className="w-full rounded-lg md:col-span-2">
       <div className="flex items-center justify-between px-3 py-2">
         <h2 className="text-lg font-semibold">Run Device Test</h2>
         <button
@@ -58,7 +58,9 @@ const RunDeviceTestCard: React.FC<RunDeviceTestCardProps> = ({ deviceNumber, get
         <>
           <div className="text-sm text-muted-foreground mb-1 px-3 py-2">
             {(() => {
-              const createdAt = statusFeed.data.created_at;
+              const createdAtRaw = statusFeed.data.created_at;
+              const createdAt =
+                typeof createdAtRaw === "string" ? createdAtRaw : null;
               if (!createdAt) return null;
 
               // --- Future Date Check ---

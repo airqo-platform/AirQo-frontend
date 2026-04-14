@@ -7,6 +7,7 @@ import { Card } from '@/shared/components/ui/card';
 import { Checklist } from '@/modules/user-checklist';
 import { AqDownloadCloud01, AqStar06, AqBuilding07 } from '@airqo/icons-react';
 import PlayIcon from '@/shared/components/ui/play-icon';
+import { InfoBanner } from '@/shared/components/ui/banner';
 
 export default function HomePage() {
   const { data: session } = useSession();
@@ -26,6 +27,14 @@ export default function HomePage() {
         <p className="mt-2 text-sm md:text-base text-muted-foreground dark:text-gray-300">
           Quick Access
         </p>
+
+        {/* Data Availability Note */}
+        <InfoBanner
+          title="All data on this platform is open and publicly available. View,
+          explore, and download air quality data for your own analysis,
+          reporting, or advocacy."
+          className="mt-4"
+        />
 
         {/* Quick Access Buttons (left-aligned) */}
         <div className="mt-4 flex flex-wrap gap-3 items-center">
@@ -70,8 +79,9 @@ export default function HomePage() {
               Track air pollution in places you care about
             </h2>
             <p className="text-base text-muted-foreground font-normal dark:text-white">
-              Empower yourself with knowledge about the air you breathe; because
-              clean air begins with understanding.
+              AirQo makes air quality data openly available so communities,
+              researchers, and decision-makers can better understand the air
+              they breathe.
             </p>
             <div className="flex items-center space-x-4 mt-4">
               <Button

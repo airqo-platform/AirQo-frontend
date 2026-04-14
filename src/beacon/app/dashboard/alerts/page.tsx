@@ -29,6 +29,7 @@ import {
 } from "lucide-react"
 import { config } from "@/lib/config"
 import authService from "@/services/api-service"
+import { isMockMode, getMockAlertDevices } from "@/lib/mock-data"
 
 // Types
 type AlertType = "critical" | "warning" | "success"
@@ -118,20 +119,25 @@ export default function AlertsPage() {
     try {
       setIsLoading(true)
       
-      // Using the devices-detail endpoint to get maintenance history
-      const apiPath = config.isLocalhost ? '/devices' : '/api/v1/beacon/devices'
-      const response = await fetch(`${config.apiUrl}${apiPath}`, {
-        headers: {
-          'Authorization': authService.getToken() || '',
-          'Content-Type': 'application/json'
+      let data: any
+      if (isMockMode()) {
+        data = getMockAlertDevices()
+      } else {
+        // Using the devices-detail endpoint to get maintenance history
+        const prefix = config.beaconApiPrefix || (config.isLocalhost ? '/api/v1' : '/api/v1/beacon')
+        const response = await fetch(`${config.apiUrl}${prefix}/devices`, {
+          headers: {
+            'Authorization': authService.getToken() || '',
+            'Content-Type': 'application/json'
+          }
+        })
+        
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`)
         }
-      })
-      
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`)
+        
+        data = await response.json()
       }
-      
-      const data = await response.json()
       const devices = data.devices || []
       
       // Process all maintenance events as alerts

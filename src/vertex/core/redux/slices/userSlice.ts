@@ -247,6 +247,39 @@ const userSlice = createSlice({
     setLoggingOut(state, action: PayloadAction<boolean>) {
       state.isLoggingOut = action.payload;
     },
+    // Atomic initialization action to prevent UI flashes
+    initializeUserData(state, action: PayloadAction<{
+      userDetails: UserDetails;
+      groups: Group[];
+      availableNetworks: Network[];
+      activeGroup: Group | null;
+      activeNetwork?: Network;
+      userContext: UserContext;
+    }>) {
+      const { userDetails, groups, availableNetworks, activeGroup, activeNetwork, userContext } = action.payload;
+      
+      state.userDetails = userDetails;
+      state.userGroups = groups;
+      state.availableNetworks = availableNetworks;
+      state.activeGroup = activeGroup;
+      state.userContext = userContext;
+      
+      if (activeNetwork) {
+        state.activeNetwork = activeNetwork;
+        const roleInNetwork = activeNetwork.role;
+        state.currentRole = {
+          role_name: roleInNetwork.role_name,
+          permissions: roleInNetwork.role_permissions.map((p) => p.permission),
+        };
+      } else {
+        state.activeNetwork = null;
+        state.currentRole = null;
+      }
+
+      state.canSwitchContext = determineUserContext(userDetails, activeGroup, groups).canSwitchContext;
+      state.isAuthenticated = true;
+      state.isInitialized = true;
+    },
   },
   extraReducers: (builder) => {
     builder.addCase("persist/REHYDRATE", (state, action: any) => {
@@ -278,5 +311,6 @@ export const {
   clearForbiddenState,
   setOrganizationSwitching,
   setLoggingOut,
+  initializeUserData,
 } = userSlice.actions;
 export default userSlice.reducer;

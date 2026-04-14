@@ -2,6 +2,91 @@
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { isTokenExpired } from './utils';
 import { authService } from '../services/authService';
+import { normalizeOAuthAccessToken } from './oauth-session';
+
+const isProduction = process.env.NODE_ENV === 'production';
+const sessionCookieName = isProduction
+  ? '__Secure-next-auth.session-token'
+  : 'analytics.next-auth.session-token';
+const DEFAULT_OAUTH_PROFILE_FETCH_TIMEOUT_MS = 8000;
+
+interface OAuthProfilePayload {
+  _id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  profilePicture?: string;
+}
+
+interface OAuthProfileResponse {
+  success: boolean;
+  message?: string;
+  data?: OAuthProfilePayload;
+}
+
+const normalizeApiBaseUrl = (baseUrl: string): string => {
+  const trimmedBaseUrl = baseUrl.trim().replace(/\/$/, '');
+
+  if (trimmedBaseUrl.endsWith('/api/v2')) {
+    return trimmedBaseUrl.slice(0, -'/api/v2'.length);
+  }
+
+  return trimmedBaseUrl;
+};
+
+const buildBackendApiUrl = (path: string): string => {
+  const baseUrl =
+    process.env.NEXT_PUBLIC_API_BASE_URL || process.env.API_BASE_URL || '';
+  const normalizedBaseUrl = normalizeApiBaseUrl(baseUrl);
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+
+  if (!normalizedBaseUrl) {
+    return '';
+  }
+
+  return `${normalizedBaseUrl}/api/v2${normalizedPath}`;
+};
+
+const fetchOAuthProfile = async (
+  accessToken: string
+): Promise<OAuthProfilePayload | null> => {
+  const profileUrl = buildBackendApiUrl('/users/profile/enhanced');
+  if (!profileUrl) {
+    return null;
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, DEFAULT_OAUTH_PROFILE_FETCH_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(profileUrl, {
+      method: 'GET',
+      signal: controller.signal,
+      cache: 'no-store',
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = (await response.json()) as OAuthProfileResponse;
+    if (!payload?.success || !payload.data?._id) {
+      return null;
+    }
+
+    return payload.data;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+};
 
 // Helper function to check token expiration and log
 const isTokenInvalid = (accessToken: string | undefined): boolean => {
@@ -12,23 +97,64 @@ const isTokenInvalid = (accessToken: string | undefined): boolean => {
 };
 
 export const authOptions: any = {
+  secret: process.env.NEXTAUTH_SECRET,
+  useSecureCookies: isProduction,
   providers: [
     CredentialsProvider({
       name: 'credentials',
       credentials: {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
+        oauthToken: { label: 'OAuth token', type: 'text' },
+        oauthProvider: { label: 'OAuth provider', type: 'text' },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
+        const oauthToken = normalizeOAuthAccessToken(
+          typeof credentials?.oauthToken === 'string'
+            ? credentials.oauthToken
+            : ''
+        );
+
+        if (oauthToken) {
+          const profile = await fetchOAuthProfile(oauthToken);
+
+          if (!profile) {
+            return null;
+          }
+
+          const fullName = [profile.firstName, profile.lastName]
+            .filter(Boolean)
+            .join(' ')
+            .trim();
+
+          return {
+            id: profile._id,
+            email: profile.email,
+            name: fullName || profile.email,
+            firstName: profile.firstName,
+            lastName: profile.lastName,
+            image: profile.profilePicture,
+            _id: profile._id,
+            accessToken: oauthToken,
+          };
+        }
+
+        const email =
+          typeof credentials?.email === 'string'
+            ? credentials.email.trim()
+            : '';
+        const password =
+          typeof credentials?.password === 'string' ? credentials.password : '';
+
+        if (!email || !password) {
           return null;
         }
 
         try {
           // Use the auth service to login
           const loginData = await authService.login({
-            userName: credentials.email,
-            password: credentials.password,
+            userName: email,
+            password,
           });
 
           // Return user object for NextAuth
@@ -40,9 +166,7 @@ export const authOptions: any = {
             lastName: loginData.lastName,
             image: loginData.profilePicture,
             _id: loginData._id,
-            accessToken: loginData.token.startsWith('JWT ')
-              ? loginData.token.substring(4)
-              : loginData.token,
+            accessToken: normalizeOAuthAccessToken(loginData.token),
           };
         } catch (error: any) {
           // Enhanced error handling to include status and full response data
@@ -59,6 +183,17 @@ export const authOptions: any = {
       },
     }),
   ],
+  cookies: {
+    sessionToken: {
+      name: sessionCookieName,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax' as const,
+        path: '/',
+        secure: isProduction,
+      },
+    },
+  },
   pages: {
     signIn: '/user/login',
     signOut: '/user/login',
@@ -73,9 +208,10 @@ export const authOptions: any = {
       if (user) {
         token.id = user.id;
         token._id = user._id;
-        token.accessToken = (user as any).accessToken;
-        token.firstName = (user as any).firstName;
-        token.lastName = (user as any).lastName;
+        token.accessToken =
+          typeof user.accessToken === 'string' ? user.accessToken : undefined;
+        token.firstName = user.firstName;
+        token.lastName = user.lastName;
       }
 
       return token;
@@ -85,18 +221,20 @@ export const authOptions: any = {
       // Check if token is expired and invalidate session
       const accessToken =
         typeof (token as any)?.accessToken === 'string'
-          ? ((token as any).accessToken as string)
+          ? normalizeOAuthAccessToken((token as any).accessToken as string) ||
+            undefined
           : undefined;
       if (isTokenInvalid(accessToken)) {
         return { user: null };
       }
 
       // Add access token and user ID to session
-      (session as any).accessToken = (token as any).accessToken as string;
+      (session as any).accessToken = accessToken;
       if (session.user) {
         (session.user as any)._id = (token as any)._id;
         (session.user as any).firstName = (token as any).firstName;
         (session.user as any).lastName = (token as any).lastName;
+        (session.user as any).accessToken = accessToken;
       }
       return session;
     },

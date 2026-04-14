@@ -53,12 +53,12 @@ const AdminDropdownItem: React.FC<AdminDropdownItemProps> = ({
       disabled={!permission}
       onClick={onClick}
       className={cn(
-        "flex flex-col items-start gap-1 p-3 cursor-pointer",
-        isActive && "bg-blue-50 text-blue-700"
+        "flex flex-col items-start gap-1 p-3 cursor-pointer outline-none transition-colors duration-200",
+        isActive ? "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-500" : "hover:bg-accent dark:hover:bg-zinc-800"
       )}
     >
       <span className="font-medium">{label}</span>
-      <span className={cn("text-xs", isActive ? "text-blue-500" : "text-muted-foreground")}>
+      <span className={cn("text-xs", isActive ? "text-blue-500 dark:text-blue-400" : "text-muted-foreground dark:text-gray-400")}>
         {subLabel}
       </span>
     </DropdownMenuItem>
@@ -115,10 +115,11 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
         <div className="fixed inset-0 bg-black/60 z-[999]" onClick={onClose} />
       )}
       <motion.aside
+        data-vertex-primary-sidebar
         initial={{ x: '-100%' }}
         animate={{ x: isOpen ? '0%' : '-100%' }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="fixed top-0 left-0 w-72 h-full bg-card shadow-lg z-[1000] flex flex-col p-4"
+        className="fixed top-[var(--vertex-ui-top-offset)] left-0 w-72 h-[calc(100vh-var(--vertex-ui-top-offset))] bg-card shadow-lg z-[1000] flex flex-col p-4"
       >
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
@@ -206,8 +207,8 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                     router.push(ROUTE_LINKS.ADMIN_NETWORKS);
                     setIsDropdownOpen(false);
                   }}
-                  label="Networks"
-                  subLabel="Manage and configure networks"
+                  label="Sensor Manufacturers"
+                  subLabel="Manage and configure devices"
                   isActive={pathname.startsWith(ROUTE_LINKS.ADMIN_NETWORKS)}
                 />
 
@@ -254,9 +255,9 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                 />
 
                 <AdminDropdownItem
-                  permission={!!permissions.canViewShipping}
+                  permission={!!permissions.canViewShipping || !!permissions.canViewNetworks}
                   permissionCode={PERMISSIONS.SHIPPING.VIEW}
-                  tooltipMessage="This action requires shipping view permission"
+                  tooltipMessage="This action requires shipping or network view permission"
                   onClick={() => {
                     handleModuleChange('admin');
                     router.push(ROUTE_LINKS.ADMIN_SHIPPING);

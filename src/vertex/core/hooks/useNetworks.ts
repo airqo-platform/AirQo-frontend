@@ -1,15 +1,11 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   Network,
   networks as networksApi,
-  CreateNetworkPayload,
-  CreateNetworkResponse,
 } from "@/core/apis/networks";
 import { DeviceListingOptions } from "./useDevices";
 import { devices } from "../apis/devices";
 import { AxiosError } from "axios";
-import ReusableToast from "@/components/shared/toast/ReusableToast";
-import { getApiErrorMessage } from "../utils/getApiErrorMessage";
 import type { DevicesSummaryResponse } from "@/app/types/devices";
 
 interface ErrorResponse {
@@ -44,52 +40,15 @@ export const useNetworks = () => {
   return { networks, isLoading, isFetching, error: error as Error | null };
 };
 
-interface UseCreateNetworkOptions {
-  onSuccess?: (data: CreateNetworkResponse) => void;
-  onError?: (error: AxiosError<ErrorResponse>) => void;
-}
-
-export const useCreateNetwork = (options: UseCreateNetworkOptions = {}) => {
-  const queryClient = useQueryClient();
-  const { onSuccess: onSuccessCallback, onError: onErrorCallback } = options;
-
-  return useMutation<
-    CreateNetworkResponse,
-    AxiosError<ErrorResponse>,
-    CreateNetworkPayload
-  >({
-    mutationFn: (data) => networksApi.createNetworkApi(data),
-    onSuccess: (data) => {
-      ReusableToast({
-        message: data?.message || "Network created successfully",
-        type: "SUCCESS",
-      });
-      queryClient.invalidateQueries({ queryKey: ["networks"] });
-      if (onSuccessCallback) {
-        onSuccessCallback(data);
-      }
-    },
-    onError: (error) => {
-      ReusableToast({
-        message: `Network Creation Failed: ${getApiErrorMessage(error)}`,
-        type: "ERROR",
-      });
-      if (onErrorCallback) {
-        onErrorCallback(error);
-      }
-    },
-  });
-};
-
 export const useNetworkDevices = (options: DeviceListingOptions = {}) => {
-  const { page = 1, limit = 100, search, sortBy, order, network } = options;
+  const { page = 1, limit = 100, search, sortBy, order, network, filterStatus } = options;
   const safePage = Math.max(1, page);
   const safeLimit = Math.max(1, limit);
   const skip = (safePage - 1) * safeLimit;
 
   const queryKey = [
     "network-devices",
-    { page, limit, search, sortBy, order, network },
+    { page, limit, search, sortBy, order, network, filterStatus },
   ];
 
   const devicesQuery = useQuery<
@@ -101,6 +60,20 @@ export const useNetworkDevices = (options: DeviceListingOptions = {}) => {
       if (!network) {
         throw new Error("Network is required");
       }
+
+      // Hybrid Strategy: If filterStatus is provided, use the status endpoint
+      if (filterStatus) {
+        return devices.getDevicesByStatusApi({
+          status: filterStatus,
+          limit: safeLimit,
+          skip,
+          ...(search && { search }),
+          ...(sortBy && { sortBy }),
+          ...(order && { order }),
+          network: network,
+        });
+      }
+
       return devices.getDevicesSummaryApi({
         limit: safeLimit,
         skip,

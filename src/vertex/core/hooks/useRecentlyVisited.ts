@@ -16,7 +16,7 @@ const STORAGE_KEY = 'vertex_recently_visited';
 const getCanonicalRoute = (pathname: string): { label: string; href: string } | null => {
   // Admin modules
   if (pathname.includes('/admin/networks')) {
-    return { label: 'Networks', href: '/admin/networks' };
+    return { label: 'Sensor Manufacturers', href: '/admin/networks' };
   }
   if (pathname.includes('/admin/cohorts')) {
     return { label: 'Cohorts', href: '/admin/cohorts' };
@@ -31,7 +31,7 @@ const getCanonicalRoute = (pathname: string): { label: string; href: string } | 
     return { label: 'Shipping', href: '/admin/shipping' };
   }
 
-  if (pathname === ROUTE_LINKS.HOME) return { label: 'Device Management', href: ROUTE_LINKS.HOME };
+  if (pathname === ROUTE_LINKS.HOME) return { label: 'Home', href: ROUTE_LINKS.HOME };
   
   if (pathname.includes('/devices/my-devices')) return { label: 'My Devices', href: ROUTE_LINKS.MY_DEVICES };
   if (pathname.includes('/devices/overview')) return { label: 'Device Overview', href: ROUTE_LINKS.ORG_ASSETS };

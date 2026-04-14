@@ -7,7 +7,6 @@ import { Header } from '@/shared/components/header';
 import { Sidebar } from '@/shared/components/sidebar';
 import { GlobalSidebar } from '@/shared/components/global-sidebar';
 import { MobileSidebar } from '@/shared/components/ui/mobile-sidebar';
-import { BottomNavigation } from '@/shared/components/ui/bottom-navigation';
 import { useAppSelector } from '@/shared/hooks/redux';
 import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
 import { LoadingOverlay } from '@/shared/components/ui/loading-overlay';
@@ -22,7 +21,7 @@ interface MainLayoutProps {
 export const MapLayout: React.FC<MainLayoutProps> = ({
   children,
   showSidebar = true,
-  showBottomNav = true,
+  showBottomNav = false,
 }) => {
   const theme = useAppSelector(state => state.theme);
   const { isLoading: userLoading, isLoggingOut } = useUser();
@@ -74,12 +73,8 @@ export const MapLayout: React.FC<MainLayoutProps> = ({
             </div>
           </div>
 
-          {/* Bottom Navigation - Mobile Only */}
-          {showBottomNav && (
-            <div className="md:hidden shrink-0">
-              <BottomNavigation />
-            </div>
-          )}
+          {/* Bottom Navigation intentionally hidden on map pages to avoid
+              interfering with map and sidebar layouts on small screens. */}
         </div>
       )}
 

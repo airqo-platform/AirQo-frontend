@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './button';
 import { AqXClose } from '@airqo/icons-react';
+import { Tooltip } from 'flowbite-react';
 
 interface ActionButton {
   label: string;
@@ -127,6 +128,7 @@ interface ReusableDialogProps {
   showFooter?: boolean;
   primaryAction?: ActionButton;
   secondaryAction?: ActionButton;
+  primaryTooltip?: string;
   customFooter?: React.ReactNode;
 
   // Modal props
@@ -162,6 +164,7 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
   showFooter = true,
   primaryAction,
   secondaryAction,
+  primaryTooltip,
   customFooter,
 
   // Modal props
@@ -291,20 +294,38 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
             {secondaryAction.label}
           </Button>
         )}
-        {primaryAction && (
-          <Button
-            onClick={primaryAction.onClick}
-            disabled={primaryAction.disabled}
-            loading={primaryAction.loading}
-            className={
-              primaryAction.className ||
-              'text-sm bg-primary hover:bg-primary/90 focus:ring-primary text-white disabled:opacity-50'
-            }
-            paddingStyles={primaryAction.padding || 'px-4 py-2'}
-          >
-            {primaryAction.label}
-          </Button>
-        )}
+        {primaryAction &&
+          (primaryTooltip ? (
+            <Tooltip content={primaryTooltip}>
+              <div>
+                <Button
+                  onClick={primaryAction.onClick}
+                  disabled={primaryAction.disabled}
+                  loading={primaryAction.loading}
+                  className={
+                    primaryAction.className ||
+                    'text-sm bg-primary hover:bg-primary/90 focus:ring-primary text-white disabled:opacity-50'
+                  }
+                  paddingStyles={primaryAction.padding || 'px-4 py-2'}
+                >
+                  {primaryAction.label}
+                </Button>
+              </div>
+            </Tooltip>
+          ) : (
+            <Button
+              onClick={primaryAction.onClick}
+              disabled={primaryAction.disabled}
+              loading={primaryAction.loading}
+              className={
+                primaryAction.className ||
+                'text-sm bg-primary hover:bg-primary/90 focus:ring-primary text-white disabled:opacity-50'
+              }
+              paddingStyles={primaryAction.padding || 'px-4 py-2'}
+            >
+              {primaryAction.label}
+            </Button>
+          ))}
       </div>
     );
   };

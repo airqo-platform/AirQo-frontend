@@ -5,7 +5,7 @@ import {
   createServerClient,
   createOpenClient,
 } from '@/shared/services/apiClient';
-import { getSession } from 'next-auth/react';
+import { syncClientSessionToken } from '@/shared/services/sessionAuthToken';
 import type {
   GetThemeResponse,
   UpdateThemeRequest,
@@ -27,12 +27,7 @@ export class ThemeService {
   }
 
   private async ensureAuthenticated() {
-    const session = await getSession();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const token = (session as any)?.accessToken;
-    if (token) {
-      this.authenticatedClient.setAuthToken(token);
-    }
+    await syncClientSessionToken(this.authenticatedClient);
   }
 
   // Get user theme - authenticated endpoint
@@ -79,7 +74,9 @@ export class ThemeService {
     await this.ensureAuthenticated();
     const response = await this.authenticatedClient.put<
       UpdateOrganizationGroupThemeResponse | ApiErrorResponse
-    >(`/users/preferences/theme/organization/group/${groupId}`, themeData);
+    >(`/users/preferences/theme/organization/group/${groupId}`, {
+      theme: themeData,
+    });
     const data = response.data;
 
     if ('success' in data && !data.success) {

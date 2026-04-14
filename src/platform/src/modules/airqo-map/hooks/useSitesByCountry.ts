@@ -1,5 +1,6 @@
 'use client';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { deviceService } from '../../../shared/services/deviceService';
 import type {
   SitesSummaryResponse,
@@ -39,134 +40,135 @@ export function useSitesByCountry({
   initialLimit = 6,
   cohort_id,
 }: UseSitesByCountryParams = {}): UseSitesByCountryResult {
-  const [sites, setSites] = useState<Record<string, unknown>[]>([]);
-  const [totalSites, setTotalSites] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [currentCountry, setCurrentCountry] = useState<string | undefined>(
     country
   );
 
-  // Ref to track previous country for change detection
-  const prevCountryRef = useRef<string | undefined>(country);
+  useEffect(() => {
+    setCurrentCountry(country);
+  }, [country]);
 
-  const fetchSites = useCallback(
-    async (
-      params: SitesSummaryParams = {},
-      append = false,
-      isLoadMore = false
-    ) => {
-      if (!enabled) return;
+  const queryResult = useInfiniteQuery<
+    SitesSummaryResponse | CohortSitesResponse,
+    Error
+  >({
+    queryKey: [
+      'map',
+      'sites-by-country',
+      currentCountry ?? 'all',
+      cohort_id ?? 'no-cohort',
+      initialLimit,
+    ],
+    enabled,
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }) => {
+      const queryParams: SitesSummaryParams = {
+        limit: initialLimit,
+        skip: Number(pageParam) * initialLimit,
+      };
 
-      try {
-        if (isLoadMore) {
-          setIsLoadingMore(true);
-        } else {
-          setIsLoading(true);
-        }
-        setError(null);
-
-        const queryParams: SitesSummaryParams = {
-          limit: initialLimit,
-          ...params,
-        };
-
-        if (currentCountry) {
-          queryParams.country = formatCountryForApi(currentCountry);
-        }
-
-        let response: SitesSummaryResponse | CohortSitesResponse;
-
-        if (cohort_id) {
-          const cohortIds = cohort_id.split(',');
-          response = await deviceService.getCohortSites(
-            { cohort_ids: cohortIds },
-            {
-              ...queryParams,
-              search: queryParams.search,
-            }
-          );
-        } else {
-          response =
-            await deviceService.getSitesSummaryAuthenticated(queryParams);
-        }
-
-        if (append) {
-          setSites(prev => [...prev, ...response.sites]);
-        } else {
-          setSites(response.sites);
-        }
-
-        setTotalSites(response.meta.total);
-        setTotalPages(response.meta.totalPages);
-        setCurrentPage(response.meta.page);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch sites');
-      } finally {
-        if (isLoadMore) {
-          setIsLoadingMore(false);
-        } else {
-          setIsLoading(false);
-        }
+      if (currentCountry) {
+        queryParams.country = formatCountryForApi(currentCountry);
       }
+
+      if (cohort_id) {
+        const cohortIds = cohort_id.split(',').filter(Boolean);
+        return deviceService.getCohortSites(
+          { cohort_ids: cohortIds },
+          {
+            ...queryParams,
+            search: queryParams.search,
+          }
+        );
+      }
+
+      // NOTE: Do NOT infer authentication flow from `cohort_id`.
+      // `cohort_id` is a filter and should not determine whether the
+      // authenticated or token-based client is used. Overloading `cohort_id`
+      // to select the auth flow prevents making an unfiltered authenticated
+      // request; prefer an explicit `isOrgFlow` flag to pick the appropriate
+      // client (e.g., `getSitesSummaryAuthenticated` vs `getSitesSummaryWithToken`).
+      return deviceService.getSitesSummaryWithToken(queryParams);
     },
-    [enabled, initialLimit, currentCountry, cohort_id]
+    getNextPageParam: lastPage => {
+      const { page, totalPages } = lastPage.meta;
+      if (page < totalPages) {
+        return page;
+      }
+      return undefined;
+    },
+    networkMode: 'online',
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 60 * 12,
+  });
+
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    error,
+    hasNextPage,
+    fetchNextPage,
+    refetch: refetchQuery,
+  } = queryResult;
+
+  const sites = useMemo(
+    () => data?.pages.flatMap(page => page.sites) ?? [],
+    [data?.pages]
   );
 
-  const loadMore = useCallback(() => {
-    if (isLoading || isLoadingMore || currentPage >= totalPages) return;
+  const latestMeta = useMemo(() => {
+    const pages = data?.pages;
+    if (!pages || pages.length === 0) return null;
+    return pages[pages.length - 1].meta;
+  }, [data?.pages]);
 
-    const nextSkip = currentPage * initialLimit;
-    fetchSites({ skip: nextSkip }, true, true);
-  }, [
-    isLoading,
-    isLoadingMore,
-    currentPage,
-    totalPages,
-    initialLimit,
-    fetchSites,
-  ]);
+  const loadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      void fetchNextPage();
+    }
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   const refetch = useCallback(async () => {
-    setSites([]);
-    setCurrentPage(1);
-    await fetchSites({}, false);
-  }, [fetchSites]);
+    await refetchQuery();
+  }, [refetchQuery]);
 
   const setCountry = useCallback((newCountry: string | undefined) => {
     setCurrentCountry(newCountry);
-    setSites([]);
-    setCurrentPage(1);
-    setTotalSites(0);
-    setTotalPages(0);
-    setIsLoading(true); // Set loading state when country changes
   }, []);
 
-  // Detect country prop changes and reset state
-  useEffect(() => {
-    if (prevCountryRef.current !== country) {
-      prevCountryRef.current = country;
-      setCountry(country);
-    }
-  }, [country, setCountry]);
+  const noopLoadMore = useCallback(() => undefined, []);
+  const noopRefetch = useCallback(async () => undefined, []);
+  const noopSetCountry: UseSitesByCountryResult['setCountry'] = useCallback(
+    () => undefined,
+    []
+  );
 
-  useEffect(() => {
-    fetchSites({}, false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentCountry, enabled, cohort_id]);
+  if (!enabled) {
+    return {
+      sites: [],
+      totalSites: 0,
+      totalPages: 0,
+      currentPage: 1,
+      isLoading: false,
+      isLoadingMore: false,
+      error: null,
+      hasNextPage: false,
+      loadMore: noopLoadMore,
+      refetch: noopRefetch,
+      setCountry: noopSetCountry,
+    };
+  }
 
   return {
     sites,
-    totalSites,
-    totalPages,
-    currentPage,
+    totalSites: latestMeta?.total ?? 0,
+    totalPages: latestMeta?.totalPages ?? 0,
+    currentPage: latestMeta?.page ?? 1,
     isLoading,
-    isLoadingMore,
-    error,
-    hasNextPage: currentPage < totalPages,
+    isLoadingMore: isFetchingNextPage,
+    error: error?.message ?? null,
+    hasNextPage: Boolean(hasNextPage),
     loadMore,
     refetch,
     setCountry,

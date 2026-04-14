@@ -182,7 +182,7 @@ const BatchDetailsPage = () => {
                         </div>
                     ) : (
                         <>
-                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                            <h1 className="text-2xl uppercase font-bold text-gray-900 dark:text-white">
                                 {batch?.batch_name || 'Unnamed Batch'}
                             </h1>
                             <p className="text-sm text-gray-500 dark:text-gray-400">

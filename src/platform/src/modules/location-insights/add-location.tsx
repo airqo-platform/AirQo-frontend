@@ -16,7 +16,10 @@ import {
 import { closeDialog, openMoreInsights } from '@/shared/store/insightsSlice';
 import { useSitesData } from '@/shared/hooks/useSitesData';
 import type { SelectedSite } from '@/shared/store/insightsSlice';
-import { hashId } from '@/shared/utils/analytics';
+import {
+  trackLocationSelection,
+  trackFeatureUsage,
+} from '@/shared/utils/enhancedAnalytics';
 
 const AddLocation: React.FC = () => {
   const dispatch = useDispatch();
@@ -97,9 +100,20 @@ const AddLocation: React.FC = () => {
     // Create new sites array from stored site data
     const newSites: SelectedSite[] = Array.from(selectedSiteData.values());
 
-    posthog?.capture('locations_added_to_insights', {
-      count: newSites.length,
-      site_ids_hashed: newSites.map(s => hashId(s._id)),
+    // Track each location selection with enhanced analytics
+    newSites.forEach(site => {
+      trackLocationSelection(posthog, {
+        locationId: site._id,
+        locationName: site.name,
+        city: site.city,
+        country: site.country,
+        source: 'insights',
+      });
+    });
+
+    // Track feature usage
+    trackFeatureUsage(posthog, 'location_insights', 'add_locations', {
+      location_count: newSites.length,
     });
 
     dispatch(closeDialog('add-location'));

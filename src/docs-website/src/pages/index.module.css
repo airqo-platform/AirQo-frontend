@@ -1,0 +1,39 @@
+/* Main Container */
+.mainContainer {
+  padding: 2rem;
+  margin: 0 0.5rem 0.5rem 0.5rem;
+  min-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.contentWrapper {
+  width: 100%;
+  max-width: 1200px;
+}
+
+/* Header Styles */
+.header {
+  margin-bottom: 1rem;
+  padding-left: 1rem;
+}
+
+.title {
+  font-size: 2.1rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  line-height: 1.1;
+  font-family: system-ui, -apple-system, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  font-weight: 400;
+  margin: 0;
+  max-width: 600px;
+  line-height: 1.4;
+}
+

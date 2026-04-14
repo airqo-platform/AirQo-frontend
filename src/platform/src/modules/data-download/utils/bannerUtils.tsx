@@ -4,6 +4,7 @@ import { CohortSitesResponse, CohortDevicesResponse } from '@/shared/types/api';
 import { DateRange } from '@/shared/components/calendar/types';
 import { TabType, DeviceCategory } from '../types/dataExportTypes';
 import { LARGE_DATE_RANGE_THRESHOLD } from '../constants/dataExportConstants';
+import { getEnvironmentAwareUrl } from '@/shared/utils/url';
 
 interface BannerNotificationProps {
   dateRange: DateRange | undefined;
@@ -51,10 +52,7 @@ export const getBannerNotification = ({
     hasNoSites &&
     hasNoDevices
   ) {
-    const vertexUrl =
-      process.env.NEXT_PUBLIC_ALLOW_DEV_TOOLS === 'staging'
-        ? 'https://staging-vertex.airqo.net/'
-        : 'https://vertex.airqo.net/';
+    const vertexUrl = getEnvironmentAwareUrl('https://vertex.airqo.net/');
 
     return (
       <InfoBanner
@@ -147,8 +145,8 @@ export const getBannerNotification = ({
   if (activeTab === 'devices' && deviceCategory === 'bam') {
     return (
       <InfoBanner
-        title="BAM Device Data Available"
-        message="BAM devices provide high-quality reference data with all frequency options available for detailed analysis."
+        title="Reference Monitor data is available for export."
+        message="Reference Monitor provides high-quality reference data for detailed analysis."
       />
     );
   }
