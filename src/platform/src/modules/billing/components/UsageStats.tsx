@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Card,
+  InfoBanner,
   LoadingSpinner,
   WarningBanner,
-  InfoBanner,
 } from '@/shared/components/ui';
 import { AqRefreshCcw01 } from '@airqo/icons-react';
 import type { ApiUsage } from '@/shared/types/api';
@@ -20,21 +20,19 @@ interface UsagePeriod {
   description: string;
 }
 
-interface UsageStatsProps {
-  tier?: string;
-}
-
-const UsageStats: React.FC<UsageStatsProps> = ({ tier = 'Free' }) => {
+const UsageStats: React.FC = () => {
   const [usage, setUsage] = useState<ApiUsage | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUsage = async () => {
       try {
-        const response = await fetch(`/api/subscription/usage?tier=${tier}`);
+        const response = await fetch('/api/subscription/usage', {
+          cache: 'no-store',
+        });
         const data = await response.json();
-        if (data.success) {
-          setUsage(data.usage);
+        if (response.ok && data.success) {
+          setUsage(data.usage || data.data || null);
         }
       } catch (error) {
         console.error('Error fetching usage stats:', error);
@@ -44,10 +42,9 @@ const UsageStats: React.FC<UsageStatsProps> = ({ tier = 'Free' }) => {
     };
 
     fetchUsage();
-    // Refresh usage stats every 5 minutes
     const interval = setInterval(fetchUsage, 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [tier]);
+  }, []);
 
   const formatResetTime = (resetTime: string): string => {
     const reset = new Date(resetTime);
@@ -70,6 +67,10 @@ const UsageStats: React.FC<UsageStatsProps> = ({ tier = 'Free' }) => {
   };
 
   const getUsagePercentage = (used: number, limit: number): number => {
+    if (!limit) {
+      return 0;
+    }
+
     return Math.min((used / limit) * 100, 100);
   };
 
@@ -111,6 +112,10 @@ const UsageStats: React.FC<UsageStatsProps> = ({ tier = 'Free' }) => {
     },
   ];
 
+  const nearLimit = usagePeriods.some(
+    period => getUsagePercentage(period.data.used, period.data.limit) >= 90
+  );
+
   return (
     <Card className="p-6">
       <div className="mb-6">
@@ -118,12 +123,13 @@ const UsageStats: React.FC<UsageStatsProps> = ({ tier = 'Free' }) => {
           API Usage Statistics
         </h3>
         <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-          Monitor your API usage across different time periods
+          Monitor your rate-limit usage across hourly, daily, and monthly
+          windows.
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {usagePeriods.map((period, index) => {
+        {usagePeriods.map(period => {
           const percentage = getUsagePercentage(
             period.data.used,
             period.data.limit
@@ -132,17 +138,12 @@ const UsageStats: React.FC<UsageStatsProps> = ({ tier = 'Free' }) => {
 
           return (
             <div
-              key={index}
+              key={period.title}
               className="bg-gray-50 dark:bg-gray-800 rounded-lg p-5 border border-gray-200 dark:border-gray-700"
             >
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <h4 className="font-semibold text-gray-900 dark:text-white">
-                    {period.title}
-                  </h4>
-                </div>
-              </div>
-
+              <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
+                {period.title}
+              </h4>
               <p className="text-xs text-gray-600 dark:text-gray-400 mb-4">
                 {period.description}
               </p>
@@ -157,8 +158,7 @@ const UsageStats: React.FC<UsageStatsProps> = ({ tier = 'Free' }) => {
                   </span>
                 </div>
 
-                {/* Progress Bar */}
-                <div className="relative">
+                <div>
                   <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                     <div
                       className={`h-full ${progressColor} transition-all duration-500 ease-out rounded-full`}
@@ -171,13 +171,12 @@ const UsageStats: React.FC<UsageStatsProps> = ({ tier = 'Free' }) => {
                     </span>
                     {percentage >= 90 && (
                       <span className="text-xs font-medium text-red-600 dark:text-red-400">
-                        ⚠️ Limit approaching
+                        Limit approaching
                       </span>
                     )}
                   </div>
                 </div>
 
-                {/* Reset Time */}
                 <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-600 dark:text-gray-400">
@@ -195,25 +194,19 @@ const UsageStats: React.FC<UsageStatsProps> = ({ tier = 'Free' }) => {
         })}
       </div>
 
-      {/* Warning message if any limit is close */}
-      {(getUsagePercentage(usage.hourly.used, usage.hourly.limit) >= 90 ||
-        getUsagePercentage(usage.daily.used, usage.daily.limit) >= 90 ||
-        getUsagePercentage(usage.monthly.used, usage.monthly.limit) >= 90) && (
+      {nearLimit && (
         <WarningBanner
           title="Usage Limit Warning"
-          message="You're approaching your API usage limit. Consider upgrading your plan for higher limits and uninterrupted service."
+          message="You are approaching one or more rate limits. Consider upgrading your subscription tier to avoid throttling."
           className="mt-6"
         />
       )}
 
-      {/* Info message for free tier */}
-      {tier === 'Free' && (
-        <InfoBanner
-          title="Need More API Calls?"
-          message="Upgrade to Standard or Premium plan for higher limits and access to advanced features."
-          className="mt-6"
-        />
-      )}
+      <InfoBanner
+        title="Rate Limits"
+        message="When rate limiting is enabled in your environment, requests above your tier limit may return HTTP 429. Implement backoff and retries in client integrations."
+        className="mt-6"
+      />
     </Card>
   );
 };

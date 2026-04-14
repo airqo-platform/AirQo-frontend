@@ -1530,6 +1530,7 @@ export interface SubscriptionPlan {
   name: string;
   price: number;
   currency: string;
+  priceId?: string;
   features: string[];
   limits: {
     hourly: number;
@@ -1541,10 +1542,25 @@ export interface SubscriptionPlan {
 export interface UserSubscription {
   tier: SubscriptionTier;
   status: 'active' | 'inactive' | 'past_due' | 'cancelled';
-  startDate: string;
+  nextBillingDate?: string | null;
+  lastRenewalDate?: string | null;
+  automaticRenewal?: boolean;
+  currentSubscriptionId?: string | null;
+  currentPlanDetails?: {
+    priceId?: string | null;
+    currency?: string | null;
+    billingCycle?: string | null;
+  };
+  apiRateLimits?: {
+    hourlyLimit: number;
+    dailyLimit: number;
+    monthlyLimit: number;
+  };
+  // Legacy fields kept for backwards compatibility in older UI code paths.
+  startDate?: string;
   endDate?: string;
-  autoRenewal: boolean;
-  billingCycle: 'monthly' | 'annual';
+  autoRenewal?: boolean;
+  billingCycle?: 'monthly' | 'annual';
 }
 
 export interface ApiUsage {
@@ -1568,8 +1584,13 @@ export interface ApiUsage {
 export interface GetSubscriptionResponse {
   success: boolean;
   message: string;
-  subscription: UserSubscription;
-  usage: ApiUsage;
+  data?: {
+    status: 'active' | 'inactive' | 'past_due' | 'cancelled';
+    tier: SubscriptionTier;
+    nextBillingDate?: string | null;
+  };
+  subscription?: UserSubscription;
+  usage?: ApiUsage;
 }
 
 export interface GetSubscriptionPlansResponse {
@@ -1586,14 +1607,17 @@ export interface Transaction {
   status: 'pending' | 'completed' | 'failed' | 'refunded';
   description: string;
   date: string;
-  paymentMethod: string; // masked, e.g., **** **** **** 1234
-  reference: string;
+  paymentMethod?: string; // masked, e.g., **** **** **** 1234
+  reference?: string;
 }
 
 export interface TransactionHistoryResponse {
   success: boolean;
   message: string;
-  transactions: Transaction[];
+  data?: Transaction[];
+  transactions?: Transaction[];
+}
+
 // Accept Email Invitation Types
 export interface AcceptEmailInvitationRequest {
   token: string;

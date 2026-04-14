@@ -1,89 +1,125 @@
-import { NextRequest, NextResponse } from 'next/server';
-import type { ApiUsage } from '@/shared/types/api';
+import { NextResponse } from 'next/server';
+import type { ApiUsage, SubscriptionTier } from '@/shared/types/api';
+import {
+  extractEnvelopeData,
+  makeUsersApiRequest,
+  parseJsonSafe,
+} from '../_lib/paymentsProxy';
 
-// Force dynamic rendering for this API route
 export const dynamic = 'force-dynamic';
 
-// Helper function to get reset time based on period
+interface UsersMePayload {
+  subscriptionTier?: string;
+  apiRateLimits?: {
+    hourlyLimit?: number;
+    dailyLimit?: number;
+    monthlyLimit?: number;
+  } | null;
+}
+
+const DEFAULT_LIMITS_BY_TIER: Record<
+  SubscriptionTier,
+  { hourly: number; daily: number; monthly: number }
+> = {
+  Free: { hourly: 100, daily: 1000, monthly: 10000 },
+  Standard: { hourly: 500, daily: 5000, monthly: 50000 },
+  Premium: { hourly: 2000, daily: 20000, monthly: 200000 },
+};
+
+const normalizeTier = (tier?: string): SubscriptionTier => {
+  const normalized = (tier || '').toLowerCase();
+  if (normalized === 'standard') {
+    return 'Standard';
+  }
+  if (normalized === 'premium') {
+    return 'Premium';
+  }
+  return 'Free';
+};
+
 const getResetTime = (period: 'hourly' | 'daily' | 'monthly'): string => {
   const now = new Date();
-  let resetTime: Date;
 
-  switch (period) {
-    case 'hourly':
-      resetTime = new Date(now);
-      resetTime.setHours(now.getHours() + 1, 0, 0, 0);
-      break;
-    case 'daily':
-      resetTime = new Date(now);
-      resetTime.setDate(now.getDate() + 1);
-      resetTime.setHours(0, 0, 0, 0);
-      break;
-    case 'monthly':
-      resetTime = new Date(now);
-      resetTime.setMonth(now.getMonth() + 1, 1);
-      resetTime.setHours(0, 0, 0, 0);
-      break;
+  if (period === 'hourly') {
+    const reset = new Date(now);
+    reset.setHours(now.getHours() + 1, 0, 0, 0);
+    return reset.toISOString();
   }
 
-  return resetTime.toISOString();
+  if (period === 'daily') {
+    const reset = new Date(now);
+    reset.setDate(now.getDate() + 1);
+    reset.setHours(0, 0, 0, 0);
+    return reset.toISOString();
+  }
+
+  const reset = new Date(now);
+  reset.setMonth(now.getMonth() + 1, 1);
+  reset.setHours(0, 0, 0, 0);
+  return reset.toISOString();
 };
 
-// Dummy usage data based on subscription tier
-// In production, this would be fetched from the database
-const getDummyUsage = (tier: string = 'Free'): ApiUsage => {
-  const limits = {
-    Free: { hourly: 10, daily: 100, monthly: 1000 },
-    Standard: { hourly: 100, daily: 1000, monthly: 10000 },
-    Premium: { hourly: 1000, daily: 10000, monthly: 100000 },
-  };
-
-  const tierLimits = limits[tier as keyof typeof limits] || limits.Free;
-
-  // Simulate realistic usage (between 30-70% of limit)
-  const getRandomUsage = (limit: number) =>
-    Math.floor(limit * (0.3 + Math.random() * 0.4));
-
-  return {
-    hourly: {
-      used: getRandomUsage(tierLimits.hourly),
-      limit: tierLimits.hourly,
-      resetTime: getResetTime('hourly'),
-    },
-    daily: {
-      used: getRandomUsage(tierLimits.daily),
-      limit: tierLimits.daily,
-      resetTime: getResetTime('daily'),
-    },
-    monthly: {
-      used: getRandomUsage(tierLimits.monthly),
-      limit: tierLimits.monthly,
-      resetTime: getResetTime('monthly'),
-    },
-  };
-};
-
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    // In a real implementation:
-    // 1. Get user from auth session
-    // 2. Fetch their subscription tier from database
-    // 3. Fetch their actual API usage from logs/metrics
+    const profileResult = await makeUsersApiRequest('/me', { method: 'GET' });
 
-    const searchParams = request.nextUrl.searchParams;
-    const tier = searchParams.get('tier') || 'Free';
+    if ('error' in profileResult) {
+      return profileResult.error;
+    }
 
-    const usage = getDummyUsage(tier);
+    const payload = await parseJsonSafe<Record<string, unknown>>(
+      profileResult.response
+    );
+
+    if (!profileResult.response.ok || !payload) {
+      const message =
+        (payload?.message as string | undefined) ||
+        'Failed to retrieve usage statistics';
+
+      return NextResponse.json(
+        {
+          success: false,
+          message,
+        },
+        { status: profileResult.response.status || 500 }
+      );
+    }
+
+    const profile = extractEnvelopeData<UsersMePayload>(payload) || {};
+    const tier = normalizeTier(profile.subscriptionTier);
+
+    const fallbackLimits = DEFAULT_LIMITS_BY_TIER[tier];
+    const usage: ApiUsage = {
+      hourly: {
+        used: 0,
+        limit: profile.apiRateLimits?.hourlyLimit ?? fallbackLimits.hourly,
+        resetTime: getResetTime('hourly'),
+      },
+      daily: {
+        used: 0,
+        limit: profile.apiRateLimits?.dailyLimit ?? fallbackLimits.daily,
+        resetTime: getResetTime('daily'),
+      },
+      monthly: {
+        used: 0,
+        limit: profile.apiRateLimits?.monthlyLimit ?? fallbackLimits.monthly,
+        resetTime: getResetTime('monthly'),
+      },
+    };
 
     return NextResponse.json({
       success: true,
       message: 'Usage statistics retrieved successfully',
+      data: usage,
       usage,
     });
   } catch (error) {
     console.error('Error fetching usage statistics:', error);
     return NextResponse.json(
-      { success: false, message: 'Failed to retrieve usage statistics' },
+      {
+        success: false,
+        message: 'Failed to retrieve usage statistics',
+      },
       { status: 500 }
     );
   }

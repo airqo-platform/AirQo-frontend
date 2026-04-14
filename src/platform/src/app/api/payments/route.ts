@@ -1,65 +1,126 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import type { Transaction } from '@/shared/types/api';
+import {
+  extractEnvelopeData,
+  makeUsersApiRequest,
+  parseJsonSafe,
+} from '../subscription/_lib/paymentsProxy';
 
-// Dummy data for transaction history
-const dummyTransactions: Transaction[] = [
-  {
-    id: '1',
-    amount: 29.99,
-    currency: 'USD',
-    status: 'completed',
-    description: 'Monthly API subscription',
-    date: '2025-12-01T10:00:00Z',
-    paymentMethod: '**** **** **** 1234',
-    reference: 'TXN-001',
-  },
-  {
-    id: '2',
-    amount: 15.0,
-    currency: 'USD',
-    status: 'completed',
-    description: 'Data export fee',
-    date: '2025-11-15T14:30:00Z',
-    paymentMethod: '**** **** **** 5678',
-    reference: 'TXN-002',
-  },
-  {
-    id: '3',
-    amount: 50.0,
-    currency: 'USD',
-    status: 'pending',
-    description: 'Premium analytics upgrade',
-    date: '2025-12-10T09:15:00Z',
-    paymentMethod: '**** **** **** 9012',
-    reference: 'TXN-003',
-  },
-  {
-    id: '4',
-    amount: 10.0,
-    currency: 'USD',
-    status: 'failed',
-    description: 'Additional API calls',
-    date: '2025-11-20T16:45:00Z',
-    paymentMethod: '**** **** **** 3456',
-    reference: 'TXN-004',
-  },
-];
+export const dynamic = 'force-dynamic';
 
-export async function GET() {
+interface BackendTransaction {
+  _id?: string;
+  id?: string;
+  amount?: number;
+  currency?: string;
+  status?: 'pending' | 'completed' | 'failed' | 'refunded';
+  description?: string;
+  paymentMethod?: string | { masked?: string; brand?: string; last4?: string };
+  reference?: string;
+  createdAt?: string;
+  date?: string;
+}
+
+const normalizePaymentMethod = (
+  paymentMethod: BackendTransaction['paymentMethod']
+): string => {
+  if (!paymentMethod) {
+    return 'Provider-hosted checkout';
+  }
+
+  if (typeof paymentMethod === 'string') {
+    return paymentMethod;
+  }
+
+  if (paymentMethod.masked) {
+    return paymentMethod.masked;
+  }
+
+  if (paymentMethod.last4) {
+    const brandPrefix = paymentMethod.brand ? `${paymentMethod.brand} ` : '';
+    return `${brandPrefix}•••• ${paymentMethod.last4}`;
+  }
+
+  return 'Provider-hosted checkout';
+};
+
+const normalizeTransactions = (items: BackendTransaction[]): Transaction[] => {
+  return items.map((item, index) => {
+    const id = item._id || item.id || `txn-${index + 1}`;
+
+    return {
+      id,
+      amount: Number(item.amount || 0),
+      currency: item.currency || 'USD',
+      status: item.status || 'pending',
+      description: item.description || 'Subscription transaction',
+      date: item.date || item.createdAt || new Date().toISOString(),
+      paymentMethod: normalizePaymentMethod(item.paymentMethod),
+      reference: item.reference,
+    };
+  });
+};
+
+export async function GET(request: NextRequest) {
   try {
-    // In a real implementation, this would fetch from database
-    // and filter by authenticated user
-    const response = {
-      success: true,
-      message: 'Transaction history retrieved successfully',
-      transactions: dummyTransactions,
+    const searchParams = request.nextUrl.searchParams;
+    const query = {
+      start_date: searchParams.get('start_date') || undefined,
+      end_date: searchParams.get('end_date') || undefined,
+      status: searchParams.get('status') || undefined,
+      page: searchParams.get('page') || 1,
+      limit: searchParams.get('limit') || 20,
     };
 
-    return NextResponse.json(response);
+    const result = await makeUsersApiRequest(
+      '/transactions/transaction-history',
+      {
+        method: 'GET',
+      },
+      query
+    );
+
+    if ('error' in result) {
+      return result.error;
+    }
+
+    const payload = await parseJsonSafe<Record<string, unknown>>(
+      result.response
+    );
+
+    if (!result.response.ok || !payload) {
+      const message =
+        (payload?.message as string | undefined) ||
+        'Failed to retrieve transaction history';
+
+      return NextResponse.json(
+        {
+          success: false,
+          message,
+        },
+        { status: result.response.status || 500 }
+      );
+    }
+
+    const rawTransactions =
+      extractEnvelopeData<BackendTransaction[]>(payload) || [];
+    const transactions = normalizeTransactions(rawTransactions);
+
+    return NextResponse.json({
+      success: true,
+      message:
+        (payload.message as string) ||
+        'Transaction history retrieved successfully',
+      data: transactions,
+      transactions,
+    });
   } catch (error) {
     console.error('Error fetching transaction history:', error);
     return NextResponse.json(
-      { success: false, message: 'Failed to retrieve transaction history' },
+      {
+        success: false,
+        message: 'Failed to retrieve transaction history',
+      },
       { status: 500 }
     );
   }

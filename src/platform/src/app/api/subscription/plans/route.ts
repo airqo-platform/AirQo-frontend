@@ -1,33 +1,17 @@
 import { NextResponse } from 'next/server';
 import type { SubscriptionPlan } from '@/shared/types/api';
 
-// Dummy plans data
-const dummyPlans: SubscriptionPlan[] = [
+const plans: SubscriptionPlan[] = [
   {
     tier: 'Free',
-    name: 'Free Plan',
+    name: 'Free',
     price: 0,
     currency: 'USD',
     features: [
-      '10 API calls/hour',
-      '100 API calls/day',
-      '1000 API calls/month',
-    ],
-    limits: {
-      hourly: 10,
-      daily: 100,
-      monthly: 1000,
-    },
-  },
-  {
-    tier: 'Standard',
-    name: 'Standard Plan',
-    price: 29.99,
-    currency: 'USD',
-    features: [
-      '100 API calls/hour',
-      '1000 API calls/day',
-      '10000 API calls/month',
+      'Recent hourly calibrated measurements (last 7 days)',
+      'Access by Site ID, Device ID, Cohort ID, and Grid ID',
+      'Spatial heatmap visualisations',
+      'Community support',
     ],
     limits: {
       hourly: 100,
@@ -36,15 +20,17 @@ const dummyPlans: SubscriptionPlan[] = [
     },
   },
   {
-    tier: 'Premium',
-    name: 'Premium Plan',
-    price: 79.99,
+    tier: 'Standard',
+    name: 'Standard',
+    price: 50,
     currency: 'USD',
+    priceId: process.env.PAYMENTS_STANDARD_PRICE_ID,
     features: [
-      '500 API calls/hour',
-      '5000 API calls/day',
-      '50000 API calls/month',
-      'Priority support',
+      'Everything in Free',
+      'Historical data access up to 1 year',
+      'Raw sensor data and daily aggregations',
+      'Bulk data export with pagination support',
+      'Email support',
     ],
     limits: {
       hourly: 500,
@@ -52,23 +38,32 @@ const dummyPlans: SubscriptionPlan[] = [
       monthly: 50000,
     },
   },
+  {
+    tier: 'Premium',
+    name: 'Premium',
+    price: 150,
+    currency: 'USD',
+    priceId: process.env.PAYMENTS_PREMIUM_PRICE_ID,
+    features: [
+      'Everything in Standard',
+      '7-day hourly and daily forecasts',
+      'Health recommendations with forecast context',
+      'Priority API access with higher limits',
+      'Priority support',
+    ],
+    limits: {
+      hourly: 2000,
+      daily: 20000,
+      monthly: 200000,
+    },
+  },
 ];
 
 export async function GET() {
-  try {
-    // In a real implementation, this would fetch from database
-    const response = {
-      success: true,
-      message: 'Subscription plans retrieved successfully',
-      plans: dummyPlans,
-    };
-
-    return NextResponse.json(response);
-  } catch (error) {
-    console.error('Error fetching subscription plans:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to retrieve subscription plans' },
-      { status: 500 }
-    );
-  }
+  return NextResponse.json({
+    success: true,
+    message: 'Subscription plans retrieved successfully',
+    data: plans,
+    plans,
+  });
 }

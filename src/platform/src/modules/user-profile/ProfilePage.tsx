@@ -13,7 +13,6 @@ import {
   AqKey01,
   AqPalette,
   AqCreditCard01,
-  AqMail04,
 } from '@airqo/icons-react';
 import { Card, LoadingSpinner } from '@/shared/components/ui';
 
@@ -37,7 +36,10 @@ const ProfilePage: React.FC = () => {
   useEffect(() => {
     const tabParam = searchParams.get('tab');
     if (tabParam === 'org-invites') {
-      setActiveTab(2); // Org Invites tab
+      setActiveTab(4);
+    }
+    if (tabParam === 'subscription') {
+      setActiveTab(3);
     }
   }, [searchParams]);
 
@@ -62,38 +64,15 @@ const ProfilePage: React.FC = () => {
     },
     { id: 1, title: 'Security', component: () => <SecurityTab /> },
     { id: 2, title: 'API', component: () => <ApiClientPage /> },
-    { id: 3, title: 'Billing & Payments', component: () => <BillingPage /> },
-    { id: 2, title: 'Team Invites', component: () => <OrgInvitesTab /> },
-    { id: 3, title: 'API', component: () => <ApiClientPage /> },
-    { id: 4, title: 'Theme', component: () => <ThemeManager /> },
+    { id: 3, title: 'Subscription', component: () => <BillingPage /> },
+    { id: 4, title: 'Team Invites', component: () => <OrgInvitesTab /> },
+    { id: 5, title: 'Theme', component: () => <ThemeManager /> },
   ];
 
   return (
     <div>
       {/* Tab Navigation */}
       <Card className="mb-6">
-        <nav className="flex space-x-8 px-6">
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => tab.component && setActiveTab(tab.id)}
-              disabled={!tab.component}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === tab.id
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
-              } ${!tab.component ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
-            >
-              <span className="flex gap-2 items-center">
-                {tab.id === 0 && <AqUserCircle size={16} />}
-                {tab.id === 1 && <AqLock02 size={16} />}
-                {tab.id === 2 && <AqKey01 size={16} />}
-                {tab.id === 3 && <AqCreditCard01 size={16} />}
-                {tab.id === 4 && <AqPalette size={16} />}
-                {tab.title}
-              </span>
-            </button>
-          ))}
         <nav className="flex overflow-x-auto scrollbar-hide px-4 sm:px-6">
           <div className="flex space-x-4 sm:space-x-8 min-w-max">
             {tabs.map(tab => (
@@ -115,12 +94,15 @@ const ProfilePage: React.FC = () => {
                     <AqLock02 size={14} className="sm:w-4 sm:h-4" />
                   )}
                   {tab.id === 2 && (
-                    <AqMail04 size={14} className="sm:w-4 sm:h-4" />
-                  )}
-                  {tab.id === 3 && (
                     <AqKey01 size={14} className="sm:w-4 sm:h-4" />
                   )}
+                  {tab.id === 3 && (
+                    <AqCreditCard01 size={14} className="sm:w-4 sm:h-4" />
+                  )}
                   {tab.id === 4 && (
+                    <AqUserCircle size={14} className="sm:w-4 sm:h-4" />
+                  )}
+                  {tab.id === 5 && (
                     <AqPalette size={14} className="sm:w-4 sm:h-4" />
                   )}
                   {tab.title}
