@@ -56,7 +56,7 @@ const createQueryClient = () =>
         networkMode: 'online',
         staleTime: 1000 * 60,
         gcTime: QUERY_CACHE_MAX_AGE_MS,
-        refetchOnWindowFocus: false,
+        refetchOnWindowFocus: true,
         refetchOnReconnect: false,
         retry: (failureCount, error) => {
           if (typeof navigator !== 'undefined' && !navigator.onLine) {
@@ -64,17 +64,13 @@ const createQueryClient = () =>
           }
 
           const status = getErrorStatusCode(error);
-          const errorCode = getErrorCode(error);
 
           if (status !== null && status >= 500) {
             return false;
           }
 
-          if (
-            errorCode === 'ERR_NETWORK' ||
-            errorCode === 'ECONNABORTED' ||
-            errorCode === 'ETIMEDOUT'
-          ) {
+          const errorCode = getErrorCode(error);
+          if (errorCode === 'ERR_CANCELED') {
             return false;
           }
 

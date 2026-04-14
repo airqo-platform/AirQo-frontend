@@ -4,7 +4,7 @@ import React from 'react';
 import { useMediaQuery } from 'react-responsive';
 import { usePostHog } from 'posthog-js/react';
 import { MapSidebar, EnhancedMap } from '@/modules/airqo-map';
-import { useSitesByCountry, useMapReadings, useWAQICities } from './hooks';
+import { useSitesByCountry, useMapReadings } from './hooks';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   setSelectedLocation,
@@ -157,21 +157,9 @@ const MapPage: React.FC<MapPageProps> = ({
   const hasNoMapData =
     isOrganizationFlow && cohortData?.cohorts[0]?.visibility === false;
 
-  // WAQI disabled — wiring kept for future re-enablement
-  const allCities = React.useMemo(() => [], []);
-  const { citiesReadings: waqiReadings } = useWAQICities(allCities, 10);
-
   const normalizedReadings = React.useMemo(() => {
-    const airqoReadings = normalizeMapReadings(readings, selectedPollutant);
-    if (isOrganizationFlow || cohortId) return airqoReadings;
-
-    const seenIds = new Set<string>();
-    return [...airqoReadings, ...waqiReadings].filter(r => {
-      if (seenIds.has(r.id)) return false;
-      seenIds.add(r.id);
-      return true;
-    });
-  }, [readings, waqiReadings, selectedPollutant, cohortId, isOrganizationFlow]);
+    return normalizeMapReadings(readings, selectedPollutant);
+  }, [readings, selectedPollutant]);
 
   // ── Handlers ───────────────────────────────────────────────────────────────
   const handleSearch = (query: string) => setSearchQuery(query);

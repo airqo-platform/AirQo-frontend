@@ -126,9 +126,16 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     isOrganizationFlow && !!organizationGroupId
   );
 
-  const cohortIds = isOrganizationFlow
-    ? (organizationGroupCohorts?.data ?? [])
-    : activeGroupCohortIds;
+  const cohortIds = React.useMemo(
+    () =>
+      (isOrganizationFlow
+        ? (organizationGroupCohorts?.data ?? [])
+        : activeGroupCohortIds
+      )
+        .map(cohortId => cohortId?.trim())
+        .filter((cohortId): cohortId is string => Boolean(cohortId)),
+    [isOrganizationFlow, organizationGroupCohorts?.data, activeGroupCohortIds]
+  );
 
   const cohortsLoading = isOrganizationFlow
     ? organizationCohortsLoading ||
@@ -153,7 +160,10 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   ]);
 
   // Get cohort details for the first cohort to check visibility
-  const firstCohortId = cohortIds.length > 0 ? cohortIds[0] : '';
+  const firstCohortId = React.useMemo(
+    () => cohortIds.find(Boolean) || '',
+    [cohortIds]
+  );
   const { data: cohortData } = useCohort(
     firstCohortId,
     !!firstCohortId && !cohortsLoading

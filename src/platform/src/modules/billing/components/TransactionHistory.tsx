@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import { formatDate } from '@/shared/utils';
+import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import { subscriptionService } from '@/shared/services/subscriptionService';
 import type { Transaction } from '@/shared/types/api';
 
 type TransactionTableItem = Transaction & { [key: string]: unknown };
@@ -16,9 +18,39 @@ const statusColor: Record<string, string> = {
   refunded: 'text-blue-700 bg-blue-100 dark:bg-blue-900/40 dark:text-blue-200',
 };
 
-const SERVICE_UNAVAILABLE_MESSAGE = 'Service not available';
-
 const TransactionHistory: React.FC = () => {
+  const [transactions, setTransactions] = useState<TransactionTableItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadTransactions = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await subscriptionService.getTransactionHistory({
+        page: 1,
+        limit: 100,
+      });
+
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to load transactions');
+      }
+
+      const items = response.transactions || response.data || [];
+      setTransactions(items as TransactionTableItem[]);
+    } catch (err) {
+      setTransactions([]);
+      setError(getUserFriendlyErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadTransactions();
+  }, [loadTransactions]);
+
   const columns = useMemo(
     () => [
       {
@@ -69,10 +101,13 @@ const TransactionHistory: React.FC = () => {
 
   return (
     <ServerSideTable
-      data={[] as TransactionTableItem[]}
+      data={transactions}
       columns={columns}
-      loading={false}
-      error={SERVICE_UNAVAILABLE_MESSAGE}
+      loading={loading}
+      error={error}
+      onRefresh={() => {
+        void loadTransactions();
+      }}
       title="Transaction History"
       showClientPagination={true}
       className="border rounded-lg"

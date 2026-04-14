@@ -7,6 +7,7 @@ import {
 const OAUTH_SIGNED_OUT_FLAG = 'airqo:oauth-signed-out';
 const OAUTH_FRAGMENT_TOKEN_KEY = 'token';
 const OAUTH_SUCCESS_PROVIDER_KEY = 'success';
+const OAUTH_PROFILE_FETCH_TIMEOUT_MS = 10000;
 
 export interface BackendOAuthProfile {
   _id: string;
@@ -192,9 +193,15 @@ export const verifyBackendOAuthSession =
         ? buildServerApiUrl('/users/profile/enhanced')
         : buildBrowserApiUrl('/users/profile/enhanced');
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, OAUTH_PROFILE_FETCH_TIMEOUT_MS);
+
     try {
       const response = await fetch(profileUrl, {
         method: 'GET',
+        signal: controller.signal,
         credentials: 'include',
         cache: 'no-store',
         headers: {
@@ -219,7 +226,14 @@ export const verifyBackendOAuthSession =
             ? normalizeOAuthAccessToken(payload.accessToken) || undefined
             : undefined,
       };
-    } catch {
+    } catch (error) {
+      const errorName = (error as { name?: string })?.name;
+      if (errorName === 'AbortError') {
+        return null;
+      }
+
       return null;
+    } finally {
+      clearTimeout(timeoutId);
     }
   };

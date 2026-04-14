@@ -8,6 +8,7 @@ import {
   WarningBanner,
 } from '@/shared/components/ui';
 import { AqRefreshCcw01 } from '@airqo/icons-react';
+import { subscriptionService } from '@/shared/services/subscriptionService';
 import type { ApiUsage } from '@/shared/types/api';
 
 interface UsagePeriod {
@@ -27,12 +28,9 @@ const UsageStats: React.FC = () => {
   useEffect(() => {
     const fetchUsage = async () => {
       try {
-        const response = await fetch('/api/subscription/usage', {
-          cache: 'no-store',
-        });
-        const data = await response.json();
-        if (response.ok && data.success) {
-          setUsage(data.usage || data.data || null);
+        const data = await subscriptionService.getUsage();
+        if (data.success) {
+          setUsage(data.usage || null);
         }
       } catch (error) {
         console.error('Error fetching usage stats:', error);

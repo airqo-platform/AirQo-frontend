@@ -4,20 +4,13 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { AqCheck } from '@airqo/icons-react';
 import { Button, Card, LoadingSpinner, toast } from '@/shared/components/ui';
 import { formatDate } from '@/shared/utils';
+import { subscriptionService } from '@/shared/services/subscriptionService';
 import type {
-  GetSubscriptionResponse,
   SubscriptionPlan,
   SubscriptionTier,
   UserSubscription,
 } from '@/shared/types/api';
 import CheckoutDialog from './CheckoutDialog';
-
-interface PlansResponse {
-  success?: boolean;
-  message?: string;
-  data?: SubscriptionPlan[];
-  plans?: SubscriptionPlan[];
-}
 
 const fallbackPlans: SubscriptionPlan[] = [
   {
@@ -107,25 +100,23 @@ const SubscriptionSection: React.FC = () => {
 
     try {
       const [subscriptionResponse, plansResponse] = await Promise.all([
-        fetch('/api/subscription', { cache: 'no-store' }),
-        fetch('/api/subscription/plans', { cache: 'no-store' }),
+        subscriptionService.getSubscription(),
+        subscriptionService.getPlans(),
       ]);
 
-      const subscriptionPayload: GetSubscriptionResponse =
-        await subscriptionResponse.json();
-      const plansPayload: PlansResponse = await plansResponse.json();
-
-      if (subscriptionResponse.ok && subscriptionPayload.success) {
+      if (subscriptionResponse.success) {
         const incoming =
-          subscriptionPayload.data || subscriptionPayload.subscription || null;
+          subscriptionResponse.subscription ||
+          subscriptionResponse.data ||
+          null;
         if (incoming) {
-          setSubscription(incoming);
+          setSubscription((incoming as UserSubscription) || null);
         }
       }
 
-      const incomingPlans = plansPayload.data || plansPayload.plans;
+      const incomingPlans = plansResponse.plans;
       if (
-        plansResponse.ok &&
+        plansResponse.success &&
         Array.isArray(incomingPlans) &&
         incomingPlans.length
       ) {
@@ -167,23 +158,15 @@ const SubscriptionSection: React.FC = () => {
       const successUrl = `${currentUrl.origin}${currentUrl.pathname}?tab=subscription&checkout=success`;
       const cancelUrl = `${currentUrl.origin}${currentUrl.pathname}?tab=subscription&checkout=cancel`;
 
-      const response = await fetch('/api/subscription/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          tier: selectedPlan.tier,
-          priceId: selectedPlan.priceId,
-          successUrl,
-          cancelUrl,
-        }),
+      const payload = await subscriptionService.createCheckoutSession({
+        tier: selectedPlan.tier,
+        priceId: selectedPlan.priceId,
+        successUrl,
+        cancelUrl,
       });
 
-      const payload = await response.json();
-
-      if (!response.ok || !payload.success) {
-        if (response.status === 503 || payload.comingSoon) {
+      if (!payload.success) {
+        if (payload.comingSoon) {
           const message =
             payload.message ||
             'Payments are temporarily unavailable while provider credentials are being configured.';
@@ -225,17 +208,12 @@ const SubscriptionSection: React.FC = () => {
       setRunningAction('autoRenew');
       setComingSoonMessage(null);
 
-      const response = await fetch('/api/subscription/auto-renewal', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ subscriptionId: currentSubscriptionId }),
-      });
-      const payload = await response.json();
+      const payload = await subscriptionService.enableAutoRenewal(
+        currentSubscriptionId
+      );
 
-      if (!response.ok || !payload.success) {
-        if (response.status === 503 || payload.comingSoon) {
+      if (!payload.success) {
+        if (payload.comingSoon) {
           setComingSoonMessage(
             payload.message ||
               'Automatic renewal is coming soon while payments are being enabled.'
@@ -288,17 +266,12 @@ const SubscriptionSection: React.FC = () => {
       setRunningAction('cancel');
       setComingSoonMessage(null);
 
-      const response = await fetch('/api/subscription/cancel', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ subscriptionId: currentSubscriptionId }),
-      });
-      const payload = await response.json();
+      const payload = await subscriptionService.cancelSubscription(
+        currentSubscriptionId
+      );
 
-      if (!response.ok || !payload.success) {
-        if (response.status === 503 || payload.comingSoon) {
+      if (!payload.success) {
+        if (payload.comingSoon) {
           setComingSoonMessage(
             payload.message ||
               'Cancellation is coming soon while payments are being enabled.'
@@ -340,17 +313,12 @@ const SubscriptionSection: React.FC = () => {
       setRunningAction('renew');
       setComingSoonMessage(null);
 
-      const response = await fetch('/api/subscription/reactivate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ subscriptionId: currentSubscriptionId }),
-      });
-      const payload = await response.json();
+      const payload = await subscriptionService.reactivateSubscription(
+        currentSubscriptionId
+      );
 
-      if (!response.ok || !payload.success) {
-        if (response.status === 503 || payload.comingSoon) {
+      if (!payload.success) {
+        if (payload.comingSoon) {
           setComingSoonMessage(
             payload.message ||
               'Manual renewal is coming soon while payments are being enabled.'

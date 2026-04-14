@@ -46,7 +46,7 @@ export default function RootLayout({
           easing="ease"
           initialPosition={0.08}
           shadow="0 0 8px rgb(var(--primary) / 0.6)"
-          zIndex={1700}
+          zIndex={10000}
         />
         <ReduxProvider>
           <ErrorBoundary>

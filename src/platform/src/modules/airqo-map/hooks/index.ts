@@ -13,7 +13,4 @@ export type { UseMapReadingsResult } from './useMapReadings';
 export { useForecast } from './useForecast';
 export type { UseForecastParams, UseForecastResult } from './useForecast';
 
-export { useWAQICities } from './useWAQI';
-export type { UseWAQICitiesResult } from './useWAQI';
-
 export { useSiteChartData } from './useSiteChartData';

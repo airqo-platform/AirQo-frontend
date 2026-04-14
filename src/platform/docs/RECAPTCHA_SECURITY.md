@@ -56,13 +56,16 @@ The reCAPTCHA widget is implemented in:
 />
 ```
 
-### 3. Server-Side Verification
+### 3. Backend Verification
 
-The reCAPTCHA token is verified on the server:
+Payment and subscription calls now use direct backend API endpoints (no internal
+Next.js proxy routes). If reCAPTCHA is re-enabled for payment updates, token
+verification should happen directly in the backend payment service before any
+mutation is processed.
 
-- **Location**: `src/app/api/payments/update-card/route.ts`
-- **Endpoint**: `POST /api/payments/update-card`
-- **Verification**: Token validated with Google's API before processing payment
+- **Location**: `src/shared/services/subscriptionService.ts` (frontend integration)
+- **Endpoint pattern**: `/api/v2/users/transactions/*`
+- **Verification**: Backend validates the reCAPTCHA token with Google's API before processing payment
 
 ```typescript
 // Verify reCAPTCHA with Google
@@ -229,7 +232,7 @@ For issues or questions:
 ## Related Files
 
 - `src/modules/billing/components/PaymentMethodForm.tsx` - Client-side form
-- `src/app/api/payments/update-card/route.ts` - Server-side verification
+- `src/shared/services/subscriptionService.ts` - Direct billing API integration
 - `src/modules/billing/components/BillingInformation.tsx` - Parent component
 - `.env.local` - Environment variables (not in repo)
 

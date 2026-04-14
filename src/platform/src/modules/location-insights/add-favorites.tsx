@@ -71,7 +71,7 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
       return null;
     }
     // Sort by lastAccessed date (most recent first) and take the first one
-    return preferences.preferences.sort(
+    return [...preferences.preferences].sort(
       (a, b) =>
         new Date(b.lastAccessed || b.updatedAt).getTime() -
         new Date(a.lastAccessed || a.updatedAt).getTime()

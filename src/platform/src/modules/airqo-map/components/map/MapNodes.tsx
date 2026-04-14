@@ -31,7 +31,6 @@ export interface AirQualityReading {
   pollutantValue?: number;
   pollutantType?: 'pm2_5' | 'pm10';
   fullReadingData?: import('../../../../shared/types/api').MapReading;
-  forecastData?: import('../../../../shared/types/api').ForecastData[];
 }
 
 export interface ClusterData {

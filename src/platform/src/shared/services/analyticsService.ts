@@ -54,7 +54,6 @@ export class AnalyticsService {
   async downloadData(
     request: DataDownloadRequest
   ): Promise<DataDownloadResponse | string> {
-    // Use server client with API_TOKEN instead of JWT authentication
     const response = await this.serverClient.post<
       DataDownloadResponse | string
     >('/analytics/data-download', request);

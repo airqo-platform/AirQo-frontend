@@ -16,6 +16,7 @@ const UNAUTHORIZED_EVENT_COOLDOWN_MS = 1500;
 const API_FAILURE_NOTIFY_COOLDOWN_MS = 10 * 60 * 1000;
 
 const apiFailureNotificationCache = new Map<string, number>();
+let hasLoggedMissingApiTokenWarning = false;
 
 // Extended type for config with metadata
 interface RequestConfigWithMetadata extends InternalAxiosRequestConfig {
@@ -103,11 +104,33 @@ const shouldNotifyApiFailure = (key: string): boolean => {
   return true;
 };
 
+const resolveApiToken = (): string => {
+  return (process.env.API_TOKEN || '').trim();
+};
+
+const appendApiTokenToUrl = (inputUrl: string, token: string): string => {
+  if (!inputUrl || !token) {
+    return inputUrl;
+  }
+
+  const [urlWithoutHash, hashFragment] = inputUrl.split('#', 2);
+  const [path, queryString = ''] = urlWithoutHash.split('?', 2);
+  const searchParams = new URLSearchParams(queryString);
+
+  if (!searchParams.has('token')) {
+    searchParams.set('token', token);
+  }
+
+  const serializedQuery = searchParams.toString();
+  const nextUrl = serializedQuery ? `${path}?${serializedQuery}` : path;
+  return hashFragment ? `${nextUrl}#${hashFragment}` : nextUrl;
+};
+
 // Auth types
 export enum AuthType {
   NONE = 'none',
   JWT = 'jwt', // From next-auth session
-  API_TOKEN = 'api_token', // From env, server-side only
+  API_TOKEN = 'api_token', // Adds token query param for token-authenticated endpoints
 }
 
 // Base API client class
@@ -132,8 +155,11 @@ export class ApiClient {
 
   private buildBaseUrl(): string {
     if (this.authType === AuthType.API_TOKEN) {
-      // For API_TOKEN, use internal proxy route
-      return '/api/external';
+      if (typeof window !== 'undefined') {
+        return '/api/external';
+      }
+
+      return resolveApiOrigin();
     }
 
     if (typeof window !== 'undefined') {
@@ -152,10 +178,7 @@ export class ApiClient {
           startTime: Date.now(),
         };
 
-        if (
-          this.authType !== AuthType.API_TOKEN &&
-          typeof config.url === 'string'
-        ) {
+        if (typeof config.url === 'string') {
           config.url = resolveVersionedApiPath(config.url);
         }
 
@@ -167,7 +190,18 @@ export class ApiClient {
           // JWT tokens are set via setAuthToken() method
           // The Authorization header should already be set on the client defaults
         } else if (this.authType === AuthType.API_TOKEN) {
-          // Token is handled by the internal proxy route
+          if (typeof window === 'undefined') {
+            const apiToken = resolveApiToken();
+
+            if (apiToken && typeof config.url === 'string') {
+              config.url = appendApiTokenToUrl(config.url, apiToken);
+            } else if (!apiToken && !hasLoggedMissingApiTokenWarning) {
+              hasLoggedMissingApiTokenWarning = true;
+              logger.warn(
+                'API token client is active but no token is configured. Set API_TOKEN in server environment variables.'
+              );
+            }
+          }
         }
         return config;
       },

@@ -126,8 +126,7 @@ const isAlreadyVersionedPath = (value: string): boolean => {
 };
 
 export const resolveApiOrigin = (): string => {
-  const configuredBaseUrl =
-    process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '';
+  const configuredBaseUrl = process.env.API_BASE_URL || '';
 
   const normalizedOrigin = stripApiSuffix(configuredBaseUrl);
   if (!normalizedOrigin) {

@@ -168,6 +168,36 @@ const getSessionCacheScope = (session: unknown): string | null => {
   return null;
 };
 
+const toNormalizedPath = (url?: string): string => {
+  if (!url) {
+    return '';
+  }
+
+  try {
+    const parsed = new URL(
+      url,
+      typeof window !== 'undefined' ? window.location.origin : 'http://local'
+    );
+    return parsed.pathname.toLowerCase();
+  } catch {
+    return url.split('?')[0].toLowerCase();
+  }
+};
+
+const stripApiVersionPrefix = (path: string): string => {
+  return path.replace(/^\/api\/v\d+/i, '');
+};
+
+const isPermissionScopedUnauthorizedPath = (url?: string): boolean => {
+  const normalizedPath = stripApiVersionPrefix(toNormalizedPath(url));
+
+  return (
+    normalizedPath.startsWith('/devices/readings/recent') ||
+    normalizedPath.startsWith('/devices/readings/map') ||
+    normalizedPath.startsWith('/analytics/data-download')
+  );
+};
+
 function AuthScopedCacheProviders({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const cacheScope = getSessionCacheScope(session);
@@ -354,14 +384,12 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       const customEvent = event as CustomEvent;
       const { url } = (customEvent.detail as { url?: string }) || {};
 
-      // If it's the readings API or map readings API, don't logout - just log and return
-      // This can happen when user doesn't have access to specific sites but is still logged in
-      if (
-        url?.startsWith('/devices/readings/recent') ||
-        url?.startsWith('/devices/readings/map')
-      ) {
+      // Some endpoints can return 401 for permission-scoped resources without
+      // indicating an expired session; avoid triggering global auth handling.
+      if (isPermissionScopedUnauthorizedPath(url)) {
         logger.info(
-          '401 on readings API - not logging out, likely permission issue for specific sites'
+          '401 on permission-scoped API endpoint; skipping global logout handling',
+          { url }
         );
         return;
       }

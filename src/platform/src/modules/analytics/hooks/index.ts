@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   useGetChartData,
   useGetRecentReadings,
@@ -189,14 +189,29 @@ export const useAnalyticsSiteCards = () => {
 
   const [siteCards, setSiteCards] = useState<SiteData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const isFetchingRef = useRef(false);
+  const blockedUnauthorizedRequestKeyRef = useRef<string | null>(null);
 
   // Fetch real site data using recent readings API
   const fetchSiteCards = useCallback(async () => {
+    const requestKey = `${selectedSiteIds.join(',')}|${filters.pollutant}`;
+
     // If no selected sites, show empty cards instead of returning early
     if (!selectedSiteIds.length) {
+      blockedUnauthorizedRequestKeyRef.current = null;
       setSiteCards([]);
       return;
     }
+
+    if (blockedUnauthorizedRequestKeyRef.current === requestKey) {
+      return;
+    }
+
+    if (isFetchingRef.current) {
+      return;
+    }
+
+    isFetchingRef.current = true;
 
     setIsLoading(true);
 
@@ -243,8 +258,16 @@ export const useAnalyticsSiteCards = () => {
       });
 
       setSiteCards(cards);
+      blockedUnauthorizedRequestKeyRef.current = null;
     } catch (err) {
       console.error('Error fetching recent readings:', err);
+
+      const status = (err as { response?: { status?: number } })?.response
+        ?.status;
+      if (status === 401) {
+        blockedUnauthorizedRequestKeyRef.current = requestKey;
+      }
+
       // Still show selected sites even if API fails
       const cards: SiteData[] = selectedSites.map(selectedSite => {
         return {
@@ -266,6 +289,7 @@ export const useAnalyticsSiteCards = () => {
       setSiteCards(cards);
     } finally {
       setIsLoading(false);
+      isFetchingRef.current = false;
     }
   }, [selectedSiteIds, selectedSites, getRecentReadings, filters.pollutant]);
 

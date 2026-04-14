@@ -16,20 +16,8 @@ export const useUserActions = () => {
     useUser();
   const logout = useLogout();
 
-  const switchGroup = useCallback(
-    (group: NormalizedGroup) => {
-      const previousGroupId = activeGroup?.id;
-
-      // Only proceed if actually switching to a different group
-      if (previousGroupId === group.id) {
-        return; // No need to do anything if it's the same group
-      }
-
-      // Switch to new group
-      dispatch(setActiveGroup(group));
-
-      // Invalidate all SWR cache related to preferences and themes
-      // This ensures fresh data is fetched for the new group and prevents cross-group data bleeding
+  const invalidateGroupScopedCache = useCallback(
+    (previousGroupId?: string, nextGroupId?: string) => {
       mutate(
         key => {
           const keyText = Array.isArray(key)
@@ -58,14 +46,32 @@ export const useUserActions = () => {
             keyText.includes('cohort/devices') ||
             keyText.includes('/devices/groups/') ||
             keyText.includes('/devices/cohorts/') ||
-            (!!previousGroupId && keyText.includes(`/${previousGroupId}`)) // Clear old group specific cache
+            (!!previousGroupId && keyText.includes(`/${previousGroupId}`)) ||
+            (!!nextGroupId && keyText.includes(`/${nextGroupId}`))
           );
         },
         undefined,
-        { revalidate: false } // Don't revalidate immediately, let components handle their own revalidation
+        { revalidate: false }
       );
     },
-    [activeGroup?.id, dispatch, mutate]
+    [mutate]
+  );
+
+  const switchGroup = useCallback(
+    (group: NormalizedGroup) => {
+      const previousGroupId = activeGroup?.id;
+
+      // Only proceed if actually switching to a different group
+      if (previousGroupId === group.id) {
+        return; // No need to do anything if it's the same group
+      }
+
+      // Switch to new group
+      dispatch(setActiveGroup(group));
+
+      invalidateGroupScopedCache(previousGroupId, group.id);
+    },
+    [activeGroup?.id, dispatch, invalidateGroupScopedCache]
   );
 
   const switchGroupById = useCallback(
@@ -74,11 +80,15 @@ export const useUserActions = () => {
       if (group) {
         switchGroup(group);
       } else {
-        // Fallback to just dispatching the action if group not found
+        const previousGroupId = activeGroup?.id;
+        console.warn(
+          `[useUserActions] Group not found in current groups list for id ${groupId}. Applying ID-only switch fallback.`
+        );
         dispatch(setActiveGroupById(groupId));
+        invalidateGroupScopedCache(previousGroupId, groupId);
       }
     },
-    [dispatch, groups, switchGroup]
+    [activeGroup?.id, dispatch, groups, invalidateGroupScopedCache, switchGroup]
   );
 
   return {
