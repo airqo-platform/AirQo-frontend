@@ -16,15 +16,24 @@ ingress:
   enabled: false
 resources:
   requests:
-    cpu: 20m
+    cpu: 100m
     memory: 150Mi
   limits:
     cpu: 200m
     memory: 350Mi
 autoscaling:
   minReplicas: 1
-  maxReplicas: 4
-  targetCPUUtilizationPercentage: 70
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 30
+      policies:
+        - type: Pods
+          value: 2
+          periodSeconds: 60
 app:
   name: airqo-next-platform
   label: airqo-platform
