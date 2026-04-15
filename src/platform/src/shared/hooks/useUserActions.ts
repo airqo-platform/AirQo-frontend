@@ -37,7 +37,12 @@ export const useUserActions = () => {
 
           return (
             keyText.startsWith('preferences/') ||
+            keyText.startsWith('preferences/list/') ||
             keyText.startsWith('preferences/theme/') ||
+            keyText.startsWith('analytics/') ||
+            keyText.startsWith('sites/summary') ||
+            keyText.startsWith('grids/summary') ||
+            keyText.startsWith('checklist/') ||
             keyText.includes('/preferences') ||
             keyText.includes('/theme') ||
             keyText.includes('group/cohorts') ||
@@ -51,7 +56,7 @@ export const useUserActions = () => {
           );
         },
         undefined,
-        { revalidate: false }
+        { revalidate: true }
       );
     },
     [mutate]

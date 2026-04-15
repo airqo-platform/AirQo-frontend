@@ -190,8 +190,6 @@ export const useAnalyticsSiteCards = () => {
   const [siteCards, setSiteCards] = useState<SiteData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const isFetchingRef = useRef(false);
-  const blockedUnauthorizedRequestKeyRef = useRef<string | null>(null);
-  const lastHandledRequestKeyRef = useRef<string | null>(null);
   const activeRequestKeyRef = useRef<string | null>(null);
   const pendingRefetchRef = useRef(false);
   const selectedSitesRef = useRef(selectedSites);
@@ -213,8 +211,6 @@ export const useAnalyticsSiteCards = () => {
 
   useEffect(() => {
     getRecentReadingsRef.current = getRecentReadings;
-    blockedUnauthorizedRequestKeyRef.current = null;
-    lastHandledRequestKeyRef.current = null;
     pendingRefetchRef.current = false;
     activeRequestKeyRef.current = null;
   }, [getRecentReadings]);
@@ -233,18 +229,9 @@ export const useAnalyticsSiteCards = () => {
 
     // If no selected sites, show empty cards instead of returning early
     if (!localSelectedSiteIds.length) {
-      blockedUnauthorizedRequestKeyRef.current = null;
-      lastHandledRequestKeyRef.current = null;
       activeRequestKeyRef.current = null;
       pendingRefetchRef.current = false;
       setSiteCards([]);
-      return;
-    }
-
-    if (
-      blockedUnauthorizedRequestKeyRef.current === requestKey ||
-      lastHandledRequestKeyRef.current === requestKey
-    ) {
       return;
     }
 
@@ -253,7 +240,6 @@ export const useAnalyticsSiteCards = () => {
       return;
     }
 
-    lastHandledRequestKeyRef.current = requestKey;
     isFetchingRef.current = true;
     activeRequestKeyRef.current = requestKey;
 
@@ -307,7 +293,6 @@ export const useAnalyticsSiteCards = () => {
       });
 
       setSiteCards(cards);
-      blockedUnauthorizedRequestKeyRef.current = null;
     } catch (err) {
       if (activeRequestKeyRef.current !== requestKey) {
         pendingRefetchRef.current = true;
@@ -315,14 +300,6 @@ export const useAnalyticsSiteCards = () => {
       }
 
       console.error('Error fetching recent readings:', err);
-
-      const status = (err as { response?: { status?: number } })?.response
-        ?.status;
-      if (status === 401) {
-        blockedUnauthorizedRequestKeyRef.current = requestKey;
-      } else {
-        blockedUnauthorizedRequestKeyRef.current = null;
-      }
 
       // Still show selected sites even if API fails
       const cards: SiteData[] = localSelectedSites.map(selectedSite => {
@@ -350,8 +327,6 @@ export const useAnalyticsSiteCards = () => {
 
       if (pendingRefetchRef.current) {
         pendingRefetchRef.current = false;
-        blockedUnauthorizedRequestKeyRef.current = null;
-        lastHandledRequestKeyRef.current = null;
         void fetchSiteCards();
       }
     }
@@ -363,8 +338,6 @@ export const useAnalyticsSiteCards = () => {
   }, [fetchSiteCards, selectedSiteIdsKey, filters.pollutant]);
 
   const refetchSiteCards = useCallback(async () => {
-    blockedUnauthorizedRequestKeyRef.current = null;
-    lastHandledRequestKeyRef.current = null;
     pendingRefetchRef.current = false;
     await fetchSiteCards();
   }, [fetchSiteCards]);
