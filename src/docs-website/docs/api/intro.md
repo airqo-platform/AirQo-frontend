@@ -13,10 +13,10 @@ The AirQo API gives you programmatic access to air quality measurements from our
 
 | I am a... | I should use... |
 |-----------|-----------------|
-| **Partner or organisation** managing devices across multiple locations | [Cohort ID Access →](./for-partners/intro) |
-| **City or municipality** monitoring a defined geographical area | [Grid ID Access →](./for-cities/intro) |
-| **Developer** who needs historical or raw sensor data at scale | [Analytics API →](./analytics-api/raw-data) |
-| **Researcher or planner** who needs predictive air quality data | [Forecast API →](./forecasts/overview) |
+| **Partner or organisation** managing devices across multiple locations | [Cohort ID Access →](./for-partners/intro.md) |
+| **City or municipality** monitoring a defined geographical area | [Grid ID Access →](./for-cities/intro.md) |
+| **Developer** who needs historical or raw sensor data at scale | [Analytics API →](./analytics-api/raw-data.md) |
+| **Researcher or planner** who needs predictive air quality data | [Forecast API →](./forecasts/overview.md) |
 
 ---
 
@@ -61,12 +61,12 @@ https://api.airqo.net
 
 All endpoints require authentication via a `token` query parameter. Pass your `SECRET TOKEN` as `?token=YOUR_SECRET_TOKEN` on every request — both GET and POST.
 
-See [Authentication & Setup](./getting-started/authentication) for step-by-step instructions on generating your credentials.
+See [Authentication & Setup](./getting-started/authentication.md) for step-by-step instructions on generating your credentials.
 
 ---
 
 ## Next steps
 
-1. [Set up your account and generate credentials →](./getting-started/authentication)
-2. [Choose your subscription tier →](./getting-started/pricing-tiers)
-3. [Make your first API call →](./getting-started/quick-start)
+1. [Set up your account and generate credentials →](./getting-started/authentication.md)
+2. [Choose your subscription tier →](./getting-started/pricing-tiers.md)
+3. [Make your first API call →](./getting-started/quick-start.md)

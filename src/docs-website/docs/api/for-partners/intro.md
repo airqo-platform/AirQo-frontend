@@ -71,6 +71,6 @@ To change the privacy setting of your Cohort, contact [support@airqo.net](mailto
 
 ## Next steps
 
-- [Fetch recent measurements →](./recent-measurements)
-- [Access historical data →](./historical-data)
-- [Set up your account →](../getting-started/authentication)
+- [Fetch recent measurements →](./recent-measurements.md)
+- [Access historical data →](./historical-data.md)
+- [Set up your account →](../getting-started/authentication.md)

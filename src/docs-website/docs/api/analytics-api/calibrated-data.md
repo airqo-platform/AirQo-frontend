@@ -179,4 +179,4 @@ const data = await response.json();
 
 ## Pagination
 
-Use cursor-based pagination for large date ranges. See [Pagination →](../reference/pagination) for a complete walkthrough.
+Use cursor-based pagination for large date ranges. See [Pagination →](../reference/pagination.md) for a complete walkthrough.
