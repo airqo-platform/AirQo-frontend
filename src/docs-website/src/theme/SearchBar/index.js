@@ -381,7 +381,15 @@ export default function SearchBar({ handleSearchBarToggle, }) {
       <LoadingRing className={styles.searchBarLoadingRing}/>
       {searchBarShortcut &&
             searchBarShortcutHint &&
-            (inputValue !== "" ? (<button className={styles.searchClearButton} onClick={onClearSearch}>
+            (inputValue !== "" ? (<button
+            type="button"
+            aria-label={translate({
+              id: "theme.SearchBar.clearSearch",
+              message: "Clear search",
+              description: "Accessible label for clearing the search input",
+            })}
+            className={styles.searchClearButton}
+            onClick={onClearSearch}>
             ✕
           </button>) : (isBrowser && (<div className={styles.searchHintContainer}>
               <kbd className={styles.searchHint}>{isMac ? "⌘" : "ctrl"}</kbd>
