@@ -144,9 +144,9 @@ class SunbirdTranslationService with UiLoggy {
   /// Known static UI strings and AQI categories used across the app.
   static const List<String> _knownUiStrings = [
     // Greetings
-    'Hi',
-    'Hi 👋',
-    'Hi, 👋',
+    'Hello',
+    'Hello 👋',
+    'Hello, 👋',
 
     // Bottom nav
     'Home',
