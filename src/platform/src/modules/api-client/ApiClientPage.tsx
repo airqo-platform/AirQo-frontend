@@ -101,6 +101,25 @@ const ApiClientPage: React.FC = () => {
   }, []);
 
   const renderStatus = useCallback((value: unknown, item: TableClient) => {
+    // Determine token expired status (prefer server-provided status)
+    const token = item.access_token;
+    let expired = false;
+    if (token) {
+      expired = token.token_status === 'expired';
+      if (!expired && token.expires) {
+        const expiryDate = parseDate(token.expires);
+        if (expiryDate) expired = expiryDate.getTime() <= Date.now();
+      }
+    }
+
+    if (expired) {
+      return (
+        <span className="inline-flex items-center px-3 py-0.5 rounded-full text-xs font-semibold bg-red-600 text-white">
+          Expired
+        </span>
+      );
+    }
+
     return (
       <span
         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -126,33 +145,7 @@ const ApiClientPage: React.FC = () => {
           if (expiryDate) expired = expiryDate.getTime() <= Date.now();
         }
 
-        const isGeneratingForThis =
-          isGeneratingToken && activeGeneratingTokenId === item._id;
-
-        if (expired) {
-          return (
-            <div className="flex flex-col items-start gap-2 min-w-0">
-              <div className="min-w-0 w-full">
-                <TokenDisplay
-                  token={token.token}
-                  expiresAt={token.expires}
-                  tokenStatus={token.token_status}
-                />
-              </div>
-              <div>
-                <Button
-                  size="sm"
-                  variant="outlined"
-                  onClick={() => handleGenerateToken(item)}
-                  disabled={isGeneratingForThis}
-                >
-                  {isGeneratingForThis ? 'Refreshing...' : 'Refresh'}
-                </Button>
-              </div>
-            </div>
-          );
-        }
-
+        // Only display token details in this column; action buttons live in Actions column now
         return (
           <div className="flex items-center gap-2">
             <div className="flex-1 min-w-0">
@@ -160,6 +153,7 @@ const ApiClientPage: React.FC = () => {
                 token={token.token}
                 expiresAt={token.expires}
                 tokenStatus={token.token_status}
+                showStatusBadge={false}
               />
             </div>
           </div>
@@ -260,16 +254,44 @@ const ApiClientPage: React.FC = () => {
         key: 'actions',
         label: 'Actions',
         sortable: false,
-        render: (value: unknown, item: TableClient) => (
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => handleEditClient(item)}
-            className="p-1 h-6 w-6"
-          >
-            <AqEdit05 className="w-4 h-4" />
-          </Button>
-        ),
+        render: (value: unknown, item: TableClient) => {
+          const token = item.access_token;
+          let expired = false;
+          if (token) {
+            expired = token.token_status === 'expired';
+            if (!expired && token.expires) {
+              const expiryDate = parseDate(token.expires);
+              if (expiryDate) expired = expiryDate.getTime() <= Date.now();
+            }
+          }
+
+          const isGeneratingForThis =
+            isGeneratingToken && activeGeneratingTokenId === item._id;
+
+          if (token && expired) {
+            return (
+              <Button
+                size="sm"
+                variant="outlined"
+                onClick={() => handleGenerateToken(item)}
+                disabled={isGeneratingForThis}
+              >
+                {isGeneratingForThis ? 'Refreshing...' : 'Refresh'}
+              </Button>
+            );
+          }
+
+          return (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => handleEditClient(item)}
+              className="p-1 h-6 w-6"
+            >
+              <AqEdit05 className="w-4 h-4" />
+            </Button>
+          );
+        },
       },
     ],
     [
@@ -278,6 +300,9 @@ const ApiClientPage: React.FC = () => {
       renderCreatedDate,
       renderIPs,
       handleEditClient,
+      isGeneratingToken,
+      activeGeneratingTokenId,
+      handleGenerateToken,
     ]
   );
 
