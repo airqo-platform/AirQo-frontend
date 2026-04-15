@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useMemo, useEffect, useState } from 'react';
+import React, { useMemo } from 'react';
 import { MapPage } from '@/modules/airqo-map';
 import { useUser } from '@/shared/hooks/useUser';
-import { useActiveGroupCohorts } from '@/shared/hooks';
+import { useGroupCohorts } from '@/shared/hooks';
 import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
 import { EmptyState } from '@/shared/components/ui/empty-state';
-import { AqSearchRefraction } from '@airqo/icons-react';
+import { AqAlertTriangle, AqSearchRefraction } from '@airqo/icons-react';
 
 interface PageProps {
   params: {
@@ -17,27 +17,26 @@ interface PageProps {
 const Page: React.FC<PageProps> = ({ params }) => {
   const { groups, isLoading: userLoading } = useUser();
   const { org_slug } = params;
-  const [cohortIdString, setCohortIdString] = useState<string | null>(null);
 
   const activeGroup = useMemo(() => {
     return groups?.find(g => g.organizationSlug === org_slug);
   }, [groups, org_slug]);
 
-  // Fetch cohort IDs for the organization
-  const { cohortIds, isLoading: cohortsLoading } = useActiveGroupCohorts();
+  const organizationGroupId = activeGroup?.id || '';
+  const {
+    data: groupCohortsResponse,
+    isLoading: cohortsLoading,
+    error: cohortsError,
+    mutate: refetchGroupCohorts,
+  } = useGroupCohorts(organizationGroupId, !!organizationGroupId);
+  const cohortIds = useMemo(() => {
+    const rawCohortIds = groupCohortsResponse?.data ?? [];
 
-  // Convert cohort IDs array to comma-separated string when ready
-  useEffect(() => {
-    if (!cohortsLoading && activeGroup) {
-      if (cohortIds && cohortIds.length > 0) {
-        // Join multiple cohort IDs with comma
-        setCohortIdString(cohortIds.join(','));
-      } else {
-        // Empty string means no cohorts exist for this organization
-        setCohortIdString('');
-      }
-    }
-  }, [cohortIds, cohortsLoading, activeGroup]);
+    return Array.from(
+      new Set(rawCohortIds.map(cohortId => cohortId.trim()).filter(Boolean))
+    );
+  }, [groupCohortsResponse?.data]);
+  const cohortIdString = useMemo(() => cohortIds.join(','), [cohortIds]);
 
   if (userLoading) {
     return (
@@ -56,7 +55,7 @@ const Page: React.FC<PageProps> = ({ params }) => {
   }
 
   // Show loading while fetching cohort IDs
-  if (cohortIdString === null || cohortsLoading) {
+  if (cohortsLoading) {
     return (
       <div className="flex items-center justify-center h-full w-full">
         <LoadingSpinner />
@@ -64,8 +63,29 @@ const Page: React.FC<PageProps> = ({ params }) => {
     );
   }
 
+  if (cohortsError) {
+    return (
+      <div className="h-full w-full p-6">
+        <EmptyState
+          title="Unable to load device groups"
+          description={
+            cohortsError instanceof Error
+              ? cohortsError.message
+              : 'We could not load the organization cohorts. Try again.'
+          }
+          icon={<AqAlertTriangle size={48} />}
+          action={{
+            label: 'Retry',
+            onClick: () => void refetchGroupCohorts(),
+          }}
+          className="min-h-[400px]"
+        />
+      </div>
+    );
+  }
+
   // If organization has no cohorts, show message
-  if (cohortIdString === '') {
+  if (!cohortIds.length) {
     return (
       <div className="h-full w-full p-6">
         <EmptyState

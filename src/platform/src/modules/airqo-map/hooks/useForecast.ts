@@ -11,7 +11,6 @@ import type {
 export interface UseForecastParams {
   siteId?: string;
   enabled?: boolean;
-  waqiForecastData?: ForecastData[];
 }
 
 export interface UseForecastResult {
@@ -28,10 +27,8 @@ export interface UseForecastResult {
 export function useForecast({
   siteId,
   enabled = true,
-  waqiForecastData,
 }: UseForecastParams = {}): UseForecastResult {
-  const isWaqiSite = Boolean(siteId?.startsWith('waqi-'));
-  const shouldFetchFromApi = Boolean(siteId && enabled && !isWaqiSite);
+  const shouldFetchFromApi = Boolean(siteId && enabled);
 
   const {
     data,
@@ -57,20 +54,16 @@ export function useForecast({
       return [];
     }
 
-    if (isWaqiSite) {
-      return waqiForecastData || [];
-    }
-
     return data?.forecasts ?? [];
-  }, [data?.forecasts, enabled, isWaqiSite, siteId, waqiForecastData]);
+  }, [data?.forecasts, enabled, siteId]);
 
   const aqiRanges = useMemo<AQIRanges | null>(() => {
-    if (!siteId || !enabled || isWaqiSite) {
+    if (!siteId || !enabled) {
       return null;
     }
 
     return data?.aqi_ranges ?? null;
-  }, [data?.aqi_ranges, enabled, isWaqiSite, siteId]);
+  }, [data?.aqi_ranges, enabled, siteId]);
 
   const refetch = useCallback(async () => {
     if (!shouldFetchFromApi) return;

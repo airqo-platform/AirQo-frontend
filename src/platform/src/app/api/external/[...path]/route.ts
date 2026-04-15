@@ -1,24 +1,136 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/shared/lib/auth';
+import { resolveApiOrigin } from '@/shared/lib/api-routing';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-function buildBaseUrl(): string {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_API_BASE_URL || process.env.API_BASE_URL;
-  if (!baseUrl) {
-    throw new Error('API_BASE_URL is not defined in environment variables');
+const TOKEN_ENDPOINT_ALLOWLIST: RegExp[] = [
+  /^\/api\/v\d+\/devices\/sites\/summary\/?$/i,
+  /^\/api\/v\d+\/devices\/grids\/summary\/?$/i,
+  /^\/api\/v\d+\/devices\/grids\/countries\/?$/i,
+  /^\/api\/v\d+\/devices\/readings\/map\/?$/i,
+  /^\/api\/v\d+\/devices\/readings\/recent\/?$/i,
+  /^\/api\/v\d+\/analytics\/data-download\/?$/i,
+  /^\/api\/v\d+\/users\/preferences\/replace\/?$/i,
+];
+
+const isAllowedTokenPath = (path: string): boolean => {
+  return TOKEN_ENDPOINT_ALLOWLIST.some(pattern => pattern.test(path));
+};
+
+const unauthorizedResponse = () =>
+  NextResponse.json(
+    { success: false, message: 'Unauthorized' },
+    { status: 401 }
+  );
+
+const forbiddenResponse = () =>
+  NextResponse.json(
+    {
+      success: false,
+      message: 'Token proxy is not allowed for this endpoint',
+    },
+    { status: 403 }
+  );
+
+async function proxyRequest(request: NextRequest, pathSegments: string[]) {
+  try {
+    const session = (await getServerSession(authOptions)) as {
+      user?: unknown;
+    } | null;
+    if (!session?.user) {
+      return unauthorizedResponse();
+    }
+
+    const apiToken = (process.env.API_TOKEN || '').trim();
+    if (!apiToken) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'API_TOKEN is not configured',
+        },
+        { status: 500 }
+      );
+    }
+
+    const targetPath = `/${pathSegments.join('/')}`.replace(/\/+/g, '/');
+    if (!isAllowedTokenPath(targetPath)) {
+      return forbiddenResponse();
+    }
+
+    const targetUrl = new URL(`${resolveApiOrigin()}${targetPath}`);
+
+    request.nextUrl.searchParams.forEach((value, key) => {
+      if (key.toLowerCase() === 'token') {
+        return;
+      }
+      targetUrl.searchParams.append(key, value);
+    });
+
+    targetUrl.searchParams.set('token', apiToken);
+
+    const headers = new Headers();
+    headers.set('Accept', 'application/json');
+
+    const incomingContentType = request.headers.get('content-type');
+    if (incomingContentType) {
+      headers.set('Content-Type', incomingContentType);
+    }
+
+    const init: RequestInit = {
+      method: request.method,
+      headers,
+      cache: 'no-store',
+    };
+
+    if (request.method !== 'GET' && request.method !== 'HEAD') {
+      const requestBody = await request.text();
+      if (requestBody) {
+        init.body = requestBody;
+      }
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, 10000);
+
+    try {
+      init.signal = controller.signal;
+
+      const response = await fetch(targetUrl.toString(), init);
+
+      const responseHeaders = new Headers(response.headers);
+      responseHeaders.set(
+        'Cache-Control',
+        'no-store, no-cache, max-age=0, must-revalidate'
+      );
+      responseHeaders.set('Pragma', 'no-cache');
+      responseHeaders.set('Expires', '0');
+
+      return new NextResponse(response.body, {
+        status: response.status,
+        headers: responseHeaders,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  } catch (error) {
+    if ((error as { name?: string })?.name === 'AbortError') {
+      return NextResponse.json(
+        { success: false, message: 'Upstream request timed out' },
+        { status: 504 }
+      );
+    }
+
+    console.error('Token proxy request failed:', error);
+    return NextResponse.json(
+      { success: false, message: 'Internal server error' },
+      { status: 500 }
+    );
   }
-
-  // Remove trailing slash
-  const cleanBaseUrl = baseUrl.replace(/\/+$/, '');
-
-  if (cleanBaseUrl.endsWith('/api/v2')) {
-    return cleanBaseUrl;
-  }
-
-  // If it doesn't end with /api/v2, add it
-  return `${cleanBaseUrl}/api/v2`;
 }
 
 export async function GET(
@@ -49,82 +161,9 @@ export async function PATCH(
   return proxyRequest(request, params.path);
 }
 
-async function proxyRequest(request: NextRequest, path: string[]) {
-  try {
-    const baseUrl = buildBaseUrl();
-    const targetPath = path.join('/');
-    // Clean paths to avoid double slashes
-    const cleanBaseUrl = baseUrl.replace(/\/$/, '');
-    const cleanPath = targetPath.replace(/^\//, '');
-    const targetUrl = cleanPath ? `${cleanBaseUrl}/${cleanPath}` : cleanBaseUrl;
-
-    const apiToken = process.env.API_TOKEN;
-    if (!apiToken) {
-      return NextResponse.json(
-        { error: 'API_TOKEN not configured' },
-        { status: 500 }
-      );
-    }
-
-    // Build the URL
-    const url = new URL(targetUrl);
-    url.searchParams.set('token', apiToken);
-
-    // Add original query params
-    const originalUrl = new URL(request.url);
-    originalUrl.searchParams.forEach((value, key) => {
-      // Don't allow overriding the API token
-      if (key === 'token') return;
-      url.searchParams.set(key, value);
-    });
-
-    // Prepare fetch options
-    const incomingContentType = request.headers.get('content-type');
-    const headers: Record<string, string> = {};
-    if (incomingContentType) {
-      headers['Content-Type'] = incomingContentType;
-    } else {
-      headers['Content-Type'] = 'application/json';
-    }
-
-    const options: RequestInit = {
-      method: request.method,
-      headers,
-      cache: 'no-store',
-    };
-
-    // Add body for non-GET requests
-    if (request.method !== 'GET' && request.method !== 'HEAD') {
-      try {
-        const body = await request.text();
-        if (body) {
-          options.body = body;
-        }
-      } catch (error) {
-        console.error('Failed to read request body:', error);
-        // Ignore body parsing errors
-      }
-    }
-
-    const response = await fetch(url.toString(), options);
-
-    const responseBody = await response.text();
-
-    return new NextResponse(responseBody, {
-      status: response.status,
-      headers: {
-        'Content-Type':
-          response.headers.get('Content-Type') || 'application/json',
-        'Cache-Control': 'no-store, no-cache, max-age=0, must-revalidate',
-        Pragma: 'no-cache',
-        Expires: '0',
-      },
-    });
-  } catch (error) {
-    console.error('Proxy request failed:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { path: string[] } }
+) {
+  return proxyRequest(request, params.path);
 }

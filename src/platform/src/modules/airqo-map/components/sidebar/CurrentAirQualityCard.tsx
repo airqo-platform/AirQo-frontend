@@ -55,7 +55,6 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
   const parseLocationDetails = (locationName?: string) => {
     if (!locationName) return { city: '--', country: '--' };
 
-    // For WAQI data, location names are typically in format "City, Country" or just "City"
     const parts = locationName.split(',').map(part => part.trim());
 
     if (parts.length >= 2) {
@@ -82,17 +81,20 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
       return { city: airQoCity, country: airQoCountry };
     }
 
-    // Then try WAQI data from fullReadingData
-    const waqiCityFromFullData = (mapReading as AirQualityReading)
+    // Then try cached reading details
+    const cityFromReadingDetails = (mapReading as AirQualityReading)
       ?.fullReadingData?.siteDetails?.city;
-    const waqiCountryFromFullData = (mapReading as AirQualityReading)
+    const countryFromReadingDetails = (mapReading as AirQualityReading)
       ?.fullReadingData?.siteDetails?.country;
 
-    if (waqiCityFromFullData && waqiCountryFromFullData) {
-      return { city: waqiCityFromFullData, country: waqiCountryFromFullData };
+    if (cityFromReadingDetails && countryFromReadingDetails) {
+      return {
+        city: cityFromReadingDetails,
+        country: countryFromReadingDetails,
+      };
     }
 
-    // Finally, parse from locationName (for WAQI data)
+    // Finally, parse from locationName
     const locationName =
       (mapReading as AirQualityReading)?.locationName ||
       (mapReading as MapReading)?.siteDetails?.search_name ||

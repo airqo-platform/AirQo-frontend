@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { ProfileForm, SecurityTab, OrgInvitesTab } from './components';
 import { ApiClientPage } from '../api-client';
 import ThemeManager from '../themes/components/ThemeManager';
-import BillingPage from '../billing/BillingPage';
+import { BillingPage } from '../billing';
 import {
   AqUserCircle,
   AqLock02,

@@ -1,14 +1,15 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import { formatDate } from '@/shared/utils';
-import type {
-  Transaction,
-  TransactionHistoryResponse,
-} from '@/shared/types/api';
+import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import { subscriptionService } from '@/shared/services/subscriptionService';
+import type { Transaction } from '@/shared/types/api';
 
 type TransactionTableItem = Transaction & { [key: string]: unknown };
+
+const DEFAULT_PAGE_SIZE = 20;
 
 const statusColor: Record<string, string> = {
   completed:
@@ -20,43 +21,67 @@ const statusColor: Record<string, string> = {
 };
 
 const TransactionHistory: React.FC = () => {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [transactions, setTransactions] = useState<TransactionTableItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [pagination, setPagination] = useState<{
+    totalItems: number;
+    totalPages: number;
+  }>({
+    totalItems: 0,
+    totalPages: 1,
+  });
 
-  useEffect(() => {
-    const fetchTransactions = async () => {
+  const loadTransactions = useCallback(
+    async (page = 1, limit = DEFAULT_PAGE_SIZE) => {
+      setLoading(true);
+      setError(null);
+
       try {
-        setLoading(true);
-        setError(null);
-
-        const response = await fetch('/api/payments?page=1&limit=20', {
-          cache: 'no-store',
+        const response = await subscriptionService.getTransactionHistory({
+          page,
+          limit,
         });
 
-        const payload: TransactionHistoryResponse = await response.json();
-        if (!response.ok || !payload.success) {
-          throw new Error(
-            payload.message || 'Failed to load subscription transactions'
-          );
+        if (!response.success) {
+          throw new Error(response.message || 'Failed to load transactions');
         }
 
-        const items = payload.data || payload.transactions || [];
-        setTransactions(items);
+        const items = response.data || [];
+        setTransactions(items as TransactionTableItem[]);
+        setCurrentPage(page);
+        setPageSize(limit);
+
+        if (response.meta) {
+          setPagination({
+            totalItems: response.meta.total,
+            totalPages: response.meta.totalPages,
+          });
+        } else {
+          const hasMore = items.length === limit;
+          setPagination({
+            totalItems: hasMore
+              ? page * limit + limit
+              : (page - 1) * limit + items.length,
+            totalPages: hasMore ? page + 1 : page,
+          });
+        }
       } catch (err) {
-        const message =
-          err instanceof Error
-            ? err.message
-            : 'Failed to load transaction history';
-        setError(message);
-        console.error('Error fetching transaction history:', err);
+        setTransactions([]);
+        setPagination({ totalItems: 0, totalPages: 1 });
+        setError(getUserFriendlyErrorMessage(err));
       } finally {
         setLoading(false);
       }
-    };
+    },
+    []
+  );
 
-    fetchTransactions();
-  }, []);
+  useEffect(() => {
+    void loadTransactions();
+  }, [loadTransactions]);
 
   const columns = useMemo(
     () => [
@@ -108,12 +133,25 @@ const TransactionHistory: React.FC = () => {
 
   return (
     <ServerSideTable
-      data={transactions as TransactionTableItem[]}
+      data={transactions}
       columns={columns}
       loading={loading}
       error={error}
+      onRefresh={() => {
+        void loadTransactions(currentPage, pageSize);
+      }}
       title="Transaction History"
-      showClientPagination={true}
+      currentPage={currentPage}
+      totalPages={pagination.totalPages}
+      pageSize={pageSize}
+      totalItems={pagination.totalItems}
+      onPageChange={nextPage => {
+        void loadTransactions(nextPage, pageSize);
+      }}
+      onPageSizeChange={nextPageSize => {
+        void loadTransactions(1, nextPageSize);
+      }}
+      showClientPagination={false}
       className="border rounded-lg"
     />
   );

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, Button, LoadingSpinner, toast } from '@/shared/components/ui';
 import { formatDate } from '@/shared/utils';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import { subscriptionService } from '@/shared/services/subscriptionService';
 import type { UserSubscription } from '@/shared/types/api';
 import SettingsLayout from '@/modules/user-profile/components/SettingsLayout';
 
@@ -22,11 +23,25 @@ const SubscriptionManagement: React.FC = () => {
   const fetchSubscription = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/subscription');
-      const data = await response.json();
+      const data = await subscriptionService.getSubscription();
 
       if (data.success) {
-        setSubscription(data.subscription);
+        const subscription = data.subscription || null;
+        const normalizedSubscription = subscription
+          ? {
+              ...subscription,
+              automaticRenewal:
+                subscription.automaticRenewal ??
+                subscription.autoRenewal ??
+                false,
+              autoRenewal:
+                subscription.autoRenewal ??
+                subscription.automaticRenewal ??
+                false,
+            }
+          : null;
+
+        setSubscription(normalizedSubscription);
       }
     } catch (error) {
       console.error('Error fetching subscription:', error);
@@ -39,27 +54,22 @@ const SubscriptionManagement: React.FC = () => {
   const handleToggleAutoRenewal = async () => {
     if (!subscription) return;
 
+    if (subscription.autoRenewal) {
+      toast.warning('Disabling auto-renewal is not available yet.');
+      return;
+    }
+
     try {
       setUpdating(true);
-      const response = await fetch('/api/subscription/auto-renewal', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          autoRenewal: !subscription.autoRenewal,
-        }),
-      });
-
-      const data = await response.json();
+      const data = await subscriptionService.enableAutoRenewal(
+        subscription.currentSubscriptionId || undefined
+      );
 
       if (data.success) {
         setSubscription(prev =>
-          prev ? { ...prev, autoRenewal: !prev.autoRenewal } : null
+          prev ? { ...prev, autoRenewal: true, automaticRenewal: true } : null
         );
-        toast.success(
-          `Auto-renewal ${!subscription.autoRenewal ? 'enabled' : 'disabled'} successfully`
-        );
+        toast.success('Auto-renewal enabled successfully');
       } else {
         toast.error(data.message || 'Failed to update auto-renewal');
       }
@@ -82,18 +92,20 @@ const SubscriptionManagement: React.FC = () => {
 
     try {
       setCancelling(true);
-      const response = await fetch('/api/subscription/cancel', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const data = await response.json();
+      const data = await subscriptionService.cancelSubscription(
+        subscription.currentSubscriptionId || undefined
+      );
 
       if (data.success) {
         setSubscription(prev =>
-          prev ? { ...prev, status: 'cancelled', autoRenewal: false } : null
+          prev
+            ? {
+                ...prev,
+                status: 'cancelled',
+                autoRenewal: false,
+                automaticRenewal: false,
+              }
+            : null
         );
         toast.success(
           'Subscription cancelled. You can continue using your plan until the end of the billing period.'
@@ -112,18 +124,20 @@ const SubscriptionManagement: React.FC = () => {
   const handleReactivateSubscription = async () => {
     try {
       setUpdating(true);
-      const response = await fetch('/api/subscription/reactivate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const data = await response.json();
+      const data = await subscriptionService.reactivateSubscription(
+        subscription?.currentSubscriptionId || undefined
+      );
 
       if (data.success) {
         setSubscription(prev =>
-          prev ? { ...prev, status: 'active', autoRenewal: true } : null
+          prev
+            ? {
+                ...prev,
+                status: 'active',
+                autoRenewal: true,
+                automaticRenewal: true,
+              }
+            : null
         );
         toast.success('Subscription reactivated successfully');
       } else {
