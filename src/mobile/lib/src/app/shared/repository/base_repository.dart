@@ -1,14 +1,27 @@
 import 'dart:convert';
+import 'package:airqo/src/app/shared/exceptions/session_expired_exception.dart';
 import 'package:airqo/src/app/shared/repository/global_auth_manager.dart';
 import 'package:airqo/src/app/shared/repository/secure_storage_repository.dart';
+import 'package:airqo/src/app/shared/repository/session_expiry_notifier.dart';
 import 'package:airqo/src/meta/utils/api_utils.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 import 'package:loggy/loggy.dart';
 
 class BaseRepository with UiLoggy {
+  /// Injected notifier — defaults to the app-wide [GlobalAuthManager].
+  /// Swap out in tests without touching production code (DIP).
+  final SessionExpiryNotifier _sessionExpiryNotifier;
+
+  BaseRepository({SessionExpiryNotifier? sessionExpiryNotifier})
+      : _sessionExpiryNotifier = sessionExpiryNotifier ?? GlobalAuthManager.instance;
+
+  // ---------------------------------------------------------------------------
+  // Private helpers
+  // ---------------------------------------------------------------------------
+
   Future<String?> _getToken() async {
-    return await SecureStorageRepository.instance.getSecureData(SecureStorageKeys.authToken);
+    return SecureStorageRepository.instance.getSecureData(SecureStorageKeys.authToken);
   }
 
   Future<void> _handleTokenRefresh(Response response) async {
@@ -16,189 +29,144 @@ class BaseRepository with UiLoggy {
     if (newToken != null && newToken.isNotEmpty) {
       try {
         await SecureStorageRepository.instance.saveSecureData(SecureStorageKeys.authToken, newToken);
-        loggy.info("Successfully refreshed and stored new auth token.");
+        loggy.info('Successfully refreshed and stored new auth token.');
       } catch (e) {
-        loggy.error("Failed to save refreshed token: $e");
+        loggy.error('Failed to save refreshed token: $e');
       }
     }
   }
 
-  Future<void> _handleSessionExpiry() async {
-    try {
-      await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.authToken);
-      await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.userId);
-      loggy.warning("Session expired. All auth data cleared.");
-      
-      GlobalAuthManager.instance.notifySessionExpired();
-    } catch (e) {
-      loggy.error("Failed to clear auth data on session expiry: $e");
+  /// Single path for all response processing — fixes the OCP violation where
+  /// each HTTP method duplicated the same success/401/error branching.
+  ///
+  /// Throws [SessionExpiredException] on 401.
+  /// Storage cleanup is owned by [AuthBloc._onSessionExpired], not here (SRP).
+  Future<Response> _processResponse(Response response, String url, {bool hasToken = true}) async {
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      if (hasToken) await _handleTokenRefresh(response);
+      return response;
     }
+
+    if (response.statusCode == 401 && hasToken) {
+      loggy.warning('401 received — notifying session expiry for $url');
+      _sessionExpiryNotifier.notifySessionExpired();
+      throw const SessionExpiredException();
+    }
+
+    throw _buildHttpException(response, url);
   }
 
-  Exception _httpError(Response response, String url) {
+  Exception _buildHttpException(Response response, String url) {
     String errorMessage = 'An error occurred';
-    
     try {
-      // Check if response has JSON content type
       final contentType = response.headers['content-type'] ?? '';
       if (contentType.toLowerCase().contains('application/json') && response.body.isNotEmpty) {
-        final responseBody = json.decode(response.body);
-        if (responseBody is Map && responseBody.containsKey('message')) {
-          errorMessage = responseBody['message'];
+        final body = json.decode(response.body);
+        if (body is Map && body.containsKey('message')) {
+          errorMessage = body['message'];
         }
       } else if (response.body.isNotEmpty) {
-        // Use raw body for non-JSON responses, but limit length to avoid huge error messages
-        final rawBody = response.body.length > 200 
-            ? '${response.body.substring(0, 200)}...' 
-            : response.body;
-        errorMessage = rawBody;
+        final raw = response.body;
+        errorMessage = raw.length > 200 ? '${raw.substring(0, 200)}...' : raw;
       }
-    } catch (e) {
-      // JSON parsing failed, use raw body if available
+    } catch (_) {
       if (response.body.isNotEmpty) {
-        final rawBody = response.body.length > 200 
-            ? '${response.body.substring(0, 200)}...' 
-            : response.body;
-        errorMessage = rawBody;
+        final raw = response.body;
+        errorMessage = raw.length > 200 ? '${raw.substring(0, 200)}...' : raw;
       }
     }
-    
     return Exception('$errorMessage (status=${response.statusCode}, url=$url)');
   }
 
+  // ---------------------------------------------------------------------------
+  // Public HTTP methods
+  // ---------------------------------------------------------------------------
+
   Future<Response> createAuthenticatedPutRequest({
-  required String path, 
-  required dynamic data
-}) async {
-  String? token = await _getToken();
-  if (token == null) {
-    throw Exception('Authentication token not found');
-  }
-  
-  String url = ApiUtils.baseUrl + path;
-  loggy.info("Making PUT request to: $url");
-  
-  Response response = await http.put(
-    Uri.parse(url),
-    body: json.encode(data),
-    headers: {
-      "Authorization": "JWT $token",
-      "Accept": "*/*",
-      "Content-Type": "application/json"
-    }
-  );
-  
-  loggy.info("PUT response status: ${response.statusCode}");
-  
-  if (response.statusCode >= 200 && response.statusCode < 300) {
-    await _handleTokenRefresh(response);
-    return response;
-  } else if (response.statusCode == 401) {
-    await _handleSessionExpiry();
-    throw Exception('Your session has expired. Please log in again.');
-  } else {
-    throw _httpError(response, url);
-  }
-}
-
-  Future<Response> createPostRequest(
-      {required String path, dynamic data}) async {
+    required String path,
+    required dynamic data,
+  }) async {
     final token = await _getToken();
-    if (token == null) {
-      throw Exception('Authentication token not found');
-    }
+    if (token == null) throw Exception('Authentication token not found');
 
-    String url = ApiUtils.baseUrl + path;
+    final url = ApiUtils.baseUrl + path;
+    loggy.info('PUT → $url');
 
-    loggy.info("Making POST request to: $url");
+    final response = await http.put(
+      Uri.parse(url),
+      body: json.encode(data),
+      headers: {
+        'Authorization': 'JWT $token',
+        'Accept': '*/*',
+        'Content-Type': 'application/json',
+      },
+    );
 
-    Response response = await http.post(Uri.parse(url),
-        body: json.encode(data),
-        headers: {
-          "Authorization": "JWT $token",
-          "Accept": "*/*",
-          "Content-Type": "application/json"
-        });
-
-    loggy.info("POST response status: ${response.statusCode}");
-
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      await _handleTokenRefresh(response);
-      return response;
-    } else if (response.statusCode == 401) {
-      await _handleSessionExpiry();
-      throw Exception('Please log in again to continue.');
-    } else {
-      throw _httpError(response, url);
-    }
+    loggy.info('PUT ← ${response.statusCode}');
+    return _processResponse(response, url);
   }
 
-  Future<Response> createGetRequest(
-      String path, Map<String, String> queryParams) async {
-    String? token = await _getToken();
+  Future<Response> createPostRequest({required String path, dynamic data}) async {
+    final token = await _getToken();
+    if (token == null) throw Exception('Authentication token not found');
 
-    String url = ApiUtils.baseUrl + path;
+    final url = ApiUtils.baseUrl + path;
+    loggy.info('POST → $url');
 
-    Map<String, String> headers = {
-      "Accept": "*/*",
-      "Content-Type": "application/json",
+    final response = await http.post(
+      Uri.parse(url),
+      body: json.encode(data),
+      headers: {
+        'Authorization': 'JWT $token',
+        'Accept': '*/*',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    loggy.info('POST ← ${response.statusCode}');
+    return _processResponse(response, url);
+  }
+
+  Future<Response> createGetRequest(String path, Map<String, String> queryParams) async {
+    final token = await _getToken();
+    final url = ApiUtils.baseUrl + path;
+
+    final headers = <String, String>{
+      'Accept': '*/*',
+      'Content-Type': 'application/json',
+      if (token != null) 'Authorization': 'JWT $token',
     };
 
-    if (token != null) {
-      headers["Authorization"] = "JWT $token";
-    }
+    loggy.info('GET → $url');
+    final response = await http.get(
+      Uri.parse(url).replace(queryParameters: queryParams),
+      headers: headers,
+    );
 
-    loggy.info("Making GET request to: $url");
-
-    Response response = await http.get(
-        Uri.parse(url).replace(queryParameters: queryParams),
-        headers: headers);
-
-    loggy.info("GET response status: ${response.statusCode}");
-
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      if (token != null) {
-        await _handleTokenRefresh(response);
-      }
-      return response;
-    } else if (response.statusCode == 401 && token != null) {
-      await _handleSessionExpiry();
-      throw Exception('Your session has expired. Please log in again.');
-    } else {
-      throw _httpError(response, url);
-    }
+    loggy.info('GET ← ${response.statusCode}');
+    return _processResponse(response, url, hasToken: token != null);
   }
 
   Future<Response> createAuthenticatedGetRequest(
-      String path, Map<String, String> queryParams) async {
-    String? token = await _getToken();
-    if (token == null) {
-      throw Exception('Authentication token not found');
-    }
+    String path,
+    Map<String, String> queryParams,
+  ) async {
+    final token = await _getToken();
+    if (token == null) throw Exception('Authentication token not found');
 
-    loggy.info("Auth token present: true - using authenticated request");
+    final url = ApiUtils.baseUrl + path;
+    loggy.info('GET (auth) → $url');
 
-    String url = ApiUtils.baseUrl + path;
+    final response = await http.get(
+      Uri.parse(url).replace(queryParameters: queryParams),
+      headers: {
+        'Accept': '*/*',
+        'Authorization': 'JWT $token',
+        'Content-Type': 'application/json',
+      },
+    );
 
-    loggy.info("Making authenticated GET request to: $url");
-
-    Response response = await http
-        .get(Uri.parse(url).replace(queryParameters: queryParams), headers: {
-      "Accept": "*/*",
-      "Authorization": "JWT $token",
-      "Content-Type": "application/json",
-    });
-
-    loggy.info("Authenticated GET response status: ${response.statusCode}");
-
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      await _handleTokenRefresh(response);
-      return response;
-    } else if (response.statusCode == 401) {
-      await _handleSessionExpiry();
-      throw Exception('Please log in again to continue.');
-    } else {
-      throw _httpError(response, url);
-    }
+    loggy.info('GET (auth) ← ${response.statusCode}');
+    return _processResponse(response, url);
   }
 }
