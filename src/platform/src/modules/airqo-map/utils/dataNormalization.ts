@@ -89,13 +89,8 @@ export function limitLocationsForDisplay(
 
 import type { MapReading } from '../../../shared/types/api';
 import type { AirQualityReading } from '../components/map/MapNodes';
-import type { WAQICityResponse } from '../types/waqi';
-import type { ForecastData } from '../../../shared/types/api';
-import {
-  getAirQualityLevel,
-  getAirQualityColor,
-  type PollutantType,
-} from '../../../shared/utils/airQuality';
+import { type PollutantType } from '../../../shared/utils/airQuality';
+import { getMonitorMetadata } from './monitorMetadata';
 
 export interface PollutantConfig {
   type: PollutantType;
@@ -137,6 +132,7 @@ export function normalizeMapReadings(
     })
     .map(reading => {
       const pollutantValue = reading[pollutantType]?.value as number;
+      const monitorMetadata = getMonitorMetadata(reading);
 
       return {
         id: reading.site_id || reading._id,
@@ -164,9 +160,12 @@ export function normalizeMapReadings(
             return new Date();
           }
         })(),
-        provider: reading.siteDetails.data_provider || 'AirQo',
+        provider: monitorMetadata.provider,
         status: reading.is_reading_primary ? 'active' : 'inactive',
         isPrimary: reading.is_reading_primary,
+        deviceCategories: reading.device_categories,
+        primaryCategory: monitorMetadata.primaryCategory,
+        deploymentCategory: monitorMetadata.deploymentCategory,
         aqiCategory: reading.aqi_category,
         aqiColor: reading.aqi_color,
         pollutantValue,
@@ -178,75 +177,6 @@ export function normalizeMapReadings(
         pollutantValue: number;
         pollutantType: PollutantType;
         fullReadingData: MapReading;
-      };
-    });
-}
-
-// Normalizes WAQI city data to UI format
-export function normalizeWAQIReadings(
-  waqiData: Array<{ city: string; data: WAQICityResponse['data'] }>
-): AirQualityReading[] {
-  const seenIds = new Set<string>();
-
-  return waqiData
-    .filter(item => item.data && item.data.city && item.data.city.url)
-    .map(item => {
-      const data = item.data;
-      const pm25 = data.iaqi.pm25?.v || 0;
-      const pm10 = data.iaqi.pm10?.v || 0;
-
-      const level = getAirQualityLevel(pm25, 'pm2_5');
-      const color = getAirQualityColor(level);
-
-      let forecastData: ForecastData[] = [];
-      if (data.forecast?.daily?.pm25) {
-        forecastData = data.forecast.daily.pm25.map(f => ({
-          time: f.day,
-          pm2_5: f.avg,
-          aqi_category: getAirQualityLevel(f.avg, 'pm2_5'),
-          aqi_color: getAirQualityColor(getAirQualityLevel(f.avg, 'pm2_5')),
-          aqi_color_name: getAirQualityLevel(f.avg, 'pm2_5'),
-        }));
-      }
-
-      let lastUpdated: Date;
-      try {
-        lastUpdated = data.time?.s ? new Date(data.time.s) : new Date();
-        if (isNaN(lastUpdated.getTime())) {
-          lastUpdated = new Date();
-        }
-      } catch (error) {
-        console.warn('Invalid date from WAQI API:', data.time?.s, error);
-        lastUpdated = new Date();
-      }
-
-      const rawId = `waqi-${data.city.url.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`;
-      let uniqueId = rawId;
-      let counter = 1;
-      while (seenIds.has(uniqueId)) {
-        uniqueId = `${rawId}-${counter}`;
-        counter++;
-      }
-      seenIds.add(uniqueId);
-
-      return {
-        id: uniqueId,
-        siteId: uniqueId,
-        longitude: parseFloat(data.city.geo[1]),
-        latitude: parseFloat(data.city.geo[0]),
-        pm25Value: pm25,
-        pm10Value: pm10,
-        locationName: data.city.name,
-        lastUpdated,
-        provider: 'WAQI',
-        status: 'active',
-        isPrimary: false,
-        aqiCategory: level,
-        aqiColor: color,
-        pollutantValue: pm25,
-        pollutantType: 'pm2_5',
-        waqiData: data,
-        forecastData: forecastData.length > 0 ? forecastData : undefined,
       };
     });
 }

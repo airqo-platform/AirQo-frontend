@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { Button, Card, PageHeading } from '@/shared/components/ui';
 import { LoadingState } from '@/shared/components/ui/loading-state';
 import { toast } from '@/shared/components/ui';
-import { formatDate } from '@/shared/utils';
+import { formatDate, parseDate } from '@/shared/utils';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import {
   AqArrowLeft,
@@ -20,6 +20,7 @@ import { clientService } from '@/shared/services/clientService';
 import useSWR from 'swr';
 import Dialog from '@/shared/components/ui/dialog';
 import EditClientDialog from '@/modules/api-client/components/EditClientDialog';
+import InactiveClientDialog from '@/modules/api-client/components/InactiveClientDialog';
 import { PermissionGuard } from '@/shared/components/PermissionGuard';
 import { useRBAC, useUser } from '@/shared/hooks';
 
@@ -42,7 +43,11 @@ const ClientDetailsPage: React.FC = () => {
   const [isRefreshingSecret, setIsRefreshingSecret] = useState(false);
   const [isActivating, setIsActivating] = useState(false);
   const [isGeneratingToken, setIsGeneratingToken] = useState(false);
-  const [showFullSecret, setShowFullSecret] = useState(false);
+  const [inactiveDialogState, setInactiveDialogState] = useState<{
+    isOpen: boolean;
+    clientId: string;
+    clientName: string;
+  }>({ isOpen: false, clientId: '', clientName: '' });
 
   // Fetch client details
   const {
@@ -55,6 +60,33 @@ const ClientDetailsPage: React.FC = () => {
   );
 
   const client = clientResponse?.clients?.[0];
+
+  // Determine token expiry/status for UI badges
+  const token = client?.access_token;
+  let tokenExpired = false;
+  let tokenExpiringSoon = false;
+  if (token) {
+    if (token.token_status === 'expired') {
+      tokenExpired = true;
+    } else if (token.expires) {
+      const expiryDate = parseDate(token.expires);
+      if (expiryDate) {
+        const now = Date.now();
+        const expiresAtTime = expiryDate.getTime();
+        tokenExpired = expiresAtTime <= now;
+        tokenExpiringSoon =
+          !tokenExpired && expiresAtTime - now <= 7 * 24 * 60 * 60 * 1000;
+      }
+    }
+  }
+
+  const formattedExpires = token?.expires
+    ? formatDate(token.expires, {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    : '—';
 
   const handleBack = () => {
     router.push('/system/clients');
@@ -153,6 +185,12 @@ const ClientDetailsPage: React.FC = () => {
     } catch {
       toast.error(`Failed to copy ${label}`);
     }
+  };
+
+  const maskSecret = (secret?: string) => {
+    if (!secret) return '—';
+    const MASK = '••••••••••••';
+    return secret.length > 4 ? `${MASK}${secret.slice(-4)}` : MASK;
   };
 
   if (isLoading) {
@@ -371,17 +409,8 @@ const ClientDetailsPage: React.FC = () => {
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <code className="flex-1 text-sm bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded font-mono break-all">
-                {showFullSecret || client.client_secret.length <= 40
-                  ? client.client_secret
-                  : `${client.client_secret.slice(0, 20)}...${client.client_secret.slice(-20)}`}
+                {maskSecret(client.client_secret)}
               </code>
-              <Button
-                size="sm"
-                variant="outlined"
-                onClick={() => setShowFullSecret(!showFullSecret)}
-              >
-                {showFullSecret ? 'Hide' : 'Show'}
-              </Button>
               <Button
                 size="sm"
                 variant="outlined"
@@ -392,7 +421,8 @@ const ClientDetailsPage: React.FC = () => {
               />
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              Keep this secret secure. Do not share it publicly.
+              Keep this secret secure. Use the copy button to copy it to your
+              clipboard.
             </p>
           </div>
         </Card>
@@ -423,40 +453,72 @@ const ClientDetailsPage: React.FC = () => {
           <h3 className="text-lg font-semibold mb-4">Token Information</h3>
           <div className="space-y-4">
             {client.access_token ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Token Name
-                  </label>
-                  <p className="mt-1 text-base">{client.access_token.name}</p>
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Token Name
+                    </label>
+                    <p className="mt-1 text-base">{client.access_token.name}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Created At
+                    </label>
+                    <p className="mt-1 text-base">
+                      {formatDate(client.access_token.createdAt, {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Expires At
+                    </label>
+                    <p className="mt-1 text-base">
+                      {tokenExpired ? (
+                        <span className="text-red-700">
+                          Expired: {formattedExpires}
+                        </span>
+                      ) : (
+                        <>
+                          Expires: {formattedExpires}
+                          {tokenExpiringSoon && (
+                            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-600 text-white">
+                              Expires soon
+                            </span>
+                          )}
+                        </>
+                      )}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Created At
-                  </label>
-                  <p className="mt-1 text-base">
-                    {formatDate(client.access_token.createdAt, {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Expires At
-                  </label>
-                  <p className="mt-1 text-base">
-                    {formatDate(client.access_token.expires, {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
-                  </p>
-                </div>
-              </div>
+                {tokenExpired && (
+                  <div className="mt-4 flex justify-end">
+                    <Button
+                      variant="outlined"
+                      onClick={() => {
+                        if (!client.isActive) {
+                          setInactiveDialogState({
+                            isOpen: true,
+                            clientId: client._id,
+                            clientName: client.name,
+                          });
+                        } else {
+                          handleGenerateToken(`Token for ${client.name}`);
+                        }
+                      }}
+                      disabled={isGeneratingToken}
+                    >
+                      {isGeneratingToken ? 'Refreshing...' : 'Refresh Token'}
+                    </Button>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="flex items-center justify-between">
                 <div>
@@ -491,6 +553,20 @@ const ClientDetailsPage: React.FC = () => {
             setEditDialogOpen(false);
             mutate();
           }}
+        />
+
+        {/* Inactive Client Dialog */}
+        <InactiveClientDialog
+          isOpen={inactiveDialogState.isOpen}
+          onClose={() =>
+            setInactiveDialogState({
+              isOpen: false,
+              clientId: '',
+              clientName: '',
+            })
+          }
+          clientId={inactiveDialogState.clientId}
+          clientName={inactiveDialogState.clientName}
         />
 
         {/* Delete Confirmation Dialog */}

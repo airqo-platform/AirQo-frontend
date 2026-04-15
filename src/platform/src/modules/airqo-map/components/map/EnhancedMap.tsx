@@ -12,7 +12,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { cn } from '@/shared/lib/utils';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-// Enhanced map component with air quality monitoring features
 import { MapStyleDialog } from './MapStyleDialog';
 import { MapControls } from './MapControls';
 import { MapLegend } from './MapLegend';
@@ -25,6 +24,57 @@ import type { AirQualityReading, ClusterData } from './MapNodes';
 import { setMapSettings } from '@/shared/store/mapSettingsSlice';
 import { selectMapStyle, selectNodeType } from '@/shared/store/selectors';
 import type { PollutantType } from '@/shared/utils/airQuality';
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const MAP_MARKER_Z_INDEX = 20;
+const CLUSTER_ZOOM_THRESHOLD = 14;
+const NODE_DETAIL_ZOOM = 14.5;
+const AFRICA_BOUNDS: [[number, number], [number, number]] = [
+  [-35, -45],
+  [60, 45],
+];
+/** Debounce delay for clustering recalculation (ms) */
+const CLUSTER_DEBOUNCE_MS = 250;
+
+// ─── Module-level pure helpers ────────────────────────────────────────────────
+
+const isClusterData = (
+  item: AirQualityReading | ClusterData
+): item is ClusterData => (item as ClusterData).pointCount !== undefined;
+
+/**
+ * Build a spatial grid index for O(n) clustering.
+ * Pure function — safe to call inside useMemo.
+ */
+const buildSpatialIndex = (
+  data: AirQualityReading[],
+  gridSize: number
+): Record<string, AirQualityReading[]> => {
+  const grid: Record<string, AirQualityReading[]> = {};
+  for (const reading of data) {
+    const key = `${Math.floor(reading.longitude / gridSize)},${Math.floor(reading.latitude / gridSize)}`;
+    (grid[key] ??= []).push(reading);
+  }
+  return grid;
+};
+
+/**
+ * Returns clustering parameters that shrink as zoom increases.
+ * Using integer breakpoints keeps parameter changes discrete, which prevents
+ * continuous re-clustering during smooth zoom animations.
+ */
+const getClusterParams = (zoom: number) => {
+  const z = Math.floor(zoom);
+  if (z < 4) return { gridSize: 4.0, distanceKm: 15.0, minSize: 2 };
+  if (z < 6) return { gridSize: 2.0, distanceKm: 8.0, minSize: 2 };
+  if (z < 8) return { gridSize: 1.0, distanceKm: 5.0, minSize: 2 };
+  if (z < 10) return { gridSize: 0.5, distanceKm: 3.0, minSize: 3 };
+  if (z < 12) return { gridSize: 0.2, distanceKm: 1.5, minSize: 3 };
+  return { gridSize: 0.1, distanceKm: 0.8, minSize: 4 };
+};
+
+// ─── Props ────────────────────────────────────────────────────────────────────
 
 interface EnhancedMapProps {
   className?: string;
@@ -39,13 +89,11 @@ interface EnhancedMapProps {
   onPollutantChange?: (pollutant: PollutantType) => void;
 }
 
+// ─── Component ────────────────────────────────────────────────────────────────
+
 export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   className,
-  initialViewState = {
-    longitude: 20,
-    latitude: 0,
-    zoom: 3,
-  },
+  initialViewState = { longitude: 15, latitude: 2, zoom: 0.7 },
   airQualityData = [],
   onNodeClick,
   onClusterClick,
@@ -57,316 +105,332 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
 }) => {
   const dispatch = useDispatch();
   const mapRef = useRef<MapRef>(null);
+  /**
+   * isMountedRef — guards async setState calls after unmount.
+   * Not a state variable so it never causes re-renders.
+   */
+  const isMountedRef = useRef(true);
+
+  // ── View / interaction state ─────────────────────────────────────────────────
   const [viewState, setViewState] =
     useState<Partial<ViewState>>(initialViewState);
-  const [selectedNode, setSelectedNode] = useState<string | null>(null);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [pinnedTooltipId, setPinnedTooltipId] = useState<string | null>(null);
   const [isStyleDialogOpen, setIsStyleDialogOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [debouncedZoom, setDebouncedZoom] = useState(viewState.zoom || 12);
-  const [hoveredItem, setHoveredItem] = useState<
-    AirQualityReading | ClusterData | null
-  >(null);
+
+  /**
+   * clusterZoom — debounced and floor-quantised zoom for clustering.
+   *
+   * WHY floor-quantised:
+   *   getClusterParams only changes at integer zoom boundaries, so using
+   *   Math.floor(zoom) means the cluster memo only recalculates when we cross
+   *   an integer boundary — not on every fractional pixel of smooth scrolling.
+   *   This eliminates the cluster "pop/glitch" during zoom animations.
+   *
+   * WHY debounced (250ms):
+   *   Even with quantisation, rapid threshold crossings (e.g. fast pinch zoom)
+   *   should be debounced so the expensive O(n²) clustering only runs once the
+   *   user has settled at a new zoom level.
+   */
+  const [clusterZoom, setClusterZoom] = useState(() =>
+    Math.floor(viewState.zoom ?? 3)
+  );
 
   const currentMapStyle = useSelector(selectMapStyle);
   const currentNodeType = useSelector(selectNodeType);
-  // SECURITY NOTE: Mapbox access token must be client-side accessible
-  // because react-map-gl requires it for map initialization and API calls.
-  // Token security is managed through Mapbox dashboard restrictions.
-  // See docs/MAPBOX_SECURITY.md for security best practices.
   const mapboxAccessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
-  const clusterThreshold = 14;
+  // ── Cleanup on unmount ───────────────────────────────────────────────────────
 
   useEffect(() => {
-    const currentZoom = viewState.zoom || 12;
-    const currentZoomLevel = Math.floor(currentZoom);
-    const debouncedZoomLevel = Math.floor(debouncedZoom);
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
-    if (
-      Math.abs(currentZoomLevel - debouncedZoomLevel) >= 0.3 ||
-      currentZoom >= clusterThreshold !== debouncedZoom >= clusterThreshold
-    ) {
-      const timeoutId = setTimeout(() => {
-        setDebouncedZoom(currentZoom);
-      }, 50); // Faster response for better UX
-      return () => clearTimeout(timeoutId);
-    }
-  }, [viewState.zoom, debouncedZoom, clusterThreshold]);
+  // ── Debounced cluster zoom ───────────────────────────────────────────────────
 
-  // Handle programmatic fly-to location
   useEffect(() => {
-    if (flyToLocation && mapRef.current) {
-      mapRef.current.flyTo({
-        center: [flyToLocation.longitude, flyToLocation.latitude],
-        zoom: flyToLocation.zoom || 14,
-        duration: 1000,
-        easing: t => t * (2 - t), // Ease-out quadratic for smooth animation
-      });
-    }
+    const next = Math.floor(viewState.zoom ?? 3);
+    // Only schedule a state update if the quantised value actually changed.
+    // This prevents unnecessary timer creation during fractional zoom changes
+    // within the same integer level.
+    if (next === clusterZoom) return;
+
+    const id = setTimeout(() => {
+      if (isMountedRef.current) setClusterZoom(next);
+    }, CLUSTER_DEBOUNCE_MS);
+
+    return () => clearTimeout(id);
+  }, [viewState.zoom, clusterZoom]);
+
+  // ── Fly-to (programmatic) ────────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (!flyToLocation || !mapRef.current) return;
+    mapRef.current.flyTo({
+      center: [flyToLocation.longitude, flyToLocation.latitude],
+      zoom: flyToLocation.zoom ?? 14,
+      duration: 1000,
+      easing: t => t * (2 - t),
+    });
   }, [flyToLocation]);
 
-  const clusters = useMemo(() => {
-    if (airQualityData.length === 0) return [];
+  // ── Clustering ───────────────────────────────────────────────────────────────
 
-    // Aggressive cluster breakup - clusters should disappear at higher zoom levels
-    if (debouncedZoom >= 14) {
-      return []; // No clustering at high zoom levels
+  const { clusters, clusterMemberIds } = useMemo(() => {
+    if (airQualityData.length === 0) {
+      return {
+        clusters: [] as ClusterData[],
+        clusterMemberIds: new Set<string>(),
+      };
+    }
+    if (clusterZoom >= CLUSTER_ZOOM_THRESHOLD) {
+      return {
+        clusters: [] as ClusterData[],
+        clusterMemberIds: new Set<string>(),
+      };
     }
 
-    // PERFORMANCE OPTIMIZATION: Use spatial grid for O(n) clustering instead of O(n²)
-    const createSpatialIndex = (
-      data: AirQualityReading[],
-      gridSize: number
-    ) => {
-      const grid: { [key: string]: AirQualityReading[] } = {};
+    const { gridSize, distanceKm, minSize } = getClusterParams(clusterZoom);
+    const index = buildSpatialIndex(airQualityData, gridSize);
 
-      data.forEach(reading => {
-        const gridX = Math.floor(reading.longitude / gridSize);
-        const gridY = Math.floor(reading.latitude / gridSize);
-        const key = `${gridX},${gridY}`;
-
-        if (!grid[key]) grid[key] = [];
-        grid[key].push(reading);
-      });
-
-      return grid;
-    };
-
-    // Adaptive grid size based on zoom level for better performance
-    const getGridSize = (zoom: number) => {
-      if (zoom < 6) return 2.0; // Large grid cells for low zoom
-      if (zoom < 8) return 1.0;
-      if (zoom < 10) return 0.5;
-      if (zoom < 12) return 0.2;
-      return 0.1; // Small grid cells for high zoom
-    };
-
-    const gridSize = getGridSize(debouncedZoom);
-    const spatialIndex = createSpatialIndex(airQualityData, gridSize);
-
-    const clusters: Array<{
-      id: string;
-      longitude: number;
-      latitude: number;
-      pointCount: number;
-      readings: AirQualityReading[];
-      mostCommonLevel: string;
-    }> = [];
-
+    const result: ClusterData[] = [];
+    const memberIds = new Set<string>();
     const processed = new Set<string>();
-    const minClusterSize = debouncedZoom < 8 ? 2 : debouncedZoom < 10 ? 3 : 4;
 
-    // Process each grid cell efficiently
-    Object.values(spatialIndex).forEach(cellReadings => {
-      if (cellReadings.length < minClusterSize) return;
+    for (const cellReadings of Object.values(index)) {
+      if (cellReadings.length < minSize) continue;
+      const usedInCell = new Set<string>();
 
-      // Check neighboring cells for clustering
-      const processedInCell = new Set<string>();
+      for (const seed of cellReadings) {
+        if (processed.has(seed.id) || usedInCell.has(seed.id)) continue;
 
-      cellReadings.forEach(reading => {
-        if (processed.has(reading.id) || processedInCell.has(reading.id))
-          return;
+        const members: AirQualityReading[] = [seed];
+        usedInCell.add(seed.id);
 
-        const cluster: AirQualityReading[] = [reading];
-        processedInCell.add(reading.id);
-
-        // Check nearby readings in same and adjacent cells
-        cellReadings.forEach(other => {
-          if (processed.has(other.id) || processedInCell.has(other.id)) return;
-
-          const distance = Math.sqrt(
-            Math.pow((other.longitude - reading.longitude) * 111, 2) +
-              Math.pow((other.latitude - reading.latitude) * 111, 2)
-          );
-
-          const clusterDistance =
-            debouncedZoom < 6
-              ? 8.0
-              : debouncedZoom < 8
-                ? 5.0
-                : debouncedZoom < 10
-                  ? 3.0
-                  : debouncedZoom < 12
-                    ? 1.5
-                    : 0.8;
-
-          if (distance <= clusterDistance) {
-            cluster.push(other);
-            processedInCell.add(other.id);
+        for (const other of cellReadings) {
+          if (processed.has(other.id) || usedInCell.has(other.id)) continue;
+          const dLon = (other.longitude - seed.longitude) * 111;
+          const dLat = (other.latitude - seed.latitude) * 111;
+          if (Math.sqrt(dLon * dLon + dLat * dLat) <= distanceKm) {
+            members.push(other);
+            usedInCell.add(other.id);
           }
+        }
+
+        if (members.length < minSize) continue;
+
+        members.forEach(r => {
+          processed.add(r.id);
+          memberIds.add(r.id);
         });
 
-        if (cluster.length >= minClusterSize) {
-          cluster.forEach(r => processed.add(r.id));
+        const n = members.length;
+        const avgLng = members.reduce((s, r) => s + r.longitude, 0) / n;
+        const avgLat = members.reduce((s, r) => s + r.latitude, 0) / n;
+        const vals = members
+          .map(r => (selectedPollutant === 'pm2_5' ? r.pm25Value : r.pm10Value))
+          .filter((v): v is number => v != null && !isNaN(v));
+        const avgVal = vals.length
+          ? vals.reduce((a, b) => a + b, 0) / vals.length
+          : 0;
 
-          const avgLng =
-            cluster.reduce((sum, r) => sum + r.longitude, 0) / cluster.length;
-          const avgLat =
-            cluster.reduce((sum, r) => sum + r.latitude, 0) / cluster.length;
-
-          const pollutantValues = cluster
-            .map(r =>
-              selectedPollutant === 'pm2_5' ? r.pm25Value : r.pm10Value
-            )
-            .filter(v => v !== undefined && !isNaN(v));
-          const avgValue =
-            pollutantValues.length > 0
-              ? pollutantValues.reduce((sum, v) => sum + v, 0) /
-                pollutantValues.length
-              : 0;
-
-          const clusterId = cluster
+        result.push({
+          id: `cluster-${members
             .map(r => r.id)
             .sort()
-            .join('|');
-
-          clusters.push({
-            id: `cluster-${clusterId}`,
-            longitude: avgLng,
-            latitude: avgLat,
-            pointCount: cluster.length,
-            readings: cluster,
-            mostCommonLevel: getAirQualityLevel(avgValue, selectedPollutant),
-          });
-        }
-      });
-    });
-
-    return clusters;
-  }, [airQualityData, debouncedZoom, selectedPollutant]);
-
-  // Map control handlers
-  const handleGeolocation = useCallback(() => {
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        position => {
-          const { longitude, latitude } = position.coords;
-          mapRef.current?.flyTo({
-            center: [longitude, latitude],
-            zoom: 14,
-            duration: 2000,
-          });
-        },
-        error => {
-          console.error('Geolocation error:', error);
-        }
-      );
+            .join('|')}`,
+          longitude: avgLng,
+          latitude: avgLat,
+          pointCount: n,
+          readings: members,
+          mostCommonLevel: getAirQualityLevel(avgVal, selectedPollutant),
+        });
+      }
     }
-  }, []);
 
-  const handleZoomIn = useCallback(() => {
-    mapRef.current?.zoomIn({ duration: 300 });
-  }, []);
+    return { clusters: result, clusterMemberIds: memberIds };
+  }, [airQualityData, clusterZoom, selectedPollutant]);
 
-  const handleZoomOut = useCallback(() => {
-    mapRef.current?.zoomOut({ duration: 300 });
+  const soloReadings = useMemo(
+    () => airQualityData.filter(r => !clusterMemberIds.has(r.id)),
+    [airQualityData, clusterMemberIds]
+  );
+
+  // ── Map control handlers ──────────────────────────────────────────────────────
+
+  const handleZoomIn = useCallback(
+    () => mapRef.current?.zoomIn({ duration: 300 }),
+    []
+  );
+  const handleZoomOut = useCallback(
+    () => mapRef.current?.zoomOut({ duration: 300 }),
+    []
+  );
+
+  const handleGeolocation = useCallback(() => {
+    if (!('geolocation' in navigator)) return;
+    navigator.geolocation.getCurrentPosition(
+      pos =>
+        mapRef.current?.flyTo({
+          center: [pos.coords.longitude, pos.coords.latitude],
+          zoom: 14,
+          duration: 2000,
+        }),
+      err => console.error('Geolocation error:', err)
+    );
   }, []);
 
   const handleRefreshMap = useCallback(async () => {
     if (!onRefreshData) return;
-
     setIsRefreshing(true);
-
     try {
       await onRefreshData();
-      console.log('Map data refreshed successfully');
-    } catch (error) {
-      console.error('Failed to refresh map data:', error);
+    } catch (e) {
+      console.error('Map refresh error:', e);
     } finally {
-      setIsRefreshing(false);
+      if (isMountedRef.current) setIsRefreshing(false);
     }
   }, [onRefreshData]);
 
-  const handleMapStyleToggle = useCallback(() => {
-    setIsStyleDialogOpen(true);
-  }, []);
+  const handleMapStyleToggle = useCallback(
+    () => setIsStyleDialogOpen(true),
+    []
+  );
 
   const handleStyleChange = useCallback(
     (style: MapStyle) => {
       dispatch(
-        setMapSettings({
-          mapStyle: style.url,
-          nodeType: style.nodeStyle,
-        })
+        setMapSettings({ mapStyle: style.url, nodeType: style.nodeStyle })
       );
       setIsStyleDialogOpen(false);
     },
     [dispatch]
   );
 
-  const handleNodeClick = useCallback(
+  /** Clear selection when the user clicks empty map canvas */
+  const handleMapClick = useCallback(() => {
+    setSelectedNodeId(null);
+    setPinnedTooltipId(null);
+  }, []);
+
+  // ── Node interaction handlers ─────────────────────────────────────────────────
+
+  /**
+   * flyToNode — always centres and zooms to the reading.
+   * No zoom-level gate: clicking always works regardless of current zoom.
+   */
+  const flyToNode = useCallback(
     (reading: AirQualityReading) => {
-      setSelectedNode(reading.id);
-      onNodeClick?.(reading);
+      const currentZoom = viewState.zoom ?? 3;
+      const targetZoom = Math.min(
+        18,
+        Math.max(currentZoom + 2, NODE_DETAIL_ZOOM)
+      );
+      mapRef.current?.flyTo({
+        center: [reading.longitude, reading.latitude],
+        zoom: targetZoom,
+        duration: 900,
+        easing: t => 1 - Math.pow(1 - t, 3),
+        padding: { top: 60, bottom: 60, left: 60, right: 60 },
+      });
     },
-    [onNodeClick]
+    [viewState.zoom]
   );
 
-  const handleHover = useCallback(
-    (item: AirQualityReading | ClusterData | null) => {
-      setHoveredItem(item);
+  const handleReadingClick = useCallback(
+    (reading: AirQualityReading) => {
+      setSelectedNodeId(reading.id);
+      setPinnedTooltipId(reading.id);
+      onNodeClick?.(reading);
+      flyToNode(reading);
     },
-    []
+    [onNodeClick, flyToNode]
   );
 
   const handleClusterClick = useCallback(
-    (cluster: {
-      id: string;
-      longitude: number;
-      latitude: number;
-      pointCount: number;
-      readings: AirQualityReading[];
-    }) => {
+    (cluster: ClusterData) => {
+      setPinnedTooltipId(null);
+
+      // Single-member cluster: treat as a reading click
       if (cluster.pointCount === 1) {
-        handleNodeClick(cluster.readings[0]);
+        handleReadingClick(cluster.readings[0]);
         return;
       }
 
-      const currentZoom = viewState.zoom || 10;
-
-      // GRADUAL ZOOM STRATEGY - More reasonable zoom levels
-      let targetZoom = Math.max(12, currentZoom + 1.5); // Start with moderate zoom increase
-
-      // Calculate spread of cluster points
       const lons = cluster.readings.map(r => r.longitude);
       const lats = cluster.readings.map(r => r.latitude);
-      const lonSpan = Math.max(...lons) - Math.min(...lons);
-      const latSpan = Math.max(...lats) - Math.min(...lats);
-      const maxSpan = Math.max(lonSpan, latSpan);
+      const maxSpan = Math.max(
+        Math.max(...lons) - Math.min(...lons),
+        Math.max(...lats) - Math.min(...lats)
+      );
 
-      // Adjust zoom based on cluster spread - more gradual
-      if (maxSpan < 0.001) {
-        targetZoom = Math.max(14, currentZoom + 2); // Very tight clusters
-      } else if (maxSpan < 0.01) {
-        targetZoom = Math.max(13, currentZoom + 1.5); // Moderate clusters
-      } else if (maxSpan < 0.1) {
-        targetZoom = Math.max(12, currentZoom + 1); // Spread out clusters
-      }
+      const currentZoom = viewState.zoom ?? 3;
+      let targetZoom: number;
+      if (maxSpan < 0.001) targetZoom = Math.max(16, currentZoom + 3);
+      else if (maxSpan < 0.01) targetZoom = Math.max(14, currentZoom + 2.5);
+      else if (maxSpan < 0.1) targetZoom = Math.max(12, currentZoom + 2);
+      else targetZoom = Math.max(10, currentZoom + 1.5);
+      targetZoom = Math.min(17, targetZoom);
 
-      // Cap at reasonable max zoom to prevent excessive zoom
-      targetZoom = Math.min(16, targetZoom);
+      const centerLon = lons.reduce((a, b) => a + b, 0) / lons.length;
+      const centerLat = lats.reduce((a, b) => a + b, 0) / lats.length;
 
-      // Calculate center point of cluster
-      const centerLon = lons.reduce((sum, lon) => sum + lon, 0) / lons.length;
-      const centerLat = lats.reduce((sum, lat) => sum + lat, 0) / lats.length;
-
-      // Smooth flyTo animation with enhanced easing for better UX
       mapRef.current?.flyTo({
         center: [centerLon, centerLat],
         zoom: targetZoom,
-        duration: 1200, // Increased duration for smoother animation
-        easing: t => {
-          // Custom ease-out cubic for very smooth animation
-          return 1 - Math.pow(1 - t, 3);
-        },
-        // Add padding to ensure cluster is fully visible
+        duration: 1000,
+        easing: t => 1 - Math.pow(1 - t, 3),
         padding: { top: 50, bottom: 50, left: 50, right: 50 },
       });
 
       onClusterClick?.(cluster);
     },
-    [handleNodeClick, onClusterClick, viewState.zoom]
+    [handleReadingClick, onClusterClick, viewState.zoom]
   );
+
+  const handleNodeClick = useCallback(
+    (data: AirQualityReading | ClusterData) => {
+      if (isClusterData(data)) handleClusterClick(data);
+      else handleReadingClick(data);
+    },
+    [handleClusterClick, handleReadingClick]
+  );
+
+  /**
+   * handleHover — updates hovered ID only when it actually changes.
+   * Skipping the setState when the value is the same prevents unnecessary
+   * re-renders of all markers during rapid mouse movement across the map.
+   */
+  const handleHover = useCallback(
+    (data: AirQualityReading | ClusterData | null) => {
+      const nextId = data?.id ?? null;
+      setHoveredId(prev => (prev === nextId ? prev : nextId));
+    },
+    []
+  );
+
+  // ── Marker style helpers ──────────────────────────────────────────────────────
+
+  /**
+   * Marker wrapper style.
+   * CRITICAL: pointerEvents:'none' on the Marker container prevents Mapbox's
+   * absolutely-positioned marker div from absorbing clicks that should reach
+   * the MapNodes button child instead.
+   * The child re-enables pointer events via pointerEvents:'auto' in NODE_BUTTON_STYLE.
+   */
+  const getMarkerStyle = useCallback(
+    (id: string): React.CSSProperties => ({
+      zIndex: hoveredId === id ? MAP_MARKER_Z_INDEX + 10 : MAP_MARKER_Z_INDEX,
+      pointerEvents: 'none',
+    }),
+    [hoveredId]
+  );
+
+  // ── Guard: no token ───────────────────────────────────────────────────────────
 
   if (!mapboxAccessToken) {
     return (
@@ -376,17 +440,16 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
           className
         )}
       >
-        <div className="text-center">
-          <p className="text-muted-foreground">
-            MapBox access token not configured
-          </p>
-          <p className="text-sm text-muted-foreground mt-1">
-            Please set NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN in your environment
-          </p>
-        </div>
+        <p className="text-muted-foreground text-center px-4">
+          MapBox access token not configured.
+          <br />
+          <code className="text-xs">NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN</code>
+        </p>
       </div>
     );
   }
+
+  // ── Render ────────────────────────────────────────────────────────────────────
 
   return (
     <div className={cn('relative h-full w-full', className)}>
@@ -397,156 +460,70 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
         mapboxAccessToken={mapboxAccessToken}
         style={{ width: '100%', height: '100%' }}
         mapStyle={currentMapStyle}
+        maxBounds={AFRICA_BOUNDS}
+        minZoom={0.5}
+        maxZoom={18}
         attributionControl={false}
+        /**
+         * interactiveLayerIds stays empty — all interaction is handled
+         * via React Marker event handlers, not Mapbox layer events.
+         */
         interactiveLayerIds={[]}
-        reuseMaps={true}
+        reuseMaps
         projection="mercator"
         pitchWithRotate={false}
         touchZoomRotate={false}
-        dragPan={true}
-        doubleClickZoom={true}
-        onClick={e => {
-          if (!e.features || e.features.length === 0) {
-            setSelectedNode(null);
-          }
-        }}
+        dragPan
+        doubleClickZoom
+        onClick={handleMapClick}
       >
-        {/* Render nodes and clusters based on zoom level and proximity */}
-        <>
-          {/* Render all clusters except the hovered one */}
-          {clusters
-            .filter(cluster => hoveredItem?.id !== cluster.id)
-            .map(cluster => (
-              <Marker
-                key={cluster.id}
-                longitude={cluster.longitude}
-                latitude={cluster.latitude}
-                anchor="center"
-              >
-                <MapNodes
-                  cluster={cluster}
-                  nodeType={currentNodeType}
-                  onClick={data => handleClusterClick(data as ClusterData)}
-                  onHover={handleHover}
-                  isHovered={false}
-                  selectedPollutant={selectedPollutant}
-                  zoomLevel={debouncedZoom}
-                />
-              </Marker>
-            ))}
+        {/* ── Cluster markers ──────────────────────────────────────────────── */}
+        {clusters.map(cluster => (
+          <Marker
+            key={cluster.id}
+            longitude={cluster.longitude}
+            latitude={cluster.latitude}
+            anchor="center"
+            style={getMarkerStyle(cluster.id)}
+          >
+            <MapNodes
+              cluster={cluster}
+              nodeType={currentNodeType}
+              onClick={handleNodeClick}
+              onHover={handleHover}
+              isHovered={hoveredId === cluster.id}
+              selectedPollutant={selectedPollutant}
+              zoomLevel={viewState.zoom}
+            />
+          </Marker>
+        ))}
 
-          {/* Render individual nodes that are not part of any cluster and not hovered */}
-          {/* Render non-primary readings first (lower z-index) */}
-          {airQualityData
-            .filter(reading => {
-              const isInCluster = clusters.some(cluster =>
-                cluster.readings.some(
-                  clusterReading => clusterReading.id === reading.id
-                )
-              );
-              return (
-                !isInCluster &&
-                reading.isPrimary === false &&
-                hoveredItem?.id !== reading.id
-              );
-            })
-            .map(reading => (
-              <Marker
-                key={reading.id}
-                longitude={reading.longitude}
-                latitude={reading.latitude}
-                anchor="center"
-              >
-                <MapNodes
-                  reading={reading}
-                  nodeType={currentNodeType}
-                  onClick={data => handleNodeClick(data as AirQualityReading)}
-                  onHover={handleHover}
-                  isSelected={selectedNode === reading.id}
-                  isHovered={false}
-                  size="md"
-                  selectedPollutant={selectedPollutant}
-                />
-              </Marker>
-            ))}
-
-          {/* Render primary readings that are not hovered */}
-          {airQualityData
-            .filter(reading => {
-              const isInCluster = clusters.some(cluster =>
-                cluster.readings.some(
-                  clusterReading => clusterReading.id === reading.id
-                )
-              );
-              return (
-                !isInCluster &&
-                reading.isPrimary !== false &&
-                hoveredItem?.id !== reading.id
-              );
-            })
-            .map(reading => (
-              <Marker
-                key={reading.id}
-                longitude={reading.longitude}
-                latitude={reading.latitude}
-                anchor="center"
-              >
-                <MapNodes
-                  reading={reading}
-                  nodeType={currentNodeType}
-                  onClick={data => handleNodeClick(data as AirQualityReading)}
-                  onHover={handleHover}
-                  isSelected={selectedNode === reading.id}
-                  isHovered={false}
-                  size="md"
-                  selectedPollutant={selectedPollutant}
-                />
-              </Marker>
-            ))}
-
-          {/* Render the hovered item last to ensure highest z-index */}
-          {hoveredItem &&
-            (hoveredItem.hasOwnProperty('readings') ? (
-              // It's a cluster
-              <Marker
-                key={hoveredItem.id}
-                longitude={(hoveredItem as ClusterData).longitude}
-                latitude={(hoveredItem as ClusterData).latitude}
-                anchor="center"
-              >
-                <MapNodes
-                  cluster={hoveredItem as ClusterData}
-                  nodeType={currentNodeType}
-                  onClick={data => handleClusterClick(data as ClusterData)}
-                  onHover={handleHover}
-                  isHovered={true}
-                  selectedPollutant={selectedPollutant}
-                  zoomLevel={debouncedZoom}
-                />
-              </Marker>
-            ) : (
-              // It's a reading
-              <Marker
-                key={hoveredItem.id}
-                longitude={(hoveredItem as AirQualityReading).longitude}
-                latitude={(hoveredItem as AirQualityReading).latitude}
-                anchor="center"
-              >
-                <MapNodes
-                  reading={hoveredItem as AirQualityReading}
-                  nodeType={currentNodeType}
-                  onClick={data => handleNodeClick(data as AirQualityReading)}
-                  onHover={handleHover}
-                  isSelected={selectedNode === hoveredItem.id}
-                  isHovered={true}
-                  size="md"
-                  selectedPollutant={selectedPollutant}
-                />
-              </Marker>
-            ))}
-        </>
+        {/* ── Solo (unclustered) reading markers ───────────────────────────── */}
+        {soloReadings.map(reading => (
+          <Marker
+            key={reading.id}
+            longitude={reading.longitude}
+            latitude={reading.latitude}
+            anchor="center"
+            style={getMarkerStyle(reading.id)}
+          >
+            <MapNodes
+              reading={reading}
+              nodeType={currentNodeType}
+              onClick={handleNodeClick}
+              onHover={handleHover}
+              isSelected={selectedNodeId === reading.id}
+              isHovered={hoveredId === reading.id}
+              size="md"
+              selectedPollutant={selectedPollutant}
+              isTooltipOpen={pinnedTooltipId === reading.id}
+              zoomLevel={viewState.zoom}
+            />
+          </Marker>
+        ))}
       </MapboxMap>
 
+      {/* ── UI Overlays ──────────────────────────────────────────────────────── */}
       <MapControls
         onGeolocation={handleGeolocation}
         onZoomIn={handleZoomIn}
@@ -580,8 +557,8 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
         isVisible={isLoading || isRefreshing}
         message={
           isLoading
-            ? 'Loading air quality data...'
-            : 'Refreshing air quality data...'
+            ? 'Loading air quality data…'
+            : 'Refreshing air quality data…'
         }
       />
     </div>

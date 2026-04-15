@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:loggy/loggy.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_details.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/meta/utils/utils.dart';
 import 'dart:async';
@@ -140,7 +141,7 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
                 size: 16,
               ),
               const SizedBox(width: 8),
-              const Text(
+              TranslatedText(
                 'Swipe left to remove location',
                 style: TextStyle(
                   color: Colors.white,
@@ -289,7 +290,7 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
                       size: 24,
                     ),
                                           const SizedBox(height: 4),
-                    Text(
+                    TranslatedText(
                       'Remove',
                       style: TextStyle(
                         color: Colors.white,
@@ -448,8 +449,8 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
                                                 : 'assets/images/shared/pm_rating.svg',
                                           ),
                                           const SizedBox(width: 2),
-                                          Text(
-                                            " PM2.5",
+                                          TranslatedText(
+                                            "PM2.5",
                                             style: TextStyle(
                                               color: Theme.of(context)
                                                   .textTheme
@@ -521,8 +522,8 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
                                     .withOpacity(0.15),
                                 borderRadius: BorderRadius.circular(20),
                               ),
-                              child: Text(
-                                widget.measurement.aqiCategory ?? "Unknown",
+                              child: TranslatedText(
+                                widget.measurement.aqiCategory ?? 'Unknown',
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,

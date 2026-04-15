@@ -2,6 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 
+import { isGoogleTranslationActive } from '@/utils/googleTranslate';
+
 /**
  * Safe navigation wrapper that handles translation state gracefully
  * Simplified to avoid performance overhead
@@ -12,11 +14,7 @@ export const useSafeNavigation = () => {
 
   const navigateSafely = (href: string) => {
     try {
-      // Check if translation is active by looking at the cookie
-      const googtrans = document.cookie
-        .split('; ')
-        .find((row) => row.startsWith('googtrans='));
-      const isTranslated = googtrans && googtrans.includes('/');
+      const isTranslated = isGoogleTranslationActive();
 
       // If translated, use window.location for clean navigation
       if (isTranslated) {

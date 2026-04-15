@@ -216,7 +216,7 @@ const AirQualityBillboard = ({
               minHeight: centered
                 ? undefined
                 : homepage
-                  ? 'clamp(20rem, 30vw, 25rem)'
+                  ? 'clamp(24rem, 34vw, 32rem)'
                   : 'clamp(31.25rem, 50vw, 31.25rem)',
             }}
           >

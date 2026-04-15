@@ -1,7 +1,18 @@
 import { AnalyticsDashboard } from '@/modules/analytics';
 
-const Page = () => {
-  return <AnalyticsDashboard />;
+interface PageProps {
+  params: {
+    org_slug: string;
+  };
+}
+
+const Page = ({ params }: PageProps) => {
+  return (
+    <AnalyticsDashboard
+      isOrganizationFlow={true}
+      organizationSlug={params.org_slug}
+    />
+  );
 };
 
 export default Page;

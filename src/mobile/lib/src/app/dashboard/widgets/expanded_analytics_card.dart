@@ -5,6 +5,7 @@ import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_details.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/meta/utils/utils.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 
 class ExpandedAnalyticsCard extends StatefulWidget {
   final Measurement measurement;
@@ -69,20 +70,31 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
 
     switch (widget.measurement.aqiCategory?.toLowerCase() ?? '') {
       case 'good':
-        return "Enjoy outdoor activities in good air quality";
+        return 'Enjoy outdoor activities in good air quality';
       case 'moderate':
-        return "Air quality is acceptable for most people";
+        return 'Air quality is acceptable for most people';
       case 'unhealthy for sensitive groups':
       case 'u4sg':
-        return "Sensitive groups should limit outdoor exertion";
+        return 'Sensitive groups should limit outdoor exertion';
       case 'unhealthy':
-        return "Everyone should reduce prolonged outdoor activities";
+        return 'Everyone should reduce prolonged outdoor activities';
       case 'very unhealthy':
-        return "Everyone should avoid outdoor activities";
+        return 'Everyone should avoid outdoor activities';
       case 'hazardous':
-        return "Everyone should avoid all outdoor activities";
+        return 'Everyone should avoid all outdoor activities';
       default:
-        return "Stay informed about air quality";
+        return 'Stay informed about air quality';
+    }
+  }
+
+  String _getDeviceCategoryLabel(String category) {
+    switch (category.toLowerCase()) {
+      case 'lowcost':
+        return 'Low Cost Sensor';
+      case 'bam':
+        return 'Reference Monitor';
+      default:
+        return category;
     }
   }
 
@@ -147,8 +159,8 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
                                         : 'assets/images/shared/pm_rating.svg',
                                   ),
                                   const SizedBox(width: 2),
-                                  Text(
-                                    " PM2.5",
+                                  TranslatedText(
+                                    "PM2.5",
                                     style: TextStyle(
                                       color: Theme.of(context)
                                           .textTheme
@@ -211,6 +223,7 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
                       ),
                       const SizedBox(height: 16),
                       Wrap(
+                        spacing: 8,
                         children: [
                           Container(
                             margin: const EdgeInsets.only(bottom: 12),
@@ -223,8 +236,8 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
                                   .withOpacity(0.15),
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            child: Text(
-                              widget.measurement.aqiCategory ?? "Unknown",
+                            child: TranslatedText(
+                              widget.measurement.aqiCategory ?? 'Unknown',
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
@@ -233,6 +246,36 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
                               maxLines: 1,
                             ),
                           ),
+                          if (widget.measurement.deviceCategories
+                                  ?.primaryCategory !=
+                              null)
+                            Container(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? const Color(0xFF2A3744)
+                                    : const Color(0xFFEAEFF5),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: TranslatedText(
+                                _getDeviceCategoryLabel(widget.measurement
+                                    .deviceCategories!.primaryCategory!),
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.color,
+                                ),
+                                maxLines: 1,
+                              ),
+                            ),
                         ],
                       ),
                     ],
@@ -248,7 +291,7 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
                     horizontal: 16,
                     vertical: 12,
                   ),
-                  child: Text(
+                  child: TranslatedText(
                     healthTipTagline,
                     style: TextStyle(
                       fontSize: 15,
@@ -282,19 +325,21 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
                       size: 24,
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      "Today's health tip",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).textTheme.bodyMedium?.color,
+                    Flexible(
+                      child: TranslatedText(
+                        "Today's health tip",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).textTheme.bodyMedium?.color,
+                        ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
                 healthTipDescription != null
-                    ? Text(
+                    ? TranslatedText(
                         healthTipDescription,
                         style: TextStyle(
                           fontSize: 15,
@@ -302,7 +347,7 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
                           color: Theme.of(context).textTheme.bodyLarge?.color,
                         ),
                       )
-                    : Text(
+                    : TranslatedText(
                         "Health tip not available for this air quality level.",
                         style: TextStyle(
                           fontSize: 15,

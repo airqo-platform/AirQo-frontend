@@ -15,6 +15,9 @@ import { NavItem } from '@/shared/components/sidebar/components/nav-item';
 import { useUserActions } from '@/shared/hooks';
 import { getSidebarConfig } from '@/shared/components/sidebar/config';
 import { useRBAC } from '@/shared/hooks';
+import { SidebarSkeleton } from '@/shared/components/sidebar/components';
+import { usePathname } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 export const GlobalSidebar: React.FC = () => {
   const dispatch = useDispatch();
@@ -22,9 +25,16 @@ export const GlobalSidebar: React.FC = () => {
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const sidebarRef = useRef<HTMLDivElement>(null);
   const previousActiveElement = useRef<Element | null>(null);
-  const { activeGroup } = useUserActions();
-  const { hasPermission, isAirQoSuperAdminWithEmail } = useRBAC();
+  const pathname = usePathname();
+  const { status: sessionStatus } = useSession();
+  const { activeGroup, isLoading: userLoading } = useUserActions();
+  const {
+    hasPermission,
+    isAirQoSuperAdminWithEmail,
+    isLoading: rbacLoading,
+  } = useRBAC();
   const [imageError, setImageError] = React.useState(false);
+  const isLoading = userLoading || rbacLoading;
 
   // Helper function to determine if current group is AirQo
   const isAirQoGroup = React.useMemo(() => {
@@ -149,6 +159,16 @@ export const GlobalSidebar: React.FC = () => {
         })
     );
   }, [flow, orgSlug, hasPermission, isAirQoSuperAdminWithEmail]);
+  const isProtectedSidebarRoute =
+    pathname.startsWith('/org/') ||
+    pathname.startsWith('/system/') ||
+    pathname.startsWith('/admin/');
+  const shouldWaitForActiveGroup = pathname.startsWith('/org/');
+  const shouldShowLoadingSkeleton =
+    isProtectedSidebarRoute &&
+    (sessionStatus === 'loading' ||
+      isLoading ||
+      (shouldWaitForActiveGroup && !activeGroup));
 
   // Focus management
   useEffect(() => {
@@ -241,19 +261,23 @@ export const GlobalSidebar: React.FC = () => {
                   <AqXClose className="text-foreground" />
                 </Button>
               </div>
-              <div className="space-y-1 relative overflow-visible">
-                {globalNavItems.map(item => (
-                  <NavItem
-                    key={item.id}
-                    item={item}
-                    onClick={handleNavItemClick}
-                    enableSubroutes={
-                      item.id === 'admin-panel' ||
-                      item.id === 'system-management'
-                    }
-                  />
-                ))}
-              </div>
+              {shouldShowLoadingSkeleton ? (
+                <SidebarSkeleton showBrand={false} className="pt-2" />
+              ) : (
+                <div className="space-y-1 relative overflow-visible">
+                  {globalNavItems.map(item => (
+                    <NavItem
+                      key={item.id}
+                      item={item}
+                      onClick={handleNavItemClick}
+                      enableSubroutes={
+                        item.id === 'admin-panel' ||
+                        item.id === 'system-management'
+                      }
+                    />
+                  ))}
+                </div>
+              )}
             </Card>
           </motion.div>
         </>

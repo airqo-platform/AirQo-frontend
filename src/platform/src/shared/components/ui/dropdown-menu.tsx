@@ -37,7 +37,6 @@ interface DropdownMenuContentProps {
   className?: string;
   align?: 'start' | 'center' | 'end';
   sideOffset?: number;
-  showOverlay?: boolean;
   matchTriggerWidth?: boolean; // New: Match trigger width
   minWidth?: string | number; // New: Set minimum width
   maxWidth?: string | number; // New: Set maximum width
@@ -199,7 +198,6 @@ const DropdownMenuContent = ({
   className,
   align = 'end',
   sideOffset = 4,
-  showOverlay = false,
   matchTriggerWidth = false,
   minWidth,
   maxWidth,
@@ -225,11 +223,6 @@ const DropdownMenuContent = ({
       return () => window.removeEventListener('resize', updateWidth);
     }
   }, [matchTriggerWidth, referenceElement]);
-
-  // TODO: Implement overlay functionality when showOverlay is true
-  if (showOverlay) {
-    console.warn('showOverlay prop is not yet implemented');
-  }
 
   const getPlacement = () => {
     const alignMap = {

@@ -1,19 +1,27 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
-import PageHeading from '@/shared/components/ui/page-heading';
+import { Button, PageHeading } from '@/shared/components/ui';
 import { useUserStatistics } from '@/shared/hooks/useAdmin';
 import { LoadingState } from '@/shared/components/ui/loading-state';
 import { ErrorBanner } from '@/shared/components/ui/banner';
 import { PermissionGuard } from '@/shared/components';
-import { AqUsers01, AqUsersCheck, AqKey01 } from '@airqo/icons-react';
+import { AqUsers01, AqUsersCheck, AqKey01, AqEye } from '@airqo/icons-react';
 import { Card } from '@/shared/components/ui/card';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import type { UserStatisticsUser } from '@/shared/types/api';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/shared/components/ui';
 
 const UserStatisticsPage: React.FC = () => {
+  const router = useRouter();
   const { data, isLoading, error, mutate } = useUserStatistics();
 
   // State for tabs
@@ -27,15 +35,15 @@ const UserStatisticsPage: React.FC = () => {
   const stats = data?.users_stats;
 
   // Get current data based on active tab
-  const currentData = useMemo(() => {
+  const currentData = useMemo<UserStatisticsUser[]>(() => {
     if (!stats) return [];
     switch (activeTab) {
       case 'active':
-        return stats.active_users.details;
+        return stats.active_users?.details ?? [];
       case 'api':
-        return stats.api_users.details;
+        return stats.api_users?.details ?? [];
       default:
-        return stats.users.details;
+        return stats.users?.details ?? [];
     }
   }, [stats, activeTab]);
 
@@ -65,6 +73,13 @@ const UserStatisticsPage: React.FC = () => {
   useEffect(() => {
     setPage(1);
   }, [search]);
+
+  const handleViewDetails = useCallback(
+    (userId: string) => {
+      router.push(`/system/user-statistics/${userId}`);
+    },
+    [router]
+  );
 
   // Table columns
   const columns = useMemo(
@@ -105,8 +120,34 @@ const UserStatisticsPage: React.FC = () => {
           </div>
         ),
       },
+      {
+        key: 'actions',
+        label: 'Actions',
+        render: (value: unknown, user: UserStatisticsUser) => (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                paddingStyles="h-8 w-8 p-0"
+                className="text-muted-foreground hover:text-foreground"
+                aria-label={`Actions for ${user.firstName} ${user.lastName}`}
+              >
+                ...
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" minWidth={180}>
+              <DropdownMenuItem onClick={() => handleViewDetails(user._id)}>
+                <span className="flex items-center gap-2">
+                  <AqEye className="w-4 h-4" />
+                  View Details
+                </span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ),
+      },
     ],
-    []
+    [handleViewDetails]
   );
 
   // Stats cards data
@@ -136,17 +177,61 @@ const UserStatisticsPage: React.FC = () => {
 
   const exportToCSV = () => {
     const headers = ['First Name', 'Last Name', 'Email', 'Username', 'User ID'];
-    const csvData = currentData.map(user => [
-      (user.firstName || '').replace(/"/g, '""'),
-      (user.lastName || '').replace(/"/g, '""'),
-      (user.email || '').replace(/"/g, '""'),
-      (user.userName || '').replace(/"/g, '""'),
-      user._id.replace(/"/g, '""'),
-    ]);
-    const csvContent = [headers, ...csvData]
+
+    // Helper to safely extract string fields from possibly inconsistent shapes
+    const getField = (obj: unknown, ...keys: string[]): string => {
+      if (!obj || typeof obj !== 'object') return '';
+      const rec = obj as Record<string, unknown>;
+      for (const k of keys) {
+        const v = rec[k as string];
+        if (v == null) continue;
+        if (typeof v === 'string') return v;
+        if (typeof v === 'number') return String(v);
+      }
+      return '';
+    };
+
+    const esc = (s: string) => {
+      if (!s) return '';
+      // Neutralize potential spreadsheet formulas by prefixing a single quote
+      // when the value begins with =, +, -, or @ (after leading whitespace),
+      // or when it literally starts with a tab or carriage return.
+      const firstNonWS = s.trimStart().charAt(0);
+      const startsWithFormulaChar =
+        firstNonWS === '=' ||
+        firstNonWS === '+' ||
+        firstNonWS === '-' ||
+        firstNonWS === '@';
+      const startsWithTabOrCR = s.charAt(0) === '\t' || s.charAt(0) === '\r';
+      const needsNeutralize = startsWithFormulaChar || startsWithTabOrCR;
+      const prefixed = needsNeutralize ? `'${s}` : s;
+      return prefixed.replace(/"/g, '""');
+    };
+
+    const csvData = currentData.map(user => {
+      const firstName = getField(user, 'firstName', 'firstname');
+      const lastName = getField(user, 'lastName', 'lastname');
+      const email = getField(user, 'email', 'userEmail');
+      const userName = getField(user, 'userName', 'username');
+      const id = getField(user, '_id', 'id');
+
+      return [
+        esc(firstName),
+        esc(lastName),
+        esc(email),
+        esc(userName),
+        esc(id),
+      ];
+    });
+
+    const rows = [headers, ...csvData];
+    const csvContent = rows
       .map(row => row.map(field => `"${field}"`).join(','))
       .join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    // Add BOM for better Excel compatibility
+    const blob = new Blob(['\uFEFF' + csvContent], {
+      type: 'text/csv;charset=utf-8;',
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -158,29 +243,67 @@ const UserStatisticsPage: React.FC = () => {
   };
 
   const exportToPDF = () => {
-    const doc = new jsPDF();
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+
+    // Header
     doc.setFontSize(18);
-    doc.text('User Statistics Report', 14, 20);
-    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('AirQo User Statistics Report', 40, 50);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
     doc.text(
       `Category: ${activeTab === 'all' ? 'All Users' : activeTab === 'active' ? 'Active Users' : 'API Users'}`,
-      14,
-      30
+      40,
+      70
     );
-    doc.text(`Total Records: ${currentData.length}`, 14, 35);
-    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 40);
-    const tableData = currentData.map(user => [
-      user.firstName || '',
-      user.lastName || '',
-      user.email || '',
-      user.userName || '',
-      user._id,
-    ]);
+    doc.text(`Total Records: ${currentData.length}`, 40, 85);
+    doc.text(`Generated on: ${new Date().toLocaleString()}`, 40, 100);
+
+    const getField = (obj: unknown, ...keys: string[]): string => {
+      if (!obj || typeof obj !== 'object') return '';
+      const rec = obj as Record<string, unknown>;
+      for (const k of keys) {
+        const v = rec[k as string];
+        if (v == null) continue;
+        if (typeof v === 'string') return v;
+        if (typeof v === 'number') return String(v);
+      }
+      return '';
+    };
+
+    const tableData = currentData.map(user => {
+      const firstName = getField(user, 'firstName', 'firstname');
+      const lastName = getField(user, 'lastName', 'lastname');
+      const email = getField(user, 'email', 'userEmail');
+      const userName = getField(user, 'userName', 'username');
+      const id = getField(user, '_id', 'id');
+      return [firstName, lastName, email, userName, id];
+    });
+
     autoTable(doc, {
       head: [['First Name', 'Last Name', 'Email', 'Username', 'User ID']],
       body: tableData,
-      startY: 50,
+      startY: 120,
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [22, 78, 99] },
+      alternateRowStyles: { fillColor: [245, 245, 245] },
+      margin: { left: 40, right: 40 },
+      // Note: page footers are rendered after autoTable completes to ensure
+      // the correct total page count is available.
     });
+
+    // Add "Page X of Y" footer on each page after table generation
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(9);
+      doc.text(
+        `Page ${i} of ${pageCount}`,
+        40,
+        doc.internal.pageSize.height - 30
+      );
+    }
+
     doc.save(
       `user-statistics-${activeTab}-${new Date().toISOString().split('T')[0]}.pdf`
     );

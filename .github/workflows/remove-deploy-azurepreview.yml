@@ -1,0 +1,241 @@
+name: remove-deploy-previews
+
+on:
+  pull_request:
+    branches:
+      - staging
+    types:
+      - closed
+
+env:
+  RG: airqo-main-rg
+
+jobs:
+
+  branch-name:
+    name: Format branch name string
+    runs-on: ubuntu-latest
+    outputs:
+      lowercase: ${{ steps.string.outputs.lowercase }}
+    steps:
+      - id: string
+        uses: ASzc/change-string-case-action@v2
+        with:
+          string: ${{ github.head_ref || github.ref_name }}
+
+  check:
+    name: check for available deploy previews
+    outputs:
+      remove_calibrate_app_preview: ${{ steps.check_files.outputs.remove_calibrate_app_preview }}
+      remove_analytics_platform: ${{ steps.check_files.outputs.remove_analytics_platform }}
+      remove_vertex: ${{ steps.check_files.outputs.remove_vertex }}
+      remove_beacon: ${{ steps.check_files.outputs.remove_beacon }}
+      remove_docs: ${{ steps.check_files.outputs.remove_docs }}
+      remove_website: ${{ steps.check_files.outputs.remove_website }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: check modified services
+        id: check_files
+        run: |
+
+          git diff --name-only HEAD^ HEAD > files.txt
+
+          echo "remove_calibrate_app_preview=false" >>$GITHUB_OUTPUT
+          echo "remove_analytics_platform=false" >>$GITHUB_OUTPUT
+          echo "remove_vertex=false" >>$GITHUB_OUTPUT
+          echo "remove_beacon=false" >>$GITHUB_OUTPUT
+          echo "remove_docs=false" >>$GITHUB_OUTPUT
+          echo "remove_website=false" >>$GITHUB_OUTPUT
+
+          while IFS= read -r file
+          do
+
+            if [[ $file == src/calibrate/* ]]; then
+              echo "remove_calibrate_app_preview=true" >>$GITHUB_OUTPUT
+            fi
+
+            if [[ $file == src/platform/* ]]; then
+              echo "remove_analytics_platform=true" >>$GITHUB_OUTPUT
+            fi
+
+            if [[ $file == src/vertex/* ]]; then
+              echo "remove_vertex=true" >>$GITHUB_OUTPUT
+            fi
+
+            if [[ $file == src/beacon/* ]]; then
+              echo "remove_beacon=true" >>$GITHUB_OUTPUT
+            fi
+
+            if [[ $file == src/docs-website/* ]]; then
+              echo "remove_docs=true" >>$GITHUB_OUTPUT
+            fi
+
+            if [[ $file == src/website/* ]]; then
+              echo "remove_website=true" >>$GITHUB_OUTPUT
+            fi
+
+          done < files.txt
+
+########################################################
+# REMOVE CALIBRATE APP PREVIEW
+########################################################
+
+  remove-calibrate-app-preview:
+    name: remove-calibrate-app-preview
+    needs: [check, branch-name]
+    if: needs.check.outputs.remove_calibrate_app_preview == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Delete Container App
+        run: |
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-calibrate-app-preview"
+
+          az containerapp delete \
+            --name $APP \
+            --resource-group ${{ env.RG}} \
+            --yes || echo "Preview not found"
+
+########################################################
+# REMOVE ANALYTICS PLATFORM PREVIEW
+########################################################
+
+  remove-analytics-platform-preview:
+    name: remove-analytics-platform-preview
+    needs: [check, branch-name]
+    if: needs.check.outputs.remove_analytics_platform == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Delete Container App
+
+        run: |
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-analytics-p-preview"
+
+          az containerapp delete \
+            --name $APP \
+            --resource-group ${{ env.RG}} \
+            --yes || echo "Preview not found"
+
+########################################################
+# REMOVE WEBSITE PREVIEW
+########################################################
+
+  remove-website-preview:
+    name: remove-website-preview
+    needs: [check, branch-name]
+    if: needs.check.outputs.remove_website == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Delete Container App
+        run: |
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-website-preview"
+
+          az containerapp delete \
+            --name $APP \
+            --resource-group ${{ env.RG}} \
+            --yes || echo "Preview not found"
+
+########################################################
+# REMOVE VERTEX PREVIEW
+########################################################
+
+  remove-vertex-preview:
+    name: remove-vertex-preview
+    needs: [check, branch-name]
+    if: needs.check.outputs.remove_vertex == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Delete Container App
+        run: |
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-vertex-preview"
+
+          az containerapp delete \
+            --name $APP \
+            --resource-group ${{ env.RG}} \
+            --yes || echo "Preview not found"
+
+########################################################
+# REMOVE BEACON PREVIEW
+########################################################
+
+  remove-beacon-preview:
+    name: remove-beacon-preview
+    needs: [check, branch-name]
+    if: needs.check.outputs.remove_beacon == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Delete Container App
+        run: |
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-beacon-preview"
+
+          az containerapp delete \
+            --name $APP \
+            --resource-group ${{ env.RG}} \
+            --yes || echo "Preview not found"
+
+########################################################
+# REMOVE DOCS PREVIEW
+########################################################
+
+  remove-docs-preview:
+    name: remove-docs-preview
+    needs: [check, branch-name]
+    if: needs.check.outputs.remove_docs == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Delete Container App
+        run: |
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-docs-preview"
+
+          az containerapp delete \
+            --name $APP \
+            --resource-group ${{ env.RG}} \
+            --yes || echo "Preview not found"

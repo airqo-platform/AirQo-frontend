@@ -1,5 +1,6 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { deviceService } from '../../../shared/services/deviceService';
 import type {
   MapReadingsResponse,
@@ -20,47 +21,50 @@ export interface UseMapReadingsResult {
 export function useMapReadings(
   cohort_id?: string | null
 ): UseMapReadingsResult {
-  const [readings, setReadings] = useState<MapReading[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const normalizedCohortId =
+    cohort_id === null ? 'disabled' : (cohort_id ?? 'all');
+  const enabled = cohort_id !== null;
 
-  const fetchReadings = async () => {
-    // If cohort_id is null, it means we are waiting for it to be determined (e.g. in org flow)
-    if (cohort_id === null) {
-      return;
-    }
-
-    // If cohort_id is empty string, it means we checked and there are no cohorts, so no readings
-    if (cohort_id === '') {
-      setReadings([]);
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      setError(null);
+  const {
+    data: readings = [],
+    isLoading,
+    error,
+    refetch: refetchQuery,
+  } = useQuery<MapReading[], Error>({
+    queryKey: ['map', 'readings', normalizedCohortId],
+    queryFn: async () => {
       const response: MapReadingsResponse =
-        await deviceService.getMapReadingsWithToken(cohort_id);
-      setReadings(response.measurements);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Failed to fetch map readings'
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
+        await deviceService.getMapReadingsWithToken(cohort_id || undefined);
+      return response.measurements;
+    },
+    enabled,
+    networkMode: 'online',
+    retry: 1,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    staleTime: 1000 * 60 * 2,
+    gcTime: 1000 * 60 * 60 * 12,
+  });
 
-  useEffect(() => {
-    fetchReadings();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cohort_id]);
+  const refetch = useCallback(async () => {
+    await refetchQuery();
+  }, [refetchQuery]);
+
+  const noopRefetch = useCallback(async () => undefined, []);
+
+  if (!enabled) {
+    return {
+      readings: [],
+      isLoading: false,
+      error: null,
+      refetch: noopRefetch,
+    };
+  }
 
   return {
     readings,
     isLoading,
-    error,
-    refetch: fetchReadings,
+    error: error?.message ?? null,
+    refetch,
   };
 }

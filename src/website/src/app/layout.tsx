@@ -8,9 +8,10 @@ import { ReactNode, Suspense, lazy } from 'react';
 
 import CookieConsent from '@/components/CookieConsent';
 import ExternalLinkDecorator from '@/components/ExternalLinkDecorator';
+import GoogleTranslate from '@/components/GoogleTranslate';
 import { ErrorBoundary } from '@/components/ui';
 import { ReduxDataProvider } from '@/context/ReduxDataProvider';
-import { SwrProvider } from '@/services/providers/SwrProvider';
+import { QueryProvider } from '@/services/providers/QueryProvider';
 import { generateViewport } from '@/lib/metadata';
 
 // Lazy load non-critical components
@@ -20,7 +21,6 @@ const EngagementDialog = lazy(
 const FloatingMiniBillboardWrapper = lazy(
   () => import('@/components/FloatingMiniBillboardWrapper'),
 );
-const GoogleTranslate = lazy(() => import('@/components/GoogleTranslate'));
 
 const interFont = localFont({
   src: [
@@ -114,7 +114,7 @@ export const metadata: Metadata = {
     'Google.org Africa',
     'World Bank air quality',
     // Products
-    'CLEAN-Air Forum',
+    'Africa Clean Air Forum',
     'CLEAN-Air Network',
     'Binos Monitor',
     'AirQalibrate',
@@ -287,6 +287,7 @@ export default async function RootLayout({
         {/* Performance optimizations - DNS prefetch and preconnect */}
         <link rel="dns-prefetch" href="//res.cloudinary.com" />
         <link rel="dns-prefetch" href="//www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="//translate.google.com" />
         <link rel="dns-prefetch" href="//translate.googleapis.com" />
         <link
           rel="preconnect"
@@ -296,6 +297,21 @@ export default async function RootLayout({
         <link
           rel="preconnect"
           href="//www.googletagmanager.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preconnect"
+          href="//translate.google.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preconnect"
+          href="//translate.googleapis.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preconnect"
+          href="//translate.gstatic.com"
           crossOrigin="anonymous"
         />
 
@@ -338,18 +354,16 @@ export default async function RootLayout({
         </Script>
       </head>
       <body>
-        <Suspense fallback={null}>
-          <GoogleTranslate />
-        </Suspense>
+        <GoogleTranslate />
         <ExternalLinkDecorator />
         <ErrorBoundary>
           <ReduxDataProvider>
-            <SwrProvider>
+            <QueryProvider>
               {children}
               <Suspense fallback={null}>
                 <EngagementDialog />
               </Suspense>
-            </SwrProvider>
+            </QueryProvider>
           </ReduxDataProvider>
         </ErrorBoundary>
         <CookieConsent />

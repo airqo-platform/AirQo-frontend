@@ -29,6 +29,14 @@ export default function FloatingMiniBillboardWrapper() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (
+      pathname?.startsWith('/packages') ||
+      pathname?.startsWith('/solutions/network-coverage')
+    ) {
+      // Suppressed routes: skip fetching to avoid unnecessary load
+      setLoading(false);
+      return;
+    }
     let mounted = true;
 
     const fetchAllCountriesData = async () => {
@@ -160,13 +168,14 @@ export default function FloatingMiniBillboardWrapper() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [pathname]);
 
   // Don't render anything while loading or if there's no data or if on packages page
   if (
     loading ||
     billboardData.length === 0 ||
-    pathname?.startsWith('/packages')
+    pathname?.startsWith('/packages') ||
+    pathname?.startsWith('/solutions/network-coverage')
   ) {
     return null;
   }

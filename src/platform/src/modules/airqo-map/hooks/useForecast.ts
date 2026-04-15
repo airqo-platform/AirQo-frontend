@@ -1,5 +1,6 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useMemo, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { deviceService } from '../../../shared/services/deviceService';
 import type {
   ForecastResponse,
@@ -10,7 +11,6 @@ import type {
 export interface UseForecastParams {
   siteId?: string;
   enabled?: boolean;
-  waqiForecastData?: ForecastData[];
 }
 
 export interface UseForecastResult {
@@ -27,66 +27,54 @@ export interface UseForecastResult {
 export function useForecast({
   siteId,
   enabled = true,
-  waqiForecastData,
 }: UseForecastParams = {}): UseForecastResult {
-  const [forecast, setForecast] = useState<ForecastData[]>([]);
-  const [aqiRanges, setAqiRanges] = useState<AQIRanges | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const shouldFetchFromApi = Boolean(siteId && enabled);
 
-  // Clear data when siteId changes to prevent stale data
-  useEffect(() => {
-    setForecast([]);
-    setAqiRanges(null);
-    setError(null);
-    setIsLoading(false);
-  }, [siteId]);
+  const {
+    data,
+    isLoading,
+    error,
+    refetch: refetchQuery,
+  } = useQuery<ForecastResponse, Error>({
+    queryKey: ['map', 'forecast', siteId ?? 'none'],
+    queryFn: async () => {
+      if (!siteId) {
+        throw new Error('Site ID is required');
+      }
+      return deviceService.getForecastAuthenticated(siteId);
+    },
+    enabled: shouldFetchFromApi,
+    networkMode: 'online',
+    staleTime: 1000 * 60 * 10,
+    gcTime: 1000 * 60 * 60 * 12,
+  });
 
-  const fetchForecast = useCallback(async () => {
+  const forecast = useMemo(() => {
     if (!siteId || !enabled) {
-      // Clear data when no siteId or disabled
-      setForecast([]);
-      setAqiRanges(null);
-      setIsLoading(false);
-      setError(null);
-      return;
+      return [];
     }
 
-    // Check if this is a WAQI site - always use embedded forecast data if available
-    if (siteId.startsWith('waqi-')) {
-      setIsLoading(false);
-      setError(null);
-      setForecast(waqiForecastData || []);
-      setAqiRanges(null); // WAQI doesn't provide AQI ranges
-      return;
+    return data?.forecasts ?? [];
+  }, [data?.forecasts, enabled, siteId]);
+
+  const aqiRanges = useMemo<AQIRanges | null>(() => {
+    if (!siteId || !enabled) {
+      return null;
     }
 
-    try {
-      setIsLoading(true);
-      setError(null);
-      setForecast([]); // Clear previous forecast data
-      const response: ForecastResponse =
-        await deviceService.getForecastAuthenticated(siteId);
-      setForecast(response.forecasts);
-      setAqiRanges(response.aqi_ranges);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch forecast');
-      setForecast([]); // Clear forecast on error
-      setAqiRanges(null);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [siteId, enabled, waqiForecastData]);
+    return data?.aqi_ranges ?? null;
+  }, [data?.aqi_ranges, enabled, siteId]);
 
-  useEffect(() => {
-    fetchForecast();
-  }, [fetchForecast]);
+  const refetch = useCallback(async () => {
+    if (!shouldFetchFromApi) return;
+    await refetchQuery();
+  }, [refetchQuery, shouldFetchFromApi]);
 
   return {
     forecast,
     aqiRanges,
-    isLoading,
-    error,
-    refetch: fetchForecast,
+    isLoading: shouldFetchFromApi ? isLoading : false,
+    error: shouldFetchFromApi ? (error?.message ?? null) : null,
+    refetch,
   };
 }

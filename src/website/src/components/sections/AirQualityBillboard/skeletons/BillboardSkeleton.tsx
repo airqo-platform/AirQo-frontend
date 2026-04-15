@@ -16,13 +16,6 @@ const BillboardSkeleton: React.FC<BillboardSkeletonProps> = ({
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)]" />
       </div>
 
-      {/* Top-right circle for homepage - positioned relative to the billboard container */}
-      {homepage && (
-        <div className="hidden md:flex absolute right-4 top-[clamp(3rem,6vw,6.5rem)] z-30">
-          <div className="w-24 h-24 sm:w-28 sm:h-28 bg-white/20 rounded-full animate-pulse" />
-        </div>
-      )}
-
       <div
         className={
           'relative z-10 h-full flex flex-col p-3 sm:p-4 lg:p-6 gap-4 sm:gap-5 lg:gap-6'
@@ -50,12 +43,12 @@ const BillboardSkeleton: React.FC<BillboardSkeletonProps> = ({
         <div
           className={
             homepage
-              ? 'flex-1 grid grid-cols-1 gap-4 sm:gap-6 lg:gap-8 min-h-0'
-              : 'flex-1 grid grid-cols-1 xl:grid-cols-[1.3fr_1fr] gap-4 sm:gap-6 lg:gap-8 min-h-0'
+              ? 'flex-1 grid grid-cols-[minmax(0,1fr)_minmax(130px,180px)] sm:grid-cols-[minmax(0,1fr)_minmax(160px,230px)] lg:grid-cols-[minmax(0,1fr)_minmax(200px,280px)] gap-4 sm:gap-6 lg:gap-8 min-h-0'
+              : 'flex-1 grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(180px,240px)] xl:grid-cols-[1.2fr_minmax(220px,320px)] gap-4 sm:gap-6 lg:gap-8 min-h-0'
           }
         >
           {/* Left Section */}
-          <div className="flex flex-col justify-center space-y-3 sm:space-y-4 lg:space-y-5">
+          <div className="flex flex-col justify-start md:justify-center space-y-3 sm:space-y-4 lg:space-y-5">
             {/* Air Quality Title */}
             <div className="h-8 sm:h-10 lg:h-12 xl:h-14 w-48 sm:w-56 lg:w-64 bg-white/20 rounded animate-pulse" />
 
@@ -71,72 +64,64 @@ const BillboardSkeleton: React.FC<BillboardSkeletonProps> = ({
               <div className="h-7 sm:h-9 lg:h-10 w-16 sm:w-20 bg-white/20 rounded animate-pulse" />
             </div>
 
-            {/* 7-Day Forecast - show on non-homepage everywhere, and on homepage only from md+ */}
-            {homepage ? (
-              <div className="mt-2 sm:mt-3 hidden md:block">
-                <div className="flex items-center gap-2 flex-wrap">
-                  {[...Array(7)].map((_, index) => (
-                    <div
-                      key={index}
-                      className="flex flex-col items-center rounded-lg p-1 sm:p-2 min-w-[48px] sm:min-w-[56px] bg-blue-500/30 animate-pulse"
-                    >
-                      <div className="h-3 sm:h-3.5 w-4 bg-white/30 rounded mb-1" />
-                      <div className="h-2.5 sm:h-3 w-6 bg-white/30 rounded mb-1 sm:mb-2" />
-                      <div className="w-6 h-6 sm:w-7 sm:h-7 bg-white/30 rounded-full" />
-                    </div>
-                  ))}
-                </div>
+            {/* 7-Day Forecast */}
+            <div className="mt-2 sm:mt-3">
+              <div
+                className={
+                  homepage
+                    ? 'flex md:grid md:grid-cols-7 gap-2 md:gap-3 overflow-x-auto md:overflow-visible pb-1 md:pb-0 pr-1 md:pr-0'
+                    : 'flex lg:grid lg:grid-cols-7 gap-2 sm:gap-3 lg:gap-4 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0 pr-1 lg:pr-0'
+                }
+              >
+                {[...Array(7)].map((_, index) => (
+                  <div
+                    key={index}
+                    className={`flex flex-col items-center rounded-lg bg-blue-600/25 animate-pulse ${
+                      homepage
+                        ? 'p-2 sm:p-3 min-w-[92px] sm:min-w-[102px] md:min-w-0 min-h-[104px] sm:min-h-[116px] md:min-h-[126px]'
+                        : 'p-2 sm:p-3 lg:p-3.5 min-w-[92px] sm:min-w-[104px] lg:min-w-0 min-h-[104px] sm:min-h-[116px] lg:min-h-[132px]'
+                    }`}
+                  >
+                    <div className="h-4 w-6 bg-white/30 rounded mb-2" />
+                    <div className="h-4 w-10 bg-white/30 rounded mb-2" />
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 bg-white/30 rounded-full" />
+                  </div>
+                ))}
               </div>
-            ) : (
-              <div className="mt-2 sm:mt-3">
-                <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-                  {[...Array(7)].map((_, index) => (
-                    <div
-                      key={index}
-                      className="flex flex-col items-center rounded-lg p-2 sm:p-3 min-w-[70px] sm:min-w-[80px] bg-blue-600/25 animate-pulse"
-                    >
-                      <div className="h-3 sm:h-4 w-4 sm:w-6 bg-white/30 rounded mb-1" />
-                      <div className="h-3 sm:h-3.5 w-8 sm:w-10 bg-white/30 rounded mb-1.5" />
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/30 rounded-full" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            </div>
           </div>
 
           {/* Right Section */}
           <div
             className={
               homepage
-                ? 'flex flex-col items-end justify-between min-h-0 w-full relative'
-                : 'flex flex-col items-center xl:items-end justify-between min-h-0 relative'
+                ? 'flex flex-col items-end justify-start gap-[clamp(0.75rem,1.5vw,1.25rem)] min-h-[180px] md:min-h-[220px] w-full'
+                : 'flex flex-row md:flex-col items-center md:items-end justify-between min-h-0 gap-[clamp(0.75rem,1.5vw,1.25rem)]'
             }
           >
             {/* Air Quality Icon Skeleton */}
-            {!homepage ? (
-              <div className="flex items-center justify-center lg:justify-end w-full">
-                <div
-                  className="bg-white/20 rounded-full animate-pulse"
-                  style={{
-                    width: 'clamp(5rem, 10vw, 10rem)',
-                    height: 'clamp(5rem, 10vw, 10rem)',
-                  }}
-                />
-              </div>
-            ) : null}
-
-            {/* QR Code Skeleton - Positioned at bottom right for both views */}
-            <div className="hidden md:flex absolute bottom-4 right-4 z-20 flex-col items-center gap-[clamp(0.125rem,0.3vw,0.375rem)]">
+            <div className="flex items-center justify-center lg:justify-end w-full">
               <div
-                className="h-2 w-12 bg-white/20 rounded animate-pulse"
-                style={{ fontSize: 'clamp(0.5rem, 0.8vw, 0.65rem)' }}
-              />
-              <div
-                className="bg-white rounded-lg animate-pulse"
+                className="bg-white/20 rounded-full animate-pulse"
                 style={{
-                  width: 'clamp(3rem, 5vw, 4.5rem)',
-                  height: 'clamp(3rem, 5vw, 4.5rem)',
+                  width: homepage
+                    ? 'clamp(5rem, 8vw, 8rem)'
+                    : 'clamp(5.25rem, 11vw, 11rem)',
+                  height: homepage
+                    ? 'clamp(5rem, 8vw, 8rem)'
+                    : 'clamp(5.25rem, 11vw, 11rem)',
+                }}
+              />
+            </div>
+
+            {/* QR Code Skeleton */}
+            <div className="flex flex-col items-center gap-[clamp(0.25rem,0.6vw,0.5rem)] mt-0 md:mt-auto">
+              <div className="h-3 w-16 bg-white/20 rounded animate-pulse" />
+              <div
+                className="bg-white rounded-lg animate-pulse shadow-xl ring-2 ring-white/40"
+                style={{
+                  width: 'clamp(4.75rem, 8vw, 8rem)',
+                  height: 'clamp(4.75rem, 8vw, 8rem)',
                 }}
               />
             </div>

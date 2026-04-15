@@ -53,16 +53,17 @@ Use `src/vertex/.env.example` as the base. Common variables include:
 
 ## Authentication and SSO
 
-For production/shared-session authentication across AirQo subdomains, set:
+For normal app-local authentication, set:
 
 ```bash
-NEXTAUTH_SECRET=<shared-secret-used-by-all-apps>
-NEXTAUTH_COOKIE_DOMAIN=.airqo.net
+NEXTAUTH_SECRET=<app-specific-secret>
+NEXTAUTH_URL=http://localhost:3001
 ```
 
 Notes:
-- `NEXTAUTH_SECRET` should match the value used by the Analytics platform.
-- `NEXTAUTH_COOKIE_DOMAIN=.airqo.net` allows a shared cookie across sibling subdomains (for example `analytics.airqo.net` and `vertex.airqo.net`).
+
+- `NEXTAUTH_SECRET` should be unique to Vertex.
+- `NEXTAUTH_URL` should match the local or production origin for Vertex.
 
 ## Related projects
 

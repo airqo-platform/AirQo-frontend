@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useUserContext } from '@/core/hooks/useUserContext';
 import { ROUTE_LINKS } from '@/core/routes';
+import { VERTEX_DESKTOP_DOWNLOADS } from '@/core/constants/app-downloads';
 import Card from '../shared/card/CardWrapper';
 import { NavItem } from './NavItem';
 
@@ -48,6 +49,23 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
     useUserContext();
   const contextPermissions = getContextPermissions();
 
+  const [platform, setPlatform] = React.useState<'win' | 'linux' | 'other' | null>(null);
+  const [downloadUrl, setDownloadUrl] = React.useState("");
+  const [isElectron, setIsElectron] = React.useState(false);
+
+  React.useEffect(() => {
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    setIsElectron(userAgent.includes('electron'));
+    if (userAgent.includes('win')) {
+      setPlatform('win');
+      setDownloadUrl(VERTEX_DESKTOP_DOWNLOADS.windows);
+    } else if (userAgent.includes('linux')) {
+      setPlatform('linux');
+    } else {
+      setPlatform('other');
+    }
+  }, []);
+
   return (
     <aside
       data-vertex-secondary-sidebar
@@ -76,6 +94,21 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
           overflow
           overflowType="auto"
           contentClassName={`flex flex-col h-full overflow-x-hidden scrollbar-thin ${styles.scrollbar}`}
+          footer={!isCollapsed && !isElectron && platform === 'win' && (
+            <div className="px-1 pb-2">
+              <a
+                href={downloadUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 w-full rounded-md border border-border bg-primary px-4 py-2 text-sm font-medium text-white transition-all hover:bg-primary/80 hover:border-foreground/20 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M0 3.449L9.75 2.1V11.7H0V3.449zm0 9.151h9.75v9.6L0 20.551V12.6zm10.55-10.701L24 0v11.7h-13.45V1.899zm0 10.701H24V24l-13.45-1.899V12.6z" />
+                </svg>
+                <span className="truncate">Download for Windows</span>
+              </a>
+            </div>
+          )}
         >
           {/* Device Management Module - Personal devices for all users */}
           {activeModule === 'devices' && (

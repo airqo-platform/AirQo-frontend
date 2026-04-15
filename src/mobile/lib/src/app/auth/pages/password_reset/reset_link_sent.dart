@@ -2,6 +2,7 @@ import 'package:airqo/src/app/auth/bloc/ForgotPasswordBloc/forgot_password_bloc.
 import 'package:airqo/src/app/auth/bloc/ForgotPasswordBloc/forgot_password_event.dart';
 import 'package:airqo/src/app/auth/pages/password_reset/password_reset.dart';
 
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -73,7 +74,7 @@ class _ResetLinkSentPageState extends State<ResetLinkSentPage> {
             icon: const Icon(Icons.arrow_back),
             onPressed: () => Navigator.of(context).pop(),
           ),
-          title: Text(
+          title: TranslatedText(
             "Forgot Password",
             style: TextStyle(
               fontSize: 20,
@@ -95,7 +96,7 @@ class _ResetLinkSentPageState extends State<ResetLinkSentPage> {
                 ),
                 child: Column(
                   children: [
-                    Text(
+                    TranslatedText(
                       "We just sent you a Password Reset Code to your email",
                       textAlign: TextAlign.center,
                       style: TextStyle(
@@ -214,7 +215,7 @@ class _ResetLinkSentPageState extends State<ResetLinkSentPage> {
                           child: isLoading
                               ? const CircularProgressIndicator(
                                   color: Colors.white)
-                              : Text(
+                              : TranslatedText(
                                   "Continue",
                                   style: TextStyle(
                                     fontWeight: FontWeight.w500,
@@ -234,7 +235,7 @@ class _ResetLinkSentPageState extends State<ResetLinkSentPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Flexible(
-                          child: Text(
+                          child: TranslatedText(
                             "Didn't receive the code?",
                             style: TextStyle(
                               fontSize: isSmallScreen
@@ -275,7 +276,7 @@ class _ResetLinkSentPageState extends State<ResetLinkSentPage> {
                                   }
                                 },
                           child: Center(
-                            child: Text(
+                            child: TranslatedText(
                               " Resend",
                               style: TextStyle(
                                 fontWeight: FontWeight.w500,

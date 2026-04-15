@@ -5,6 +5,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:loggy/loggy.dart';
 
 class NearbyViewEmptyState extends StatefulWidget {
@@ -107,22 +108,22 @@ class _NearbyViewEmptyStateState extends State<NearbyViewEmptyState> with UiLogg
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Location Services Disabled'),
-        content: Text(
+        title: TranslatedText('Location Services Disabled'),
+        content: TranslatedText(
           'Location services are disabled on your device. '
           'Please enable location services to see air quality data near you.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel'),
+            child: TranslatedText('Cancel'),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               Geolocator.openLocationSettings();
             },
-            child: Text('Open Settings'),
+            child: TranslatedText('Open Settings'),
           ),
         ],
       ),
@@ -133,22 +134,22 @@ class _NearbyViewEmptyStateState extends State<NearbyViewEmptyState> with UiLogg
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Location Permission Required'),
-        content: Text(
+        title: TranslatedText('Location Permission Required'),
+        content: TranslatedText(
           'Location permission is required to show air quality data near you. '
           'Please enable location in app settings.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel'),
+            child: TranslatedText('Cancel'),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               openAppSettings();
             },
-            child: Text('Open Settings'),
+            child: TranslatedText('Open Settings'),
           ),
         ],
       ),
@@ -221,7 +222,7 @@ class _NearbyViewEmptyStateState extends State<NearbyViewEmptyState> with UiLogg
           SizedBox(height: 24),
           
           // Title
-          Text(
+          TranslatedText(
             "See Air Quality Around You",
             style: TextStyle(
               fontSize: 24,
@@ -230,11 +231,11 @@ class _NearbyViewEmptyStateState extends State<NearbyViewEmptyState> with UiLogg
             ),
             textAlign: TextAlign.center,
           ),
-          
+
           SizedBox(height: 16),
-          
+
           // Description
-          Text(
+          TranslatedText(
             "Get real-time air quality updates for your current location and nearby areas",
             style: TextStyle(
               fontSize: 16,
@@ -295,7 +296,7 @@ class _NearbyViewEmptyStateState extends State<NearbyViewEmptyState> with UiLogg
                         strokeWidth: 2,
                       ),
                     )
-                  : Text(
+                  : TranslatedText(
                       "Enable Location",
                       style: TextStyle(
                         fontSize: 16,

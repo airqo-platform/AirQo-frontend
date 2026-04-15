@@ -1,0 +1,566 @@
+name: deploy-to-azure-preview-environment
+
+on:
+  pull_request:
+    branches:
+      - staging
+
+env:
+  RG: airqo-main-rg
+  LOCATION: westeurope
+  PR_PREVIEW_ENV: airqo-pr-preview-env
+  REGISTRY_URL: airqoacr.azurecr.io
+  KEYVAULT: airqo-kv-staging
+
+jobs:
+
+#########################################
+# FORMAT BRANCH NAME
+#########################################
+
+  branch-name:
+    runs-on: ubuntu-latest
+    outputs:
+      lowercase: ${{ steps.string.outputs.lowercase }}
+
+    steps:
+      - id: string
+        uses: ASzc/change-string-case-action@v5
+        with:
+          string: ${{ github.head_ref || github.ref_name }}
+
+#########################################
+# DETECT CHANGED SERVICES
+#########################################
+
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }}
+      run_analytics_platform: ${{ steps.check_files.outputs.run_analytics_platform }}
+      run_website: ${{ steps.check_files.outputs.run_website }}
+      run_vertex: ${{ steps.check_files.outputs.run_vertex }}
+      run_beacon: ${{ steps.check_files.outputs.run_beacon }}
+      run_docs: ${{ steps.check_files.outputs.run_docs }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: check modified frontends
+        id: check_files
+        run: |
+          echo "=============== list modified files ==============="
+          git diff --name-only HEAD^ HEAD
+
+          echo "========== check paths of modified files =========="
+          git diff --name-only HEAD^ HEAD > files.txt
+
+          echo "run_calibrate_app=false" >>$GITHUB_OUTPUT
+          echo "run_analytics_platform=false" >>$GITHUB_OUTPUT
+          echo "run_website=false" >>$GITHUB_OUTPUT
+          echo "run_vertex=false" >>$GITHUB_OUTPUT
+          echo "run_beacon=false" >>$GITHUB_OUTPUT
+          echo "run_docs=false" >>$GITHUB_OUTPUT
+
+          while IFS= read -r file
+          do
+            echo $file
+            if [[ $file == src/calibrate/* ]]; then
+              echo "run_calibrate_app=true" >>$GITHUB_OUTPUT
+            fi
+
+            if [[ $file == src/platform/* ]]; then
+              echo "run_analytics_platform=true" >>$GITHUB_OUTPUT
+            fi
+
+            if [[ $file == src/website/* ]]; then
+              echo "run_website=true" >>$GITHUB_OUTPUT
+            fi
+
+            if [[ $file == src/vertex/* ]]; then
+              echo "run_vertex=true" >>$GITHUB_OUTPUT
+            fi
+
+            if [[ $file == src/beacon/* ]]; then
+              echo "run_beacon=true" >>$GITHUB_OUTPUT
+            fi
+
+            if [[ $file == src/docs-website/* ]]; then
+              echo "run_docs=true" >>$GITHUB_OUTPUT
+            fi
+
+          done < files.txt
+
+#########################################
+# WEBSITE PREVIEW
+#########################################
+
+  website:
+    needs: [check, branch-name]
+    if: needs.check.outputs.run_website == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      url: ${{ steps.preview.outputs.url }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Login to ACR
+        run: az acr login --name airqoacr
+
+      - name: Build website image
+        run: |
+          cd src/website/
+          docker build . \
+            --build-arg API_URL=${{ secrets.WEBSITE_STAGE_API_URL }} \
+            --build-arg NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }} \
+            --build-arg NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }} \
+            --build-arg NEXT_PUBLIC_HCAPTCHA_SITE_KEY=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_HCAPTCHA_SITE_KEY }} \
+            --tag ${{ env.REGISTRY_URL }}/website-pr-preview:${{ github.sha }}
+          docker push ${{ env.REGISTRY_URL }}/website-pr-preview:${{ github.sha }}
+
+      - name: Deploy Container App
+        run: |
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-website-preview"
+          ENV_VARS="SECRET=${{ secrets.WEBSITE_SECRET }} API_URL=${{ secrets.WEBSITE_STAGE_API_URL }} OPENCAGE_API_KEY=${{ secrets.WEBSITE_STAGE_OPENCAGE_API_KEY }} API_TOKEN=${{ secrets.WEBSITE_STAGE_API_TOKEN }} SLACK_WEBHOOK_URL=${{ secrets.WEBSITE_STAGE_SLACK_WEBHOOK_URL }} SLACK_CHANNEL=${{ secrets.WEBSITE_STAGE_SLACK_CHANNEL }} NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }} NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }} NEXT_PUBLIC_HCAPTCHA_SITE_KEY=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_HCAPTCHA_SITE_KEY }}"
+          
+          az containerapp up \
+            --name $APP \
+            --resource-group ${{ env.RG }} \
+            --environment ${{ env.PR_PREVIEW_ENV }} \
+            --image ${{ env.REGISTRY_URL }}/website-pr-preview:${{ github.sha }} \
+            --target-port 8080 \
+            --ingress external \
+            --registry-server ${{ env.REGISTRY_URL }} \
+            --registry-username airqoacr \
+            --registry-password ${{ secrets.ACR_PASSWORD }} \
+            --env-vars $ENV_VARS
+
+      - id: preview
+        run: |
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-website-preview" 
+
+          URL=$(az containerapp show \
+            --name $APP \
+            --resource-group ${{ env.RG }} \
+            --query properties.configuration.ingress.fqdn -o tsv)
+
+          echo "url=https://$URL" >> $GITHUB_OUTPUT
+
+  website-pr-comment:
+    needs: [check, website]
+    if: needs.check.outputs.run_website == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v8
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'New azure website changes available for preview [here](${{ needs.website.outputs.url }})'
+            })
+
+#########################################
+# BEACON PREVIEW
+#########################################
+
+  beacon:
+    name: build-push-deploy-beacon-preview
+    needs: [check, branch-name]
+    if: needs.check.outputs.run_beacon == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      url: ${{ steps.preview.outputs.url }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - run: az acr login --name airqoacr
+
+      - name: Pull secrets from Key Vault
+        run: |
+          az keyvault secret show \
+            --vault-name ${{ env.KEYVAULT }} \
+            --name sta-env-beacon \
+            --query value -o tsv > secrets.json
+
+      - name: Build image
+        run: |
+          docker build -t ${{ env.REGISTRY_URL }}/beacon-pr-preview:${{ github.sha }} src/beacon
+          docker push ${{ env.REGISTRY_URL }}/beacon-pr-preview:${{ github.sha }}
+
+      - name: Deploy Container App
+        run: |
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-beacon-preview"
+
+          az containerapp up \
+            --name $APP \
+            --resource-group ${{ env.RG }} \
+            --environment ${{ env.PR_PREVIEW_ENV }} \
+            --image ${{ env.REGISTRY_URL }}/beacon-pr-preview:${{ github.sha }} \
+            --target-port 3000 \
+            --ingress external \
+            --registry-server ${{ env.REGISTRY_URL }} \
+            --registry-username airqoacr \
+            --registry-password ${{ secrets.ACR_PASSWORD }} \
+            --env-vars "$(jq -r 'to_entries | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json)"
+
+      - id: preview
+        run: |
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-beacon-preview"
+
+          URL=$(az containerapp show \
+            --name $APP \
+            --resource-group ${{ env.RG }} \
+            --query properties.configuration.ingress.fqdn -o tsv)
+
+          echo "url=https://$URL" >> $GITHUB_OUTPUT
+
+  beacon-pr-comment:
+    needs: [check, beacon]
+    if: needs.check.outputs.run_beacon == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'New azure beacon changes available for preview [here](${{ needs.beacon.outputs.url }})'
+            })
+
+#########################################
+# CALIBRATE APP PREVIEW
+#########################################
+
+  calibrate_app:
+    name: build-push-deploy-calibrate-app-preview
+    needs: [check, branch-name]
+    if: needs.check.outputs.run_calibrate_app == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      url: ${{ steps.preview.outputs.url }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - run: az acr login --name airqoacr
+
+      - name: Pull secrets from Key Vault
+        run: |
+          az keyvault secret show \
+            --vault-name ${{ env.KEYVAULT }} \
+            --name sta-env-calibrate-app \
+            --query value -o tsv > secrets.json
+
+      - name: Build image
+        run: |
+          docker build -t ${{ env.REGISTRY_URL }}/calibrate-app-pr-preview:${{ github.sha }} src/calibrate
+          docker push ${{ env.REGISTRY_URL }}/calibrate-app-pr-preview:${{ github.sha }}
+
+      - name: Deploy Container App
+        run: |
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-calibrate-app-preview"
+
+          az containerapp up \
+            --name $APP \
+            --resource-group ${{ env.RG }} \
+            --environment ${{ env.PR_PREVIEW_ENV }} \
+            --image ${{ env.REGISTRY_URL }}/calibrate-app-pr-preview:${{ github.sha }} \
+            --target-port 80 \
+            --ingress external \
+            --registry-server ${{ env.REGISTRY_URL }} \
+            --registry-username airqoacr \
+            --registry-password ${{ secrets.ACR_PASSWORD }} \
+            --env-vars "$(jq -r 'to_entries | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json)"
+
+      - id: preview
+        run: |
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-calibrate-app-preview"
+
+          URL=$(az containerapp show \
+            --name $APP \
+            --resource-group ${{ env.RG }} \
+            --query properties.configuration.ingress.fqdn -o tsv)
+
+          echo "url=https://$URL" >> $GITHUB_OUTPUT
+
+  calibrate-pr-comment:
+    needs: [check, calibrate_app]
+    if: needs.check.outputs.run_calibrate_app == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'New azure calibrate_app changes available for preview [here](${{ needs.calibrate_app.outputs.url }})'
+            })
+
+#########################################
+# ANALYTICS PLATFORM PREVIEW
+#########################################
+
+  analytics_platform:
+    name: build-push-deploy-analytics-platform-preview
+    needs: [check, branch-name]
+    if: needs.check.outputs.run_analytics_platform == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      url: ${{ steps.preview.outputs.url }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - run: az acr login --name airqoacr
+
+      - name: Pull secrets from Key Vault
+        run: |
+          az keyvault secret show \
+            --vault-name ${{ env.KEYVAULT }} \
+            --name sta-env-next-platform \
+            --query value -o tsv > secrets.json
+        
+            # Write .env into the build context for Next.js build time 
+          jq -r 'to_entries | .[] | "\(.key)=\(.value|tojson)"' secrets.json > src/platform/.env         
+
+      - name: Build image
+        run: |
+          docker build -t ${{ env.REGISTRY_URL }}/analytics-platform-pr-preview:${{ github.sha }} src/platform
+          docker push ${{ env.REGISTRY_URL }}/analytics-platform-pr-preview:${{ github.sha }}
+
+      - name: Deploy Container App
+        run: |
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-analytics-p-preview"
+
+          az containerapp up \
+            --name $APP \
+            --resource-group ${{ env.RG }} \
+            --environment ${{ env.PR_PREVIEW_ENV }} \
+            --image ${{ env.REGISTRY_URL }}/analytics-platform-pr-preview:${{ github.sha }} \
+            --target-port 3000 \
+            --ingress external \
+            --registry-server ${{ env.REGISTRY_URL }} \
+            --registry-username airqoacr \
+            --registry-password ${{ secrets.ACR_PASSWORD }} \
+            --env-vars "$(jq -r 'to_entries | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json)"
+
+      - id: preview
+        run: |
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-analytics-p-preview"
+
+          URL=$(az containerapp show \
+            --name $APP \
+            --resource-group ${{ env.RG }} \
+            --query properties.configuration.ingress.fqdn -o tsv)
+
+          echo "url=https://$URL" >> $GITHUB_OUTPUT
+
+  analytics-pr-comment:
+    needs: [check, analytics_platform]
+    if: needs.check.outputs.run_analytics_platform == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'New azure analytics_platform changes available for preview [here](${{ needs.analytics_platform.outputs.url }})'
+            })
+
+#########################################
+# VERTEX PREVIEW
+#########################################
+
+  vertex:
+    name: build-push-deploy-vertex-preview
+    needs: [check, branch-name]
+    if: needs.check.outputs.run_vertex == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      url: ${{ steps.preview.outputs.url }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - run: az acr login --name airqoacr
+
+      - name: Pull secrets from Key Vault
+        run: |
+          az keyvault secret show \
+            --vault-name ${{ env.KEYVAULT }} \
+            --name sta-env-vertex \
+            --query value -o tsv > secrets.json
+
+      - name: Build image
+        run: |
+          docker build -t ${{ env.REGISTRY_URL }}/vertex-pr-preview:${{ github.sha }} src/vertex
+          docker push ${{ env.REGISTRY_URL }}/vertex-pr-preview:${{ github.sha }}
+
+      - name: Deploy Container App
+        run: |
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-vertex-preview"
+
+          az containerapp up \
+            --name $APP \
+            --resource-group ${{ env.RG }} \
+            --environment ${{ env.PR_PREVIEW_ENV }} \
+            --image ${{ env.REGISTRY_URL }}/vertex-pr-preview:${{ github.sha }} \
+            --target-port 3000 \
+            --ingress external \
+            --registry-server ${{ env.REGISTRY_URL }} \
+            --registry-username airqoacr \
+            --registry-password ${{ secrets.ACR_PASSWORD }} \
+            --env-vars "$(jq -r 'to_entries | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json)"
+
+      - id: preview
+        run: |
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-vertex-preview"
+
+          URL=$(az containerapp show \
+            --name $APP \
+            --resource-group ${{ env.RG }} \
+            --query properties.configuration.ingress.fqdn -o tsv)
+
+          echo "url=https://$URL" >> $GITHUB_OUTPUT
+
+  vertex-pr-comment:
+    needs: [check, vertex]
+    if: needs.check.outputs.run_vertex == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'New azure vertex changes available for preview [here](${{ needs.vertex.outputs.url }})'
+            })
+
+#########################################
+# DOCS PREVIEW
+#########################################
+
+  docs:
+    name: build-push-deploy-docs-preview
+    needs: [check, branch-name]
+    if: needs.check.outputs.run_docs == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      url: ${{ steps.preview.outputs.url }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - run: az acr login --name airqoacr
+
+      - name: Pull secrets from Key Vault
+        run: |
+          az keyvault secret show \
+            --vault-name ${{ env.KEYVAULT }} \
+            --name sta-env-docs \
+            --query value -o tsv > secrets.json
+
+      - name: Build image
+        run: |
+          docker build -t ${{ env.REGISTRY_URL }}/docs-pr-preview:${{ github.sha }} src/docs-website
+          docker push ${{ env.REGISTRY_URL }}/docs-pr-preview:${{ github.sha }}
+
+      - name: Deploy Container App
+        run: |
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-docs-preview"
+
+          az containerapp up \
+            --name $APP \
+            --resource-group ${{ env.RG }} \
+            --environment ${{ env.PR_PREVIEW_ENV }} \
+            --image ${{ env.REGISTRY_URL }}/docs-pr-preview:${{ github.sha }} \
+            --target-port 3000 \
+            --ingress external \
+            --registry-server ${{ env.REGISTRY_URL }} \
+            --registry-username airqoacr \
+            --registry-password ${{ secrets.ACR_PASSWORD }} \
+            --env-vars "$(jq -r 'to_entries | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json)"
+
+      - id: preview
+        run: |
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-docs-preview"
+
+          URL=$(az containerapp show \
+            --name $APP \
+            --resource-group ${{ env.RG }} \
+            --query properties.configuration.ingress.fqdn -o tsv)
+
+          echo "url=https://$URL" >> $GITHUB_OUTPUT
+
+  docs-pr-comment:
+    needs: [check, docs]
+    if: needs.check.outputs.run_docs == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'New azure docs changes available for preview [here](${{ needs.docs.outputs.url }})'
+            })           

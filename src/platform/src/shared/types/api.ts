@@ -101,6 +101,44 @@ export interface GetRolesResponse {
   roles: RoleDetails[];
 }
 
+export interface UserRoleSummaryPermission {
+  _id: string;
+  permission: string;
+}
+
+export interface UserRoleSummaryGroup {
+  _id: string;
+  grp_title: string;
+  grp_description?: string;
+}
+
+export interface UserRoleSummary {
+  _id: string;
+  role_status: string;
+  role_permissions: UserRoleSummaryPermission[];
+  role_name: string;
+  user_count: number;
+  group: UserRoleSummaryGroup;
+}
+
+export interface GetRolesSummaryResponse {
+  success: boolean;
+  message: string;
+  meta: {
+    total: number;
+    skip: number;
+    limit: number;
+    page: number;
+    pages: number;
+  };
+  roles: UserRoleSummary[];
+}
+
+export interface UpdateUserRoleResponse {
+  success: boolean;
+  message: string;
+}
+
 export interface GetRoleByIdResponse {
   success: boolean;
   message: string;
@@ -302,6 +340,7 @@ export interface Client {
     expires: string;
     createdAt: string;
     updatedAt: string;
+    token_status?: 'active' | 'expired';
     __v: number;
   };
 }
@@ -633,6 +672,19 @@ export interface Averages {
   };
 }
 
+export interface DeviceCategories {
+  primary_category?: string;
+  deployment_category?: string;
+  mobile_category?: string;
+  ownership_category?: string;
+  all_categories?: string[];
+  is_mobile?: boolean;
+  is_static?: boolean;
+  is_lowcost?: boolean;
+  is_bam?: boolean;
+  is_gas?: boolean;
+}
+
 export interface HealthTip {
   title: string;
   description: string;
@@ -674,6 +726,7 @@ export interface MapReading {
   averages: Averages;
   createdAt: string;
   device: string;
+  device_categories?: DeviceCategories;
   device_id: string;
   frequency: string;
   health_tips: HealthTip[];
@@ -790,6 +843,7 @@ export interface Client {
     expires: string;
     createdAt: string;
     updatedAt: string;
+    token_status?: 'active' | 'expired';
     __v: number;
   };
 }
@@ -857,6 +911,7 @@ export interface GenerateTokenResponse {
     expires: string;
     createdAt: string;
     updatedAt: string;
+    token_status?: 'active' | 'expired';
     __v: number;
   };
 }
@@ -1131,6 +1186,7 @@ export interface RecentReading {
   averages: Averages;
   createdAt: string;
   device: string;
+  device_categories?: DeviceCategories;
   device_id: string;
   frequency: string;
   health_tips: HealthTip[];
@@ -1157,31 +1213,27 @@ export interface BrandingSettings {
 }
 
 export interface CreateOrganizationRequest {
-  organization_name: string;
-  organization_slug: string;
+  city: string;
+  project_name: string;
+  projectName?: string;
+  funder_partner?: string;
+  funderPartner?: string;
   contact_email: string;
   contact_name: string;
-  contact_phone: string;
   use_case: string;
-  organization_type: string;
+  organization_type: 'academic' | 'government' | 'ngo' | 'private' | 'other';
   country: string;
-  branding_settings: BrandingSettings;
 }
 
 export interface CreateOrganizationResponse {
   success: boolean;
   message: string;
   data?: {
-    organization_id: string;
-    organization_slug: string;
+    organization_id?: string;
+    organization_slug?: string;
+    request_id?: string;
     status: string;
   };
-}
-
-export interface SlugAvailabilityResponse {
-  success: boolean;
-  message: string;
-  available: boolean;
 }
 
 // Account deletion
@@ -1201,14 +1253,19 @@ export interface OrganizationRequest {
   status: 'pending' | 'approved' | 'rejected';
   onboarding_completed: boolean;
   onboarding_method: string;
-  organization_name: string;
-  organization_slug: string;
+  organization_name?: string;
+  organization_slug?: string;
+  project_name?: string;
+  projectName?: string;
+  funder_partner?: string;
+  funderPartner?: string;
+  city?: string;
   contact_email: string;
   contact_name: string;
   use_case: string;
   organization_type: string;
   country: string;
-  branding_settings: BrandingSettings;
+  branding_settings?: BrandingSettings;
   createdAt: string;
   updatedAt: string;
   __v: number;
@@ -1463,6 +1520,108 @@ export interface GetUserStatisticsResponse {
   success: boolean;
   message: string;
   users_stats: UserStatistics;
+}
+
+// Subscription Types
+export type SubscriptionTier = 'Free' | 'Standard' | 'Premium';
+
+export interface SubscriptionPlan {
+  tier: SubscriptionTier;
+  name: string;
+  price: number;
+  currency: string;
+  priceId?: string;
+  features: string[];
+  limits: {
+    hourly: number;
+    daily: number;
+    monthly: number;
+  };
+}
+
+export interface UserSubscription {
+  tier: SubscriptionTier;
+  status: 'active' | 'inactive' | 'past_due' | 'cancelled';
+  nextBillingDate?: string | null;
+  lastRenewalDate?: string | null;
+  automaticRenewal?: boolean;
+  currentSubscriptionId?: string | null;
+  currentPlanDetails?: {
+    priceId?: string | null;
+    currency?: string | null;
+    billingCycle?: string | null;
+  };
+  apiRateLimits?: {
+    hourlyLimit: number;
+    dailyLimit: number;
+    monthlyLimit: number;
+  };
+  // Legacy fields kept for backwards compatibility in older UI code paths.
+  startDate?: string;
+  endDate?: string;
+  autoRenewal?: boolean;
+  billingCycle?: 'monthly' | 'annual';
+}
+
+export interface ApiUsage {
+  hourly: {
+    used: number | null;
+    limit: number | null;
+    resetTime: string;
+  };
+  daily: {
+    used: number | null;
+    limit: number | null;
+    resetTime: string;
+  };
+  monthly: {
+    used: number | null;
+    limit: number | null;
+    resetTime: string;
+  };
+}
+
+export interface GetSubscriptionResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    status: 'active' | 'inactive' | 'past_due' | 'cancelled';
+    tier: SubscriptionTier;
+    nextBillingDate?: string | null;
+  };
+  subscription?: UserSubscription;
+  usage?: ApiUsage;
+}
+
+export interface GetSubscriptionPlansResponse {
+  success: boolean;
+  message: string;
+  plans: SubscriptionPlan[];
+}
+
+// Payment Types
+export interface Transaction {
+  id: string;
+  amount: number;
+  currency: string;
+  status: 'pending' | 'completed' | 'failed' | 'refunded';
+  description: string;
+  date: string;
+  paymentMethod?: string; // masked, e.g., **** **** **** 1234
+  reference?: string;
+}
+
+export interface TransactionHistoryResponse {
+  success: boolean;
+  message: string;
+  data?: Transaction[];
+  transactions?: Transaction[];
+  meta?: {
+    total: number;
+    page: number;
+    totalPages: number;
+    limit: number;
+  };
 }
 
 // Accept Email Invitation Types

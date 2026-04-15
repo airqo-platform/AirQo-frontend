@@ -6,12 +6,13 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import { config } from '@/lib/config';
 import authService from './api-service';
-import { 
+import { isMockMode, getMockCategories } from '@/lib/mock-data';
+import {
   Category,
-  CategoryWithDevices,
   CategoryCreate,
   CategoryUpdate,
-  CategoryListParams
+  CategoryListParams,
+  CategoryListResponse
 } from '@/types/category.types';
 
 class CategoryService {
@@ -21,14 +22,15 @@ class CategoryService {
   constructor() {
     // Use centralized config for API URL
     this.baseUrl = config.beaconApiUrl;
-    this.apiPrefix = config.apiPrefix || '/api/v1';
+    this.apiPrefix = config.beaconApiPrefix || (config.isLocalhost ? '/api/v1' : '/api/v1/beacon');
   }
 
   /**
    * Get the appropriate endpoint based on environment
    */
   private getEndpoint(path: string): string {
-    return config.isLocalhost ? path : `${this.apiPrefix}/beacon${path}`;
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    return `${this.apiPrefix}${cleanPath}`;
   }
 
   /**
@@ -38,7 +40,7 @@ class CategoryService {
     if (config.isLocalhost) {
       return {};
     }
-    
+
     const token = authService.getToken();
     if (token) {
       return { 'Authorization': token };
@@ -62,14 +64,17 @@ class CategoryService {
   /**
    * Get all categories
    */
-  async getAllCategories(params?: CategoryListParams): Promise<Category[]> {
+  async getAllCategories(params?: CategoryListParams): Promise<CategoryListResponse> {
+    if (isMockMode()) return getMockCategories() as any
+
     try {
       const queryParams = new URLSearchParams();
-      if (params?.skip !== undefined) queryParams.append('skip', params.skip.toString());
-      if (params?.limit !== undefined) queryParams.append('limit', params.limit.toString());
+      if (params?.page !== undefined) queryParams.append('page', params.page.toString());
+      if (params?.page_size !== undefined) queryParams.append('page_size', params.page_size.toString());
+      if (params?.name) queryParams.append('name', params.name);
 
-      const endpoint = this.getEndpoint('/categories');
-      const url = queryParams.toString() 
+      const endpoint = this.getEndpoint('/categories/');
+      const url = queryParams.toString()
         ? `${this.baseUrl}${endpoint}?${queryParams.toString()}`
         : `${this.baseUrl}${endpoint}`;
 
@@ -82,28 +87,17 @@ class CategoryService {
   }
 
   /**
-   * Get a specific category by name with devices
+   * Get a specific category by name
    */
-  async getCategoryByName(
-    categoryName: string, 
-    params?: {
-      skip?: number;
-      limit?: number;
-      network?: string;
-      search?: string;
+  async getCategoryByName(categoryName: string): Promise<Category> {
+    if (isMockMode()) {
+      const all = getMockCategories() as any
+      return all.categories.find((c: any) => c.name === categoryName) || all.categories[0]
     }
-  ): Promise<CategoryWithDevices> {
-    try {
-      const queryParams = new URLSearchParams();
-      if (params?.skip !== undefined) queryParams.append('skip', params.skip.toString());
-      if (params?.limit !== undefined) queryParams.append('limit', params.limit.toString());
-      if (params?.network) queryParams.append('network', params.network);
-      if (params?.search) queryParams.append('search', params.search);
 
+    try {
       const endpoint = this.getEndpoint(`/categories/${encodeURIComponent(categoryName)}`);
-      const url = queryParams.toString() 
-        ? `${this.baseUrl}${endpoint}?${queryParams.toString()}`
-        : `${this.baseUrl}${endpoint}`;
+      const url = `${this.baseUrl}${endpoint}`;
 
       const response = await axios.get(url, this.getAxiosConfig());
       return response.data;

@@ -1,10 +1,10 @@
 export const DEFAULT_SELECTED_POLLUTANTS = ['pm2_5'];
 
 export const DEVICE_CATEGORY_OPTIONS = [
-  { value: 'lowcost', label: 'Low Cost' },
+  { value: 'lowcost', label: 'Low Cost Sensor' },
   { value: 'mobile', label: 'Mobile' },
   { value: 'gas', label: 'Gas' },
-  { value: 'bam', label: 'BAM' },
+  { value: 'bam', label: 'Reference Monitor' },
 ] as const;
 
 export const DATA_TYPE_OPTIONS = [

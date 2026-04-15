@@ -82,7 +82,8 @@ export function useDevicesData({
 
   // Fetch data using the enhanced hook
   const { data, error, isLoading } = useActiveGroupCohortDevices(
-    enabled ? apiParams : undefined
+    apiParams,
+    enabled
   );
 
   // Normalize devices data

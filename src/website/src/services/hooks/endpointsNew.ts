@@ -1,5 +1,10 @@
-import useSWR from 'swr';
-import { SWRConfiguration } from 'swr';
+import {
+  keepPreviousData,
+  type QueryKey,
+  useQuery,
+  type UseQueryOptions,
+  type UseQueryResult,
+} from '@tanstack/react-query';
 
 import {
   africanCountriesService,
@@ -14,49 +19,49 @@ import {
   gridsService,
   highlightsService,
   impactNumbersService,
+  networkCoverageService,
   partnersService,
   predictService,
   pressService,
   publicationsService,
   teamService,
 } from '../apiService';
+import { apiQueryKeys } from '../queryKeys';
 
-// Generic hook for service methods that return data
-function useServiceData<T>(
-  serviceCall: (() => Promise<T>) | null,
-  key: string | null,
-  swrOptions?: SWRConfiguration,
-) {
-  const { data, error, isValidating, mutate } = useSWR<T>(key, serviceCall, {
-    revalidateOnFocus: false,
-    revalidateIfStale: false,
-    dedupingInterval: 5000, // 5 seconds
-    errorRetryCount: 3,
-    errorRetryInterval: 3000, // 3 seconds
-    shouldRetryOnError: true,
-    onErrorRetry: (error, key, config, revalidate, { retryCount }) => {
-      // Don't retry on 404
-      if (error?.statusCode === 404) return;
-      // Don't retry on timeout after 3 attempts
-      if (retryCount >= 3) return;
-      // Don't retry if aborted
-      if (error?.name === 'AbortError' || error?.message?.includes('aborted'))
-        return;
-      // Retry after delay
-      setTimeout(
-        () => revalidate({ retryCount }),
-        Math.min(1000 * 2 ** retryCount, 10000),
-      );
-    },
-    ...swrOptions,
+type ServiceQueryOptions<T> = Omit<
+  UseQueryOptions<T, Error, T, QueryKey>,
+  'queryKey' | 'queryFn'
+>;
+
+type ServiceQueryResult<T> = {
+  data: T | undefined;
+  error: Error | null;
+  isLoading: boolean;
+  isFetching: boolean;
+  isValidating: boolean;
+  isSuccess: boolean;
+  refetch: UseQueryResult<T, Error>['refetch'];
+};
+
+function useServiceQuery<T>(
+  queryKey: QueryKey,
+  queryFn: () => Promise<T>,
+  queryOptions?: ServiceQueryOptions<T>,
+): ServiceQueryResult<T> {
+  const query = useQuery<T, Error, T, QueryKey>({
+    queryKey,
+    queryFn,
+    ...queryOptions,
   });
 
   return {
-    data,
-    error: error as any,
-    isLoading: !error && !data,
-    isValidating,
-    mutate,
+    data: query.data,
+    error: query.error ?? null,
+    isLoading: query.isLoading,
+    isFetching: query.isFetching,
+    isValidating: query.isFetching,
+    isSuccess: query.isSuccess,
+    refetch: query.refetch,
   };
 }
 
@@ -65,16 +70,22 @@ export const usePressArticles = (params?: {
   page?: number;
   page_size?: number;
 }) =>
-  useServiceData(
+  useServiceQuery(
+    apiQueryKeys.pressArticles(params),
     () => pressService.getPressArticles({}, params || {}),
-    `pressArticles-${JSON.stringify(params || {})}`,
+    {
+      staleTime: 15 * 60 * 1000,
+    },
   );
 
 // Impact Numbers
 export const useImpactNumbers = () =>
-  useServiceData(
+  useServiceQuery(
+    apiQueryKeys.impactNumbers(),
     () => impactNumbersService.getImpactNumbers(),
-    'impactNumbers',
+    {
+      staleTime: 60 * 60 * 1000,
+    },
   );
 
 // Events
@@ -83,61 +94,85 @@ export const useAirQoEvents = (params?: {
   page_size?: number;
   event_status?: string;
 }) =>
-  useServiceData(
+  useServiceQuery(
+    apiQueryKeys.airQoEvents(params),
     () => eventsService.getAirQoEvents({}, params || {}),
-    `airQoEvents-${JSON.stringify(params || {})}`,
+    {
+      staleTime: 10 * 60 * 1000,
+    },
   );
 
 export const useCleanAirEvents = (params?: {
   page?: number;
   page_size?: number;
 }) =>
-  useServiceData(
+  useServiceQuery(
+    apiQueryKeys.cleanAirEvents(params),
     () => eventsService.getCleanAirEvents({}, params || {}),
-    `cleanAirEvents-${JSON.stringify(params || {})}`,
+    {
+      staleTime: 10 * 60 * 1000,
+    },
   );
 
 export const useUpcomingEvents = (params?: {
   page?: number;
   page_size?: number;
 }) =>
-  useServiceData(
+  useServiceQuery(
+    apiQueryKeys.upcomingEvents(params),
     () => eventsService.getUpcomingEvents({}, params || {}),
-    `upcomingEvents-${JSON.stringify(params || {})}`,
+    {
+      staleTime: 10 * 60 * 1000,
+    },
   );
 
 export const usePastEvents = (params?: { page?: number; page_size?: number }) =>
-  useServiceData(
+  useServiceQuery(
+    apiQueryKeys.pastEvents(params),
     () => eventsService.getPastEvents({}, params || {}),
-    `pastEvents-${JSON.stringify(params || {})}`,
+    {
+      staleTime: 10 * 60 * 1000,
+    },
   );
 
 export const useEventDetails = (id: string | null) =>
-  useServiceData(
-    id ? () => eventsService.getEventDetails(id) : null,
-    id ? `eventDetails/${id}` : null,
+  useServiceQuery(
+    apiQueryKeys.eventDetails(id),
+    () => eventsService.getEventDetails(id as string),
+    {
+      enabled: !!id,
+      staleTime: 30 * 60 * 1000,
+    },
   );
 
 // Highlights
 export const useHighlights = (params?: { page?: number; page_size?: number }) =>
-  useServiceData(
+  useServiceQuery(
+    apiQueryKeys.highlights(params),
     () => highlightsService.getHighlights({}, params || {}),
-    `highlights-${JSON.stringify(params || {})}`,
+    {
+      staleTime: 15 * 60 * 1000,
+    },
   );
 
 // Careers
 export const useCareers = (params?: { page?: number; page_size?: number }) =>
-  useServiceData(
+  useServiceQuery(
+    apiQueryKeys.careers(params),
     () => careersService.getCareers({}, params || {}),
-    `careers-${JSON.stringify(params || {})}`,
+    {
+      staleTime: 15 * 60 * 1000,
+    },
   );
 
 export const useCareerDetail = (publicIdentifier: string | null) =>
-  useServiceData(
-    publicIdentifier
-      ? () => careersService.getCareerDetails(publicIdentifier)
-      : null,
-    publicIdentifier ? `careerDetails/${publicIdentifier}` : null,
+  useServiceQuery(
+    apiQueryKeys.careerDetail(publicIdentifier),
+    () => careersService.getCareerDetails(publicIdentifier as string),
+    {
+      enabled: !!publicIdentifier,
+      staleTime: 30 * 60 * 1000,
+    },
   );
 
 // Departments
@@ -145,9 +180,12 @@ export const useDepartments = (params?: {
   page?: number;
   page_size?: number;
 }) =>
-  useServiceData(
+  useServiceQuery(
+    apiQueryKeys.departments(params),
     () => departmentsService.getDepartments({}, params || {}),
-    `departments-${JSON.stringify(params || {})}`,
+    {
+      staleTime: 30 * 60 * 1000,
+    },
   );
 
 // Publications
@@ -156,14 +194,18 @@ export const usePublications = (params?: {
   page_size?: number;
   category?: string | string[];
 }) => {
-  const queryParams = params || {};
-  if (Array.isArray(queryParams.category)) {
-    queryParams.category = queryParams.category.join(',');
-  }
+  const queryParams = params
+    ? Array.isArray(params.category)
+      ? { ...params, category: params.category.join(',') }
+      : params
+    : {};
 
-  return useServiceData(
+  return useServiceQuery(
+    apiQueryKeys.publications(params),
     () => publicationsService.getPublications({}, queryParams),
-    `publications-${JSON.stringify(queryParams)}`,
+    {
+      staleTime: 30 * 60 * 1000,
+    },
   );
 };
 
@@ -172,9 +214,12 @@ export const useBoardMembers = (params?: {
   page?: number;
   page_size?: number;
 }) =>
-  useServiceData(
+  useServiceQuery(
+    apiQueryKeys.boardMembers(params),
     () => boardMembersService.getBoardMembers({}, params || {}),
-    `boardMembers-${JSON.stringify(params || {})}`,
+    {
+      staleTime: 60 * 60 * 1000,
+    },
   );
 
 // Team Members
@@ -182,30 +227,44 @@ export const useTeamMembers = (params?: {
   page?: number;
   page_size?: number;
 }) =>
-  useServiceData(
+  useServiceQuery(
+    apiQueryKeys.teamMembers(params),
     () => teamService.getTeamMembers({}, params || {}),
-    `teamMembers-${JSON.stringify(params || {})}`,
+    {
+      staleTime: 60 * 60 * 1000,
+    },
   );
 
 export const useExternalTeamMembers = (params?: {
   page?: number;
   page_size?: number;
 }) =>
-  useServiceData(
+  useServiceQuery(
+    apiQueryKeys.externalTeamMembers(params),
     () => teamService.getExternalTeamMembers({}, params || {}),
-    `externalTeamMembers-${JSON.stringify(params || {})}`,
+    {
+      staleTime: 60 * 60 * 1000,
+    },
   );
 
 export const useTeamBiography = (memberId: string | number | null) =>
-  useServiceData(
-    memberId ? () => teamService.getTeamBiography(memberId) : null,
-    memberId ? `teamBiography/${memberId}` : null,
+  useServiceQuery(
+    apiQueryKeys.teamBiography(memberId),
+    () => teamService.getTeamBiography(memberId as string | number),
+    {
+      enabled: !!memberId,
+      staleTime: 60 * 60 * 1000,
+    },
   );
 
 export const useExternalTeamBiography = (memberId: string | number | null) =>
-  useServiceData(
-    memberId ? () => teamService.getExternalTeamBiography(memberId) : null,
-    memberId ? `externalTeamBiography/${memberId}` : null,
+  useServiceQuery(
+    apiQueryKeys.externalTeamBiography(memberId),
+    () => teamService.getExternalTeamBiography(memberId as string | number),
+    {
+      enabled: !!memberId,
+      staleTime: 60 * 60 * 1000,
+    },
   );
 
 // Partners
@@ -214,17 +273,22 @@ export const usePartners = (params?: {
   page_size?: number;
   featured?: boolean;
 }) =>
-  useServiceData(
+  useServiceQuery(
+    apiQueryKeys.partners(params),
     () => partnersService.getPartners({}, params || {}),
-    `partners-${JSON.stringify(params || {})}`,
+    {
+      staleTime: 60 * 60 * 1000,
+    },
   );
 
 export const usePartnerDetails = (publicIdentifier: string | null) =>
-  useServiceData(
-    publicIdentifier
-      ? () => partnersService.getPartnerDetails(publicIdentifier)
-      : null,
-    publicIdentifier ? `partnerDetails/${publicIdentifier}` : null,
+  useServiceQuery(
+    apiQueryKeys.partnerDetails(publicIdentifier),
+    () => partnersService.getPartnerDetails(publicIdentifier as string),
+    {
+      enabled: !!publicIdentifier,
+      staleTime: 60 * 60 * 1000,
+    },
   );
 
 // Forum Events
@@ -232,22 +296,22 @@ export const useForumEvents = (params?: {
   page?: number;
   page_size?: number;
 }) =>
-  useServiceData(
+  useServiceQuery(
+    apiQueryKeys.forumEvents(params),
     () => forumEventsService.getForumEvents({}, params || {}),
-    `forumEvents-${JSON.stringify(params || {})}`,
+    {
+      staleTime: 30 * 60 * 1000,
+    },
   );
 
 export const useForumEventDetails = (uniqueTitle: string | null) =>
-  useServiceData(
-    uniqueTitle
-      ? () => forumEventsService.getForumEventDetails(uniqueTitle)
-      : null,
-    uniqueTitle ? `forumEventDetails/${uniqueTitle}` : null,
+  useServiceQuery(
+    apiQueryKeys.forumEventDetails(uniqueTitle),
+    () => forumEventsService.getForumEventDetails(uniqueTitle as string),
     {
-      keepPreviousData: true,
-      revalidateOnFocus: false,
-      revalidateIfStale: false,
-      dedupingInterval: 3600000, // 1 hour
+      enabled: !!uniqueTitle,
+      staleTime: 60 * 60 * 1000,
+      placeholderData: keepPreviousData,
     },
   );
 
@@ -255,9 +319,12 @@ export const useForumEventTitles = (params?: {
   page?: number;
   page_size?: number;
 }) =>
-  useServiceData(
+  useServiceQuery(
+    apiQueryKeys.forumEventTitles(params),
     () => forumEventsService.getForumEventTitles({}, params || {}),
-    `forumEventTitles-${JSON.stringify(params || {})}`,
+    {
+      staleTime: 30 * 60 * 1000,
+    },
   );
 
 // Clean Air Resources
@@ -265,31 +332,42 @@ export const useCleanAirResources = (params?: {
   page?: number;
   page_size?: number;
 }) =>
-  useServiceData(
+  useServiceQuery(
+    apiQueryKeys.cleanAirResources(params),
     () => cleanAirResourcesService.getCleanAirResources({}, params || {}),
-    `cleanAirResources-${JSON.stringify(params || {})}`,
+    {
+      staleTime: 60 * 60 * 1000,
+    },
   );
 
 // African Countries
 export const useAfricanCountries = () =>
-  useServiceData(
+  useServiceQuery(
+    apiQueryKeys.africanCountries(),
     () => africanCountriesService.getAfricanCountries(),
-    'africanCountries',
+    {
+      staleTime: 24 * 60 * 60 * 1000,
+    },
   );
 
 export const useAfricanCountryDetail = (countryId: number | null) =>
-  useServiceData(
-    countryId
-      ? () => africanCountriesService.getAfricanCountryDetails(countryId)
-      : null,
-    countryId ? `africanCountryDetail/${countryId}` : null,
+  useServiceQuery(
+    apiQueryKeys.africanCountryDetail(countryId),
+    () => africanCountriesService.getAfricanCountryDetails(countryId as number),
+    {
+      enabled: !!countryId,
+      staleTime: 24 * 60 * 60 * 1000,
+    },
   );
 
 // FAQs
 export const useFAQs = (params?: { page?: number; page_size?: number }) =>
-  useServiceData(
+  useServiceQuery(
+    apiQueryKeys.faqs(params),
     () => faqService.getFAQs({}, params || {}),
-    `faqs-${JSON.stringify(params || {})}`,
+    {
+      staleTime: 60 * 60 * 1000,
+    },
   );
 
 // External Services (for user interactions)
@@ -304,14 +382,15 @@ export const useGridsSummaryExternal = (
     search?: string;
     admin_level?: string;
   },
-  swrOptions?: SWRConfiguration,
+  queryOptions?: ServiceQueryOptions<any>,
 ) =>
-  useServiceData(
+  useServiceQuery(
+    apiQueryKeys.gridsSummaryExternal(params),
     () => externalService.getGridsSummary(params || {}),
-    params
-      ? `gridsSummaryExternal-${JSON.stringify(params)}`
-      : 'gridsSummaryExternal',
-    swrOptions,
+    {
+      staleTime: 5 * 60 * 1000,
+      ...queryOptions,
+    },
   );
 
 // New enhanced grids summary hook with v2 endpoint
@@ -323,16 +402,25 @@ export const useGridsSummaryV2 = (
     search?: string;
     admin_level?: string;
   },
-  swrOptions?: SWRConfiguration,
+  queryOptions?: ServiceQueryOptions<any>,
 ) =>
-  useServiceData(
+  useServiceQuery(
+    apiQueryKeys.gridsSummaryV2(params),
     () => externalService.getGridsSummaryV2(params || {}),
-    params ? `gridsSummaryV2-${JSON.stringify(params)}` : 'gridsSummaryV2',
-    swrOptions,
+    {
+      staleTime: 5 * 60 * 1000,
+      ...queryOptions,
+    },
   );
 
 export const useCountriesData = () =>
-  useServiceData(() => externalService.getCountriesData(), 'countriesData');
+  useServiceQuery(
+    apiQueryKeys.countriesData(),
+    () => externalService.getCountriesData(),
+    {
+      staleTime: 24 * 60 * 60 * 1000,
+    },
+  );
 
 // Grids - New endpoints for grid data
 export const useGridsSummary = (
@@ -343,50 +431,96 @@ export const useGridsSummary = (
     admin_level?: string;
     search?: string;
   },
-  swrOptions?: SWRConfiguration,
+  queryOptions?: ServiceQueryOptions<any>,
 ) =>
-  useServiceData(
-    params
-      ? () => gridsService.getGridsSummary(params, { timeout: 15000 })
-      : null,
-    params ? `gridsSummary-${JSON.stringify(params)}` : null,
+  useServiceQuery(
+    apiQueryKeys.gridsSummary(params),
+    () => gridsService.getGridsSummary(params || {}, { timeout: 15000 }),
     {
-      revalidateOnFocus: false,
-      revalidateIfStale: true,
-      revalidateOnMount: true,
-      dedupingInterval: 300000, // 5 minutes
-      focusThrottleInterval: 10000, // 10 seconds
-      errorRetryInterval: 3000, // 3 seconds
-      errorRetryCount: 3,
-      loadingTimeout: 15000, // 15 second timeout for loading
-      onLoadingSlow: (key) => {
-        console.warn('[GridsSummary] Loading slow for:', key);
-      },
-      ...swrOptions,
+      enabled: !!params,
+      staleTime: 5 * 60 * 1000,
+      ...queryOptions,
+    },
+  );
+
+export const useNetworkCoverageSummary = (
+  params?: {
+    tenant?: string;
+    search?: string;
+    activeOnly?: boolean;
+    types?: string;
+  },
+  queryOptions?: ServiceQueryOptions<any>,
+) =>
+  useServiceQuery(
+    apiQueryKeys.networkCoverageSummary(params),
+    () => networkCoverageService.getNetworkCoverageSummary(params || {}),
+    {
+      staleTime: 15 * 60 * 1000,
+      placeholderData: keepPreviousData,
+      ...queryOptions,
+    },
+  );
+
+export const useNetworkCoverageCountryMonitors = (
+  countryId: string | null,
+  params?: {
+    tenant?: string;
+    activeOnly?: boolean;
+    types?: string;
+  },
+  queryOptions?: ServiceQueryOptions<any>,
+) =>
+  useServiceQuery(
+    apiQueryKeys.networkCoverageCountryMonitors(countryId, params),
+    () =>
+      networkCoverageService.getNetworkCoverageCountryMonitors(
+        countryId as string,
+        params || {},
+      ),
+    {
+      enabled: !!countryId,
+      staleTime: 15 * 60 * 1000,
+      ...queryOptions,
+    },
+  );
+
+export const useNetworkCoverageMonitor = (
+  monitorId: string | null,
+  params?: {
+    tenant?: string;
+  },
+  queryOptions?: ServiceQueryOptions<any>,
+) =>
+  useServiceQuery(
+    apiQueryKeys.networkCoverageMonitor(monitorId, params),
+    () =>
+      networkCoverageService.getNetworkCoverageMonitor(
+        monitorId as string,
+        params || {},
+      ),
+    {
+      enabled: !!monitorId,
+      staleTime: 30 * 60 * 1000,
+      ...queryOptions,
     },
   );
 
 export const useGridRepresentativeReading = (
   gridId: string | null,
-  swrOptions?: SWRConfiguration,
+  queryOptions?: ServiceQueryOptions<any>,
 ) =>
-  useServiceData(
-    gridId
-      ? () =>
-          gridsService.getGridRepresentativeReading(gridId, { timeout: 10000 })
-      : null,
-    gridId ? `gridRepresentativeReading-${gridId}` : null,
+  useServiceQuery(
+    apiQueryKeys.gridRepresentativeReading(gridId),
+    () =>
+      gridsService.getGridRepresentativeReading(gridId as string, {
+        timeout: 10000,
+      }),
     {
-      revalidateOnFocus: false,
-      revalidateIfStale: true,
-      refreshInterval: 300000, // 5 minutes auto-refresh
-      errorRetryInterval: 3000, // 3 seconds
-      errorRetryCount: 3,
-      loadingTimeout: 10000, // 10 second timeout for loading
-      onLoadingSlow: (key) => {
-        console.warn('[GridRepresentativeReading] Loading slow for:', key);
-      },
-      ...swrOptions,
+      enabled: !!gridId,
+      staleTime: 5 * 60 * 1000,
+      refetchInterval: 5 * 60 * 1000,
+      ...queryOptions,
     },
   );
 
@@ -401,54 +535,34 @@ export const useGridMeasurements = (
     endTime?: string;
     frequency?: string;
   },
-  swrOptions?: SWRConfiguration,
+  queryOptions?: ServiceQueryOptions<any>,
 ) =>
-  useServiceData(
-    gridId
-      ? () =>
-          gridsService.getGridMeasurements(gridId, params || {}, {
-            timeout: 15000,
-          })
-      : null,
-    gridId
-      ? `gridMeasurements-${gridId}-${JSON.stringify(params || {})}`
-      : null,
+  useServiceQuery(
+    apiQueryKeys.gridMeasurements(gridId, params),
+    () =>
+      gridsService.getGridMeasurements(gridId as string, params || {}, {
+        timeout: 15000,
+      }),
     {
-      revalidateOnFocus: false,
-      revalidateIfStale: true,
-      revalidateOnMount: true,
-      refreshInterval: 300000, // 5 minutes auto-refresh
-      focusThrottleInterval: 10000, // 10 seconds
-      errorRetryInterval: 3000, // 3 seconds
-      errorRetryCount: 3,
-      loadingTimeout: 15000, // 15 second timeout for loading
-      onLoadingSlow: (key) => {
-        console.warn('[GridMeasurements] Loading slow for:', key);
-      },
-      ...swrOptions,
+      enabled: !!gridId,
+      staleTime: 5 * 60 * 1000,
+      refetchInterval: 5 * 60 * 1000,
+      ...queryOptions,
     },
   );
 
 // Predict
 export const useDailyForecast = (
   siteId: string | null,
-  swrOptions?: SWRConfiguration,
+  queryOptions?: ServiceQueryOptions<any>,
 ) =>
-  useServiceData(
-    siteId
-      ? () => predictService.getDailyForecast(siteId, { timeout: 10000 })
-      : null,
-    siteId ? `dailyForecast-${siteId}` : null,
+  useServiceQuery(
+    apiQueryKeys.dailyForecast(siteId),
+    () => predictService.getDailyForecast(siteId as string, { timeout: 10000 }),
     {
-      revalidateOnFocus: false,
-      revalidateIfStale: true,
-      refreshInterval: 3600000, // 1 hour auto-refresh for forecasts
-      errorRetryInterval: 3000, // 3 seconds
-      errorRetryCount: 3,
-      loadingTimeout: 10000, // 10 second timeout for loading
-      onLoadingSlow: (key) => {
-        console.warn('[DailyForecast] Loading slow for:', key);
-      },
-      ...swrOptions,
+      enabled: !!siteId,
+      staleTime: 60 * 60 * 1000,
+      refetchInterval: 60 * 60 * 1000,
+      ...queryOptions,
     },
   );

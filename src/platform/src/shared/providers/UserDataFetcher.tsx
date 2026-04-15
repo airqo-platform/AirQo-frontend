@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useDispatch } from 'react-redux';
 import { useSelector } from 'react-redux';
+import { useActiveGroupCohorts } from '@/shared/hooks';
 import { useUserDetails } from '@/shared/hooks/useAuth';
 import {
   setUser,
@@ -33,6 +34,7 @@ export function UserDataFetcher({ children }: { children: React.ReactNode }) {
   const user = useSelector(selectUser);
   const logout = useLogout();
   const isLoggingOut = useSelector(selectLoggingOut);
+  useActiveGroupCohorts();
 
   // Memoize userId to prevent unnecessary re-calculations
   const userId = useMemo(() => {

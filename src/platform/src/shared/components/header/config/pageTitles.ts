@@ -5,11 +5,11 @@ export const PAGE_TITLES: Record<string, string> = {
   '/user/map': 'Map',
   '/user/profile': 'Profile',
   '/user/favorites': 'Favorites',
-  '/user/data-export': 'Data Export',
+  '/user/data-export': 'Visualization & Data Export',
 
   // Organization routes (dynamic with slug)
   '/org/dashboard': 'Dashboard',
-  '/org/data-export': 'Data Export',
+  '/org/data-export': 'Visualization & Data Export',
   '/org/favorites': 'Favorites',
   '/org/members': 'Members',
   '/org/profile': 'Profile',
@@ -69,6 +69,10 @@ export const getPageTitle = (pathname: string): string => {
 
   // Handle system routes
   if (pathname.startsWith('/system/')) {
+    if (pathname.startsWith('/system/user-statistics/')) {
+      return 'User Details';
+    }
+
     const parts = pathname.split('/');
     if (parts.length >= 3) {
       const route = `/system/${parts[2]}`;

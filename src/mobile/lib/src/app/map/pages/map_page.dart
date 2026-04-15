@@ -1,5 +1,6 @@
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+import 'package:airqo/src/app/dashboard/pages/location_selection/utils/location_helpers.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_card.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_details.dart';
 import 'package:airqo/src/app/dashboard/widgets/google_places_loader.dart';
@@ -8,6 +9,7 @@ import 'package:airqo/src/app/map/bloc/map_bloc.dart';
 import 'package:airqo/src/app/other/places/bloc/google_places_bloc.dart';
 import 'package:airqo/src/app/other/places/models/auto_complete_response.dart';
 import 'package:airqo/src/app/shared/widgets/analytics_card_loader.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/app/shared/widgets/country_button';
 import 'package:airqo/src/app/shared/widgets/loading_widget.dart';
 import 'package:airqo/src/app/shared/widgets/modal_wrapper.dart';
@@ -23,6 +25,7 @@ import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:loggy/loggy.dart';
+import 'package:airqo/src/app/shared/widgets/translated_tooltip.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -192,35 +195,6 @@ class _MapScreenState extends State<MapScreen>
     }
   }
 
-  List<Measurement> searchAirQualityLocations(
-      String query, List<Measurement> measurements) {
-    query = query.toLowerCase();
-    return measurements.where((measurement) {
-      if (measurement.siteDetails != null) {
-        return (measurement.siteDetails!.city?.toLowerCase().contains(query) ??
-                false) ||
-            (measurement.siteDetails!.locationName
-                    ?.toLowerCase()
-                    .contains(query) ??
-                false) ||
-            (measurement.siteDetails!.name?.toLowerCase().contains(query) ??
-                false) ||
-            (measurement.siteDetails!.searchName
-                    ?.toLowerCase()
-                    .contains(query) ??
-                false) ||
-            (measurement.siteDetails!.formattedName
-                    ?.toLowerCase()
-                    .contains(query) ??
-                false) ||
-            (measurement.siteDetails!.town?.toLowerCase().contains(query) ??
-                false) ||
-            (measurement.siteDetails!.district?.toLowerCase().contains(query) ??
-                false);
-      }
-      return false;
-    }).toList();
-  }
 
   void filterByCountry(String country, List<Measurement> measurements) {
     if (mounted) {
@@ -605,7 +579,7 @@ class _MapScreenState extends State<MapScreen>
         children: [
           CircularProgressIndicator(color: AppColors.primaryColor),
           SizedBox(height: 16),
-          Text(
+          TranslatedText(
             "Loading map data...",
             style: TextStyle(
               fontSize: 16,
@@ -628,7 +602,7 @@ class _MapScreenState extends State<MapScreen>
             color: Colors.grey,
           ),
           SizedBox(height: 16),
-          Text(
+          TranslatedText(
             "Unable to load map data",
             style: TextStyle(
               fontSize: 18,
@@ -637,7 +611,7 @@ class _MapScreenState extends State<MapScreen>
             ),
           ),
           SizedBox(height: 8),
-          Text(
+          TranslatedText(
             "Please check your connection and try again",
             style: TextStyle(
               fontSize: 16,
@@ -648,7 +622,7 @@ class _MapScreenState extends State<MapScreen>
           ElevatedButton.icon(
             onPressed: _retryLoading,
             icon: Icon(Icons.refresh),
-            label: Text('Try Again'),
+            label: TranslatedText('Try Again'),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryColor,
               foregroundColor: Colors.white,
@@ -714,7 +688,7 @@ class _MapScreenState extends State<MapScreen>
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               mainAxisSize: MainAxisSize.min,
                               children: airQualityData.map((e) {
-                                return Tooltip(
+                                return TranslatedTooltip(
                                   preferBelow: false,
                                   textStyle: TextStyle(color: Colors.white),
                                   decoration: BoxDecoration(
@@ -894,7 +868,7 @@ class _MapScreenState extends State<MapScreen>
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Text("Today",
+                            TranslatedText("Today",
                                 style: TextStyle(
                                     fontWeight: FontWeight.w600,
                                     fontSize: 20,
@@ -975,7 +949,7 @@ class _MapScreenState extends State<MapScreen>
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Text("Today",
+                            TranslatedText("Today",
                                 style: TextStyle(
                                     fontWeight: FontWeight.w600,
                                     fontSize: 20,
@@ -1045,7 +1019,7 @@ class _MapScreenState extends State<MapScreen>
               if (isModalFull) SizedBox(height: 16),
               Row(
                 children: [
-                  Text("AirQo map",
+                  TranslatedText("AirQo map",
                       style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.w700,
@@ -1077,7 +1051,7 @@ class _MapScreenState extends State<MapScreen>
                         if (mounted) {
                           setState(() {
                             localSearchResults =
-                                searchAirQualityLocations(value, allMeasurements);
+                                LocationHelper.searchAirQualityLocations(value, allMeasurements);
                           });
                         }
                       }
@@ -1234,7 +1208,7 @@ class _MapScreenState extends State<MapScreen>
                                                 ? AppColors.primaryColor
                                                 : AppColors.highlightColor),
                                         child: Center(
-                                          child: Text(
+                                          child: TranslatedText(
                                             "All",
                                             style: TextStyle(
                                                 color: currentFilter == "All"
@@ -1274,7 +1248,7 @@ class _MapScreenState extends State<MapScreen>
                           ),
                         ),
                         SizedBox(height: 8),
-                        Text(
+                        TranslatedText(
                           "Suggestions",
                           style: TextStyle(
                               fontSize: 15,
@@ -1295,7 +1269,7 @@ class _MapScreenState extends State<MapScreen>
 
                               if (measurements.isEmpty) {
                                 return Center(
-                                  child: Text("No locations available"),
+                                  child: TranslatedText("No locations available"),
                                 );
                               }
 

@@ -3,6 +3,203 @@
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
 ---
+ 
+## Version 1.23.26
+**Released:** April 09, 2026
+
+### Login Copy Refresh, Windows-Only Downloads, and Info Banner Component
+
+Refined the login messaging, limited desktop downloads to Windows, and introduced a reusable Info Banner to standardize contextual messaging.
+
+<details>
+<summary><strong>Login Experience (3)</strong></summary>
+
+- **Updated Hero Copy**: Refreshed the login title and subtitle messaging to emphasize device deployment and data sharing.
+- **Two-Line Title Layout**: Split the login title across two lines for clearer visual hierarchy.
+- **Windows-Only Download**: Limited the login download button to Windows devices only.
+
+</details>
+
+<details>
+<summary><strong>Navigation & Sidebar (3)</strong></summary>
+
+- **Sidebar Download Restriction**: Secondary sidebar download button now appears only on Windows.
+- **macOS Logic Removal**: Removed macOS detection/architecture logic tied to download visibility.
+- **Centralized Download Link**: Desktop download URL now comes from a shared constant to keep sidebar and login in sync.
+
+</details>
+
+<details>
+<summary><strong>UI Components (3)</strong></summary>
+
+- **Info Banner Component**: Added a reusable banner component (matching Platform) to Vertex UI.
+- **Context Header Upgrade**: Updated the home context header to use the new Info Banner.
+- **Severity-Aware Live Regions**: Non-error banners now announce politely to reduce screen reader noise.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (6)</strong></summary>
+
+- `app/login/page.tsx`
+- `components/layout/secondary-sidebar.tsx`
+- `components/ui/banner.tsx`
+- `components/features/home/context-header.tsx`
+- `core/constants/app-downloads.ts`
+- `app/changelog.md`
+
+</details>
+
+---
+
+## Version 1.23.25
+**Released:** April 09, 2026
+
+### Desktop Title Bar Branding & Visual Alignment
+
+Improved the desktop title bar to better match the main app styling and official branding.
+
+<details>
+<summary><strong>Desktop UI Enhancements (4)</strong></summary>
+
+- **AirQo Logo in Title Bar**: Title bar now renders the packaged AirQo icon (with web fallback) instead of a placeholder mark.
+- **Background Match**: Title bar background now follows the app background color token for light/dark consistency.
+- **Cleaner Edge**: Removed the bottom border from the desktop title bar for a seamless blend into the app canvas.
+- **Native Window Controls Alignment**: Title bar reserves space for native window controls while keeping app controls interactive.
+
+</details>
+
+<details>
+<summary><strong>Desktop Shell Integration (2)</strong></summary>
+
+- **Root Layout Injection**: Desktop title bar now mounts from the root client layout to persist across page transitions.
+- **Stable Header Hook**: Added `data-vertex-topbar` to the login header for desktop layout alignment.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (4)</strong></summary>
+
+- `app/client-layout.tsx`
+- `app/login/page.tsx`
+- `components/layout/desktop-titlebar.tsx`
+- `types/vertex-desktop.d.ts`
+
+</details>
+
+---
+
+ ## Version 1.23.24
+ **Released:** April 07, 2026
+ 
+ ### Login Page Revamp & Context Header Redesign
+ 
+ Redesigned the login experience for better branding and added a personalized, permanent context header to the dashboard to improve user orientation.
+ 
+ <details>
+ <summary><strong>Login Experience (5)</strong></summary>
+ 
+ - **Sticky Topbar**: Introduced a compact, sticky `h-12` topbar to keep branding consistently visible while scrolling.
+ - **Platform-Aware Download Link**: Moved the desktop app download link to the topbar; it now automatically detects the user's OS and provides the appropriate `.exe` or `.dmg`.
+ - **Dynamic Brand Icons**: Added high-fidelity OS-specific icons (Apple logo for Mac, Windows squares for Win) to the download button for immediate visual feedback.
+ - **Adaptive Labels**: The button label now explicitly reflects the user's platform (e.g., "Download for macOS" vs "Download for Windows").
+ - **Mobile-Safe Interface**: The desktop download button is intelligently hidden on mobile browsers to reduce clutter on non-desktop platforms. 
+ 
+ </details>
+ 
+ <details>
+ <summary><strong>Dashboard UX (6)</strong></summary>
+ 
+ - **Personalized Greeting**: Introduced a "Hi, {Name} 👋" greeting in the dashboard header using Redux-backed user details.
+ - **Permanent Context Header**: Redesigned the `ContextHeader` into a non-dismissible, light blue alert component that explicitly clarifies which organizational or personal workspace is active.
+ - **Robust Context Guarding**: Implemented strict property guarding for `activeGroup` to prevent "undefined workspace" during initial load or context switches.
+ - **Integrated Description**: Merged the workspace title and description into a unified information box with a clean `Info` icon and consistent blue styling.
+ - **Sidebar Download Access**: Added a "Download for {OS}" button to the secondary sidebar footer (expanded view) for quick access to the desktop version.
+ - **Adaptive Environment Check**: Implemented Electron and macOS architecture detection (ARM64 vs Intel) to hide the download button for Intel Mac and desktop app users.
+ 
+ </details>
+ 
+ <details>
+ <summary><strong>Home Empty State (2)</strong></summary>
+ 
+ - **Header Integration**: Added the `ContextHeader` to the `HomeEmptyState` component so users maintain context even when their device list is empty.
+ - **Layout Refinement**: Optimized the empty state vertical padding and ensured the header remains pinned to the top while the call-to-action remains centered.
+ 
+ </details>
+ 
+ <details>
+ <summary><strong>Files Modified (7)</strong></summary>
+ 
+ - `app/login/page.tsx`
+ - `components/features/home/context-header.tsx`
+ - `components/features/home/HomeEmptyState.tsx`
+ - `components/layout/secondary-sidebar.tsx`
+ - `core/utils/platform.ts`
+ - `app/globals.css`
+ - `app/changelog.md`
+ 
+ </details>
+ 
+ ---
+
+## Version 1.23.23
+**Released:** March 19, 2026
+
+### Cohort Naming Workflow, Tag-Driven Forms, and Auth Stability
+
+<details>
+<summary><strong>Improvements (6)</strong></summary>
+
+- **Cohort Name Composition**: Organizational cohorts now build names from `city_project_funder` with sanitized input and live preview.
+- **Tag-Driven Inputs**: Tag selection is now first, and only the `organizational` tag requires city/project/funder inputs.
+- **Edit Cohort Behavior**: Organizational cohorts use the new naming endpoint with update reason; non‑organizational cohorts update via the original name edit path.
+- **Input Guardrails**: Special characters (including spaces) are ignored as users type, with a lightweight tooltip.
+- **Responsive Layout**: Cohort naming inputs render 3-up on desktop, 2-up on tablet, and 1-up on mobile.
+- **Device Assignment Search**: Added device search to the assign‑devices modal with server-side filtering.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (4)</strong></summary>
+
+- **New Cohort Name Utilities**: Added shared helpers for building and parsing cohort names.
+- **New Rename Hook**: Added `useUpdateCohortName` and API binding to the cohort naming endpoint.
+- **Auth Cookie Isolation**: Switched dev session cookie name and aligned middleware token parsing.
+- **Env Template Update**: Added NextAuth environment variables to the vertex example env file.
+
+</details>
+
+## Version 1.23.22
+**Released:** February 25, 2026
+
+### Cohort Import Confirmation & Personal Assignment Flow
+
+Refined the "Import from Cohort" flow to add an explicit confirmation step and align personal imports with cohort assignment, plus fixed a React render loop in cohort details.
+
+<details>
+<summary><strong>Improvements (3)</strong></summary>
+
+- **Cohort Import Confirmation**: Added a dedicated confirmation step after verifying Cohort ID, displaying the cohort name before assignment.
+- **Personal Import Assignment**: Personal-scope imports now assign the cohort to the user (no claim-token entry), matching the intended assignment flow.
+- **Reliable User Cohort Refresh**: Assignment to user now invalidates the `userDetails` query and `myDevices` to refresh cohort-aware views.
+
+</details>
+
+<details>
+<summary><strong>Fixes (1)</strong></summary>
+
+- **Cohort Details Render Loop**: Removed a default array prop that caused a `Maximum update depth exceeded` error on the cohort details page.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (3)</strong></summary>
+
+- `components/features/cohorts/cohort-detail-card.tsx`
+- `components/features/claim/claim-device-modal.tsx`
+- `core/hooks/useCohorts.ts`
+
+</details>
 
 ## Version 1.23.21
 **Released:** February 20, 2026

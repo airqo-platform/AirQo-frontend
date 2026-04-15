@@ -1,12 +1,12 @@
 import 'package:airqo/src/app/auth/pages/login_page.dart';
 import 'package:airqo/src/app/dashboard/pages/location_selection/location_selection_screen.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
+import 'package:airqo/src/app/dashboard/services/location_service_mananger.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:async';
-import 'package:geolocator/geolocator.dart';
-import 'package:geocoding/geocoding.dart';
 
 import '../../auth/bloc/auth_bloc.dart';
 import '../../profile/bloc/user_bloc.dart';
@@ -66,49 +66,18 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
 
   Future<void> _getUserCountry() async {
     if (!mounted) return;
-    try {
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) return;
-
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) return;
-      }
-      if (permission == LocationPermission.deniedForever) return;
-
-      final position = await Geolocator.getCurrentPosition();
-
-      final placemarks =
-          await placemarkFromCoordinates(position.latitude, position.longitude);
-
-      if (placemarks.isEmpty) {
-        loggy.warning(
-            'No placemarks found for coordinates: ${position.latitude}, ${position.longitude}');
-        return;
-      }
-
-      if (placemarks.isNotEmpty) {
-        final country = placemarks.first.country;
-        if (country != null && country.isNotEmpty) {
-          setState(() {
-            userCountry = country;
-          });
-
-          final isCountrySupported = CountryRepository.countries
-              .any((c) => c.countryName.toLowerCase() == country.toLowerCase());
-
-          if (isCountrySupported) {
-            setState(() {
-              selectedCountry = country;
-            });
-          }
-
-          return;
+    final country = await LocationServiceManager().getUserCountry();
+    if (country != null && mounted) {
+      final match = CountryRepository.countries.where(
+        (c) => c.countryName.toLowerCase() == country.toLowerCase(),
+      ).firstOrNull;
+      final canonicalName = match?.countryName;
+      setState(() {
+        userCountry = canonicalName ?? country;
+        if (canonicalName != null && selectedCountry == null) {
+          selectedCountry = canonicalName;
         }
-      }
-    } catch (e) {
-      loggy.warning('Error getting user country: $e');
+      });
     }
   }
 
@@ -138,7 +107,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
-        title: Text(
+        title: TranslatedText(
           'Feature Requires Account',
           style: TextStyle(
             fontSize: 20,
@@ -148,7 +117,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
                 : AppColors.boldHeadlineColor5,
           ),
         ),
-        content: Text(
+        content: TranslatedText(
           'Create an account or sign in to access all features including personalized views.',
           style: TextStyle(
             fontSize: 16,
@@ -164,7 +133,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
               foregroundColor: isDarkMode ? Colors.grey[400] : Colors.grey[700],
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             ),
-            child: const Text(
+            child: const TranslatedText(
               'Cancel',
               style: TextStyle(
                 fontSize: 16,
@@ -185,7 +154,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
                 MaterialPageRoute(builder: (context) => LoginPage()),
               );
             },
-            child: const Text(
+            child: const TranslatedText(
               'Sign In',
               style: TextStyle(
                 fontSize: 16,
@@ -272,7 +241,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const LocationSelectionScreen(),
+                      builder: (context) => LocationSelectionScreen(),
                     ),
                   ).then((value) {
                     if (value != null) {
@@ -307,7 +276,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
                   color: Colors.grey,
                 ),
                 SizedBox(height: 16),
-                Text(
+                TranslatedText(
                   "Couldn't connect to the internet",
                   style: TextStyle(
                     fontSize: 18,
@@ -316,7 +285,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
                   ),
                 ),
                 SizedBox(height: 8),
-                Text(
+                TranslatedText(
                   "Please check your connection and try again",
                   style: TextStyle(
                     fontSize: 16,
@@ -331,7 +300,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
                         .add(LoadDashboard(forceRefresh: true));
                   },
                   icon: Icon(Icons.refresh),
-                  label: Text('Try Again'),
+                  label: TranslatedText('Try Again'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryColor,
                     foregroundColor: Colors.white,

@@ -199,7 +199,6 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
               (mapReading as MapReading)?.site_id ||
               (mapReading as AirQualityReading)?.siteId
             }
-            waqiForecastData={(mapReading as AirQualityReading)?.forecastData}
           />
 
           <CurrentAirQualityCard

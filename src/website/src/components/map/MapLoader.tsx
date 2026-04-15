@@ -10,9 +10,13 @@ declare global {
 
 interface MapLoaderProps {
   children: React.ReactNode;
+  loadingComponent?: React.ReactNode;
 }
 
-const MapLoader: React.FC<MapLoaderProps> = ({ children }) => {
+const MapLoader: React.FC<MapLoaderProps> = ({
+  children,
+  loadingComponent,
+}) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -100,6 +104,10 @@ const MapLoader: React.FC<MapLoaderProps> = ({ children }) => {
   }
 
   if (!isLoaded) {
+    if (loadingComponent) {
+      return <>{loadingComponent}</>;
+    }
+
     return (
       <div className="w-full h-[400px] bg-gray-100 rounded-lg animate-pulse">
         {/* Map-like skeleton */}

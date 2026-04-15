@@ -6,6 +6,7 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import { config } from '@/lib/config';
 import authService from './api-service';
+import { isMockMode, getMockFirmwareVersions } from '@/lib/mock-data';
 import {
   FirmwareVersion,
   FirmwareUploadData,
@@ -22,14 +23,15 @@ class FirmwareService {
   constructor() {
     // Use centralized config for API URL
     this.baseUrl = config.beaconApiUrl;
-    this.apiPrefix = config.apiPrefix || '/api/v1';
+    this.apiPrefix = config.beaconApiPrefix || (config.isLocalhost ? '/api/v1' : '/api/v1/beacon');
   }
 
   /**
    * Get the appropriate endpoint based on environment
    */
   private getEndpoint(path: string): string {
-    return config.isLocalhost ? path : `${this.apiPrefix}/beacon${path}`;
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    return `${this.apiPrefix}${cleanPath}`;
   }
 
   /**
@@ -64,6 +66,8 @@ class FirmwareService {
    * Get all firmware versions
    */
   async getAllFirmwares(params?: FirmwareListParams): Promise<FirmwareVersion[]> {
+    if (isMockMode()) return getMockFirmwareVersions() as any
+
     try {
       const queryParams = new URLSearchParams();
       if (params?.skip !== undefined) queryParams.append('skip', params.skip.toString());
@@ -86,6 +90,8 @@ class FirmwareService {
    * Get the latest firmware version
    */
   async getLatestFirmware(firmware_type?: FirmwareType): Promise<FirmwareVersion> {
+    if (isMockMode()) return getMockFirmwareVersions()[0] as any
+
     try {
       const queryParams = firmware_type ? `?firmware_type=${firmware_type}` : '';
       const endpoint = this.getEndpoint('/firmware/latest');
@@ -104,6 +110,11 @@ class FirmwareService {
    * Get specific firmware by ID
    */
   async getFirmwareById(firmwareId: string): Promise<FirmwareVersion> {
+    if (isMockMode()) {
+      const all = getMockFirmwareVersions() as any
+      return all.find((f: any) => f.id === firmwareId) || all[0]
+    }
+
     try {
       const endpoint = this.getEndpoint(`/firmware/${firmwareId}`);
       const response = await axios.get(

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ApiClient, createAuthenticatedClient } from './apiClient';
-import { getSession } from 'next-auth/react';
+import { syncClientSessionToken } from './sessionAuthToken';
 import type {
   GetUserChecklistResponse,
   UpdateUserChecklistRequest,
@@ -16,12 +16,7 @@ export class ChecklistService {
   }
 
   private async ensureAuthenticated() {
-    const session = await getSession();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const token = (session as any)?.accessToken;
-    if (token) {
-      this.authenticatedClient.setAuthToken(token);
-    }
+    await syncClientSessionToken(this.authenticatedClient);
   }
 
   // Get user checklist information - authenticated endpoint

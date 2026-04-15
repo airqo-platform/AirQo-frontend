@@ -1,86 +1,206 @@
 'use client';
 
-import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { FaFacebookF, FaLinkedinIn, FaYoutube } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 
 import LanguageModal from '@/components/dialogs/LanguageModal';
-import { getFlagUrl, Language, languages } from '@/utils/languages';
+import LanguageFlag from '@/components/LanguageFlag';
+import {
+  applyGoogleTranslateLanguage,
+  clearGoogleTranslateLanguageCookie,
+  getGoogleTranslateTargetLanguage,
+  getPersistedLanguageCode,
+  isGoogleTranslateScriptBlocked,
+  normalizeGoogleLanguageCode,
+  setGoogleTranslateLanguageCookie,
+  setPersistedLanguageCode,
+} from '@/utils/googleTranslate';
+import { Language, languages } from '@/utils/languages';
+
+const DEFAULT_LANGUAGE =
+  languages.find((lang) => lang.code === 'en-GB') || languages[0];
+const DEFAULT_GOOGLE_LANGUAGE = 'en';
+
+const resolveSelectedLanguage = (): Language => {
+  const activeLanguage = getGoogleTranslateTargetLanguage();
+  const persistedLanguage = getPersistedLanguageCode();
+
+  const activeResolved =
+    activeLanguage &&
+    normalizeGoogleLanguageCode(activeLanguage).trim().toLowerCase() !==
+      DEFAULT_GOOGLE_LANGUAGE
+      ? findLanguageByCode(activeLanguage)
+      : undefined;
+
+  const persistedResolved = persistedLanguage
+    ? findLanguageByCode(persistedLanguage)
+    : undefined;
+
+  return activeResolved || persistedResolved || DEFAULT_LANGUAGE;
+};
+
+const handleFailedLanguageApply = (
+  languageCode: string,
+  shouldReload: boolean,
+): { blockedByScript: boolean } => {
+  const scriptBlocked = isGoogleTranslateScriptBlocked();
+  if (scriptBlocked) {
+    console.warn(
+      'Google Translate is blocked by browser settings or an extension.',
+    );
+  }
+
+  // Background retries must not leave stale translation cookies active.
+  if (!shouldReload) {
+    clearGoogleTranslateLanguageCookie();
+    return { blockedByScript: scriptBlocked };
+  }
+
+  if (scriptBlocked) {
+    clearGoogleTranslateLanguageCookie();
+    return { blockedByScript: true };
+  }
+
+  setGoogleTranslateLanguageCookie(languageCode);
+  window.location.reload();
+  return { blockedByScript: false };
+};
+
+const findLanguageByCode = (languageCode: string): Language | undefined => {
+  const rawCode = languageCode.trim().toLowerCase();
+  if (!rawCode) return undefined;
+
+  const normalizedCode = normalizeGoogleLanguageCode(languageCode)
+    .trim()
+    .toLowerCase();
+  const primaryRaw = rawCode.split('-')[0];
+  const primaryNormalized = normalizedCode.split('-')[0];
+
+  return (
+    languages.find((lang) => lang.code.toLowerCase() === rawCode) ||
+    languages.find(
+      (lang) =>
+        normalizeGoogleLanguageCode(lang.code).trim().toLowerCase() ===
+        normalizedCode,
+    ) ||
+    languages.find(
+      (lang) => lang.code.toLowerCase().split('-')[0] === primaryRaw,
+    ) ||
+    languages.find(
+      (lang) =>
+        normalizeGoogleLanguageCode(lang.code)
+          .trim()
+          .toLowerCase()
+          .split('-')[0] === primaryNormalized,
+    )
+  );
+};
 
 const TopBanner = () => {
+  const pathname = usePathname();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState<Language>(
-    languages.find((l) => l.code === 'en-GB') || languages[0],
-  ); // Default to English UK
+  const [isApplyingLanguage, setIsApplyingLanguage] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] =
+    useState<Language>(DEFAULT_LANGUAGE);
 
   useEffect(() => {
-    // Check for existing google translate cookie
-    const getCookie = (name: string): string | undefined => {
-      const cookies = document.cookie.split(';');
-      const cookie = cookies.find((c) => c.trim().startsWith(`${name}=`));
-      return cookie ? cookie.split('=')[1] : undefined;
+    const syncSelectedLanguage = () => {
+      const resolvedLanguage = resolveSelectedLanguage();
+
+      setSelectedLanguage((current) =>
+        current.code === resolvedLanguage.code ? current : resolvedLanguage,
+      );
     };
 
-    const googtrans = getCookie('googtrans');
-    if (googtrans) {
-      const langCode = googtrans.split('/').pop();
-      if (langCode) {
-        // Try exact match first
-        let foundLang = languages.find((l) => l.code === langCode);
+    syncSelectedLanguage();
 
-        // If not found, try matching the primary language code (e.g., 'pt' from 'pt-PT')
-        if (!foundLang && langCode.includes('-')) {
-          const primaryCode = langCode.split('-')[0];
-          foundLang = languages.find((l) => l.code === primaryCode);
-        }
-
-        if (foundLang) {
-          setSelectedLanguage(foundLang);
-        }
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        syncSelectedLanguage();
       }
-    }
-  }, []); // Empty dependency array - only run once on mount
+    };
 
-  const handleLanguageSelect = (lang: Language) => {
-    setSelectedLanguage(lang);
+    window.addEventListener('focus', syncSelectedLanguage);
+    window.addEventListener('pageshow', syncSelectedLanguage);
+    window.addEventListener('storage', syncSelectedLanguage);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('focus', syncSelectedLanguage);
+      window.removeEventListener('pageshow', syncSelectedLanguage);
+      window.removeEventListener('storage', syncSelectedLanguage);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [pathname]);
+
+  useEffect(() => {
+    if (isApplyingLanguage || isGoogleTranslateScriptBlocked()) return;
+    const normalizedSelectedLanguage = normalizeGoogleLanguageCode(
+      selectedLanguage.code,
+    )
+      .trim()
+      .toLowerCase();
+
+    const selectedIsDefault =
+      normalizedSelectedLanguage === DEFAULT_GOOGLE_LANGUAGE ||
+      normalizedSelectedLanguage.split('-')[0] === DEFAULT_GOOGLE_LANGUAGE;
+
+    if (selectedIsDefault) return;
+
+    const syncTranslation = window.setTimeout(() => {
+      void applyGoogleTranslateLanguage(selectedLanguage.code, 1200, {
+        requireFreshContentSignal: true,
+      });
+    }, 0);
+
+    return () => {
+      window.clearTimeout(syncTranslation);
+    };
+  }, [isApplyingLanguage, pathname, selectedLanguage.code]);
+
+  const handleLanguageSelect = async (language: Language) => {
+    if (isApplyingLanguage) return;
+
+    const previousLanguage = selectedLanguage;
+    setSelectedLanguage(language);
+    setPersistedLanguageCode(language.code);
     setIsModalOpen(false);
 
-    // Set the google translate cookie with the format /auto/target_lang
-    const cookieValue = `/auto/${lang.code}`;
-    const hostname = window.location.hostname;
+    const currentTargetLanguage = getGoogleTranslateTargetLanguage();
+    const normalizedCurrent = currentTargetLanguage
+      ? normalizeGoogleLanguageCode(currentTargetLanguage).toLowerCase()
+      : null;
+    const normalizedRequested = normalizeGoogleLanguageCode(
+      language.code,
+    ).toLowerCase();
+    const sameLanguage =
+      normalizedCurrent === normalizedRequested ||
+      normalizedCurrent === normalizedRequested.split('-')[0];
 
-    // Helper to delete cookie with specific domain
-    const deleteCookie = (name: string, domain?: string) => {
-      document.cookie = `${name}=; path=/; domain=${domain}; expires=Thu, 01 Jan 1970 00:00:01 GMT`;
-      document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT`;
-    };
-
-    // 1. Aggressively clear existing cookies to avoid conflicts.
-    // We iterate through all domain levels to ensure no conflicting 'googtrans' cookies remain.
-    // This is critical because Google Translate can be sensitive to cookie domain scope (e.g., .airqo.net vs staging.airqo.net),
-    // and a more specific cookie might prevent the new language selection from taking effect.
-    const domains = hostname.split('.');
-    while (domains.length > 0) {
-      const d = domains.join('.');
-      deleteCookie('googtrans', d);
-      deleteCookie('googtrans', `.${d}`);
-      domains.shift();
-    }
-    deleteCookie('googtrans'); // Clear without domain
-
-    // 2. Set new cookie
-    if (hostname === 'localhost') {
-      document.cookie = `googtrans=${cookieValue}; path=/; max-age=31536000`;
-    } else {
-      // Set on the current domain with a leading dot to support subdomains
-      // This ensures it's treated as a domain cookie
-      const domain = hostname.replace(/^www\./, '');
-      document.cookie = `googtrans=${cookieValue}; path=/; domain=.${domain}; max-age=31536000`;
+    if (sameLanguage) {
+      return;
     }
 
-    // Reload the page to apply translation
-    window.location.reload();
+    setIsApplyingLanguage(true);
+
+    try {
+      const applied = await applyGoogleTranslateLanguage(language.code, 1500);
+
+      // Fast deterministic fallback when combo is unavailable.
+      if (!applied) {
+        const failure = handleFailedLanguageApply(language.code, true);
+        if (failure.blockedByScript) {
+          setSelectedLanguage(previousLanguage);
+          setPersistedLanguageCode(previousLanguage.code);
+        }
+      } else {
+        setSelectedLanguage(language);
+      }
+    } finally {
+      setIsApplyingLanguage(false);
+    }
   };
 
   return (
@@ -132,34 +252,25 @@ const TopBanner = () => {
               <FaYoutube size={14} />
             </a>
           </div>
+
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-md px-3 py-1.5 text-sm"
+            disabled={isApplyingLanguage}
+            className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-md px-3 py-1.5 text-sm disabled:opacity-70 disabled:cursor-wait"
             aria-label="Select language"
           >
-            <span
-              className="flex items-center justify-center w-5 h-4 overflow-hidden rounded border border-gray-200"
-              role="img"
-              aria-label={selectedLanguage.country}
-            >
-              <Image
-                src={getFlagUrl(selectedLanguage.flag)}
-                alt={`${selectedLanguage.country} flag`}
-                width={20}
-                height={16}
-                className="object-cover"
-                unoptimized
-                onError={(e) => {
-                  const target = e.currentTarget;
-                  target.style.display = 'none';
-                  const parent = target.parentElement;
-                  if (parent) {
-                    parent.innerHTML = `<span class="flex items-center justify-center w-full h-full bg-blue-100 text-blue-600 font-semibold text-[9px] rounded border border-blue-200">${selectedLanguage.code.split('-')[0].toUpperCase()}</span>`;
-                  }
-                }}
-              />
+            <LanguageFlag
+              flag={selectedLanguage.flag}
+              country={selectedLanguage.country}
+              languageCode={selectedLanguage.code}
+              width={20}
+              height={16}
+              wrapperClassName="flex items-center justify-center w-5 h-4 overflow-hidden rounded border border-gray-200"
+              fallbackTextClassName="flex items-center justify-center w-full h-full bg-blue-100 text-blue-600 font-semibold text-[9px] rounded border border-blue-200"
+            />
+            <span className="font-medium">
+              {isApplyingLanguage ? 'Applying...' : selectedLanguage.name}
             </span>
-            <span className="font-medium">{selectedLanguage.name}</span>
           </button>
         </div>
       </div>

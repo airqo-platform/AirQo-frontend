@@ -2,7 +2,7 @@ import React from 'react';
 
 const ForumHero: React.FC<{ title?: string; subtitle?: string }> = ({
   title = 'Forum Events',
-  subtitle = `Explore our collection of Clean Air Forum events bringing together
+  subtitle = `Explore our collection of Africa Clean Air Forum events bringing together
   communities of practice to foster knowledge sharing and
   cross-border partnerships across Africa`,
 }) => {

@@ -1,8 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { Home, Bell, Settings, Package, Layers, Box, ChevronLeft, ChevronRight, Wrench } from "lucide-react"
-import { AqMonitor, AqAirQlouds } from '@airqo/icons-react'
+import { Home, Bell, Settings, Package, Layers, Box, ChevronLeft, ChevronRight, Wrench, FlaskConical } from "lucide-react"
+import { AqMonitor, AqAirQlouds } from '@/components/icons'
 
 interface SidebarProps {
   sidebarOpen: boolean
@@ -10,6 +10,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ sidebarOpen, onToggleSidebar }: SidebarProps) {
+
   return (
     <div
       className={`bg-white text-gray-700 transition-all duration-300 flex-shrink-0 border border-gray-300 ${sidebarOpen ? "w-56" : "w-16"
@@ -56,17 +57,49 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar }: SidebarProps) 
               href="/dashboard/analytics"
               className={`flex items-center rounded-md hover:bg-gray-100 transition-colors group relative ${sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
                 }`}
-              title={!sidebarOpen ? "AirQloud Uptime" : ""}
+              title={!sidebarOpen ? "Performance Analysis" : ""}
             >
               <AqAirQlouds size={25} color="#374151" />
-              {sidebarOpen && <span className="ml-3 text-sm">AirQloud Uptime</span>}
+              {sidebarOpen && <span className="ml-3 text-sm">Performance Analysis</span>}
               {!sidebarOpen && (
                 <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
-                  AirQloud Uptime
+                  Performance Analysis
                 </span>
               )}
             </Link>
           </li>
+
+          {/* Collocation - hover flyout menu */}
+          <li className="relative group/collocation">
+            <div
+              className={`flex items-center rounded-md hover:bg-gray-100 transition-colors cursor-pointer ${sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
+                }`}
+            >
+              <FlaskConical className="h-5 w-5 flex-shrink-0" />
+              {sidebarOpen && (
+                <>
+                  <span className="ml-3 text-sm flex-1 text-left">Collocation</span>
+                  <ChevronRight className="h-4 w-4" />
+                </>
+              )}
+            </div>
+            {/* Flyout submenu */}
+            <div className="absolute left-full top-0 ml-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-1 opacity-0 invisible group-hover/collocation:opacity-100 group-hover/collocation:visible transition-all duration-150 z-50">
+              <Link
+                href="/dashboard/collocation/inlab"
+                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+              >
+                Inlab collocation
+              </Link>
+              <Link
+                href="/dashboard/collocation/site"
+                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+              >
+                Site collocation
+              </Link>
+            </div>
+          </li>
+
           {/* <li>
             <Link
               href="/dashboard/alerts"

@@ -305,21 +305,26 @@ body {
 /* CRITICAL: Completely hide Google Translate banner - Global level */
 .goog-te-banner-frame,
 .goog-te-banner-frame.skiptranslate,
-body > .skiptranslate,
-iframe.skiptranslate,
 iframe.goog-te-banner-frame,
 .goog-te-banner,
 #goog-gt-tt,
-.goog-te-balloon-frame {
-  display: none !important;
+.goog-te-balloon-frame,
+.VIpgJd-ZVi9od-ORHb,
+.VIpgJd-ZVi9od-ORHb-OEVmcd,
+.VIpgJd-ZVi9od-xl07Ob-OEVmcd,
+body > .skiptranslate {
+  display: block !important;
   visibility: hidden !important;
   opacity: 0 !important;
-  height: 0 !important;
-  width: 0 !important;
-  position: absolute !important;
-  top: -9999px !important;
-  left: -9999px !important;
-  z-index: -9999 !important;
+  width: 1px !important;
+  max-width: 1px !important;
+  height: 1px !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  position: fixed !important;
+  top: -10000px !important;
+  left: -10000px !important;
+  z-index: -2147483648 !important;
   pointer-events: none !important;
 }
 
@@ -333,14 +338,63 @@ body.translated-rtl {
   padding-top: 0 !important;
 }
 
-/* Hide any Google Translate iframes */
-iframe[src*='translate.google'],
-iframe[src*='translate.googleapis'] {
-  display: none !important;
-  visibility: hidden !important;
+/* Keep translate host mounted and measurable while visually hidden */
+.google-translate-host {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  border: 0;
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 /* Loading spinner styles */
+.app-route-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #ffffff;
+}
+
+.app-inline-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 120px;
+}
+
+.app-route-loader-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-route-loader-spinner {
+  font-size: 45px;
+}
+
+.app-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .loader {
   color: #145dff;
   font-size: 45px;

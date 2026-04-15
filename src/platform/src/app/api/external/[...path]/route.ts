@@ -1,21 +1,160 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+const DEFAULT_PROXY_TIMEOUT_MS = 30000;
+
+const resolveProxyTimeoutMs = (): number => {
+  const timeoutValue = Number.parseInt(
+    process.env.API_PROXY_TIMEOUT_MS || '',
+    10
+  );
+
+  if (!Number.isFinite(timeoutValue) || timeoutValue <= 0) {
+    return DEFAULT_PROXY_TIMEOUT_MS;
+  }
+
+  return timeoutValue;
+};
+
+const normalizeApiBaseUrl = (baseUrl: string): string => {
+  const trimmedBaseUrl = baseUrl.trim().replace(/\/+$/, '');
+
+  if (/\/api\/v\d+$/i.test(trimmedBaseUrl)) {
+    return trimmedBaseUrl;
+  }
+
+  if (/\/api$/i.test(trimmedBaseUrl)) {
+    return `${trimmedBaseUrl}/v2`;
+  }
+
+  return `${trimmedBaseUrl}/api/v2`;
+};
+
 function buildBaseUrl(): string {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_API_BASE_URL || process.env.API_BASE_URL;
-  if (!baseUrl) {
-    throw new Error('API_BASE_URL is not defined in environment variables');
+  const configuredBaseUrl =
+    process.env.API_BASE_URL ||
+    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    '';
+
+  if (!configuredBaseUrl) {
+    throw new Error(
+      'API base URL is not defined. Set API_BASE_URL or NEXT_PUBLIC_API_BASE_URL in environment variables.'
+    );
   }
 
-  // Remove trailing slash
-  const cleanBaseUrl = baseUrl.replace(/\/+$/, '');
+  return normalizeApiBaseUrl(configuredBaseUrl);
+}
 
-  if (cleanBaseUrl.endsWith('/api/v2')) {
-    return cleanBaseUrl;
+const stripVersionPrefix = (path: string): string => {
+  return path.replace(/^api\/v\d+\/?/i, '');
+};
+
+const buildTargetUrl = (baseUrl: string, pathSegments: string[]): string => {
+  const targetPath = pathSegments.join('/').replace(/^\/+/, '');
+  const normalizedPath = stripVersionPrefix(targetPath);
+
+  if (!normalizedPath) {
+    return baseUrl;
   }
 
-  // If it doesn't end with /api/v2, add it
-  return `${cleanBaseUrl}/api/v2`;
+  return `${baseUrl}/${normalizedPath}`;
+};
+
+async function proxyRequest(request: NextRequest, pathSegments: string[]) {
+  try {
+    const baseUrl = buildBaseUrl();
+    const targetUrl = new URL(buildTargetUrl(baseUrl, pathSegments));
+
+    const apiToken = (process.env.API_TOKEN || '').trim();
+    if (!apiToken) {
+      return NextResponse.json(
+        { error: 'API_TOKEN not configured' },
+        { status: 500 }
+      );
+    }
+
+    request.nextUrl.searchParams.forEach((value, key) => {
+      if (key.toLowerCase() === 'token') {
+        return;
+      }
+      if (key.toLowerCase() === 'access_token') {
+        return;
+      }
+      targetUrl.searchParams.set(key, value);
+    });
+
+    targetUrl.searchParams.set('token', apiToken);
+    targetUrl.searchParams.set('access_token', apiToken);
+
+    const headers: Record<string, string> = {};
+    const incomingContentType = request.headers.get('content-type');
+    if (incomingContentType) {
+      headers['Content-Type'] = incomingContentType;
+    } else {
+      headers['Content-Type'] = 'application/json';
+    }
+
+    const options: RequestInit = {
+      method: request.method,
+      headers,
+      cache: 'no-store',
+    };
+
+    if (request.method !== 'GET' && request.method !== 'HEAD') {
+      try {
+        const requestBody = await request.text();
+        if (requestBody) {
+          options.body = requestBody;
+        }
+      } catch (error) {
+        console.error('Failed to read request body:', error);
+      }
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, resolveProxyTimeoutMs());
+
+    options.signal = controller.signal;
+
+    let response: Response;
+
+    try {
+      response = await fetch(targetUrl.toString(), options);
+    } finally {
+      clearTimeout(timeoutId);
+    }
+
+    const responseBody = await response.text();
+
+    return new NextResponse(responseBody, {
+      status: response.status,
+      headers: {
+        'Content-Type':
+          response.headers.get('Content-Type') || 'application/json',
+        'Cache-Control': 'no-store, no-cache, max-age=0, must-revalidate',
+        Pragma: 'no-cache',
+        Expires: '0',
+      },
+    });
+  } catch (error) {
+    if ((error as { name?: string })?.name === 'AbortError') {
+      return NextResponse.json(
+        { error: 'Upstream request timed out' },
+        { status: 504 }
+      );
+    }
+
+    console.error('Proxy request failed:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
 }
 
 export async function GET(
@@ -46,78 +185,9 @@ export async function PATCH(
   return proxyRequest(request, params.path);
 }
 
-async function proxyRequest(request: NextRequest, path: string[]) {
-  try {
-    const baseUrl = buildBaseUrl();
-    const targetPath = path.join('/');
-    // Clean paths to avoid double slashes
-    const cleanBaseUrl = baseUrl.replace(/\/$/, '');
-    const cleanPath = targetPath.replace(/^\//, '');
-    const targetUrl = cleanPath ? `${cleanBaseUrl}/${cleanPath}` : cleanBaseUrl;
-
-    const apiToken = process.env.API_TOKEN;
-    if (!apiToken) {
-      return NextResponse.json(
-        { error: 'API_TOKEN not configured' },
-        { status: 500 }
-      );
-    }
-
-    // Build the URL
-    const url = new URL(targetUrl);
-    url.searchParams.set('token', apiToken);
-
-    // Add original query params
-    const originalUrl = new URL(request.url);
-    originalUrl.searchParams.forEach((value, key) => {
-      // Don't allow overriding the API token
-      if (key === 'token') return;
-      url.searchParams.set(key, value);
-    });
-
-    // Prepare fetch options
-    const incomingContentType = request.headers.get('content-type');
-    const headers: Record<string, string> = {};
-    if (incomingContentType) {
-      headers['Content-Type'] = incomingContentType;
-    } else {
-      headers['Content-Type'] = 'application/json';
-    }
-
-    const options: RequestInit = {
-      method: request.method,
-      headers,
-    };
-
-    // Add body for non-GET requests
-    if (request.method !== 'GET' && request.method !== 'HEAD') {
-      try {
-        const body = await request.text();
-        if (body) {
-          options.body = body;
-        }
-      } catch (error) {
-        console.error('Failed to read request body:', error);
-        // Ignore body parsing errors
-      }
-    }
-
-    const response = await fetch(url.toString(), options);
-
-    const responseBody = await response.text();
-
-    return new NextResponse(responseBody, {
-      status: response.status,
-      headers: {
-        'Content-Type':
-          response.headers.get('Content-Type') || 'application/json',
-      },
-    });
-  } catch (error) {
-    console.error('Proxy request failed:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { path: string[] } }
+) {
+  return proxyRequest(request, params.path);
 }

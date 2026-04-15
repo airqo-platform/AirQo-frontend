@@ -1,35 +1,25 @@
 import { withAuth } from 'next-auth/middleware';
 
+const isProduction = process.env.NODE_ENV === 'production';
+const sessionCookieName = isProduction
+  ? '__Secure-next-auth.session-token'
+  : 'analytics.next-auth.session-token';
+
 export default withAuth(
   function middleware() {
     // Custom middleware logic can be added here if needed
   },
   {
     callbacks: {
-      authorized: ({ token, req }) => {
-        const pathname = req.nextUrl.pathname;
-        // Allow public auth routes
-        if (
-          pathname === '/user/login' ||
-          pathname === '/user/creation/individual/register' ||
-          pathname === '/user/creation/individual/verify-email' ||
-          pathname.match(
-            /^\/user\/creation\/individual\/interest\/[^\/]+\/[^\/]+$/
-          ) ||
-          pathname === '/user/forgotPwd' ||
-          pathname.match(/^\/user\/forgotPwd\/reset/) ||
-          pathname.match(/^\/user\/delete\/confirm\/[^\/]+$/) ||
-          pathname.match(/^\/org\/[^\/]+\/login$/) ||
-          pathname.match(/^\/org\/[^\/]+\/register$/) ||
-          pathname === '/org-invite'
-        ) {
-          return true;
-        }
-        return !!token;
-      },
+      authorized: () => true,
     },
     pages: {
       signIn: '/user/login',
+    },
+    cookies: {
+      sessionToken: {
+        name: sessionCookieName,
+      },
     },
     secret: process.env.NEXTAUTH_SECRET,
   }

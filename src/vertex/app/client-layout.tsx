@@ -7,6 +7,10 @@ const Toaster = dynamic(
   () => import('@/components/shared/toast/ReusableToast').then(mod => mod.Toaster),
   { ssr: false }
 );
+const DesktopTitleBar = dynamic(
+  () => import('@/components/layout/desktop-titlebar'),
+  { ssr: false }
+);
 import Providers from "./providers"
 
 import { Session } from "next-auth";
@@ -22,6 +26,7 @@ export default function ClientLayout({
     <body
       className="min-h-screen bg-background antialiased"
     >
+      <DesktopTitleBar />
       <Providers session={session}>{children}</Providers>
       <Toaster />
     </body>

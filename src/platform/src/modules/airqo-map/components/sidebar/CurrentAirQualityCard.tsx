@@ -13,6 +13,7 @@ import { formatRoundedNumber } from '@/shared/lib/utils';
 import type { MapReading } from '../../../../shared/types/api';
 import type { AirQualityReading } from '../map/MapNodes';
 import type { PollutantType } from '@/shared/utils/airQuality';
+import { getMonitorMetadata } from '@/modules/airqo-map/utils/monitorMetadata';
 
 // Types for location data
 interface LocationData {
@@ -37,10 +38,10 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
 
   const pollutantValue =
     selectedPollutant === 'pm2_5'
-      ? (mapReading as MapReading)?.pm2_5?.value ||
-        (mapReading as AirQualityReading)?.pm25Value
-      : (mapReading as MapReading)?.pm10?.value ||
-        (mapReading as AirQualityReading)?.pm10Value;
+      ? ((mapReading as MapReading)?.pm2_5?.value ??
+        (mapReading as AirQualityReading)?.pm25Value)
+      : ((mapReading as MapReading)?.pm10?.value ??
+        (mapReading as AirQualityReading)?.pm10Value);
 
   const airQualityInfo = React.useMemo(() => {
     if (pollutantValue !== null && pollutantValue !== undefined) {
@@ -52,9 +53,8 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
 
   // Helper function to extract city and country from location name
   const parseLocationDetails = (locationName?: string) => {
-    if (!locationName) return { city: 'N/A', country: 'N/A' };
+    if (!locationName) return { city: '--', country: '--' };
 
-    // For WAQI data, location names are typically in format "City, Country" or just "City"
     const parts = locationName.split(',').map(part => part.trim());
 
     if (parts.length >= 2) {
@@ -66,7 +66,7 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
       // If no comma, assume it's just a city name
       return {
         city: locationName,
-        country: 'N/A',
+        country: '--',
       };
     }
   };
@@ -81,17 +81,20 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
       return { city: airQoCity, country: airQoCountry };
     }
 
-    // Then try WAQI data from fullReadingData
-    const waqiCityFromFullData = (mapReading as AirQualityReading)
+    // Then try cached reading details
+    const cityFromReadingDetails = (mapReading as AirQualityReading)
       ?.fullReadingData?.siteDetails?.city;
-    const waqiCountryFromFullData = (mapReading as AirQualityReading)
+    const countryFromReadingDetails = (mapReading as AirQualityReading)
       ?.fullReadingData?.siteDetails?.country;
 
-    if (waqiCityFromFullData && waqiCountryFromFullData) {
-      return { city: waqiCityFromFullData, country: waqiCountryFromFullData };
+    if (cityFromReadingDetails && countryFromReadingDetails) {
+      return {
+        city: cityFromReadingDetails,
+        country: countryFromReadingDetails,
+      };
     }
 
-    // Finally, parse from locationName (for WAQI data)
+    // Finally, parse from locationName
     const locationName =
       (mapReading as AirQualityReading)?.locationName ||
       (mapReading as MapReading)?.siteDetails?.search_name ||
@@ -102,10 +105,15 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
   };
 
   const { city, country } = getCityAndCountry();
+  const monitorMetadata = getMonitorMetadata(mapReading);
+  const monitorId =
+    (mapReading as MapReading)?.device ||
+    (mapReading as AirQualityReading)?.fullReadingData?.device ||
+    '--';
 
   // Format date and time
   const formatDateTime = (dateString?: string) => {
-    if (!dateString) return { date: 'N/A', time: 'N/A' };
+    if (!dateString) return { date: '--', time: '--' };
     const date = new Date(dateString);
     const formattedDate = date.toLocaleDateString('en-US', {
       month: 'short',
@@ -150,7 +158,7 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
             <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
               {pollutantValue !== null && pollutantValue !== undefined
                 ? `${formatRoundedNumber(pollutantValue, 1)}µg/m³`
-                : 'N/A'}
+                : '--'}
             </div>
           </div>
           {AirQualityIcon && <AirQualityIcon className="w-12 h-12" />}
@@ -179,7 +187,7 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
               {airQualityInfo?.level ||
                 (mapReading as MapReading)?.aqi_category ||
                 (mapReading as AirQualityReading)?.aqiCategory ||
-                'N/A'}
+                '--'}
             </div>
           </div>
 
@@ -200,41 +208,61 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
                 </div>
               </div>
 
-              {/* Monitor section */}
-              <div className="pb-3">
-                <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    Monitor
-                  </div>
-                </div>
-                <div className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                  {(mapReading as MapReading)?.device ||
-                    (mapReading as AirQualityReading)?.provider ||
-                    'N/A'}
-                </div>
-              </div>
-
-              {/* Pollution source and pollutant */}
+              {/* Data source and monitor */}
               <div className="pb-3">
                 <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
                   <div className="flex justify-between">
                     <span className="text-xs text-gray-500 dark:text-gray-400">
-                      Pollution Source
+                      Source
                     </span>
                     <span className="text-xs text-gray-500 dark:text-gray-400">
-                      Pollutant
+                      Monitor
+                    </span>
+                  </div>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
+                    {monitorMetadata.provider}
+                  </span>
+                  <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
+                    {monitorId}
+                  </span>
+                </div>
+              </div>
+
+              {/* Device categories */}
+              <div className="pb-3">
+                <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
+                  <div className="flex justify-between">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      Category
+                    </span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      Deployment
                     </span>
                   </div>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                    N/A
+                    {monitorMetadata.primaryCategory || '--'}
                   </span>
                   <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                    {pollutantValue !== null && pollutantValue !== undefined
-                      ? `${getPollutantLabel(selectedPollutant)}: ${formatRoundedNumber(pollutantValue, 1)}`
-                      : 'N/A'}
+                    {monitorMetadata.deploymentCategory || '--'}
                   </span>
+                </div>
+              </div>
+
+              {/* Pollutant */}
+              <div className="pb-3">
+                <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    Pollutant
+                  </div>
+                </div>
+                <div className="font-semibold text-base text-gray-900 dark:text-gray-100">
+                  {pollutantValue !== null && pollutantValue !== undefined
+                    ? `${getPollutantLabel(selectedPollutant)}: ${formatRoundedNumber(pollutantValue, 1)}`
+                    : '--'}
                 </div>
               </div>
 

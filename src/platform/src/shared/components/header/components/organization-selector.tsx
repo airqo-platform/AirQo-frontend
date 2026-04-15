@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Avatar } from '@/shared/components/ui/avatar';
 import { SearchField } from '@/shared/components/ui/search-field';
 import Dialog from '@/shared/components/ui/dialog';
-import { useUserActions } from '@/shared/hooks';
+import { useUser } from '@/shared/hooks/useUser';
 import { isDefaultAirQoGroup } from '@/shared/utils/groupUtils';
 import { AqGrid01 } from '@airqo/icons-react';
 
@@ -14,26 +14,24 @@ export function OrganizationSelector() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const router = useRouter();
-  const { groups, activeGroup, switchGroupById } = useUserActions();
+  const { groups, activeGroup } = useUser();
+  const safeGroups = React.useMemo(
+    () => (Array.isArray(groups) ? groups : []),
+    [groups]
+  );
 
   const handleOpen = () => setIsOpen(true);
   const handleClose = () => setIsOpen(false);
 
   const handleGroupSwitch = (groupId: string) => {
-    const selectedGroup = groups.find(g => g.id === groupId);
+    const selectedGroup = safeGroups.find(g => g.id === groupId);
     if (!selectedGroup) return;
-
-    // Determine navigation target based on group type BEFORE switching
-    const isAirQoGroup = isDefaultAirQoGroup(selectedGroup);
-
-    // Switch the group first
-    switchGroupById(groupId);
 
     // Close dialog
     handleClose();
 
     // Navigate based on group type
-    if (isAirQoGroup) {
+    if (isDefaultAirQoGroup(selectedGroup)) {
       router.push('/user/home');
     } else {
       const orgSlug = selectedGroup.organizationSlug;
@@ -43,19 +41,15 @@ export function OrganizationSelector() {
     }
   };
 
-  // const filteredGroups = useMemo(() => {
-  //   if (!searchTerm.trim()) return groups;
-  //   return groups.filter(
-  //     group =>
-  //       group.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //       group.organizationSlug
-  //         ?.toLowerCase()
-  //         .includes(searchTerm.toLowerCase()) ||
-  //       cleanDisplayText(group.title)
-  //         .toLowerCase()
-  //         .includes(searchTerm.toLowerCase())
-  //   );
-  // }, [groups, searchTerm]);
+  const filteredGroups = React.useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    if (!q) return safeGroups;
+    return safeGroups.filter(group => {
+      const title = (group.title || '').toLowerCase();
+      const slug = (group.organizationSlug || '').toLowerCase();
+      return title.includes(q) || slug.includes(q);
+    });
+  }, [safeGroups, searchTerm]);
 
   // Hide component if loading or no groups available
   // if (isLoading || groups.length === 0) {
@@ -87,7 +81,7 @@ export function OrganizationSelector() {
         onClose={handleClose}
         title="Organizations"
         size="lg"
-        subtitle={`${groups.length} of ${groups.length} available`}
+        subtitle={`${filteredGroups.length} of ${safeGroups.length} available`}
         primaryAction={{
           label: 'Request New Organization',
           onClick: () => {
@@ -109,8 +103,8 @@ export function OrganizationSelector() {
           </div>
 
           <div className="max-h-80 overflow-y-auto space-y-1">
-            {groups.length > 0 ? (
-              groups.map(group => {
+            {filteredGroups.length > 0 ? (
+              filteredGroups.map(group => {
                 return (
                   <button
                     key={group.id}

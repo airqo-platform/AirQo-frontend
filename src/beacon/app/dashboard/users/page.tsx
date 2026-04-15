@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { config } from "@/lib/config"
+import { isMockMode, getMockUsers } from "@/lib/mock-data"
 
 interface User {
   id: number
@@ -75,6 +76,12 @@ export default function UsersPage() {
       setLoading(true)
       setError(null)
 
+      if (isMockMode()) {
+        setUsers(getMockUsers() as any)
+        setLoading(false)
+        return
+      }
+
       let token
       try {
         token = getAuthToken()
@@ -97,7 +104,8 @@ export default function UsersPage() {
         console.log("Fetching users...")
       }
 
-      const apiPath = config.isLocalhost ? '/users/' : `${config.apiPrefix || '/api/v1'}/beacon/users/`
+      const prefix = config.beaconApiPrefix || (config.isLocalhost ? '/api/v1' : '/api/v1/beacon')
+      const apiPath = `${prefix}/users/`
       const response = await fetch(`${config.apiUrl}${apiPath}`, { headers })
 
       if (response.status === 401 || response.status === 403) {
@@ -160,7 +168,8 @@ export default function UsersPage() {
         return
       }
 
-      const apiPath = config.isLocalhost ? '/users/' : `${config.apiPrefix || '/api/v1'}/beacon/users/`
+      const prefix = config.beaconApiPrefix || (config.isLocalhost ? '/api/v1' : '/api/v1/beacon')
+      const apiPath = `${prefix}/users/`
       const response = await fetch(`${config.apiUrl}${apiPath}`, {
         method: 'POST',
         headers: {

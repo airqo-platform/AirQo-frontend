@@ -18,22 +18,52 @@ export interface UserRolesData {
   networks: UserRole[];
 }
 
+const isNonEmptyString = (value: unknown): value is string => {
+  return typeof value === 'string' && value.trim().length > 0;
+};
+
 /**
  * Hook for managing Role-Based Access Control (RBAC)
  * Provides utilities to check user permissions and roles
  */
 export const useRBAC = () => {
-  const { user } = useUser();
+  const { user, isLoading: userLoading } = useUser();
   const { activeGroup } = useUser();
   const {
     data: rolesData,
     error,
-    isLoading,
+    isLoading: rolesLoading,
   } = useUserRolesById(user?.id || null);
 
   const userRoles = useMemo((): UserRolesData | null => {
     if (!rolesData?.user_roles) return null;
-    return rolesData.user_roles;
+
+    const groups = Array.isArray(rolesData.user_roles.groups)
+      ? rolesData.user_roles.groups
+      : [];
+    const networks = Array.isArray(rolesData.user_roles.networks)
+      ? rolesData.user_roles.networks
+      : [];
+
+    return {
+      user_id: rolesData.user_roles.user_id,
+      groups: groups.map(group => ({
+        ...group,
+        role_name: isNonEmptyString(group?.role_name) ? group.role_name : '',
+        permissions: Array.isArray(group?.permissions)
+          ? group.permissions.filter(isNonEmptyString)
+          : [],
+      })),
+      networks: networks.map(network => ({
+        ...network,
+        role_name: isNonEmptyString(network?.role_name)
+          ? network.role_name
+          : '',
+        permissions: Array.isArray(network?.permissions)
+          ? network.permissions.filter(isNonEmptyString)
+          : [],
+      })),
+    };
   }, [rolesData]);
 
   const allPermissions = useMemo((): string[] => {
@@ -43,12 +73,22 @@ export const useRBAC = () => {
 
     // Collect permissions from groups
     userRoles.groups.forEach(group => {
-      group.permissions.forEach(permission => permissions.add(permission));
+      if (!Array.isArray(group.permissions)) return;
+      group.permissions.forEach(permission => {
+        if (isNonEmptyString(permission)) {
+          permissions.add(permission);
+        }
+      });
     });
 
     // Collect permissions from networks
     userRoles.networks.forEach(network => {
-      network.permissions.forEach(permission => permissions.add(permission));
+      if (!Array.isArray(network.permissions)) return;
+      network.permissions.forEach(permission => {
+        if (isNonEmptyString(permission)) {
+          permissions.add(permission);
+        }
+      });
     });
 
     return Array.from(permissions);
@@ -61,12 +101,16 @@ export const useRBAC = () => {
 
     // Collect roles from groups
     userRoles.groups.forEach(group => {
-      roles.add(group.role_name);
+      if (isNonEmptyString(group.role_name)) {
+        roles.add(group.role_name);
+      }
     });
 
     // Collect roles from networks
     userRoles.networks.forEach(network => {
-      roles.add(network.role_name);
+      if (isNonEmptyString(network.role_name)) {
+        roles.add(network.role_name);
+      }
     });
 
     return Array.from(roles);
@@ -179,14 +223,14 @@ export const useRBAC = () => {
    */
   const isAdmin = (): boolean => {
     const adminRoles = ['ADMIN'];
-    return allRoles.some(role => adminRoles.includes(role));
+    return allRoles.some(role => adminRoles.includes(role.toUpperCase()));
   };
 
   /**
    * Check if user is super admin
    */
   const isSuperAdmin = (): boolean => {
-    return allRoles.includes('SUPER_ADMIN');
+    return allRoles.some(role => role.toUpperCase() === 'SUPER_ADMIN');
   };
 
   /**
@@ -266,6 +310,8 @@ export const useRBAC = () => {
     const hasValidEmail = !!user?.email?.toLowerCase().endsWith('@airqo.net');
     return hasRole && hasValidEmail;
   }, [allRoles, user?.email]);
+
+  const isLoading = userLoading || rolesLoading;
 
   return {
     // Data

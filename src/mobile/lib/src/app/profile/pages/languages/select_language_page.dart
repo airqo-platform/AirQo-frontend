@@ -1,8 +1,8 @@
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/other/language/bloc/language_bloc.dart';
-import 'package:airqo/src/app/other/language/services/app_localizations.dart';
 
 class LanguageOption {
   final String code;
@@ -26,10 +26,9 @@ class SelectLanguagePage extends StatefulWidget {
 class _SelectLanguagePageState extends State<SelectLanguagePage> {
   final List<LanguageOption> languages = [
     LanguageOption(code: 'en', name: 'English', nativeName: 'English'),
-    LanguageOption(code: 'fr', name: 'French', nativeName: 'Français'),
-    LanguageOption(code: 'sw', name: 'Swahili', nativeName: 'Kiswahili'),
     LanguageOption(code: 'lg', name: 'Luganda', nativeName: 'Luganda'),
-    LanguageOption(code: 'pt', name: 'Portuguese', nativeName: 'Português'),
+    LanguageOption(code: 'sw', name: 'Swahili', nativeName: 'Kiswahili'),
+    LanguageOption(code: 'fr', name: 'French', nativeName: 'Français'),
   ];
 
   void _showLanguageChangeNotification(
@@ -52,8 +51,7 @@ class _SelectLanguagePageState extends State<SelectLanguagePage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    AppLocalizations.of(context)
-                        .translate('language.language_changed'),
+                    'Language changed to',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 14,
@@ -92,11 +90,16 @@ class _SelectLanguagePageState extends State<SelectLanguagePage> {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final dividerColor =
         isDarkMode ? AppColors.dividerColordark : AppColors.dividerColorlight;
+    final backgroundColor =
+        isDarkMode ? AppColors.darkThemeBackground : AppColors.backgroundColor;
 
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: Text(
-          AppLocalizations.of(context).translate('language.select_language'),
+        backgroundColor: backgroundColor,
+        elevation: 0,
+        title: TranslatedText(
+          'Select Language',
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w500,
@@ -104,13 +107,9 @@ class _SelectLanguagePageState extends State<SelectLanguagePage> {
         ),
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, size: 20),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
         ),
-        elevation: 0,
-        backgroundColor: Colors.transparent,
       ),
       body: BlocBuilder<LanguageBloc, LanguageState>(
         builder: (context, state) {

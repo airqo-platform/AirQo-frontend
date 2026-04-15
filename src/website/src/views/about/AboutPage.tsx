@@ -15,8 +15,8 @@ import {
   useBoardMembers,
   useExternalTeamMembers,
   usePartners,
-  useTeamMembers,
 } from '@/hooks/useApiHooks';
+import { teamService } from '@/services/apiService';
 import { openModal } from '@/store/slices/modalSlice';
 
 // Helper to normalize paginated responses to arrays
@@ -25,6 +25,36 @@ const normalizeList = (data: any) => {
   if (Array.isArray(data)) return data;
   if (data.results && Array.isArray(data.results)) return data.results;
   return [];
+};
+
+const TEAM_CARD_PAGE_SIZE = 6;
+
+type TeamCategoryKey = 'staff' | 'fellow' | 'ex-fellow';
+
+const normalizeTeamCategory = (
+  category: string | undefined,
+): TeamCategoryKey => {
+  const normalized = (category || '')
+    .trim()
+    .toLowerCase()
+    .replace(/_/g, '-')
+    .replace(/\s+/g, '-');
+
+  if (
+    normalized === 'ex-fellow' ||
+    normalized === 'ex-fellows' ||
+    normalized === 'exfellow' ||
+    normalized === 'former-fellow' ||
+    normalized === 'former-fellows'
+  ) {
+    return 'ex-fellow';
+  }
+
+  if (normalized === 'fellow' || normalized === 'fellows') {
+    return 'fellow';
+  }
+
+  return 'staff';
 };
 
 /** Skeleton Loader Component **/
@@ -62,12 +92,56 @@ const AboutPage: React.FC = () => {
   const dispatch = useDispatch();
   const router = useRouter();
 
-  // Use regular hooks with pagination support
-  const [teamPage, setTeamPage] = React.useState(1);
-  const { data: teamMembersData, isLoading: teamLoading } = useTeamMembers({
-    page: teamPage,
-    page_size: 6,
-  });
+  const [teamMembers, setTeamMembers] = React.useState<any[]>([]);
+  const [teamLoading, setTeamLoading] = React.useState(true);
+
+  const [staffPage, setStaffPage] = React.useState(1);
+  const [fellowsPage, setFellowsPage] = React.useState(1);
+  const [exFellowsPage, setExFellowsPage] = React.useState(1);
+
+  React.useEffect(() => {
+    let mounted = true;
+
+    const loadAllTeamMembers = async () => {
+      setTeamLoading(true);
+
+      try {
+        const pageSize = 100;
+        let page = 1;
+        let totalPages = 1;
+        const aggregatedMembers: any[] = [];
+
+        do {
+          const pageData = await teamService.getTeamMembers(
+            {},
+            { page, page_size: pageSize },
+          );
+
+          aggregatedMembers.push(...normalizeList(pageData));
+          totalPages = pageData?.total_pages || 1;
+          page += 1;
+        } while (page <= totalPages);
+
+        if (mounted) {
+          setTeamMembers(aggregatedMembers);
+        }
+      } catch {
+        if (mounted) {
+          setTeamMembers([]);
+        }
+      } finally {
+        if (mounted) {
+          setTeamLoading(false);
+        }
+      }
+    };
+
+    loadAllTeamMembers();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const [boardPage, setBoardPage] = React.useState(1);
   const { data: boardMembersData, isLoading: boardLoading } = useBoardMembers({
@@ -86,11 +160,24 @@ const AboutPage: React.FC = () => {
   const { data: externalTeamData, isLoading: externalLoading } =
     useExternalTeamMembers({ page: externalPage, page_size: 6 });
 
-  // Normalize data to arrays
-  const teamMembers = normalizeList(teamMembersData);
   const boardMembers = normalizeList(boardMembersData);
   const allPartnersRaw = normalizeList(allPartnersData);
   const externalTeamMembers = normalizeList(externalTeamData);
+
+  const categorizedTeamMembers = React.useMemo(() => {
+    const grouped: Record<TeamCategoryKey, any[]> = {
+      staff: [],
+      fellow: [],
+      'ex-fellow': [],
+    };
+
+    teamMembers.forEach((member: any) => {
+      const category = normalizeTeamCategory(member?.category);
+      grouped[category].push(member);
+    });
+
+    return grouped;
+  }, [teamMembers]);
 
   // Filter out cleanair partners from all partners data
   const filteredPartners = allPartnersRaw.filter((partner: any) => {
@@ -99,9 +186,51 @@ const AboutPage: React.FC = () => {
   });
 
   // Check if there are more pages
-  const teamTotalPages = teamMembersData?.total_pages || 1;
   const boardTotalPages = boardMembersData?.total_pages || 1;
   const externalTotalPages = externalTeamData?.total_pages || 1;
+
+  const staffTotalPages = Math.max(
+    1,
+    Math.ceil(categorizedTeamMembers.staff.length / TEAM_CARD_PAGE_SIZE),
+  );
+  const fellowsTotalPages = Math.max(
+    1,
+    Math.ceil(categorizedTeamMembers.fellow.length / TEAM_CARD_PAGE_SIZE),
+  );
+  const exFellowsTotalPages = Math.max(
+    1,
+    Math.ceil(categorizedTeamMembers['ex-fellow'].length / TEAM_CARD_PAGE_SIZE),
+  );
+
+  React.useEffect(() => {
+    setStaffPage((page) => Math.min(page, staffTotalPages));
+  }, [staffTotalPages]);
+
+  React.useEffect(() => {
+    setFellowsPage((page) => Math.min(page, fellowsTotalPages));
+  }, [fellowsTotalPages]);
+
+  React.useEffect(() => {
+    setExFellowsPage((page) => Math.min(page, exFellowsTotalPages));
+  }, [exFellowsTotalPages]);
+
+  const getPagedMembers = (members: any[], currentPage: number) => {
+    const start = (currentPage - 1) * TEAM_CARD_PAGE_SIZE;
+    return members.slice(start, start + TEAM_CARD_PAGE_SIZE);
+  };
+
+  const staffPageMembers = getPagedMembers(
+    categorizedTeamMembers.staff,
+    staffPage,
+  );
+  const fellowsPageMembers = getPagedMembers(
+    categorizedTeamMembers.fellow,
+    fellowsPage,
+  );
+  const exFellowsPageMembers = getPagedMembers(
+    categorizedTeamMembers['ex-fellow'],
+    exFellowsPage,
+  );
 
   // Client-side pagination for partners (6 items per page)
   const partnersPerPage = 6;
@@ -120,27 +249,46 @@ const AboutPage: React.FC = () => {
   };
 
   /** Helper Function to Render Member Sections **/
-  const renderMembersSection = (
-    members: any[],
-    loading: boolean,
-    sectionId: string,
-    title: string,
-    currentPage: number,
-    totalPages: number,
-    onPageChange: (page: number) => void,
-  ) => {
+  const renderMembersSection = ({
+    members,
+    loading,
+    sectionId,
+    title,
+    description,
+    currentPage,
+    totalPages,
+    onPageChange,
+  }: {
+    members: any[];
+    loading: boolean;
+    sectionId: string;
+    title: string;
+    description: string;
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+  }) => {
     if (loading) {
-      // Display Skeleton Loaders
       return (
         <section
           id={sectionId}
-          className="w-full px-4 lg:px-0 space-y-8 scroll-mt-[100px]"
+          className={`${mainConfig.containerClass} w-full px-4 lg:px-0 space-y-8 scroll-mt-[200px]`}
         >
+          <div className="flex flex-col lg:flex-row items-start lg:space-x-12">
+            <h2 className="text-3xl lg:text-[48px] font-medium flex-shrink-0 w-full text-left lg:w-1/3">
+              {title}
+            </h2>
+            <div className="space-y-6 w-full max-w-[556px]">
+              <p>{description}</p>
+            </div>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
             {Array.from({ length: 3 }).map((_, idx) => (
               <SkeletonCard key={idx} />
             ))}
           </div>
+
+          <Divider className="bg-black w-full p-0 h-[1px] mx-auto" />
         </section>
       );
     }
@@ -149,7 +297,6 @@ const AboutPage: React.FC = () => {
       return null;
     }
 
-    // Render the actual member cards
     return (
       <>
         <section
@@ -162,36 +309,8 @@ const AboutPage: React.FC = () => {
               {title}
             </h2>
 
-            {/* Content */}
             <div className="space-y-6 w-full max-w-[556px]">
-              {title === 'Meet the team' && (
-                <>
-                  <p>
-                    This is our team, a community of spirited individuals who
-                    work hard to bridge the gap in air quality monitoring in
-                    Africa.
-                  </p>
-                  <Link
-                    href="/careers"
-                    className="flex items-center text-blue-700"
-                  >
-                    <span>Join the team </span>
-                    <FaArrowRightLong className="inline-block ml-2 " />
-                  </Link>
-                </>
-              )}
-              {title === 'External team' && (
-                <p>
-                  A team of enthusiastic experts that offer guidance to enhance
-                  our growth and realisation of our goals.
-                </p>
-              )}
-              {title === 'Meet the Board' && (
-                <p>
-                  A team of enthusiastic experts that offer guidance to enhance
-                  our growth and realisation of our goals.
-                </p>
-              )}
+              <p>{description}</p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto px-4">
@@ -204,12 +323,110 @@ const AboutPage: React.FC = () => {
           </div>
 
           {/* Pagination for Members */}
-          <Pagination
-            totalPages={totalPages}
-            currentPage={currentPage}
-            onPageChange={onPageChange}
-            scrollToTop={false}
-          />
+          {totalPages > 1 && (
+            <Pagination
+              totalPages={totalPages}
+              currentPage={currentPage}
+              onPageChange={onPageChange}
+              scrollToTop={false}
+            />
+          )}
+        </section>
+
+        <Divider className="bg-black w-full p-0 h-[1px] mx-auto" />
+      </>
+    );
+  };
+
+  const renderTeamSection = () => {
+    const sections = [
+      {
+        key: 'staff',
+        label: '',
+        members: staffPageMembers,
+        totalPages: staffTotalPages,
+        currentPage: staffPage,
+        onPageChange: setStaffPage,
+      },
+      {
+        key: 'fellow',
+        label: 'Fellows',
+        members: fellowsPageMembers,
+        totalPages: fellowsTotalPages,
+        currentPage: fellowsPage,
+        onPageChange: setFellowsPage,
+      },
+      {
+        key: 'ex-fellow',
+        label: 'Fellowship Alumni',
+        members: exFellowsPageMembers,
+        totalPages: exFellowsTotalPages,
+        currentPage: exFellowsPage,
+        onPageChange: setExFellowsPage,
+      },
+    ].filter((section) => teamLoading || section.members.length > 0);
+
+    return (
+      <>
+        <section
+          id="team"
+          className={`${mainConfig.containerClass} w-full px-4 lg:px-0 space-y-10 scroll-mt-[200px]`}
+        >
+          <div className="flex flex-col lg:flex-row items-start lg:space-x-12">
+            <h2 className="text-3xl lg:text-[48px] font-medium flex-shrink-0 w-full text-left lg:w-1/3">
+              Meet the team
+            </h2>
+
+            <div className="space-y-6 w-full max-w-[556px]">
+              <p>
+                This is our team, a community of spirited individuals who work
+                hard to bridge the gap in air quality monitoring in Africa.
+              </p>
+              <Link href="/careers" className="flex items-center text-blue-700">
+                <span>Join the team </span>
+                <FaArrowRightLong className="inline-block ml-2 " />
+              </Link>
+            </div>
+          </div>
+
+          {sections.map((section, index) => (
+            <div key={section.key} className="space-y-8">
+              {index > 0 && <Divider className="bg-black w-full p-0 h-[1px]" />}
+              <div className="space-y-6">
+                {section.label && (
+                  <h3 className="text-2xl lg:text-3xl font-medium px-4">
+                    {section.label}
+                  </h3>
+                )}
+
+                {teamLoading ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto px-4">
+                    {Array.from({ length: 3 }).map((_, idx) => (
+                      <SkeletonCard key={`${section.key}-skeleton-${idx}`} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto px-4">
+                    {section.members.map((member: any, idx: number) => (
+                      <MemberCard
+                        key={member.id || member.public_identifier || idx}
+                        member={member}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {!teamLoading && section.totalPages > 1 && (
+                  <Pagination
+                    totalPages={section.totalPages}
+                    currentPage={section.currentPage}
+                    onPageChange={section.onPageChange}
+                    scrollToTop={false}
+                  />
+                )}
+              </div>
+            </div>
+          ))}
         </section>
 
         <Divider className="bg-black w-full p-0 h-[1px] mx-auto" />
@@ -428,37 +645,33 @@ const AboutPage: React.FC = () => {
         <Divider className="bg-black w-full p-0 h-[1px] mx-auto" />
 
         {/* Team Section */}
-        {renderMembersSection(
-          teamMembers ?? [],
-          teamLoading,
-          'team',
-          'Meet the team',
-          teamPage,
-          teamTotalPages,
-          setTeamPage,
-        )}
+        {renderTeamSection()}
 
         {/* External Team Section */}
-        {renderMembersSection(
-          externalTeamMembers,
-          externalLoading,
-          'external-team',
-          'External team',
-          externalPage,
-          externalTotalPages,
-          setExternalPage,
-        )}
+        {renderMembersSection({
+          members: externalTeamMembers,
+          loading: externalLoading,
+          sectionId: 'external-team',
+          title: 'External Team',
+          description:
+            'A team of enthusiastic experts that offer guidance to enhance our growth and realisation of our goals.',
+          currentPage: externalPage,
+          totalPages: externalTotalPages,
+          onPageChange: setExternalPage,
+        })}
 
         {/* Board Section */}
-        {renderMembersSection(
-          boardMembers ?? [],
-          boardLoading,
-          'board',
-          'Meet the Board',
-          boardPage,
-          boardTotalPages,
-          setBoardPage,
-        )}
+        {renderMembersSection({
+          members: boardMembers ?? [],
+          loading: boardLoading,
+          sectionId: 'board',
+          title: 'Meet the Board',
+          description:
+            'A team of enthusiastic experts that offer guidance to enhance our growth and realisation of our goals.',
+          currentPage: boardPage,
+          totalPages: boardTotalPages,
+          onPageChange: setBoardPage,
+        })}
 
         {/* Partners Section */}
         <section

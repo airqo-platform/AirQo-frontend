@@ -14,19 +14,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Pagination } from "@/components/ui/pagination"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import {
   Tooltip,
   TooltipContent,
@@ -42,75 +31,84 @@ interface ProcessedAirQloud {
   uptime: number | null
   onlinePercentage: number | null
   numberOfDevices: number
+  offlineDevices: number | null
   errorMargin: number | null
   location: string
-  isActive: boolean
-  uptimeHistory: Array<{ value: number; timestamp: string }> // Last 14 days of uptime values with dates
+  uptimeHistory: Array<{ value: number; timestamp: string }>
 }
 
 interface AirQloudsTableProps {
   performanceDays?: number
 }
 
-// Calculate average uptime, error margin, and uptime history from performance data
-const processAirQloudData = (airqloud: AirQloudWithPerformance): ProcessedAirQloud => {
-  const freq = airqloud.freq || []
-  const errorMargin = airqloud.error_margin || []
-  const timestamps = airqloud.timestamp || []
+// Map pre-computed summary data from the API response
+const processAirQloudData = (airqloud: AirQloudWithPerformance, performanceDays: number = 14): ProcessedAirQloud => {
+  const numberOfDevices = airqloud.numberOfDevices || (airqloud.devices ? airqloud.devices.length : (airqloud.device_count || 0));
 
-  // Calculate uptime percentage from freq (max 24) - limit to last 14 days
-  const uptimeHistory = timestamps.map((timestamp, index) => ({
-    value: freq[index] !== undefined ? (freq[index] / 24) * 100 : 0,
-    timestamp
-  }))
-    .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
-    .slice(-14)
+  // Use pre-computed summary uptime and error_margin (API returns as 0-1 decimals)
+  const overallUptime = airqloud.uptime != null ? airqloud.uptime * 100 : null;
+  const rawErrorMargin = airqloud.error_margin;
+  const overallErrorMargin = typeof rawErrorMargin === 'number' ? rawErrorMargin : null;
 
-  const averageUptime = uptimeHistory.length > 0
-    ? uptimeHistory.reduce((sum, item) => sum + item.value, 0) / uptimeHistory.length
-    : null
+  // Count offline devices: those whose last_active is before the start of yesterday
+  let offlineDevices: number | null = null;
+  if (airqloud.devices && Array.isArray(airqloud.devices)) {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    yesterday.setHours(0, 0, 0, 0); // Start of yesterday
 
-  // Calculate average error margin
-  const averageErrorMargin = errorMargin.length > 0
-    ? errorMargin.reduce((sum, em) => sum + em, 0) / errorMargin.length
-    : null
+    offlineDevices = airqloud.devices.filter((d: any) => {
+      if (!d.last_active) return true; // No data = offline
+      return new Date(d.last_active).getTime() < yesterday.getTime();
+    }).length;
+  }
+
+  // Build daily uptime history from summary data[] array
+  let uptimeHistory: Array<{ value: number; timestamp: string }> = [];
+
+  if (airqloud.data && Array.isArray(airqloud.data)) {
+    uptimeHistory = airqloud.data
+      .filter((d: any) => d.date && d.uptime != null)
+      .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(-performanceDays)
+      .map((d: any) => ({
+        value: Math.min(100, d.uptime * 100),
+        timestamp: d.date
+      }));
+  }
 
   return {
-    id: airqloud.id,
+    id: airqloud.id || airqloud._id || airqloud.name,
     name: airqloud.name,
-    uptime: averageUptime,
-    onlinePercentage: null, // Can be null as per requirements
-    numberOfDevices: airqloud.device_count || airqloud.number_of_devices || 0,
-    errorMargin: averageErrorMargin,
-    location: airqloud.country,
-    isActive: airqloud.is_active,
-    uptimeHistory
+    uptime: overallUptime,
+    onlinePercentage: overallUptime ?? 0,
+    numberOfDevices: numberOfDevices,
+    offlineDevices: offlineDevices,
+    errorMargin: overallErrorMargin,
+    location: airqloud.country || "",
+    uptimeHistory: uptimeHistory
   }
 }
 
-export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableProps) {
+export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableProps) { //14days
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
   const [sortBy, setSortBy] = useState<keyof ProcessedAirQloud>("name")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
-  const [trackingFilter, setTrackingFilter] = useState<"tracked" | "untracked">("tracked")
   const [processedData, setProcessedData] = useState<ProcessedAirQloud[]>([])
+
+  // Cohort Tags State
+  const [cohortTags, setCohortTags] = useState<string[]>(["hardware"])
+  const availableTags = ["hardware", "software", "test", "production"] // Hardcoded for now, could be fetched
 
   // Pagination state
   const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
+  const [pageSize, setPageSize] = useState(5)
   const [totalItems, setTotalItems] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
 
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
-  // Edit dialog state
-  const [editDialogOpen, setEditDialogOpen] = useState(false)
-  const [editingAirQloud, setEditingAirQloud] = useState<ProcessedAirQloud | null>(null)
-  const [editIsTracked, setEditIsTracked] = useState(false)
-  const [editCountry, setEditCountry] = useState("")
-  const [isUpdating, setIsUpdating] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
 
   // Fetch data from API
@@ -120,24 +118,35 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
       setError(null)
       const skip = (page - 1) * pageSize
 
+      const endDate = new Date()
+      endDate.setDate(endDate.getDate() - 1)
+      endDate.setHours(23, 59, 59, 999)
+
+      const startDate = new Date(endDate)
+      startDate.setDate(endDate.getDate() - performanceDays + 1)
+      startDate.setHours(0, 0, 0, 0)
+
       const response = await airQloudService.getAirQlouds({
-        include_performance: true,
-        performance_days: performanceDays,
+        includePerformance: true,
+        summary: true,
+        startDateTime: startDate.toISOString(),
+        endDateTime: endDate.toISOString(),
+        frequency: 'hourly',
         search: searchTerm || undefined,
         limit: pageSize,
         skip: skip,
-        is_active: trackingFilter === "tracked"
+        tags: cohortTags.length > 0 ? cohortTags.join(",") : undefined
       })
 
       const { airqlouds, meta } = response
 
-      setProcessedData(airqlouds.map(processAirQloudData))
+      setProcessedData(airqlouds.map(aq => processAirQloudData(aq, performanceDays)))
       setTotalItems(meta.total)
-      setTotalPages(meta.pages)
+      setTotalPages(meta.totalPages)
       setPage(meta.page)
 
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch AirQlouds (Cohorts)')
+      setError(err instanceof Error ? err.message : 'Failed to fetch Cohorts')
       console.error('Error fetching AirQlouds:', err)
     } finally {
       setIsLoading(false)
@@ -145,9 +154,9 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
   }
 
   useEffect(() => {
-    // Reset page to 1 when search or filter changes
+    // Reset page to 1 when search changes
     setPage(1)
-  }, [searchTerm, trackingFilter])
+  }, [searchTerm])
 
   useEffect(() => {
     // Debounce search
@@ -156,7 +165,7 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
     }, 300)
 
     return () => clearTimeout(timer)
-  }, [searchTerm, performanceDays, trackingFilter, page, pageSize])
+  }, [searchTerm, performanceDays, page, pageSize, cohortTags])
 
   // Sort data (client-side sorting for current page)
   const sortedData = useMemo(() => {
@@ -198,52 +207,6 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
 
   const handleRowClick = (airqloudId: string) => {
     router.push(`/dashboard/analytics/${airqloudId}`)
-  }
-
-  const openEditDialog = (e: React.MouseEvent, airqloud: ProcessedAirQloud) => {
-    e.stopPropagation() // Prevent row click
-    setEditingAirQloud(airqloud)
-    setEditIsTracked(airqloud.isActive)
-    setEditCountry(airqloud.location || "")
-    setEditDialogOpen(true)
-  }
-
-  const handleUpdateAirQloud = async () => {
-    if (!editingAirQloud) return
-
-    setIsUpdating(true)
-    try {
-      await airQloudService.updateAirQloud(editingAirQloud.id, {
-        is_active: editIsTracked,
-        country: editCountry || null
-      })
-      // Refresh data after update
-      await fetchAirQlouds()
-      setEditDialogOpen(false)
-    } catch (err) {
-      console.error('Error updating AirQloud:', err)
-    } finally {
-      setIsUpdating(false)
-    }
-  }
-
-  const getStatusBadge = (airqloud: ProcessedAirQloud) => {
-    return airqloud.isActive ? (
-      <Badge
-        className="bg-green-500 cursor-pointer hover:bg-green-600 transition-colors"
-        onClick={(e) => openEditDialog(e, airqloud)}
-      >
-        Tracked
-      </Badge>
-    ) : (
-      <Badge
-        variant="secondary"
-        className="cursor-pointer hover:bg-gray-300 transition-colors"
-        onClick={(e) => openEditDialog(e, airqloud)}
-      >
-        Untracked
-      </Badge>
-    )
   }
 
   // Mini bar graph component for uptime history
@@ -320,17 +283,28 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
       // Fetch all data matching current filters
       const limit = totalItems > 0 ? totalItems : 1000
 
+      const endDate = new Date()
+      endDate.setDate(endDate.getDate() - 1)
+      endDate.setHours(23, 59, 59, 999)
+
+      const startDate = new Date(endDate)
+      startDate.setDate(endDate.getDate() - performanceDays + 1)
+      startDate.setHours(0, 0, 0, 0)
+
       const response = await airQloudService.getAirQlouds({
-        include_performance: true,
-        performance_days: performanceDays,
+        includePerformance: true,
+        summary: true,
+        startDateTime: startDate.toISOString(),
+        endDateTime: endDate.toISOString(),
+        frequency: 'hourly',
         search: searchTerm || undefined,
         limit: limit,
         skip: 0,
-        is_active: trackingFilter === "tracked"
+        tags: cohortTags.length > 0 ? cohortTags.join(",") : undefined
       })
 
       const { airqlouds } = response
-      const dataToExport = airqlouds.map(processAirQloudData)
+      const dataToExport = airqlouds.map(aq => processAirQloudData(aq, performanceDays))
 
       // Sort data to match current view
       dataToExport.sort((a, b) => {
@@ -386,7 +360,7 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
     return (
       <Card>
         <CardHeader>
-          <CardTitle>AirQlouds (Cohorts) Performance</CardTitle>
+          <CardTitle>Cohorts Performance</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-red-500">
@@ -401,7 +375,7 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>AirQlouds (Cohorts) Performance</CardTitle>
+          <CardTitle>Cohorts Performance</CardTitle>
           <Button onClick={handleExportCSV} variant="outline" size="sm" disabled={isExporting}>
             {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             Export csv
@@ -411,25 +385,39 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
           <div className="relative flex-1">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search AirQlouds (Cohorts)..."
+              placeholder="Search Cohorts..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-8"
             />
           </div>
-          <Tabs value={trackingFilter} onValueChange={(value) => setTrackingFilter(value as "tracked" | "untracked")}>
-            <TabsList>
-              <TabsTrigger value="tracked">Tracked</TabsTrigger>
-              <TabsTrigger value="untracked">Untracked</TabsTrigger>
-            </TabsList>
-          </Tabs>
+        </div>
+        {/* Tag Filters */}
+        <div className="flex flex-wrap gap-2 mt-4">
+          {availableTags.map(tag => (
+            <Badge
+              key={tag}
+              variant={cohortTags.includes(tag) ? "default" : "outline"}
+              className="cursor-pointer capitalize"
+              onClick={() => {
+                setCohortTags(prev =>
+                  prev.includes(tag)
+                    ? prev.filter(t => t !== tag)
+                    : [...prev, tag]
+                )
+                setPage(1) // Reset page on filter change
+              }}
+            >
+              {tag}
+            </Badge>
+          ))}
         </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (
           <div className="text-center py-8 text-muted-foreground">Loading...</div>
         ) : sortedData.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">No AirQlouds (Cohorts) found</div>
+          <div className="text-center py-8 text-muted-foreground">No Cohorts found</div>
         ) : (
           <div className="space-y-4">
             <div className="rounded-md border">
@@ -476,23 +464,20 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
-                    <TableHead>Tracking</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {sortedData.map((airqloud) => {
-                    const isInactive = !airqloud.isActive
                     const hasNoData = airqloud.uptime === null && airqloud.errorMargin === null
-                    const showNoDataMessage = isInactive || hasNoData
 
                     return (
                       <TableRow
                         key={airqloud.id}
-                        className={showNoDataMessage
+                        className={hasNoData
                           ? "opacity-60"
                           : "cursor-pointer hover:bg-muted/50 transition-colors"
                         }
-                        onClick={showNoDataMessage ? undefined : () => handleRowClick(airqloud.id)}
+                        onClick={hasNoData ? undefined : () => handleRowClick(airqloud.id)}
                       >
                         <TableCell>
                           <div className="flex items-center justify-between">
@@ -502,13 +487,11 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
                                 <div className="text-sm text-muted-foreground">{airqloud.location}</div>
                               )}
                             </div>
-                            {!showNoDataMessage && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                            {!hasNoData && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
                           </div>
                         </TableCell>
                         <TableCell>
-                          {isInactive ? (
-                            <span className="text-muted-foreground italic">Inactive - Not tracked</span>
-                          ) : hasNoData ? (
+                          {hasNoData ? (
                             <span className="text-muted-foreground italic">Data loading...</span>
                           ) : (
                             <UptimeMiniGraph
@@ -518,12 +501,21 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
                           )}
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline">{airqloud.numberOfDevices}</Badge>
+                          <div className="flex items-center gap-2">
+                            {airqloud.offlineDevices != null ? (
+                              <>
+                                <Badge variant="outline">{airqloud.numberOfDevices - airqloud.offlineDevices}/{airqloud.numberOfDevices}</Badge>
+                                {airqloud.offlineDevices > 0 && (
+                                  <span className="text-xs text-red-500">{airqloud.offlineDevices} offline</span>
+                                )}
+                              </>
+                            ) : (
+                              <Badge variant="outline">{airqloud.numberOfDevices}</Badge>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell>
-                          {isInactive ? (
-                            <span className="text-muted-foreground italic">Inactive - Not tracked</span>
-                          ) : hasNoData ? (
+                          {hasNoData ? (
                             <span className="text-muted-foreground italic">Data loading...</span>
                           ) : airqloud.errorMargin !== null ? (
                             <span
@@ -540,7 +532,6 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
                             <span className="text-muted-foreground">N/A</span>
                           )}
                         </TableCell>
-                        <TableCell>{getStatusBadge(airqloud)}</TableCell>
                       </TableRow>
                     )
                   })}
@@ -566,9 +557,6 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
                     <SelectContent>
                       <SelectItem value="5">5</SelectItem>
                       <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="25">25</SelectItem>
-                      <SelectItem value="50">50</SelectItem>
-                      <SelectItem value="100">100</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -585,57 +573,6 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
           </div>
         )}
       </CardContent>
-
-      {/* Edit AirQloud Dialog */}
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Edit AirQloud (Cohort)</DialogTitle>
-            <DialogDescription>
-              Update tracking status and country for {editingAirQloud?.name}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="tracking-status" className="font-medium">
-                  Tracking Status
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  {editIsTracked ? "Currently tracking this AirQloud (Cohort)" : "Not tracking this AirQloud (Cohort)"}
-                </p>
-              </div>
-              <Switch
-                id="tracking-status"
-                checked={editIsTracked}
-                onCheckedChange={setEditIsTracked}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="country">Country</Label>
-              <Input
-                id="country"
-                placeholder="Enter country (optional)"
-                value={editCountry}
-                onChange={(e) => setEditCountry(e.target.value)}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setEditDialogOpen(false)}
-              disabled={isUpdating}
-            >
-              Cancel
-            </Button>
-            <Button onClick={handleUpdateAirQloud} disabled={isUpdating}>
-              {isUpdating ? "Saving..." : "Save Changes"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </Card>
   )
 }

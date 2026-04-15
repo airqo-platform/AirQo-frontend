@@ -29,7 +29,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Pagination } from "@/components/ui/pagination"
 import { useToast } from "@/components/ui/use-toast"
 import dynamic from "next/dynamic"
-import { getDeviceSummary, getDevicesForUIPaginated } from "@/services/device-api.service"
+import { getDeviceSummary, getDevicesForUIPaginated, syncDevices, syncDevicePerformance } from "@/services/device-api.service"
 import type { DeviceSummaryResponse, UIDevice } from "@/types/api.types"
 import UpdateDeviceDialog from "@/components/dashboard/update-device-dialog"
 
@@ -68,6 +68,9 @@ const AfricaMap = dynamic(
   }
 )
 
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
+
 export default function DevicesPage() {
   const { toast } = useToast()
 
@@ -94,10 +97,12 @@ export default function DevicesPage() {
   const [networkFilter, setNetworkFilter] = useState("all")
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [isSyncing, setIsSyncing] = useState(false)
   const [showMap, setShowMap] = useState(false)
-  const [viewMode, setViewMode] = useState<"list" | "map">("list") // New state for view toggle
+  const [viewMode, setViewMode] = useState<"list" | "map">("list")
   const [firmwareDialogOpen, setFirmwareDialogOpen] = useState(false)
   const [selectedFirmwareDevice, setSelectedFirmwareDevice] = useState<UIDevice | null>(null)
+  const [showTracked, setShowTracked] = useState(true) // Default to tracked
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1)
@@ -134,10 +139,8 @@ export default function DevicesPage() {
         params.search = searchTerm.trim()
       }
 
-      // Always filter by airqo network
-      params.network = "airqo"
-
-      // Add filters if they are set (currently commented out in UI)
+      // Network and status filters are currently handled by the backend's
+      // default scoping. UI filter controls are disabled until needed.
       // if (networkFilter !== "all") {
       //   params.network = networkFilter
       // }
@@ -184,12 +187,37 @@ export default function DevicesPage() {
     }, 500) // Wait 500ms after user stops typing
 
     return () => clearTimeout(searchDebounce)
-  }, [currentPage, itemsPerPage, searchTerm]) // Added searchTerm
+  }, [currentPage, itemsPerPage, searchTerm, showTracked]) // Added searchTerm and showTracked
 
   // Refresh all data
   const refreshData = () => {
     setIsRefreshing(true)
     Promise.all([fetchDeviceCounts(), fetchDevices()])
+  }
+
+  // Sync devices and performance
+  const handleSyncDevices = async () => {
+    setIsSyncing(true)
+    try {
+      await Promise.all([
+        syncDevices(),
+        syncDevicePerformance()
+      ])
+      toast({
+        title: "Success",
+        description: "Devices synced successfully.",
+      })
+      refreshData()
+    } catch (err) {
+      console.error("Error syncing devices:", err)
+      toast({
+        variant: "destructive",
+        title: "Sync Failed",
+        description: "An error occurred while syncing devices.",
+      })
+    } finally {
+      setIsSyncing(false)
+    }
   }
 
   // Calculate percentages for the progress bars
@@ -253,8 +281,8 @@ export default function DevicesPage() {
         status: device.status ?? (isDeviceOnline(device) ? "online" : "offline"),
         lat: device.latitude,
         lng: device.longitude,
-        pm2_5: device.pm2_5,
-        pm10: device.pm10,
+        pm2_5: device.pm2_5 ?? undefined,
+        pm10: device.pm10 ?? undefined,
         reading_timestamp: device.reading_timestamp,
       }))
   }, [devices, isDeviceOnline])
@@ -370,9 +398,20 @@ export default function DevicesPage() {
           <Button
             variant="outline"
             size="sm"
+            className="flex items-center text-blue-600 border-blue-200 hover:bg-blue-50"
+            onClick={handleSyncDevices}
+            disabled={isSyncing || isRefreshing}
+          >
+            <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+            {isSyncing ? 'Syncing...' : 'Refresh Devices'}
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
             className="flex items-center"
             onClick={refreshData}
-            disabled={isRefreshing}
+            disabled={isRefreshing || isSyncing}
           >
             <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
             {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
@@ -527,9 +566,10 @@ export default function DevicesPage() {
           {/* List View */}
           {viewMode === "list" && (
             <>
-              {/* Search Input - Backend Search Enabled */}
-              <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-2 mb-4">
-                <div className="relative flex-1">
+              {/* Controls Container */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
+                {/* Search Input */}
+                <div className="relative flex-1 max-w-md">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="search"
@@ -556,11 +596,9 @@ export default function DevicesPage() {
                     </Button>
                   )}
                 </div>
-                {searchTerm && (
-                  <div className="text-sm text-muted-foreground">
-                    Searching devices...
-                  </div>
-                )}
+
+
+
               </div>
 
               {/* Filters - Temporarily Commented Out */}
@@ -749,11 +787,11 @@ export default function DevicesPage() {
                             <SelectValue placeholder="Per page" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="5">5</SelectItem>
                             <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="15">15</SelectItem>
+                            <SelectItem value="20">20</SelectItem>
                             <SelectItem value="25">25</SelectItem>
-                            <SelectItem value="50">50</SelectItem>
-                            <SelectItem value="100">100</SelectItem>
+                            <SelectItem value="30">30</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -801,6 +839,6 @@ export default function DevicesPage() {
         device={selectedFirmwareDevice}
         onUpdateSuccess={handleUpdateSuccess}
       />
-    </div>
+    </div >
   )
 }

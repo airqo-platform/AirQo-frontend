@@ -138,27 +138,30 @@ export default function MaintenanceMap({
         }
     }, [])
 
-    // Fit bounds on data change or route mode toggle
-    // Separated from render effect to prevent auto-zoom reset on user zoom
+    // Auto-fit bounds when data changes (cohort/filter selection) or route mode toggles
     useEffect(() => {
-        if (!map.current || !data) return;
+        if (!map.current || !data || data.length === 0) return;
 
-        // Use a small timeout to allow markers/route to render
+        const hasActiveRoute = routePath && routePath.length > 0;
+
         const timer = setTimeout(() => {
-            if (markersRef.current.length > 0 && !isRouteMode && !routePath) {
-                // When in normal mode, fit to all devices
-                const bounds = L.latLngBounds(data
-                    .filter(d => d.latitude != null && d.longitude != null)
-                    .map(d => [d.latitude, d.longitude] as [number, number])
-                );
-                if (bounds.isValid()) {
-                    map.current?.fitBounds(bounds, { padding: [50, 50] });
-                }
-            } else if ((isRouteMode || routePath) && routeLayerRef.current) {
-                // When in route mode, fit to route
+            if (hasActiveRoute && routeLayerRef.current) {
+                // Route is active — fit to route polyline
                 map.current?.fitBounds(routeLayerRef.current.getBounds(), { padding: [50, 50] });
+            } else if (markersRef.current.length > 0) {
+                // Normal mode — fit to all visible device markers
+                const points = data
+                    .filter(d => d.latitude != null && d.longitude != null)
+                    .map(d => [d.latitude, d.longitude] as [number, number]);
+
+                if (points.length > 0) {
+                    const bounds = L.latLngBounds(points);
+                    if (bounds.isValid()) {
+                        map.current?.fitBounds(bounds, { padding: [50, 50] });
+                    }
+                }
             }
-        }, 100);
+        }, 150);
 
         return () => clearTimeout(timer);
     }, [data, isRouteMode, routePath]);
@@ -186,9 +189,9 @@ export default function MaintenanceMap({
 
             const isSelected = localSelectedIds.includes(device.device_id);
 
-            const uptimePct = (device.avg_uptime / 24) * 100;
+            const uptimePct = (device.uptime) * 100;
             const uptimeStatus = getUptimeStatus(uptimePct);
-            const errorStatus = getErrorStatus(device.avg_error_margin);
+            const errorStatus = getErrorStatus(device.error_margin);
 
             const icon = createMarkerIcon(uptimeStatus, errorStatus, isSelected);
 
@@ -207,11 +210,12 @@ export default function MaintenanceMap({
                         <div class="flex justify-between items-start mb-2">
                              <h3 class="font-bold text-sm">${device.device_name}</h3>
                         </div>
-                        <p class="text-xs text-gray-600 mb-2">${device.site ? device.site.name : 'Unknown Site'}</p>
+                        <p class="text-xs text-gray-600 mb-2">${device.cohorts?.length ? device.cohorts.join(', ') : 'No cohorts'}</p>
                         <div class="grid grid-cols-2 gap-2 text-xs mb-2">
-                            <div><span class="font-medium">Uptime:</span> <span class="font-bold ${uptimeColorClass}">${((device.avg_uptime / 24) * 100).toFixed(0)}%</span></div>
-                            <div><span class="font-medium">Error:</span> <span class="font-bold ${errorColorClass}">${device.avg_error_margin.toFixed(1)}%</span></div>
+                            <div><span class="font-medium">Uptime:</span> <span class="font-bold ${uptimeColorClass}">${((device.uptime) * 100).toFixed(0)}%</span></div>
+                            <div><span class="font-medium">Error:</span> <span class="font-bold ${errorColorClass}">${device.error_margin.toFixed(1)}</span></div>
                         </div>
+                        <div class="text-xs text-gray-500 mb-2"><span class="font-medium">Last Post:</span> ${device.last_active ? new Date(device.last_active).toLocaleString() : 'N/A'}</div>
                          <button 
                             id="btn-select-${device.device_id}" 
                             class="w-full text-xs bg-blue-50 text-blue-600 py-1 rounded hover:bg-blue-100 transition-colors"
@@ -278,9 +282,9 @@ export default function MaintenanceMap({
 
             // Plot Suggestions
             opps.forEach(device => {
-                const uptimePct = (device.avg_uptime / 24) * 100;
+                const uptimePct = (device.uptime) * 100;
                 const uptimeStatus = getUptimeStatus(uptimePct);
-                const errorStatus = getErrorStatus(device.avg_error_margin);
+                const errorStatus = getErrorStatus(device.error_margin);
 
                 const icon = createMarkerIcon(uptimeStatus, errorStatus, false, true); // true = isSuggestion
                 const marker = L.marker([device.latitude, device.longitude], { icon, opacity: 0.8 })

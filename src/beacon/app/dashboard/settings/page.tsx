@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { toast } from "@/components/ui/use-toast"
 import { RefreshCw, Save, User } from "lucide-react"
 import { config } from "@/lib/config"
+import { isMockMode, getMockProfile } from "@/lib/mock-data"
 
 interface UserProfile {
   id: number
@@ -58,6 +59,22 @@ export default function SettingsPage() {
       setLoading(true)
       setError(null)
       
+      if (isMockMode()) {
+        const profileData = getMockProfile() as any
+        setProfile(profileData)
+        setFormData({
+          first_name: profileData.first_name || "",
+          last_name: profileData.last_name || "",
+          email: profileData.email || "",
+          phone: profileData.phone || "",
+          current_password: "",
+          new_password: "",
+          confirm_password: ""
+        })
+        setLoading(false)
+        return
+      }
+      
       let token
       try {
         token = getAuthToken()
@@ -67,7 +84,8 @@ export default function SettingsPage() {
         return
       }
       
-      const apiPath = config.isLocalhost ? '/users/me/' : `${config.apiPrefix || '/api/v1'}/beacon/users/me/`
+      const prefix = config.beaconApiPrefix || (config.isLocalhost ? '/api/v1' : '/api/v1/beacon')
+      const apiPath = `${prefix}/users/me/`
       const response = await fetch(`${config.apiUrl}${apiPath}`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -180,7 +198,8 @@ export default function SettingsPage() {
         updatePayload.new_password = formData.new_password
       }
       
-      const apiPath = config.isLocalhost ? '/users/me/' : `${config.apiPrefix || '/api/v1'}/beacon/users/me/`
+      const prefix = config.beaconApiPrefix || (config.isLocalhost ? '/api/v1' : '/api/v1/beacon')
+      const apiPath = `${prefix}/users/me/`
       const response = await fetch(`${config.apiUrl}${apiPath}`, {
         method: 'PUT',
         headers: {
@@ -358,7 +377,7 @@ export default function SettingsPage() {
           <div className="space-y-4 border-t pt-6">
             <h3 className="text-lg font-medium">Change Password</h3>
             <p className="text-sm text-gray-600">
-              Leave password fields empty if you don't want to change your password
+              Leave password fields empty if you don&apos;t want to change your password
             </p>
             
             <div className="space-y-4">

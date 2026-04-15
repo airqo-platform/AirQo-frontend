@@ -88,7 +88,8 @@ export default function UpdateDeviceDialog({
     try {
       setLoadingFirmware(true)
       const baseUrl = config.apiUrl
-      const endpoint = config.isLocalhost ? "/firmware" : `${config.apiPrefix || "/api/v1"}/beacon/firmware`
+      const prefix = config.beaconApiPrefix || (config.isLocalhost ? "/api/v1" : "/api/v1/beacon")
+      const endpoint = `${prefix}/firmware`
       const url = `${baseUrl}${endpoint}`
 
       const response = await fetch(url, {
@@ -193,8 +194,8 @@ export default function UpdateDeviceDialog({
 
     try {
       // Use config to determine correct endpoint
-      const baseUrl = config.apiUrl
-      const endpoint = config.isLocalhost ? "/devices/" : `${config.apiPrefix || "/api/v1"}/devices/`
+      const prefix = config.beaconApiPrefix || (config.isLocalhost ? "/api/v1" : "/api/v1/beacon")
+      const endpoint = `${prefix}/devices/`
       const url = `${baseUrl}${endpoint}${device.device_id}/details`
 
       let payload: any = {}

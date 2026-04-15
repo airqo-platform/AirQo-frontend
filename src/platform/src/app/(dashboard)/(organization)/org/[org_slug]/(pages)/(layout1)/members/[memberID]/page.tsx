@@ -329,37 +329,6 @@ const MemberDetailsPage: React.FC = () => {
                   </div>
                 )}
               </div>
-
-              {/* Networks */}
-              {user.networks && user.networks.length > 0 && (
-                <div className="bg-card rounded-lg border p-6">
-                  <h3 className="text-lg font-semibold mb-3">Network Roles</h3>
-                  <div className="space-y-2">
-                    {user.networks.map(network => (
-                      <div
-                        key={network.net_name}
-                        className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
-                      >
-                        <div>
-                          <p className="font-medium">{network.net_name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {network.role.role_name}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <AqShield02
-                            size={16}
-                            className="text-muted-foreground"
-                          />
-                          <span className="text-xs text-muted-foreground">
-                            {network.userType}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Roles Management */}
@@ -411,31 +380,6 @@ const MemberDetailsPage: React.FC = () => {
                   </p>
                 )}
               </div>
-
-              {/* Groups */}
-              {user.groups && user.groups.length > 0 && (
-                <div className="bg-card rounded-lg border p-6">
-                  <h3 className="text-lg font-semibold mb-3">Groups</h3>
-                  <div className="space-y-2">
-                    {user.groups.map(group => (
-                      <div
-                        key={group._id}
-                        className="p-3 bg-muted/50 rounded-lg"
-                      >
-                        <p className="font-medium">{group.grp_title}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {group.organization_slug}
-                        </p>
-                        {group.role && (
-                          <p className="text-xs text-primary mt-1">
-                            {group.role.role_name}
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         ) : (

@@ -151,7 +151,7 @@ export const LocationsList: React.FC<LocationsListProps> = ({
               No locations available
             </h3>
             <p className="text-sm text-muted-foreground">
-              There are currently no monitoring sites in this country
+              There are currently no monitoring sites for this selection.
             </p>
           </div>
         ) : (

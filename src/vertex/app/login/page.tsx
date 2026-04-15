@@ -5,7 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod"
 import Link from "next/link"
 import Image from "next/image"
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { Form, FormField } from "@/components/ui/form"
 import { signUpUrl, forgotPasswordUrl } from "@/core/urls"
@@ -15,14 +16,11 @@ import ReusableToast from "@/components/shared/toast/ReusableToast"
 import logger from "@/lib/logger"
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import { useAppDispatch } from "@/core/redux/hooks";
-import { setLoggingOut } from "@/core/redux/slices/userSlice";
-import { getLastActiveModule } from "@/core/utils/userPreferences";
 import {
-  getRememberedAccounts,
-  rememberAccount,
-  removeRememberedAccount,
-  type RememberedAccount,
-} from "@/core/utils/rememberedAccounts";
+  setLoggingOut,
+} from "@/core/redux/slices/userSlice";
+import { getLastActiveModule } from "@/core/utils/userPreferences";
+import { VERTEX_DESKTOP_DOWNLOADS } from "@/core/constants/app-downloads";
 
 const loginSchema = z.object({
   userName: z.string().email({ message: "Please enter a valid email address" }),
@@ -31,7 +29,19 @@ const loginSchema = z.object({
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
-  const [rememberedAccounts, setRememberedAccounts] = useState<RememberedAccount[]>([]);
+  const [downloadUrl, setDownloadUrl] = useState(VERTEX_DESKTOP_DOWNLOADS.windows);
+  const searchParams = useSearchParams();
+  const callbackUrl = useMemo(() => {
+    const raw = searchParams.get("callbackUrl");
+    if (!raw) return "";
+    try {
+      const parsed = new URL(raw, window.location.origin);
+      if (parsed.origin !== window.location.origin) return "";
+      return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+    } catch {
+      return "";
+    }
+  }, [searchParams]);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -44,33 +54,42 @@ export default function LoginPage() {
   const dispatch = useAppDispatch();
   const isMounted = useRef(true);
 
+  const [platform, setPlatform] = useState<'win' | 'linux' | 'other' | null>(null);
+  const [isElectron, setIsElectron] = useState(false);
+
   useEffect(() => {
     isMounted.current = true;
-    // Reset logout state when login page mounts - this ensures suppression flags persist until we land here
+    // Reset logout state when login page mounts
     dispatch(setLoggingOut(false));
-    setRememberedAccounts(getRememberedAccounts());
+
+    // OS Detection for download link and platform check
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    const isWin = userAgent.includes('win');
+    const isLinux = userAgent.includes('linux');
+    setIsElectron(userAgent.includes('electron'));
+    
+    if (isWin) {
+      setPlatform('win');
+      setDownloadUrl(VERTEX_DESKTOP_DOWNLOADS.windows);
+    } else if (isLinux) {
+      setPlatform('linux');
+    } else {
+      setPlatform('other');
+    }
+
     return () => {
       isMounted.current = false;
     };
   }, [dispatch]);
 
-  const handleUseRememberedAccount = useCallback((email: string) => {
-    form.setValue("userName", email, { shouldValidate: true });
-    form.setValue("password", "");
-    form.setFocus("password");
-  }, [form]);
-
-  const handleRemoveRememberedAccount = useCallback((id: string) => {
-    const updated = removeRememberedAccount(id);
-    setRememberedAccounts(updated);
-  }, []);
 
   const onSubmit = useCallback(async (values: z.infer<typeof loginSchema>) => {
     setIsLoading(true);
 
     // Read preference BEFORE authentication to avoid timing issues
     const lastModule = getLastActiveModule(values.userName);
-    const redirectUrl = lastModule === 'admin' ? '/admin/networks' : '/home';
+    const fallbackUrl = lastModule === 'admin' ? '/admin/networks' : '/home';
+    const redirectUrl = callbackUrl || fallbackUrl;
 
     try {
       const result = await signIn("credentials", {
@@ -82,13 +101,6 @@ export default function LoginPage() {
       if (!isMounted.current) return;
 
       if (result?.ok) {
-        const existing = rememberedAccounts.find((item) => item.email.toLowerCase() === values.userName.toLowerCase());
-        rememberAccount({
-          email: values.userName,
-          displayName: existing?.displayName || values.userName,
-          profilePicture: existing?.profilePicture || "",
-        });
-        setRememberedAccounts(getRememberedAccounts());
         ReusableToast({ message: "Welcome back!", type: "SUCCESS" });
         window.location.href = redirectUrl;
       } else {
@@ -111,128 +123,119 @@ export default function LoginPage() {
       ReusableToast({ message, type: "ERROR" });
       setIsLoading(false);
     }
-  }, [rememberedAccounts]);
+  }, [callbackUrl]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-background to-muted/30 p-4">
-      <div className="w-full max-w-md space-y-8">
-        <div className="flex flex-col items-center justify-center space-y-2 text-center">
-          <div className="mb-4">
+    <div className="flex min-h-screen lg:h-screen w-full flex-col bg-background text-foreground">
+      {/* Sticky Topbar */}
+      <header data-vertex-topbar className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="flex h-12 items-center justify-between px-6 md:px-8">
+          <div className="flex items-center">
             <Image
               src="/images/airqo_logo.svg"
-              alt="Logo"
-              width={50}
-              height={50}
+              alt="AirQo Logo"
+              width={28}
+              height={28}
+              className="h-7 w-auto"
+              priority
             />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">Welcome back to Vertex</h1>
-          <div className="text-center text-sm">
-            Don&apos;t have an account?{" "}
-            <Link href={signUpUrl} className="font-medium text-primary hover:underline">
-              Sign up
-            </Link>
-          </div>
-        </div>
-        <div className="flex flex-col">
-          {rememberedAccounts.length > 0 && (
-            <div className="mb-5 rounded-lg border border-border bg-card p-3">
-              <p className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">Recently used accounts</p>
-              <div className="space-y-2">
-                {rememberedAccounts.map((account) => (
-                  <div key={account.id} className="flex items-center justify-between gap-2 rounded-md border border-border px-3 py-2">
-                    <button
-                      type="button"
-                      onClick={() => handleUseRememberedAccount(account.email)}
-                      className="flex min-w-0 flex-1 items-center gap-2 text-left"
-                    >
-                      <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-semibold">
-                        {(account.displayName || account.email).charAt(0).toUpperCase()}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-foreground">
-                          {account.displayName || account.email}
-                        </p>
-                        <p className="truncate text-xs text-muted-foreground">{account.email}</p>
-                      </div>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveRememberedAccount(account.id)}
-                      className="text-xs text-muted-foreground hover:text-red-600"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  form.setValue("userName", "");
-                  form.setValue("password", "");
-                  form.setFocus("userName");
-                }}
-                className="mt-3 text-sm text-primary hover:underline"
+          
+          {!isElectron && platform === 'win' && (
+            <div className="flex items-center">
+              <a
+                href={downloadUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-md border border-border bg-primary px-4 py-2 text-sm font-medium text-white transition-all hover:bg-primary/80 hover:border-foreground/20 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
               >
-                Use a different account
-              </button>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M0 3.449L9.75 2.1V11.7H0V3.449zm0 9.151h9.75v9.6L0 20.551V12.6zm10.55-10.701L24 0v11.7h-13.45V1.899zm0 10.701H24V24l-13.45-1.899V12.6z"/>
+                </svg>
+                Download for Windows
+              </a>
             </div>
           )}
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="userName"
-                render={({ field, fieldState }) => (
-                  <ReusableInputField
-                    label="Email"
-                    placeholder="login@airqo.net"
-                    type="email"
-                    required
-                    error={fieldState.error?.message}
-                    disabled={isLoading}
-                    {...field}
-                  />
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field, fieldState }) => (
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-200">Password</label>
-                      <Link href={forgotPasswordUrl} className="text-xs text-primary hover:underline">
-                        Forgot password?
-                      </Link>
-                    </div>
-                    <ReusableInputField
-                      type={"password"}
-                      id="password"
-                      autoComplete="current-password"
-                      placeholder="••••••••"
-                      required
-                      error={fieldState.error?.message}
-                      className="mt-2"
-                      disabled={isLoading}
-                      {...field}
-                    />
-                  </div>
-                )}
-              />
-              <ReusableButton type="submit" className="max-w-xs w-full mx-auto" disabled={isLoading} loading={isLoading} variant="filled">
-                {isLoading ? (
-                  <span className="flex items-center gap-2">
-                    <span>Signing in...</span>
-                  </span>
-                ) : (
-                  "Login"
-                )}
-              </ReusableButton>
-            </form>
-          </Form>
         </div>
-      </div>
+      </header>
+
+      {/* Main Content Area */}
+      <main className="flex flex-1 overflow-y-auto">
+        <div className="flex flex-1 flex-col px-4 py-12 sm:px-6">
+          <div className="mx-auto w-full max-w-[450px] my-auto">
+            <div className="mb-10 text-center">
+              <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+                <span className="block">Deploy devices,</span>
+                <span className="block">Share your data</span>
+              </h1>
+              <p className="mt-4 text-base text-muted-foreground leading-relaxed max-w-sm mx-auto">
+                Add your devices, manage their details, and stream live air quality data through AirQo&apos;s open data channels.
+              </p>
+            </div>
+
+            <div className="flex flex-col">
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+                  <FormField
+                    control={form.control}
+                    name="userName"
+                    render={({ field, fieldState }) => (
+                      <ReusableInputField
+                        label="Email"
+                        placeholder="login@airqo.net"
+                        type="email"
+                        required
+                        error={fieldState.error?.message}
+                        disabled={isLoading}
+                        {...field}
+                      />
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field, fieldState }) => (
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label htmlFor="password" className="text-sm font-medium text-foreground">Password</label>
+                          <Link href={forgotPasswordUrl} className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">
+                            Forgot password?
+                          </Link>
+                        </div>
+                        <ReusableInputField
+                          type={"password"}
+                          id="password"
+                          autoComplete="current-password"
+                          placeholder="••••••••"
+                          required
+                          error={fieldState.error?.message}
+                          disabled={isLoading}
+                          {...field}
+                        />
+                      </div>
+                    )}
+                  />
+                  <ReusableButton
+                    type="submit"
+                    className="w-full mt-2 font-medium bg-primary hover:bg-primary/90"
+                    disabled={isLoading}
+                    loading={isLoading}
+                    variant="filled"
+                  >
+                    {isLoading ? "Signing in..." : "Login"}
+                  </ReusableButton>
+                </form>
+              </Form>
+              <div className="text-sm text-center my-6 text-muted-foreground">
+                Don&apos;t have an account?{" "}
+                <Link href={signUpUrl} className="font-semibold text-primary hover:text-primary/80 transition-colors">
+                  Sign up
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
   )
 }

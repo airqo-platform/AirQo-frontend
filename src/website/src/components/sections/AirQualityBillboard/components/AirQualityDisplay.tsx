@@ -91,11 +91,9 @@ const AirQualityDisplay = ({
     const days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
     const today = new Date().getDay();
 
-    // Use a larger, more flexible layout for the standalone billboard (non-homepage)
-    const isCompact = homepage === true;
-    const gridTemplate = isCompact
-      ? 'grid grid-cols-[repeat(auto-fit,minmax(60px,1fr))] gap-1 sm:gap-2'
-      : 'grid grid-cols-[repeat(auto-fit,minmax(70px,1fr))] gap-[clamp(0.375rem,0.8vw,1rem)]';
+    const gridTemplate = homepage
+      ? 'flex md:grid md:grid-cols-7 gap-2 md:gap-3 overflow-x-auto md:overflow-visible pb-1 md:pb-0 pr-1 md:pr-0'
+      : 'flex lg:grid lg:grid-cols-7 gap-2 sm:gap-3 lg:gap-4 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0 pr-1 lg:pr-0';
 
     return (
       <div className="w-full">
@@ -107,40 +105,36 @@ const AirQualityDisplay = ({
               ? 'bg-blue-700/80 text-white'
               : 'bg-blue-600/25 text-white';
 
-            // Zoom-friendly responsive sizing with clamp - more compact for small screens
-            const cardPadding = isCompact
-              ? 'p-1 sm:p-2'
-              : 'p-[clamp(0.375rem,0.8vw,1rem)]';
-            const minH = isCompact
-              ? 'min-h-[60px] sm:min-h-[70px]'
-              : 'min-h-[clamp(70px,7vw,110px)]';
-            const dayClass = isCompact ? 'font-semibold' : 'font-semibold';
-            const valueClass = isCompact
-              ? 'font-bold mb-1'
-              : 'font-extrabold mb-[clamp(0.25rem,0.4vw,0.5rem)]';
+            const cardPadding = homepage ? 'p-2 sm:p-3' : 'p-2 sm:p-3 lg:p-3.5';
+            const minH = homepage
+              ? 'min-h-[104px] sm:min-h-[116px] md:min-h-[126px]'
+              : 'min-h-[104px] sm:min-h-[116px] lg:min-h-[132px]';
+            const cardMinW = homepage
+              ? 'min-w-[92px] sm:min-w-[102px] md:min-w-0'
+              : 'min-w-[92px] sm:min-w-[104px] lg:min-w-0';
+            const dayClass = 'font-semibold';
+            const valueClass = 'font-extrabold mb-1';
 
-            // Icon sizing that scales with viewport (clamp) for very large billboards
-            const iconWrapperStyle = isCompact
+            const iconWrapperStyle = homepage
               ? undefined
               : {
-                  width: 'clamp(32px, 3vw, 64px)',
-                  height: 'clamp(32px, 3vw, 64px)',
+                  width: 'clamp(40px, 3.4vw, 72px)',
+                  height: 'clamp(40px, 3.4vw, 72px)',
                 };
 
-            // Dynamic font sizing with clamp for better zoom handling
-            const dayFontSize = isCompact
-              ? 'clamp(0.625rem, 1.2vw, 0.75rem)'
-              : 'clamp(0.75rem, 1.5vw, 1rem)';
-            const valueFontSize = isCompact
-              ? 'clamp(0.625rem, 1.2vw, 0.875rem)'
-              : 'clamp(0.875rem, 1.8vw, 1.25rem)';
+            const dayFontSize = homepage
+              ? 'clamp(0.75rem, 1.2vw, 0.95rem)'
+              : 'clamp(0.8rem, 1.4vw, 1.05rem)';
+            const valueFontSize = homepage
+              ? 'clamp(0.95rem, 1.4vw, 1.2rem)'
+              : 'clamp(1rem, 1.6vw, 1.3rem)';
 
             return (
               <div
                 key={index}
                 role="group"
                 aria-label={`Forecast ${index + 1}`}
-                className={`${cardBg} rounded-lg ${cardPadding} flex flex-col items-center justify-between ${minH}`}
+                className={`${cardBg} rounded-lg ${cardPadding} ${cardMinW} flex flex-col items-center justify-between ${minH}`}
                 style={{ fontFamily: '"Times New Roman", Times, serif' }}
               >
                 <div className="w-full flex items-center justify-center mb-[clamp(0.25rem,0.5vw,0.5rem)]">
@@ -161,7 +155,10 @@ const AirQualityDisplay = ({
                       ? forecast.pm2_5.toFixed(1)
                       : '--'}
                   </span>
-                  <div className="flex-shrink-0" style={iconWrapperStyle}>
+                  <div
+                    className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12"
+                    style={iconWrapperStyle}
+                  >
                     {Number.isFinite(forecast.pm2_5) ? (
                       <div style={{ width: '100%', height: '100%' }}>
                         {getAirQualityIcon(forecast.pm2_5, 'w-full h-full')}
@@ -181,6 +178,8 @@ const AirQualityDisplay = ({
     );
   };
 
+  const forecastContent = renderForecast();
+
   return (
     <AnimatePresence mode="wait">
       <motion.div
@@ -195,12 +194,12 @@ const AirQualityDisplay = ({
         <div
           className={
             homepage
-              ? 'flex-1 grid grid-cols-[1fr_110px] sm:grid-cols-[1.3fr_1fr] gap-[clamp(0.75rem,2vw,1.5rem)] min-h-0'
-              : 'flex-1 grid grid-cols-1 xl:grid-cols-[1.3fr_1fr] gap-[clamp(0.5rem,1.2vw,1.5rem)] min-h-0'
+              ? 'flex-1 grid grid-cols-[minmax(0,1fr)_minmax(130px,180px)] sm:grid-cols-[minmax(0,1fr)_minmax(160px,230px)] lg:grid-cols-[minmax(0,1fr)_minmax(200px,280px)] gap-[clamp(0.75rem,2vw,1.5rem)] min-h-0'
+              : 'flex-1 grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(180px,240px)] xl:grid-cols-[1.2fr_minmax(220px,320px)] gap-[clamp(0.5rem,1.2vw,1.5rem)] min-h-0'
           }
         >
           {/* Left Section */}
-          <div className="flex flex-col justify-center space-y-[clamp(0.5rem,1vw,1rem)] min-h-0">
+          <div className="flex flex-col justify-start md:justify-center space-y-[clamp(0.5rem,1vw,1rem)] min-h-0">
             {/* Air Quality Title */}
             <div
               className="font-bold leading-tight tracking-tight"
@@ -259,41 +258,36 @@ const AirQualityDisplay = ({
                   fontSize: 'clamp(1rem, 1.8vw, 1.75rem)',
                 }}
               >
-                μg/m³
+                &micro;g/m&sup3;
               </span>
             </div>
 
-            {/* 7-Day Forecast - show on non-homepage everywhere, and on homepage only from md+ */}
-            {forecastData &&
-              (homepage ? (
-                <div className="mt-[clamp(0.375rem,0.8vw,0.625rem)] hidden md:block">
-                  {renderForecast()}
-                </div>
-              ) : (
-                <div className="mt-[clamp(0.375rem,0.8vw,0.625rem)]">
-                  {renderForecast()}
-                </div>
-              ))}
+            {/* 7-Day Forecast */}
+            {forecastContent && (
+              <div className="mt-[clamp(0.375rem,0.8vw,0.625rem)]">
+                {forecastContent}
+              </div>
+            )}
           </div>
 
           {/* Right Section */}
           <div
             className={
               homepage
-                ? 'flex flex-col items-end justify-between min-h-[140px] md:min-h-[180px] w-full relative'
-                : 'flex flex-col items-center xl:items-end justify-between min-h-0 relative'
+                ? 'flex flex-col items-end justify-start gap-[clamp(0.75rem,1.5vw,1.25rem)] min-h-[180px] md:min-h-[220px] w-full'
+                : 'flex flex-row md:flex-col items-center md:items-end justify-between min-h-0 gap-[clamp(0.75rem,1.5vw,1.25rem)]'
             }
           >
             {/* Air Quality Icon - Single responsive implementation */}
             {homepage ? (
               // Homepage: Responsive icon visible on all screen sizes
-              <div className="flex items-center justify-end pr-2 w-full">
+              <div className="flex items-center justify-end w-full">
                 <div className="transform transition-transform duration-300">
                   {getAirQualityIcon(
                     pm25Value !== null && pm25Value !== undefined
                       ? pm25Value
                       : null,
-                    'w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24',
+                    'w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32',
                   )}
                 </div>
               </div>
@@ -303,8 +297,8 @@ const AirQualityDisplay = ({
                 <div
                   className="transform hover:scale-105 transition-transform duration-300"
                   style={{
-                    width: 'clamp(5rem, 10vw, 10rem)',
-                    height: 'clamp(5rem, 10vw, 10rem)',
+                    width: 'clamp(5.25rem, 11vw, 11rem)',
+                    height: 'clamp(5.25rem, 11vw, 11rem)',
                   }}
                 >
                   {getAirQualityIcon(
@@ -317,19 +311,19 @@ const AirQualityDisplay = ({
               </div>
             )}
 
-            {/* QR Code - Positioned at bottom right for both views */}
-            <div className="hidden md:flex absolute bottom-0 right-0 flex-col items-center gap-[clamp(0.125rem,0.3vw,0.375rem)]">
+            {/* QR Code */}
+            <div className="flex flex-col items-center gap-[clamp(0.25rem,0.6vw,0.5rem)] mt-0 md:mt-auto">
               <span
                 className="font-semibold tracking-wider text-white/90"
-                style={{ fontSize: 'clamp(0.5rem, 0.8vw, 0.65rem)' }}
+                style={{ fontSize: 'clamp(0.65rem, 1vw, 0.95rem)' }}
               >
                 SCAN ME
               </span>
               <div
-                className="relative bg-white rounded-lg p-[clamp(0.125rem,0.3vw,0.25rem)]"
+                className="relative bg-white rounded-lg p-[clamp(0.25rem,0.45vw,0.4rem)] shadow-xl ring-2 ring-white/50"
                 style={{
-                  width: 'clamp(3rem, 5vw, 4.5rem)',
-                  height: 'clamp(3rem, 5vw, 4.5rem)',
+                  width: 'clamp(4.75rem, 8vw, 8rem)',
+                  height: 'clamp(4.75rem, 8vw, 8rem)',
                 }}
               >
                 <Image
@@ -337,7 +331,7 @@ const AirQualityDisplay = ({
                   alt="QR Code"
                   fill
                   className="object-contain"
-                  sizes="72px"
+                  sizes="(max-width: 768px) 96px, (max-width: 1280px) 120px, 140px"
                 />
               </div>
             </div>

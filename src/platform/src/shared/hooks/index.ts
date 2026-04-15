@@ -19,7 +19,6 @@ export {
   useUpdateUserDetails,
   useUpdatePassword,
   useCreateOrganizationRequest,
-  useCheckSlugAvailability,
   useInitiateAccountDeletion,
   useConfirmAccountDeletion,
   useUser,
@@ -57,6 +56,8 @@ export {
   useActiveGroupCohorts,
   useActiveGroupCohortSites,
   useActiveGroupCohortDevices,
+  useActiveGroupCohortSitesWithState,
+  useActiveGroupCohortDevicesWithState,
 } from './useDevice';
 
 // Sites data hooks
@@ -85,6 +86,7 @@ export {
   useApproveOrganizationRequest,
   useRejectOrganizationRequest,
   useRolesByGroup,
+  useRolesSummary,
   useRoleById,
   usePermissions,
   useCreateRole,
@@ -93,6 +95,7 @@ export {
   useUsersByRole,
   useAssignUsersToRole,
   useUnassignUsersFromRole,
+  useUpdateUserRole,
 } from './useAdmin';
 
 // Groups hooks

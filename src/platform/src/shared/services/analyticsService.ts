@@ -4,7 +4,7 @@ import {
   createAuthenticatedClient,
   createServerClient,
 } from './apiClient';
-import { getSession } from 'next-auth/react';
+import { syncClientSessionToken } from './sessionAuthToken';
 import type {
   AnalyticsChartRequest,
   AnalyticsChartResponse,
@@ -24,12 +24,7 @@ export class AnalyticsService {
   }
 
   private async ensureAuthenticated() {
-    const session = await getSession();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const token = (session as any)?.accessToken;
-    if (token) {
-      this.authenticatedClient.setAuthToken(token);
-    }
+    await syncClientSessionToken(this.authenticatedClient);
   }
 
   // Get chart data - authenticated endpoint
@@ -49,8 +44,27 @@ export class AnalyticsService {
   async getRecentReadings(
     request: RecentReadingRequest
   ): Promise<RecentReadingsResponse> {
+    const normalizedSiteIds = (request.site_id || '')
+      .split(',')
+      .map(siteId => siteId.trim())
+      .filter(Boolean)
+      .join(',');
+
+    if (!normalizedSiteIds) {
+      return {
+        success: true,
+        message: 'No site IDs provided',
+        measurements: [],
+      };
+    }
+
     const response = await this.serverClient.get<RecentReadingsResponse>(
-      `/devices/readings/recent?site_id=${request.site_id}`
+      '/devices/readings/recent',
+      {
+        params: {
+          site_id: normalizedSiteIds,
+        },
+      }
     );
     return response.data;
   }
@@ -59,7 +73,6 @@ export class AnalyticsService {
   async downloadData(
     request: DataDownloadRequest
   ): Promise<DataDownloadResponse | string> {
-    // Use server client with API_TOKEN instead of JWT authentication
     const response = await this.serverClient.post<
       DataDownloadResponse | string
     >('/analytics/data-download', request);

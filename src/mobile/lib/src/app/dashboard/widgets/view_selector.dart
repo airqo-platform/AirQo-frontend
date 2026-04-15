@@ -1,7 +1,7 @@
-import 'package:airqo/src/app/auth/pages/login_page.dart';
-import 'package:airqo/src/app/auth/pages/register_page.dart';
 import 'package:airqo/src/app/dashboard/models/country_model.dart';
 import 'package:airqo/src/app/shared/widgets/country_button';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
+import 'package:airqo/src/app/shared/widgets/translated_tooltip.dart';
 import 'package:flutter/material.dart';
 import '../../../meta/utils/colors.dart';
 import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
@@ -101,8 +101,8 @@ class _ViewSelectorState extends State<ViewSelector> {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         children: [
           if (!widget.isGuestUser) ...[
-            Tooltip(
-              key: _nearbyTooltipKey,
+            TranslatedTooltip(
+              tooltipKey: _nearbyTooltipKey,
               message: "View air quality in locations closest to you",
               preferBelow: true,
               verticalOffset: 20,
@@ -123,8 +123,8 @@ class _ViewSelectorState extends State<ViewSelector> {
               ),
             ),
             SizedBox(width: 8),
-            Tooltip(
-              key: _myPlacesTooltipKey,
+            TranslatedTooltip(
+              tooltipKey: _myPlacesTooltipKey,
               message: "Save your most relevant locations in one place",
               preferBelow: true,
               verticalOffset: 20,
@@ -147,7 +147,7 @@ class _ViewSelectorState extends State<ViewSelector> {
             SizedBox(width: 8),
           ],
           if (widget.isGuestUser) ...[
-            Tooltip(
+            TranslatedTooltip(
               message: "View air quality in locations closest to you",
               preferBelow: true,
               verticalOffset: 20,
@@ -165,27 +165,6 @@ class _ViewSelectorState extends State<ViewSelector> {
                 label: "Near You",
                 isSelected: widget.currentView == DashboardView.nearYou,
                 onTap: () => widget.onViewChanged(DashboardView.nearYou),
-              ),
-            ),
-            SizedBox(width: 8),
-            Tooltip(
-              message: "Create an account to access all features",
-              preferBelow: true,
-              verticalOffset: 20,
-              showDuration: Duration(seconds: 2),
-              decoration: BoxDecoration(
-                color: Colors.black87,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              textStyle: TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-              ),
-              child: _buildViewButton(
-                context,
-                label: "Sign In for More",
-                isSelected: false,
-                onTap: () => _showLoginPrompt(),
               ),
             ),
           ],
@@ -209,111 +188,6 @@ class _ViewSelectorState extends State<ViewSelector> {
     );
   }
 
-  void _showLoginPrompt() {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor:
-            isDarkMode ? AppColors.darkThemeBackground : Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        title: Text(
-          'Feature Requires Account',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: isDarkMode
-                ? AppColors.boldHeadlineColor2
-                : AppColors.boldHeadlineColor5,
-          ),
-        ),
-        content: Text(
-          'Create an account or sign in to access all features including personalized views.',
-          style: TextStyle(
-            fontSize: 16,
-            color: isDarkMode
-                ? AppColors.secondaryHeadlineColor2
-                : AppColors.secondaryHeadlineColor,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            style: TextButton.styleFrom(
-              foregroundColor: isDarkMode ? Colors.grey[400] : Colors.grey[700],
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            ),
-            child: Text(
-              'Cancel',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryColor,
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
-              ),
-              elevation: 0,
-            ),
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => CreateAccountScreen()),
-              );
-            },
-            child: Text(
-              'Create Account',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.white,
-              ),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryColor,
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
-              ),
-              elevation: 0,
-            ),
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => LoginPage()),
-              );
-            },
-            child: const Text(
-              'Login',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ],
-        actionsAlignment: MainAxisAlignment.spaceBetween,
-        actionsPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        titlePadding: EdgeInsets.fromLTRB(24, 24, 24, 12),
-        contentPadding: EdgeInsets.fromLTRB(24, 0, 24, 24),
-      ),
-    );
-  }
 
   Widget _buildViewButton(
     BuildContext context, {
@@ -333,7 +207,7 @@ class _ViewSelectorState extends State<ViewSelector> {
                   : AppColors.dividerColorlight,
           borderRadius: BorderRadius.circular(30),
         ),
-        child: Text(
+        child: TranslatedText(
           label,
           style: TextStyle(
             color: isSelected

@@ -24,19 +24,6 @@ export const useAnalyticsPreferences = () => {
   const userId = user?.id || '';
   const groupId = activeGroup?.id || '';
 
-  // Track the previous group ID to detect group changes
-  const prevGroupIdRef = useRef<string | undefined>(undefined);
-
-  // Update previous group ID after we've processed the current one
-  useEffect(() => {
-    // Only update if groupId is actually different and defined
-    if (groupId && prevGroupIdRef.current !== groupId) {
-      prevGroupIdRef.current = groupId;
-    }
-  }, [groupId]);
-
-  const prevGroupId = prevGroupIdRef.current;
-
   // Only fetch preferences if both userId and groupId are available
   const shouldFetchPreferences = !!(userId && groupId);
 
@@ -55,7 +42,7 @@ export const useAnalyticsPreferences = () => {
       return null;
     }
     // Sort by lastAccessed date (most recent first) and take the first one
-    return preferencesData.preferences.sort(
+    return [...preferencesData.preferences].sort(
       (a, b) =>
         new Date(b.lastAccessed || b.updatedAt).getTime() -
         new Date(a.lastAccessed || a.updatedAt).getTime()
@@ -64,13 +51,8 @@ export const useAnalyticsPreferences = () => {
 
   // Extract selected sites IDs
   const selectedSiteIds = useMemo(() => {
-    // If we're switching groups or don't have data yet, return empty array
-    // This prevents showing old group's selected sites while new data loads
-    if (
-      !currentPreference ||
-      preferencesLoading ||
-      (prevGroupId && prevGroupId !== groupId && prevGroupId !== undefined)
-    ) {
+    // While the current group's preferences are loading, avoid showing stale data.
+    if (!currentPreference || preferencesLoading) {
       return [];
     }
 
@@ -78,22 +60,17 @@ export const useAnalyticsPreferences = () => {
       return [];
     }
     return currentPreference.selected_sites.map((site: Site) => site._id);
-  }, [currentPreference, preferencesLoading, groupId, prevGroupId]);
+  }, [currentPreference, preferencesLoading]);
 
   // Get full selected sites data
   const selectedSites = useMemo(() => {
-    // If we're switching groups or don't have data yet, return empty array
-    // This prevents showing old group's selected sites while new data loads
-    if (
-      !currentPreference ||
-      preferencesLoading ||
-      (prevGroupId && prevGroupId !== groupId && prevGroupId !== undefined)
-    ) {
+    // While the current group's preferences are loading, avoid showing stale data.
+    if (!currentPreference || preferencesLoading) {
       return [];
     }
 
     return currentPreference?.selected_sites || [];
-  }, [currentPreference, preferencesLoading, groupId, prevGroupId]);
+  }, [currentPreference, preferencesLoading]);
 
   // Combined loading state - only show loading if we should fetch and are actually loading
   const isLoading =
@@ -212,27 +189,77 @@ export const useAnalyticsSiteCards = () => {
 
   const [siteCards, setSiteCards] = useState<SiteData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const isFetchingRef = useRef(false);
+  const activeRequestKeyRef = useRef<string | null>(null);
+  const pendingRefetchRef = useRef(false);
+  const selectedSitesRef = useRef(selectedSites);
+  const selectedSiteIdsRef = useRef(selectedSiteIds);
+  const pollutantRef = useRef(filters.pollutant);
+  const getRecentReadingsRef = useRef(getRecentReadings);
+
+  useEffect(() => {
+    selectedSitesRef.current = selectedSites;
+  }, [selectedSites]);
+
+  useEffect(() => {
+    selectedSiteIdsRef.current = selectedSiteIds;
+  }, [selectedSiteIds]);
+
+  useEffect(() => {
+    pollutantRef.current = filters.pollutant;
+  }, [filters.pollutant]);
+
+  useEffect(() => {
+    getRecentReadingsRef.current = getRecentReadings;
+    pendingRefetchRef.current = false;
+    activeRequestKeyRef.current = null;
+  }, [getRecentReadings]);
+
+  const selectedSiteIdsKey = useMemo(
+    () => selectedSiteIds.join(','),
+    [selectedSiteIds]
+  );
 
   // Fetch real site data using recent readings API
   const fetchSiteCards = useCallback(async () => {
+    const localSelectedSites = selectedSitesRef.current;
+    const localSelectedSiteIds = selectedSiteIdsRef.current;
+    const localPollutant = pollutantRef.current;
+    const requestKey = `${localSelectedSiteIds.join(',')}|${localPollutant}`;
+
     // If no selected sites, show empty cards instead of returning early
-    if (!selectedSiteIds.length) {
+    if (!localSelectedSiteIds.length) {
+      activeRequestKeyRef.current = null;
+      pendingRefetchRef.current = false;
       setSiteCards([]);
       return;
     }
+
+    if (isFetchingRef.current) {
+      pendingRefetchRef.current = true;
+      return;
+    }
+
+    isFetchingRef.current = true;
+    activeRequestKeyRef.current = requestKey;
 
     setIsLoading(true);
 
     try {
       // Join site IDs with comma
-      const siteIdsParam = selectedSiteIds.join(',');
+      const siteIdsParam = localSelectedSiteIds.join(',');
 
-      const response = await getRecentReadings({
+      const response = await getRecentReadingsRef.current({
         site_id: siteIdsParam,
       });
 
+      if (activeRequestKeyRef.current !== requestKey) {
+        pendingRefetchRef.current = true;
+        return;
+      }
+
       // Create site cards for all selected sites
-      const cards: SiteData[] = selectedSites.map(selectedSite => {
+      const cards: SiteData[] = localSelectedSites.map(selectedSite => {
         // Find matching measurement data
         const measurement = response?.measurements?.find(
           m => m.site_id === selectedSite._id
@@ -242,7 +269,7 @@ export const useAnalyticsSiteCards = () => {
           // Use the normalization for sites with data
           const normalized = normalizeRecentReadingsToSiteData(
             [measurement],
-            filters.pollutant as 'pm2_5' | 'pm10'
+            localPollutant as 'pm2_5' | 'pm10'
           );
           return normalized[0];
         } else {
@@ -257,7 +284,7 @@ export const useAnalyticsSiteCards = () => {
             location: selectedSite.country || 'Unknown Country',
             value: 0,
             status: 'no-value' as const,
-            pollutant: filters.pollutant as 'pm2_5' | 'pm10',
+            pollutant: localPollutant as 'pm2_5' | 'pm10',
             unit: 'μg/m³',
             trend: 'stable' as const,
             percentageDifference: 0,
@@ -267,9 +294,15 @@ export const useAnalyticsSiteCards = () => {
 
       setSiteCards(cards);
     } catch (err) {
+      if (activeRequestKeyRef.current !== requestKey) {
+        pendingRefetchRef.current = true;
+        return;
+      }
+
       console.error('Error fetching recent readings:', err);
+
       // Still show selected sites even if API fails
-      const cards: SiteData[] = selectedSites.map(selectedSite => {
+      const cards: SiteData[] = localSelectedSites.map(selectedSite => {
         return {
           _id: selectedSite._id,
           name:
@@ -280,7 +313,7 @@ export const useAnalyticsSiteCards = () => {
           location: selectedSite.country || 'Unknown Country',
           value: 0,
           status: 'no-value' as const,
-          pollutant: filters.pollutant as 'pm2_5' | 'pm10',
+          pollutant: localPollutant as 'pm2_5' | 'pm10',
           unit: 'μg/m³',
           trend: 'stable' as const,
           percentageDifference: 0,
@@ -289,19 +322,31 @@ export const useAnalyticsSiteCards = () => {
       setSiteCards(cards);
     } finally {
       setIsLoading(false);
+      isFetchingRef.current = false;
+      activeRequestKeyRef.current = null;
+
+      if (pendingRefetchRef.current) {
+        pendingRefetchRef.current = false;
+        void fetchSiteCards();
+      }
     }
-  }, [selectedSiteIds, selectedSites, getRecentReadings, filters.pollutant]);
+  }, []);
 
   // Auto-fetch when selectedSiteIds or pollutant changes
   useEffect(() => {
     fetchSiteCards();
+  }, [fetchSiteCards, selectedSiteIdsKey, filters.pollutant]);
+
+  const refetchSiteCards = useCallback(async () => {
+    pendingRefetchRef.current = false;
+    await fetchSiteCards();
   }, [fetchSiteCards]);
 
   return {
     siteCards,
     isLoading: isLoading || isMutating,
     error: null, // TODO: handle error from API
-    refetch: fetchSiteCards,
+    refetch: refetchSiteCards,
   };
 };
 

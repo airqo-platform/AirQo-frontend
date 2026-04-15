@@ -13,6 +13,7 @@ import 'package:airqo/src/app/shared/services/notification_manager.dart';
 import 'package:airqo/src/app/shared/services/cache_manager.dart';
 import 'package:airqo/src/app/auth/services/auth_validation_helper.dart';
 import 'package:airqo/src/app/auth/pages/login_page.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 
 class MyPlacesView extends StatefulWidget {
   final UserPreferencesModel? userPreferences;
@@ -185,14 +186,14 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text(
+          title: TranslatedText(
             "Cannot Remove Default Location",
             style: TextStyle(
               fontWeight: FontWeight.bold,
               color: Theme.of(context).textTheme.headlineSmall?.color,
             ),
           ),
-          content: Text(
+          content: TranslatedText(
             "You need to have at least one location in My Places. Add another location before removing this one.",
             style: TextStyle(
               color: Theme.of(context).textTheme.bodyMedium?.color,
@@ -201,7 +202,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(
+              child: TranslatedText(
                 "OK",
                 style: TextStyle(
                   color: AppColors.primaryColor,
@@ -285,7 +286,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
 
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const LocationSelectionScreen()),
+      MaterialPageRoute(builder: (context) => LocationSelectionScreen()),
     );
 
     if (result != null && mounted) {
@@ -331,7 +332,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
           loggy.error('Authentication error detected: ${state.message}');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.message),
+              content: TranslatedText(state.message),
               duration: const Duration(seconds: 8),
               action: SnackBarAction(
                 label: 'Log In',
@@ -427,7 +428,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
       children: [
         Padding(
           padding: const EdgeInsets.only(left: 16, top: 24, bottom: 8),
-          child: Text(
+          child: TranslatedText(
             'Add places you love',
             style: TextStyle(
               fontSize: 22,
@@ -438,7 +439,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
         ),
         Padding(
           padding: const EdgeInsets.only(left: 16, bottom: 24),
-          child: Text(
+          child: TranslatedText(
             'Start by adding locations you care about.',
             style: TextStyle(
               fontSize: 16,
@@ -471,7 +472,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
                 height: 160,
                 width: double.infinity,
                 alignment: Alignment.center,
-                child: Text(
+                child: TranslatedText(
                   '+Add Location',
                   style: TextStyle(
                     color: AppColors.primaryColor,

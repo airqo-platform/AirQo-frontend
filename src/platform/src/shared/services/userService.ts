@@ -5,11 +5,12 @@ import {
   createServerClient,
   createOpenClient,
 } from './apiClient';
-import { getSession } from 'next-auth/react';
+import { syncClientSessionToken } from './sessionAuthToken';
 import type {
   UserDetailsResponse,
   UserRolesResponse,
   ApiErrorResponse,
+  GetRolesSummaryResponse,
   UpdatePreferencesRequest,
   UpdatePreferencesResponse,
   UpdateUserDetailsRequest,
@@ -19,7 +20,6 @@ import type {
   VerifyEmailResponse,
   CreateOrganizationRequest,
   CreateOrganizationResponse,
-  SlugAvailabilityResponse,
   InitiateAccountDeletionResponse,
   ConfirmAccountDeletionResponse,
   GetGroupJoinRequestsResponse,
@@ -39,6 +39,7 @@ import type {
   SetGroupManagerResponse,
   UpdateGroupTitleRequest,
   UpdateGroupTitleResponse,
+  UpdateUserRoleResponse,
 } from '../types/api';
 
 export class UserService {
@@ -53,12 +54,7 @@ export class UserService {
   }
 
   private async ensureAuthenticated() {
-    const session = await getSession();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const token = (session as any)?.accessToken;
-    if (token) {
-      this.authenticatedClient.setAuthToken(token);
-    }
+    await syncClientSessionToken(this.authenticatedClient);
   }
 
   // Get user details - authenticated endpoint
@@ -74,6 +70,67 @@ export class UserService {
     }
 
     return data as UserDetailsResponse;
+  }
+
+  // Get all roles and permissions summary - authenticated endpoint
+  async getRolesSummary(
+    page = 1,
+    limit = 100
+  ): Promise<GetRolesSummaryResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.get<
+      GetRolesSummaryResponse | ApiErrorResponse
+    >(`/users/roles/summary?page=${page}&limit=${limit}`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to get roles summary');
+    }
+
+    return data as GetRolesSummaryResponse;
+  }
+
+  // Get all roles and permissions summary across all pages - authenticated endpoint
+  async getAllRolesSummary(limit = 100): Promise<GetRolesSummaryResponse> {
+    const firstPage = await this.getRolesSummary(1, limit);
+    const roles = [...firstPage.roles];
+
+    const totalPages = firstPage.meta.pages || 1;
+    for (let page = 2; page <= totalPages; page += 1) {
+      const nextPage = await this.getRolesSummary(page, limit);
+      roles.push(...nextPage.roles);
+    }
+
+    return {
+      ...firstPage,
+      meta: {
+        ...firstPage.meta,
+        total: roles.length,
+        page: 1,
+        pages: 1,
+        skip: 0,
+        limit: roles.length || firstPage.meta.limit,
+      },
+      roles,
+    };
+  }
+
+  // Update a user's role - authenticated endpoint
+  async updateUserRole(
+    userId: string,
+    roleId: string
+  ): Promise<UpdateUserRoleResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.put<
+      UpdateUserRoleResponse | ApiErrorResponse
+    >(`/users/roles/${roleId}/user/${userId}`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to update user role');
+    }
+
+    return data as UpdateUserRoleResponse;
   }
 
   // Get user roles and permissions - authenticated endpoint
@@ -206,20 +263,6 @@ export class UserService {
     }
 
     return data as CreateOrganizationResponse;
-  }
-
-  // Check slug availability - open endpoint
-  async checkSlugAvailability(slug: string): Promise<SlugAvailabilityResponse> {
-    const response = await this.openClient.get<
-      SlugAvailabilityResponse | ApiErrorResponse
-    >(`/users/org-requests/slug-availability/${slug}`);
-    const data = response.data;
-
-    if ('success' in data && !data.success) {
-      throw new Error(data.message || 'Failed to check slug availability');
-    }
-
-    return data as SlugAvailabilityResponse;
   }
 
   // Initiate account deletion - authenticated endpoint

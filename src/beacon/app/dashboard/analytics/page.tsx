@@ -72,12 +72,12 @@ export default function AnalyticsPage() {
         force: false,
         run_in_background: true
       })
-      
+
       toast({
         title: "Sync Triggered",
-        description: result.message || "AirQlouds (Cohorts) sync has been triggered successfully.",
+        description: result.message || "Cohorts sync has been triggered successfully.",
       })
-      
+
       // Refresh the table after a short delay to allow sync to complete
       setTimeout(() => {
         setRefreshKey(prev => prev + 1)
@@ -85,7 +85,7 @@ export default function AnalyticsPage() {
     } catch (error) {
       toast({
         title: "Sync Failed",
-        description: error instanceof Error ? error.message : "Failed to sync AirQlouds (Cohorts).",
+        description: error instanceof Error ? error.message : "Failed to sync Cohorts.",
         variant: "destructive",
       })
     } finally {
@@ -106,7 +106,7 @@ export default function AnalyticsPage() {
     if (filterState.selectedItems.length === 0) {
       toast({
         title: "No Items Selected",
-        description: `Please select at least one ${filterState.filterType === 'airqlouds' ? 'AirQloud (Cohort)' : 'Device'} to analyse.`,
+        description: `Please select at least one ${filterState.filterType === 'airqlouds' ? 'Cohort' : 'Device'} to analyse.`,
         variant: "destructive",
       })
       return
@@ -122,7 +122,7 @@ export default function AnalyticsPage() {
       endDate.setHours(23, 59, 59, 999)
 
       let response
-      
+
       if (filterState.filterType === "airqlouds") {
         response = await airQloudService.getAirQloudPerformance({
           start: startDate.toISOString(),
@@ -134,7 +134,7 @@ export default function AnalyticsPage() {
         response = await deviceApiService.getDevicePerformanceData({
           start: startDate.toISOString(),
           end: endDate.toISOString(),
-          ids: filterState.selectedItems,
+          deviceNames: filterState.selectedItems,
         })
       }
 
@@ -145,7 +145,7 @@ export default function AnalyticsPage() {
         to: endDate.toISOString(),
       }))
       sessionStorage.setItem('analysisType', filterState.filterType)
-      
+
       router.push('/dashboard/analytics/analysis')
     } catch (error) {
       toast({
@@ -203,13 +203,13 @@ export default function AnalyticsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
-    
+
     // Close dialog immediately when submit is clicked
     setOpen(false)
 
     try {
       if (includeDevices && csvFile) {
-        // Create AirQloud with devices
+        // Create Cohort with devices
         const response = await airQloudService.createAirQloudWithDevices(
           csvFile,
           formData.name,
@@ -217,10 +217,10 @@ export default function AnalyticsPage() {
           undefined, // visibility not used
           columnMappings
         )
-        
+
         toast({
           title: "Success",
-          description: `AirQloud (Cohort) "${response.airqloud.name}" created with ${response.devices_added} devices added successfully.`,
+          description: `Cohort "${response.airqloud.name}" created with ${response.devices_added} devices added successfully.`,
           variant: "default",
         })
 
@@ -233,17 +233,17 @@ export default function AnalyticsPage() {
           console.error("Failed devices:", response.errors)
         }
       } else {
-        // Create simple AirQloud
+        // Create simple Cohort
         const payload = {
           name: formData.name,
           ...(formData.country && { country: formData.country }),
         }
 
         const response = await airQloudService.createAirQloud(payload)
-        
+
         toast({
           title: "Success",
-          description: `AirQloud (Cohort) "${response.name}" has been created successfully.`,
+          description: `Cohort "${response.name}" has been created successfully.`,
           variant: "default",
         })
       }
@@ -255,7 +255,7 @@ export default function AnalyticsPage() {
     } catch (error) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create AirQloud (Cohort)",
+        description: error instanceof Error ? error.message : "Failed to create Cohort",
         variant: "destructive",
       })
     } finally {
@@ -265,43 +265,9 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-6 p-6">
-      {/* <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">AirQloud Uptime</h1>
-      </div> */}
-
-      {/* Info Card and Sync Button */}
-      <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
-        <CardContent className="flex items-center justify-between gap-4 py-3">
-          <div className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400">
-            <Info className="h-4 w-4 flex-shrink-0" />
-            <span>
-              AirQlouds (Cohorts) are created from{" "}
-              <a 
-                href="https://vertex.airqo.net" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 font-medium underline underline-offset-4 hover:text-blue-800 dark:hover:text-blue-200"
-              >
-                vertex.airqo.net
-                <ExternalLink className="h-3 w-3" />
-              </a>
-            </span>
-          </div>
-          <Button
-            variant="outline"
-            onClick={handleSyncAirQlouds}
-            disabled={isSyncing}
-            className="gap-2 flex-shrink-0"
-          >
-            <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
-            {isSyncing ? 'Syncing...' : 'Sync AirQlouds (Cohorts)'}
-          </Button>
-        </CardContent>
-      </Card>
-
       {/* Filters Component */}
-      <AnalyticsFilters 
-        onFilterChange={handleFilterChange} 
+      <AnalyticsFilters
+        onFilterChange={handleFilterChange}
         onAnalyse={handleAnalyse}
         isAnalysing={isAnalysing}
       />
