@@ -87,15 +87,16 @@ const TokenDisplay: React.FC<TokenDisplayProps> = ({
         </div>
 
         <div className="flex items-center gap-2 min-w-0">
-          {showStatusBadge && (expired ? (
-            <span className="inline-flex items-center whitespace-nowrap px-3 py-0.5 rounded-full text-xs font-semibold bg-red-600 text-white">
-              Expired
-            </span>
-          ) : expiringSoon ? (
-            <span className="inline-flex items-center whitespace-nowrap px-3 py-0.5 rounded-full text-xs font-semibold bg-yellow-600 text-white">
-              Expires soon
-            </span>
-          ) : null)}
+          {showStatusBadge &&
+            (expired ? (
+              <span className="inline-flex items-center whitespace-nowrap px-3 py-0.5 rounded-full text-xs font-semibold bg-red-600 text-white">
+                Expired
+              </span>
+            ) : expiringSoon ? (
+              <span className="inline-flex items-center whitespace-nowrap px-3 py-0.5 rounded-full text-xs font-semibold bg-yellow-600 text-white">
+                Expires soon
+              </span>
+            ) : null)}
 
           <p
             className={`${expired ? 'text-red-700' : 'text-gray-500 dark:text-gray-400'} text-xs whitespace-nowrap`}
