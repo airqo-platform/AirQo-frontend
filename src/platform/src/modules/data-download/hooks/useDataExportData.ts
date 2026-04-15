@@ -116,7 +116,7 @@ export const useDataExportData = (
   // that hooks must be called unconditionally, so the safest change is to
   // add an `enabled` parameter to the hook and early-return a safe noop
   // result when disabled.
-  const activeGroupCohorts = useActiveGroupCohorts();
+  const activeGroupCohorts = useActiveGroupCohorts(isOrgFlow);
 
   const orgSitesHook = useActiveGroupCohortSitesWithState(
     sitesParams,

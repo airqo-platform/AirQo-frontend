@@ -157,6 +157,8 @@ const DataExportPage = () => {
   );
 
   const {
+    sitesHook,
+    devicesHook,
     currentHook,
     tableData,
     processedSitesData,
@@ -204,6 +206,7 @@ const DataExportPage = () => {
   const currentState = tabStates[activeTab];
   const config = getTabConfig(activeTab);
   const meta = currentHook.data?.meta || { total: 0, page: 1, totalPages: 1 };
+  const tableLoading = currentHook.isLoading && tableData.length === 0;
 
   // Reset device pagination when category changes
   useEffect(() => {
@@ -230,7 +233,11 @@ const DataExportPage = () => {
 
   // BAM device exports under Devices tab always use raw data type
   useEffect(() => {
-    if (activeTab === 'devices' && deviceCategory === 'bam' && dataType !== 'raw') {
+    if (
+      activeTab === 'devices' &&
+      deviceCategory === 'bam' &&
+      dataType !== 'raw'
+    ) {
       setDataType('raw');
     }
   }, [activeTab, deviceCategory, dataType, setDataType]);
@@ -426,8 +433,8 @@ const DataExportPage = () => {
               isDownloadReady={isDownloadReady}
               sitesData={(currentHook.data as CohortSitesResponse)?.sites}
               devicesData={(currentHook.data as CohortDevicesResponse)?.devices}
-              isLoadingSites={false} // TODO: Get from hooks
-              isLoadingDevices={false} // TODO: Get from hooks
+              isLoadingSites={sitesHook.isLoading}
+              isLoadingDevices={devicesHook.isLoading}
               pathname={pathname}
             />
 
@@ -472,7 +479,7 @@ const DataExportPage = () => {
               activeTab={activeTab}
               tableData={tableData}
               columns={config.columns}
-              loading={currentHook.isLoading}
+              loading={tableLoading}
               error={currentHook.error?.message || null}
               currentPage={currentState.page}
               totalPages={meta.totalPages}

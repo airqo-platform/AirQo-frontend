@@ -174,7 +174,8 @@ export const useActiveGroupCohortSites = (
   params: CohortSitesParams = {},
   enabled = true
 ) => {
-  const { cohortIds, isLoading: cohortsLoading } = useActiveGroupCohorts();
+  const { cohortIds, isLoading: cohortsLoading } =
+    useActiveGroupCohorts(enabled);
 
   return useCohortSitesQuery(cohortIds, params, enabled, cohortsLoading);
 };
@@ -232,7 +233,8 @@ export const useActiveGroupCohortDevices = (
   params: CohortDevicesParams = {},
   enabled = true
 ) => {
-  const { cohortIds, isLoading: cohortsLoading } = useActiveGroupCohorts();
+  const { cohortIds, isLoading: cohortsLoading } =
+    useActiveGroupCohorts(enabled);
 
   return useCohortDevicesQuery(cohortIds, params, enabled, cohortsLoading);
 };
@@ -251,7 +253,7 @@ export const useActiveGroupCohortDevicesWithState = (
 };
 
 // Enhanced hook for managing active group cohorts with Redux store
-export const useActiveGroupCohorts = () => {
+export const useActiveGroupCohorts = (enabled = true) => {
   const dispatch = useDispatch();
   const activeGroup = useSelector(selectActiveGroup);
   const activeGroupCohorts = useSelector(selectActiveGroupCohorts);
@@ -259,12 +261,16 @@ export const useActiveGroupCohorts = () => {
   const error = useSelector(selectCohortsError);
   const lastFetchedGroupId = useSelector(selectLastFetchedGroupId);
   const previousGroupIdRef = useRef<string | null>(null);
+  const latestGroupIdRef = useRef<string | null>(null);
 
   const groupId = activeGroup?.id;
+  useEffect(() => {
+    latestGroupIdRef.current = groupId ?? null;
+  }, [groupId]);
   const hasStaleCohortsForGroup =
     !!groupId && !!lastFetchedGroupId && lastFetchedGroupId !== groupId;
   const shouldFetch =
-    (!!groupId && !lastFetchedGroupId) || hasStaleCohortsForGroup;
+    enabled && ((!!groupId && !lastFetchedGroupId) || hasStaleCohortsForGroup);
 
   useEffect(() => {
     const previousGroupId = previousGroupIdRef.current;
@@ -291,10 +297,13 @@ export const useActiveGroupCohorts = () => {
         ...SWR_STABLE_REQUEST_OPTIONS,
         dedupingInterval: 30000, // Cache for 30 seconds
         onLoadingSlow: () => {
+          if (!enabled || latestGroupIdRef.current !== groupId) {
+            return;
+          }
           dispatch(setCohortsLoading(true));
         },
         onSuccess: data => {
-          if (!groupId) {
+          if (!enabled || !groupId || latestGroupIdRef.current !== groupId) {
             return;
           }
 
@@ -319,25 +328,33 @@ export const useActiveGroupCohorts = () => {
           dispatch(setCohortsError(data?.message || 'Failed to fetch cohorts'));
         },
         onError: err => {
+          if (!enabled || latestGroupIdRef.current !== groupId) {
+            return;
+          }
           dispatch(setCohortsError(err.message || 'Failed to fetch cohorts'));
         },
       }
     );
 
   const resolvedCohortIds =
-    groupId && lastFetchedGroupId === groupId ? activeGroupCohorts : [];
+    enabled && groupId && lastFetchedGroupId === groupId
+      ? activeGroupCohorts
+      : [];
   const hasCohortError = Boolean(error || swrError);
-  const hasPendingGroup = !!groupId && lastFetchedGroupId !== groupId;
+  const hasPendingGroup =
+    enabled && !!groupId && lastFetchedGroupId !== groupId;
+  const resolvedError = enabled ? error || swrError : null;
 
   return {
     cohortIds: resolvedCohortIds,
-    isLoading:
-      isLoading ||
-      (Boolean(groupId) && swrIsLoading) ||
-      (hasPendingGroup && !hasCohortError),
-    error: error || swrError,
+    isLoading: enabled
+      ? isLoading ||
+        (Boolean(groupId) && swrIsLoading) ||
+        (hasPendingGroup && !hasCohortError)
+      : false,
+    error: resolvedError,
     refetch: () => {
-      if (groupId) {
+      if (enabled && groupId) {
         // Force refetch by updating the key
         mutate(['group/cohorts', groupId]);
       }
