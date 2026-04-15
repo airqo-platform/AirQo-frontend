@@ -7,13 +7,55 @@ import { useUser } from '@/shared/hooks/useUser';
 import { createSteps } from '../utils/steps';
 import type { UpdateChecklistItem } from '../types';
 import { initializeChecklistTemplate } from '../utils';
+import type {
+  GetUserChecklistResponse,
+  UserChecklist,
+} from '@/shared/types/api';
+
+type ChecklistPayload = Partial<GetUserChecklistResponse> & {
+  checklist?: UserChecklist;
+  data?: {
+    checklist?: UserChecklist;
+    checklists?: UserChecklist[];
+  };
+};
+
+const resolveChecklistFromPayload = (
+  payload: unknown
+): UserChecklist | null => {
+  if (!payload || typeof payload !== 'object') {
+    return null;
+  }
+
+  const candidate = payload as ChecklistPayload;
+
+  if (candidate.checklist) {
+    return candidate.checklist;
+  }
+
+  if (Array.isArray(candidate.checklists) && candidate.checklists.length > 0) {
+    return candidate.checklists[0];
+  }
+
+  if (candidate.data?.checklist) {
+    return candidate.data.checklist;
+  }
+
+  if (
+    Array.isArray(candidate.data?.checklists) &&
+    candidate.data.checklists.length > 0
+  ) {
+    return candidate.data.checklists[0];
+  }
+
+  return null;
+};
 
 export const useChecklist = (userId: string | null) => {
   const { data, error, isLoading, mutate } = useUserChecklist(userId);
   const [initializationAttempted, setInitializationAttempted] = useState(false);
 
-  // Extract checklist from data
-  const checklist = data?.checklists?.[0] || null;
+  const checklist = resolveChecklistFromPayload(data);
   const checklistItems = checklist?.items || [];
 
   // Check if checklist is empty and needs initialization
@@ -30,8 +72,7 @@ export const useChecklist = (userId: string | null) => {
     userId &&
     !initializationAttempted &&
     (!data || // No data at all
-      (data.success === true &&
-        (!Array.isArray(data.checklists) || data.checklists.length === 0)) || // Success but empty/invalid checklists
+      (data.success === true && !checklist) || // Success but empty/invalid checklist payload
       (error &&
         (error.message?.includes('404') ||
           error.message?.includes('Not Found')))); // API endpoint doesn't exist for new user

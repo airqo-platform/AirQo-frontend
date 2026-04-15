@@ -44,8 +44,27 @@ export class AnalyticsService {
   async getRecentReadings(
     request: RecentReadingRequest
   ): Promise<RecentReadingsResponse> {
+    const normalizedSiteIds = (request.site_id || '')
+      .split(',')
+      .map(siteId => siteId.trim())
+      .filter(Boolean)
+      .join(',');
+
+    if (!normalizedSiteIds) {
+      return {
+        success: true,
+        message: 'No site IDs provided',
+        measurements: [],
+      };
+    }
+
     const response = await this.serverClient.get<RecentReadingsResponse>(
-      `/devices/readings/recent?site_id=${request.site_id}`
+      '/devices/readings/recent',
+      {
+        params: {
+          site_id: normalizedSiteIds,
+        },
+      }
     );
     return response.data;
   }

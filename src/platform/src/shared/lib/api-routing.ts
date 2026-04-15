@@ -127,11 +127,16 @@ const isAlreadyVersionedPath = (value: string): boolean => {
 
 export const resolveApiOrigin = (): string => {
   const configuredBaseUrl =
-    process.env.API_BASE_URL || process.env.NEXT_PUBLIC_BASE_URL || '';
+    process.env.API_BASE_URL ||
+    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    '';
 
   const normalizedOrigin = stripApiSuffix(configuredBaseUrl);
   if (!normalizedOrigin) {
-    throw new Error('API_BASE_URL is not defined in environment variables');
+    throw new Error(
+      'API base URL is not defined. Set API_BASE_URL or NEXT_PUBLIC_API_BASE_URL in environment variables.'
+    );
   }
 
   return normalizedOrigin;

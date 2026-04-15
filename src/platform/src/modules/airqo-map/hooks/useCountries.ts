@@ -43,6 +43,9 @@ export function useCountries(cohort_id?: string | null): UseCountriesResult {
     },
     enabled,
     networkMode: 'online',
+    retry: 1,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
     staleTime: 1000 * 60 * 10,
     gcTime: 1000 * 60 * 60 * 12,
   });

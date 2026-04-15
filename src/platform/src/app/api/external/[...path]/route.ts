@@ -1,133 +1,157 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/shared/lib/auth';
-import { resolveApiOrigin } from '@/shared/lib/api-routing';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-const TOKEN_ENDPOINT_ALLOWLIST: RegExp[] = [
-  /^\/api\/v\d+\/devices\/sites\/summary\/?$/i,
-  /^\/api\/v\d+\/devices\/grids\/summary\/?$/i,
-  /^\/api\/v\d+\/devices\/grids\/countries\/?$/i,
-  /^\/api\/v\d+\/devices\/readings\/map\/?$/i,
-  /^\/api\/v\d+\/devices\/readings\/recent\/?$/i,
-  /^\/api\/v\d+\/analytics\/data-download\/?$/i,
-  /^\/api\/v\d+\/users\/preferences\/replace\/?$/i,
-];
+const DEFAULT_PROXY_TIMEOUT_MS = 30000;
 
-const isAllowedTokenPath = (path: string): boolean => {
-  return TOKEN_ENDPOINT_ALLOWLIST.some(pattern => pattern.test(path));
+const resolveProxyTimeoutMs = (): number => {
+  const timeoutValue = Number.parseInt(
+    process.env.API_PROXY_TIMEOUT_MS || '',
+    10
+  );
+
+  if (!Number.isFinite(timeoutValue) || timeoutValue <= 0) {
+    return DEFAULT_PROXY_TIMEOUT_MS;
+  }
+
+  return timeoutValue;
 };
 
-const unauthorizedResponse = () =>
-  NextResponse.json(
-    { success: false, message: 'Unauthorized' },
-    { status: 401 }
-  );
+const normalizeApiBaseUrl = (baseUrl: string): string => {
+  const trimmedBaseUrl = baseUrl.trim().replace(/\/+$/, '');
 
-const forbiddenResponse = () =>
-  NextResponse.json(
-    {
-      success: false,
-      message: 'Token proxy is not allowed for this endpoint',
-    },
-    { status: 403 }
-  );
+  if (/\/api\/v\d+$/i.test(trimmedBaseUrl)) {
+    return trimmedBaseUrl;
+  }
+
+  if (/\/api$/i.test(trimmedBaseUrl)) {
+    return `${trimmedBaseUrl}/v2`;
+  }
+
+  return `${trimmedBaseUrl}/api/v2`;
+};
+
+function buildBaseUrl(): string {
+  const configuredBaseUrl =
+    process.env.API_BASE_URL ||
+    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    '';
+
+  if (!configuredBaseUrl) {
+    throw new Error(
+      'API base URL is not defined. Set API_BASE_URL or NEXT_PUBLIC_API_BASE_URL in environment variables.'
+    );
+  }
+
+  return normalizeApiBaseUrl(configuredBaseUrl);
+}
+
+const stripVersionPrefix = (path: string): string => {
+  return path.replace(/^api\/v\d+\/?/i, '');
+};
+
+const buildTargetUrl = (baseUrl: string, pathSegments: string[]): string => {
+  const targetPath = pathSegments.join('/').replace(/^\/+/, '');
+  const normalizedPath = stripVersionPrefix(targetPath);
+
+  if (!normalizedPath) {
+    return baseUrl;
+  }
+
+  return `${baseUrl}/${normalizedPath}`;
+};
 
 async function proxyRequest(request: NextRequest, pathSegments: string[]) {
   try {
-    const session = (await getServerSession(authOptions)) as {
-      user?: unknown;
-    } | null;
-    if (!session?.user) {
-      return unauthorizedResponse();
-    }
+    const baseUrl = buildBaseUrl();
+    const targetUrl = new URL(buildTargetUrl(baseUrl, pathSegments));
 
     const apiToken = (process.env.API_TOKEN || '').trim();
     if (!apiToken) {
       return NextResponse.json(
-        {
-          success: false,
-          message: 'API_TOKEN is not configured',
-        },
+        { error: 'API_TOKEN not configured' },
         { status: 500 }
       );
     }
-
-    const targetPath = `/${pathSegments.join('/')}`.replace(/\/+/g, '/');
-    if (!isAllowedTokenPath(targetPath)) {
-      return forbiddenResponse();
-    }
-
-    const targetUrl = new URL(`${resolveApiOrigin()}${targetPath}`);
 
     request.nextUrl.searchParams.forEach((value, key) => {
       if (key.toLowerCase() === 'token') {
         return;
       }
-      targetUrl.searchParams.append(key, value);
+      if (key.toLowerCase() === 'access_token') {
+        return;
+      }
+      targetUrl.searchParams.set(key, value);
     });
 
     targetUrl.searchParams.set('token', apiToken);
+    targetUrl.searchParams.set('access_token', apiToken);
 
-    const headers = new Headers();
-    headers.set('Accept', 'application/json');
-
+    const headers: Record<string, string> = {};
     const incomingContentType = request.headers.get('content-type');
     if (incomingContentType) {
-      headers.set('Content-Type', incomingContentType);
+      headers['Content-Type'] = incomingContentType;
+    } else {
+      headers['Content-Type'] = 'application/json';
     }
 
-    const init: RequestInit = {
+    const options: RequestInit = {
       method: request.method,
       headers,
       cache: 'no-store',
     };
 
     if (request.method !== 'GET' && request.method !== 'HEAD') {
-      const requestBody = await request.text();
-      if (requestBody) {
-        init.body = requestBody;
+      try {
+        const requestBody = await request.text();
+        if (requestBody) {
+          options.body = requestBody;
+        }
+      } catch (error) {
+        console.error('Failed to read request body:', error);
       }
     }
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, 10000);
+    }, resolveProxyTimeoutMs());
+
+    options.signal = controller.signal;
+
+    let response: Response;
 
     try {
-      init.signal = controller.signal;
-
-      const response = await fetch(targetUrl.toString(), init);
-
-      const responseHeaders = new Headers(response.headers);
-      responseHeaders.set(
-        'Cache-Control',
-        'no-store, no-cache, max-age=0, must-revalidate'
-      );
-      responseHeaders.set('Pragma', 'no-cache');
-      responseHeaders.set('Expires', '0');
-
-      return new NextResponse(response.body, {
-        status: response.status,
-        headers: responseHeaders,
-      });
+      response = await fetch(targetUrl.toString(), options);
     } finally {
       clearTimeout(timeoutId);
     }
+
+    const responseBody = await response.text();
+
+    return new NextResponse(responseBody, {
+      status: response.status,
+      headers: {
+        'Content-Type':
+          response.headers.get('Content-Type') || 'application/json',
+        'Cache-Control': 'no-store, no-cache, max-age=0, must-revalidate',
+        Pragma: 'no-cache',
+        Expires: '0',
+      },
+    });
   } catch (error) {
     if ((error as { name?: string })?.name === 'AbortError') {
       return NextResponse.json(
-        { success: false, message: 'Upstream request timed out' },
+        { error: 'Upstream request timed out' },
         { status: 504 }
       );
     }
 
-    console.error('Token proxy request failed:', error);
+    console.error('Proxy request failed:', error);
     return NextResponse.json(
-      { success: false, message: 'Internal server error' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
