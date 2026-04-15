@@ -4,73 +4,16 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { AqCheck } from '@airqo/icons-react';
 import { Button, Card, LoadingSpinner, toast } from '@/shared/components/ui';
 import { formatDate } from '@/shared/utils';
+import { subscriptionService } from '@/shared/services/subscriptionService';
 import type {
-  GetSubscriptionResponse,
   SubscriptionPlan,
   SubscriptionTier,
   UserSubscription,
 } from '@/shared/types/api';
 import CheckoutDialog from './CheckoutDialog';
 
-interface PlansResponse {
-  success?: boolean;
-  message?: string;
-  data?: SubscriptionPlan[];
-  plans?: SubscriptionPlan[];
-}
-
-const fallbackPlans: SubscriptionPlan[] = [
-  {
-    tier: 'Free',
-    name: 'Free',
-    price: 0,
-    currency: 'USD',
-    features: [
-      'Recent hourly measurements (7 days)',
-      'Spatial heatmaps',
-      'Community support',
-    ],
-    limits: {
-      hourly: 100,
-      daily: 1000,
-      monthly: 10000,
-    },
-  },
-  {
-    tier: 'Standard',
-    name: 'Standard',
-    price: 50,
-    currency: 'USD',
-    features: [
-      'Historical data access up to 1 year',
-      'Raw sensor data and daily aggregations',
-      'Bulk data exports',
-      'Email support',
-    ],
-    limits: {
-      hourly: 500,
-      daily: 5000,
-      monthly: 50000,
-    },
-  },
-  {
-    tier: 'Premium',
-    name: 'Premium',
-    price: 150,
-    currency: 'USD',
-    features: [
-      '7-day hourly and daily forecasts',
-      'Health recommendations',
-      'Higher rate limits',
-      'Priority support',
-    ],
-    limits: {
-      hourly: 2000,
-      daily: 20000,
-      monthly: 200000,
-    },
-  },
-];
+const BILLING_SERVICE_UNAVAILABLE_MESSAGE =
+  'Billing service is temporarily unavailable. Please try again later.';
 
 const statusBadgeStyles: Record<string, string> = {
   active:
@@ -85,7 +28,7 @@ const SubscriptionSection: React.FC = () => {
   const [subscription, setSubscription] = useState<UserSubscription | null>(
     null
   );
-  const [plans, setPlans] = useState<SubscriptionPlan[]>(fallbackPlans);
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(
@@ -94,9 +37,6 @@ const SubscriptionSection: React.FC = () => {
   const [runningAction, setRunningAction] = useState<
     'checkout' | 'autoRenew' | 'cancel' | 'renew' | null
   >(null);
-  const [comingSoonMessage, setComingSoonMessage] = useState<string | null>(
-    null
-  );
 
   const currentTier: SubscriptionTier = subscription?.tier || 'Free';
   const currentStatus = subscription?.status || 'inactive';
@@ -107,30 +47,21 @@ const SubscriptionSection: React.FC = () => {
 
     try {
       const [subscriptionResponse, plansResponse] = await Promise.all([
-        fetch('/api/subscription', { cache: 'no-store' }),
-        fetch('/api/subscription/plans', { cache: 'no-store' }),
+        subscriptionService.getSubscription(),
+        subscriptionService.getPlans(),
       ]);
 
-      const subscriptionPayload: GetSubscriptionResponse =
-        await subscriptionResponse.json();
-      const plansPayload: PlansResponse = await plansResponse.json();
+      setSubscription(
+        subscriptionResponse.success
+          ? (subscriptionResponse.subscription ?? null)
+          : null
+      );
 
-      if (subscriptionResponse.ok && subscriptionPayload.success) {
-        const incoming =
-          subscriptionPayload.data || subscriptionPayload.subscription || null;
-        if (incoming) {
-          setSubscription(incoming);
-        }
-      }
-
-      const incomingPlans = plansPayload.data || plansPayload.plans;
-      if (
-        plansResponse.ok &&
-        Array.isArray(incomingPlans) &&
-        incomingPlans.length
-      ) {
-        setPlans(incomingPlans);
-      }
+      setPlans(
+        plansResponse.success && Array.isArray(plansResponse.plans)
+          ? plansResponse.plans
+          : []
+      );
     } catch (error) {
       console.error('Error loading subscription view:', error);
       toast.error('Failed to load subscription data');
@@ -147,9 +78,9 @@ const SubscriptionSection: React.FC = () => {
     () => plans.find(plan => plan.tier === currentTier),
     [plans, currentTier]
   );
+  const hasPlans = plans.length > 0;
 
   const handleOpenCheckout = (plan: SubscriptionPlan) => {
-    setComingSoonMessage(null);
     setSelectedPlan(plan);
     setDialogOpen(true);
   };
@@ -161,34 +92,21 @@ const SubscriptionSection: React.FC = () => {
 
     try {
       setRunningAction('checkout');
-      setComingSoonMessage(null);
 
       const currentUrl = new URL(window.location.href);
       const successUrl = `${currentUrl.origin}${currentUrl.pathname}?tab=subscription&checkout=success`;
       const cancelUrl = `${currentUrl.origin}${currentUrl.pathname}?tab=subscription&checkout=cancel`;
 
-      const response = await fetch('/api/subscription/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          tier: selectedPlan.tier,
-          priceId: selectedPlan.priceId,
-          successUrl,
-          cancelUrl,
-        }),
+      const payload = await subscriptionService.createCheckoutSession({
+        tier: selectedPlan.tier,
+        priceId: selectedPlan.priceId,
+        successUrl,
+        cancelUrl,
       });
 
-      const payload = await response.json();
-
-      if (!response.ok || !payload.success) {
-        if (response.status === 503 || payload.comingSoon) {
-          const message =
-            payload.message ||
-            'Payments are temporarily unavailable while provider credentials are being configured.';
-          setComingSoonMessage(message);
-          toast.warning(message);
+      if (!payload.success) {
+        if (payload.comingSoon) {
+          toast.warning(BILLING_SERVICE_UNAVAILABLE_MESSAGE);
           return;
         }
 
@@ -223,23 +141,14 @@ const SubscriptionSection: React.FC = () => {
 
     try {
       setRunningAction('autoRenew');
-      setComingSoonMessage(null);
 
-      const response = await fetch('/api/subscription/auto-renewal', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ subscriptionId: currentSubscriptionId }),
-      });
-      const payload = await response.json();
+      const payload = await subscriptionService.enableAutoRenewal(
+        currentSubscriptionId
+      );
 
-      if (!response.ok || !payload.success) {
-        if (response.status === 503 || payload.comingSoon) {
-          setComingSoonMessage(
-            payload.message ||
-              'Automatic renewal is coming soon while payments are being enabled.'
-          );
+      if (!payload.success) {
+        if (payload.comingSoon) {
+          toast.warning(BILLING_SERVICE_UNAVAILABLE_MESSAGE);
           return;
         }
 
@@ -286,23 +195,14 @@ const SubscriptionSection: React.FC = () => {
 
     try {
       setRunningAction('cancel');
-      setComingSoonMessage(null);
 
-      const response = await fetch('/api/subscription/cancel', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ subscriptionId: currentSubscriptionId }),
-      });
-      const payload = await response.json();
+      const payload = await subscriptionService.cancelSubscription(
+        currentSubscriptionId
+      );
 
-      if (!response.ok || !payload.success) {
-        if (response.status === 503 || payload.comingSoon) {
-          setComingSoonMessage(
-            payload.message ||
-              'Cancellation is coming soon while payments are being enabled.'
-          );
+      if (!payload.success) {
+        if (payload.comingSoon) {
+          toast.warning(BILLING_SERVICE_UNAVAILABLE_MESSAGE);
           return;
         }
 
@@ -338,23 +238,14 @@ const SubscriptionSection: React.FC = () => {
 
     try {
       setRunningAction('renew');
-      setComingSoonMessage(null);
 
-      const response = await fetch('/api/subscription/reactivate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ subscriptionId: currentSubscriptionId }),
-      });
-      const payload = await response.json();
+      const payload = await subscriptionService.reactivateSubscription(
+        currentSubscriptionId
+      );
 
-      if (!response.ok || !payload.success) {
-        if (response.status === 503 || payload.comingSoon) {
-          setComingSoonMessage(
-            payload.message ||
-              'Manual renewal is coming soon while payments are being enabled.'
-          );
+      if (!payload.success) {
+        if (payload.comingSoon) {
+          toast.warning(BILLING_SERVICE_UNAVAILABLE_MESSAGE);
           return;
         }
 
@@ -496,14 +387,6 @@ const SubscriptionSection: React.FC = () => {
           </div>
         </Card>
 
-        {comingSoonMessage && (
-          <Card className="p-4 border-amber-300 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-700">
-            <p className="text-sm text-amber-900 dark:text-amber-200">
-              {comingSoonMessage}
-            </p>
-          </Card>
-        )}
-
         <div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
             Pricing Tiers
@@ -512,72 +395,81 @@ const SubscriptionSection: React.FC = () => {
             Upgrade your API access based on your product and traffic needs.
           </p>
 
-          <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
-            {plans.map(plan => {
-              const isCurrent = plan.tier === currentTier;
-              const allowCheckout = !isCurrent && plan.tier !== 'Free';
+          {hasPlans ? (
+            <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
+              {plans.map(plan => {
+                const isCurrent = plan.tier === currentTier;
+                const allowCheckout = !isCurrent && plan.tier !== 'Free';
 
-              return (
-                <Card
-                  key={plan.tier}
-                  className={`p-5 flex flex-col ${
-                    isCurrent
-                      ? 'ring-2 ring-primary/60 border-primary/40'
-                      : 'hover:shadow-md transition-shadow'
-                  }`}
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h4 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                        {plan.name}
-                      </h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        {plan.currency} {plan.price}/month
+                return (
+                  <Card
+                    key={plan.tier}
+                    className={`p-5 flex flex-col ${
+                      isCurrent
+                        ? 'ring-2 ring-primary/60 border-primary/40'
+                        : 'hover:shadow-md transition-shadow'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h4 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                          {plan.name}
+                        </h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          {plan.currency} {plan.price}/month
+                        </p>
+                      </div>
+                      {isCurrent && (
+                        <span className="inline-flex items-center rounded-full bg-primary/15 px-3 py-1 text-xs font-medium text-primary">
+                          Current
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="mt-4 rounded-lg bg-gray-50 dark:bg-gray-900/40 p-3 text-xs text-gray-700 dark:text-gray-300">
+                      <p>{plan.limits.hourly.toLocaleString()} requests/hour</p>
+                      <p>{plan.limits.daily.toLocaleString()} requests/day</p>
+                      <p>
+                        {plan.limits.monthly.toLocaleString()} requests/month
                       </p>
                     </div>
-                    {isCurrent && (
-                      <span className="inline-flex items-center rounded-full bg-primary/15 px-3 py-1 text-xs font-medium text-primary">
-                        Current
-                      </span>
-                    )}
-                  </div>
 
-                  <div className="mt-4 rounded-lg bg-gray-50 dark:bg-gray-900/40 p-3 text-xs text-gray-700 dark:text-gray-300">
-                    <p>{plan.limits.hourly.toLocaleString()} requests/hour</p>
-                    <p>{plan.limits.daily.toLocaleString()} requests/day</p>
-                    <p>{plan.limits.monthly.toLocaleString()} requests/month</p>
-                  </div>
+                    <ul className="mt-4 space-y-2 flex-1">
+                      {plan.features.map(feature => (
+                        <li
+                          key={feature}
+                          className="flex items-start gap-2 text-sm"
+                        >
+                          <AqCheck className="w-4 h-4 mt-0.5 text-emerald-600 dark:text-emerald-400" />
+                          <span className="text-gray-700 dark:text-gray-300">
+                            {feature}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
 
-                  <ul className="mt-4 space-y-2 flex-1">
-                    {plan.features.map(feature => (
-                      <li
-                        key={feature}
-                        className="flex items-start gap-2 text-sm"
-                      >
-                        <AqCheck className="w-4 h-4 mt-0.5 text-emerald-600 dark:text-emerald-400" />
-                        <span className="text-gray-700 dark:text-gray-300">
-                          {feature}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <Button
-                    className="mt-5"
-                    variant={isCurrent ? 'outlined' : 'filled'}
-                    disabled={!allowCheckout || runningAction === 'checkout'}
-                    onClick={() => handleOpenCheckout(plan)}
-                  >
-                    {isCurrent
-                      ? 'Current plan'
-                      : allowCheckout
-                        ? `Upgrade to ${plan.name}`
-                        : 'Unavailable'}
-                  </Button>
-                </Card>
-              );
-            })}
-          </div>
+                    <Button
+                      className="mt-5"
+                      variant={isCurrent ? 'outlined' : 'filled'}
+                      disabled={!allowCheckout}
+                      onClick={() => handleOpenCheckout(plan)}
+                    >
+                      {isCurrent
+                        ? 'Current plan'
+                        : allowCheckout
+                          ? `Upgrade to ${plan.name}`
+                          : 'Unavailable'}
+                    </Button>
+                  </Card>
+                );
+              })}
+            </div>
+          ) : (
+            <Card className="border border-dashed border-gray-300 dark:border-gray-700 p-5 text-sm text-gray-600 dark:text-gray-400">
+              Subscription plans are unavailable right now. Please refresh the
+              page or try again later.
+            </Card>
+          )}
         </div>
       </div>
 

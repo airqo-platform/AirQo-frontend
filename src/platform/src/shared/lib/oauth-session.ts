@@ -1,7 +1,13 @@
+import {
+  buildBrowserApiUrl,
+  buildServerApiUrl,
+  resolveApiOrigin,
+} from '@/shared/lib/api-routing';
+
 const OAUTH_SIGNED_OUT_FLAG = 'airqo:oauth-signed-out';
-const DEFAULT_PROFILE_FETCH_TIMEOUT_MS = 8000;
 const OAUTH_FRAGMENT_TOKEN_KEY = 'token';
 const OAUTH_SUCCESS_PROVIDER_KEY = 'success';
+const OAUTH_PROFILE_FETCH_TIMEOUT_MS = 10000;
 
 export interface BackendOAuthProfile {
   _id: string;
@@ -94,24 +100,20 @@ export const consumeOAuthTokenHandoffFromUrl = (): OAuthTokenHandoff | null => {
   };
 };
 
-const normalizeApiBaseUrl = (baseUrl: string): string => {
-  const trimmedBaseUrl = baseUrl.replace(/\/$/, '');
-
-  if (trimmedBaseUrl.endsWith('/api/v2')) {
-    return trimmedBaseUrl.slice(0, -'/api/v2'.length);
-  }
-
-  return trimmedBaseUrl;
-};
-
 export const getApiBaseUrl = (): string => {
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '';
-  return normalizeApiBaseUrl(baseUrl);
+  try {
+    return resolveApiOrigin();
+  } catch {
+    return '';
+  }
 };
 
 export const buildBackendApiUrl = (path: string): string => {
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-  return `${getApiBaseUrl()}/api/v2${normalizedPath}`;
+  try {
+    return buildServerApiUrl(path);
+  } catch {
+    return '';
+  }
 };
 
 export const shouldSkipBackendOAuthBootstrap = (): boolean => {
@@ -189,21 +191,23 @@ export const verifyBackendOAuthSession =
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, DEFAULT_PROFILE_FETCH_TIMEOUT_MS);
+    }, OAUTH_PROFILE_FETCH_TIMEOUT_MS);
 
     try {
-      const response = await fetch(
-        buildBackendApiUrl('/users/profile/enhanced'),
-        {
-          method: 'GET',
-          signal: controller.signal,
-          credentials: 'include',
-          cache: 'no-store',
-          headers: {
-            Accept: 'application/json',
-          },
-        }
-      );
+      const profileUrl =
+        typeof window === 'undefined'
+          ? buildServerApiUrl('/users/profile/enhanced')
+          : buildBrowserApiUrl('/users/profile/enhanced');
+
+      const response = await fetch(profileUrl, {
+        method: 'GET',
+        signal: controller.signal,
+        credentials: 'include',
+        cache: 'no-store',
+        headers: {
+          Accept: 'application/json',
+        },
+      });
 
       if (!response.ok) {
         return null;
@@ -222,7 +226,12 @@ export const verifyBackendOAuthSession =
             ? normalizeOAuthAccessToken(payload.accessToken) || undefined
             : undefined,
       };
-    } catch {
+    } catch (error) {
+      const errorName = (error as { name?: string })?.name;
+      if (errorName === 'AbortError') {
+        return null;
+      }
+
       return null;
     } finally {
       clearTimeout(timeoutId);

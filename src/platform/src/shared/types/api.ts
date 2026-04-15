@@ -1565,18 +1565,18 @@ export interface UserSubscription {
 
 export interface ApiUsage {
   hourly: {
-    used: number;
-    limit: number;
+    used: number | null;
+    limit: number | null;
     resetTime: string;
   };
   daily: {
-    used: number;
-    limit: number;
+    used: number | null;
+    limit: number | null;
     resetTime: string;
   };
   monthly: {
-    used: number;
-    limit: number;
+    used: number | null;
+    limit: number | null;
     resetTime: string;
   };
 }
@@ -1616,6 +1616,12 @@ export interface TransactionHistoryResponse {
   message: string;
   data?: Transaction[];
   transactions?: Transaction[];
+  meta?: {
+    total: number;
+    page: number;
+    totalPages: number;
+    limit: number;
+  };
 }
 
 // Accept Email Invitation Types

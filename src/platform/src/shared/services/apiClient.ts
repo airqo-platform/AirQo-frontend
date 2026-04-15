@@ -1,10 +1,15 @@
 import axios, {
+  AxiosHeaders,
   AxiosInstance,
   AxiosRequestConfig,
   AxiosResponse,
   InternalAxiosRequestConfig,
 } from 'axios';
 import logger from '@/shared/lib/logger';
+import {
+  resolveApiOrigin,
+  resolveVersionedApiPath,
+} from '@/shared/lib/api-routing';
 import { normalizeOAuthAccessToken } from '@/shared/lib/oauth-session';
 
 const UNAUTHORIZED_EVENT_NAME = 'auth:unauthorized';
@@ -12,6 +17,7 @@ const UNAUTHORIZED_EVENT_COOLDOWN_MS = 1500;
 const API_FAILURE_NOTIFY_COOLDOWN_MS = 10 * 60 * 1000;
 
 const apiFailureNotificationCache = new Map<string, number>();
+let hasLoggedMissingApiTokenWarning = false;
 
 // Extended type for config with metadata
 interface RequestConfigWithMetadata extends InternalAxiosRequestConfig {
@@ -99,11 +105,15 @@ const shouldNotifyApiFailure = (key: string): boolean => {
   return true;
 };
 
+const resolveApiToken = (): string => {
+  return (process.env.API_TOKEN || '').trim();
+};
+
 // Auth types
 export enum AuthType {
   NONE = 'none',
   JWT = 'jwt', // From next-auth session
-  API_TOKEN = 'api_token', // From env, server-side only
+  API_TOKEN = 'api_token', // Adds API token header for token-authenticated endpoints
 }
 
 // Base API client class
@@ -128,25 +138,18 @@ export class ApiClient {
 
   private buildBaseUrl(): string {
     if (this.authType === AuthType.API_TOKEN) {
-      // For API_TOKEN, use internal proxy route
-      return '/api/external';
+      if (typeof window !== 'undefined') {
+        return '/api/external';
+      }
+
+      return resolveApiOrigin();
     }
 
-    const baseUrl =
-      process.env.NEXT_PUBLIC_API_BASE_URL || process.env.API_BASE_URL;
-    if (!baseUrl) {
-      throw new Error('API_BASE_URL is not defined in environment variables');
+    if (typeof window !== 'undefined') {
+      return '';
     }
 
-    // Remove trailing slash
-    const cleanBaseUrl = baseUrl.replace(/\/$/, '');
-
-    if (cleanBaseUrl.endsWith('/api/v2')) {
-      return cleanBaseUrl;
-    }
-
-    // If it doesn't end with /api/v2, add it
-    return `${cleanBaseUrl}/api/v2`;
+    return resolveApiOrigin();
   }
 
   private setupInterceptors() {
@@ -158,6 +161,10 @@ export class ApiClient {
           startTime: Date.now(),
         };
 
+        if (typeof config.url === 'string') {
+          config.url = resolveVersionedApiPath(config.url);
+        }
+
         // Log outgoing requests at debug level (dev only)
         // Only compute expensive data size when debug logging is actually enabled
         // API request logging removed to reduce console noise
@@ -166,7 +173,20 @@ export class ApiClient {
           // JWT tokens are set via setAuthToken() method
           // The Authorization header should already be set on the client defaults
         } else if (this.authType === AuthType.API_TOKEN) {
-          // Token is handled by the internal proxy route
+          if (typeof window === 'undefined') {
+            const apiToken = resolveApiToken();
+
+            if (apiToken) {
+              const headers = AxiosHeaders.from(config.headers);
+              headers.set('X-API-Token', apiToken);
+              config.headers = headers;
+            } else if (!apiToken && !hasLoggedMissingApiTokenWarning) {
+              hasLoggedMissingApiTokenWarning = true;
+              logger.warn(
+                'API token client is active but no token is configured. Set API_TOKEN in server environment variables.'
+              );
+            }
+          }
         }
         return config;
       },
@@ -394,7 +414,7 @@ export class ApiClient {
       this.removeAuthToken();
       return;
     }
-    const cleanToken = `Bearer ${normalizedToken}`;
+    const cleanToken = `JWT ${normalizedToken}`;
     this.client.defaults.headers.common['Authorization'] = cleanToken;
   }
 

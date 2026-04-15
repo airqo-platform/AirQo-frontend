@@ -283,37 +283,58 @@ export const useActiveGroupCohorts = () => {
   }, [groupId, activeGroupCohorts.length, lastFetchedGroupId, dispatch]);
 
   // Fetch cohorts for active group
-  const { error: swrError } = useSWR<GroupCohortsResponse>(
-    shouldFetch ? ['group/cohorts', groupId] : null,
-    () => deviceService.getGroupCohorts(groupId!),
-    {
-      ...SWR_STABLE_REQUEST_OPTIONS,
-      dedupingInterval: 30000, // Cache for 30 seconds
-      onLoadingSlow: () => {
-        dispatch(setCohortsLoading(true));
-      },
-      onSuccess: data => {
-        if (data?.success && groupId) {
-          dispatch(
-            setActiveGroupCohorts({
-              groupId,
-              cohortIds: data.data || [],
-            })
-          );
-        }
-      },
-      onError: err => {
-        dispatch(setCohortsError(err.message || 'Failed to fetch cohorts'));
-      },
-    }
-  );
+  const { error: swrError, isLoading: swrIsLoading } =
+    useSWR<GroupCohortsResponse>(
+      shouldFetch ? ['group/cohorts', groupId] : null,
+      () => deviceService.getGroupCohorts(groupId!),
+      {
+        ...SWR_STABLE_REQUEST_OPTIONS,
+        dedupingInterval: 30000, // Cache for 30 seconds
+        onLoadingSlow: () => {
+          dispatch(setCohortsLoading(true));
+        },
+        onSuccess: data => {
+          if (!groupId) {
+            return;
+          }
+
+          if (data?.success) {
+            const normalizedCohortIds = Array.from(
+              new Set(
+                (Array.isArray(data.data) ? data.data : [])
+                  .map(cohortId => cohortId?.trim())
+                  .filter((cohortId): cohortId is string => Boolean(cohortId))
+              )
+            );
+
+            dispatch(
+              setActiveGroupCohorts({
+                groupId,
+                cohortIds: normalizedCohortIds,
+              })
+            );
+            return;
+          }
+
+          dispatch(setCohortsError(data?.message || 'Failed to fetch cohorts'));
+        },
+        onError: err => {
+          dispatch(setCohortsError(err.message || 'Failed to fetch cohorts'));
+        },
+      }
+    );
 
   const resolvedCohortIds =
     groupId && lastFetchedGroupId === groupId ? activeGroupCohorts : [];
+  const hasCohortError = Boolean(error || swrError);
+  const hasPendingGroup = !!groupId && lastFetchedGroupId !== groupId;
 
   return {
     cohortIds: resolvedCohortIds,
-    isLoading: isLoading || (!!groupId && lastFetchedGroupId !== groupId),
+    isLoading:
+      isLoading ||
+      (Boolean(groupId) && swrIsLoading) ||
+      (hasPendingGroup && !hasCohortError),
     error: error || swrError,
     refetch: () => {
       if (groupId) {

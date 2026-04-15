@@ -118,15 +118,36 @@ export class DeviceService {
       throw new Error(data.message || 'Failed to get group cohorts');
     }
 
-    return data as GroupCohortsResponse;
+    const groupCohortsData = data as GroupCohortsResponse;
+    const normalizedCohortIds = Array.from(
+      new Set(
+        (Array.isArray(groupCohortsData.data) ? groupCohortsData.data : [])
+          .map(cohortId => cohortId?.trim())
+          .filter((cohortId): cohortId is string => Boolean(cohortId))
+      )
+    );
+
+    return {
+      ...groupCohortsData,
+      data: normalizedCohortIds,
+    };
   }
 
   // Get cohort details - authenticated endpoint
   async getCohort(cohortId: string): Promise<CohortResponse> {
+    const resolvedCohortId = (cohortId || '')
+      .split(',')
+      .map(value => value.trim())
+      .find(Boolean);
+
+    if (!resolvedCohortId) {
+      throw new Error('Cohort id is required');
+    }
+
     await this.ensureAuthenticated();
     const response = await this.authenticatedClient.get<
       CohortResponse | ApiErrorResponse
-    >(`/devices/cohorts/${cohortId}`);
+    >(`/devices/cohorts/${resolvedCohortId}`);
     const data = response.data;
 
     if ('success' in data && !data.success) {
@@ -220,11 +241,15 @@ export class DeviceService {
 
   // Get map readings - API token endpoint
   async getMapReadingsWithToken(
-    cohort_id?: string
+    cohort_id?: string,
+    user_id?: string
   ): Promise<MapReadingsResponse> {
     const params: Record<string, string> = {};
     if (cohort_id) {
       params.cohort_id = cohort_id;
+    }
+    if (user_id) {
+      params.user_id = user_id;
     }
 
     const response = await this.serverClient.get<

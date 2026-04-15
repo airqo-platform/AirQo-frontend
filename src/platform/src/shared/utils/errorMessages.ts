@@ -35,7 +35,7 @@ const DEFAULT_ERROR_MAPPINGS: ErrorMapping = {
   429: 'Too many requests. Please wait a moment before trying again.',
   500: 'Server error. Please try again later.',
   502: 'Service temporarily unavailable. Please try again later.',
-  503: 'Service temporarily unavailable. Please try again later.',
+  503: 'Service is not yet available.',
   504: 'Gateway timeout. Please try again later.',
 
   // Specific API Error Messages

@@ -11,3 +11,4 @@ export { clientService } from './clientService';
 export { preferencesService } from './preferencesService';
 export { analyticsService } from './analyticsService';
 export { adminService } from './adminService';
+export { subscriptionService } from './subscriptionService';

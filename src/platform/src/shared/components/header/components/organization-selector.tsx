@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Avatar } from '@/shared/components/ui/avatar';
 import { SearchField } from '@/shared/components/ui/search-field';
 import Dialog from '@/shared/components/ui/dialog';
-import { useUserActions } from '@/shared/hooks';
+import { useUser } from '@/shared/hooks/useUser';
 import { isDefaultAirQoGroup } from '@/shared/utils/groupUtils';
 import { AqGrid01 } from '@airqo/icons-react';
 
@@ -14,7 +14,7 @@ export function OrganizationSelector() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const router = useRouter();
-  const { groups, activeGroup, switchGroupById } = useUserActions();
+  const { groups, activeGroup } = useUser();
   const safeGroups = React.useMemo(
     () => (Array.isArray(groups) ? groups : []),
     [groups]
@@ -27,17 +27,11 @@ export function OrganizationSelector() {
     const selectedGroup = safeGroups.find(g => g.id === groupId);
     if (!selectedGroup) return;
 
-    // Determine navigation target based on group type BEFORE switching
-    const isAirQoGroup = isDefaultAirQoGroup(selectedGroup);
-
-    // Switch the group first
-    switchGroupById(groupId);
-
     // Close dialog
     handleClose();
 
     // Navigate based on group type
-    if (isAirQoGroup) {
+    if (isDefaultAirQoGroup(selectedGroup)) {
       router.push('/user/home');
     } else {
       const orgSlug = selectedGroup.organizationSlug;

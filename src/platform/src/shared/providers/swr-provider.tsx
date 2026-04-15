@@ -230,11 +230,11 @@ export function SWRProvider({
   const config = useMemo<SWRConfiguration>(
     () => ({
       provider: () => cache as Cache<SWRCacheState>,
-      revalidateOnFocus: true,
-      revalidateOnReconnect: true,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
       revalidateIfStale: true,
       keepPreviousData: true,
-      dedupingInterval: 1000 * 15,
+      dedupingInterval: 1000 * 30,
       focusThrottleInterval: 1000 * 60,
       errorRetryCount: 0,
       errorRetryInterval: 2000,

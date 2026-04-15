@@ -57,20 +57,20 @@ const createQueryClient = () =>
         staleTime: 1000 * 60,
         gcTime: QUERY_CACHE_MAX_AGE_MS,
         refetchOnWindowFocus: true,
-        refetchOnReconnect: true,
+        refetchOnReconnect: false,
         retry: (failureCount, error) => {
           if (typeof navigator !== 'undefined' && !navigator.onLine) {
             return false;
           }
 
           const status = getErrorStatusCode(error);
-          const errorCode = getErrorCode(error);
 
           if (status !== null && status >= 500) {
             return false;
           }
 
-          if (errorCode === 'ERR_NETWORK') {
+          const errorCode = getErrorCode(error);
+          if (errorCode === 'ERR_CANCELED') {
             return false;
           }
 

@@ -9,6 +9,7 @@ import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import LocationCard from '@/shared/components/ui/location-card';
 import { EmptyState } from '@/shared/components/ui/empty-state';
 import { AqChevronLeft } from '@airqo/icons-react';
+import { areArraysEqual } from '@/shared/utils/arrays';
 import {
   selectIsDialogOpen,
   selectSelectedSites,
@@ -61,10 +62,19 @@ const AddLocation: React.FC = () => {
       const newSelectedIds = (selectedSites as SelectedSite[]).map(
         site => site._id
       );
-      setSelectedLocations(newSelectedIds);
-      setSelectedSiteData(
-        new Map((selectedSites as SelectedSite[]).map(site => [site._id, site]))
+      setSelectedLocations(prev =>
+        areArraysEqual(prev, newSelectedIds) ? prev : newSelectedIds
       );
+      setSelectedSiteData(prev => {
+        const currentIds = Array.from(prev.keys());
+        if (areArraysEqual(currentIds, newSelectedIds)) {
+          return prev;
+        }
+
+        return new Map(
+          (selectedSites as SelectedSite[]).map(site => [site._id, site])
+        );
+      });
     }
   }, [selectedSites, isOpen]);
 
