@@ -4,8 +4,51 @@ import { useSWRConfig } from 'swr';
 import { checklistService } from '../services/checklistService';
 import type {
   GetUserChecklistResponse,
+  UserChecklist,
   UpdateUserChecklistRequest,
 } from '../types/api';
+
+type ChecklistLikePayload = Partial<GetUserChecklistResponse> & {
+  checklist?: UserChecklist;
+  data?: {
+    checklist?: UserChecklist;
+    checklists?: UserChecklist[];
+  };
+};
+
+const resolveChecklistFromPayload = (
+  payload: unknown
+): UserChecklist | undefined => {
+  if (!payload || typeof payload !== 'object') {
+    return undefined;
+  }
+
+  const candidate = payload as ChecklistLikePayload;
+
+  if (candidate.checklist && typeof candidate.checklist === 'object') {
+    return candidate.checklist;
+  }
+
+  if (Array.isArray(candidate.checklists) && candidate.checklists.length > 0) {
+    return candidate.checklists[0];
+  }
+
+  if (
+    candidate.data?.checklist &&
+    typeof candidate.data.checklist === 'object'
+  ) {
+    return candidate.data.checklist;
+  }
+
+  if (
+    Array.isArray(candidate.data?.checklists) &&
+    candidate.data.checklists.length > 0
+  ) {
+    return candidate.data.checklists[0];
+  }
+
+  return undefined;
+};
 
 // User Checklist fetcher
 const userChecklistFetcher = async (
@@ -23,10 +66,21 @@ export const useUserChecklist = (userId: string | null) => {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
       dedupingInterval: 5000,
-      // Add persistence across page reloads
       revalidateIfStale: false,
-      // Keep data fresh for longer
       focusThrottleInterval: 10000,
+      errorRetryCount: 1,
+      errorRetryInterval: 1000,
+      shouldRetryOnError: error => {
+        const status = (error as { response?: { status?: number } })?.response
+          ?.status;
+
+        // Avoid noisy retries on auth/permission errors.
+        if (status === 401 || status === 403 || status === 404) {
+          return false;
+        }
+
+        return true;
+      },
     }
   );
 };
@@ -42,15 +96,15 @@ export const useUpdateUserChecklist = () => {
     },
     {
       onSuccess: data => {
-        // Invalidate checklist cache for the user
-        if (data && data.checklist && data.checklist.user_id) {
+        const checklist = resolveChecklistFromPayload(data);
+
+        if (checklist?.user_id) {
           mutate(
             key =>
               typeof key === 'string' &&
-              key.startsWith(`checklist/${data.checklist.user_id}`)
+              key.startsWith(`checklist/${checklist.user_id}`)
           );
         } else {
-          // Fallback: invalidate all checklist-related cache
           mutate(
             key => typeof key === 'string' && key.startsWith('checklist/')
           );

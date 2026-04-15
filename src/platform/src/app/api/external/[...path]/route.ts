@@ -3,6 +3,21 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+const DEFAULT_PROXY_TIMEOUT_MS = 30000;
+
+const resolveProxyTimeoutMs = (): number => {
+  const timeoutValue = Number.parseInt(
+    process.env.API_PROXY_TIMEOUT_MS || '',
+    10
+  );
+
+  if (!Number.isFinite(timeoutValue) || timeoutValue <= 0) {
+    return DEFAULT_PROXY_TIMEOUT_MS;
+  }
+
+  return timeoutValue;
+};
+
 const normalizeApiBaseUrl = (baseUrl: string): string => {
   const trimmedBaseUrl = baseUrl.trim().replace(/\/+$/, '');
 
@@ -65,10 +80,14 @@ async function proxyRequest(request: NextRequest, pathSegments: string[]) {
       if (key.toLowerCase() === 'token') {
         return;
       }
+      if (key.toLowerCase() === 'access_token') {
+        return;
+      }
       targetUrl.searchParams.set(key, value);
     });
 
     targetUrl.searchParams.set('token', apiToken);
+    targetUrl.searchParams.set('access_token', apiToken);
 
     const headers: Record<string, string> = {};
     const incomingContentType = request.headers.get('content-type');
@@ -95,7 +114,21 @@ async function proxyRequest(request: NextRequest, pathSegments: string[]) {
       }
     }
 
-    const response = await fetch(targetUrl.toString(), options);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, resolveProxyTimeoutMs());
+
+    options.signal = controller.signal;
+
+    let response: Response;
+
+    try {
+      response = await fetch(targetUrl.toString(), options);
+    } finally {
+      clearTimeout(timeoutId);
+    }
+
     const responseBody = await response.text();
 
     return new NextResponse(responseBody, {
@@ -109,6 +142,13 @@ async function proxyRequest(request: NextRequest, pathSegments: string[]) {
       },
     });
   } catch (error) {
+    if ((error as { name?: string })?.name === 'AbortError') {
+      return NextResponse.json(
+        { error: 'Upstream request timed out' },
+        { status: 504 }
+      );
+    }
+
     console.error('Proxy request failed:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
