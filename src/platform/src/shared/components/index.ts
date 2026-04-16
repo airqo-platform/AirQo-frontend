@@ -6,6 +6,7 @@ export { default as ErrorBoundary } from './ErrorBoundary';
 export { AccessDenied } from './AccessDenied';
 export { PermissionGuard, AdminPageGuard } from './PermissionGuard';
 export { NotificationBanner } from './NotificationBanner';
+export { MaintenanceBanner } from './MaintenanceBanner';
 
 // Sidebar Components
 export { GlobalSidebar } from './global-sidebar';

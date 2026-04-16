@@ -231,6 +231,8 @@ export const useAnalyticsSiteCards = () => {
     if (!localSelectedSiteIds.length) {
       activeRequestKeyRef.current = null;
       pendingRefetchRef.current = false;
+      isFetchingRef.current = false;
+      setIsLoading(false);
       setSiteCards([]);
       return;
     }

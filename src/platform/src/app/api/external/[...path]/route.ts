@@ -5,19 +5,6 @@ export const revalidate = 0;
 
 const DEFAULT_PROXY_TIMEOUT_MS = 30000;
 
-const resolveProxyTimeoutMs = (): number => {
-  const timeoutValue = Number.parseInt(
-    process.env.API_PROXY_TIMEOUT_MS || '',
-    10
-  );
-
-  if (!Number.isFinite(timeoutValue) || timeoutValue <= 0) {
-    return DEFAULT_PROXY_TIMEOUT_MS;
-  }
-
-  return timeoutValue;
-};
-
 const normalizeApiBaseUrl = (baseUrl: string): string => {
   const trimmedBaseUrl = baseUrl.trim().replace(/\/+$/, '');
 
@@ -117,7 +104,7 @@ async function proxyRequest(request: NextRequest, pathSegments: string[]) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, resolveProxyTimeoutMs());
+    }, DEFAULT_PROXY_TIMEOUT_MS);
 
     options.signal = controller.signal;
 

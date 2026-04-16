@@ -8,6 +8,7 @@ import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { isValidIpAddress } from '@/shared/lib/validators';
 import { clientService } from '@/shared/services/clientService';
 import { trackEvent } from '@/shared/utils/analytics';
+import { trackApiClientAction } from '@/shared/utils/enhancedAnalytics';
 
 interface CreateClientDialogProps {
   isOpen: boolean;
@@ -89,6 +90,12 @@ const CreateClientDialog: React.FC<CreateClientDialogProps> = ({
       };
 
       await clientService.createClient(clientData);
+
+      trackApiClientAction(posthog, 'create', {
+        has_ips: filteredIpAddresses.length > 0,
+        ip_count: filteredIpAddresses.length,
+        client_name_length: clientName.trim().length,
+      });
 
       posthog?.capture('client_created', {
         has_ips: filteredIpAddresses.length > 0,

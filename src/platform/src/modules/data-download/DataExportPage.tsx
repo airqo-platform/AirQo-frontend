@@ -1,4 +1,5 @@
 import React, { useMemo, useEffect, useCallback } from 'react';
+import { usePostHog } from 'posthog-js/react';
 import { usePathname } from 'next/navigation';
 import PageHeading from '@/shared/components/ui/page-heading';
 import { DataExportSidebar } from './components/DataExportSidebar';
@@ -29,6 +30,8 @@ import { useDataExportActions } from './hooks/useDataExportActions';
 import { useDataExportData } from './hooks/useDataExportData';
 import MoreInsights from '@/modules/location-insights/more-insights';
 import AddLocation from '@/modules/location-insights/add-location';
+import { trackEvent } from '@/shared/utils/analytics';
+import { trackFeatureUsage } from '@/shared/utils/enhancedAnalytics';
 
 const rebuildSelectionCache = (
   selectedIds: string[],
@@ -59,6 +62,7 @@ const rebuildSelectionCache = (
 
 const DataExportPage = () => {
   const pathname = usePathname();
+  const posthog = usePostHog();
 
   // Determine if this is org flow based on pathname
   const isOrgFlow = pathname.includes('/org/');
@@ -141,9 +145,23 @@ const DataExportPage = () => {
       if (isOrgFlow && (tab === 'countries' || tab === 'cities')) {
         return;
       }
+
+      if (tab !== activeTab) {
+        trackFeatureUsage(posthog, 'data_export', 'tab_changed', {
+          from_tab: activeTab,
+          to_tab: tab,
+          is_org_flow: isOrgFlow,
+        });
+        trackEvent('data_export_tab_changed', {
+          from_tab: activeTab,
+          to_tab: tab,
+          is_org_flow: isOrgFlow,
+        });
+      }
+
       handleTabChange(tab);
     },
-    [isOrgFlow, handleTabChange]
+    [activeTab, isOrgFlow, handleTabChange, posthog]
   );
 
   // Data fetching and processing (initial call with empty array)
@@ -157,6 +175,8 @@ const DataExportPage = () => {
   );
 
   const {
+    sitesHook,
+    devicesHook,
     currentHook,
     tableData,
     processedSitesData,
@@ -204,6 +224,7 @@ const DataExportPage = () => {
   const currentState = tabStates[activeTab];
   const config = getTabConfig(activeTab);
   const meta = currentHook.data?.meta || { total: 0, page: 1, totalPages: 1 };
+  const tableLoading = currentHook.isLoading && tableData.length === 0;
 
   // Reset device pagination when category changes
   useEffect(() => {
@@ -230,7 +251,11 @@ const DataExportPage = () => {
 
   // BAM device exports under Devices tab always use raw data type
   useEffect(() => {
-    if (activeTab === 'devices' && deviceCategory === 'bam' && dataType !== 'raw') {
+    if (
+      activeTab === 'devices' &&
+      deviceCategory === 'bam' &&
+      dataType !== 'raw'
+    ) {
       setDataType('raw');
     }
   }, [activeTab, deviceCategory, dataType, setDataType]);
@@ -426,8 +451,8 @@ const DataExportPage = () => {
               isDownloadReady={isDownloadReady}
               sitesData={(currentHook.data as CohortSitesResponse)?.sites}
               devicesData={(currentHook.data as CohortDevicesResponse)?.devices}
-              isLoadingSites={false} // TODO: Get from hooks
-              isLoadingDevices={false} // TODO: Get from hooks
+              isLoadingSites={sitesHook.isLoading}
+              isLoadingDevices={devicesHook.isLoading}
               pathname={pathname}
             />
 
@@ -472,7 +497,7 @@ const DataExportPage = () => {
               activeTab={activeTab}
               tableData={tableData}
               columns={config.columns}
-              loading={currentHook.isLoading}
+              loading={tableLoading}
               error={currentHook.error?.message || null}
               currentPage={currentState.page}
               totalPages={meta.totalPages}
