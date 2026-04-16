@@ -161,9 +161,11 @@ export const cohorts = {
         { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data as {
-        message: string;
-        updated_cohort: Cohort & { _id: string };
         success: boolean;
+        updated_cohort: {
+          assigned: string[];
+          already_assigned: string[];
+        };
       };
     } catch (error) {
       throw error;
