@@ -117,65 +117,62 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
     try {
       loggy.info('⭐ Starting to initialize user data');
 
-      await AuthHelper.debugToken();
-
       final authState = context.read<AuthBloc>().state;
       loggy.info('Current auth state: ${authState.runtimeType}');
 
       final isLoggedIn = authState is AuthLoaded;
       loggy.info('Is user logged in according to AuthBloc? $isLoggedIn');
 
-      if (isLoggedIn) {
-        final isExpired = await AuthHelper.isTokenExpired();
-
-        if (isExpired) {
-          loggy.warning('Token is expired, user needs to login again');
-
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const TranslatedText(
-                    'Your session has expired. Please log in again.'),
-                duration: const Duration(seconds: 8),
-                action: SnackBarAction(
-                  label: 'Log In',
-                  onPressed: () {
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(
-                        builder: (context) => const LoginPage(),
-                      ),
-                      (route) => false,
-                    );
-                  },
-                ),
-              ),
-            );
-          }
-          return;
-        }
-
-        final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
-
-        if (userId != null) {
-          setState(() {
-            currentUserId = userId;
-          });
-          loggy.info('✅ User ID set in state: $currentUserId');
-
-          await _loadUserPreferences(userId);
-        } else {
-          loggy.warning('❌ No user ID found in token - token may be invalid');
-
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content: TranslatedText(
-                      'Authentication issue detected. Please log in again.')),
-            );
-          }
-        }
-      } else {
+      if (!isLoggedIn) {
         loggy.warning('❌ User is not logged in according to AuthBloc');
+        return;
+      }
+
+      // Attempt silent refresh before doing anything so the token is valid
+      // by the time the user taps Save.
+      loggy.info('Attempting silent token refresh on screen open');
+      final token = await AuthHelper.refreshTokenIfNeeded();
+
+      if (token == null) {
+        loggy.warning('Token refresh failed — user will be blocked at save if token is invalid');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const TranslatedText(
+                  'Your session may have expired. You can browse, but saving may require logging in again.'),
+              duration: const Duration(seconds: 6),
+              action: SnackBarAction(
+                label: 'Log In',
+                onPressed: () {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (context) => const LoginPage()),
+                    (route) => false,
+                  );
+                },
+              ),
+            ),
+          );
+        }
+        // Continue — the user can still browse; Save is gated by validateAuthentication.
+      }
+
+      final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
+
+      if (userId != null) {
+        setState(() {
+          currentUserId = userId;
+        });
+        loggy.info('✅ User ID set in state: $currentUserId');
+        await _loadUserPreferences(userId);
+      } else {
+        loggy.warning('❌ No user ID found in token - token may be invalid');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: TranslatedText(
+                    'Authentication issue detected. Please log in again.')),
+          );
+        }
       }
     } catch (e) {
       loggy.error('❌ Error initializing user data: $e');

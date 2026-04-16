@@ -1,4 +1,7 @@
+import 'dart:convert';
 import 'package:airqo/src/app/shared/repository/secure_storage_repository.dart';
+import 'package:airqo/src/meta/utils/api_utils.dart';
+import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:loggy/loggy.dart';
 
@@ -124,6 +127,54 @@ class AuthHelper {
     }
   }
   
+  /// Silently refreshes the token if it has expired.
+  ///
+  /// Returns the valid token on success (either the existing non-expired token
+  /// or a freshly fetched one). Returns `null` if no token is stored or if
+  /// the refresh request itself fails (e.g. token older than 7 days, or no
+  /// network). Callers should fall back to the stored token and let the normal
+  /// 401 path handle the failure.
+  static Future<String?> refreshTokenIfNeeded() async {
+    try {
+      final token = await SecureStorageRepository.instance
+          .getSecureData(SecureStorageKeys.authToken);
+
+      if (token == null || token.isEmpty) return null;
+
+      // Token still valid — return it immediately, no network call needed.
+      if (!JwtDecoder.isExpired(token)) return token;
+
+      _logger.info('Token expired — attempting silent refresh');
+
+      final url = '${ApiUtils.baseUrl}/api/v2/users/token/refresh';
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'JWT $token',
+          'Content-Type': 'application/json',
+          'Accept': '*/*',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final body = json.decode(response.body) as Map<String, dynamic>;
+        if (body['success'] == true && body['token'] != null) {
+          final newToken = body['token'] as String;
+          await SecureStorageRepository.instance
+              .saveSecureData(SecureStorageKeys.authToken, newToken);
+          _logger.info('Silent token refresh succeeded');
+          return newToken;
+        }
+      }
+
+      _logger.warning('Token refresh failed (${response.statusCode})');
+      return null;
+    } catch (e) {
+      _logger.error('Error during silent token refresh: $e');
+      return null;
+    }
+  }
+
   /// Check if the current token is expired
   static Future<bool> isTokenExpired() async {
     try {

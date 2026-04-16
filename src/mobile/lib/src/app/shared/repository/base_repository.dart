@@ -3,6 +3,7 @@ import 'package:airqo/src/app/shared/exceptions/session_expired_exception.dart';
 import 'package:airqo/src/app/shared/repository/global_auth_manager.dart';
 import 'package:airqo/src/app/shared/repository/secure_storage_repository.dart';
 import 'package:airqo/src/app/shared/repository/session_expiry_notifier.dart';
+import 'package:airqo/src/app/shared/repository/token_refresher.dart';
 import 'package:airqo/src/meta/utils/api_utils.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
@@ -13,14 +14,27 @@ class BaseRepository with UiLoggy {
   /// Swap out in tests without touching production code (DIP).
   final SessionExpiryNotifier _sessionExpiryNotifier;
 
-  BaseRepository({SessionExpiryNotifier? sessionExpiryNotifier})
-      : _sessionExpiryNotifier = sessionExpiryNotifier ?? GlobalAuthManager.instance;
+  /// Injected refresher — defaults to [DefaultTokenRefresher].
+  /// Swap out in tests without touching production code (DIP).
+  final TokenRefresher _tokenRefresher;
+
+  BaseRepository({
+    SessionExpiryNotifier? sessionExpiryNotifier,
+    TokenRefresher? tokenRefresher,
+  })  : _sessionExpiryNotifier = sessionExpiryNotifier ?? GlobalAuthManager.instance,
+        _tokenRefresher = tokenRefresher ?? const DefaultTokenRefresher();
 
   // ---------------------------------------------------------------------------
   // Private helpers
   // ---------------------------------------------------------------------------
 
+  /// Returns a valid token, transparently refreshing it if expired.
+  /// Falls back to the raw stored token if refresh fails, so the normal 401
+  /// path remains the safety net.
   Future<String?> _getToken() async {
+    final refreshed = await _tokenRefresher.refreshTokenIfNeeded();
+    if (refreshed != null) return refreshed;
+    // Refresh either failed or there's no token — return whatever is stored.
     return SecureStorageRepository.instance.getSecureData(SecureStorageKeys.authToken);
   }
 
@@ -36,21 +50,53 @@ class BaseRepository with UiLoggy {
     }
   }
 
+  /// Returns true when a 401 body explicitly signals a JWT/session problem,
+  /// as opposed to an unrelated auth failure (e.g. wrong query-level API key).
+  bool _isSessionRelated401(Response response) {
+    try {
+      final body = json.decode(response.body);
+      if (body is Map) {
+        final message = (body['message'] ?? body['error'] ?? '').toString().toLowerCase();
+        const sessionKeywords = ['jwt', 'token', 'session', 'expired', 'invalid signature', 'unauthorized'];
+        return sessionKeywords.any(message.contains);
+      }
+    } catch (_) {}
+    return false;
+  }
+
   /// Single path for all response processing — fixes the OCP violation where
   /// each HTTP method duplicated the same success/401/error branching.
   ///
   /// Throws [SessionExpiredException] on 401.
   /// Storage cleanup is owned by [AuthBloc._onSessionExpired], not here (SRP).
-  Future<Response> _processResponse(Response response, String url, {bool hasToken = true}) async {
+  ///
+  /// When [requireExplicitSessionBody] is true, session expiry is only triggered
+  /// when the 401 body explicitly mentions a JWT/session problem. Use this for
+  /// endpoints that may return 401 for reasons unrelated to the user's token
+  /// (e.g. a query-level API key issue).
+  Future<Response> _processResponse(
+    Response response,
+    String url, {
+    bool hasToken = true,
+    bool requireExplicitSessionBody = false,
+  }) async {
     if (response.statusCode >= 200 && response.statusCode < 300) {
       if (hasToken) await _handleTokenRefresh(response);
       return response;
     }
 
     if (response.statusCode == 401 && hasToken) {
-      loggy.warning('401 received — notifying session expiry for $url');
-      _sessionExpiryNotifier.notifySessionExpired();
-      throw const SessionExpiredException();
+      final shouldExpire = requireExplicitSessionBody
+          ? _isSessionRelated401(response)
+          : true;
+
+      if (shouldExpire) {
+        loggy.warning('401 received — notifying session expiry for $url');
+        _sessionExpiryNotifier.notifySessionExpired();
+        throw const SessionExpiredException();
+      } else {
+        loggy.warning('401 received but body does not indicate session issue — skipping expiry for $url');
+      }
     }
 
     throw _buildHttpException(response, url);
@@ -144,7 +190,9 @@ class BaseRepository with UiLoggy {
     );
 
     loggy.info('GET ← ${response.statusCode}');
-    return _processResponse(response, url, hasToken: token != null);
+    // Use requireExplicitSessionBody so that a 401 from a query-level API key
+    // (not the user's JWT) does not incorrectly trigger a session expiry.
+    return _processResponse(response, url, hasToken: token != null, requireExplicitSessionBody: true);
   }
 
   Future<Response> createAuthenticatedGetRequest(
