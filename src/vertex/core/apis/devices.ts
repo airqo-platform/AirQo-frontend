@@ -216,17 +216,6 @@ export const devices = {
       throw error;
     }
   },
-  getMapReadingsApi: async () => {
-    try {
-      const response = await tokenApiClient.get<DevicesSummaryResponse>(
-        `/devices/readings/map`,
-        { headers: { 'X-Auth-Type': 'API_TOKEN' } }
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
 
   checkDeviceAvailability: async (deviceName: string): Promise<DeviceAvailabilityResponse> => {
     try {
