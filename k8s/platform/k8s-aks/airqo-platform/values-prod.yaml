@@ -23,7 +23,7 @@ resources:
     memory: 350Mi
 autoscaling:
   minReplicas: 1
-  maxReplicas: 3
+  maxReplicas: 2
   targetCPUUtilizationPercentage: 80
   behavior:
     scaleDown:
