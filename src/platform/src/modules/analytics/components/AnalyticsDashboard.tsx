@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { usePostHog } from 'posthog-js/react';
 import { QuickAccessCard, EmptyAnalyticsState, SuggestedLocations } from './';
@@ -33,6 +33,10 @@ import { getEnvironmentAwareUrl } from '@/shared/utils/url';
 import { useUser } from '@/shared/hooks/useUser';
 import logger from '@/shared/lib/logger';
 import { AccessDenied } from '@/shared/components/AccessDenied';
+import {
+  trackChartInteraction,
+  trackFeatureUsage,
+} from '@/shared/utils/enhancedAnalytics';
 
 interface AnalyticsDashboardProps {
   className?: string;
@@ -55,6 +59,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   // Local state for UI preferences (doesn't trigger data reloads)
   const [showIcons, setShowIcons] = useState(true);
   const [isFavoritesDialogOpen, setIsFavoritesDialogOpen] = useState(false);
+  const hasTrackedDashboardViewRef = useRef(false);
 
   // Get user preferences and selected sites (primary data - always fetch first)
   const {
@@ -202,10 +207,32 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
   // Handle refresh data for charts
   const handleRefreshLineChart = async () => {
+    trackChartInteraction(posthog, {
+      chartType: 'line',
+      pollutant: filters.pollutant,
+      timeRange: `${filters.startDate}_${filters.endDate}`,
+      locationCount: selectedSites.length,
+      action: 'refresh',
+    });
+    trackFeatureUsage(posthog, 'analytics_dashboard', 'refresh_line_chart', {
+      pollutant: filters.pollutant,
+      location_count: selectedSites.length,
+    });
     return refreshLineChart?.();
   };
 
   const handleRefreshBarChart = async () => {
+    trackChartInteraction(posthog, {
+      chartType: 'bar',
+      pollutant: filters.pollutant,
+      timeRange: `${filters.startDate}_${filters.endDate}`,
+      locationCount: selectedSites.length,
+      action: 'refresh',
+    });
+    trackFeatureUsage(posthog, 'analytics_dashboard', 'refresh_bar_chart', {
+      pollutant: filters.pollutant,
+      location_count: selectedSites.length,
+    });
     return refreshBarChart?.();
   };
 
@@ -286,6 +313,44 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     preferencesLoading ||
     cohortsLoading ||
     (shouldCheckAvailableSites && sitesCountLoading);
+
+  useEffect(() => {
+    if (isInitialLoading) {
+      return;
+    }
+
+    if (hasTrackedDashboardViewRef.current) {
+      return;
+    }
+
+    hasTrackedDashboardViewRef.current = true;
+
+    posthog?.capture('analytics_dashboard_viewed', {
+      active_group_id: activeGroup?.id,
+      active_group_name: activeGroup?.title,
+      selected_site_count: selectedSites.length,
+      selected_pollutant: filters.pollutant,
+      frequency: filters.frequency,
+      start_date: filters.startDate,
+      end_date: filters.endDate,
+    });
+
+    trackFeatureUsage(posthog, 'analytics_dashboard', 'view', {
+      selected_site_count: selectedSites.length,
+      selected_pollutant: filters.pollutant,
+      frequency: filters.frequency,
+    });
+  }, [
+    activeGroup?.id,
+    activeGroup?.title,
+    filters.endDate,
+    filters.frequency,
+    filters.pollutant,
+    filters.startDate,
+    isInitialLoading,
+    posthog,
+    selectedSites.length,
+  ]);
 
   // Show single, coordinated loading state
   if (isInitialLoading) {

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { usePostHog } from 'posthog-js/react';
 import { HiChevronDown, HiCheck } from 'react-icons/hi';
 import { AqStar02, AqSettings01 } from '@airqo/icons-react';
 
@@ -24,6 +25,8 @@ import {
   POLLUTANT_LABELS,
 } from '@/shared/components/charts/constants';
 import DownloadDialog from './DownloadDialog';
+import { trackEvent } from '@/shared/utils/analytics';
+import { trackFeatureUsage } from '@/shared/utils/enhancedAnalytics';
 
 // Frequency options - exclude 'raw' as requested
 const FREQUENCY_OPTIONS = Object.entries(FREQUENCY_LABELS)
@@ -53,6 +56,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   showIcons = true,
   onShowIconsChange,
 }) => {
+  const posthog = usePostHog();
   const { filters, setFrequency, setDateRange, setPollutant } = useAnalytics();
   const { selectedSiteIds } = useAnalyticsPreferences();
 
@@ -75,6 +79,16 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       const { from, to } = value;
       if (typeof from === 'string' && typeof to === 'string') {
         setDateRange(from, to);
+        trackFeatureUsage(posthog, 'analytics_filters', 'date_range_changed', {
+          start_date: from,
+          end_date: to,
+          selected_site_count: selectedSiteIds.length,
+        });
+        trackEvent('analytics_date_range_changed', {
+          start_date: from,
+          end_date: to,
+          selected_site_count: selectedSiteIds.length,
+        });
         return;
       }
     }
@@ -84,6 +98,21 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   };
 
   const handleDownloadClick = () => {
+    trackFeatureUsage(
+      posthog,
+      'analytics_dashboard',
+      'download_dialog_opened',
+      {
+        selected_site_count: selectedSiteIds.length,
+        frequency: filters.frequency,
+        pollutant: filters.pollutant,
+      }
+    );
+    trackEvent('analytics_download_dialog_opened', {
+      selected_site_count: selectedSiteIds.length,
+      frequency: filters.frequency,
+      pollutant: filters.pollutant,
+    });
     setDownloadDialogOpen(true);
   };
 
@@ -117,7 +146,27 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               {FREQUENCY_OPTIONS.map(option => (
                 <DropdownMenuItem
                   key={option.value}
-                  onClick={() => setFrequency(option.value as FrequencyType)}
+                  onClick={() => {
+                    const nextFrequency = option.value as FrequencyType;
+                    if (filters.frequency === nextFrequency) {
+                      return;
+                    }
+
+                    setFrequency(nextFrequency);
+                    trackFeatureUsage(
+                      posthog,
+                      'analytics_filters',
+                      'frequency_changed',
+                      {
+                        frequency: nextFrequency,
+                        selected_site_count: selectedSiteIds.length,
+                      }
+                    );
+                    trackEvent('analytics_frequency_changed', {
+                      frequency: nextFrequency,
+                      selected_site_count: selectedSiteIds.length,
+                    });
+                  }}
                   className={cn(
                     'cursor-pointer flex items-center justify-between',
                     filters.frequency === option.value &&
@@ -170,9 +219,28 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               {POLLUTANT_OPTIONS.map(option => (
                 <DropdownMenuItem
                   key={option.value}
-                  onClick={() =>
-                    setPollutant(option.value.toLowerCase() as PollutantType)
-                  }
+                  onClick={() => {
+                    const nextPollutant =
+                      option.value.toLowerCase() as PollutantType;
+                    if (filters.pollutant === nextPollutant) {
+                      return;
+                    }
+
+                    setPollutant(nextPollutant);
+                    trackFeatureUsage(
+                      posthog,
+                      'analytics_filters',
+                      'pollutant_changed',
+                      {
+                        pollutant: nextPollutant,
+                        selected_site_count: selectedSiteIds.length,
+                      }
+                    );
+                    trackEvent('analytics_pollutant_changed', {
+                      pollutant: nextPollutant,
+                      selected_site_count: selectedSiteIds.length,
+                    });
+                  }}
                   className={cn(
                     'cursor-pointer flex items-center justify-between',
                     filters.pollutant === option.value.toLowerCase() &&

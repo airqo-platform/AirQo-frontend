@@ -17,6 +17,7 @@ import { useAppSelector } from '@/shared/hooks/redux';
 import { LoadingOverlay } from '@/shared/components/ui/loading-overlay';
 import { LoadingState } from '@/shared/components/ui/loading-state';
 import { useUser } from '@/shared/hooks/useUser';
+import { MaintenanceBanner } from '../components';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -74,6 +75,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                   className
                 )}
               >
+                <MaintenanceBanner />
                 {/* Content Container with proper padding */}
                 <div className="flex-grow w-full max-w-full">
                   <div

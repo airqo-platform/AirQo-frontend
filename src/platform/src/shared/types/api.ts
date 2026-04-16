@@ -250,6 +250,21 @@ export interface ResetPasswordResponse {
   user: Record<string, unknown>;
 }
 
+export interface MaintenanceItem {
+  _id: string;
+  product: string;
+  isActive: boolean;
+  message: string;
+  startDate: string;
+  endDate: string;
+}
+
+export interface MaintenanceResponse {
+  success: boolean;
+  message: string;
+  maintenance: MaintenanceItem[];
+}
+
 export interface UserDetailsResponse {
   success: true;
   message: string;

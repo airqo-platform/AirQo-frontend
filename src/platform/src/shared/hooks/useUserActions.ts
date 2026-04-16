@@ -1,10 +1,12 @@
 import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import { useSWRConfig } from 'swr';
+import { usePostHog } from 'posthog-js/react';
 import { setActiveGroup, setActiveGroupById } from '@/shared/store/userSlice';
 import { useUser } from './useUser';
 import { useLogout } from './useLogout';
 import type { NormalizedGroup } from '@/shared/utils/userUtils';
+import { trackGroupChange } from '@/shared/utils/enhancedAnalytics';
 
 /**
  * Hook for user-related actions and state
@@ -14,6 +16,7 @@ export const useUserActions = () => {
   const { mutate } = useSWRConfig();
   const { user, groups, activeGroup, isLoading, isLoggingOut, error } =
     useUser();
+  const posthog = usePostHog();
   const logout = useLogout();
 
   const invalidateGroupScopedCache = useCallback(
@@ -65,18 +68,36 @@ export const useUserActions = () => {
   const switchGroup = useCallback(
     (group: NormalizedGroup) => {
       const previousGroupId = activeGroup?.id;
+      const previousGroupName = activeGroup?.title;
+      const previousOrganizationSlug = activeGroup?.organizationSlug;
 
       // Only proceed if actually switching to a different group
       if (previousGroupId === group.id) {
         return; // No need to do anything if it's the same group
       }
 
+      trackGroupChange(posthog, {
+        fromGroupId: previousGroupId,
+        fromGroupName: previousGroupName,
+        fromOrganizationSlug: previousOrganizationSlug,
+        toGroupId: group.id,
+        toGroupName: group.title,
+        toOrganizationSlug: group.organizationSlug,
+      });
+
       // Switch to new group
       dispatch(setActiveGroup(group));
 
       invalidateGroupScopedCache(previousGroupId, group.id);
     },
-    [activeGroup?.id, dispatch, invalidateGroupScopedCache]
+    [
+      activeGroup?.id,
+      activeGroup?.organizationSlug,
+      activeGroup?.title,
+      dispatch,
+      invalidateGroupScopedCache,
+      posthog,
+    ]
   );
 
   const switchGroupById = useCallback(
@@ -86,14 +107,31 @@ export const useUserActions = () => {
         switchGroup(group);
       } else {
         const previousGroupId = activeGroup?.id;
+        const previousGroupName = activeGroup?.title;
+        const previousOrganizationSlug = activeGroup?.organizationSlug;
         console.warn(
           `[useUserActions] Group not found in current groups list for id ${groupId}. Applying ID-only switch fallback.`
         );
+        trackGroupChange(posthog, {
+          fromGroupId: previousGroupId,
+          fromGroupName: previousGroupName,
+          fromOrganizationSlug: previousOrganizationSlug,
+          toGroupId: groupId,
+        });
         dispatch(setActiveGroupById(groupId));
         invalidateGroupScopedCache(previousGroupId, groupId);
       }
     },
-    [activeGroup?.id, dispatch, groups, invalidateGroupScopedCache, switchGroup]
+    [
+      activeGroup?.id,
+      activeGroup?.title,
+      activeGroup?.organizationSlug,
+      dispatch,
+      groups,
+      invalidateGroupScopedCache,
+      posthog,
+      switchGroup,
+    ]
   );
 
   return {
