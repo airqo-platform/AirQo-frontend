@@ -34,7 +34,12 @@ class _TimePickerDrumState extends State<TimePickerDrum> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = isDark ? AppColors.darkHighlight : Colors.white;
-    final txt = isDark ? Colors.white : const Color(0xFF1A1D23);
+    final txt = Theme.of(context).textTheme.headlineLarge?.color ??
+        (isDark ? AppColors.boldHeadlineColor2 : const Color(0xFF1A1D23));
+    final muted =
+        isDark ? AppColors.boldHeadlineColor2 : AppColors.boldHeadlineColor3;
+    final borderColor =
+        isDark ? AppColors.dividerColordark : AppColors.dividerColorlight;
 
     return Container(
       decoration: BoxDecoration(
@@ -51,7 +56,7 @@ class _TimePickerDrumState extends State<TimePickerDrum> {
               child: Container(
                 width: 36, height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.boldHeadlineColor.withValues(alpha: 0.3),
+                  color: muted.withValues(alpha: 0.45),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -61,12 +66,27 @@ class _TimePickerDrumState extends State<TimePickerDrum> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              _DrumColumn(value: _hour, min: 1, max: 12, onChanged: (v) => setState(() => _hour = v), textColor: txt),
+              _DrumColumn(
+                value: _hour,
+                min: 1,
+                max: 12,
+                onChanged: (v) => setState(() => _hour = v),
+                textColor: txt,
+                iconColor: muted,
+              ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Text(':', style: TextStyle(fontSize: 36, fontWeight: FontWeight.w700, color: txt)),
               ),
-              _DrumColumn(value: _minute, min: 0, max: 59, padded: true, onChanged: (v) => setState(() => _minute = v), textColor: txt),
+              _DrumColumn(
+                value: _minute,
+                min: 0,
+                max: 59,
+                padded: true,
+                onChanged: (v) => setState(() => _minute = v),
+                textColor: txt,
+                iconColor: muted,
+              ),
               const SizedBox(width: 20),
               _AmPmToggle(isAm: _isAm, onChanged: (v) => setState(() => _isAm = v)),
             ],
@@ -79,10 +99,10 @@ class _TimePickerDrumState extends State<TimePickerDrum> {
                   onPressed: () => Navigator.of(context).pop(),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 15),
-                    side: BorderSide(color: AppColors.dividerColorlight),
+                    side: BorderSide(color: borderColor),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
-                  child: Text('Cancel', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.boldHeadlineColor)),
+                  child: Text('Cancel', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: muted)),
                 ),
               ),
               const SizedBox(width: 12),
@@ -111,9 +131,21 @@ class _DrumColumn extends StatelessWidget {
   final bool padded;
   final void Function(int) onChanged;
   final Color textColor;
-  const _DrumColumn({required this.value, required this.min, required this.max, required this.onChanged, required this.textColor, this.padded = false});
+  final Color iconColor;
+  const _DrumColumn({
+    required this.value,
+    required this.min,
+    required this.max,
+    required this.onChanged,
+    required this.textColor,
+    required this.iconColor,
+    this.padded = false,
+  });
 
   int _wrap(int v) { if (v > max) return min; if (v < min) return max; return v; }
+
+  /// Wide enough for two digits at 44px without [Text] wrapping them onto separate lines.
+  static const _digitSlotWidth = 96.0;
 
   @override
   Widget build(BuildContext context) {
@@ -121,11 +153,26 @@ class _DrumColumn extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _ArrowBtn(icon: Icons.keyboard_arrow_up_rounded, onTap: () => onChanged(_wrap(value + 1))),
+        _ArrowBtn(icon: Icons.keyboard_arrow_up_rounded, iconColor: iconColor, onTap: () => onChanged(_wrap(value + 1))),
         const SizedBox(height: 4),
-        SizedBox(width: 60, child: Center(child: Text(label, style: TextStyle(fontSize: 44, fontWeight: FontWeight.w700, color: textColor)))),
+        SizedBox(
+          width: _digitSlotWidth,
+          child: Center(
+            child: Text(
+              label,
+              maxLines: 1,
+              softWrap: false,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+              fontSize: 44,
+              fontWeight: FontWeight.w700,
+              color: textColor,
+            ),
+            ),
+          ),
+        ),
         const SizedBox(height: 4),
-        _ArrowBtn(icon: Icons.keyboard_arrow_down_rounded, onTap: () => onChanged(_wrap(value - 1))),
+        _ArrowBtn(icon: Icons.keyboard_arrow_down_rounded, iconColor: iconColor, onTap: () => onChanged(_wrap(value - 1))),
       ],
     );
   }
@@ -133,12 +180,13 @@ class _DrumColumn extends StatelessWidget {
 
 class _ArrowBtn extends StatelessWidget {
   final IconData icon;
+  final Color iconColor;
   final VoidCallback onTap;
-  const _ArrowBtn({required this.icon, required this.onTap});
+  const _ArrowBtn({required this.icon, required this.iconColor, required this.onTap});
   @override
   Widget build(BuildContext context) => GestureDetector(
     onTap: onTap,
-    child: Padding(padding: const EdgeInsets.all(6), child: Icon(icon, size: 28, color: AppColors.boldHeadlineColor)),
+    child: Padding(padding: const EdgeInsets.all(6), child: Icon(icon, size: 28, color: iconColor)),
   );
 }
 
@@ -149,6 +197,12 @@ class _AmPmToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final idleBg =
+        isDark ? AppColors.darkThemeBackground : AppColors.highlightColor;
+    final idleFg =
+        isDark ? AppColors.boldHeadlineColor2 : AppColors.boldHeadlineColor3;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: ['AM', 'PM'].map((label) {
@@ -160,10 +214,19 @@ class _AmPmToggle extends StatelessWidget {
             width: 52, margin: const EdgeInsets.symmetric(vertical: 3),
             padding: const EdgeInsets.symmetric(vertical: 9),
             decoration: BoxDecoration(
-              color: active ? AppColors.primaryColor : AppColors.highlightColor,
+              color: active ? AppColors.primaryColor : idleBg,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Center(child: Text(label, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: active ? Colors.white : AppColors.boldHeadlineColor))),
+            child: Center(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: active ? Colors.white : idleFg,
+                ),
+              ),
+            ),
           ),
         );
       }).toList(),

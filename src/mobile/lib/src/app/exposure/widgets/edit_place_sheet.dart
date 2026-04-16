@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:airqo/src/app/exposure/bloc/declared_places_cubit.dart';
 import 'package:airqo/src/app/exposure/models/declared_place.dart';
+import 'package:airqo/src/app/exposure/widgets/exposure_place_name_text_field.dart';
+import 'package:airqo/src/app/exposure/widgets/label_picker_place_type_icon.dart';
+import 'package:airqo/src/app/exposure/widgets/tag_picker_tile.dart';
 import 'package:airqo/src/app/exposure/widgets/time_picker_drum.dart';
+import 'package:airqo/src/app/shared/widgets/custom_switch.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 
 class EditPlaceSheet extends StatefulWidget {
@@ -18,6 +22,8 @@ class _EditPlaceSheetState extends State<EditPlaceSheet> {
   late TextEditingController _nameCtrl;
   bool _isWeekdays = true;
   late TimeOfDay _wdArrive, _wdLeave, _weArrive, _weLeave;
+  late bool _absentWeekdays;
+  late bool _absentWeekends;
 
   @override
   void initState() {
@@ -29,6 +35,8 @@ class _EditPlaceSheetState extends State<EditPlaceSheet> {
     _wdLeave = p.weekdayWindow?.leave ?? const TimeOfDay(hour: 17, minute: 0);
     _weArrive = p.weekendWindow?.arrive ?? const TimeOfDay(hour: 9, minute: 0);
     _weLeave = p.weekendWindow?.leave ?? const TimeOfDay(hour: 13, minute: 0);
+    _absentWeekdays = p.absentOnWeekdays;
+    _absentWeekends = p.absentOnWeekends;
   }
 
   @override
@@ -39,14 +47,20 @@ class _EditPlaceSheetState extends State<EditPlaceSheet> {
   void _setArrive(TimeOfDay t) => setState(() => _isWeekdays ? _wdArrive = t : _weArrive = t);
   void _setLeave(TimeOfDay t) => setState(() => _isWeekdays ? _wdLeave = t : _weLeave = t);
 
-  String get _hint => '${TimeWindow(arrive: _arrive, leave: _leave).durationLabel} window at ${_type.label.toLowerCase()}';
+  bool get _absentCurrentSegment => _isWeekdays ? _absentWeekdays : _absentWeekends;
+
+  String get _hint {
+    if (_isWeekdays && _absentWeekdays) return 'Not scheduled on weekdays · ${widget.place.displayName}';
+    if (!_isWeekdays && _absentWeekends) return 'Not scheduled on weekends · ${widget.place.displayName}';
+    return '${TimeWindow(arrive: _arrive, leave: _leave).durationLabel} window · ${widget.place.displayName}';
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = isDark ? AppColors.darkHighlight : Colors.white;
     final txt1 = isDark ? Colors.white : const Color(0xFF1A1D23);
-    final txt2 = AppColors.boldHeadlineColor;
+    final txt2 = isDark ? AppColors.boldHeadlineColor2 : AppColors.boldHeadlineColor3;
 
     return DraggableScrollableSheet(
       initialChildSize: 0.9, minChildSize: 0.5, maxChildSize: 0.95, expand: false,
@@ -66,48 +80,61 @@ class _EditPlaceSheetState extends State<EditPlaceSheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Edit place', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: txt1)),
+                      const SizedBox(height: 8),
+                      Text(
+                        widget.place.locationName,
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: txt2),
+                      ),
                       const SizedBox(height: 20),
-                      // Type grid
                       GridView.count(
-                        crossAxisCount: 3, shrinkWrap: true,
+                        crossAxisCount: 3,
+                        shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        mainAxisSpacing: 10, crossAxisSpacing: 10, childAspectRatio: 1.1,
+                        mainAxisSpacing: 10,
+                        crossAxisSpacing: 10,
+                        childAspectRatio: 111 / 78,
                         children: PlaceType.values.map((t) {
                           final sel = _type == t;
-                          return GestureDetector(
-                            onTap: () => setState(() => _type = t),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 150),
-                              decoration: BoxDecoration(
-                                color: sel ? (isDark ? AppColors.primaryColor.withValues(alpha: 0.2) : const Color(0xFFEEF3FF))
-                                    : (isDark ? const Color(0xFF2E2F33) : AppColors.highlightColor),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: sel ? AppColors.primaryColor : Colors.transparent, width: 1.5),
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(t.icon, size: 24, color: sel ? AppColors.primaryColor : txt2),
-                                  const SizedBox(height: 6),
-                                  Text(t.label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: sel ? AppColors.primaryColor : txt2)),
-                                ],
-                              ),
+                          return TagPickerTile(
+                            label: t.label,
+                            selected: sel,
+                            isDark: isDark,
+                            onTap: () => setState(() {
+                              _type = t;
+                              _nameCtrl.text = t.label;
+                            }),
+                            icon: LabelPickerPlaceTypeIcon(
+                              type: t,
+                              selected: sel,
+                              size: 24,
                             ),
                           );
                         }).toList(),
                       ),
-                      const SizedBox(height: 20),
-                      Text('Name', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: txt2)),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: _nameCtrl,
-                        textCapitalization: TextCapitalization.words,
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: isDark ? const Color(0xFF2E2F33) : AppColors.highlightColor,
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      const SizedBox(height: 16),
+                      Text(
+                        'What should we call this place?',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          height: 1.25,
+                          color: txt1,
                         ),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Shown next to the icon. The place name stays as the title.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                          height: 1.45,
+                          color: txt2.withValues(alpha: 0.85),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      ExposurePlaceNameTextField(
+                        controller: _nameCtrl,
+                        isDark: isDark,
                       ),
                       const SizedBox(height: 24),
                       Text('Time window', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: txt2)),
@@ -115,9 +142,54 @@ class _EditPlaceSheetState extends State<EditPlaceSheet> {
                       _SegmentControl(selected: _isWeekdays ? 0 : 1, labels: const ['Weekdays', 'Weekends'],
                           onChanged: (i) => setState(() => _isWeekdays = i == 0)),
                       const SizedBox(height: 12),
-                      _TimeField(label: 'Arrive', time: _arrive, isDark: isDark, onTap: () => _pick(context, _arrive, _setArrive)),
-                      const SizedBox(height: 10),
-                      _TimeField(label: 'Leave', time: _leave, isDark: isDark, onTap: () => _pick(context, _leave, _setLeave)),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _isWeekdays ? "I'm not here on weekdays" : "I'm not here on weekends",
+                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: txt1),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  _isWeekdays
+                                      ? 'Mon–Fri: no time at this place'
+                                      : 'Sat–Sun: no time at this place',
+                                  style: TextStyle(fontSize: 12, color: txt2.withValues(alpha: 0.85)),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          CustomSwitch(
+                            value: _absentCurrentSegment,
+                            onChanged: (v) => setState(() {
+                              if (_isWeekdays) {
+                                _absentWeekdays = v;
+                              } else {
+                                _absentWeekends = v;
+                              }
+                            }),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      Opacity(
+                        opacity: _absentCurrentSegment ? 0.38 : 1.0,
+                        child: IgnorePointer(
+                          ignoring: _absentCurrentSegment,
+                          child: Column(
+                            children: [
+                              _TimeField(label: 'Arrive', time: _arrive, isDark: isDark, onTap: () => _pick(context, _arrive, _setArrive)),
+                              const SizedBox(height: 10),
+                              _TimeField(label: 'Leave', time: _leave, isDark: isDark, onTap: () => _pick(context, _leave, _setLeave)),
+                            ],
+                          ),
+                        ),
+                      ),
                       const SizedBox(height: 12),
                       Center(child: Text(_hint, style: TextStyle(fontSize: 13, color: txt2))),
                       const SizedBox(height: 32),
@@ -151,11 +223,13 @@ class _EditPlaceSheetState extends State<EditPlaceSheet> {
   }
 
   void _onSave() {
-    final name = _nameCtrl.text.trim().isEmpty ? widget.place.displayName : _nameCtrl.text.trim();
+    final tag = _nameCtrl.text.trim().isEmpty ? widget.place.displayName : _nameCtrl.text.trim();
     final updated = widget.place.copyWith(
-      type: _type, displayName: name,
+      type: _type, displayName: tag,
       weekdayWindow: TimeWindow(arrive: _wdArrive, leave: _wdLeave),
       weekendWindow: TimeWindow(arrive: _weArrive, leave: _weLeave),
+      absentOnWeekdays: _absentWeekdays,
+      absentOnWeekends: _absentWeekends,
     );
     context.read<DeclaredPlacesCubit>().updatePlace(updated);
     Navigator.of(context).pop();
@@ -173,7 +247,7 @@ class _SegmentControl extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       height: 40,
-      decoration: BoxDecoration(color: isDark ? const Color(0xFF2E2F33) : AppColors.highlightColor, borderRadius: BorderRadius.circular(10)),
+      decoration: BoxDecoration(color: isDark ? AppColors.darkThemeBackground : AppColors.highlightColor, borderRadius: BorderRadius.circular(10)),
       child: Row(children: List.generate(labels.length, (i) {
         final active = i == selected;
         return Expanded(child: GestureDetector(
@@ -182,13 +256,15 @@ class _SegmentControl extends StatelessWidget {
             duration: const Duration(milliseconds: 150),
             margin: const EdgeInsets.all(3),
             decoration: BoxDecoration(
-              color: active ? (isDark ? const Color(0xFF3E4147) : Colors.white) : Colors.transparent,
+              color: active ? (isDark ? AppColors.darkHighlight : Colors.white) : Colors.transparent,
               borderRadius: BorderRadius.circular(8),
               boxShadow: active ? [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 4, offset: const Offset(0, 1))] : null,
             ),
             child: Center(child: Text(labels[i], style: TextStyle(
               fontSize: 13, fontWeight: active ? FontWeight.w600 : FontWeight.w400,
-              color: active ? (isDark ? Colors.white : const Color(0xFF1A1D23)) : AppColors.boldHeadlineColor,
+              color: active
+                  ? (isDark ? Colors.white : const Color(0xFF1A1D23))
+                  : (isDark ? AppColors.boldHeadlineColor2 : AppColors.boldHeadlineColor3),
             ))),
           ),
         ));
@@ -214,13 +290,13 @@ class _TimeField extends StatelessWidget {
     onTap: onTap,
     child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(color: isDark ? const Color(0xFF2E2F33) : AppColors.highlightColor, borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(color: isDark ? AppColors.darkThemeBackground : AppColors.highlightColor, borderRadius: BorderRadius.circular(12)),
       child: Row(children: [
-        Text(label, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.boldHeadlineColor)),
+        Text(label, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: isDark ? AppColors.boldHeadlineColor2 : AppColors.boldHeadlineColor3)),
         const Spacer(),
-        Text(_fmt(time), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.primaryColor)),
+        Text(_fmt(time), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: isDark ? AppColors.boldHeadlineColor2 : AppColors.boldHeadlineColor3)),
         const SizedBox(width: 6),
-        Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.boldHeadlineColor),
+        Icon(Icons.chevron_right_rounded, size: 18, color: isDark ? AppColors.boldHeadlineColor2 : AppColors.boldHeadlineColor3),
       ]),
     ),
   );

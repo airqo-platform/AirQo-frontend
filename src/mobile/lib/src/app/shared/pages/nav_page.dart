@@ -152,6 +152,18 @@ class NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
     );
   }
 
+  /// Unselected Exposure (index 2) uses flat white/black like other tab glyphs;
+  /// other tabs keep intrinsic SVG colours when idle.
+  Color? _navItemIconColor(BuildContext context, int index, bool isSelected) {
+    if (isSelected) return Theme.of(context).primaryColor;
+    if (index == 2) {
+      return Theme.of(context).brightness == Brightness.dark
+          ? Colors.white
+          : Colors.black;
+    }
+    return null;
+  }
+
   Widget _buildNavIcon(String assetPath, String label, int index, String iconPath) {
     final bool isSelected = currentIndex == index;
     return Column(
@@ -160,8 +172,7 @@ class NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
         SvgPicture.asset(
           iconPath,
           height: index == 3 ? 23 : (index == 0 ? 18 : 20),
-          // Use the primary color when selected
-          color: isSelected ? Theme.of(context).primaryColor : null,
+          color: _navItemIconColor(context, index, isSelected),
         ),
         SizedBox(height: 5),
         TranslatedText(

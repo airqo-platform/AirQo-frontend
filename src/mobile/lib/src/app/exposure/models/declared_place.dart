@@ -26,8 +26,6 @@ extension PlaceTypeExtension on PlaceType {
     }
   }
 
-  bool get requiresTimeWindow =>
-      this == PlaceType.home || this == PlaceType.work || this == PlaceType.school;
 }
 
 class TimeWindow extends Equatable {
@@ -74,73 +72,139 @@ class TimeWindow extends Equatable {
         arrive: TimeOfDay(hour: json['arrive_h'] as int, minute: json['arrive_m'] as int),
         leave: TimeOfDay(hour: json['leave_h'] as int, minute: json['leave_m'] as int),
       );
+
+  /// Whether clock hour [hour] (0–23) overlaps this window (supports overnight).
+  bool overlapsHour(int hour) {
+    assert(hour >= 0 && hour < 24);
+    final hs = hour * 60;
+    final he = hs + 60;
+    final a = arrive.hour * 60 + arrive.minute;
+    final b = leave.hour * 60 + leave.minute;
+    if (a <= b) {
+      return he > a && hs < b;
+    }
+    return (he > a && hs < 24 * 60) || (he > 0 && hs < b);
+  }
 }
 
 class DeclaredPlace extends Equatable {
   final String siteId;
+  /// User-chosen tag (e.g. "Hakim's Home") shown next to the category icon—not the map place name.
   final String displayName;
+  /// Map / search place name (e.g. "Wandegeya")—main title on cards.
+  final String locationName;
   final String city;
   final PlaceType type;
   final TimeWindow? weekdayWindow;
   final TimeWindow? weekendWindow;
+  /// User explicitly declares no time at this place on Mon–Fri.
+  final bool absentOnWeekdays;
+  /// User explicitly declares no time at this place on Sat–Sun.
+  final bool absentOnWeekends;
 
   const DeclaredPlace({
     required this.siteId,
     required this.displayName,
+    required this.locationName,
     required this.city,
     required this.type,
     this.weekdayWindow,
     this.weekendWindow,
+    this.absentOnWeekdays = false,
+    this.absentOnWeekends = false,
   });
 
   bool get hasTimeWindow => weekdayWindow != null || weekendWindow != null;
 
-  TimeWindow? get activeWindow {
-    final now = DateTime.now();
-    final isWeekend = now.weekday == DateTime.saturday || now.weekday == DateTime.sunday;
-    return isWeekend ? (weekendWindow ?? weekdayWindow) : (weekdayWindow ?? weekendWindow);
+  /// True when the user has declared they are not scheduled here on this calendar day.
+  bool isAbsentOn(DateTime date) {
+    final isWeekend = date.weekday == DateTime.saturday || date.weekday == DateTime.sunday;
+    return isWeekend ? absentOnWeekends : absentOnWeekdays;
   }
 
-  String get dailyHoursLabel {
-    final w = activeWindow;
+  /// Weekday vs weekend schedule for [date] (local calendar day).
+  /// If [absentOnWeekends] / [absentOnWeekdays] is true, no fallback to the other window.
+  TimeWindow? windowFor(DateTime date) {
+    final isWeekend = date.weekday == DateTime.saturday || date.weekday == DateTime.sunday;
+    if (isWeekend) {
+      if (absentOnWeekends) return null;
+      return weekendWindow ?? weekdayWindow;
+    }
+    if (absentOnWeekdays) return null;
+    return weekdayWindow ?? weekendWindow;
+  }
+
+  TimeWindow? get activeWindow => windowFor(DateTime.now());
+
+  /// Label for the time spent at this place for [date]'s window (weekday vs weekend).
+  String dailyHoursLabelFor(DateTime date) {
+    if (isAbsentOn(date)) {
+      final isWeekend = date.weekday == DateTime.saturday || date.weekday == DateTime.sunday;
+      return isWeekend ? 'Not there on weekends' : 'Not there on weekdays';
+    }
+    final w = windowFor(date);
     if (w == null) return '';
     return '${w.durationLabel} per day';
   }
 
+  String get dailyHoursLabel => dailyHoursLabelFor(DateTime.now());
+
   DeclaredPlace copyWith({
     String? displayName,
+    String? locationName,
     String? city,
     PlaceType? type,
     TimeWindow? weekdayWindow,
     TimeWindow? weekendWindow,
+    bool? absentOnWeekdays,
+    bool? absentOnWeekends,
     bool clearWeekdayWindow = false,
     bool clearWeekendWindow = false,
   }) {
     return DeclaredPlace(
       siteId: siteId,
       displayName: displayName ?? this.displayName,
+      locationName: locationName ?? this.locationName,
       city: city ?? this.city,
       type: type ?? this.type,
       weekdayWindow: clearWeekdayWindow ? null : (weekdayWindow ?? this.weekdayWindow),
       weekendWindow: clearWeekendWindow ? null : (weekendWindow ?? this.weekendWindow),
+      absentOnWeekdays: absentOnWeekdays ?? this.absentOnWeekdays,
+      absentOnWeekends: absentOnWeekends ?? this.absentOnWeekends,
     );
   }
 
   @override
-  List<Object?> get props => [siteId, displayName, city, type, weekdayWindow, weekendWindow];
+  List<Object?> get props => [
+        siteId,
+        displayName,
+        locationName,
+        city,
+        type,
+        weekdayWindow,
+        weekendWindow,
+        absentOnWeekdays,
+        absentOnWeekends,
+      ];
 
   Map<String, dynamic> toJson() => {
         'site_id': siteId,
         'display_name': displayName,
+        'location_name': locationName,
         'city': city,
         'type': type.name,
+        'absent_on_weekdays': absentOnWeekdays,
+        'absent_on_weekends': absentOnWeekends,
         if (weekdayWindow != null) 'weekday_window': weekdayWindow!.toJson(),
         if (weekendWindow != null) 'weekend_window': weekendWindow!.toJson(),
       };
 
-  factory DeclaredPlace.fromJson(Map<String, dynamic> json) => DeclaredPlace(
+  factory DeclaredPlace.fromJson(Map<String, dynamic> json) {
+    final displayName = json['display_name'] as String;
+    return DeclaredPlace(
         siteId: json['site_id'] as String,
-        displayName: json['display_name'] as String,
+        displayName: displayName,
+        locationName: json['location_name'] as String? ?? displayName,
         city: json['city'] as String,
         type: PlaceType.values.byName(json['type'] as String),
         weekdayWindow: json['weekday_window'] != null
@@ -149,7 +213,10 @@ class DeclaredPlace extends Equatable {
         weekendWindow: json['weekend_window'] != null
             ? TimeWindow.fromJson(Map<String, dynamic>.from(json['weekend_window'] as Map))
             : null,
+        absentOnWeekdays: json['absent_on_weekdays'] as bool? ?? false,
+        absentOnWeekends: json['absent_on_weekends'] as bool? ?? false,
       );
+  }
 }
 
 enum ExposureLevel { low, moderate, high }

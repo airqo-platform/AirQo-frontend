@@ -3,6 +3,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:hive/hive.dart';
 import 'package:loggy/loggy.dart';
+import 'package:airqo/src/app/exposure/exposure_demo_config.dart';
 import 'package:airqo/src/app/exposure/models/declared_place.dart';
 
 part 'declared_places_state.dart';
@@ -14,9 +15,20 @@ class DeclaredPlacesCubit extends Cubit<DeclaredPlacesState> with UiLoggy {
     _loadPlaces();
   }
 
+  Future<Box> _getBox() async {
+    if (Hive.isBoxOpen('preferencesBox')) {
+      return Hive.box('preferencesBox');
+    }
+    return Hive.openBox('preferencesBox');
+  }
+
   Future<void> _loadPlaces() async {
+    if (kExposureDemoEmptyStateFirst) {
+      emit(DeclaredPlacesLoaded(places: []));
+      return;
+    }
     try {
-      final box = Hive.box('preferencesBox');
+      final box = await _getBox();
       final raw = box.get(_hiveKey);
       if (raw != null) {
         final jsonList = jsonDecode(raw as String) as List<dynamic>;
@@ -34,8 +46,9 @@ class DeclaredPlacesCubit extends Cubit<DeclaredPlacesState> with UiLoggy {
   }
 
   Future<void> _persist(List<DeclaredPlace> places) async {
+    if (kExposureDemoEmptyStateFirst) return;
     try {
-      final box = Hive.box('preferencesBox');
+      final box = await _getBox();
       await box.put(_hiveKey, jsonEncode(places.map((p) => p.toJson()).toList()));
     } catch (e) {
       loggy.error('Error saving declared places: $e');

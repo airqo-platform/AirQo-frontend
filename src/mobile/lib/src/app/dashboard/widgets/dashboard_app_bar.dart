@@ -15,6 +15,26 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
+  /// Same surface as the theme / profile chips: dark card highlight, or in
+  /// light mode `#E1E7EC` to match the filled circle inside `Light_icon.svg`.
+  Color _headerIconWellColor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? AppColors.darkHighlight
+          : AppColors.dividerColorlight;
+
+  /// Matches theme-toggle glyphs: `#485972` in light, `#9EA3AA` in dark.
+  Widget _headerUserGlyph(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final glyph =
+        isDark ? AppColors.boldHeadlineColor2 : AppColors.navigationlight;
+    return SvgPicture.asset(
+      'assets/icons/user_icon.svg',
+      height: 22,
+      width: 22,
+      colorFilter: ColorFilter.mode(glyph, BlendMode.srcIn),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AppBar(
@@ -44,9 +64,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
       },
       child: CircleAvatar(
         radius: 24,
-        backgroundColor: Theme.of(context).brightness == Brightness.dark
-            ? AppColors.darkHighlight
-            : AppColors.lightHighlight,
+        backgroundColor: _headerIconWellColor(context),
         child: Center(
           child: SvgPicture.asset(
             isDarkMode
@@ -94,15 +112,9 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
           );
         },
         child: CircleAvatar(
-          backgroundColor: Theme.of(context).highlightColor,
+          backgroundColor: _headerIconWellColor(context),
           radius: 24,
-          child: Center(
-            child: SvgPicture.asset(
-              "assets/icons/user_icon.svg",
-              height: 22,
-              width: 22,
-            ),
-          ),
+          child: Center(child: _headerUserGlyph(context)),
         ),
       ),
     );
@@ -142,12 +154,14 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
               },
               child: CircleAvatar(
                 radius: 24,
-                backgroundColor: Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.darkHighlight
-                    : AppColors.dividerColorlight,
+                backgroundColor: _headerIconWellColor(context),
                 child: ClipOval(
-                  child:
-                      _buildProfilePicture(profilePicture, firstName, lastName),
+                  child: _buildProfilePicture(
+                    context,
+                    profilePicture,
+                    firstName,
+                    lastName,
+                  ),
                 ),
               ),
             ),
@@ -177,16 +191,8 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
               },
               child: CircleAvatar(
                 radius: 24,
-                backgroundColor: Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.darkHighlight
-                    : AppColors.dividerColorlight,
-                child: Center(
-                  child: SvgPicture.asset(
-                    "assets/icons/user_icon.svg",
-                    height: 22,
-                    width: 22,
-                  ),
-                ),
+                backgroundColor: _headerIconWellColor(context),
+                child: Center(child: _headerUserGlyph(context)),
               ),
             ),
           );
@@ -202,7 +208,11 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   Widget _buildProfilePicture(
-      String? profilePicture, String? firstName, String? lastName) {
+    BuildContext context,
+    String? profilePicture,
+    String? firstName,
+    String? lastName,
+  ) {
     String firstNameSafe = firstName ?? "";
     String lastNameSafe = lastName ?? "";
 
@@ -216,13 +226,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
       initials += lastNameSafe[0].toUpperCase();
     }
 
-    Widget fallbackWidget = Center(
-      child: SvgPicture.asset(
-        "assets/icons/user_icon.svg",
-        height: 22,
-        width: 22,
-      ),
-    );
+    Widget fallbackWidget = Center(child: _headerUserGlyph(context));
 
     if (initials.isEmpty &&
         (profilePicture == null || profilePicture.isEmpty)) {
