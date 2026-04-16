@@ -55,10 +55,8 @@ const config: Config = {
             };
             return capitalizeItems(sidebarItems);
           },
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
+            'https://github.com/airqo-platform/AirQo-frontend/edit/staging/src/docs-website/',
         },
         sitemap: {
           changefreq: 'weekly',
