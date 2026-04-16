@@ -9,7 +9,7 @@ const BACKEND_URL = `${process.env.NEXT_PUBLIC_API_URL}/devices/network-creation
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(options);
-    const token = (session as any)?.user?.accessToken;
+    const token = (session as { user?: { accessToken?: string } })?.user?.accessToken;
     
     if (!token) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -31,11 +31,12 @@ export async function GET(req: NextRequest) {
     });
 
     return NextResponse.json(response.data, { status: 200 });
-  } catch (error: any) {
-    logger.error(`Error fetching network requests: ${error.message}`);
+  } catch (error: unknown) {
+    const err = error as { message: string; response?: { data: unknown; status: number } };
+    logger.error(`Error fetching network requests: ${err.message}`);
     return NextResponse.json(
-      error.response?.data || { message: "Internal server error" },
-      { status: error.response?.status || 500 }
+      err.response?.data || { message: "Internal server error" },
+      { status: err.response?.status || 500 }
     );
   }
 }

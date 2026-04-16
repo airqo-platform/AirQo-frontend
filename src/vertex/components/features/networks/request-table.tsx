@@ -26,7 +26,7 @@ interface RequestTableProps {
 
 interface TableRequest extends NetworkCreationRequest {
   id: string | number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export default function NetworkRequestTable({ requests, isLoading }: RequestTableProps) {

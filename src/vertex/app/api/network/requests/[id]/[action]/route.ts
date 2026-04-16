@@ -6,7 +6,7 @@ import axios from "axios";
 
 async function getAuthToken(): Promise<string | null> {
   const session = await getServerSession(options);
-  return (session as any)?.user?.accessToken || null;
+  return (session as { user?: { accessToken?: string } })?.user?.accessToken || null;
 }
 
 export async function PUT(
@@ -49,11 +49,12 @@ export async function PUT(
     });
 
     return NextResponse.json(response.data, { status: 200 });
-  } catch (error: any) {
-    logger.error(`Error updating network request status: ${error.message}`);
+  } catch (error: unknown) {
+    const err = error as { message: string; response?: { data: unknown; status: number } };
+    logger.error(`Error updating network request status: ${err.message}`);
     return NextResponse.json(
-      error.response?.data || { message: "Internal server error" },
-      { status: error.response?.status || 500 }
+      err.response?.data || { message: "Internal server error" },
+      { status: err.response?.status || 500 }
     );
   }
 }

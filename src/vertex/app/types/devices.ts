@@ -1,5 +1,3 @@
-import { Site } from "./sites";
-
 export interface DeviceSite {
   _id: string;
   visibility: boolean;
