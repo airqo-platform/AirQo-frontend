@@ -36,8 +36,8 @@ export const trackEvent = (
     ReactGA.event({
       category: 'engagement',
       action: eventName,
-      app_name: AIRQO_APP_NAME,
       ...properties,
+      app_name: AIRQO_APP_NAME,
     } as never);
   } catch (error) {
     console.warn('Google Analytics tracking failed:', error);

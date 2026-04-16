@@ -85,7 +85,7 @@ const ApiClientPage: React.FC = () => {
         });
         trackApiClientAction(
           posthog,
-          mode === 'refresh' ? 'refresh_token' : 'create',
+          mode === 'refresh' ? 'refresh_token' : 'generate_token',
           {
             client_id: client._id,
             client_name: client.name,

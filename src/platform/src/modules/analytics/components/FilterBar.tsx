@@ -148,6 +148,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                   key={option.value}
                   onClick={() => {
                     const nextFrequency = option.value as FrequencyType;
+                    if (filters.frequency === nextFrequency) {
+                      return;
+                    }
+
                     setFrequency(nextFrequency);
                     trackFeatureUsage(
                       posthog,
@@ -218,6 +222,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                   onClick={() => {
                     const nextPollutant =
                       option.value.toLowerCase() as PollutantType;
+                    if (filters.pollutant === nextPollutant) {
+                      return;
+                    }
+
                     setPollutant(nextPollutant);
                     trackFeatureUsage(
                       posthog,

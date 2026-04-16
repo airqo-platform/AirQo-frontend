@@ -173,7 +173,6 @@ export const useDataExportActions = (
           activeTab === 'devices'
             ? `${deviceCategory} devices`
             : `${activeTab} export`,
-        location_names: locationNames,
       });
 
       trackEvent('data_download_started', {

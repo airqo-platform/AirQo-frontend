@@ -36,11 +36,9 @@ function AnalyticsBridge() {
     const userId = sessionUser?._id?.trim() || '';
 
     if (status !== 'authenticated' || !userId) {
-      if (previousIdentityRef.current) {
-        postHogClient.reset();
-        previousIdentityRef.current = null;
-        previousGroupRef.current = null;
-      }
+      postHogClient.reset();
+      previousIdentityRef.current = null;
+      previousGroupRef.current = null;
       return;
     }
 

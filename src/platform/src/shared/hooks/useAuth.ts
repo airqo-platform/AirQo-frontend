@@ -4,6 +4,7 @@ import { useSWRConfig } from 'swr';
 import { authService } from '../services/authService';
 import { userService } from '../services/userService';
 import { usePostHog } from 'posthog-js/react';
+import { hashId } from '../utils/analytics';
 import { trackAuthEvent } from '../utils/enhancedAnalytics';
 import { trackEvent } from '../utils/analytics';
 import type {
@@ -67,14 +68,15 @@ export const useRegister = () => {
     'auth/register',
     async (key, { arg }: { arg: RegisterRequest }) => {
       const response = await authService.register(arg);
+      const userEmailHash = hashId(arg.email.trim().toLowerCase());
 
       trackAuthEvent(posthog, 'register', {
         category: arg.category,
-        user_email: arg.email,
+        user_email_hash: userEmailHash,
       });
       trackEvent('auth_register', {
         category: arg.category,
-        user_email: arg.email,
+        user_email_hash: userEmailHash,
       });
 
       return response;

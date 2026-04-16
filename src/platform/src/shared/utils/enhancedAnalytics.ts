@@ -30,6 +30,42 @@ const resolvePostHogClient = (posthog: PostHog | null): PostHog | null => {
   return (window as BrowserWindowWithPostHog).posthog || null;
 };
 
+const pickAllowedMetadata = (
+  metadata: Record<string, unknown> | undefined,
+  allowedKeys: readonly string[]
+): Record<string, unknown> => {
+  if (!metadata) {
+    return {};
+  }
+
+  return allowedKeys.reduce<Record<string, unknown>>((accumulator, key) => {
+    if (Object.prototype.hasOwnProperty.call(metadata, key)) {
+      const value = metadata[key];
+      if (value !== undefined) {
+        accumulator[key] = value;
+      }
+    }
+
+    return accumulator;
+  }, {});
+};
+
+const ALLOWED_AUTH_METADATA_KEYS = [
+  'category',
+  'has_token',
+  'message',
+  'organization',
+  'user_id',
+  'user_email_hash',
+] as const;
+
+const ALLOWED_APICLIENT_METADATA_KEYS = [
+  'client_id',
+  'client_name',
+  'token_status',
+  'mode',
+] as const;
+
 // ============================================================================
 // Type Definitions
 // ============================================================================
@@ -225,10 +261,10 @@ export const trackDataDownload = (
     device_category: download.deviceCategory,
     source: download.source,
     dataset_label: download.datasetLabel || download.source,
-    location_names: download.locationNames || [],
+    location_names_hashed: (download.locationNames || []).map(hashId),
     time_period_type: download.timePeriodType,
-    selected_grid_ids: download.selectedGridIds || [],
-    selected_site_ids: download.selectedSiteIds || [],
+    selected_grid_ids_hashed: (download.selectedGridIds || []).map(hashId),
+    selected_site_ids_hashed: (download.selectedSiteIds || []).map(hashId),
     timestamp: new Date().toISOString(),
   };
 
@@ -522,10 +558,15 @@ export const trackAuthEvent = (
   const analyticsClient = resolvePostHogClient(posthog);
   if (!analyticsClient) return;
 
+  const sanitizedMetadata = pickAllowedMetadata(
+    metadata,
+    ALLOWED_AUTH_METADATA_KEYS
+  );
+
   analyticsClient.capture('auth_event', {
     ...getAnalyticsContext(),
     action,
-    metadata: metadata || {},
+    metadata: sanitizedMetadata,
     timestamp: new Date().toISOString(),
   });
 };
@@ -553,16 +594,21 @@ export const trackGroupChange = (
 
 export const trackApiClientAction = (
   posthog: PostHog | null,
-  action: 'create' | 'update' | 'refresh_token' | 'view',
+  action: 'create' | 'generate_token' | 'update' | 'refresh_token' | 'view',
   metadata?: Record<string, unknown>
 ) => {
   const analyticsClient = resolvePostHogClient(posthog);
   if (!analyticsClient) return;
 
+  const sanitizedMetadata = pickAllowedMetadata(
+    metadata,
+    ALLOWED_APICLIENT_METADATA_KEYS
+  );
+
   analyticsClient.capture('api_client_action', {
     ...getAnalyticsContext(),
     action,
-    metadata: metadata || {},
+    metadata: sanitizedMetadata,
     timestamp: new Date().toISOString(),
   });
 };
