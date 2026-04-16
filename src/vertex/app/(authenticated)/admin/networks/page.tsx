@@ -6,7 +6,6 @@ import { useNetworks } from "@/core/hooks/useNetworks";
 
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { PERMISSIONS } from "@/core/permissions/constants";
-import ReusableButton from "@/components/shared/button/ReusableButton";
 
 export default function NetworksPage() {
   const { networks, isFetching, error } = useNetworks();
@@ -19,15 +18,7 @@ export default function NetworksPage() {
             <h1 className="text-2xl font-semibold">Sensor Manufacturers</h1>
             
           </div>
-          <div className="flex gap-2">
-            <ReusableButton 
-              variant="outlined" 
-              path="/admin/networks/requests"
-            >
-              View Requests
-            </ReusableButton>
-            <CreateNetworkForm />
-          </div>
+          <CreateNetworkForm />
         </div>
 
         <div>

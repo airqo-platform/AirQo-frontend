@@ -1,11 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import ReusableTable, {
   TableColumn,
 } from "@/components/shared/table/ReusableTable";
 import { NetworkCreationRequest } from "@/core/apis/networks";
-import { useUpdateNetworkRequestStatus } from "@/core/hooks/useNetworks";
 import { Badge } from "@/components/ui/badge";
 import { Check, X, Eye, MoreHorizontal } from "lucide-react";
 import {
@@ -16,12 +14,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
-import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
 
 interface RequestTableProps {
   requests: NetworkCreationRequest[];
   isLoading: boolean;
+  onAction: (request: NetworkCreationRequest, type: 'approve' | 'deny' | 'review') => void;
 }
 
 interface TableRequest extends NetworkCreationRequest {
@@ -29,32 +26,7 @@ interface TableRequest extends NetworkCreationRequest {
   [key: string]: unknown;
 }
 
-export default function NetworkRequestTable({ requests, isLoading }: RequestTableProps) {
-  const { mutate: updateStatus, isPending } = useUpdateNetworkRequestStatus();
-  const [selectedRequest, setSelectedRequest] = useState<NetworkCreationRequest | null>(null);
-  const [actionType, setActionType] = useState<'approve' | 'deny' | 'review' | null>(null);
-  const [notes, setNotes] = useState("");
-
-  const handleAction = (request: NetworkCreationRequest, type: 'approve' | 'deny' | 'review') => {
-    setSelectedRequest(request);
-    setActionType(type);
-    setNotes("");
-  };
-
-  const confirmAction = () => {
-    if (!selectedRequest || !actionType) return;
-    updateStatus({
-      requestId: selectedRequest._id,
-      action: actionType,
-      data: { reviewer_notes: notes }
-    }, {
-      onSuccess: () => {
-        setSelectedRequest(null);
-        setActionType(null);
-      }
-    });
-  };
-
+export default function NetworkRequestTable({ requests, isLoading, onAction }: RequestTableProps) {
   const columns: TableColumn<TableRequest>[] = [
     {
       key: "net_name",
@@ -116,14 +88,14 @@ export default function NetworkRequestTable({ requests, isLoading }: RequestTabl
               <DropdownMenuSeparator />
               {canAction && (
                 <>
-                  <DropdownMenuItem onClick={() => handleAction(item, 'approve')} className="text-green-600">
+                  <DropdownMenuItem onClick={() => onAction(item, 'approve')} className="text-green-600">
                     <Check className="mr-2 h-4 w-4" /> Approve
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleAction(item, 'deny')} className="text-red-600">
+                  <DropdownMenuItem onClick={() => onAction(item, 'deny')} className="text-red-600">
                     <X className="mr-2 h-4 w-4" /> Deny
                   </DropdownMenuItem>
                   {item.status === 'pending' && (
-                    <DropdownMenuItem onClick={() => handleAction(item, 'review')}>
+                    <DropdownMenuItem onClick={() => onAction(item, 'review')}>
                       <Eye className="mr-2 h-4 w-4" /> Mark Under Review
                     </DropdownMenuItem>
                   )}
@@ -142,50 +114,13 @@ export default function NetworkRequestTable({ requests, isLoading }: RequestTabl
   const data: TableRequest[] = requests.map(r => ({ ...r, id: r._id }));
 
   return (
-    <>
-      <ReusableTable
-        data={data}
-        columns={columns}
-        loading={isLoading}
-        pageSize={10}
-        searchableColumns={["net_name", "requester_name"]}
-      />
-
-      <ReusableDialog
-        isOpen={!!selectedRequest}
-        onClose={() => setSelectedRequest(null)}
-        title={`${actionType?.charAt(0).toUpperCase()}${actionType?.slice(1)} Request`}
-        size="md"
-        primaryAction={{
-            label: isPending ? "Processing..." : "Confirm",
-            onClick: confirmAction,
-            disabled: isPending
-        }}
-        secondaryAction={{
-            label: "Cancel",
-            onClick: () => setSelectedRequest(null),
-            variant: "outline"
-        }}
-      >
-        <div className="space-y-4 py-2">
-            <p className="text-sm text-muted-foreground">
-                You are about to {actionType} the request for <strong>{selectedRequest?.net_name}</strong>.
-            </p>
-            <ReusableInputField 
-                as="textarea"
-                label="Reviewer Notes (Optional)"
-                placeholder="Add any notes or context for this decision..."
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={4}
-            />
-            {actionType === 'deny' && (
-                <p className="text-xs text-red-500 italic">
-                    Note: Denial notes will be included in the email notification to the requester.
-                </p>
-            )}
-        </div>
-      </ReusableDialog>
-    </>
+    <ReusableTable
+      title=""
+      data={data}
+      columns={columns}
+      loading={isLoading}
+      pageSize={10}
+      searchableColumns={["net_name", "requester_name"]}
+    />
   );
 }

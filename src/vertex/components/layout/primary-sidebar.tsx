@@ -209,7 +209,21 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                   }}
                   label="Sensor Manufacturers"
                   subLabel="Manage and configure devices"
-                  isActive={pathname.startsWith(ROUTE_LINKS.ADMIN_NETWORKS)}
+                  isActive={pathname === ROUTE_LINKS.ADMIN_NETWORKS}
+                />
+
+                <AdminDropdownItem
+                  permission={!!permissions.canViewNetworks}
+                  permissionCode={PERMISSIONS.NETWORK.VIEW}
+                  tooltipMessage="This action requires network view permission"
+                  onClick={() => {
+                    handleModuleChange('admin');
+                    router.push(ROUTE_LINKS.ADMIN_NETWORK_REQUESTS);
+                    setIsDropdownOpen(false);
+                  }}
+                  label="Manufacturer Requests"
+                  subLabel="Review new sensor requests"
+                  isActive={pathname === ROUTE_LINKS.ADMIN_NETWORK_REQUESTS}
                 />
 
                 <AdminDropdownItem
