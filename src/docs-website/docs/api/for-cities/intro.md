@@ -76,7 +76,7 @@ City authorities already using Grid ID access:
 
 ## Next steps
 
-- [Fetch recent measurements →](./recent-measurements)
-- [Access historical data →](./historical-data)
-- [Generate spatial heatmaps →](./spatial-heatmaps)
-- [Set up your account →](../getting-started/authentication)
+- [Fetch recent measurements →](./recent-measurements.md)
+- [Access historical data →](./historical-data.md)
+- [Generate spatial heatmaps →](./spatial-heatmaps.md)
+- [Set up your account →](../getting-started/authentication.md)

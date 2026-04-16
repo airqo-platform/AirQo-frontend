@@ -45,7 +45,7 @@ For other cities, use the metadata endpoint to browse all available Grids.
 A Site ID identifies a specific physical monitoring location.
 
 **How to find Site IDs:**
-- Call the [recent measurements endpoint](../for-cities/recent-measurements) for your Grid and collect the `site_id` field from each measurement
+- Call the [recent measurements endpoint](../for-cities/recent-measurements.md) for your Grid and collect the `site_id` field from each measurement
 - Browse the metadata endpoints for a full list: [docs.airqo.net/airqo-rest-api-documentation/api-endpoints/metadata](https://docs.airqo.net/airqo-rest-api-documentation/api-endpoints/metadata)
 
 A Site ID looks like: `64f7b3e8c9d25a0013f2d456`

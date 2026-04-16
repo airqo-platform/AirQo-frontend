@@ -15,7 +15,7 @@ Historical data access requires a **Standard Tier** subscription or above.
 
 ## Overview
 
-To query historical data for your Grid, use the site names or device names from your Grid in the Analytics API request. You can discover the sites in your Grid by calling the [recent measurements endpoint](./recent-measurements) first and collecting the `site_id` and `device` values.
+To query historical data for your Grid, use the site names or device names from your Grid in the Analytics API request. You can discover the sites in your Grid by calling the [recent measurements endpoint](./recent-measurements.md) first and collecting the `site_id` and `device` values.
 
 ---
 
