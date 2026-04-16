@@ -7,39 +7,41 @@
 ## Version 1.23.27
 **Released:** April 16, 2026
 
-### Native Network Creation Requests & Codebase Cleanup
+### Native Sensor Manufacturer Requests & Dashboard Overhaul
 
-Introduced a native workflow for requesting new Sensor Manufacturers and performed significant codebase maintenance by removing legacy Map-Readings logic and improving overall type safety.
+Replaced the legacy Google Form workflow with a native, standalone administrative dashboard for managing new sensor manufacturer requests, featuring a tabbed navigation system and centralized review controls.
 
 <details>
-<summary><strong>Sensor Manufacturer Requests (4)</strong></summary>
+<summary><strong>Admin Request Dashboard (5)</strong></summary>
 
-- **Native Request Workflow**: Replaced the external Google Form link with a native `NetworkRequestDialog` in the Import Device modal, allowing seamless manufacturer onboarding requests.
-- **Admin Review Dashboard**: Created a new administrative dashboard at `/admin/networks/requests` to view, approve, and deny onboarding requests with reviewer notes.
-- **Hybrid API Architecture**: Implemented direct client-side backend submission for public requests and secure server-side proxy routes for admin actions to protect sensitive secrets.
-- **Quick Admin Access**: Added a "View Requests" shortcut to the main Sensor Manufacturers admin page for rapid navigation.
+- **Status-Tabbed Layout**: Introduced a new standalone dashboard at `/admin/networks/requests` with tabs for `Pending`, `In Review`, `Approved`, `Denied`, and `All`.
+- **Real-time Status Counts**: Dynamic count badges integrated into each status tab for immediate visibility of the requests queue.
+- **Centralized Admin Control**: Approval and denial workflows (including reviewer notes) are now managed globally at the page level for improved data integrity.
+- **Streamlined UI**: Removed redundant navigation elements (back buttons, search bars) to create a focused, high-density management interface.
+- **Optimized Actions**: Standardized the use of `ReusableButton` for administrative actions like refreshing the request queue.
+
+</details>
+
+<details>
+<summary><strong>Navigation & Integration (3)</strong></summary>
+
+- **Multi-Sidebar Integration**: Added dedicated entry points for "Manufacturer Requests" in both the Primary and Secondary sidebars.
+- **Icon Set Expansion**: Integrated `AqFileQuestion02` for requests and updated Sensor Manufacturers to use `AqCpuChip01` for better visual distinction.
+- **Strict Route Highlighting**: Implemented precise pathname matching in sidebars to ensure clear visual feedback when navigating between management modules.
 
 </details>
 
 <details>
 <summary><strong>Codebase Maintenance (3)</strong></summary>
 
-- **Map-Readings Cleanup**: Removed the legacy Map-Readings types, API definitions, hooks, and utilities to reduce technical debt and build size.
-- **Type Safety Hardening**: Resolved over a dozen TypeScript and linting errors, focusing on unused imports, index signature overlaps, and explicitly eliminating unnecessary `any` types.
+- **Map-Readings Cleanup**: Removed the legacy Map-Readings types, API definitions, hooks, and utilities to reduce technical debt.
+- **Type Safety Hardening**: Resolved over a dozen TypeScript and linting errors, focusing on unused imports and removing unnecessary `any` types.
 - **API Response Refinement**: Updated Cohort API typing to better reflect backend response structures and ensure reliable data handling.
 
 </details>
 
 <details>
-<summary><strong>UI/UX Improvements (2)</strong></summary>
-
-- **Docusaurus Config Optimization**: Streamlined the documentation site configuration by cleaning up unused plugins and refining navigation headers.
-- **Auth Provider Resilience**: Silenced redundant warning toasts in the Auth Provider when using cached user data to reduce UI noise during transient network interruptions.
-
-</details>
-
-<details>
-<summary><strong>Files Modified (12)</strong></summary>
+<summary><strong>Files Modified (16+)</strong></summary>
 
 - `app/(authenticated)/admin/networks/page.tsx`
 - `app/(authenticated)/admin/networks/requests/page.tsx`
@@ -47,11 +49,11 @@ Introduced a native workflow for requesting new Sensor Manufacturers and perform
 - `app/api/network/requests/[id]/[action]/route.ts`
 - `components/features/networks/network-request-dialog.tsx`
 - `components/features/networks/request-table.tsx`
+- `components/layout/primary-sidebar.tsx`
+- `components/layout/secondary-sidebar.tsx`
 - `core/apis/networks.ts`
 - `core/hooks/useNetworks.ts`
-- `docs-website/docusaurus.config.ts`
-- `core/apis/cohorts.ts`
-- `core/apis/mapReadings.ts`
+- `core/routes.ts`
 - `app/changelog.md`
 
 </details>

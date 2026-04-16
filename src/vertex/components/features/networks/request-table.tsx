@@ -115,7 +115,7 @@ export default function NetworkRequestTable({ requests, isLoading, onAction }: R
 
   return (
     <ReusableTable
-      title=""
+      title="Requests"
       data={data}
       columns={columns}
       loading={isLoading}
