@@ -5,11 +5,7 @@ import { useNetworkRequests, useUpdateNetworkRequestStatus } from "@/core/hooks/
 import NetworkRequestTable from "@/components/features/networks/request-table";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { PERMISSIONS } from "@/core/permissions/constants";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, RotateCw, Search } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { NetworkCreationRequest } from "@/core/apis/networks";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
@@ -22,7 +18,6 @@ export default function NetworkRequestsPage() {
   const { data: requests = [], isLoading } = useNetworkRequests();
   const { mutate: updateStatus, isPending: isUpdating } = useUpdateNetworkRequestStatus();
   const queryClient = useQueryClient();
-  const router = useRouter();
 
   const [activeTab, setActiveTab] = useState<TabStatus>("pending");
   
