@@ -90,7 +90,7 @@ export default function NetworkRequestsPage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabStatus)} className="w-fit">
             <TabsList className="bg-gray-100/50 p-1">
-              <TabsTrigger value="pending" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <TabsTrigger value="pending">
                 Pending ({counts.pending})
               </TabsTrigger>
               <TabsTrigger value="under_review">

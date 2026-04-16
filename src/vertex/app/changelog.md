@@ -18,6 +18,7 @@ Replaced the legacy Google Form workflow with a native, standalone administrativ
 - **Real-time Status Counts**: Dynamic count badges integrated into each status tab for immediate visibility of the requests queue.
 - **Centralized Admin Control**: Approval and denial workflows (including reviewer notes) are now managed globally at the page level for improved data integrity.
 - **Streamlined UI**: Removed redundant navigation elements (back buttons, search bars) to create a focused, high-density management interface.
+- **UI System Standardization**: Refined the `Tabs` component styling to mirror `ReusableButton` behavior (Filled for active states, Outlined for inactive).
 - **Optimized Actions**: Standardized the use of `ReusableButton` for administrative actions like refreshing the request queue.
 
 </details>
