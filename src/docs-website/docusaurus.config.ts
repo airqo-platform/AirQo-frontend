@@ -5,6 +5,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 const config: Config = {
   title: 'AirQo Digital Product Documentation',
   tagline: 'Documentation for AirQo\'s Open Air Quality Data Digital Products',
+  titleDelimiter: '|',
   favicon: 'img/favicon.ico',
 
   future: {
@@ -19,6 +20,7 @@ const config: Config = {
   url: 'https://platform.airqo.net',
   // Docs are mounted under /docs on the shared platform domains.
   baseUrl: '/docs/',
+  trailingSlash: true,
 
   onBrokenLinks: 'throw',
 
@@ -53,10 +55,13 @@ const config: Config = {
             };
             return capitalizeItems(sidebarItems);
           },
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
+            'https://github.com/airqo-platform/AirQo-frontend/edit/staging/src/docs-website/',
+        },
+        sitemap: {
+          changefreq: 'weekly',
+          priority: 0.7,
+          filename: 'sitemap.xml',
         },
         theme: {
           customCss: './src/css/custom.css',
@@ -65,7 +70,113 @@ const config: Config = {
     ],
   ],
 
+  headTags: [
+    {
+      tagName: 'meta',
+      attributes: {
+        name: 'description',
+        content:
+          'Official AirQo product documentation for Analytics, Vertex, Beacon, API, and AI Platform.',
+      },
+    },
+    {
+      tagName: 'meta',
+      attributes: {
+        name: 'keywords',
+        content:
+          'AirQo, air quality, product documentation, API docs, analytics docs, vertex docs, beacon docs',
+      },
+    },
+    {
+      tagName: 'meta',
+      attributes: {
+        name: 'robots',
+        content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1',
+      },
+    },
+    {
+      tagName: 'meta',
+      attributes: {
+        property: 'og:type',
+        content: 'website',
+      },
+    },
+    {
+      tagName: 'meta',
+      attributes: {
+        property: 'og:title',
+        content: 'AirQo Digital Product Documentation',
+      },
+    },
+    {
+      tagName: 'meta',
+      attributes: {
+        property: 'og:description',
+        content:
+          'Official AirQo product documentation for Analytics, Vertex, Beacon, API, and AI Platform.',
+      },
+    },
+    {
+      tagName: 'meta',
+      attributes: {
+        property: 'og:url',
+        content: 'https://platform.airqo.net/docs/',
+      },
+    },
+    {
+      tagName: 'meta',
+      attributes: {
+        property: 'og:image',
+        content: 'https://platform.airqo.net/docs/img/airqo_logo.svg',
+      },
+    },
+    {
+      tagName: 'meta',
+      attributes: {
+        name: 'twitter:card',
+        content: 'summary_large_image',
+      },
+    },
+    {
+      tagName: 'meta',
+      attributes: {
+        name: 'twitter:title',
+        content: 'AirQo Digital Product Documentation',
+      },
+    },
+    {
+      tagName: 'meta',
+      attributes: {
+        name: 'twitter:description',
+        content:
+          'Official AirQo product documentation for Analytics, Vertex, Beacon, API, and AI Platform.',
+      },
+    },
+  ],
+
+  plugins: [
+    [
+      require.resolve('@easyops-cn/docusaurus-search-local'),
+      {
+        hashed: true,
+        docsRouteBasePath: '/',
+        indexBlog: false,
+        indexPages: false,
+        language: ['en'],
+        highlightSearchTermsOnTargetPage: true,
+      },
+    ],
+  ],
+
   themeConfig: {
+    image: 'img/airqo_logo.svg',
+    metadata: [
+      {
+        name: 'googlebot',
+        content:
+          'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1',
+      },
+    ],
     colorMode: {
       respectPrefersColorScheme: true,
     },
@@ -80,6 +191,10 @@ const config: Config = {
         },
       },
       items: [
+        {
+          type: 'search',
+          position: 'right',
+        },
         {
           href: 'https://github.com/airqo-platform/AirQo-frontend/tree/staging/src/docs-website',
           label: 'GitHub',

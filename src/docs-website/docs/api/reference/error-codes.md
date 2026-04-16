@@ -108,7 +108,7 @@ For forecast endpoints, the shape uses `success: false`:
 - No measurements exist for the device in the requested date range
 - The device was offline for the entire period
 
-**Solution:** Verify the ID using the [Finding IDs guide](./finding-ids). Try a shorter or more recent date range.
+**Solution:** Verify the ID using the [Finding IDs guide](./finding-ids.md). Try a shorter or more recent date range.
 
 ---
 

@@ -16,7 +16,7 @@ Before you begin, make sure you have:
 - [ ] An AirQo account at [analytics.airqo.net](https://analytics.airqo.net)
 - [ ] A `SECRET TOKEN` generated from **Account Settings**
 - [ ] Your server's IP address whitelisted (if calling from a server)
-- [ ] A Cohort ID or Grid ID to query (see [Finding IDs →](../reference/finding-ids))
+- [ ] A Cohort ID or Grid ID to query (see [Finding IDs →](../reference/finding-ids.md))
 
 ---
 
@@ -78,7 +78,7 @@ A successful response looks like this:
 | `measurements[].pm2_5.value` | PM2.5 in μg/m³ |
 | `measurements[].pm10.value` | PM10 in μg/m³ |
 
-For the full response reference, see [Response Structure →](../reference/response-structure).
+For the full response reference, see [Response Structure →](../reference/response-structure.md).
 
 ---
 
@@ -86,7 +86,7 @@ For the full response reference, see [Response Structure →](../reference/respo
 
 You have confirmed that your credentials work. Now choose the path that matches your use case:
 
-- **Partner or organisation using Cohort ID?** → [For Partners →](../for-partners/intro)
-- **City or municipality using Grid ID?** → [For Cities →](../for-cities/intro)
-- **Need historical or raw data?** → [Analytics API →](../analytics-api/raw-data)
-- **Need air quality forecasts?** → [Forecasts →](../forecasts/overview)
+- **Partner or organisation using Cohort ID?** → [For Partners →](../for-partners/intro.md)
+- **City or municipality using Grid ID?** → [For Cities →](../for-cities/intro.md)
+- **Need historical or raw data?** → [Analytics API →](../analytics-api/raw-data.md)
+- **Need air quality forecasts?** → [Forecasts →](../forecasts/overview.md)
