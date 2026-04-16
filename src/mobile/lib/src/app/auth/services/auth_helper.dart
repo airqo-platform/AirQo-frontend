@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:airqo/src/app/shared/repository/secure_storage_repository.dart';
 import 'package:airqo/src/meta/utils/api_utils.dart';
@@ -9,6 +10,10 @@ import 'package:loggy/loggy.dart';
 class AuthHelper {
   // Create a static logger using your app's logging setup
   static final _logger = Loggy('AuthHelper');
+
+  // Serialises concurrent refresh calls: if a refresh is already in-flight,
+  // new callers await the same Future instead of issuing duplicate requests.
+  static Future<String?>? _refreshFuture;
   
   /// Get the current user ID from secure storage (preferred method)
   static Future<String?> getCurrentUserId({bool suppressGuestWarning = false}) async {
@@ -134,7 +139,13 @@ class AuthHelper {
   /// the refresh request itself fails (e.g. token older than 7 days, or no
   /// network). Callers should fall back to the stored token and let the normal
   /// 401 path handle the failure.
-  static Future<String?> refreshTokenIfNeeded() async {
+  static Future<String?> refreshTokenIfNeeded() {
+    // If a refresh is already in-flight, join it — don't issue a second request.
+    _refreshFuture ??= _doRefresh().whenComplete(() => _refreshFuture = null);
+    return _refreshFuture!;
+  }
+
+  static Future<String?> _doRefresh() async {
     try {
       final token = await SecureStorageRepository.instance
           .getSecureData(SecureStorageKeys.authToken);
@@ -147,14 +158,16 @@ class AuthHelper {
       _logger.info('Token expired — attempting silent refresh');
 
       final url = '${ApiUtils.baseUrl}/api/v2/users/token/refresh';
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {
-          'Authorization': 'JWT $token',
-          'Content-Type': 'application/json',
-          'Accept': '*/*',
-        },
-      );
+      final response = await http
+          .post(
+            Uri.parse(url),
+            headers: {
+              'Authorization': 'JWT $token',
+              'Content-Type': 'application/json',
+              'Accept': '*/*',
+            },
+          )
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final body = json.decode(response.body) as Map<String, dynamic>;
@@ -168,6 +181,9 @@ class AuthHelper {
       }
 
       _logger.warning('Token refresh failed (${response.statusCode})');
+      return null;
+    } on TimeoutException {
+      _logger.warning('Token refresh timed out');
       return null;
     } catch (e) {
       _logger.error('Error during silent token refresh: $e');
