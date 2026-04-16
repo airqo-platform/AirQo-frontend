@@ -87,7 +87,7 @@ export const useNetworkDevices = (options: DeviceListingOptions = {}) => {
     staleTime: 300_000,
     refetchOnWindowFocus: false,
   });
-
+  
   return {
     data: devicesQuery.data,
     devices: devicesQuery.data?.devices || [],
@@ -96,4 +96,65 @@ export const useNetworkDevices = (options: DeviceListingOptions = {}) => {
     isFetching: devicesQuery.isFetching,
     error: devicesQuery.error,
   };
+};
+
+export const useNetworkRequests = (params?: { status?: string }) => {
+  return useQuery({
+    queryKey: ['network-requests', params?.status],
+    queryFn: () => networksApi.getNetworkRequestsApi(params),
+    staleTime: 60_000,
+  });
+};
+
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import ReusableToast from "@/components/shared/toast/ReusableToast";
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
+
+export const useUpdateNetworkRequestStatus = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ 
+            requestId, 
+            action, 
+            data 
+        }: { 
+            requestId: string; 
+            action: 'approve' | 'deny' | 'review'; 
+            data?: { reviewer_notes?: string } 
+        }) => networksApi.updateNetworkRequestStatusApi(requestId, action, data),
+        onSuccess: (resp) => {
+            ReusableToast({ 
+                message: resp.message || 'Status updated successfully', 
+                type: 'SUCCESS' 
+            });
+            queryClient.invalidateQueries({ queryKey: ['network-requests'] });
+            if (resp.data?.network) {
+                queryClient.invalidateQueries({ queryKey: ['networks'] });
+            }
+        },
+        onError: (error) => {
+            ReusableToast({ 
+                message: `Action failed: ${getApiErrorMessage(error)}`, 
+                type: 'ERROR' 
+            });
+        }
+    });
+};
+
+export const useSubmitNetworkRequest = () => {
+    return useMutation({
+        mutationFn: (data: any) => networksApi.submitNetworkRequestApi(data),
+        onSuccess: (resp) => {
+            ReusableToast({ 
+                message: resp.message || 'Your request for a new Sensor Manufacturer has been submitted successfully!', 
+                type: 'SUCCESS' 
+            });
+        },
+        onError: (error) => {
+            ReusableToast({ 
+                message: getApiErrorMessage(error), 
+                type: 'ERROR' 
+            });
+        }
+    });
 };

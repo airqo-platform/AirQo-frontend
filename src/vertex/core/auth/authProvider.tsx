@@ -271,10 +271,7 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
     // Only show error if online and not just a network issue
     if (isOnline && fetchStatus === 'idle') {
       if (cachedUser) {
-        ReusableToast({
-          message: 'Could not refresh user data. Using cached version.',
-          type: 'WARNING',
-        });
+        // ignore
       } else {
         ReusableToast({
           message: `Could not load user details: ${getApiErrorMessage(error)}`,

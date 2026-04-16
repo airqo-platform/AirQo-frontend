@@ -13,6 +13,7 @@ import { useGroupCohorts } from "@/core/hooks/useCohorts";
 import { useAppSelector } from "@/core/redux/hooks";
 import { usePathname } from "next/navigation";
 import logger from "@/lib/logger";
+import { NetworkRequestDialog } from "../networks/network-request-dialog";
 
 interface ImportDeviceModalProps {
   open: boolean;
@@ -38,6 +39,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
   });
 
   const [showMore, setShowMore] = useState(false);
+  const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const importDevice = useImportDevice();
   const { networks, isLoading: isLoadingNetworks } = useNetworks();
@@ -211,9 +213,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
           {!isAdminPage && (
             <div className="flex justify-end">
               <ReusableButton
-                path="https://forms.gle/EjKHDrHhzma1xz187"
-                target="_blank"
-                rel="noopener noreferrer"
+                onClick={() => setIsRequestDialogOpen(true)}
                 variant="text"
                 className="text-xs p-0 px-1 mt-1 h-auto"
               >
@@ -300,6 +300,11 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
           {showMore ? "Show Less" : "Show More Options"}
         </ReusableButton>
       </div>
+
+      <NetworkRequestDialog 
+        open={isRequestDialogOpen} 
+        onOpenChange={setIsRequestDialogOpen} 
+      />
     </ReusableDialog>
   );
 };

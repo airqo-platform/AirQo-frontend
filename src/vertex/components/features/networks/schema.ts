@@ -16,3 +16,16 @@ export const networkFormSchema = z.object({
 });
 
 export type NetworkFormValues = z.infer<typeof networkFormSchema>;
+
+export const networkRequestSchema = z.object({
+    requester_name: z.string().min(2, "Requester name must be at least 2 characters."),
+    requester_email: z.string().email("Invalid email address."),
+    net_name: z.string().min(2, "Sensor Manufacturer name must be at least 2 characters."),
+    net_email: z.string().email("Invalid email address."),
+    net_website: z.string().url("Invalid URL.").optional().or(z.literal("")),
+    net_category: z.string().optional(),
+    net_description: z.string().optional(),
+    net_acronym: z.string().optional(),
+});
+
+export type NetworkRequestValues = z.infer<typeof networkRequestSchema>;
