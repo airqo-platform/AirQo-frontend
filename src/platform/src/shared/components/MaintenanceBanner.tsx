@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import useSWR from 'swr';
 import { WarningBanner } from '@/shared/components/ui';
 import { maintenanceService } from '@/shared/services/maintenanceService';
@@ -12,14 +12,14 @@ const MAINTENANCE_REFRESH_INTERVAL_MS = 60 * 1000;
 const formatCountdown = (remainingMs: number): string => {
   const safeRemainingMs = Math.max(0, remainingMs);
   const totalSeconds = Math.floor(safeRemainingMs / 1000);
-  const totalHours = Math.floor(totalSeconds / 3600);
+  const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
 
-  const hh = totalHours.toString().padStart(2, '0');
+  const hh = hours.toString().padStart(2, '0');
   const mm = minutes.toString().padStart(2, '0');
   const ss = seconds.toString().padStart(2, '0');
-
+  // Always return a HH:MM:SS string using total hours (no days displayed).
   return `${hh}:${mm}:${ss}`;
 };
 
@@ -55,46 +55,44 @@ export const MaintenanceBanner: React.FC = () => {
     () => getValidMaintenance(data?.maintenance),
     [data?.maintenance]
   );
-  const [now, setNow] = useState(() => Date.now());
+  const now = Date.now();
 
+  const startMs = maintenance?.startDate
+    ? new Date(maintenance.startDate).getTime()
+    : NaN;
   const endMs = maintenance?.endDate
     ? new Date(maintenance.endDate).getTime()
     : NaN;
 
-  useEffect(() => {
-    if (!maintenance) return;
-    if (Number.isNaN(endMs)) return;
+  if (!maintenance) return null;
 
-    const updateClock = () => setNow(Date.now());
-    // Always update every second for a smooth, second-accurate countdown.
-    updateClock();
-    const intervalId = window.setInterval(() => {
-      const currentNow = Date.now();
-      setNow(currentNow);
+  // Compute current status from the current time so we can hide expired
+  // maintenance records. We don't need a live ticking clock because the
+  // banner now displays the estimated length (end - start) rather than a
+  // live remaining countdown.
+  const status: 'scheduled' | 'in_progress' | 'expired' = (() => {
+    if (!maintenance) return 'expired';
+    if (!Number.isNaN(startMs) && now < startMs) return 'scheduled';
+    if (!Number.isNaN(endMs) && now <= endMs) return 'in_progress';
+    return 'expired';
+  })();
 
-      if (currentNow >= endMs) {
-        window.clearInterval(intervalId);
-      }
-    }, 1000);
+  if (status === 'expired') return null;
 
-    return () => window.clearInterval(intervalId);
-  }, [maintenance, endMs]);
+  // If both start and end are provided, calculate the scheduled duration
+  // (end - start) and display it as HH:MM:SS (no days).
+  const scheduledLengthLabel =
+    !Number.isNaN(startMs) && !Number.isNaN(endMs)
+      ? formatCountdown(Math.max(0, endMs - startMs))
+      : null;
 
-  if (!maintenance || Number.isNaN(endMs)) {
-    return null;
-  }
-
-  const remainingMs = Math.max(0, endMs - now);
-  if (remainingMs <= 0) {
-    return null;
-  }
-
-  const countdown = formatCountdown(remainingMs);
-
-  const title = 'Maintenance in progress';
+  const title =
+    status === 'scheduled'
+      ? 'Scheduled maintenance'
+      : 'Maintenance in progress';
 
   return (
-    <div className="w-full px-4 pt-4">
+    <div className="w-full md:px-4 pt-4">
       <div className="mx-auto w-full max-w-7xl">
         <WarningBanner
           title={title}
@@ -104,12 +102,14 @@ export const MaintenanceBanner: React.FC = () => {
                 {maintenance.message}
               </p>
 
-              <p className="text-sm font-semibold tracking-wide text-foreground">
-                Ends in:{' '}
-                <span className="font-mono tabular-nums text-foreground">
-                  {countdown}
-                </span>
-              </p>
+              {scheduledLengthLabel ? (
+                <p className="text-sm font-semibold tracking-wide text-foreground">
+                  Estimated time:{' '}
+                  <span className="font-mono tabular-nums">
+                    {scheduledLengthLabel}
+                  </span>
+                </p>
+              ) : null}
             </div>
           }
         />
