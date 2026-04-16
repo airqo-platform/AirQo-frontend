@@ -5,7 +5,10 @@ import { openMoreInsights } from '@/shared/store/insightsSlice';
 import { toast } from '@/shared/components/ui/toast';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { trackEvent } from '@/shared/utils/analytics';
-import { trackDataDownload } from '@/shared/utils/enhancedAnalytics';
+import {
+  trackDataDownload,
+  trackFeatureUsage,
+} from '@/shared/utils/enhancedAnalytics';
 import { useDataDownload } from '@/modules/analytics/hooks';
 import { DataDownloadRequest } from '@/shared/types/api';
 import { DateRange } from '@/shared/components/calendar/types';
@@ -35,6 +38,17 @@ const getCalendarDayDifference = (from: Date, to: Date) => {
 
   return Math.max(0, (endUtc - startUtc) / (1000 * 60 * 60 * 24));
 };
+
+const getTimePeriodType = (durationDays: number): 'real_time' | 'historical' =>
+  durationDays <= 1 ? 'real_time' : 'historical';
+
+const getSelectedNamesFromTable = (
+  ids: string[],
+  table: TableItem[]
+): string[] =>
+  ids
+    .map(id => table.find(item => String(item.id) === id)?.name || id)
+    .filter((name): name is string => Boolean(name));
 
 /**
  * Custom hook for data export actions and event handlers
@@ -111,10 +125,17 @@ export const useDataExportActions = (
         return;
       }
 
+      const effectiveDataType: 'calibrated' | 'raw' =
+        activeTab === 'devices' && deviceCategory === 'bam'
+          ? 'raw'
+          : (dataType as 'calibrated' | 'raw');
+
       const durationDays = getCalendarDayDifference(
         dateRange.from,
         dateRange.to
       );
+
+      const timePeriodType = getTimePeriodType(durationDays);
 
       if (durationDays > LARGE_DATE_RANGE_THRESHOLD) {
         toast.error(
@@ -123,6 +144,47 @@ export const useDataExportActions = (
         );
         return;
       }
+
+      const locationNames =
+        activeTab === 'sites'
+          ? getSelectedNamesFromTable(selectedSiteIds, sitesData)
+          : activeTab === 'devices'
+            ? selectedDevices
+            : getSelectedNamesFromTable(
+                selectedGridIds,
+                activeTab === 'countries' ? countriesData : citiesData
+              );
+
+      trackFeatureUsage(posthog, 'data_export', 'download_started', {
+        active_tab: activeTab,
+        data_type: effectiveDataType,
+        file_type: fileType,
+        frequency,
+        pollutant_count: selectedPollutants.length,
+        location_count:
+          activeTab === 'sites'
+            ? selectedSiteIds.length
+            : activeTab === 'devices'
+              ? selectedDeviceIds.length
+              : selectedGridIds.length,
+        duration_days: durationDays,
+        time_period_type: timePeriodType,
+        dataset_label:
+          activeTab === 'devices'
+            ? `${deviceCategory} devices`
+            : `${activeTab} export`,
+        location_names: locationNames,
+      });
+
+      trackEvent('data_download_started', {
+        active_tab: activeTab,
+        data_type: effectiveDataType,
+        file_type: fileType,
+        frequency,
+        pollutant_count: selectedPollutants.length,
+        duration_days: durationDays,
+        time_period_type: timePeriodType,
+      });
 
       // Extract sites for countries/cities
       const sitesForDownload: string[] = [];
@@ -140,11 +202,6 @@ export const useDataExportActions = (
           sitesForDownload.push(...sites);
         });
       }
-
-      const effectiveDataType: 'calibrated' | 'raw' =
-        activeTab === 'devices' && deviceCategory === 'bam'
-          ? 'raw'
-          : (dataType as 'calibrated' | 'raw');
 
       const request: DataDownloadRequest = {
         datatype: effectiveDataType,
@@ -199,6 +256,17 @@ export const useDataExportActions = (
           durationDays,
           deviceCategory: effectiveDeviceCategory as 'lowcost' | 'reference',
           source: activeTab,
+          datasetLabel:
+            activeTab === 'devices'
+              ? `${deviceCategory} devices`
+              : `${activeTab} export`,
+          locationNames,
+          timePeriodType,
+          selectedGridIds:
+            activeTab === 'countries' || activeTab === 'cities'
+              ? selectedGridIds
+              : undefined,
+          selectedSiteIds: activeTab === 'sites' ? selectedSiteIds : undefined,
         });
 
         toast.success(
@@ -207,6 +275,22 @@ export const useDataExportActions = (
         );
       } catch (error) {
         console.error('Download failed:', error);
+
+        trackFeatureUsage(posthog, 'data_export', 'download_failed', {
+          active_tab: activeTab,
+          data_type: effectiveDataType,
+          file_type: fileType,
+          duration_days: durationDays,
+          time_period_type: timePeriodType,
+        });
+
+        trackEvent('data_download_failed', {
+          active_tab: activeTab,
+          data_type: effectiveDataType,
+          file_type: fileType,
+          duration_days: durationDays,
+          time_period_type: timePeriodType,
+        });
 
         // Check for "No data found" error specifically
         let userFriendlyMessage = getUserFriendlyErrorMessage(error);
@@ -229,6 +313,7 @@ export const useDataExportActions = (
       dateRange,
       activeTab,
       selectedSites,
+      selectedDevices,
       selectedSiteIds,
       selectedDeviceIds,
       selectedGridIds,
@@ -240,6 +325,9 @@ export const useDataExportActions = (
       frequency,
       deviceCategory,
       fileTitle,
+      sitesData,
+      countriesData,
+      citiesData,
       downloadData,
       posthog,
     ]

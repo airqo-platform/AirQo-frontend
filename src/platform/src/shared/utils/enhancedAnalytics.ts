@@ -8,6 +8,27 @@
 import { PostHog } from 'posthog-js';
 import ReactGA from 'react-ga4';
 import { hashId } from './analytics';
+import { AIRQO_APP_NAME } from './analyticsConstants';
+
+const getAnalyticsContext = () => ({
+  app_name: AIRQO_APP_NAME,
+  app_version: process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0',
+  environment: process.env.NODE_ENV || 'production',
+});
+
+type BrowserWindowWithPostHog = Window & { posthog?: PostHog };
+
+const resolvePostHogClient = (posthog: PostHog | null): PostHog | null => {
+  if (posthog) {
+    return posthog;
+  }
+
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  return (window as BrowserWindowWithPostHog).posthog || null;
+};
 
 // ============================================================================
 // Type Definitions
@@ -109,6 +130,11 @@ export interface DataDownloadEvent {
   durationDays: number;
   deviceCategory?: 'lowcost' | 'reference';
   source: 'sites' | 'devices' | 'countries' | 'cities';
+  datasetLabel?: string;
+  locationNames?: string[];
+  timePeriodType?: 'real_time' | 'historical';
+  selectedGridIds?: string[];
+  selectedSiteIds?: string[];
 }
 
 export interface MapInteraction {
@@ -151,9 +177,11 @@ export const trackLocationSelection = (
   posthog: PostHog | null,
   selection: LocationSelection
 ) => {
-  if (!posthog) return;
+  const analyticsClient = resolvePostHogClient(posthog);
+  if (!analyticsClient) return;
 
   const eventData = {
+    ...getAnalyticsContext(),
     location_id_hashed: hashId(selection.locationId),
     location_name: selection.locationName,
     city: selection.city,
@@ -162,7 +190,7 @@ export const trackLocationSelection = (
     timestamp: new Date().toISOString(),
   };
 
-  posthog.capture('location_selected', eventData);
+  analyticsClient.capture('location_selected', eventData);
 
   // Also track to Google Analytics
   ReactGA.event({
@@ -179,9 +207,11 @@ export const trackDataDownload = (
   posthog: PostHog | null,
   download: DataDownloadEvent
 ) => {
-  if (!posthog) return;
+  const analyticsClient = resolvePostHogClient(posthog);
+  if (!analyticsClient) return;
 
   const eventData = {
+    ...getAnalyticsContext(),
     data_type: download.dataType,
     file_type: download.fileType,
     frequency: download.frequency,
@@ -194,10 +224,15 @@ export const trackDataDownload = (
     duration_days: download.durationDays,
     device_category: download.deviceCategory,
     source: download.source,
+    dataset_label: download.datasetLabel || download.source,
+    location_names: download.locationNames || [],
+    time_period_type: download.timePeriodType,
+    selected_grid_ids: download.selectedGridIds || [],
+    selected_site_ids: download.selectedSiteIds || [],
     timestamp: new Date().toISOString(),
   };
 
-  posthog.capture('data_downloaded', eventData);
+  analyticsClient.capture('data_downloaded', eventData);
 
   // Track to Google Analytics
   ReactGA.event({
@@ -215,9 +250,11 @@ export const trackMapInteraction = (
   posthog: PostHog | null,
   interaction: MapInteraction
 ) => {
-  if (!posthog) return;
+  const analyticsClient = resolvePostHogClient(posthog);
+  if (!analyticsClient) return;
 
   const eventData = {
+    ...getAnalyticsContext(),
     action: interaction.action,
     location_id_hashed: interaction.locationId
       ? hashId(interaction.locationId)
@@ -228,7 +265,7 @@ export const trackMapInteraction = (
     timestamp: new Date().toISOString(),
   };
 
-  posthog.capture('map_interaction', eventData);
+  analyticsClient.capture('map_interaction', eventData);
 };
 
 /**
@@ -238,9 +275,11 @@ export const trackChartInteraction = (
   posthog: PostHog | null,
   interaction: ChartInteraction
 ) => {
-  if (!posthog) return;
+  const analyticsClient = resolvePostHogClient(posthog);
+  if (!analyticsClient) return;
 
   const eventData = {
+    ...getAnalyticsContext(),
     chart_type: interaction.chartType,
     pollutant: interaction.pollutant,
     time_range: interaction.timeRange,
@@ -249,7 +288,7 @@ export const trackChartInteraction = (
     timestamp: new Date().toISOString(),
   };
 
-  posthog.capture('chart_interaction', eventData);
+  analyticsClient.capture('chart_interaction', eventData);
 
   // Track to Google Analytics
   ReactGA.event({
@@ -266,16 +305,18 @@ export const trackPreferenceChange = (
   posthog: PostHog | null,
   preference: UserPreference
 ) => {
-  if (!posthog) return;
+  const analyticsClient = resolvePostHogClient(posthog);
+  if (!analyticsClient) return;
 
   const eventData = {
+    ...getAnalyticsContext(),
     preference_type: preference.preferenceType,
     preference_value: preference.preferenceValue,
     previous_value: preference.previousValue,
     timestamp: new Date().toISOString(),
   };
 
-  posthog.capture('preference_changed', eventData);
+  analyticsClient.capture('preference_changed', eventData);
 };
 
 /**
@@ -283,11 +324,13 @@ export const trackPreferenceChange = (
  * Note: Search terms are hashed to prevent PII exposure
  */
 export const trackSearch = (posthog: PostHog | null, search: SearchEvent) => {
-  if (!posthog) return;
+  const analyticsClient = resolvePostHogClient(posthog);
+  if (!analyticsClient) return;
 
   const hashedSearchTerm = sanitizeSearchTerm(search.searchTerm);
 
   const eventData = {
+    ...getAnalyticsContext(),
     search_term_hashed: hashedSearchTerm,
     search_type: search.searchType,
     results_count: search.resultsCount,
@@ -296,7 +339,7 @@ export const trackSearch = (posthog: PostHog | null, search: SearchEvent) => {
     timestamp: new Date().toISOString(),
   };
 
-  posthog.capture('search_performed', eventData);
+  analyticsClient.capture('search_performed', eventData);
 
   // Track to Google Analytics - only send metadata, not the actual term
   ReactGA.event({
@@ -315,9 +358,11 @@ export const trackPageDwell = (
   pagePath: string,
   dwellTimeSeconds: number
 ) => {
-  if (!posthog) return;
+  const analyticsClient = resolvePostHogClient(posthog);
+  if (!analyticsClient) return;
 
-  posthog.capture('page_dwell', {
+  analyticsClient.capture('page_dwell', {
+    ...getAnalyticsContext(),
     page_path: pagePath,
     dwell_time_seconds: dwellTimeSeconds,
     dwell_time_minutes: Math.round(dwellTimeSeconds / 60),
@@ -334,9 +379,11 @@ export const trackFeatureUsage = (
   action: string,
   metadata?: Record<string, unknown>
 ) => {
-  if (!posthog) return;
+  const analyticsClient = resolvePostHogClient(posthog);
+  if (!analyticsClient) return;
 
-  posthog.capture('feature_used', {
+  analyticsClient.capture('feature_used', {
+    ...getAnalyticsContext(),
     feature_name: featureName,
     action,
     metadata: metadata || {},
@@ -362,12 +409,14 @@ export const trackError = (
   errorMessage: string,
   errorContext?: Record<string, unknown>
 ) => {
-  if (!posthog) return;
+  const analyticsClient = resolvePostHogClient(posthog);
+  if (!analyticsClient) return;
 
   const sanitizedMessage = sanitizeErrorMessage(errorMessage);
   const sanitizedContext = sanitizeErrorContext(errorContext || {});
 
-  posthog.capture('error_occurred', {
+  analyticsClient.capture('error_occurred', {
+    ...getAnalyticsContext(),
     error_type: errorType,
     error_message: sanitizedMessage,
     error_context: sanitizedContext,
@@ -386,11 +435,13 @@ export const trackApiPerformance = (
   duration: number,
   status: number
 ) => {
-  if (!posthog) return;
+  const analyticsClient = resolvePostHogClient(posthog);
+  if (!analyticsClient) return;
 
   const sanitizedEndpoint = sanitizeEndpoint(endpoint);
 
-  posthog.capture('api_call', {
+  analyticsClient.capture('api_call', {
+    ...getAnalyticsContext(),
     endpoint: sanitizedEndpoint,
     method,
     duration_ms: duration,
@@ -409,9 +460,11 @@ export const trackFavoriteAction = (
   locationId: string,
   locationName?: string
 ) => {
-  if (!posthog) return;
+  const analyticsClient = resolvePostHogClient(posthog);
+  if (!analyticsClient) return;
 
-  posthog.capture('favorite_action', {
+  analyticsClient.capture('favorite_action', {
+    ...getAnalyticsContext(),
     action,
     location_id_hashed: hashId(locationId),
     location_name: locationName,
@@ -439,11 +492,13 @@ export const trackSessionQuality = (
   },
   options?: { transport?: 'sendBeacon' | 'fetch' }
 ) => {
-  if (!posthog) return;
+  const analyticsClient = resolvePostHogClient(posthog);
+  if (!analyticsClient) return;
 
-  posthog.capture(
+  analyticsClient.capture(
     'session_quality',
     {
+      ...getAnalyticsContext(),
       pages_viewed: metrics.pagesViewed,
       actions_performed: metrics.actionsPerformed,
       session_duration_minutes: Math.round(metrics.sessionDuration / 60),
@@ -453,6 +508,63 @@ export const trackSessionQuality = (
     },
     options
   );
+};
+
+export const trackAuthEvent = (
+  posthog: PostHog | null,
+  action:
+    | 'login'
+    | 'register'
+    | 'password_reset_requested'
+    | 'password_reset_completed',
+  metadata?: Record<string, unknown>
+) => {
+  const analyticsClient = resolvePostHogClient(posthog);
+  if (!analyticsClient) return;
+
+  analyticsClient.capture('auth_event', {
+    ...getAnalyticsContext(),
+    action,
+    metadata: metadata || {},
+    timestamp: new Date().toISOString(),
+  });
+};
+
+export const trackGroupChange = (
+  posthog: PostHog | null,
+  metadata: {
+    fromGroupId?: string;
+    fromGroupName?: string;
+    fromOrganizationSlug?: string;
+    toGroupId: string;
+    toGroupName?: string;
+    toOrganizationSlug?: string;
+  }
+) => {
+  const analyticsClient = resolvePostHogClient(posthog);
+  if (!analyticsClient) return;
+
+  analyticsClient.capture('group_switched', {
+    ...getAnalyticsContext(),
+    ...metadata,
+    timestamp: new Date().toISOString(),
+  });
+};
+
+export const trackApiClientAction = (
+  posthog: PostHog | null,
+  action: 'create' | 'update' | 'refresh_token' | 'view',
+  metadata?: Record<string, unknown>
+) => {
+  const analyticsClient = resolvePostHogClient(posthog);
+  if (!analyticsClient) return;
+
+  analyticsClient.capture('api_client_action', {
+    ...getAnalyticsContext(),
+    action,
+    metadata: metadata || {},
+    timestamp: new Date().toISOString(),
+  });
 };
 
 /**
@@ -499,6 +611,9 @@ const enhancedAnalytics = {
   trackApiPerformance,
   trackFavoriteAction,
   trackSessionQuality,
+  trackAuthEvent,
+  trackGroupChange,
+  trackApiClientAction,
 };
 
 export default enhancedAnalytics;

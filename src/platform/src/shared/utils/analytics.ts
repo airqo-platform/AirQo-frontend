@@ -1,4 +1,5 @@
 import ReactGA from 'react-ga4';
+import { AIRQO_APP_NAME } from './analyticsConstants';
 
 /**
  * Simple FNV-1a hash function for client-side anonymization
@@ -35,8 +36,9 @@ export const trackEvent = (
     ReactGA.event({
       category: 'engagement',
       action: eventName,
+      app_name: AIRQO_APP_NAME,
       ...properties,
-    });
+    } as never);
   } catch (error) {
     console.warn('Google Analytics tracking failed:', error);
   }
@@ -50,7 +52,11 @@ export const trackEvent = (
  */
 export const trackPageView = (page: string) => {
   try {
-    ReactGA.send({ hitType: 'pageview', page });
+    ReactGA.send({
+      hitType: 'pageview',
+      page,
+      app_name: AIRQO_APP_NAME,
+    } as never);
   } catch (error) {
     console.warn('Google Analytics pageview tracking failed:', error);
   }

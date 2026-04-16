@@ -7,6 +7,7 @@ import axios, {
 } from 'axios';
 import logger from '@/shared/lib/logger';
 import { normalizeOAuthAccessToken } from '@/shared/lib/oauth-session';
+import { trackApiPerformance } from '@/shared/utils/enhancedAnalytics';
 
 const UNAUTHORIZED_EVENT_NAME = 'auth:unauthorized';
 const UNAUTHORIZED_EVENT_COOLDOWN_MS = 1500;
@@ -191,6 +192,19 @@ export class ApiClient {
     // Response interceptor for error handling
     this.client.interceptors.response.use(
       response => {
+        const responseConfig = response.config as RequestConfigWithMetadata;
+        const duration = responseConfig.metadata?.startTime
+          ? Date.now() - responseConfig.metadata.startTime
+          : 0;
+
+        trackApiPerformance(
+          null,
+          responseConfig.url || 'unknown-url',
+          responseConfig.method?.toUpperCase() || 'UNKNOWN',
+          duration,
+          response.status
+        );
+
         // Log successful responses at debug level (dev only)
         // Only compute expensive data size when debug logging is actually enabled
         // API response logging removed to reduce console noise
@@ -198,6 +212,18 @@ export class ApiClient {
         return response;
       },
       error => {
+        const errorConfig = error.config as RequestConfigWithMetadata;
+        const duration = errorConfig?.metadata?.startTime
+          ? Date.now() - errorConfig.metadata.startTime
+          : 0;
+        trackApiPerformance(
+          null,
+          errorConfig?.url || 'unknown-url',
+          errorConfig?.method?.toUpperCase() || 'UNKNOWN',
+          duration,
+          error.response?.status || 0
+        );
+
         // Build comprehensive error context for logging
         // Use safe stringification to prevent circular reference errors and memory leaks
         const errorContext = {

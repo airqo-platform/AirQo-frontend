@@ -3,6 +3,9 @@ import useSWRMutation from 'swr/mutation';
 import { useSWRConfig } from 'swr';
 import { authService } from '../services/authService';
 import { userService } from '../services/userService';
+import { usePostHog } from 'posthog-js/react';
+import { trackAuthEvent } from '../utils/enhancedAnalytics';
+import { trackEvent } from '../utils/analytics';
 import type {
   LoginRequest,
   RegisterRequest,
@@ -33,40 +36,92 @@ const userRolesByIdFetcher = async (
 
 // Login mutation
 export const useLogin = () => {
+  const posthog = usePostHog();
   return useSWRMutation(
     'auth/login',
     async (key, { arg }: { arg: LoginRequest }) => {
       return await authService.login(arg);
+    },
+    {
+      onSuccess: data => {
+        trackAuthEvent(posthog, 'login', {
+          has_token: Boolean(data?.token),
+          user_id: data?._id,
+          organization: data?.long_organization,
+        });
+        trackEvent('auth_login', {
+          has_token: Boolean(data?.token),
+          user_id: data?._id,
+          organization: data?.long_organization,
+        });
+      },
     }
   );
 };
 
 // Register mutation
+// Register mutation
 export const useRegister = () => {
+  const posthog = usePostHog();
   return useSWRMutation(
     'auth/register',
     async (key, { arg }: { arg: RegisterRequest }) => {
-      return await authService.register(arg);
+      const response = await authService.register(arg);
+
+      trackAuthEvent(posthog, 'register', {
+        category: arg.category,
+        user_email: arg.email,
+      });
+      trackEvent('auth_register', {
+        category: arg.category,
+        user_email: arg.email,
+      });
+
+      return response;
     }
   );
 };
 
 // Forgot password mutation
+// Forgot password mutation
 export const useForgotPassword = () => {
+  const posthog = usePostHog();
   return useSWRMutation(
     'auth/forgot-password',
     async (key, { arg }: { arg: ForgotPasswordRequest }) => {
       return await authService.forgotPassword(arg);
+    },
+    {
+      onSuccess: data => {
+        trackAuthEvent(posthog, 'password_reset_requested', {
+          message: data?.message,
+        });
+        trackEvent('auth_password_reset_requested', {
+          message: data?.message,
+        });
+      },
     }
   );
 };
 
 // Reset password mutation
+// Reset password mutation
 export const useResetPassword = () => {
+  const posthog = usePostHog();
   return useSWRMutation(
     'auth/reset-password',
     async (key, { arg }: { arg: ResetPasswordRequest }) => {
       return await authService.resetPassword(arg);
+    },
+    {
+      onSuccess: data => {
+        trackAuthEvent(posthog, 'password_reset_completed', {
+          message: data?.message,
+        });
+        trackEvent('auth_password_reset_completed', {
+          message: data?.message,
+        });
+      },
     }
   );
 };

@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
+import { usePostHog } from 'posthog-js/react';
 import { Button, MultiSelectTable, PageHeading } from '@/shared/components/ui';
 import { toast } from '@/shared/components/ui';
 import { formatDate, parseDate } from '@/shared/utils';
@@ -14,11 +15,13 @@ import EditClientDialog from './components/EditClientDialog';
 import TokenDisplay from './components/TokenDisplay';
 import type { Client } from '@/shared/types/api';
 import UsageStats from '../billing/components/UsageStats';
+import { trackApiClientAction } from '@/shared/utils/enhancedAnalytics';
 
 type TableClient = Client & { id: string };
 
 const ApiClientPage: React.FC = () => {
   const { data: session } = useSession();
+  const posthog = usePostHog();
   const [inactiveDialogState, setInactiveDialogState] = useState<{
     isOpen: boolean;
     clientId: string;
@@ -64,7 +67,7 @@ const ApiClientPage: React.FC = () => {
   }, [clients]);
 
   const handleGenerateToken = useCallback(
-    async (client: TableClient) => {
+    async (client: TableClient, mode: 'generate' | 'refresh' = 'generate') => {
       if (!client.isActive) {
         setInactiveDialogState({
           isOpen: true,
@@ -80,6 +83,16 @@ const ApiClientPage: React.FC = () => {
           name: client.name,
           client_id: client._id,
         });
+        trackApiClientAction(
+          posthog,
+          mode === 'refresh' ? 'refresh_token' : 'create',
+          {
+            client_id: client._id,
+            client_name: client.name,
+            token_status: client.access_token?.token_status || 'active',
+            mode,
+          }
+        );
         toast.success('Token generated successfully');
         // Refresh clients list to pick up the new/updated token
         await mutate();
@@ -90,7 +103,7 @@ const ApiClientPage: React.FC = () => {
         setActiveGeneratingTokenId(null);
       }
     },
-    [generateToken, mutate]
+    [generateToken, mutate, posthog]
   );
 
   const handleEditClient = useCallback((client: TableClient) => {
@@ -167,7 +180,7 @@ const ApiClientPage: React.FC = () => {
         <Button
           size="sm"
           variant="outlined"
-          onClick={() => handleGenerateToken(item)}
+          onClick={() => handleGenerateToken(item, 'generate')}
           disabled={isGeneratingForThis}
         >
           {isGeneratingForThis ? 'Generating...' : 'Generate Token'}
@@ -273,7 +286,7 @@ const ApiClientPage: React.FC = () => {
               <Button
                 size="sm"
                 variant="outlined"
-                onClick={() => handleGenerateToken(item)}
+                onClick={() => handleGenerateToken(item, 'refresh')}
                 disabled={isGeneratingForThis}
               >
                 {isGeneratingForThis ? 'Refreshing...' : 'Refresh'}

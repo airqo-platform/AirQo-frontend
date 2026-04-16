@@ -1,4 +1,5 @@
 import React, { useMemo, useEffect, useCallback } from 'react';
+import { usePostHog } from 'posthog-js/react';
 import { usePathname } from 'next/navigation';
 import PageHeading from '@/shared/components/ui/page-heading';
 import { DataExportSidebar } from './components/DataExportSidebar';
@@ -29,6 +30,8 @@ import { useDataExportActions } from './hooks/useDataExportActions';
 import { useDataExportData } from './hooks/useDataExportData';
 import MoreInsights from '@/modules/location-insights/more-insights';
 import AddLocation from '@/modules/location-insights/add-location';
+import { trackEvent } from '@/shared/utils/analytics';
+import { trackFeatureUsage } from '@/shared/utils/enhancedAnalytics';
 
 const rebuildSelectionCache = (
   selectedIds: string[],
@@ -59,6 +62,7 @@ const rebuildSelectionCache = (
 
 const DataExportPage = () => {
   const pathname = usePathname();
+  const posthog = usePostHog();
 
   // Determine if this is org flow based on pathname
   const isOrgFlow = pathname.includes('/org/');
@@ -141,9 +145,23 @@ const DataExportPage = () => {
       if (isOrgFlow && (tab === 'countries' || tab === 'cities')) {
         return;
       }
+
+      if (tab !== activeTab) {
+        trackFeatureUsage(posthog, 'data_export', 'tab_changed', {
+          from_tab: activeTab,
+          to_tab: tab,
+          is_org_flow: isOrgFlow,
+        });
+        trackEvent('data_export_tab_changed', {
+          from_tab: activeTab,
+          to_tab: tab,
+          is_org_flow: isOrgFlow,
+        });
+      }
+
       handleTabChange(tab);
     },
-    [isOrgFlow, handleTabChange]
+    [activeTab, isOrgFlow, handleTabChange, posthog]
   );
 
   // Data fetching and processing (initial call with empty array)
