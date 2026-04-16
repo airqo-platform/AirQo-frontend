@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import useSWR from 'swr';
 import { WarningBanner } from '@/shared/components/ui';
 import { maintenanceService } from '@/shared/services/maintenanceService';
@@ -55,7 +55,7 @@ export const MaintenanceBanner: React.FC = () => {
     () => getValidMaintenance(data?.maintenance),
     [data?.maintenance]
   );
-  const now = Date.now();
+  const [now, setNow] = useState(() => Date.now());
 
   const startMs = maintenance?.startDate
     ? new Date(maintenance.startDate).getTime()
@@ -63,6 +63,14 @@ export const MaintenanceBanner: React.FC = () => {
   const endMs = maintenance?.endDate
     ? new Date(maintenance.endDate).getTime()
     : NaN;
+
+  // Tick every second while we have a valid end time so the countdown updates.
+  useEffect(() => {
+    if (Number.isNaN(endMs)) return undefined;
+
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [endMs]);
 
   if (!maintenance) return null;
 
@@ -79,12 +87,10 @@ export const MaintenanceBanner: React.FC = () => {
 
   if (status === 'expired') return null;
 
-  // If both start and end are provided, calculate the scheduled duration
-  // (end - start) and display it as HH:MM:SS (no days).
-  const scheduledLengthLabel =
-    !Number.isNaN(startMs) && !Number.isNaN(endMs)
-      ? formatCountdown(Math.max(0, endMs - startMs))
-      : null;
+  // Show a live countdown to the end time if available.
+  const remainingLabel = !Number.isNaN(endMs)
+    ? formatCountdown(Math.max(0, endMs - now))
+    : null;
 
   const title =
     status === 'scheduled'
@@ -102,11 +108,11 @@ export const MaintenanceBanner: React.FC = () => {
                 {maintenance.message}
               </p>
 
-              {scheduledLengthLabel ? (
+              {remainingLabel ? (
                 <p className="text-sm font-semibold tracking-wide text-foreground">
-                  Estimated time:{' '}
-                  <span className="font-mono tabular-nums">
-                    {scheduledLengthLabel}
+                  Time remaining:{' '}
+                  <span className="font-mono tabular-nums" aria-live="polite">
+                    {remainingLabel}
                   </span>
                 </p>
               ) : null}
