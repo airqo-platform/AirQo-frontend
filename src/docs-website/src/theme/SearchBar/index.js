@@ -100,12 +100,24 @@ export default function SearchBar({ handleSearchBarToggle, }) {
             catch (primaryError) {
                 // Preview deployments sometimes serve the site at /docs but the index at /search-index.json.
                 if (versionUrl !== "/") {
-                    await fetchIndexesByWorker("/", searchContext);
-                    effectiveVersionUrlRef.current = "/";
+                    try {
+                        await fetchIndexesByWorker("/", searchContext);
+                        effectiveVersionUrlRef.current = "/";
+                        return;
+                    } catch (fallbackError) {
+                        // ignore and try next fallback
+                    }
                 }
-                else {
-                    throw primaryError;
+                if (versionUrl !== "/docs/") {
+                    try {
+                        await fetchIndexesByWorker("/docs/", searchContext);
+                        effectiveVersionUrlRef.current = "/docs/";
+                        return;
+                    } catch (fallbackError2) {
+                        // ignore and throw primary
+                    }
                 }
+                throw primaryError;
             }
         }
         catch (error) {
