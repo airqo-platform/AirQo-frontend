@@ -33,8 +33,9 @@ Replaced the legacy Google Form workflow with a native, standalone administrativ
 </details>
 
 <details>
-<summary><strong>Codebase Maintenance (3)</strong></summary>
+<summary><strong>Codebase Maintenance (4)</strong></summary>
 
+- **Search System Fix**: Resolved a critical synchronization glitch in the `ReusableTable` component that caused characters to be erased or reverted during rapid typing and backspacing, improving global search reliability.
 - **Map-Readings Cleanup**: Removed the legacy Map-Readings types, API definitions, hooks, and utilities to reduce technical debt.
 - **Type Safety Hardening**: Resolved over a dozen TypeScript and linting errors, focusing on unused imports and removing unnecessary `any` types.
 - **API Response Refinement**: Updated Cohort API typing to better reflect backend response structures and ensure reliable data handling.
