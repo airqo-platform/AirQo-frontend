@@ -53,15 +53,15 @@ const pickAllowedMetadata = (
 const ALLOWED_AUTH_METADATA_KEYS = [
   'category',
   'has_token',
-  'message',
   'organization',
+  'message_hash',
   'user_id',
   'user_email_hash',
 ] as const;
 
 const ALLOWED_APICLIENT_METADATA_KEYS = [
   'client_id',
-  'client_name',
+  'client_name_length',
   'token_status',
   'mode',
 ] as const;
@@ -214,7 +214,6 @@ export const trackLocationSelection = (
   selection: LocationSelection
 ) => {
   const analyticsClient = resolvePostHogClient(posthog);
-  if (!analyticsClient) return;
 
   const eventData = {
     ...getAnalyticsContext(),
@@ -226,7 +225,7 @@ export const trackLocationSelection = (
     timestamp: new Date().toISOString(),
   };
 
-  analyticsClient.capture('location_selected', eventData);
+  analyticsClient?.capture('location_selected', eventData);
 
   // Also track to Google Analytics
   ReactGA.event({
@@ -244,7 +243,6 @@ export const trackDataDownload = (
   download: DataDownloadEvent
 ) => {
   const analyticsClient = resolvePostHogClient(posthog);
-  if (!analyticsClient) return;
 
   const eventData = {
     ...getAnalyticsContext(),
@@ -268,7 +266,7 @@ export const trackDataDownload = (
     timestamp: new Date().toISOString(),
   };
 
-  analyticsClient.capture('data_downloaded', eventData);
+  analyticsClient?.capture('data_downloaded', eventData);
 
   // Track to Google Analytics
   ReactGA.event({
@@ -312,7 +310,6 @@ export const trackChartInteraction = (
   interaction: ChartInteraction
 ) => {
   const analyticsClient = resolvePostHogClient(posthog);
-  if (!analyticsClient) return;
 
   const eventData = {
     ...getAnalyticsContext(),
@@ -324,7 +321,7 @@ export const trackChartInteraction = (
     timestamp: new Date().toISOString(),
   };
 
-  analyticsClient.capture('chart_interaction', eventData);
+  analyticsClient?.capture('chart_interaction', eventData);
 
   // Track to Google Analytics
   ReactGA.event({
@@ -361,7 +358,6 @@ export const trackPreferenceChange = (
  */
 export const trackSearch = (posthog: PostHog | null, search: SearchEvent) => {
   const analyticsClient = resolvePostHogClient(posthog);
-  if (!analyticsClient) return;
 
   const hashedSearchTerm = sanitizeSearchTerm(search.searchTerm);
 
@@ -375,7 +371,7 @@ export const trackSearch = (posthog: PostHog | null, search: SearchEvent) => {
     timestamp: new Date().toISOString(),
   };
 
-  analyticsClient.capture('search_performed', eventData);
+  analyticsClient?.capture('search_performed', eventData);
 
   // Track to Google Analytics - only send metadata, not the actual term
   ReactGA.event({
@@ -416,9 +412,8 @@ export const trackFeatureUsage = (
   metadata?: Record<string, unknown>
 ) => {
   const analyticsClient = resolvePostHogClient(posthog);
-  if (!analyticsClient) return;
 
-  analyticsClient.capture('feature_used', {
+  analyticsClient?.capture('feature_used', {
     ...getAnalyticsContext(),
     feature_name: featureName,
     action,
@@ -497,9 +492,8 @@ export const trackFavoriteAction = (
   locationName?: string
 ) => {
   const analyticsClient = resolvePostHogClient(posthog);
-  if (!analyticsClient) return;
 
-  analyticsClient.capture('favorite_action', {
+  analyticsClient?.capture('favorite_action', {
     ...getAnalyticsContext(),
     action,
     location_id_hashed: hashId(locationId),

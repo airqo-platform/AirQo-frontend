@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import useSWR from 'swr';
 import { WarningBanner } from '@/shared/components/ui';
 import { maintenanceService } from '@/shared/services/maintenanceService';
@@ -8,6 +8,19 @@ import type { MaintenanceItem } from '@/shared/types/api';
 
 const MAINTENANCE_PRODUCT = 'analytics';
 const MAINTENANCE_REFRESH_INTERVAL_MS = 60 * 1000;
+
+type MaintenanceStatus = 'scheduled' | 'in_progress';
+
+type MaintenanceCandidate = {
+  maintenance: MaintenanceItem;
+  startMs: number;
+  endMs: number;
+  status: MaintenanceStatus | 'expired';
+};
+
+type ActiveMaintenanceCandidate = Omit<MaintenanceCandidate, 'status'> & {
+  status: MaintenanceStatus;
+};
 
 const formatCountdown = (remainingMs: number): string => {
   const safeRemainingMs = Math.max(0, remainingMs);
@@ -19,23 +32,99 @@ const formatCountdown = (remainingMs: number): string => {
   const hh = hours.toString().padStart(2, '0');
   const mm = minutes.toString().padStart(2, '0');
   const ss = seconds.toString().padStart(2, '0');
-  // Always return a HH:MM:SS string using total hours (no days displayed).
+
   return `${hh}:${mm}:${ss}`;
 };
 
-const getValidMaintenance = (
-  maintenance: MaintenanceItem[] | undefined
-): MaintenanceItem | null => {
+const parseTimestamp = (date?: string): number => {
+  if (!date) {
+    return NaN;
+  }
+
+  const timestamp = new Date(date).getTime();
+  return Number.isNaN(timestamp) ? NaN : timestamp;
+};
+
+const compareNumbers = (left: number, right: number): number => {
+  const normalizedLeft = Number.isNaN(left) ? Number.POSITIVE_INFINITY : left;
+  const normalizedRight = Number.isNaN(right)
+    ? Number.POSITIVE_INFINITY
+    : right;
+
+  return normalizedLeft - normalizedRight;
+};
+
+const getMaintenanceStatus = (
+  startMs: number,
+  endMs: number,
+  now: number
+): MaintenanceStatus | 'expired' => {
+  if (Number.isNaN(endMs) || endMs <= now) {
+    return 'expired';
+  }
+
+  if (!Number.isNaN(startMs) && now < startMs) {
+    return 'scheduled';
+  }
+
+  return 'in_progress';
+};
+
+const isActiveMaintenanceCandidate = (
+  candidate: MaintenanceCandidate
+): candidate is ActiveMaintenanceCandidate => candidate.status !== 'expired';
+
+const selectMaintenance = (
+  maintenance: MaintenanceItem[] | undefined,
+  now: number
+): ActiveMaintenanceCandidate | null => {
   if (!maintenance?.length) {
     return null;
   }
 
-  return (
-    maintenance.find(
+  const candidates = maintenance
+    .filter(
       item =>
         item.isActive && item.product?.toLowerCase() === MAINTENANCE_PRODUCT
-    ) || null
-  );
+    )
+    .map(item => {
+      const startMs = parseTimestamp(item.startDate);
+      const endMs = parseTimestamp(item.endDate);
+
+      return {
+        maintenance: item,
+        startMs,
+        endMs,
+        status: getMaintenanceStatus(startMs, endMs, now),
+      };
+    })
+    .filter(isActiveMaintenanceCandidate);
+
+  if (!candidates.length) {
+    return null;
+  }
+
+  const inProgressCandidates = candidates
+    .filter(candidate => candidate.status === 'in_progress')
+    .sort(
+      (left, right) =>
+        compareNumbers(left.endMs, right.endMs) ||
+        compareNumbers(left.startMs, right.startMs)
+    );
+
+  if (inProgressCandidates.length) {
+    return inProgressCandidates[0];
+  }
+
+  const scheduledCandidates = candidates
+    .filter(candidate => candidate.status === 'scheduled')
+    .sort(
+      (left, right) =>
+        compareNumbers(left.startMs, right.startMs) ||
+        compareNumbers(left.endMs, right.endMs)
+    );
+
+  return scheduledCandidates[0] ?? null;
 };
 
 export const MaintenanceBanner: React.FC = () => {
@@ -51,49 +140,23 @@ export const MaintenanceBanner: React.FC = () => {
     }
   );
 
-  const maintenance = useMemo(
-    () => getValidMaintenance(data?.maintenance),
-    [data?.maintenance]
-  );
   const [now, setNow] = useState(() => Date.now());
 
-  const startMs = maintenance?.startDate
-    ? new Date(maintenance.startDate).getTime()
-    : NaN;
-  const endMs = maintenance?.endDate
-    ? new Date(maintenance.endDate).getTime()
-    : NaN;
-
-  // Tick every second while we have a valid end time so the countdown updates.
   useEffect(() => {
-    if (Number.isNaN(endMs)) return undefined;
+    const intervalId = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(intervalId);
+  }, []);
 
-    const id = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, [endMs]);
+  const maintenanceView = useMemo(
+    () => selectMaintenance(data?.maintenance, now),
+    [data?.maintenance, now]
+  );
 
-  if (!maintenance) return null;
+  if (!maintenanceView) return null;
 
-  // Compute current status from the current time so we can hide expired
-  // maintenance records. We don't need a live ticking clock because the
-  // banner now displays the estimated length (end - start) rather than a
-  // live remaining countdown.
-  const status: 'scheduled' | 'in_progress' | 'expired' = (() => {
-    if (!maintenance) return 'expired';
-    if (!Number.isNaN(startMs) && now < startMs) return 'scheduled';
-    if (!Number.isNaN(endMs) && now <= endMs) return 'in_progress';
-    return 'expired';
-  })();
-
-  if (status === 'expired') return null;
-
-  // Show a live countdown to the end time if available.
-  const remainingLabel = !Number.isNaN(endMs)
-    ? formatCountdown(Math.max(0, endMs - now))
-    : null;
-
+  const remainingLabel = formatCountdown(maintenanceView.endMs - now);
   const title =
-    status === 'scheduled'
+    maintenanceView.status === 'scheduled'
       ? 'Scheduled maintenance'
       : 'Maintenance in progress';
 
@@ -105,17 +168,15 @@ export const MaintenanceBanner: React.FC = () => {
           message={
             <div className="space-y-2">
               <p className="text-sm leading-6 text-foreground/90">
-                {maintenance.message}
+                {maintenanceView.maintenance.message}
               </p>
 
-              {remainingLabel ? (
-                <p className="text-sm font-semibold tracking-wide text-foreground">
-                  Time remaining:{' '}
-                  <span className="font-mono tabular-nums" aria-live="polite">
-                    {remainingLabel}
-                  </span>
-                </p>
-              ) : null}
+              <p className="text-sm font-semibold tracking-wide text-foreground">
+                Time remaining:{' '}
+                <span className="font-mono tabular-nums" aria-live="polite">
+                  {remainingLabel}
+                </span>
+              </p>
             </div>
           }
         />

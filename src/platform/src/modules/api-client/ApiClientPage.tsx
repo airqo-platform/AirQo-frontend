@@ -88,7 +88,7 @@ const ApiClientPage: React.FC = () => {
           mode === 'refresh' ? 'refresh_token' : 'generate_token',
           {
             client_id: client._id,
-            client_name: client.name,
+            client_name_length: client.name.trim().length,
             token_status: client.access_token?.token_status || 'active',
             mode,
           }
@@ -281,7 +281,7 @@ const ApiClientPage: React.FC = () => {
           const isGeneratingForThis =
             isGeneratingToken && activeGeneratingTokenId === item._id;
 
-          if (token && expired) {
+          if (token && expired && item.isActive) {
             return (
               <Button
                 size="sm"

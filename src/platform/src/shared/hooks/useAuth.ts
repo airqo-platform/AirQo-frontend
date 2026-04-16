@@ -96,10 +96,10 @@ export const useForgotPassword = () => {
     {
       onSuccess: data => {
         trackAuthEvent(posthog, 'password_reset_requested', {
-          message: data?.message,
+          message_hash: data?.message ? hashId(data.message) : undefined,
         });
         trackEvent('auth_password_reset_requested', {
-          message: data?.message,
+          message_hash: data?.message ? hashId(data.message) : undefined,
         });
       },
     }
@@ -118,10 +118,10 @@ export const useResetPassword = () => {
     {
       onSuccess: data => {
         trackAuthEvent(posthog, 'password_reset_completed', {
-          message: data?.message,
+          message_hash: data?.message ? hashId(data.message) : undefined,
         });
         trackEvent('auth_password_reset_completed', {
-          message: data?.message,
+          message_hash: data?.message ? hashId(data.message) : undefined,
         });
       },
     }

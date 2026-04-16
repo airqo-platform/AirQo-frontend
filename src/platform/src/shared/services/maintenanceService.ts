@@ -10,8 +10,9 @@ export class MaintenanceService {
 
   async getMaintenance(product = 'analytics'): Promise<MaintenanceResponse> {
     const normalizedProduct = product.trim().toLowerCase() || 'analytics';
+    const encodedProduct = encodeURIComponent(normalizedProduct);
     const response = await this.openClient.get<MaintenanceResponse>(
-      `/users/maintenances/${normalizedProduct}`
+      `/users/maintenances/${encodedProduct}`
     );
     const data = response.data;
 
