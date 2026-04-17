@@ -8,11 +8,10 @@ import 'package:airqo/src/app/exposure/repository/exposure_repository_impl.dart'
 part 'declared_places_state.dart';
 
 class DeclaredPlacesCubit extends Cubit<DeclaredPlacesState> with UiLoggy {
-  final ExposureRepository _repo;
+  late final ExposureRepository _repo;
 
-  DeclaredPlacesCubit({ExposureRepository? repo})
-      : _repo = repo ?? ExposureRepositoryImpl(),
-        super(DeclaredPlacesInitial()) {
+  DeclaredPlacesCubit({ExposureRepository? repo}) : super(DeclaredPlacesInitial()) {
+    _repo = repo ?? ExposureRepositoryImpl();
     _load();
   }
 
