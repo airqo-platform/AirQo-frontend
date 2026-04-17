@@ -77,7 +77,7 @@ class DashboardHeader extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         TranslatedText(
-          "Hi,",
+          "Hello,",
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.w700,
@@ -101,7 +101,7 @@ class DashboardHeader extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         TranslatedText(
-          "Hi",
+          "Hello",
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.w700,
@@ -131,7 +131,7 @@ class DashboardHeader extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               TranslatedText(
-                "Hi",
+                "Hello",
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.w700,
@@ -159,7 +159,7 @@ class DashboardHeader extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               TranslatedText(
-                "Hi",
+                "Hello",
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.w700,

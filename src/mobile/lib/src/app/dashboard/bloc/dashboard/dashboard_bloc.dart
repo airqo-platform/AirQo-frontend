@@ -116,10 +116,11 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
 
       // Emit loaded state with fresh or cached data
       emit(DashboardLoaded(
-        response, 
+        response,
         userPreferences: preferences,
         isOffline: !_cacheManager.isConnected,
         lastUpdated: DateTime.now(),
+        prefsAuthError: prefsAuthError,
       ));
 
       if (preferences == null && !prefsAuthError) {
