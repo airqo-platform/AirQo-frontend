@@ -26,7 +26,8 @@ interface PrimarySidebarProps {
   isOpen: boolean;
   onClose: () => void;
   activeModule: string;
-  onModuleChange: (module: string) => void;
+  onModuleChange: (module: string, targetPath?: string) => void;
+  onNavigate?: () => void;
 }
 
 interface AdminDropdownItemProps {
@@ -82,6 +83,7 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
   onClose,
   activeModule,
   onModuleChange: handleModuleChange,
+  onNavigate,
 }) => {
   const router = useRouter();
   const pathname = usePathname();
@@ -145,7 +147,10 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
               label: 'Device Management',
               activeOverride: activeModule === 'devices',
             }}
-            onClick={() => handleModuleChange('devices')}
+            onClick={() => {
+              onNavigate?.();
+              handleModuleChange('devices');
+            }}
           />
 
           {/* Administrative Panel - visible to authorized admin roles */}
@@ -202,9 +207,9 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                   permission={!!permissions.canViewNetworks}
                   permissionCode={PERMISSIONS.NETWORK.VIEW}
                   tooltipMessage="This action requires network view permission"
-                  onClick={() => {
-                    handleModuleChange('admin');
-                    router.push(ROUTE_LINKS.ADMIN_NETWORKS);
+                   onClick={() => {
+                    onNavigate?.();
+                    handleModuleChange('admin', ROUTE_LINKS.ADMIN_NETWORKS);
                     setIsDropdownOpen(false);
                   }}
                   label="Sensor Manufacturers"
@@ -216,9 +221,9 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                   permission={!!permissions.canViewNetworks}
                   permissionCode={PERMISSIONS.NETWORK.VIEW}
                   tooltipMessage="This action requires network view permission"
-                  onClick={() => {
-                    handleModuleChange('admin');
-                    router.push(ROUTE_LINKS.ADMIN_NETWORK_REQUESTS);
+                   onClick={() => {
+                    onNavigate?.();
+                    handleModuleChange('admin', ROUTE_LINKS.ADMIN_NETWORK_REQUESTS);
                     setIsDropdownOpen(false);
                   }}
                   label="Manufacturer Requests"
@@ -230,9 +235,9 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                   permission={!!permissions.canViewDevices}
                   permissionCode={PERMISSIONS.DEVICE.VIEW}
                   tooltipMessage="This action requires device view permission"
-                  onClick={() => {
-                    handleModuleChange('admin');
-                    router.push(ROUTE_LINKS.COHORTS);
+                   onClick={() => {
+                    onNavigate?.();
+                    handleModuleChange('admin', ROUTE_LINKS.COHORTS);
                     setIsDropdownOpen(false);
                   }}
                   label="Cohorts"
@@ -244,9 +249,9 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                   permission={!!permissions.canViewSites}
                   permissionCode={PERMISSIONS.SITE.VIEW}
                   tooltipMessage="This action requires site view permission"
-                  onClick={() => {
-                    handleModuleChange('admin');
-                    router.push(ROUTE_LINKS.SITES);
+                   onClick={() => {
+                    onNavigate?.();
+                    handleModuleChange('admin', ROUTE_LINKS.SITES);
                     setIsDropdownOpen(false);
                   }}
                   label="Sites"
@@ -258,9 +263,9 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                   permission={!!permissions.canViewSites}
                   permissionCode={PERMISSIONS.SITE.VIEW}
                   tooltipMessage="This action requires site view permission"
-                  onClick={() => {
-                    handleModuleChange('admin');
-                    router.push(ROUTE_LINKS.GRIDS);
+                   onClick={() => {
+                    onNavigate?.();
+                    handleModuleChange('admin', ROUTE_LINKS.GRIDS);
                     setIsDropdownOpen(false);
                   }}
                   label="Grids"
@@ -272,9 +277,9 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                   permission={!!permissions.canViewShipping || !!permissions.canViewNetworks}
                   permissionCode={PERMISSIONS.SHIPPING.VIEW}
                   tooltipMessage="This action requires shipping or network view permission"
-                  onClick={() => {
-                    handleModuleChange('admin');
-                    router.push(ROUTE_LINKS.ADMIN_SHIPPING);
+                   onClick={() => {
+                    onNavigate?.();
+                    handleModuleChange('admin', ROUTE_LINKS.ADMIN_SHIPPING);
                     setIsDropdownOpen(false);
                   }}
                   label="Shipping"
@@ -337,15 +342,16 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                 {visitedPages.map((page, index) => (
                   <DropdownMenuItem
                     key={`${page.href}-${index}`}
-                    onClick={() => {
+                     onClick={() => {
+                      onNavigate?.();
                       // Detect module from href using route constants
                       if (page.href.startsWith('/devices')) {
-                        handleModuleChange('devices');
+                        handleModuleChange('devices', page.href);
                       } else if (page.href.startsWith('/admin')) {
-                        handleModuleChange('admin');
+                        handleModuleChange('admin', page.href);
+                      } else {
+                        router.push(page.href);
                       }
-
-                      router.push(page.href);
                       setIsRecentOpen(false);
                     }}
                     className={cn(

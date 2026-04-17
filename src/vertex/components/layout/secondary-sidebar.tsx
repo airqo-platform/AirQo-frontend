@@ -24,6 +24,8 @@ interface SecondarySidebarProps {
   isCollapsed: boolean;
   toggleSidebar: () => void;
   activeModule: string;
+  onModuleChange: (module: string, targetPath?: string) => void;
+  onNavigate?: () => void;
 }
 
 const styles = {
@@ -47,6 +49,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   isCollapsed,
   toggleSidebar,
   activeModule,
+  onNavigate,
 }) => {
   const { getContextPermissions, isExternalOrg } =
     useUserContext();
@@ -128,6 +131,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                       disabled: false,
                     }}
                     isCollapsed={isCollapsed}
+                    onClick={onNavigate}
                   />
                   <SidebarSectionHeading isCollapsed={isCollapsed}>
                     Personal assets
@@ -140,6 +144,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                       disabled: false,
                     }}
                     isCollapsed={isCollapsed}
+                    onClick={onNavigate}
                   />
                   <NavItem
                     item={{
@@ -148,6 +153,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                       label: 'Claim Device',
                     }}
                     isCollapsed={isCollapsed}
+                    onClick={onNavigate}
                   />
                   <SidebarSectionHeading isCollapsed={isCollapsed}>
                     Data Access & Visibility
@@ -160,6 +166,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                       disabled: !contextPermissions.canViewDevices,
                     }}
                     isCollapsed={isCollapsed}
+                    onClick={onNavigate}
                   />
                 </>
               ) : (
@@ -173,6 +180,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                       disabled: false,
                     }}
                     isCollapsed={isCollapsed}
+                    onClick={onNavigate}
                   />
                   <SidebarSectionHeading isCollapsed={isCollapsed}>
                     Organization Assets
@@ -185,6 +193,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                       disabled: !contextPermissions.canViewDevices,
                     }}
                     isCollapsed={isCollapsed}
+                    onClick={onNavigate}
                   />
                   <NavItem
                     item={{
@@ -193,6 +202,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                       label: 'Claim Device',
                     }}
                     isCollapsed={isCollapsed}
+                    onClick={onNavigate}
                   />
                   <SidebarSectionHeading isCollapsed={isCollapsed}>
                     Data Access & Visibility
@@ -205,6 +215,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                       disabled: !contextPermissions.canViewDevices,
                     }}
                     isCollapsed={isCollapsed}
+                    onClick={onNavigate}
                   />
                 </>
               )}
