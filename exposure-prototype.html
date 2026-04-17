@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>AirQo — Exposure Tab</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',sans-serif;}
+    body{background:#CDD4DF;padding:40px 20px 80px;min-height:100vh;display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start;justify-content:center;}
+    .screen-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;}
+    .screen-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#536A87;}
+    ::-webkit-scrollbar{display:none;}
+    *{-ms-overflow-style:none;scrollbar-width:none;}
+    @keyframes sheet-up{from{transform:translateY(40px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+    .sheet-up{animation:sheet-up .28s cubic-bezier(.16,1,.3,1) forwards;}
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState } = React;
+
+/* ── TOKENS ─────────────────────────────────────────────────── */
+const C = {
+  bg:'#F3F6F8', white:'#FFFFFF', border:'#E1E7EC',
+  txt1:'#1A1D23', txt2:'#6F87A1', grey:'#666666', title:'#3F4B5F',
+  blue:'#145FFF', blueHi:'#EEF3FF', iconBg:'#E1E7EC',
+};
+const EXP = {
+  low:      { label:'Low',      color:'#34C759', bg:'#DFF9E5' },
+  moderate: { label:'Moderate', color:'#E8A000', bg:'#FFF3D0' },
+  high:     { label:'High',     color:'#F7453C', bg:'#FFE5E4' },
+};
+const expFrom = pm => pm < 12 ? 'low' : pm < 35.5 ? 'moderate' : 'high';
+const expCopy = {
+  low:      'Mostly clean air while you were here',
+  moderate: 'Noticeable pollution during your time here',
+  high:     'Elevated pollution while you were here',
+};
+
+/* ── ICONS ───────────────────────────────────────────────────── */
+const Ic = {
+  HomeType: ({c='#145FFF',s=22}) => (
+    <svg width={s} height={s} viewBox="0 0 21 21" fill="none">
+      <path d="M6.626 12.999C7.07 14.724 8.636 15.999 10.5 15.999c1.864 0 3.43-1.275 3.874-3M9.518 1.763L2.735 7.038c-.453.353-.68.529-.843.75A2 2 0 0 0 1.574 8.438C1.5 8.702 1.5 8.99 1.5 9.564v7.235c0 1.12 0 1.68.218 2.107.192.377.498.683.874.875.428.218.988.218 2.108.218h12.6c1.12 0 1.68 0 2.108-.218a2 2 0 0 0 .874-.875c.218-.427.218-.987.218-2.107V9.564c0-.574 0-.862-.074-1.126a2 2 0 0 0-.546-.788c-.163-.22-.39-.396-.843-.75L11.482 1.763a2 2 0 0 0-.744-.463 2 2 0 0 0-.476 0 2 2 0 0 0-.744.463z" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  WorkType: ({c='#536A87',s=22}) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+      <path d="M3 21h18M3 7v14M21 7v14M6 7V4h12v3M9 11v2M9 15v2M12 11v2M12 15v2M15 11v2M15 15v2M3 7h18" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  SchoolType: ({c='#536A87',s=22}) => (
+    <svg width={s} height={s} viewBox="0 0 25 24" fill="none">
+      <path d="M12.5 20H5.7c-1.12 0-1.68 0-2.108-.218a2 2 0 0 1-.874-.874C2.5 18.48 2.5 17.92 2.5 16.8V7.2c0-1.12 0-1.68.218-2.108A2 2 0 0 1 3.592 4.2C4.02 4 4.58 4 5.7 4h.4c2.24 0 3.36 0 4.216.436A4 4 0 0 1 11.936 6.184C12.5 7.04 12.5 8.16 12.5 10.4M12.5 20V10.4M12.5 20h6.8c1.12 0 1.68 0 2.108-.218a2 2 0 0 0 .874-.874C22.5 18.48 22.5 17.92 22.5 16.8V7.2c0-1.12 0-1.68-.218-2.108A2 2 0 0 0 21.408 4.2C20.98 4 20.42 4 19.3 4h-.4c-2.24 0-3.36 0-4.216.436A4 4 0 0 0 13.064 6.184C12.5 7.04 12.5 8.16 12.5 10.4" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  GymType: ({c='#536A87',s=22}) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+      <path d="M6 18V6M18 18V6M3 15V9M21 15V9M3 12h18" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  FamilyType: ({c='#536A87',s=22}) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  OtherType: ({c='#536A87',s=22}) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z" stroke={c} strokeWidth="1.5" fill="none"/>
+    </svg>
+  ),
+  HomeNav: ({c='#536A87'}) => (
+    <svg width={20} height={20} viewBox="0 0 21 21" fill="none">
+      <path d="M9.518 1.763L2.735 7.038c-.453.353-.68.529-.843.75A2 2 0 0 0 1.574 8.438C1.5 8.702 1.5 8.99 1.5 9.564v7.235c0 1.12 0 1.68.218 2.107.192.377.498.683.874.875.428.218.988.218 2.108.218h12.6c1.12 0 1.68 0 2.108-.218a2 2 0 0 0 .874-.875c.218-.427.218-.987.218-2.107V9.564c0-.574 0-.862-.074-1.126a2 2 0 0 0-.546-.788c-.163-.22-.39-.396-.843-.75L11.482 1.763a2 2 0 0 0-.744-.463 2 2 0 0 0-.476 0 2 2 0 0 0-.744.463z" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  ExposureNav: ({c='#536A87'}) => (
+    <svg width={22} height={22} viewBox="0 0 25 24" fill="none">
+      <path d="M12.5 6V12L16.5 14M22.5 12c0 5.523-4.477 10-10 10s-10-4.477-10-10 4.477-10 10-10 10 4.477 10 10z" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  SearchNav: ({c='#536A87'}) => (
+    <svg width={20} height={20} viewBox="0 0 20 20" fill="none">
+      <path d="M17.5 17.5L13.875 13.875M15.833 9.167a6.667 6.667 0 1 1-13.333 0 6.667 6.667 0 0 1 13.333 0z" stroke={c} strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  LearnNav: ({c='#536A87'}) => (
+    <svg width={22} height={22} viewBox="0 0 25 24" fill="none">
+      <path d="M12.5 20H5.7c-1.12 0-1.68 0-2.108-.218a2 2 0 0 1-.874-.874C2.5 18.48 2.5 17.92 2.5 16.8V7.2c0-1.12 0-1.68.218-2.108A2 2 0 0 1 3.592 4.2C4.02 4 4.58 4 5.7 4h.4c2.24 0 3.36 0 4.216.436A4 4 0 0 1 11.936 6.184C12.5 7.04 12.5 8.16 12.5 10.4M12.5 20V10.4M12.5 20h6.8c1.12 0 1.68 0 2.108-.218a2 2 0 0 0 .874-.874C22.5 18.48 22.5 17.92 22.5 16.8V7.2c0-1.12 0-1.68-.218-2.108A2 2 0 0 0 21.408 4.2C20.98 4 20.42 4 19.3 4h-.4c-2.24 0-3.36 0-4.216.436A4 4 0 0 0 13.064 6.184C12.5 7.04 12.5 8.16 12.5 10.4" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  Moon: () => (
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="#536A87" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  Person: () => (
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="#536A87" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  Dots: ({c='#6F87A1'}) => (
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="5" r="1.4" fill={c}/><circle cx="12" cy="12" r="1.4" fill={c}/><circle cx="12" cy="19" r="1.4" fill={c}/>
+    </svg>
+  ),
+  ChevRight: ({c='#145FFF',s=14}) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+      <path d="M9 18L15 12L9 6" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  ChevUp: ({c='#1A1D23',s=22}) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+      <path d="M18 15L12 9L6 15" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  ChevDown: ({c='#1A1D23',s=22}) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+      <path d="M6 9L12 15L18 9" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  Clock: ({c='#6F87A1',s=13}) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+      <path d="M12 6v6l4 2M22 12c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2s10 4.477 10 10z" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  Back: () => (
+    <svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+      <path d="M15 18L9 12L15 6" stroke="#1A1D23" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+};
+
+const TYPE_MAP = {
+  Home:   { Icon: Ic.HomeType,   color: '#145FFF' },
+  Work:   { Icon: Ic.WorkType,   color: '#536A87' },
+  School: { Icon: Ic.SchoolType, color: '#536A87' },
+  Gym:    { Icon: Ic.GymType,    color: '#536A87' },
+  Family: { Icon: Ic.FamilyType, color: '#536A87' },
+  Other:  { Icon: Ic.OtherType,  color: '#536A87' },
+};
+
+/* ── SHARED ATOMS ────────────────────────────────────────────── */
+const Phone = ({ children }) => (
+  <div style={{ width:390, height:844, background:C.bg, borderRadius:44, overflow:'hidden',
+    boxShadow:'0 28px 64px rgba(0,0,0,0.22),0 2px 8px rgba(0,0,0,0.08),inset 0 0 0 1px rgba(0,0,0,0.07)',
+    display:'flex', flexDirection:'column', flexShrink:0, position:'relative' }}>
+    {children}
+  </div>
+);
+
+const StatusBar = () => (
+  <div style={{ background:C.bg, paddingTop:14, paddingBottom:6, paddingLeft:24, paddingRight:20,
+    display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
+    <span style={{ fontSize:15, fontWeight:700, color:C.txt1 }}>9:30</span>
+    <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+      <svg width="17" height="12" viewBox="0 0 17 12" fill="none">
+        <rect x="0" y="8" width="3" height="4" rx=".8" fill={C.txt1}/>
+        <rect x="4.5" y="5" width="3" height="7" rx=".8" fill={C.txt1}/>
+        <rect x="9" y="2" width="3" height="10" rx=".8" fill={C.txt1}/>
+        <rect x="13.5" y="0" width="3" height="12" rx=".8" fill={C.txt1}/>
+      </svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+        <path d="M8 9.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z" fill={C.txt1}/>
+        <path d="M3.5 6.8A6.5 6.5 0 0 1 12.5 6.8" stroke={C.txt1} strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M1 4A9.5 9.5 0 0 1 15 4" stroke={C.txt1} strokeWidth="1.5" strokeLinecap="round"/>
+      </svg>
+      <div style={{ display:'flex', alignItems:'center' }}>
+        <div style={{ width:25, height:12, border:`1.5px solid ${C.txt1}`, borderRadius:3, padding:1.5, display:'flex', alignItems:'center' }}>
+          <div style={{ width:'78%', height:'100%', background:C.txt1, borderRadius:1.5 }}/>
+        </div>
+        <div style={{ width:2, height:5, background:C.txt1, borderRadius:'0 1px 1px 0', marginLeft:1 }}/>
+      </div>
+    </div>
+  </div>
+);
+
+const AppHeader = ({ activeTab, onTabChange }) => (
+  <div style={{ background:C.bg, paddingBottom:0, flexShrink:0 }}>
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'4px 16px 12px' }}>
+      {/* Logo */}
+      <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+        <svg width="36" height="40" viewBox="0 0 36 44" fill="none">
+          <path d="M18 0C18 0 0 17 0 27C0 36.9 8.06 44 18 44C27.94 44 36 36.9 36 27C36 17 18 0 18 0Z" fill="#145FFF"/>
+          <path d="M11 27C11 23.13 14.13 20 18 20C21.87 20 25 23.13 25 27" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+          <circle cx="18" cy="27" r="2.5" fill="white"/>
+        </svg>
+        <span style={{ fontSize:20, fontWeight:800, color:'#145FFF', letterSpacing:-.5 }}>airqo</span>
+      </div>
+      <div style={{ display:'flex', gap:10 }}>
+        {[Ic.Moon, Ic.Person].map((Ico, i) => (
+          <div key={i} style={{ width:44, height:44, borderRadius:22, background:C.iconBg,
+            display:'flex', alignItems:'center', justifyContent:'center' }}>
+            <Ico/>
+          </div>
+        ))}
+      </div>
+    </div>
+    <div style={{ padding:'0 17px 12px' }}>
+      <div style={{ fontSize:28, fontWeight:700, color:C.title, lineHeight:'36px' }}>Hi, Nagawa 👋</div>
+      <div style={{ fontSize:18, fontWeight:500, color:C.txt2, lineHeight:'26px' }}>Today's Air Quality • Sep 10th</div>
+    </div>
+    <div style={{ padding:'8px 16px 10px' }}>
+      <div style={{ display:'flex', gap:12 }}>
+        {['My Places','Sessions'].map(t => {
+          const on = t === activeTab;
+          return (
+            <button key={t} onClick={() => onTabChange && onTabChange(t)}
+              style={{ padding:'10px 18px', borderRadius:40, fontSize:16, fontWeight:500,
+                background: on ? C.blue : C.iconBg, color: on ? '#FFF' : '#485972',
+                border:'none', cursor:'pointer', letterSpacing:-.3 }}>{t}</button>
+          );
+        })}
+      </div>
+    </div>
+  </div>
+);
+
+const BottomNav = () => (
+  <div style={{ background:C.white, borderTop:`1px solid ${C.border}`, display:'flex',
+    alignItems:'center', paddingBottom:28, paddingTop:12, flexShrink:0 }}>
+    {[
+      { id:'home',     Ico:Ic.HomeNav,     label:'Home'     },
+      { id:'search',   Ico:Ic.SearchNav,   label:'Search'   },
+      { id:'exposure', Ico:Ic.ExposureNav, label:'Exposure' },
+      { id:'learn',    Ico:Ic.LearnNav,    label:'Learn'    },
+    ].map(({ id, Ico, label }) => {
+      const on = id === 'exposure';
+      const col = on ? C.blue : '#536A87';
+      return (
+        <div key={id} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:6 }}>
+          <Ico c={col}/>
+          <span style={{ fontSize:16, fontWeight:500, color:col, letterSpacing:-.48, lineHeight:1.5 }}>{label}</span>
+        </div>
+      );
+    })}
+  </div>
+);
+
+const DragHandle = () => (
+  <div style={{ display:'flex', justifyContent:'center', padding:'12px 0 6px' }}>
+    <div style={{ width:36, height:4, borderRadius:2, background:'#D1D9E0' }}/>
+  </div>
+);
+
+/* ── EXPOSURE CHIP ───────────────────────────────────────────── */
+const ExpChip = ({ level }) => {
+  const e = EXP[level] || EXP.low;
+  return (
+    <div style={{ display:'inline-flex', alignItems:'center', background:e.bg,
+      borderRadius:100, padding:'8px 20px' }}>
+      <span style={{ fontSize:17, fontWeight:600, color:e.color }}>{e.label}</span>
+    </div>
+  );
+};
+
+/* ── PLACE CARD (populated) ──────────────────────────────────── */
+const PlaceCard = ({ type, placeName, city, hoursPerDay, expLevel, onTap }) => {
+  const info = TYPE_MAP[type] || TYPE_MAP.Other;
+  const { Icon, color } = info;
+  return (
+    <div onClick={onTap} style={{ background:C.white, borderRadius:12,
+      boxShadow:'0 1px 2px rgba(83,106,135,0.16)', marginBottom:16, cursor:'pointer', overflow:'hidden' }}>
+      {/* Top section */}
+      <div style={{ padding:'14px 22px 14px' }}>
+        {/* Row 1: type icon + label + dots */}
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+            <div style={{ width:28, height:28, borderRadius:999, background:C.iconBg,
+              display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <Icon c={color} s={15}/>
+            </div>
+            <span style={{ fontSize:16, fontWeight:600, color:C.txt1 }}>{type}</span>
+          </div>
+          <Ic.Dots/>
+        </div>
+        {/* Row 2: place name + hours counter */}
+        <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between' }}>
+          <div>
+            <div style={{ fontSize:27, fontWeight:700, color:C.txt1, lineHeight:'33px', letterSpacing:-.3 }}>{placeName}</div>
+            <div style={{ fontSize:14, color:C.grey, marginTop:3 }}>{city}</div>
+          </div>
+          {hoursPerDay && (
+            <div style={{ textAlign:'right', marginTop:4 }}>
+              <div style={{ fontSize:13, fontWeight:600, color:C.txt2, lineHeight:'16px' }}>{hoursPerDay}h</div>
+              <div style={{ fontSize:10, color:C.txt2, lineHeight:'14px' }}>per day</div>
+            </div>
+          )}
+        </div>
+      </div>
+      {/* Divider */}
+      <div style={{ height:1, background:C.border }}/>
+      {/* Bottom section: chip + copy */}
+      <div style={{ padding:'12px 22px 18px' }}>
+        <div style={{ marginBottom:10 }}><ExpChip level={expLevel}/></div>
+        <div style={{ fontSize:16, color:C.txt1, lineHeight:'24px' }}>{expCopy[expLevel]}</div>
+      </div>
+    </div>
+  );
+};
+
+/* ── ENTRY CARD (untagged) ───────────────────────────────────── */
+const EntryCard = ({ placeName, city, onSetup }) => (
+  <div style={{ background:C.white, borderRadius:12,
+    boxShadow:'0 1px 2px rgba(83,106,135,0.16)', marginBottom:16, overflow:'hidden' }}>
+    <div style={{ padding:'18px 22px 16px' }}>
+      <div style={{ fontSize:27, fontWeight:700, color:C.txt1, letterSpacing:-.3, lineHeight:'33px' }}>{placeName}</div>
+      <div style={{ fontSize:14, color:C.grey, marginTop:3 }}>{city}</div>
+    </div>
+    <div style={{ padding:'0 16px 16px' }}>
+      <button onClick={onSetup} style={{
+        width:'100%', padding:'14px', borderRadius:10, background:'transparent',
+        border:`1.5px dashed ${C.blue}`, color:C.blue, fontSize:15, fontWeight:600,
+        fontFamily:'Inter,sans-serif', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
+        + Add label to see exposure
+      </button>
+    </div>
+  </div>
+);
+
+/* ── LABEL PICKER SHEET ──────────────────────────────────────── */
+const LabelPickerSheet = ({ onContinue }) => {
+  const [sel, setSel] = useState('Home');
+  const [name, setName] = useState('Home');
+  const types = ['Home','Work','School','Gym','Family','Other'];
+  return (
+    <div className="sheet-up" style={{ position:'absolute', bottom:0, left:0, right:0,
+      background:C.white, borderRadius:'24px 24px 0 0', zIndex:20, padding:'0 20px 36px' }}>
+      <DragHandle/>
+      <div style={{ fontSize:20, fontWeight:700, color:C.txt1, marginBottom:6, paddingTop:6 }}>
+        What kind of place is this?
+      </div>
+      <div style={{ fontSize:14, color:C.blue, marginBottom:22, lineHeight:'20px' }}>
+        This helps us show the right icon and keep your places organised.
+      </div>
+      {/* 3×2 grid */}
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10, marginBottom:24 }}>
+        {types.map(t => {
+          const info = TYPE_MAP[t];
+          const on = t === sel;
+          return (
+            <button key={t} onClick={() => { setSel(t); setName(t); }}
+              style={{ background: on ? C.blueHi : C.bg, borderRadius:12, padding:'14px 8px',
+                display:'flex', flexDirection:'column', alignItems:'center', gap:8,
+                border: on ? `1.5px solid ${C.blue}` : '1.5px solid transparent',
+                cursor:'pointer' }}>
+              <info.Icon c={on ? C.blue : '#536A87'} s={24}/>
+              <span style={{ fontSize:13, fontWeight:600, color: on ? C.blue : C.txt1 }}>{t}</span>
+            </button>
+          );
+        })}
+      </div>
+      {/* Name field */}
+      <div style={{ marginBottom:22 }}>
+        <label style={{ fontSize:13, fontWeight:500, color:C.txt2, display:'block', marginBottom:6 }}>Name</label>
+        <input value={name} onChange={e => setName(e.target.value)}
+          style={{ width:'100%', padding:'13px 14px', background:C.bg, border:`1.5px solid ${C.border}`,
+            borderRadius:10, fontSize:15, fontWeight:500, color:C.txt1, fontFamily:'Inter,sans-serif', outline:'none' }}/>
+      </div>
+      <button onClick={() => onContinue(sel)} style={{ width:'100%', padding:'16px', borderRadius:12, background:C.blue,
+        color:'#FFF', fontSize:16, fontWeight:600, fontFamily:'Inter,sans-serif', border:'none', cursor:'pointer' }}>
+        Continue
+      </button>
+    </div>
+  );
+};
+
+/* ── TIME PICKER DRUM ROLL ───────────────────────────────────── */
+const TimePicker = ({ label, onConfirm, onCancel }) => {
+  const [hour, setHour] = useState(7);
+  const [min, setMin] = useState(0);
+  const [period, setPeriod] = useState('AM');
+  const pad = n => String(n).padStart(2,'0');
+  const cycleHour = d => setHour(h => ((h - 1 + d + 12) % 12) + 1);
+  const cycleMin = d => setMin(m => (m + d * 5 + 60) % 60);
+  return (
+    <div className="sheet-up" style={{ position:'absolute', bottom:0, left:0, right:0,
+      background:C.white, borderRadius:'24px 24px 0 0', zIndex:30, padding:'0 24px 36px' }}>
+      <DragHandle/>
+      <div style={{ fontSize:18, fontWeight:700, color:C.txt1, paddingTop:6, marginBottom:4 }}>{label}</div>
+      <div style={{ fontSize:13, color:C.txt2, marginBottom:28 }}>Tap arrows to adjust the time</div>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:20, marginBottom:24 }}>
+        {/* Hour */}
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:10 }}>
+          <button onClick={() => cycleHour(1)} style={{ background:C.bg, border:`1px solid ${C.border}`,
+            borderRadius:10, width:56, height:44, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+            <Ic.ChevUp/>
+          </button>
+          <span style={{ fontSize:48, fontWeight:700, color:C.txt1, width:64, textAlign:'center', lineHeight:'56px' }}>{pad(hour)}</span>
+          <button onClick={() => cycleHour(-1)} style={{ background:C.bg, border:`1px solid ${C.border}`,
+            borderRadius:10, width:56, height:44, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+            <Ic.ChevDown/>
+          </button>
+          <span style={{ fontSize:11, fontWeight:600, color:C.txt2, letterSpacing:'.06em' }}>HOUR</span>
+        </div>
+        <span style={{ fontSize:48, fontWeight:700, color:C.txt1, marginBottom:24 }}>:</span>
+        {/* Min */}
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:10 }}>
+          <button onClick={() => cycleMin(1)} style={{ background:C.bg, border:`1px solid ${C.border}`,
+            borderRadius:10, width:56, height:44, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+            <Ic.ChevUp/>
+          </button>
+          <span style={{ fontSize:48, fontWeight:700, color:C.txt1, width:64, textAlign:'center', lineHeight:'56px' }}>{pad(min)}</span>
+          <button onClick={() => cycleMin(-1)} style={{ background:C.bg, border:`1px solid ${C.border}`,
+            borderRadius:10, width:56, height:44, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+            <Ic.ChevDown/>
+          </button>
+          <span style={{ fontSize:11, fontWeight:600, color:C.txt2, letterSpacing:'.06em' }}>MIN</span>
+        </div>
+        {/* AM/PM */}
+        <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:24 }}>
+          {['AM','PM'].map(p => (
+            <button key={p} onClick={() => setPeriod(p)}
+              style={{ width:52, height:38, borderRadius:8, background: p === period ? C.blue : C.bg,
+                border: p === period ? 'none' : `1px solid ${C.border}`,
+                color: p === period ? '#FFF' : C.txt2, fontSize:14, fontWeight:600,
+                fontFamily:'Inter,sans-serif', cursor:'pointer' }}>{p}</button>
+          ))}
+          <span style={{ fontSize:11, fontWeight:600, color:C.txt2, letterSpacing:'.06em', textAlign:'center' }}>PERIOD</span>
+        </div>
+      </div>
+      <div style={{ display:'flex', gap:12 }}>
+        <button onClick={onCancel} style={{ flex:1, padding:'15px', borderRadius:12, background:C.bg,
+          border:`1px solid ${C.border}`, color:C.txt1, fontSize:16, fontWeight:600,
+          fontFamily:'Inter,sans-serif', cursor:'pointer' }}>Cancel</button>
+        <button onClick={() => onConfirm(`${pad(hour)}:${pad(min)} ${period}`)}
+          style={{ flex:2, padding:'15px', borderRadius:12, background:C.blue, border:'none',
+            color:'#FFF', fontSize:16, fontWeight:600, fontFamily:'Inter,sans-serif', cursor:'pointer' }}>Confirm</button>
+      </div>
+    </div>
+  );
+};
+
+/* ── TIME WINDOW SHEET ───────────────────────────────────────── */
+const TimeWindowSheet = ({ type, onSave }) => {
+  const [tab, setTab] = useState('Weekdays');
+  const [arrive, setArrive] = useState('07:00 AM');
+  const [leave, setLeave]   = useState('09:00 AM');
+  const [picker, setPicker] = useState(null); // 'arrive'|'leave'|null
+
+  const parseHours = (a, l) => {
+    const toMins = t => {
+      const [time, p] = t.split(' ');
+      let [h, m] = time.split(':').map(Number);
+      if (p === 'PM' && h !== 12) h += 12;
+      if (p === 'AM' && h === 12) h = 0;
+      return h * 60 + m;
+    };
+    let diff = toMins(l) - toMins(a);
+    if (diff <= 0) diff += 24 * 60;
+    return Math.round(diff / 60);
+  };
+  const hrs = parseHours(arrive, leave);
+
+  return (
+    <div className="sheet-up" style={{ position:'absolute', bottom:0, left:0, right:0,
+      background:C.white, borderRadius:'24px 24px 0 0', zIndex:20, padding:'0 20px 36px' }}>
+      <DragHandle/>
+      <div style={{ fontSize:20, fontWeight:700, color:C.txt1, paddingTop:6, marginBottom:6 }}>
+        When are you usually at {type}?
+      </div>
+      <div style={{ fontSize:14, color:C.blue, marginBottom:20, lineHeight:'20px' }}>
+        We'll average air quality during these hours to show your exposure.
+      </div>
+      {/* Weekdays / Weekends toggle */}
+      <div style={{ display:'flex', background:C.bg, borderRadius:10, padding:3, marginBottom:22 }}>
+        {['Weekdays','Weekends'].map(t => (
+          <button key={t} onClick={() => setTab(t)} style={{
+            flex:1, padding:'10px', borderRadius:8, fontSize:15, fontWeight:500,
+            background: t === tab ? C.white : 'transparent',
+            color: t === tab ? C.txt1 : C.txt2,
+            border:'none', cursor:'pointer', fontFamily:'Inter,sans-serif',
+            boxShadow: t === tab ? '0 1px 3px rgba(0,0,0,0.12)' : 'none',
+          }}>{t}</button>
+        ))}
+      </div>
+      {/* Arrive */}
+      <div style={{ marginBottom:14 }}>
+        <label style={{ fontSize:13, fontWeight:500, color:C.txt2, display:'block', marginBottom:6 }}>Arrive around</label>
+        <button onClick={() => setPicker('arrive')} style={{ width:'100%', display:'flex',
+          alignItems:'center', justifyContent:'space-between',
+          padding:'13px 14px', background:C.bg, border:`1.5px solid ${C.border}`,
+          borderRadius:10, cursor:'pointer', fontFamily:'Inter,sans-serif' }}>
+          <span style={{ fontSize:15, fontWeight:600, color:C.txt1 }}>{arrive}</span>
+          <span style={{ fontSize:22, color:C.blue, lineHeight:1 }}>+</span>
+        </button>
+      </div>
+      {/* Leave */}
+      <div style={{ marginBottom:16 }}>
+        <label style={{ fontSize:13, fontWeight:500, color:C.txt2, display:'block', marginBottom:6 }}>Leave around</label>
+        <button onClick={() => setPicker('leave')} style={{ width:'100%', display:'flex',
+          alignItems:'center', justifyContent:'space-between',
+          padding:'13px 14px', background:C.bg, border:`1.5px solid ${C.border}`,
+          borderRadius:10, cursor:'pointer', fontFamily:'Inter,sans-serif' }}>
+          <span style={{ fontSize:15, fontWeight:600, color:C.txt1 }}>{leave}</span>
+          <span style={{ fontSize:22, color:C.blue, lineHeight:1 }}>+</span>
+        </button>
+      </div>
+      {/* Duration hint */}
+      <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:22 }}>
+        <Ic.Clock c={C.txt2} s={14}/>
+        <span style={{ fontSize:13, color:C.txt2 }}>{hrs}h window at {type.toLowerCase()}</span>
+      </div>
+      <button onClick={onSave} style={{ width:'100%', padding:'16px', borderRadius:12, background:C.blue,
+        color:'#FFF', fontSize:16, fontWeight:600, fontFamily:'Inter,sans-serif', border:'none', cursor:'pointer' }}>
+        Save
+      </button>
+      {/* Nested picker */}
+      {picker && (
+        <TimePicker
+          label={picker === 'arrive' ? 'Arrive around' : 'Leave around'}
+          onConfirm={val => { picker === 'arrive' ? setArrive(val) : setLeave(val); setPicker(null); }}
+          onCancel={() => setPicker(null)}
+        />
+      )}
+    </div>
+  );
+};
+
+/* ── EDIT PLACE SHEET ────────────────────────────────────────── */
+const EditPlaceSheet = ({ initialType='Home' }) => {
+  const [sel, setSel] = useState(initialType);
+  const [name, setName] = useState(initialType);
+  const [wTab, setWTab] = useState('Weekdays');
+  const [arrive, setArrive] = useState('07:00 AM');
+  const [leave, setLeave] = useState('09:00 AM');
+  const types = ['Home','Work','School','Gym','Family','Other'];
+  const parseHours = (a,l) => {
+    const toMins = t => {
+      const [time,p] = t.split(' ');
+      let [h,m] = time.split(':').map(Number);
+      if(p==='PM'&&h!==12)h+=12;if(p==='AM'&&h===12)h=0;return h*60+m;
+    };
+    let d=toMins(l)-toMins(a);if(d<=0)d+=1440;return Math.round(d/60);
+  };
+  const hrs=parseHours(arrive,leave);
+  return (
+    <div className="sheet-up" style={{ position:'absolute', bottom:0, left:0, right:0,
+      background:C.white, borderRadius:'24px 24px 0 0', zIndex:20, padding:'0 20px 36px',
+      maxHeight:'88%', overflowY:'auto' }}>
+      <DragHandle/>
+      <div style={{ fontSize:20, fontWeight:700, color:C.txt1, paddingTop:6, marginBottom:20 }}>Edit Place</div>
+      <div style={{ fontSize:12, fontWeight:600, color:C.txt2, textTransform:'uppercase', letterSpacing:'.06em', marginBottom:10 }}>Place type</div>
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10, marginBottom:20 }}>
+        {types.map(t => {
+          const info = TYPE_MAP[t]; const on = t === sel;
+          return (
+            <button key={t} onClick={() => setSel(t)}
+              style={{ background: on ? C.blueHi : C.bg, borderRadius:12, padding:'14px 8px',
+                display:'flex', flexDirection:'column', alignItems:'center', gap:8,
+                border: on ? `1.5px solid ${C.blue}` : '1.5px solid transparent', cursor:'pointer' }}>
+              <info.Icon c={on ? C.blue : '#536A87'} s={24}/>
+              <span style={{ fontSize:13, fontWeight:600, color: on ? C.blue : C.txt1 }}>{t}</span>
+            </button>
+          );
+        })}
+      </div>
+      <div style={{ marginBottom:20 }}>
+        <label style={{ fontSize:13, fontWeight:500, color:C.txt2, display:'block', marginBottom:6 }}>Name</label>
+        <input value={name} onChange={e => setName(e.target.value)} placeholder={sel}
+          style={{ width:'100%', padding:'13px 14px', background:C.bg, border:`1.5px solid ${C.border}`,
+            borderRadius:10, fontSize:15, fontWeight:500, color:C.txt1, fontFamily:'Inter,sans-serif', outline:'none' }}/>
+      </div>
+      <div style={{ fontSize:13, fontWeight:500, color:C.txt2, marginBottom:10 }}>Time windows</div>
+      <div style={{ display:'flex', background:C.bg, borderRadius:10, padding:3, marginBottom:16 }}>
+        {['Weekdays','Weekends'].map(t => (
+          <button key={t} onClick={() => setWTab(t)} style={{ flex:1, padding:'9px', borderRadius:8,
+            fontSize:14, fontWeight:500, background: t===wTab ? C.white : 'transparent',
+            color: t===wTab ? C.txt1 : C.txt2, border:'none', cursor:'pointer', fontFamily:'Inter,sans-serif',
+            boxShadow: t===wTab ? '0 1px 3px rgba(0,0,0,0.12)' : 'none' }}>{t}</button>
+        ))}
+      </div>
+      {[['Arrive around', arrive], ['Leave around', leave]].map(([lbl, val], i) => (
+        <div key={lbl} style={{ marginBottom:14 }}>
+          <label style={{ fontSize:13, fontWeight:500, color:C.txt2, display:'block', marginBottom:6 }}>{lbl}</label>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between',
+            padding:'13px 14px', background:C.bg, border:`1.5px solid ${C.border}`, borderRadius:10 }}>
+            <span style={{ fontSize:15, fontWeight:600, color:C.txt1 }}>{val}</span>
+            <span style={{ fontSize:22, color:C.blue, lineHeight:1 }}>+</span>
+          </div>
+        </div>
+      ))}
+      <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:24 }}>
+        <Ic.Clock c={C.txt2} s={14}/>
+        <span style={{ fontSize:13, color:C.txt2 }}>{hrs}h at this location</span>
+      </div>
+      <button style={{ width:'100%', padding:'16px', borderRadius:12, background:C.blue,
+        color:'#FFF', fontSize:16, fontWeight:600, fontFamily:'Inter,sans-serif', border:'none', cursor:'pointer' }}>
+        Save changes
+      </button>
+    </div>
+  );
+};
+
+/* ── HOURLY DETAIL SHEET ─────────────────────────────────────── */
+const HourlyDetailSheet = ({ type, placeName, city, hoursPerDay, expLevel, data }) => {
+  const e = EXP[expLevel] || EXP.low;
+  const valid = data.filter(d => d.pm !== null);
+  const avg = valid.length ? (valid.reduce((s,d) => s + d.pm, 0) / valid.length).toFixed(1) : '—';
+  const maxPm = Math.max(...valid.map(d => d.pm), 40);
+  const info = TYPE_MAP[type] || TYPE_MAP.Other;
+  return (
+    <div className="sheet-up" style={{ position:'absolute', bottom:0, left:0, right:0,
+      background:C.white, borderRadius:'24px 24px 0 0', zIndex:20,
+      maxHeight:'88%', display:'flex', flexDirection:'column' }}>
+      <div style={{ padding:'0 22px', flexShrink:0 }}>
+        <DragHandle/>
+        {/* Header */}
+        <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:4 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+            <div style={{ width:28, height:28, borderRadius:999, background:C.iconBg,
+              display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <info.Icon c={C.blue} s={15}/>
+            </div>
+            <span style={{ fontSize:15, fontWeight:600, color:C.txt1 }}>{type}</span>
+          </div>
+          {hoursPerDay && (
+            <div style={{ textAlign:'right' }}>
+              <div style={{ fontSize:13, fontWeight:600, color:C.txt2 }}>{hoursPerDay}h</div>
+              <div style={{ fontSize:10, color:C.txt2 }}>per day</div>
+            </div>
+          )}
+        </div>
+        <div style={{ fontSize:27, fontWeight:700, color:C.txt1, letterSpacing:-.3, lineHeight:'33px' }}>{placeName}</div>
+        <div style={{ fontSize:14, color:C.grey, marginTop:2, marginBottom:14 }}>{city}</div>
+        <div style={{ marginBottom:8 }}><ExpChip level={expLevel}/></div>
+        <div style={{ fontSize:16, color:C.txt1, marginBottom:18 }}>{expCopy[expLevel]}</div>
+        {/* Column headers */}
+        <div style={{ display:'flex', justifyContent:'space-between', marginBottom:10 }}>
+          <span style={{ fontSize:12, fontWeight:700, color:C.blue, letterSpacing:'.05em' }}>PM2.5 PER HOUR</span>
+          <span style={{ fontSize:12, color:C.txt2 }}>µg/m³</span>
+        </div>
+      </div>
+      {/* Scrollable bars */}
+      <div style={{ flex:1, overflowY:'auto', padding:'0 22px' }}>
+        {data.map((d, i) => {
+          const offline = d.pm === null;
+          const pct = offline ? 0 : Math.min((d.pm / maxPm) * 100, 100);
+          const bColor = offline ? null : (EXP[expFrom(d.pm)] || EXP.low).color;
+          return (
+            <div key={i} style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
+              <span style={{ fontSize:13, color:C.txt2, width:40, textAlign:'right', flexShrink:0 }}>{d.label}</span>
+              <div style={{ flex:1, height:8, background:'#E8ECF0', borderRadius:4, overflow:'hidden', position:'relative' }}>
+                {offline ? (
+                  <div style={{ width:'100%', height:'100%',
+                    background:'repeating-linear-gradient(90deg,#C8D0D8 0,#C8D0D8 4px,transparent 4px,transparent 8px)',
+                    borderRadius:4 }}/>
+                ) : (
+                  <div style={{ width:`${pct}%`, height:'100%', background:bColor, borderRadius:4 }}/>
+                )}
+              </div>
+              {offline
+                ? <span style={{ fontSize:13, color:'#B0BECA', width:48, flexShrink:0 }}>offline</span>
+                : <span style={{ fontSize:13, fontWeight:600, color:bColor, width:48, flexShrink:0 }}>{d.pm}</span>
+              }
+            </div>
+          );
+        })}
+        {/* Legend */}
+        <div style={{ background:C.bg, borderRadius:10, padding:'10px 12px', margin:'8px 0 16px',
+          display:'flex', alignItems:'flex-start', gap:8 }}>
+          <div style={{ width:8, height:8, borderRadius:'50%', background:'#B0BECA', marginTop:3, flexShrink:0 }}/>
+          <span style={{ fontSize:12, color:C.txt2, lineHeight:'18px' }}>
+            Greyed hours = monitor was offline · avg calculated from available readings only
+          </span>
+        </div>
+      </div>
+      {/* Pinned footer: day average */}
+      <div style={{ padding:'14px 22px', borderTop:`1px solid ${C.border}`,
+        display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
+        <span style={{ fontSize:16, fontWeight:500, color:C.txt1 }}>Day average</span>
+        <span style={{ fontSize:18, fontWeight:700, color:e.color }}>{avg} µg/m³</span>
+      </div>
+    </div>
+  );
+};
+
+/* ── DATA ────────────────────────────────────────────────────── */
+const DATA_MOD = [
+  {label:'8 AM',pm:19.2},{label:'9 AM',pm:24.5},{label:'10 AM',pm:22.1},
+  {label:'11 AM',pm:18.7},{label:'12 PM',pm:28.4},{label:'1 PM',pm:31},
+  {label:'2 PM',pm:27.6},{label:'3 PM',pm:null},{label:'4 PM',pm:23.8},{label:'5 PM',pm:21.4},
+];
+const DATA_LOW = [
+  {label:'8 AM',pm:19.2},{label:'9 AM',pm:11.5},{label:'10 AM',pm:10.5},
+  {label:'11 AM',pm:11.0},{label:'12 PM',pm:28.4},{label:'1 PM',pm:12.2},
+  {label:'2 PM',pm:11.9},{label:'3 PM',pm:null},{label:'4 PM',pm:10.5},{label:'5 PM',pm:21.4},
+];
+const DATA_HIGH = [
+  {label:'8 AM',pm:19.2},{label:'9 AM',pm:24.5},{label:'10 AM',pm:22.1},
+  {label:'11 AM',pm:18.7},{label:'12 PM',pm:28.4},{label:'1 PM',pm:31},
+  {label:'2 PM',pm:27.6},{label:'3 PM',pm:null},{label:'4 PM',pm:23.8},{label:'5 PM',pm:21.4},
+];
+
+/* ── SCREENS ─────────────────────────────────────────────────── */
+
+/* S1 — Entry state */
+const S1 = () => {
+  const [sheet, setSheet] = useState(null);
+  return (
+    <Phone>
+      <StatusBar/>
+      <AppHeader activeTab="My Places"/>
+      <div style={{ flex:1, overflowY:'auto', padding:'12px 16px 24px' }}>
+        {[['Kilimani','Nairobi, Nairobi County'],
+          ['Lavington','Nairobi, Nairobi County'],
+          ['Lemon Studio','Nairobi, Nairobi County']].map(([n,c]) => (
+          <EntryCard key={n} placeName={n} city={c} onSetup={() => setSheet('label')}/>
+        ))}
+      </div>
+      <BottomNav/>
+      {sheet === 'label' && (
+        <>
+          <div style={{ position:'absolute', inset:0, background:'rgba(10,14,28,.45)', zIndex:10 }}
+            onClick={() => setSheet(null)}/>
+          <LabelPickerSheet onContinue={t => setSheet('time_' + t)}/>
+        </>
+      )}
+      {sheet && sheet.startsWith('time_') && (
+        <>
+          <div style={{ position:'absolute', inset:0, background:'rgba(10,14,28,.45)', zIndex:10 }}
+            onClick={() => setSheet(null)}/>
+          <TimeWindowSheet type={sheet.replace('time_','')} onSave={() => setSheet(null)}/>
+        </>
+      )}
+    </Phone>
+  );
+};
+
+/* S2 — Populated */
+const S2 = () => {
+  const [sheet, setSheet] = useState(null);
+  const cards = [
+    { type:'Gym',  placeName:'F45 gym',     city:'Nairobi, Nairobi County', h:16, exp:'moderate', data:DATA_MOD  },
+    { type:'Work', placeName:'Lemon studio', city:'Nairobi, Nairobi County', h:16, exp:'high',     data:DATA_HIGH },
+    { type:'Home', placeName:'Lavington',   city:'Nairobi, Nairobi County', h:8,  exp:'low',      data:DATA_LOW  },
+  ];
+  const active = sheet ? cards.find(c => c.placeName === sheet) : null;
+  return (
+    <Phone>
+      <StatusBar/>
+      <AppHeader activeTab="My Places"/>
+      <div style={{ flex:1, overflowY:'auto', padding:'12px 16px 24px' }}>
+        {cards.map(c => (
+          <PlaceCard key={c.placeName} type={c.type} placeName={c.placeName} city={c.city}
+            hoursPerDay={c.h} expLevel={c.exp} onTap={() => setSheet(c.placeName)}/>
+        ))}
+      </div>
+      <BottomNav/>
+      {active && (
+        <>
+          <div style={{ position:'absolute', inset:0, background:'rgba(10,14,28,.45)', zIndex:10 }}
+            onClick={() => setSheet(null)}/>
+          <HourlyDetailSheet type={active.type} placeName={active.placeName} city={active.city}
+            hoursPerDay={active.h} expLevel={active.exp} data={active.data}/>
+        </>
+      )}
+    </Phone>
+  );
+};
+
+/* S3 — Label Picker (standalone) */
+const S3 = () => (
+  <Phone>
+    <StatusBar/>
+    <AppHeader activeTab="My Places"/>
+    <div style={{ flex:1, padding:'12px 16px', opacity:.3, pointerEvents:'none' }}>
+      <EntryCard placeName="Kilimani" city="Nairobi, Nairobi County"/>
+    </div>
+    <BottomNav/>
+    <div style={{ position:'absolute', inset:0, background:'rgba(10,14,28,.45)', zIndex:10 }}/>
+    <LabelPickerSheet onContinue={() => {}}/>
+  </Phone>
+);
+
+/* S4 — Time Window sheet (Weekdays) */
+const S4 = () => (
+  <Phone>
+    <StatusBar/>
+    <AppHeader activeTab="My Places"/>
+    <div style={{ flex:1, padding:'12px 16px', opacity:.3, pointerEvents:'none' }}>
+      <EntryCard placeName="Kilimani" city="Nairobi, Nairobi County"/>
+    </div>
+    <BottomNav/>
+    <div style={{ position:'absolute', inset:0, background:'rgba(10,14,28,.45)', zIndex:10 }}/>
+    <TimeWindowSheet type="Home" onSave={() => {}}/>
+  </Phone>
+);
+
+/* S5 — Time Picker drill-down */
+const S5 = () => (
+  <Phone>
+    <StatusBar/>
+    <AppHeader activeTab="My Places"/>
+    <div style={{ flex:1, padding:'12px 16px', opacity:.3, pointerEvents:'none' }}>
+      <EntryCard placeName="Kilimani" city="Nairobi, Nairobi County"/>
+    </div>
+    <BottomNav/>
+    <div style={{ position:'absolute', inset:0, background:'rgba(10,14,28,.3)', zIndex:10 }}/>
+    <div style={{ position:'absolute', bottom:0, left:0, right:0, zIndex:15,
+      background:'rgba(10,14,28,.45)', height:180, borderRadius:'24px 24px 0 0' }}/>
+    <TimePicker label="Arrive around" onConfirm={() => {}} onCancel={() => {}}/>
+  </Phone>
+);
+
+/* S6 — Hourly detail: Moderate */
+const S6 = () => (
+  <Phone>
+    <StatusBar/>
+    <AppHeader activeTab="My Places"/>
+    <div style={{ flex:1, padding:'12px 16px', opacity:.3, pointerEvents:'none' }}>
+      <PlaceCard type="Home" placeName="Lavington" city="Nairobi, Nairobi County" hoursPerDay={16} expLevel="moderate"/>
+    </div>
+    <BottomNav/>
+    <div style={{ position:'absolute', inset:0, background:'rgba(10,14,28,.45)', zIndex:10 }}/>
+    <HourlyDetailSheet type="Home" placeName="Lavington" city="Nairobi, Nairobi County"
+      hoursPerDay={16} expLevel="moderate" data={DATA_MOD}/>
+  </Phone>
+);
+
+/* S7 — Hourly detail: Low */
+const S7 = () => (
+  <Phone>
+    <StatusBar/>
+    <AppHeader activeTab="My Places"/>
+    <div style={{ flex:1, padding:'12px 16px', opacity:.3, pointerEvents:'none' }}>
+      <PlaceCard type="Gym" placeName="F45 gym" city="Nairobi, Nairobi County" hoursPerDay={8} expLevel="low"/>
+    </div>
+    <BottomNav/>
+    <div style={{ position:'absolute', inset:0, background:'rgba(10,14,28,.45)', zIndex:10 }}/>
+    <HourlyDetailSheet type="Gym" placeName="F45 gym" city="Nairobi, Nairobi County"
+      hoursPerDay={8} expLevel="low" data={DATA_LOW}/>
+  </Phone>
+);
+
+/* S8 — Hourly detail: High */
+const S8 = () => (
+  <Phone>
+    <StatusBar/>
+    <AppHeader activeTab="My Places"/>
+    <div style={{ flex:1, padding:'12px 16px', opacity:.3, pointerEvents:'none' }}>
+      <PlaceCard type="Work" placeName="Lemon studio" city="Nairobi, Nairobi County" hoursPerDay={2} expLevel="high"/>
+    </div>
+    <BottomNav/>
+    <div style={{ position:'absolute', inset:0, background:'rgba(10,14,28,.45)', zIndex:10 }}/>
+    <HourlyDetailSheet type="Work" placeName="Lemon studio" city="Nairobi, Nairobi County"
+      hoursPerDay={2} expLevel="high" data={DATA_HIGH}/>
+  </Phone>
+);
+
+/* S9 — Edit Place */
+const S9 = () => (
+  <Phone>
+    <StatusBar/>
+    <AppHeader activeTab="My Places"/>
+    <div style={{ flex:1, padding:'12px 16px', opacity:.3, pointerEvents:'none' }}>
+      <PlaceCard type="Home" placeName="Lavington" city="Nairobi, Nairobi County" hoursPerDay={16} expLevel="moderate"/>
+    </div>
+    <BottomNav/>
+    <div style={{ position:'absolute', inset:0, background:'rgba(10,14,28,.45)', zIndex:10 }}/>
+    <EditPlaceSheet initialType="Home"/>
+  </Phone>
+);
+
+/* ── SCREEN LABELS ───────────────────────────────────────────── */
+const SCREENS = [
+  ['S1 — Entry State · Untagged places',         S1],
+  ['S2 — My Places · Populated (tap to drill)',  S2],
+  ['S3 — Label Picker sheet',                    S3],
+  ['S4 — Time Window sheet',                     S4],
+  ['S5 — Time Picker',                           S5],
+  ['S6 — Hourly Detail · Moderate',              S6],
+  ['S7 — Hourly Detail · Low',                   S7],
+  ['S8 — Hourly Detail · High',                  S8],
+  ['S9 — Edit Place sheet',                      S9],
+];
+
+const App = () => (
+  <>
+    {SCREENS.map(([label, Screen]) => (
+      <div key={label} className="screen-wrap">
+        <div className="screen-label">{label}</div>
+        <Screen/>
+      </div>
+    ))}
+  </>
+);
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

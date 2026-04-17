@@ -69,7 +69,12 @@ class _DashboardHeaderState extends State<DashboardHeader> {
       },
       child: PagePadding(
         padding: 16,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        // Full width so greeting Row/Flexible lays out when parent had tight
+        // constraints (e.g. IndexedStack offstage pass). Exposure tab uses the
+        // same header as Home.
+        child: SizedBox(
+          width: double.infinity,
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           SizedBox(height: 16),
           _buildGreeting(context),
           BlocBuilder<LanguageBloc, LanguageState>(
@@ -157,6 +162,7 @@ class _DashboardHeaderState extends State<DashboardHeader> {
           ],
           SizedBox(height: 16)
         ]),
+        ),
       ),
     );
   }
