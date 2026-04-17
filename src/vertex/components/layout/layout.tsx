@@ -79,12 +79,15 @@ export default function Layout({ children }: LayoutProps) {
         <div className="flex justify-center items-center overflow-hidden min-h-screen h-screen bg-background">
           <SessionLoadingState />
         </div>
-      ) : isSwitching ? (
-        <div className="flex justify-center items-center overflow-hidden min-h-screen h-screen bg-background">
-          <OrganizationLoadingState organizationName={switchingTo} />
-        </div>
       ) : (
         <div className="flex overflow-hidden min-h-screen h-screen bg-background">
+          {isSwitching && (
+             <div className="fixed top-0 left-0 right-0 z-[10001]">
+                <div className="h-1 bg-primary/20 w-full overflow-hidden">
+                   <div className="h-full bg-primary animate-shimmer"></div>
+                </div>
+             </div>
+          )}
           <OrganizationSetupBanner />
           <Topbar onMenuClick={() => setIsPrimarySidebarOpen(true)} />
           <PrimarySidebar

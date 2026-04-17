@@ -62,9 +62,7 @@ const OrganizationPicker: React.FC = () => {
     } catch {
       ReusableToast({ message: "Failed to switch organization", type: "ERROR" });
     } finally {
-      setTimeout(() => {
-        dispatch(setOrganizationSwitching({ isSwitching: false, switchingTo: "" }));
-      }, 3000);
+      dispatch(setOrganizationSwitching({ isSwitching: false, switchingTo: "" }));
     }
   };
 
