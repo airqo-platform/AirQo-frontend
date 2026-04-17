@@ -4,7 +4,7 @@ import { useVerifyCohort } from '@/core/hooks/useCohorts';
 import ReusableInputField from '@/components/shared/inputfield/ReusableInputField';
 import { Loader2, Plus, Database, CheckCircle2 } from 'lucide-react';
 
-type SetupView = 'CHOICE' | 'LINK' | 'CONFIRM_LINK';
+type SetupView = 'INTRO' | 'CHOICE' | 'LINK' | 'CONFIRM_LINK';
 
 interface OrganizationSetupDialogProps {
     open: boolean;
@@ -12,6 +12,7 @@ interface OrganizationSetupDialogProps {
     onConfirmCreate: () => void;
     onConfirmLink: (cohortId: string) => void;
     isProcessing: boolean;
+    preventDismiss?: boolean;
 }
 
 export const OrganizationSetupDialog: React.FC<OrganizationSetupDialogProps> = ({
@@ -20,8 +21,9 @@ export const OrganizationSetupDialog: React.FC<OrganizationSetupDialogProps> = (
     onConfirmCreate,
     onConfirmLink,
     isProcessing,
+    preventDismiss = false,
 }) => {
-    const [view, setView] = useState<SetupView>('CHOICE');
+    const [view, setView] = useState<SetupView>('INTRO');
     const [cohortId, setCohortId] = useState('');
     const [verifiedCohortId, setVerifiedCohortId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -31,7 +33,7 @@ export const OrganizationSetupDialog: React.FC<OrganizationSetupDialogProps> = (
     const handleClose = () => {
         onOpenChange(false);
         setTimeout(() => {
-            setView('CHOICE');
+            setView('INTRO');
             setCohortId('');
             setVerifiedCohortId(null);
             setError(null);
@@ -57,6 +59,17 @@ export const OrganizationSetupDialog: React.FC<OrganizationSetupDialogProps> = (
             setError('Failed to verify cohort. User might not have access or ID is invalid.');
         }
     };
+
+    const renderIntroView = () => (
+        <div className="space-y-4">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+                Your organization needs at least one cohort to manage devices. Cohorts help you organize and manage groups of devices effectively.
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+                Click &quot;Complete Setup&quot; to create a default cohort or link an existing one.
+            </p>
+        </div>
+    );
 
     const renderChoiceView = () => (
         <div className="space-y-6">
@@ -141,19 +154,31 @@ export const OrganizationSetupDialog: React.FC<OrganizationSetupDialogProps> = (
             title: 'Organization Setup',
             subtitle: undefined as string | undefined,
             showFooter: false,
-            showCloseButton: true,
-            preventBackdropClose: false,
+            showCloseButton: !preventDismiss,
+            preventBackdropClose: preventDismiss,
             primaryAction: undefined,
             secondaryAction: undefined,
         };
 
         switch (view) {
+            case 'INTRO':
+                return {
+                    ...baseConfig,
+                    title: 'Complete Organization Setup',
+                    showFooter: true,
+                    content: renderIntroView(),
+                    primaryAction: {
+                        label: 'Complete Setup',
+                        onClick: () => setView('CHOICE'),
+                    },
+                    secondaryAction: preventDismiss ? undefined : { label: 'Later', onClick: handleClose, variant: 'outline' as const }
+                };
             case 'CHOICE':
                 return {
                     ...baseConfig,
                     subtitle: 'How would you like to set up your organization?',
                     content: renderChoiceView(),
-                    secondaryAction: { label: 'Cancel', onClick: handleClose, variant: 'outline' as const }
+                    secondaryAction: preventDismiss ? undefined : { label: 'Cancel', onClick: handleClose, variant: 'outline' as const }
                 };
             case 'LINK':
                 return {
@@ -209,6 +234,8 @@ export const OrganizationSetupDialog: React.FC<OrganizationSetupDialogProps> = (
             secondaryAction={params.secondaryAction}
             showFooter={params.showFooter}
             size="md"
+            showCloseButton={params.showCloseButton}
+            preventBackdropClose={params.preventBackdropClose}
         >
             {params.content}
         </ReusableDialog>
