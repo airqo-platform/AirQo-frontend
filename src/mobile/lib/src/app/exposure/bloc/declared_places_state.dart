@@ -9,18 +9,11 @@ abstract class DeclaredPlacesState extends Equatable {
 class DeclaredPlacesInitial extends DeclaredPlacesState {}
 
 class DeclaredPlacesLoaded extends DeclaredPlacesState {
-  /// Sites the user has explicitly added to their exposure view.
-  /// A subset of these may also be in [places] (fully labelled).
-  final List<String> addedSiteIds;
-
-  /// Fully declared places (labelled + time windows set).
+  /// Fully declared places (type + optional time windows set by user).
   final List<DeclaredPlace> places;
 
-  const DeclaredPlacesLoaded({
-    this.addedSiteIds = const [],
-    required this.places,
-  });
+  const DeclaredPlacesLoaded({required this.places});
 
   @override
-  List<Object?> get props => [addedSiteIds, places];
+  List<Object?> get props => [places];
 }

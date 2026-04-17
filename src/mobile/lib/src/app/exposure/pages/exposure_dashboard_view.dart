@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/models/user_preferences_model.dart';
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
 import 'package:airqo/src/app/dashboard/widgets/dashboard_app_bar.dart';
 import 'package:airqo/src/app/dashboard/widgets/dashboard_header.dart';
+import 'package:airqo/src/app/dashboard/pages/location_selection/location_selection_screen.dart';
 import 'package:airqo/src/app/exposure/bloc/declared_places_cubit.dart';
 import 'package:airqo/src/app/profile/bloc/user_bloc.dart';
-import 'package:airqo/src/app/exposure/exposure_demo_config.dart';
 import 'package:airqo/src/app/exposure/models/declared_place.dart';
 import 'package:airqo/src/app/exposure/services/exposure_place_readings.dart';
 import 'package:airqo/src/app/exposure/widgets/declared_place_card.dart';
@@ -23,33 +25,6 @@ import 'package:airqo/src/meta/utils/colors.dart';
 const String _kEmptyStateHomeIconAsset = 'assets/icons/home_icon.svg';
 const String _kEmptyStateWorkIconAsset = 'assets/icons/place_type_work_tab.svg';
 
-const List<SelectedSite> _kDummySites = [
-  SelectedSite(
-    id: 'site_wandegeya',
-    name: 'Wandegeya',
-    searchName: 'Wandegeya, Kampala',
-  ),
-  SelectedSite(
-    id: 'site_kawempe',
-    name: 'Kawempe',
-    searchName: 'Kawempe, Kampala',
-  ),
-  SelectedSite(
-    id: 'site_makerere',
-    name: 'Makerere Hill',
-    searchName: 'Makerere Hill, Kampala',
-  ),
-  SelectedSite(
-    id: 'site_kololo',
-    name: 'Kololo',
-    searchName: 'Kololo, Kampala',
-  ),
-  SelectedSite(
-    id: 'site_ntinda',
-    name: 'Ntinda',
-    searchName: 'Ntinda, Kampala',
-  ),
-];
 
 // ---------------------------------------------------------------------------
 
@@ -76,14 +51,10 @@ class _ExposureBodyState extends State<_ExposureBody> {
   /// `true` = My Places, `false` = My Trips
   bool _myPlacesSelected = true;
 
-  /// After "Add a place" on the empty state, show [kTemporaryDefaultSiteIds] as entry cards.
-  bool _showTemporaryDefaultSites = false;
-
   // ── Tour ──────────────────────────────────────────────────────────────────
-  // TODO(production): gate behind SharedPreferences so it only shows once.
+  static const String _tourSeenKey = 'exposure_place_card_tour_seen';
   final GlobalKey _firstCardKey = GlobalKey();
   bool _showTour = false;
-  bool _tourDismissedThisSession = false;
 
   @override
   void initState() {
@@ -103,24 +74,18 @@ class _ExposureBodyState extends State<_ExposureBody> {
     });
   }
 
-  void _dismissTour() {
-    setState(() {
-      _showTour = false;
-      _tourDismissedThisSession = true;
-    });
+  Future<void> _dismissTour() async {
+    setState(() => _showTour = false);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_tourSeenKey, true);
   }
 
   void _maybeShowTour(int placesCount) {
-    if (_showTour || _tourDismissedThisSession) return;
-    // Show whenever there is at least one card and the tour hasn't been
-    // dismissed yet this session.
-    if (placesCount >= 1) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && !_tourDismissedThisSession) {
-          setState(() => _showTour = true);
-        }
-      });
-    }
+    if (_showTour || placesCount < 1) return;
+    SharedPreferences.getInstance().then((prefs) {
+      final seen = prefs.getBool(_tourSeenKey) ?? false;
+      if (!seen && mounted) setState(() => _showTour = true);
+    });
   }
 
   @override
@@ -130,16 +95,19 @@ class _ExposureBodyState extends State<_ExposureBody> {
       appBar: const DashboardAppBar(),
       body: BlocBuilder<DeclaredPlacesCubit, DeclaredPlacesState>(
         builder: (ctx, placeState) {
-          final declared =
-              placeState is DeclaredPlacesLoaded ? placeState.places : <DeclaredPlace>[];
+          final loaded = placeState is DeclaredPlacesLoaded ? placeState : null;
+          final declared = loaded?.places ?? <DeclaredPlace>[];
           final declaredIds = declared.map((p) => p.siteId).toSet();
-          final useEmptySitePool =
-              kExposureDemoEmptyStateFirst && !_showTemporaryDefaultSites;
-          final sitePool = useEmptySitePool ? <SelectedSite>[] : _kDummySites;
-          final untagged = sitePool.where((s) => !declaredIds.contains(s.id)).toList();
+
+          // Read favourites from DashboardBloc — already loaded, no extra API call.
+          final dashState = context.watch<DashboardBloc>().state;
+          final favourites = dashState is DashboardLoaded
+              ? (dashState.userPreferences?.selectedSites ?? <SelectedSite>[])
+              : <SelectedSite>[];
+          final untagged = favourites.where((s) => !declaredIds.contains(s.id)).toList();
 
           final showEmptyMyPlaces =
-              _myPlacesSelected && declared.isEmpty && untagged.isEmpty;
+              loaded != null && _myPlacesSelected && declared.isEmpty && untagged.isEmpty;
 
           /// Single "day of view" for cards (weekday vs weekend windows). Replace with
           /// calendar/date-picker state when historical days are supported.
@@ -189,11 +157,7 @@ class _ExposureBodyState extends State<_ExposureBody> {
                       }),
                       ...untagged.map((s) => EntryPlaceCard(site: s)),
                       if (showEmptyMyPlaces)
-                        _EmptyState(
-                          onAddPlace: () {
-                            setState(() => _showTemporaryDefaultSites = true);
-                          },
-                        ),
+                        const _EmptyState(),
                     ]),
                   ),
                 ),
@@ -390,9 +354,18 @@ class _SectionHeader extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _EmptyState extends StatelessWidget {
-  final VoidCallback onAddPlace;
+  const _EmptyState();
 
-  const _EmptyState({required this.onAddPlace});
+  Future<void> _goAddFavourites(BuildContext context) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const LocationSelectionScreen()),
+    );
+    // Reload declared places so newly added favourites appear immediately.
+    if (context.mounted) {
+      context.read<DeclaredPlacesCubit>().reload();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -497,7 +470,7 @@ class _EmptyState extends StatelessWidget {
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: onAddPlace,
+                onPressed: () => _goAddFavourites(context),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryColor,
                   foregroundColor: Colors.white,
