@@ -9,6 +9,7 @@ import 'package:airqo/src/app/dashboard/widgets/dashboard_app_bar.dart';
 import 'package:airqo/src/app/dashboard/widgets/dashboard_header.dart';
 import 'package:airqo/src/app/dashboard/pages/location_selection/location_selection_screen.dart';
 import 'package:airqo/src/app/exposure/bloc/declared_places_cubit.dart';
+import 'package:airqo/src/app/exposure/repository/exposure_repository_impl.dart';
 import 'package:airqo/src/app/profile/bloc/user_bloc.dart';
 import 'package:airqo/src/app/exposure/models/declared_place.dart';
 import 'package:airqo/src/app/exposure/services/exposure_place_readings.dart';
@@ -34,7 +35,7 @@ class ExposureDashboardView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => DeclaredPlacesCubit(),
+      create: (_) => DeclaredPlacesCubit(repo: ExposureRepositoryImpl()),
       child: const _ExposureBody(),
     );
   }

@@ -3,15 +3,15 @@ import 'package:equatable/equatable.dart';
 import 'package:loggy/loggy.dart';
 import 'package:airqo/src/app/exposure/models/declared_place.dart';
 import 'package:airqo/src/app/exposure/repository/exposure_repository.dart';
-import 'package:airqo/src/app/exposure/repository/exposure_repository_impl.dart';
 
 part 'declared_places_state.dart';
 
 class DeclaredPlacesCubit extends Cubit<DeclaredPlacesState> with UiLoggy {
-  late final ExposureRepository _repo;
+  final ExposureRepository _repo;
 
-  DeclaredPlacesCubit({ExposureRepository? repo}) : super(DeclaredPlacesInitial()) {
-    _repo = repo ?? ExposureRepositoryImpl();
+  DeclaredPlacesCubit({required ExposureRepository repo})
+      : _repo = repo,
+        super(DeclaredPlacesInitial()) {
     _load();
   }
 
