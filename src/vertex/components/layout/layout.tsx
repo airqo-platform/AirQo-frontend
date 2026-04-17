@@ -75,7 +75,6 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <>
-      <OrganizationSetupBanner />
       {isLoggingOut ? (
         <div className="flex justify-center items-center overflow-hidden min-h-screen h-screen bg-background">
           <SessionLoadingState />
@@ -86,6 +85,7 @@ export default function Layout({ children }: LayoutProps) {
         </div>
       ) : (
         <div className="flex overflow-hidden min-h-screen h-screen bg-background">
+          <OrganizationSetupBanner />
           <Topbar onMenuClick={() => setIsPrimarySidebarOpen(true)} />
           <PrimarySidebar
             isOpen={isPrimarySidebarOpen}
