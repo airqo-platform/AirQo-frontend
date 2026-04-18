@@ -7,6 +7,7 @@ import { DeviceListingOptions } from "./useDevices";
 import { devices } from "../apis/devices";
 import { AxiosError } from "axios";
 import type { DevicesSummaryResponse } from "@/app/types/devices";
+import { NetworkRequestValues } from "@/components/features/networks/schema";
 
 interface ErrorResponse {
   message: string;
@@ -144,7 +145,7 @@ export const useUpdateNetworkRequestStatus = () => {
 export const useSubmitNetworkRequest = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (data: any) => networksApi.submitNetworkRequestApi(data),
+        mutationFn: (data: NetworkRequestValues) => networksApi.submitNetworkRequestApi(data),
         onSuccess: (resp) => {
             ReusableToast({ 
                 message: resp.message || 'Your request for a new Sensor Manufacturer has been submitted successfully!', 

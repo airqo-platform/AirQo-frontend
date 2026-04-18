@@ -1,5 +1,6 @@
 import createSecureApiClient from "@/core/utils/secureApiProxyClient";
 import axios from "axios";
+import { NetworkRequestValues } from "@/components/features/networks/schema";
 
 export interface NetworkManager {
   _id: string;
@@ -126,7 +127,7 @@ export const networks = {
     }
   },
 
-  submitNetworkRequestApi: async (data: any): Promise<NetworkRequestActionResponse> => {
+  submitNetworkRequestApi: async (data: NetworkRequestValues): Promise<NetworkRequestActionResponse> => {
     try {
       const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/devices/network-creation-requests`;
       
