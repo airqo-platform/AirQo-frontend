@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useAppSelector, useAppDispatch } from "@/core/redux/hooks";
@@ -29,13 +29,15 @@ const OrganizationPicker: React.FC = () => {
   const { isLoading } = useUserContext();
   const { isSwitching } = useAppSelector((state) => state.user.organizationSwitching);
   const pathname = usePathname();
+  const lastPathname = useRef(pathname);
 
   // Clear isSwitching when navigation completes (pathname changes)
   useEffect(() => {
-    if (isSwitching) {
+    if (isSwitching && pathname !== lastPathname.current) {
       dispatch(setOrganizationSwitching({ isSwitching: false, switchingTo: "" }));
     }
-  }, [pathname, dispatch]);
+    lastPathname.current = pathname;
+  }, [pathname, isSwitching, dispatch]);
 
   const validUserGroups = useMemo(() => {
     if (!Array.isArray(userGroups)) return [];
