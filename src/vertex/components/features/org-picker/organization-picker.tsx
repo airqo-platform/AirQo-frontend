@@ -54,15 +54,26 @@ const OrganizationPicker: React.FC = () => {
     try {
       // 3. Optimized Background Cleanup (Non-blocking)
       // We don't await these to prevent UI blocking
-      queryClient.cancelQueries();
-      
-      // Specifically remove queries that are likely to contain org-specific data
-      // This is much faster than a global invalidation and prevents stale data flashes
-      queryClient.removeQueries({ queryKey: ["devices"] });
-      queryClient.removeQueries({ queryKey: ["sites"] });
-      queryClient.removeQueries({ queryKey: ["cohorts"] });
-      queryClient.removeQueries({ queryKey: ["analytics"] });
-      queryClient.removeQueries({ queryKey: ["network-requests"] });
+      const orgScopedQueryKeys = [
+        ["devices"],
+        ["myDevices"],
+        ["sites"],
+        ["site-details"],
+        ["cohorts"],
+        ["user-cohorts"],
+        ["cohort-details"],
+        ["claimedDevices"],
+        ["deviceActivities"],
+        ["deviceCount"],
+        ["network-devices"],
+        ["groupCohorts"],
+        ["network-requests"],
+      ] as const;
+
+      orgScopedQueryKeys.forEach((queryKey) => {
+        void queryClient.cancelQueries({ queryKey });
+        queryClient.removeQueries({ queryKey });
+      });
 
       // 4. Update Redux State
       dispatch(setActiveGroup(group));
