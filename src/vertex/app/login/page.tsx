@@ -92,14 +92,11 @@ export default function LoginPage() {
     const redirectUrl = callbackUrl || fallbackUrl;
 
     try {
-      console.log("Attempting sign-in with:", { userName: values.userName, callbackUrl, redirectUrl });
       const result = await signIn("credentials", {
         redirect: false,
         userName: values.userName,
         password: values.password,
       });
-
-      console.log("Sign-in result:", result);
 
       if (!isMounted.current) return;
 
@@ -107,12 +104,6 @@ export default function LoginPage() {
         ReusableToast({ message: "Welcome back!", type: "SUCCESS" });
         window.location.href = redirectUrl;
       } else {
-        console.error("Sign-in failed with result:", result);
-        
-        // This will pause execution in dev tools if they are open
-        // giving you time to check the Network tab.
-        // debugger; 
-
         let message = "Login failed. Please check your credentials.";
         if (result?.error) {
           if (result.error === 'CredentialsSignin') {
