@@ -33,6 +33,7 @@ import AddLocation from '@/modules/location-insights/add-location';
 import { trackEvent } from '@/shared/utils/analytics';
 import { trackFeatureUsage } from '@/shared/utils/enhancedAnalytics';
 import { useUser } from '@/shared/hooks/useUser';
+import { useUserActions } from '@/shared/hooks/useUserActions';
 
 const rebuildSelectionCache = (
   selectedIds: string[],
@@ -64,7 +65,8 @@ const rebuildSelectionCache = (
 const DataExportPage = () => {
   const pathname = usePathname();
   const posthog = usePostHog();
-  const { activeGroup, isLoading: userLoading } = useUser();
+  const { activeGroup, groups, isLoading: userLoading } = useUser();
+  const { switchGroup } = useUserActions();
 
   // Determine if this is org flow based on pathname
   const isOrgFlow = pathname.includes('/org/');
@@ -76,12 +78,23 @@ const DataExportPage = () => {
     const segments = pathname.split('/').filter(Boolean);
     return segments[1]?.toLowerCase() ?? null;
   }, [isOrgFlow, pathname]);
-  const activeGroupSlug = (activeGroup?.organizationSlug || '')
-    .trim()
-    .toLowerCase();
+  const organizationGroup = useMemo(() => {
+    if (!isOrgFlow || !orgSlugFromPath) {
+      return null;
+    }
+
+    return (
+      groups?.find(
+        group =>
+          (group.organizationSlug || '').trim().toLowerCase() ===
+          orgSlugFromPath
+      ) || null
+    );
+  }, [groups, isOrgFlow, orgSlugFromPath]);
+  const organizationGroupId = organizationGroup?.id || '';
   const isOrgContextReady =
     !isOrgFlow ||
-    (!userLoading && !!orgSlugFromPath && activeGroupSlug === orgSlugFromPath);
+    (!!organizationGroupId && activeGroup?.id === organizationGroupId);
   const isGroupSyncing = isOrgFlow && !isOrgContextReady;
 
   // State management
@@ -150,6 +163,20 @@ const DataExportPage = () => {
     return true;
   });
   const previousGroupIdRef = React.useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!isOrgFlow) {
+      return;
+    }
+
+    if (userLoading || !organizationGroup) {
+      return;
+    }
+
+    if (activeGroup?.id !== organizationGroup.id) {
+      switchGroup(organizationGroup);
+    }
+  }, [activeGroup?.id, isOrgFlow, organizationGroup, switchGroup, userLoading]);
 
   // Handle org flow: switch to sites tab if countries or cities is active
   React.useEffect(() => {
@@ -290,7 +317,11 @@ const DataExportPage = () => {
     const currentGroupId = activeGroup?.id ?? null;
     const previousGroupId = previousGroupIdRef.current;
 
-    if (currentGroupId && previousGroupId && currentGroupId !== previousGroupId) {
+    if (
+      currentGroupId &&
+      previousGroupId &&
+      currentGroupId !== previousGroupId
+    ) {
       resetGroupScopedState();
       setSelectedSitesCache({});
       setSelectedDevicesCache({});

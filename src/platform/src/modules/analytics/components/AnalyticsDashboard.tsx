@@ -38,6 +38,7 @@ import {
   trackFeatureUsage,
 } from '@/shared/utils/enhancedAnalytics';
 import { normalizeCohortIds } from '@/shared/utils/cohortUtils';
+import { useUserActions } from '@/shared/hooks/useUserActions';
 
 interface AnalyticsDashboardProps {
   className?: string;
@@ -53,6 +54,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   const dispatch = useDispatch();
   const posthog = usePostHog();
   const { activeGroup, groups, isLoading: userContextLoading } = useUser();
+  const { switchGroup } = useUserActions();
 
   // Get filters from Redux
   const { filters } = useAnalytics();
@@ -68,9 +70,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     [organizationSlug]
   );
 
-  const organizationGroupId = React.useMemo(() => {
+  const organizationGroup = React.useMemo(() => {
     if (!isOrganizationFlow || !normalizedOrganizationSlug) {
-      return '';
+      return null;
     }
 
     return (
@@ -78,13 +80,35 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         group =>
           (group.organizationSlug || '').trim().toLowerCase() ===
           normalizedOrganizationSlug
-      )?.id || ''
+      ) || null
     );
   }, [groups, isOrganizationFlow, normalizedOrganizationSlug]);
+
+  const organizationGroupId = organizationGroup?.id || '';
 
   const isOrgContextReady =
     !isOrganizationFlow ||
     (!!organizationGroupId && activeGroup?.id === organizationGroupId);
+
+  useEffect(() => {
+    if (!isOrganizationFlow) {
+      return;
+    }
+
+    if (userContextLoading || !organizationGroup) {
+      return;
+    }
+
+    if (activeGroup?.id !== organizationGroup.id) {
+      switchGroup(organizationGroup);
+    }
+  }, [
+    activeGroup?.id,
+    isOrganizationFlow,
+    organizationGroup,
+    switchGroup,
+    userContextLoading,
+  ]);
 
   const {
     selectedSiteIds,
@@ -139,12 +163,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     chartData: barChartData,
     refresh: refreshBarChart,
     isLoading: barChartLoading,
-  } = useAnalyticsChartData(
-    filters,
-    'bar',
-    selectedSiteIds,
-    isOrgContextReady
-  );
+  } = useAnalyticsChartData(filters, 'bar', selectedSiteIds, isOrgContextReady);
 
   const unresolvedOrganizationSlug =
     isOrganizationFlow &&
@@ -173,7 +192,11 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       : activeGroupCohortIds;
 
     return normalizeCohortIds(rawCohortIds ?? []);
-  }, [isOrganizationFlow, organizationGroupCohorts?.data, activeGroupCohortIds]);
+  }, [
+    isOrganizationFlow,
+    organizationGroupCohorts?.data,
+    activeGroupCohortIds,
+  ]);
 
   const cohortsLoading = isOrganizationFlow
     ? organizationCohortsLoading ||

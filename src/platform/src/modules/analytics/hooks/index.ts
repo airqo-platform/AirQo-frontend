@@ -30,7 +30,9 @@ interface AnalyticsPreferencesOptions {
 }
 
 // Hook for managing analytics preferences and selected sites
-export const useAnalyticsPreferences = (options?: AnalyticsPreferencesOptions) => {
+export const useAnalyticsPreferences = (
+  options?: AnalyticsPreferencesOptions
+) => {
   const { user, activeGroup, isLoading: userLoading } = useUser();
   const resolvedUserId = options?.userId ?? user?.id ?? '';
   const resolvedGroupId = options?.groupId ?? activeGroup?.id ?? '';
