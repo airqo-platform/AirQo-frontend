@@ -32,6 +32,7 @@ import MoreInsights from '@/modules/location-insights/more-insights';
 import AddLocation from '@/modules/location-insights/add-location';
 import { trackEvent } from '@/shared/utils/analytics';
 import { trackFeatureUsage } from '@/shared/utils/enhancedAnalytics';
+import { useUser } from '@/shared/hooks/useUser';
 
 const rebuildSelectionCache = (
   selectedIds: string[],
@@ -63,9 +64,25 @@ const rebuildSelectionCache = (
 const DataExportPage = () => {
   const pathname = usePathname();
   const posthog = usePostHog();
+  const { activeGroup, isLoading: userLoading } = useUser();
 
   // Determine if this is org flow based on pathname
   const isOrgFlow = pathname.includes('/org/');
+  const orgSlugFromPath = useMemo(() => {
+    if (!isOrgFlow) {
+      return null;
+    }
+
+    const segments = pathname.split('/').filter(Boolean);
+    return segments[1]?.toLowerCase() ?? null;
+  }, [isOrgFlow, pathname]);
+  const activeGroupSlug = (activeGroup?.organizationSlug || '')
+    .trim()
+    .toLowerCase();
+  const isOrgContextReady =
+    !isOrgFlow ||
+    (!userLoading && !!orgSlugFromPath && activeGroupSlug === orgSlugFromPath);
+  const isGroupSyncing = isOrgFlow && !isOrgContextReady;
 
   // State management
   const {
@@ -104,6 +121,7 @@ const DataExportPage = () => {
     setDeviceCategory,
     setDateRange,
     updateTabState,
+    resetGroupScopedState,
     handleTabChange,
     handleClearSelections,
   } = useDataExportState();
@@ -131,6 +149,7 @@ const DataExportPage = () => {
     }
     return true;
   });
+  const previousGroupIdRef = React.useRef<string | null>(null);
 
   // Handle org flow: switch to sites tab if countries or cities is active
   React.useEffect(() => {
@@ -142,6 +161,10 @@ const DataExportPage = () => {
   // Wrap handleTabChange to prevent org flow from accessing countries/cities
   const wrappedHandleTabChange = useCallback(
     (tab: TabType) => {
+      if (isGroupSyncing) {
+        return;
+      }
+
       if (isOrgFlow && (tab === 'countries' || tab === 'cities')) {
         return;
       }
@@ -161,7 +184,7 @@ const DataExportPage = () => {
 
       handleTabChange(tab);
     },
-    [activeTab, isOrgFlow, handleTabChange, posthog]
+    [activeTab, isGroupSyncing, isOrgFlow, handleTabChange, posthog]
   );
 
   // Data fetching and processing (initial call with empty array)
@@ -190,7 +213,8 @@ const DataExportPage = () => {
     deviceCategory,
     selectedDeviceIds,
     selectedDevicesForActions,
-    setSelectedDevices
+    setSelectedDevices,
+    isOrgContextReady
   );
 
   // Actions and event handlers
@@ -224,7 +248,8 @@ const DataExportPage = () => {
   const currentState = tabStates[activeTab];
   const config = getTabConfig(activeTab);
   const meta = currentHook.data?.meta || { total: 0, page: 1, totalPages: 1 };
-  const tableLoading = currentHook.isLoading && tableData.length === 0;
+  const tableLoading =
+    (isGroupSyncing || currentHook.isLoading) && tableData.length === 0;
 
   // Reset device pagination when category changes
   useEffect(() => {
@@ -259,6 +284,31 @@ const DataExportPage = () => {
       setDataType('raw');
     }
   }, [activeTab, deviceCategory, dataType, setDataType]);
+
+  // Reset group-scoped selections and cached metadata on group switch
+  useEffect(() => {
+    const currentGroupId = activeGroup?.id ?? null;
+    const previousGroupId = previousGroupIdRef.current;
+
+    if (currentGroupId && previousGroupId && currentGroupId !== previousGroupId) {
+      resetGroupScopedState();
+      setSelectedSitesCache({});
+      setSelectedDevicesCache({});
+      setSelectedGridForSites(null);
+      setSiteSelectionDialogOpen(false);
+      setSiteSelectionDownloading(false);
+    }
+
+    previousGroupIdRef.current = currentGroupId;
+  }, [
+    activeGroup?.id,
+    resetGroupScopedState,
+    setSelectedDevicesCache,
+    setSelectedGridForSites,
+    setSelectedSitesCache,
+    setSiteSelectionDialogOpen,
+    setSiteSelectionDownloading,
+  ]);
 
   // Handle sidebar visibility based on screen size
   useEffect(() => {
@@ -451,8 +501,8 @@ const DataExportPage = () => {
               isDownloadReady={isDownloadReady}
               sitesData={(currentHook.data as CohortSitesResponse)?.sites}
               devicesData={(currentHook.data as CohortDevicesResponse)?.devices}
-              isLoadingSites={sitesHook.isLoading}
-              isLoadingDevices={devicesHook.isLoading}
+              isLoadingSites={isGroupSyncing || sitesHook.isLoading}
+              isLoadingDevices={isGroupSyncing || devicesHook.isLoading}
               pathname={pathname}
             />
 
@@ -483,6 +533,7 @@ const DataExportPage = () => {
               selectedGridSiteIds={selectedGridSiteIds}
               isDownloadReady={isDownloadReady}
               isDownloading={isDownloading}
+              isGroupSyncing={isGroupSyncing}
               onTabChange={wrappedHandleTabChange}
               onClearSelections={handleClearSelections}
               onVisualizeData={handleVisualizeData}

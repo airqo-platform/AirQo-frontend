@@ -18,24 +18,36 @@ import type {
 interface AnalyticsSelections {
   selectedSiteIds: string[];
   selectedSites: Site[];
+  enabled?: boolean;
 }
 
 const EMPTY_SELECTED_SITE_IDS: string[] = [];
 
+interface AnalyticsPreferencesOptions {
+  groupId?: string;
+  userId?: string;
+  enabled?: boolean;
+}
+
 // Hook for managing analytics preferences and selected sites
-export const useAnalyticsPreferences = () => {
+export const useAnalyticsPreferences = (options?: AnalyticsPreferencesOptions) => {
   const { user, activeGroup, isLoading: userLoading } = useUser();
-  const userId = user?.id || '';
-  const groupId = activeGroup?.id || '';
+  const resolvedUserId = options?.userId ?? user?.id ?? '';
+  const resolvedGroupId = options?.groupId ?? activeGroup?.id ?? '';
+  const isEnabled = options?.enabled ?? true;
 
   // Only fetch preferences if both userId and groupId are available
-  const shouldFetchPreferences = !!(userId && groupId);
+  const shouldFetchPreferences =
+    isEnabled && !!(resolvedUserId && resolvedGroupId);
 
   const {
     data: preferencesData,
     error,
     isLoading: preferencesLoading,
-  } = useUserPreferencesList(userId, groupId);
+  } = useUserPreferencesList(
+    shouldFetchPreferences ? resolvedUserId : '',
+    shouldFetchPreferences ? resolvedGroupId : ''
+  );
 
   // Get the most recent preference from the list
   const currentPreference = useMemo(() => {
@@ -105,7 +117,8 @@ export const useAnalyticsChartData = (
     pollutant: string;
   },
   chartType: 'line' | 'bar' = 'line',
-  selectedSiteIds: string[] = EMPTY_SELECTED_SITE_IDS
+  selectedSiteIds: string[] = EMPTY_SELECTED_SITE_IDS,
+  enabled = true
 ) => {
   const { trigger, error, isMutating } = useGetChartData();
 
@@ -123,6 +136,11 @@ export const useAnalyticsChartData = (
   // Fetch chart data
   const fetchChartData = useCallback(
     async (isRefresh = false) => {
+      if (!enabled) {
+        setChartData([]);
+        setIsLoading(false);
+        return;
+      }
       // If no selected sites, we still want to show empty charts (not return early)
       // The UI will show appropriate empty states
       const sitesToUse = selectedSiteIds.length > 0 ? selectedSiteIds : [];
@@ -163,7 +181,7 @@ export const useAnalyticsChartData = (
         setIsLoading(false);
       }
     },
-    [selectedSiteIds, dateRange, filters, trigger, chartType]
+    [selectedSiteIds, dateRange, filters, trigger, chartType, enabled]
   );
 
   // Separate refresh function that doesn't trigger main loading
@@ -178,8 +196,8 @@ export const useAnalyticsChartData = (
 
   return {
     chartData,
-    isLoading: isLoading || isMutating,
-    error,
+    isLoading: enabled ? isLoading || isMutating : false,
+    error: enabled ? error : null,
     refetch: fetchChartData,
     refresh: refreshChartData,
   };
@@ -189,6 +207,7 @@ export const useAnalyticsChartData = (
 export const useAnalyticsSiteCards = ({
   selectedSiteIds,
   selectedSites,
+  enabled = true,
 }: AnalyticsSelections) => {
   const { filters } = useAnalytics();
 
@@ -197,6 +216,7 @@ export const useAnalyticsSiteCards = ({
   const selectedSitesRef = useRef(selectedSites);
   const selectedSiteIdsRef = useRef(selectedSiteIds);
   const pollutantRef = useRef(filters.pollutant);
+  const enabledRef = useRef(enabled);
   const requestAbortRef = useRef<AbortController | null>(null);
   const requestSequenceRef = useRef(0);
 
@@ -211,6 +231,10 @@ export const useAnalyticsSiteCards = ({
   useEffect(() => {
     pollutantRef.current = filters.pollutant;
   }, [filters.pollutant]);
+
+  useEffect(() => {
+    enabledRef.current = enabled;
+  }, [enabled]);
 
   useEffect(() => {
     return () => {
@@ -228,6 +252,12 @@ export const useAnalyticsSiteCards = ({
     const localSelectedSites = selectedSitesRef.current;
     const localSelectedSiteIds = selectedSiteIdsRef.current;
     const localPollutant = pollutantRef.current;
+
+    if (!enabledRef.current) {
+      setIsLoading(false);
+      setSiteCards([]);
+      return;
+    }
 
     requestAbortRef.current?.abort();
     const controller = new AbortController();
@@ -336,8 +366,14 @@ export const useAnalyticsSiteCards = ({
 
   // Auto-fetch when selectedSiteIds or pollutant changes
   useEffect(() => {
+    if (!enabled) {
+      requestAbortRef.current?.abort();
+      setIsLoading(false);
+      setSiteCards([]);
+      return;
+    }
     fetchSiteCards();
-  }, [fetchSiteCards, selectedSiteIdsKey, filters.pollutant]);
+  }, [fetchSiteCards, selectedSiteIdsKey, filters.pollutant, enabled]);
 
   const refetchSiteCards = useCallback(async () => {
     await fetchSiteCards();

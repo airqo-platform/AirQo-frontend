@@ -7,6 +7,7 @@ import { useGroupCohorts } from '@/shared/hooks';
 import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
 import { EmptyState } from '@/shared/components/ui/empty-state';
 import { AqAlertTriangle, AqSearchRefraction } from '@airqo/icons-react';
+import { normalizeCohortIds } from '@/shared/utils/cohortUtils';
 
 interface PageProps {
   params: {
@@ -17,10 +18,13 @@ interface PageProps {
 const Page: React.FC<PageProps> = ({ params }) => {
   const { groups, isLoading: userLoading } = useUser();
   const { org_slug } = params;
+  const normalizedOrgSlug = (org_slug || '').trim().toLowerCase();
 
   const activeGroup = useMemo(() => {
-    return groups?.find(g => g.organizationSlug === org_slug);
-  }, [groups, org_slug]);
+    return groups?.find(
+      g => (g.organizationSlug || '').trim().toLowerCase() === normalizedOrgSlug
+    );
+  }, [groups, normalizedOrgSlug]);
 
   const organizationGroupId = activeGroup?.id || '';
   const {
@@ -30,11 +34,7 @@ const Page: React.FC<PageProps> = ({ params }) => {
     mutate: refetchGroupCohorts,
   } = useGroupCohorts(organizationGroupId, !!organizationGroupId);
   const cohortIds = useMemo(() => {
-    const rawCohortIds = groupCohortsResponse?.data ?? [];
-
-    return Array.from(
-      new Set(rawCohortIds.map(cohortId => cohortId.trim()).filter(Boolean))
-    );
+    return normalizeCohortIds(groupCohortsResponse?.data ?? []);
   }, [groupCohortsResponse?.data]);
   const cohortIdString = useMemo(() => cohortIds.join(','), [cohortIds]);
 

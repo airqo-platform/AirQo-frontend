@@ -37,6 +37,7 @@ import {
   trackChartInteraction,
   trackFeatureUsage,
 } from '@/shared/utils/enhancedAnalytics';
+import { normalizeCohortIds } from '@/shared/utils/cohortUtils';
 
 interface AnalyticsDashboardProps {
   className?: string;
@@ -62,16 +63,43 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   const hasTrackedDashboardViewRef = useRef(false);
 
   // Get user preferences and selected sites (primary data - always fetch first)
+  const normalizedOrganizationSlug = React.useMemo(
+    () => (organizationSlug || '').trim().toLowerCase(),
+    [organizationSlug]
+  );
+
+  const organizationGroupId = React.useMemo(() => {
+    if (!isOrganizationFlow || !normalizedOrganizationSlug) {
+      return '';
+    }
+
+    return (
+      groups?.find(
+        group =>
+          (group.organizationSlug || '').trim().toLowerCase() ===
+          normalizedOrganizationSlug
+      )?.id || ''
+    );
+  }, [groups, isOrganizationFlow, normalizedOrganizationSlug]);
+
+  const isOrgContextReady =
+    !isOrganizationFlow ||
+    (!!organizationGroupId && activeGroup?.id === organizationGroupId);
+
   const {
     selectedSiteIds,
     selectedSites,
     isLoading: preferencesLoading,
-  } = useAnalyticsPreferences();
+  } = useAnalyticsPreferences({
+    groupId: isOrganizationFlow ? organizationGroupId || undefined : undefined,
+    enabled: isOrgContextReady,
+  });
 
   // Determine if we need to check for available sites (only when user has no selected sites)
   // This conditional loading prevents double loading and ensures proper sequencing
   const hasSelectedSites = selectedSiteIds.length > 0;
-  const shouldCheckAvailableSites = !preferencesLoading && !hasSelectedSites;
+  const shouldCheckAvailableSites =
+    isOrgContextReady && !preferencesLoading && !hasSelectedSites;
 
   // Check if there are sites available in the organization (only when needed)
   // This is organization-specific via useActiveGroupCohortSites
@@ -91,6 +119,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   const { siteCards, isLoading: siteCardsLoading } = useAnalyticsSiteCards({
     selectedSiteIds,
     selectedSites,
+    enabled: isOrgContextReady,
   });
 
   // Get chart data for line chart - only when user has selected sites
@@ -98,29 +127,28 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     chartData: lineChartData,
     refresh: refreshLineChart,
     isLoading: lineChartLoading,
-  } = useAnalyticsChartData(filters, 'line', selectedSiteIds);
+  } = useAnalyticsChartData(
+    filters,
+    'line',
+    selectedSiteIds,
+    isOrgContextReady
+  );
 
   // Get chart data for bar chart - only when user has selected sites
   const {
     chartData: barChartData,
     refresh: refreshBarChart,
     isLoading: barChartLoading,
-  } = useAnalyticsChartData(filters, 'bar', selectedSiteIds);
-
-  const organizationGroupId = React.useMemo(() => {
-    if (!isOrganizationFlow || !organizationSlug) {
-      return '';
-    }
-
-    return (
-      groups?.find(group => group.organizationSlug === organizationSlug)?.id ||
-      ''
-    );
-  }, [groups, isOrganizationFlow, organizationSlug]);
+  } = useAnalyticsChartData(
+    filters,
+    'bar',
+    selectedSiteIds,
+    isOrgContextReady
+  );
 
   const unresolvedOrganizationSlug =
     isOrganizationFlow &&
-    !!organizationSlug &&
+    !!normalizedOrganizationSlug &&
     !userContextLoading &&
     !organizationGroupId;
 
@@ -139,20 +167,19 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     isOrganizationFlow && !!organizationGroupId
   );
 
-  const cohortIds = React.useMemo(
-    () =>
-      (isOrganizationFlow
-        ? (organizationGroupCohorts?.data ?? [])
-        : activeGroupCohortIds
-      )
-        .map(cohortId => cohortId?.trim())
-        .filter((cohortId): cohortId is string => Boolean(cohortId)),
-    [isOrganizationFlow, organizationGroupCohorts?.data, activeGroupCohortIds]
-  );
+  const cohortIds = React.useMemo(() => {
+    const rawCohortIds = isOrganizationFlow
+      ? organizationGroupCohorts?.data
+      : activeGroupCohortIds;
+
+    return normalizeCohortIds(rawCohortIds ?? []);
+  }, [isOrganizationFlow, organizationGroupCohorts?.data, activeGroupCohortIds]);
 
   const cohortsLoading = isOrganizationFlow
     ? organizationCohortsLoading ||
-      (!!organizationSlug && !organizationGroupId && userContextLoading)
+      (!!normalizedOrganizationSlug &&
+        !organizationGroupId &&
+        userContextLoading)
     : activeGroupCohortsLoading;
 
   // Get cohort details for the first cohort to check visibility
@@ -162,7 +189,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   );
   const { data: cohortData } = useCohort(
     firstCohortId,
-    !!firstCohortId && !cohortsLoading
+    !!firstCohortId && !cohortsLoading && isOrgContextReady
   );
 
   // Helper function to extract unique sites from chart data
@@ -313,6 +340,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   // Only check for available sites count after preferences are loaded
   const isInitialLoading =
     userContextLoading ||
+    (isOrganizationFlow && !!organizationGroupId && !isOrgContextReady) ||
     preferencesLoading ||
     cohortsLoading ||
     (shouldCheckAvailableSites && sitesCountLoading);

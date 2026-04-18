@@ -27,6 +27,7 @@ import type {
   GridsSummaryParams,
   CohortResponse,
 } from '../types/api';
+import { normalizeCohortIds } from '../utils/cohortUtils';
 
 const SWR_STABLE_REQUEST_OPTIONS = {
   revalidateOnFocus: false,
@@ -404,13 +405,7 @@ export const useActiveGroupCohorts = (enabled = true) => {
           }
 
           if (data?.success) {
-            const normalizedCohortIds = Array.from(
-              new Set(
-                (Array.isArray(data.data) ? data.data : [])
-                  .map(cohortId => cohortId?.trim())
-                  .filter((cohortId): cohortId is string => Boolean(cohortId))
-              )
-            );
+            const normalizedCohortIds = normalizeCohortIds(data.data);
 
             dispatch(
               setActiveGroupCohorts({

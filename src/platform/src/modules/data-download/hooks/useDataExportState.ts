@@ -252,6 +252,28 @@ export const useDataExportState = () => {
     []
   );
 
+  const resetGroupScopedState = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      activeTab: 'sites',
+      previewOpen: false,
+      selectedSites: [],
+      selectedDevices: [],
+      selectedSiteIds: [],
+      selectedDeviceIds: [],
+      selectedGridIds: [],
+      selectedGridSites: {},
+      enableSiteSelection: false,
+      selectedGridSiteIds: {},
+      tabStates: {
+        sites: { ...DEFAULT_TAB_STATE },
+        devices: { ...DEFAULT_TAB_STATE },
+        countries: { ...DEFAULT_TAB_STATE },
+        cities: { ...DEFAULT_TAB_STATE },
+      },
+    }));
+  }, []);
+
   // Handle tab switching - clear selections to avoid conflicts
   const handleTabChange = useCallback(
     (tab: TabType, isOrgFlow = false) => {
@@ -325,6 +347,7 @@ export const useDataExportState = () => {
     setDeviceCategory,
     setDateRange,
     updateTabState,
+    resetGroupScopedState,
     handleTabChange,
     handleClearSelections,
   };
