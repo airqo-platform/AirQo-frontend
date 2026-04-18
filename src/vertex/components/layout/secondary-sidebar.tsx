@@ -24,7 +24,6 @@ interface SecondarySidebarProps {
   isCollapsed: boolean;
   toggleSidebar: () => void;
   activeModule: string;
-  onModuleChange: (module: string, targetPath?: string) => void;
   onNavigate?: () => void;
 }
 
