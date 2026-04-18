@@ -14,10 +14,7 @@ import { EmptyState } from '@/shared/components/ui/empty-state';
 import { LoadingState } from '@/shared/components/ui/loading-state';
 import { useSitesData } from '@/shared/hooks/useSitesData';
 import { useUser } from '@/shared/hooks/useUser';
-import {
-  useUserPreferencesList,
-  useUpdateUserPreferences,
-} from '@/shared/hooks/usePreferences';
+import { useUpdateUserPreferences } from '@/shared/hooks/usePreferences';
 import { useChecklistIntegration } from '@/modules/user-checklist';
 import type { Site } from '@/shared/types/api';
 import { trackEvent } from '@/shared/utils/analytics';
@@ -26,6 +23,7 @@ import { AqCheckCircle } from '@airqo/icons-react';
 
 interface SuggestedLocationsProps {
   className?: string;
+  favoriteSites?: Site[];
 }
 
 /**
@@ -42,6 +40,7 @@ interface SuggestedLocationsProps {
  */
 export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
   className = '',
+  favoriteSites = [],
 }) => {
   const posthog = usePostHog();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -59,10 +58,6 @@ export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
 
   // Get current user and group information
   const { user, activeGroup } = useUser();
-
-  // Get current user preferences
-  const { data: preferences, isLoading: preferencesLoading } =
-    useUserPreferencesList(user?.id || '', activeGroup?.id || '');
 
   // Update preferences hook
   const { trigger: updatePreferences } = useUpdateUserPreferences();
@@ -83,23 +78,10 @@ export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
   });
 
   // Get the most recent preference from the list
-  const currentPreference = useMemo(() => {
-    if (!preferences?.preferences || preferences.preferences.length === 0) {
-      return null;
-    }
-    return [...preferences.preferences].sort(
-      (a, b) =>
-        new Date(b.lastAccessed || b.updatedAt).getTime() -
-        new Date(a.lastAccessed || a.updatedAt).getTime()
-    )[0];
-  }, [preferences?.preferences]);
-
-  // Get IDs of already favorited sites
   const favoritedSiteIds = useMemo(() => {
-    if (!currentPreference?.selected_sites) return new Set<string>();
-    const favoriteSites = currentPreference.selected_sites as Site[];
+    if (!favoriteSites.length) return new Set<string>();
     return new Set(favoriteSites.map(site => site._id));
-  }, [currentPreference?.selected_sites]);
+  }, [favoriteSites]);
 
   // Filter out already favorited sites from suggestions
   const suggestedSites = useMemo(() => {
@@ -154,8 +136,7 @@ export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
 
     try {
       // Get existing favorite sites data
-      const existingFavorites = (currentPreference?.selected_sites ||
-        []) as Site[];
+      const existingFavorites = favoriteSites;
 
       // Convert selected site IDs to Site objects
       const newSitesToAdd: Site[] = Array.from(selectedIds)
@@ -256,7 +237,7 @@ export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
     activeGroup?.id,
     selectedIds,
     favoritedSiteIds.size,
-    currentPreference?.selected_sites,
+    favoriteSites,
     suggestedSites,
     updatePreferences,
     markLocationStepCompleted,
@@ -264,7 +245,7 @@ export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
   ]);
 
   // Loading state
-  if (sitesLoading || preferencesLoading) {
+  if (sitesLoading) {
     return (
       <div
         className={`flex items-center justify-center min-h-[400px] ${className}`}

@@ -378,7 +378,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     if (isOrganizationFlow) {
       // Show suggestions immediately for org flow and let that component
       // handle its own loading/error states.
-      emptyStateContent = <SuggestedLocations />;
+      emptyStateContent = <SuggestedLocations favoriteSites={selectedSites} />;
     } else {
       // User flow should never show organization onboarding notice
       emptyStateContent = (

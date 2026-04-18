@@ -39,9 +39,7 @@ interface MapPageProps {
 // ─── Private org banner ───────────────────────────────────────────────────────
 
 const PrivateOrgBanner: React.FC<{ className?: string }> = ({ className }) => (
-  <div
-    className={`absolute top-4 left-1/2 -translate-x-1/2 z-[10000] w-full max-w-2xl px-4 ${className ?? ''}`}
-  >
+  <div className={`absolute top-4 left-4 right-4 z-[10000] ${className ?? ''}`}>
     <InfoBanner
       title="Map data unavailable"
       message={
@@ -65,9 +63,7 @@ const PrivateOrgBanner: React.FC<{ className?: string }> = ({ className }) => (
 );
 
 const EmptyCohortBanner: React.FC<{ className?: string }> = ({ className }) => (
-  <div
-    className={`absolute top-4 left-1/2 -translate-x-1/2 z-[10000] w-full max-w-2xl px-4 ${className ?? ''}`}
-  >
+  <div className={`absolute top-4 left-4 right-4 z-[10000] ${className ?? ''}`}>
     <InfoBanner
       title="No data available"
       message={<>This cohort contains no deployed devices yet.</>}
