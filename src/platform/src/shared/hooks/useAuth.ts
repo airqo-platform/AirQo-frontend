@@ -145,6 +145,8 @@ export const useUserDetails = (userId: string | null) => {
     userId ? () => userDetailsFetcher(userId) : null,
     {
       revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      shouldRetryOnError: false,
       dedupingInterval: 5000,
     }
   );
@@ -154,6 +156,8 @@ export const useUserDetails = (userId: string | null) => {
 export const useUserRoles = () => {
   return useSWR<UserRolesResponse>('user/roles', userRolesFetcher, {
     revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    shouldRetryOnError: false,
     dedupingInterval: 10000,
   });
 };
@@ -165,6 +169,8 @@ export const useUserRolesById = (userId: string | null) => {
     userId ? () => userRolesByIdFetcher(userId) : null,
     {
       revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      shouldRetryOnError: false,
       dedupingInterval: 10000,
     }
   );

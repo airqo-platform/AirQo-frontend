@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import { useSWRConfig } from 'swr';
 import { usePostHog } from 'posthog-js/react';
+import { useQueryClient } from '@tanstack/react-query';
 import { setActiveGroup, setActiveGroupById } from '@/shared/store/userSlice';
 import { useUser } from './useUser';
 import { useLogout } from './useLogout';
@@ -17,6 +18,7 @@ export const useUserActions = () => {
   const { user, groups, activeGroup, isLoading, isLoggingOut, error } =
     useUser();
   const posthog = usePostHog();
+  const queryClient = useQueryClient();
   const logout = useLogout();
 
   const invalidateGroupScopedCache = useCallback(
@@ -59,10 +61,41 @@ export const useUserActions = () => {
           );
         },
         undefined,
-        { revalidate: true }
+        // revalidate: false clears the cache without firing immediate background
+        // refetch requests for all matching keys. Components will fetch fresh data
+        // naturally when they next mount under the new group context.
+        { revalidate: false }
       );
+
+      queryClient.removeQueries({
+        predicate: query => {
+          const key = query.queryKey;
+          const keyText = Array.isArray(key)
+            ? key
+                .filter(
+                  (segment): segment is string | number =>
+                    typeof segment === 'string' || typeof segment === 'number'
+                )
+                .join(' ')
+            : typeof key === 'string'
+              ? key
+              : '';
+
+          if (!keyText) {
+            return false;
+          }
+
+          return (
+            keyText.includes('sites-by-country') ||
+            keyText.includes('group/cohorts') ||
+            keyText.includes('cohort') ||
+            (!!previousGroupId && keyText.includes(previousGroupId)) ||
+            (!!nextGroupId && keyText.includes(nextGroupId))
+          );
+        },
+      });
     },
-    [mutate]
+    [mutate, queryClient]
   );
 
   const switchGroup = useCallback(

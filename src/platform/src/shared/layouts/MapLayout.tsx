@@ -8,7 +8,6 @@ import { Sidebar } from '@/shared/components/sidebar';
 import { GlobalSidebar } from '@/shared/components/global-sidebar';
 import { MobileSidebar } from '@/shared/components/ui/mobile-sidebar';
 import { useAppSelector } from '@/shared/hooks/redux';
-import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
 import { LoadingOverlay } from '@/shared/components/ui/loading-overlay';
 import { useUser } from '@/shared/hooks/useUser';
 
@@ -28,55 +27,44 @@ export const MapLayout: React.FC<MainLayoutProps> = ({
 
   return (
     <>
-      {/* Full-screen loading overlay during logout */}
-      <LoadingOverlay isVisible={isLoggingOut} />
+      <LoadingOverlay isVisible={isLoggingOut || userLoading} delayMs={0} />
 
-      {!isLoggingOut && (
-        <div
-          className={cn(
-            'flex flex-col h-screen gap-2 px-1.5 pt-1.5 pb-0.5 overflow-hidden',
-            theme.interfaceStyle === 'bordered' && 'border border-border'
-          )}
-        >
-          {/* Fixed Header */}
-          <Header hideOnScroll={false} />
+      <div
+        className={cn(
+          'flex flex-col h-screen gap-2 px-1.5 pt-1.5 pb-0.5 overflow-hidden',
+          theme.interfaceStyle === 'bordered' && 'border border-border'
+        )}
+      >
+        {/* Fixed Header */}
+        <Header hideOnScroll={false} />
 
-          {/* Main Container with Sidebar and Content */}
-          <div className="flex flex-1 overflow-hidden">
-            {/* Sidebar - Desktop */}
-            {showSidebar && (
-              <motion.aside
-                className="hidden md:block shrink-0"
-                animate={{ width: 64 }}
-                transition={{ duration: 0.3, ease: 'easeInOut' }}
-              >
-                <Sidebar isCollapsed={true} hideToggle={true} />
-              </motion.aside>
-            )}
-
-            {/* Main Content Area - Full Height for Map */}
-            <div
-              className={cn(
-                'flex flex-col flex-1 min-h-0',
-                showBottomNav && 'pb-[65px] md:pb-0'
-              )}
+        {/* Main Container with Sidebar and Content */}
+        <div className="flex flex-1 overflow-hidden">
+          {/* Sidebar - Desktop */}
+          {showSidebar && (
+            <motion.aside
+              className="hidden md:block shrink-0"
+              animate={{ width: 64 }}
+              transition={{ duration: 0.3, ease: 'easeInOut' }}
             >
-              <div className="flex-1 flex flex-col">
-                {userLoading ? (
-                  <div className="flex items-center justify-center flex-1">
-                    <LoadingSpinner size={28} />
-                  </div>
-                ) : (
-                  children
-                )}
-              </div>
-            </div>
-          </div>
+              <Sidebar isCollapsed={true} hideToggle={true} />
+            </motion.aside>
+          )}
 
-          {/* Bottom Navigation intentionally hidden on map pages to avoid
-              interfering with map and sidebar layouts on small screens. */}
+          {/* Main Content Area - Full Height for Map */}
+          <div
+            className={cn(
+              'flex flex-col flex-1 min-h-0',
+              showBottomNav && 'pb-[65px] md:pb-0'
+            )}
+          >
+            <div className="flex-1 flex flex-col">{children}</div>
+          </div>
         </div>
-      )}
+
+        {/* Bottom Navigation intentionally hidden on map pages to avoid
+            interfering with map and sidebar layouts on small screens. */}
+      </div>
 
       {/* Global Sidebar */}
       <GlobalSidebar />

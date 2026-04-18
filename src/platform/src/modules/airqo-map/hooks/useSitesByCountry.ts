@@ -61,7 +61,7 @@ export function useSitesByCountry({
     ],
     enabled,
     initialPageParam: 0,
-    queryFn: async ({ pageParam }) => {
+    queryFn: async ({ pageParam, signal }) => {
       const queryParams: SitesSummaryParams = {
         limit: initialLimit,
         skip: Number(pageParam) * initialLimit,
@@ -78,7 +78,8 @@ export function useSitesByCountry({
           {
             ...queryParams,
             search: queryParams.search,
-          }
+          },
+          signal
         );
       }
 
@@ -98,7 +99,7 @@ export function useSitesByCountry({
       return undefined;
     },
     networkMode: 'online',
-    retry: 1,
+    retry: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     staleTime: 1000 * 60 * 5,

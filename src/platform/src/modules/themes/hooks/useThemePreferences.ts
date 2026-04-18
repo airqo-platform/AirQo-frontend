@@ -202,7 +202,7 @@ export const useThemePreferences = () => {
         await updateTheme({
           userId,
           groupId: activeGroup?.id || '',
-          theme: { theme: apiTheme },
+          theme: apiTheme,
         });
       } catch (error) {
         console.error('Failed to update theme preference:', error);

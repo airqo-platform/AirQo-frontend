@@ -124,11 +124,16 @@ function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
     switchGroup,
   ]);
 
-  if (shouldSyncToUserGroup || shouldSyncToRouteOrgGroup) {
-    return <LoadingOverlay />;
-  }
-
-  return <>{children}</>;
+  // Always render children to avoid unmount/remount flicker during group sync.
+  // The overlay appears on top while the sync completes (fast, synchronous Redux dispatch).
+  return (
+    <>
+      {(shouldSyncToUserGroup || shouldSyncToRouteOrgGroup) && (
+        <LoadingOverlay delayMs={0} />
+      )}
+      {children}
+    </>
+  );
 }
 
 // Define public routes that don't require authentication
@@ -215,7 +220,18 @@ function AuthScopedCacheProviders({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const cacheScope = getSessionCacheScope(session);
   const enablePersistence = status === 'authenticated' && !!cacheScope;
-  const providerKey = `${status}:${cacheScope ?? 'anon'}`;
+
+  // Derive a stable provider key that ignores the interim 'loading' status.
+  // Without this, the login flow causes two key changes:
+  //   unauthenticated → loading → authenticated
+  // Each key change remounts SWR/QueryClient providers and unmounts all children,
+  // producing two white flashes. By freezing the key during 'loading', we get
+  // at most one remount (unauthenticated → authenticated).
+  const stableKeyRef = useRef<string>('anon');
+  if (status !== 'loading') {
+    stableKeyRef.current = cacheScope ?? 'anon';
+  }
+  const providerKey = stableKeyRef.current;
 
   return (
     <SWRProvider
@@ -488,6 +504,47 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   }, [handleUnauthorized]);
 
   useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const handleTokenRefreshed = async (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const detail = (customEvent.detail || {}) as {
+        token?: string;
+        expiresIn?: number;
+      };
+      const token = typeof detail.token === 'string' ? detail.token : '';
+      if (!token) return;
+
+      const expiresAt =
+        typeof detail.expiresIn === 'number'
+          ? new Date(Date.now() + detail.expiresIn * 1000).toISOString()
+          : undefined;
+
+      setCachedSessionAccessToken(token);
+
+      try {
+        await update({ accessToken: token, expiresAt });
+      } catch (error) {
+        logger.warn('Failed to update session after token refresh', error);
+      }
+    };
+
+    window.addEventListener(
+      'auth:token-refreshed',
+      handleTokenRefreshed as EventListener
+    );
+
+    return () => {
+      window.removeEventListener(
+        'auth:token-refreshed',
+        handleTokenRefreshed as EventListener
+      );
+    };
+  }, [update]);
+
+  useEffect(() => {
     if (status !== 'authenticated' || !isPublicRoute) {
       return;
     }
@@ -534,10 +591,11 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     }
   }, [status, isPublicRoute, logout, isLoggingOut, protectedRouteLoginUrl]);
 
-  // While session is being fetched, show a loading overlay
+  // While session is being fetched, show a loading overlay immediately (delayMs=0).
+  // Using the default 120ms delay would create a blank window before the overlay appears.
   // Exception: For public routes, don't show loading overlay (let them render immediately)
   if (status === 'loading' && !isPublicRoute) {
-    return <LoadingOverlay />;
+    return <LoadingOverlay delayMs={0} />;
   }
 
   // For public routes, allow rendering even if unauthenticated
@@ -547,7 +605,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
   // For protected routes, require authentication
   if (!session) {
-    return <LoadingOverlay />;
+    return <LoadingOverlay delayMs={0} />;
   }
 
   return (
@@ -666,7 +724,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   if (bootstrapSession === undefined) {
-    return <LoadingOverlay />;
+    return <LoadingOverlay delayMs={0} />;
   }
 
   return (

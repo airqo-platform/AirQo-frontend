@@ -42,7 +42,7 @@ const CountryListSkeleton: React.FC<{ className?: string }> = ({
 );
 
 export const CountryList: React.FC<CountryListProps> = ({
-  selectedCountry = 'uganda',
+  selectedCountry,
   onCountrySelect,
   className,
   cohort_id,

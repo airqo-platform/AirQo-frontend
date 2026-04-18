@@ -106,9 +106,9 @@ const MapPage: React.FC<MapPageProps> = ({
 
   // ── Local state ────────────────────────────────────────────────────────────
   const [searchQuery, setSearchQuery] = React.useState('');
-  const [selectedCountry, setSelectedCountry] = React.useState<string>(
-    isOrganizationFlow ? '' : 'uganda'
-  );
+  const [selectedCountry, setSelectedCountry] = React.useState<
+    string | undefined
+  >(undefined);
   const [locationDetailsLoading, setLocationDetailsLoading] =
     React.useState(false);
   const [flyToLocation, setFlyToLocation] = React.useState<
@@ -135,12 +135,32 @@ const MapPage: React.FC<MapPageProps> = ({
     );
   }, [cohortId]);
 
+  const selectionContextKey = React.useMemo(
+    () => `${isOrganizationFlow ? 'org' : 'user'}:${primaryCohortId || 'none'}`,
+    [isOrganizationFlow, primaryCohortId]
+  );
+
   // ── Cleanup ────────────────────────────────────────────────────────────────
   React.useEffect(() => {
     return () => {
       if (flyToTimeoutRef.current) clearTimeout(flyToTimeoutRef.current);
     };
   }, []);
+
+  React.useEffect(() => {
+    setSelectedCountry(undefined);
+  }, [isOrganizationFlow]);
+
+  React.useEffect(() => {
+    dispatch(clearSelectedLocation());
+    setSelectedLocationId(null);
+    setFlyToLocation(undefined);
+    setLocationDetailsLoading(false);
+
+    return () => {
+      dispatch(clearSelectedLocation());
+    };
+  }, [dispatch, selectionContextKey]);
 
   // ── Analytics ──────────────────────────────────────────────────────────────
   React.useEffect(() => {
@@ -325,6 +345,7 @@ const MapPage: React.FC<MapPageProps> = ({
     flyToLocation,
     selectedPollutant,
     onPollutantChange: handlePollutantChange,
+    selectionContextKey,
   };
 
   const sidebarProps = {

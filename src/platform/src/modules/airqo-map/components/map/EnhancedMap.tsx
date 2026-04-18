@@ -87,6 +87,7 @@ interface EnhancedMapProps {
   flyToLocation?: { longitude: number; latitude: number; zoom?: number };
   selectedPollutant?: PollutantType;
   onPollutantChange?: (pollutant: PollutantType) => void;
+  selectionContextKey?: string;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -102,6 +103,7 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   flyToLocation,
   selectedPollutant = 'pm2_5',
   onPollutantChange,
+  selectionContextKey,
 }) => {
   const dispatch = useDispatch();
   const mapRef = useRef<MapRef>(null);
@@ -149,6 +151,12 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
       isMountedRef.current = false;
     };
   }, []);
+
+  useEffect(() => {
+    setSelectedNodeId(null);
+    setHoveredId(null);
+    setPinnedTooltipId(null);
+  }, [selectionContextKey]);
 
   // ── Debounced cluster zoom ───────────────────────────────────────────────────
 

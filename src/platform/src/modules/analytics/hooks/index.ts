@@ -1,22 +1,26 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import {
-  useGetChartData,
-  useGetRecentReadings,
-  useDownloadData,
-} from '@/shared/hooks/useAnalytics';
+import { useGetChartData, useDownloadData } from '@/shared/hooks/useAnalytics';
 import { useUserPreferencesList } from '@/shared/hooks/usePreferences';
 import { useUser } from '@/shared/hooks/useUser';
 import { normalizeAirQualityData } from '@/shared/components/charts/utils';
 import { normalizeRecentReadingsToSiteData } from '../utils';
 import { useAnalytics } from './useAnalytics';
+import { analyticsService } from '@/shared/services/analyticsService';
 import type { SiteData, ChartData } from '../types';
 import type {
   ChartDataPoint,
   DataDownloadRequest,
   Site,
 } from '@/shared/types/api';
+
+interface AnalyticsSelections {
+  selectedSiteIds: string[];
+  selectedSites: Site[];
+}
+
+const EMPTY_SELECTED_SITE_IDS: string[] = [];
 
 // Hook for managing analytics preferences and selected sites
 export const useAnalyticsPreferences = () => {
@@ -100,13 +104,13 @@ export const useAnalyticsChartData = (
     endDate: string;
     pollutant: string;
   },
-  chartType: 'line' | 'bar' = 'line'
+  chartType: 'line' | 'bar' = 'line',
+  selectedSiteIds: string[] = EMPTY_SELECTED_SITE_IDS
 ) => {
-  const { selectedSiteIds } = useAnalyticsPreferences();
   const { trigger, error, isMutating } = useGetChartData();
 
   const [chartData, setChartData] = useState<ChartData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Calculate date range based on filters
   const dateRange = useMemo(() => {
@@ -182,20 +186,19 @@ export const useAnalyticsChartData = (
 };
 
 // Hook for managing site cards data
-export const useAnalyticsSiteCards = () => {
-  const { selectedSiteIds, selectedSites } = useAnalyticsPreferences();
+export const useAnalyticsSiteCards = ({
+  selectedSiteIds,
+  selectedSites,
+}: AnalyticsSelections) => {
   const { filters } = useAnalytics();
-  const { trigger: getRecentReadings, isMutating } = useGetRecentReadings();
 
   const [siteCards, setSiteCards] = useState<SiteData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const isFetchingRef = useRef(false);
-  const activeRequestKeyRef = useRef<string | null>(null);
-  const pendingRefetchRef = useRef(false);
   const selectedSitesRef = useRef(selectedSites);
   const selectedSiteIdsRef = useRef(selectedSiteIds);
   const pollutantRef = useRef(filters.pollutant);
-  const getRecentReadingsRef = useRef(getRecentReadings);
+  const requestAbortRef = useRef<AbortController | null>(null);
+  const requestSequenceRef = useRef(0);
 
   useEffect(() => {
     selectedSitesRef.current = selectedSites;
@@ -210,10 +213,10 @@ export const useAnalyticsSiteCards = () => {
   }, [filters.pollutant]);
 
   useEffect(() => {
-    getRecentReadingsRef.current = getRecentReadings;
-    pendingRefetchRef.current = false;
-    activeRequestKeyRef.current = null;
-  }, [getRecentReadings]);
+    return () => {
+      requestAbortRef.current?.abort();
+    };
+  }, []);
 
   const selectedSiteIdsKey = useMemo(
     () => selectedSiteIds.join(','),
@@ -225,50 +228,47 @@ export const useAnalyticsSiteCards = () => {
     const localSelectedSites = selectedSitesRef.current;
     const localSelectedSiteIds = selectedSiteIdsRef.current;
     const localPollutant = pollutantRef.current;
-    const requestKey = `${localSelectedSiteIds.join(',')}|${localPollutant}`;
+
+    requestAbortRef.current?.abort();
+    const controller = new AbortController();
+    requestAbortRef.current = controller;
+    const requestId = ++requestSequenceRef.current;
 
     // If no selected sites, show empty cards instead of returning early
     if (!localSelectedSiteIds.length) {
-      activeRequestKeyRef.current = null;
-      pendingRefetchRef.current = false;
-      isFetchingRef.current = false;
       setIsLoading(false);
       setSiteCards([]);
+      if (requestAbortRef.current === controller) {
+        requestAbortRef.current = null;
+      }
       return;
     }
-
-    if (isFetchingRef.current) {
-      pendingRefetchRef.current = true;
-      return;
-    }
-
-    isFetchingRef.current = true;
-    activeRequestKeyRef.current = requestKey;
 
     setIsLoading(true);
 
     try {
-      // Join site IDs with comma
       const siteIdsParam = localSelectedSiteIds.join(',');
 
-      const response = await getRecentReadingsRef.current({
-        site_id: siteIdsParam,
-      });
+      const response = await analyticsService.getRecentReadings(
+        {
+          site_id: siteIdsParam,
+        },
+        controller.signal
+      );
 
-      if (activeRequestKeyRef.current !== requestKey) {
-        pendingRefetchRef.current = true;
+      if (
+        controller.signal.aborted ||
+        requestSequenceRef.current !== requestId
+      ) {
         return;
       }
 
-      // Create site cards for all selected sites
       const cards: SiteData[] = localSelectedSites.map(selectedSite => {
-        // Find matching measurement data
         const measurement = response?.measurements?.find(
           m => m.site_id === selectedSite._id
         );
 
         if (measurement) {
-          // Use the normalization for sites with data
           const normalized = normalizeRecentReadingsToSiteData(
             [measurement],
             localPollutant as 'pm2_5' | 'pm10'
@@ -296,14 +296,15 @@ export const useAnalyticsSiteCards = () => {
 
       setSiteCards(cards);
     } catch (err) {
-      if (activeRequestKeyRef.current !== requestKey) {
-        pendingRefetchRef.current = true;
+      if (
+        controller.signal.aborted ||
+        requestSequenceRef.current !== requestId
+      ) {
         return;
       }
 
       console.error('Error fetching recent readings:', err);
 
-      // Still show selected sites even if API fails
       const cards: SiteData[] = localSelectedSites.map(selectedSite => {
         return {
           _id: selectedSite._id,
@@ -323,13 +324,12 @@ export const useAnalyticsSiteCards = () => {
       });
       setSiteCards(cards);
     } finally {
-      setIsLoading(false);
-      isFetchingRef.current = false;
-      activeRequestKeyRef.current = null;
+      if (requestSequenceRef.current === requestId) {
+        setIsLoading(false);
+      }
 
-      if (pendingRefetchRef.current) {
-        pendingRefetchRef.current = false;
-        void fetchSiteCards();
+      if (requestAbortRef.current === controller) {
+        requestAbortRef.current = null;
       }
     }
   }, []);
@@ -340,13 +340,12 @@ export const useAnalyticsSiteCards = () => {
   }, [fetchSiteCards, selectedSiteIdsKey, filters.pollutant]);
 
   const refetchSiteCards = useCallback(async () => {
-    pendingRefetchRef.current = false;
     await fetchSiteCards();
   }, [fetchSiteCards]);
 
   return {
     siteCards,
-    isLoading: isLoading || isMutating,
+    isLoading,
     error: null, // TODO: handle error from API
     refetch: refetchSiteCards,
   };

@@ -518,6 +518,7 @@ export interface CohortSitesResponse {
   success: boolean;
   message: string;
   meta: CohortSitesMeta;
+  cache_generated_at?: string;
   sites: Record<string, unknown>[];
 }
 
@@ -545,6 +546,7 @@ export interface CohortDevicesResponse {
   success: boolean;
   message: string;
   meta: CohortDevicesMeta;
+  cache_generated_at?: string;
   devices: Record<string, unknown>[];
 }
 

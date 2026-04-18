@@ -88,21 +88,24 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   });
 
   // Get site cards data - only when user has selected sites
-  const { siteCards, isLoading: siteCardsLoading } = useAnalyticsSiteCards();
+  const { siteCards, isLoading: siteCardsLoading } = useAnalyticsSiteCards({
+    selectedSiteIds,
+    selectedSites,
+  });
 
   // Get chart data for line chart - only when user has selected sites
   const {
     chartData: lineChartData,
     refresh: refreshLineChart,
     isLoading: lineChartLoading,
-  } = useAnalyticsChartData(filters, 'line');
+  } = useAnalyticsChartData(filters, 'line', selectedSiteIds);
 
   // Get chart data for bar chart - only when user has selected sites
   const {
     chartData: barChartData,
     refresh: refreshBarChart,
     isLoading: barChartLoading,
-  } = useAnalyticsChartData(filters, 'bar');
+  } = useAnalyticsChartData(filters, 'bar', selectedSiteIds);
 
   const organizationGroupId = React.useMemo(() => {
     if (!isOrganizationFlow || !organizationSlug) {

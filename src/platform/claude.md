@@ -1,5 +1,7 @@
 # Claude Notes for AirQo Frontend
 
+See AGENTS.md for full conventions, best practices, and reliability guidelines.
+
 ## Project Basics
 
 - Next.js 14 App Router, React 18, TypeScript.
