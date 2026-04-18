@@ -4,6 +4,56 @@
 
 ---
 
+## Version 1.23.28
+**Released:** April 18, 2026
+
+### Mandatory Org Setup, Navigation Shimmer, and Performance Optimization
+
+Introduced a forced organization setup flow for new workspaces, enhanced navigation feedback with global shimmer transitions, and optimized core switching performance.
+
+<details>
+<summary><strong>Mandatory Organization Setup (3)</strong></summary>
+
+- **Forced Setup Flow**: Implemented a non-dismissible organization setup workflow for external organizations that haven't created any cohorts yet, ensuring a consistent onboarding experience.
+- **Introductory Experience**: Added a new "Intro" view to the `OrganizationSetupDialog` to guide users through the benefits of workspace configuration.
+- **Dialog Persistence**: Enhanced `ReusableDialog` with `preventDismiss` support to enforce critical workflows by disabling backdrop and Escape-key closures.
+
+</details>
+
+<details>
+<summary><strong>Navigation & Performance (4)</strong></summary>
+
+- **Instant Organization Switching**: Overhauled the organization picker to provide instantaneous UI feedback, moving heavy cache management and navigation to the background.
+- **Global Navigation Shimmer**: Integrated a top-aligned shimmer bar that provides immediate visual feedback during all route transitions and module switches.
+- **Smooth Page Transitions**: Leveraged `framer-motion` to implement global fade-in transitions between pages, improving the perceived quality of navigation.
+- **Optimistic Module Switching**: Improved the responsiveness of the module switcher (Devices vs. Admin) by updating UI state immediately upon selection.
+
+</details>
+
+<details>
+<summary><strong>UI Stability & Infrastructure (3)</strong></summary>
+
+- **Z-Index Harmonization**: Resolved stacking context issues between `OrganizationModal` and `ReusableDialog` to ensure overlays always render correctly over navigation elements.
+- **Preview Authentication Fix**: Resolved a persistent login failure in `vertex` PR previews by correcting environment variable handling in the Cloud Run deployment script.
+- **Layout Robustness**: Refined the root layout structure to isolate the `OrganizationSetupBanner` from the main scroll container, preventing layout shifts during onboarding.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (8+)</strong></summary>
+
+- `src/vertex/components/features/cohorts/organization-setup-dialog.tsx`
+- `src/vertex/components/features/org-picker/organization-picker.tsx`
+- `src/vertex/components/layout/layout.tsx`
+- `src/vertex/components/layout/organization-setup-banner.tsx`
+- `src/vertex/components/shared/dialog/ReusableDialog.tsx`
+- `.github/workflows/deploy-frontend-pr-previews.yml`
+- `src/vertex/components/features/org-picker/organization-modal.tsx`
+
+</details>
+
+---
+
 ## Version 1.23.27
 **Released:** April 16, 2026
 
