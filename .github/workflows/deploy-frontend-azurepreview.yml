@@ -438,6 +438,9 @@ jobs:
             --name sta-env-vertex \
             --query value -o tsv > secrets.json
 
+          # Write .env into the build context for Next.js build time 
+          jq -r 'to_entries | .[] | "\(.key)=\(.value|tojson)"' secrets.json > src/vertex/.env
+
       - name: Build image
         run: |
           docker build -t ${{ env.REGISTRY_URL }}/vertex-pr-preview:${{ github.sha }} src/vertex

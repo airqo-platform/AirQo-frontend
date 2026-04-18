@@ -34,7 +34,7 @@ Introduced a forced organization setup flow for new workspaces, enhanced navigat
 <summary><strong>UI Stability & Infrastructure (3)</strong></summary>
 
 - **Z-Index Harmonization**: Resolved stacking context issues between `OrganizationModal` and `ReusableDialog` to ensure overlays always render correctly over navigation elements.
-- **Preview Authentication Fix**: Resolved a persistent login failure in `vertex` PR previews by correcting environment variable handling in the Cloud Run deployment script.
+- **Preview Authentication Fix**: Resolved persistent login failures in `vertex` previews by correcting environment variable handling in both the Cloud Run (GCP) and Container Apps (Azure) deployment scripts.
 - **Layout Robustness**: Refined the root layout structure to isolate the `OrganizationSetupBanner` from the main scroll container, preventing layout shifts during onboarding.
 
 </details>
