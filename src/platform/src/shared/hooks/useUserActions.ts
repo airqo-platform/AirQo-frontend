@@ -31,6 +31,41 @@ export const useUserActions = () => {
 
   const invalidateGroupScopedCache = useCallback(
     (previousGroupId?: string, nextGroupId?: string) => {
+      // Separate analytics/chart keys (heavy fetches that should NOT auto-refetch)
+      // from structural keys (preferences, cohorts, theme) that must refresh when
+      // the group changes so components don't get stuck with stale or empty data.
+      mutate(
+        key => {
+          const keyText = Array.isArray(key)
+            ? key
+                .filter(
+                  (segment): segment is string | number =>
+                    typeof segment === 'string' || typeof segment === 'number'
+                )
+                .join(' ')
+            : typeof key === 'string'
+              ? key
+              : '';
+
+          if (!keyText) {
+            return false;
+          }
+
+          return (
+            keyText.startsWith('analytics/') ||
+            keyText.startsWith('sites/summary') ||
+            keyText.startsWith('grids/summary')
+          );
+        },
+        undefined,
+        // Analytics/chart keys: clear without triggering background refetch.
+        // These are large fetches initiated by explicit user action or filter change.
+        { revalidate: false }
+      );
+
+      // Structural group-scoped keys: clear and allow SWR to revalidate active
+      // subscriptions immediately so components receive fresh data for the new group
+      // instead of being stuck on undefined / stale values.
       mutate(
         key => {
           const keyText = Array.isArray(key)
@@ -52,9 +87,6 @@ export const useUserActions = () => {
             keyText.startsWith('preferences/') ||
             keyText.startsWith('preferences/list/') ||
             keyText.startsWith('preferences/theme/') ||
-            keyText.startsWith('analytics/') ||
-            keyText.startsWith('sites/summary') ||
-            keyText.startsWith('grids/summary') ||
             keyText.includes('/preferences') ||
             keyText.includes('/theme') ||
             keyText.includes('group/cohorts') ||
@@ -67,11 +99,9 @@ export const useUserActions = () => {
             (!!nextGroupId && keyText.includes(`/${nextGroupId}`))
           );
         },
-        undefined,
-        // revalidate: false clears the cache without firing immediate background
-        // refetch requests for all matching keys. Components will fetch fresh data
-        // naturally when they next mount under the new group context.
-        { revalidate: false }
+        undefined
+        // No revalidate option — defaults to true, so active SWR subscriptions
+        // immediately refetch with fresh data for the new group context.
       );
 
       queryClient.removeQueries({

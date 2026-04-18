@@ -36,7 +36,6 @@ import {
   trackFeatureUsage,
 } from '@/shared/utils/enhancedAnalytics';
 import { normalizeCohortIds } from '@/shared/utils/cohortUtils';
-import { useUserActions } from '@/shared/hooks/useUserActions';
 
 interface AnalyticsDashboardProps {
   className?: string;
@@ -52,7 +51,6 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   const dispatch = useDispatch();
   const posthog = usePostHog();
   const { activeGroup, groups, isLoading: userContextLoading } = useUser();
-  const { switchGroup } = useUserActions();
 
   // Get filters from Redux
   const { filters } = useAnalytics();
@@ -87,26 +85,6 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   const isOrgContextReady =
     !isOrganizationFlow ||
     (!!organizationGroupId && activeGroup?.id === organizationGroupId);
-
-  useEffect(() => {
-    if (!isOrganizationFlow) {
-      return;
-    }
-
-    if (userContextLoading || !organizationGroup) {
-      return;
-    }
-
-    if (activeGroup?.id !== organizationGroup.id) {
-      switchGroup(organizationGroup);
-    }
-  }, [
-    activeGroup?.id,
-    isOrganizationFlow,
-    organizationGroup,
-    switchGroup,
-    userContextLoading,
-  ]);
 
   const {
     selectedSiteIds,
@@ -306,9 +284,18 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   // Determine if cohort data is private (not visible)
   const isCohortPrivate = cohortData?.cohorts[0]?.visibility === false;
 
-  // Keep the page responsive. Let the content-specific components handle
-  // their own loading states instead of blocking the whole dashboard.
-  const isInitialLoading = userContextLoading || preferencesLoading;
+  // Block the dashboard while the org group switch is still in flight.
+  // Without this gate, isInitialLoading can be false before switchGroup runs
+  // (because preferencesLoading=false when enabled=false), which causes
+  // SuggestedLocations to render prematurely against the wrong group's cohorts.
+  const isOrgSyncing =
+    isOrganizationFlow &&
+    !userContextLoading &&
+    !unresolvedOrganizationSlug &&
+    !isOrgContextReady;
+
+  const isInitialLoading =
+    userContextLoading || preferencesLoading || isOrgSyncing;
 
   useEffect(() => {
     if (isInitialLoading) {

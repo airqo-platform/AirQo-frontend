@@ -371,16 +371,18 @@ export const useActiveGroupCohorts = (enabled = true) => {
     previousGroupIdRef.current = groupId ?? null;
 
     if (!groupId) {
-      if (activeGroupCohorts.length > 0 || lastFetchedGroupId) {
-        dispatch(clearCohorts());
-      }
+      dispatch(clearCohorts());
       return;
     }
 
     if (previousGroupId && previousGroupId !== groupId) {
       dispatch(clearCohorts());
     }
-  }, [groupId, activeGroupCohorts.length, lastFetchedGroupId, dispatch]);
+    // Intentionally omit activeGroupCohorts.length and lastFetchedGroupId from
+    // deps: those Redux updates must not re-run this effect or it would clear
+    // cohorts immediately after they are populated by onSuccess.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupId, dispatch]);
 
   // Fetch cohorts for active group
   const { error: swrError, isLoading: swrIsLoading } =

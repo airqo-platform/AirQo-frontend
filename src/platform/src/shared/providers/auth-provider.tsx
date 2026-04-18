@@ -125,16 +125,15 @@ function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
     switchGroup,
   ]);
 
-  // Always render children to avoid unmount/remount flicker during group sync.
-  // The overlay appears on top while the sync completes (fast, synchronous Redux dispatch).
-  return (
-    <>
-      {(shouldSyncToUserGroup || shouldSyncToRouteOrgGroup) && (
-        <LoadingOverlay delayMs={0} />
-      )}
-      {children}
-    </>
-  );
+  // Block children from mounting while the group sync is in progress.
+  // This prevents dashboard components from making API calls with the wrong
+  // group context. The sync completes in a single effect tick (synchronous
+  // Redux dispatch), so the overlay flicker is imperceptible.
+  if (shouldSyncToUserGroup || shouldSyncToRouteOrgGroup) {
+    return <LoadingOverlay delayMs={0} />;
+  }
+
+  return <>{children}</>;
 }
 
 // Define public routes that don't require authentication

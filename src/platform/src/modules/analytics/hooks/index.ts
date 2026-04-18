@@ -183,7 +183,18 @@ export const useAnalyticsChartData = (
         setIsLoading(false);
       }
     },
-    [selectedSiteIds, dateRange, filters, trigger, chartType, enabled]
+    // Use specific filter fields instead of the whole filters object to avoid
+    // re-creating fetchChartData (and re-running the effect) on every Redux dispatch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      selectedSiteIds,
+      dateRange,
+      filters.frequency,
+      filters.pollutant,
+      trigger,
+      chartType,
+      enabled,
+    ]
   );
 
   // Separate refresh function that doesn't trigger main loading

@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePostHog } from 'posthog-js/react';
+import { useSWRConfig } from 'swr';
 import { Button } from '@/shared/components/ui/button';
 import { EmptyState } from '@/shared/components/ui/empty-state';
 import { LoadingState } from '@/shared/components/ui/loading-state';
@@ -43,6 +44,7 @@ export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
   favoriteSites = [],
 }) => {
   const posthog = usePostHog();
+  const { mutate } = useSWRConfig();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -218,12 +220,17 @@ export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
       // Clear selections
       setSelectedIds(new Set());
 
-      // Reload the page to show updated dashboard (with cleanup check to prevent memory leaks)
-      setTimeout(() => {
-        if (isMountedRef.current) {
-          window.location.reload();
-        }
-      }, 1000);
+      // Invalidate the preferences SWR cache so the parent re-fetches and
+      // transitions from SuggestedLocations to the analytics dashboard without
+      // a full page reload.
+      if (isMountedRef.current) {
+        mutate(
+          (key: unknown) =>
+            typeof key === 'string' && key.startsWith('preferences/'),
+          undefined,
+          { revalidate: true }
+        );
+      }
     } catch (error) {
       console.error('Failed to add locations to favorites:', error);
       toast.error('Failed to add locations to favorites. Please try again.');
@@ -242,6 +249,7 @@ export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
     updatePreferences,
     markLocationStepCompleted,
     posthog,
+    mutate,
   ]);
 
   // Loading state
