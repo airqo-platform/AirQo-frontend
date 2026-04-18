@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useAppSelector, useAppDispatch } from "@/core/redux/hooks";
@@ -11,7 +11,7 @@ import { useUserContext } from "@/core/hooks/useUserContext";
 import { UserContext } from "@/core/redux/slices/userSlice";
 import { AqGrid01 } from "@airqo/icons-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 
 const formatTitle = (title: string) => {
@@ -27,6 +27,15 @@ const OrganizationPicker: React.FC = () => {
   const userGroups = useAppSelector((state) => state.user.userGroups);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { isLoading } = useUserContext();
+  const { isSwitching } = useAppSelector((state) => state.user.organizationSwitching);
+  const pathname = usePathname();
+
+  // Clear isSwitching when navigation completes (pathname changes)
+  useEffect(() => {
+    if (isSwitching) {
+      dispatch(setOrganizationSwitching({ isSwitching: false, switchingTo: "" }));
+    }
+  }, [pathname, dispatch]);
 
   const validUserGroups = useMemo(() => {
     if (!Array.isArray(userGroups)) return [];
@@ -80,10 +89,15 @@ const OrganizationPicker: React.FC = () => {
       dispatch(setUserContext(newContext));
 
       // 5. Trigger Navigation
-      router.push("/home");
+      if (pathname === "/home") {
+        // If already on home, we must clear immediately as pathname won't change
+        dispatch(setOrganizationSwitching({ isSwitching: false, switchingTo: "" }));
+        router.refresh();
+      } else {
+        router.push("/home");
+      }
     } catch {
       ReusableToast({ message: "Failed to switch organization", type: "ERROR" });
-    } finally {
       dispatch(setOrganizationSwitching({ isSwitching: false, switchingTo: "" }));
     }
   };
