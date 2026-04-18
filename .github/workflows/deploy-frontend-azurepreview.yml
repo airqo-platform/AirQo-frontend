@@ -452,8 +452,20 @@ jobs:
           APP="${BRANCH:0:12}-vertex-preview"
 
           # Build env vars string separately to avoid nested YAML/shell escaping issues.
-          # Filters out NEXTAUTH_URL (staging URL) so NextAuth uses AUTH_TRUST_HOST instead.
+          # The shared staging secret contains NEXTAUTH_URL / NEXTAUTH_COOKIE_DOMAIN values that are wrong for
+          # per-PR preview hostnames. We drop them and inject a correct NEXTAUTH_URL based on the Container Apps
+          # Environment default domain.
           ENV_VARS=$(jq -r 'to_entries | map(select(.key != "NEXTAUTH_URL" and .key != "NEXTAUTH_COOKIE_DOMAIN")) | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json)
+
+          # Fail fast if the secret is missing (NextAuth requires this in production).
+          jq -e '.NEXTAUTH_SECRET and (.NEXTAUTH_SECRET|length > 0)' secrets.json >/dev/null
+
+          DEFAULT_DOMAIN=$(az containerapp env show \
+            --name ${{ env.PR_PREVIEW_ENV }} \
+            --resource-group ${{ env.RG }} \
+            --query properties.defaultDomain -o tsv)
+
+          NEXTAUTH_URL="https://$APP.$DEFAULT_DOMAIN"
 
           az containerapp up \
             --name $APP \
@@ -465,7 +477,7 @@ jobs:
             --registry-server ${{ env.REGISTRY_URL }} \
             --registry-username airqoacr \
             --registry-password ${{ secrets.ACR_PASSWORD }} \
-            --env-vars "$ENV_VARS AUTH_TRUST_HOST=true"
+            --env-vars "$ENV_VARS NEXTAUTH_URL=$NEXTAUTH_URL"
 
       - id: preview
         run: |
@@ -570,4 +582,4 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: 'New azure docs changes available for preview [here](${{ needs.docs.outputs.url }})'
-            })           
+            })
