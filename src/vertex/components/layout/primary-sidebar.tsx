@@ -104,6 +104,12 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
     return allowedRoles.includes(activeGroup.role.role_name);
   }, [activeGroup]);
 
+  const navigateWithShimmer = (targetPath: string, navigate: () => void) => {
+    if (pathname === targetPath) return;
+    onNavigate?.();
+    navigate();
+  };
+
   React.useEffect(() => {
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -148,8 +154,7 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
               activeOverride: activeModule === 'devices',
             }}
             onClick={() => {
-              onNavigate?.();
-              handleModuleChange('devices');
+              navigateWithShimmer(ROUTE_LINKS.HOME, () => handleModuleChange('devices'));
             }}
           />
 
@@ -208,9 +213,10 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                   permissionCode={PERMISSIONS.NETWORK.VIEW}
                   tooltipMessage="This action requires network view permission"
                    onClick={() => {
-                    onNavigate?.();
-                    handleModuleChange('admin', ROUTE_LINKS.ADMIN_NETWORKS);
-                    setIsDropdownOpen(false);
+                    navigateWithShimmer(ROUTE_LINKS.ADMIN_NETWORKS, () => {
+                      handleModuleChange('admin', ROUTE_LINKS.ADMIN_NETWORKS);
+                      setIsDropdownOpen(false);
+                    });
                   }}
                   label="Sensor Manufacturers"
                   subLabel="Manage and configure devices"
@@ -222,9 +228,10 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                   permissionCode={PERMISSIONS.NETWORK.VIEW}
                   tooltipMessage="This action requires network view permission"
                    onClick={() => {
-                    onNavigate?.();
-                    handleModuleChange('admin', ROUTE_LINKS.ADMIN_NETWORK_REQUESTS);
-                    setIsDropdownOpen(false);
+                    navigateWithShimmer(ROUTE_LINKS.ADMIN_NETWORK_REQUESTS, () => {
+                      handleModuleChange('admin', ROUTE_LINKS.ADMIN_NETWORK_REQUESTS);
+                      setIsDropdownOpen(false);
+                    });
                   }}
                   label="Manufacturer Requests"
                   subLabel="Review new sensor requests"
@@ -236,9 +243,10 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                   permissionCode={PERMISSIONS.DEVICE.VIEW}
                   tooltipMessage="This action requires device view permission"
                    onClick={() => {
-                    onNavigate?.();
-                    handleModuleChange('admin', ROUTE_LINKS.COHORTS);
-                    setIsDropdownOpen(false);
+                    navigateWithShimmer(ROUTE_LINKS.COHORTS, () => {
+                      handleModuleChange('admin', ROUTE_LINKS.COHORTS);
+                      setIsDropdownOpen(false);
+                    });
                   }}
                   label="Cohorts"
                   subLabel="Group devices for analytics"
@@ -250,9 +258,10 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                   permissionCode={PERMISSIONS.SITE.VIEW}
                   tooltipMessage="This action requires site view permission"
                    onClick={() => {
-                    onNavigate?.();
-                    handleModuleChange('admin', ROUTE_LINKS.SITES);
-                    setIsDropdownOpen(false);
+                    navigateWithShimmer(ROUTE_LINKS.SITES, () => {
+                      handleModuleChange('admin', ROUTE_LINKS.SITES);
+                      setIsDropdownOpen(false);
+                    });
                   }}
                   label="Sites"
                   subLabel="Manage location deployments"
@@ -264,9 +273,10 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                   permissionCode={PERMISSIONS.SITE.VIEW}
                   tooltipMessage="This action requires site view permission"
                    onClick={() => {
-                    onNavigate?.();
-                    handleModuleChange('admin', ROUTE_LINKS.GRIDS);
-                    setIsDropdownOpen(false);
+                    navigateWithShimmer(ROUTE_LINKS.GRIDS, () => {
+                      handleModuleChange('admin', ROUTE_LINKS.GRIDS);
+                      setIsDropdownOpen(false);
+                    });
                   }}
                   label="Grids"
                   subLabel="Configure spatial grids"
@@ -278,9 +288,10 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                   permissionCode={PERMISSIONS.SHIPPING.VIEW}
                   tooltipMessage="This action requires shipping or network view permission"
                    onClick={() => {
-                    onNavigate?.();
-                    handleModuleChange('admin', ROUTE_LINKS.ADMIN_SHIPPING);
-                    setIsDropdownOpen(false);
+                    navigateWithShimmer(ROUTE_LINKS.ADMIN_SHIPPING, () => {
+                      handleModuleChange('admin', ROUTE_LINKS.ADMIN_SHIPPING);
+                      setIsDropdownOpen(false);
+                    });
                   }}
                   label="Shipping"
                   subLabel="Track device logistics"
@@ -343,16 +354,17 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                   <DropdownMenuItem
                     key={`${page.href}-${index}`}
                      onClick={() => {
-                      onNavigate?.();
-                      // Detect module from href using route constants
-                      if (page.href.startsWith('/devices')) {
-                        handleModuleChange('devices', page.href);
-                      } else if (page.href.startsWith('/admin')) {
-                        handleModuleChange('admin', page.href);
-                      } else {
-                        router.push(page.href);
-                      }
-                      setIsRecentOpen(false);
+                      navigateWithShimmer(page.href, () => {
+                        // Detect module from href using route constants
+                        if (page.href.startsWith('/devices')) {
+                          handleModuleChange('devices', page.href);
+                        } else if (page.href.startsWith('/admin')) {
+                          handleModuleChange('admin', page.href);
+                        } else {
+                          router.push(page.href);
+                        }
+                        setIsRecentOpen(false);
+                      });
                     }}
                     className={cn(
                       "flex flex-col items-start gap-1 p-3 cursor-pointer",
