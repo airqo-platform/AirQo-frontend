@@ -461,7 +461,7 @@ jobs:
             --registry-server ${{ env.REGISTRY_URL }} \
             --registry-username airqoacr \
             --registry-password ${{ secrets.ACR_PASSWORD }} \
-            --env-vars "$(jq -r 'to_entries | map(select(.key != "NEXTAUTH_URL" and .key != "NEXTAUTH_COOKIE_DOMAIN")) | . + [{"key": "AUTH_TRUST_HOST", "value": "true"}] | map("\(.key)=\"\(.value|tostring)\"") | join(" ")' secrets.json)"
+            --env-vars "$(jq -r 'to_entries | map(select(.key != "NEXTAUTH_URL" and .key != "NEXTAUTH_COOKIE_DOMAIN")) | . + [{"key": "AUTH_TRUST_HOST", "value": "true"}] | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json)"
 
       - id: preview
         run: |
