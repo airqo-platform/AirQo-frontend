@@ -151,6 +151,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       });
       setErrors({});
       setShowMore(false);
+      setIsRequestDialogOpen(false);
     }
   }, [open, prefilledNetwork]);
 
