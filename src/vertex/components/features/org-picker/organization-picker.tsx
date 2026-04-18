@@ -37,6 +37,10 @@ const OrganizationPicker: React.FC = () => {
   }, [userGroups]);
 
   const handleOrganizationChange = async (group: Group) => {
+    // 1. Instant UI Feedback
+    setIsModalOpen(false);
+
+    // 2. Start Background Transition
     dispatch(setOrganizationSwitching({
       isSwitching: true,
       switchingTo: group.grp_title
@@ -48,16 +52,23 @@ const OrganizationPicker: React.FC = () => {
         : "external-org";
 
     try {
-      await queryClient.cancelQueries();
-      await queryClient.invalidateQueries();
+      // 3. Optimized Background Cleanup (Non-blocking)
+      // We don't await these to prevent UI blocking
+      queryClient.cancelQueries();
+      
+      // Specifically remove queries that are likely to contain org-specific data
+      // This is much faster than a global invalidation and prevents stale data flashes
+      queryClient.removeQueries({ queryKey: ["devices"] });
+      queryClient.removeQueries({ queryKey: ["sites"] });
+      queryClient.removeQueries({ queryKey: ["cohorts"] });
+      queryClient.removeQueries({ queryKey: ["analytics"] });
+      queryClient.removeQueries({ queryKey: ["network-requests"] });
 
+      // 4. Update Redux State
       dispatch(setActiveGroup(group));
       dispatch(setUserContext(newContext));
 
-      setIsModalOpen(false);
-
-      // All users navigate to /home (personal devices view)
-      // Sidebar modules control access to org-level features
+      // 5. Trigger Navigation
       router.push("/home");
     } catch {
       ReusableToast({ message: "Failed to switch organization", type: "ERROR" });
