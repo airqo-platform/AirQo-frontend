@@ -218,7 +218,10 @@ export const authOptions: any = {
 
       if (trigger === 'update' && session) {
         if (typeof session.accessToken === 'string') {
-          token.accessToken = session.accessToken;
+          const normalizedAccessToken = normalizeOAuthAccessToken(
+            session.accessToken
+          );
+          token.accessToken = normalizedAccessToken || undefined;
         }
         if (typeof session.expiresAt === 'string') {
           token.expiresAt = session.expiresAt;

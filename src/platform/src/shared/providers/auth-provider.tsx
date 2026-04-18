@@ -32,6 +32,7 @@ import {
   clearBackendOAuthSignedOutFlag,
   consumeOAuthTokenHandoffFromUrl,
   buildSessionFromProfile,
+  normalizeOAuthAccessToken,
   type BackendOAuthSession,
   shouldSkipBackendOAuthBootstrap,
   verifyBackendOAuthSession,
@@ -514,18 +515,20 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
         token?: string;
         expiresIn?: number;
       };
-      const token = typeof detail.token === 'string' ? detail.token : '';
-      if (!token) return;
+      const normalizedToken = normalizeOAuthAccessToken(
+        typeof detail.token === 'string' ? detail.token : ''
+      );
+      if (!normalizedToken) return;
 
       const expiresAt =
         typeof detail.expiresIn === 'number'
           ? new Date(Date.now() + detail.expiresIn * 1000).toISOString()
           : undefined;
 
-      setCachedSessionAccessToken(token);
+      setCachedSessionAccessToken(normalizedToken);
 
       try {
-        await update({ accessToken: token, expiresAt });
+        await update({ accessToken: normalizedToken, expiresAt });
       } catch (error) {
         logger.warn('Failed to update session after token refresh', error);
       }

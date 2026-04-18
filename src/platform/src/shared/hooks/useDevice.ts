@@ -3,14 +3,12 @@ import { useEffect, useRef, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { deviceService } from '../services/deviceService';
 import {
-  setCohortsLoading,
   setCohortsError,
   setActiveGroupCohorts,
   clearCohorts,
 } from '../store/cohortSlice';
 import {
   selectActiveGroupCohorts,
-  selectCohortsLoading,
   selectCohortsError,
   selectLastFetchedGroupId,
   selectActiveGroup,
@@ -348,7 +346,6 @@ export const useActiveGroupCohorts = (enabled = true) => {
   const dispatch = useDispatch();
   const activeGroup = useSelector(selectActiveGroup);
   const activeGroupCohorts = useSelector(selectActiveGroupCohorts);
-  const isLoading = useSelector(selectCohortsLoading);
   const error = useSelector(selectCohortsError);
   const lastFetchedGroupId = useSelector(selectLastFetchedGroupId);
   const previousGroupIdRef = useRef<string | null>(null);
@@ -393,12 +390,6 @@ export const useActiveGroupCohorts = (enabled = true) => {
       {
         ...SWR_STABLE_REQUEST_OPTIONS,
         dedupingInterval: 30000, // Cache for 30 seconds
-        onLoadingSlow: () => {
-          if (!enabled || latestGroupIdRef.current !== groupId) {
-            return;
-          }
-          dispatch(setCohortsLoading(true));
-        },
         onSuccess: data => {
           if (!enabled || !groupId || latestGroupIdRef.current !== groupId) {
             return;
@@ -439,9 +430,7 @@ export const useActiveGroupCohorts = (enabled = true) => {
   return {
     cohortIds: resolvedCohortIds,
     isLoading: enabled
-      ? isLoading ||
-        (Boolean(groupId) && swrIsLoading) ||
-        (hasPendingGroup && !hasCohortError)
+      ? swrIsLoading || (hasPendingGroup && !hasCohortError)
       : false,
     error: resolvedError,
     refetch: () => {
