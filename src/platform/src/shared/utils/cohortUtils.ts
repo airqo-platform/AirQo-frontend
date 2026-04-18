@@ -17,7 +17,7 @@ const extractCohortIdFromObject = (value: Record<string, unknown>): string => {
 };
 
 const normalizeCohortId = (value: CohortIdInput): string[] => {
-  if (!value) {
+  if (value === null || value === undefined) {
     return [];
   }
 

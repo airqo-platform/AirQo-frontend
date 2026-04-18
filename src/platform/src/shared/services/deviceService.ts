@@ -69,16 +69,7 @@ const shouldFallbackToLegacyCohortEndpoint = (error: unknown): boolean => {
   } | null;
 
   const status = candidate?.response?.status;
-  return (
-    candidate?.code === 'ERR_NETWORK' ||
-    candidate?.code === 'ECONNABORTED' ||
-    status === 404 ||
-    status === 405 ||
-    status === 500 ||
-    status === 502 ||
-    status === 503 ||
-    status === 504
-  );
+  return status === 404 || status === 405;
 };
 
 const normalizeLegacyMeta = (

@@ -51,7 +51,10 @@ const _refreshAuthToken = async (): Promise<{
   const response = await axios.post(
     refreshUrl,
     {},
-    { headers: { Authorization: `JWT ${currentToken}` } }
+    {
+      timeout: DEFAULT_REQUEST_TIMEOUT_MS,
+      headers: { Authorization: `JWT ${currentToken}` },
+    }
   );
 
   const newToken = normalizeOAuthAccessToken(response.data?.token ?? '');
@@ -82,7 +85,7 @@ interface RequestConfigWithMetadata extends InternalAxiosRequestConfig {
 
 interface UnauthorizedEventDetail {
   status: number;
-  data: unknown;
+  message: string;
   url?: string;
 }
 
@@ -350,7 +353,7 @@ export class ApiClient {
             );
             dispatchUnauthorizedEvent({
               status: error.response.status,
-              data: error.response.data,
+              message: error.response.statusText || 'unauthorized',
               url: error.config?.url,
             });
             return Promise.reject(error);
@@ -364,6 +367,7 @@ export class ApiClient {
                 const headers = AxiosHeaders.from(originalRequest.headers);
                 headers.set('Authorization', authHeader);
                 originalRequest.headers = headers;
+                originalRequest._retry = true;
                 return this.client(originalRequest);
               })
               .catch(() => Promise.reject(error));
@@ -403,7 +407,7 @@ export class ApiClient {
             );
             dispatchUnauthorizedEvent({
               status: error.response?.status ?? 401,
-              data: error.response?.data,
+              message: error.response?.statusText || 'unauthorized',
               url: error.config?.url,
             });
             return Promise.reject(error);

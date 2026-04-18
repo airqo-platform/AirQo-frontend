@@ -152,14 +152,10 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     !organizationGroupId;
 
   // Get active group cohorts to check visibility in user flow.
-  const {
-    cohortIds: activeGroupCohortIds,
-  } = useActiveGroupCohorts();
+  const { cohortIds: activeGroupCohortIds } = useActiveGroupCohorts();
 
   // In organization flow, fetch cohorts by org slug resolved group to avoid stale active-group lookups.
-  const {
-    data: organizationGroupCohorts,
-  } = useGroupCohorts(
+  const { data: organizationGroupCohorts } = useGroupCohorts(
     organizationGroupId,
     isOrganizationFlow && !!organizationGroupId
   );

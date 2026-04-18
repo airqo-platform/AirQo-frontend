@@ -55,7 +55,6 @@ export const useUserActions = () => {
             keyText.startsWith('analytics/') ||
             keyText.startsWith('sites/summary') ||
             keyText.startsWith('grids/summary') ||
-            keyText.startsWith('checklist/') ||
             keyText.includes('/preferences') ||
             keyText.includes('/theme') ||
             keyText.includes('group/cohorts') ||
