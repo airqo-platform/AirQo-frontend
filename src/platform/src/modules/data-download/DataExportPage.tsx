@@ -34,6 +34,7 @@ import { trackEvent } from '@/shared/utils/analytics';
 import { trackFeatureUsage } from '@/shared/utils/enhancedAnalytics';
 import { useUser } from '@/shared/hooks/useUser';
 import { useUserActions } from '@/shared/hooks/useUserActions';
+import { AccessDenied } from '@/shared/components/AccessDenied';
 
 const rebuildSelectionCache = (
   selectedIds: string[],
@@ -92,10 +93,12 @@ const DataExportPage = () => {
     );
   }, [groups, isOrgFlow, orgSlugFromPath]);
   const organizationGroupId = organizationGroup?.id || '';
+  const isOrgUnresolved =
+    isOrgFlow && !userLoading && !!orgSlugFromPath && !organizationGroup;
   const isOrgContextReady =
     !isOrgFlow ||
     (!!organizationGroupId && activeGroup?.id === organizationGroupId);
-  const isGroupSyncing = isOrgFlow && !isOrgContextReady;
+  const isGroupSyncing = isOrgFlow && !isOrgContextReady && !isOrgUnresolved;
 
   // State management
   const {
@@ -169,14 +172,21 @@ const DataExportPage = () => {
       return;
     }
 
-    if (userLoading || !organizationGroup) {
+    if (userLoading || !organizationGroup || isOrgUnresolved) {
       return;
     }
 
     if (activeGroup?.id !== organizationGroup.id) {
       switchGroup(organizationGroup);
     }
-  }, [activeGroup?.id, isOrgFlow, organizationGroup, switchGroup, userLoading]);
+  }, [
+    activeGroup?.id,
+    isOrgFlow,
+    isOrgUnresolved,
+    organizationGroup,
+    switchGroup,
+    userLoading,
+  ]);
 
   // Handle org flow: switch to sites tab if countries or cities is active
   React.useEffect(() => {
@@ -275,8 +285,14 @@ const DataExportPage = () => {
   const currentState = tabStates[activeTab];
   const config = getTabConfig(activeTab);
   const meta = currentHook.data?.meta || { total: 0, page: 1, totalPages: 1 };
-  const tableLoading =
-    (isGroupSyncing || currentHook.isLoading) && tableData.length === 0;
+  const displayTableData = isGroupSyncing ? [] : tableData;
+  const displaySitesData = isGroupSyncing
+    ? undefined
+    : (currentHook.data as CohortSitesResponse | undefined)?.sites;
+  const displayDevicesData = isGroupSyncing
+    ? undefined
+    : (currentHook.data as CohortDevicesResponse | undefined)?.devices;
+  const tableLoading = isGroupSyncing || currentHook.isLoading;
 
   // Reset device pagination when category changes
   useEffect(() => {
@@ -322,7 +338,7 @@ const DataExportPage = () => {
       previousGroupId &&
       currentGroupId !== previousGroupId
     ) {
-      resetGroupScopedState();
+      resetGroupScopedState(!siteSelectionDownloading);
       setSelectedSitesCache({});
       setSelectedDevicesCache({});
       setSelectedGridForSites(null);
@@ -339,6 +355,7 @@ const DataExportPage = () => {
     setSelectedSitesCache,
     setSiteSelectionDialogOpen,
     setSiteSelectionDownloading,
+    siteSelectionDownloading,
   ]);
 
   // Handle sidebar visibility based on screen size
@@ -477,6 +494,18 @@ const DataExportPage = () => {
     }
   };
 
+  if (isOrgUnresolved) {
+    return (
+      <div className="min-h-[400px] p-6">
+        <AccessDenied
+          title="Organization not found"
+          message="We could not resolve that organization slug or you do not have access to it."
+          showBackButton={false}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col">
       {/* Page Header */}
@@ -530,8 +559,8 @@ const DataExportPage = () => {
               selectedPollutants={selectedPollutants}
               deviceCategory={deviceCategory}
               isDownloadReady={isDownloadReady}
-              sitesData={(currentHook.data as CohortSitesResponse)?.sites}
-              devicesData={(currentHook.data as CohortDevicesResponse)?.devices}
+              sitesData={displaySitesData}
+              devicesData={displayDevicesData}
               isLoadingSites={isGroupSyncing || sitesHook.isLoading}
               isLoadingDevices={isGroupSyncing || devicesHook.isLoading}
               pathname={pathname}
@@ -577,7 +606,7 @@ const DataExportPage = () => {
 
             <DataExportTable
               activeTab={activeTab}
-              tableData={tableData}
+              tableData={displayTableData}
               columns={config.columns}
               loading={tableLoading}
               error={currentHook.error?.message || null}

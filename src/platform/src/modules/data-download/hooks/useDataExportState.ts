@@ -252,7 +252,11 @@ export const useDataExportState = () => {
     []
   );
 
-  const resetGroupScopedState = useCallback(() => {
+  const resetGroupScopedState = useCallback((allowReset = true) => {
+    if (!allowReset) {
+      return;
+    }
+
     setState(prev => ({
       ...prev,
       activeTab: 'sites',

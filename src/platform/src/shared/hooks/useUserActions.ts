@@ -21,6 +21,14 @@ export const useUserActions = () => {
   const queryClient = useQueryClient();
   const logout = useLogout();
 
+  const getQueryKeySegments = useCallback((key: unknown) => {
+    if (!Array.isArray(key)) {
+      return [] as string[];
+    }
+
+    return key.map(segment => String(segment));
+  }, []);
+
   const invalidateGroupScopedCache = useCallback(
     (previousGroupId?: string, nextGroupId?: string) => {
       mutate(
@@ -70,32 +78,40 @@ export const useUserActions = () => {
       queryClient.removeQueries({
         predicate: query => {
           const key = query.queryKey;
-          const keyText = Array.isArray(key)
-            ? key
-                .filter(
-                  (segment): segment is string | number =>
-                    typeof segment === 'string' || typeof segment === 'number'
-                )
-                .join(' ')
-            : typeof key === 'string'
-              ? key
-              : '';
+          if (!Array.isArray(key)) {
+            const keyString = String(key);
+            return (
+              keyString.includes('sites-by-country') ||
+              keyString.includes('group/cohorts') ||
+              keyString.includes('cohort') ||
+              (!!previousGroupId && keyString.includes(previousGroupId)) ||
+              (!!nextGroupId && keyString.includes(nextGroupId))
+            );
+          }
 
-          if (!keyText) {
+          const segments = getQueryKeySegments(key);
+
+          if (segments.length === 0) {
             return false;
           }
 
+          const hasPreviousGroupId =
+            !!previousGroupId &&
+            segments.some(segment => segment === previousGroupId);
+          const hasNextGroupId =
+            !!nextGroupId && segments.some(segment => segment === nextGroupId);
+
           return (
-            keyText.includes('sites-by-country') ||
-            keyText.includes('group/cohorts') ||
-            keyText.includes('cohort') ||
-            (!!previousGroupId && keyText.includes(previousGroupId)) ||
-            (!!nextGroupId && keyText.includes(nextGroupId))
+            segments.includes('sites-by-country') ||
+            (segments.includes('group') && segments.includes('cohorts')) ||
+            segments.includes('cohort') ||
+            hasPreviousGroupId ||
+            hasNextGroupId
           );
         },
       });
     },
-    [mutate, queryClient]
+    [getQueryKeySegments, mutate, queryClient]
   );
 
   const switchGroup = useCallback(

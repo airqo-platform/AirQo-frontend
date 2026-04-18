@@ -148,13 +148,10 @@ const MapPage: React.FC<MapPageProps> = ({
   }, []);
 
   React.useEffect(() => {
-    setSelectedCountry(undefined);
-  }, [isOrganizationFlow]);
-
-  React.useEffect(() => {
     dispatch(clearSelectedLocation());
     setSelectedLocationId(null);
     setFlyToLocation(undefined);
+    setSelectedCountry(undefined);
     setLocationDetailsLoading(false);
 
     return () => {
