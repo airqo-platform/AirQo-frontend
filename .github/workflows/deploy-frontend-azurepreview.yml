@@ -451,6 +451,10 @@ jobs:
           BRANCH="${{ needs.branch-name.outputs.lowercase }}"
           APP="${BRANCH:0:12}-vertex-preview"
 
+          # Build env vars string separately to avoid nested YAML/shell escaping issues.
+          # Filters out NEXTAUTH_URL (staging URL) so NextAuth uses AUTH_TRUST_HOST instead.
+          ENV_VARS=$(jq -r 'to_entries | map(select(.key != "NEXTAUTH_URL" and .key != "NEXTAUTH_COOKIE_DOMAIN")) | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json)
+
           az containerapp up \
             --name $APP \
             --resource-group ${{ env.RG }} \
@@ -461,7 +465,7 @@ jobs:
             --registry-server ${{ env.REGISTRY_URL }} \
             --registry-username airqoacr \
             --registry-password ${{ secrets.ACR_PASSWORD }} \
-            --env-vars "$(jq -r 'to_entries | map(select(.key != "NEXTAUTH_URL" and .key != "NEXTAUTH_COOKIE_DOMAIN")) | . + [{"key": "AUTH_TRUST_HOST", "value": "true"}] | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json)"
+            --env-vars "$ENV_VARS AUTH_TRUST_HOST=true"
 
       - id: preview
         run: |
