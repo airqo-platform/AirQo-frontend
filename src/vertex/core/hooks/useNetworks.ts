@@ -142,6 +142,7 @@ export const useUpdateNetworkRequestStatus = () => {
 };
 
 export const useSubmitNetworkRequest = () => {
+    const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (data: any) => networksApi.submitNetworkRequestApi(data),
         onSuccess: (resp) => {
@@ -149,6 +150,7 @@ export const useSubmitNetworkRequest = () => {
                 message: resp.message || 'Your request for a new Sensor Manufacturer has been submitted successfully!', 
                 type: 'SUCCESS' 
             });
+            queryClient.invalidateQueries({ queryKey: ['network-requests'] });
         },
         onError: (error) => {
             ReusableToast({ 
