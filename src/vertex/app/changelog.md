@@ -34,7 +34,7 @@ Introduced a forced organization setup flow for new workspaces, enhanced navigat
 <summary><strong>UI Stability & Infrastructure (3)</strong></summary>
 
 - **Z-Index Harmonization**: Resolved stacking context issues between `OrganizationModal` and `ReusableDialog` to ensure overlays always render correctly over navigation elements.
-- **Preview Authentication Fix**: Resolved persistent login failures in `vertex` previews by stripping static `NEXTAUTH_URL` values and enabling `AUTH_TRUST_HOST=true` in the Azure deployment pipeline, allowing for dynamic host detection.
+- **Preview Authentication Fix**: Resolved persistent login failures in `vertex` previews by stripping static `NEXTAUTH_URL` values, enabling `AUTH_TRUST_HOST=true`. Added a dynamic host inference wrapper in the auth route to handle Azure Container Apps dynamic URLs.
 - **Layout Robustness**: Refined the root layout structure to isolate the `OrganizationSetupBanner` from the main scroll container, preventing layout shifts during onboarding.
 
 </details>
