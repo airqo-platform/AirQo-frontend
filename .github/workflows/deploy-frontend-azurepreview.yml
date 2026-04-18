@@ -438,8 +438,8 @@ jobs:
             --name sta-env-vertex \
             --query value -o tsv > secrets.json
 
-          # Write .env into the build context for Next.js build time 
-          jq -r 'to_entries | .[] | "\(.key)=\(.value|tojson)"' secrets.json > src/vertex/.env
+          # Write .env into the build context for Next.js build time, excluding static URLs 
+          jq -r 'to_entries | .[] | select(.key != "NEXTAUTH_URL" and .key != "NEXTAUTH_COOKIE_DOMAIN") | "\(.key)=\(.value|tojson)"' secrets.json > src/vertex/.env
 
       - name: Build image
         run: |
@@ -461,7 +461,7 @@ jobs:
             --registry-server ${{ env.REGISTRY_URL }} \
             --registry-username airqoacr \
             --registry-password ${{ secrets.ACR_PASSWORD }} \
-            --env-vars "$(jq -r 'to_entries | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json)"
+            --env-vars "$(jq -r 'to_entries | map(select(.key != "NEXTAUTH_URL" and .key != "NEXTAUTH_COOKIE_DOMAIN")) | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json) AUTH_TRUST_HOST=true"
 
       - id: preview
         run: |
