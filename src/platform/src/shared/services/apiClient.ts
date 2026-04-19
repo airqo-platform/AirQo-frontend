@@ -5,26 +5,87 @@ import axios, {
   AxiosResponse,
   InternalAxiosRequestConfig,
 } from 'axios';
+import { getSession } from 'next-auth/react';
 import logger from '@/shared/lib/logger';
+import { buildServerApiUrl } from '@/shared/lib/api-routing';
 import { normalizeOAuthAccessToken } from '@/shared/lib/oauth-session';
 import { trackApiPerformance } from '@/shared/utils/enhancedAnalytics';
 
 const UNAUTHORIZED_EVENT_NAME = 'auth:unauthorized';
 const UNAUTHORIZED_EVENT_COOLDOWN_MS = 1500;
 const API_FAILURE_NOTIFY_COOLDOWN_MS = 10 * 60 * 1000;
+const DEFAULT_REQUEST_TIMEOUT_MS = 30000;
 
 const apiFailureNotificationCache = new Map<string, number>();
 
+let _isRefreshing = false;
+let _pendingQueue: Array<{
+  resolve: (authHeader: string) => void;
+  reject: (err: unknown) => void;
+}> = [];
+
+const flushPendingQueue = (authHeader: string | null, err: unknown = null) => {
+  _pendingQueue.forEach(({ resolve, reject }) =>
+    authHeader ? resolve(authHeader) : reject(err)
+  );
+  _pendingQueue = [];
+};
+
+const _refreshAuthToken = async (): Promise<{
+  token: string;
+  expiresIn?: number;
+}> => {
+  const session = await getSession();
+  const currentToken = normalizeOAuthAccessToken(
+    (session as { accessToken?: string; user?: { accessToken?: string } })
+      ?.accessToken ||
+      (session as { user?: { accessToken?: string } })?.user?.accessToken ||
+      ''
+  );
+
+  if (!currentToken) {
+    throw new Error('No token available for refresh');
+  }
+
+  const refreshUrl = buildServerApiUrl('/users/token/refresh');
+  const response = await axios.post(
+    refreshUrl,
+    {},
+    {
+      timeout: DEFAULT_REQUEST_TIMEOUT_MS,
+      headers: { Authorization: `JWT ${currentToken}` },
+    }
+  );
+
+  const newToken = normalizeOAuthAccessToken(response.data?.token ?? '');
+  if (!response.data?.success || !newToken) {
+    throw new Error('Refresh response invalid');
+  }
+
+  return {
+    token: newToken,
+    expiresIn:
+      typeof response.data?.expiresIn === 'number'
+        ? response.data.expiresIn
+        : undefined,
+  };
+};
+
 // Extended type for config with metadata
+type ApiRequestConfig = AxiosRequestConfig & {
+  suppressErrorLogging?: boolean;
+};
+
 interface RequestConfigWithMetadata extends InternalAxiosRequestConfig {
   metadata?: {
     startTime: number;
   };
+  suppressErrorLogging?: boolean;
 }
 
 interface UnauthorizedEventDetail {
   status: number;
-  data: unknown;
+  message: string;
   url?: string;
 }
 
@@ -120,6 +181,7 @@ export class ApiClient {
 
     this.client = axios.create({
       baseURL: this.baseUrl,
+      timeout: DEFAULT_REQUEST_TIMEOUT_MS,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -183,7 +245,7 @@ export class ApiClient {
         }
         return config;
       },
-      error => {
+      async error => {
         logger.error('API Request failed to send', error);
         return Promise.reject(error);
       }
@@ -211,7 +273,7 @@ export class ApiClient {
 
         return response;
       },
-      error => {
+      async error => {
         const errorConfig = error.config as RequestConfigWithMetadata;
         const duration = errorConfig?.metadata?.startTime
           ? Date.now() - errorConfig.metadata.startTime
@@ -248,21 +310,110 @@ export class ApiClient {
         const errorCode = error.code || 'no-code';
         const notifyKey = `${method}:${url}:${status || errorCode}`;
         const canNotify = shouldNotifyApiFailure(notifyKey);
+        const isCanceledRequest =
+          error.code === 'ERR_CANCELED' ||
+          error.name === 'CanceledError' ||
+          error.message === 'canceled' ||
+          error.config?.signal?.aborted;
+
+        if (isCanceledRequest) {
+          logger.debug('API request canceled', errorContext);
+          return Promise.reject(error);
+        }
+
+        if (
+          errorConfig?.suppressErrorLogging &&
+          error.response?.status !== 401
+        ) {
+          return Promise.reject(error);
+        }
 
         if (error.response?.status === 401) {
-          // 401 Unauthorized - expected behavior, don't send to Slack
+          // 401 Unauthorized - attempt silent refresh for JWT auth
           // Log at warn level for debugging purposes only
           logger.warn('Unauthorized API access', {
             ...errorContext,
             message: 'Session may have expired or insufficient permissions',
           });
 
-          // Dispatch event with error details for smart handling
-          dispatchUnauthorizedEvent({
-            status: error.response.status,
-            data: error.response.data,
-            url: error.config?.url,
-          });
+          if (this.authType !== AuthType.JWT) {
+            return Promise.reject(error);
+          }
+
+          const originalRequest = error.config as InternalAxiosRequestConfig & {
+            _retry?: boolean;
+          };
+          const isRefreshCall =
+            typeof originalRequest?.url === 'string' &&
+            originalRequest.url.includes('/users/token/refresh');
+
+          if (originalRequest?._retry || isRefreshCall) {
+            logger.warn(
+              'Token refresh failed — dispatching unauthorized event'
+            );
+            dispatchUnauthorizedEvent({
+              status: error.response.status,
+              message: error.response.statusText || 'unauthorized',
+              url: error.config?.url,
+            });
+            return Promise.reject(error);
+          }
+
+          if (_isRefreshing) {
+            return new Promise<string>((resolve, reject) => {
+              _pendingQueue.push({ resolve, reject });
+            })
+              .then(authHeader => {
+                const headers = AxiosHeaders.from(originalRequest.headers);
+                headers.set('Authorization', authHeader);
+                originalRequest.headers = headers;
+                originalRequest._retry = true;
+                return this.client(originalRequest);
+              })
+              .catch(() => Promise.reject(error));
+          }
+
+          originalRequest._retry = true;
+          _isRefreshing = true;
+
+          try {
+            const { token, expiresIn } = await _refreshAuthToken();
+            const authHeader = `JWT ${token}`;
+
+            // Update the in-memory axios default so subsequent requests use it
+            this.setAuthToken(token);
+
+            // Flush queued requests with the new token
+            flushPendingQueue(authHeader);
+
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(
+                new CustomEvent('auth:token-refreshed', {
+                  detail: { token, expiresIn },
+                })
+              );
+            }
+
+            const headers = AxiosHeaders.from(originalRequest.headers);
+            headers.set('Authorization', authHeader);
+            originalRequest.headers = headers;
+
+            // Retry the original request with the new token
+            return this.client(originalRequest);
+          } catch (refreshError) {
+            flushPendingQueue(null, refreshError);
+            logger.warn(
+              'Silent token refresh failed — dispatching unauthorized event'
+            );
+            dispatchUnauthorizedEvent({
+              status: error.response?.status ?? 401,
+              message: error.response?.statusText || 'unauthorized',
+              url: error.config?.url,
+            });
+            return Promise.reject(error);
+          } finally {
+            _isRefreshing = false;
+          }
         } else if (error.response?.status === 403) {
           // 403 Forbidden - permission issue, log but don't spam Slack
           logger.warn('Forbidden API access', {
@@ -295,6 +446,13 @@ export class ApiClient {
           logger.warn('API rate limit exceeded', {
             ...errorContext,
             retryAfter: error.response.headers?.['retry-after'],
+          });
+        } else if (error.code === 'ECONNABORTED') {
+          // Request timed out. Treat as a handled warning so slow endpoints do
+          // not page the team, but still surface the error to the caller.
+          logger.warn('API request timed out', {
+            ...errorContext,
+            errorCode,
           });
         } else if (error.response?.status >= 400) {
           // Other 4xx Client errors - log locally but only send serious ones to Slack
@@ -389,7 +547,7 @@ export class ApiClient {
   // Generic request methods
   async get<T>(
     url: string,
-    config?: AxiosRequestConfig
+    config?: ApiRequestConfig
   ): Promise<AxiosResponse<T>> {
     return this.client.get<T>(url, config);
   }
@@ -397,7 +555,7 @@ export class ApiClient {
   async post<T>(
     url: string,
     data?: unknown,
-    config?: AxiosRequestConfig
+    config?: ApiRequestConfig
   ): Promise<AxiosResponse<T>> {
     return this.client.post<T>(url, data, config);
   }
@@ -405,7 +563,7 @@ export class ApiClient {
   async put<T>(
     url: string,
     data?: unknown,
-    config?: AxiosRequestConfig
+    config?: ApiRequestConfig
   ): Promise<AxiosResponse<T>> {
     return this.client.put<T>(url, data, config);
   }
@@ -413,14 +571,14 @@ export class ApiClient {
   async patch<T>(
     url: string,
     data?: unknown,
-    config?: AxiosRequestConfig
+    config?: ApiRequestConfig
   ): Promise<AxiosResponse<T>> {
     return this.client.patch<T>(url, data, config);
   }
 
   async delete<T>(
     url: string,
-    config?: AxiosRequestConfig
+    config?: ApiRequestConfig
   ): Promise<AxiosResponse<T>> {
     return this.client.delete<T>(url, config);
   }

@@ -1,7 +1,5 @@
 'use client';
 
-'use client';
-
 import * as React from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/shared/lib/utils';
@@ -15,7 +13,6 @@ import { Footer } from '@/shared/components/ui/footer';
 import { NotificationBanner } from '@/shared/components/NotificationBanner';
 import { useAppSelector } from '@/shared/hooks/redux';
 import { LoadingOverlay } from '@/shared/components/ui/loading-overlay';
-import { LoadingState } from '@/shared/components/ui/loading-state';
 import { useUser } from '@/shared/hooks/useUser';
 import { MaintenanceBanner } from '../components';
 
@@ -87,7 +84,14 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                     )}
                   >
                     {userLoading ? (
-                      <LoadingState text="Loading..." />
+                      // Show a subtle skeleton while user data loads rather than
+                      // replacing children entirely, which would cause a content flash.
+                      <div className="space-y-4 animate-pulse" aria-hidden>
+                        <div className="h-8 bg-secondary rounded-md w-48" />
+                        <div className="h-4 bg-secondary rounded w-72" />
+                        <div className="h-4 bg-secondary rounded w-64" />
+                        <div className="h-32 bg-secondary rounded-lg w-full mt-6" />
+                      </div>
                     ) : (
                       <>
                         <NotificationBanner

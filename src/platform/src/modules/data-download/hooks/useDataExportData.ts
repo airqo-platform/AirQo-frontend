@@ -39,7 +39,8 @@ export const useDataExportData = (
   deviceCategory: DeviceCategory,
   selectedDeviceIds: string[],
   selectedDevicesData: TableItem[],
-  setSelectedDevices: (devices: string[]) => void
+  setSelectedDevices: (devices: string[]) => void,
+  enabled = true
 ) => {
   // Sites params
   const sitesParams = useMemo(() => {
@@ -112,48 +113,48 @@ export const useDataExportData = (
   // Keep cohort loading enabled for org flow and when the Devices tab is active
   // so the request body can include the active group's `cohort_ids` array.
   const activeGroupCohorts = useActiveGroupCohorts(
-    isOrgFlow || activeTab === 'devices'
+    enabled && (isOrgFlow || activeTab === 'devices')
   );
 
   const orgSitesHook = useActiveGroupCohortSitesWithState(
     sitesParams,
-    isOrgFlow && activeTab === 'sites',
+    enabled && isOrgFlow && activeTab === 'sites',
     activeGroupCohorts
   );
 
   const publicSitesHook = useSitesSummaryWithToken(
     sitesParams,
-    !isOrgFlow && activeTab === 'sites'
+    enabled && !isOrgFlow && activeTab === 'sites'
   );
 
   const devicesHook = useActiveGroupCohortDevicesWithState(
     devicesParams,
-    activeTab === 'devices',
+    enabled && activeTab === 'devices',
     activeGroupCohorts
   );
 
   const orgCountriesHook = useGridsSummary(
     countriesParams,
     undefined,
-    isOrgFlow && activeTab === 'countries'
+    enabled && isOrgFlow && activeTab === 'countries'
   );
 
   const publicCountriesHook = useGridsSummaryWithToken(
     countriesParams,
     undefined,
-    !isOrgFlow && activeTab === 'countries'
+    enabled && !isOrgFlow && activeTab === 'countries'
   );
 
   const orgCitiesHook = useGridsSummary(
     citiesParams,
     undefined,
-    isOrgFlow && activeTab === 'cities'
+    enabled && isOrgFlow && activeTab === 'cities'
   );
 
   const publicCitiesHook = useGridsSummaryWithToken(
     citiesParams,
     undefined,
-    !isOrgFlow && activeTab === 'cities'
+    enabled && !isOrgFlow && activeTab === 'cities'
   );
 
   const sitesHook = isOrgFlow ? orgSitesHook : publicSitesHook;

@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { isTokenExpired } from './utils';
 import { authService } from '../services/authService';
 import { buildServerApiUrl } from '@/shared/lib/api-routing';
 import { normalizeOAuthAccessToken } from './oauth-session';
@@ -89,15 +88,11 @@ const isTokenInvalid = (
     return true;
   }
 
-  if (isExpiredAt(expiresAt)) {
-    return true;
+  if (isJwtLikeToken(accessToken)) {
+    return false;
   }
 
-  if (isJwtLikeToken(accessToken) && isTokenExpired(accessToken)) {
-    return true;
-  }
-
-  return false;
+  return isExpiredAt(expiresAt);
 };
 
 export const authOptions: any = {
@@ -209,7 +204,7 @@ export const authOptions: any = {
   },
   callbacks: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async jwt({ token, user }: any) {
+    async jwt({ token, user, trigger, session }: any) {
       if (user) {
         token.id = user.id;
         token._id = user._id;
@@ -221,11 +216,23 @@ export const authOptions: any = {
         token.lastName = user.lastName;
       }
 
+      if (trigger === 'update' && session) {
+        if (typeof session.accessToken === 'string') {
+          const normalizedAccessToken = normalizeOAuthAccessToken(
+            session.accessToken
+          );
+          token.accessToken = normalizedAccessToken || undefined;
+        }
+        if (typeof session.expiresAt === 'string') {
+          token.expiresAt = session.expiresAt;
+        }
+      }
+
       return token;
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async session({ session, token }: any) {
-      // Check if token is expired and invalidate session
+      // Only invalidate if token is missing or malformed; expired JWTs can be refreshed
       const accessToken =
         typeof (token as any)?.accessToken === 'string'
           ? normalizeOAuthAccessToken((token as any).accessToken as string) ||

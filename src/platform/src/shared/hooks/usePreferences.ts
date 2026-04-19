@@ -6,7 +6,7 @@ import { preferencesService } from '../services/preferencesService';
 import type {
   UpdatePreferencesRequest,
   UpdateUserPreferencesRequest,
-  UpdateUserThemeRequest,
+  Theme,
   UpdateOrganizationGroupThemeRequest,
 } from '../types/api';
 
@@ -52,10 +52,12 @@ export const useUserPreferences = (userId: string, groupId: string) => {
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
+      shouldRetryOnError: false,
       // Ensure fresh data when group changes - prevent stale data issues
-      dedupingInterval: 0,
+      // Deduplicate simultaneous preference requests across mounted consumers.
+      dedupingInterval: 5000,
       // Keep error retry to minimum to avoid infinite loops on group switch
-      errorRetryCount: 1,
+      errorRetryCount: 0,
       errorRetryInterval: 1000,
       // Use a custom comparison to detect if we should actually update
       // This prevents unnecessary re-renders while still ensuring fresh data
@@ -77,10 +79,12 @@ export const useUserPreferencesList = (userId: string, groupId: string) => {
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
+      shouldRetryOnError: false,
       // Ensure fresh data when group changes
-      dedupingInterval: 0,
+      // Deduplicate simultaneous preference requests across the dashboard.
+      dedupingInterval: 5000,
       // Keep error retry to minimum to avoid infinite loops on group switch
-      errorRetryCount: 1,
+      errorRetryCount: 0,
       errorRetryInterval: 1000,
     }
   );
@@ -113,18 +117,12 @@ export const useUpdateUserTheme = () => {
   return useSWRMutation(
     'preferences/theme/update',
     async (
-      key,
-      {
-        arg,
-      }: {
-        arg: { userId: string; groupId: string; theme: UpdateUserThemeRequest };
-      }
+      _key,
+      { arg }: { arg: { userId: string; groupId: string; theme: Theme } }
     ) => {
-      return await preferencesService.updateUserTheme(
-        arg.userId,
-        arg.groupId,
-        arg.theme
-      );
+      return await preferencesService.updateUserTheme(arg.userId, arg.groupId, {
+        theme: arg.theme,
+      });
     },
     {
       onSuccess: () => {
@@ -143,8 +141,9 @@ export const useGroupTheme = (groupId: string) => {
     groupId ? `preferences/theme/group/${groupId}` : null,
     () => preferencesService.getGroupTheme(groupId),
     {
-      revalidateOnFocus: true,
+      revalidateOnFocus: false,
       revalidateOnReconnect: false,
+      shouldRetryOnError: false,
       // Keep theme data fresh when switching organizations
       dedupingInterval: 2000,
     }
@@ -159,12 +158,13 @@ export const useUserTheme = (userId: string, groupId: string) => {
       : null,
     () => preferencesService.getUserTheme(userId, groupId),
     {
-      revalidateOnFocus: true,
+      revalidateOnFocus: false,
       revalidateOnReconnect: false,
+      shouldRetryOnError: false,
       // Ensure fresh data when group changes by minimal deduping
       dedupingInterval: 1000,
       // Keep error retry to minimum to avoid infinite loops on group switch
-      errorRetryCount: 2,
+      errorRetryCount: 0,
       errorRetryInterval: 1000,
     }
   );

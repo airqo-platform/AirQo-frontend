@@ -32,6 +32,9 @@ import MoreInsights from '@/modules/location-insights/more-insights';
 import AddLocation from '@/modules/location-insights/add-location';
 import { trackEvent } from '@/shared/utils/analytics';
 import { trackFeatureUsage } from '@/shared/utils/enhancedAnalytics';
+import { useUser } from '@/shared/hooks/useUser';
+import { useUserActions } from '@/shared/hooks/useUserActions';
+import { AccessDenied } from '@/shared/components/AccessDenied';
 
 const rebuildSelectionCache = (
   selectedIds: string[],
@@ -63,9 +66,39 @@ const rebuildSelectionCache = (
 const DataExportPage = () => {
   const pathname = usePathname();
   const posthog = usePostHog();
+  const { activeGroup, groups, isLoading: userLoading } = useUser();
+  const { switchGroup } = useUserActions();
 
   // Determine if this is org flow based on pathname
   const isOrgFlow = pathname.includes('/org/');
+  const orgSlugFromPath = useMemo(() => {
+    if (!isOrgFlow) {
+      return null;
+    }
+
+    const segments = pathname.split('/').filter(Boolean);
+    return segments[1]?.toLowerCase() ?? null;
+  }, [isOrgFlow, pathname]);
+  const organizationGroup = useMemo(() => {
+    if (!isOrgFlow || !orgSlugFromPath) {
+      return null;
+    }
+
+    return (
+      groups?.find(
+        group =>
+          (group.organizationSlug || '').trim().toLowerCase() ===
+          orgSlugFromPath
+      ) || null
+    );
+  }, [groups, isOrgFlow, orgSlugFromPath]);
+  const organizationGroupId = organizationGroup?.id || '';
+  const isOrgUnresolved =
+    isOrgFlow && !userLoading && !!orgSlugFromPath && !organizationGroup;
+  const isOrgContextReady =
+    !isOrgFlow ||
+    (!!organizationGroupId && activeGroup?.id === organizationGroupId);
+  const isGroupSyncing = isOrgFlow && !isOrgContextReady && !isOrgUnresolved;
 
   // State management
   const {
@@ -104,6 +137,7 @@ const DataExportPage = () => {
     setDeviceCategory,
     setDateRange,
     updateTabState,
+    resetGroupScopedState,
     handleTabChange,
     handleClearSelections,
   } = useDataExportState();
@@ -131,6 +165,28 @@ const DataExportPage = () => {
     }
     return true;
   });
+  const previousGroupIdRef = React.useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!isOrgFlow) {
+      return;
+    }
+
+    if (userLoading || !organizationGroup || isOrgUnresolved) {
+      return;
+    }
+
+    if (activeGroup?.id !== organizationGroup.id) {
+      switchGroup(organizationGroup);
+    }
+  }, [
+    activeGroup?.id,
+    isOrgFlow,
+    isOrgUnresolved,
+    organizationGroup,
+    switchGroup,
+    userLoading,
+  ]);
 
   // Handle org flow: switch to sites tab if countries or cities is active
   React.useEffect(() => {
@@ -142,6 +198,10 @@ const DataExportPage = () => {
   // Wrap handleTabChange to prevent org flow from accessing countries/cities
   const wrappedHandleTabChange = useCallback(
     (tab: TabType) => {
+      if (isGroupSyncing) {
+        return;
+      }
+
       if (isOrgFlow && (tab === 'countries' || tab === 'cities')) {
         return;
       }
@@ -161,7 +221,7 @@ const DataExportPage = () => {
 
       handleTabChange(tab);
     },
-    [activeTab, isOrgFlow, handleTabChange, posthog]
+    [activeTab, isGroupSyncing, isOrgFlow, handleTabChange, posthog]
   );
 
   // Data fetching and processing (initial call with empty array)
@@ -190,7 +250,8 @@ const DataExportPage = () => {
     deviceCategory,
     selectedDeviceIds,
     selectedDevicesForActions,
-    setSelectedDevices
+    setSelectedDevices,
+    isOrgContextReady
   );
 
   // Actions and event handlers
@@ -224,7 +285,14 @@ const DataExportPage = () => {
   const currentState = tabStates[activeTab];
   const config = getTabConfig(activeTab);
   const meta = currentHook.data?.meta || { total: 0, page: 1, totalPages: 1 };
-  const tableLoading = currentHook.isLoading && tableData.length === 0;
+  const displayTableData = isGroupSyncing ? [] : tableData;
+  const displaySitesData = isGroupSyncing
+    ? undefined
+    : (currentHook.data as CohortSitesResponse | undefined)?.sites;
+  const displayDevicesData = isGroupSyncing
+    ? undefined
+    : (currentHook.data as CohortDevicesResponse | undefined)?.devices;
+  const tableLoading = isGroupSyncing || currentHook.isLoading;
 
   // Reset device pagination when category changes
   useEffect(() => {
@@ -259,6 +327,36 @@ const DataExportPage = () => {
       setDataType('raw');
     }
   }, [activeTab, deviceCategory, dataType, setDataType]);
+
+  // Reset group-scoped selections and cached metadata on group switch
+  useEffect(() => {
+    const currentGroupId = activeGroup?.id ?? null;
+    const previousGroupId = previousGroupIdRef.current;
+
+    if (
+      currentGroupId &&
+      previousGroupId &&
+      currentGroupId !== previousGroupId
+    ) {
+      resetGroupScopedState(!siteSelectionDownloading);
+      setSelectedSitesCache({});
+      setSelectedDevicesCache({});
+      setSelectedGridForSites(null);
+      setSiteSelectionDialogOpen(false);
+      setSiteSelectionDownloading(false);
+    }
+
+    previousGroupIdRef.current = currentGroupId;
+  }, [
+    activeGroup?.id,
+    resetGroupScopedState,
+    setSelectedDevicesCache,
+    setSelectedGridForSites,
+    setSelectedSitesCache,
+    setSiteSelectionDialogOpen,
+    setSiteSelectionDownloading,
+    siteSelectionDownloading,
+  ]);
 
   // Handle sidebar visibility based on screen size
   useEffect(() => {
@@ -396,6 +494,18 @@ const DataExportPage = () => {
     }
   };
 
+  if (isOrgUnresolved) {
+    return (
+      <div className="min-h-[400px] p-6">
+        <AccessDenied
+          title="Organization not found"
+          message="We could not resolve that organization slug or you do not have access to it."
+          showBackButton={false}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col">
       {/* Page Header */}
@@ -449,10 +559,10 @@ const DataExportPage = () => {
               selectedPollutants={selectedPollutants}
               deviceCategory={deviceCategory}
               isDownloadReady={isDownloadReady}
-              sitesData={(currentHook.data as CohortSitesResponse)?.sites}
-              devicesData={(currentHook.data as CohortDevicesResponse)?.devices}
-              isLoadingSites={sitesHook.isLoading}
-              isLoadingDevices={devicesHook.isLoading}
+              sitesData={displaySitesData}
+              devicesData={displayDevicesData}
+              isLoadingSites={isGroupSyncing || sitesHook.isLoading}
+              isLoadingDevices={isGroupSyncing || devicesHook.isLoading}
               pathname={pathname}
             />
 
@@ -483,6 +593,7 @@ const DataExportPage = () => {
               selectedGridSiteIds={selectedGridSiteIds}
               isDownloadReady={isDownloadReady}
               isDownloading={isDownloading}
+              isGroupSyncing={isGroupSyncing}
               onTabChange={wrappedHandleTabChange}
               onClearSelections={handleClearSelections}
               onVisualizeData={handleVisualizeData}
@@ -495,7 +606,7 @@ const DataExportPage = () => {
 
             <DataExportTable
               activeTab={activeTab}
-              tableData={tableData}
+              tableData={displayTableData}
               columns={config.columns}
               loading={tableLoading}
               error={currentHook.error?.message || null}
