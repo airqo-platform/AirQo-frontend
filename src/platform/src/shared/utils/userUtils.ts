@@ -70,7 +70,10 @@ export function normalizeGroups(
     .map(group => ({
       id: group._id,
       title: group.grp_title || '',
-      organizationSlug: group.organization_slug || '',
+      organizationSlug:
+        typeof group.organization_slug === 'string'
+          ? group.organization_slug.trim().toLowerCase()
+          : '',
       // Prioritize grp_image (logo) over grp_profile_picture for consistency
       profilePicture: group.grp_image || group.grp_profile_picture || '',
       createdAt: group.createdAt || '',
@@ -91,7 +94,10 @@ export function normalizeGroupDetails(
   return {
     id: groupDetails._id,
     title: groupDetails.grp_title || '',
-    organizationSlug: groupDetails.organization_slug || '',
+    organizationSlug:
+      typeof groupDetails.organization_slug === 'string'
+        ? groupDetails.organization_slug.trim().toLowerCase()
+        : '',
     // Prioritize grp_image (logo) over grp_profile_picture for consistency
     profilePicture:
       groupDetails.grp_image || groupDetails.grp_profile_picture || '',

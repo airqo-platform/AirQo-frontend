@@ -32,14 +32,17 @@ export function useMapReadings(
     refetch: refetchQuery,
   } = useQuery<MapReading[], Error>({
     queryKey: ['map', 'readings', normalizedCohortId],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const response: MapReadingsResponse =
-        await deviceService.getMapReadingsWithToken(cohort_id || undefined);
+        await deviceService.getMapReadingsWithToken(
+          cohort_id || undefined,
+          signal
+        );
       return response.measurements;
     },
     enabled,
     networkMode: 'online',
-    retry: 1,
+    retry: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     staleTime: 1000 * 60 * 2,

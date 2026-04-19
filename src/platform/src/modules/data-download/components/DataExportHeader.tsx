@@ -11,6 +11,7 @@ interface DataExportHeaderProps {
   selectedGridSiteIds: Record<string, string[]>;
   isDownloadReady: boolean;
   isDownloading: boolean;
+  isGroupSyncing?: boolean;
   onTabChange: (tab: TabType) => void;
   onClearSelections: () => void;
   onVisualizeData: () => void;
@@ -32,6 +33,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
   selectedGridSiteIds,
   isDownloadReady,
   isDownloading,
+  isGroupSyncing = false,
   onTabChange,
   onClearSelections,
   onVisualizeData,
@@ -72,6 +74,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
           <Button
             variant={activeTab === 'sites' ? 'filled' : 'outlined'}
             onClick={() => onTabChange('sites')}
+            disabled={isGroupSyncing}
             className="flex-shrink-0"
           >
             Sites
@@ -79,6 +82,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
           <Button
             variant={activeTab === 'devices' ? 'filled' : 'outlined'}
             onClick={() => onTabChange('devices')}
+            disabled={isGroupSyncing}
             className="flex-shrink-0"
           >
             Devices
@@ -88,6 +92,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
               <Button
                 variant={activeTab === 'countries' ? 'filled' : 'outlined'}
                 onClick={() => onTabChange('countries')}
+                disabled={isGroupSyncing}
                 className="flex-shrink-0"
               >
                 Countries
@@ -95,6 +100,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
               <Button
                 variant={activeTab === 'cities' ? 'filled' : 'outlined'}
                 onClick={() => onTabChange('cities')}
+                disabled={isGroupSyncing}
                 className="flex-shrink-0"
               >
                 Cities
@@ -110,6 +116,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
             variant="outlined"
             onClick={onClearSelections}
             Icon={AqAnnotationX}
+            disabled={isGroupSyncing}
             className="px-4 py-2 w-full sm:w-auto"
           >
             Clear All
@@ -119,6 +126,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
           variant="outlined"
           onClick={onVisualizeData}
           disabled={
+            isGroupSyncing ||
             (activeTab === 'sites' && selectedSiteIds.length === 0) ||
             (activeTab === 'devices' && selectedDeviceIds.length === 0) ||
             ((activeTab === 'countries' || activeTab === 'cities') &&
@@ -131,7 +139,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
         <Button
           variant="outlined"
           onClick={onPreview}
-          disabled={!isDownloadReady}
+          disabled={isGroupSyncing || !isDownloadReady}
           className="px-4 py-2 w-full sm:w-auto"
         >
           Preview
@@ -141,7 +149,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
           onClick={onDownload}
           Icon={AqDownload01}
           className="px-4 py-2 w-full sm:w-auto"
-          disabled={!isDownloadReady}
+          disabled={isGroupSyncing || !isDownloadReady}
           loading={isDownloading}
         >
           {isDownloading ? 'Downloading...' : 'Download Data'}

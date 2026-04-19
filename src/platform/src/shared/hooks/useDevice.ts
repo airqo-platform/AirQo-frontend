@@ -1,16 +1,14 @@
 import useSWR, { mutate } from 'swr';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { deviceService } from '../services/deviceService';
 import {
-  setCohortsLoading,
   setCohortsError,
   setActiveGroupCohorts,
   clearCohorts,
 } from '../store/cohortSlice';
 import {
   selectActiveGroupCohorts,
-  selectCohortsLoading,
   selectCohortsError,
   selectLastFetchedGroupId,
   selectActiveGroup,
@@ -27,6 +25,7 @@ import type {
   GridsSummaryParams,
   CohortResponse,
 } from '../types/api';
+import { normalizeCohortIds } from '../utils/cohortUtils';
 
 const SWR_STABLE_REQUEST_OPTIONS = {
   revalidateOnFocus: false,
@@ -34,6 +33,42 @@ const SWR_STABLE_REQUEST_OPTIONS = {
   shouldRetryOnError: false,
   dedupingInterval: 5000,
 } as const;
+
+const isAbortError = (error: unknown): boolean => {
+  const candidate = error as { name?: string; code?: string } | null;
+  if (!candidate) return false;
+  return (
+    candidate.name === 'AbortError' ||
+    candidate.name === 'CanceledError' ||
+    candidate.code === 'ERR_CANCELED'
+  );
+};
+
+const useAbortableFetcher = <T>(
+  fetcher: (signal: AbortSignal) => Promise<T>
+) => {
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+    };
+  }, []);
+
+  return useCallback(async () => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    try {
+      return await fetcher(controller.signal);
+    } finally {
+      if (abortRef.current === controller) {
+        abortRef.current = null;
+      }
+    }
+  }, [fetcher]);
+};
 
 export interface ActiveGroupCohortsState {
   cohortIds: string[];
@@ -52,17 +87,22 @@ const useCohortSitesQuery = (
     ? ['cohort/sites/active-group', cohortIds, params]
     : null;
 
-  const result = useSWR<CohortSitesResponse>(
-    key,
-    () => deviceService.getCohortSites({ cohort_ids: cohortIds }, params),
-    {
-      ...SWR_STABLE_REQUEST_OPTIONS,
-      isPaused: () => cohortsLoading,
-    }
+  const cohortSitesFetcher = useCallback(
+    (signal: AbortSignal) =>
+      deviceService.getCohortSites({ cohort_ids: cohortIds }, params, signal),
+    [cohortIds, params]
   );
+  const fetchCohortSites = useAbortableFetcher(cohortSitesFetcher);
+
+  const result = useSWR<CohortSitesResponse>(key, fetchCohortSites, {
+    ...SWR_STABLE_REQUEST_OPTIONS,
+    isPaused: () => cohortsLoading,
+  });
+  const resolvedError = isAbortError(result.error) ? null : result.error;
 
   return {
     ...result,
+    error: resolvedError,
     isLoading: result.isLoading || cohortsLoading,
     cohortIds,
   };
@@ -80,17 +120,22 @@ const useCohortDevicesQuery = (
     ? ['cohort/devices/active-group', cohortIds, params]
     : null;
 
-  const result = useSWR<CohortDevicesResponse>(
-    key,
-    () => deviceService.getCohortDevices({ cohort_ids: cohortIds }, params),
-    {
-      ...SWR_STABLE_REQUEST_OPTIONS,
-      isPaused: () => cohortsLoading,
-    }
+  const cohortDevicesFetcher = useCallback(
+    (signal: AbortSignal) =>
+      deviceService.getCohortDevices({ cohort_ids: cohortIds }, params, signal),
+    [cohortIds, params]
   );
+  const fetchCohortDevices = useAbortableFetcher(cohortDevicesFetcher);
+
+  const result = useSWR<CohortDevicesResponse>(key, fetchCohortDevices, {
+    ...SWR_STABLE_REQUEST_OPTIONS,
+    isPaused: () => cohortsLoading,
+  });
+  const resolvedError = isAbortError(result.error) ? null : result.error;
 
   return {
     ...result,
+    error: resolvedError,
     isLoading: result.isLoading || cohortsLoading,
     cohortIds,
   };
@@ -102,12 +147,15 @@ export const useSitesSummary = (
   enabled = true
 ) => {
   const key = enabled ? ['sites/summary', params] : null;
-
-  return useSWR<SitesSummaryResponse>(
-    key,
-    () => deviceService.getSitesSummaryAuthenticated(params),
-    SWR_STABLE_REQUEST_OPTIONS
+  const fetcher = useAbortableFetcher(
+    useCallback(
+      (signal: AbortSignal) =>
+        deviceService.getSitesSummaryAuthenticated(params, signal),
+      [params]
+    )
   );
+
+  return useSWR<SitesSummaryResponse>(key, fetcher, SWR_STABLE_REQUEST_OPTIONS);
 };
 
 // Token-based sites summary hook
@@ -116,12 +164,15 @@ export const useSitesSummaryWithToken = (
   enabled = true
 ) => {
   const key = enabled ? ['sites/summary/token', params] : null;
-
-  return useSWR<SitesSummaryResponse>(
-    key,
-    () => deviceService.getSitesSummaryWithToken(params),
-    SWR_STABLE_REQUEST_OPTIONS
+  const fetcher = useAbortableFetcher(
+    useCallback(
+      (signal: AbortSignal) =>
+        deviceService.getSitesSummaryWithToken(params, signal),
+      [params]
+    )
   );
+
+  return useSWR<SitesSummaryResponse>(key, fetcher, SWR_STABLE_REQUEST_OPTIONS);
 };
 
 // Authenticated grids summary hook
@@ -131,12 +182,15 @@ export const useGridsSummary = (
   enabled = true
 ) => {
   const key = enabled ? ['grids/summary', params, cohort_id] : null;
-
-  return useSWR<GridsSummaryResponse>(
-    key,
-    () => deviceService.getGridsSummaryAuthenticated(params, cohort_id),
-    SWR_STABLE_REQUEST_OPTIONS
+  const fetcher = useAbortableFetcher(
+    useCallback(
+      (signal: AbortSignal) =>
+        deviceService.getGridsSummaryAuthenticated(params, cohort_id, signal),
+      [params, cohort_id]
+    )
   );
+
+  return useSWR<GridsSummaryResponse>(key, fetcher, SWR_STABLE_REQUEST_OPTIONS);
 };
 
 // Token-based grids summary hook
@@ -146,12 +200,15 @@ export const useGridsSummaryWithToken = (
   enabled = true
 ) => {
   const key = enabled ? ['grids/summary/token', params, cohort_id] : null;
-
-  return useSWR<GridsSummaryResponse>(
-    key,
-    () => deviceService.getGridsSummaryWithToken(params, cohort_id),
-    SWR_STABLE_REQUEST_OPTIONS
+  const fetcher = useAbortableFetcher(
+    useCallback(
+      (signal: AbortSignal) =>
+        deviceService.getGridsSummaryWithToken(params, cohort_id, signal),
+      [params, cohort_id]
+    )
   );
+
+  return useSWR<GridsSummaryResponse>(key, fetcher, SWR_STABLE_REQUEST_OPTIONS);
 };
 
 // Cohort sites hook
@@ -160,13 +217,25 @@ export const useCohortSites = (
   params: CohortSitesParams = {},
   enabled = true
 ) => {
-  return useSWR<CohortSitesResponse>(
+  const cohortSitesFetcher = useCallback(
+    (signal: AbortSignal) =>
+      deviceService.getCohortSites({ cohort_ids: cohortIds }, params, signal),
+    [cohortIds, params]
+  );
+  const fetchCohortSites = useAbortableFetcher(cohortSitesFetcher);
+
+  const result = useSWR<CohortSitesResponse>(
     enabled && cohortIds.length > 0
       ? ['cohort/sites', cohortIds, params]
       : null,
-    () => deviceService.getCohortSites({ cohort_ids: cohortIds }, params),
+    fetchCohortSites,
     SWR_STABLE_REQUEST_OPTIONS
   );
+
+  return {
+    ...result,
+    error: isAbortError(result.error) ? null : result.error,
+  };
 };
 
 // Enhanced cohort sites hook with automatic active group cohorts
@@ -199,31 +268,51 @@ export const useCohortDevices = (
   params: CohortDevicesParams = {},
   enabled = true
 ) => {
-  return useSWR<CohortDevicesResponse>(
+  const cohortDevicesFetcher = useCallback(
+    (signal: AbortSignal) =>
+      deviceService.getCohortDevices({ cohort_ids: cohortIds }, params, signal),
+    [cohortIds, params]
+  );
+  const fetchCohortDevices = useAbortableFetcher(cohortDevicesFetcher);
+
+  const result = useSWR<CohortDevicesResponse>(
     enabled && cohortIds.length > 0
       ? ['cohort/devices', cohortIds, params]
       : null,
-    () => deviceService.getCohortDevices({ cohort_ids: cohortIds }, params),
+    fetchCohortDevices,
     SWR_STABLE_REQUEST_OPTIONS
   );
+
+  return {
+    ...result,
+    error: isAbortError(result.error) ? null : result.error,
+  };
 };
 
 // Group cohorts hook
 export const useGroupCohorts = (groupId: string, enabled = true) => {
   const key = enabled && groupId ? ['group/cohorts', groupId] : null;
-
-  return useSWR<GroupCohortsResponse>(
-    key,
-    () => deviceService.getGroupCohorts(groupId),
-    SWR_STABLE_REQUEST_OPTIONS
+  const fetcher = useAbortableFetcher(
+    useCallback(
+      (signal: AbortSignal) => deviceService.getGroupCohorts(groupId, signal),
+      [groupId]
+    )
   );
+
+  return useSWR<GroupCohortsResponse>(key, fetcher, SWR_STABLE_REQUEST_OPTIONS);
 };
 
 // Cohort details hook
 export const useCohort = (cohortId: string, enabled = true) => {
   const key = enabled && cohortId ? ['cohort/details', cohortId] : null;
+  const fetcher = useAbortableFetcher(
+    useCallback(
+      (signal: AbortSignal) => deviceService.getCohort(cohortId, signal),
+      [cohortId]
+    )
+  );
 
-  return useSWR<CohortResponse>(key, () => deviceService.getCohort(cohortId), {
+  return useSWR<CohortResponse>(key, fetcher, {
     ...SWR_STABLE_REQUEST_OPTIONS,
   });
 };
@@ -257,7 +346,6 @@ export const useActiveGroupCohorts = (enabled = true) => {
   const dispatch = useDispatch();
   const activeGroup = useSelector(selectActiveGroup);
   const activeGroupCohorts = useSelector(selectActiveGroupCohorts);
-  const isLoading = useSelector(selectCohortsLoading);
   const error = useSelector(selectCohortsError);
   const lastFetchedGroupId = useSelector(selectLastFetchedGroupId);
   const previousGroupIdRef = useRef<string | null>(null);
@@ -271,50 +359,46 @@ export const useActiveGroupCohorts = (enabled = true) => {
     !!groupId && !!lastFetchedGroupId && lastFetchedGroupId !== groupId;
   const shouldFetch =
     enabled && ((!!groupId && !lastFetchedGroupId) || hasStaleCohortsForGroup);
+  const fetchGroupCohorts = useAbortableFetcher(
+    useCallback(
+      (signal: AbortSignal) => deviceService.getGroupCohorts(groupId!, signal),
+      [groupId]
+    )
+  );
 
   useEffect(() => {
     const previousGroupId = previousGroupIdRef.current;
     previousGroupIdRef.current = groupId ?? null;
 
     if (!groupId) {
-      if (activeGroupCohorts.length > 0 || lastFetchedGroupId) {
-        dispatch(clearCohorts());
-      }
+      dispatch(clearCohorts());
       return;
     }
 
     if (previousGroupId && previousGroupId !== groupId) {
       dispatch(clearCohorts());
     }
-  }, [groupId, activeGroupCohorts.length, lastFetchedGroupId, dispatch]);
+    // Intentionally omit activeGroupCohorts.length and lastFetchedGroupId from
+    // deps: those Redux updates must not re-run this effect or it would clear
+    // cohorts immediately after they are populated by onSuccess.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupId, dispatch]);
 
   // Fetch cohorts for active group
   const { error: swrError, isLoading: swrIsLoading } =
     useSWR<GroupCohortsResponse>(
       shouldFetch ? ['group/cohorts', groupId] : null,
-      () => deviceService.getGroupCohorts(groupId!),
+      fetchGroupCohorts,
       {
         ...SWR_STABLE_REQUEST_OPTIONS,
         dedupingInterval: 30000, // Cache for 30 seconds
-        onLoadingSlow: () => {
-          if (!enabled || latestGroupIdRef.current !== groupId) {
-            return;
-          }
-          dispatch(setCohortsLoading(true));
-        },
         onSuccess: data => {
           if (!enabled || !groupId || latestGroupIdRef.current !== groupId) {
             return;
           }
 
           if (data?.success) {
-            const normalizedCohortIds = Array.from(
-              new Set(
-                (Array.isArray(data.data) ? data.data : [])
-                  .map(cohortId => cohortId?.trim())
-                  .filter((cohortId): cohortId is string => Boolean(cohortId))
-              )
-            );
+            const normalizedCohortIds = normalizeCohortIds(data.data);
 
             dispatch(
               setActiveGroupCohorts({
@@ -348,9 +432,7 @@ export const useActiveGroupCohorts = (enabled = true) => {
   return {
     cohortIds: resolvedCohortIds,
     isLoading: enabled
-      ? isLoading ||
-        (Boolean(groupId) && swrIsLoading) ||
-        (hasPendingGroup && !hasCohortError)
+      ? swrIsLoading || (hasPendingGroup && !hasCohortError)
       : false,
     error: resolvedError,
     refetch: () => {

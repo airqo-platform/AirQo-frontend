@@ -1,4 +1,6 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect, useState } from 'react';
 
 // ============================================================================
 // LoadingOverlay Component
@@ -17,19 +19,44 @@ interface LoadingOverlayProps {
    * Background opacity (0-1)
    */
   opacity?: number;
+  /**
+   * Delay (ms) before showing to reduce flicker on fast transitions
+   */
+  delayMs?: number;
 }
 
 const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
   isVisible = true,
   className = '',
-  opacity = 0.5,
+  opacity = 0.2,
+  delayMs = 120,
 }) => {
-  if (!isVisible) return null;
+  const [shouldRender, setShouldRender] = useState(isVisible && delayMs === 0);
+
+  useEffect(() => {
+    if (!isVisible) {
+      setShouldRender(false);
+      return;
+    }
+
+    if (delayMs === 0) {
+      setShouldRender(true);
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setShouldRender(true);
+    }, delayMs);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [delayMs, isVisible]);
+
+  if (!shouldRender) return null;
 
   return (
     <div
-      className={`fixed inset-0 bg-white flex items-center justify-center z-50 ${className}`}
-      style={{ backgroundColor: `rgba(255, 255, 255, ${opacity})` }}
+      className={`fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm transition-opacity ${className}`}
+      style={{ backgroundColor: `rgba(248, 250, 252, ${opacity})` }}
       role="status"
       aria-live="polite"
     >
