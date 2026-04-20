@@ -5,8 +5,12 @@ import { TbMenu2 } from 'react-icons/tb';
 
 import NetworkCoverageNavDrawer from './NetworkCoverageNavDrawer';
 
-const INTRO_TEXT =
-  'Spanning 54 nations across Africa, this platform provides a unified view of the continent’s air quality monitoring landscape. It integrates low-cost sensors deployed in urban communities with high-precision reference stations at strategic research locations, offering both scale and technical depth. Users can explore the geographic distribution of monitoring stations by country, identify active coverage, and understand the types of instrumentation in use. Designed to support evidence-based planning, collaboration, and environmental stewardship, the platform presents a structured and comprehensive overview of Africa’s air quality monitoring infrastructure.';
+const PAGE_TITLE = 'Air Quality Monitoring Landscape in Africa';
+
+const INTRO_PARAGRAPHS = [
+  'This platform provides a unified view of Africa’s air quality monitoring landscape. It integrates metadata on monitoring initiatives across Africa, combining both low-cost sensors and high-precision reference monitors installed in Africa. Users can explore the geographic distribution of monitoring stations by country, identify active coverage, understand the types of instrumentation in use, and the institutional stewardship for each monitoring location.',
+  'By offering a structured and comprehensive overview of Africa’s air quality monitoring capacity, the platform seeks to incentivise collaboration towards scaling the development of open data infrastructure',
+];
 
 interface NetworkCoverageHeaderProps {
   onDownload: () => void;
@@ -19,7 +23,6 @@ const NetworkCoverageHeader: React.FC<NetworkCoverageHeaderProps> = ({
 }) => {
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
   const [navDrawerOpen, setNavDrawerOpen] = useState(false);
-  const [introExpanded, setIntroExpanded] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -41,14 +44,14 @@ const NetworkCoverageHeader: React.FC<NetworkCoverageHeaderProps> = ({
         onClose={() => setNavDrawerOpen(false)}
       />
 
-      <header className="flex-shrink-0 overflow-visible lg:overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <header className="flex-shrink-0 overflow-visible rounded-xl border border-slate-300 bg-white shadow-sm lg:overflow-hidden">
         {/* ── Top control bar ── */}
         <div className="flex items-center gap-2 px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3">
           {/* Hamburger for global nav drawer */}
           <button
             type="button"
             onClick={() => setNavDrawerOpen(true)}
-            className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-lg text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+            className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-lg text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-950"
             aria-label="Open site navigation"
           >
             <TbMenu2 className="h-5 w-5" />
@@ -57,8 +60,8 @@ const NetworkCoverageHeader: React.FC<NetworkCoverageHeaderProps> = ({
           {/* AirQo logo removed for Network Coverage page */}
 
           {/* Title */}
-          <h1 className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-900 sm:text-base lg:text-lg">
-            Africa Air Quality Monitoring Network Coverage
+          <h1 className="min-w-0 flex-1 truncate text-lg font-bold tracking-tight text-black sm:text-xl lg:text-2xl">
+            {PAGE_TITLE}
           </h1>
 
           {/* Mobile sidebar toggle moved into the map for absolute positioning */}
@@ -69,10 +72,10 @@ const NetworkCoverageHeader: React.FC<NetworkCoverageHeaderProps> = ({
               type="button"
               disabled={isDownloading}
               onClick={() => !isDownloading && setShowDownloadMenu((p) => !p)}
-              className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all sm:px-4 sm:text-sm ${
+              className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold shadow-sm transition-all sm:px-4 sm:text-sm ${
                 isDownloading
-                  ? 'cursor-not-allowed border-blue-300 bg-white text-blue-400'
-                  : 'border-blue-700 bg-white text-blue-700 hover:bg-blue-50 active:bg-blue-100'
+                  ? 'cursor-not-allowed border-blue-300 bg-blue-100 text-blue-400'
+                  : 'border-blue-700 bg-blue-700 text-white hover:bg-blue-800 active:bg-blue-900'
               }`}
             >
               {isDownloading ? (
@@ -99,7 +102,7 @@ const NetworkCoverageHeader: React.FC<NetworkCoverageHeaderProps> = ({
                 <AqDownload01 className="h-4 w-4" />
               )}
               <span className="hidden sm:inline">
-                {isDownloading ? 'Preparing...' : 'Download data'}
+                {isDownloading ? 'Preparing...' : 'Download report'}
               </span>
               <span className="sm:hidden">
                 {isDownloading ? '...' : 'Download'}
@@ -108,7 +111,7 @@ const NetworkCoverageHeader: React.FC<NetworkCoverageHeaderProps> = ({
             </button>
 
             {showDownloadMenu && !isDownloading && (
-              <div className="absolute right-0 z-40 mt-2 w-44 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+              <div className="absolute right-0 z-40 mt-2 w-48 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
                 <div className="p-1.5">
                   <button
                     type="button"
@@ -118,7 +121,7 @@ const NetworkCoverageHeader: React.FC<NetworkCoverageHeaderProps> = ({
                     }}
                     className="mt-1 w-full rounded-md px-3 py-2 text-left text-sm font-semibold text-slate-800 hover:bg-slate-50"
                   >
-                    Export as PDF
+                    Export PDF report
                   </button>
                 </div>
               </div>
@@ -127,22 +130,17 @@ const NetworkCoverageHeader: React.FC<NetworkCoverageHeaderProps> = ({
         </div>
 
         {/* ── Intro text strip (hidden on very small screens) ── */}
-        <div className="hidden border-t border-slate-100 bg-gradient-to-r from-blue-50/80 via-sky-50/60 to-transparent px-4 py-2.5 sm:block sm:px-5 sm:py-3">
-          <p
-            className={`text-xs leading-relaxed text-slate-600 sm:text-[13px] transition-all duration-300 ${
-              introExpanded ? '' : 'line-clamp-2 lg:line-clamp-none'
-            }`}
-          >
-            {INTRO_TEXT}
-          </p>
-          {/* Toggle only visible on sm–md where text is clamped */}
-          <button
-            type="button"
-            onClick={() => setIntroExpanded((p) => !p)}
-            className="mt-1 text-xs font-semibold text-blue-600 hover:text-blue-800 lg:hidden"
-          >
-            {introExpanded ? 'Show less' : 'Read more'}
-          </button>
+        <div className="hidden border-t border-slate-200 bg-white px-4 py-3 sm:block sm:px-5 sm:py-3.5">
+          <div className="w-full space-y-3">
+            {INTRO_PARAGRAPHS.map((paragraph) => (
+              <p
+                key={paragraph}
+                className="text-[14px] leading-6 text-black sm:text-[15px] sm:leading-7"
+              >
+                {paragraph}
+              </p>
+            ))}
+          </div>
         </div>
       </header>
     </>

@@ -9,6 +9,7 @@ import { ReactNode, Suspense, lazy } from 'react';
 import CookieConsent from '@/components/CookieConsent';
 import ExternalLinkDecorator from '@/components/ExternalLinkDecorator';
 import GoogleTranslate from '@/components/GoogleTranslate';
+import GoogleAnalytics from '@/components/GoogleAnalytics';
 import { ErrorBoundary } from '@/components/ui';
 import { ReduxDataProvider } from '@/context/ReduxDataProvider';
 import { QueryProvider } from '@/services/providers/QueryProvider';
@@ -21,6 +22,12 @@ const EngagementDialog = lazy(
 const FloatingMiniBillboardWrapper = lazy(
   () => import('@/components/FloatingMiniBillboardWrapper'),
 );
+
+const normalizedSiteUrl = (
+  process.env.SITE_URL ??
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  'https://airqo.net'
+).replace(/\/$/, '');
 
 const interFont = localFont({
   src: [
@@ -50,9 +57,7 @@ const interFont = localFont({
 
 // Default metadata - will be overridden by page-specific metadata
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://airqo.net',
-  ),
+  metadataBase: new URL(normalizedSiteUrl),
   title: {
     default: 'AirQo | Bridging the Air Quality Data Gap in Africa',
     template: '%s | AirQo',
@@ -134,16 +139,12 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical:
-      process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ||
-      'https://airqo.net',
+    canonical: normalizedSiteUrl,
   },
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url:
-      process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ||
-      'https://airqo.net',
+    url: normalizedSiteUrl,
     siteName: 'AirQo',
     title:
       'AirQo | Air Quality Monitoring Uganda, Kenya, Nigeria - Real-time Data',
@@ -194,9 +195,7 @@ export default async function RootLayout({
 }: {
   children: ReactNode;
 }) {
-  const GA_ID = 'G-79ZVCLEDSG';
-  const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://airqo.net/';
-  const siteUrl = rawSiteUrl.replace(/\/$/, '') + '/';
+  const siteUrl = `${normalizedSiteUrl}/`;
 
   // Maintenance check removed to avoid hydration and chunk loading issues
 
@@ -245,7 +244,6 @@ export default async function RootLayout({
       },
       {
         '@type': 'Country',
-        name: 'Kenya',
       },
       {
         '@type': 'Country',
@@ -335,27 +333,15 @@ export default async function RootLayout({
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
-
-        {/* Google Analytics */}
-        <Script
-          src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
-          strategy="afterInteractive"
-        />
-        <Script id="ga-init" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){ dataLayer.push(arguments); }
-            gtag('js', new Date());
-            gtag('config', '${GA_ID}', {
-              page_path: window.location.pathname,
-              send_page_view: true
-            });
-          `}
-        </Script>
       </head>
       <body>
         <GoogleTranslate />
         <ExternalLinkDecorator />
+        <Suspense fallback={null}>
+          <GoogleAnalytics
+            measurementId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}
+          />
+        </Suspense>
         <ErrorBoundary>
           <ReduxDataProvider>
             <QueryProvider>

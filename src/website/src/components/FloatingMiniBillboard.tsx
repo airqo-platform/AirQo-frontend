@@ -75,7 +75,9 @@ export default function FloatingMiniBillboard({
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [isCompact, setIsCompact] = useState(false);
-  const intervalRef = useRef<NodeJS.Timeout>();
+  const intervalRef = useRef<number | null>(null);
+  const advanceTimeoutRef = useRef<number | null>(null);
+  const transitionTimeoutRef = useRef<number | null>(null);
 
   // Get current grid from rotation
   const currentItem = initialData?.[currentGridIndex];
@@ -146,14 +148,32 @@ export default function FloatingMiniBillboard({
   useEffect(() => {
     if (!isVisible || !initialData?.length) return;
 
+    const clearScheduledTimeouts = () => {
+      if (advanceTimeoutRef.current) {
+        clearTimeout(advanceTimeoutRef.current);
+        advanceTimeoutRef.current = null;
+      }
+
+      if (transitionTimeoutRef.current) {
+        clearTimeout(transitionTimeoutRef.current);
+        transitionTimeoutRef.current = null;
+      }
+    };
+
+    clearScheduledTimeouts();
+
     // Set up rotation interval
-    intervalRef.current = setInterval(() => {
+    intervalRef.current = window.setInterval(() => {
       setIsTransitioning(true);
       // Delay index change for fade out effect
-      setTimeout(() => {
-        setCurrentGridIndex((prev) => (prev + 1) % (initialData?.length || 1));
+      advanceTimeoutRef.current = window.setTimeout(() => {
+        setCurrentGridIndex((prev) => (prev + 1) % initialData.length);
+        advanceTimeoutRef.current = null;
         // Fade back in
-        setTimeout(() => setIsTransitioning(false), 100);
+        transitionTimeoutRef.current = window.setTimeout(() => {
+          setIsTransitioning(false);
+          transitionTimeoutRef.current = null;
+        }, 100);
       }, 300);
     }, ROTATION_INTERVAL);
 
@@ -161,7 +181,10 @@ export default function FloatingMiniBillboard({
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
+
+      clearScheduledTimeouts();
     };
   }, [isVisible, initialData?.length]);
 

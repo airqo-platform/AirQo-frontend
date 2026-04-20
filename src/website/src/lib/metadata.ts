@@ -83,10 +83,9 @@ const compact = (obj: Record<string, any>) =>
 
 // Enhanced logging utilities with environment checks
 const isDev = process.env.NODE_ENV === 'development';
-const isDebugMode = process.env.NEXT_PUBLIC_DEBUG_METADATA === 'true';
 
 const logDebug = (...args: any[]): void => {
-  if (isDev && isDebugMode) {
+  if (isDev) {
     console.log('[AirQo Metadata]', ...args);
   }
 };
@@ -170,10 +169,8 @@ const getCurrentDomain = (): string => {
   // Method 2: Environment variable detection
   if (!detectedDomain) {
     const envUrls = [
-      process.env.NEXT_PUBLIC_SITE_URL,
-      process.env.NEXT_PUBLIC_DOMAIN,
       process.env.SITE_URL,
-      process.env.DOMAIN,
+      process.env.NEXT_PUBLIC_SITE_URL,
     ].filter(Boolean);
 
     for (const envUrl of envUrls) {
@@ -198,7 +195,6 @@ const getCurrentDomain = (): string => {
       process.env.VERCEL_URL,
       process.env.RAILWAY_PUBLIC_DOMAIN,
       process.env.RENDER_EXTERNAL_URL,
-      process.env.NEXT_PUBLIC_VERCEL_URL,
     ].filter(Boolean);
 
     for (const host of platformVars) {
@@ -438,15 +434,8 @@ export function generateMetadata(config: MetadataConfig): Metadata {
 
     // Additional metadata for enhanced SEO and social sharing
     other: compact({
-      // Facebook specific
-      'fb:app_id': process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || '',
-      'fb:pages': process.env.NEXT_PUBLIC_FACEBOOK_PAGE_ID || '',
-
       // LinkedIn specific
       'article:publisher': 'https://www.linkedin.com/company/airqo/',
-
-      // Pinterest
-      'p:domain_verify': process.env.NEXT_PUBLIC_PINTEREST_DOMAIN_VERIFY || '',
 
       // Twitter additional
       'twitter:domain': socialDomain.replace('https://', ''),
@@ -468,12 +457,6 @@ export function generateMetadata(config: MetadataConfig): Metadata {
       'mobile-web-app-capable': 'yes',
       'application-name': 'AirQo',
 
-      // Additional SEO / verification
-      'google-site-verification':
-        process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || '',
-      'yandex-verification': process.env.NEXT_PUBLIC_YANDEX_VERIFICATION || '',
-      'bing-verification': process.env.NEXT_PUBLIC_BING_VERIFICATION || '',
-
       // Content Security
       referrer: 'origin-when-cross-origin',
       'format-detection': 'telephone=no',
@@ -483,27 +466,7 @@ export function generateMetadata(config: MetadataConfig): Metadata {
 
     // Verification tokens
     verification: {
-      google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
-      yandex: process.env.NEXT_PUBLIC_YANDEX_VERIFICATION,
-      me: process.env.NEXT_PUBLIC_WEBMASTER_VERIFICATION,
-    },
-
-    // App links for mobile apps
-    appLinks: {
-      ios: {
-        url: fullUrl,
-        app_store_id: process.env.NEXT_PUBLIC_IOS_APP_ID || '',
-        app_name: 'AirQo',
-      },
-      android: {
-        package: process.env.NEXT_PUBLIC_ANDROID_PACKAGE || 'com.airqo.app',
-        app_name: 'AirQo',
-        url: fullUrl,
-      },
-      web: {
-        url: fullUrl,
-        should_fallback: true,
-      },
+      google: process.env.GOOGLE_SITE_VERIFICATION,
     },
 
     // Additional metadata
@@ -725,16 +688,15 @@ export const METADATA_CONFIGS = {
     },
   },
   solutionsNetworkCoverage: {
-    title:
-      'Africa Air Sensor Network | AirQo — Coverage Map, Sensors & Real-Time Data',
+    title: 'Air Quality Monitoring Landscape in Africa',
     description:
-      'Discover the Africa Air Sensor Network: an interactive coverage map of AirQo sensors and monitoring stations across African countries. Find real-time PM2.5 measurements, station locations, and sensor metadata for researchers, policymakers, and developers. Source for air sensor networks in Africa — Kampala, Nairobi, Lagos, Accra and more.',
+      'This platform provides a unified view of Africa’s air quality monitoring landscape. It integrates metadata on monitoring initiatives across Africa, combining both low-cost sensors and high-precision reference monitors installed in Africa. Users can explore geographic distribution, active coverage, instrumentation, and institutional stewardship across the continent.',
     keywords:
-      'Africa air sensor network, air quality sensors Africa, air sensor network map, PM2.5 monitors Africa, air quality monitoring stations, Africa sensor data, environmental sensors Africa, AirQo network, real-time air quality Africa, sensor network coverage map, African air monitoring, Kampala air sensors, Nairobi air sensors, Lagos air sensors, Accra air sensors, air quality infrastructure Africa',
+      'Africa air quality monitoring landscape, air quality monitoring Africa, reference monitors Africa, low-cost sensors Africa, air monitoring stations, monitoring network coverage map, African air monitoring infrastructure, environmental sensors Africa, AirQo network, monitoring station locations Africa',
     url: '/solutions/network-coverage',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png',
-      alt: 'Africa Air Sensor Network - Coverage Map & Sensor Locations',
+      alt: 'Air Quality Monitoring Landscape in Africa - Coverage Map & Sensor Locations',
       width: 1200,
       height: 630,
       type: 'image/png',

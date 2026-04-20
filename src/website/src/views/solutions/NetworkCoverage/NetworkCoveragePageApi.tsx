@@ -5,7 +5,13 @@ import { AqLoading02 } from '@airqo/icons-react';
 import { FiMenu } from 'react-icons/fi';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import { MapLoader } from '@/components/map';
 import {
@@ -60,6 +66,38 @@ const buildPdfFileName = (scope: string) => {
   return `network-coverage-${normalizedScope}-${dateSuffix}.pdf`;
 };
 
+const displayText = (value?: string | null) =>
+  value && value.trim() ? value : '--';
+
+const captureWithTimeout = async <T,>(
+  factory: () => Promise<T>,
+  timeoutMs: number,
+  fallback: T,
+): Promise<T> => {
+  if (typeof window === 'undefined') {
+    return fallback;
+  }
+
+  let timeoutId: number | undefined;
+
+  try {
+    const timeoutPromise = new Promise<T>((resolve) => {
+      timeoutId = window.setTimeout(() => resolve(fallback), timeoutMs);
+    });
+
+    return await Promise.race([
+      Promise.resolve()
+        .then(factory)
+        .catch(() => fallback),
+      timeoutPromise,
+    ]);
+  } finally {
+    if (timeoutId !== undefined) {
+      window.clearTimeout(timeoutId);
+    }
+  }
+};
+
 const NetworkCoveragePage = () => {
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
@@ -86,6 +124,8 @@ const NetworkCoveragePage = () => {
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [flyToMonitorId, setFlyToMonitorId] = useState<string | null>(null);
   const snapshotGetterRef = useRef<(() => Promise<string | null>) | null>(null);
+  const isMountedRef = useRef(true);
+  const exportInProgressRef = useRef(false);
   const queryClient = useQueryClient();
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -102,6 +142,12 @@ const NetworkCoveragePage = () => {
 
     return () => window.clearTimeout(timeout);
   }, [query]);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     setMapStyle(
@@ -382,9 +428,15 @@ const NetworkCoveragePage = () => {
     setAddDialogCountry(null);
   };
 
-  const getPdfRows = async () => {
+  const resolveExportCountries = async (): Promise<
+    NetworkCoverageCountry[]
+  > => {
     if (!selectedCountryId) {
-      return countries.flatMap((country) => country.monitors);
+      return countries;
+    }
+
+    if (selectedCountry) {
+      return [selectedCountry];
     }
 
     const response =
@@ -398,8 +450,22 @@ const NetworkCoveragePage = () => {
         },
       );
 
-    return response.monitors;
+    return [
+      {
+        id: response.countryId || selectedCountryId,
+        country: response.country,
+        iso2: response.iso2,
+        monitors: response.monitors,
+      },
+    ];
   };
+
+  const handleRegisterSnapshot = useCallback(
+    (fn: (() => Promise<string | null>) | null) => {
+      snapshotGetterRef.current = fn;
+    },
+    [],
+  );
 
   const getTypeLabel = (type: string) => {
     if (!type) return type;
@@ -409,17 +475,40 @@ const NetworkCoveragePage = () => {
   };
 
   const downloadPdf = async () => {
-    setIsDownloading(true);
-    setDownloadError(null);
+    if (exportInProgressRef.current) {
+      return;
+    }
+
+    exportInProgressRef.current = true;
+    if (isMountedRef.current) {
+      setIsDownloading(true);
+      setDownloadError(null);
+    }
 
     try {
-      const rows = await getPdfRows();
+      const exportCountries = await resolveExportCountries();
       const scopeText =
         selectedCountry?.country ??
-        selectedCountryId ??
+        exportCountries[0]?.country ??
         'All monitored countries';
       const scopeLabel =
         selectedCountry?.country ?? selectedCountryId ?? 'all-countries';
+      const totalMonitors = exportCountries.reduce(
+        (sum, country) => sum + country.monitors.length,
+        0,
+      );
+      const countriesWithMonitors = exportCountries.filter(
+        (country) => country.monitors.length > 0,
+      );
+      const countrySummaryRows = exportCountries.map((country) => [
+        country.country,
+        country.iso2 || '--',
+        String(country.monitors.length),
+        String(
+          country.monitors.filter((monitor) => monitor.status === 'active')
+            .length,
+        ),
+      ]);
 
       const doc = new jsPDF({
         orientation: 'landscape',
@@ -427,30 +516,77 @@ const NetworkCoveragePage = () => {
         format: 'a4',
       });
       const PAGE_W = 297; // A4 landscape
+      const PAGE_H = 210;
       const MARGIN = 14;
       const CONTENT_W = PAGE_W - MARGIN * 2; // 269 mm
+      const HEADER_H = 18;
+      const FOOTER_Y = PAGE_H - 8;
 
       // ── Document metadata ────────────────────────────────────────────────
       doc.setProperties({
-        title: 'Africa Air Quality Monitoring Network Coverage Report',
-        subject: 'Network coverage monitors export',
+        title: 'Air Quality Monitoring Landscape in Africa Report',
+        subject: 'Air quality monitoring landscape export',
         author: 'Africa Air Quality Monitoring Network',
       });
 
       // ── Dark navy header banner ──────────────────────────────────────────
       const NAVY: [number, number, number] = [12, 28, 90];
-      const HEADER_H = 18;
-      doc.setFillColor(...NAVY);
-      doc.rect(0, 0, PAGE_W, HEADER_H, 'F');
 
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(13);
-      doc.setTextColor(255, 255, 255);
-      doc.text(
-        'Africa Air Quality Monitoring - Network Coverage Report',
-        MARGIN,
-        12,
-      );
+      const formatExportCoordinates = (monitor: {
+        latitude: number | null;
+        longitude: number | null;
+      }) => {
+        if (
+          typeof monitor.latitude !== 'number' ||
+          typeof monitor.longitude !== 'number'
+        ) {
+          return '--';
+        }
+
+        if (
+          !Number.isFinite(monitor.latitude) ||
+          !Number.isFinite(monitor.longitude)
+        ) {
+          return '--';
+        }
+
+        const latitude = `${Math.abs(monitor.latitude).toFixed(4)}°${monitor.latitude < 0 ? 'S' : 'N'}`;
+        const longitude = `${Math.abs(monitor.longitude).toFixed(4)}°${monitor.longitude < 0 ? 'W' : 'E'}`;
+        return `${latitude}, ${longitude}`;
+      };
+
+      const drawFooter = () => {
+        const currentPage =
+          (doc as any).getCurrentPageInfo?.().pageNumber ??
+          doc.getNumberOfPages();
+        doc.setDrawColor(180, 185, 210);
+        doc.setLineWidth(0.3);
+        doc.line(MARGIN, FOOTER_Y - 2, PAGE_W - MARGIN, FOOTER_Y - 2);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7);
+        doc.setTextColor(120, 130, 160);
+        doc.text('AirQo Network Coverage', MARGIN, FOOTER_Y);
+        doc.text(`Page ${currentPage}`, PAGE_W - MARGIN, FOOTER_Y, {
+          align: 'right',
+        });
+      };
+
+      const drawHeader = (titleText: string, subtitleText?: string) => {
+        doc.setFillColor(...NAVY);
+        doc.rect(0, 0, PAGE_W, HEADER_H, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(13);
+        doc.setTextColor(255, 255, 255);
+        doc.text(titleText, MARGIN, 12);
+        if (subtitleText) {
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(8);
+          doc.setTextColor(180, 200, 255);
+          doc.text(subtitleText, MARGIN, 16);
+        }
+      };
+
+      drawHeader('Air Quality Monitoring Landscape in Africa');
 
       // ── Light metadata strip ──────────────────────────────────────────────
       const STRIP_Y = HEADER_H; // immediately below header — no gap
@@ -466,42 +602,26 @@ const NetworkCoveragePage = () => {
       doc.text(metaLine, MARGIN, STRIP_Y + 6);
 
       // ── Build statistics ──────────────────────────────────────────────────
-      const totalMonitors = rows.length;
       const uniqueCountries = new Set(
-        rows.map((r) => r.country).filter(Boolean),
+        exportCountries
+          .filter((country) => country.monitors.length > 0)
+          .map((country) => country.country)
+          .filter(Boolean),
       );
       const countriesMonitored = uniqueCountries.size;
-      const totalAfricanCountries = AFRICAN_COUNTRY_LIST.length;
+      const countriesInReport = exportCountries.length;
 
       const countsByType: Record<string, number> = { Reference: 0, LCS: 0 };
       const countsByStatus: Record<string, number> = { active: 0, inactive: 0 };
-      const monitorsByCountry: Record<
-        string,
-        { iso2?: string; country: string; count: number }
-      > = {};
-
-      rows.forEach((m) => {
-        const t = m.type || 'LCS';
-        countsByType[t] = (countsByType[t] || 0) + 1;
-        const s = m.status || 'active';
-        countsByStatus[s] = (countsByStatus[s] || 0) + 1;
-        const key = (m.country || m.iso2 || 'Unknown').toString();
-        if (!monitorsByCountry[key]) {
-          monitorsByCountry[key] = {
-            iso2: m.iso2,
-            country: m.country || key,
-            count: 0,
-          };
-        }
-        monitorsByCountry[key].count += 1;
+      exportCountries.forEach((country) => {
+        country.monitors.forEach((monitor) => {
+          const type = monitor.type || 'LCS';
+          countsByType[type] = (countsByType[type] || 0) + 1;
+          const status = monitor.status || 'active';
+          countsByStatus[status] = (countsByStatus[status] || 0) + 1;
+        });
       });
 
-      // All countries sorted by monitor count — no truncation
-      const topCountries = Object.values(monitorsByCountry).sort(
-        (a, b) => b.count - a.count,
-      );
-
-      // ── Single-column layout: summary above, countries list below ──────
       const BODY_Y = STRIP_Y + STRIP_H + 6;
       const SECTION_HEAD_COLOR: [number, number, number] = NAVY;
       const ALT_ROW: [number, number, number] = [245, 247, 252];
@@ -513,13 +633,8 @@ const NetworkCoveragePage = () => {
 
       const summaryBody: string[][] = [];
       summaryBody.push(['Total monitors', String(totalMonitors)]);
-      // Omit 'Countries covered' when a single country is selected
-      if (!selectedCountryId) {
-        summaryBody.push([
-          'Countries covered',
-          `${countriesMonitored} / ${totalAfricanCountries}`,
-        ]);
-      }
+      summaryBody.push(['Countries in report', String(countriesInReport)]);
+      summaryBody.push(['Countries with monitors', String(countriesMonitored)]);
       summaryBody.push([
         'Reference monitors',
         String(countsByType.Reference || 0),
@@ -534,7 +649,7 @@ const NetworkCoveragePage = () => {
         String(countsByStatus.inactive || 0),
       ]);
 
-      const summaryTable = autoTable(doc, {
+      autoTable(doc, {
         startY: BODY_Y,
         head: [['Metric', 'Value']],
         body: summaryBody,
@@ -551,20 +666,35 @@ const NetworkCoveragePage = () => {
           1: { cellWidth: CONTENT_W * 0.4, halign: 'right' },
         },
         margin: { left: MARGIN, right: MARGIN },
+        didDrawPage: () => drawFooter(),
       });
 
-      const startYForCountries = (summaryTable as any)?.finalY
-        ? (summaryTable as any).finalY + 8
-        : BODY_Y + 50;
+      let currentY = ((doc as any).lastAutoTable?.finalY ?? BODY_Y + 50) + 8;
+
+      if (currentY > PAGE_H - 55) {
+        doc.addPage('a4', 'landscape');
+        currentY = MARGIN;
+      }
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(15, 23, 42);
+      doc.text('Country summary', MARGIN, currentY);
+      currentY += 4.5;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(71, 85, 105);
+      doc.text(
+        'Monitor counts by country in the current report scope.',
+        MARGIN,
+        currentY,
+      );
+      currentY += 5;
 
       autoTable(doc, {
-        startY: startYForCountries,
-        head: [['Country', 'ISO', 'Monitors']],
-        body: topCountries.map((c) => [
-          c.country,
-          c.iso2 || '',
-          String(c.count),
-        ]),
+        startY: currentY,
+        head: [['Country', 'ISO', 'Monitors', 'Active']],
+        body: countrySummaryRows,
         theme: 'grid',
         styles: COMMON_STYLES,
         headStyles: {
@@ -574,52 +704,134 @@ const NetworkCoveragePage = () => {
         },
         alternateRowStyles: { fillColor: ALT_ROW },
         columnStyles: {
-          0: { cellWidth: CONTENT_W * 0.6 },
+          0: { cellWidth: CONTENT_W * 0.5 },
           1: { cellWidth: CONTENT_W * 0.15, halign: 'center' },
-          2: { cellWidth: CONTENT_W * 0.25, halign: 'right' },
+          2: { cellWidth: CONTENT_W * 0.175, halign: 'right' },
+          3: { cellWidth: CONTENT_W * 0.175, halign: 'right' },
         },
         margin: { left: MARGIN, right: MARGIN },
+        didDrawPage: () => drawFooter(),
       });
 
-      // ── Page 1 footer ────────────────────────────────────────────────────
-      const PAGE_H = 210; // A4 landscape height
-      const FOOTER_Y = PAGE_H - 8;
-      doc.setDrawColor(180, 185, 210);
-      doc.setLineWidth(0.3);
-      doc.line(MARGIN, FOOTER_Y - 2, PAGE_W - MARGIN, FOOTER_Y - 2);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(7);
-      doc.setTextColor(120, 130, 160);
-      doc.text('Africa Air Quality Monitoring Network', MARGIN, FOOTER_Y);
-      doc.text('Page 1', PAGE_W - MARGIN, FOOTER_Y, { align: 'right' });
+      currentY = ((doc as any).lastAutoTable?.finalY ?? currentY) + 8;
+
+      if (countriesWithMonitors.length > 0) {
+        if (currentY > PAGE_H - 55) {
+          doc.addPage('a4', 'landscape');
+          currentY = MARGIN;
+        }
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.setTextColor(15, 23, 42);
+        doc.text('Monitor inventory', MARGIN, currentY);
+        currentY += 4.5;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8.5);
+        doc.setTextColor(71, 85, 105);
+        doc.text(
+          'Each country section lists the devices, coordinates, and status for the selected scope.',
+          MARGIN,
+          currentY,
+        );
+        currentY += 5;
+
+        countriesWithMonitors.forEach((country) => {
+          if (currentY > PAGE_H - 55) {
+            doc.addPage('a4', 'landscape');
+            currentY = MARGIN;
+          }
+
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(10.5);
+          doc.setTextColor(15, 23, 42);
+          doc.text(
+            `${country.country} (${country.iso2 || '--'})`,
+            MARGIN,
+            currentY,
+          );
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(8);
+          doc.setTextColor(71, 85, 105);
+          doc.text(
+            `${country.monitors.length} monitor${country.monitors.length === 1 ? '' : 's'}`,
+            PAGE_W - MARGIN,
+            currentY,
+            { align: 'right' },
+          );
+          currentY += 4.5;
+
+          autoTable(doc, {
+            startY: currentY,
+            head: [
+              [
+                'Monitor',
+                'City',
+                'Type',
+                'Status',
+                'Coordinates',
+                'Manufacturer',
+              ],
+            ],
+            body: country.monitors.map((monitor) => [
+              monitor.name || '--',
+              monitor.city || '--',
+              getTypeLabel(monitor.type),
+              monitor.status === 'active' ? 'Active' : 'Inactive',
+              formatExportCoordinates(monitor),
+              displayText(monitor.manufacturer || monitor.organisation),
+            ]),
+            theme: 'grid',
+            styles: {
+              font: 'helvetica',
+              fontSize: 8.2,
+              cellPadding: 3,
+            },
+            headStyles: {
+              fillColor: SECTION_HEAD_COLOR,
+              textColor: 255,
+              fontStyle: 'bold',
+            },
+            alternateRowStyles: { fillColor: ALT_ROW },
+            columnStyles: {
+              0: { cellWidth: CONTENT_W * 0.25 },
+              1: { cellWidth: CONTENT_W * 0.14 },
+              2: { cellWidth: CONTENT_W * 0.14 },
+              3: { cellWidth: CONTENT_W * 0.12 },
+              4: { cellWidth: CONTENT_W * 0.21 },
+              5: { cellWidth: CONTENT_W * 0.14 },
+            },
+            margin: { left: MARGIN, right: MARGIN },
+            didDrawPage: () => drawFooter(),
+          });
+
+          currentY = ((doc as any).lastAutoTable?.finalY ?? currentY) + 8;
+        });
+      } else {
+        doc.setFont('helvetica', 'italic');
+        doc.setFontSize(9);
+        doc.setTextColor(100, 116, 139);
+        doc.text('No monitors match the current filters.', MARGIN, currentY);
+        currentY += 8;
+      }
 
       // ── Map snapshot on page 2 (only when available) ──────────────────
       try {
         if (snapshotGetterRef.current) {
           // Await async capture — html-to-image serialises both the WebGL
           // canvas AND the HTML marker overlay into one PNG.
-          const dataUrl = await snapshotGetterRef.current();
+          const dataUrl = await captureWithTimeout(
+            () => snapshotGetterRef.current?.() ?? Promise.resolve(null),
+            6000,
+            null,
+          );
           if (dataUrl && dataUrl.length > 100) {
             doc.addPage('a4', 'landscape');
 
             // Repeat header banner on page 2
-            doc.setFillColor(...NAVY);
-            doc.rect(0, 0, PAGE_W, HEADER_H, 'F');
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(12);
-            doc.setTextColor(255, 255, 255);
-            doc.text(
-              'Map Snapshot - Africa Air Quality Monitoring Network',
-              MARGIN,
-              10,
-            );
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(8);
-            doc.setTextColor(180, 200, 255);
-            doc.text(
-              `Scope: ${scopeText}  ·  ${formatPdfDateTime(new Date().toISOString())}`,
-              MARGIN,
-              16,
+            drawHeader(
+              'Map Snapshot - Air Quality Monitoring Landscape in Africa',
+              `Scope: ${scopeText}`,
             );
 
             // Full-width map image below header — preserve aspect ratio and center
@@ -649,14 +861,7 @@ const NetworkCoveragePage = () => {
             doc.addImage(dataUrl, 'PNG', targetX, IMG_Y, targetW, targetH);
 
             // Page 2 footer
-            doc.setDrawColor(180, 185, 210);
-            doc.setLineWidth(0.3);
-            doc.line(MARGIN, FOOTER_Y - 2, PAGE_W - MARGIN, FOOTER_Y - 2);
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(7);
-            doc.setTextColor(120, 130, 160);
-            doc.text('Africa Air Quality Monitoring Network', MARGIN, FOOTER_Y);
-            doc.text('Page 2', PAGE_W - MARGIN, FOOTER_Y, { align: 'right' });
+            drawFooter();
           }
         }
       } catch {
@@ -665,11 +870,16 @@ const NetworkCoveragePage = () => {
 
       doc.save(buildPdfFileName(scopeLabel));
     } catch (error) {
-      setDownloadError(
-        error instanceof Error ? error.message : 'PDF download failed',
-      );
+      if (isMountedRef.current) {
+        setDownloadError(
+          error instanceof Error ? error.message : 'PDF download failed',
+        );
+      }
     } finally {
-      setIsDownloading(false);
+      exportInProgressRef.current = false;
+      if (isMountedRef.current) {
+        setIsDownloading(false);
+      }
     }
   };
 
@@ -681,7 +891,7 @@ const NetworkCoveragePage = () => {
   const summaryError = summaryQuery.error?.message ?? null;
 
   return (
-    <div className="h-screen w-full overflow-hidden bg-[#f6f6f7]">
+    <div className="h-screen w-full overflow-hidden bg-slate-100">
       <div className="flex h-full flex-col gap-2 p-2">
         <NetworkCoverageHeader
           onDownload={handleDownload}
@@ -697,9 +907,9 @@ const NetworkCoveragePage = () => {
           onSaved={handleAddSaved}
         />
 
-        <main className="relative flex min-h-0 flex-1 overflow-hidden rounded-xl border border-slate-200 bg-[#f6f6f7]">
+        <main className="relative flex min-h-0 flex-1 overflow-hidden rounded-xl border border-slate-300 bg-slate-100">
           <div
-            className={`absolute inset-0 z-30 bg-black/30 transition-opacity lg:hidden ${
+            className={`absolute inset-0 z-30 bg-black/35 transition-opacity lg:hidden ${
               isSidebarOpen
                 ? 'pointer-events-auto opacity-100'
                 : 'pointer-events-none opacity-0'
@@ -740,7 +950,7 @@ const NetworkCoveragePage = () => {
           <section className="relative h-full min-h-0 flex-1 overflow-hidden">
             <MapLoader
               loadingComponent={
-                <div className="flex h-full w-full items-center justify-center bg-[#f6f6f7]">
+                <div className="flex h-full w-full items-center justify-center bg-slate-100">
                   <div className="text-blue-600">
                     <AqLoading02 className="animate-spin" />
                   </div>
@@ -758,16 +968,14 @@ const NetworkCoveragePage = () => {
                 onMonitorSelect={selectMonitor}
                 onResetView={resetToOverview}
                 flyToMonitorId={flyToMonitorId}
-                onRegisterSnapshot={(fn) => {
-                  snapshotGetterRef.current = fn;
-                }}
+                onRegisterSnapshot={handleRegisterSnapshot}
               />
             </MapLoader>
             {/* Show spinner overlay while coverage or country monitors data is loading */}
             {(summaryQuery.isLoading ||
               countryMonitorsQuery.isLoading ||
               monitorDetailQuery.isLoading) && (
-              <div className="absolute inset-0 z-30 flex items-center justify-center bg-[#f6f6f7]/70">
+              <div className="absolute inset-0 z-30 flex items-center justify-center bg-slate-100/70">
                 <div className="text-blue-600">
                   <AqLoading02 className="animate-spin" />
                 </div>
@@ -775,16 +983,16 @@ const NetworkCoveragePage = () => {
             )}
             {/* initial loading handled by MapLoader spinner; remove redundant message */}
             {summaryError && !countries.length ? (
-              <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#f6f6f7]/80 px-6">
+              <div className="absolute inset-0 z-20 flex items-center justify-center bg-slate-100/80 px-6">
                 <div className="max-w-sm rounded-2xl border border-red-200 bg-white p-5 text-center shadow-lg">
-                  <p className="text-base font-semibold text-slate-900">
+                  <p className="text-base font-semibold text-slate-950">
                     Network coverage failed to load
                   </p>
-                  <p className="mt-2 text-sm text-slate-600">{summaryError}</p>
+                  <p className="mt-2 text-sm text-slate-700">{summaryError}</p>
                   <button
                     type="button"
                     onClick={() => summaryQuery.refetch()}
-                    className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white"
+                    className="mt-4 rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800"
                   >
                     Retry
                   </button>
@@ -792,12 +1000,12 @@ const NetworkCoveragePage = () => {
               </div>
             ) : null}
             {downloadError ? (
-              <div className="absolute right-4 top-4 z-20 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800 shadow-sm">
+              <div className="absolute right-4 top-4 z-20 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900 shadow-sm">
                 {downloadError}
               </div>
             ) : null}
             {isDownloading ? (
-              <div className="absolute right-4 top-4 z-20 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm">
+              <div className="absolute right-4 top-4 z-20 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-800 shadow-sm">
                 Preparing download...
               </div>
             ) : null}
@@ -807,8 +1015,8 @@ const NetworkCoveragePage = () => {
                 onClick={() => setViewMode('monitors')}
                 className={`rounded-full px-3 py-1.5 sm:px-4 ${
                   viewMode === 'monitors'
-                    ? 'bg-blue-600 text-white'
-                    : 'text-slate-500'
+                    ? 'bg-blue-700 text-white'
+                    : 'text-slate-600'
                 }`}
               >
                 Monitors
@@ -818,8 +1026,8 @@ const NetworkCoveragePage = () => {
                 onClick={() => setViewMode('coverage')}
                 className={`rounded-full px-3 py-1.5 sm:px-4 ${
                   viewMode === 'coverage'
-                    ? 'bg-blue-600 text-white'
-                    : 'text-slate-500'
+                    ? 'bg-blue-700 text-white'
+                    : 'text-slate-600'
                 }`}
               >
                 Coverage
@@ -832,7 +1040,7 @@ const NetworkCoveragePage = () => {
               <select
                 value={mapStyle}
                 onChange={(event) => setMapStyle(event.target.value)}
-                className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm"
+                className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 shadow-sm"
                 aria-label="Map style"
               >
                 <option value="mapbox://styles/mapbox/light-v11">Light</option>
@@ -850,7 +1058,7 @@ const NetworkCoveragePage = () => {
               type="button"
               onClick={() => setIsSidebarOpen((previous) => !previous)}
               aria-label="Toggle country sidebar"
-              className="lg:hidden absolute left-4 top-12 z-20 grid h-8 w-8 place-items-center rounded-md border border-slate-200 bg-white text-slate-500 shadow-sm transition-colors hover:bg-slate-50"
+              className="lg:hidden absolute left-4 top-12 z-20 grid h-8 w-8 place-items-center rounded-md border border-slate-300 bg-white text-slate-600 shadow-sm transition-colors hover:bg-slate-50"
             >
               <FiMenu className="h-5 w-5" />
             </button>
