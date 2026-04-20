@@ -38,8 +38,22 @@ export const getPrimarySiteUrl = (): string => {
     return toAbsoluteSiteUrl(process.env.NEXT_PUBLIC_VERCEL_URL);
   }
 
+  // In some build environments (Docker/CI) the build runs with NODE_ENV=production
+  // but build-time environment variables may not be provided. To avoid hard
+  // failing during those builds, fall back to `LOCAL_DEV_SITE_URL` unless the
+  // consumer explicitly enables strict enforcement via
+  // `NEXT_PUBLIC_REQUIRE_SITE_URL=true`.
   if (process.env.NODE_ENV === 'production') {
-    throw new Error('NEXT_PUBLIC_SITE_URL must be configured in production.');
+    if (process.env.NEXT_PUBLIC_REQUIRE_SITE_URL === 'true') {
+      throw new Error('NEXT_PUBLIC_SITE_URL must be configured in production.');
+    }
+
+    // Log a single-line warning so CI/Docker logs show the missing config,
+    // then fall back to a safe localhost URL to allow the build to complete.
+    // eslint-disable-next-line no-console
+    console.warn(
+      'Warning: NEXT_PUBLIC_SITE_URL not set. Falling back to http://localhost:3000 for build.',
+    );
   }
 
   return LOCAL_DEV_SITE_URL;
