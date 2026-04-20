@@ -1,5 +1,7 @@
 import { Metadata } from 'next';
+import { headers } from 'next/headers';
 
+import { buildSiteUrl } from '@/lib/siteUrl';
 import DetailsPage from '@/views/careers/DetailsPage';
 
 export async function generateMetadata({
@@ -7,6 +9,11 @@ export async function generateMetadata({
 }: {
   params: { id: string };
 }): Promise<Metadata> {
+  const requestHeaders = headers();
+  const requestHost =
+    requestHeaders.get('x-forwarded-host') ?? requestHeaders.get('host');
+  const canonicalUrl = buildSiteUrl(`/careers/${params.id}`, requestHost);
+
   // You can fetch career details here if needed
   // For now, providing generic metadata
   return {
@@ -16,11 +23,11 @@ export async function generateMetadata({
     keywords:
       'AirQo career opportunity, job opening, environmental careers, air quality jobs, tech jobs Africa, AirQo employment',
     alternates: {
-      canonical: `https://airqo.net/careers/${params.id}`,
+      canonical: canonicalUrl,
     },
     openGraph: {
       type: 'website',
-      url: `https://airqo.net/careers/${params.id}`,
+      url: canonicalUrl,
       title: 'Career Opportunity | AirQo Careers',
       description:
         'Explore this exciting career opportunity at AirQo. Join our mission to improve air quality across African cities.',

@@ -8,8 +8,8 @@ import NetworkCoverageNavDrawer from './NetworkCoverageNavDrawer';
 const PAGE_TITLE = 'Air Quality Monitoring Landscape in Africa';
 
 const INTRO_PARAGRAPHS = [
-  'This platform provides a unified view of Africa’s air quality monitoring landscape. It integrates metadata on monitoring initiatives across Africa, combining both low-cost sensors and high-precision reference monitors installed in Africa. Users can explore the geographic distribution of monitoring stations by country, identify active coverage, understand the types of instrumentation in use, and the institutional stewardship for each monitoring location.',
-  'By offering a structured and comprehensive overview of Africa’s air quality monitoring capacity, the platform seeks to incentivise collaboration towards scaling the development of open data infrastructure',
+  "This platform provides a unified view of Africa's air quality monitoring landscape. It integrates metadata on monitoring initiatives across the continent, combining both low-cost sensors and high-precision reference monitors. Users can explore the geographic distribution of monitoring stations by country, identify active coverage, understand the types of instrumentation in use, and review institutional stewardship for each monitoring location.",
+  "By offering a structured and comprehensive overview of Africa's air quality monitoring capacity, the platform seeks to incentivise collaboration towards scaling the development of open data infrastructure.",
 ];
 
 interface NetworkCoverageHeaderProps {
