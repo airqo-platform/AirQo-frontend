@@ -725,16 +725,15 @@ export const METADATA_CONFIGS = {
     },
   },
   solutionsNetworkCoverage: {
-    title:
-      'Africa Air Sensor Network | AirQo — Coverage Map, Sensors & Real-Time Data',
+    title: 'Air Quality Monitoring Landscape in Africa',
     description:
-      'Discover the Africa Air Sensor Network: an interactive coverage map of AirQo sensors and monitoring stations across African countries. Find real-time PM2.5 measurements, station locations, and sensor metadata for researchers, policymakers, and developers. Source for air sensor networks in Africa — Kampala, Nairobi, Lagos, Accra and more.',
+      'This platform provides a unified view of Africa’s air quality monitoring landscape. It integrates metadata on monitoring initiatives across Africa, combining both low-cost sensors and high-precision reference monitors installed in Africa. Users can explore geographic distribution, active coverage, instrumentation, and institutional stewardship across the continent.',
     keywords:
-      'Africa air sensor network, air quality sensors Africa, air sensor network map, PM2.5 monitors Africa, air quality monitoring stations, Africa sensor data, environmental sensors Africa, AirQo network, real-time air quality Africa, sensor network coverage map, African air monitoring, Kampala air sensors, Nairobi air sensors, Lagos air sensors, Accra air sensors, air quality infrastructure Africa',
+      'Africa air quality monitoring landscape, air quality monitoring Africa, reference monitors Africa, low-cost sensors Africa, air monitoring stations, monitoring network coverage map, African air monitoring infrastructure, environmental sensors Africa, AirQo network, monitoring station locations Africa',
     url: '/solutions/network-coverage',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png',
-      alt: 'Africa Air Sensor Network - Coverage Map & Sensor Locations',
+      alt: 'Air Quality Monitoring Landscape in Africa - Coverage Map & Sensor Locations',
       width: 1200,
       height: 630,
       type: 'image/png',
