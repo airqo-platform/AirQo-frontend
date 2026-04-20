@@ -9,10 +9,13 @@ export async function generateMetadata({
 }: {
   params: { id: string };
 }): Promise<Metadata> {
-  const requestHeaders = headers();
+  const requestHeaders = await headers();
   const requestHost =
     requestHeaders.get('x-forwarded-host') ?? requestHeaders.get('host');
-  const canonicalUrl = buildSiteUrl(`/events/${params.id}`, requestHost);
+  const canonicalUrl = buildSiteUrl(
+    `/events/${encodeURIComponent(params.id)}`,
+    requestHost,
+  );
   const iconUrl = buildSiteUrl('/icon.png', requestHost);
 
   // You can fetch event details here if needed

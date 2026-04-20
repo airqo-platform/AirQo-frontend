@@ -130,7 +130,7 @@ const NetworkCoverageHeader: React.FC<NetworkCoverageHeaderProps> = ({
         </div>
 
         {/* ── Intro text strip (hidden on very small screens) ── */}
-        <div className="hidden border-t border-slate-200 bg-white px-4 py-3 sm:block sm:px-5 sm:py-3.5">
+        <div className="hidden border-t border-blue-100 bg-blue-50 px-4 py-4 sm:block sm:px-5 sm:py-4">
           <div className="w-full space-y-3">
             {INTRO_PARAGRAPHS.map((paragraph) => (
               <p

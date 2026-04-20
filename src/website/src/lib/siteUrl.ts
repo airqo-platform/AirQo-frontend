@@ -15,6 +15,7 @@ export const parseSiteUrls = (rawValue?: string | null): string[] => {
     .split(/[\s,]+/)
     .map((value) => normalizeSiteUrl(value))
     .filter(Boolean)
+    .map((value) => toAbsoluteSiteUrl(value))
     .filter((value, index, values) => values.indexOf(value) === index)
     .filter((value) => {
       try {
@@ -35,6 +36,10 @@ export const getPrimarySiteUrl = (): string => {
 
   if (process.env.NEXT_PUBLIC_VERCEL_URL) {
     return toAbsoluteSiteUrl(process.env.NEXT_PUBLIC_VERCEL_URL);
+  }
+
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('NEXT_PUBLIC_SITE_URL must be configured in production.');
   }
 
   return LOCAL_DEV_SITE_URL;

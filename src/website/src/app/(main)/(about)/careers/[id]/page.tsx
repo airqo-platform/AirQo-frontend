@@ -9,10 +9,13 @@ export async function generateMetadata({
 }: {
   params: { id: string };
 }): Promise<Metadata> {
-  const requestHeaders = headers();
+  const requestHeaders = await headers();
   const requestHost =
     requestHeaders.get('x-forwarded-host') ?? requestHeaders.get('host');
-  const canonicalUrl = buildSiteUrl(`/careers/${params.id}`, requestHost);
+  const canonicalUrl = buildSiteUrl(
+    `/careers/${encodeURIComponent(params.id)}`,
+    requestHost,
+  );
 
   // You can fetch career details here if needed
   // For now, providing generic metadata
