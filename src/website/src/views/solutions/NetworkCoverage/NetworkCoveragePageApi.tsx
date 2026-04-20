@@ -69,29 +69,6 @@ const buildPdfFileName = (scope: string) => {
 const displayText = (value?: string | null) =>
   value && value.trim() ? value : '--';
 
-const formatExportCoordinates = (monitor: {
-  latitude: number | null;
-  longitude: number | null;
-}) => {
-  if (
-    typeof monitor.latitude !== 'number' ||
-    typeof monitor.longitude !== 'number'
-  ) {
-    return '--';
-  }
-
-  if (
-    !Number.isFinite(monitor.latitude) ||
-    !Number.isFinite(monitor.longitude)
-  ) {
-    return '--';
-  }
-
-  const latitude = `${Math.abs(monitor.latitude).toFixed(4)}°${monitor.latitude < 0 ? 'S' : 'N'}`;
-  const longitude = `${Math.abs(monitor.longitude).toFixed(4)}°${monitor.longitude < 0 ? 'W' : 'E'}`;
-  return `${latitude}, ${longitude}`;
-};
-
 const captureWithTimeout = async <T,>(
   factory: () => Promise<T>,
   timeoutMs: number,
@@ -101,7 +78,7 @@ const captureWithTimeout = async <T,>(
     return fallback;
   }
 
-  let timeoutId: ReturnType<typeof window.setTimeout> | null = null;
+  let timeoutId: number | undefined;
 
   try {
     const timeoutPromise = new Promise<T>((resolve) => {
@@ -115,7 +92,7 @@ const captureWithTimeout = async <T,>(
       timeoutPromise,
     ]);
   } finally {
-    if (timeoutId !== null) {
+    if (timeoutId !== undefined) {
       window.clearTimeout(timeoutId);
     }
   }
