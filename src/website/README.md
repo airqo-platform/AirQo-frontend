@@ -23,8 +23,8 @@ This guide provides clear, step-by-step instructions to help you set up your loc
   - [Learn More](#learn-more)
   - [Deployment](#deployment)
   - [Running with Docker](#running-with-docker)
-    - [Server-side Variables (Secure - not exposed to client):](#server-side-variables-secure---not-exposed-to-client)
-    - [Client-side Variables (Public - bundled with client code):](#client-side-variables-public---bundled-with-client-code)
+    - [Server-side Variables](#server-side-variables)
+    - [Client-side Variables](#client-side-variables)
 
 ---
 
@@ -169,12 +169,14 @@ We welcome contributions from the open source community. To help you get started
 1. **Fork and Clone:**
    - Fork the repository on GitHub.
    - Clone your fork to your local machine:
+
      ```bash
      git clone https://github.com/your-username/AirQo-frontend.git
      ```
 
 2. **Create a Branch:**
    - Create a feature or bug-fix branch:
+
      ```bash
      git checkout -b feature/your-feature-name
      ```
@@ -186,10 +188,13 @@ We welcome contributions from the open source community. To help you get started
 
 4. **Commit and Push:**
    - Commit your changes with a clear commit message:
+
      ```bash
      git commit -m "Description of your changes"
      ```
+
    - Push your branch to your fork:
+
      ```bash
      git push origin feature/your-feature-name
      ```
@@ -257,17 +262,20 @@ Environment variables and build args
 
 **SECURITY UPDATE:** The project has been refactored to use server-side environment variables for sensitive data, improving security by not exposing credentials to the client.
 
-### Server-side Variables (Secure - not exposed to client):
+### Server-side Variables
 
 - API_URL (AirQo platform API base URL)
-- OPENCAGE_API_KEY (OpenCage geocoding API key)
 - API_TOKEN (AirQo API authentication token)
+- OPENCAGE_API_KEY (OpenCage geocoding API key)
 - SLACK_WEBHOOK_URL (Slack webhook for logging)
 - SLACK_CHANNEL (Slack channel for notifications)
+- SITE_URL (canonical site URL used by metadata, sitemap, and robots)
+- GOOGLE_SITE_VERIFICATION (Google Search Console verification token)
 
-### Client-side Variables (Public - bundled with client code):
+### Client-side Variables
 
 - NEXT_PUBLIC_GA_MEASUREMENT_ID (Google Analytics tracking ID)
+- NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN (Mapbox access token)
 
 How to provide them:
 
