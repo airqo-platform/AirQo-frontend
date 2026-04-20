@@ -3,10 +3,33 @@ const LOCAL_DEV_SITE_URL = 'http://localhost:3000';
 const normalizeSiteUrl = (value: string): string =>
   value.trim().replace(/\/+$/, '');
 
-const hasScheme = (value: string): boolean => /^https?:\/\//i.test(value);
+// Detect any URI scheme per RFC 3986 (e.g. "ftp:", "http:"). Returns the
+// scheme without the trailing colon (lower-cased) or `null` when no scheme is
+// present.
+const detectScheme = (value: string): string | null => {
+  const match = value.trim().match(/^([A-Za-z][A-Za-z0-9+.-]*):/);
+  return match ? match[1].toLowerCase() : null;
+};
 
-const toAbsoluteSiteUrl = (value: string): string =>
-  normalizeSiteUrl(hasScheme(value) ? value : `https://${value}`);
+const isHttpScheme = (scheme: string | null): boolean =>
+  scheme === 'http' || scheme === 'https';
+
+const toAbsoluteSiteUrl = (value: string): string => {
+  const scheme = detectScheme(value);
+
+  // If a scheme exists but it's not http/https, reject the value by
+  // returning an empty string — downstream filters will drop it so we don't
+  // silently rewrite unsupported schemes (e.g. ftp://... -> https://ftp://...).
+  if (scheme && !isHttpScheme(scheme)) return '';
+
+  // If the value already has an http(s) scheme, return as-is; otherwise
+  // assume HTTPS for host-only values.
+  if (scheme) {
+    return normalizeSiteUrl(value);
+  }
+
+  return normalizeSiteUrl(`https://${value}`);
+};
 
 export const parseSiteUrls = (rawValue?: string | null): string[] => {
   if (!rawValue) return [];
@@ -16,6 +39,7 @@ export const parseSiteUrls = (rawValue?: string | null): string[] => {
     .map((value) => normalizeSiteUrl(value))
     .filter(Boolean)
     .map((value) => toAbsoluteSiteUrl(value))
+    .filter((value): value is string => Boolean(value))
     .filter((value, index, values) => values.indexOf(value) === index)
     .filter((value) => {
       try {
