@@ -1,6 +1,5 @@
 /* eslint-disable simple-import-sort/imports */
 import React, { useEffect, useRef, useState } from 'react';
-import HCaptcha from '@hcaptcha/react-hcaptcha';
 import { FiX, FiMinus, FiPlus } from 'react-icons/fi';
 
 import { networkCoverageService } from '@/services/apiService';
@@ -52,14 +51,14 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
   const mapElRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<any | null>(null);
   const mapMarkerRef = useRef<any | null>(null);
+  const coordinatesRef = useRef({
+    latitude: '',
+    longitude: '',
+  });
 
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const previousActiveElementRef = useRef<HTMLElement | null>(null);
-
-  // hCaptcha token
-  const [captchaToken, setCaptchaToken] = useState('');
-  const captchaRef = useRef<any>(null);
-  const siteKey = process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY;
+  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -100,11 +99,22 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
     }
   }, [isOpen, initialCountryName, initialCountryIso2]);
 
-  // Initialize map when the picker is opened
-  // Initialize map when the picker is opened. Include `latitude` and
-  // `longitude` in deps but guard against re-initialization — if a map
-  // instance already exists we skip creating another one. Marker/center
-  // updates are handled in a separate effect.
+  useEffect(() => {
+    return () => {
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+        closeTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    coordinatesRef.current = { latitude, longitude };
+  }, [latitude, longitude]);
+
+  // Initialize map when the picker is opened. Marker/center updates are
+  // handled in a separate effect so the map is not recreated for every
+  // coordinate change.
   useEffect(() => {
     if (!mapVisible) return undefined;
     if (typeof window === 'undefined' || !(window as any).mapboxgl) {
@@ -116,17 +126,19 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
     if (mapInstanceRef.current) return undefined;
 
     const mapboxgl = (window as any).mapboxgl;
+    const { latitude: currentLatitude, longitude: currentLongitude } =
+      coordinatesRef.current;
     const map = new mapboxgl.Map({
       container: mapElRef.current as HTMLElement,
       style: 'mapbox://styles/mapbox/streets-v12',
       center:
-        latitude &&
-        longitude &&
-        Number.isFinite(Number(latitude)) &&
-        Number.isFinite(Number(longitude))
-          ? [Number(longitude), Number(latitude)]
+        currentLatitude &&
+        currentLongitude &&
+        Number.isFinite(Number(currentLatitude)) &&
+        Number.isFinite(Number(currentLongitude))
+          ? [Number(currentLongitude), Number(currentLatitude)]
           : [15.751726790157534, 1.5627232057281049],
-      zoom: latitude && longitude ? 8 : 2.9,
+      zoom: currentLatitude && currentLongitude ? 8 : 2.9,
       preserveDrawingBuffer: true,
     });
 
@@ -264,9 +276,9 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
     }
 
     // If initial coordinates exist, show marker
-    if (latitude && longitude) {
-      const latN = Number(latitude);
-      const lonN = Number(longitude);
+    if (currentLatitude && currentLongitude) {
+      const latN = Number(currentLatitude);
+      const lonN = Number(currentLongitude);
       if (Number.isFinite(latN) && Number.isFinite(lonN)) {
         addOrMoveMarker(lonN, latN);
         try {
@@ -285,7 +297,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
       mapInstanceRef.current = null;
       mapMarkerRef.current = null;
     };
-  }, [mapVisible, initialCountryIso2, latitude, longitude]);
+  }, [mapVisible, initialCountryIso2]);
 
   // Keep marker in sync when lat/lon inputs change while map is visible
   useEffect(() => {
@@ -391,13 +403,6 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
       return;
     }
 
-    // If hCaptcha site key is configured, require a captcha token before submitting
-    const siteKey = process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY;
-    if (siteKey && !captchaToken) {
-      setError('Please complete the CAPTCHA to continue.');
-      return;
-    }
-
     setIsSaving(true);
 
     try {
@@ -441,30 +446,23 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
       if (viewDataUrl.trim()) payload.viewDataUrl = viewDataUrl.trim();
       if (publicData) payload.publicData = publicData;
 
-      if (siteKey && captchaToken) payload.captchaToken = captchaToken;
-
       const response =
         await networkCoverageService.upsertNetworkCoverageRegistry(payload);
 
       setSuccess('Monitor saved');
       if (onSaved) onSaved(response);
-      // reset captcha token (if any)
-      try {
-        setCaptchaToken('');
-        (captchaRef.current as any)?.resetCaptcha?.();
-      } catch {}
       // small delay to show success then close
-      setTimeout(() => {
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+      }
+
+      closeTimeoutRef.current = setTimeout(() => {
         setIsSaving(false);
         onClose();
+        closeTimeoutRef.current = null;
       }, 600);
     } catch (err: any) {
       setError(err?.message || 'Failed to save monitor');
-      // allow retry; reset captcha so user can re-run challenge
-      try {
-        setCaptchaToken('');
-        (captchaRef.current as any)?.resetCaptcha?.();
-      } catch {}
       setIsSaving(false);
     }
   };
@@ -896,21 +894,6 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
             </div>
           )}
 
-          {/* CAPTCHA (hCaptcha) — optional when NEXT_PUBLIC_HCAPTCHA_SITE_KEY is set */}
-          <div className="px-4 pb-4">
-            {siteKey ? (
-              <HCaptcha
-                sitekey={siteKey}
-                onVerify={(token: string) => setCaptchaToken(token)}
-                onExpire={() => setCaptchaToken('')}
-                onError={() =>
-                  setError('Captcha validation failed. Please try again.')
-                }
-                ref={captchaRef}
-              />
-            ) : null}
-          </div>
-
           {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
           {success && (
             <p className="mt-3 text-sm text-emerald-700">{success}</p>
@@ -929,8 +912,8 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={isSaving || (siteKey ? !captchaToken : false)}
-            aria-disabled={isSaving || (siteKey ? !captchaToken : false)}
+            disabled={isSaving}
+            aria-disabled={isSaving}
             className="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSaving ? 'Saving…' : 'Save monitor'}

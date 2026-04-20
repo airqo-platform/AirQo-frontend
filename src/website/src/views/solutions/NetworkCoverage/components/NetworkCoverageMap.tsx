@@ -1059,8 +1059,8 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       <Toaster position="bottom-right" containerStyle={{ zIndex: 40000 }} />
 
       {mapInitError && (
-        <div className="absolute inset-0 z-30 grid place-items-center bg-[#f6f6f7]">
-          <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 shadow-sm">
+        <div className="absolute inset-0 z-30 grid place-items-center bg-slate-100">
+          <div className="rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm">
             {mapInitError}
           </div>
         </div>
@@ -1069,9 +1069,9 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       <style jsx global>{`
         .network-coverage-tooltip .mapboxgl-popup-content {
           border-radius: 18px;
-          background: linear-gradient(180deg, #1e293b 0%, #111827 100%);
+          background: #0f172a;
           color: #ffffff;
-          border: 1px solid rgba(255, 255, 255, 0.12);
+          border: 1px solid rgba(148, 163, 184, 0.2);
           padding: 12px 14px;
           box-shadow: 0 18px 36px rgba(2, 6, 23, 0.42);
           width: auto;
@@ -1082,8 +1082,8 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
         }
 
         .network-coverage-tooltip .mapboxgl-popup-tip {
-          border-top-color: #111827;
-          border-bottom-color: #111827;
+          border-top-color: #0f172a;
+          border-bottom-color: #0f172a;
         }
 
         .network-monitor-tooltip .mapboxgl-popup-content {

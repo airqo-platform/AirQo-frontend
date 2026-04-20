@@ -1,6 +1,9 @@
 export async function GET() {
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? 'https://airqo.net';
+  const siteUrl = (
+    process.env.SITE_URL ??
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    'https://airqo.net'
+  ).replace(/\/$/, '');
 
   const robots = `User-agent: *
 Allow: /

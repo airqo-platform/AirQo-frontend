@@ -13,7 +13,8 @@ export default function ExternalLinkDecorator({
   debounceTime = 200,
   disabled = false,
 }: ExternalLinkDecoratorProps) {
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rafRef = useRef<number | null>(null);
   const processingRef = useRef<boolean>(false);
   const observerRef = useRef<MutationObserver | null>(null);
 
@@ -43,7 +44,7 @@ export default function ExternalLinkDecorator({
             document.querySelectorAll<HTMLAnchorElement>('a[href^="http"]');
 
           // Use a single batch to minimize reflows
-          requestAnimationFrame(() => {
+          rafRef.current = window.requestAnimationFrame(() => {
             links.forEach((link) => {
               // Skip already processed links
               if (link.dataset.externalDecorated === 'true') return;
@@ -78,6 +79,7 @@ export default function ExternalLinkDecorator({
               link.dataset.externalDecorated = 'true';
             });
 
+            rafRef.current = null;
             processingRef.current = false;
           });
         } catch (error) {
@@ -128,10 +130,16 @@ export default function ExternalLinkDecorator({
       clearTimeout(initialTimer);
       if (timerRef.current) {
         clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+      if (rafRef.current !== null) {
+        window.cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
       }
       if (observerRef.current) {
         observerRef.current.disconnect();
       }
+      processingRef.current = false;
     };
   }, [excludeDomains, debounceTime, disabled]);
 
