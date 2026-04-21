@@ -79,8 +79,8 @@ export const TableExportModal: React.FC<TableExportModalProps> = ({
                     dense
                     message={
                         hasMoreThanOnePage
-                            ? "Exports only this page’s rows. For more, export each page. Select columns below to customize."
-                            : "Exports only this page’s rows. Select columns below to customize."
+                            ? "Exports only this table's page’s rows. For more, select all & export each page. Select columns below to customize."
+                            : "Exports only this table's page's rows. Select columns below to customize."
                     }
                 />
 
