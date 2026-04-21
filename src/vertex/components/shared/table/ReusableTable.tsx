@@ -1494,13 +1494,17 @@ const ReusableTable = <T extends TableItem>({
           isOpen={isExportModalOpen}
           onClose={() => setIsExportModalOpen(false)}
           onExport={handleExport}
-          columns={[
-            ...columns.map(col => ({
+          columns={columns
+            .map(col => ({
               key: String(col.key),
-              title: col.title || (typeof col.label === 'string' ? col.label : String(col.key))
-            })),
-            ...additionalExportFields
-          ].filter(c => c.key !== 'checkbox' && c.key !== 'actions')}
+              title:
+                col.title ||
+                (typeof col.label === 'string' ? col.label : String(col.key)),
+            }))
+            .filter(c => c.key !== 'checkbox' && c.key !== 'actions')}
+          additionalColumns={additionalExportFields.filter(
+            c => c.key !== 'checkbox' && c.key !== 'actions'
+          )}
           totalRows={serverSidePagination ? (pageCount * pageSize) : filteredData.length}
           currentPageRows={finalPaginatedData.length}
           hasServerSidePagination={serverSidePagination}
