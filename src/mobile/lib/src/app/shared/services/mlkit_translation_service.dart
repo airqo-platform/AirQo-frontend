@@ -42,6 +42,18 @@ class MlKitTranslationService with UiLoggy {
   bool supportsTranslation(String localeCode) =>
       _localeToMlKit.containsKey(localeCode);
 
+  bool isModelReady(String localeCode) =>
+      _downloadedModels.contains(localeCode);
+
+  /// Downloads the translation model for [localeCode] if not already present.
+  /// Safe to call multiple times — returns immediately if already downloaded.
+  Future<void> prepareModel(String localeCode) async {
+    final targetLang = _localeToMlKit[localeCode];
+    if (targetLang == null) return;
+    if (_downloadedModels.contains(localeCode)) return;
+    await _ensureModelDownloaded(targetLang, localeCode);
+  }
+
   Future<String> translate(String text, {required String targetLocale}) async {
     if (text.isEmpty) return text;
 
