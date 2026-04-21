@@ -107,9 +107,13 @@ const DeviceActivityItem: React.FC<DeviceActivityItemProps> = ({
                                         </span>
                                         <ReusableButton
                                             variant="text"
-                                            onClick={() => {
-                                                navigator.clipboard.writeText(previousSiteId);
-                                                ReusableToast({ message: "Copied", type: "SUCCESS" });
+                                            onClick={async () => {
+                                                try {
+                                                    await navigator.clipboard.writeText(previousSiteId);
+                                                    ReusableToast({ message: "Copied", type: "SUCCESS" });
+                                                } catch {
+                                                    ReusableToast({ message: "Failed to copy", type: "ERROR" });
+                                                }
                                             }}
                                             className="p-1"
                                             Icon={AqCopy01}
