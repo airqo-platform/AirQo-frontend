@@ -172,39 +172,56 @@ class _SelectLanguagePageState extends State<SelectLanguagePage> {
             currentLanguageCode = state.languageCode;
           }
 
+          final hasUndownloadedMlKitLanguage = languages.any(
+            (l) =>
+                MlKitTranslationService().supportsTranslation(l.code) &&
+                !MlKitTranslationService().isModelReady(l.code),
+          );
+
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: ListView.separated(
-              itemCount: languages.length,
-              separatorBuilder: (context, index) => Divider(
-                color: dividerColor,
-                height: 1,
-              ),
-              itemBuilder: (context, index) {
-                final language = languages[index];
-                final isSelected = language.code == currentLanguageCode;
+            child: Column(
+              children: [
+                Expanded(
+                  child: ListView.separated(
+                    itemCount: languages.length,
+                    separatorBuilder: (context, index) => Divider(
+                      color: dividerColor,
+                      height: 1,
+                    ),
+                    itemBuilder: (context, index) {
+                      final language = languages[index];
+                      final isSelected = language.code == currentLanguageCode;
+                      final isPreparing = _preparingCode == language.code;
 
-                return ListTile(
-                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                  title: Text(
-                    language.name,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w400,
-                      color: isDarkMode
-                          ? AppColors.highlightColor2
-                          : AppColors.boldHeadlineColor4,
-                    ),
-                  ),
-                  subtitle: Text(
-                    language.nativeName,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: isDarkMode ? Colors.grey : Colors.grey.shade700,
-                    ),
-                  ),
-                  trailing: _preparingCode == language.code
-                      ? SizedBox(
+                      return ListTile(
+                        contentPadding:
+                            const EdgeInsets.symmetric(vertical: 12),
+                        title: Text(
+                          language.name,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w400,
+                            color: isDarkMode
+                                ? AppColors.highlightColor2
+                                : AppColors.boldHeadlineColor4,
+                          ),
+                        ),
+                        subtitle: Text(
+                          isPreparing
+                              ? 'Preparing translation...'
+                              : language.nativeName,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: isPreparing
+                                ? AppColors.primaryColor
+                                : isDarkMode
+                                    ? Colors.grey
+                                    : Colors.grey.shade700,
+                          ),
+                        ),
+                        trailing: isPreparing
+                            ? SizedBox(
                           width: 24,
                           height: 24,
                           child: CircularProgressIndicator(
@@ -238,11 +255,41 @@ class _SelectLanguagePageState extends State<SelectLanguagePage> {
                                 borderRadius: BorderRadius.circular(4),
                               ),
                             ),
-                  onTap: _preparingCode != null
-                      ? null
-                      : () => _selectLanguage(context, language),
-                );
-              },
+                        onTap: _preparingCode != null
+                            ? null
+                            : () => _selectLanguage(context, language),
+                      );
+                    },
+                  ),
+                ),
+                if (hasUndownloadedMlKitLanguage)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 14,
+                          color: isDarkMode
+                              ? Colors.grey
+                              : Colors.grey.shade600,
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            'Some languages download a small pack on first use.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDarkMode
+                                  ? Colors.grey
+                                  : Colors.grey.shade600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
             ),
           );
         },
