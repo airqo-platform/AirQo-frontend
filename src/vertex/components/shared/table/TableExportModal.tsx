@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import ReusableDialog from '@/components/shared/dialog/ReusableDialog';
+import { InfoBanner } from '@/components/ui/banner';
 
 interface TableExportModalProps {
     isOpen: boolean;
@@ -20,21 +21,17 @@ export const TableExportModal: React.FC<TableExportModalProps> = ({
     columns,
     totalRows,
     currentPageRows,
-    hasServerSidePagination,
 }) => {
     const [selectedColumns, setSelectedColumns] = useState<string[]>([]);
-    const [scope, setScope] = useState<'current' | 'all'>('current');
+    const hasMoreThanOnePage = totalRows > currentPageRows;
 
     // Initialize selected columns with all columns when modal opens
     useEffect(() => {
         if (isOpen) {
             setSelectedColumns(columns.map(col => col.key));
-            // For client-side pagination, default to 'all' since all data is available
-            // For server-side pagination, only allow 'current' page
-            setScope(hasServerSidePagination ? 'current' : 'all');
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isOpen, hasServerSidePagination]);
+    }, [isOpen]);
 
     const handleColumnToggle = (key: string) => {
         setSelectedColumns(prev =>
@@ -53,11 +50,11 @@ export const TableExportModal: React.FC<TableExportModalProps> = ({
     };
 
     const handleExport = () => {
-        onExport(selectedColumns, scope);
+        onExport(selectedColumns, 'current');
         onClose();
     };
 
-    const exportCount = scope === 'current' ? currentPageRows : totalRows;
+    const exportCount = currentPageRows;
 
     return (
         <ReusableDialog
@@ -78,46 +75,14 @@ export const TableExportModal: React.FC<TableExportModalProps> = ({
             }}
         >
             <div className="space-y-6">
-                {/* Scope Selection */}
-                <div className="space-y-3">
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                        Export Scope
-                    </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <label className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors ${scope === 'current' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'}`}>
-                            <input
-                                type="radio"
-                                name="scope"
-                                value="current"
-                                checked={scope === 'current'}
-                                onChange={() => setScope('current')}
-                                className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                            />
-                            <div className="ml-3">
-                                <span className="block text-sm font-medium text-gray-900 dark:text-white">Current Page</span>
-                                <span className="block text-xs text-gray-500 dark:text-gray-400">{currentPageRows} rows</span>
-                            </div>
-                        </label>
-
-                        <label className={`flex items-center p-3 border rounded-lg ${hasServerSidePagination ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} transition-colors ${scope === 'all' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'}`}>
-                            <input
-                                type="radio"
-                                name="scope"
-                                value="all"
-                                checked={scope === 'all'}
-                                onChange={() => setScope('all')}
-                                disabled={hasServerSidePagination}
-                                className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 disabled:cursor-not-allowed"
-                            />
-                            <div className="ml-3">
-                                <span className="block text-sm font-medium text-gray-900 dark:text-white">All Data</span>
-                                <span className="block text-xs text-gray-500 dark:text-gray-400">
-                                    {hasServerSidePagination ? 'Not available for server-side pagination' : `${totalRows} rows`}
-                                </span>
-                            </div>
-                        </label>
-                    </div>
-                </div>
+                <InfoBanner
+                    dense
+                    message={
+                        hasMoreThanOnePage
+                            ? "Exports only this page’s rows. For more, export each page. Select columns below to customize."
+                            : "Exports only this page’s rows. Select columns below to customize."
+                    }
+                />
 
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-3">
                     <div className="flex items-center justify-between">
