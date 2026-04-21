@@ -15,6 +15,7 @@ import { useAppSelector } from '@/shared/hooks/redux';
 import { LoadingOverlay } from '@/shared/components/ui/loading-overlay';
 import { useUser } from '@/shared/hooks/useUser';
 import { MaintenanceBanner } from '../components';
+import { FeedbackLauncher } from '@/modules/feedback';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -117,6 +118,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           )}
         </div>
       )}
+
+      <FeedbackLauncher />
 
       {/* Global Sidebar */}
       <GlobalSidebar />

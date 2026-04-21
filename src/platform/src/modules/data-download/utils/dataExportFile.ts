@@ -182,7 +182,13 @@ const resolveSelectedHeaders = (
     availableHeaders.includes(key)
   );
 
-  return selectedHeaders.length > 0 ? selectedHeaders : availableHeaders;
+  if (selectedHeaders.length === 0) {
+    throw new Error(
+      'None of the selected export columns match the available data columns.'
+    );
+  }
+
+  return selectedHeaders;
 };
 
 const extractDownloadRecords = (response: DataDownloadResponse | string) => {

@@ -88,13 +88,13 @@ export const useDataExportActions = (
     async ({
       customSelectedGridSiteIds,
       exportColumnKeys,
-    }: HandleDownloadOptions = {}) => {
+    }: HandleDownloadOptions = {}): Promise<boolean> => {
       if (!dateRange?.from || !dateRange?.to) {
         toast.error(
           'Date Range Required',
           'Please select a date range for data export.'
         );
-        return;
+        return false;
       }
 
       if (activeTab === 'sites' && selectedSiteIds.length === 0) {
@@ -102,7 +102,7 @@ export const useDataExportActions = (
           'Site Selection Required',
           'Please select at least one site for data export.'
         );
-        return;
+        return false;
       }
 
       if (activeTab === 'devices' && selectedDeviceIds.length === 0) {
@@ -110,7 +110,7 @@ export const useDataExportActions = (
           'Device Selection Required',
           'Please select at least one device for data export.'
         );
-        return;
+        return false;
       }
 
       if (exportColumnKeys && exportColumnKeys.length === 0) {
@@ -118,7 +118,7 @@ export const useDataExportActions = (
           'Download Columns Required',
           'Please select at least one column to include in the exported file.'
         );
-        return;
+        return false;
       }
 
       const effectiveSelectedGridSiteIds =
@@ -133,7 +133,7 @@ export const useDataExportActions = (
           `${activeTab === 'countries' ? 'Country' : 'City'} Selection Required`,
           `Please select a ${activeTab === 'countries' ? 'country' : 'city'} for data export.`
         );
-        return;
+        return false;
       }
 
       if (selectedPollutants.length === 0) {
@@ -141,7 +141,7 @@ export const useDataExportActions = (
           'Pollutant Selection Required',
           'Please select at least one pollutant for data export.'
         );
-        return;
+        return false;
       }
 
       const effectiveDataType: 'calibrated' | 'raw' =
@@ -161,7 +161,7 @@ export const useDataExportActions = (
           'Date Range Too Large',
           `Please split this export into batches of ${LARGE_DATE_RANGE_THRESHOLD} days or fewer to avoid backend timeouts.`
         );
-        return;
+        return false;
       }
 
       const request = buildDataDownloadRequest({
@@ -288,6 +288,7 @@ export const useDataExportActions = (
           'Download Started',
           'Your data export has been initiated successfully.'
         );
+        return true;
       } catch (error) {
         console.error('Download failed:', error);
 
@@ -322,6 +323,7 @@ export const useDataExportActions = (
         }
 
         toast.error('Download Failed', userFriendlyMessage);
+        return false;
       }
     },
     [

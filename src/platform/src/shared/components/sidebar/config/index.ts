@@ -14,6 +14,7 @@ import {
   AqServer03,
   AqUpload01,
   AqFileQuestion02,
+  AqMessageCheckCircle,
 } from '@airqo/icons-react';
 
 export interface NavItem {
@@ -224,6 +225,12 @@ const systemSidebarConfig: NavGroup[] = [
         icon: AqFileQuestion02,
       },
       {
+        id: 'system-feedback',
+        label: 'Feedback',
+        href: '/system/feedback',
+        icon: AqMessageCheckCircle,
+      },
+      {
         id: 'system-user-statistics',
         label: 'User Statistics',
         href: '/system/user-statistics',
@@ -261,6 +268,12 @@ const globalSidebarConfig: NavGroup[] = [
             label: 'Organization Requests',
             href: '/system/org-requests',
             description: 'Manage organization requests across the platform',
+          },
+          {
+            id: 'system-feedback',
+            label: 'Feedback',
+            href: '/system/feedback',
+            description: 'Review user feedback and reported issues',
           },
           {
             id: 'system-user-statistics',

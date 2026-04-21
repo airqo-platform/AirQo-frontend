@@ -59,7 +59,17 @@ const formatCoordinateValue = (value: unknown): string | undefined => {
 
   if (typeof value === 'string') {
     const trimmed = value.trim();
-    return trimmed || undefined;
+
+    if (!trimmed) {
+      return undefined;
+    }
+
+    const numericValue = Number(trimmed);
+    if (!Number.isFinite(numericValue)) {
+      return undefined;
+    }
+
+    return String(numericValue);
   }
 
   return undefined;
