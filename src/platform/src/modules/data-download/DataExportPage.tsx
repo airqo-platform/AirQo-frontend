@@ -158,6 +158,12 @@ const DataExportPage = () => {
   const [selectedDevicesCache, setSelectedDevicesCache] = React.useState<
     Record<string, TableItem>
   >({});
+  const [selectedCountriesCache, setSelectedCountriesCache] = React.useState<
+    Record<string, TableItem>
+  >({});
+  const [selectedCitiesCache, setSelectedCitiesCache] = React.useState<
+    Record<string, TableItem>
+  >({});
   const [showHelpBanner, setShowHelpBanner] = React.useState(() => {
     // Check if user has dismissed the banner before
     if (typeof window !== 'undefined') {
@@ -321,14 +327,35 @@ const DataExportPage = () => {
         : displayTableData;
     }
 
+    if (activeTab === 'countries') {
+      return selectedGridIds.length > 0 &&
+        Object.keys(selectedCountriesCache).length > 0
+        ? selectedGridIds
+            .map(id => selectedCountriesCache[id])
+            .filter((item): item is TableItem => Boolean(item))
+        : displayTableData;
+    }
+
+    if (activeTab === 'cities') {
+      return selectedGridIds.length > 0 &&
+        Object.keys(selectedCitiesCache).length > 0
+        ? selectedGridIds
+            .map(id => selectedCitiesCache[id])
+            .filter((item): item is TableItem => Boolean(item))
+        : displayTableData;
+    }
+
     return displayTableData;
   }, [
     activeTab,
     displayTableData,
+    selectedCountriesCache,
+    selectedCitiesCache,
     selectedDeviceIds,
     selectedDevicesForActions,
     selectedSiteIds,
     selectedSitesForActions,
+    selectedGridIds,
   ]);
 
   // Reset device pagination when category changes
@@ -378,6 +405,8 @@ const DataExportPage = () => {
       resetGroupScopedState(!siteSelectionDownloading);
       setSelectedSitesCache({});
       setSelectedDevicesCache({});
+      setSelectedCountriesCache({});
+      setSelectedCitiesCache({});
       setSelectedGridForSites(null);
       setSiteSelectionDialogOpen(false);
       setSiteSelectionDownloading(false);
@@ -467,6 +496,16 @@ const DataExportPage = () => {
       }
       setSelectedGridSites(newSelectedGridSites);
       setSelectedGridSiteIds({}); // Reset custom selection
+
+      if (activeTab === 'countries') {
+        setSelectedCountriesCache(prevCache =>
+          rebuildSelectionCache(stringIds, processedCountriesData, prevCache)
+        );
+      } else {
+        setSelectedCitiesCache(prevCache =>
+          rebuildSelectionCache(stringIds, processedCitiesData, prevCache)
+        );
+      }
     }
   };
 
@@ -493,6 +532,30 @@ const DataExportPage = () => {
       rebuildSelectionCache(selectedDeviceIds, processedDevicesData, prevCache)
     );
   }, [selectedDeviceIds, processedDevicesData]);
+
+  // Keep selected countries cache synchronized as table pages/search results change.
+  useEffect(() => {
+    if (activeTab !== 'countries' || selectedGridIds.length === 0) {
+      setSelectedCountriesCache({});
+      return;
+    }
+
+    setSelectedCountriesCache(prevCache =>
+      rebuildSelectionCache(selectedGridIds, processedCountriesData, prevCache)
+    );
+  }, [activeTab, processedCountriesData, selectedGridIds]);
+
+  // Keep selected cities cache synchronized as table pages/search results change.
+  useEffect(() => {
+    if (activeTab !== 'cities' || selectedGridIds.length === 0) {
+      setSelectedCitiesCache({});
+      return;
+    }
+
+    setSelectedCitiesCache(prevCache =>
+      rebuildSelectionCache(selectedGridIds, processedCitiesData, prevCache)
+    );
+  }, [activeTab, processedCitiesData, selectedGridIds]);
 
   // Handle site selection dialog
   const handleSiteSelectionConfirm = async (selectedSiteIds: string[]) => {

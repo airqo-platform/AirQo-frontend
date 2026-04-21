@@ -2,6 +2,7 @@
 
 import React, { useCallback } from 'react';
 import { AqDownload01 } from '@airqo/icons-react';
+import { Tooltip } from 'flowbite-react';
 import {
   Button,
   DropdownMenu,
@@ -26,7 +27,7 @@ export const TableExportActions: React.FC<TableExportActionsProps> = ({
   exportData,
   columns,
   disabled = false,
-  tooltipText = 'Rows selected across pages are included. Air quality data is not included.',
+  tooltipText = 'Includes selected rows from all pages. Air quality data is excluded.',
 }) => {
   const isDisabled = disabled || exportData.length === 0;
 
@@ -48,19 +49,22 @@ export const TableExportActions: React.FC<TableExportActionsProps> = ({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="outlined"
-          size="sm"
-          Icon={AqDownload01}
-          showTextOnMobile
-          disabled={isDisabled}
-          className="whitespace-nowrap"
-          title={tooltipText}
-        >
-          Export as CSV/PDF
-        </Button>
-      </DropdownMenuTrigger>
+      <Tooltip content={tooltipText} placement="top">
+        <span className="inline-flex">
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outlined"
+              size="sm"
+              Icon={AqDownload01}
+              showTextOnMobile
+              disabled={isDisabled}
+              className="whitespace-nowrap"
+            >
+              Export as CSV/PDF
+            </Button>
+          </DropdownMenuTrigger>
+        </span>
+      </Tooltip>
 
       <DropdownMenuContent align="end" className="w-[260px] z-[10010]">
         <div className="px-3 py-2 border-b border-border">
@@ -68,7 +72,7 @@ export const TableExportActions: React.FC<TableExportActionsProps> = ({
             Export table view
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Exports selected rows when available.
+            Exports selected rows across pages.
           </p>
         </div>
 

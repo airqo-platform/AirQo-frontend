@@ -14,6 +14,11 @@ interface TableColumn<T = TableItem> {
   sortable?: boolean;
   filterable?: boolean;
   render?: (value: unknown, item: T) => React.ReactNode;
+  headerClassName?: string;
+  cellClassName?: string;
+  width?: string;
+  minWidth?: string;
+  maxWidth?: string;
 }
 
 export interface ServerSideTableProps<T = TableItem> {

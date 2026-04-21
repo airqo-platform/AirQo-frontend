@@ -63,6 +63,11 @@ interface TableColumn<T = TableItem> {
   filterOptions?: FilterOption[];
   filterMulti?: boolean;
   render?: (value: unknown, item: T) => React.ReactNode;
+  headerClassName?: string;
+  cellClassName?: string;
+  width?: string;
+  minWidth?: string;
+  maxWidth?: string;
 }
 
 interface CustomFilterProps {
@@ -1141,10 +1146,14 @@ const MultiSelectTable = <T extends TableItem>({
                           : compactRows
                             ? 'px-2 sm:px-4 md:px-6 max-w-none'
                             : 'px-2 sm:px-4 md:px-6 max-w-[300px]'
-                      }`}
+                      } ${column.headerClassName || ''}`}
                       style={
                         column.key !== 'checkbox'
-                          ? { minWidth: '120px' }
+                          ? {
+                              minWidth: column.minWidth || '120px',
+                              width: column.width,
+                              maxWidth: column.maxWidth,
+                            }
                           : undefined
                       }
                     >
@@ -1210,10 +1219,14 @@ const MultiSelectTable = <T extends TableItem>({
                             : compactRows
                               ? 'px-2 sm:px-4 md:px-6 max-w-none'
                               : 'px-2 sm:px-4 md:px-6 max-w-[300px]'
-                        }`}
+                        } ${column.cellClassName || ''}`}
                         style={
                           column.key !== 'checkbox'
-                            ? { minWidth: '120px' }
+                            ? {
+                                minWidth: column.minWidth || '120px',
+                                width: column.width,
+                                maxWidth: column.maxWidth,
+                              }
                             : undefined
                         }
                       >
@@ -1223,7 +1236,7 @@ const MultiSelectTable = <T extends TableItem>({
                               ? ''
                               : compactRows
                                 ? 'whitespace-nowrap max-w-none'
-                                : 'break-words whitespace-normal overflow-wrap-anywhere max-w-full'
+                                : `${column.cellClassName || 'break-words whitespace-normal overflow-wrap-anywhere'} max-w-full`
                           }
                         >
                           {renderCell(item, column)}

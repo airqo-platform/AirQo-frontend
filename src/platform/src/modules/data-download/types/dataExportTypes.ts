@@ -47,6 +47,11 @@ export interface ColumnConfig {
   key: string;
   label: string;
   render?: (value: unknown) => React.ReactNode;
+  headerClassName?: string;
+  cellClassName?: string;
+  width?: string;
+  minWidth?: string;
+  maxWidth?: string;
 }
 
 export interface TabConfig {

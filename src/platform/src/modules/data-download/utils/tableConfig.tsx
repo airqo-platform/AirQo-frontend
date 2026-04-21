@@ -10,12 +10,17 @@ export const getSitesColumns = (): ColumnConfig[] => [
   {
     key: 'name',
     label: 'Location',
+    minWidth: '280px',
+    maxWidth: '360px',
+    cellClassName: 'whitespace-normal break-normal',
     render: (value: unknown) => (
-      <div className="flex items-center gap-2 whitespace-nowrap">
-        <span className="bg-gray-100 rounded-full p-1">
+      <div className="flex items-start gap-2 max-w-[360px] min-w-0">
+        <span className="bg-gray-100 rounded-full p-1 mt-0.5 shrink-0">
           <AqMarkerPin03 className="h-4 w-4 shrink-0 text-primary" />
         </span>
-        <span>{value as string}</span>
+        <span className="min-w-0 whitespace-normal break-normal leading-5">
+          {value as string}
+        </span>
       </div>
     ),
   },
@@ -40,6 +45,7 @@ export const getDevicesColumns = (): ColumnConfig[] => [
   {
     key: 'name',
     label: 'Device name',
+    cellClassName: 'whitespace-nowrap',
     render: (value: unknown) => (
       <div className="flex items-center gap-2 whitespace-nowrap">
         <span className="bg-gray-100 rounded-full p-1">
@@ -64,6 +70,7 @@ export const getDevicesColumns = (): ColumnConfig[] => [
   {
     key: 'coordinates',
     label: 'Coordinates',
+    cellClassName: 'whitespace-nowrap',
     render: (value: unknown) => (
       <span className="font-mono text-sm whitespace-nowrap">
         {value as string}
@@ -79,6 +86,7 @@ export const getCountriesColumns = (): ColumnConfig[] => [
   {
     key: 'name',
     label: 'Country',
+    cellClassName: 'whitespace-nowrap',
     render: (value: unknown) => (
       <div className="flex items-center capitalize gap-2 whitespace-nowrap">
         <span className="bg-gray-100 rounded-full p-1">
@@ -105,6 +113,7 @@ export const getCitiesColumns = (): ColumnConfig[] => [
   {
     key: 'name',
     label: 'City',
+    cellClassName: 'whitespace-nowrap',
     render: (value: unknown) => (
       <div className="flex items-center capitalize gap-2 whitespace-nowrap">
         <span className="bg-gray-100 rounded-full p-1">
