@@ -1,5 +1,6 @@
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+import 'package:airqo/src/app/dashboard/pages/location_selection/components/location_search_bar.dart';
 import 'package:airqo/src/app/dashboard/pages/location_selection/utils/location_helpers.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_card.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_details.dart';
@@ -808,7 +809,7 @@ class _MapScreenState extends State<MapScreen>
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Text("Today",
+                        TranslatedText("Today",
                             style: TextStyle(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 20,
@@ -1032,79 +1033,28 @@ class _MapScreenState extends State<MapScreen>
                 ],
               ),
               SizedBox(height: 16),
-              SizedBox(
-                height: 45,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 0),
-                  child: TextField(
-                    controller: searchController,
-                    onChanged: (value) {
-                      if (value.isEmpty) {
-                        googlePlacesBloc!.add(ResetGooglePlaces());
-                        if (mounted) {
-                          setState(() {
-                            localSearchResults = [];
-                          });
-                        }
-                      } else {
-                        googlePlacesBloc!.add(SearchPlace(value));
-                        if (mounted) {
-                          setState(() {
-                            localSearchResults =
-                                LocationHelper.searchAirQualityLocations(value, allMeasurements);
-                          });
-                        }
-                      }
-                    },
-                    style: TextStyle(fontSize: 14),
-                    onTap: () => toggleModal(true),
-                    decoration: InputDecoration(
-                      contentPadding: const EdgeInsets.only(top: 24),
-                      hintText: "Search Villages, Cities or Countries",
-                      prefixIcon: Padding(
-                        padding: const EdgeInsets.all(11.0),
-                        child: SvgPicture.asset(
-                          "assets/icons/search_icon.svg",
-                          height: 15,
-                          colorFilter: ColorFilter.mode(
-                            Theme.of(context).textTheme.headlineLarge?.color ??
-                                Theme.of(context).iconTheme.color ??
-                                Colors.black,
-                            BlendMode.srcIn,
-                          ),
-                        ),
-                      ),
-                      suffixIcon:
-                          BlocBuilder<GooglePlacesBloc, GooglePlacesState>(
-                        builder: (context, state) {
-                          if (state is SearchLoaded || state is SearchLoading) {
-                            return GestureDetector(
-                                onTap: () => clearGooglePlaces(),
-                                child: Icon(
-                                  Icons.close,
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .headlineLarge!
-                                      .color,
-                                ));
-                          }
-                          return SizedBox();
-                        },
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: AppColors.primaryColor)),
-                      enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                              color: Theme.of(context).highlightColor)),
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+              LocationSearchBar(
+                controller: searchController,
+                padding: EdgeInsets.zero,
+                onTap: () => toggleModal(true),
+                onChanged: (value) {
+                  if (value.isEmpty) {
+                    googlePlacesBloc!.add(ResetGooglePlaces());
+                    if (mounted) {
+                      setState(() {
+                        localSearchResults = [];
+                      });
+                    }
+                  } else {
+                    googlePlacesBloc!.add(SearchPlace(value));
+                    if (mounted) {
+                      setState(() {
+                        localSearchResults = LocationHelper.searchAirQualityLocations(
+                            value, allMeasurements);
+                      });
+                    }
+                  }
+                },
               ),
               BlocBuilder<GooglePlacesBloc, GooglePlacesState>(
                 builder: (context, placesState) {
