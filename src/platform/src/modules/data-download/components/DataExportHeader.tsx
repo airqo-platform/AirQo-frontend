@@ -15,7 +15,6 @@ interface DataExportHeaderProps {
   onTabChange: (tab: TabType) => void;
   onClearSelections: () => void;
   onVisualizeData: () => void;
-  onPreview: () => void;
   onDownload: () => void;
   onToggleSidebar?: () => void;
   sidebarOpen?: boolean;
@@ -37,7 +36,6 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
   onTabChange,
   onClearSelections,
   onVisualizeData,
-  onPreview,
   onDownload,
   onToggleSidebar,
   sidebarOpen = false,
@@ -135,14 +133,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
         >
           Visualize Data
         </Button>
-        <Button
-          variant="outlined"
-          onClick={onPreview}
-          disabled={isGroupSyncing || !isDownloadReady}
-          className="px-4 py-2 w-full sm:w-auto"
-        >
-          Preview
-        </Button>
+        {/* Preview button removed: preview shown via Review & Download flow */}
         <Button
           variant="filled"
           onClick={onDownload}

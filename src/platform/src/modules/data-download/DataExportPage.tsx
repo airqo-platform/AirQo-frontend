@@ -599,7 +599,6 @@ const DataExportPage = () => {
               onTabChange={wrappedHandleTabChange}
               onClearSelections={handleClearSelections}
               onVisualizeData={handleVisualizeData}
-              onPreview={() => setPreviewOpen(true)}
               onDownload={() => setPreviewOpen(true)}
               onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
               sidebarOpen={sidebarOpen}
@@ -639,7 +638,7 @@ const DataExportPage = () => {
       <DataExportPreview
         isOpen={previewOpen}
         onClose={() => setPreviewOpen(false)}
-        onConfirm={selectedColumnKeys => {
+        onConfirm={(selectedColumnKeys: string[]) => {
           setPreviewOpen(false);
           handleDownload({ exportColumnKeys: selectedColumnKeys });
         }}

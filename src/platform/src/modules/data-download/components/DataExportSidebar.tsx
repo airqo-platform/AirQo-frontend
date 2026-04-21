@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import { Button } from '@/shared/components/ui';
 import { Input } from '@/shared/components/ui/input';
 import Checkbox from '@/shared/components/ui/checkbox';
@@ -89,6 +89,32 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
       return allOptions.filter(option => option.value !== 'raw');
     }
   }, [deviceCategory]);
+  const [pollutantError, setPollutantError] = useState<string | null>(null);
+
+  const handlePollutantChange = useCallback(
+    (pollutant: string, checked: boolean | 'indeterminate') => {
+      // Clear previous error on any interaction
+      setPollutantError(null);
+
+      if (checked === true) {
+        setSelectedPollutants(prev =>
+          prev.includes(pollutant) ? prev : [...prev, pollutant]
+        );
+        return;
+      }
+
+      if (checked === false) {
+        // Prevent removing the last selected pollutant
+        if (selectedPollutants.length <= 1) {
+          setPollutantError('Please select at least one pollutant.');
+          return;
+        }
+
+        setSelectedPollutants(prev => prev.filter(p => p !== pollutant));
+      }
+    },
+    [selectedPollutants, setSelectedPollutants]
+  );
   return (
     <>
       {/* Sidebar - Hidden by default, shown when toggled */}
@@ -162,28 +188,23 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Pollutants
             </label>
+            {pollutantError && (
+              <p className="text-sm text-red-600 dark:text-red-400" role="alert" aria-live="polite">
+                {pollutantError}
+              </p>
+            )}
             <div className="space-y-2">
               {pollutants.map(pollutant => (
                 <div key={pollutant} className="flex items-center">
                   <Checkbox
                     id={pollutant}
                     checked={selectedPollutants.includes(pollutant)}
-                    onCheckedChange={(checked: boolean | 'indeterminate') => {
-                      if (checked === true) {
-                        setSelectedPollutants(prev => [...prev, pollutant]);
-                      } else if (checked === false) {
-                        setSelectedPollutants(prev =>
-                          prev.filter(p => p !== pollutant)
-                        );
-                      }
-                    }}
+                    onCheckedChange={(checked: boolean | 'indeterminate') =>
+                      handlePollutantChange(pollutant, checked)
+                    }
                   />
                   <label htmlFor={pollutant} className="ml-2 text-sm">
-                    {
-                      POLLUTANT_LABELS[
-                        pollutant as keyof typeof POLLUTANT_LABELS
-                      ]
-                    }
+                    {POLLUTANT_LABELS[pollutant as keyof typeof POLLUTANT_LABELS]}
                   </label>
                 </div>
               ))}
@@ -294,28 +315,23 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Pollutants
               </label>
+              {pollutantError && (
+                <p className="text-sm text-red-600 dark:text-red-400" role="alert" aria-live="polite">
+                  {pollutantError}
+                </p>
+              )}
               <div className="space-y-2">
                 {pollutants.map(pollutant => (
                   <div key={pollutant} className="flex items-center">
                     <Checkbox
                       id={pollutant}
                       checked={selectedPollutants.includes(pollutant)}
-                      onCheckedChange={(checked: boolean | 'indeterminate') => {
-                        if (checked === true) {
-                          setSelectedPollutants(prev => [...prev, pollutant]);
-                        } else if (checked === false) {
-                          setSelectedPollutants(prev =>
-                            prev.filter(p => p !== pollutant)
-                          );
-                        }
-                      }}
+                      onCheckedChange={(checked: boolean | 'indeterminate') =>
+                        handlePollutantChange(pollutant, checked)
+                      }
                     />
                     <label htmlFor={pollutant} className="ml-2 text-sm">
-                      {
-                        POLLUTANT_LABELS[
-                          pollutant as keyof typeof POLLUTANT_LABELS
-                        ]
-                      }
+                      {POLLUTANT_LABELS[pollutant as keyof typeof POLLUTANT_LABELS]}
                     </label>
                   </div>
                 ))}

@@ -169,6 +169,7 @@ export const useDataExportActions = (
         activeTab,
         selectedSites,
         selectedDeviceIds,
+        selectedDeviceNames: selectedDevices,
         selectedGridIds,
         selectedGridSites,
         selectedGridSiteIds: effectiveSelectedGridSiteIds,

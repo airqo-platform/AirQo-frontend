@@ -7,6 +7,7 @@ interface BuildDataDownloadRequestArgs {
   activeTab: TabType;
   selectedSites: string[];
   selectedDeviceIds: string[];
+  selectedDeviceNames?: string[];
   selectedGridIds: string[];
   selectedGridSites: Record<string, string[]>;
   selectedGridSiteIds: Record<string, string[]>;
@@ -69,6 +70,7 @@ export const buildDataDownloadRequest = ({
   fileType,
   frequency,
   deviceCategory,
+  selectedDeviceNames,
 }: BuildDataDownloadRequestArgs): DataDownloadRequest => {
   if (!dateRange?.from || !dateRange?.to) {
     throw new Error('Date range is required for data export');
@@ -103,7 +105,10 @@ export const buildDataDownloadRequest = ({
         ? 'lowcost'
         : deviceCategory,
     ...(activeTab === 'sites' && { sites: selectedSites }),
-    ...(activeTab === 'devices' && { device_ids: selectedDeviceIds }),
+    ...(activeTab === 'devices' &&
+      (selectedDeviceNames && selectedDeviceNames.length > 0
+        ? { device_names: selectedDeviceNames }
+        : { device_ids: selectedDeviceIds })),
     ...((activeTab === 'countries' || activeTab === 'cities') && {
       sites: sitesForDownload,
     }),
