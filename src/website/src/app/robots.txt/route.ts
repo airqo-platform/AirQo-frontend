@@ -1,9 +1,7 @@
+import { getPrimarySiteUrl } from '@/lib/siteUrl';
+
 export async function GET() {
-  const siteUrl = (
-    process.env.SITE_URL ??
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    'https://airqo.net'
-  ).replace(/\/$/, '');
+  const siteUrl = getPrimarySiteUrl();
 
   const robots = `User-agent: *
 Allow: /

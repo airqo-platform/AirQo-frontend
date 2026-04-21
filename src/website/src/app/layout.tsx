@@ -14,6 +14,7 @@ import { ErrorBoundary } from '@/components/ui';
 import { ReduxDataProvider } from '@/context/ReduxDataProvider';
 import { QueryProvider } from '@/services/providers/QueryProvider';
 import { generateViewport } from '@/lib/metadata';
+import { getPrimarySiteUrl } from '@/lib/siteUrl';
 
 // Lazy load non-critical components
 const EngagementDialog = lazy(
@@ -23,11 +24,7 @@ const FloatingMiniBillboardWrapper = lazy(
   () => import('@/components/FloatingMiniBillboardWrapper'),
 );
 
-const normalizedSiteUrl = (
-  process.env.SITE_URL ??
-  process.env.NEXT_PUBLIC_SITE_URL ??
-  'https://airqo.net'
-).replace(/\/$/, '');
+const normalizedSiteUrl = getPrimarySiteUrl();
 
 const interFont = localFont({
   src: [
@@ -244,6 +241,7 @@ export default async function RootLayout({
       },
       {
         '@type': 'Country',
+        name: 'Kenya',
       },
       {
         '@type': 'Country',

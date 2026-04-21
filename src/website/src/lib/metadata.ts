@@ -1,5 +1,7 @@
 import { Metadata, Viewport } from 'next';
 
+import { getConfiguredSiteUrls, getPrimarySiteUrl } from './siteUrl';
+
 // Type definitions for better type safety
 interface ImageMetadata {
   url: string;
@@ -22,37 +24,8 @@ interface MetadataConfig {
   section?: string;
 }
 
-interface DomainConfig {
-  domain: string;
-  protocol: 'https';
-  www: boolean;
-}
-
-// Constants for domain configuration
-const DOMAIN_CONFIGS: DomainConfig[] = [
-  { domain: 'airqo.net', protocol: 'https', www: false },
-  { domain: 'airqo.net', protocol: 'https', www: true },
-  { domain: 'airqo.africa', protocol: 'https', www: false },
-  { domain: 'airqo.africa', protocol: 'https', www: true },
-  { domain: 'airqo.org', protocol: 'https', www: false },
-  { domain: 'airqo.org', protocol: 'https', www: true },
-  { domain: 'airqo.mak.ac.ug', protocol: 'https', www: false },
-  { domain: 'airqo.mak.ac.ug', protocol: 'https', www: true },
-];
-
-// Generate supported domains from configs
-const SUPPORTED_DOMAINS = DOMAIN_CONFIGS.map(
-  (config) =>
-    `${config.protocol}://${config.www ? 'www.' : ''}${config.domain}`,
-);
-
-// Primary domains for fallback (without www)
-const PRIMARY_DOMAINS = [
-  'https://airqo.net',
-  'https://airqo.africa',
-  'https://airqo.org',
-  'https://airqo.mak.ac.ug',
-];
+const SUPPORTED_DOMAINS = getConfiguredSiteUrls();
+const PRIMARY_SITE_URL = getPrimarySiteUrl();
 
 // Cache for domain detection to avoid repeated calculations
 let cachedDomain: string | null = null;
@@ -62,7 +35,7 @@ const CACHE_DURATION = 60000; // 1 minute cache
 // Default metadata configuration
 const DEFAULT_METADATA = {
   siteName: 'AirQo - Air Quality Monitoring Network Africa',
-  siteUrl: 'https://airqo.net', // Default fallback
+  siteUrl: PRIMARY_SITE_URL,
   defaultImage: {
     url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
     alt: 'AirQo - Clean Air for All African Cities | Real-time Air Quality Monitoring',
@@ -108,6 +81,10 @@ const logError = (...args: any[]): void => {
 const isValidDomain = (url: string): boolean => {
   try {
     const urlObj = new URL(url);
+    if (SUPPORTED_DOMAINS.length === 0) {
+      return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
+    }
+
     return SUPPORTED_DOMAINS.some((domain) => {
       const domainObj = new URL(domain);
       return urlObj.hostname === domainObj.hostname;
@@ -127,16 +104,20 @@ const sanitizeUrl = (url: string): string => {
     // Remove trailing slashes and normalize
     const normalized = url.replace(/\/+$/, '');
 
+    if (SUPPORTED_DOMAINS.length === 0) {
+      return normalized;
+    }
+
     // Validate against our domains
     if (!isValidDomain(normalized)) {
       logWarn(`URL not from supported domain: ${normalized}`);
-      return PRIMARY_DOMAINS[0]; // Fallback to primary
+      return PRIMARY_SITE_URL;
     }
 
     return normalized;
   } catch (error) {
     logError('URL sanitization failed:', error);
-    return PRIMARY_DOMAINS[0];
+    return PRIMARY_SITE_URL;
   }
 };
 
@@ -168,10 +149,7 @@ const getCurrentDomain = (): string => {
 
   // Method 2: Environment variable detection
   if (!detectedDomain) {
-    const envUrls = [
-      process.env.SITE_URL,
-      process.env.NEXT_PUBLIC_SITE_URL,
-    ].filter(Boolean);
+    const envUrls = SUPPORTED_DOMAINS;
 
     for (const envUrl of envUrls) {
       if (envUrl) {
@@ -221,7 +199,7 @@ const getCurrentDomain = (): string => {
     }
   }
 
-  // Method 4: Headers detection (for server-side rendering)
+  // Method 4: Header-based detection (for server-side rendering)
   if (!detectedDomain && typeof Headers !== 'undefined') {
     try {
       // Check for host headers in Next.js context
@@ -240,9 +218,9 @@ const getCurrentDomain = (): string => {
     }
   }
 
-  // Fallback to primary domain
+  // Fallback to the primary configured domain
   if (!detectedDomain) {
-    detectedDomain = PRIMARY_DOMAINS[0];
+    detectedDomain = PRIMARY_SITE_URL;
     logDebug('Using fallback domain:', detectedDomain);
   }
 
@@ -261,31 +239,8 @@ const getCurrentDomain = (): string => {
 export const getDomainForContext = (
   context?: 'social' | 'canonical' | 'api' | 'cdn',
 ): string => {
-  const detectedDomain = getCurrentDomain();
-
-  // For social media, prefer main recognizable domains
-  if (context === 'social') {
-    try {
-      const hostname = new URL(detectedDomain).hostname;
-
-      // Prefer non-www versions for cleaner social sharing
-      if (hostname.includes('airqo.net')) return 'https://airqo.net';
-      if (hostname.includes('airqo.africa')) return 'https://airqo.africa';
-      if (hostname.includes('airqo.org')) return 'https://airqo.org';
-      if (hostname.includes('airqo.mak.ac.ug'))
-        return 'https://airqo.mak.ac.ug';
-    } catch (error) {
-      logError('Social domain context failed:', error);
-    }
-  }
-
-  // For API contexts, might want specific domain
-  if (context === 'api') {
-    // Could implement API-specific domain logic here if needed
-    return detectedDomain;
-  }
-
-  return detectedDomain;
+  void context;
+  return getCurrentDomain();
 };
 
 /**
@@ -690,7 +645,7 @@ export const METADATA_CONFIGS = {
   solutionsNetworkCoverage: {
     title: 'Air Quality Monitoring Landscape in Africa',
     description:
-      'This platform provides a unified view of Africa’s air quality monitoring landscape. It integrates metadata on monitoring initiatives across Africa, combining both low-cost sensors and high-precision reference monitors installed in Africa. Users can explore geographic distribution, active coverage, instrumentation, and institutional stewardship across the continent.',
+      "This platform provides a unified view of Africa's air quality monitoring landscape. It integrates metadata on monitoring initiatives across the continent, combining both low-cost sensors and high-precision reference monitors. Users can explore geographic distribution, active coverage, instrumentation, and institutional stewardship for monitoring locations across the continent.",
     keywords:
       'Africa air quality monitoring landscape, air quality monitoring Africa, reference monitors Africa, low-cost sensors Africa, air monitoring stations, monitoring network coverage map, African air monitoring infrastructure, environmental sensors Africa, AirQo network, monitoring station locations Africa',
     url: '/solutions/network-coverage',
@@ -1147,4 +1102,4 @@ export const metadataUtils = {
 } as const;
 
 // Export types for TypeScript support
-export type { DomainConfig, ImageMetadata, MetadataConfig };
+export type { ImageMetadata, MetadataConfig };

@@ -8,8 +8,8 @@ import NetworkCoverageNavDrawer from './NetworkCoverageNavDrawer';
 const PAGE_TITLE = 'Air Quality Monitoring Landscape in Africa';
 
 const INTRO_PARAGRAPHS = [
-  'This platform provides a unified view of Africa’s air quality monitoring landscape. It integrates metadata on monitoring initiatives across Africa, combining both low-cost sensors and high-precision reference monitors installed in Africa. Users can explore the geographic distribution of monitoring stations by country, identify active coverage, understand the types of instrumentation in use, and the institutional stewardship for each monitoring location.',
-  'By offering a structured and comprehensive overview of Africa’s air quality monitoring capacity, the platform seeks to incentivise collaboration towards scaling the development of open data infrastructure',
+  "This platform provides a unified view of Africa's air quality monitoring landscape. It integrates metadata on monitoring initiatives across the continent, combining both low-cost sensors and high-precision reference monitors. Users can explore the geographic distribution of monitoring stations by country, identify active coverage, understand the types of instrumentation in use, and review institutional stewardship for each monitoring location.",
+  "By offering a structured and comprehensive overview of Africa's air quality monitoring capacity, the platform seeks to incentivise collaboration towards scaling the development of open data infrastructure.",
 ];
 
 interface NetworkCoverageHeaderProps {
@@ -130,7 +130,7 @@ const NetworkCoverageHeader: React.FC<NetworkCoverageHeaderProps> = ({
         </div>
 
         {/* ── Intro text strip (hidden on very small screens) ── */}
-        <div className="hidden border-t border-slate-200 bg-white px-4 py-3 sm:block sm:px-5 sm:py-3.5">
+        <div className="hidden border-t border-blue-100 bg-blue-50 px-4 py-4 sm:block sm:px-5 sm:py-4">
           <div className="w-full space-y-3">
             {INTRO_PARAGRAPHS.map((paragraph) => (
               <p

@@ -1,5 +1,7 @@
 import { Metadata } from 'next';
+import { headers } from 'next/headers';
 
+import { buildSiteUrl } from '@/lib/siteUrl';
 import SingleEvent from '@/views/events/SingleEvent';
 
 export async function generateMetadata({
@@ -7,6 +9,15 @@ export async function generateMetadata({
 }: {
   params: { id: string };
 }): Promise<Metadata> {
+  const requestHeaders = await headers();
+  const requestHost =
+    requestHeaders.get('x-forwarded-host') ?? requestHeaders.get('host');
+  const canonicalUrl = buildSiteUrl(
+    `/events/${encodeURIComponent(params.id)}`,
+    requestHost,
+  );
+  const iconUrl = buildSiteUrl('/icon.png', requestHost);
+
   // You can fetch event details here if needed
   // For now, providing generic metadata
   return {
@@ -16,17 +27,17 @@ export async function generateMetadata({
     keywords:
       'AirQo event, air quality event, environmental workshop, clean air conference, community engagement, air pollution awareness, African environmental event',
     alternates: {
-      canonical: `https://airqo.net/events/${params.id}`,
+      canonical: canonicalUrl,
     },
     openGraph: {
       type: 'website',
-      url: `https://airqo.net/events/${params.id}`,
+      url: canonicalUrl,
       title: 'AirQo Event | Air Quality Community Engagement',
       description:
         'Join this AirQo event focused on air quality monitoring and community engagement across African cities.',
       images: [
         {
-          url: 'https://airqo.net/icon.png',
+          url: iconUrl,
           width: 1200,
           height: 630,
           alt: 'AirQo Event',
@@ -40,7 +51,7 @@ export async function generateMetadata({
       title: 'AirQo Event | Air Quality Community Engagement',
       description:
         'Join this AirQo event focused on air quality monitoring and community engagement.',
-      images: ['https://airqo.net/icon.png'],
+      images: [iconUrl],
     },
     robots: {
       index: true,

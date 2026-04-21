@@ -91,7 +91,7 @@ const StatLine = ({
   label: string;
   value: React.ReactNode;
 }) => (
-  <div className="grid grid-cols-[110px_1fr] gap-2 py-1.5">
+  <div className="grid grid-cols-[140px_1fr] gap-2 py-1.5">
     <span className="text-[11px] font-semibold uppercase tracking-[0.07em] text-slate-600">
       {label}
     </span>
@@ -685,16 +685,14 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
               </p>
             </div>
 
-            {/* Network */}
+            {/* Station details */}
             <div className="border-b border-slate-200 p-4">
               <h4 className="mb-3 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-700">
-                Network
+                Station Details
               </h4>
-              <p className="mb-2 text-base font-semibold text-slate-950">
-                {formatNetworkName(selectedMonitor.network)}
-              </p>
+
               <StatLine
-                label="Operator"
+                label="Operator / Institution"
                 value={displayText(selectedMonitor.operator)}
               />
               <StatLine
@@ -711,6 +709,10 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                 label="Last Active"
                 value={formatRelativeTime(selectedMonitor.lastActive)}
               />
+              <StatLine
+                label="Network"
+                value={formatNetworkName(selectedMonitor.network)}
+              />
             </div>
 
             {/* Equipment */}
@@ -721,10 +723,6 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
               <StatLine
                 label="Instrument"
                 value={displayText(selectedMonitor.equipment)}
-              />
-              <StatLine
-                label="Manufacturer"
-                value={displayText(selectedMonitor.manufacturer)}
               />
               <StatLine
                 label="Pollutants"
