@@ -740,9 +740,18 @@ const DataExportPage = () => {
       <DataExportPreview
         isOpen={previewOpen}
         onClose={() => setPreviewOpen(false)}
-        onConfirm={(selectedColumnKeys: string[]) => {
-          setPreviewOpen(false);
-          handleDownload({ exportColumnKeys: selectedColumnKeys });
+        onConfirm={async (selectedColumnKeys: string[]) => {
+          try {
+            const didDownload = await handleDownload({
+              exportColumnKeys: selectedColumnKeys,
+            });
+
+            if (didDownload) {
+              setPreviewOpen(false);
+            }
+          } catch (error) {
+            console.error('Unexpected download confirmation error:', error);
+          }
         }}
         isDownloading={isDownloading}
         dataType={dataType}

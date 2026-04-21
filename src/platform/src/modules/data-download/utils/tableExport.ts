@@ -30,7 +30,8 @@ const getTextFromNode = (node: React.ReactNode): string => {
   }
 
   if (React.isValidElement(node)) {
-    return getTextFromNode(node.props.children);
+    const element = node as React.ReactElement<{ children?: React.ReactNode }>;
+    return getTextFromNode(element.props.children);
   }
 
   if (typeof node === 'object') {
@@ -92,7 +93,13 @@ const escapeCsvValue = (value: string): string => {
     return '';
   }
 
-  const escaped = value.replace(/"/g, '""');
+  const trimmed = value.trimStart();
+  const startsWithFormulaToken =
+    /^[=+\-@]/.test(trimmed) ||
+    value.startsWith('\t') ||
+    value.startsWith('\r');
+  const prefixedValue = startsWithFormulaToken ? `'${value}` : value;
+  const escaped = prefixedValue.replace(/"/g, '""');
   return /[",\n\r]/.test(escaped) ? `"${escaped}"` : escaped;
 };
 

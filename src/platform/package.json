@@ -16,6 +16,7 @@
     "@hookform/resolvers": "^5.2.2",
     "@popperjs/core": "^2.11.8",
     "@reduxjs/toolkit": "2.11.2",
+    "@smastrom/react-rating": "^1.5.0",
     "@tanstack/query-sync-storage-persister": "5.99.0",
     "@tanstack/react-query": "5.99.0",
     "@tanstack/react-query-persist-client": "5.99.0",

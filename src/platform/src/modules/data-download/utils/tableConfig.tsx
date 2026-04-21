@@ -65,7 +65,7 @@ export const getDevicesColumns = (): ColumnConfig[] => [
       </div>
     ),
   },
-  { key: 'network', label: 'Network' },
+  { key: 'network', label: 'Sensor Manufacturer' },
   {
     key: 'category',
     label: 'Category',
@@ -108,7 +108,7 @@ export const getCountriesColumns = (): ColumnConfig[] => [
   },
   {
     key: 'network',
-    label: 'Network',
+    label: 'Sensor Manufacturer',
     render: (value: unknown) => (
       <span className="uppercase">{value as string}</span>
     ),
@@ -135,7 +135,7 @@ export const getCitiesColumns = (): ColumnConfig[] => [
   },
   {
     key: 'network',
-    label: 'Network',
+    label: 'Sensor Manufacturer',
     render: (value: unknown) => (
       <span className="uppercase">{value as string}</span>
     ),

@@ -182,7 +182,13 @@ const resolveSelectedHeaders = (
     availableHeaders.includes(key)
   );
 
-  return selectedHeaders.length > 0 ? selectedHeaders : availableHeaders;
+  if (selectedHeaders.length === 0) {
+    throw new Error(
+      'None of the selected export columns match the available data columns.'
+    );
+  }
+
+  return selectedHeaders;
 };
 
 const extractDownloadRecords = (response: DataDownloadResponse | string) => {
@@ -245,7 +251,7 @@ export const getDownloadColumnGroups = (
       options: [
         { key: 'datetime', label: 'Date and time', group: 'core' },
         { key: 'frequency', label: 'Frequency', group: 'core' },
-        { key: 'network', label: 'Network', group: 'core' },
+        { key: 'network', label: 'Sensor Manufacturer', group: 'core' },
       ],
     },
     {
