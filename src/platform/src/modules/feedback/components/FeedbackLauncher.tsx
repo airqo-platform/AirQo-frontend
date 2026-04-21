@@ -3,13 +3,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { Tooltip } from 'flowbite-react';
+import { Rating, Star } from '@smastrom/react-rating';
 import { useUser } from '@/shared/hooks/useUser';
-import { Button, Input, Select, TextInput } from '@/shared/components/ui';
+import { Input, Select, TextInput } from '@/shared/components/ui';
 import ReusableDialog from '@/shared/components/ui/dialog';
 import { toast } from '@/shared/components/ui/toast';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { feedbackService } from '../services/feedbackService';
-import { AqMessageCheckCircle } from '@airqo/icons-react';
+import { AqMessageNotificationSquare } from '@airqo/icons-react';
 
 type FeedbackCategory = 'bug' | 'feature' | 'support' | 'praise' | 'other';
 
@@ -24,14 +26,10 @@ const CATEGORY_OPTIONS: Array<{
   { value: 'other', label: 'Other' },
 ];
 
-const RATING_OPTIONS = [1, 2, 3, 4, 5] as const;
-
-const RATING_LABELS: Record<number, string> = {
-  1: 'Very poor',
-  2: 'Poor',
-  3: 'Okay',
-  4: 'Good',
-  5: 'Great',
+const RATING_ITEM_STYLES = {
+  itemShapes: Star,
+  activeFillColor: '#0f766e',
+  inactiveFillColor: '#dbe4ea',
 };
 
 const getBrowserLabel = (): string => {
@@ -153,21 +151,30 @@ export const FeedbackLauncher: React.FC = () => {
   return (
     <>
       <motion.div
-        className="fixed bottom-5 right-5 z-40 md:bottom-6 md:right-6"
+        className="fixed bottom-3 right-3 z-40 md:bottom-4 md:right-5"
         initial={{ opacity: 0, y: 18, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.25, ease: [0.2, 0.8, 0.2, 1] }}
       >
-        <Button
-          Icon={AqMessageCheckCircle}
-          iconPosition="start"
-          onClick={() => setIsOpen(true)}
-          className="rounded-full border border-white/20 bg-gradient-to-r from-teal-600 via-emerald-500 to-cyan-500 px-5 py-3 text-white shadow-2xl shadow-emerald-950/20 hover:-translate-y-0.5 hover:shadow-emerald-950/30"
-          paddingStyles="px-5 py-3"
-          aria-label="Open feedback form"
+        <Tooltip
+          content="Need to report an Issue or share an idea?"
+          placement="left"
+          style="dark"
         >
-          Share feedback
-        </Button>
+          <motion.button
+            type="button"
+            onClick={() => setIsOpen(true)}
+            whileHover={{ scale: 1.04, y: -1 }}
+            whileTap={{ scale: 0.97 }}
+            className="flex h-14 w-14 items-center justify-center rounded-full border border-white/20 bg-gradient-to-br from-teal-600 via-emerald-500 to-cyan-500 text-white shadow-2xl shadow-emerald-950/20 transition focus:outline-none focus:ring-2 focus:ring-teal-300 focus:ring-offset-2 focus:ring-offset-background"
+            aria-label="Open feedback form"
+          >
+            <AqMessageNotificationSquare
+              className="h-6 w-6"
+              aria-hidden="true"
+            />
+          </motion.button>
+        </Tooltip>
       </motion.div>
 
       <ReusableDialog
@@ -190,16 +197,6 @@ export const FeedbackLauncher: React.FC = () => {
         }}
       >
         <div className="space-y-6">
-          <div className="rounded-2xl border border-border/70 bg-gradient-to-br from-teal-50 via-background to-emerald-50 p-4 md:p-5 dark:from-teal-950/30 dark:via-background dark:to-emerald-950/20">
-            <p className="text-sm font-medium text-foreground">
-              We review every submission.
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Include the page you were on, the browser you used, and a short
-              description of the issue so we can reproduce it quickly.
-            </p>
-          </div>
-
           <div className="grid gap-4 md:grid-cols-2">
             <Input
               label="Email"
@@ -250,39 +247,20 @@ export const FeedbackLauncher: React.FC = () => {
 
             <div className="md:col-span-2">
               <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm font-medium text-foreground">
-                    Experience rating
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {RATING_LABELS[rating]}
-                  </p>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  1 = rough, 5 = smooth
+                <p className="text-sm font-medium text-foreground">
+                  Experience rating
                 </p>
               </div>
 
-              <div className="mt-3 grid grid-cols-5 gap-2">
-                {RATING_OPTIONS.map(value => (
-                  <Button
-                    key={value}
-                    type="button"
-                    variant={rating === value ? 'filled' : 'outlined'}
-                    onClick={() => setRating(value)}
-                    paddingStyles="px-3 py-2"
-                    className="rounded-xl"
-                  >
-                    {value}
-                  </Button>
-                ))}
+              <div className="mt-3">
+                <Rating
+                  value={rating}
+                  onChange={setRating}
+                  isRequired
+                  style={{ maxWidth: 240 }}
+                  itemStyles={RATING_ITEM_STYLES}
+                />
               </div>
-            </div>
-
-            <div className="md:col-span-2 rounded-2xl border border-dashed border-border/80 bg-muted/30 p-4 text-xs text-muted-foreground">
-              Auto-attached context: {defaultMetadata.page} •{' '}
-              {defaultMetadata.browser} • {defaultMetadata.appVersion} •{' '}
-              {defaultMetadata.screenResolution}
             </div>
           </div>
         </div>

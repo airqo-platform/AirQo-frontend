@@ -1,4 +1,5 @@
 import './globals.css';
+import '@smastrom/react-rating/style.css';
 import type { Metadata } from 'next';
 import Script from 'next/script';
 import { Inter } from 'next/font/google';
