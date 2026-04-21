@@ -189,7 +189,11 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
               Pollutants
             </label>
             {pollutantError && (
-              <p className="text-sm text-red-600 dark:text-red-400" role="alert" aria-live="polite">
+              <p
+                className="text-sm text-red-600 dark:text-red-400"
+                role="alert"
+                aria-live="polite"
+              >
                 {pollutantError}
               </p>
             )}
@@ -204,7 +208,11 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
                     }
                   />
                   <label htmlFor={pollutant} className="ml-2 text-sm">
-                    {POLLUTANT_LABELS[pollutant as keyof typeof POLLUTANT_LABELS]}
+                    {
+                      POLLUTANT_LABELS[
+                        pollutant as keyof typeof POLLUTANT_LABELS
+                      ]
+                    }
                   </label>
                 </div>
               ))}
@@ -316,7 +324,11 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
                 Pollutants
               </label>
               {pollutantError && (
-                <p className="text-sm text-red-600 dark:text-red-400" role="alert" aria-live="polite">
+                <p
+                  className="text-sm text-red-600 dark:text-red-400"
+                  role="alert"
+                  aria-live="polite"
+                >
                   {pollutantError}
                 </p>
               )}
@@ -331,7 +343,11 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
                       }
                     />
                     <label htmlFor={pollutant} className="ml-2 text-sm">
-                      {POLLUTANT_LABELS[pollutant as keyof typeof POLLUTANT_LABELS]}
+                      {
+                        POLLUTANT_LABELS[
+                          pollutant as keyof typeof POLLUTANT_LABELS
+                        ]
+                      }
                     </label>
                   </div>
                 ))}
