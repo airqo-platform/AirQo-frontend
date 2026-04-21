@@ -427,11 +427,31 @@ class SunbirdTranslationService with UiLoggy {
 
   /// Awaits translation of the most visible UI strings, then fires the rest
   /// in the background. Call this before confirming a language change.
+  ///
+  /// Short-circuits (no spinner) if all critical strings are already in the
+  /// in-memory cache. Throws if every result fell back to the source text,
+  /// meaning the API was unreachable.
   Future<void> prepare({required String targetLocale}) async {
     if (!supportsTranslation(targetLocale)) return;
-    await Future.wait(
+
+    // Cache keys use the Sunbird lang code, not the locale code.
+    final targetLang = _localeToSunbird[targetLocale]!;
+    if (_criticalUiStrings.every((s) => _cache.containsKey('$targetLang:$s'))) {
+      prewarm(targetLocale: targetLocale);
+      return;
+    }
+
+    final results = await Future.wait(
       _criticalUiStrings.map((s) => translate(s, targetLocale: targetLocale)),
     );
+
+    final allFailed = results.asMap().entries.every(
+      (e) => e.value == _criticalUiStrings[e.key],
+    );
+    if (allFailed) {
+      throw Exception('Sunbird translation unavailable for $targetLocale');
+    }
+
     prewarm(targetLocale: targetLocale);
   }
 
