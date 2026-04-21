@@ -1,15 +1,20 @@
-# Exposure Feature — API Specification
+# Exposure Feature — API Spec
 
-## 1. Extend User Preferences
+Two endpoints are affected. Both are already live on the backend.
 
-Add a `declared_places` array to the existing preferences document. No new endpoints needed — just extend the two that already exist.
+---
+
+## 1. User Preferences — `declared_places`
+
+The existing preferences endpoints now carry a `declared_places` array. No new URLs.
 
 ---
 
 ### GET `/api/v2/users/preferences/:userId`
 
-Include `declared_places` in the response alongside `selected_sites`. Return an empty array if the user has none yet.
+Returns the user's preferences including their declared places.
 
+**Response `200`**
 ```json
 {
   "success": true,
@@ -18,7 +23,7 @@ Include `declared_places` in the response alongside `selected_sites`. Return an 
     {
       "_id": "...",
       "user_id": "673488e9bc47400013f52553",
-      "selected_sites": [ ... ],
+      "selected_sites": [ "..." ],
       "declared_places": [
         {
           "site_id": "6720f513c7f24000139463e9",
@@ -33,7 +38,8 @@ Include `declared_places` in the response alongside `selected_sites`. Return an 
             "arrive_m": 30,
             "leave_h": 17,
             "leave_m": 0
-          }
+          },
+          "weekend_window": null
         }
       ]
     }
@@ -41,16 +47,19 @@ Include `declared_places` in the response alongside `selected_sites`. Return an 
 }
 ```
 
+> `declared_places` is always an array — empty `[]` if the user has none yet.
+
 ---
 
 ### PATCH `/api/v2/users/preferences/replace`
 
-Accept and persist `declared_places` from the request body. The app sends the full list every time (replace semantics).
+Persists the user's full declared places list. The app sends the complete array every time (replace semantics — no partial updates).
 
+**Request body**
 ```json
 {
   "user_id": "673488e9bc47400013f52553",
-  "selected_sites": [ ... ],
+  "selected_sites": [ "..." ],
   "declared_places": [
     {
       "site_id": "6720f513c7f24000139463e9",
@@ -65,28 +74,59 @@ Accept and persist `declared_places` from the request body. The app sends the fu
         "arrive_m": 30,
         "leave_h": 17,
         "leave_m": 0
-      }
+      },
+      "weekend_window": null
     }
   ]
 }
 ```
 
+> Send `declared_places: []` to clear all places. Omitting the field leaves the stored value untouched.
+
 ---
 
-## 2. New Endpoint — Hourly Readings
+### DeclaredPlace schema
 
-### GET `/api/v2/devices/measurements/sites/:siteId/hourly`
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `site_id` | string (ObjectId) | Yes | |
+| `display_name` | string | Yes | |
+| `location_name` | string | Yes | |
+| `city` | string | Yes | |
+| `type` | string | Yes | `home`, `work`, `school`, `gym`, `family`, `other` |
+| `absent_on_weekdays` | boolean | Yes | |
+| `absent_on_weekends` | boolean | Yes | |
+| `weekday_window` | TimeWindow \| null | No | |
+| `weekend_window` | TimeWindow \| null | No | |
 
-Returns 24 hourly PM2.5 readings for a site on a given date.
+### TimeWindow schema
 
-**Query params:**
-
-| Param | Type | Required |
+| Field | Type | Range |
 |---|---|---|
-| `date` | `YYYY-MM-DD` | Yes |
+| `arrive_h` | integer | 0 – 23 |
+| `arrive_m` | integer | 0 – 59 |
+| `leave_h` | integer | 0 – 23 |
+| `leave_m` | integer | 0 – 59 |
 
-**Response `200`:**
+> Windows support overnight spans — if `leave_h < arrive_h` the window wraps past midnight (e.g. arrive 22:00, leave 06:00).
 
+---
+
+---
+
+## 2. Hourly Readings — new endpoint
+
+### GET `/api/v2/devices/readings/sites/:siteId/hourly`
+
+Returns 24 hourly PM2.5 readings for a site on a given UTC calendar date.
+
+**Query params**
+
+| Param | Type | Required | Notes |
+|---|---|---|---|
+| `date` | `YYYY-MM-DD` | Yes | UTC calendar date |
+
+**Response `200`**
 ```json
 {
   "success": true,
@@ -120,35 +160,28 @@ Returns 24 hourly PM2.5 readings for a site on a given date.
 }
 ```
 
-- Always return exactly **24 entries**, one per hour (0–23), in order.
-- Use `null` for hours with no sensor data.
-- Values are in **µg/m³**.
+**Error `400`** — missing or invalid params
+```json
+{
+  "success": false,
+  "message": "bad request errors",
+  "errors": { "date": "date must be in YYYY-MM-DD format" }
+}
+```
+
+**Notes**
+- Always returns exactly **24 entries**, one per hour, ordered 0 → 23.
+- `null` means no sensor data was recorded for that hour.
+- Values are in **µg/m³**, rounded to 1 decimal place.
+- Data is available for any date within the **last 14 days** (readings TTL).
+- A date with no readings at all returns 24 nulls — not an error.
 
 ---
 
-## Data Schema
+## Microservices
 
-### DeclaredPlace
-
-| Field | Type | Required |
-|---|---|---|
-| `site_id` | string | Yes |
-| `display_name` | string | Yes |
-| `location_name` | string | Yes |
-| `city` | string | Yes |
-| `type` | `home` \| `work` \| `school` \| `gym` \| `family` \| `other` | Yes |
-| `absent_on_weekdays` | boolean | Yes |
-| `absent_on_weekends` | boolean | Yes |
-| `weekday_window` | TimeWindow \| null | No |
-| `weekend_window` | TimeWindow \| null | No |
-
-### TimeWindow
-
-| Field | Type | Range |
-|---|---|---|
-| `arrive_h` | integer | 0–23 |
-| `arrive_m` | integer | 0–59 |
-| `leave_h` | integer | 0–23 |
-| `leave_m` | integer | 0–59 |
-
-> Windows can be overnight — if `leave_h` < `arrive_h` the window wraps past midnight (e.g. arrive 22:00, leave 06:00).
+| Endpoint | Service |
+|---|---|
+| `GET /api/v2/users/preferences/:userId` | `auth-service` |
+| `PATCH /api/v2/users/preferences/replace` | `auth-service` |
+| `GET /api/v2/devices/readings/sites/:siteId/hourly` | `device-registry` 
