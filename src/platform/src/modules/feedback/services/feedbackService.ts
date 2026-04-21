@@ -27,7 +27,9 @@ const extractResponseData = <T extends { success?: boolean; message?: string }>(
   fallbackMessage: string
 ): T => {
   if ('success' in data && data.success === false) {
-    throw new Error(data.message || fallbackMessage);
+    // Avoid surfacing raw backend messages to the UI/logs.
+    // Always throw a safe, user-facing fallback message instead.
+    throw new Error(fallbackMessage);
   }
 
   return data;

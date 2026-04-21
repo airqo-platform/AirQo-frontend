@@ -251,7 +251,7 @@ export const getDownloadColumnGroups = (
       options: [
         { key: 'datetime', label: 'Date and time', group: 'core' },
         { key: 'frequency', label: 'Frequency', group: 'core' },
-        { key: 'network', label: 'Network', group: 'core' },
+        { key: 'network', label: 'Sensor Manufacturer', group: 'core' },
       ],
     },
     {

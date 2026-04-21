@@ -13,24 +13,35 @@ import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { feedbackService } from '../services/feedbackService';
 import { AqMessageNotificationSquare } from '@airqo/icons-react';
 
-type FeedbackCategory = 'bug' | 'feature' | 'support' | 'praise' | 'other';
+type FeedbackCategory =
+  | 'general'
+  | 'bug'
+  | 'feature_request'
+  | 'performance'
+  | 'ux_design'
+  | 'other';
 
 const CATEGORY_OPTIONS: Array<{
   value: FeedbackCategory;
   label: string;
 }> = [
+  { value: 'general', label: 'General' },
   { value: 'bug', label: 'Bug' },
-  { value: 'feature', label: 'Feature request' },
-  { value: 'support', label: 'Support' },
-  { value: 'praise', label: 'Praise' },
+  { value: 'feature_request', label: 'Feature request' },
+  { value: 'performance', label: 'Performance' },
+  { value: 'ux_design', label: 'UX / Design' },
   { value: 'other', label: 'Other' },
 ];
 
 const RATING_ITEM_STYLES = {
   itemShapes: Star,
-  activeFillColor: '#0f766e',
+  // Use app primary color from CSS variables for consistency
+  activeFillColor: 'rgb(var(--primary-700))',
   inactiveFillColor: '#dbe4ea',
 };
+
+const isValidEmail = (value: string) =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
 const getBrowserLabel = (): string => {
   if (typeof navigator === 'undefined') {
@@ -74,7 +85,7 @@ const buildFeedbackMetadata = (pathname: string) => {
 };
 
 const resetFormState = () => ({
-  category: 'bug' as FeedbackCategory,
+  category: 'general' as FeedbackCategory,
   rating: 3,
   subject: '',
   message: '',
@@ -122,6 +133,11 @@ export const FeedbackLauncher: React.FC = () => {
       return;
     }
 
+    if (!isValidEmail(trimmedEmail)) {
+      toast.error('Please enter a valid email address.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -166,7 +182,8 @@ export const FeedbackLauncher: React.FC = () => {
             onClick={() => setIsOpen(true)}
             whileHover={{ scale: 1.04, y: -1 }}
             whileTap={{ scale: 0.97 }}
-            className="flex h-14 w-14 items-center justify-center rounded-full border border-white/20 bg-gradient-to-br from-teal-600 via-emerald-500 to-cyan-500 text-white shadow-2xl shadow-emerald-950/20 transition focus:outline-none focus:ring-2 focus:ring-teal-300 focus:ring-offset-2 focus:ring-offset-background"
+            className="flex h-14 w-14 items-center justify-center rounded-full border border-white/20 text-white shadow-2xl shadow-emerald-950/20 transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background"
+            style={{ backgroundColor: 'rgb(var(--primary-700))' }}
             aria-label="Open feedback form"
           >
             <AqMessageNotificationSquare
@@ -181,7 +198,7 @@ export const FeedbackLauncher: React.FC = () => {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         title="Share feedback"
-        subtitle="Tell us what is working, what is not, or what should be improved."
+        subtitle="Help us improve your experience. Tell us what’s working well, what could be better, or any problems you’ve faced."
         size="xl"
         primaryAction={{
           label: isSubmitting ? 'Sending...' : 'Send feedback',

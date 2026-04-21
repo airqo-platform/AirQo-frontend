@@ -23,10 +23,11 @@ type FeedbackRow = FeedbackSubmission & {
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
+  general: 'General',
   bug: 'Bug',
-  feature: 'Feature request',
-  support: 'Support',
-  praise: 'Praise',
+  feature_request: 'Feature request',
+  performance: 'Performance',
+  ux_design: 'UX / Design',
   other: 'Other',
 };
 
@@ -34,6 +35,7 @@ const STATUS_LABELS: Record<string, string> = {
   pending: 'Pending',
   reviewed: 'Reviewed',
   resolved: 'Resolved',
+  archived: 'Archived',
 };
 
 const STATUS_STYLES: Record<string, string> = {
@@ -42,14 +44,17 @@ const STATUS_STYLES: Record<string, string> = {
   reviewed: 'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300',
   resolved:
     'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300',
+  archived:
+    'bg-slate-100 text-slate-800 dark:bg-slate-950/40 dark:text-slate-300',
 };
 
 const CATEGORY_OPTIONS = [
   { value: 'all', label: 'All categories' },
+  { value: 'general', label: 'General' },
   { value: 'bug', label: 'Bug' },
-  { value: 'feature', label: 'Feature request' },
-  { value: 'support', label: 'Support' },
-  { value: 'praise', label: 'Praise' },
+  { value: 'feature_request', label: 'Feature request' },
+  { value: 'performance', label: 'Performance' },
+  { value: 'ux_design', label: 'UX / Design' },
   { value: 'other', label: 'Other' },
 ];
 
@@ -58,6 +63,7 @@ const STATUS_OPTIONS = [
   { value: 'pending', label: 'Pending' },
   { value: 'reviewed', label: 'Reviewed' },
   { value: 'resolved', label: 'Resolved' },
+  { value: 'archived', label: 'Archived' },
 ];
 
 const formatDateTime = (value: string) =>
@@ -71,21 +77,42 @@ const formatDateTime = (value: string) =>
 
 const getStatusLabel = (status: string) => STATUS_LABELS[status] || status;
 
-const FeedbackListPage: React.FC = () => {
+const FeedbackListContent: React.FC = () => {
   const router = useRouter();
-  const { data, error, isLoading } = useSWR(
-    'feedback/submissions',
-    () => feedbackService.getFeedbackSubmissions({ limit: 100 }),
-    {
-      revalidateOnFocus: false,
-      shouldRetryOnError: false,
-      errorRetryCount: 0,
-      dedupingInterval: 5000,
-    }
-  );
-
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
+
+  const fetchAllFeedbacks = async (opts: {
+    status?: string | null;
+    category?: string | null;
+  }) => {
+    const limit = 100;
+    let page = 1;
+    let all: FeedbackSubmission[] = [];
+    while (true) {
+      const res = await feedbackService.getFeedbackSubmissions({
+        page,
+        limit,
+        status: opts.status || undefined,
+        category: opts.category || undefined,
+      });
+      all = all.concat(res.feedbacks || []);
+      const pages = res.meta?.pages ?? 1;
+      if (page >= pages) break;
+      page += 1;
+    }
+    return { feedbacks: all };
+  };
+
+  const { data, error, isLoading } = useSWR(
+    ['feedback/submissions', statusFilter, categoryFilter],
+    async () => {
+      const status = statusFilter === 'all' ? null : statusFilter;
+      const category = categoryFilter === 'all' ? null : categoryFilter;
+      return fetchAllFeedbacks({ status, category });
+    },
+    { revalidateOnFocus: false, shouldRetryOnError: false }
+  );
 
   const feedbacks = useMemo(() => data?.feedbacks || [], [data?.feedbacks]);
 
@@ -95,7 +122,6 @@ const FeedbackListPage: React.FC = () => {
         statusFilter === 'all' || feedback.status === statusFilter;
       const matchesCategory =
         categoryFilter === 'all' || feedback.category === categoryFilter;
-
       return matchesStatus && matchesCategory;
     });
   }, [categoryFilter, feedbacks, statusFilter]);
@@ -116,9 +142,10 @@ const FeedbackListPage: React.FC = () => {
         if (feedback.status === 'pending') counts.pending += 1;
         if (feedback.status === 'reviewed') counts.reviewed += 1;
         if (feedback.status === 'resolved') counts.resolved += 1;
+        if (feedback.status === 'archived') counts.archived += 1;
         return counts;
       },
-      { total: 0, pending: 0, reviewed: 0, resolved: 0 }
+      { total: 0, pending: 0, reviewed: 0, resolved: 0, archived: 0 }
     );
   }, [feedbacks]);
 
@@ -231,88 +258,97 @@ const FeedbackListPage: React.FC = () => {
       value: statusCounts.resolved,
       description: 'Closed out',
     },
+    {
+      title: 'Archived',
+      value: statusCounts.archived,
+      description: 'Hidden from active lists',
+    },
   ];
 
+  return isLoading ? (
+    <LoadingState
+      className="min-h-[400px]"
+      text="Loading feedback submissions..."
+    />
+  ) : error ? (
+    <Card className="p-6">
+      <p className="text-sm text-muted-foreground">
+        {getUserFriendlyErrorMessage(error)}
+      </p>
+    </Card>
+  ) : (
+    <div className="space-y-6">
+      <PageHeading
+        title="Feedback"
+        subtitle="Review user-reported bugs, feature requests, praise, and support messages."
+      />
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {summaryCards.map(card => (
+          <Card key={card.title} className="p-4">
+            <p className="text-sm text-muted-foreground">{card.title}</p>
+            <p className="mt-2 text-2xl font-semibold text-foreground">
+              {card.value}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {card.description}
+            </p>
+          </Card>
+        ))}
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <Select
+          label="Status filter"
+          value={statusFilter}
+          onChange={event =>
+            setStatusFilter(String(event.target.value || 'all'))
+          }
+          containerClassName="md:max-w-xs"
+        >
+          {STATUS_OPTIONS.map(option => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </Select>
+
+        <Select
+          label="Category filter"
+          value={categoryFilter}
+          onChange={event =>
+            setCategoryFilter(String(event.target.value || 'all'))
+          }
+          containerClassName="md:max-w-xs"
+        >
+          {CATEGORY_OPTIONS.map(option => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </Select>
+      </div>
+
+      <ServerSideTable
+        title="Feedback submissions"
+        data={tableData}
+        columns={columns}
+        loading={false}
+        showClientPagination={true}
+        compactRows={false}
+      />
+    </div>
+  );
+};
+
+const FeedbackListPage: React.FC = () => {
   return (
     <PermissionGuard
       requiredPermissions={['SYSTEM_ADMIN', 'SUPER_ADMIN']}
       accessDeniedTitle="Access Restricted"
       accessDeniedMessage="You need system administration permissions to view feedback submissions."
     >
-      {isLoading ? (
-        <LoadingState
-          className="min-h-[400px]"
-          text="Loading feedback submissions..."
-        />
-      ) : error ? (
-        <Card className="p-6">
-          <p className="text-sm text-muted-foreground">
-            {getUserFriendlyErrorMessage(error)}
-          </p>
-        </Card>
-      ) : (
-        <div className="space-y-6">
-          <PageHeading
-            title="Feedback"
-            subtitle="Review user-reported bugs, feature requests, praise, and support messages."
-          />
-
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {summaryCards.map(card => (
-              <Card key={card.title} className="p-4">
-                <p className="text-sm text-muted-foreground">{card.title}</p>
-                <p className="mt-2 text-2xl font-semibold text-foreground">
-                  {card.value}
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {card.description}
-                </p>
-              </Card>
-            ))}
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <Select
-              label="Status filter"
-              value={statusFilter}
-              onChange={event =>
-                setStatusFilter(String(event.target.value || 'all'))
-              }
-              containerClassName="md:max-w-xs"
-            >
-              {STATUS_OPTIONS.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </Select>
-
-            <Select
-              label="Category filter"
-              value={categoryFilter}
-              onChange={event =>
-                setCategoryFilter(String(event.target.value || 'all'))
-              }
-              containerClassName="md:max-w-xs"
-            >
-              {CATEGORY_OPTIONS.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </Select>
-          </div>
-
-          <ServerSideTable
-            title="Feedback submissions"
-            data={tableData}
-            columns={columns}
-            loading={false}
-            showClientPagination={true}
-            compactRows={false}
-          />
-        </div>
-      )}
+      <FeedbackListContent />
     </PermissionGuard>
   );
 };

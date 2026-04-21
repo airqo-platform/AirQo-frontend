@@ -116,10 +116,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               <BottomNavigation />
             </div>
           )}
+
+          <FeedbackLauncher />
         </div>
       )}
-
-      <FeedbackLauncher />
 
       {/* Global Sidebar */}
       <GlobalSidebar />

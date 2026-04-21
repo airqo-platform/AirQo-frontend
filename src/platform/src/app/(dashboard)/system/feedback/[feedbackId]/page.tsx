@@ -16,12 +16,13 @@ import { toast } from '@/shared/components/ui/toast';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import type { FeedbackSubmission } from '@/shared/types/api';
 
-const STATUS_OPTIONS = ['pending', 'reviewed', 'resolved'] as const;
+const STATUS_OPTIONS = ['pending', 'reviewed', 'resolved', 'archived'] as const;
 
 const STATUS_LABELS: Record<string, string> = {
   pending: 'Pending',
   reviewed: 'Reviewed',
   resolved: 'Resolved',
+  archived: 'Archived',
 };
 
 const STATUS_STYLES: Record<string, string> = {
@@ -30,13 +31,23 @@ const STATUS_STYLES: Record<string, string> = {
   reviewed: 'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300',
   resolved:
     'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300',
+  archived:
+    'bg-slate-100 text-slate-800 dark:bg-slate-950/40 dark:text-slate-300',
+};
+
+const ALLOWED_TRANSITIONS: Record<string, string[]> = {
+  pending: ['reviewed', 'archived'],
+  reviewed: ['resolved', 'archived'],
+  resolved: ['archived'],
+  archived: [],
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
+  general: 'General',
   bug: 'Bug',
-  feature: 'Feature request',
-  support: 'Support',
-  praise: 'Praise',
+  feature_request: 'Feature request',
+  performance: 'Performance',
+  ux_design: 'UX / Design',
   other: 'Other',
 };
 
@@ -49,11 +60,11 @@ const formatDateTime = (value: string) =>
     minute: '2-digit',
   });
 
-const FeedbackDetailsPage: React.FC = () => {
-  const params = useParams<{ feedbackId: string }>();
+const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
+  feedbackId,
+}) => {
   const router = useRouter();
   const { mutate: globalMutate } = useSWRConfig();
-  const feedbackId = params?.feedbackId;
   const [isUpdating, setIsUpdating] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
 
@@ -74,12 +85,6 @@ const FeedbackDetailsPage: React.FC = () => {
   );
 
   const feedback = data?.feedback as FeedbackSubmission | undefined;
-
-  useEffect(() => {
-    if (!feedbackId) {
-      router.push('/system/feedback');
-    }
-  }, [feedbackId, router]);
 
   const metadataEntries = useMemo(() => {
     if (!feedback?.metadata) {
@@ -108,10 +113,17 @@ const FeedbackDetailsPage: React.FC = () => {
     try {
       await feedbackService.updateFeedbackStatus(feedbackId, status);
       toast.success('Feedback status updated successfully');
-      await Promise.all([
-        refreshFeedback(),
-        globalMutate('feedback/submissions'),
-      ]);
+
+      // Refresh caches best-effort; do not convert refresh failures into
+      // status-update failures.
+      try {
+        await Promise.allSettled([
+          refreshFeedback(),
+          globalMutate('feedback/submissions'),
+        ]);
+      } catch {
+        // swallow - Promise.allSettled should not throw, but keep safe.
+      }
     } catch (updateError) {
       toast.error(getUserFriendlyErrorMessage(updateError));
     } finally {
@@ -120,193 +132,211 @@ const FeedbackDetailsPage: React.FC = () => {
     }
   };
 
+  if (isLoading) {
+    return (
+      <LoadingState
+        className="min-h-[400px]"
+        text="Loading feedback details..."
+      />
+    );
+  }
+
+  if (error || !feedback) {
+    return (
+      <Card className="p-6">
+        <p className="text-sm text-muted-foreground">
+          {error
+            ? getUserFriendlyErrorMessage(error)
+            : 'Feedback submission not found.'}
+        </p>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-start">
+        <Button
+          variant="ghost"
+          Icon={AqArrowLeft}
+          iconPosition="start"
+          onClick={handleBack}
+        >
+          Back to feedback
+        </Button>
+      </div>
+
+      <PageHeading
+        title={feedback.subject}
+        subtitle={`Submitted by ${feedback.email} on ${formatDateTime(
+          feedback.createdAt
+        )}`}
+      />
+
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.6fr)]">
+        <div className="space-y-6">
+          <Card className="p-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">Current status</p>
+                <span
+                  className={`inline-flex rounded-full px-3 py-1 text-xs font-medium capitalize ${
+                    STATUS_STYLES[feedback.status] || 'bg-muted text-foreground'
+                  }`}
+                >
+                  {STATUS_LABELS[feedback.status] || feedback.status}
+                </span>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {STATUS_OPTIONS.filter(status => {
+                  const allowed = new Set<string>([
+                    feedback.status,
+                    ...(ALLOWED_TRANSITIONS[feedback.status] || []),
+                  ]);
+                  return allowed.has(status);
+                }).map(status => (
+                  <Button
+                    key={status}
+                    variant={feedback.status === status ? 'filled' : 'outlined'}
+                    loading={isUpdating && pendingStatus === status}
+                    disabled={isUpdating && feedback.status !== status}
+                    onClick={() => void handleUpdateStatus(status)}
+                  >
+                    {STATUS_LABELS[status]}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm font-medium text-foreground">Message</p>
+                <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">
+                  {feedback.message}
+                </p>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Category
+                  </p>
+                  <p className="mt-1 text-sm text-foreground">
+                    {CATEGORY_LABELS[feedback.category] || feedback.category}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Platform
+                  </p>
+                  <p className="mt-1 text-sm text-foreground">
+                    {feedback.platform}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Rating
+                  </p>
+                  <p className="mt-1 text-sm text-foreground">
+                    {feedback.rating}/5
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Tenant
+                  </p>
+                  <p className="mt-1 text-sm text-foreground">
+                    {feedback.tenant || '--'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        <div className="space-y-6">
+          <Card className="p-6">
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm font-medium text-foreground">Reporter</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {feedback.email}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Created
+                </p>
+                <p className="mt-1 text-sm text-foreground">
+                  {formatDateTime(feedback.createdAt)}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Updated
+                </p>
+                <p className="mt-1 text-sm text-foreground">
+                  {formatDateTime(feedback.updatedAt)}
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <div className="space-y-4">
+              <p className="text-sm font-medium text-foreground">Metadata</p>
+              <div className="space-y-3">
+                {metadataEntries.length > 0 ? (
+                  metadataEntries.map(([label, value]) => (
+                    <div
+                      key={label}
+                      className="flex items-start justify-between gap-3"
+                    >
+                      <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                        {label}
+                      </span>
+                      <span className="text-right text-sm text-foreground">
+                        {value}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    No metadata was included with this submission.
+                  </p>
+                )}
+              </div>
+            </div>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const FeedbackDetailsPage: React.FC = () => {
+  const params = useParams<{ feedbackId: string }>();
+  const router = useRouter();
+  const feedbackId = params?.feedbackId;
+
+  useEffect(() => {
+    if (!feedbackId) {
+      router.push('/system/feedback');
+    }
+  }, [feedbackId, router]);
+
   return (
     <PermissionGuard
       requiredPermissions={['SYSTEM_ADMIN', 'SUPER_ADMIN']}
       accessDeniedTitle="Access Restricted"
       accessDeniedMessage="You need system administration permissions to review feedback submissions."
     >
-      {isLoading ? (
-        <LoadingState
-          className="min-h-[400px]"
-          text="Loading feedback details..."
-        />
-      ) : error || !feedback ? (
-        <Card className="p-6">
-          <p className="text-sm text-muted-foreground">
-            {error
-              ? getUserFriendlyErrorMessage(error)
-              : 'Feedback submission not found.'}
-          </p>
-        </Card>
-      ) : (
-        <div className="space-y-6">
-          <div className="flex justify-start">
-            <Button
-              variant="ghost"
-              Icon={AqArrowLeft}
-              iconPosition="start"
-              onClick={handleBack}
-            >
-              Back to feedback
-            </Button>
-          </div>
-
-          <PageHeading
-            title={feedback.subject}
-            subtitle={`Submitted by ${feedback.email} on ${formatDateTime(feedback.createdAt)}`}
-          />
-
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.6fr)]">
-            <div className="space-y-6">
-              <Card className="p-6">
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">
-                      Current status
-                    </p>
-                    <span
-                      className={`inline-flex rounded-full px-3 py-1 text-xs font-medium capitalize ${
-                        STATUS_STYLES[feedback.status] ||
-                        'bg-muted text-foreground'
-                      }`}
-                    >
-                      {STATUS_LABELS[feedback.status] || feedback.status}
-                    </span>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    {STATUS_OPTIONS.map(status => (
-                      <Button
-                        key={status}
-                        variant={
-                          feedback.status === status ? 'filled' : 'outlined'
-                        }
-                        loading={isUpdating && pendingStatus === status}
-                        disabled={isUpdating && feedback.status !== status}
-                        onClick={() => void handleUpdateStatus(status)}
-                      >
-                        {STATUS_LABELS[status]}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              </Card>
-
-              <Card className="p-6">
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-sm font-medium text-foreground">
-                      Message
-                    </p>
-                    <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">
-                      {feedback.message}
-                    </p>
-                  </div>
-
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div>
-                      <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                        Category
-                      </p>
-                      <p className="mt-1 text-sm text-foreground">
-                        {CATEGORY_LABELS[feedback.category] ||
-                          feedback.category}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                        Platform
-                      </p>
-                      <p className="mt-1 text-sm text-foreground">
-                        {feedback.platform}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                        Rating
-                      </p>
-                      <p className="mt-1 text-sm text-foreground">
-                        {feedback.rating}/5
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                        Tenant
-                      </p>
-                      <p className="mt-1 text-sm text-foreground">
-                        {feedback.tenant || '--'}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            </div>
-
-            <div className="space-y-6">
-              <Card className="p-6">
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-sm font-medium text-foreground">
-                      Reporter
-                    </p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {feedback.email}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                      Created
-                    </p>
-                    <p className="mt-1 text-sm text-foreground">
-                      {formatDateTime(feedback.createdAt)}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                      Updated
-                    </p>
-                    <p className="mt-1 text-sm text-foreground">
-                      {formatDateTime(feedback.updatedAt)}
-                    </p>
-                  </div>
-                </div>
-              </Card>
-
-              <Card className="p-6">
-                <div className="space-y-4">
-                  <p className="text-sm font-medium text-foreground">
-                    Metadata
-                  </p>
-                  <div className="space-y-3">
-                    {metadataEntries.length > 0 ? (
-                      metadataEntries.map(([label, value]) => (
-                        <div
-                          key={label}
-                          className="flex items-start justify-between gap-3"
-                        >
-                          <span className="text-xs uppercase tracking-wide text-muted-foreground">
-                            {label}
-                          </span>
-                          <span className="text-right text-sm text-foreground">
-                            {value}
-                          </span>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-muted-foreground">
-                        No metadata was included with this submission.
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </Card>
-            </div>
-          </div>
-        </div>
-      )}
+      {feedbackId ? <FeedbackDetailsContent feedbackId={feedbackId} /> : null}
     </PermissionGuard>
   );
 };
