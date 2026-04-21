@@ -153,6 +153,8 @@ export default function DeviceDetailsLayout({ deviceId }: DeviceDetailsLayoutPro
                     <div className="break-inside-avoid mb-4 inline-block w-full order-4">
                         <DeviceHistoryCard
                             deviceName={device.name}
+                            previousSites={device.previous_sites}
+                            currentSite={device.site}
                         />
                     </div>
                     <div className="break-inside-avoid mb-4 inline-block w-full order-3">
