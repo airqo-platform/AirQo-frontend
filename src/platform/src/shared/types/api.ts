@@ -360,6 +360,76 @@ export interface Client {
   };
 }
 
+export interface FeedbackSubmissionMetadata extends Record<string, unknown> {
+  page?: string;
+  browser?: string;
+  appVersion?: string;
+  screenResolution?: string;
+}
+
+export interface FeedbackSubmission {
+  _id: string;
+  category: string;
+  platform: string;
+  status: string;
+  email: string;
+  subject: string;
+  message: string;
+  rating: number;
+  metadata?: FeedbackSubmissionMetadata;
+  tenant?: string;
+  createdAt: string;
+  updatedAt: string;
+  __v?: number;
+}
+
+export interface FeedbackSubmissionsMeta {
+  total: number;
+  skip: number;
+  limit: number;
+  page: number;
+  pages: number;
+}
+
+export interface GetFeedbackSubmissionsResponse {
+  success: boolean;
+  message: string;
+  feedbacks: FeedbackSubmission[];
+  meta: FeedbackSubmissionsMeta;
+}
+
+export interface GetFeedbackSubmissionResponse {
+  success: boolean;
+  message: string;
+  feedback: FeedbackSubmission;
+}
+
+export interface SubmitFeedbackRequest {
+  email: string;
+  subject: string;
+  message: string;
+  rating: number;
+  category: string;
+  platform: string;
+  metadata?: FeedbackSubmissionMetadata;
+}
+
+export interface SubmitFeedbackResponse {
+  success: boolean;
+  message: string;
+  feedback?: FeedbackSubmission;
+}
+
+export interface UpdateFeedbackStatusRequest {
+  status: string;
+}
+
+export interface UpdateFeedbackStatusResponse {
+  success: boolean;
+  message: string;
+  feedback: FeedbackSubmission;
+}
+
 export interface Group {
   grp_title: string;
   organization_slug: string;
@@ -1134,6 +1204,7 @@ export interface DataDownloadResponse {
 // Recent readings types
 export interface RecentReadingRequest {
   site_id: string; // comma-separated site IDs
+  user_id?: string;
 }
 
 export interface AQIRanges {

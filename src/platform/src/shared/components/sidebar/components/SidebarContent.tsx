@@ -15,8 +15,11 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
   onItemClick,
   className,
 }) => {
-  const { isAirQoSuperAdminWithEmail, hasAnyPermissionInActiveGroup } =
-    useRBAC();
+  const {
+    isAirQoSuperAdminWithEmail,
+    hasAnyPermission,
+    hasAnyPermissionInActiveGroup,
+  } = useRBAC();
 
   // Get the appropriate sidebar configuration
   const sidebarConfig = React.useMemo(() => {
@@ -78,6 +81,13 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
         .map(group => ({
           ...group,
           items: group.items.filter(item => {
+            if (item.id === 'system-feedback') {
+              return (
+                hasAnyPermission(['SYSTEM_ADMIN', 'SUPER_ADMIN']) ||
+                isAirQoSuperAdminWithEmail()
+              );
+            }
+
             // Hide system-clients, system-org-requests, and system-user-statistics if user doesn't have AIRQO_SUPER_ADMIN role
             if (
               [
@@ -110,6 +120,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
     flow,
     orgSlug,
     isAirQoSuperAdminWithEmail,
+    hasAnyPermission,
     hasAnyPermissionInActiveGroup,
   ]);
 

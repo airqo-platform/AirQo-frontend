@@ -925,6 +925,11 @@
   resolved "https://registry.npmjs.org/@rushstack/eslint-patch/-/eslint-patch-1.14.0.tgz"
   integrity sha512-WJFej426qe4RWOm9MMtP4V3CV4AucXolQty+GRgAWLgQXmpCuwzs7hEpxxhSc/znXUSxum9d/P/32MW0FlAAlA==
 
+"@smastrom/react-rating@^1.5.0":
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/@smastrom/react-rating/-/react-rating-1.5.0.tgz#c7e7d3ae3334d6488a9af7b7d23578d49631d0ae"
+  integrity sha512-7vg3NRgO0tpvEunq8BEWA8qckNSd7x3dVGqaNEfLs3Ow4ibU2EEXJtnd7Yl44xOujWIzXM5Bk2VZm2DVm065Qw==
+
 "@standard-schema/spec@^1.0.0":
   version "1.0.0"
   resolved "https://registry.npmjs.org/@standard-schema/spec/-/spec-1.0.0.tgz"

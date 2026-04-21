@@ -48,6 +48,93 @@ const getSiteSearchName = (site?: SiteNameSource): string => {
   );
 };
 
+const formatCoordinateValue = (value: unknown): string | undefined => {
+  if (value === null || value === undefined || value === '') {
+    return undefined;
+  }
+
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return String(value);
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+
+    if (!trimmed) {
+      return undefined;
+    }
+
+    const numericValue = Number(trimmed);
+    if (!Number.isFinite(numericValue)) {
+      return undefined;
+    }
+
+    return String(numericValue);
+  }
+
+  return undefined;
+};
+
+const formatCoordinates = (
+  latitude: unknown,
+  longitude: unknown
+): string | undefined => {
+  const lat = formatCoordinateValue(latitude);
+  const lng = formatCoordinateValue(longitude);
+
+  if (lat && lng) {
+    return `${lat}, ${lng}`;
+  }
+
+  return undefined;
+};
+
+const resolveCoordinates = (
+  source: Record<string, unknown> | SiteNameSource | undefined
+): string => {
+  if (!source) {
+    return '--';
+  }
+
+  const nestedSite = source.site as SiteNameSource | undefined;
+  const nestedSiteDetails = source.siteDetails as SiteNameSource | undefined;
+
+  const primaryCoordinates = formatCoordinates(
+    source.approximate_latitude,
+    source.approximate_longitude
+  );
+  if (primaryCoordinates) {
+    return primaryCoordinates;
+  }
+
+  const nestedCoordinates = formatCoordinates(
+    nestedSite?.approximate_latitude ?? nestedSiteDetails?.approximate_latitude,
+    nestedSite?.approximate_longitude ??
+      nestedSiteDetails?.approximate_longitude
+  );
+  if (nestedCoordinates) {
+    return nestedCoordinates;
+  }
+
+  const fallbackCoordinates = formatCoordinates(
+    source.latitude,
+    source.longitude
+  );
+  if (fallbackCoordinates) {
+    return fallbackCoordinates;
+  }
+
+  const nestedFallbackCoordinates = formatCoordinates(
+    nestedSite?.latitude ?? nestedSiteDetails?.latitude,
+    nestedSite?.longitude ?? nestedSiteDetails?.longitude
+  );
+  if (nestedFallbackCoordinates) {
+    return nestedFallbackCoordinates;
+  }
+
+  return '--';
+};
+
 /**
  * Processes sites data for table display
  */
@@ -63,6 +150,7 @@ export const processSitesData = (
       (site._id as string | number) ||
       index,
     name: getSiteDisplayName(site as SiteNameSource),
+    coordinates: resolveCoordinates(site as Record<string, unknown>),
     city: removeUnderscores((site.city as string) || '--'),
     country: removeUnderscores((site.country as string) || '--'),
     data_provider: removeUnderscores(
@@ -86,6 +174,7 @@ export const processDevicesData = (
       (device._id as string | number) ||
       index,
     name: (device.name as string) || '--',
+    coordinates: resolveCoordinates(device as Record<string, unknown>),
     network: ((device.network as string) || '--').toUpperCase(),
     category: (device.category as string) || '--',
   }));

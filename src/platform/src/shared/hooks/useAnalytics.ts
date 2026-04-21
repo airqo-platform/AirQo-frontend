@@ -10,9 +10,13 @@ import type {
 } from '../types/api';
 
 // Get chart data
-export const useGetChartData = () => {
+export const useGetChartData = (keyParts?: unknown[]) => {
+  const swrKey = Array.isArray(keyParts)
+    ? ['analytics/chart-data', ...keyParts]
+    : ['analytics/chart-data'];
+
   return useSWRMutation(
-    'analytics/chart-data',
+    swrKey,
     async (
       key,
       { arg }: { arg: AnalyticsChartRequest }

@@ -14,6 +14,10 @@ import type {
   DataDownloadRequest,
   Site,
 } from '@/shared/types/api';
+import {
+  buildDownloadFileContent,
+  DownloadFileTransformOptions,
+} from '@/modules/data-download/utils/dataExportFile';
 
 interface AnalyticsSelections {
   selectedSiteIds: string[];
@@ -122,11 +126,6 @@ export const useAnalyticsChartData = (
   selectedSiteIds: string[] = EMPTY_SELECTED_SITE_IDS,
   enabled = true
 ) => {
-  const { trigger, error, isMutating } = useGetChartData();
-
-  const [chartData, setChartData] = useState<ChartData[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-
   // Calculate date range based on filters
   const dateRange = useMemo(() => {
     return {
@@ -134,6 +133,20 @@ export const useAnalyticsChartData = (
       endDate: filters.endDate,
     };
   }, [filters.startDate, filters.endDate]);
+
+  const { trigger, error, isMutating } = useGetChartData([
+    Array.isArray(selectedSiteIds)
+      ? selectedSiteIds.join(',')
+      : selectedSiteIds,
+    dateRange.startDate,
+    dateRange.endDate,
+    chartType,
+    filters.frequency,
+    filters.pollutant,
+  ]);
+
+  const [chartData, setChartData] = useState<ChartData[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Fetch chart data
   const fetchChartData = useCallback(
@@ -223,6 +236,7 @@ export const useAnalyticsSiteCards = ({
   enabled = true,
 }: AnalyticsSelections) => {
   const { filters } = useAnalytics();
+  const { user } = useUser();
 
   const [siteCards, setSiteCards] = useState<SiteData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -253,7 +267,7 @@ export const useAnalyticsSiteCards = ({
     return () => {
       requestAbortRef.current?.abort();
     };
-  }, []);
+  }, [user?.id]);
 
   const selectedSiteIdsKey = useMemo(
     () => selectedSiteIds.join(','),
@@ -295,6 +309,7 @@ export const useAnalyticsSiteCards = ({
       const response = await analyticsService.getRecentReadings(
         {
           site_id: siteIdsParam,
+          user_id: user?.id,
         },
         controller.signal
       );
@@ -375,7 +390,7 @@ export const useAnalyticsSiteCards = ({
         requestAbortRef.current = null;
       }
     }
-  }, []);
+  }, [user?.id]);
 
   // Auto-fetch when selectedSiteIds or pollutant changes
   useEffect(() => {
@@ -405,51 +420,38 @@ export const useDataDownload = () => {
   const { trigger, isMutating, error } = useDownloadData();
 
   const downloadData = useCallback(
-    async (request: DataDownloadRequest, customFilename?: string) => {
+    async (
+      request: DataDownloadRequest,
+      customFilename?: string,
+      transformOptions?: DownloadFileTransformOptions
+    ) => {
       try {
         const response = await trigger(request);
+        const { content, mimeType, extension } = buildDownloadFileContent(
+          response,
+          request.downloadType,
+          transformOptions?.selectedColumnKeys
+        );
 
         // Generate default filename if not provided
         const defaultFilename = `air-quality-data-${request.startDateTime.split('T')[0]}-to-${request.endDateTime.split('T')[0]}`;
         const baseFilename = customFilename || defaultFilename;
 
         // Ensure filename has correct extension
-        const extension = request.downloadType;
         const filename = baseFilename.endsWith(`.${extension}`)
           ? baseFilename
           : `${baseFilename}.${extension}`;
 
-        if (request.downloadType === 'csv') {
-          // Handle CSV download
-          const csvData = response as string;
-          const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
-          const link = document.createElement('a');
-          const url = URL.createObjectURL(blob);
-          link.setAttribute('href', url);
-          link.setAttribute('download', filename);
-          link.style.visibility = 'hidden';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-        } else if (request.downloadType === 'json') {
-          // Handle JSON download
-          const jsonData =
-            response as import('@/shared/types/api').DataDownloadResponse;
-          const dataStr = JSON.stringify(jsonData, null, 2);
-          const blob = new Blob([dataStr], {
-            type: 'application/json;charset=utf-8;',
-          });
-          const link = document.createElement('a');
-          const url = URL.createObjectURL(blob);
-          link.setAttribute('href', url);
-          link.setAttribute('download', filename);
-          link.style.visibility = 'hidden';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-        }
+        const blob = new Blob([content], { type: mimeType });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', filename);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
 
         return { success: true };
       } catch (err) {
