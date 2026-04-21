@@ -39,9 +39,6 @@ jobs:
       - name: Setup Cloud SDK(gcloud)
         uses: google-github-actions/setup-gcloud@v1
 
-      - name: Add google-services.json for Firebase
-        run: gcloud secrets versions access latest --secret="prod-key-mobile-android-firebase-json" > android/app/google-services.json
-
       - name: Add  keystore and key.properties files
         run: |
           cd android/
@@ -49,12 +46,6 @@ jobs:
           gcloud secrets versions access latest --secret="prod-key-mobile-airqo-dev-keystore" | base64 -di > app/airqo-dev-keystore.jks
           gcloud secrets versions access latest --secret="prod-key-mobile-app" > prod-key.properties
           gcloud secrets versions access latest --secret="prod-key-mobile-properties-CI" > key.properties
-
-      - name: Add firebase options files
-        run: |
-          cd lib/
-          gcloud secrets versions access latest --secret="prod-key-mobile-firebase-options-dev" > firebase_options_dev.dart
-          gcloud secrets versions access latest --secret="prod-key-mobile-firebase-options" > firebase_options.dart
 
       - name: Add .env files
         run: |

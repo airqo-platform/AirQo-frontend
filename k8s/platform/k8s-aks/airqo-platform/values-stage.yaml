@@ -1,7 +1,7 @@
 replicaCount: 1
 image:
   repository: airqoacr.azurecr.io/airqo-stage-next-platform
-  tag: stage-27bdd750-1776588522
+  tag: stage-d8ea9bf5-1776803616
   pullPolicy: IfNotPresent
 imagePullSecrets: []
 nameOverride: ''
