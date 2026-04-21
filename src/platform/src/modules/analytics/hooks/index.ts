@@ -223,6 +223,7 @@ export const useAnalyticsSiteCards = ({
   enabled = true,
 }: AnalyticsSelections) => {
   const { filters } = useAnalytics();
+  const { user } = useUser();
 
   const [siteCards, setSiteCards] = useState<SiteData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -253,7 +254,7 @@ export const useAnalyticsSiteCards = ({
     return () => {
       requestAbortRef.current?.abort();
     };
-  }, []);
+  }, [user?.id]);
 
   const selectedSiteIdsKey = useMemo(
     () => selectedSiteIds.join(','),
@@ -295,6 +296,7 @@ export const useAnalyticsSiteCards = ({
       const response = await analyticsService.getRecentReadings(
         {
           site_id: siteIdsParam,
+          user_id: user?.id,
         },
         controller.signal
       );
@@ -375,7 +377,7 @@ export const useAnalyticsSiteCards = ({
         requestAbortRef.current = null;
       }
     }
-  }, []);
+  }, [user?.id]);
 
   // Auto-fetch when selectedSiteIds or pollutant changes
   useEffect(() => {
