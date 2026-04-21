@@ -5,18 +5,16 @@ import 'package:loggy/loggy.dart';
 import 'package:airqo/src/app/auth/services/auth_helper.dart';
 import 'package:airqo/src/app/dashboard/repository/user_preferences_repository.dart';
 import 'package:airqo/src/app/exposure/models/declared_place.dart';
-import 'package:airqo/src/app/exposure/repository/exposure_repository.dart';
+import 'package:airqo/src/app/exposure/repository/declared_places_repository.dart';
 
-class ExposureRepositoryImpl extends ExposureRepository with NetworkLoggy {
+class DeclaredPlacesRepositoryImpl extends DeclaredPlacesRepository with NetworkLoggy {
   static const String _hiveBox = 'preferencesBox';
   static const String _hiveKey = 'declared_places_v1';
 
   final UserPreferencesRepository _prefsRepo;
 
-  ExposureRepositoryImpl({UserPreferencesRepository? prefsRepo})
+  DeclaredPlacesRepositoryImpl({UserPreferencesRepository? prefsRepo})
       : _prefsRepo = prefsRepo ?? UserPreferencesImpl();
-
-  // ── Public API ─────────────────────────────────────────────────────────────
 
   @override
   Future<List<DeclaredPlace>> getDeclaredPlaces() async {
@@ -36,7 +34,6 @@ class ExposureRepositoryImpl extends ExposureRepository with NetworkLoggy {
         loggy.warning('Could not fetch declared places from API, using cache: $e');
       }
     }
-
     return _loadFromHive();
   }
 
@@ -58,8 +55,6 @@ class ExposureRepositoryImpl extends ExposureRepository with NetworkLoggy {
       loggy.error('Could not sync declared places to API: $e');
     }
   }
-
-  // ── Private helpers ────────────────────────────────────────────────────────
 
   Map<String, dynamic>? _extractPrefsData(Map<String, dynamic> response) {
     final data = response['data'];

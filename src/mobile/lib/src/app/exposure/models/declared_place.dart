@@ -73,7 +73,7 @@ class TimeWindow extends Equatable {
         leave: TimeOfDay(hour: json['leave_h'] as int, minute: json['leave_m'] as int),
       );
 
-  /// Whether clock hour [hour] (0–23) overlaps this window (supports overnight).
+  // Supports overnight spans: if leave < arrive the window wraps past midnight.
   bool overlapsHour(int hour) {
     assert(hour >= 0 && hour < 24);
     final hs = hour * 60;
@@ -89,17 +89,14 @@ class TimeWindow extends Equatable {
 
 class DeclaredPlace extends Equatable {
   final String siteId;
-  /// User-chosen tag (e.g. "Hakim's Home") shown next to the category icon—not the map place name.
+  // User-chosen label (e.g. "Hakim's Home") — distinct from locationName which is the map search result.
   final String displayName;
-  /// Map / search place name (e.g. "Wandegeya")—main title on cards.
   final String locationName;
   final String city;
   final PlaceType type;
   final TimeWindow? weekdayWindow;
   final TimeWindow? weekendWindow;
-  /// User explicitly declares no time at this place on Mon–Fri.
   final bool absentOnWeekdays;
-  /// User explicitly declares no time at this place on Sat–Sun.
   final bool absentOnWeekends;
 
   const DeclaredPlace({
@@ -116,14 +113,11 @@ class DeclaredPlace extends Equatable {
 
   bool get hasTimeWindow => weekdayWindow != null || weekendWindow != null;
 
-  /// True when the user has declared they are not scheduled here on this calendar day.
   bool isAbsentOn(DateTime date) {
     final isWeekend = date.weekday == DateTime.saturday || date.weekday == DateTime.sunday;
     return isWeekend ? absentOnWeekends : absentOnWeekdays;
   }
 
-  /// Weekday vs weekend schedule for [date] (local calendar day).
-  /// If [absentOnWeekends] / [absentOnWeekdays] is true, no fallback to the other window.
   TimeWindow? windowFor(DateTime date) {
     final isWeekend = date.weekday == DateTime.saturday || date.weekday == DateTime.sunday;
     if (isWeekend) {
@@ -136,7 +130,6 @@ class DeclaredPlace extends Equatable {
 
   TimeWindow? get activeWindow => windowFor(DateTime.now());
 
-  /// Label for the time spent at this place for [date]'s window (weekday vs weekend).
   String dailyHoursLabelFor(DateTime date) {
     if (isAbsentOn(date)) {
       final isWeekend = date.weekday == DateTime.saturday || date.weekday == DateTime.sunday;

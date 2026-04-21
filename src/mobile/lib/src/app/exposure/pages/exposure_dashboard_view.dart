@@ -9,7 +9,8 @@ import 'package:airqo/src/app/dashboard/widgets/dashboard_app_bar.dart';
 import 'package:airqo/src/app/dashboard/widgets/dashboard_header.dart';
 import 'package:airqo/src/app/dashboard/pages/location_selection/location_selection_screen.dart';
 import 'package:airqo/src/app/exposure/bloc/declared_places_cubit.dart';
-import 'package:airqo/src/app/exposure/repository/exposure_repository_impl.dart';
+import 'package:airqo/src/app/exposure/repository/declared_places_repository_impl.dart';
+import 'package:airqo/src/app/exposure/repository/hourly_readings_repository_impl.dart';
 import 'package:airqo/src/app/profile/bloc/user_bloc.dart';
 import 'package:airqo/src/app/exposure/models/declared_place.dart';
 import 'package:airqo/src/app/exposure/services/exposure_place_readings.dart';
@@ -35,7 +36,10 @@ class ExposureDashboardView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => DeclaredPlacesCubit(repo: ExposureRepositoryImpl()),
+      create: (_) => DeclaredPlacesCubit(
+        placesRepo: DeclaredPlacesRepositoryImpl(),
+        readingsRepo: HourlyReadingsRepositoryImpl(),
+      ),
       child: const _ExposureBody(),
     );
   }
@@ -141,7 +145,8 @@ class _ExposureBodyState extends State<_ExposureBody> {
                       ...declared.asMap().entries.map((entry) {
                         final i = entry.key;
                         final p = entry.value;
-                        final readings = ExposurePlaceReadings.hourlyForSite(p.siteId, dayOfView);
+                        final readings = loaded?.readings[p.siteId] ??
+                            List.generate(24, (h) => HourlyReading(hour: h));
                         final avg = ExposurePlaceReadings.averagePm25ForCard(
                           place: p,
                           readings: readings,
@@ -311,39 +316,6 @@ class _MyTripsPlaceholder extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-
-class _SectionHeader extends StatelessWidget {
-  final bool hasDeclared, hasUntagged;
-  const _SectionHeader({required this.hasDeclared, required this.hasUntagged});
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final sub = (!hasDeclared && hasUntagged)
-        ? 'Set up each place to start tracking your exposure.'
-        : hasDeclared
-            ? 'Based on your declared time windows.'
-            : 'Add places to get started.';
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'My Places',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: isDark ? Colors.white : const Color(0xFF1A1D23),
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(sub, style: TextStyle(fontSize: 13, color: AppColors.boldHeadlineColor)),
-      ],
     );
   }
 }
