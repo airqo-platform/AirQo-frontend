@@ -127,6 +127,22 @@ export const getColumns = (
           : "-";
       },
     },
+    {
+      key: "latitude",
+      label: "Latitude",
+      render: (value) => {
+        const num = parseFloat(String(value));
+        return !isNaN(num) ? num.toFixed(6) : "-";
+      },
+    },
+    {
+      key: "longitude",
+      label: "Longitude",
+      render: (value) => {
+        const num = parseFloat(String(value));
+        return !isNaN(num) ? num.toFixed(6) : "-";
+      },
+    },
   ];
 
   if (isInternalView) {
