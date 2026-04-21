@@ -1035,6 +1035,7 @@ class _MapScreenState extends State<MapScreen>
               SizedBox(height: 16),
               LocationSearchBar(
                 controller: searchController,
+                padding: EdgeInsets.zero,
                 onTap: () => toggleModal(true),
                 onChanged: (value) {
                   if (value.isEmpty) {
