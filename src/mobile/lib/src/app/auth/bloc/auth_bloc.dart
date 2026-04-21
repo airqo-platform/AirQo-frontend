@@ -1,7 +1,9 @@
 import 'package:airqo/src/app/auth/models/input_model.dart';
 import 'package:airqo/src/app/auth/repository/auth_repository.dart';
 import 'package:airqo/src/app/auth/services/auth_helper.dart';
+import 'package:airqo/src/app/shared/repository/global_auth_manager.dart';
 import 'package:airqo/src/app/shared/services/analytics_service.dart';
+import 'package:airqo/src/app/shared/services/cache_manager.dart';
 import 'package:airqo/src/app/shared/utils/device_id_manager.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -27,6 +29,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<SessionExpired>(_onSessionExpired);
 
     on<UseAsGuest>((event, emit) async {
+      GlobalAuthManager.instance.resetSessionExpiredGuard();
       await AnalyticsService().trackGuestModeAccessed();
       final deviceId = await DeviceIdManager.getDeviceId();
       await AnalyticsService().setUserIdentity(userId: deviceId);
@@ -42,12 +45,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final token = await SecureStorageRepository.instance.getSecureData(SecureStorageKeys.authToken);
 
       if (token != null && token.isNotEmpty) {
-        // User is already logged in, identify them in analytics
-        final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
-        if (userId != null) {
-          await AnalyticsService().setUserIdentity(userId: userId);
+        final isExpired = await AuthHelper.isTokenExpired();
+        if (isExpired) {
+          await _clearAuthData();
+          emit(SessionExpiredState());
+        } else {
+          final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
+          if (userId != null) {
+            await AnalyticsService().setUserIdentity(userId: userId);
+          }
+          emit(AuthLoaded(AuthPurpose.login));
         }
-        emit(AuthLoaded(AuthPurpose.login));
       } else {
         final deviceId = await DeviceIdManager.getDeviceId();
         await AnalyticsService().setUserIdentity(userId: deviceId);
@@ -65,9 +73,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     await authRepository.loginWithEmailAndPassword(
         event.username, event.password);
 
+    GlobalAuthManager.instance.resetSessionExpiredGuard();
     await AnalyticsService().trackUserLoggedIn();
 
-    // Identify user in analytics
     final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
     if (userId != null) {
       await AnalyticsService().setUserIdentity(
@@ -97,9 +105,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     try {
       await authRepository.registerWithEmailAndPassword(event.model);
+      GlobalAuthManager.instance.resetSessionExpiredGuard();
       await AnalyticsService().trackUserRegistered();
 
-      // Identify user in analytics after registration
       final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
       if (userId != null) {
         await AnalyticsService().setUserIdentity(
@@ -145,8 +153,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       await AnalyticsService().trackUserLoggedOut();
       await AnalyticsService().resetUser();
-      await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.authToken);
-      await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.userId);
+      await _clearAuthData();
       final deviceId = await DeviceIdManager.getDeviceId();
       await AnalyticsService().setUserIdentity(userId: deviceId);
       emit(GuestUser());
@@ -158,15 +165,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _onSessionExpired(SessionExpired event, Emitter<AuthState> emit) async {
     try {
-      await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.authToken);
-      await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.userId);
+      await _clearAuthData();
       final deviceId = await DeviceIdManager.getDeviceId();
       await AnalyticsService().setUserIdentity(userId: deviceId);
-      emit(GuestUser());
+      emit(SessionExpiredState());
     } catch (e) {
       debugPrint("Session expiry cleanup error: $e");
-      emit(GuestUser());
+      emit(SessionExpiredState());
     }
+  }
+
+  Future<void> _clearAuthData() async {
+    await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.authToken);
+    await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.userId);
+    await CacheManager().clearAll();
   }
 
   String _extractErrorMessage(dynamic e) {

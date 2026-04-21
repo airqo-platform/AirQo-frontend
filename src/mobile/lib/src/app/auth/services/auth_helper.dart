@@ -1,11 +1,18 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:airqo/src/app/shared/repository/secure_storage_repository.dart';
+import 'package:airqo/src/meta/utils/api_utils.dart';
+import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:loggy/loggy.dart';
 
 /// AuthHelper class with dedicated logger
 class AuthHelper {
-  // Create a static logger using your app's logging setup
   static final _logger = Loggy('AuthHelper');
+
+  // Serialises concurrent refresh calls so only one network request goes out.
+  static Future<String?>? _refreshFuture;
 
   /// Get the current user ID from secure storage (preferred method)
   static Future<String?> getCurrentUserId(
@@ -165,9 +172,56 @@ class AuthHelper {
       return isExpired;
     } catch (e) {
       _logger.error('Error checking token expiration: $e');
-      // Don't assume expired on decode errors - could be temporary issue
-      // Return false to allow the request to proceed and let the server decide
-      return false;
+      return true; // Assume expired on error — safer than letting an unknown token through
+    }
+  }
+
+  /// Silently refreshes the token if expired. Returns the valid token or null
+  /// on failure. Concurrent callers share the same in-flight request.
+  static Future<String?> refreshTokenIfNeeded() {
+    _refreshFuture ??= _doRefresh().whenComplete(() => _refreshFuture = null);
+    return _refreshFuture!;
+  }
+
+  static Future<String?> _doRefresh() async {
+    try {
+      final token = await SecureStorageRepository.instance
+          .getSecureData(SecureStorageKeys.authToken);
+
+      if (token == null || token.isEmpty) return null;
+      if (!JwtDecoder.isExpired(token)) return token;
+
+      _logger.info('Token expired — attempting silent refresh');
+
+      final url = '${ApiUtils.baseUrl}/api/v2/users/token/refresh';
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'JWT $token',
+          'Content-Type': 'application/json',
+          'Accept': '*/*',
+        },
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final body = json.decode(response.body) as Map<String, dynamic>;
+        if (body['success'] == true && body['token'] != null) {
+          final newToken = body['token'] as String;
+          await SecureStorageRepository.instance
+              .saveSecureData(SecureStorageKeys.authToken, newToken);
+          _logger.info('Silent token refresh succeeded');
+          return newToken;
+        }
+      }
+
+      _logger.warning('Token refresh failed (${response.statusCode})');
+      return null;
+    } on TimeoutException {
+      _logger.warning('Token refresh timed out');
+      return null;
+    } catch (e) {
+      _logger.error('Error during silent token refresh: $e');
+      return null;
     }
   }
 }

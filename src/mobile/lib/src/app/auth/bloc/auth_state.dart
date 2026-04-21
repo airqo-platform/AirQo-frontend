@@ -27,6 +27,10 @@ enum AuthPurpose { login, register }
 
 final class GuestUser extends AuthState {}
 
+/// Distinct from [GuestUser] (voluntary) so the UI can show a
+/// "session expired – please log in" prompt.
+final class SessionExpiredState extends AuthState {}
+
 final class AuthVerified extends AuthState {}
 
 final class EmailUnverifiedError extends AuthLoadingError {
