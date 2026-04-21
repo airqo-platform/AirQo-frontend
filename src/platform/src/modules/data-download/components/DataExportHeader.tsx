@@ -72,7 +72,6 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
         {/* Tab Navigation */}
         <div className="flex flex-wrap lg:flex-nowrap gap-2 gap-x-2 overflow-x-auto scrollbar-hide mt-2 lg:mt-0">
           <Button
-            variant={activeTab === 'sites' ? 'filled' : 'outlined'}
             onClick={() => onTabChange('sites')}
             disabled={isGroupSyncing}
             className="flex-shrink-0"
@@ -152,7 +151,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
           disabled={isGroupSyncing || !isDownloadReady}
           loading={isDownloading}
         >
-          {isDownloading ? 'Downloading...' : 'Download Data'}
+          {isDownloading ? 'Downloading...' : 'Review & Download'}
         </Button>
       </div>
     </div>

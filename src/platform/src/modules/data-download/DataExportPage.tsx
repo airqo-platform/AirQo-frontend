@@ -468,7 +468,9 @@ const DataExportPage = () => {
       setSelectedGridSiteIds(nextSelectedGridSiteIds);
 
       // Trigger download with the updated selections
-      await handleDownload(nextSelectedGridSiteIds);
+      await handleDownload({
+        customSelectedGridSiteIds: nextSelectedGridSiteIds,
+      });
 
       // Close dialog only on successful download
       setSiteSelectionDialogOpen(false);
@@ -598,7 +600,7 @@ const DataExportPage = () => {
               onClearSelections={handleClearSelections}
               onVisualizeData={handleVisualizeData}
               onPreview={() => setPreviewOpen(true)}
-              onDownload={handleDownload}
+              onDownload={() => setPreviewOpen(true)}
               onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
               sidebarOpen={sidebarOpen}
               isOrgFlow={isOrgFlow}
@@ -637,9 +639,9 @@ const DataExportPage = () => {
       <DataExportPreview
         isOpen={previewOpen}
         onClose={() => setPreviewOpen(false)}
-        onConfirm={() => {
+        onConfirm={selectedColumnKeys => {
           setPreviewOpen(false);
-          handleDownload();
+          handleDownload({ exportColumnKeys: selectedColumnKeys });
         }}
         isDownloading={isDownloading}
         dataType={dataType}
@@ -653,7 +655,6 @@ const DataExportPage = () => {
         selectedGridIds={selectedGridIds}
         selectedGridSites={selectedGridSites}
         selectedGridSiteIds={selectedGridSiteIds}
-        deviceCategory={deviceCategory}
       />
 
       {/* More Insights Dialog */}
