@@ -103,18 +103,6 @@ const DeviceHistoryCard: React.FC<DeviceHistoryCardProps> = ({
         return map;
     }, [currentSite, previousSites]);
 
-    const firstPreviousSiteId = (() => {
-        if (!previousSites || previousSites.length === 0) return undefined;
-        const objectSite = previousSites.find(
-            (s) => typeof s === "object" && s && "_id" in s
-        ) as DevicePreviousSite | undefined;
-        if (objectSite?._id) return objectSite._id;
-        const stringSite = previousSites.find(
-            (s) => typeof s === "string" && s.trim()
-        ) as string | undefined;
-        return stringSite;
-    })();
-
     const isRecallActivity = (activity: Pick<DeviceActivity, "activityType" | "description">) => {
         if (activity.activityType === "recall") return true;
         return typeof activity.description === "string" && /recalled/i.test(activity.description);
@@ -148,7 +136,6 @@ const DeviceHistoryCard: React.FC<DeviceHistoryCardProps> = ({
             }
         }
 
-        if (!inferredSiteId) inferredSiteId = firstPreviousSiteId;
         if (!inferredSiteId) return undefined;
 
         const info = siteInfoById.get(inferredSiteId);
