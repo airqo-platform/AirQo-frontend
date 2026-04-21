@@ -269,11 +269,11 @@ Environment variables and build args
 - OPENCAGE_API_KEY (OpenCage geocoding API key)
 - SLACK_WEBHOOK_URL (Slack webhook for logging)
 - SLACK_CHANNEL (Slack channel for notifications)
-- SITE_URL (canonical site URL used by metadata, sitemap, and robots)
 - GOOGLE_SITE_VERIFICATION (Google Search Console verification token)
 
 ### Client-side Variables
 
+- NEXT_PUBLIC_SITE_URL (comma-separated site URLs; the first entry is the canonical base)
 - NEXT_PUBLIC_GA_MEASUREMENT_ID (Google Analytics tracking ID)
 - NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN (Mapbox access token)
 
