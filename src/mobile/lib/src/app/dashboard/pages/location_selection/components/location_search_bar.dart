@@ -8,11 +8,13 @@ import 'package:flutter_svg/svg.dart';
 class LocationSearchBar extends StatefulWidget {
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
+  final VoidCallback? onTap;
 
   const LocationSearchBar({
     super.key,
     required this.controller,
     required this.onChanged,
+    this.onTap,
   });
 
   @override
@@ -63,6 +65,7 @@ class _LocationSearchBarState extends State<LocationSearchBar> {
             controller: widget.controller,
             style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
             onChanged: widget.onChanged,
+            onTap: widget.onTap,
             decoration: InputDecoration(
               hintText: _hint,
               hintStyle: TextStyle(

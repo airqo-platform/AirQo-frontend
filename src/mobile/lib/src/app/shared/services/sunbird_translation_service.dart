@@ -15,12 +15,10 @@ class SunbirdTranslationService with UiLoggy {
   static const String _boxName = 'sunbirdTranslationBox';
   static const int _cacheTtlDays = 7;
 
-  // Concurrency limiter: at most 3 simultaneous HTTP requests
   static const int _maxConcurrent = 3;
   int _activeRequests = 0;
   final List<Completer<void>> _requestQueue = [];
 
-  // Maps Flutter locale codes to Sunbird language codes
   static const Map<String, String> _localeToSunbird = {
     'lg': 'lug', // Luganda
     'ach': 'ach', // Acholi
@@ -31,7 +29,6 @@ class SunbirdTranslationService with UiLoggy {
 
   final Map<String, String> _cache = {};
 
-  // Deduplicates in-flight requests: same text+lang shares one API call
   final Map<String, Future<String>> _inFlight = {};
 
   Box? get _box => Hive.isBoxOpen(_boxName) ? Hive.box(_boxName) : null;
@@ -44,17 +41,18 @@ class SunbirdTranslationService with UiLoggy {
 
     final tsKey = '$cacheKey\$ts';
     final ts = box.get(tsKey) as int?;
-    if (ts != null) {
-      final age = DateTime.now().millisecondsSinceEpoch - ts;
-      if (age > _cacheTtlDays * Duration.millisecondsPerDay) {
-        // Expired — drop from disk so next translate() re-fetches.
-        box.delete(cacheKey);
-        box.delete(tsKey);
-        return;
-      }
+
+    // Entries with no timestamp (written before TTL was added) and genuinely
+    // expired entries are both dropped so the next translate() re-fetches.
+    final isExpired = ts == null ||
+        DateTime.now().millisecondsSinceEpoch - ts >
+            _cacheTtlDays * Duration.millisecondsPerDay;
+
+    if (isExpired) {
+      box.delete(cacheKey).ignore();
+      box.delete(tsKey).ignore();
+      return;
     }
-    // Entries with no timestamp (written before TTL was added) are treated as
-    // expired on their first load, which re-fetches once and then stamps them.
 
     _cache[cacheKey] = value;
   }
@@ -90,6 +88,22 @@ class SunbirdTranslationService with UiLoggy {
   bool supportsTranslation(String localeCode) =>
       _localeToSunbird.containsKey(localeCode);
 
+  bool isPrepared(String localeCode) {
+    if (!supportsTranslation(localeCode)) return false;
+    _hydrateCritical(_localeToSunbird[localeCode]!);
+    return _areCriticalStringsCached(_localeToSunbird[localeCode]!);
+  }
+
+  void _hydrateCritical(String targetLang) {
+    for (final s in _criticalUiStrings) {
+      final key = '$targetLang:$s';
+      if (!_cache.containsKey(key)) _loadFromDisk(key);
+    }
+  }
+
+  bool _areCriticalStringsCached(String targetLang) =>
+      _criticalUiStrings.every((s) => _cache.containsKey('$targetLang:$s'));
+
   Future<String> translate(
     String text, {
     required String targetLocale,
@@ -103,7 +117,6 @@ class SunbirdTranslationService with UiLoggy {
     if (!_cache.containsKey(cacheKey)) _loadFromDisk(cacheKey);
     if (_cache.containsKey(cacheKey)) return _cache[cacheKey]!;
 
-    // Reuse any in-flight request for the same text
     if (_inFlight.containsKey(cacheKey)) return _inFlight[cacheKey]!;
 
     _inFlight[cacheKey] = _doTranslate(text, targetLang, cacheKey);
@@ -160,19 +173,13 @@ class SunbirdTranslationService with UiLoggy {
     }
   }
 
-  /// Known static UI strings and AQI categories used across the app.
   static const List<String> _knownUiStrings = [
-    // Greetings
     'Hello',
     'Hello 👋',
     'Hello, 👋',
-
-    // Bottom nav
     'Home',
     'Search',
     'Exposure',
-
-    // Dashboard
     'Near You',
     'Favorites',
     "Today's Air Quality",
@@ -190,8 +197,6 @@ class SunbirdTranslationService with UiLoggy {
     'No locations available',
     'All',
     'Please log in to save your locations',
-
-    // AQI categories
     'Good',
     'Moderate',
     'Unhealthy for Sensitive Groups',
@@ -199,8 +204,6 @@ class SunbirdTranslationService with UiLoggy {
     'Very Unhealthy',
     'Hazardous',
     'Unknown',
-
-    // Tooltip messages
     'View air quality in locations closest to you',
     'Save your most relevant locations in one place',
     'Sign in or create an account',
@@ -215,8 +218,6 @@ class SunbirdTranslationService with UiLoggy {
     'Air Quality is Unknown',
     'Uploading...',
     'Save changes',
-
-    // Auth
     'Login',
     'Cancel',
     'Verify Now',
@@ -240,8 +241,6 @@ class SunbirdTranslationService with UiLoggy {
     'You can now log in to your account using your new password.',
     'Already have an account?',
     'No, Thanks',
-
-    // Learn
     'Learn',
     'Explore lessons to understand air quality, or take surveys to help us learn about your experience.',
     'Lessons',
@@ -258,11 +257,7 @@ class SunbirdTranslationService with UiLoggy {
     'Already Submitted',
     'OK',
     'Previous',
-
-    // Map
     'AirQo map',
-
-    // Common actions
     'Open Settings',
     'Close',
     'Delete',
@@ -282,8 +277,6 @@ class SunbirdTranslationService with UiLoggy {
     'Delete Range',
     'Add Zone',
     'Manage Sharing Preferences',
-
-    // Profile / Edit
     'Edit your profile',
     'Loading your profile...',
     'Settings',
@@ -294,8 +287,6 @@ class SunbirdTranslationService with UiLoggy {
     'Choose from library',
     'Take photo',
     'This is where you\'ll manage your AirQo devices.',
-
-    // Location & Privacy
     'Location & Privacy',
     'Data Management',
     'Location History',
@@ -306,8 +297,6 @@ class SunbirdTranslationService with UiLoggy {
     'Are you sure you want to remove this privacy zone?',
     'Location Details',
     'My Location Data',
-
-    // Research
     'Research Settings',
     'Research Consent',
     'Manage your research participation preferences',
@@ -328,16 +317,12 @@ class SunbirdTranslationService with UiLoggy {
     'Study Progress',
     'Research Study',
     'Thank you for joining our research study!',
-
-    // Onboarding
     '👋 Welcome to AirQo!',
     'Clean Air for all African Cities.',
     '🌿 Breathe Clean',
     'Track and monitor the quality of air you breathe',
     '✨ Know Your Air',
     'Learn and reduce air pollution in your community',
-
-    // Dashboard empty / location selection
     'Add places you love',
     'Start by adding locations you care about.',
     '+Add Location',
@@ -346,9 +331,7 @@ class SunbirdTranslationService with UiLoggy {
     'Select Locations',
     'Search Villages, Cities or Countries',
     'Swipe left to remove location',
-    'Remove',
     'Unknown location',
-    'Unknown',
     'PM2.5',
     'Low Cost Sensor',
     'Reference Monitor',
@@ -361,9 +344,6 @@ class SunbirdTranslationService with UiLoggy {
     'Your session has expired. Please log in again.',
     'Authentication issue detected. Please log in again.',
     'Clear All',
-    'Save',
-
-    // Health tip taglines
     'Enjoy outdoor activities in good air quality',
     'Air quality is acceptable for most people',
     'Sensitive groups should limit outdoor exertion',
@@ -371,21 +351,13 @@ class SunbirdTranslationService with UiLoggy {
     'Everyone should avoid outdoor activities',
     'Everyone should avoid all outdoor activities',
     'Stay informed about air quality',
-
-    // Guest profile
     'Guest User',
-
-    // Notifications
     'No Notifications',
     "Here you'll find all updates on our Air Quality network",
     "You're all cleared up",
     'You deserve some ice cream!',
-
-    // Maintenance
     'The app is currently under maintenance',
     "We're having issues with our network\nno worries, we'll be back up soon.",
-
-    // Profile / edit
     'Image selected. Save to upload.',
     'First name cannot be empty',
     'Last name cannot be empty',
@@ -396,14 +368,10 @@ class SunbirdTranslationService with UiLoggy {
     'Unable to update profile. Please try again.',
     'Check your internet connection and try again.',
     'Something went wrong. Please try again later.',
-
-    // Settings snackbars
     'Please enable location services in settings.',
     'Location permission denied.',
     'Location permission permanently denied. Please enable it in settings.',
     'An unexpected error occurred during logout',
-
-    // Shared / System
     'An Error Occurred',
     'Skip This Version',
     'Later',
@@ -417,7 +385,7 @@ class SunbirdTranslationService with UiLoggy {
     'Location permission was denied. Please try again.',
   ];
 
-  // Strings visible immediately on the home screen — translated before confirming language change.
+  // MAINTENANCE: matched by exact string value as cache keys — update here if any UI string changes.
   static const List<String> _criticalUiStrings = [
     'Home', 'Search', 'Exposure', 'Learn',
     'Near You', 'Favorites', "Today's Air Quality", 'Settings',
@@ -425,18 +393,13 @@ class SunbirdTranslationService with UiLoggy {
     'Unhealthy', 'Very Unhealthy', 'Hazardous', 'Unknown',
   ];
 
-  /// Awaits translation of the most visible UI strings, then fires the rest
-  /// in the background. Call this before confirming a language change.
-  ///
-  /// Short-circuits (no spinner) if all critical strings are already in the
-  /// in-memory cache. Throws if every result fell back to the source text,
-  /// meaning the API was unreachable.
   Future<void> prepare({required String targetLocale}) async {
     if (!supportsTranslation(targetLocale)) return;
 
-    // Cache keys use the Sunbird lang code, not the locale code.
     final targetLang = _localeToSunbird[targetLocale]!;
-    if (_criticalUiStrings.every((s) => _cache.containsKey('$targetLang:$s'))) {
+    _hydrateCritical(targetLang);
+
+    if (_areCriticalStringsCached(targetLang)) {
       prewarm(targetLocale: targetLocale);
       return;
     }
@@ -455,8 +418,6 @@ class SunbirdTranslationService with UiLoggy {
     prewarm(targetLocale: targetLocale);
   }
 
-  /// Fire-and-forget: translates all known UI strings so the cache is warm
-  /// before widgets render. Already-cached strings resolve instantly.
   void prewarm({required String targetLocale}) {
     if (!supportsTranslation(targetLocale)) return;
     for (final s in _knownUiStrings) {

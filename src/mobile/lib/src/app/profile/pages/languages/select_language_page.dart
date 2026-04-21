@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:airqo/src/app/shared/services/mlkit_translation_service.dart';
 import 'package:airqo/src/app/shared/services/sunbird_translation_service.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
@@ -43,7 +46,8 @@ class _SelectLanguagePageState extends State<SelectLanguagePage> {
         MlKitTranslationService().supportsTranslation(language.code) &&
             !MlKitTranslationService().isModelReady(language.code);
     final needsSunbirdPrepare =
-        SunbirdTranslationService().supportsTranslation(language.code);
+        SunbirdTranslationService().supportsTranslation(language.code) &&
+            !SunbirdTranslationService().isPrepared(language.code);
     final needsPrepare = needsMlKitDownload || needsSunbirdPrepare;
 
     // Capture context-dependent references before any await.
@@ -59,17 +63,26 @@ class _SelectLanguagePageState extends State<SelectLanguagePage> {
     setState(() => _preparingCode = language.code);
     try {
       if (needsMlKitDownload) {
-        await MlKitTranslationService().prepareModel(language.code);
+        await MlKitTranslationService()
+            .prepareModel(language.code)
+            .timeout(const Duration(seconds: 30));
       }
       if (needsSunbirdPrepare) {
-        await SunbirdTranslationService().prepare(targetLocale: language.code);
+        await SunbirdTranslationService()
+            .prepare(targetLocale: language.code)
+            .timeout(const Duration(seconds: 30));
       }
-    } catch (_) {
+    } catch (e, stackTrace) {
+      debugPrint('Language preparation failed: $e\n$stackTrace');
       if (!mounted) return;
       setState(() => _preparingCode = null);
+      final isNetworkError = e is SocketException || e is TimeoutException;
+      final message = isNetworkError
+          ? 'No internet connection. Please check your network and try again.'
+          : 'Failed to prepare language. Please try again.';
       messenger.showSnackBar(
         SnackBar(
-          content: const Text('Failed to prepare language. Please try again.'),
+          content: Text(message),
           backgroundColor: Colors.red.shade700,
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.all(16),
@@ -182,89 +195,9 @@ class _SelectLanguagePageState extends State<SelectLanguagePage> {
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Column(
               children: [
-                Expanded(
-                  child: ListView.separated(
-                    itemCount: languages.length,
-                    separatorBuilder: (context, index) => Divider(
-                      color: dividerColor,
-                      height: 1,
-                    ),
-                    itemBuilder: (context, index) {
-                      final language = languages[index];
-                      final isSelected = language.code == currentLanguageCode;
-                      final isPreparing = _preparingCode == language.code;
-
-                      return ListTile(
-                        contentPadding:
-                            const EdgeInsets.symmetric(vertical: 12),
-                        title: Text(
-                          language.name,
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w400,
-                            color: isDarkMode
-                                ? AppColors.highlightColor2
-                                : AppColors.boldHeadlineColor4,
-                          ),
-                        ),
-                        subtitle: Text(
-                          isPreparing
-                              ? 'Preparing translation...'
-                              : language.nativeName,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: isPreparing
-                                ? AppColors.primaryColor
-                                : isDarkMode
-                                    ? Colors.grey
-                                    : Colors.grey.shade700,
-                          ),
-                        ),
-                        trailing: isPreparing
-                            ? SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.5,
-                            color: AppColors.primaryColor,
-                          ),
-                        )
-                      : isSelected
-                          ? Container(
-                              width: 24,
-                              height: 24,
-                              decoration: BoxDecoration(
-                                color: AppColors.primaryColor,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: const Icon(
-                                Icons.check,
-                                color: Colors.white,
-                                size: 18,
-                              ),
-                            )
-                          : Container(
-                              width: 24,
-                              height: 24,
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: isDarkMode
-                                      ? AppColors.secondaryHeadlineColor2
-                                      : AppColors.borderColor2,
-                                ),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                            ),
-                        onTap: _preparingCode != null
-                            ? null
-                            : () => _selectLanguage(context, language),
-                      );
-                    },
-                  ),
-                ),
                 if (hasUndownloadedMlKitLanguage)
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 4.0),
                     child: Row(
                       children: [
                         Icon(
@@ -289,6 +222,98 @@ class _SelectLanguagePageState extends State<SelectLanguagePage> {
                       ],
                     ),
                   ),
+                Expanded(
+                  child: ListView.separated(
+                    itemCount: languages.length,
+                    separatorBuilder: (context, index) => Divider(
+                      color: dividerColor,
+                      height: 1,
+                    ),
+                    itemBuilder: (context, index) {
+                      final language = languages[index];
+                      final isSelected = language.code == currentLanguageCode;
+                      final isPreparing = _preparingCode == language.code;
+
+                      final isMlKitDownloading = isPreparing &&
+                          MlKitTranslationService()
+                              .supportsTranslation(language.code) &&
+                          !MlKitTranslationService()
+                              .isModelReady(language.code);
+                      final preparingLabel = isMlKitDownloading
+                          ? 'Downloading language pack…'
+                          : 'Loading translations…';
+
+                      return ListTile(
+                        enabled: _preparingCode == null || isPreparing,
+                        contentPadding:
+                            const EdgeInsets.symmetric(vertical: 12),
+                        title: Text(
+                          language.name,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w400,
+                            color: isDarkMode
+                                ? AppColors.highlightColor2
+                                : AppColors.boldHeadlineColor4,
+                          ),
+                        ),
+                        subtitle: Text(
+                          isPreparing ? preparingLabel : language.nativeName,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: isPreparing
+                                ? AppColors.primaryColor
+                                : isDarkMode
+                                    ? Colors.grey
+                                    : Colors.grey.shade700,
+                          ),
+                        ),
+                        trailing: isPreparing
+                            ? Semantics(
+                                label: 'Preparing ${language.name}',
+                                liveRegion: true,
+                                child: SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    color: AppColors.primaryColor,
+                                  ),
+                                ),
+                              )
+                            : isSelected
+                                ? Container(
+                                    width: 24,
+                                    height: 24,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primaryColor,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: const Icon(
+                                      Icons.check,
+                                      color: Colors.white,
+                                      size: 18,
+                                    ),
+                                  )
+                                : Container(
+                                    width: 24,
+                                    height: 24,
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: isDarkMode
+                                            ? AppColors.secondaryHeadlineColor2
+                                            : AppColors.borderColor2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                  ),
+                        onTap: _preparingCode != null
+                            ? null
+                            : () => _selectLanguage(context, language),
+                      );
+                    },
+                  ),
+                ),
               ],
             ),
           );
