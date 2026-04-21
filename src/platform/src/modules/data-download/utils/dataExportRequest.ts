@@ -45,10 +45,13 @@ const resolveGridSitesForDownload = (
   const sitesForDownload: string[] = [];
 
   selectedGridIds.forEach(gridId => {
+    const hasCustomSelection = Object.prototype.hasOwnProperty.call(
+      selectedGridSiteIds,
+      gridId
+    );
     const customSites = selectedGridSiteIds[gridId];
     const defaultSites = selectedGridSites[gridId];
-    const sites =
-      customSites && customSites.length > 0 ? customSites : defaultSites || [];
+    const sites = hasCustomSelection ? customSites || [] : defaultSites || [];
 
     sitesForDownload.push(...sites);
   });

@@ -10,11 +10,11 @@ export const getSitesColumns = (): ColumnConfig[] => [
   {
     key: 'name',
     label: 'Location',
-    minWidth: '280px',
-    maxWidth: '360px',
+    minWidth: '320px',
+    maxWidth: '420px',
     cellClassName: 'whitespace-normal break-normal',
     render: (value: unknown) => (
-      <div className="flex items-start gap-2 max-w-[360px] min-w-0">
+      <div className="flex items-start gap-2 max-w-[420px] min-w-0">
         <span className="bg-gray-100 rounded-full p-1 mt-0.5 shrink-0">
           <AqMarkerPin03 className="h-4 w-4 shrink-0 text-primary" />
         </span>
@@ -24,8 +24,18 @@ export const getSitesColumns = (): ColumnConfig[] => [
       </div>
     ),
   },
-  { key: 'city', label: 'City' },
-  { key: 'country', label: 'Country' },
+  {
+    key: 'city',
+    label: 'City',
+    minWidth: '120px',
+    cellClassName: 'whitespace-nowrap',
+  },
+  {
+    key: 'country',
+    label: 'Country',
+    minWidth: '140px',
+    cellClassName: 'whitespace-nowrap',
+  },
   { key: 'data_provider', label: 'Owner' },
   {
     key: 'coordinates',

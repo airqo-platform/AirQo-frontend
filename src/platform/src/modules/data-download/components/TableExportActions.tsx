@@ -27,7 +27,7 @@ export const TableExportActions: React.FC<TableExportActionsProps> = ({
   exportData,
   columns,
   disabled = false,
-  tooltipText = 'Includes selected rows from all pages. Air quality data is excluded.',
+  tooltipText = 'Includes selected rows from all pages. Air quality data excluded.',
 }) => {
   const isDisabled = disabled || exportData.length === 0;
 

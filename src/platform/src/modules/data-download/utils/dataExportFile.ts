@@ -204,7 +204,6 @@ const extractDownloadRecords = (response: DataDownloadResponse | string) => {
       records,
       headers,
       responseObject: null as DataDownloadResponse | null,
-      originalCsv: response,
     };
   }
 
@@ -214,7 +213,6 @@ const extractDownloadRecords = (response: DataDownloadResponse | string) => {
     records,
     headers: getRecordHeaders(records),
     responseObject: response,
-    originalCsv: null,
   };
 };
 
@@ -317,8 +315,7 @@ export const buildDownloadFileContent = (
   downloadType: DataDownloadRequest['downloadType'],
   selectedColumnKeys?: string[]
 ) => {
-  const { records, headers, responseObject, originalCsv } =
-    extractDownloadRecords(response);
+  const { records, headers, responseObject } = extractDownloadRecords(response);
   const selectedHeaders = resolveSelectedHeaders(headers, selectedColumnKeys);
   const normalizedSelectedColumnKeys =
     normalizeSelectedColumnKeys(selectedColumnKeys);
@@ -326,17 +323,6 @@ export const buildDownloadFileContent = (
   const isCsv = downloadType === 'csv';
 
   if (isCsv) {
-    if (
-      originalCsv &&
-      (!hasExplicitColumnFilter || areArraysEqual(selectedHeaders, headers))
-    ) {
-      return {
-        content: originalCsv,
-        mimeType: 'text/csv;charset=utf-8;',
-        extension: 'csv' as const,
-      };
-    }
-
     const filteredRows = records.map(record =>
       pickRecordColumnsForCsv(record, selectedHeaders)
     );
