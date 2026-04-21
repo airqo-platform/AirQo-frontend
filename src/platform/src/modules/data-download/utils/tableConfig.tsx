@@ -11,7 +11,7 @@ export const getSitesColumns = (): ColumnConfig[] => [
     key: 'name',
     label: 'Location',
     render: (value: unknown) => (
-      <div className="flex items-center capitalize gap-2">
+      <div className="flex items-center gap-2 whitespace-nowrap">
         <span className="bg-gray-100 rounded-full p-1">
           <AqMarkerPin03 className="h-4 w-4 shrink-0 text-primary" />
         </span>
@@ -22,6 +22,15 @@ export const getSitesColumns = (): ColumnConfig[] => [
   { key: 'city', label: 'City' },
   { key: 'country', label: 'Country' },
   { key: 'data_provider', label: 'Owner' },
+  {
+    key: 'coordinates',
+    label: 'Coordinates',
+    render: (value: unknown) => (
+      <span className="font-mono text-sm whitespace-nowrap">
+        {value as string}
+      </span>
+    ),
+  },
 ];
 
 /**
@@ -32,7 +41,7 @@ export const getDevicesColumns = (): ColumnConfig[] => [
     key: 'name',
     label: 'Device name',
     render: (value: unknown) => (
-      <div className="flex items-center capitalize gap-2">
+      <div className="flex items-center gap-2 whitespace-nowrap">
         <span className="bg-gray-100 rounded-full p-1">
           <AqMonitor03 className="h-4 w-4 shrink-0 text-primary" />
         </span>
@@ -52,6 +61,15 @@ export const getDevicesColumns = (): ColumnConfig[] => [
       return <span>{option?.label || category}</span>;
     },
   },
+  {
+    key: 'coordinates',
+    label: 'Coordinates',
+    render: (value: unknown) => (
+      <span className="font-mono text-sm whitespace-nowrap">
+        {value as string}
+      </span>
+    ),
+  },
 ];
 
 /**
@@ -62,7 +80,7 @@ export const getCountriesColumns = (): ColumnConfig[] => [
     key: 'name',
     label: 'Country',
     render: (value: unknown) => (
-      <div className="flex items-center capitalize gap-2">
+      <div className="flex items-center capitalize gap-2 whitespace-nowrap">
         <span className="bg-gray-100 rounded-full p-1">
           <AqGlobe01 className="h-4 w-4 shrink-0 text-primary" />
         </span>
@@ -88,7 +106,7 @@ export const getCitiesColumns = (): ColumnConfig[] => [
     key: 'name',
     label: 'City',
     render: (value: unknown) => (
-      <div className="flex items-center capitalize gap-2">
+      <div className="flex items-center capitalize gap-2 whitespace-nowrap">
         <span className="bg-gray-100 rounded-full p-1">
           <AqMarkerPin03 className="h-4 w-4 shrink-0 text-primary" />
         </span>

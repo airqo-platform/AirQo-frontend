@@ -2,10 +2,12 @@ import React from 'react';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import { TabType, TableItem, ColumnConfig } from '../types/dataExportTypes';
 import { getTabConfig } from '../utils/tableConfig';
+import { TableExportActions } from './TableExportActions';
 
 interface DataExportTableProps {
   activeTab: TabType;
   tableData: TableItem[];
+  exportData: TableItem[];
   columns: ColumnConfig[];
   loading: boolean;
   error: string | null;
@@ -15,6 +17,7 @@ interface DataExportTableProps {
   totalItems: number;
   searchTerm: string;
   selectedItems: string[];
+  compactRows?: boolean;
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
   onSearchChange: (search: string) => void;
@@ -27,6 +30,7 @@ interface DataExportTableProps {
 export const DataExportTable: React.FC<DataExportTableProps> = ({
   activeTab,
   tableData,
+  exportData,
   columns,
   loading,
   error,
@@ -36,6 +40,7 @@ export const DataExportTable: React.FC<DataExportTableProps> = ({
   totalItems,
   searchTerm,
   selectedItems,
+  compactRows = false,
   onPageChange,
   onPageSizeChange,
   onSearchChange,
@@ -61,7 +66,15 @@ export const DataExportTable: React.FC<DataExportTableProps> = ({
       multiSelect={activeTab !== 'countries' && activeTab !== 'cities'}
       selectedItems={selectedItems}
       onSelectedItemsChange={onSelectedItemsChange}
-      customHeader={undefined}
+      compactRows={compactRows}
+      customHeader={
+        <TableExportActions
+          title={config.title}
+          exportData={exportData}
+          columns={columns}
+          disabled={loading}
+        />
+      }
     />
   );
 };

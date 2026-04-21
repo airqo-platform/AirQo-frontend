@@ -226,12 +226,18 @@ const DataExportPage = () => {
 
   // Data fetching and processing (initial call with empty array)
   const selectedDevicesForActions = useMemo(
-    () => Object.values(selectedDevicesCache),
-    [selectedDevicesCache]
+    () =>
+      selectedDeviceIds
+        .map(id => selectedDevicesCache[id])
+        .filter((item): item is TableItem => Boolean(item)),
+    [selectedDeviceIds, selectedDevicesCache]
   );
   const selectedSitesForActions = useMemo(
-    () => Object.values(selectedSitesCache),
-    [selectedSitesCache]
+    () =>
+      selectedSiteIds
+        .map(id => selectedSitesCache[id])
+        .filter((item): item is TableItem => Boolean(item)),
+    [selectedSiteIds, selectedSitesCache]
   );
 
   const {
@@ -285,7 +291,10 @@ const DataExportPage = () => {
   const currentState = tabStates[activeTab];
   const config = getTabConfig(activeTab);
   const meta = currentHook.data?.meta || { total: 0, page: 1, totalPages: 1 };
-  const displayTableData = isGroupSyncing ? [] : tableData;
+  const displayTableData = useMemo(
+    () => (isGroupSyncing ? [] : tableData),
+    [isGroupSyncing, tableData]
+  );
   const displaySitesData = isGroupSyncing
     ? undefined
     : (currentHook.data as CohortSitesResponse | undefined)?.sites;
@@ -293,6 +302,34 @@ const DataExportPage = () => {
     ? undefined
     : (currentHook.data as CohortDevicesResponse | undefined)?.devices;
   const tableLoading = isGroupSyncing || currentHook.isLoading;
+  const compactTableRows =
+    activeTab === 'devices' ||
+    activeTab === 'countries' ||
+    activeTab === 'cities';
+
+  const exportTableData = useMemo(() => {
+    if (activeTab === 'sites') {
+      return selectedSiteIds.length > 0 && selectedSitesForActions.length > 0
+        ? selectedSitesForActions
+        : displayTableData;
+    }
+
+    if (activeTab === 'devices') {
+      return selectedDeviceIds.length > 0 &&
+        selectedDevicesForActions.length > 0
+        ? selectedDevicesForActions
+        : displayTableData;
+    }
+
+    return displayTableData;
+  }, [
+    activeTab,
+    displayTableData,
+    selectedDeviceIds,
+    selectedDevicesForActions,
+    selectedSiteIds,
+    selectedSitesForActions,
+  ]);
 
   // Reset device pagination when category changes
   useEffect(() => {
@@ -608,6 +645,7 @@ const DataExportPage = () => {
             <DataExportTable
               activeTab={activeTab}
               tableData={displayTableData}
+              exportData={exportTableData}
               columns={config.columns}
               loading={tableLoading}
               error={currentHook.error?.message || null}
@@ -623,6 +661,7 @@ const DataExportPage = () => {
                     ? selectedDeviceIds
                     : selectedGridIds // countries and cities use grid IDs
               }
+              compactRows={compactTableRows}
               onPageChange={page => updateTabState(activeTab, { page })}
               onPageSizeChange={size =>
                 updateTabState(activeTab, { pageSize: size })
