@@ -122,11 +122,6 @@ export const useAnalyticsChartData = (
   selectedSiteIds: string[] = EMPTY_SELECTED_SITE_IDS,
   enabled = true
 ) => {
-  const { trigger, error, isMutating } = useGetChartData();
-
-  const [chartData, setChartData] = useState<ChartData[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-
   // Calculate date range based on filters
   const dateRange = useMemo(() => {
     return {
@@ -134,6 +129,20 @@ export const useAnalyticsChartData = (
       endDate: filters.endDate,
     };
   }, [filters.startDate, filters.endDate]);
+
+  const { trigger, error, isMutating } = useGetChartData([
+    Array.isArray(selectedSiteIds)
+      ? selectedSiteIds.join(',')
+      : selectedSiteIds,
+    dateRange.startDate,
+    dateRange.endDate,
+    chartType,
+    filters.frequency,
+    filters.pollutant,
+  ]);
+
+  const [chartData, setChartData] = useState<ChartData[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Fetch chart data
   const fetchChartData = useCallback(
