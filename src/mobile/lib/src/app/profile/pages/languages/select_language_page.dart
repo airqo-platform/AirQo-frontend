@@ -1,3 +1,5 @@
+import 'package:airqo/src/app/shared/services/mlkit_translation_service.dart';
+import 'package:airqo/src/app/shared/services/sunbird_translation_service.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -31,11 +33,62 @@ class _SelectLanguagePageState extends State<SelectLanguagePage> {
     LanguageOption(code: 'fr', name: 'French', nativeName: 'Français'),
   ];
 
-  void _showLanguageChangeNotification(
-      BuildContext context, LanguageOption language) {
-    //final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+  String? _preparingCode;
 
-    ScaffoldMessenger.of(context).showSnackBar(
+  Future<void> _selectLanguage(
+      BuildContext context, LanguageOption language) async {
+    if (_preparingCode != null) return;
+
+    final needsMlKitDownload =
+        MlKitTranslationService().supportsTranslation(language.code) &&
+            !MlKitTranslationService().isModelReady(language.code);
+    final needsSunbirdPrepare =
+        SunbirdTranslationService().supportsTranslation(language.code);
+    final needsPrepare = needsMlKitDownload || needsSunbirdPrepare;
+
+    // Capture context-dependent references before any await.
+    final bloc = context.read<LanguageBloc>();
+    final messenger = ScaffoldMessenger.of(context);
+
+    if (!needsPrepare) {
+      bloc.add(ChangeLanguage(language.code));
+      _showLanguageChangeNotification(messenger, language);
+      return;
+    }
+
+    setState(() => _preparingCode = language.code);
+    try {
+      if (needsMlKitDownload) {
+        await MlKitTranslationService().prepareModel(language.code);
+      }
+      if (needsSunbirdPrepare) {
+        await SunbirdTranslationService().prepare(targetLocale: language.code);
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _preparingCode = null);
+      messenger.showSnackBar(
+        SnackBar(
+          content: const Text('Failed to prepare language. Please try again.'),
+          backgroundColor: Colors.red.shade700,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+      return;
+    }
+
+    if (!mounted) return;
+    setState(() => _preparingCode = null);
+    bloc.add(ChangeLanguage(language.code));
+    _showLanguageChangeNotification(messenger, language);
+  }
+
+  void _showLanguageChangeNotification(
+      ScaffoldMessengerState messenger, LanguageOption language) {
+    messenger.showSnackBar(
       SnackBar(
         content: Row(
           children: [
@@ -150,39 +203,44 @@ class _SelectLanguagePageState extends State<SelectLanguagePage> {
                       color: isDarkMode ? Colors.grey : Colors.grey.shade700,
                     ),
                   ),
-                  trailing: isSelected
-                      ? Container(
+                  trailing: _preparingCode == language.code
+                      ? SizedBox(
                           width: 24,
                           height: 24,
-                          decoration: BoxDecoration(
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
                             color: AppColors.primaryColor,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: const Icon(
-                            Icons.check,
-                            color: Colors.white,
-                            size: 18,
                           ),
                         )
-                      : Container(
-                          width: 24,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: isDarkMode
-                                  ? AppColors.secondaryHeadlineColor2
-                                  : AppColors.borderColor2,
+                      : isSelected
+                          ? Container(
+                              width: 24,
+                              height: 24,
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryColor,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: const Icon(
+                                Icons.check,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                            )
+                          : Container(
+                              width: 24,
+                              height: 24,
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: isDarkMode
+                                      ? AppColors.secondaryHeadlineColor2
+                                      : AppColors.borderColor2,
+                                ),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
                             ),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ),
-                  onTap: () {
-                    context
-                        .read<LanguageBloc>()
-                        .add(ChangeLanguage(language.code));
-
-                        _showLanguageChangeNotification(context, language);
-                  },
+                  onTap: _preparingCode != null
+                      ? null
+                      : () => _selectLanguage(context, language),
                 );
               },
             ),

@@ -13,6 +13,7 @@ class SunbirdTranslationService with UiLoggy {
 
   static const String _baseUrl = 'https://api.sunbird.ai';
   static const String _boxName = 'sunbirdTranslationBox';
+  static const int _cacheTtlDays = 7;
 
   // Concurrency limiter: at most 3 simultaneous HTTP requests
   static const int _maxConcurrent = 3;
@@ -39,12 +40,30 @@ class SunbirdTranslationService with UiLoggy {
     final box = _box;
     if (box == null) return;
     final value = box.get(cacheKey) as String?;
-    if (value != null) _cache[cacheKey] = value;
+    if (value == null) return;
+
+    final tsKey = '$cacheKey\$ts';
+    final ts = box.get(tsKey) as int?;
+    if (ts != null) {
+      final age = DateTime.now().millisecondsSinceEpoch - ts;
+      if (age > _cacheTtlDays * Duration.millisecondsPerDay) {
+        // Expired — drop from disk so next translate() re-fetches.
+        box.delete(cacheKey);
+        box.delete(tsKey);
+        return;
+      }
+    }
+    // Entries with no timestamp (written before TTL was added) are treated as
+    // expired on their first load, which re-fetches once and then stamps them.
+
+    _cache[cacheKey] = value;
   }
 
   Future<void> _saveToDisk(String cacheKey, String value) async {
     try {
+      final now = DateTime.now().millisecondsSinceEpoch;
       await _box?.put(cacheKey, value);
+      await _box?.put('$cacheKey\$ts', now);
     } catch (e) {
       loggy.warning('Failed to persist Sunbird translation: $e');
     }
@@ -397,6 +416,24 @@ class SunbirdTranslationService with UiLoggy {
     'Location Services Disabled',
     'Location permission was denied. Please try again.',
   ];
+
+  // Strings visible immediately on the home screen — translated before confirming language change.
+  static const List<String> _criticalUiStrings = [
+    'Home', 'Search', 'Exposure', 'Learn',
+    'Near You', 'Favorites', "Today's Air Quality", 'Settings',
+    'Good', 'Moderate', 'Unhealthy for Sensitive Groups',
+    'Unhealthy', 'Very Unhealthy', 'Hazardous', 'Unknown',
+  ];
+
+  /// Awaits translation of the most visible UI strings, then fires the rest
+  /// in the background. Call this before confirming a language change.
+  Future<void> prepare({required String targetLocale}) async {
+    if (!supportsTranslation(targetLocale)) return;
+    await Future.wait(
+      _criticalUiStrings.map((s) => translate(s, targetLocale: targetLocale)),
+    );
+    prewarm(targetLocale: targetLocale);
+  }
 
   /// Fire-and-forget: translates all known UI strings so the cache is warm
   /// before widgets render. Already-cached strings resolve instantly.
