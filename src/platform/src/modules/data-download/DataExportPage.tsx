@@ -158,6 +158,12 @@ const DataExportPage = () => {
   const [selectedDevicesCache, setSelectedDevicesCache] = React.useState<
     Record<string, TableItem>
   >({});
+  const [selectedCountriesCache, setSelectedCountriesCache] = React.useState<
+    Record<string, TableItem>
+  >({});
+  const [selectedCitiesCache, setSelectedCitiesCache] = React.useState<
+    Record<string, TableItem>
+  >({});
   const [showHelpBanner, setShowHelpBanner] = React.useState(() => {
     // Check if user has dismissed the banner before
     if (typeof window !== 'undefined') {
@@ -226,12 +232,18 @@ const DataExportPage = () => {
 
   // Data fetching and processing (initial call with empty array)
   const selectedDevicesForActions = useMemo(
-    () => Object.values(selectedDevicesCache),
-    [selectedDevicesCache]
+    () =>
+      selectedDeviceIds
+        .map(id => selectedDevicesCache[id])
+        .filter((item): item is TableItem => Boolean(item)),
+    [selectedDeviceIds, selectedDevicesCache]
   );
   const selectedSitesForActions = useMemo(
-    () => Object.values(selectedSitesCache),
-    [selectedSitesCache]
+    () =>
+      selectedSiteIds
+        .map(id => selectedSitesCache[id])
+        .filter((item): item is TableItem => Boolean(item)),
+    [selectedSiteIds, selectedSitesCache]
   );
 
   const {
@@ -285,7 +297,10 @@ const DataExportPage = () => {
   const currentState = tabStates[activeTab];
   const config = getTabConfig(activeTab);
   const meta = currentHook.data?.meta || { total: 0, page: 1, totalPages: 1 };
-  const displayTableData = isGroupSyncing ? [] : tableData;
+  const displayTableData = useMemo(
+    () => (isGroupSyncing ? [] : tableData),
+    [isGroupSyncing, tableData]
+  );
   const displaySitesData = isGroupSyncing
     ? undefined
     : (currentHook.data as CohortSitesResponse | undefined)?.sites;
@@ -293,6 +308,55 @@ const DataExportPage = () => {
     ? undefined
     : (currentHook.data as CohortDevicesResponse | undefined)?.devices;
   const tableLoading = isGroupSyncing || currentHook.isLoading;
+  const compactTableRows =
+    activeTab === 'devices' ||
+    activeTab === 'countries' ||
+    activeTab === 'cities';
+
+  const exportTableData = useMemo(() => {
+    if (activeTab === 'sites') {
+      return selectedSiteIds.length > 0 && selectedSitesForActions.length > 0
+        ? selectedSitesForActions
+        : displayTableData;
+    }
+
+    if (activeTab === 'devices') {
+      return selectedDeviceIds.length > 0 &&
+        selectedDevicesForActions.length > 0
+        ? selectedDevicesForActions
+        : displayTableData;
+    }
+
+    if (activeTab === 'countries') {
+      return selectedGridIds.length > 0 &&
+        Object.keys(selectedCountriesCache).length > 0
+        ? selectedGridIds
+            .map(id => selectedCountriesCache[id])
+            .filter((item): item is TableItem => Boolean(item))
+        : displayTableData;
+    }
+
+    if (activeTab === 'cities') {
+      return selectedGridIds.length > 0 &&
+        Object.keys(selectedCitiesCache).length > 0
+        ? selectedGridIds
+            .map(id => selectedCitiesCache[id])
+            .filter((item): item is TableItem => Boolean(item))
+        : displayTableData;
+    }
+
+    return displayTableData;
+  }, [
+    activeTab,
+    displayTableData,
+    selectedCountriesCache,
+    selectedCitiesCache,
+    selectedDeviceIds,
+    selectedDevicesForActions,
+    selectedSiteIds,
+    selectedSitesForActions,
+    selectedGridIds,
+  ]);
 
   // Reset device pagination when category changes
   useEffect(() => {
@@ -341,6 +405,8 @@ const DataExportPage = () => {
       resetGroupScopedState(!siteSelectionDownloading);
       setSelectedSitesCache({});
       setSelectedDevicesCache({});
+      setSelectedCountriesCache({});
+      setSelectedCitiesCache({});
       setSelectedGridForSites(null);
       setSiteSelectionDialogOpen(false);
       setSiteSelectionDownloading(false);
@@ -430,6 +496,16 @@ const DataExportPage = () => {
       }
       setSelectedGridSites(newSelectedGridSites);
       setSelectedGridSiteIds({}); // Reset custom selection
+
+      if (activeTab === 'countries') {
+        setSelectedCountriesCache(prevCache =>
+          rebuildSelectionCache(stringIds, processedCountriesData, prevCache)
+        );
+      } else {
+        setSelectedCitiesCache(prevCache =>
+          rebuildSelectionCache(stringIds, processedCitiesData, prevCache)
+        );
+      }
     }
   };
 
@@ -457,6 +533,30 @@ const DataExportPage = () => {
     );
   }, [selectedDeviceIds, processedDevicesData]);
 
+  // Keep selected countries cache synchronized as table pages/search results change.
+  useEffect(() => {
+    if (activeTab !== 'countries' || selectedGridIds.length === 0) {
+      setSelectedCountriesCache({});
+      return;
+    }
+
+    setSelectedCountriesCache(prevCache =>
+      rebuildSelectionCache(selectedGridIds, processedCountriesData, prevCache)
+    );
+  }, [activeTab, processedCountriesData, selectedGridIds]);
+
+  // Keep selected cities cache synchronized as table pages/search results change.
+  useEffect(() => {
+    if (activeTab !== 'cities' || selectedGridIds.length === 0) {
+      setSelectedCitiesCache({});
+      return;
+    }
+
+    setSelectedCitiesCache(prevCache =>
+      rebuildSelectionCache(selectedGridIds, processedCitiesData, prevCache)
+    );
+  }, [activeTab, processedCitiesData, selectedGridIds]);
+
   // Handle site selection dialog
   const handleSiteSelectionConfirm = async (selectedSiteIds: string[]) => {
     setSiteSelectionDownloading(true);
@@ -468,7 +568,9 @@ const DataExportPage = () => {
       setSelectedGridSiteIds(nextSelectedGridSiteIds);
 
       // Trigger download with the updated selections
-      await handleDownload(nextSelectedGridSiteIds);
+      await handleDownload({
+        customSelectedGridSiteIds: nextSelectedGridSiteIds,
+      });
 
       // Close dialog only on successful download
       setSiteSelectionDialogOpen(false);
@@ -597,8 +699,7 @@ const DataExportPage = () => {
               onTabChange={wrappedHandleTabChange}
               onClearSelections={handleClearSelections}
               onVisualizeData={handleVisualizeData}
-              onPreview={() => setPreviewOpen(true)}
-              onDownload={handleDownload}
+              onDownload={() => setPreviewOpen(true)}
               onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
               sidebarOpen={sidebarOpen}
               isOrgFlow={isOrgFlow}
@@ -607,6 +708,7 @@ const DataExportPage = () => {
             <DataExportTable
               activeTab={activeTab}
               tableData={displayTableData}
+              exportData={exportTableData}
               columns={config.columns}
               loading={tableLoading}
               error={currentHook.error?.message || null}
@@ -622,6 +724,7 @@ const DataExportPage = () => {
                     ? selectedDeviceIds
                     : selectedGridIds // countries and cities use grid IDs
               }
+              compactRows={compactTableRows}
               onPageChange={page => updateTabState(activeTab, { page })}
               onPageSizeChange={size =>
                 updateTabState(activeTab, { pageSize: size })
@@ -637,9 +740,9 @@ const DataExportPage = () => {
       <DataExportPreview
         isOpen={previewOpen}
         onClose={() => setPreviewOpen(false)}
-        onConfirm={() => {
+        onConfirm={(selectedColumnKeys: string[]) => {
           setPreviewOpen(false);
-          handleDownload();
+          handleDownload({ exportColumnKeys: selectedColumnKeys });
         }}
         isDownloading={isDownloading}
         dataType={dataType}
@@ -653,7 +756,6 @@ const DataExportPage = () => {
         selectedGridIds={selectedGridIds}
         selectedGridSites={selectedGridSites}
         selectedGridSiteIds={selectedGridSiteIds}
-        deviceCategory={deviceCategory}
       />
 
       {/* More Insights Dialog */}

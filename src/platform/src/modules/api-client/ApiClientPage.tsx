@@ -4,6 +4,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { usePostHog } from 'posthog-js/react';
 import { Button, MultiSelectTable, PageHeading } from '@/shared/components/ui';
+import { Tooltip } from 'flowbite-react';
 import { toast } from '@/shared/components/ui';
 import { formatDate, parseDate } from '@/shared/utils';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
@@ -283,14 +284,16 @@ const ApiClientPage: React.FC = () => {
 
           if (token && expired && item.isActive) {
             return (
-              <Button
-                size="sm"
-                variant="outlined"
-                onClick={() => handleGenerateToken(item, 'refresh')}
-                disabled={isGeneratingForThis}
-              >
-                {isGeneratingForThis ? 'Refreshing...' : 'Refresh'}
-              </Button>
+              <Tooltip content="A new token will be generated — copy it when shown to use it">
+                <Button
+                  size="sm"
+                  variant="outlined"
+                  onClick={() => handleGenerateToken(item, 'refresh')}
+                  disabled={isGeneratingForThis}
+                >
+                  {isGeneratingForThis ? 'Regenerating...' : 'Regenerate Token'}
+                </Button>
+              </Tooltip>
             );
           }
 

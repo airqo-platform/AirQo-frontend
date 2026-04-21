@@ -1,0 +1,373 @@
+import { DataDownloadRequest, DataDownloadResponse } from '@/shared/types/api';
+import { POLLUTANT_LABELS } from '@/shared/components/charts/constants';
+import { areArraysEqual } from '@/shared/utils/arrays';
+import { TabType } from '../types/dataExportTypes';
+
+export type DownloadColumnGroupId =
+  | 'location'
+  | 'core'
+  | 'metadata'
+  | 'pollutants';
+
+export interface DownloadColumnOption {
+  key: string;
+  label: string;
+  group: DownloadColumnGroupId;
+}
+
+export interface DownloadColumnGroup {
+  id: DownloadColumnGroupId;
+  title: string;
+  options: DownloadColumnOption[];
+}
+
+export interface DownloadFileTransformOptions {
+  selectedColumnKeys?: string[];
+}
+
+type DownloadRecord = Record<string, unknown>;
+
+const formatColumnLabel = (key: string) =>
+  key
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, char => char.toUpperCase())
+    .replace(/Pm2 5/g, 'PM2.5')
+    .replace(/Pm10/g, 'PM10');
+
+const normalizeSelectedColumnKeys = (selectedColumnKeys?: string[]) =>
+  Array.from(new Set((selectedColumnKeys || []).filter(Boolean)));
+
+const isPlainObject = (value: unknown): value is DownloadRecord =>
+  !!value && typeof value === 'object' && !Array.isArray(value);
+
+const parseCsvRows = (csvText: string): string[][] => {
+  const normalizedCsv = csvText.replace(/^\uFEFF/, '');
+  const rows: string[][] = [];
+  let currentRow: string[] = [];
+  let currentField = '';
+  let inQuotes = false;
+
+  for (let index = 0; index < normalizedCsv.length; index += 1) {
+    const char = normalizedCsv[index];
+
+    if (inQuotes) {
+      if (char === '"') {
+        const nextChar = normalizedCsv[index + 1];
+        if (nextChar === '"') {
+          currentField += '"';
+          index += 1;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        currentField += char;
+      }
+      continue;
+    }
+
+    if (char === '"') {
+      inQuotes = true;
+    } else if (char === ',') {
+      currentRow.push(currentField);
+      currentField = '';
+    } else if (char === '\n') {
+      currentRow.push(currentField);
+      rows.push(currentRow);
+      currentRow = [];
+      currentField = '';
+    } else if (char === '\r') {
+      continue;
+    } else {
+      currentField += char;
+    }
+  }
+
+  currentRow.push(currentField);
+  rows.push(currentRow);
+
+  if (rows.length > 0) {
+    const lastRow = rows[rows.length - 1];
+    if (lastRow.length === 1 && lastRow[0] === '') {
+      rows.pop();
+    }
+  }
+
+  return rows;
+};
+
+const escapeCsvValue = (value: unknown) => {
+  if (value === null || value === undefined) {
+    return '""';
+  }
+
+  const stringValue = String(value);
+  const trimmedValue = stringValue.trimStart();
+  const firstVisibleCharacter = trimmedValue[0];
+  const needsNeutralize =
+    firstVisibleCharacter === '=' ||
+    firstVisibleCharacter === '+' ||
+    firstVisibleCharacter === '-' ||
+    firstVisibleCharacter === '@' ||
+    stringValue.charAt(0) === '\t' ||
+    stringValue.charAt(0) === '\r';
+  const prefixedValue = needsNeutralize ? `'${stringValue}` : stringValue;
+
+  return `"${prefixedValue.replace(/"/g, '""')}"`;
+};
+
+const getRecordHeaders = (records: DownloadRecord[]) => {
+  const headers: string[] = [];
+  const seenHeaders = new Set<string>();
+
+  records.forEach(record => {
+    Object.keys(record).forEach(key => {
+      if (!seenHeaders.has(key)) {
+        seenHeaders.add(key);
+        headers.push(key);
+      }
+    });
+  });
+
+  return headers;
+};
+
+const pickRecordColumnsForCsv = (record: DownloadRecord, headers: string[]) => {
+  const filteredRecord: DownloadRecord = {};
+
+  headers.forEach(header => {
+    filteredRecord[header] = record[header] ?? '';
+  });
+
+  return filteredRecord;
+};
+
+const pickRecordColumnsForJson = (
+  record: DownloadRecord,
+  headers: string[]
+) => {
+  const filteredRecord: DownloadRecord = {};
+
+  headers.forEach(header => {
+    if (Object.prototype.hasOwnProperty.call(record, header)) {
+      filteredRecord[header] = record[header];
+    }
+  });
+
+  return filteredRecord;
+};
+
+const stringifyCsv = (headers: string[], records: DownloadRecord[]) => {
+  const lines = [headers.map(escapeCsvValue).join(',')];
+
+  records.forEach(record => {
+    const row = headers.map(header => escapeCsvValue(record[header]));
+    lines.push(row.join(','));
+  });
+
+  return `\uFEFF${lines.join('\n')}`;
+};
+
+const resolveSelectedHeaders = (
+  availableHeaders: string[],
+  selectedColumnKeys?: string[]
+) => {
+  const normalizedSelectedColumnKeys =
+    normalizeSelectedColumnKeys(selectedColumnKeys);
+
+  if (normalizedSelectedColumnKeys.length === 0) {
+    return availableHeaders;
+  }
+
+  const selectedHeaders = normalizedSelectedColumnKeys.filter(key =>
+    availableHeaders.includes(key)
+  );
+
+  return selectedHeaders.length > 0 ? selectedHeaders : availableHeaders;
+};
+
+const extractDownloadRecords = (response: DataDownloadResponse | string) => {
+  if (typeof response === 'string') {
+    const rows = parseCsvRows(response);
+    const [headers = [], ...dataRows] = rows;
+
+    const records = dataRows.map(row => {
+      const record: DownloadRecord = {};
+
+      headers.forEach((header, index) => {
+        record[header] = row[index] ?? '';
+      });
+
+      return record;
+    });
+
+    return {
+      records,
+      headers,
+      responseObject: null as DataDownloadResponse | null,
+    };
+  }
+
+  const records = response.data.map(item => (isPlainObject(item) ? item : {}));
+
+  return {
+    records,
+    headers: getRecordHeaders(records),
+    responseObject: response,
+  };
+};
+
+export const getDownloadColumnGroups = (
+  activeTab: TabType,
+  selectedPollutants: string[]
+): DownloadColumnGroup[] => {
+  const locationOption =
+    activeTab === 'sites'
+      ? { key: 'site_name', label: 'Site name' }
+      : activeTab === 'devices'
+        ? { key: 'device_name', label: 'Device name' }
+        : activeTab === 'countries'
+          ? { key: 'country_name', label: 'Country name' }
+          : { key: 'city_name', label: 'City name' };
+
+  const uniquePollutants = Array.from(
+    new Set(selectedPollutants.filter(Boolean))
+  );
+
+  return [
+    {
+      id: 'location',
+      title: 'Location',
+      options: [{ ...locationOption, group: 'location' }],
+    },
+    {
+      id: 'core',
+      title: 'Core Data',
+      options: [
+        { key: 'datetime', label: 'Date and time', group: 'core' },
+        { key: 'frequency', label: 'Frequency', group: 'core' },
+        { key: 'network', label: 'Network', group: 'core' },
+      ],
+    },
+    {
+      id: 'metadata',
+      title: 'Metadata',
+      options: [
+        { key: 'latitude', label: 'Latitude', group: 'metadata' },
+        { key: 'longitude', label: 'Longitude', group: 'metadata' },
+        { key: 'temperature', label: 'Temperature', group: 'metadata' },
+        { key: 'humidity', label: 'Humidity', group: 'metadata' },
+      ],
+    },
+    {
+      id: 'pollutants',
+      title: 'Pollutants',
+      options: uniquePollutants.flatMap(pollutant => {
+        const pollutantLabel =
+          POLLUTANT_LABELS[pollutant as keyof typeof POLLUTANT_LABELS] ||
+          formatColumnLabel(pollutant);
+
+        return [
+          {
+            key: pollutant,
+            label: pollutantLabel,
+            group: 'pollutants' as const,
+          },
+          {
+            key: `${pollutant}_calibrated_value`,
+            label: `${pollutantLabel} calibrated`,
+            group: 'pollutants' as const,
+          },
+        ];
+      }),
+    },
+  ];
+};
+
+export const getDownloadColumnOptions = (
+  activeTab: TabType,
+  selectedPollutants: string[]
+) =>
+  getDownloadColumnGroups(activeTab, selectedPollutants).flatMap(
+    group => group.options
+  );
+
+export const getDownloadColumnLabelMap = (
+  activeTab: TabType,
+  selectedPollutants: string[]
+) =>
+  Object.fromEntries(
+    getDownloadColumnOptions(activeTab, selectedPollutants).map(option => [
+      option.key,
+      option.label,
+    ])
+  );
+
+export const getDefaultDownloadColumnKeys = (
+  activeTab: TabType,
+  selectedPollutants: string[]
+) =>
+  getDownloadColumnOptions(activeTab, selectedPollutants).map(
+    option => option.key
+  );
+
+export const buildDownloadFileContent = (
+  response: DataDownloadResponse | string,
+  downloadType: DataDownloadRequest['downloadType'],
+  selectedColumnKeys?: string[]
+) => {
+  const { records, headers, responseObject } = extractDownloadRecords(response);
+  const selectedHeaders = resolveSelectedHeaders(headers, selectedColumnKeys);
+  const normalizedSelectedColumnKeys =
+    normalizeSelectedColumnKeys(selectedColumnKeys);
+  const hasExplicitColumnFilter = normalizedSelectedColumnKeys.length > 0;
+  const isCsv = downloadType === 'csv';
+
+  if (isCsv) {
+    const filteredRows = records.map(record =>
+      pickRecordColumnsForCsv(record, selectedHeaders)
+    );
+
+    return {
+      content: stringifyCsv(selectedHeaders, filteredRows),
+      mimeType: 'text/csv;charset=utf-8;',
+      extension: 'csv' as const,
+    };
+  }
+
+  if (responseObject) {
+    if (!hasExplicitColumnFilter || areArraysEqual(selectedHeaders, headers)) {
+      return {
+        content: JSON.stringify(responseObject, null, 2),
+        mimeType: 'application/json;charset=utf-8;',
+        extension: 'json' as const,
+      };
+    }
+
+    const filteredData = responseObject.data.map(item =>
+      pickRecordColumnsForJson(isPlainObject(item) ? item : {}, selectedHeaders)
+    );
+
+    return {
+      content: JSON.stringify(
+        {
+          ...responseObject,
+          data: filteredData,
+        },
+        null,
+        2
+      ),
+      mimeType: 'application/json;charset=utf-8;',
+      extension: 'json' as const,
+    };
+  }
+
+  const filteredData = records.map(record =>
+    pickRecordColumnsForJson(record, selectedHeaders)
+  );
+
+  return {
+    content: JSON.stringify(filteredData, null, 2),
+    mimeType: 'application/json;charset=utf-8;',
+    extension: 'json' as const,
+  };
+};

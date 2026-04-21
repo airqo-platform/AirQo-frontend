@@ -2,6 +2,7 @@
 import { useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { deviceService } from '../../../shared/services/deviceService';
+import { useUser } from '../../../shared/hooks/useUser';
 import type {
   MapReadingsResponse,
   MapReading,
@@ -21,6 +22,7 @@ export interface UseMapReadingsResult {
 export function useMapReadings(
   cohort_id?: string | null
 ): UseMapReadingsResult {
+  const { user } = useUser();
   const normalizedCohortId =
     cohort_id === null ? 'disabled' : (cohort_id ?? 'all');
   const enabled = cohort_id !== null;
@@ -36,7 +38,8 @@ export function useMapReadings(
       const response: MapReadingsResponse =
         await deviceService.getMapReadingsWithToken(
           cohort_id || undefined,
-          signal
+          signal,
+          user?.id
         );
       return response.measurements;
     },

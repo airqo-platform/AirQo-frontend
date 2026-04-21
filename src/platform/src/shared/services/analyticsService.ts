@@ -66,6 +66,7 @@ export class AnalyticsService {
       {
         params: {
           site_id: normalizedSiteIds,
+          ...(request.user_id ? { user_id: request.user_id } : {}),
         },
         signal,
       }

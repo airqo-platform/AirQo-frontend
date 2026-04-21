@@ -10,18 +10,42 @@ export const getSitesColumns = (): ColumnConfig[] => [
   {
     key: 'name',
     label: 'Location',
+    minWidth: '320px',
+    maxWidth: '420px',
+    cellClassName: 'whitespace-normal break-normal',
     render: (value: unknown) => (
-      <div className="flex items-center capitalize gap-2">
-        <span className="bg-gray-100 rounded-full p-1">
+      <div className="flex items-start gap-2 max-w-[420px] min-w-0">
+        <span className="bg-gray-100 rounded-full p-1 mt-0.5 shrink-0">
           <AqMarkerPin03 className="h-4 w-4 shrink-0 text-primary" />
         </span>
-        <span>{value as string}</span>
+        <span className="min-w-0 whitespace-normal break-normal leading-5">
+          {value as string}
+        </span>
       </div>
     ),
   },
-  { key: 'city', label: 'City' },
-  { key: 'country', label: 'Country' },
+  {
+    key: 'city',
+    label: 'City',
+    minWidth: '120px',
+    cellClassName: 'whitespace-nowrap',
+  },
+  {
+    key: 'country',
+    label: 'Country',
+    minWidth: '140px',
+    cellClassName: 'whitespace-nowrap',
+  },
   { key: 'data_provider', label: 'Owner' },
+  {
+    key: 'coordinates',
+    label: 'Coordinates',
+    render: (value: unknown) => (
+      <span className="font-mono text-sm whitespace-nowrap">
+        {value as string}
+      </span>
+    ),
+  },
 ];
 
 /**
@@ -31,8 +55,9 @@ export const getDevicesColumns = (): ColumnConfig[] => [
   {
     key: 'name',
     label: 'Device name',
+    cellClassName: 'whitespace-nowrap',
     render: (value: unknown) => (
-      <div className="flex items-center capitalize gap-2">
+      <div className="flex items-center gap-2 whitespace-nowrap">
         <span className="bg-gray-100 rounded-full p-1">
           <AqMonitor03 className="h-4 w-4 shrink-0 text-primary" />
         </span>
@@ -52,6 +77,16 @@ export const getDevicesColumns = (): ColumnConfig[] => [
       return <span>{option?.label || category}</span>;
     },
   },
+  {
+    key: 'coordinates',
+    label: 'Coordinates',
+    cellClassName: 'whitespace-nowrap',
+    render: (value: unknown) => (
+      <span className="font-mono text-sm whitespace-nowrap">
+        {value as string}
+      </span>
+    ),
+  },
 ];
 
 /**
@@ -61,8 +96,9 @@ export const getCountriesColumns = (): ColumnConfig[] => [
   {
     key: 'name',
     label: 'Country',
+    cellClassName: 'whitespace-nowrap',
     render: (value: unknown) => (
-      <div className="flex items-center capitalize gap-2">
+      <div className="flex items-center capitalize gap-2 whitespace-nowrap">
         <span className="bg-gray-100 rounded-full p-1">
           <AqGlobe01 className="h-4 w-4 shrink-0 text-primary" />
         </span>
@@ -87,8 +123,9 @@ export const getCitiesColumns = (): ColumnConfig[] => [
   {
     key: 'name',
     label: 'City',
+    cellClassName: 'whitespace-nowrap',
     render: (value: unknown) => (
-      <div className="flex items-center capitalize gap-2">
+      <div className="flex items-center capitalize gap-2 whitespace-nowrap">
         <span className="bg-gray-100 rounded-full p-1">
           <AqMarkerPin03 className="h-4 w-4 shrink-0 text-primary" />
         </span>

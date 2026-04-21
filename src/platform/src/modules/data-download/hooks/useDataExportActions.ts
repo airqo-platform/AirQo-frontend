@@ -10,7 +10,6 @@ import {
   trackFeatureUsage,
 } from '@/shared/utils/enhancedAnalytics';
 import { useDataDownload } from '@/modules/analytics/hooks';
-import { DataDownloadRequest } from '@/shared/types/api';
 import { DateRange } from '@/shared/components/calendar/types';
 import { LARGE_DATE_RANGE_THRESHOLD } from '../constants/dataExportConstants';
 import { TabType, DeviceCategory, TableItem } from '../types/dataExportTypes';
@@ -19,6 +18,7 @@ import {
   createSitesFromDevicesForVisualization,
   createSitesFromGridsForVisualization,
 } from '../utils/dataExportUtils';
+import { buildDataDownloadRequest } from '../utils/dataExportRequest';
 import type { AxiosError } from 'axios';
 
 interface ApiErrorResponse {
@@ -78,9 +78,17 @@ export const useDataExportActions = (
   const posthog = usePostHog();
   const { downloadData, isDownloading } = useDataDownload();
 
+  interface HandleDownloadOptions {
+    customSelectedGridSiteIds?: Record<string, string[]>;
+    exportColumnKeys?: string[];
+  }
+
   // Handle data download
   const handleDownload = useCallback(
-    async (customSelectedGridSiteIds?: Record<string, string[]>) => {
+    async ({
+      customSelectedGridSiteIds,
+      exportColumnKeys,
+    }: HandleDownloadOptions = {}) => {
       if (!dateRange?.from || !dateRange?.to) {
         toast.error(
           'Date Range Required',
@@ -105,9 +113,20 @@ export const useDataExportActions = (
         return;
       }
 
+      if (exportColumnKeys && exportColumnKeys.length === 0) {
+        toast.error(
+          'Download Columns Required',
+          'Please select at least one column to include in the exported file.'
+        );
+        return;
+      }
+
+      const effectiveSelectedGridSiteIds =
+        customSelectedGridSiteIds || selectedGridSiteIds;
+
       if (
         (activeTab === 'countries' || activeTab === 'cities') &&
-        Object.keys(selectedGridSiteIds).length === 0 &&
+        Object.keys(effectiveSelectedGridSiteIds).length === 0 &&
         Object.keys(selectedGridSites).length === 0
       ) {
         toast.error(
@@ -144,6 +163,23 @@ export const useDataExportActions = (
         );
         return;
       }
+
+      const request = buildDataDownloadRequest({
+        dateRange,
+        activeTab,
+        selectedSites,
+        selectedDeviceIds,
+        selectedDeviceNames: selectedDevices,
+        selectedGridIds,
+        selectedGridSites,
+        selectedGridSiteIds: effectiveSelectedGridSiteIds,
+        customSelectedGridSiteIds,
+        selectedPollutants,
+        dataType,
+        fileType,
+        frequency,
+        deviceCategory,
+      });
 
       const locationNames =
         activeTab === 'sites'
@@ -202,30 +238,10 @@ export const useDataExportActions = (
         });
       }
 
-      const request: DataDownloadRequest = {
-        datatype: effectiveDataType,
-        downloadType: fileType as 'csv' | 'json',
-        startDateTime: dateRange.from.toISOString(),
-        endDateTime: dateRange.to.toISOString(),
-        frequency: frequency as 'daily',
-        minimum: true,
-        metaDataFields: ['latitude', 'longitude'],
-        weatherFields: ['temperature', 'humidity'],
-        outputFormat: 'airqo-standard',
-        pollutants: selectedPollutants,
-        device_category:
-          activeTab === 'countries' || activeTab === 'cities'
-            ? 'lowcost'
-            : deviceCategory,
-        ...(activeTab === 'sites' && { sites: selectedSites }),
-        ...(activeTab === 'devices' && { device_ids: selectedDeviceIds }),
-        ...((activeTab === 'countries' || activeTab === 'cities') && {
-          sites: sitesForDownload,
-        }),
-      };
-
       try {
-        await downloadData(request, fileTitle || undefined);
+        await downloadData(request, fileTitle || undefined, {
+          selectedColumnKeys: exportColumnKeys,
+        });
 
         // Enhanced analytics tracking with comprehensive details
         // Use the same deviceCategory logic as the API request

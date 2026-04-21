@@ -169,7 +169,7 @@ const ClientsAdminPage: React.FC = () => {
       await clientService.refreshClientSecret(
         refreshSecretDialogState.clientId
       );
-      toast.success('Client secret refreshed successfully');
+      toast.success('Client secret regenerated successfully');
       setRefreshSecretDialogState({
         isOpen: false,
         clientId: '',
@@ -325,7 +325,7 @@ const ClientsAdminPage: React.FC = () => {
               </Button>
             </Tooltip>
             {hasAnyPermission(['TOKEN_MANAGE', 'TOKEN_GENERATE']) && (
-              <Tooltip content="Refresh client secret">
+              <Tooltip content="Regenerate client secret">
                 <Button
                   size="sm"
                   variant="ghost"
@@ -519,12 +519,12 @@ const ClientsAdminPage: React.FC = () => {
               clientName: '',
             })
           }
-          title="Refresh Client Secret"
+          title="Regenerate Client Secret"
           size="md"
         >
           <div className="space-y-4">
             <p className="text-gray-700 dark:text-gray-300">
-              Are you sure you want to refresh the client secret for{' '}
+              Are you sure you want to regenerate the client secret for{' '}
               <span className="font-semibold">
                 {refreshSecretDialogState.clientName}
               </span>
@@ -550,7 +550,7 @@ const ClientsAdminPage: React.FC = () => {
                 onClick={handleRefreshSecret}
                 disabled={isRefreshingSecret}
               >
-                {isRefreshingSecret ? 'Refreshing...' : 'Refresh Secret'}
+                {isRefreshingSecret ? 'Regenerating...' : 'Regenerate Secret'}
               </Button>
             </div>
           </div>
