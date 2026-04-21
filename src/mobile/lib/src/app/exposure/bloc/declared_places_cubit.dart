@@ -23,11 +23,12 @@ class DeclaredPlacesCubit extends Cubit<DeclaredPlacesState> with UiLoggy {
   Future<void> _load() async {
     try {
       final places = await _placesRepo.getDeclaredPlaces();
+      if (isClosed) return;
       emit(DeclaredPlacesLoaded(places: places));
       _fetchReadings(places);
     } catch (e) {
       loggy.error('Failed to load declared places: $e');
-      emit(const DeclaredPlacesLoaded(places: []));
+      if (!isClosed) emit(const DeclaredPlacesLoaded(places: []));
     }
   }
 
@@ -39,7 +40,7 @@ class DeclaredPlacesCubit extends Cubit<DeclaredPlacesState> with UiLoggy {
           .fetchHourlyReadings(p.siteId, today)
           .then((r) => MapEntry(p.siteId, r))),
     );
-    if (state is DeclaredPlacesLoaded) {
+    if (!isClosed && state is DeclaredPlacesLoaded) {
       emit((state as DeclaredPlacesLoaded).withReadings(Map.fromEntries(results)));
     }
   }
