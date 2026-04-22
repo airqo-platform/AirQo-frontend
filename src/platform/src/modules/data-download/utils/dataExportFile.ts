@@ -1,4 +1,6 @@
 import { DataDownloadRequest, DataDownloadResponse } from '@/shared/types/api';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { POLLUTANT_LABELS } from '@/shared/components/charts/constants';
 import { areArraysEqual } from '@/shared/utils/arrays';
 import { TabType } from '../types/dataExportTypes';
@@ -25,6 +27,20 @@ export interface DownloadFileTransformOptions {
   selectedColumnKeys?: string[];
 }
 
+export interface DownloadPdfSummaryItem {
+  label: string;
+  value: string;
+}
+
+export interface DownloadPdfOptions {
+  title?: string;
+  subtitle?: string;
+  summaryItems?: DownloadPdfSummaryItem[];
+  footerText?: string;
+  preserveSelectedColumns?: boolean;
+  allowLargePdf?: boolean;
+}
+
 type DownloadRecord = Record<string, unknown>;
 
 const formatColumnLabel = (key: string) =>
@@ -39,6 +55,57 @@ const normalizeSelectedColumnKeys = (selectedColumnKeys?: string[]) =>
 
 const isPlainObject = (value: unknown): value is DownloadRecord =>
   !!value && typeof value === 'object' && !Array.isArray(value);
+
+const getNormalizedString = (value: unknown): string | undefined => {
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed || undefined;
+  }
+
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return String(value);
+  }
+
+  return undefined;
+};
+
+const normalizeDownloadRecord = (record: DownloadRecord): DownloadRecord => {
+  const normalizedRecord: DownloadRecord = { ...record };
+
+  const existingDatetime = getNormalizedString(normalizedRecord['datetime']);
+  if (existingDatetime) {
+    normalizedRecord['datetime'] = existingDatetime;
+    return normalizedRecord;
+  }
+
+  const dateValue =
+    getNormalizedString(normalizedRecord['date_time']) ||
+    getNormalizedString(normalizedRecord['dateTime']) ||
+    getNormalizedString(normalizedRecord['date']) ||
+    getNormalizedString(normalizedRecord['day']) ||
+    getNormalizedString(normalizedRecord['timestamp']) ||
+    getNormalizedString(normalizedRecord['week_start']) ||
+    getNormalizedString(normalizedRecord['week_end']) ||
+    getNormalizedString(normalizedRecord['week']) ||
+    getNormalizedString(normalizedRecord['month']) ||
+    getNormalizedString(normalizedRecord['period_start']) ||
+    getNormalizedString(normalizedRecord['period_end']) ||
+    getNormalizedString(normalizedRecord['period']) ||
+    getNormalizedString(normalizedRecord['created_at']) ||
+    getNormalizedString(normalizedRecord['updated_at']);
+
+  const timeValue =
+    getNormalizedString(normalizedRecord['time']) ||
+    getNormalizedString(normalizedRecord['time_of_day']);
+
+  if (dateValue && timeValue) {
+    normalizedRecord['datetime'] = `${dateValue} ${timeValue}`;
+  } else if (dateValue) {
+    normalizedRecord['datetime'] = dateValue;
+  }
+
+  return normalizedRecord;
+};
 
 const parseCsvRows = (csvText: string): string[][] => {
   const normalizedCsv = csvText.replace(/^\uFEFF/, '');
@@ -95,6 +162,9 @@ const parseCsvRows = (csvText: string): string[][] => {
   return rows;
 };
 
+export const parseDownloadCsvRows = (csvText: string): string[][] =>
+  parseCsvRows(csvText);
+
 const escapeCsvValue = (value: unknown) => {
   if (value === null || value === undefined) {
     return '""';
@@ -143,11 +213,17 @@ const pickRecordColumnsForCsv = (record: DownloadRecord, headers: string[]) => {
 
 const pickRecordColumnsForJson = (
   record: DownloadRecord,
-  headers: string[]
+  headers: string[],
+  preserveMissingColumns = false
 ) => {
   const filteredRecord: DownloadRecord = {};
 
   headers.forEach(header => {
+    if (preserveMissingColumns) {
+      filteredRecord[header] = record[header] ?? '';
+      return;
+    }
+
     if (Object.prototype.hasOwnProperty.call(record, header)) {
       filteredRecord[header] = record[header];
     }
@@ -169,13 +245,18 @@ const stringifyCsv = (headers: string[], records: DownloadRecord[]) => {
 
 const resolveSelectedHeaders = (
   availableHeaders: string[],
-  selectedColumnKeys?: string[]
+  selectedColumnKeys?: string[],
+  preserveSelectedColumns = false
 ) => {
   const normalizedSelectedColumnKeys =
     normalizeSelectedColumnKeys(selectedColumnKeys);
 
   if (normalizedSelectedColumnKeys.length === 0) {
     return availableHeaders;
+  }
+
+  if (preserveSelectedColumns) {
+    return normalizedSelectedColumnKeys;
   }
 
   const selectedHeaders = normalizedSelectedColumnKeys.filter(key =>
@@ -203,7 +284,7 @@ const extractDownloadRecords = (response: DataDownloadResponse | string) => {
         record[header] = row[index] ?? '';
       });
 
-      return record;
+      return normalizeDownloadRecord(record);
     });
 
     return {
@@ -213,12 +294,17 @@ const extractDownloadRecords = (response: DataDownloadResponse | string) => {
     };
   }
 
-  const records = response.data.map(item => (isPlainObject(item) ? item : {}));
+  const records = response.data.map(item =>
+    normalizeDownloadRecord(isPlainObject(item) ? item : {})
+  );
 
   return {
     records,
     headers: getRecordHeaders(records),
-    responseObject: response,
+    responseObject: {
+      ...response,
+      data: records,
+    } as unknown as DataDownloadResponse,
   };
 };
 
@@ -319,10 +405,15 @@ export const getDefaultDownloadColumnKeys = (
 export const buildDownloadFileContent = (
   response: DataDownloadResponse | string,
   downloadType: DataDownloadRequest['downloadType'],
-  selectedColumnKeys?: string[]
+  selectedColumnKeys?: string[],
+  preserveSelectedColumns = false
 ) => {
   const { records, headers, responseObject } = extractDownloadRecords(response);
-  const selectedHeaders = resolveSelectedHeaders(headers, selectedColumnKeys);
+  const selectedHeaders = resolveSelectedHeaders(
+    headers,
+    selectedColumnKeys,
+    preserveSelectedColumns
+  );
   const normalizedSelectedColumnKeys =
     normalizeSelectedColumnKeys(selectedColumnKeys);
   const hasExplicitColumnFilter = normalizedSelectedColumnKeys.length > 0;
@@ -341,7 +432,10 @@ export const buildDownloadFileContent = (
   }
 
   if (responseObject) {
-    if (!hasExplicitColumnFilter || areArraysEqual(selectedHeaders, headers)) {
+    if (
+      !hasExplicitColumnFilter ||
+      (!preserveSelectedColumns && areArraysEqual(selectedHeaders, headers))
+    ) {
       return {
         content: JSON.stringify(responseObject, null, 2),
         mimeType: 'application/json;charset=utf-8;',
@@ -350,7 +444,11 @@ export const buildDownloadFileContent = (
     }
 
     const filteredData = responseObject.data.map(item =>
-      pickRecordColumnsForJson(isPlainObject(item) ? item : {}, selectedHeaders)
+      pickRecordColumnsForJson(
+        isPlainObject(item) ? item : {},
+        selectedHeaders,
+        preserveSelectedColumns
+      )
     );
 
     return {
@@ -368,7 +466,7 @@ export const buildDownloadFileContent = (
   }
 
   const filteredData = records.map(record =>
-    pickRecordColumnsForJson(record, selectedHeaders)
+    pickRecordColumnsForJson(record, selectedHeaders, preserveSelectedColumns)
   );
 
   return {
@@ -376,4 +474,150 @@ export const buildDownloadFileContent = (
     mimeType: 'application/json;charset=utf-8;',
     extension: 'json' as const,
   };
+};
+
+const formatPdfValue = (value: unknown): string => {
+  if (value === null || value === undefined) {
+    return '';
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(item => formatPdfValue(item)).join(', ');
+  }
+
+  if (typeof value === 'object') {
+    return JSON.stringify(value);
+  }
+
+  return String(value);
+};
+
+export const buildDownloadPdfBlob = (
+  response: DataDownloadResponse | string,
+  selectedColumnKeys?: string[],
+  options: DownloadPdfOptions = {}
+) => {
+  const { records, headers } = extractDownloadRecords(response);
+  const selectedHeaders = resolveSelectedHeaders(
+    headers,
+    selectedColumnKeys,
+    options.preserveSelectedColumns
+  );
+  const filteredRows = records.map(record =>
+    pickRecordColumnsForCsv(record, selectedHeaders)
+  );
+  const totalCells = filteredRows.length * selectedHeaders.length;
+  const exceedsPdfLimit =
+    !options.allowLargePdf &&
+    (filteredRows.length > 5000 || totalCells > 50000);
+
+  if (exceedsPdfLimit) {
+    throw new Error(
+      'Export too large for PDF; please reduce rows/columns or use CSV.'
+    );
+  }
+
+  const title = options.title || 'AirQo Data Export';
+  const subtitle =
+    options.subtitle || 'Prepared export with a polished PDF layout.';
+  const summaryItems = options.summaryItems || [];
+  const doc = new jsPDF({
+    orientation: selectedHeaders.length > 6 ? 'landscape' : 'portrait',
+    unit: 'pt',
+    format: 'a4',
+  });
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 36;
+  const contentWidth = pageWidth - margin * 2;
+  const summaryRows = Math.ceil(summaryItems.length / 2);
+  const headerLineY = summaryItems.length > 0 ? 62 + summaryRows * 12 + 8 : 60;
+  const tableStartY = summaryItems.length > 0 ? headerLineY + 12 : 78;
+
+  autoTable(doc, {
+    head: [selectedHeaders.map(formatColumnLabel)],
+    body: filteredRows.map(record =>
+      selectedHeaders.map(header => formatPdfValue(record[header]))
+    ),
+    startY: tableStartY,
+    margin: { top: tableStartY, left: margin, right: margin, bottom: 44 },
+    theme: 'grid',
+    styles: {
+      font: 'helvetica',
+      fontSize: 8,
+      cellPadding: 4,
+      textColor: [30, 41, 59],
+      lineColor: [226, 232, 240],
+      overflow: 'linebreak',
+      valign: 'middle',
+    },
+    headStyles: {
+      fillColor: [30, 64, 175],
+      textColor: [255, 255, 255],
+      fontStyle: 'bold',
+    },
+    alternateRowStyles: {
+      fillColor: [248, 250, 252],
+    },
+    didDrawPage: () => {
+      doc.setTextColor(15, 23, 42);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(18);
+      doc.text(title, margin, 28);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9.5);
+      doc.setTextColor(71, 85, 105);
+      doc.text(subtitle, margin, 44, { maxWidth: contentWidth });
+
+      if (summaryItems.length > 0) {
+        doc.setTextColor(30, 41, 59);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9);
+
+        summaryItems.forEach((item, index) => {
+          const columnIndex = index % 2;
+          const rowIndex = Math.floor(index / 2);
+          const x = margin + columnIndex * (contentWidth / 2);
+          const y = 62 + rowIndex * 12;
+          const label = `${item.label}: `;
+          const valueX = x + 72;
+
+          doc.text(label, x, y, { maxWidth: 68 });
+          doc.setFont('helvetica', 'normal');
+          doc.text(item.value || '—', valueX, y, {
+            maxWidth: contentWidth / 2 - 80,
+          });
+          doc.setFont('helvetica', 'bold');
+        });
+      }
+
+      doc.setDrawColor(226, 232, 240);
+      doc.line(margin, headerLineY, pageWidth - margin, headerLineY);
+    },
+  });
+
+  const pageCount = doc.getNumberOfPages();
+  for (let pageIndex = 1; pageIndex <= pageCount; pageIndex += 1) {
+    doc.setPage(pageIndex);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(100, 116, 139);
+    doc.text(
+      options.footerText || 'Generated by AirQo Data Export',
+      margin,
+      pageHeight - 20
+    );
+    doc.text(
+      `Page ${pageIndex} of ${pageCount}`,
+      pageWidth - margin,
+      pageHeight - 20,
+      {
+        align: 'right',
+      }
+    );
+  }
+
+  return doc.output('blob');
 };

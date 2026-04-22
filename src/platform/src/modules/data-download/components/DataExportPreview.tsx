@@ -207,10 +207,30 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
 
     const baseDate = dateRange.from;
 
+    const createSampleDate = (index: number) => {
+      const sampleDate = new Date(baseDate);
+
+      switch (frequency) {
+        case 'raw':
+        case 'hourly':
+          sampleDate.setHours(sampleDate.getHours() + index);
+          break;
+        case 'weekly':
+          sampleDate.setDate(sampleDate.getDate() + index * 7);
+          break;
+        case 'monthly':
+          sampleDate.setMonth(sampleDate.getMonth() + index);
+          break;
+        default:
+          sampleDate.setDate(sampleDate.getDate() + index);
+          break;
+      }
+
+      return sampleDate;
+    };
+
     return [0, 1].map(index => {
-      const sampleDate = new Date(
-        baseDate.getTime() + index * 24 * 60 * 60 * 1000
-      );
+      const sampleDate = createSampleDate(index);
 
       const row: PreviewData = {
         [locationColumnKey]: locationSampleValue,
@@ -289,6 +309,11 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
       }}
     >
       <div className="space-y-6">
+        <InfoBanner
+          title="Metadata fallback enabled"
+          message="If the selected filters return no readings, the download automatically falls back to metadata for the selected locations."
+        />
+
         {/* Download Columns */}
         <div className="space-y-3">
           <div>
@@ -365,7 +390,7 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
             </div>
             <div>
               <span className="font-medium text-gray-700 dark:text-gray-300">
-                Format:
+                Response Format:
               </span>
               <p className="text-gray-900 dark:text-gray-100 mt-1 uppercase">
                 {fileType}
