@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import ReusableDialog from '@/shared/components/ui/dialog';
-import Checkbox from '@/shared/components/ui/checkbox';
+import Radio from '@/shared/components/ui/radio';
 import { InfoBanner } from '@/shared/components/ui/banner';
 
 type SaveFormat = 'csv' | 'pdf';
@@ -61,6 +61,21 @@ export const DownloadFormatDialog: React.FC<DownloadFormatDialogProps> = ({
     formatCards.find(card => card.format === selectedFormat)?.title ||
     'Save as CSV';
 
+  const handleCardKeyDown = (
+    event: React.KeyboardEvent<HTMLDivElement>,
+    format: SaveFormat,
+    isDisabled: boolean
+  ) => {
+    if (isDisabled) {
+      return;
+    }
+
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      setSelectedFormat(format);
+    }
+  };
+
   return (
     <ReusableDialog
       isOpen={isOpen}
@@ -95,24 +110,33 @@ export const DownloadFormatDialog: React.FC<DownloadFormatDialogProps> = ({
           {formatCards.map(card => {
             const isSelected = selectedFormat === card.format;
             const isCurrentSaving = isSaving && savingFormat === card.format;
+            const isDisabled = isSaving && !isCurrentSaving;
 
             return (
               <div
                 key={card.format}
+                role="radio"
+                tabIndex={isDisabled ? -1 : 0}
+                aria-checked={isSelected}
+                aria-disabled={isDisabled}
                 onClick={() => {
-                  if (!isSaving) {
+                  if (!isDisabled) {
                     setSelectedFormat(card.format);
                   }
                 }}
-                className={`group flex h-full flex-col rounded-2xl border p-4 text-left transition-all duration-200 ${card.accentClassName} ${isSelected ? 'ring-2 ring-primary/40 shadow-lg shadow-primary/10' : 'hover:-translate-y-0.5'} ${isSaving && !isCurrentSaving ? 'opacity-80' : ''}`}
+                onKeyDown={event =>
+                  handleCardKeyDown(event, card.format, isDisabled)
+                }
+                className={`group flex h-full flex-col rounded-2xl border p-4 text-left transition-all duration-200 ${card.accentClassName} ${isDisabled ? 'cursor-not-allowed opacity-80' : 'cursor-pointer hover:-translate-y-0.5'} ${isSelected ? 'ring-2 ring-primary/40 shadow-lg shadow-primary/10' : ''}`}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3">
-                    <Checkbox
+                    <Radio
                       checked={isSelected}
-                      disabled={isSaving && !isCurrentSaving}
-                      onCheckedChange={() => {
-                        if (!isSaving) {
+                      tabIndex={-1}
+                      disabled={isDisabled}
+                      onChange={() => {
+                        if (!isDisabled) {
                           setSelectedFormat(card.format);
                         }
                       }}

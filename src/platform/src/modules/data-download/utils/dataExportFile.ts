@@ -38,6 +38,7 @@ export interface DownloadPdfOptions {
   summaryItems?: DownloadPdfSummaryItem[];
   footerText?: string;
   preserveSelectedColumns?: boolean;
+  allowLargePdf?: boolean;
 }
 
 type DownloadRecord = Record<string, unknown>;
@@ -449,6 +450,17 @@ export const buildDownloadPdfBlob = (
   const filteredRows = records.map(record =>
     pickRecordColumnsForCsv(record, selectedHeaders)
   );
+  const totalCells = filteredRows.length * selectedHeaders.length;
+  const exceedsPdfLimit =
+    !options.allowLargePdf &&
+    (filteredRows.length > 2000 || totalCells > 12000);
+
+  if (exceedsPdfLimit) {
+    throw new Error(
+      'Export too large for PDF; please reduce rows/columns or use CSV.'
+    );
+  }
+
   const title = options.title || 'AirQo Data Export';
   const subtitle =
     options.subtitle || 'Prepared export with a polished PDF layout.';

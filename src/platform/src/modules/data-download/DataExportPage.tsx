@@ -408,6 +408,9 @@ const DataExportPage = () => {
       currentGroupId !== previousGroupId
     ) {
       resetGroupScopedState(!siteSelectionDownloading);
+      setPendingDownload(null);
+      setSaveFormatDialogOpen(false);
+      setSavingFormat(null);
       setSelectedSitesCache({});
       setSelectedDevicesCache({});
       setSelectedCountriesCache({});
@@ -421,6 +424,9 @@ const DataExportPage = () => {
   }, [
     activeGroup?.id,
     resetGroupScopedState,
+    setPendingDownload,
+    setSaveFormatDialogOpen,
+    setSavingFormat,
     setSelectedDevicesCache,
     setSelectedGridForSites,
     setSelectedSitesCache,
@@ -674,10 +680,16 @@ const DataExportPage = () => {
       return true;
     } catch (error) {
       console.error('Failed to save export:', error);
-      toast.error(
-        'Save Failed',
-        'We could not save the file. Please try again.'
-      );
+      const errorMessage = error instanceof Error ? error.message : '';
+
+      if (format === 'pdf' && /export too large for pdf/i.test(errorMessage)) {
+        toast.error('PDF Too Large', errorMessage);
+      } else {
+        toast.error(
+          'Save Failed',
+          errorMessage || 'We could not save the file. Please try again.'
+        );
+      }
 
       if (format === 'json') {
         setSaveFormatDialogOpen(false);
