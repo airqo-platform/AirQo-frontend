@@ -56,6 +56,57 @@ const normalizeSelectedColumnKeys = (selectedColumnKeys?: string[]) =>
 const isPlainObject = (value: unknown): value is DownloadRecord =>
   !!value && typeof value === 'object' && !Array.isArray(value);
 
+const getNormalizedString = (value: unknown): string | undefined => {
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed || undefined;
+  }
+
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return String(value);
+  }
+
+  return undefined;
+};
+
+const normalizeDownloadRecord = (record: DownloadRecord): DownloadRecord => {
+  const normalizedRecord: DownloadRecord = { ...record };
+
+  const existingDatetime = getNormalizedString(normalizedRecord['datetime']);
+  if (existingDatetime) {
+    normalizedRecord['datetime'] = existingDatetime;
+    return normalizedRecord;
+  }
+
+  const dateValue =
+    getNormalizedString(normalizedRecord['date_time']) ||
+    getNormalizedString(normalizedRecord['dateTime']) ||
+    getNormalizedString(normalizedRecord['date']) ||
+    getNormalizedString(normalizedRecord['day']) ||
+    getNormalizedString(normalizedRecord['timestamp']) ||
+    getNormalizedString(normalizedRecord['week_start']) ||
+    getNormalizedString(normalizedRecord['week_end']) ||
+    getNormalizedString(normalizedRecord['week']) ||
+    getNormalizedString(normalizedRecord['month']) ||
+    getNormalizedString(normalizedRecord['period_start']) ||
+    getNormalizedString(normalizedRecord['period_end']) ||
+    getNormalizedString(normalizedRecord['period']) ||
+    getNormalizedString(normalizedRecord['created_at']) ||
+    getNormalizedString(normalizedRecord['updated_at']);
+
+  const timeValue =
+    getNormalizedString(normalizedRecord['time']) ||
+    getNormalizedString(normalizedRecord['time_of_day']);
+
+  if (dateValue && timeValue) {
+    normalizedRecord['datetime'] = `${dateValue} ${timeValue}`;
+  } else if (dateValue) {
+    normalizedRecord['datetime'] = dateValue;
+  }
+
+  return normalizedRecord;
+};
+
 const parseCsvRows = (csvText: string): string[][] => {
   const normalizedCsv = csvText.replace(/^\uFEFF/, '');
   const rows: string[][] = [];
@@ -233,7 +284,7 @@ const extractDownloadRecords = (response: DataDownloadResponse | string) => {
         record[header] = row[index] ?? '';
       });
 
-      return record;
+      return normalizeDownloadRecord(record);
     });
 
     return {
@@ -243,12 +294,17 @@ const extractDownloadRecords = (response: DataDownloadResponse | string) => {
     };
   }
 
-  const records = response.data.map(item => (isPlainObject(item) ? item : {}));
+  const records = response.data.map(item =>
+    normalizeDownloadRecord(isPlainObject(item) ? item : {})
+  );
 
   return {
     records,
     headers: getRecordHeaders(records),
-    responseObject: response,
+    responseObject: {
+      ...response,
+      data: records,
+    } as unknown as DataDownloadResponse,
   };
 };
 
@@ -453,7 +509,7 @@ export const buildDownloadPdfBlob = (
   const totalCells = filteredRows.length * selectedHeaders.length;
   const exceedsPdfLimit =
     !options.allowLargePdf &&
-    (filteredRows.length > 2000 || totalCells > 12000);
+    (filteredRows.length > 5000 || totalCells > 50000);
 
   if (exceedsPdfLimit) {
     throw new Error(

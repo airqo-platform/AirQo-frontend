@@ -207,10 +207,30 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
 
     const baseDate = dateRange.from;
 
+    const createSampleDate = (index: number) => {
+      const sampleDate = new Date(baseDate);
+
+      switch (frequency) {
+        case 'raw':
+        case 'hourly':
+          sampleDate.setHours(sampleDate.getHours() + index);
+          break;
+        case 'weekly':
+          sampleDate.setDate(sampleDate.getDate() + index * 7);
+          break;
+        case 'monthly':
+          sampleDate.setMonth(sampleDate.getMonth() + index);
+          break;
+        default:
+          sampleDate.setDate(sampleDate.getDate() + index);
+          break;
+      }
+
+      return sampleDate;
+    };
+
     return [0, 1].map(index => {
-      const sampleDate = new Date(
-        baseDate.getTime() + index * 24 * 60 * 60 * 1000
-      );
+      const sampleDate = createSampleDate(index);
 
       const row: PreviewData = {
         [locationColumnKey]: locationSampleValue,
