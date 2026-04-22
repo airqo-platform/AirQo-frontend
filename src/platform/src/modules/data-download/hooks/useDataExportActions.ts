@@ -5,11 +5,8 @@ import { openMoreInsights } from '@/shared/store/insightsSlice';
 import { toast } from '@/shared/components/ui/toast';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { trackEvent } from '@/shared/utils/analytics';
-import {
-  trackDataDownload,
-  trackFeatureUsage,
-} from '@/shared/utils/enhancedAnalytics';
-import { useDataDownload } from '@/modules/analytics/hooks';
+import { trackFeatureUsage } from '@/shared/utils/enhancedAnalytics';
+import { useDownloadData } from '@/shared/hooks/useAnalytics';
 import { DateRange } from '@/shared/components/calendar/types';
 import { LARGE_DATE_RANGE_THRESHOLD } from '../constants/dataExportConstants';
 import { TabType, DeviceCategory, TableItem } from '../types/dataExportTypes';
@@ -19,8 +16,11 @@ import {
   createSitesFromGridsForVisualization,
 } from '../utils/dataExportUtils';
 import { buildDataDownloadRequest } from '../utils/dataExportRequest';
-import { buildDownloadFileContent } from '../utils/dataExportFile';
-import type { DataDownloadResponse } from '@/shared/types/api';
+import { parseDownloadCsvRows } from '../utils/dataExportFile';
+import type {
+  DataDownloadRequest,
+  DataDownloadResponse,
+} from '@/shared/types/api';
 import type { AxiosError } from 'axios';
 
 interface ApiErrorResponse {
@@ -28,6 +28,16 @@ interface ApiErrorResponse {
   message?: string;
   data?: unknown;
   metadata?: unknown;
+}
+
+export interface PreparedDownloadResult {
+  request: DataDownloadRequest;
+  response: DataDownloadResponse | string;
+  selectedColumnKeys?: string[];
+  filenameBase: string;
+  fallbackApplied: boolean;
+  activeTab: TabType;
+  summaryItems: Array<{ label: string; value: string }>;
 }
 
 type MetadataRow = Record<string, unknown>;
@@ -352,6 +362,7 @@ const buildGridMetadataRows = (
       getRecordValue(grid, '_id'),
       getRecordValue(grid, 'id')
     ) || gridId;
+  const locationKey = gridType === 'country' ? 'country_name' : 'city_name';
 
   const sites = Array.isArray(getRecordValue(grid, 'sites'))
     ? (getRecordValue(grid, 'sites') as Record<string, unknown>[])
@@ -363,6 +374,7 @@ const buildGridMetadataRows = (
         grid_id: gridId,
         grid_name: gridName,
         grid_type: gridType,
+        [locationKey]: gridName,
       })
     );
   }
@@ -390,6 +402,7 @@ const buildGridMetadataRows = (
         grid_id: gridId,
         grid_name: gridName,
         grid_type: gridType,
+        [locationKey]: gridName,
       });
     }
 
@@ -397,6 +410,7 @@ const buildGridMetadataRows = (
       grid_id: gridId,
       grid_name: gridName,
       grid_type: gridType,
+      [locationKey]: gridName,
     });
   });
 };
@@ -442,6 +456,185 @@ const buildMetadataFallbackRecords = (
   });
 };
 
+type DownloadRecord = Record<string, unknown>;
+
+interface GridLocationLookupEntry {
+  siteId: string;
+  siteName: string;
+  locationName: string;
+}
+
+const isPlainRecord = (value: unknown): value is DownloadRecord =>
+  !!value && typeof value === 'object' && !Array.isArray(value);
+
+const getNormalizedString = (...values: unknown[]) =>
+  getStringValue(...values) || '';
+
+const buildGridLocationLookup = (
+  gridData: TableItem[],
+  selectedGridIds: string[],
+  selectedGridSites: Record<string, string[]>,
+  selectedGridSiteIds: Record<string, string[]>
+) => {
+  const bySiteId = new Map<string, GridLocationLookupEntry>();
+  const bySiteName = new Map<string, GridLocationLookupEntry>();
+
+  selectedGridIds.forEach(gridId => {
+    const grid = gridData.find(item => String(item.id) === gridId);
+    const gridName =
+      getNormalizedString(
+        getRecordValue(grid, 'name'),
+        getRecordValue(grid, 'long_name'),
+        getRecordValue(grid, '_id'),
+        getRecordValue(grid, 'id')
+      ) || gridId;
+
+    const selectedSiteIds = getSelectedGridSiteIds(
+      gridId,
+      selectedGridSites,
+      selectedGridSiteIds
+    );
+
+    if (selectedSiteIds.length === 0) {
+      return;
+    }
+
+    const gridSites = getRecordValue(grid, 'sites');
+    const sites = Array.isArray(gridSites)
+      ? (gridSites as Record<string, unknown>[])
+      : [];
+    const siteMap = new Map<string, Record<string, unknown>>();
+
+    sites.forEach(site => {
+      const siteId = getNormalizedString(
+        getRecordValue(site, '_id'),
+        getRecordValue(site, 'site_id'),
+        getRecordValue(site, 'id')
+      );
+
+      if (siteId) {
+        siteMap.set(siteId, site);
+      }
+    });
+
+    selectedSiteIds.forEach(siteId => {
+      const site = siteMap.get(siteId);
+      const siteName =
+        getNormalizedString(
+          getRecordValue(site, 'name'),
+          getRecordValue(site, 'search_name'),
+          getRecordValue(site, 'formatted_name'),
+          getRecordValue(site, 'location_name')
+        ) || siteId;
+
+      const entry = {
+        siteId,
+        siteName,
+        locationName: gridName,
+      };
+
+      bySiteId.set(siteId, entry);
+      bySiteName.set(siteName.toLowerCase(), entry);
+    });
+  });
+
+  return { bySiteId, bySiteName };
+};
+
+const normalizeCountryCityDownloadResponse = (
+  response: DataDownloadResponse | string,
+  activeTab: TabType,
+  gridData: TableItem[],
+  selectedGridIds: string[],
+  selectedGridSites: Record<string, string[]>,
+  selectedGridSiteIds: Record<string, string[]>
+): DataDownloadResponse => {
+  const gridLocationKey =
+    activeTab === 'countries' ? 'country_name' : 'city_name';
+  const gridLocationLookup = buildGridLocationLookup(
+    gridData,
+    selectedGridIds,
+    selectedGridSites,
+    selectedGridSiteIds
+  );
+
+  const records: DownloadRecord[] =
+    typeof response === 'string'
+      ? (() => {
+          const rows = parseDownloadCsvRows(response);
+          const [headers = [], ...dataRows] = rows;
+
+          return dataRows.map(row => {
+            const record: DownloadRecord = {};
+
+            headers.forEach((header, index) => {
+              record[header] = row[index] ?? '';
+            });
+
+            return record;
+          });
+        })()
+      : response.data.map(item => (isPlainRecord(item) ? { ...item } : {}));
+
+  const enhancedRecords = records.map(record => {
+    const recordSiteId = getNormalizedString(
+      record.site_id,
+      record.siteId,
+      record._id,
+      record.id
+    );
+    const recordSiteName = getNormalizedString(
+      record.site_name,
+      record.siteName,
+      record.name,
+      record.search_name,
+      record.formatted_name,
+      record.location_name
+    );
+
+    const matchedLookup =
+      (recordSiteId
+        ? gridLocationLookup.bySiteId.get(recordSiteId)
+        : undefined) ||
+      (recordSiteName
+        ? gridLocationLookup.bySiteName.get(recordSiteName.toLowerCase())
+        : undefined);
+
+    const resolvedSiteId = recordSiteId || matchedLookup?.siteId || '';
+    const resolvedSiteName =
+      recordSiteName || matchedLookup?.siteName || resolvedSiteId;
+    const resolvedLocationName = getNormalizedString(
+      record[gridLocationKey],
+      record.country_name,
+      record.city_name,
+      record.country,
+      record.city,
+      matchedLookup?.locationName
+    );
+    const resolvedDeviceName = getNormalizedString(
+      record.device_name,
+      record.deviceName,
+      record.device,
+      record.device_id
+    );
+
+    return {
+      ...record,
+      site_id: resolvedSiteId,
+      site_name: resolvedSiteName,
+      [gridLocationKey]: resolvedLocationName || '',
+      ...(resolvedDeviceName ? { device_name: resolvedDeviceName } : {}),
+    };
+  });
+
+  return {
+    status: typeof response === 'string' ? 'success' : response.status,
+    message:
+      typeof response === 'string' ? 'Data export prepared' : response.message,
+    data: enhancedRecords as unknown as DataDownloadResponse['data'],
+  };
+};
+
 const getApiErrorMessage = (error: unknown): string | undefined => {
   const axiosError = error as AxiosError<ApiErrorResponse>;
   const responseData = axiosError?.response?.data;
@@ -465,26 +658,8 @@ const getApiErrorMessage = (error: unknown): string | undefined => {
 };
 
 const isNoDataDownloadError = (error: unknown): boolean => {
-  const message = getApiErrorMessage(error)?.toLowerCase();
-  return Boolean(message && message.includes('no data'));
-};
-
-const saveDownloadFile = (
-  content: string,
-  mimeType: string,
-  filename: string
-) => {
-  const blob = new Blob([content], { type: mimeType });
-  const link = document.createElement('a');
-  const url = URL.createObjectURL(blob);
-
-  link.setAttribute('href', url);
-  link.setAttribute('download', filename);
-  link.style.visibility = 'hidden';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  const message = getApiErrorMessage(error);
+  return Boolean(message && /\bno data\b/i.test(message));
 };
 
 const getCalendarDayDifference = (from: Date, to: Date) => {
@@ -501,13 +676,62 @@ const getCalendarDayDifference = (from: Date, to: Date) => {
 const getTimePeriodType = (durationDays: number): 'real_time' | 'historical' =>
   durationDays <= 1 ? 'real_time' : 'historical';
 
-const getSelectedNamesFromTable = (
-  ids: string[],
-  table: TableItem[]
-): string[] =>
-  ids
-    .map(id => table.find(item => String(item.id) === id)?.name || id)
-    .filter((name): name is string => Boolean(name));
+const buildDownloadSummaryItems = (
+  activeTab: TabType,
+  dataType: string,
+  frequency: string,
+  dateRange: DateRange,
+  selectedPollutants: string[],
+  locationCount: number,
+  selectedColumnKeys: string[] | undefined,
+  fallbackApplied: boolean
+) => [
+  {
+    label: 'Source',
+    value: fallbackApplied ? 'Metadata fallback' : 'API data',
+  },
+  { label: 'Tab', value: activeTab },
+  { label: 'Data type', value: dataType },
+  { label: 'Frequency', value: frequency },
+  {
+    label: 'Date range',
+    value: `${dateRange.from?.toLocaleDateString() || '—'} - ${dateRange.to?.toLocaleDateString() || '—'}`,
+  },
+  { label: 'Locations', value: String(locationCount) },
+  { label: 'Pollutants', value: String(selectedPollutants.length) },
+  {
+    label: 'Columns',
+    value: String(selectedColumnKeys?.length || 0),
+  },
+];
+
+const buildFilenameBase = (fileTitle: string, request: DataDownloadRequest) => {
+  const defaultFilename = `air-quality-data-${request.startDateTime.split('T')[0]}-to-${request.endDateTime.split('T')[0]}`;
+  return (fileTitle || defaultFilename).replace(/\.(csv|json|pdf)$/i, '');
+};
+
+const getDownloadColumnKeysForRequest = (
+  activeTab: TabType,
+  selectedColumnKeys?: string[]
+): string[] | undefined => {
+  if (selectedColumnKeys === undefined) {
+    return undefined;
+  }
+
+  const normalizedSelectedColumnKeys = Array.from(
+    new Set(selectedColumnKeys.filter(Boolean))
+  );
+
+  if (activeTab !== 'countries' && activeTab !== 'cities') {
+    return normalizedSelectedColumnKeys;
+  }
+
+  const requiredLocationKeys = ['site_id', 'site_name', 'device_name'];
+
+  return Array.from(
+    new Set([...normalizedSelectedColumnKeys, ...requiredLocationKeys])
+  );
+};
 
 /**
  * Custom hook for data export actions and event handlers
@@ -535,7 +759,8 @@ export const useDataExportActions = (
 ) => {
   const dispatch = useDispatch();
   const posthog = usePostHog();
-  const { downloadData, isDownloading } = useDataDownload();
+  const { trigger: fetchDownloadData, isMutating: isDownloading } =
+    useDownloadData();
 
   interface HandleDownloadOptions {
     customSelectedGridSiteIds?: Record<string, string[]>;
@@ -547,13 +772,13 @@ export const useDataExportActions = (
     async ({
       customSelectedGridSiteIds,
       exportColumnKeys,
-    }: HandleDownloadOptions = {}): Promise<boolean> => {
+    }: HandleDownloadOptions = {}): Promise<PreparedDownloadResult | null> => {
       if (!dateRange?.from || !dateRange?.to) {
         toast.error(
           'Date Range Required',
           'Please select a date range for data export.'
         );
-        return false;
+        return null;
       }
 
       if (activeTab === 'sites' && selectedSiteIds.length === 0) {
@@ -561,7 +786,7 @@ export const useDataExportActions = (
           'Site Selection Required',
           'Please select at least one site for data export.'
         );
-        return false;
+        return null;
       }
 
       if (activeTab === 'devices' && selectedDeviceIds.length === 0) {
@@ -569,7 +794,7 @@ export const useDataExportActions = (
           'Device Selection Required',
           'Please select at least one device for data export.'
         );
-        return false;
+        return null;
       }
 
       if (exportColumnKeys && exportColumnKeys.length === 0) {
@@ -577,7 +802,7 @@ export const useDataExportActions = (
           'Download Columns Required',
           'Please select at least one column to include in the exported file.'
         );
-        return false;
+        return null;
       }
 
       const effectiveSelectedGridSiteIds =
@@ -592,7 +817,7 @@ export const useDataExportActions = (
           `${activeTab === 'countries' ? 'Country' : 'City'} Selection Required`,
           `Please select a ${activeTab === 'countries' ? 'country' : 'city'} for data export.`
         );
-        return false;
+        return null;
       }
 
       if (selectedPollutants.length === 0) {
@@ -600,7 +825,7 @@ export const useDataExportActions = (
           'Pollutant Selection Required',
           'Please select at least one pollutant for data export.'
         );
-        return false;
+        return null;
       }
 
       const effectiveDataType: 'calibrated' | 'raw' =
@@ -620,7 +845,7 @@ export const useDataExportActions = (
           'Date Range Too Large',
           `Please split this export into batches of ${LARGE_DATE_RANGE_THRESHOLD} days or fewer to avoid backend timeouts.`
         );
-        return false;
+        return null;
       }
 
       const request = buildDataDownloadRequest({
@@ -639,16 +864,6 @@ export const useDataExportActions = (
         frequency,
         deviceCategory,
       });
-
-      const locationNames =
-        activeTab === 'sites'
-          ? getSelectedNamesFromTable(selectedSiteIds, sitesData)
-          : activeTab === 'devices'
-            ? selectedDevices
-            : getSelectedNamesFromTable(
-                selectedGridIds,
-                activeTab === 'countries' ? countriesData : citiesData
-              );
 
       trackFeatureUsage(posthog, 'data_export', 'download_started', {
         active_tab: activeTab,
@@ -698,58 +913,54 @@ export const useDataExportActions = (
       }
 
       try {
-        await downloadData(request, fileTitle || undefined, {
-          selectedColumnKeys: exportColumnKeys,
-        });
+        const downloadColumnKeys = getDownloadColumnKeysForRequest(
+          activeTab,
+          exportColumnKeys
+        );
 
-        // Enhanced analytics tracking with comprehensive details
-        // Use the same deviceCategory logic as the API request
-        const effectiveDeviceCategory =
+        const rawResponse = await fetchDownloadData(request);
+        const normalizedResponse =
           activeTab === 'countries' || activeTab === 'cities'
-            ? 'lowcost'
-            : deviceCategory;
-
-        // Calculate locationCount based on tab
+            ? normalizeCountryCityDownloadResponse(
+                rawResponse,
+                activeTab,
+                activeTab === 'countries' ? countriesData : citiesData,
+                selectedGridIds,
+                selectedGridSites,
+                effectiveSelectedGridSiteIds
+              )
+            : rawResponse;
         const effectiveLocationCount =
           activeTab === 'sites'
             ? selectedSites.length
             : activeTab === 'devices'
-              ? undefined
+              ? selectedDeviceIds.length
               : sitesForDownload.length;
 
-        trackDataDownload(posthog, {
-          dataType: effectiveDataType,
-          fileType: fileType as 'csv' | 'json',
-          frequency: frequency as 'hourly' | 'daily' | 'monthly',
-          pollutants: selectedPollutants,
-          locationCount: effectiveLocationCount,
-          deviceCount:
-            activeTab === 'devices' ? selectedDeviceIds.length : undefined,
-          startDate: dateRange.from.toISOString(),
-          endDate: dateRange.to.toISOString(),
-          durationDays,
-          deviceCategory: effectiveDeviceCategory as 'lowcost' | 'reference',
-          source: activeTab,
-          datasetLabel:
-            activeTab === 'devices'
-              ? `${deviceCategory} devices`
-              : `${activeTab} export`,
-          locationNames,
-          timePeriodType,
-          selectedGridIds:
-            activeTab === 'countries' || activeTab === 'cities'
-              ? selectedGridIds
-              : undefined,
-          selectedSiteIds: activeTab === 'sites' ? selectedSiteIds : undefined,
-        });
-
-        toast.success(
-          'Download Started',
-          'Your data export has been initiated successfully.'
-        );
-        return true;
+        return {
+          request,
+          response: normalizedResponse,
+          selectedColumnKeys: downloadColumnKeys,
+          filenameBase: buildFilenameBase(fileTitle, request),
+          fallbackApplied: false,
+          activeTab,
+          summaryItems: buildDownloadSummaryItems(
+            activeTab,
+            effectiveDataType,
+            frequency,
+            dateRange,
+            selectedPollutants,
+            effectiveLocationCount,
+            downloadColumnKeys,
+            false
+          ),
+        };
       } catch (error) {
         if (isNoDataDownloadError(error)) {
+          const downloadColumnKeys = getDownloadColumnKeysForRequest(
+            activeTab,
+            exportColumnKeys
+          );
           const fallbackRecords = buildMetadataFallbackRecords(
             activeTab,
             selectedSiteIds,
@@ -765,70 +976,46 @@ export const useDataExportActions = (
 
           const fallbackResponse = {
             status: 'success',
-            message:
-              'No readings were returned. Exporting metadata for the selected items instead.',
+            message: 'Metadata export generated for the selected items.',
             data: fallbackRecords,
           } as unknown as DataDownloadResponse;
-
-          const { content, mimeType, extension } = buildDownloadFileContent(
-            fallbackResponse,
-            request.downloadType
-          );
-
-          const defaultFilename = `air-quality-data-${request.startDateTime.split('T')[0]}-to-${request.endDateTime.split('T')[0]}`;
-          const metadataBaseName = `${(fileTitle || defaultFilename).replace(/\.(csv|json)$/i, '')}-metadata`;
-          const filename = metadataBaseName.endsWith(`.${extension}`)
-            ? metadataBaseName
-            : `${metadataBaseName}.${extension}`;
-
-          saveDownloadFile(content, mimeType, filename);
-
-          const effectiveDeviceCategoryFallback =
+          const normalizedFallbackResponse =
             activeTab === 'countries' || activeTab === 'cities'
-              ? 'lowcost'
-              : deviceCategory;
+              ? normalizeCountryCityDownloadResponse(
+                  fallbackResponse,
+                  activeTab,
+                  activeTab === 'countries' ? countriesData : citiesData,
+                  selectedGridIds,
+                  selectedGridSites,
+                  effectiveSelectedGridSiteIds
+                )
+              : fallbackResponse;
 
           const effectiveLocationCountFallback =
             activeTab === 'sites'
               ? selectedSites.length
               : activeTab === 'devices'
-                ? undefined
+                ? selectedDeviceIds.length
                 : sitesForDownload.length;
 
-          trackDataDownload(posthog, {
-            dataType: effectiveDataType,
-            fileType: fileType as 'csv' | 'json',
-            frequency: frequency as 'hourly' | 'daily' | 'monthly',
-            pollutants: selectedPollutants,
-            locationCount: effectiveLocationCountFallback,
-            deviceCount:
-              activeTab === 'devices' ? selectedDeviceIds.length : undefined,
-            startDate: dateRange.from.toISOString(),
-            endDate: dateRange.to.toISOString(),
-            durationDays,
-            deviceCategory: effectiveDeviceCategoryFallback as
-              | 'lowcost'
-              | 'reference',
-            source: activeTab,
-            datasetLabel:
-              activeTab === 'devices'
-                ? `${deviceCategory} devices metadata`
-                : `${activeTab} metadata export`,
-            locationNames,
-            timePeriodType,
-            selectedGridIds:
-              activeTab === 'countries' || activeTab === 'cities'
-                ? selectedGridIds
-                : undefined,
-            selectedSiteIds:
-              activeTab === 'sites' ? selectedSiteIds : undefined,
-          });
-
-          toast.success(
-            'Metadata Download Started',
-            'No readings were returned, so we downloaded metadata for the selected items instead.'
-          );
-          return true;
+          return {
+            request,
+            response: normalizedFallbackResponse,
+            selectedColumnKeys: downloadColumnKeys,
+            filenameBase: `${buildFilenameBase(fileTitle, request)}-metadata`,
+            fallbackApplied: true,
+            activeTab,
+            summaryItems: buildDownloadSummaryItems(
+              activeTab,
+              effectiveDataType,
+              frequency,
+              dateRange,
+              selectedPollutants,
+              effectiveLocationCountFallback,
+              downloadColumnKeys,
+              true
+            ),
+          };
         }
 
         console.error('Download failed:', error);
@@ -849,22 +1036,10 @@ export const useDataExportActions = (
           time_period_type: timePeriodType,
         });
 
-        // Check for "No data found" error specifically
-        let userFriendlyMessage = getUserFriendlyErrorMessage(error);
-
-        // If it's an Axios error with "No data found" message, provide custom message
-        const axiosError = error as AxiosError;
-        if (
-          axiosError?.response?.data &&
-          (axiosError.response.data as ApiErrorResponse).message ===
-            'No data found'
-        ) {
-          userFriendlyMessage =
-            'No data is available for the selected criteria. Please try adjusting your date range, site/device selections, or pollutant choices.';
-        }
+        const userFriendlyMessage = getUserFriendlyErrorMessage(error);
 
         toast.error('Download Failed', userFriendlyMessage);
-        return false;
+        return null;
       }
     },
     [
@@ -887,7 +1062,7 @@ export const useDataExportActions = (
       devicesData,
       countriesData,
       citiesData,
-      downloadData,
+      fetchDownloadData,
       posthog,
     ]
   );

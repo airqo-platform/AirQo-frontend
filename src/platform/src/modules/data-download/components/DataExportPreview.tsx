@@ -291,7 +291,7 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
       <div className="space-y-6">
         <InfoBanner
           title="Metadata fallback enabled"
-          message="If the selected filters return no readings, the download automatically falls back to metadata for the selected sites or devices."
+          message="If the selected filters return no readings, the download automatically falls back to metadata for the selected locations."
         />
 
         {/* Download Columns */}
@@ -370,7 +370,7 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
             </div>
             <div>
               <span className="font-medium text-gray-700 dark:text-gray-300">
-                Format:
+                Response Format:
               </span>
               <p className="text-gray-900 dark:text-gray-100 mt-1 uppercase">
                 {fileType}

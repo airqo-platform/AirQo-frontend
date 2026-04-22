@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import PageHeading from '@/shared/components/ui/page-heading';
 import { DataExportSidebar } from './components/DataExportSidebar';
 import { SiteSelectionDialog } from './components/SiteSelectionDialog';
+import { DownloadFormatDialog } from './components/DownloadFormatDialog';
 import { SelectedGridsSummary } from './components/SelectedGridsSummary';
 import { DataExportPreview } from './components/DataExportPreview';
 import { DataExportHeader } from './components/DataExportHeader';
@@ -11,6 +12,7 @@ import { DataExportTable } from './components/DataExportTable';
 import { DataExportBanner } from './components/DataExportBanner';
 import { DataExportHelpBanner } from './components/DataExportHelpBanner';
 import { VideoTutorialDialog } from './components/VideoTutorialDialog';
+import { toast } from '@/shared/components/ui/toast';
 import {
   CohortSitesResponse,
   CohortDevicesResponse,
@@ -26,8 +28,15 @@ import {
 } from './types/dataExportTypes';
 import { getTabConfig } from './utils/tableConfig';
 import { useDataExportState } from './hooks/useDataExportState';
-import { useDataExportActions } from './hooks/useDataExportActions';
+import {
+  type PreparedDownloadResult,
+  useDataExportActions,
+} from './hooks/useDataExportActions';
 import { useDataExportData } from './hooks/useDataExportData';
+import {
+  buildDownloadFileContent,
+  buildDownloadPdfBlob,
+} from './utils/dataExportFile';
 import MoreInsights from '@/modules/location-insights/more-insights';
 import AddLocation from '@/modules/location-insights/add-location';
 import { trackEvent } from '@/shared/utils/analytics';
@@ -35,6 +44,22 @@ import { trackFeatureUsage } from '@/shared/utils/enhancedAnalytics';
 import { useUser } from '@/shared/hooks/useUser';
 import { useUserActions } from '@/shared/hooks/useUserActions';
 import { AccessDenied } from '@/shared/components/AccessDenied';
+
+type SaveFormat = 'csv' | 'pdf';
+
+const saveBlobToDisk = (blob: Blob, filename: string) => {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.style.visibility = 'hidden';
+
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  URL.revokeObjectURL(url);
+};
 
 const rebuildSelectionCache = (
   selectedIds: string[],
@@ -164,6 +189,12 @@ const DataExportPage = () => {
   const [selectedCitiesCache, setSelectedCitiesCache] = React.useState<
     Record<string, TableItem>
   >({});
+  const [pendingDownload, setPendingDownload] =
+    React.useState<PreparedDownloadResult | null>(null);
+  const [saveFormatDialogOpen, setSaveFormatDialogOpen] = React.useState(false);
+  const [savingFormat, setSavingFormat] = React.useState<SaveFormat | null>(
+    null
+  );
   const [showHelpBanner, setShowHelpBanner] = React.useState(() => {
     // Check if user has dismissed the banner before
     if (typeof window !== 'undefined') {
@@ -541,13 +572,16 @@ const DataExportPage = () => {
       setSelectedGridSiteIds(nextSelectedGridSiteIds);
 
       // Trigger download with the updated selections
-      await handleDownload({
+      const preparedDownload = await handleDownload({
         customSelectedGridSiteIds: nextSelectedGridSiteIds,
       });
 
-      // Close dialog only on successful download
-      setSiteSelectionDialogOpen(false);
-      setSelectedGridForSites(null);
+      // Close dialog only on successful download preparation
+      if (preparedDownload) {
+        setSiteSelectionDialogOpen(false);
+        setSelectedGridForSites(null);
+        openSaveFormatDialog(preparedDownload);
+      }
     } catch (error) {
       // Error is already handled in handleDownload
       console.error('Download failed:', error);
@@ -560,6 +594,87 @@ const DataExportPage = () => {
     setSiteSelectionDialogOpen(false);
     setSiteSelectionDownloading(false);
     setSelectedGridForSites(null);
+  };
+
+  const openSaveFormatDialog = (download: PreparedDownloadResult) => {
+    setPendingDownload(download);
+    setSavingFormat(null);
+    setSaveFormatDialogOpen(true);
+  };
+
+  const handleSaveFormatSelection = async (format: SaveFormat) => {
+    if (!pendingDownload) {
+      return;
+    }
+
+    setSavingFormat(format);
+
+    try {
+      const preserveSelectedColumns =
+        pendingDownload.activeTab === 'countries' ||
+        pendingDownload.activeTab === 'cities';
+
+      const filename = `${pendingDownload.filenameBase}.${format}`;
+
+      if (format === 'csv') {
+        const { content, mimeType } = buildDownloadFileContent(
+          pendingDownload.response,
+          'csv',
+          pendingDownload.selectedColumnKeys,
+          preserveSelectedColumns
+        );
+
+        saveBlobToDisk(new Blob([content], { type: mimeType }), filename);
+      } else {
+        const titleSuffix =
+          pendingDownload.activeTab.charAt(0).toUpperCase() +
+          pendingDownload.activeTab.slice(1);
+        const blob = buildDownloadPdfBlob(
+          pendingDownload.response,
+          pendingDownload.selectedColumnKeys,
+          {
+            title: `AirQo Data Export - ${titleSuffix}`,
+            subtitle:
+              'A professionally formatted export with the selected data and summary details.',
+            summaryItems: pendingDownload.summaryItems,
+            footerText: 'Generated by AirQo Data Export',
+            preserveSelectedColumns,
+          }
+        );
+
+        saveBlobToDisk(blob, filename);
+      }
+
+      trackFeatureUsage(posthog, 'data_export', 'download_saved', {
+        active_tab: pendingDownload.activeTab,
+        save_format: format,
+        fallback_applied: pendingDownload.fallbackApplied,
+      });
+
+      trackEvent('data_export_saved', {
+        active_tab: pendingDownload.activeTab,
+        save_format: format,
+        fallback_applied: pendingDownload.fallbackApplied,
+      });
+
+      const savedLabel = format.toUpperCase();
+      const savedMessage =
+        format === 'pdf'
+          ? 'Your professional PDF report has been saved.'
+          : 'Your CSV file has been saved.';
+
+      toast.success(`Saved as ${savedLabel}`, savedMessage);
+      setSaveFormatDialogOpen(false);
+      setPendingDownload(null);
+    } catch (error) {
+      console.error('Failed to save export:', error);
+      toast.error(
+        'Save Failed',
+        'We could not save the file. Please try again.'
+      );
+    } finally {
+      setSavingFormat(null);
+    }
   };
 
   const handleDismissHelpBanner = () => {
@@ -714,12 +829,13 @@ const DataExportPage = () => {
         onClose={() => setPreviewOpen(false)}
         onConfirm={async (selectedColumnKeys: string[]) => {
           try {
-            const didDownload = await handleDownload({
+            const preparedDownload = await handleDownload({
               exportColumnKeys: selectedColumnKeys,
             });
 
-            if (didDownload) {
+            if (preparedDownload) {
               setPreviewOpen(false);
+              openSaveFormatDialog(preparedDownload);
             }
           } catch (error) {
             console.error('Unexpected download confirmation error:', error);
@@ -773,6 +889,19 @@ const DataExportPage = () => {
       <VideoTutorialDialog
         isOpen={tutorialOpen}
         onClose={() => setTutorialOpen(false)}
+      />
+
+      <DownloadFormatDialog
+        isOpen={saveFormatDialogOpen}
+        isSaving={savingFormat !== null}
+        savingFormat={savingFormat}
+        onClose={() => {
+          if (!savingFormat) {
+            setSaveFormatDialogOpen(false);
+            setPendingDownload(null);
+          }
+        }}
+        onSave={handleSaveFormatSelection}
       />
     </div>
   );
