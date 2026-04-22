@@ -105,12 +105,18 @@ const DeviceHistoryCard: React.FC<DeviceHistoryCardProps> = ({
 
     const isRecallActivity = (activity: Pick<DeviceActivity, "activityType" | "description">) => {
         if (activity.activityType === "recall") return true;
-        return typeof activity.description === "string" && /recalled/i.test(activity.description);
+        return (
+            typeof activity.description === "string" &&
+            /\brecalled\b/i.test(activity.description)
+        );
     };
 
     const isDeploymentActivity = (activity: Pick<DeviceActivity, "activityType" | "description">) => {
         if (activity.activityType === "deployment") return true;
-        return typeof activity.description === "string" && /deployed/i.test(activity.description);
+        return (
+            typeof activity.description === "string" &&
+            /\bdeployed\b/i.test(activity.description)
+        );
     };
 
     const resolvePreviousSiteLabel = (activity: DeviceActivity, index: number) => {
@@ -125,6 +131,7 @@ const DeviceHistoryCard: React.FC<DeviceHistoryCardProps> = ({
         if (!inferredSiteId) {
             for (let j = index + 1; j < activities.length; j += 1) {
                 const next = activities[j];
+                if (isRecallActivity(next)) break;
                 const siteId =
                     typeof next.site_id === "string" && next.site_id.trim()
                         ? next.site_id
