@@ -1,22 +1,33 @@
-import React from "react";
+import React, { useState } from "react";
 import { format, parseISO, isValid } from "date-fns";
-import { AqMonitor } from "@airqo/icons-react";
+import { AqCopy01, AqChevronDown, AqChevronUp, AqMonitor } from "@airqo/icons-react";
 import { DeviceActivity } from "@/core/apis/devices";
+import ReusableToast from "@/components/shared/toast/ReusableToast";
+import ReusableButton from "@/components/shared/button/ReusableButton";
 
 interface DeviceActivityItemProps {
     activity: DeviceActivity;
     isLast: boolean;
     showDeviceName?: boolean;
+    previousSiteId?: string;
+    previousSiteName?: string;
 }
 
 const DeviceActivityItem: React.FC<DeviceActivityItemProps> = ({
     activity,
     isLast,
     showDeviceName = false,
+    previousSiteId,
+    previousSiteName,
 }) => {
     const parsedDate =
         typeof activity.date === "string" ? parseISO(activity.date) : null;
     const hasValidDate = parsedDate !== null && isValid(parsedDate);
+    const isRecall =
+        activity.activityType === "recall" ||
+        (typeof activity.description === "string" && /recalled/i.test(activity.description));
+
+    const [isPreviousSiteOpen, setIsPreviousSiteOpen] = useState(false);
 
     return (
         <div className="relative pl-14 pb-2">
@@ -63,6 +74,54 @@ const DeviceActivityItem: React.FC<DeviceActivityItemProps> = ({
                     {showDeviceName && activity.device && (
                         <div className="text-sm text-blue-600 mt-1">
                             Device: {activity.device}
+                        </div>
+                    )}
+                    {isRecall && previousSiteId && previousSiteName && (
+                        <div className="mt-1 space-y-1">
+                            <div className="text-xs text-muted-foreground">
+                                Previous site
+                            </div>
+                            <div className="inline-flex items-center gap-1">
+                                <button
+                                    type="button"
+                                    className="text-sm text-blue-600 hover:underline font-medium"
+                                    onClick={() => setIsPreviousSiteOpen((v) => !v)}
+                                >
+                                    {previousSiteName}
+                                </button>
+                                {isPreviousSiteOpen ? (
+                                    <AqChevronUp className="w-4 h-4 text-blue-600" aria-hidden="true" />
+                                ) : (
+                                    <AqChevronDown className="w-4 h-4 text-blue-600" aria-hidden="true" />
+                                )}
+                            </div>
+
+                            {isPreviousSiteOpen && (
+                                <div className="space-y-1">
+                                    <div className="text-xs text-muted-foreground">
+                                        Site ID
+                                    </div>
+                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                        <span className="font-mono select-all overflow-x-auto whitespace-nowrap scrollbar-hide max-w-full text-gray-700 dark:text-gray-300">
+                                            {previousSiteId}
+                                        </span>
+                                        <ReusableButton
+                                            variant="text"
+                                            onClick={async () => {
+                                                try {
+                                                    await navigator.clipboard.writeText(previousSiteId);
+                                                    ReusableToast({ message: "Copied", type: "SUCCESS" });
+                                                } catch {
+                                                    ReusableToast({ message: "Failed to copy", type: "ERROR" });
+                                                }
+                                            }}
+                                            className="p-1"
+                                            Icon={AqCopy01}
+                                            aria-label="Copy site ID"
+                                        />
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                     {/* If we had file attachments in the activity object, we would render them here */}
