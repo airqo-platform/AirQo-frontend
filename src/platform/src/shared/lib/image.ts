@@ -29,15 +29,17 @@ export const getRenderableImageSrc = (src?: string | null): string | null => {
       return null;
     }
 
+    // Only allow known/whitelisted hostnames. Do not fallback to checking
+    // pathnames or extensions for unknown hosts to avoid Next.js <Image>
+    // runtime errors for unconfigured remote hosts.
     if (KNOWN_RENDERABLE_HOSTNAMES.has(url.hostname)) {
       return trimmedSrc;
     }
 
-    return url.pathname.includes('/image/') ||
-      IMAGE_EXTENSION_PATTERN.test(url.pathname)
-      ? trimmedSrc
-      : null;
+    return null;
   } catch {
-    return IMAGE_EXTENSION_PATTERN.test(trimmedSrc) ? trimmedSrc : null;
+    // Strip any fragment/hash before testing extension (e.g., "pic.jpg#foo").
+    const withoutFragment = trimmedSrc.split('#')[0];
+    return IMAGE_EXTENSION_PATTERN.test(withoutFragment) ? trimmedSrc : null;
   }
 };

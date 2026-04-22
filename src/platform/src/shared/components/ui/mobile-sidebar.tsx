@@ -12,7 +12,13 @@ export const MobileSidebar: React.FC = () => {
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const sidebarCollapsed = useAppSelector(state => state.ui.sidebarCollapsed);
 
-  if (!isMobile || sidebarCollapsed) {
+  // Avoid SSR/hydration flicker: defer rendering until after client mount
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted || !isMobile || sidebarCollapsed) {
     return null;
   }
 

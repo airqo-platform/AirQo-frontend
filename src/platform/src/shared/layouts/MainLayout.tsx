@@ -31,7 +31,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   showBottomNav = true,
 }) => {
   const sidebarCollapsed = useAppSelector(state => state.ui.sidebarCollapsed);
-  const globalSidebarOpen = useAppSelector(state => state.ui.globalSidebarOpen);
   const theme = useAppSelector(state => state.theme);
   const { isLoading: userLoading, isLoggingOut } = useUser();
 
@@ -122,7 +121,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             <FeedbackLauncher />
           </div>
 
-          {globalSidebarOpen && <GlobalSidebar />}
+          <GlobalSidebar />
         </>
       )}
 

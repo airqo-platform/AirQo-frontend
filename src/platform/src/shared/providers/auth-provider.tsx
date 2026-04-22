@@ -559,8 +559,16 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     }
 
     if (callbackUrl) {
-      redirectWithReload(callbackUrl);
-      return;
+      // Avoid reloading back to a public auth route (e.g., /user/login).
+      // Normalize the callback path and only perform a full reload when
+      // the path does not point to a public auth route.
+      const normalizedCallbackPath = toNormalizedPath(callbackUrl);
+      if (!isPublicAuthRoute(normalizedCallbackPath)) {
+        redirectWithReload(callbackUrl);
+        return;
+      }
+      // If the callback points to a public auth route, ignore it and let
+      // the normal post-auth flow decide the best destination.
     }
 
     if (activeGroup) {
