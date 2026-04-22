@@ -4,18 +4,20 @@ import { useState } from 'react';
 import AuthLayout from '@/shared/layouts/AuthLayout';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Button, Input } from '@/shared/components/ui';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from '@/shared/components/ui';
 import { loginSchema, type LoginFormData } from '@/shared/lib/validators';
-import { normalizeCallbackUrl } from '@/shared/lib/auth-redirect';
+import {
+  normalizeCallbackUrl,
+  redirectWithReload,
+} from '@/shared/lib/auth-redirect';
 import GoogleAuthSection from '@/shared/components/auth/GoogleAuthSection';
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl =
     normalizeCallbackUrl(searchParams.get('callbackUrl')) || '/user/home';
@@ -115,7 +117,7 @@ export default function LoginPage() {
         toast.error(errorTitle, errorMessage);
       } else {
         toast.success('Welcome back!', 'You have successfully signed in.');
-        router.replace(res?.url ?? callbackUrl);
+        redirectWithReload(res?.url ?? callbackUrl);
       }
     } catch (error) {
       console.error('Unexpected login error:', error);

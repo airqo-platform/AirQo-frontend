@@ -22,7 +22,10 @@ import logger from '@/shared/lib/logger';
 import { SWRProvider } from '@/shared/providers/swr-provider';
 import { QueryProvider } from '@/shared/providers/query-provider';
 import { runClientCacheMaintenance } from '@/shared/lib/clientCache';
-import { normalizeCallbackUrl } from '@/shared/lib/auth-redirect';
+import {
+  normalizeCallbackUrl,
+  redirectWithReload,
+} from '@/shared/lib/auth-redirect';
 import {
   clearCachedSessionAccessToken,
   getSessionAccessTokenFromSession,
@@ -556,20 +559,20 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     }
 
     if (callbackUrl) {
-      router.replace(callbackUrl);
+      redirectWithReload(callbackUrl);
       return;
     }
 
     if (activeGroup) {
       if (activeGroup.title.toLowerCase() === 'airqo') {
-        router.replace('/user/home');
+        redirectWithReload('/user/home');
       } else {
-        router.replace(`/org/${activeGroup.organizationSlug}/dashboard`);
+        redirectWithReload(`/org/${activeGroup.organizationSlug}/dashboard`);
       }
       return;
     }
 
-    router.replace('/user/home');
+    redirectWithReload('/user/home');
   }, [status, isPublicRoute, activeGroup, router, pathname, callbackUrl]);
 
   useEffect(() => {

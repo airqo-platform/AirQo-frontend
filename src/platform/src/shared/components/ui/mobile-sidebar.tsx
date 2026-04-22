@@ -2,15 +2,17 @@
 
 import * as React from 'react';
 import { motion } from 'framer-motion';
+import { useMediaQuery } from 'react-responsive';
 import { useAppSelector, useAppDispatch } from '@/shared/hooks/redux';
 import { toggleSidebar } from '@/shared/store/uiSlice';
 import { Sidebar } from '@/shared/components/sidebar';
 
 export const MobileSidebar: React.FC = () => {
   const dispatch = useAppDispatch();
+  const isMobile = useMediaQuery({ maxWidth: 768 });
   const sidebarCollapsed = useAppSelector(state => state.ui.sidebarCollapsed);
 
-  if (sidebarCollapsed) {
+  if (!isMobile || sidebarCollapsed) {
     return null;
   }
 

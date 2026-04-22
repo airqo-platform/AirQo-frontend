@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { cn } from '@/shared/lib/utils';
 import { useUserActions } from '@/shared/hooks';
+import { getRenderableImageSrc } from '@/shared/lib/image';
 
 interface LogoComponentProps {
   className?: string;
@@ -45,15 +46,16 @@ export const LogoComponent: React.FC<LogoComponentProps> = ({ className }) => {
         showFallback: false,
       };
     } else {
-      const hasValidProfilePicture =
-        activeGroup.profilePicture && activeGroup.profilePicture.trim() !== '';
+      const renderableProfilePicture = getRenderableImageSrc(
+        activeGroup.profilePicture
+      );
       return {
         href: `/org/${activeGroup.organizationSlug}/dashboard`,
-        logoSrc: hasValidProfilePicture
-          ? activeGroup.profilePicture
+        logoSrc: renderableProfilePicture
+          ? renderableProfilePicture
           : '/images/airqo_logo.svg',
         logoAlt: `${activeGroup.title} Logo`,
-        showFallback: !hasValidProfilePicture,
+        showFallback: !renderableProfilePicture,
       };
     }
   }, [activeGroup]);
