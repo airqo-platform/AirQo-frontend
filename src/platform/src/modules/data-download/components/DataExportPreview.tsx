@@ -289,6 +289,11 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
       }}
     >
       <div className="space-y-6">
+        <InfoBanner
+          title="Metadata fallback enabled"
+          message="If the selected filters return no readings, the download automatically falls back to metadata for the selected sites or devices."
+        />
+
         {/* Download Columns */}
         <div className="space-y-3">
           <div>

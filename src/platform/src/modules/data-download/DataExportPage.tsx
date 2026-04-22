@@ -238,6 +238,20 @@ const DataExportPage = () => {
         .filter((item): item is TableItem => Boolean(item)),
     [selectedDeviceIds, selectedDevicesCache]
   );
+  const selectedCountriesForActions = useMemo(
+    () =>
+      selectedGridIds
+        .map(id => selectedCountriesCache[id])
+        .filter((item): item is TableItem => Boolean(item)),
+    [selectedCountriesCache, selectedGridIds]
+  );
+  const selectedCitiesForActions = useMemo(
+    () =>
+      selectedGridIds
+        .map(id => selectedCitiesCache[id])
+        .filter((item): item is TableItem => Boolean(item)),
+    [selectedCitiesCache, selectedGridIds]
+  );
   const selectedSitesForActions = useMemo(
     () =>
       selectedSiteIds
@@ -290,8 +304,12 @@ const DataExportPage = () => {
       selectedDevicesForActions.length > 0
         ? selectedDevicesForActions
         : processedDevicesData,
-      processedCountriesData,
-      processedCitiesData
+      selectedCountriesForActions.length > 0
+        ? selectedCountriesForActions
+        : processedCountriesData,
+      selectedCitiesForActions.length > 0
+        ? selectedCitiesForActions
+        : processedCitiesData
     );
 
   const currentState = tabStates[activeTab];
@@ -312,51 +330,6 @@ const DataExportPage = () => {
     activeTab === 'devices' ||
     activeTab === 'countries' ||
     activeTab === 'cities';
-
-  const exportTableData = useMemo(() => {
-    if (activeTab === 'sites') {
-      return selectedSiteIds.length > 0 && selectedSitesForActions.length > 0
-        ? selectedSitesForActions
-        : displayTableData;
-    }
-
-    if (activeTab === 'devices') {
-      return selectedDeviceIds.length > 0 &&
-        selectedDevicesForActions.length > 0
-        ? selectedDevicesForActions
-        : displayTableData;
-    }
-
-    if (activeTab === 'countries') {
-      return selectedGridIds.length > 0 &&
-        Object.keys(selectedCountriesCache).length > 0
-        ? selectedGridIds
-            .map(id => selectedCountriesCache[id])
-            .filter((item): item is TableItem => Boolean(item))
-        : displayTableData;
-    }
-
-    if (activeTab === 'cities') {
-      return selectedGridIds.length > 0 &&
-        Object.keys(selectedCitiesCache).length > 0
-        ? selectedGridIds
-            .map(id => selectedCitiesCache[id])
-            .filter((item): item is TableItem => Boolean(item))
-        : displayTableData;
-    }
-
-    return displayTableData;
-  }, [
-    activeTab,
-    displayTableData,
-    selectedCountriesCache,
-    selectedCitiesCache,
-    selectedDeviceIds,
-    selectedDevicesForActions,
-    selectedSiteIds,
-    selectedSitesForActions,
-    selectedGridIds,
-  ]);
 
   // Reset device pagination when category changes
   useEffect(() => {
@@ -708,7 +681,6 @@ const DataExportPage = () => {
             <DataExportTable
               activeTab={activeTab}
               tableData={displayTableData}
-              exportData={exportTableData}
               columns={config.columns}
               loading={tableLoading}
               error={currentHook.error?.message || null}

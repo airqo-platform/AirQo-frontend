@@ -1,4 +1,5 @@
 import React from 'react';
+import { Tooltip } from 'flowbite-react';
 import { Button } from '@/shared/components/ui';
 import { AqAnnotationX, AqDownload01 } from '@airqo/icons-react';
 import { TabType } from '../types/dataExportTypes';
@@ -46,6 +47,13 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
     selectedDeviceIds.length > 0 ||
     selectedGridIds.length > 0 ||
     Object.keys(selectedGridSiteIds).length > 0;
+
+  const reviewDownloadTooltip = (
+    <div className="max-w-sm text-sm break-words">
+      Review the export before downloading. If no readings are returned, the
+      download falls back to metadata.
+    </div>
+  );
 
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -135,16 +143,20 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
           Visualize Data
         </Button>
         {/* Preview button removed: preview shown via Review & Download flow */}
-        <Button
-          variant="filled"
-          onClick={onDownload}
-          Icon={AqDownload01}
-          className="px-4 py-2 w-full sm:w-auto"
-          disabled={isGroupSyncing || !isDownloadReady}
-          loading={isDownloading}
-        >
-          {isDownloading ? 'Downloading...' : 'Review & Download'}
-        </Button>
+        <Tooltip content={reviewDownloadTooltip} placement="top">
+          <span className="inline-flex w-full sm:w-auto">
+            <Button
+              variant="filled"
+              onClick={onDownload}
+              Icon={AqDownload01}
+              className="px-4 py-2 w-full sm:w-auto"
+              disabled={isGroupSyncing || !isDownloadReady}
+              loading={isDownloading}
+            >
+              {isDownloading ? 'Downloading...' : 'Review & Download'}
+            </Button>
+          </span>
+        </Tooltip>
       </div>
     </div>
   );

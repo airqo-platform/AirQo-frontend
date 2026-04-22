@@ -2,12 +2,10 @@ import React from 'react';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import { TabType, TableItem, ColumnConfig } from '../types/dataExportTypes';
 import { getTabConfig } from '../utils/tableConfig';
-import { TableExportActions } from './TableExportActions';
 
 interface DataExportTableProps {
   activeTab: TabType;
   tableData: TableItem[];
-  exportData: TableItem[];
   columns: ColumnConfig[];
   loading: boolean;
   error: string | null;
@@ -30,7 +28,6 @@ interface DataExportTableProps {
 export const DataExportTable: React.FC<DataExportTableProps> = ({
   activeTab,
   tableData,
-  exportData,
   columns,
   loading,
   error,
@@ -67,14 +64,6 @@ export const DataExportTable: React.FC<DataExportTableProps> = ({
       selectedItems={selectedItems}
       onSelectedItemsChange={onSelectedItemsChange}
       compactRows={compactRows}
-      customHeader={
-        <TableExportActions
-          title={config.title}
-          exportData={exportData}
-          columns={columns}
-          disabled={loading}
-        />
-      }
     />
   );
 };

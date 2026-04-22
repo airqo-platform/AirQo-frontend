@@ -37,15 +37,6 @@ export const getSitesColumns = (): ColumnConfig[] => [
     cellClassName: 'whitespace-nowrap',
   },
   { key: 'data_provider', label: 'Owner' },
-  {
-    key: 'coordinates',
-    label: 'Coordinates',
-    render: (value: unknown) => (
-      <span className="font-mono text-sm whitespace-nowrap">
-        {value as string}
-      </span>
-    ),
-  },
 ];
 
 /**
@@ -76,16 +67,6 @@ export const getDevicesColumns = (): ColumnConfig[] => [
       );
       return <span>{option?.label || category}</span>;
     },
-  },
-  {
-    key: 'coordinates',
-    label: 'Coordinates',
-    cellClassName: 'whitespace-nowrap',
-    render: (value: unknown) => (
-      <span className="font-mono text-sm whitespace-nowrap">
-        {value as string}
-      </span>
-    ),
   },
 ];
 
