@@ -1,13 +1,15 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import ReusableDialog from '@/components/shared/dialog/ReusableDialog';
+import { InfoBanner } from '@/components/ui/banner';
 
 interface TableExportModalProps {
     isOpen: boolean;
     onClose: () => void;
     onExport: (selectedColumns: string[], scope: 'current' | 'all') => void;
     columns: { key: string; title: string }[];
+    additionalColumns?: { key: string; title: string }[];
     totalRows: number;
     currentPageRows: number;
     hasServerSidePagination: boolean;
@@ -18,23 +20,36 @@ export const TableExportModal: React.FC<TableExportModalProps> = ({
     onClose,
     onExport,
     columns,
+    additionalColumns,
     totalRows,
     currentPageRows,
-    hasServerSidePagination,
 }) => {
     const [selectedColumns, setSelectedColumns] = useState<string[]>([]);
-    const [scope, setScope] = useState<'current' | 'all'>('current');
+    const hasMoreThanOnePage = totalRows > currentPageRows;
+
+    const allColumns = useMemo(() => {
+        const merged = [...(columns || []), ...(additionalColumns || [])];
+        const seen = new Set<string>();
+        return merged.filter((c) => {
+            if (!c?.key) return false;
+            if (seen.has(c.key)) return false;
+            seen.add(c.key);
+            return true;
+        });
+    }, [columns, additionalColumns]);
+
+    const additionalOnlyColumns = useMemo(() => {
+        if (!additionalColumns || additionalColumns.length === 0) return [];
+        const baseKeys = new Set((columns || []).map((c) => c.key));
+        return additionalColumns.filter((c) => c?.key && !baseKeys.has(c.key));
+    }, [additionalColumns, columns]);
 
     // Initialize selected columns with all columns when modal opens
     useEffect(() => {
         if (isOpen) {
-            setSelectedColumns(columns.map(col => col.key));
-            // For client-side pagination, default to 'all' since all data is available
-            // For server-side pagination, only allow 'current' page
-            setScope(hasServerSidePagination ? 'current' : 'all');
+            setSelectedColumns(allColumns.map(col => col.key));
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isOpen, hasServerSidePagination]);
+    }, [isOpen, allColumns]);
 
     const handleColumnToggle = (key: string) => {
         setSelectedColumns(prev =>
@@ -45,19 +60,19 @@ export const TableExportModal: React.FC<TableExportModalProps> = ({
     };
 
     const handleSelectAll = () => {
-        if (selectedColumns.length === columns.length) {
+        if (selectedColumns.length === allColumns.length) {
             setSelectedColumns([]);
         } else {
-            setSelectedColumns(columns.map(col => col.key));
+            setSelectedColumns(allColumns.map(col => col.key));
         }
     };
 
     const handleExport = () => {
-        onExport(selectedColumns, scope);
+        onExport(selectedColumns, 'current');
         onClose();
     };
 
-    const exportCount = scope === 'current' ? currentPageRows : totalRows;
+    const exportCount = currentPageRows;
 
     return (
         <ReusableDialog
@@ -78,46 +93,14 @@ export const TableExportModal: React.FC<TableExportModalProps> = ({
             }}
         >
             <div className="space-y-6">
-                {/* Scope Selection */}
-                <div className="space-y-3">
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                        Export Scope
-                    </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <label className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors ${scope === 'current' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'}`}>
-                            <input
-                                type="radio"
-                                name="scope"
-                                value="current"
-                                checked={scope === 'current'}
-                                onChange={() => setScope('current')}
-                                className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                            />
-                            <div className="ml-3">
-                                <span className="block text-sm font-medium text-gray-900 dark:text-white">Current Page</span>
-                                <span className="block text-xs text-gray-500 dark:text-gray-400">{currentPageRows} rows</span>
-                            </div>
-                        </label>
-
-                        <label className={`flex items-center p-3 border rounded-lg ${hasServerSidePagination ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} transition-colors ${scope === 'all' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'}`}>
-                            <input
-                                type="radio"
-                                name="scope"
-                                value="all"
-                                checked={scope === 'all'}
-                                onChange={() => setScope('all')}
-                                disabled={hasServerSidePagination}
-                                className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 disabled:cursor-not-allowed"
-                            />
-                            <div className="ml-3">
-                                <span className="block text-sm font-medium text-gray-900 dark:text-white">All Data</span>
-                                <span className="block text-xs text-gray-500 dark:text-gray-400">
-                                    {hasServerSidePagination ? 'Not available for server-side pagination' : `${totalRows} rows`}
-                                </span>
-                            </div>
-                        </label>
-                    </div>
-                </div>
+                <InfoBanner
+                    dense
+                    message={
+                        hasMoreThanOnePage
+                            ? "Exports only this table page's rows. For more, select all & export each page. Select columns below to customize."
+                            : "Exports only this table page's rows. Select columns below to customize."
+                    }
+                />
 
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-3">
                     <div className="flex items-center justify-between">
@@ -128,12 +111,32 @@ export const TableExportModal: React.FC<TableExportModalProps> = ({
                             onClick={handleSelectAll}
                             className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
                         >
-                            {selectedColumns.length === columns.length ? 'Deselect All' : 'Select All'}
+                            {selectedColumns.length === allColumns.length ? 'Deselect All' : 'Select All'}
                         </button>
                     </div>
 
                     <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto p-1">
                         {columns.map((col) => (
+                            <label key={col.key} className="flex items-center space-x-2 p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={selectedColumns.includes(col.key)}
+                                    onChange={() => handleColumnToggle(col.key)}
+                                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                />
+                                <span className="text-sm text-gray-700 dark:text-gray-300 truncate" title={col.title}>
+                                    {col.title}
+                                </span>
+                            </label>
+                        ))}
+
+                        {additionalOnlyColumns.length > 0 && (
+                            <div className="col-span-2 px-2 pt-2 text-[10px] uppercase tracking-wide text-muted-foreground">
+                                Extra fields
+                            </div>
+                        )}
+
+                        {additionalOnlyColumns.map((col) => (
                             <label key={col.key} className="flex items-center space-x-2 p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer">
                                 <input
                                     type="checkbox"
