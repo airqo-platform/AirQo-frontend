@@ -10,6 +10,8 @@ import mainConfig from '@/configs/mainConfigs';
 
 import CountrySelectorDialog from '../sections/footer/CountrySelectorDialog';
 import MonitorDisplay from '../sections/footer/MonitorDisplay';
+import FooterDocumentHub from './FooterDocumentHub';
+import FooterLinkColumns from './FooterLinkColumns';
 import ScrollToTopButton from './ScrollToTopButton';
 
 const Footer = () => {
@@ -22,7 +24,7 @@ const Footer = () => {
     >
       <ScrollToTopButton />
       {/* Top Section with Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
         {/* Logo and Social Media */}
         <div className="flex flex-col space-y-4">
           <div>
@@ -69,197 +71,10 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Links Section */}
-        <div className="grid w-full grid-cols-1 gap-8 sm:grid-cols-2 xl:grid-cols-4">
-          {/* Products Section */}
-          <div className="flex flex-col">
-            <h3 className="font-semibold text-gray-800 mb-4">Products</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/products/monitor"
-                  className="text-gray-600 hover:underline"
-                >
-                  Binos Monitor
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/products/analytics"
-                  className="text-gray-600 hover:underline"
-                >
-                  Analytics Dashboard
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/products/api"
-                  className="text-gray-600 hover:underline"
-                >
-                  Air Quality API
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/products/mobile-app"
-                  className="text-gray-600 hover:underline"
-                >
-                  Mobile App
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/products/calibrate"
-                  className="text-gray-600 hover:underline"
-                >
-                  AirQalibrate
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Solutions Section */}
-          <div className="flex flex-col">
-            <h3 className="font-semibold text-gray-800 mb-4">Solutions</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/solutions/african-cities"
-                  className="text-gray-600 hover:underline"
-                >
-                  For African Cities
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/solutions/communities"
-                  className="text-gray-600 hover:underline"
-                >
-                  For Communities
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/solutions/research"
-                  className="text-gray-600 hover:underline"
-                >
-                  For Research
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/solutions/network-coverage"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-600 hover:underline"
-                >
-                  Network Coverage
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* About Section */}
-          <div className="flex flex-col">
-            <h3 className="font-semibold text-gray-800 mb-4">About</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/about-us"
-                  className="text-gray-600 hover:underline"
-                >
-                  About AirQo
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/resources"
-                  className="text-gray-600 hover:underline"
-                >
-                  Resources
-                </Link>
-              </li>
-              <li>
-                <Link href="/events" className="text-gray-600 hover:underline">
-                  Events
-                </Link>
-              </li>
-              <li>
-                <Link href="/faqs" className="text-gray-600 hover:underline">
-                  FAQs
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/africa-clean-air-forum"
-                  className="text-gray-600 hover:underline"
-                >
-                  Africa Clean Air Forum
-                </Link>
-              </li>
-              <li>
-                <Link href="/press" className="text-gray-600 hover:underline">
-                  Press
-                </Link>
-              </li>
-              <li>
-                <Link href="/careers" className="text-gray-600 hover:underline">
-                  Careers
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="text-gray-600 hover:underline">
-                  Contact Us
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="https://blog.airqo.net/"
-                  target="_blank"
-                  className="text-gray-600 hover:underline"
-                >
-                  Blog
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Developers Section */}
-          <div className="flex flex-col">
-            <h3 className="font-semibold text-gray-800 mb-4">Developers</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/packages"
-                  className="text-gray-600 hover:underline"
-                >
-                  Packages
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="https://docs.airqo.net/airqo-rest-api-documentation/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-600 hover:underline"
-                >
-                  Documentation
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="https://github.com/airqo-platform"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-600 hover:underline"
-                >
-                  GitHub
-                </Link>
-              </li>
-            </ul>
-          </div>
-        </div>
+        <FooterLinkColumns />
       </div>
+
+      <FooterDocumentHub />
 
       <div className="border-t border-gray-200 my-8"></div>
 
