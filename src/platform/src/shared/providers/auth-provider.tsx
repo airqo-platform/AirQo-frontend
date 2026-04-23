@@ -159,6 +159,8 @@ const UNAUTHORIZED_WINDOW_MS = 30000;
 const UNAUTHORIZED_THRESHOLD = 3;
 const ACCOUNT_DELETION_TTL_MS = 5 * 60 * 1000;
 const ACCOUNT_DELETION_USER_IDENTIFIER_KEY = 'account_deleted_user_identifier';
+const NEXTAUTH_SESSION_RETRY_DELAY_MS = 150;
+const NEXTAUTH_SESSION_RETRY_ATTEMPTS = 8;
 
 const getSessionCacheScope = (session: unknown): string | null => {
   const user = (session as { user?: { _id?: string; email?: string } })?.user;
@@ -217,6 +219,29 @@ const isPermissionScopedUnauthorizedPath = (url?: string): boolean => {
     matchesPermissionScopedPath(normalizedPath, '/devices/readings/map') ||
     matchesPermissionScopedPath(normalizedPath, '/analytics/data-download')
   );
+};
+
+const waitForNextAuthSession = async (
+  shouldContinue: () => boolean,
+  attempts = NEXTAUTH_SESSION_RETRY_ATTEMPTS,
+  delayMs = NEXTAUTH_SESSION_RETRY_DELAY_MS
+) => {
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    const session = await getSession();
+    if (session?.user) {
+      return session;
+    }
+
+    if (attempt === attempts - 1 || !shouldContinue()) {
+      break;
+    }
+
+    await new Promise<void>(resolve => {
+      window.setTimeout(resolve, delayMs);
+    });
+  }
+
+  return null;
 };
 
 function AuthScopedCacheProviders({ children }: { children: React.ReactNode }) {
@@ -652,6 +677,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const oauthTokenHandoff = consumeOAuthTokenHandoffFromUrl();
         if (oauthTokenHandoff?.token) {
+          // A fresh OAuth fragment indicates a new sign-in attempt, not an
+          // intentional logout, so remove any stale marker before bootstrapping.
+          clearBackendOAuthSignedOutFlag();
+
           const signInResult = await signIn('credentials', {
             redirect: false,
             callbackUrl: currentUrl,
@@ -666,16 +695,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               provider: oauthTokenHandoff.provider,
               error: signInResult.error,
             });
-          } else {
-            // Only clear the signed-out flag after the OAuth handoff has
-            // successfully become a NextAuth session; if the handoff fails,
-            // keep the flag so shouldSkipBackendOAuthBootstrap() preserves the
-            // logged-out state instead of trying verifyBackendOAuthSession().
-            clearBackendOAuthSignedOutFlag();
           }
         }
 
-        const nextAuthSession = await getSession();
+        const nextAuthSession = oauthTokenHandoff?.token
+          ? await waitForNextAuthSession(() => isMounted)
+          : await getSession();
         if (!isMounted) return;
 
         if (nextAuthSession?.user) {
