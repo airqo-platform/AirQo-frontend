@@ -21,6 +21,15 @@ export default function OrgLoginPage() {
   const orgSlug = params.org_slug as string;
   const callbackUrl = normalizeCallbackUrl(searchParams.get('callbackUrl'));
 
+  const redirectToAuthenticatedPage = (targetUrl: string) => {
+    if (typeof window !== 'undefined') {
+      window.location.replace(targetUrl);
+      return;
+    }
+
+    router.replace(targetUrl);
+  };
+
   const {
     register,
     handleSubmit,
@@ -108,7 +117,9 @@ export default function OrgLoginPage() {
         toast.error(errorTitle, errorMessage);
       } else {
         toast.success('Welcome back!', 'You have successfully signed in.');
-        router.replace(res?.url ?? callbackUrl ?? `/org/${orgSlug}/dashboard`);
+        redirectToAuthenticatedPage(
+          res?.url ?? callbackUrl ?? `/org/${orgSlug}/dashboard`
+        );
       }
     } catch (error) {
       console.error('Unexpected login error:', error);

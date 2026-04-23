@@ -20,6 +20,15 @@ export default function LoginPage() {
   const callbackUrl =
     normalizeCallbackUrl(searchParams.get('callbackUrl')) || '/user/home';
 
+  const redirectToAuthenticatedPage = (targetUrl: string) => {
+    if (typeof window !== 'undefined') {
+      window.location.replace(targetUrl);
+      return;
+    }
+
+    router.replace(targetUrl);
+  };
+
   const {
     register,
     handleSubmit,
@@ -115,7 +124,7 @@ export default function LoginPage() {
         toast.error(errorTitle, errorMessage);
       } else {
         toast.success('Welcome back!', 'You have successfully signed in.');
-        router.replace(res?.url ?? callbackUrl);
+        redirectToAuthenticatedPage(res?.url ?? callbackUrl);
       }
     } catch (error) {
       console.error('Unexpected login error:', error);

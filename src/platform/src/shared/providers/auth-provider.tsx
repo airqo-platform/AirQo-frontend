@@ -156,6 +156,31 @@ const UNAUTHORIZED_WINDOW_MS = 30000;
 const UNAUTHORIZED_THRESHOLD = 3;
 const ACCOUNT_DELETION_TTL_MS = 5 * 60 * 1000;
 const ACCOUNT_DELETION_USER_IDENTIFIER_KEY = 'account_deleted_user_identifier';
+const OAUTH_HANDOFF_SESSION_RETRY_COUNT = 20;
+const OAUTH_HANDOFF_SESSION_RETRY_DELAY_MS = 250;
+
+const waitForSessionRetryDelay = async (): Promise<void> => {
+  await new Promise(resolve => {
+    window.setTimeout(resolve, OAUTH_HANDOFF_SESSION_RETRY_DELAY_MS);
+  });
+};
+
+const getNextAuthSessionWithRetry = async (
+  retryCount = 1
+): Promise<Awaited<ReturnType<typeof getSession>>> => {
+  for (let attempt = 0; attempt < retryCount; attempt += 1) {
+    const nextAuthSession = await getSession();
+    if (nextAuthSession?.user) {
+      return nextAuthSession;
+    }
+
+    if (attempt < retryCount - 1) {
+      await waitForSessionRetryDelay();
+    }
+  }
+
+  return null;
+};
 
 const getSessionCacheScope = (session: unknown): string | null => {
   const user = (session as { user?: { _id?: string; email?: string } })?.user;
@@ -555,21 +580,20 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    if (callbackUrl) {
-      router.replace(callbackUrl);
+    const redirectTarget = callbackUrl
+      ? callbackUrl
+      : activeGroup
+        ? activeGroup.title.toLowerCase() === 'airqo'
+          ? '/user/home'
+          : `/org/${activeGroup.organizationSlug}/dashboard`
+        : '/user/home';
+
+    if (typeof window !== 'undefined') {
+      window.location.replace(redirectTarget);
       return;
     }
 
-    if (activeGroup) {
-      if (activeGroup.title.toLowerCase() === 'airqo') {
-        router.replace('/user/home');
-      } else {
-        router.replace(`/org/${activeGroup.organizationSlug}/dashboard`);
-      }
-      return;
-    }
-
-    router.replace('/user/home');
+    router.replace(redirectTarget);
   }, [status, isPublicRoute, activeGroup, router, pathname, callbackUrl]);
 
   useEffect(() => {
@@ -640,7 +664,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const bootstrap = async () => {
       try {
         const oauthTokenHandoff = consumeOAuthTokenHandoffFromUrl();
+        const shouldRetryNextAuthSession = Boolean(oauthTokenHandoff?.token);
         if (oauthTokenHandoff?.token) {
+          clearBackendOAuthSignedOutFlag();
+
           const signInResult = await signIn('credentials', {
             redirect: false,
             callbackUrl: currentUrl,
@@ -664,8 +691,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
-        const nextAuthSession = await getSession();
+        const nextAuthSession = await getNextAuthSessionWithRetry(
+          shouldRetryNextAuthSession ? OAUTH_HANDOFF_SESSION_RETRY_COUNT : 1
+        );
         if (!isMounted) return;
+
+        if (shouldRetryNextAuthSession && !nextAuthSession?.user) {
+          logger.warn(
+            'OAuth token handoff completed before NextAuth session became readable',
+            {
+              path: currentUrl,
+              provider: oauthTokenHandoff?.provider,
+            }
+          );
+        }
 
         if (nextAuthSession?.user) {
           setCachedSessionAccessToken(
