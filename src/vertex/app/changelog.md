@@ -4,6 +4,56 @@
 
 ---
  
+## Version 1.23.27
+**Released:** April 22, 2026
+
+### Device Exports & Recall History Site Details
+
+Improved table export controls (including extra export fields) and enhanced device recall activity entries to show previous deployment site details.
+
+<details>
+<summary><strong>Table Export (4)</strong></summary>
+
+- **Extra Export Fields in Modal**: Additional export fields now appear in the export column selector (grouped under “Extra fields”).
+- **Reliable Site ID Export**: `site_id` export now resolves from either `device.site_id` or `device.site._id`.
+- **Current-Page Export Only**: Export is limited to the current table page, with a short banner explaining what will be downloaded.
+- **Consistent Banner Copy**: Normalized apostrophes and messaging for a consistent export experience.
+
+</details>
+
+<details>
+<summary><strong>Device Activity (3)</strong></summary>
+
+- **Previous Site on Recalls**: Recall entries can show a “Previous site” section.
+- **Collapsible Details + Copy**: Clicking the site name expands to show the Site ID with a copy button (with proper clipboard error handling).
+- **Safer Site Inference**: Tightened activity matching and prevented site inference across recall boundaries.
+
+</details>
+
+<details>
+<summary><strong>Types (1)</strong></summary>
+
+- **`previous_sites` Shape**: Updated typing to support object entries (with backward-compatible string support).
+
+</details>
+
+<details>
+<summary><strong>Files Modified (9)</strong></summary>
+
+- `app/types/devices.ts`
+- `components/features/devices/device-activity-item.tsx`
+- `components/features/devices/device-details-layout.tsx`
+- `components/features/devices/device-history-card.tsx`
+- `components/features/devices/device-list-table.tsx`
+- `components/features/devices/utils/table-columns.tsx`
+- `components/shared/table/ReusableTable.tsx`
+- `components/shared/table/TableExportModal.tsx`
+- `app/changelog.md`
+
+</details>
+
+---
+
 ## Version 1.23.26
 **Released:** April 09, 2026
 
