@@ -4,6 +4,7 @@ import * as React from 'react';
 import Image from 'next/image';
 import { AqUser03 } from '@airqo/icons-react';
 import { cn } from '@/shared/lib/utils';
+import { getRenderableImageSrc } from '@/shared/lib/image';
 
 interface AvatarProps {
   src?: string;
@@ -55,6 +56,8 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
       xl: 'h-8 w-8',
     };
 
+    const imageSrc = React.useMemo(() => getRenderableImageSrc(src), [src]);
+
     const getFallbackText = (text: string): string => {
       return text.charAt(0).toUpperCase();
     };
@@ -73,9 +76,9 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
         )}
         {...props}
       >
-        {src && !imageError ? (
+        {imageSrc && !imageError ? (
           <Image
-            src={src}
+            src={imageSrc}
             alt={alt || 'Avatar'}
             fill
             className={cn(

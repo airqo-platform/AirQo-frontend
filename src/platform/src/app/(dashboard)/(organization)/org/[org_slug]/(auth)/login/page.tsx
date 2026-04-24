@@ -5,17 +5,19 @@ import { useParams } from 'next/navigation';
 import AuthLayout from '@/shared/layouts/AuthLayout';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Button, Input } from '@/shared/components/ui';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from '@/shared/components/ui';
 import { loginSchema, type LoginFormData } from '@/shared/lib/validators';
-import { normalizeCallbackUrl } from '@/shared/lib/auth-redirect';
+import {
+  normalizeCallbackUrl,
+  redirectWithReload,
+} from '@/shared/lib/auth-redirect';
 
 export default function OrgLoginPage() {
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
   const orgSlug = params.org_slug as string;
@@ -108,7 +110,9 @@ export default function OrgLoginPage() {
         toast.error(errorTitle, errorMessage);
       } else {
         toast.success('Welcome back!', 'You have successfully signed in.');
-        router.replace(res?.url ?? callbackUrl ?? `/org/${orgSlug}/dashboard`);
+        redirectWithReload(
+          res?.url ?? callbackUrl ?? `/org/${orgSlug}/dashboard`
+        );
       }
     } catch (error) {
       console.error('Unexpected login error:', error);

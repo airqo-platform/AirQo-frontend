@@ -28,7 +28,7 @@ export default function GoogleAuthSection({
     setIsRedirecting(true);
 
     try {
-      window.location.assign(
+      window.location.replace(
         buildOAuthInitiationUrl('google', {
           prompt: 'select_account',
           tenant: 'airqo',
