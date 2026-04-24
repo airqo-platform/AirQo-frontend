@@ -2,8 +2,6 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { Tooltip } from 'flowbite-react';
 import { Rating, Star } from '@smastrom/react-rating';
 import { useUser } from '@/shared/hooks/useUser';
 import { Input, Select, TextInput } from '@/shared/components/ui';
@@ -11,7 +9,7 @@ import ReusableDialog from '@/shared/components/ui/dialog';
 import { toast } from '@/shared/components/ui/toast';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { feedbackService } from '../services/feedbackService';
-import { AqMessageNotificationSquare } from '@airqo/icons-react';
+import { FEEDBACK_DIALOG_OPEN_EVENT } from '../utils/feedbackDialog';
 
 type FeedbackCategory =
   | 'general'
@@ -107,8 +105,31 @@ export const FeedbackLauncher: React.FC = () => {
     [pathname]
   );
 
-  const shouldHideLauncher =
-    pathname.startsWith('/system/feedback') || pathname.includes('/map');
+  const shouldHideLauncher = pathname.startsWith('/system/feedback');
+
+  useEffect(() => {
+    const handleOpenFeedbackDialog = () => {
+      setIsOpen(true);
+    };
+
+    window.addEventListener(
+      FEEDBACK_DIALOG_OPEN_EVENT,
+      handleOpenFeedbackDialog
+    );
+
+    return () => {
+      window.removeEventListener(
+        FEEDBACK_DIALOG_OPEN_EVENT,
+        handleOpenFeedbackDialog
+      );
+    };
+  }, []);
+
+  useEffect(() => {
+    if (shouldHideLauncher && isOpen) {
+      setIsOpen(false);
+    }
+  }, [isOpen, shouldHideLauncher]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -166,39 +187,11 @@ export const FeedbackLauncher: React.FC = () => {
 
   return (
     <>
-      <motion.div
-        className="fixed bottom-3 right-3 z-40 md:bottom-4 md:right-5"
-        initial={{ opacity: 0, y: 18, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.25, ease: [0.2, 0.8, 0.2, 1] }}
-      >
-        <Tooltip
-          content="Need to report an Issue or share an idea?"
-          placement="left"
-          style="dark"
-        >
-          <motion.button
-            type="button"
-            onClick={() => setIsOpen(true)}
-            whileHover={{ scale: 1.04, y: -1 }}
-            whileTap={{ scale: 0.97 }}
-            className="flex h-14 w-14 items-center justify-center rounded-full border border-white/20 text-white shadow-2xl shadow-emerald-950/20 transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background"
-            style={{ backgroundColor: 'rgb(var(--primary-700))' }}
-            aria-label="Open feedback form"
-          >
-            <AqMessageNotificationSquare
-              className="h-6 w-6"
-              aria-hidden="true"
-            />
-          </motion.button>
-        </Tooltip>
-      </motion.div>
-
       <ReusableDialog
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         title="Share feedback"
-        subtitle="Help us improve your experience. Tell us what’s working well, what could be better, or any problems you’ve faced."
+        subtitle="Help us improve your experience. Tell us what's working well, what could be better, or any problems you've faced."
         size="xl"
         primaryAction={{
           label: isSubmitting ? 'Sending...' : 'Send feedback',

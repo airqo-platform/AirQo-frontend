@@ -6,12 +6,15 @@ import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
 import { Checklist } from '@/modules/user-checklist';
 import { AqDownloadCloud01, AqStar06, AqBuilding07 } from '@airqo/icons-react';
+import { Tooltip } from 'flowbite-react';
+import ReusableDialog from '@/shared/components/ui/dialog';
 import PlayIcon from '@/shared/components/ui/play-icon';
 import { InfoBanner } from '@/shared/components/ui/banner';
 
 export default function HomePage() {
   const { data: session } = useSession();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDataAccessOpen, setIsDataAccessOpen] = useState(false);
 
   const handleModal = () => setIsModalOpen(!isModalOpen);
 
@@ -62,6 +65,20 @@ export default function HomePage() {
           >
             Request New Organization
           </Button>
+          <Tooltip
+            content="Access guidance on how to use and share AirQo data responsibly."
+            placement="top"
+          >
+            <div>
+              <Button
+                variant="outlined"
+                size="md"
+                onClick={() => setIsDataAccessOpen(true)}
+              >
+                Data Access & Usage
+              </Button>
+            </div>
+          </Tooltip>
         </div>
       </div>
 
@@ -123,6 +140,43 @@ export default function HomePage() {
           </div>
         </div>
       </Card>
+
+      <ReusableDialog
+        isOpen={isDataAccessOpen}
+        onClose={() => setIsDataAccessOpen(false)}
+        title="Data Access & Usage"
+        subtitle=""
+        size="md"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Access guidance on how to use and share AirQo data responsibly.
+          </p>
+
+          <ul className="list-disc pl-6 space-y-2">
+            <li>
+              <a
+                href="https://res.cloudinary.com/dbibjvyhm/image/upload/v1776942291/website/docs/AirQo_Fair_Usage_Policy_ox4o6b.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary underline"
+              >
+                Fair Usage Policy
+              </a>
+            </li>
+            <li>
+              <a
+                href="https://res.cloudinary.com/dbibjvyhm/image/upload/v1776942291/website/docs/v1.0.3_-_AirQo_Researchers_Guide_jkmvkm.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary underline"
+              >
+                Researchers Guide
+              </a>
+            </li>
+          </ul>
+        </div>
+      </ReusableDialog>
     </div>
   );
 }

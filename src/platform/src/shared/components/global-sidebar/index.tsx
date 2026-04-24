@@ -18,6 +18,7 @@ import { useRBAC } from '@/shared/hooks';
 import { SidebarSkeleton } from '@/shared/components/sidebar/components';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { getRenderableImageSrc } from '@/shared/lib/image';
 
 export const GlobalSidebar: React.FC = () => {
   const dispatch = useDispatch();
@@ -78,14 +79,15 @@ export const GlobalSidebar: React.FC = () => {
         showFallback: false,
       };
     } else {
-      const hasValidProfilePicture =
-        activeGroup.profilePicture && activeGroup.profilePicture.trim() !== '';
+      const renderableProfilePicture = getRenderableImageSrc(
+        activeGroup.profilePicture
+      );
       return {
-        logoSrc: hasValidProfilePicture
-          ? activeGroup.profilePicture
+        logoSrc: renderableProfilePicture
+          ? renderableProfilePicture
           : '/images/airqo_logo.svg',
         logoAlt: `${activeGroup.title} Logo`,
-        showFallback: !hasValidProfilePicture,
+        showFallback: !renderableProfilePicture,
       };
     }
   }, [activeGroup, isAirQoGroup]);
