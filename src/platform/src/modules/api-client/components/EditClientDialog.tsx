@@ -112,7 +112,7 @@ const EditClientDialog: React.FC<EditClientDialogProps> = ({
   useEffect(() => {
     if (isOpen && client) {
       setClientName(client.name);
-      setRequireSecret(Boolean(client.require_secret));
+      setRequireSecret(Boolean(client.requireClientSecret));
       const ips =
         client.ip_addresses && Array.isArray(client.ip_addresses)
           ? client.ip_addresses
