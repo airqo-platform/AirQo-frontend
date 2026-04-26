@@ -43,12 +43,32 @@ export interface DownloadPdfOptions {
 
 type DownloadRecord = Record<string, unknown>;
 
-const formatColumnLabel = (key: string) =>
+const formatBaseColumnLabel = (key: string) =>
   key
     .replace(/_/g, ' ')
     .replace(/\b\w/g, char => char.toUpperCase())
     .replace(/Pm2 5/g, 'PM2.5')
     .replace(/Pm10/g, 'PM10');
+
+const SENSOR_PREFIX_LABELS = {
+  s1: 'Sensor 1',
+  s2: 'Sensor 2',
+} as const;
+
+const formatColumnLabel = (key: string): string => {
+  const sensorMatch = key.match(/^(s[12])_(.+)$/);
+
+  if (sensorMatch) {
+    const [, sensorPrefix, remainder] = sensorMatch;
+    const sensorLabel =
+      SENSOR_PREFIX_LABELS[sensorPrefix as keyof typeof SENSOR_PREFIX_LABELS] ||
+      sensorPrefix.toUpperCase();
+
+    return `${sensorLabel} ${formatColumnLabel(remainder)}`;
+  }
+
+  return formatBaseColumnLabel(key);
+};
 
 const normalizeSelectedColumnKeys = (selectedColumnKeys?: string[]) =>
   Array.from(new Set((selectedColumnKeys || []).filter(Boolean)));
@@ -255,13 +275,21 @@ const resolveSelectedHeaders = (
     return availableHeaders;
   }
 
-  if (preserveSelectedColumns) {
-    return normalizedSelectedColumnKeys;
-  }
+  const selectedHeaders = normalizedSelectedColumnKeys.flatMap(key => {
+    if (availableHeaders.includes(key)) {
+      return [key];
+    }
 
-  const selectedHeaders = normalizedSelectedColumnKeys.filter(key =>
-    availableHeaders.includes(key)
-  );
+    const sensorAliasHeaders = [`s1_${key}`, `s2_${key}`].filter(alias =>
+      availableHeaders.includes(alias)
+    );
+
+    if (sensorAliasHeaders.length > 0) {
+      return sensorAliasHeaders;
+    }
+
+    return preserveSelectedColumns ? [key] : [];
+  });
 
   if (selectedHeaders.length === 0) {
     throw new Error(

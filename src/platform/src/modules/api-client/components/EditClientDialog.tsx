@@ -217,6 +217,8 @@ const EditClientDialog: React.FC<EditClientDialogProps> = ({
       isOpen={isOpen}
       onClose={handleClose}
       title="Edit API Client"
+      maxHeight="max-h-[75vh]"
+      contentClassName="pr-2"
       primaryAction={{
         label: 'Update',
         onClick: handleSubmit,
@@ -231,7 +233,7 @@ const EditClientDialog: React.FC<EditClientDialogProps> = ({
         loading: isSubmitting,
       }}
     >
-      <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
+      <div className="space-y-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Client Name *
