@@ -546,9 +546,12 @@ export const buildDownloadPdfBlob = (
   }
 
   const title = options.title || 'AirQo Data Export';
-  const subtitle =
-    options.subtitle || 'Prepared export with a polished PDF layout.';
-  const summaryItems = options.summaryItems || [];
+  const subtitle = options.subtitle?.trim() || '';
+  const summaryItems = (options.summaryItems || []).map(item =>
+    item.label === 'Columns'
+      ? { ...item, value: String(selectedHeaders.length) }
+      : item
+  );
   const doc = new jsPDF({
     orientation: selectedHeaders.length > 6 ? 'landscape' : 'portrait',
     unit: 'pt',
@@ -594,10 +597,12 @@ export const buildDownloadPdfBlob = (
       doc.setFontSize(18);
       doc.text(title, margin, 28);
 
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9.5);
-      doc.setTextColor(71, 85, 105);
-      doc.text(subtitle, margin, 44, { maxWidth: contentWidth });
+      if (subtitle) {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9.5);
+        doc.setTextColor(71, 85, 105);
+        doc.text(subtitle, margin, 44, { maxWidth: contentWidth });
+      }
 
       if (summaryItems.length > 0) {
         doc.setTextColor(30, 41, 59);
