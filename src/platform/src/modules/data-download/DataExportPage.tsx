@@ -357,7 +357,8 @@ const DataExportPage = () => {
   const displayDevicesData = isGroupSyncing
     ? undefined
     : (currentHook.data as CohortDevicesResponse | undefined)?.devices;
-  const tableLoading = isGroupSyncing || currentHook.isLoading;
+  const tableLoading =
+    isGroupSyncing || (currentHook.isLoading && currentHook.data === undefined);
   const compactTableRows =
     activeTab === 'devices' ||
     activeTab === 'countries' ||

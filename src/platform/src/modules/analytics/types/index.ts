@@ -59,6 +59,7 @@ export interface QuickAccessLocationsProps {
   title?: string;
   subtitle?: string;
   infoLine?: string;
+  warningBanner?: React.ReactNode;
   showIcon?: boolean;
   onShowIconsChange?: (showIcons: boolean) => void;
   selectedPollutant?: PollutantType;

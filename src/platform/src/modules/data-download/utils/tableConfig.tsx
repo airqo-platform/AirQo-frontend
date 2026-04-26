@@ -36,7 +36,12 @@ export const getSitesColumns = (): ColumnConfig[] => [
     minWidth: '140px',
     cellClassName: 'whitespace-nowrap',
   },
-  { key: 'data_provider', label: 'Owner' },
+  {
+    key: 'data_provider',
+    label: 'Owner',
+    minWidth: '140px',
+    cellClassName: 'whitespace-nowrap',
+  },
 ];
 
 /**
