@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { motion } from 'framer-motion';
 import { AqChevronLeft, AqChevronRight } from '@airqo/icons-react';
 import { cn } from '@/shared/lib/utils';
 import { Card } from '@/shared/components/ui/card';
@@ -86,6 +87,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <div className={cn('flex h-full w-full flex-col relative', className)}>
+      {!hideToggle && !isMobile && (
+        <motion.div
+          className="absolute z-50 top-4 right-[-12px]"
+          transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
+        >
+          <div className="z-50 flex items-center justify-center w-6 h-6 border rounded-full">
+            <button
+              type="button"
+              onClick={handleToggle}
+              className="flex items-center justify-center w-full h-full p-1 transition-all duration-200 bg-background border border-border rounded-full shadow-md focus:outline-none hover:shadow-lg"
+              aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              {isCollapsed ? (
+                <AqChevronRight className="w-3 h-3 text-muted-foreground" />
+              ) : (
+                <AqChevronLeft className="w-3 h-3 text-muted-foreground" />
+              )}
+            </button>
+          </div>
+        </motion.div>
+      )}
+
       {/* allow the toggle button to visually overflow outside the Card by NOT clipping on the outer container */}
       <Card
         className={cn(
@@ -93,25 +116,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           isCollapsed ? 'overflow-visible' : 'overflow-x-hidden overflow-y-auto'
         )}
       >
-        <div className="absolute z-50 top-4 right-[-12px]">
-          {!hideToggle && !isMobile && (
-            <div className="z-50 flex items-center justify-center w-6 h-6 border rounded-full">
-              <button
-                type="button"
-                onClick={handleToggle}
-                className="flex items-center justify-center w-full h-full p-1 transition-all duration-200 bg-background border border-border rounded-full shadow-md focus:outline-none hover:shadow-lg"
-                aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-              >
-                {isCollapsed ? (
-                  <AqChevronRight className="w-3 h-3 text-muted-foreground" />
-                ) : (
-                  <AqChevronLeft className="w-3 h-3 text-muted-foreground" />
-                )}
-              </button>
-            </div>
-          )}
-        </div>
-
         {/* Navigation */}
         {shouldShowLoadingSkeleton ? (
           <SidebarSkeleton isCollapsed={isCollapsed} />

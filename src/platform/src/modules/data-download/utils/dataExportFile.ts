@@ -547,11 +547,7 @@ export const buildDownloadPdfBlob = (
 
   const title = options.title || 'AirQo Data Export';
   const subtitle = options.subtitle?.trim() || '';
-  const summaryItems = (options.summaryItems || []).map(item =>
-    item.label === 'Columns'
-      ? { ...item, value: String(selectedHeaders.length) }
-      : item
-  );
+  const summaryItems = options.summaryItems || [];
   const doc = new jsPDF({
     orientation: selectedHeaders.length > 6 ? 'landscape' : 'portrait',
     unit: 'pt',
