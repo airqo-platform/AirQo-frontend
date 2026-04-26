@@ -28,7 +28,10 @@ export const SidebarSkeleton: React.FC<SidebarSkeletonProps> = ({
 
   return (
     <Card
-      className={cn('flex-1 border-0 bg-transparent shadow-none', className)}
+      className={cn(
+        'flex-1 w-full border-0 bg-transparent shadow-none',
+        className
+      )}
     >
       <CardContent className="p-2 md:p-3">
         {showBrand && !isCollapsed && (

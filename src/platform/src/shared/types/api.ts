@@ -329,6 +329,7 @@ export interface Client {
   isActive: boolean;
   ip_addresses: string[];
   name: string;
+  require_secret?: boolean;
   client_secret: string;
   user: {
     firstName: string;
@@ -956,6 +957,7 @@ export interface CreateClientResponse {
 export interface UpdateClientRequest {
   name?: string;
   ip_addresses?: string[];
+  require_secret?: boolean;
 }
 
 export interface UpdateClientResponse {

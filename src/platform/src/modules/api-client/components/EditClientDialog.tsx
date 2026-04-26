@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { usePostHog } from 'posthog-js/react';
-import { Button, Input, Dialog } from '@/shared/components/ui';
+import { Button, Input, Dialog, Checkbox } from '@/shared/components/ui';
 import { toast } from '@/shared/components/ui';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { isValidIpAddress } from '@/shared/lib/validators';
@@ -10,6 +10,84 @@ import { clientService } from '@/shared/services/clientService';
 import type { Client } from '@/shared/types/api';
 import { trackEvent } from '@/shared/utils/analytics';
 import { trackApiClientAction } from '@/shared/utils/enhancedAnalytics';
+import { AqCopy06, AqEye, AqEyeOff } from '@airqo/icons-react';
+
+interface SecretDisplayProps {
+  secret: string;
+}
+
+const SecretDisplay: React.FC<SecretDisplayProps> = ({ secret }) => {
+  const [isRevealed, setIsRevealed] = React.useState(false);
+
+  const maskedSecret = secret
+    ? secret.length > 4
+      ? `••••••••${secret.slice(-4)}`
+      : '••••••••'
+    : '—';
+
+  const displayedSecret = isRevealed ? secret : maskedSecret;
+
+  const handleCopy = async () => {
+    if (!secret) {
+      toast.error('Client secret is unavailable');
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(secret);
+      toast.success('Client secret copied to clipboard');
+    } catch {
+      toast.error('Failed to copy client secret');
+    }
+  };
+
+  return (
+    <div className="rounded-lg border border-border bg-muted/30 p-3">
+      <div className="flex flex-col gap-2 min-w-0">
+        <div className="flex items-center gap-2 min-w-0 w-full">
+          <code className="flex-1 min-w-0 truncate rounded-md border border-border bg-background px-2 py-1 font-mono text-sm text-foreground">
+            {displayedSecret}
+          </code>
+
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={() => setIsRevealed(previous => !previous)}
+            className="h-8 w-8 flex-shrink-0 p-0"
+            aria-label={
+              isRevealed ? 'Hide client secret' : 'Show client secret'
+            }
+            disabled={!secret}
+          >
+            {isRevealed ? (
+              <AqEyeOff className="h-4 w-4" />
+            ) : (
+              <AqEye className="h-4 w-4" />
+            )}
+          </Button>
+
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={handleCopy}
+            className="h-8 w-8 flex-shrink-0 p-0"
+            aria-label="Copy client secret"
+            disabled={!secret}
+          >
+            <AqCopy06 className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <p className="text-xs text-muted-foreground">
+          Share this only with services that need to send the X-Client-Secret
+          header.
+        </p>
+      </div>
+    </div>
+  );
+};
 
 interface EditClientDialogProps {
   isOpen: boolean;
@@ -28,11 +106,13 @@ const EditClientDialog: React.FC<EditClientDialogProps> = ({
   const [clientName, setClientName] = useState('');
   const [ipAddresses, setIpAddresses] = useState<string[]>(['']);
   const [ipErrors, setIpErrors] = useState<string[]>(['']);
+  const [requireSecret, setRequireSecret] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (isOpen && client) {
       setClientName(client.name);
+      setRequireSecret(Boolean(client.require_secret));
       const ips =
         client.ip_addresses && Array.isArray(client.ip_addresses)
           ? client.ip_addresses
@@ -100,6 +180,7 @@ const EditClientDialog: React.FC<EditClientDialogProps> = ({
 
       const clientData = {
         name: clientName.trim(),
+        require_secret: requireSecret,
         ...(filteredIpAddresses.length > 0 && {
           ip_addresses: filteredIpAddresses,
         }),
@@ -211,6 +292,40 @@ const EditClientDialog: React.FC<EditClientDialogProps> = ({
             Restrict access to specific IP addresses (leave empty for no
             restrictions)
           </p>
+        </div>
+
+        <div className="rounded-xl border border-border bg-muted/20 p-4 space-y-4">
+          <div className="flex items-start gap-3">
+            <Checkbox
+              checked={requireSecret}
+              onCheckedChange={setRequireSecret}
+              className="mt-0.5"
+            />
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-foreground">
+                Require client secret on every request
+              </p>
+              <p className="text-xs text-muted-foreground">
+                When enabled, API requests using this client&apos;s token must
+                also send the client secret via the X-Client-Secret header.
+              </p>
+            </div>
+          </div>
+
+          {requireSecret && (
+            <div className="space-y-3">
+              <div>
+                <p className="text-sm font-medium text-foreground">
+                  Client secret
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Use this value with the X-Client-Secret header.
+                </p>
+              </div>
+
+              <SecretDisplay secret={client?.client_secret || ''} />
+            </div>
+          )}
         </div>
       </div>
     </Dialog>

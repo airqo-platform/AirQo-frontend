@@ -5,7 +5,6 @@ import {
   useActiveGroupCohortDevicesWithState,
   useGridsSummary,
   useGridsSummaryWithToken,
-  useSitesSummaryWithToken,
 } from '@/shared/hooks';
 import {
   CohortSitesResponse,
@@ -14,7 +13,6 @@ import {
   CohortDevicesParams,
   GridsSummaryResponse,
   GridsSummaryParams,
-  SitesSummaryResponse,
 } from '@/shared/types/api';
 import {
   TabType,
@@ -109,22 +107,17 @@ export const useDataExportData = (
     tabStates.cities.search,
   ]);
 
-  // Devices in the user flow still depend on the active group cohort ids.
-  // Keep cohort loading enabled for org flow and when the Devices tab is active
-  // so the request body can include the active group's `cohort_ids` array.
+  // Sites and devices both depend on the active group's cohort ids.
+  // The user flow defaults the active group to AirQo in Redux, so the same
+  // cached cohort path works without an env-specific fallback.
   const activeGroupCohorts = useActiveGroupCohorts(
-    enabled && (isOrgFlow || activeTab === 'devices')
+    enabled && (activeTab === 'sites' || activeTab === 'devices')
   );
 
-  const orgSitesHook = useActiveGroupCohortSitesWithState(
+  const sitesHook = useActiveGroupCohortSitesWithState(
     sitesParams,
-    enabled && isOrgFlow && activeTab === 'sites',
+    enabled && activeTab === 'sites',
     activeGroupCohorts
-  );
-
-  const publicSitesHook = useSitesSummaryWithToken(
-    sitesParams,
-    enabled && !isOrgFlow && activeTab === 'sites'
   );
 
   const devicesHook = useActiveGroupCohortDevicesWithState(
@@ -157,7 +150,6 @@ export const useDataExportData = (
     enabled && !isOrgFlow && activeTab === 'cities'
   );
 
-  const sitesHook = isOrgFlow ? orgSitesHook : publicSitesHook;
   const countriesHook = isOrgFlow ? orgCountriesHook : publicCountriesHook;
   const citiesHook = isOrgFlow ? orgCitiesHook : publicCitiesHook;
 
@@ -172,10 +164,7 @@ export const useDataExportData = (
 
   // Process data for table display
   const processedSitesData = useMemo(
-    () =>
-      processSitesData(
-        (sitesHook.data as CohortSitesResponse | SitesSummaryResponse)?.sites
-      ),
+    () => processSitesData((sitesHook.data as CohortSitesResponse)?.sites),
     [sitesHook.data]
   );
 

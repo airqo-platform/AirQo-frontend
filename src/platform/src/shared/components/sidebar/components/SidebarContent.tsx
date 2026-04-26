@@ -136,7 +136,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
   }, [onItemClick]);
 
   return (
-    <div className={cn('flex h-full flex-col py-6', className)}>
+    <div className={cn('flex h-full w-full flex-col py-6', className)}>
       <div className="flex-1 px-3">
         {sidebarConfig.map((group, index) => (
           <React.Fragment key={group.id}>
@@ -198,7 +198,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
               'group flex w-full items-start gap-3 rounded-2xl border border-border bg-background px-3 py-3 text-left shadow-sm transition-colors hover:border-primary/30 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
               // collapsed state: center the icon and use slightly larger padding
               isCollapsed &&
-                'items-center justify-center gap-0 border-none px-0 py-0 bg-none'
+                'items-center justify-center gap-0 border-none bg-transparent px-0 py-0 shadow-none'
             )}
           >
             <span
