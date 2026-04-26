@@ -45,7 +45,9 @@ export const MapLayout: React.FC<MainLayoutProps> = ({
           {showSidebar && (
             <motion.aside
               className="hidden md:block shrink-0"
+              style={{ width: 64 }}
               animate={{ width: 64 }}
+              initial={false}
               transition={{ duration: 0.3, ease: 'easeInOut' }}
             >
               <Sidebar isCollapsed={true} hideToggle={true} />

@@ -35,12 +35,17 @@ const SWR_STABLE_REQUEST_OPTIONS = {
 } as const;
 
 const isAbortError = (error: unknown): boolean => {
-  const candidate = error as { name?: string; code?: string } | null;
+  const candidate = error as {
+    name?: string;
+    code?: string;
+    message?: string;
+  } | null;
   if (!candidate) return false;
   return (
     candidate.name === 'AbortError' ||
     candidate.name === 'CanceledError' ||
-    candidate.code === 'ERR_CANCELED'
+    candidate.code === 'ERR_CANCELED' ||
+    candidate.message === 'canceled'
   );
 };
 
@@ -312,9 +317,14 @@ export const useCohort = (cohortId: string, enabled = true) => {
     )
   );
 
-  return useSWR<CohortResponse>(key, fetcher, {
+  const result = useSWR<CohortResponse>(key, fetcher, {
     ...SWR_STABLE_REQUEST_OPTIONS,
   });
+
+  return {
+    ...result,
+    error: isAbortError(result.error) ? null : result.error,
+  };
 };
 
 // Enhanced cohort devices hook with automatic active group cohorts
