@@ -103,45 +103,7 @@ export const useNetworkDevices = (options: DeviceListingOptions = {}) => {
   };
 };
 
-export const useNetworkRequests = (params?: { status?: string }) => {
-  return useQuery({
-    queryKey: ['network-requests', params?.status],
-    queryFn: () => networksApi.getNetworkRequestsApi(params),
-    staleTime: 60_000,
-  });
-};
 
-
-export const useUpdateNetworkRequestStatus = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: ({ 
-            requestId, 
-            action, 
-            data 
-        }: { 
-            requestId: string; 
-            action: 'approve' | 'deny' | 'review'; 
-            data?: { reviewer_notes?: string } 
-        }) => networksApi.updateNetworkRequestStatusApi(requestId, action, data),
-        onSuccess: (resp) => {
-            ReusableToast({ 
-                message: resp.message || 'Status updated successfully', 
-                type: 'SUCCESS' 
-            });
-            queryClient.invalidateQueries({ queryKey: ['network-requests'] });
-            if (resp.data?.network) {
-                queryClient.invalidateQueries({ queryKey: ['networks'] });
-            }
-        },
-        onError: (error) => {
-            ReusableToast({ 
-                message: `Action failed: ${getApiErrorMessage(error)}`, 
-                type: 'ERROR' 
-            });
-        }
-    });
-};
 
 export const useSubmitNetworkRequest = () => {
     const queryClient = useQueryClient();

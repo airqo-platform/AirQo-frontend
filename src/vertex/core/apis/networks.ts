@@ -112,24 +112,9 @@ export const networks = {
     }
   },
 
-  createNetworkApi: async (
-    data: CreateNetworkPayload
-  ): Promise<CreateNetworkResponse> => {
-    try {
-      const response = await createSecureApiClient().post<CreateNetworkResponse>(
-        `/users/networks`,
-        data,
-        { headers: { "X-Auth-Type": "JWT" } }
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
-
   submitNetworkRequestApi: async (data: NetworkRequestValues): Promise<NetworkRequestActionResponse> => {
     try {
-      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/devices/network-creation-requests`;
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}devices/network-creation-requests`;
       
       const response = await axios.post<NetworkRequestActionResponse>(
         `${apiUrl}`,
@@ -142,33 +127,5 @@ export const networks = {
     }
   },
 
-  getNetworkRequestsApi: async (params?: { status?: string }): Promise<NetworkCreationRequest[]> => {
-    try {
-      const queryParams = new URLSearchParams();
-      if (params?.status) queryParams.set('status', params.status);
-      
-      const response = await createSecureApiClient().get<NetworkCreationRequestsResponse>(
-        `/network/requests?${queryParams.toString()}`
-      );
-      return response.data.network_creation_requests || [];
-    } catch (error) {
-      throw error;
-    }
-  },
 
-  updateNetworkRequestStatusApi: async (
-    requestId: string, 
-    action: 'approve' | 'deny' | 'review',
-    data?: { reviewer_notes?: string; reviewed_by?: string }
-  ): Promise<NetworkRequestActionResponse> => {
-    try {
-      const response = await createSecureApiClient().put<NetworkRequestActionResponse>(
-        `/network/requests/${requestId}/${action}`,
-        data
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
 };

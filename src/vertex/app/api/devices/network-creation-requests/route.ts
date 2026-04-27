@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { options } from "../../auth/[...nextauth]/options";
+import { options } from "../../../auth/[...nextauth]/options";
 import logger from "@/lib/logger";
 import axios from "axios";
 
