@@ -8,7 +8,7 @@ import { useSiteDetails, useRefreshSiteMetadata } from "@/core/hooks/useSites";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useParams } from "next/navigation";
-import { Loader2, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { SiteInformationCard } from "@/components/features/sites/site-information-card";
 import { SiteMobileAppCard } from "@/components/features/sites/site-mobile-app-card";
 import { EditSiteDetailsDialog } from "@/components/features/sites/edit-site-details-dialog";
@@ -62,7 +62,7 @@ export default function SiteDetailsPage() {
           onClick={() => refreshMetadata(siteId)}
           disabled={isRefreshing || isLoading || !site}
           loading={isRefreshing}
-          Icon={isRefreshing ? Loader2 : RefreshCw}
+          Icon={RefreshCw}
           className="text-xs font-medium"
         >
           Refresh Metadata
