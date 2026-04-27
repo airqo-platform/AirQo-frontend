@@ -39,7 +39,7 @@ Introduced on-demand site metadata enrichment and comprehensive administrative l
 </details>
 
 <details>
-<summary><strong>Files Modified (9)</strong></summary>
+<summary><strong>Files Modified (10)</strong></summary>
 
 - `app/(authenticated)/admin/sites/[id]/page.tsx`
 - `app/(authenticated)/admin/grids/page.tsx`
