@@ -1,7 +1,7 @@
 replicaCount: 2
 image:
   repository: airqoacr.azurecr.io/airqo-stage-docs
-  tag: latest
+  tag: stage-f659ef42-1776315130
   pullPolicy: IfNotPresent
 imagePullSecrets: []
 nameOverride: ''
@@ -25,7 +25,6 @@ autoscaling:
   minReplicas: 1
   maxReplicas: 2
   targetMemoryUtilizationPercentage: 80
-
 app:
   name: airqo-stage-docs
   label: docs

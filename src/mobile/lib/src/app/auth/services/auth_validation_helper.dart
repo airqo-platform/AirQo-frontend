@@ -22,10 +22,20 @@ class AuthValidationHelper with UiLoggy {
       return false;
     }
 
-    final isExpired = await AuthHelper.isTokenExpired();
+    // Try a silent refresh before checking expiry. If it succeeds the user
+    // proceeds without any interruption; only fall back to the re-login prompt
+    // when refresh itself fails (token > 7 days old or no network).
+    final token = await AuthHelper.refreshTokenIfNeeded();
+    if (token != null) {
+      logger.info('Authentication validation passed (token valid or refreshed)');
+      return true;
+    }
 
+    // Refresh failed — check whether the token is actually expired before
+    // blocking the user (it may still be valid if refresh failed due to network).
+    final isExpired = await AuthHelper.isTokenExpired();
     if (isExpired) {
-      logger.warning('Token is expired');
+      logger.warning('Token is expired and refresh failed');
       if (!context.mounted) return false;
       showAuthErrorSafe(
         context,
@@ -35,7 +45,7 @@ class AuthValidationHelper with UiLoggy {
       return false;
     }
 
-    logger.info('Authentication validation passed');
+    logger.info('Authentication validation passed (refresh failed but token still valid)');
     return true;
   }
 

@@ -52,9 +52,8 @@ export default function AfricaMap({ devices = [], onDeviceSelect, selectedDevice
       setIsLoading(true)
       console.log("Fetching device data from API...")
       
-      const apiPath = config.isLocalhost ? 
-        `/devices/map-data` :
-        `/beacon/devices/map-data`
+      const prefix = config.beaconApiPrefix || (config.isLocalhost ? '/api/v1' : '/api/v1/beacon')
+      const apiPath = `${prefix}/devices/map-data`
       
       const response = await fetch(`${config.apiUrl}${apiPath}`, {
         headers: {

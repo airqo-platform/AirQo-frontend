@@ -174,6 +174,46 @@ const pageMetadata: Record<string, Partial<Metadata>> = {
       description: 'Configure organization-wide settings and preferences.',
     },
   },
+  '/system/clients': {
+    title: 'API Clients',
+    description: 'Manage API clients for platform integrations.',
+    openGraph: {
+      title: 'API Clients | AirQo Analytics',
+      description: 'Manage API clients for platform integrations.',
+    },
+  },
+  '/system/org-requests': {
+    title: 'Organization Requests',
+    description: 'Review and manage organization onboarding requests.',
+    openGraph: {
+      title: 'Organization Requests | AirQo Analytics',
+      description: 'Review and manage organization onboarding requests.',
+    },
+  },
+  '/system/user-statistics': {
+    title: 'User Statistics',
+    description: 'Inspect platform user statistics and account activity.',
+    openGraph: {
+      title: 'User Statistics | AirQo Analytics',
+      description: 'Inspect platform user statistics and account activity.',
+    },
+  },
+  '/system/feedback': {
+    title: 'Feedback',
+    description: 'Review user feedback submissions and reported issues.',
+    openGraph: {
+      title: 'Feedback | AirQo Analytics',
+      description: 'Review user feedback submissions and reported issues.',
+    },
+  },
+  '/system/feedback/[id]': {
+    title: 'Feedback Details',
+    description: 'Review an individual feedback submission in detail.',
+    openGraph: {
+      title: 'Feedback Details | AirQo Analytics',
+      description: 'Review an individual feedback submission in detail.',
+    },
+  },
 };
 
 // Generate metadata for a specific page
@@ -194,6 +234,9 @@ export function generatePageMetadata(pathname: string): Metadata {
     if (parts.length >= 3) {
       pageKey = `/user/${parts[2]}`;
     }
+  }
+  if (pathname.startsWith('/system/feedback/')) {
+    pageKey = '/system/feedback/[id]';
   }
 
   const pageSpecificMetadata = pageMetadata[pageKey] || {};

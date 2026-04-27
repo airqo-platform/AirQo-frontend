@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:loggy/loggy.dart';
 import 'package:dotted_border/dotted_border.dart';
+import 'package:airqo/src/app/auth/services/auth_helper.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/models/user_preferences_model.dart';
@@ -31,6 +32,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
   List<Measurement> selectedMeasurements = [];
   List<SelectedSite> unmatchedSites = [];
   bool isLoading = false;
+  bool _prefsAuthError = false;
   late CacheManager _cacheManager;
 
   @override
@@ -329,6 +331,35 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
       listener: (context, state) {
         loggy.info('Dashboard state changed to ${state.runtimeType}');
         if (state is DashboardLoaded) {
+          if (state.prefsAuthError) {
+            loggy.warning('Preferences auth error detected — showing refresh prompt');
+            setState(() => _prefsAuthError = true);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const TranslatedText('Session expired. Your saved places could not be loaded.'),
+                duration: const Duration(seconds: 10),
+                action: SnackBarAction(
+                  label: 'Refresh',
+                  onPressed: () async {
+                    final token = await AuthHelper.refreshTokenIfNeeded();
+                    if (token != null && context.mounted) {
+                      setState(() => _prefsAuthError = false);
+                      context.read<DashboardBloc>().add(LoadUserPreferences());
+                    } else if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: TranslatedText('Could not refresh session. Please log in again.'),
+                          duration: Duration(seconds: 6),
+                        ),
+                      );
+                    }
+                  },
+                ),
+              ),
+            );
+          } else {
+            setState(() => _prefsAuthError = false);
+          }
           _loadSelectedMeasurements();
         } else if (state is DashboardAuthenticationError) {
           loggy.error('Authentication error detected: ${state.message}');
@@ -362,7 +393,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
                     _buildLoadingState()
                   else if (selectedMeasurements.isEmpty &&
                       unmatchedSites.isEmpty)
-                    _buildEmptyState()
+                    (_prefsAuthError ? _buildSessionExpiredState() : _buildEmptyState())
                   else ...[
                     ...selectedMeasurements.map((measurement) {
                       String? preferenceLocationName;
@@ -451,6 +482,68 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
         ),
         _buildAddLocationContainer(),
         _buildAddLocationContainer(),
+      ],
+    );
+  }
+
+  Widget _buildSessionExpiredState() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const SizedBox(height: 48),
+        Icon(
+          Icons.lock_clock_outlined,
+          size: 64,
+          color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.4),
+        ),
+        const SizedBox(height: 16),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: TranslatedText(
+            'Your session has expired',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).textTheme.headlineMedium?.color,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: TranslatedText(
+            'We could not load your saved places because your session needs to be refreshed.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 15,
+              color: Theme.of(context).textTheme.bodyMedium?.color,
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        ElevatedButton.icon(
+          onPressed: () async {
+            final token = await AuthHelper.refreshTokenIfNeeded();
+            if (token != null && mounted) {
+              setState(() => _prefsAuthError = false);
+              context.read<DashboardBloc>().add(LoadUserPreferences());
+            } else if (mounted) {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const LoginPage()),
+                (route) => false,
+              );
+            }
+          },
+          icon: const Icon(Icons.refresh),
+          label: const TranslatedText('Refresh Session'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primaryColor,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+        ),
       ],
     );
   }

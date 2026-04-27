@@ -60,6 +60,11 @@ export type TableItem<T = unknown> = {
   id: string | number;
 } & Record<string, T>;
 
+export interface AdditionalExportField {
+  key: string;
+  title: string;
+}
+
 interface SortConfig {
   key: string | null;
   direction: "asc" | "desc";
@@ -565,6 +570,7 @@ interface ReusableTableProps<T extends TableItem> {
   searchTerm?: string;
   exportable?: boolean;
   onExport?: (format: 'csv', selectedColumns: string[]) => Promise<void>;
+  additionalExportFields?: AdditionalExportField[];
   customHeaderContent?: ReactNode;
 }
 
@@ -629,6 +635,7 @@ const ReusableTable = <T extends TableItem>({
   stickyHeader = false,
   exportable = true,
   onExport,
+  additionalExportFields = [],
   customHeaderContent,
 }: ReusableTableProps<T>) => {
   const router = useRouter();
@@ -812,6 +819,8 @@ const ReusableTable = <T extends TableItem>({
       const row: Record<string, string> = {};
       selectedColumns.forEach(colKey => {
         const colDef = columns.find(c => c.key === colKey);
+        const additionalField = additionalExportFields.find(f => f.key === colKey);
+
         if (colDef) {
           // Use the column's render function to get the exact displayed value
           const rawValue = item[colKey as keyof T];
@@ -853,6 +862,10 @@ const ReusableTable = <T extends TableItem>({
           // Use the column title (or label) as it appears in the table header
           const columnHeader = colDef.title || (typeof colDef.label === 'string' ? colDef.label : String(colKey));
           row[columnHeader] = displayValue;
+        } else if (additionalField) {
+          // If it's an additional field, use raw value
+          const rawValue = item[colKey as keyof T];
+          row[additionalField.title] = normalizeToString(rawValue);
         }
       });
       return row;
@@ -1481,10 +1494,17 @@ const ReusableTable = <T extends TableItem>({
           isOpen={isExportModalOpen}
           onClose={() => setIsExportModalOpen(false)}
           onExport={handleExport}
-          columns={columns.map(col => ({
-            key: String(col.key),
-            title: col.title || (typeof col.label === 'string' ? col.label : String(col.key))
-          })).filter(c => c.key !== 'checkbox' && c.key !== 'actions')}
+          columns={columns
+            .map(col => ({
+              key: String(col.key),
+              title:
+                col.title ||
+                (typeof col.label === 'string' ? col.label : String(col.key)),
+            }))
+            .filter(c => c.key !== 'checkbox' && c.key !== 'actions')}
+          additionalColumns={additionalExportFields.filter(
+            c => c.key !== 'checkbox' && c.key !== 'actions'
+          )}
           totalRows={serverSidePagination ? (pageCount * pageSize) : filteredData.length}
           currentPageRows={finalPaginatedData.length}
           hasServerSidePagination={serverSidePagination}

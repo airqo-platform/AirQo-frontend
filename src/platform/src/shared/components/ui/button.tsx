@@ -28,6 +28,7 @@ interface ButtonProps {
   tabIndex?: number;
   'aria-label'?: string;
   'aria-describedby'?: string;
+  title?: string;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(

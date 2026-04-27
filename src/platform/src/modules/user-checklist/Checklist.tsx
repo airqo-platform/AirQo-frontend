@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
+import { useUser } from '@/shared/hooks/useUser';
 import StepProgress from './components/StepProgress';
 import ChecklistStepCard from './components/ChecklistStepCard';
 import ChecklistSkeleton from './components/ChecklistSkeleton';
@@ -27,35 +28,57 @@ const Checklist = ({
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [videoStepId, setVideoStepId] = useState<number | null>(null);
   const { data: session } = useSession();
+  const { user: reduxUser } = useUser();
+  const [isInitializingLocal, setIsInitializingLocal] = useState(false);
+  const [initializationCompleted, setInitializationCompleted] = useState(false);
 
-  // Get user ID from NextAuth session when component mounts
+  // Resolve user ID from session first, then Redux user as fallback.
   useEffect(() => {
-    if (session?.user) {
-      const user = session.user as unknown as {
-        id?: string;
-        _id?: string;
-        userId?: string;
-      };
-      if (user.id) {
-        setUserId(user.id);
-      } else if (user._id) {
-        setUserId(user._id);
-      } else if (user.userId) {
-        setUserId(user.userId);
-      }
-    } else {
-      // Clear user ID and reset initialization state when user logs out
-      setUserId(null);
-      setInitializationCompleted(false);
-      if (typeof window !== 'undefined') {
-        // Clear all checklist initialization states on logout
-        const keys = Object.keys(localStorage).filter(key =>
-          key.startsWith('checklist_initialized_')
-        );
-        keys.forEach(key => localStorage.removeItem(key));
-      }
+    const sessionUser = session?.user as
+      | {
+          id?: string;
+          _id?: string;
+          userId?: string;
+        }
+      | undefined;
+
+    const sessionResolvedUserId =
+      sessionUser?.id || sessionUser?._id || sessionUser?.userId || null;
+    const resolvedUserId = sessionResolvedUserId || reduxUser?.id || null;
+
+    if (resolvedUserId) {
+      setUserId(previousUserId =>
+        previousUserId === resolvedUserId ? previousUserId : resolvedUserId
+      );
+      return;
     }
-  }, [session]);
+
+    // Clear user ID and reset initialization state when user logs out.
+    setUserId(null);
+    setInitializationCompleted(false);
+
+    if (typeof window !== 'undefined') {
+      const keys = Object.keys(localStorage).filter(key =>
+        key.startsWith('checklist_initialized_')
+      );
+      keys.forEach(key => localStorage.removeItem(key));
+    }
+  }, [session, reduxUser?.id]);
+
+  // Keep initialization flag in sync with currently resolved user.
+  useEffect(() => {
+    if (!userId) {
+      setInitializationCompleted(false);
+      return;
+    }
+
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const stored = localStorage.getItem(`checklist_initialized_${userId}`);
+    setInitializationCompleted(stored === 'true');
+  }, [userId]);
 
   // Get checklist data
   const {
@@ -85,17 +108,6 @@ const Checklist = ({
 
   // Create static steps - use useMemo to avoid recreating on each render
   const staticSteps = useMemo(() => createSteps(), []);
-
-  // Handle initialization for first-time users with proper state tracking
-  const [isInitializingLocal, setIsInitializingLocal] = useState(false);
-  const [initializationCompleted, setInitializationCompleted] = useState(() => {
-    // Check localStorage for initialization state to persist across page reloads
-    if (typeof window !== 'undefined' && userId) {
-      const stored = localStorage.getItem(`checklist_initialized_${userId}`);
-      return stored === 'true';
-    }
-    return false;
-  });
 
   useEffect(() => {
     let isMounted = true;
@@ -307,7 +319,9 @@ const Checklist = ({
   );
 
   const handleVideoComplete = useCallback(async () => {
-    if (!checklistUserId || !videoStepId) return;
+    if (!checklistUserId || videoStepId === null || videoStepId === undefined) {
+      return;
+    }
 
     try {
       await markStepCompleted(checklistUserId, videoStepId, checklistItems);

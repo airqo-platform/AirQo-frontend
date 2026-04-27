@@ -382,6 +382,21 @@ class LocationListView extends StatelessWidget with UiLoggy {
     );
   }
 
+  Widget _buildLocationTitle(
+      Measurement measurement, BuildContext context, bool isSelected) {
+    final details = measurement.siteDetails;
+    final name = (details?.city?.isNotEmpty == true ? details!.city : null) ??
+        (details?.town?.isNotEmpty == true ? details!.town : null) ??
+        (details?.locationName?.isNotEmpty == true ? details!.locationName : null);
+    final style = TextStyle(
+      color: Theme.of(context).textTheme.bodyLarge?.color,
+      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+    );
+    return name != null
+        ? Text(name, style: style)
+        : TranslatedText('Unknown location', style: style);
+  }
+
   Widget _buildLocationTile(Measurement measurement,
       {required BuildContext context}) {
     final isSelected = selectedLocations.contains(measurement.siteId);
@@ -412,16 +427,7 @@ class LocationListView extends StatelessWidget with UiLoggy {
                 colorFilter: isSelected ? ColorFilter.mode(AppColors.primaryColor, BlendMode.srcIn) : null,
               ),
             ),
-            title: Text(
-              measurement.siteDetails?.city ??
-                  measurement.siteDetails?.town ??
-                  measurement.siteDetails?.locationName ??
-                  "Unknown Location",
-              style: TextStyle(
-                color: Theme.of(context).textTheme.bodyLarge?.color,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              ),
-            ),
+            title: _buildLocationTitle(measurement, context, isSelected),
             subtitle: Text(
               measurement.siteDetails?.searchName ??
                   measurement.siteDetails?.name ??

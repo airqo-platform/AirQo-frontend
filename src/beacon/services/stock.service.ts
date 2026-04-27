@@ -23,25 +23,16 @@ class StockService {
   constructor() {
     // Use centralized config for API URL
     this.baseUrl = config.beaconApiUrl;
-    this.apiPrefix = config.apiPrefix || '';
+    this.apiPrefix = config.beaconApiPrefix || (config.isLocalhost ? '/api/v1' : '/api/v1/beacon');
   }
 
-  /**
-   * Get the appropriate endpoint based on environment
-   */
   /**
    * Get the appropriate endpoint based on environment
    * @param resource - The resource path (e.g., '/items-stock/')
    */
   private getEndpoint(resource: string): string {
     const cleanPath = resource.startsWith('/') ? resource : `/${resource}`;
-
-    if (config.isLocalhost) {
-      return `${cleanPath}`;
-    }
-
-    // For production/staging, prefix with configured API prefix + service name
-    return `${this.apiPrefix}/beacon${cleanPath}`;
+    return `${this.apiPrefix}${cleanPath}`;
   }
 
   /**
@@ -54,7 +45,7 @@ class StockService {
 
     const token = authService.getToken();
     if (token) {
-      return { 'Authorization': `Bearer ${token}` };
+      return { 'Authorization': token };
     }
     return {};
   }

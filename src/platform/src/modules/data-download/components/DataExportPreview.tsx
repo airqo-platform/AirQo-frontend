@@ -1,4 +1,11 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import Checkbox from '@/shared/components/ui/checkbox';
 import ReusableDialog from '@/shared/components/ui/dialog';
 import { DateRange } from '@/shared/components/calendar/types';
 import {
@@ -6,11 +13,17 @@ import {
   DATA_TYPE_LABELS,
 } from '@/shared/components/charts/constants';
 import { InfoBanner } from '@/shared/components/ui/banner';
+import { areArraysEqual } from '@/shared/utils/arrays';
+import {
+  getDefaultDownloadColumnKeys,
+  getDownloadColumnGroups,
+  getDownloadColumnLabelMap,
+} from '../utils/dataExportFile';
 
 interface DataExportPreviewProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: (selectedColumnKeys: string[]) => void;
   isDownloading: boolean;
 
   // Export configuration
@@ -25,12 +38,18 @@ interface DataExportPreviewProps {
   selectedGridIds: string[];
   selectedGridSites: Record<string, string[]>;
   selectedGridSiteIds: Record<string, string[]>;
-  deviceCategory: string;
 }
 
-interface PreviewData {
-  [key: string]: string | number | null;
-}
+type PreviewData = Record<string, string | number | null>;
+
+const SAMPLE_POLLUTANT_VALUES: Record<string, [number, number]> = {
+  pm2_5: [36.37, 30.97],
+  pm10: [46.42, 42.11],
+  no2: [18.27, 16.81],
+  so2: [8.12, 7.44],
+  o3: [22.54, 23.71],
+  co: [0.82, 0.74],
+};
 
 export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
   isOpen,
@@ -48,13 +67,12 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
   selectedGridIds,
   selectedGridSites,
   selectedGridSiteIds,
-  deviceCategory,
 }) => {
-  const [previewData, setPreviewData] = useState<PreviewData[]>([]);
-  const [previewLoading, setPreviewLoading] = useState(false);
-  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [selectedColumnKeys, setSelectedColumnKeys] = useState<string[]>(() =>
+    getDefaultDownloadColumnKeys(activeTab, selectedPollutants)
+  );
+  const previousOpenRef = useRef(false);
 
-  // Format date range for display
   const formattedDateRange = useMemo(() => {
     if (!dateRange?.from || !dateRange?.to) return 'Not selected';
 
@@ -69,7 +87,6 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
     return `${formatDate(dateRange.from)} - ${formatDate(dateRange.to)}`;
   }, [dateRange]);
 
-  // Calculate estimated days
   const estimatedDays = useMemo(() => {
     if (!dateRange?.from || !dateRange?.to) return 0;
 
@@ -79,7 +96,21 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
   }, [dateRange]);
 
-  // Get selected locations
+  const columnGroups = useMemo(
+    () => getDownloadColumnGroups(activeTab, selectedPollutants),
+    [activeTab, selectedPollutants]
+  );
+
+  const columnLabelMap = useMemo(
+    () => getDownloadColumnLabelMap(activeTab, selectedPollutants),
+    [activeTab, selectedPollutants]
+  );
+
+  const defaultColumnKeys = useMemo(
+    () => getDefaultDownloadColumnKeys(activeTab, selectedPollutants),
+    [activeTab, selectedPollutants]
+  );
+
   const selectedLocations = useMemo(() => {
     switch (activeTab) {
       case 'sites':
@@ -119,174 +150,155 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
     }
   }, [activeTab]);
 
-  // Fetch preview data when dialog opens
+  const locationColumnKey = useMemo(() => {
+    switch (activeTab) {
+      case 'sites':
+        return 'site_name';
+      case 'devices':
+        return 'device_name';
+      case 'countries':
+        return 'country_name';
+      case 'cities':
+        return 'city_name';
+      default:
+        return 'site_name';
+    }
+  }, [activeTab]);
+
+  const locationSampleValue = useMemo(() => {
+    switch (activeTab) {
+      case 'sites':
+        return selectedSites[0] || 'Sample Site';
+      case 'devices':
+        return selectedDevices[0] || 'sample_device';
+      case 'countries':
+        return selectedGridIds[0] || 'Sample Country';
+      case 'cities':
+        return selectedGridIds[0] || 'Sample City';
+      default:
+        return 'Sample Location';
+    }
+  }, [activeTab, selectedDevices, selectedGridIds, selectedSites]);
+
   useEffect(() => {
-    if (
-      isOpen &&
-      dateRange?.from &&
-      dateRange?.to &&
-      selectedLocations.length > 0 &&
-      selectedPollutants.length > 0
-    ) {
-      const fetchPreviewData = async () => {
-        setPreviewLoading(true);
-        setPreviewError(null);
+    if (isOpen && !previousOpenRef.current) {
+      setSelectedColumnKeys(prev =>
+        areArraysEqual(prev, defaultColumnKeys) ? prev : defaultColumnKeys
+      );
+    }
 
-        try {
-          // For preview, we'll simulate getting data or use a modified request
-          // Since we can't actually download for preview, we'll show sample structure
-          const sampleData: PreviewData[] = [
-            {
-              ...(activeTab === 'sites' && {
-                site_name: selectedLocations[0] || 'Sample Site',
-              }),
-              ...(activeTab === 'devices' && {
-                device_name: selectedLocations[0] || 'sample_device',
-              }),
-              ...(activeTab === 'countries' && {
-                country_name: selectedLocations[0] || 'Sample Country',
-              }),
-              ...(activeTab === 'cities' && {
-                city_name: selectedLocations[0] || 'Sample City',
-              }),
-              datetime: dateRange?.from
-                ? dateRange.from
-                    .toISOString()
-                    .replace('T', ' ')
-                    .replace('Z', '')
-                : '',
-              frequency: frequency,
-              network: 'airqo',
-              latitude: 0.3244820075131162,
-              longitude: 32.571073376413565,
-              temperature: 25.83641260890321,
-              humidity: 72.06045440983412,
-              pm2_5: 36.37,
-              pm2_5_calibrated_value: 36.37,
-              pm10: 46.42,
-              pm10_calibrated_value: 46.42,
-            },
-            {
-              ...(activeTab === 'sites' && {
-                site_name: selectedLocations[0] || 'Sample Site',
-              }),
-              ...(activeTab === 'devices' && {
-                device_name: selectedLocations[0] || 'sample_device',
-              }),
-              ...(activeTab === 'countries' && {
-                country_name: selectedLocations[0] || 'Sample Country',
-              }),
-              ...(activeTab === 'cities' && {
-                city_name: selectedLocations[0] || 'Sample City',
-              }),
-              datetime: dateRange?.from
-                ? new Date(dateRange.from.getTime() + 24 * 60 * 60 * 1000)
-                    .toISOString()
-                    .replace('T', ' ')
-                    .replace('Z', '')
-                : '',
-              frequency: frequency,
-              network: 'airqo',
-              latitude: 0.3244820075131162,
-              longitude: 32.571073376413565,
-              temperature: 26.85111111111112,
-              humidity: 63.484772961816304,
-              pm2_5: 30.97,
-              pm2_5_calibrated_value: 27.95,
-              pm10: 42.11,
-              pm10_calibrated_value: 38.94,
-            },
-          ];
+    previousOpenRef.current = isOpen;
+  }, [defaultColumnKeys, isOpen]);
 
-          // Filter to only show selected pollutants
-          const filteredData = sampleData.map(row => {
-            const filteredRow: PreviewData = {
-              datetime: row.datetime,
-              ...(activeTab === 'sites' && { site_name: row.site_name }),
-              ...(activeTab === 'devices' && { device_name: row.device_name }),
-              ...(activeTab === 'countries' && {
-                country_name: row.country_name,
-              }),
-              ...(activeTab === 'cities' && { city_name: row.city_name }),
-              frequency: row.frequency,
-              network: row.network,
-            };
+  const handleColumnToggle = useCallback((key: string, checked: boolean) => {
+    setSelectedColumnKeys(prev => {
+      if (checked) {
+        return prev.includes(key) ? prev : [...prev, key];
+      }
 
-            // Add selected pollutants
-            selectedPollutants.forEach(pollutant => {
-              if (row[pollutant] !== undefined) {
-                filteredRow[pollutant] = row[pollutant];
-                filteredRow[`${pollutant}_calibrated_value`] =
-                  row[`${pollutant}_calibrated_value`];
-              }
-            });
+      return prev.filter(columnKey => columnKey !== key);
+    });
+  }, []);
 
-            // Add weather fields if selected
-            if (row.temperature !== undefined)
-              filteredRow.temperature = row.temperature;
-            if (row.humidity !== undefined) filteredRow.humidity = row.humidity;
+  const sampleRows = useMemo<PreviewData[]>(() => {
+    if (!dateRange?.from) {
+      return [];
+    }
 
-            // Add location fields
-            if (row.latitude !== undefined) filteredRow.latitude = row.latitude;
-            if (row.longitude !== undefined)
-              filteredRow.longitude = row.longitude;
+    const baseDate = dateRange.from;
 
-            return filteredRow;
-          });
+    const createSampleDate = (index: number) => {
+      const sampleDate = new Date(baseDate);
 
-          setPreviewData(filteredData.slice(0, 5)); // Show max 5 rows
-        } catch (error) {
-          setPreviewError('Failed to load preview data');
-          console.error('Preview data fetch error:', error);
-        } finally {
-          setPreviewLoading(false);
-        }
+      switch (frequency) {
+        case 'raw':
+        case 'hourly':
+          sampleDate.setHours(sampleDate.getHours() + index);
+          break;
+        case 'weekly':
+          sampleDate.setDate(sampleDate.getDate() + index * 7);
+          break;
+        case 'monthly':
+          sampleDate.setMonth(sampleDate.getMonth() + index);
+          break;
+        default:
+          sampleDate.setDate(sampleDate.getDate() + index);
+          break;
+      }
+
+      return sampleDate;
+    };
+
+    return [0, 1].map(index => {
+      const sampleDate = createSampleDate(index);
+
+      const row: PreviewData = {
+        [locationColumnKey]: locationSampleValue,
+        datetime: sampleDate.toISOString().replace('T', ' ').replace('Z', ''),
+        frequency,
+        network: 'airqo',
+        latitude: 0.3244820075131162,
+        longitude: 32.571073376413565,
+        temperature: index === 0 ? 25.83641260890321 : 26.85111111111112,
+        humidity: index === 0 ? 72.06045440983412 : 63.484772961816304,
       };
 
-      fetchPreviewData();
-    }
+      selectedPollutants.forEach(pollutant => {
+        const values = SAMPLE_POLLUTANT_VALUES[pollutant] || [36.37, 30.97];
+        const value = index === 0 ? values[0] : values[1];
+
+        row[pollutant] = value;
+        row[`${pollutant}_calibrated_value`] = Number(
+          (value * 0.92).toFixed(2)
+        );
+      });
+
+      return row;
+    });
   }, [
-    isOpen,
-    dateRange,
-    selectedLocations,
-    selectedPollutants,
-    dataType,
+    dateRange?.from,
     frequency,
-    activeTab,
-    deviceCategory,
-    selectedSites,
-    selectedDevices,
-    selectedGridIds,
+    locationColumnKey,
+    locationSampleValue,
+    selectedPollutants,
   ]);
 
-  // Get table columns based on preview data
-  const tableColumns = useMemo(() => {
-    if (previewData.length === 0) return [];
+  const previewColumns = useMemo(
+    () =>
+      selectedColumnKeys.map(key => ({
+        key,
+        label: columnLabelMap[key] || key,
+      })),
+    [columnLabelMap, selectedColumnKeys]
+  );
 
-    const firstRow = previewData[0];
-    return Object.keys(firstRow).map(key => ({
-      key,
-      label: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-      render: (value: string | number | null) => {
-        if (typeof value === 'number') {
-          return value.toFixed(2);
-        }
-        return String(value ?? '');
-      },
-    }));
-  }, [previewData]);
+  const previewData = useMemo(() => {
+    if (selectedColumnKeys.length === 0) {
+      return [];
+    }
+
+    return sampleRows.map(row => {
+      const filteredRow: PreviewData = {};
+
+      selectedColumnKeys.forEach(key => {
+        filteredRow[key] = row[key] ?? '';
+      });
+
+      return filteredRow;
+    });
+  }, [sampleRows, selectedColumnKeys]);
 
   return (
     <ReusableDialog
       isOpen={isOpen}
       onClose={onClose}
       title="Export Preview"
-      subtitle="Review your data export configuration and preview sample data"
+      subtitle="Choose the columns you want to keep before downloading."
       size="2xl"
       primaryAction={{
         label: isDownloading ? 'Downloading...' : 'Confirm & Download',
-        onClick: onConfirm,
-        disabled: isDownloading,
+        onClick: () => onConfirm(selectedColumnKeys),
+        disabled: isDownloading || selectedColumnKeys.length === 0,
         loading: isDownloading,
         variant: 'filled',
       }}
@@ -297,6 +309,61 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
       }}
     >
       <div className="space-y-6">
+        <InfoBanner
+          title="Metadata fallback enabled"
+          message="If the selected filters return no readings, the download automatically falls back to metadata for the selected locations."
+        />
+
+        {/* Download Columns */}
+        <div className="space-y-3">
+          <div>
+            <h3 className="text-sm text-gray-900 dark:text-gray-100">
+              Download Columns
+            </h3>
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Turn columns on or off to match the file you want.
+            </p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {columnGroups.map(group => (
+              <div
+                key={group.id}
+                className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800"
+              >
+                <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  {group.title}
+                </h4>
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                  {group.options.map(option => (
+                    <label
+                      key={option.key}
+                      className="flex items-start gap-2 rounded-md border border-gray-200 px-3 py-2 text-sm transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700/60"
+                    >
+                      <Checkbox
+                        checked={selectedColumnKeys.includes(option.key)}
+                        onCheckedChange={checked =>
+                          handleColumnToggle(option.key, checked === true)
+                        }
+                        className="mt-0.5"
+                      />
+                      <span className="leading-5 text-gray-900 dark:text-gray-100">
+                        {option.label}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {selectedColumnKeys.length === 0 && (
+            <p className="text-sm text-red-600 dark:text-red-400">
+              Select at least one column to enable the download.
+            </p>
+          )}
+        </div>
+
         {/* Configuration Summary */}
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
           <h3 className="text-sm text-gray-900 dark:text-gray-100 mb-3">
@@ -323,7 +390,7 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
             </div>
             <div>
               <span className="font-medium text-gray-700 dark:text-gray-300">
-                Format:
+                Response Format:
               </span>
               <p className="text-gray-900 dark:text-gray-100 mt-1 uppercase">
                 {fileType}
@@ -339,9 +406,10 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
             </div>
           </div>
           <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-            <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex flex-wrap gap-3 text-sm text-gray-600 dark:text-gray-400">
               <span>Date Range: {formattedDateRange}</span>
               <span>Estimated Days: {estimatedDays}</span>
+              <span>Selected Columns: {selectedColumnKeys.length}</span>
             </div>
           </div>
         </div>
@@ -352,24 +420,18 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
             Data Preview (Sample Rows)
           </h3>
 
-          {previewLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                Loading preview data...
-              </div>
-            </div>
-          ) : previewError ? (
+          {selectedColumnKeys.length === 0 ? (
             <InfoBanner
               title="Preview Unavailable"
-              message="Unable to load preview data. You can still proceed with the export."
+              message="Select at least one column above to preview the export output."
             />
           ) : previewData.length > 0 ? (
             <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-              <div className="max-h-64 overflow-y-auto">
+              <div className="max-h-64 overflow-auto">
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                     <tr>
-                      {tableColumns.map(column => (
+                      {previewColumns.map(column => (
                         <th
                           key={column.key}
                           className="px-3 py-2 text-left font-medium text-gray-700 dark:text-gray-300 border-r border-gray-200 dark:border-gray-700 last:border-r-0"
@@ -385,12 +447,14 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
                         key={rowIndex}
                         className="border-b border-gray-100 dark:border-gray-700 last:border-b-0"
                       >
-                        {tableColumns.map(column => (
+                        {previewColumns.map(column => (
                           <td
                             key={column.key}
                             className="px-3 py-2 text-gray-900 dark:text-gray-100 border-r border-gray-200 dark:border-gray-700 last:border-r-0"
                           >
-                            {column.render(row[column.key])}
+                            {typeof row[column.key] === 'number'
+                              ? Number(row[column.key]).toFixed(2)
+                              : String(row[column.key] ?? '')}
                           </td>
                         ))}
                       </tr>
@@ -408,7 +472,7 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
 
         {/* Export Notes */}
         <InfoBanner
-          message={`This preview shows sample data. Your actual export will include all ${selectedLocations.length} ${locationType.toLowerCase()} and ${estimatedDays} days of data in ${fileType.toUpperCase()} format.`}
+          message={`This preview is for the file setup only. Your download will use the same data selection and keep only the columns you choose here.`}
         />
       </div>
     </ReusableDialog>

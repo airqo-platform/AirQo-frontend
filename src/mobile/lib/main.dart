@@ -2,7 +2,9 @@ import 'dart:async';
 import 'package:airqo/core/utils/logging_bloc_observer.dart';
 import 'package:airqo/src/app/auth/bloc/ForgotPasswordBloc/forgot_password_bloc.dart';
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
+import 'package:airqo/src/app/auth/pages/welcome_screen.dart';
 import 'package:airqo/src/app/auth/repository/auth_repository.dart';
+import 'package:airqo/src/app/auth/services/auth_helper.dart';
 import 'package:airqo/src/app/shared/repository/global_auth_manager.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/bloc/forecast/forecast_bloc.dart';
@@ -255,9 +257,24 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    
+
     if (state == AppLifecycleState.resumed) {
       AutoUpdateService().checkForUpdates(showDialog: true);
+      _checkTokenExpiryOnResume();
+    }
+  }
+
+  Future<void> _checkTokenExpiryOnResume() async {
+    final authBloc = context.read<AuthBloc>();
+    // Only check when the user is authenticated; guests have no token,
+    // and if already expired we don't need to fire again.
+    final currentState = authBloc.state;
+    if (currentState is! AuthLoaded) return;
+
+    final isExpired = await AuthHelper.isTokenExpired();
+    if (isExpired && mounted) {
+      // Route through GlobalAuthManager so the de-duplication guard applies.
+      GlobalAuthManager.instance.notifySessionExpired();
     }
   }
 
@@ -268,14 +285,28 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
         logDebug('Current connectivity state: $connectivityState');
         return Stack(
           children: [
-            BlocBuilder<AuthBloc, AuthState>(
+            BlocConsumer<AuthBloc, AuthState>(
+              listener: (context, authState) {
+                if (authState is SessionExpiredState) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Your session has expired. Please log in again.'),
+                      duration: Duration(seconds: 4),
+                    ),
+                  );
+                }
+              },
               builder: (context, authState) {
                 debugPrint("Current AuthState: $authState");
 
                 if (authState is AuthLoading) {
-                  return Scaffold(
-                    body: const Center(child: CircularProgressIndicator()),
+                  return const Scaffold(
+                    body: Center(child: CircularProgressIndicator()),
                   );
+                }
+
+                if (authState is SessionExpiredState) {
+                  return const WelcomeScreen();
                 }
 
                 if (authState is GuestUser) {
@@ -287,15 +318,14 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
                   return NavPage();
                 }
 
-
                 if (authState is AuthLoadingError) {
                   return Scaffold(
                     body: Center(child: Text('Error: ${authState.message}')),
                   );
                 }
 
-                return Scaffold(
-                  body: const Center(child: CircularProgressIndicator()),
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
                 );
               },
             ),

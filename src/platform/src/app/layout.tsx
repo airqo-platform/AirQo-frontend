@@ -1,7 +1,9 @@
 import './globals.css';
+import '@smastrom/react-rating/style.css';
 import type { Metadata } from 'next';
 import Script from 'next/script';
 import { Inter } from 'next/font/google';
+import NextTopLoader from 'nextjs-toploader';
 import { ReduxProvider } from '@/shared/providers/redux-provider';
 import { AuthProvider } from '@/shared/providers/auth-provider';
 import { PostHogProvider } from '@/shared/providers/posthog-provider';
@@ -35,6 +37,18 @@ export default function RootLayout({
         />
       </head>
       <body className={`antialiased ${inter.className}`}>
+        <NextTopLoader
+          color="rgb(var(--primary))"
+          height={3}
+          showSpinner={false}
+          crawl={true}
+          crawlSpeed={220}
+          speed={260}
+          easing="ease"
+          initialPosition={0.08}
+          shadow="0 0 8px rgb(var(--primary) / 0.6)"
+          zIndex={10000}
+        />
         <ReduxProvider>
           <ErrorBoundary>
             <AuthProvider>

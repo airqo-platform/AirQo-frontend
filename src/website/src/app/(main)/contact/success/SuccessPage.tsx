@@ -13,15 +13,24 @@ const SuccessPage: React.FC = () => {
 
   // Countdown and redirect effect
   useEffect(() => {
+    const timer = window.setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          window.clearInterval(timer);
+          return 0;
+        }
+
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
     if (countdown === 0) {
       router.push('/');
     }
-
-    const timer = setInterval(() => {
-      setCountdown((prev) => prev - 1);
-    }, 1000);
-
-    return () => clearInterval(timer);
   }, [countdown, router]);
 
   // Animation variants for the image and text

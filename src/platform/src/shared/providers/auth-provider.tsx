@@ -22,7 +22,10 @@ import logger from '@/shared/lib/logger';
 import { SWRProvider } from '@/shared/providers/swr-provider';
 import { QueryProvider } from '@/shared/providers/query-provider';
 import { runClientCacheMaintenance } from '@/shared/lib/clientCache';
-import { normalizeCallbackUrl } from '@/shared/lib/auth-redirect';
+import {
+  normalizeCallbackUrl,
+  redirectWithReload,
+} from '@/shared/lib/auth-redirect';
 import {
   clearCachedSessionAccessToken,
   getSessionAccessTokenFromSession,
@@ -32,6 +35,7 @@ import {
   clearBackendOAuthSignedOutFlag,
   consumeOAuthTokenHandoffFromUrl,
   buildSessionFromProfile,
+  normalizeOAuthAccessToken,
   type BackendOAuthSession,
   shouldSkipBackendOAuthBootstrap,
   verifyBackendOAuthSession,
@@ -121,10 +125,15 @@ function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
     router,
     shouldSyncToRouteOrgGroup,
     shouldSyncToUserGroup,
+    switchGroup,
   ]);
 
+  // Block children from mounting while the group sync is in progress.
+  // This prevents dashboard components from making API calls with the wrong
+  // group context. The sync completes in a single effect tick (synchronous
+  // Redux dispatch), so the overlay flicker is imperceptible.
   if (shouldSyncToUserGroup || shouldSyncToRouteOrgGroup) {
-    return <LoadingOverlay />;
+    return <LoadingOverlay delayMs={0} />;
   }
 
   return <>{children}</>;
@@ -150,6 +159,8 @@ const UNAUTHORIZED_WINDOW_MS = 30000;
 const UNAUTHORIZED_THRESHOLD = 3;
 const ACCOUNT_DELETION_TTL_MS = 5 * 60 * 1000;
 const ACCOUNT_DELETION_USER_IDENTIFIER_KEY = 'account_deleted_user_identifier';
+const NEXTAUTH_SESSION_RETRY_DELAY_MS = 150;
+const NEXTAUTH_SESSION_RETRY_ATTEMPTS = 8;
 
 const getSessionCacheScope = (session: unknown): string | null => {
   const user = (session as { user?: { _id?: string; email?: string } })?.user;
@@ -167,11 +178,88 @@ const getSessionCacheScope = (session: unknown): string | null => {
   return null;
 };
 
+const toNormalizedPath = (url?: string): string => {
+  if (!url) {
+    return '';
+  }
+
+  try {
+    const parsed = new URL(
+      url,
+      typeof window !== 'undefined' ? window.location.origin : 'http://local'
+    );
+    return parsed.pathname.toLowerCase();
+  } catch {
+    return url.split('?')[0].toLowerCase();
+  }
+};
+
+const stripApiVersionPrefix = (path: string): string => {
+  return path.replace(/^\/api\/v\d+/i, '');
+};
+
+const matchesPermissionScopedPath = (
+  path: string,
+  scopedPath: string
+): boolean => {
+  const normalizedPath = path.replace(/\/+$/, '') || '/';
+  const normalizedScopedPath = scopedPath.replace(/\/+$/, '') || '/';
+
+  return (
+    normalizedPath === normalizedScopedPath ||
+    normalizedPath.startsWith(`${normalizedScopedPath}/`)
+  );
+};
+
+const isPermissionScopedUnauthorizedPath = (url?: string): boolean => {
+  const normalizedPath = stripApiVersionPrefix(toNormalizedPath(url));
+
+  return (
+    matchesPermissionScopedPath(normalizedPath, '/devices/readings/recent') ||
+    matchesPermissionScopedPath(normalizedPath, '/devices/readings/map') ||
+    matchesPermissionScopedPath(normalizedPath, '/analytics/data-download')
+  );
+};
+
+const waitForNextAuthSession = async (
+  shouldContinue: () => boolean,
+  attempts = NEXTAUTH_SESSION_RETRY_ATTEMPTS,
+  delayMs = NEXTAUTH_SESSION_RETRY_DELAY_MS
+) => {
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    const session = await getSession();
+    if (session?.user) {
+      return session;
+    }
+
+    if (attempt === attempts - 1 || !shouldContinue()) {
+      break;
+    }
+
+    await new Promise<void>(resolve => {
+      window.setTimeout(resolve, delayMs);
+    });
+  }
+
+  return null;
+};
+
 function AuthScopedCacheProviders({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const cacheScope = getSessionCacheScope(session);
   const enablePersistence = status === 'authenticated' && !!cacheScope;
-  const providerKey = `${status}:${cacheScope ?? 'anon'}`;
+
+  // Derive a stable provider key that ignores the interim 'loading' status.
+  // Without this, the login flow causes two key changes:
+  //   unauthenticated → loading → authenticated
+  // Each key change remounts SWR/QueryClient providers and unmounts all children,
+  // producing two white flashes. By freezing the key during 'loading', we get
+  // at most one remount (unauthenticated → authenticated).
+  const stableKeyRef = useRef<string>('anon');
+  if (status !== 'loading') {
+    stableKeyRef.current = cacheScope ?? 'anon';
+  }
+  const providerKey = stableKeyRef.current;
 
   return (
     <SWRProvider
@@ -353,14 +441,12 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       const customEvent = event as CustomEvent;
       const { url } = (customEvent.detail as { url?: string }) || {};
 
-      // If it's the readings API or map readings API, don't logout - just log and return
-      // This can happen when user doesn't have access to specific sites but is still logged in
-      if (
-        url?.startsWith('/devices/readings/recent') ||
-        url?.startsWith('/devices/readings/map')
-      ) {
+      // Some endpoints can return 401 for permission-scoped resources without
+      // indicating an expired session; avoid triggering global auth handling.
+      if (isPermissionScopedUnauthorizedPath(url)) {
         logger.info(
-          '401 on readings API - not logging out, likely permission issue for specific sites'
+          '401 on permission-scoped API endpoint; skipping global logout handling',
+          { url }
         );
         return;
       }
@@ -446,6 +532,49 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   }, [handleUnauthorized]);
 
   useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const handleTokenRefreshed = async (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const detail = (customEvent.detail || {}) as {
+        token?: string;
+        expiresIn?: number;
+      };
+      const normalizedToken = normalizeOAuthAccessToken(
+        typeof detail.token === 'string' ? detail.token : ''
+      );
+      if (!normalizedToken) return;
+
+      const expiresAt =
+        typeof detail.expiresIn === 'number'
+          ? new Date(Date.now() + detail.expiresIn * 1000).toISOString()
+          : undefined;
+
+      setCachedSessionAccessToken(normalizedToken);
+
+      try {
+        await update({ accessToken: normalizedToken, expiresAt });
+      } catch (error) {
+        logger.warn('Failed to update session after token refresh', error);
+      }
+    };
+
+    window.addEventListener(
+      'auth:token-refreshed',
+      handleTokenRefreshed as EventListener
+    );
+
+    return () => {
+      window.removeEventListener(
+        'auth:token-refreshed',
+        handleTokenRefreshed as EventListener
+      );
+    };
+  }, [update]);
+
+  useEffect(() => {
     if (status !== 'authenticated' || !isPublicRoute) {
       return;
     }
@@ -455,20 +584,28 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     }
 
     if (callbackUrl) {
-      router.replace(callbackUrl);
-      return;
+      // Avoid reloading back to a public auth route (e.g., /user/login).
+      // Normalize the callback path and only perform a full reload when
+      // the path does not point to a public auth route.
+      const normalizedCallbackPath = toNormalizedPath(callbackUrl);
+      if (!isPublicAuthRoute(normalizedCallbackPath)) {
+        redirectWithReload(callbackUrl);
+        return;
+      }
+      // If the callback points to a public auth route, ignore it and let
+      // the normal post-auth flow decide the best destination.
     }
 
     if (activeGroup) {
       if (activeGroup.title.toLowerCase() === 'airqo') {
-        router.replace('/user/home');
+        redirectWithReload('/user/home');
       } else {
-        router.replace(`/org/${activeGroup.organizationSlug}/dashboard`);
+        redirectWithReload(`/org/${activeGroup.organizationSlug}/dashboard`);
       }
       return;
     }
 
-    router.replace('/user/home');
+    redirectWithReload('/user/home');
   }, [status, isPublicRoute, activeGroup, router, pathname, callbackUrl]);
 
   useEffect(() => {
@@ -492,10 +629,11 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     }
   }, [status, isPublicRoute, logout, isLoggingOut, protectedRouteLoginUrl]);
 
-  // While session is being fetched, show a loading overlay
+  // While session is being fetched, show a loading overlay immediately (delayMs=0).
+  // Using the default 120ms delay would create a blank window before the overlay appears.
   // Exception: For public routes, don't show loading overlay (let them render immediately)
   if (status === 'loading' && !isPublicRoute) {
-    return <LoadingOverlay />;
+    return <LoadingOverlay delayMs={0} />;
   }
 
   // For public routes, allow rendering even if unauthenticated
@@ -505,7 +643,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
   // For protected routes, require authentication
   if (!session) {
-    return <LoadingOverlay />;
+    return <LoadingOverlay delayMs={0} />;
   }
 
   return (
@@ -539,6 +677,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const oauthTokenHandoff = consumeOAuthTokenHandoffFromUrl();
         if (oauthTokenHandoff?.token) {
+          // A fresh OAuth fragment indicates a new sign-in attempt, not an
+          // intentional logout, so remove any stale marker before bootstrapping.
+          clearBackendOAuthSignedOutFlag();
+
           const signInResult = await signIn('credentials', {
             redirect: false,
             callbackUrl: currentUrl,
@@ -553,16 +695,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               provider: oauthTokenHandoff.provider,
               error: signInResult.error,
             });
-          } else {
-            // Only clear the signed-out flag after the OAuth handoff has
-            // successfully become a NextAuth session; if the handoff fails,
-            // keep the flag so shouldSkipBackendOAuthBootstrap() preserves the
-            // logged-out state instead of trying verifyBackendOAuthSession().
-            clearBackendOAuthSignedOutFlag();
           }
         }
 
-        const nextAuthSession = await getSession();
+        const nextAuthSession = oauthTokenHandoff?.token
+          ? await waitForNextAuthSession(() => isMounted)
+          : await getSession();
         if (!isMounted) return;
 
         if (nextAuthSession?.user) {
@@ -624,7 +762,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   if (bootstrapSession === undefined) {
-    return <LoadingOverlay />;
+    return <LoadingOverlay delayMs={0} />;
   }
 
   return (

@@ -29,23 +29,47 @@ export class AnalyticsService {
 
   // Get chart data - authenticated endpoint
   async getChartData(
-    request: AnalyticsChartRequest
+    request: AnalyticsChartRequest,
+    signal?: AbortSignal
   ): Promise<AnalyticsChartResponse> {
     await this.ensureAuthenticated();
     const response =
       await this.authenticatedClient.post<AnalyticsChartResponse>(
         '/analytics/dashboard/chart/d3/data',
-        request
+        request,
+        { signal }
       );
     return response.data;
   }
 
   // Get recent readings data
   async getRecentReadings(
-    request: RecentReadingRequest
+    request: RecentReadingRequest,
+    signal?: AbortSignal
   ): Promise<RecentReadingsResponse> {
+    const normalizedSiteIds = (request.site_id || '')
+      .split(',')
+      .map(siteId => siteId.trim())
+      .filter(Boolean)
+      .join(',');
+
+    if (!normalizedSiteIds) {
+      return {
+        success: true,
+        message: 'No site IDs provided',
+        measurements: [],
+      };
+    }
+
     const response = await this.serverClient.get<RecentReadingsResponse>(
-      `/devices/readings/recent?site_id=${request.site_id}`
+      '/devices/readings/recent',
+      {
+        params: {
+          site_id: normalizedSiteIds,
+          ...(request.user_id ? { user_id: request.user_id } : {}),
+        },
+        signal,
+      }
     );
     return response.data;
   }
@@ -54,7 +78,6 @@ export class AnalyticsService {
   async downloadData(
     request: DataDownloadRequest
   ): Promise<DataDownloadResponse | string> {
-    // Use server client with API_TOKEN instead of JWT authentication
     const response = await this.serverClient.post<
       DataDownloadResponse | string
     >('/analytics/data-download', request);

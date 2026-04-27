@@ -250,6 +250,21 @@ export interface ResetPasswordResponse {
   user: Record<string, unknown>;
 }
 
+export interface MaintenanceItem {
+  _id: string;
+  product: string;
+  isActive: boolean;
+  message: string;
+  startDate: string;
+  endDate: string;
+}
+
+export interface MaintenanceResponse {
+  success: boolean;
+  message: string;
+  maintenance: MaintenanceItem[];
+}
+
 export interface UserDetailsResponse {
   success: true;
   message: string;
@@ -314,6 +329,7 @@ export interface Client {
   isActive: boolean;
   ip_addresses: string[];
   name: string;
+  requireClientSecret: boolean;
   client_secret: string;
   user: {
     firstName: string;
@@ -343,6 +359,76 @@ export interface Client {
     token_status?: 'active' | 'expired';
     __v: number;
   };
+}
+
+export interface FeedbackSubmissionMetadata extends Record<string, unknown> {
+  page?: string;
+  browser?: string;
+  appVersion?: string;
+  screenResolution?: string;
+}
+
+export interface FeedbackSubmission {
+  _id: string;
+  category: string;
+  platform: string;
+  status: string;
+  email: string;
+  subject: string;
+  message: string;
+  rating: number;
+  metadata?: FeedbackSubmissionMetadata;
+  tenant?: string;
+  createdAt: string;
+  updatedAt: string;
+  __v?: number;
+}
+
+export interface FeedbackSubmissionsMeta {
+  total: number;
+  skip: number;
+  limit: number;
+  page: number;
+  pages: number;
+}
+
+export interface GetFeedbackSubmissionsResponse {
+  success: boolean;
+  message: string;
+  feedbacks: FeedbackSubmission[];
+  meta: FeedbackSubmissionsMeta;
+}
+
+export interface GetFeedbackSubmissionResponse {
+  success: boolean;
+  message: string;
+  feedback: FeedbackSubmission;
+}
+
+export interface SubmitFeedbackRequest {
+  email: string;
+  subject: string;
+  message: string;
+  rating: number;
+  category: string;
+  platform: string;
+  metadata?: FeedbackSubmissionMetadata;
+}
+
+export interface SubmitFeedbackResponse {
+  success: boolean;
+  message: string;
+  feedback?: FeedbackSubmission;
+}
+
+export interface UpdateFeedbackStatusRequest {
+  status: string;
+}
+
+export interface UpdateFeedbackStatusResponse {
+  success: boolean;
+  message: string;
+  feedback: FeedbackSubmission;
 }
 
 export interface Group {
@@ -503,6 +589,7 @@ export interface CohortSitesResponse {
   success: boolean;
   message: string;
   meta: CohortSitesMeta;
+  cache_generated_at?: string;
   sites: Record<string, unknown>[];
 }
 
@@ -530,6 +617,7 @@ export interface CohortDevicesResponse {
   success: boolean;
   message: string;
   meta: CohortDevicesMeta;
+  cache_generated_at?: string;
   devices: Record<string, unknown>[];
 }
 
@@ -817,6 +905,7 @@ export interface Client {
   isActive: boolean;
   ip_addresses: string[];
   name: string;
+  requireClientSecret: boolean;
   client_secret: string;
   user: {
     firstName: string;
@@ -869,6 +958,7 @@ export interface CreateClientResponse {
 export interface UpdateClientRequest {
   name?: string;
   ip_addresses?: string[];
+  require_secret?: boolean;
 }
 
 export interface UpdateClientResponse {
@@ -1117,6 +1207,7 @@ export interface DataDownloadResponse {
 // Recent readings types
 export interface RecentReadingRequest {
   site_id: string; // comma-separated site IDs
+  user_id?: string;
 }
 
 export interface AQIRanges {
@@ -1520,6 +1611,108 @@ export interface GetUserStatisticsResponse {
   success: boolean;
   message: string;
   users_stats: UserStatistics;
+}
+
+// Subscription Types
+export type SubscriptionTier = 'Free' | 'Standard' | 'Premium';
+
+export interface SubscriptionPlan {
+  tier: SubscriptionTier;
+  name: string;
+  price: number;
+  currency: string;
+  priceId?: string;
+  features: string[];
+  limits: {
+    hourly: number;
+    daily: number;
+    monthly: number;
+  };
+}
+
+export interface UserSubscription {
+  tier: SubscriptionTier;
+  status: 'active' | 'inactive' | 'past_due' | 'cancelled';
+  nextBillingDate?: string | null;
+  lastRenewalDate?: string | null;
+  automaticRenewal?: boolean;
+  currentSubscriptionId?: string | null;
+  currentPlanDetails?: {
+    priceId?: string | null;
+    currency?: string | null;
+    billingCycle?: string | null;
+  };
+  apiRateLimits?: {
+    hourlyLimit: number;
+    dailyLimit: number;
+    monthlyLimit: number;
+  };
+  // Legacy fields kept for backwards compatibility in older UI code paths.
+  startDate?: string;
+  endDate?: string;
+  autoRenewal?: boolean;
+  billingCycle?: 'monthly' | 'annual';
+}
+
+export interface ApiUsage {
+  hourly: {
+    used: number | null;
+    limit: number | null;
+    resetTime: string;
+  };
+  daily: {
+    used: number | null;
+    limit: number | null;
+    resetTime: string;
+  };
+  monthly: {
+    used: number | null;
+    limit: number | null;
+    resetTime: string;
+  };
+}
+
+export interface GetSubscriptionResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    status: 'active' | 'inactive' | 'past_due' | 'cancelled';
+    tier: SubscriptionTier;
+    nextBillingDate?: string | null;
+  };
+  subscription?: UserSubscription;
+  usage?: ApiUsage;
+}
+
+export interface GetSubscriptionPlansResponse {
+  success: boolean;
+  message: string;
+  plans: SubscriptionPlan[];
+}
+
+// Payment Types
+export interface Transaction {
+  id: string;
+  amount: number;
+  currency: string;
+  status: 'pending' | 'completed' | 'failed' | 'refunded';
+  description: string;
+  date: string;
+  paymentMethod?: string; // masked, e.g., **** **** **** 1234
+  reference?: string;
+}
+
+export interface TransactionHistoryResponse {
+  success: boolean;
+  message: string;
+  data?: Transaction[];
+  transactions?: Transaction[];
+  meta?: {
+    total: number;
+    page: number;
+    totalPages: number;
+    limit: number;
+  };
 }
 
 // Accept Email Invitation Types

@@ -17,7 +17,6 @@
     "@airqo/icons-react": "0.2.7",
     "@eslint/config-array": "^0.19.0",
     "@eslint/object-schema": "^2.1.4",
-    "@hcaptcha/react-hcaptcha": "^2.0.2",
     "@radix-ui/react-accordion": "^1.2.1",
     "@radix-ui/react-dialog": "^1.1.2",
     "@radix-ui/react-dropdown-menu": "^2.1.2",

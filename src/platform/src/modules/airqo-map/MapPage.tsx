@@ -4,7 +4,7 @@ import React from 'react';
 import { useMediaQuery } from 'react-responsive';
 import { usePostHog } from 'posthog-js/react';
 import { MapSidebar, EnhancedMap } from '@/modules/airqo-map';
-import { useSitesByCountry, useMapReadings, useWAQICities } from './hooks';
+import { useSitesByCountry, useMapReadings } from './hooks';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   setSelectedLocation,
@@ -21,7 +21,9 @@ import {
   trackFeatureUsage,
 } from '@/shared/utils/enhancedAnalytics';
 import { InfoBanner } from '@/shared/components/ui/banner';
+import { EmptyState } from '@/shared/components/ui/empty-state';
 import { useCohort } from '@/shared/hooks';
+import { AqAlertTriangle } from '@airqo/icons-react';
 
 interface MapPageProps {
   cohortId?: string;
@@ -37,9 +39,7 @@ interface MapPageProps {
 // ─── Private org banner ───────────────────────────────────────────────────────
 
 const PrivateOrgBanner: React.FC<{ className?: string }> = ({ className }) => (
-  <div
-    className={`absolute top-4 left-1/2 -translate-x-1/2 z-[10000] w-full max-w-2xl px-4 ${className ?? ''}`}
-  >
+  <div className={`absolute top-4 left-4 right-4 z-[10000] ${className ?? ''}`}>
     <InfoBanner
       title="Map data unavailable"
       message={
@@ -57,6 +57,16 @@ const PrivateOrgBanner: React.FC<{ className?: string }> = ({ className }) => (
           measurements.
         </>
       }
+      className="shadow-lg bg-white/95 backdrop-blur-sm border-blue-200"
+    />
+  </div>
+);
+
+const EmptyCohortBanner: React.FC<{ className?: string }> = ({ className }) => (
+  <div className={`absolute top-4 left-4 right-4 z-[10000] ${className ?? ''}`}>
+    <InfoBanner
+      title="No data available"
+      message={<>This cohort contains no deployed devices yet.</>}
       className="shadow-lg bg-white/95 backdrop-blur-sm border-blue-200"
     />
   </div>
@@ -92,9 +102,9 @@ const MapPage: React.FC<MapPageProps> = ({
 
   // ── Local state ────────────────────────────────────────────────────────────
   const [searchQuery, setSearchQuery] = React.useState('');
-  const [selectedCountry, setSelectedCountry] = React.useState<string>(
-    isOrganizationFlow ? '' : 'uganda'
-  );
+  const [selectedCountry, setSelectedCountry] = React.useState<
+    string | undefined
+  >(undefined);
   const [locationDetailsLoading, setLocationDetailsLoading] =
     React.useState(false);
   const [flyToLocation, setFlyToLocation] = React.useState<
@@ -121,12 +131,29 @@ const MapPage: React.FC<MapPageProps> = ({
     );
   }, [cohortId]);
 
+  const selectionContextKey = React.useMemo(
+    () => `${isOrganizationFlow ? 'org' : 'user'}:${primaryCohortId || 'none'}`,
+    [isOrganizationFlow, primaryCohortId]
+  );
+
   // ── Cleanup ────────────────────────────────────────────────────────────────
   React.useEffect(() => {
     return () => {
       if (flyToTimeoutRef.current) clearTimeout(flyToTimeoutRef.current);
     };
   }, []);
+
+  React.useEffect(() => {
+    dispatch(clearSelectedLocation());
+    setSelectedLocationId(null);
+    setFlyToLocation(undefined);
+    setSelectedCountry(undefined);
+    setLocationDetailsLoading(false);
+
+    return () => {
+      dispatch(clearSelectedLocation());
+    };
+  }, [dispatch, selectionContextKey]);
 
   // ── Analytics ──────────────────────────────────────────────────────────────
   React.useEffect(() => {
@@ -148,30 +175,91 @@ const MapPage: React.FC<MapPageProps> = ({
     isLoading: mapDataLoading,
     refetch,
   } = useMapReadings(mapCohortFilter);
+  const {
+    data: cohortData,
+    isLoading: cohortLoading,
+    error: cohortError,
+    mutate: refetchCohort,
+  } = useCohort(primaryCohortId, isOrganizationFlow && !!primaryCohortId);
 
-  const { data: cohortData } = useCohort(
-    primaryCohortId,
-    isOrganizationFlow && !!primaryCohortId
-  );
+  const isCohortFetchCanceled = React.useMemo(() => {
+    if (!cohortError) {
+      return false;
+    }
 
-  const hasNoMapData =
-    isOrganizationFlow && cohortData?.cohorts[0]?.visibility === false;
+    const candidate = cohortError as {
+      name?: string;
+      code?: string;
+      message?: string;
+    };
 
-  // WAQI disabled — wiring kept for future re-enablement
-  const allCities = React.useMemo(() => [], []);
-  const { citiesReadings: waqiReadings } = useWAQICities(allCities, 10);
+    return (
+      candidate.name === 'AbortError' ||
+      candidate.name === 'CanceledError' ||
+      candidate.code === 'ERR_CANCELED' ||
+      candidate.message === 'canceled'
+    );
+  }, [cohortError]);
 
   const normalizedReadings = React.useMemo(() => {
     const airqoReadings = normalizeMapReadings(readings, selectedPollutant);
-    if (isOrganizationFlow || cohortId) return airqoReadings;
+    const dedupedReadings = new Map<string, (typeof airqoReadings)[number]>();
 
-    const seenIds = new Set<string>();
-    return [...airqoReadings, ...waqiReadings].filter(r => {
-      if (seenIds.has(r.id)) return false;
-      seenIds.add(r.id);
-      return true;
+    airqoReadings.forEach(reading => {
+      const dedupeKey = reading.siteId || reading.id;
+      const existingReading = dedupedReadings.get(dedupeKey);
+
+      if (
+        !existingReading ||
+        (!existingReading.isPrimary && reading.isPrimary)
+      ) {
+        dedupedReadings.set(dedupeKey, reading);
+      }
     });
-  }, [readings, waqiReadings, selectedPollutant, cohortId, isOrganizationFlow]);
+
+    return Array.from(dedupedReadings.values());
+  }, [readings, selectedPollutant]);
+
+  const hasCohortError = Boolean(cohortError && !isCohortFetchCanceled);
+
+  const hasNoMapData =
+    !cohortLoading &&
+    !hasCohortError &&
+    isOrganizationFlow &&
+    cohortData?.cohorts?.[0]?.visibility === false;
+
+  const showEmptyCohortState =
+    !cohortLoading &&
+    !hasCohortError &&
+    isOrganizationFlow &&
+    !!primaryCohortId &&
+    !mapDataLoading &&
+    normalizedReadings.length === 0 &&
+    !hasNoMapData;
+
+  const contentHeight = `calc(100dvh - ${navHeight}px)`;
+  const isMdUp = useMediaQuery({ minWidth: 768 });
+
+  if (hasCohortError) {
+    return (
+      <div className="flex min-h-[400px] w-full items-center justify-center p-6">
+        <EmptyState
+          title="Unable to load cohort"
+          description={
+            cohortError instanceof Error
+              ? cohortError.message
+              : 'We could not load this cohort. Please try again.'
+          }
+          icon={<AqAlertTriangle size={48} />}
+          action={{
+            label: 'Retry',
+            onClick: () => void refetchCohort(),
+          }}
+          className="min-h-[400px]"
+        />
+      </div>
+    );
+  }
 
   // ── Handlers ───────────────────────────────────────────────────────────────
   const handleSearch = (query: string) => setSearchQuery(query);
@@ -269,6 +357,7 @@ const MapPage: React.FC<MapPageProps> = ({
     flyToLocation,
     selectedPollutant,
     onPollutantChange: handlePollutantChange,
+    selectionContextKey,
   };
 
   const sidebarProps = {
@@ -317,9 +406,6 @@ const MapPage: React.FC<MapPageProps> = ({
    * This lets MapPage control the height without MapSidebar needing props for it.
    * ─────────────────────────────────────────────────────────────────────────
    */
-  const contentHeight = `calc(100dvh - ${navHeight}px)`;
-  const isMdUp = useMediaQuery({ minWidth: 768 });
-
   return (
     <>
       {/* ── Desktop layout (md+) ─────────────────────────────────────────
@@ -351,7 +437,11 @@ const MapPage: React.FC<MapPageProps> = ({
 
         {/* Map wrapper — fills remaining width, clips map overflow */}
         <div className="flex-1 min-w-0 relative overflow-hidden">
-          {hasNoMapData && <PrivateOrgBanner />}
+          {hasNoMapData ? (
+            <PrivateOrgBanner />
+          ) : showEmptyCohortState ? (
+            <EmptyCohortBanner />
+          ) : null}
           {isMdUp && <EnhancedMap {...mapProps} />}
         </div>
       </div>
@@ -377,7 +467,11 @@ const MapPage: React.FC<MapPageProps> = ({
           className="relative overflow-hidden flex-none"
           style={{ height: '40dvh' }}
         >
-          {hasNoMapData && <PrivateOrgBanner className="text-sm" />}
+          {hasNoMapData ? (
+            <PrivateOrgBanner className="text-sm" />
+          ) : showEmptyCohortState ? (
+            <EmptyCohortBanner className="text-sm" />
+          ) : null}
           {!isMdUp && <EnhancedMap {...mapProps} />}
         </div>
 

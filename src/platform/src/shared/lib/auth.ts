@@ -1,14 +1,29 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { isTokenExpired } from './utils';
 import { authService } from '../services/authService';
+import { buildServerApiUrl } from '@/shared/lib/api-routing';
 import { normalizeOAuthAccessToken } from './oauth-session';
 
 const isProduction = process.env.NODE_ENV === 'production';
 const sessionCookieName = isProduction
   ? '__Secure-next-auth.session-token'
   : 'analytics.next-auth.session-token';
-const DEFAULT_OAUTH_PROFILE_FETCH_TIMEOUT_MS = 8000;
+
+const isJwtLikeToken = (token: string): boolean =>
+  token.split('.').length === 3;
+
+const isExpiredAt = (value: unknown): boolean => {
+  if (typeof value !== 'string' || !value.trim()) {
+    return false;
+  }
+
+  const expiresAt = new Date(value).getTime();
+  if (Number.isNaN(expiresAt)) {
+    return false;
+  }
+
+  return expiresAt <= Date.now();
+};
 
 interface OAuthProfilePayload {
   _id: string;
@@ -24,50 +39,28 @@ interface OAuthProfileResponse {
   data?: OAuthProfilePayload;
 }
 
-const normalizeApiBaseUrl = (baseUrl: string): string => {
-  const trimmedBaseUrl = baseUrl.trim().replace(/\/$/, '');
-
-  if (trimmedBaseUrl.endsWith('/api/v2')) {
-    return trimmedBaseUrl.slice(0, -'/api/v2'.length);
-  }
-
-  return trimmedBaseUrl;
-};
-
-const buildBackendApiUrl = (path: string): string => {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_API_BASE_URL || process.env.API_BASE_URL || '';
-  const normalizedBaseUrl = normalizeApiBaseUrl(baseUrl);
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-
-  if (!normalizedBaseUrl) {
-    return '';
-  }
-
-  return `${normalizedBaseUrl}/api/v2${normalizedPath}`;
-};
-
 const fetchOAuthProfile = async (
   accessToken: string
 ): Promise<OAuthProfilePayload | null> => {
-  const profileUrl = buildBackendApiUrl('/users/profile/enhanced');
+  let profileUrl = '';
+
+  try {
+    profileUrl = buildServerApiUrl('/users/profile/enhanced');
+  } catch {
+    profileUrl = '';
+  }
+
   if (!profileUrl) {
     return null;
   }
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => {
-    controller.abort();
-  }, DEFAULT_OAUTH_PROFILE_FETCH_TIMEOUT_MS);
-
   try {
     const response = await fetch(profileUrl, {
       method: 'GET',
-      signal: controller.signal,
       cache: 'no-store',
       headers: {
         Accept: 'application/json',
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `JWT ${accessToken}`,
       },
     });
 
@@ -83,17 +76,23 @@ const fetchOAuthProfile = async (
     return payload.data;
   } catch {
     return null;
-  } finally {
-    clearTimeout(timeoutId);
   }
 };
 
 // Helper function to check token expiration and log
-const isTokenInvalid = (accessToken: string | undefined): boolean => {
-  if (!accessToken || isTokenExpired(accessToken)) {
+const isTokenInvalid = (
+  accessToken: string | undefined,
+  expiresAt?: string | null
+): boolean => {
+  if (!accessToken) {
     return true;
   }
-  return false;
+
+  if (isJwtLikeToken(accessToken)) {
+    return false;
+  }
+
+  return isExpiredAt(expiresAt);
 };
 
 export const authOptions: any = {
@@ -167,6 +166,7 @@ export const authOptions: any = {
             image: loginData.profilePicture,
             _id: loginData._id,
             accessToken: normalizeOAuthAccessToken(loginData.token),
+            expiresAt: loginData.expiresAt,
           };
         } catch (error: any) {
           // Enhanced error handling to include status and full response data
@@ -204,37 +204,57 @@ export const authOptions: any = {
   },
   callbacks: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async jwt({ token, user }: any) {
+    async jwt({ token, user, trigger, session }: any) {
       if (user) {
         token.id = user.id;
         token._id = user._id;
         token.accessToken =
           typeof user.accessToken === 'string' ? user.accessToken : undefined;
+        token.expiresAt =
+          typeof user.expiresAt === 'string' ? user.expiresAt : undefined;
         token.firstName = user.firstName;
         token.lastName = user.lastName;
+      }
+
+      if (trigger === 'update' && session) {
+        if (typeof session.accessToken === 'string') {
+          const normalizedAccessToken = normalizeOAuthAccessToken(
+            session.accessToken
+          );
+          token.accessToken = normalizedAccessToken || undefined;
+        }
+        if (typeof session.expiresAt === 'string') {
+          token.expiresAt = session.expiresAt;
+        }
       }
 
       return token;
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async session({ session, token }: any) {
-      // Check if token is expired and invalidate session
+      // Only invalidate if token is missing or malformed; expired JWTs can be refreshed
       const accessToken =
         typeof (token as any)?.accessToken === 'string'
           ? normalizeOAuthAccessToken((token as any).accessToken as string) ||
             undefined
           : undefined;
-      if (isTokenInvalid(accessToken)) {
+      const expiresAt =
+        typeof (token as any)?.expiresAt === 'string'
+          ? ((token as any).expiresAt as string)
+          : undefined;
+      if (isTokenInvalid(accessToken, expiresAt)) {
         return { user: null };
       }
 
       // Add access token and user ID to session
       (session as any).accessToken = accessToken;
+      (session as any).expiresAt = expiresAt;
       if (session.user) {
         (session.user as any)._id = (token as any)._id;
         (session.user as any).firstName = (token as any).firstName;
         (session.user as any).lastName = (token as any).lastName;
         (session.user as any).accessToken = accessToken;
+        (session.user as any).expiresAt = expiresAt;
       }
       return session;
     },

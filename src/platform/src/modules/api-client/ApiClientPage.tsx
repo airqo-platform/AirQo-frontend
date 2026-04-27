@@ -2,7 +2,9 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
+import { usePostHog } from 'posthog-js/react';
 import { Button, MultiSelectTable, PageHeading } from '@/shared/components/ui';
+import { Tooltip } from 'flowbite-react';
 import { toast } from '@/shared/components/ui';
 import { formatDate, parseDate } from '@/shared/utils';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
@@ -13,11 +15,14 @@ import CreateClientDialog from './components/CreateClientDialog';
 import EditClientDialog from './components/EditClientDialog';
 import TokenDisplay from './components/TokenDisplay';
 import type { Client } from '@/shared/types/api';
+import UsageStats from '../billing/components/UsageStats';
+import { trackApiClientAction } from '@/shared/utils/enhancedAnalytics';
 
 type TableClient = Client & { id: string };
 
 const ApiClientPage: React.FC = () => {
   const { data: session } = useSession();
+  const posthog = usePostHog();
   const [inactiveDialogState, setInactiveDialogState] = useState<{
     isOpen: boolean;
     clientId: string;
@@ -63,7 +68,7 @@ const ApiClientPage: React.FC = () => {
   }, [clients]);
 
   const handleGenerateToken = useCallback(
-    async (client: TableClient) => {
+    async (client: TableClient, mode: 'generate' | 'refresh' = 'generate') => {
       if (!client.isActive) {
         setInactiveDialogState({
           isOpen: true,
@@ -79,6 +84,16 @@ const ApiClientPage: React.FC = () => {
           name: client.name,
           client_id: client._id,
         });
+        trackApiClientAction(
+          posthog,
+          mode === 'refresh' ? 'refresh_token' : 'generate_token',
+          {
+            client_id: client._id,
+            client_name_length: client.name.trim().length,
+            token_status: client.access_token?.token_status || 'active',
+            mode,
+          }
+        );
         toast.success('Token generated successfully');
         // Refresh clients list to pick up the new/updated token
         await mutate();
@@ -89,7 +104,7 @@ const ApiClientPage: React.FC = () => {
         setActiveGeneratingTokenId(null);
       }
     },
-    [generateToken, mutate]
+    [generateToken, mutate, posthog]
   );
 
   const handleEditClient = useCallback((client: TableClient) => {
@@ -100,6 +115,25 @@ const ApiClientPage: React.FC = () => {
   }, []);
 
   const renderStatus = useCallback((value: unknown, item: TableClient) => {
+    // Determine token expired status (prefer server-provided status)
+    const token = item.access_token;
+    let expired = false;
+    if (token) {
+      expired = token.token_status === 'expired';
+      if (!expired && token.expires) {
+        const expiryDate = parseDate(token.expires);
+        if (expiryDate) expired = expiryDate.getTime() <= Date.now();
+      }
+    }
+
+    if (expired) {
+      return (
+        <span className="inline-flex items-center px-3 py-0.5 rounded-full text-xs font-semibold bg-red-600 text-white">
+          Expired
+        </span>
+      );
+    }
+
     return (
       <span
         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -125,33 +159,7 @@ const ApiClientPage: React.FC = () => {
           if (expiryDate) expired = expiryDate.getTime() <= Date.now();
         }
 
-        const isGeneratingForThis =
-          isGeneratingToken && activeGeneratingTokenId === item._id;
-
-        if (expired) {
-          return (
-            <div className="flex flex-col items-start gap-2 min-w-0">
-              <div className="min-w-0 w-full">
-                <TokenDisplay
-                  token={token.token}
-                  expiresAt={token.expires}
-                  tokenStatus={token.token_status}
-                />
-              </div>
-              <div>
-                <Button
-                  size="sm"
-                  variant="outlined"
-                  onClick={() => handleGenerateToken(item)}
-                  disabled={isGeneratingForThis}
-                >
-                  {isGeneratingForThis ? 'Refreshing...' : 'Refresh'}
-                </Button>
-              </div>
-            </div>
-          );
-        }
-
+        // Only display token details in this column; action buttons live in Actions column now
         return (
           <div className="flex items-center gap-2">
             <div className="flex-1 min-w-0">
@@ -159,6 +167,7 @@ const ApiClientPage: React.FC = () => {
                 token={token.token}
                 expiresAt={token.expires}
                 tokenStatus={token.token_status}
+                showStatusBadge={false}
               />
             </div>
           </div>
@@ -172,7 +181,7 @@ const ApiClientPage: React.FC = () => {
         <Button
           size="sm"
           variant="outlined"
-          onClick={() => handleGenerateToken(item)}
+          onClick={() => handleGenerateToken(item, 'generate')}
           disabled={isGeneratingForThis}
         >
           {isGeneratingForThis ? 'Generating...' : 'Generate Token'}
@@ -259,16 +268,46 @@ const ApiClientPage: React.FC = () => {
         key: 'actions',
         label: 'Actions',
         sortable: false,
-        render: (value: unknown, item: TableClient) => (
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => handleEditClient(item)}
-            className="p-1 h-6 w-6"
-          >
-            <AqEdit05 className="w-4 h-4" />
-          </Button>
-        ),
+        render: (value: unknown, item: TableClient) => {
+          const token = item.access_token;
+          let expired = false;
+          if (token) {
+            expired = token.token_status === 'expired';
+            if (!expired && token.expires) {
+              const expiryDate = parseDate(token.expires);
+              if (expiryDate) expired = expiryDate.getTime() <= Date.now();
+            }
+          }
+
+          const isGeneratingForThis =
+            isGeneratingToken && activeGeneratingTokenId === item._id;
+
+          if (token && expired && item.isActive) {
+            return (
+              <Tooltip content="A new token will be generated — copy it when shown to use it">
+                <Button
+                  size="sm"
+                  variant="outlined"
+                  onClick={() => handleGenerateToken(item, 'refresh')}
+                  disabled={isGeneratingForThis}
+                >
+                  {isGeneratingForThis ? 'Regenerating...' : 'Regenerate Token'}
+                </Button>
+              </Tooltip>
+            );
+          }
+
+          return (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => handleEditClient(item)}
+              className="p-1 h-6 w-6"
+            >
+              <AqEdit05 className="w-4 h-4" />
+            </Button>
+          );
+        },
       },
     ],
     [
@@ -277,12 +316,17 @@ const ApiClientPage: React.FC = () => {
       renderCreatedDate,
       renderIPs,
       handleEditClient,
+      isGeneratingToken,
+      activeGeneratingTokenId,
+      handleGenerateToken,
     ]
   );
 
   return (
     <div className="space-y-6">
-      {/* Table */}
+      <UsageStats />
+
+      {/* API Clients Table */}
       <MultiSelectTable
         title="API Clients"
         data={tableData}

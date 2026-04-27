@@ -14,6 +14,11 @@ interface TableColumn<T = TableItem> {
   sortable?: boolean;
   filterable?: boolean;
   render?: (value: unknown, item: T) => React.ReactNode;
+  headerClassName?: string;
+  cellClassName?: string;
+  width?: string;
+  minWidth?: string;
+  maxWidth?: string;
 }
 
 export interface ServerSideTableProps<T = TableItem> {
@@ -42,6 +47,9 @@ export interface ServerSideTableProps<T = TableItem> {
 
   // Custom header component
   customHeader?: React.ReactNode;
+
+  // Keep row content on one line for compact export-style tables
+  compactRows?: boolean;
 
   // Whether to show client-side pagination from MultiSelectTable
   showClientPagination?: boolean;
@@ -74,6 +82,8 @@ export function ServerSideTable<T extends TableItem>({
   onSearchChange,
 
   customHeader,
+
+  compactRows = false,
 
   showClientPagination = false,
 }: ServerSideTableProps<T>) {
@@ -177,6 +187,7 @@ export function ServerSideTable<T extends TableItem>({
         showPagination={showClientPagination} // Enable built-in pagination for client-side operations
         sortable={true}
         headerComponent={customHeader}
+        compactRows={compactRows}
         {...(searchTerm !== undefined && onSearchChange !== undefined
           ? { searchTerm, onSearchChange }
           : {})}

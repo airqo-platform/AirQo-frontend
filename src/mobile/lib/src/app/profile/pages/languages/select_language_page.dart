@@ -1,3 +1,8 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:airqo/src/app/shared/services/mlkit_translation_service.dart';
+import 'package:airqo/src/app/shared/services/sunbird_translation_service.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -31,11 +36,72 @@ class _SelectLanguagePageState extends State<SelectLanguagePage> {
     LanguageOption(code: 'fr', name: 'French', nativeName: 'Français'),
   ];
 
-  void _showLanguageChangeNotification(
-      BuildContext context, LanguageOption language) {
-    //final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+  String? _preparingCode;
 
-    ScaffoldMessenger.of(context).showSnackBar(
+  Future<void> _selectLanguage(
+      BuildContext context, LanguageOption language) async {
+    if (_preparingCode != null) return;
+
+    final needsMlKitDownload =
+        MlKitTranslationService().supportsTranslation(language.code) &&
+            !MlKitTranslationService().isModelReady(language.code);
+    final needsSunbirdPrepare =
+        SunbirdTranslationService().supportsTranslation(language.code) &&
+            !SunbirdTranslationService().isPrepared(language.code);
+    final needsPrepare = needsMlKitDownload || needsSunbirdPrepare;
+
+    // Capture context-dependent references before any await.
+    final bloc = context.read<LanguageBloc>();
+    final messenger = ScaffoldMessenger.of(context);
+
+    if (!needsPrepare) {
+      bloc.add(ChangeLanguage(language.code));
+      _showLanguageChangeNotification(messenger, language);
+      return;
+    }
+
+    setState(() => _preparingCode = language.code);
+    try {
+      if (needsMlKitDownload) {
+        await MlKitTranslationService()
+            .prepareModel(language.code)
+            .timeout(const Duration(seconds: 30));
+      }
+      if (needsSunbirdPrepare) {
+        await SunbirdTranslationService()
+            .prepare(targetLocale: language.code)
+            .timeout(const Duration(seconds: 30));
+      }
+    } catch (e, stackTrace) {
+      debugPrint('Language preparation failed: $e\n$stackTrace');
+      if (!mounted) return;
+      setState(() => _preparingCode = null);
+      final isNetworkError = e is SocketException || e is TimeoutException;
+      final message = isNetworkError
+          ? 'No internet connection. Please check your network and try again.'
+          : 'Failed to prepare language. Please try again.';
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red.shade700,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+      return;
+    }
+
+    if (!mounted) return;
+    setState(() => _preparingCode = null);
+    bloc.add(ChangeLanguage(language.code));
+    _showLanguageChangeNotification(messenger, language);
+  }
+
+  void _showLanguageChangeNotification(
+      ScaffoldMessengerState messenger, LanguageOption language) {
+    messenger.showSnackBar(
       SnackBar(
         content: Row(
           children: [
@@ -119,72 +185,136 @@ class _SelectLanguagePageState extends State<SelectLanguagePage> {
             currentLanguageCode = state.languageCode;
           }
 
+          final hasUndownloadedMlKitLanguage = languages.any(
+            (l) =>
+                MlKitTranslationService().supportsTranslation(l.code) &&
+                !MlKitTranslationService().isModelReady(l.code),
+          );
+
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: ListView.separated(
-              itemCount: languages.length,
-              separatorBuilder: (context, index) => Divider(
-                color: dividerColor,
-                height: 1,
-              ),
-              itemBuilder: (context, index) {
-                final language = languages[index];
-                final isSelected = language.code == currentLanguageCode;
-
-                return ListTile(
-                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                  title: Text(
-                    language.name,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w400,
-                      color: isDarkMode
-                          ? AppColors.highlightColor2
-                          : AppColors.boldHeadlineColor4,
-                    ),
-                  ),
-                  subtitle: Text(
-                    language.nativeName,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: isDarkMode ? Colors.grey : Colors.grey.shade700,
-                    ),
-                  ),
-                  trailing: isSelected
-                      ? Container(
-                          width: 24,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryColor,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: const Icon(
-                            Icons.check,
-                            color: Colors.white,
-                            size: 18,
-                          ),
-                        )
-                      : Container(
-                          width: 24,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            border: Border.all(
+            child: Column(
+              children: [
+                if (hasUndownloadedMlKitLanguage)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 4.0),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 14,
+                          color: isDarkMode
+                              ? Colors.grey
+                              : Colors.grey.shade600,
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            'Some languages download a small pack on first use.',
+                            style: TextStyle(
+                              fontSize: 12,
                               color: isDarkMode
-                                  ? AppColors.secondaryHeadlineColor2
-                                  : AppColors.borderColor2,
+                                  ? Colors.grey
+                                  : Colors.grey.shade600,
                             ),
-                            borderRadius: BorderRadius.circular(4),
                           ),
                         ),
-                  onTap: () {
-                    context
-                        .read<LanguageBloc>()
-                        .add(ChangeLanguage(language.code));
+                      ],
+                    ),
+                  ),
+                Expanded(
+                  child: ListView.separated(
+                    itemCount: languages.length,
+                    separatorBuilder: (context, index) => Divider(
+                      color: dividerColor,
+                      height: 1,
+                    ),
+                    itemBuilder: (context, index) {
+                      final language = languages[index];
+                      final isSelected = language.code == currentLanguageCode;
+                      final isPreparing = _preparingCode == language.code;
 
-                        _showLanguageChangeNotification(context, language);
-                  },
-                );
-              },
+                      final isMlKitDownloading = isPreparing &&
+                          MlKitTranslationService()
+                              .supportsTranslation(language.code) &&
+                          !MlKitTranslationService()
+                              .isModelReady(language.code);
+                      final preparingLabel = isMlKitDownloading
+                          ? 'Downloading language pack…'
+                          : 'Loading translations…';
+
+                      return ListTile(
+                        enabled: _preparingCode == null || isPreparing,
+                        contentPadding:
+                            const EdgeInsets.symmetric(vertical: 12),
+                        title: Text(
+                          language.name,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w400,
+                            color: isDarkMode
+                                ? AppColors.highlightColor2
+                                : AppColors.boldHeadlineColor4,
+                          ),
+                        ),
+                        subtitle: Text(
+                          isPreparing ? preparingLabel : language.nativeName,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: isPreparing
+                                ? AppColors.primaryColor
+                                : isDarkMode
+                                    ? Colors.grey
+                                    : Colors.grey.shade700,
+                          ),
+                        ),
+                        trailing: isPreparing
+                            ? Semantics(
+                                label: 'Preparing ${language.name}',
+                                liveRegion: true,
+                                child: SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    color: AppColors.primaryColor,
+                                  ),
+                                ),
+                              )
+                            : isSelected
+                                ? Container(
+                                    width: 24,
+                                    height: 24,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primaryColor,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: const Icon(
+                                      Icons.check,
+                                      color: Colors.white,
+                                      size: 18,
+                                    ),
+                                  )
+                                : Container(
+                                    width: 24,
+                                    height: 24,
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: isDarkMode
+                                            ? AppColors.secondaryHeadlineColor2
+                                            : AppColors.borderColor2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                  ),
+                        onTap: _preparingCode != null
+                            ? null
+                            : () => _selectLanguage(context, language),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
           );
         },

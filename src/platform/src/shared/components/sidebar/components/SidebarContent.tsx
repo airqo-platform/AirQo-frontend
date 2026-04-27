@@ -2,11 +2,14 @@
 
 import * as React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { usePathname } from 'next/navigation';
+import { AqMessageNotificationSquare } from '@airqo/icons-react';
 import { cn } from '@/shared/lib/utils';
 import { NavItem } from './nav-item';
 import { getSidebarConfig } from '../config';
 import { SidebarContentProps } from '../types';
 import { useRBAC } from '@/shared/hooks';
+import { openFeedbackDialog } from '@/modules/feedback/utils/feedbackDialog';
 
 export const SidebarContent: React.FC<SidebarContentProps> = ({
   flow = 'user',
@@ -15,8 +18,12 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
   onItemClick,
   className,
 }) => {
-  const { isAirQoSuperAdminWithEmail, hasAnyPermissionInActiveGroup } =
-    useRBAC();
+  const pathname = usePathname();
+  const {
+    isAirQoSuperAdminWithEmail,
+    hasAnyPermission,
+    hasAnyPermissionInActiveGroup,
+  } = useRBAC();
 
   // Get the appropriate sidebar configuration
   const sidebarConfig = React.useMemo(() => {
@@ -78,6 +85,13 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
         .map(group => ({
           ...group,
           items: group.items.filter(item => {
+            if (item.id === 'system-feedback') {
+              return (
+                hasAnyPermission(['SYSTEM_ADMIN', 'SUPER_ADMIN']) ||
+                isAirQoSuperAdminWithEmail()
+              );
+            }
+
             // Hide system-clients, system-org-requests, and system-user-statistics if user doesn't have AIRQO_SUPER_ADMIN role
             if (
               [
@@ -110,12 +124,20 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
     flow,
     orgSlug,
     isAirQoSuperAdminWithEmail,
+    hasAnyPermission,
     hasAnyPermissionInActiveGroup,
   ]);
 
+  const shouldShowFeedbackAction = !pathname.startsWith('/system/feedback');
+
+  const handleFeedbackClick = React.useCallback(() => {
+    openFeedbackDialog();
+    onItemClick?.();
+  }, [onItemClick]);
+
   return (
-    <div className={cn('flex-1 py-6', className)}>
-      <div className={cn('', isCollapsed ? 'px-3' : 'px-3')}>
+    <div className={cn('flex h-full w-full flex-col py-6', className)}>
+      <div className="flex-1 px-3">
         {sidebarConfig.map((group, index) => (
           <React.Fragment key={group.id}>
             {index > 0 && isCollapsed && (
@@ -157,6 +179,60 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
           </React.Fragment>
         ))}
       </div>
+
+      {shouldShowFeedbackAction && (
+        <div
+          className={cn(
+            'px-3 pt-4 border-t border-border',
+            // keep a bit tighter vertical spacing when collapsed
+            isCollapsed ? 'py-2' : ''
+          )}
+        >
+          <button
+            type="button"
+            onClick={handleFeedbackClick}
+            title="Share feedback"
+            aria-label="Share feedback"
+            className={cn(
+              // group so we can expand the truncated text on hover
+              'group flex w-full items-start gap-3 rounded-2xl border border-border bg-background px-3 py-3 text-left shadow-sm transition-colors hover:border-primary/30 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+              // collapsed state: center the icon and use slightly larger padding
+              isCollapsed &&
+                'items-center justify-center gap-0 border-none bg-transparent px-0 py-0 shadow-none'
+            )}
+          >
+            <span
+              className={cn(
+                'flex items-center justify-center transition-colors text-primary',
+                !isCollapsed
+                  ? 'h-10 w-10 shrink-0 rounded-full bg-primary/10 group-hover:bg-primary/15'
+                  : 'h-9 w-9 bg-transparent rounded-none'
+              )}
+              aria-hidden="true"
+            >
+              <AqMessageNotificationSquare className="h-5 w-5" />
+            </span>
+
+            {!isCollapsed && (
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-medium text-foreground">
+                  Share feedback
+                </span>
+                <span
+                  className={cn(
+                    'mt-0.5 block text-xs leading-relaxed text-muted-foreground truncate',
+                    // on hover (group-hover) allow the text to wrap and show all lines
+                    'group-hover:whitespace-normal group-hover:overflow-visible'
+                  )}
+                >
+                  Tell us what is working well, what could be better, or any
+                  problems you&apos;ve faced.
+                </span>
+              </span>
+            )}
+          </button>
+        </div>
+      )}
     </div>
   );
 };

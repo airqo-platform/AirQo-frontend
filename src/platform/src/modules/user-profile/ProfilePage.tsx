@@ -6,12 +6,13 @@ import { useSearchParams } from 'next/navigation';
 import { ProfileForm, SecurityTab, OrgInvitesTab } from './components';
 import { ApiClientPage } from '../api-client';
 import ThemeManager from '../themes/components/ThemeManager';
+import { BillingPage } from '../billing';
 import {
   AqUserCircle,
   AqLock02,
   AqKey01,
   AqPalette,
-  AqMail04,
+  AqCreditCard01,
 } from '@airqo/icons-react';
 import { Card, LoadingSpinner } from '@/shared/components/ui';
 
@@ -35,7 +36,10 @@ const ProfilePage: React.FC = () => {
   useEffect(() => {
     const tabParam = searchParams.get('tab');
     if (tabParam === 'org-invites') {
-      setActiveTab(2); // Org Invites tab
+      setActiveTab(4);
+    }
+    if (tabParam === 'subscription') {
+      setActiveTab(3);
     }
   }, [searchParams]);
 
@@ -59,9 +63,10 @@ const ProfilePage: React.FC = () => {
       component: userId ? () => <ProfileForm userId={userId} /> : null,
     },
     { id: 1, title: 'Security', component: () => <SecurityTab /> },
-    { id: 2, title: 'Team Invites', component: () => <OrgInvitesTab /> },
-    { id: 3, title: 'API', component: () => <ApiClientPage /> },
-    { id: 4, title: 'Theme', component: () => <ThemeManager /> },
+    { id: 2, title: 'API', component: () => <ApiClientPage /> },
+    { id: 3, title: 'Subscription', component: () => <BillingPage /> },
+    { id: 4, title: 'Team Invites', component: () => <OrgInvitesTab /> },
+    { id: 5, title: 'Theme', component: () => <ThemeManager /> },
   ];
 
   return (
@@ -89,12 +94,15 @@ const ProfilePage: React.FC = () => {
                     <AqLock02 size={14} className="sm:w-4 sm:h-4" />
                   )}
                   {tab.id === 2 && (
-                    <AqMail04 size={14} className="sm:w-4 sm:h-4" />
-                  )}
-                  {tab.id === 3 && (
                     <AqKey01 size={14} className="sm:w-4 sm:h-4" />
                   )}
+                  {tab.id === 3 && (
+                    <AqCreditCard01 size={14} className="sm:w-4 sm:h-4" />
+                  )}
                   {tab.id === 4 && (
+                    <AqUserCircle size={14} className="sm:w-4 sm:h-4" />
+                  )}
+                  {tab.id === 5 && (
                     <AqPalette size={14} className="sm:w-4 sm:h-4" />
                   )}
                   {tab.title}

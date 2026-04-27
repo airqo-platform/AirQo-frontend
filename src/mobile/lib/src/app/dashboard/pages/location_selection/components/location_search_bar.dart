@@ -8,11 +8,15 @@ import 'package:flutter_svg/svg.dart';
 class LocationSearchBar extends StatefulWidget {
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
+  final VoidCallback? onTap;
+  final EdgeInsetsGeometry padding;
 
   const LocationSearchBar({
     super.key,
     required this.controller,
     required this.onChanged,
+    this.onTap,
+    this.padding = const EdgeInsets.symmetric(horizontal: 16),
   });
 
   @override
@@ -58,11 +62,13 @@ class _LocationSearchBarState extends State<LocationSearchBar> {
         }
 
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: widget.padding,
           child: TextField(
             controller: widget.controller,
             style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
             onChanged: widget.onChanged,
+            onTap: widget.onTap,
+            onTapAlwaysCalled: true,
             decoration: InputDecoration(
               hintText: _hint,
               hintStyle: TextStyle(
