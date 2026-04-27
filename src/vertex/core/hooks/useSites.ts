@@ -272,12 +272,13 @@ export const useRefreshSiteMetadata = () => {
       queryClient.invalidateQueries({ queryKey: ["sites"] });
       queryClient.invalidateQueries({ queryKey: ["site-details", siteId] });
 
-      if (data.message.includes("partially refreshed")) {
+      const msg = (data.message ?? "").toLowerCase();
+      if (msg.includes("partially refreshed")) {
         ReusableToast({
           message: data.message,
           type: "WARNING",
         });
-      } else if (data.message.includes("already complete")) {
+      } else if (msg.includes("already complete")) {
         ReusableToast({
           message: "Site metadata is already up to date.",
           type: "INFO",
