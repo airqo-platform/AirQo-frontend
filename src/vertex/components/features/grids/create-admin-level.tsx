@@ -5,11 +5,18 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Form, FormField } from "@/components/ui/form";
-import { Plus } from "lucide-react";
+import { Plus, MoreVertical, List } from "lucide-react";
 import { useCreateAdminLevel } from "@/core/hooks/useGrids";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { AdminLevelsModal } from "./admin-levels-modal";
 
 const adminLevelFormSchema = z.object({
   name: z.string().min(2, {
@@ -21,6 +28,7 @@ type AdminLevelFormValues = z.infer<typeof adminLevelFormSchema>;
 
 export function CreateAdminLevel() {
   const [open, setOpen] = useState(false);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
   const { createAdminLevel, isLoading } = useCreateAdminLevel();
 
   const form = useForm<AdminLevelFormValues>({
@@ -45,9 +53,31 @@ export function CreateAdminLevel() {
 
   return (
     <>
-      <ReusableButton onClick={() => setOpen(true)} Icon={Plus} variant="outlined">
-        New Admin Level
-      </ReusableButton>
+      <div className="flex gap-1 items-center">
+        <ReusableButton onClick={() => setOpen(true)} Icon={Plus} variant="outlined">
+          New Admin Level
+        </ReusableButton>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="p-2 hover:bg-muted rounded-md transition-colors text-muted-foreground hover:text-foreground border border-transparent hover:border-border">
+              <MoreVertical size={18} />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem onClick={() => setViewModalOpen(true)}>
+              <List size={16} className="mr-2" />
+              View Admin Levels
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      <AdminLevelsModal
+        isOpen={viewModalOpen}
+        onClose={() => setViewModalOpen(false)}
+      />
+
       <ReusableDialog
         isOpen={open}
         onClose={handleClose}

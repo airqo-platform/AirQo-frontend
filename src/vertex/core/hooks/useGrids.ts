@@ -157,6 +157,7 @@ export const useCreateGrid = () => {
 };
 
 export const useCreateAdminLevel = () => {
+  const queryClient = useQueryClient();
   const { mutate: createAdminLevel, isPending: isLoading, error } = useMutation<AdminLevelResponse, AxiosError<ErrorResponse>, { name: string }>({
     mutationFn: (data: { name: string }) => grids.createAdminLevelApi(data),
     onSuccess: (data) => {
@@ -164,6 +165,7 @@ export const useCreateAdminLevel = () => {
         message: `Admin level '${data.admin_levels.name}' created successfully`,
         type: "SUCCESS",
       });
+      queryClient.invalidateQueries({ queryKey: ["admin-levels"] });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       ReusableToast({
@@ -175,6 +177,46 @@ export const useCreateAdminLevel = () => {
 
   return {
     createAdminLevel,
+    isLoading,
+    error,
+  };
+};
+
+export const useAdminLevels = () => {
+  const { data, isLoading, error } = useQuery<AdminLevelsListResponse, AxiosError<ErrorResponse>>({
+    queryKey: ["admin-levels"],
+    queryFn: () => grids.getAdminLevelsApi(),
+    staleTime: 300_000,
+  });
+
+  return {
+    adminLevels: data?.admin_levels ?? [],
+    isLoading,
+    error,
+  };
+};
+
+export const useUpdateAdminLevel = () => {
+  const queryClient = useQueryClient();
+  const { mutate: updateAdminLevel, isPending: isLoading, error } = useMutation<AdminLevelResponse, AxiosError<ErrorResponse>, { levelId: string; data: { name: string } }>({
+    mutationFn: ({ levelId, data }) => grids.updateAdminLevelApi(levelId, data),
+    onSuccess: (data) => {
+      ReusableToast({
+        message: `Admin level updated to '${data.admin_levels.name}' successfully`,
+        type: "SUCCESS",
+      });
+      queryClient.invalidateQueries({ queryKey: ["admin-levels"] });
+    },
+    onError: (error: AxiosError<ErrorResponse>) => {
+      ReusableToast({
+        message: `Failed to update admin level: ${getApiErrorMessage(error)}`,
+        type: "ERROR",
+      });
+    },
+  });
+
+  return {
+    updateAdminLevel,
     isLoading,
     error,
   };
