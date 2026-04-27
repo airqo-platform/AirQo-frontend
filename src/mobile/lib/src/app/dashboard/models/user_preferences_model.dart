@@ -142,7 +142,7 @@ class UserPreferencesModel extends Equatable with UiLoggy {
             .info('Found ${selectedSitesRaw.length} potential selected sites');
 
         sites = selectedSitesRaw
-            .where((site) => site is Map<String, dynamic>)
+            .whereType<Map<String, dynamic>>()
             .map((site) => SelectedSite.fromJson(site))
             .toList();
 

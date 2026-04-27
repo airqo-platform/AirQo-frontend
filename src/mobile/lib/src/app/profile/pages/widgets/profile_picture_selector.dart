@@ -118,8 +118,6 @@ class _ProfilePictureSelectorState extends State<ProfilePictureSelector> with Ui
         ? Colors.white70
         : Colors.grey.shade700;
         
-    final destructiveColor = Colors.red;
-    
     showModalBottomSheet(
       context: context,
       backgroundColor: backgroundColor,
@@ -203,18 +201,6 @@ class _ProfilePictureSelectorState extends State<ProfilePictureSelector> with Ui
     }
   }
 
-  // Remove profile picture
-  void _removeProfilePicture() {
-    setState(() {
-      _selectedProfileImage = null;
-    });
-    if (widget.onRemoveImage != null) {
-      widget.onRemoveImage!();
-    } else {
-      widget.onImageSelected(null);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -231,7 +217,7 @@ class _ProfilePictureSelectorState extends State<ProfilePictureSelector> with Ui
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 4,
                     offset: Offset(0, 2),
                   ),

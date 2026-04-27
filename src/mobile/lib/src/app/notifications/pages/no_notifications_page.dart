@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 class NoNotificationsScreen extends StatelessWidget {
+  const NoNotificationsScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

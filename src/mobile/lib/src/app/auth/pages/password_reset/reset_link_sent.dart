@@ -14,7 +14,7 @@ class ResetLinkSentPage extends StatefulWidget {
   const ResetLinkSentPage({super.key});
 
   @override
-  _ResetLinkSentPageState createState() => _ResetLinkSentPageState();
+  State<ResetLinkSentPage> createState() => _ResetLinkSentPageState();
 }
 
 class _ResetLinkSentPageState extends State<ResetLinkSentPage> {
@@ -40,7 +40,6 @@ class _ResetLinkSentPageState extends State<ResetLinkSentPage> {
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
-    final screenHeight = mediaQuery.size.height;
     final isSmallScreen = screenWidth < 360;
     final isLargeScreen = screenWidth > 400;
 

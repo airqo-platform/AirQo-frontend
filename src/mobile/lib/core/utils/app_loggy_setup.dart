@@ -1,4 +1,5 @@
 import 'package:airqo/core/utils/slack_loggy_printer.dart';
+import 'package:flutter/foundation.dart';
 import 'package:loggy/loggy.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:airqo/core/utils/slack_logger.dart';
@@ -71,7 +72,7 @@ extension LoggyExtension on Object {
       }
     } catch (e) {
       // Prevent infinite loops by using print for logging errors in the logger itself
-      print('LoggingError: Failed to log error: $e');
+      debugPrint('LoggingError: Failed to log error: $e');
     }
   }
 }

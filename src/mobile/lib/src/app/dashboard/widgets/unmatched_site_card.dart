@@ -107,7 +107,7 @@ class _UnmatchedSiteCardState extends State<UnmatchedSiteCard> {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -164,7 +164,7 @@ class _UnmatchedSiteCardState extends State<UnmatchedSiteCard> {
                                                 .textTheme
                                                 .bodyMedium
                                                 ?.color
-                                                ?.withOpacity(0.7),
+                                                ?.withValues(alpha: 0.7),
                                           ),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
@@ -257,7 +257,7 @@ class _UnmatchedSiteCardState extends State<UnmatchedSiteCard> {
                             padding: EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 8),
                             decoration: BoxDecoration(
-                              color: Colors.grey.withOpacity(0.15),
+                              color: Colors.grey.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(

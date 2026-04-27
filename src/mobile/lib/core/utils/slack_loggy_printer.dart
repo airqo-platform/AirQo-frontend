@@ -25,7 +25,7 @@ class SlackLoggyPrinter extends LoggyPrinter {
           );
         } catch (e) {
           // Prevent infinite loops - don't use logError here
-          print('SlackLoggerError: Failed to send error to Slack: $e');
+          debugPrint('SlackLoggerError: Failed to send error to Slack: $e');
         }
         break;
         

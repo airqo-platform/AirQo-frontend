@@ -47,7 +47,7 @@ class SettingsTile extends StatelessWidget {
             onTap: onTap,
             trailing: switchValue != null
                 ? Switch(
-                    activeColor: Colors.white,
+                    activeThumbColor: Colors.white,
                     activeTrackColor: AppColors.primaryColor,
                     inactiveThumbColor: Colors.white,
                     inactiveTrackColor: isDarkMode 
@@ -77,7 +77,7 @@ class SettingsTile extends StatelessWidget {
                     ? []
                     : [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
+                          color: Colors.black.withValues(alpha: 0.05),
                           blurRadius: 3,
                           offset: Offset(0, 1),
                         ),
@@ -89,7 +89,7 @@ class SettingsTile extends StatelessWidget {
                 child: Center(
                   child: SvgPicture.asset(
                     iconPath,
-                    color: isDarkMode ? AppColors.primaryColor : null,
+                    colorFilter: isDarkMode ? ColorFilter.mode(AppColors.primaryColor, BlendMode.srcIn) : null,
                     width: 22,
                     height: 22,
                   ),

@@ -8,8 +8,7 @@ class GooglePlacesLoader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-        child: Row(
+    return Row(
       children: [
         ShimmerContainer(height: 50, borderRadius: 100, width: 50),
         SizedBox(width: 8),
@@ -24,6 +23,6 @@ class GooglePlacesLoader extends StatelessWidget {
           ],
         )
       ],
-    ));
+    );
   }
 }
