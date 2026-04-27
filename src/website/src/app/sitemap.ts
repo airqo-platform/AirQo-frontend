@@ -1,5 +1,7 @@
 import { MetadataRoute } from 'next';
 
+import { getPrimarySiteUrl } from '@/lib/siteUrl';
+
 const FORUM_ROUTE_CONFIG = [
   { suffix: '/about', changeFrequency: 'weekly' as const, priority: 0.9 },
   { suffix: '/speakers', changeFrequency: 'weekly' as const, priority: 0.7 },
@@ -84,13 +86,6 @@ const normalizeForumApiBaseUrl = (rawApiUrl: string): string => {
 };
 
 const getForumFetchTimeoutMs = (): number => {
-  const timeout = Number.parseInt(
-    process.env.FORUM_SITEMAP_FETCH_TIMEOUT_MS || '',
-    10,
-  );
-  if (Number.isFinite(timeout) && timeout > 0) {
-    return timeout;
-  }
   return DEFAULT_FORUM_FETCH_TIMEOUT_MS;
 };
 
@@ -462,8 +457,7 @@ const fetchBillboardGridRoutes = async (
 export const revalidate = 86400; // refresh daily
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const rawBase = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://airqo.net';
-  const baseUrl = rawBase.replace(/\/$/, '');
+  const baseUrl = getPrimarySiteUrl();
   const currentDate = new Date();
 
   const staticRouteConfig: Array<{

@@ -39,9 +39,7 @@ interface MapPageProps {
 // ─── Private org banner ───────────────────────────────────────────────────────
 
 const PrivateOrgBanner: React.FC<{ className?: string }> = ({ className }) => (
-  <div
-    className={`absolute top-4 left-1/2 -translate-x-1/2 z-[10000] w-full max-w-2xl px-4 ${className ?? ''}`}
-  >
+  <div className={`absolute top-4 left-4 right-4 z-[10000] ${className ?? ''}`}>
     <InfoBanner
       title="Map data unavailable"
       message={
@@ -65,9 +63,7 @@ const PrivateOrgBanner: React.FC<{ className?: string }> = ({ className }) => (
 );
 
 const EmptyCohortBanner: React.FC<{ className?: string }> = ({ className }) => (
-  <div
-    className={`absolute top-4 left-1/2 -translate-x-1/2 z-[10000] w-full max-w-2xl px-4 ${className ?? ''}`}
-  >
+  <div className={`absolute top-4 left-4 right-4 z-[10000] ${className ?? ''}`}>
     <InfoBanner
       title="No data available"
       message={<>This cohort contains no deployed devices yet.</>}
@@ -106,9 +102,9 @@ const MapPage: React.FC<MapPageProps> = ({
 
   // ── Local state ────────────────────────────────────────────────────────────
   const [searchQuery, setSearchQuery] = React.useState('');
-  const [selectedCountry, setSelectedCountry] = React.useState<string>(
-    isOrganizationFlow ? '' : 'uganda'
-  );
+  const [selectedCountry, setSelectedCountry] = React.useState<
+    string | undefined
+  >(undefined);
   const [locationDetailsLoading, setLocationDetailsLoading] =
     React.useState(false);
   const [flyToLocation, setFlyToLocation] = React.useState<
@@ -135,12 +131,29 @@ const MapPage: React.FC<MapPageProps> = ({
     );
   }, [cohortId]);
 
+  const selectionContextKey = React.useMemo(
+    () => `${isOrganizationFlow ? 'org' : 'user'}:${primaryCohortId || 'none'}`,
+    [isOrganizationFlow, primaryCohortId]
+  );
+
   // ── Cleanup ────────────────────────────────────────────────────────────────
   React.useEffect(() => {
     return () => {
       if (flyToTimeoutRef.current) clearTimeout(flyToTimeoutRef.current);
     };
   }, []);
+
+  React.useEffect(() => {
+    dispatch(clearSelectedLocation());
+    setSelectedLocationId(null);
+    setFlyToLocation(undefined);
+    setSelectedCountry(undefined);
+    setLocationDetailsLoading(false);
+
+    return () => {
+      dispatch(clearSelectedLocation());
+    };
+  }, [dispatch, selectionContextKey]);
 
   // ── Analytics ──────────────────────────────────────────────────────────────
   React.useEffect(() => {
@@ -169,6 +182,25 @@ const MapPage: React.FC<MapPageProps> = ({
     mutate: refetchCohort,
   } = useCohort(primaryCohortId, isOrganizationFlow && !!primaryCohortId);
 
+  const isCohortFetchCanceled = React.useMemo(() => {
+    if (!cohortError) {
+      return false;
+    }
+
+    const candidate = cohortError as {
+      name?: string;
+      code?: string;
+      message?: string;
+    };
+
+    return (
+      candidate.name === 'AbortError' ||
+      candidate.name === 'CanceledError' ||
+      candidate.code === 'ERR_CANCELED' ||
+      candidate.message === 'canceled'
+    );
+  }, [cohortError]);
+
   const normalizedReadings = React.useMemo(() => {
     const airqoReadings = normalizeMapReadings(readings, selectedPollutant);
     const dedupedReadings = new Map<string, (typeof airqoReadings)[number]>();
@@ -188,7 +220,7 @@ const MapPage: React.FC<MapPageProps> = ({
     return Array.from(dedupedReadings.values());
   }, [readings, selectedPollutant]);
 
-  const hasCohortError = Boolean(cohortError);
+  const hasCohortError = Boolean(cohortError && !isCohortFetchCanceled);
 
   const hasNoMapData =
     !cohortLoading &&
@@ -325,6 +357,7 @@ const MapPage: React.FC<MapPageProps> = ({
     flyToLocation,
     selectedPollutant,
     onPollutantChange: handlePollutantChange,
+    selectionContextKey,
   };
 
   const sidebarProps = {

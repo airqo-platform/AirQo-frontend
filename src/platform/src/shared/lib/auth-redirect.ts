@@ -19,3 +19,11 @@ export const normalizeCallbackUrl = (
     return callbackUrl.startsWith('/') ? callbackUrl : null;
   }
 };
+
+export const redirectWithReload = (targetUrl: string): void => {
+  if (typeof window === 'undefined' || !targetUrl) {
+    return;
+  }
+
+  window.location.replace(targetUrl);
+};

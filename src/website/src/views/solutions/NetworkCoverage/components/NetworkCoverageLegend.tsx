@@ -14,8 +14,8 @@ const NetworkCoverageLegend: React.FC<NetworkCoverageLegendProps> = ({
   const toggle = () => setCollapsed((s) => !s);
 
   const MonitorTypesPanel = (
-    <div className="w-[150px] rounded-xl border border-slate-200 bg-white px-3 py-2 text-[12px] text-slate-600 shadow-lg">
-      <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.08em] text-slate-500">
+    <div className="w-[150px] rounded-xl border border-slate-300 bg-white px-3 py-2 text-[12px] text-slate-700 shadow-lg">
+      <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.08em] text-slate-700">
         Monitor types
       </p>
       <div className="flex flex-col gap-1.5">
@@ -39,8 +39,8 @@ const NetworkCoverageLegend: React.FC<NetworkCoverageLegendProps> = ({
   );
 
   const CoveragePanel = (
-    <div className="w-[196px] rounded-xl border border-slate-200 bg-white px-3 py-2 text-[12px] text-slate-600 shadow-lg">
-      <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.08em] text-slate-500">
+    <div className="w-[196px] rounded-xl border border-slate-300 bg-white px-3 py-2 text-[12px] text-slate-700 shadow-lg">
+      <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.08em] text-slate-700">
         Monitor coverage
       </p>
       <div className="flex flex-col gap-1.5">
@@ -79,7 +79,7 @@ const NetworkCoverageLegend: React.FC<NetworkCoverageLegendProps> = ({
       <button
         aria-expanded={!collapsed}
         onClick={toggle}
-        className="mt-2 inline-flex items-center gap-3 rounded-full bg-white px-3 py-1.5 text-[13px] text-slate-600 shadow-lg border border-slate-200"
+        className="mt-2 inline-flex items-center gap-3 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-[13px] text-slate-700 shadow-lg"
       >
         {/* small dots - vary by viewMode */}
         <span className="flex items-center gap-1">
@@ -112,7 +112,7 @@ const NetworkCoverageLegend: React.FC<NetworkCoverageLegendProps> = ({
         >
           <path
             d="M5 8l5 5 5-5"
-            stroke="#475569"
+            stroke="#334155"
             strokeWidth={1.6}
             strokeLinecap="round"
             strokeLinejoin="round"

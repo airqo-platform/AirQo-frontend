@@ -45,7 +45,7 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
   onSearch,
   onCountrySelect,
   onLocationSelect,
-  selectedCountry = 'uganda',
+  selectedCountry,
   searchQuery = '',
   selectedLocation = null,
   selectedMapReading = null,

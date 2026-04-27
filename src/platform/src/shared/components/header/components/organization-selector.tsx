@@ -7,6 +7,7 @@ import { Avatar } from '@/shared/components/ui/avatar';
 import { SearchField } from '@/shared/components/ui/search-field';
 import Dialog from '@/shared/components/ui/dialog';
 import { useUser } from '@/shared/hooks/useUser';
+import { useUserActions } from '@/shared/hooks/useUserActions';
 import { isDefaultAirQoGroup } from '@/shared/utils/groupUtils';
 import { AqGrid01 } from '@airqo/icons-react';
 
@@ -15,6 +16,7 @@ export function OrganizationSelector() {
   const [searchTerm, setSearchTerm] = useState('');
   const router = useRouter();
   const { groups, activeGroup } = useUser();
+  const { switchGroup } = useUserActions();
   const safeGroups = React.useMemo(
     () => (Array.isArray(groups) ? groups : []),
     [groups]
@@ -25,12 +27,17 @@ export function OrganizationSelector() {
 
   const handleGroupSwitch = (groupId: string) => {
     const selectedGroup = safeGroups.find(g => g.id === groupId);
-    if (!selectedGroup) return;
+    if (!selectedGroup || selectedGroup.id === activeGroup?.id) return;
 
-    // Close dialog
+    // Close dialog first
     handleClose();
 
-    // Navigate based on group type
+    // Switch group context (updates Redux + invalidates group-scoped SWR/RQ caches)
+    // before navigating so that when the new page mounts, group context is already
+    // correct and ActiveGroupGuard doesn't need to re-sync.
+    switchGroup(selectedGroup);
+
+    // Navigate to the appropriate route for the selected group
     if (isDefaultAirQoGroup(selectedGroup)) {
       router.push('/user/home');
     } else {

@@ -112,11 +112,23 @@ export default function DevicesTable({
       )
       .map((device) => ({
         ...device,
+        site_id:
+          typeof device.site_id === "string" && device.site_id.trim() !== ""
+            ? device.site_id
+            : Array.isArray(device.site)
+              ? device.site?.[0]?._id
+              : device.site?._id,
         id: device._id,
       }));
   }, [devices]);
 
   const columns = useMemo(() => getColumns(isInternalView), [isInternalView]);
+
+  const additionalExportFields = useMemo(() => [
+    { key: "site_id", title: "Site ID" },
+    { key: "_id", title: "Device ID" },
+    { key: "category", title: "Category" },
+  ], []);
 
   return (
     <div className={`space-y-4 ${className}`}>
@@ -124,6 +136,7 @@ export default function DevicesTable({
         title="Devices"
         data={devicesWithId}
         columns={columns}
+        additionalExportFields={additionalExportFields}
         loading={isFetching}
         pageSize={itemsPerPage}
         onRowClick={handleDeviceClick}

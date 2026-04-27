@@ -168,10 +168,10 @@ If your Cohort has many devices, results are paginated. Use `skip` and `limit` t
 curl "https://api.airqo.net/api/v2/devices/measurements/cohorts/{COHORT_ID}?token={SECRET_TOKEN}&limit=50&skip=50"
 ```
 
-See [Pagination reference →](../reference/pagination) for a full walkthrough.
+See [Pagination reference →](../reference/pagination.md) for a full walkthrough.
 
 ---
 
 ## Need data older than 7 days?
 
-The recent measurements endpoint returns approximately the last 7 days. For historical data, use the [Analytics API →](./historical-data).
+The recent measurements endpoint returns approximately the last 7 days. For historical data, use the [Analytics API →](./historical-data.md).

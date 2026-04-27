@@ -33,6 +33,17 @@ export interface DeviceGrid {
   long_name: string;
 }
 
+export interface DevicePreviousSite {
+  _id: string;
+  visibility?: boolean;
+  rawOnlineStatus?: boolean;
+  lastRawData?: string | null;
+  name?: string;
+  location_name?: string;
+  search_name?: string;
+  [key: string]: unknown;
+}
+
 export interface DeviceCategoryHierarchy {
   level: string;
   category: string;
@@ -97,7 +108,7 @@ export interface Device {
   phoneNumber?: string;
   generation_version?: number | undefined | string;
   generation_count?: number | undefined | string;
-  previous_sites?: string[];
+  previous_sites?: Array<DevicePreviousSite | string>;
   grids?: DeviceGrid[];
   site?: DeviceSite[] | {
     _id: string;

@@ -95,9 +95,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
     return false;
   });
 
-  // Chart data hook
-  const { trigger: getChartData, isMutating: isChartLoading } =
-    useGetChartData();
+  // Chart data hook will be created after visibleSiteIds and dateRange are defined
 
   // Download hook
   const { downloadData, isDownloading } = useDataDownload();
@@ -106,6 +104,19 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
   const visibleSiteIds = useMemo(() => {
     return Array.from(visibleSites);
   }, [visibleSites]);
+
+  // Chart data hook - create a per-params SWR key to avoid cross-talk between
+  // multiple chart instances elsewhere in the app.
+  const { trigger: getChartData, isMutating: isChartLoading } = useGetChartData(
+    [
+      Array.isArray(visibleSiteIds) ? visibleSiteIds.join(',') : visibleSiteIds,
+      dateRange.from.toISOString().split('T')[0],
+      dateRange.to.toISOString().split('T')[0],
+      chartType,
+      frequency,
+      pollutant,
+    ]
+  );
 
   // Filtered sites based on search query
   const filteredSites = useMemo(() => {

@@ -1,8 +1,10 @@
 import React, { useMemo, useEffect, useCallback } from 'react';
+import { usePostHog } from 'posthog-js/react';
 import { usePathname } from 'next/navigation';
 import PageHeading from '@/shared/components/ui/page-heading';
 import { DataExportSidebar } from './components/DataExportSidebar';
 import { SiteSelectionDialog } from './components/SiteSelectionDialog';
+import { DownloadFormatDialog } from './components/DownloadFormatDialog';
 import { SelectedGridsSummary } from './components/SelectedGridsSummary';
 import { DataExportPreview } from './components/DataExportPreview';
 import { DataExportHeader } from './components/DataExportHeader';
@@ -10,6 +12,7 @@ import { DataExportTable } from './components/DataExportTable';
 import { DataExportBanner } from './components/DataExportBanner';
 import { DataExportHelpBanner } from './components/DataExportHelpBanner';
 import { VideoTutorialDialog } from './components/VideoTutorialDialog';
+import { toast } from '@/shared/components/ui/toast';
 import {
   CohortSitesResponse,
   CohortDevicesResponse,
@@ -25,10 +28,39 @@ import {
 } from './types/dataExportTypes';
 import { getTabConfig } from './utils/tableConfig';
 import { useDataExportState } from './hooks/useDataExportState';
-import { useDataExportActions } from './hooks/useDataExportActions';
+import {
+  type PreparedDownloadResult,
+  useDataExportActions,
+} from './hooks/useDataExportActions';
 import { useDataExportData } from './hooks/useDataExportData';
+import {
+  buildDownloadFileContent,
+  buildDownloadPdfBlob,
+} from './utils/dataExportFile';
 import MoreInsights from '@/modules/location-insights/more-insights';
 import AddLocation from '@/modules/location-insights/add-location';
+import { trackEvent } from '@/shared/utils/analytics';
+import { trackFeatureUsage } from '@/shared/utils/enhancedAnalytics';
+import { useUser } from '@/shared/hooks/useUser';
+import { useUserActions } from '@/shared/hooks/useUserActions';
+import { AccessDenied } from '@/shared/components/AccessDenied';
+
+type SaveFormat = 'csv' | 'pdf';
+type FinalSaveFormat = SaveFormat | 'json';
+
+const saveBlobToDisk = (blob: Blob, filename: string) => {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.style.visibility = 'hidden';
+
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  URL.revokeObjectURL(url);
+};
 
 const rebuildSelectionCache = (
   selectedIds: string[],
@@ -59,9 +91,40 @@ const rebuildSelectionCache = (
 
 const DataExportPage = () => {
   const pathname = usePathname();
+  const posthog = usePostHog();
+  const { activeGroup, groups, isLoading: userLoading } = useUser();
+  const { switchGroup } = useUserActions();
 
   // Determine if this is org flow based on pathname
   const isOrgFlow = pathname.includes('/org/');
+  const orgSlugFromPath = useMemo(() => {
+    if (!isOrgFlow) {
+      return null;
+    }
+
+    const segments = pathname.split('/').filter(Boolean);
+    return segments[1]?.toLowerCase() ?? null;
+  }, [isOrgFlow, pathname]);
+  const organizationGroup = useMemo(() => {
+    if (!isOrgFlow || !orgSlugFromPath) {
+      return null;
+    }
+
+    return (
+      groups?.find(
+        group =>
+          (group.organizationSlug || '').trim().toLowerCase() ===
+          orgSlugFromPath
+      ) || null
+    );
+  }, [groups, isOrgFlow, orgSlugFromPath]);
+  const organizationGroupId = organizationGroup?.id || '';
+  const isOrgUnresolved =
+    isOrgFlow && !userLoading && !!orgSlugFromPath && !organizationGroup;
+  const isOrgContextReady =
+    !isOrgFlow ||
+    (!!organizationGroupId && activeGroup?.id === organizationGroupId);
+  const isGroupSyncing = isOrgFlow && !isOrgContextReady && !isOrgUnresolved;
 
   // State management
   const {
@@ -100,6 +163,7 @@ const DataExportPage = () => {
     setDeviceCategory,
     setDateRange,
     updateTabState,
+    resetGroupScopedState,
     handleTabChange,
     handleClearSelections,
   } = useDataExportState();
@@ -120,6 +184,18 @@ const DataExportPage = () => {
   const [selectedDevicesCache, setSelectedDevicesCache] = React.useState<
     Record<string, TableItem>
   >({});
+  const [selectedCountriesCache, setSelectedCountriesCache] = React.useState<
+    Record<string, TableItem>
+  >({});
+  const [selectedCitiesCache, setSelectedCitiesCache] = React.useState<
+    Record<string, TableItem>
+  >({});
+  const [pendingDownload, setPendingDownload] =
+    React.useState<PreparedDownloadResult | null>(null);
+  const [saveFormatDialogOpen, setSaveFormatDialogOpen] = React.useState(false);
+  const [savingFormat, setSavingFormat] = React.useState<SaveFormat | null>(
+    null
+  );
   const [showHelpBanner, setShowHelpBanner] = React.useState(() => {
     // Check if user has dismissed the banner before
     if (typeof window !== 'undefined') {
@@ -127,6 +203,28 @@ const DataExportPage = () => {
     }
     return true;
   });
+  const previousGroupIdRef = React.useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!isOrgFlow) {
+      return;
+    }
+
+    if (userLoading || !organizationGroup || isOrgUnresolved) {
+      return;
+    }
+
+    if (activeGroup?.id !== organizationGroup.id) {
+      switchGroup(organizationGroup);
+    }
+  }, [
+    activeGroup?.id,
+    isOrgFlow,
+    isOrgUnresolved,
+    organizationGroup,
+    switchGroup,
+    userLoading,
+  ]);
 
   // Handle org flow: switch to sites tab if countries or cities is active
   React.useEffect(() => {
@@ -138,25 +236,65 @@ const DataExportPage = () => {
   // Wrap handleTabChange to prevent org flow from accessing countries/cities
   const wrappedHandleTabChange = useCallback(
     (tab: TabType) => {
+      if (isGroupSyncing) {
+        return;
+      }
+
       if (isOrgFlow && (tab === 'countries' || tab === 'cities')) {
         return;
       }
+
+      if (tab !== activeTab) {
+        trackFeatureUsage(posthog, 'data_export', 'tab_changed', {
+          from_tab: activeTab,
+          to_tab: tab,
+          is_org_flow: isOrgFlow,
+        });
+        trackEvent('data_export_tab_changed', {
+          from_tab: activeTab,
+          to_tab: tab,
+          is_org_flow: isOrgFlow,
+        });
+      }
+
       handleTabChange(tab);
     },
-    [isOrgFlow, handleTabChange]
+    [activeTab, isGroupSyncing, isOrgFlow, handleTabChange, posthog]
   );
 
   // Data fetching and processing (initial call with empty array)
   const selectedDevicesForActions = useMemo(
-    () => Object.values(selectedDevicesCache),
-    [selectedDevicesCache]
+    () =>
+      selectedDeviceIds
+        .map(id => selectedDevicesCache[id])
+        .filter((item): item is TableItem => Boolean(item)),
+    [selectedDeviceIds, selectedDevicesCache]
+  );
+  const selectedCountriesForActions = useMemo(
+    () =>
+      selectedGridIds
+        .map(id => selectedCountriesCache[id])
+        .filter((item): item is TableItem => Boolean(item)),
+    [selectedCountriesCache, selectedGridIds]
+  );
+  const selectedCitiesForActions = useMemo(
+    () =>
+      selectedGridIds
+        .map(id => selectedCitiesCache[id])
+        .filter((item): item is TableItem => Boolean(item)),
+    [selectedCitiesCache, selectedGridIds]
   );
   const selectedSitesForActions = useMemo(
-    () => Object.values(selectedSitesCache),
-    [selectedSitesCache]
+    () =>
+      selectedSiteIds
+        .map(id => selectedSitesCache[id])
+        .filter((item): item is TableItem => Boolean(item)),
+    [selectedSiteIds, selectedSitesCache]
   );
 
   const {
+    sitesHook,
+    devicesHook,
     currentHook,
     tableData,
     processedSitesData,
@@ -170,7 +308,8 @@ const DataExportPage = () => {
     deviceCategory,
     selectedDeviceIds,
     selectedDevicesForActions,
-    setSelectedDevices
+    setSelectedDevices,
+    isOrgContextReady
   );
 
   // Actions and event handlers
@@ -197,13 +336,33 @@ const DataExportPage = () => {
       selectedDevicesForActions.length > 0
         ? selectedDevicesForActions
         : processedDevicesData,
-      processedCountriesData,
-      processedCitiesData
+      selectedCountriesForActions.length > 0
+        ? selectedCountriesForActions
+        : processedCountriesData,
+      selectedCitiesForActions.length > 0
+        ? selectedCitiesForActions
+        : processedCitiesData
     );
 
   const currentState = tabStates[activeTab];
   const config = getTabConfig(activeTab);
   const meta = currentHook.data?.meta || { total: 0, page: 1, totalPages: 1 };
+  const displayTableData = useMemo(
+    () => (isGroupSyncing ? [] : tableData),
+    [isGroupSyncing, tableData]
+  );
+  const displaySitesData = isGroupSyncing
+    ? undefined
+    : (currentHook.data as CohortSitesResponse | undefined)?.sites;
+  const displayDevicesData = isGroupSyncing
+    ? undefined
+    : (currentHook.data as CohortDevicesResponse | undefined)?.devices;
+  const tableLoading =
+    isGroupSyncing || (currentHook.isLoading && currentHook.data === undefined);
+  const compactTableRows =
+    activeTab === 'devices' ||
+    activeTab === 'countries' ||
+    activeTab === 'cities';
 
   // Reset device pagination when category changes
   useEffect(() => {
@@ -230,10 +389,52 @@ const DataExportPage = () => {
 
   // BAM device exports under Devices tab always use raw data type
   useEffect(() => {
-    if (activeTab === 'devices' && deviceCategory === 'bam' && dataType !== 'raw') {
+    if (
+      activeTab === 'devices' &&
+      deviceCategory === 'bam' &&
+      dataType !== 'raw'
+    ) {
       setDataType('raw');
     }
   }, [activeTab, deviceCategory, dataType, setDataType]);
+
+  // Reset group-scoped selections and cached metadata on group switch
+  useEffect(() => {
+    const currentGroupId = activeGroup?.id ?? null;
+    const previousGroupId = previousGroupIdRef.current;
+
+    if (
+      currentGroupId &&
+      previousGroupId &&
+      currentGroupId !== previousGroupId
+    ) {
+      resetGroupScopedState(!siteSelectionDownloading);
+      setPendingDownload(null);
+      setSaveFormatDialogOpen(false);
+      setSavingFormat(null);
+      setSelectedSitesCache({});
+      setSelectedDevicesCache({});
+      setSelectedCountriesCache({});
+      setSelectedCitiesCache({});
+      setSelectedGridForSites(null);
+      setSiteSelectionDialogOpen(false);
+      setSiteSelectionDownloading(false);
+    }
+
+    previousGroupIdRef.current = currentGroupId;
+  }, [
+    activeGroup?.id,
+    resetGroupScopedState,
+    setPendingDownload,
+    setSaveFormatDialogOpen,
+    setSavingFormat,
+    setSelectedDevicesCache,
+    setSelectedGridForSites,
+    setSelectedSitesCache,
+    setSiteSelectionDialogOpen,
+    setSiteSelectionDownloading,
+    siteSelectionDownloading,
+  ]);
 
   // Handle sidebar visibility based on screen size
   useEffect(() => {
@@ -307,6 +508,16 @@ const DataExportPage = () => {
       }
       setSelectedGridSites(newSelectedGridSites);
       setSelectedGridSiteIds({}); // Reset custom selection
+
+      if (activeTab === 'countries') {
+        setSelectedCountriesCache(prevCache =>
+          rebuildSelectionCache(stringIds, processedCountriesData, prevCache)
+        );
+      } else {
+        setSelectedCitiesCache(prevCache =>
+          rebuildSelectionCache(stringIds, processedCitiesData, prevCache)
+        );
+      }
     }
   };
 
@@ -334,6 +545,30 @@ const DataExportPage = () => {
     );
   }, [selectedDeviceIds, processedDevicesData]);
 
+  // Keep selected countries cache synchronized as table pages/search results change.
+  useEffect(() => {
+    if (activeTab !== 'countries' || selectedGridIds.length === 0) {
+      setSelectedCountriesCache({});
+      return;
+    }
+
+    setSelectedCountriesCache(prevCache =>
+      rebuildSelectionCache(selectedGridIds, processedCountriesData, prevCache)
+    );
+  }, [activeTab, processedCountriesData, selectedGridIds]);
+
+  // Keep selected cities cache synchronized as table pages/search results change.
+  useEffect(() => {
+    if (activeTab !== 'cities' || selectedGridIds.length === 0) {
+      setSelectedCitiesCache({});
+      return;
+    }
+
+    setSelectedCitiesCache(prevCache =>
+      rebuildSelectionCache(selectedGridIds, processedCitiesData, prevCache)
+    );
+  }, [activeTab, processedCitiesData, selectedGridIds]);
+
   // Handle site selection dialog
   const handleSiteSelectionConfirm = async (selectedSiteIds: string[]) => {
     setSiteSelectionDownloading(true);
@@ -345,11 +580,16 @@ const DataExportPage = () => {
       setSelectedGridSiteIds(nextSelectedGridSiteIds);
 
       // Trigger download with the updated selections
-      await handleDownload(nextSelectedGridSiteIds);
+      const preparedDownload = await handleDownload({
+        customSelectedGridSiteIds: nextSelectedGridSiteIds,
+      });
 
-      // Close dialog only on successful download
-      setSiteSelectionDialogOpen(false);
-      setSelectedGridForSites(null);
+      // Close dialog only on successful download preparation
+      if (preparedDownload) {
+        setSiteSelectionDialogOpen(false);
+        setSelectedGridForSites(null);
+        openSaveFormatDialog(preparedDownload);
+      }
     } catch (error) {
       // Error is already handled in handleDownload
       console.error('Download failed:', error);
@@ -364,12 +604,139 @@ const DataExportPage = () => {
     setSelectedGridForSites(null);
   };
 
+  const openSaveFormatDialog = (download: PreparedDownloadResult) => {
+    if (fileType === 'json') {
+      void savePreparedDownload(download, 'json');
+      return;
+    }
+
+    setPendingDownload(download);
+    setSavingFormat(null);
+    setSaveFormatDialogOpen(true);
+  };
+
+  const savePreparedDownload = async (
+    download: PreparedDownloadResult,
+    format: FinalSaveFormat
+  ) => {
+    try {
+      const preserveSelectedColumns =
+        download.activeTab === 'countries' || download.activeTab === 'cities';
+      const filename = `${download.filenameBase}.${format}`;
+
+      if (format === 'pdf') {
+        const titleSuffix =
+          download.activeTab.charAt(0).toUpperCase() +
+          download.activeTab.slice(1);
+        const blob = buildDownloadPdfBlob(
+          download.response,
+          download.selectedColumnKeys,
+          {
+            title: `AirQo Data Export - ${titleSuffix}`,
+            summaryItems: download.summaryItems,
+            footerText: 'Generated by AirQo Data Export',
+            preserveSelectedColumns,
+          }
+        );
+
+        saveBlobToDisk(blob, filename);
+      } else {
+        const downloadType = format === 'csv' ? 'csv' : 'json';
+        const { content, mimeType } = buildDownloadFileContent(
+          download.response,
+          downloadType,
+          download.selectedColumnKeys,
+          preserveSelectedColumns
+        );
+
+        saveBlobToDisk(new Blob([content], { type: mimeType }), filename);
+      }
+
+      trackFeatureUsage(posthog, 'data_export', 'download_saved', {
+        active_tab: download.activeTab,
+        save_format: format,
+        fallback_applied: download.fallbackApplied,
+      });
+
+      trackEvent('data_export_saved', {
+        active_tab: download.activeTab,
+        save_format: format,
+        fallback_applied: download.fallbackApplied,
+      });
+
+      const savedLabel = format.toUpperCase();
+      const savedMessage =
+        format === 'pdf'
+          ? 'Your professional PDF report has been saved.'
+          : format === 'csv'
+            ? 'Your CSV file has been saved.'
+            : 'Your JSON file has been saved.';
+
+      toast.success(`Saved as ${savedLabel}`, savedMessage);
+      setSaveFormatDialogOpen(false);
+      setPendingDownload(null);
+
+      return true;
+    } catch (error) {
+      console.error('Failed to save export:', error);
+      const errorMessage = error instanceof Error ? error.message : '';
+
+      if (format === 'pdf' && /export too large for pdf/i.test(errorMessage)) {
+        toast.error('PDF Too Large', errorMessage);
+      } else {
+        toast.error(
+          'Save Failed',
+          errorMessage || 'We could not save the file. Please try again.'
+        );
+      }
+
+      if (format === 'json') {
+        setSaveFormatDialogOpen(false);
+        setPendingDownload(null);
+      }
+
+      return false;
+    }
+  };
+
+  const handleSaveFormatSelection = async (format: SaveFormat) => {
+    if (!pendingDownload) {
+      return;
+    }
+
+    setSavingFormat(format);
+
+    try {
+      await savePreparedDownload(pendingDownload, format);
+    } catch (error) {
+      console.error('Failed to save export:', error);
+      toast.error(
+        'Save Failed',
+        'We could not save the file. Please try again.'
+      );
+    } finally {
+      setSavingFormat(null);
+    }
+  };
+
   const handleDismissHelpBanner = () => {
     setShowHelpBanner(false);
     if (typeof window !== 'undefined') {
       localStorage.setItem('hideDataExportHelpBanner', 'true');
     }
   };
+
+  if (isOrgUnresolved) {
+    return (
+      <div className="min-h-[400px] p-6">
+        <AccessDenied
+          title="Organization not found"
+          message="We could not resolve that organization slug or you do not have access to it."
+          showBackButton={false}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col">
@@ -424,10 +791,10 @@ const DataExportPage = () => {
               selectedPollutants={selectedPollutants}
               deviceCategory={deviceCategory}
               isDownloadReady={isDownloadReady}
-              sitesData={(currentHook.data as CohortSitesResponse)?.sites}
-              devicesData={(currentHook.data as CohortDevicesResponse)?.devices}
-              isLoadingSites={false} // TODO: Get from hooks
-              isLoadingDevices={false} // TODO: Get from hooks
+              sitesData={displaySitesData}
+              devicesData={displayDevicesData}
+              isLoadingSites={isGroupSyncing || sitesHook.isLoading}
+              isLoadingDevices={isGroupSyncing || devicesHook.isLoading}
               pathname={pathname}
             />
 
@@ -458,11 +825,11 @@ const DataExportPage = () => {
               selectedGridSiteIds={selectedGridSiteIds}
               isDownloadReady={isDownloadReady}
               isDownloading={isDownloading}
+              isGroupSyncing={isGroupSyncing}
               onTabChange={wrappedHandleTabChange}
               onClearSelections={handleClearSelections}
               onVisualizeData={handleVisualizeData}
-              onPreview={() => setPreviewOpen(true)}
-              onDownload={handleDownload}
+              onDownload={() => setPreviewOpen(true)}
               onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
               sidebarOpen={sidebarOpen}
               isOrgFlow={isOrgFlow}
@@ -470,9 +837,9 @@ const DataExportPage = () => {
 
             <DataExportTable
               activeTab={activeTab}
-              tableData={tableData}
+              tableData={displayTableData}
               columns={config.columns}
-              loading={currentHook.isLoading}
+              loading={tableLoading}
               error={currentHook.error?.message || null}
               currentPage={currentState.page}
               totalPages={meta.totalPages}
@@ -486,6 +853,7 @@ const DataExportPage = () => {
                     ? selectedDeviceIds
                     : selectedGridIds // countries and cities use grid IDs
               }
+              compactRows={compactTableRows}
               onPageChange={page => updateTabState(activeTab, { page })}
               onPageSizeChange={size =>
                 updateTabState(activeTab, { pageSize: size })
@@ -501,9 +869,19 @@ const DataExportPage = () => {
       <DataExportPreview
         isOpen={previewOpen}
         onClose={() => setPreviewOpen(false)}
-        onConfirm={() => {
-          setPreviewOpen(false);
-          handleDownload();
+        onConfirm={async (selectedColumnKeys: string[]) => {
+          try {
+            const preparedDownload = await handleDownload({
+              exportColumnKeys: selectedColumnKeys,
+            });
+
+            if (preparedDownload) {
+              setPreviewOpen(false);
+              openSaveFormatDialog(preparedDownload);
+            }
+          } catch (error) {
+            console.error('Unexpected download confirmation error:', error);
+          }
         }}
         isDownloading={isDownloading}
         dataType={dataType}
@@ -517,7 +895,6 @@ const DataExportPage = () => {
         selectedGridIds={selectedGridIds}
         selectedGridSites={selectedGridSites}
         selectedGridSiteIds={selectedGridSiteIds}
-        deviceCategory={deviceCategory}
       />
 
       {/* More Insights Dialog */}
@@ -554,6 +931,19 @@ const DataExportPage = () => {
       <VideoTutorialDialog
         isOpen={tutorialOpen}
         onClose={() => setTutorialOpen(false)}
+      />
+
+      <DownloadFormatDialog
+        isOpen={saveFormatDialogOpen}
+        isSaving={savingFormat !== null}
+        savingFormat={savingFormat}
+        onClose={() => {
+          if (!savingFormat) {
+            setSaveFormatDialogOpen(false);
+            setPendingDownload(null);
+          }
+        }}
+        onSave={handleSaveFormatSelection}
       />
     </div>
   );

@@ -24,6 +24,127 @@ import type {
   CohortResponse,
 } from '../types/api';
 
+type LegacyCohortPagination = {
+  total?: number;
+  limit?: number;
+  skip?: number;
+  page?: number;
+  totalPages?: number;
+  nextPage?: string;
+};
+
+type LegacyCohortSitesResponse = {
+  success: boolean;
+  message: string;
+  sites: Record<string, unknown>[];
+  cache_generated_at?: string;
+} & LegacyCohortPagination;
+
+type LegacyCohortDevicesResponse = {
+  success: boolean;
+  message: string;
+  devices: Record<string, unknown>[];
+  cache_generated_at?: string;
+} & LegacyCohortPagination;
+
+const isAbortLikeError = (error: unknown): boolean => {
+  const candidate = error as {
+    name?: string;
+    code?: string;
+    message?: string;
+  } | null;
+  if (!candidate) return false;
+
+  return (
+    candidate.name === 'AbortError' ||
+    candidate.name === 'CanceledError' ||
+    candidate.code === 'ERR_CANCELED' ||
+    candidate.message === 'canceled'
+  );
+};
+
+const shouldFallbackToLegacyCohortEndpoint = (error: unknown): boolean => {
+  if (isAbortLikeError(error)) {
+    return false;
+  }
+
+  const candidate = error as {
+    code?: string;
+    response?: { status?: number };
+  } | null;
+
+  const status = candidate?.response?.status;
+  return status === 404 || status === 405;
+};
+
+const normalizeLegacyMeta = (
+  source: LegacyCohortPagination,
+  itemCount: number
+): {
+  total: number;
+  limit: number;
+  skip: number;
+  page: number;
+  totalPages: number;
+  nextPage?: string;
+} => {
+  const limit = Number(source.limit ?? itemCount ?? 0) || 0;
+  const skip = Number(source.skip ?? 0) || 0;
+  const total = Number(source.total ?? itemCount ?? 0) || 0;
+  const page =
+    Number(source.page ?? 0) || (limit > 0 ? Math.floor(skip / limit) + 1 : 1);
+  const totalPages =
+    Number(source.totalPages ?? 0) ||
+    (limit > 0 ? Math.max(1, Math.ceil(total / limit)) : 1);
+
+  return {
+    total,
+    limit,
+    skip,
+    page,
+    totalPages,
+    ...(source.nextPage ? { nextPage: source.nextPage } : {}),
+  };
+};
+
+const normalizeSitesResponse = (
+  response: CohortSitesResponse | LegacyCohortSitesResponse
+): CohortSitesResponse => {
+  if ('meta' in response) {
+    return response;
+  }
+
+  return {
+    success: response.success,
+    message: response.message,
+    meta: normalizeLegacyMeta(response, response.sites?.length ?? 0),
+    sites: response.sites ?? [],
+    ...(response.cache_generated_at
+      ? { cache_generated_at: response.cache_generated_at }
+      : {}),
+  };
+};
+
+const normalizeDevicesResponse = (
+  response: CohortDevicesResponse | LegacyCohortDevicesResponse
+): CohortDevicesResponse => {
+  if ('meta' in response) {
+    return response;
+  }
+
+  return {
+    success: response.success,
+    message: response.message,
+    meta: normalizeLegacyMeta(response, response.devices?.length ?? 0),
+    devices: response.devices ?? [],
+    ...(response.cache_generated_at
+      ? { cache_generated_at: response.cache_generated_at }
+      : {}),
+  };
+};
+
+const DEVICE_COHORTS_PATH = '/devices/cohorts';
+
 export class DeviceService {
   private authenticatedClient: ApiClient;
   private serverClient: ApiClient;
@@ -39,12 +160,13 @@ export class DeviceService {
 
   // Get sites summary - authenticated endpoint
   async getSitesSummaryAuthenticated(
-    params: SitesSummaryParams = {}
+    params: SitesSummaryParams = {},
+    signal?: AbortSignal
   ): Promise<SitesSummaryResponse> {
     await this.ensureAuthenticated();
     const response = await this.authenticatedClient.get<
       SitesSummaryResponse | ApiErrorResponse
-    >('/devices/sites/summary', { params });
+    >('/devices/sites/summary', { params, signal });
     const data = response.data;
 
     if ('success' in data && !data.success) {
@@ -56,11 +178,12 @@ export class DeviceService {
 
   // Get sites summary - API token endpoint
   async getSitesSummaryWithToken(
-    params: SitesSummaryParams = {}
+    params: SitesSummaryParams = {},
+    signal?: AbortSignal
   ): Promise<SitesSummaryResponse> {
     const response = await this.serverClient.get<
       SitesSummaryResponse | ApiErrorResponse
-    >('/devices/sites/summary', { params });
+    >('/devices/sites/summary', { params, signal });
     const data = response.data;
 
     if ('success' in data && !data.success) {
@@ -73,45 +196,130 @@ export class DeviceService {
   // Get sites using cohort - authenticated endpoint
   async getCohortSites(
     request: CohortSitesRequest,
-    params: CohortSitesParams = {}
+    params: CohortSitesParams = {},
+    signal?: AbortSignal
+  ): Promise<CohortSitesResponse> {
+    try {
+      return await this.getCohortSitesCached(request, params, signal);
+    } catch (error) {
+      if (!shouldFallbackToLegacyCohortEndpoint(error)) {
+        throw error;
+      }
+
+      return this.getCohortSitesLegacy(request, params, signal);
+    }
+  }
+
+  async getCohortSitesCached(
+    request: CohortSitesRequest,
+    params: CohortSitesParams = {},
+    signal?: AbortSignal
   ): Promise<CohortSitesResponse> {
     await this.ensureAuthenticated();
     const response = await this.authenticatedClient.post<
-      CohortSitesResponse | ApiErrorResponse
-    >('/devices/cohorts/sites', request, { params });
+      CohortSitesResponse | LegacyCohortSitesResponse | ApiErrorResponse
+    >(`${DEVICE_COHORTS_PATH}/cached-sites`, request, {
+      params,
+      signal,
+      suppressErrorLogging: true,
+    });
     const data = response.data;
 
     if ('success' in data && !data.success) {
       throw new Error(data.message || 'Failed to get cohort sites');
     }
 
-    return data as CohortSitesResponse;
+    return normalizeSitesResponse(
+      data as CohortSitesResponse | LegacyCohortSitesResponse
+    );
+  }
+
+  async getCohortSitesLegacy(
+    request: CohortSitesRequest,
+    params: CohortSitesParams = {},
+    signal?: AbortSignal
+  ): Promise<CohortSitesResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.post<
+      LegacyCohortSitesResponse | ApiErrorResponse
+    >(`${DEVICE_COHORTS_PATH}/sites`, request, { params, signal });
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to get cohort sites');
+    }
+
+    return normalizeSitesResponse(data as LegacyCohortSitesResponse);
   }
 
   // Get devices using cohort - authenticated endpoint
   async getCohortDevices(
     request: CohortDevicesRequest,
-    params: CohortDevicesParams = {}
+    params: CohortDevicesParams = {},
+    signal?: AbortSignal
+  ): Promise<CohortDevicesResponse> {
+    try {
+      return await this.getCohortDevicesCached(request, params, signal);
+    } catch (error) {
+      if (!shouldFallbackToLegacyCohortEndpoint(error)) {
+        throw error;
+      }
+
+      return this.getCohortDevicesLegacy(request, params, signal);
+    }
+  }
+
+  async getCohortDevicesCached(
+    request: CohortDevicesRequest,
+    params: CohortDevicesParams = {},
+    signal?: AbortSignal
   ): Promise<CohortDevicesResponse> {
     await this.ensureAuthenticated();
     const response = await this.authenticatedClient.post<
-      CohortDevicesResponse | ApiErrorResponse
-    >('/devices/cohorts/devices', request, { params });
+      CohortDevicesResponse | LegacyCohortDevicesResponse | ApiErrorResponse
+    >(`${DEVICE_COHORTS_PATH}/cached-devices`, request, {
+      params,
+      signal,
+      suppressErrorLogging: true,
+    });
     const data = response.data;
 
     if ('success' in data && !data.success) {
       throw new Error(data.message || 'Failed to get cohort devices');
     }
 
-    return data as CohortDevicesResponse;
+    return normalizeDevicesResponse(
+      data as CohortDevicesResponse | LegacyCohortDevicesResponse
+    );
+  }
+
+  async getCohortDevicesLegacy(
+    request: CohortDevicesRequest,
+    params: CohortDevicesParams = {},
+    signal?: AbortSignal
+  ): Promise<CohortDevicesResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.post<
+      LegacyCohortDevicesResponse | ApiErrorResponse
+    >(`${DEVICE_COHORTS_PATH}/devices`, request, { params, signal });
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to get cohort devices');
+    }
+
+    return normalizeDevicesResponse(data as LegacyCohortDevicesResponse);
   }
 
   // Get active groups cohort ids - authenticated endpoint
-  async getGroupCohorts(groupId: string): Promise<GroupCohortsResponse> {
+  async getGroupCohorts(
+    groupId: string,
+    signal?: AbortSignal
+  ): Promise<GroupCohortsResponse> {
     await this.ensureAuthenticated();
     const response = await this.authenticatedClient.get<
       GroupCohortsResponse | ApiErrorResponse
-    >(`/users/groups/${groupId}/cohorts`);
+    >(`/users/groups/${groupId}/cohorts`, { signal });
     const data = response.data;
 
     if ('success' in data && !data.success) {
@@ -134,7 +342,10 @@ export class DeviceService {
   }
 
   // Get cohort details - authenticated endpoint
-  async getCohort(cohortId: string): Promise<CohortResponse> {
+  async getCohort(
+    cohortId: string,
+    signal?: AbortSignal
+  ): Promise<CohortResponse> {
     const resolvedCohortId = (cohortId || '')
       .split(',')
       .map(value => value.trim())
@@ -147,7 +358,7 @@ export class DeviceService {
     await this.ensureAuthenticated();
     const response = await this.authenticatedClient.get<
       CohortResponse | ApiErrorResponse
-    >(`/devices/cohorts/${resolvedCohortId}`);
+    >(`${DEVICE_COHORTS_PATH}/${resolvedCohortId}`, { signal });
     const data = response.data;
 
     if ('success' in data && !data.success) {
@@ -160,7 +371,8 @@ export class DeviceService {
   // Get grids summary - authenticated endpoint
   async getGridsSummaryAuthenticated(
     params: GridsSummaryParams = {},
-    cohort_id?: string
+    cohort_id?: string,
+    signal?: AbortSignal
   ): Promise<GridsSummaryResponse> {
     await this.ensureAuthenticated();
     const queryParams: Record<string, any> = { ...params };
@@ -169,7 +381,7 @@ export class DeviceService {
     }
     const response = await this.authenticatedClient.get<
       GridsSummaryResponse | ApiErrorResponse
-    >('/devices/grids/summary', { params: queryParams });
+    >('/devices/grids/summary', { params: queryParams, signal });
     const data = response.data;
 
     if ('success' in data && !data.success) {
@@ -182,7 +394,8 @@ export class DeviceService {
   // Get grids summary - API token endpoint
   async getGridsSummaryWithToken(
     params: GridsSummaryParams = {},
-    cohort_id?: string
+    cohort_id?: string,
+    signal?: AbortSignal
   ): Promise<GridsSummaryResponse> {
     const queryParams: Record<string, any> = { ...params };
     if (cohort_id) {
@@ -190,7 +403,7 @@ export class DeviceService {
     }
     const response = await this.serverClient.get<
       GridsSummaryResponse | ApiErrorResponse
-    >('/devices/grids/summary', { params: queryParams });
+    >('/devices/grids/summary', { params: queryParams, signal });
     const data = response.data;
 
     if ('success' in data && !data.success) {
@@ -202,7 +415,8 @@ export class DeviceService {
 
   // Get countries list - authenticated endpoint
   async getCountriesAuthenticated(
-    cohort_id?: string
+    cohort_id?: string,
+    signal?: AbortSignal
   ): Promise<CountriesResponse> {
     await this.ensureAuthenticated();
     const params: Record<string, string> = {};
@@ -211,7 +425,7 @@ export class DeviceService {
     }
     const response = await this.authenticatedClient.get<
       CountriesResponse | ApiErrorResponse
-    >('/devices/grids/countries', { params });
+    >('/devices/grids/countries', { params, signal });
     const data = response.data;
 
     if ('success' in data && !data.success) {
@@ -222,14 +436,17 @@ export class DeviceService {
   }
 
   // Get countries list - API token endpoint
-  async getCountriesWithToken(cohort_id?: string): Promise<CountriesResponse> {
+  async getCountriesWithToken(
+    cohort_id?: string,
+    signal?: AbortSignal
+  ): Promise<CountriesResponse> {
     const params: Record<string, string> = {};
     if (cohort_id) {
       params.cohort_id = cohort_id;
     }
     const response = await this.serverClient.get<
       CountriesResponse | ApiErrorResponse
-    >('/devices/grids/countries', { params });
+    >('/devices/grids/countries', { params, signal });
     const data = response.data;
 
     if ('success' in data && !data.success) {
@@ -241,16 +458,21 @@ export class DeviceService {
 
   // Get map readings - API token endpoint
   async getMapReadingsWithToken(
-    cohort_id?: string
+    cohort_id?: string,
+    signal?: AbortSignal,
+    user_id?: string
   ): Promise<MapReadingsResponse> {
     const params: Record<string, string> = {};
     if (cohort_id) {
       params.cohort_id = cohort_id;
     }
+    if (user_id) {
+      params.user_id = user_id;
+    }
 
     const response = await this.serverClient.get<
       MapReadingsResponse | ApiErrorResponse
-    >('/devices/readings/map', { params });
+    >('/devices/readings/map', { params, signal });
     const data = response.data;
 
     if ('success' in data && !data.success) {

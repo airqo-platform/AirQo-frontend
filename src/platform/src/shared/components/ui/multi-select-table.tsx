@@ -63,6 +63,11 @@ interface TableColumn<T = TableItem> {
   filterOptions?: FilterOption[];
   filterMulti?: boolean;
   render?: (value: unknown, item: T) => React.ReactNode;
+  headerClassName?: string;
+  cellClassName?: string;
+  width?: string;
+  minWidth?: string;
+  maxWidth?: string;
 }
 
 interface CustomFilterProps {
@@ -110,6 +115,7 @@ interface MultiSelectTableProps<T = TableItem> {
   selectedItems?: (string | number)[];
   onSelectedItemsChange?: (selectedIds: (string | number)[]) => void;
   enableColumnFilters?: boolean;
+  compactRows?: boolean;
   // Server-side search props
   searchTerm?: string;
   onSearchChange?: (search: string) => void;
@@ -161,15 +167,12 @@ const ColumnHeaderFilter = <T extends TableItem>({
 
   const isMulti = column.filterMulti ?? true;
 
-  const filteredOptions = useMemo(
-    () => {
-      const normalizedSearchTerm = normalizeText(searchTerm);
-      return filterOptions.filter(option =>
-        normalizeText(option.label).includes(normalizedSearchTerm)
-      );
-    },
-    [filterOptions, searchTerm]
-  );
+  const filteredOptions = useMemo(() => {
+    const normalizedSearchTerm = normalizeText(searchTerm);
+    return filterOptions.filter(option =>
+      normalizeText(option.label).includes(normalizedSearchTerm)
+    );
+  }, [filterOptions, searchTerm]);
 
   const handleSelect = useCallback(
     (option: FilterOption) => {
@@ -349,15 +352,12 @@ const CustomFilter: React.FC<CustomFilterProps> = ({
     }
   }, [isOpen]);
 
-  const filteredOptions = useMemo(
-    () => {
-      const normalizedSearchTerm = normalizeText(searchTerm);
-      return options.filter(option =>
-        normalizeText(option.label).includes(normalizedSearchTerm)
-      );
-    },
-    [options, searchTerm]
-  );
+  const filteredOptions = useMemo(() => {
+    const normalizedSearchTerm = normalizeText(searchTerm);
+    return options.filter(option =>
+      normalizeText(option.label).includes(normalizedSearchTerm)
+    );
+  }, [options, searchTerm]);
 
   const handleSelect = useCallback(
     (option: FilterOption) => {
@@ -524,6 +524,7 @@ const MultiSelectTable = <T extends TableItem>({
   selectedItems: controlledSelectedItems,
   onSelectedItemsChange,
   enableColumnFilters = false,
+  compactRows = false,
   // Server-side search props
   searchTerm: controlledSearchTerm,
   onSearchChange,
@@ -1142,11 +1143,17 @@ const MultiSelectTable = <T extends TableItem>({
                       className={`py-2 sm:py-3 text-xs font-medium tracking-wider text-left uppercase text-muted-foreground ${
                         column.key === 'checkbox'
                           ? 'w-12 max-w-[3rem] px-2 sm:px-3'
-                          : 'px-2 sm:px-4 md:px-6 max-w-[300px]'
-                      }`}
+                          : compactRows
+                            ? 'px-2 sm:px-4 md:px-6 max-w-none'
+                            : 'px-2 sm:px-4 md:px-6 max-w-[300px]'
+                      } ${column.headerClassName || ''}`}
                       style={
                         column.key !== 'checkbox'
-                          ? { minWidth: '120px' }
+                          ? {
+                              minWidth: column.minWidth || '120px',
+                              width: column.width,
+                              maxWidth: column.maxWidth,
+                            }
                           : undefined
                       }
                     >
@@ -1209,11 +1216,17 @@ const MultiSelectTable = <T extends TableItem>({
                         className={`py-2 sm:py-4 text-sm text-foreground align-top ${
                           column.key === 'checkbox'
                             ? 'w-12 max-w-[3rem] px-2 sm:px-3'
-                            : 'px-2 sm:px-4 md:px-6 max-w-[300px]'
-                        }`}
+                            : compactRows
+                              ? 'px-2 sm:px-4 md:px-6 max-w-none'
+                              : 'px-2 sm:px-4 md:px-6 max-w-[300px]'
+                        } ${column.cellClassName || ''}`}
                         style={
                           column.key !== 'checkbox'
-                            ? { minWidth: '120px' }
+                            ? {
+                                minWidth: column.minWidth || '120px',
+                                width: column.width,
+                                maxWidth: column.maxWidth,
+                              }
                             : undefined
                         }
                       >
@@ -1221,7 +1234,9 @@ const MultiSelectTable = <T extends TableItem>({
                           className={
                             column.key === 'checkbox'
                               ? ''
-                              : 'break-words whitespace-normal overflow-wrap-anywhere max-w-full'
+                              : compactRows
+                                ? 'whitespace-nowrap max-w-none'
+                                : `${column.cellClassName || 'break-words whitespace-normal overflow-wrap-anywhere'} max-w-full`
                           }
                         >
                           {renderCell(item, column)}

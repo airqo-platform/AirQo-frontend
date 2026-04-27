@@ -28,9 +28,6 @@ const resolveApiOrigin = () => {
 
 const nextConfig = {
   output: 'standalone',
-  httpAgentOptions: {
-    keepAlive: true,
-  },
   async rewrites() {
     const apiOrigin = resolveApiOrigin();
 

@@ -1,3 +1,5 @@
+import { Suspense } from 'react';
+
 import {
   generateMetadata as createMetadata,
   generateViewport,
@@ -12,7 +14,9 @@ export const viewport = generateViewport();
 const Page = () => {
   return (
     <div>
-      <ResourcePage />
+      <Suspense fallback={null}>
+        <ResourcePage />
+      </Suspense>
     </div>
   );
 };

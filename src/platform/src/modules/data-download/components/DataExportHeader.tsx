@@ -1,4 +1,5 @@
 import React from 'react';
+import { Tooltip } from 'flowbite-react';
 import { Button } from '@/shared/components/ui';
 import { AqAnnotationX, AqDownload01 } from '@airqo/icons-react';
 import { TabType } from '../types/dataExportTypes';
@@ -11,10 +12,10 @@ interface DataExportHeaderProps {
   selectedGridSiteIds: Record<string, string[]>;
   isDownloadReady: boolean;
   isDownloading: boolean;
+  isGroupSyncing?: boolean;
   onTabChange: (tab: TabType) => void;
   onClearSelections: () => void;
   onVisualizeData: () => void;
-  onPreview: () => void;
   onDownload: () => void;
   onToggleSidebar?: () => void;
   sidebarOpen?: boolean;
@@ -32,10 +33,10 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
   selectedGridSiteIds,
   isDownloadReady,
   isDownloading,
+  isGroupSyncing = false,
   onTabChange,
   onClearSelections,
   onVisualizeData,
-  onPreview,
   onDownload,
   onToggleSidebar,
   sidebarOpen = false,
@@ -46,6 +47,13 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
     selectedDeviceIds.length > 0 ||
     selectedGridIds.length > 0 ||
     Object.keys(selectedGridSiteIds).length > 0;
+
+  const reviewDownloadTooltip = (
+    <div className="max-w-sm text-sm break-words">
+      Review the export before downloading. If no readings are returned, the
+      download falls back to metadata.
+    </div>
+  );
 
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -72,6 +80,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
           <Button
             variant={activeTab === 'sites' ? 'filled' : 'outlined'}
             onClick={() => onTabChange('sites')}
+            disabled={isGroupSyncing}
             className="flex-shrink-0"
           >
             Sites
@@ -79,6 +88,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
           <Button
             variant={activeTab === 'devices' ? 'filled' : 'outlined'}
             onClick={() => onTabChange('devices')}
+            disabled={isGroupSyncing}
             className="flex-shrink-0"
           >
             Devices
@@ -88,6 +98,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
               <Button
                 variant={activeTab === 'countries' ? 'filled' : 'outlined'}
                 onClick={() => onTabChange('countries')}
+                disabled={isGroupSyncing}
                 className="flex-shrink-0"
               >
                 Countries
@@ -95,6 +106,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
               <Button
                 variant={activeTab === 'cities' ? 'filled' : 'outlined'}
                 onClick={() => onTabChange('cities')}
+                disabled={isGroupSyncing}
                 className="flex-shrink-0"
               >
                 Cities
@@ -110,6 +122,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
             variant="outlined"
             onClick={onClearSelections}
             Icon={AqAnnotationX}
+            disabled={isGroupSyncing}
             className="px-4 py-2 w-full sm:w-auto"
           >
             Clear All
@@ -119,6 +132,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
           variant="outlined"
           onClick={onVisualizeData}
           disabled={
+            isGroupSyncing ||
             (activeTab === 'sites' && selectedSiteIds.length === 0) ||
             (activeTab === 'devices' && selectedDeviceIds.length === 0) ||
             ((activeTab === 'countries' || activeTab === 'cities') &&
@@ -128,24 +142,21 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
         >
           Visualize Data
         </Button>
-        <Button
-          variant="outlined"
-          onClick={onPreview}
-          disabled={!isDownloadReady}
-          className="px-4 py-2 w-full sm:w-auto"
-        >
-          Preview
-        </Button>
-        <Button
-          variant="filled"
-          onClick={onDownload}
-          Icon={AqDownload01}
-          className="px-4 py-2 w-full sm:w-auto"
-          disabled={!isDownloadReady}
-          loading={isDownloading}
-        >
-          {isDownloading ? 'Downloading...' : 'Download Data'}
-        </Button>
+        {/* Preview button removed: preview shown via Review & Download flow */}
+        <Tooltip content={reviewDownloadTooltip} placement="top">
+          <span className="inline-flex w-full sm:w-auto">
+            <Button
+              variant="filled"
+              onClick={onDownload}
+              Icon={AqDownload01}
+              className="px-4 py-2 w-full sm:w-auto"
+              disabled={isGroupSyncing || !isDownloadReady}
+              loading={isDownloading}
+            >
+              {isDownloading ? 'Downloading...' : 'Review & Download'}
+            </Button>
+          </span>
+        </Tooltip>
       </div>
     </div>
   );

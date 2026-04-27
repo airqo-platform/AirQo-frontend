@@ -1,10 +1,13 @@
 import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import { useSWRConfig } from 'swr';
+import { usePostHog } from 'posthog-js/react';
+import { useQueryClient } from '@tanstack/react-query';
 import { setActiveGroup, setActiveGroupById } from '@/shared/store/userSlice';
 import { useUser } from './useUser';
 import { useLogout } from './useLogout';
 import type { NormalizedGroup } from '@/shared/utils/userUtils';
+import { trackGroupChange } from '@/shared/utils/enhancedAnalytics';
 
 /**
  * Hook for user-related actions and state
@@ -14,10 +17,55 @@ export const useUserActions = () => {
   const { mutate } = useSWRConfig();
   const { user, groups, activeGroup, isLoading, isLoggingOut, error } =
     useUser();
+  const posthog = usePostHog();
+  const queryClient = useQueryClient();
   const logout = useLogout();
+
+  const getQueryKeySegments = useCallback((key: unknown) => {
+    if (!Array.isArray(key)) {
+      return [] as string[];
+    }
+
+    return key.map(segment => String(segment));
+  }, []);
 
   const invalidateGroupScopedCache = useCallback(
     (previousGroupId?: string, nextGroupId?: string) => {
+      // Separate analytics/chart keys (heavy fetches that should NOT auto-refetch)
+      // from structural keys (preferences, cohorts, theme) that must refresh when
+      // the group changes so components don't get stuck with stale or empty data.
+      mutate(
+        key => {
+          const keyText = Array.isArray(key)
+            ? key
+                .filter(
+                  (segment): segment is string | number =>
+                    typeof segment === 'string' || typeof segment === 'number'
+                )
+                .join(' ')
+            : typeof key === 'string'
+              ? key
+              : '';
+
+          if (!keyText) {
+            return false;
+          }
+
+          return (
+            keyText.startsWith('analytics/') ||
+            keyText.startsWith('sites/summary') ||
+            keyText.startsWith('grids/summary')
+          );
+        },
+        undefined,
+        // Analytics/chart keys: clear without triggering background refetch.
+        // These are large fetches initiated by explicit user action or filter change.
+        { revalidate: false }
+      );
+
+      // Structural group-scoped keys: clear and allow SWR to revalidate active
+      // subscriptions immediately so components receive fresh data for the new group
+      // instead of being stuck on undefined / stale values.
       mutate(
         key => {
           const keyText = Array.isArray(key)
@@ -39,10 +87,6 @@ export const useUserActions = () => {
             keyText.startsWith('preferences/') ||
             keyText.startsWith('preferences/list/') ||
             keyText.startsWith('preferences/theme/') ||
-            keyText.startsWith('analytics/') ||
-            keyText.startsWith('sites/summary') ||
-            keyText.startsWith('grids/summary') ||
-            keyText.startsWith('checklist/') ||
             keyText.includes('/preferences') ||
             keyText.includes('/theme') ||
             keyText.includes('group/cohorts') ||
@@ -55,28 +99,83 @@ export const useUserActions = () => {
             (!!nextGroupId && keyText.includes(`/${nextGroupId}`))
           );
         },
-        undefined,
-        { revalidate: true }
+        undefined
+        // No revalidate option — defaults to true, so active SWR subscriptions
+        // immediately refetch with fresh data for the new group context.
       );
+
+      queryClient.removeQueries({
+        predicate: query => {
+          const key = query.queryKey;
+          if (!Array.isArray(key)) {
+            const keyString = String(key);
+            return (
+              keyString.includes('sites-by-country') ||
+              keyString.includes('group/cohorts') ||
+              keyString.includes('cohort') ||
+              (!!previousGroupId && keyString.includes(previousGroupId)) ||
+              (!!nextGroupId && keyString.includes(nextGroupId))
+            );
+          }
+
+          const segments = getQueryKeySegments(key);
+
+          if (segments.length === 0) {
+            return false;
+          }
+
+          const hasPreviousGroupId =
+            !!previousGroupId &&
+            segments.some(segment => segment === previousGroupId);
+          const hasNextGroupId =
+            !!nextGroupId && segments.some(segment => segment === nextGroupId);
+
+          return (
+            segments.includes('sites-by-country') ||
+            (segments.includes('group') && segments.includes('cohorts')) ||
+            segments.includes('cohort') ||
+            hasPreviousGroupId ||
+            hasNextGroupId
+          );
+        },
+      });
     },
-    [mutate]
+    [getQueryKeySegments, mutate, queryClient]
   );
 
   const switchGroup = useCallback(
     (group: NormalizedGroup) => {
       const previousGroupId = activeGroup?.id;
+      const previousGroupName = activeGroup?.title;
+      const previousOrganizationSlug = activeGroup?.organizationSlug;
 
       // Only proceed if actually switching to a different group
       if (previousGroupId === group.id) {
         return; // No need to do anything if it's the same group
       }
 
+      trackGroupChange(posthog, {
+        fromGroupId: previousGroupId,
+        fromGroupName: previousGroupName,
+        fromOrganizationSlug: previousOrganizationSlug,
+        toGroupId: group.id,
+        toGroupName: group.title,
+        toOrganizationSlug: group.organizationSlug,
+      });
+
       // Switch to new group
       dispatch(setActiveGroup(group));
 
       invalidateGroupScopedCache(previousGroupId, group.id);
     },
-    [activeGroup?.id, dispatch, invalidateGroupScopedCache]
+    [
+      activeGroup?.id,
+      activeGroup?.organizationSlug,
+      activeGroup?.title,
+      dispatch,
+      invalidateGroupScopedCache,
+      posthog,
+    ]
   );
 
   const switchGroupById = useCallback(
@@ -86,14 +185,31 @@ export const useUserActions = () => {
         switchGroup(group);
       } else {
         const previousGroupId = activeGroup?.id;
+        const previousGroupName = activeGroup?.title;
+        const previousOrganizationSlug = activeGroup?.organizationSlug;
         console.warn(
           `[useUserActions] Group not found in current groups list for id ${groupId}. Applying ID-only switch fallback.`
         );
+        trackGroupChange(posthog, {
+          fromGroupId: previousGroupId,
+          fromGroupName: previousGroupName,
+          fromOrganizationSlug: previousOrganizationSlug,
+          toGroupId: groupId,
+        });
         dispatch(setActiveGroupById(groupId));
         invalidateGroupScopedCache(previousGroupId, groupId);
       }
     },
-    [activeGroup?.id, dispatch, groups, invalidateGroupScopedCache, switchGroup]
+    [
+      activeGroup?.id,
+      activeGroup?.title,
+      activeGroup?.organizationSlug,
+      dispatch,
+      groups,
+      invalidateGroupScopedCache,
+      posthog,
+      switchGroup,
+    ]
   );
 
   return {

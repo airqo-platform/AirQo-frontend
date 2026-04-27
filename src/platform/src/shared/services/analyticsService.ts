@@ -29,20 +29,23 @@ export class AnalyticsService {
 
   // Get chart data - authenticated endpoint
   async getChartData(
-    request: AnalyticsChartRequest
+    request: AnalyticsChartRequest,
+    signal?: AbortSignal
   ): Promise<AnalyticsChartResponse> {
     await this.ensureAuthenticated();
     const response =
       await this.authenticatedClient.post<AnalyticsChartResponse>(
         '/analytics/dashboard/chart/d3/data',
-        request
+        request,
+        { signal }
       );
     return response.data;
   }
 
   // Get recent readings data
   async getRecentReadings(
-    request: RecentReadingRequest
+    request: RecentReadingRequest,
+    signal?: AbortSignal
   ): Promise<RecentReadingsResponse> {
     const normalizedSiteIds = (request.site_id || '')
       .split(',')
@@ -63,7 +66,9 @@ export class AnalyticsService {
       {
         params: {
           site_id: normalizedSiteIds,
+          ...(request.user_id ? { user_id: request.user_id } : {}),
         },
+        signal,
       }
     );
     return response.data;

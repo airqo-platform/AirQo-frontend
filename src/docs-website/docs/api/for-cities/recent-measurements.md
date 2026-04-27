@@ -165,8 +165,8 @@ curl "https://api.airqo.net/api/v2/devices/measurements/grids/{GRID_ID}?token={S
 
 ## Need data older than 7 days?
 
-Use the [Analytics API for historical city data →](./historical-data).
+Use the [Analytics API for historical city data →](./historical-data.md).
 
 ## Want a visual map of your city's air quality?
 
-See [Spatial Heatmaps →](./spatial-heatmaps) for generating Base64-encoded PNG heatmap images.
+See [Spatial Heatmaps →](./spatial-heatmaps.md) for generating Base64-encoded PNG heatmap images.

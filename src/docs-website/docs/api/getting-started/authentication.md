@@ -79,5 +79,5 @@ If your servers use dynamic IP addresses (e.g. ephemeral cloud instances), consi
 
 ## Next steps
 
-- [Choose a subscription tier →](./pricing-tiers)
-- [Make your first API call →](./quick-start)
+- [Choose a subscription tier →](./pricing-tiers.md)
+- [Make your first API call →](./quick-start.md)

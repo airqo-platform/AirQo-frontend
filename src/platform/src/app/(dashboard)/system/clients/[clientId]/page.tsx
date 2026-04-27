@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button, Card, PageHeading } from '@/shared/components/ui';
+import { Tooltip } from 'flowbite-react';
 import { LoadingState } from '@/shared/components/ui/loading-state';
 import { toast } from '@/shared/components/ui';
 import { formatDate, parseDate } from '@/shared/utils';
@@ -88,6 +89,8 @@ const ClientDetailsPage: React.FC = () => {
       })
     : '—';
 
+  const requiresClientSecret = Boolean(client?.requireClientSecret);
+
   const handleBack = () => {
     router.push('/system/clients');
   };
@@ -115,7 +118,7 @@ const ClientDetailsPage: React.FC = () => {
     setIsRefreshingSecret(true);
     try {
       await clientService.refreshClientSecret(clientId);
-      toast.success('Client secret refreshed successfully');
+      toast.success('Client secret regenerated successfully');
       setRefreshSecretDialogOpen(false);
       mutate();
     } catch (error) {
@@ -264,7 +267,7 @@ const ClientDetailsPage: React.FC = () => {
                 Icon={AqRefreshCw05}
                 iconPosition="start"
               >
-                Refresh Secret
+                Regenerate Secret
               </Button>
             )}
             <Button
@@ -357,6 +360,26 @@ const ClientDetailsPage: React.FC = () => {
                     {client.isActive ? 'Active' : 'Inactive'}
                   </span>
                 </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Client Secret Requirement
+                </label>
+                <div className="mt-1">
+                  <span
+                    className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                      requiresClientSecret
+                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
+                        : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
+                    }`}
+                  >
+                    {requiresClientSecret ? 'Required' : 'Not required'}
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  When enabled, API requests must include the X-Client-Secret
+                  header.
+                </p>
               </div>
             </div>
           </Card>
@@ -499,23 +522,27 @@ const ClientDetailsPage: React.FC = () => {
                 </div>
                 {tokenExpired && (
                   <div className="mt-4 flex justify-end">
-                    <Button
-                      variant="outlined"
-                      onClick={() => {
-                        if (!client.isActive) {
-                          setInactiveDialogState({
-                            isOpen: true,
-                            clientId: client._id,
-                            clientName: client.name,
-                          });
-                        } else {
-                          handleGenerateToken(`Token for ${client.name}`);
-                        }
-                      }}
-                      disabled={isGeneratingToken}
-                    >
-                      {isGeneratingToken ? 'Refreshing...' : 'Refresh Token'}
-                    </Button>
+                    <Tooltip content="A new token will be generated — copy it when shown to use it">
+                      <Button
+                        variant="outlined"
+                        onClick={() => {
+                          if (!client.isActive) {
+                            setInactiveDialogState({
+                              isOpen: true,
+                              clientId: client._id,
+                              clientName: client.name,
+                            });
+                          } else {
+                            handleGenerateToken(`Token for ${client.name}`);
+                          }
+                        }}
+                        disabled={isGeneratingToken}
+                      >
+                        {isGeneratingToken
+                          ? 'Regenerating...'
+                          : 'Regenerate Token'}
+                      </Button>
+                    </Tooltip>
                   </div>
                 )}
               </>
@@ -606,12 +633,12 @@ const ClientDetailsPage: React.FC = () => {
         <Dialog
           isOpen={refreshSecretDialogOpen}
           onClose={() => setRefreshSecretDialogOpen(false)}
-          title="Refresh Client Secret"
+          title="Regenerate Client Secret"
           size="md"
         >
           <div className="space-y-4">
             <p className="text-gray-700 dark:text-gray-300">
-              Are you sure you want to refresh the client secret for{' '}
+              Are you sure you want to regenerate the client secret for{' '}
               <span className="font-semibold">{client.name}</span>? The old
               secret will be invalidated and a new one will be generated.
             </p>
@@ -628,7 +655,7 @@ const ClientDetailsPage: React.FC = () => {
                 onClick={handleRefreshSecret}
                 disabled={isRefreshingSecret}
               >
-                {isRefreshingSecret ? 'Refreshing...' : 'Refresh Secret'}
+                {isRefreshingSecret ? 'Regenerating...' : 'Regenerate Secret'}
               </Button>
             </div>
           </div>

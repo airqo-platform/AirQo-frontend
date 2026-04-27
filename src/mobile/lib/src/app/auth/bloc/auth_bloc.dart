@@ -1,5 +1,7 @@
 import 'package:airqo/src/app/auth/models/input_model.dart';
 import 'package:airqo/src/app/auth/repository/auth_repository.dart';
+import 'package:airqo/src/app/auth/services/auth_helper.dart';
+import 'package:airqo/src/app/shared/repository/global_auth_manager.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
@@ -27,7 +29,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
 
     on<SessionExpired>(_onSessionExpired);
 
-    on<UseAsGuest>((event, emit) => emit(GuestUser()));
+    on<UseAsGuest>((event, emit) {
+      GlobalAuthManager.instance.resetSessionExpiredGuard();
+      emit(GuestUser());
+    });
 
     on<VerifyEmailCode>(_onVerifyEmailCode);
   }
@@ -38,7 +43,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
       final token = await SecureStorageRepository.instance.getSecureData(SecureStorageKeys.authToken);
 
       if (token != null && token.isNotEmpty) {
-        emit(AuthLoaded(AuthPurpose.login));
+        final isExpired = await AuthHelper.isTokenExpired();
+        if (isExpired) {
+          loggy.warning('Token found on app start but is expired — treating as session expiry');
+          await _clearAuthData();
+          emit(SessionExpiredState());
+        } else {
+          emit(AuthLoaded(AuthPurpose.login));
+        }
       } else {
         emit(GuestUser());
       }
@@ -54,6 +66,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
     await authRepository.loginWithEmailAndPassword(
         event.username, event.password);
 
+    GlobalAuthManager.instance.resetSessionExpiredGuard();
     emit(AuthLoaded(AuthPurpose.login));
   } catch (e) {
     debugPrint("Login error: $e");
@@ -75,6 +88,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
     emit(AuthLoading());
     try {
       await authRepository.registerWithEmailAndPassword(event.model);
+      GlobalAuthManager.instance.resetSessionExpiredGuard();
       emit(AuthLoaded(AuthPurpose.register));
     } catch (e) {
       debugPrint("Registration error: $e");
@@ -100,12 +114,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
     emit(AuthLoading());
     try {
       loggy.info('Starting logout process - clearing auth tokens');
-      await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.authToken);
-      await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.userId);
-
-      loggy.info('Clearing all cached data on logout');
-      await CacheManager().clearAll();
-
+      await _clearAuthData();
       emit(GuestUser());
     } catch (e) {
       debugPrint("Logout error: $e");
@@ -128,18 +137,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
   Future<void> _onSessionExpired(SessionExpired event, Emitter<AuthState> emit) async {
     try {
       loggy.info('Session expired - clearing auth tokens and cached data');
-      await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.authToken);
-      await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.userId);
-
-      loggy.info('Clearing all cached data due to session expiration');
-      await CacheManager().clearAll();
-
-      emit(GuestUser());
+      await _clearAuthData();
+      emit(SessionExpiredState());
     } catch (e) {
       debugPrint("Session expiry cleanup error: $e");
       loggy.error("Session expiry cleanup error: $e");
-      emit(GuestUser());
+      emit(SessionExpiredState());
     }
+  }
+
+  Future<void> _clearAuthData() async {
+    await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.authToken);
+    await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.userId);
+    await CacheManager().clearAll();
   }
 
   String _extractErrorMessage(dynamic e) {

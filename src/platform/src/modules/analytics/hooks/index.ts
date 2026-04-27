@@ -1,37 +1,59 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import {
-  useGetChartData,
-  useGetRecentReadings,
-  useDownloadData,
-} from '@/shared/hooks/useAnalytics';
+import { useGetChartData, useDownloadData } from '@/shared/hooks/useAnalytics';
 import { useUserPreferencesList } from '@/shared/hooks/usePreferences';
 import { useUser } from '@/shared/hooks/useUser';
 import { normalizeAirQualityData } from '@/shared/components/charts/utils';
 import { normalizeRecentReadingsToSiteData } from '../utils';
 import { useAnalytics } from './useAnalytics';
+import { analyticsService } from '@/shared/services/analyticsService';
 import type { SiteData, ChartData } from '../types';
 import type {
   ChartDataPoint,
   DataDownloadRequest,
   Site,
 } from '@/shared/types/api';
+import {
+  buildDownloadFileContent,
+  DownloadFileTransformOptions,
+} from '@/modules/data-download/utils/dataExportFile';
+
+interface AnalyticsSelections {
+  selectedSiteIds: string[];
+  selectedSites: Site[];
+  enabled?: boolean;
+}
+
+const EMPTY_SELECTED_SITE_IDS: string[] = [];
+
+interface AnalyticsPreferencesOptions {
+  groupId?: string;
+  userId?: string;
+  enabled?: boolean;
+}
 
 // Hook for managing analytics preferences and selected sites
-export const useAnalyticsPreferences = () => {
+export const useAnalyticsPreferences = (
+  options?: AnalyticsPreferencesOptions
+) => {
   const { user, activeGroup, isLoading: userLoading } = useUser();
-  const userId = user?.id || '';
-  const groupId = activeGroup?.id || '';
+  const resolvedUserId = options?.userId ?? user?.id ?? '';
+  const resolvedGroupId = options?.groupId ?? activeGroup?.id ?? '';
+  const isEnabled = options?.enabled ?? true;
 
   // Only fetch preferences if both userId and groupId are available
-  const shouldFetchPreferences = !!(userId && groupId);
+  const shouldFetchPreferences =
+    isEnabled && !!(resolvedUserId && resolvedGroupId);
 
   const {
     data: preferencesData,
     error,
     isLoading: preferencesLoading,
-  } = useUserPreferencesList(userId, groupId);
+  } = useUserPreferencesList(
+    shouldFetchPreferences ? resolvedUserId : '',
+    shouldFetchPreferences ? resolvedGroupId : ''
+  );
 
   // Get the most recent preference from the list
   const currentPreference = useMemo(() => {
@@ -100,14 +122,10 @@ export const useAnalyticsChartData = (
     endDate: string;
     pollutant: string;
   },
-  chartType: 'line' | 'bar' = 'line'
+  chartType: 'line' | 'bar' = 'line',
+  selectedSiteIds: string[] = EMPTY_SELECTED_SITE_IDS,
+  enabled = true
 ) => {
-  const { selectedSiteIds } = useAnalyticsPreferences();
-  const { trigger, error, isMutating } = useGetChartData();
-
-  const [chartData, setChartData] = useState<ChartData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
   // Calculate date range based on filters
   const dateRange = useMemo(() => {
     return {
@@ -116,9 +134,28 @@ export const useAnalyticsChartData = (
     };
   }, [filters.startDate, filters.endDate]);
 
+  const { trigger, error, isMutating } = useGetChartData([
+    Array.isArray(selectedSiteIds)
+      ? selectedSiteIds.join(',')
+      : selectedSiteIds,
+    dateRange.startDate,
+    dateRange.endDate,
+    chartType,
+    filters.frequency,
+    filters.pollutant,
+  ]);
+
+  const [chartData, setChartData] = useState<ChartData[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
   // Fetch chart data
   const fetchChartData = useCallback(
     async (isRefresh = false) => {
+      if (!enabled) {
+        setChartData([]);
+        setIsLoading(false);
+        return;
+      }
       // If no selected sites, we still want to show empty charts (not return early)
       // The UI will show appropriate empty states
       const sitesToUse = selectedSiteIds.length > 0 ? selectedSiteIds : [];
@@ -159,7 +196,18 @@ export const useAnalyticsChartData = (
         setIsLoading(false);
       }
     },
-    [selectedSiteIds, dateRange, filters, trigger, chartType]
+    // Use specific filter fields instead of the whole filters object to avoid
+    // re-creating fetchChartData (and re-running the effect) on every Redux dispatch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      selectedSiteIds,
+      dateRange,
+      filters.frequency,
+      filters.pollutant,
+      trigger,
+      chartType,
+      enabled,
+    ]
   );
 
   // Separate refresh function that doesn't trigger main loading
@@ -174,28 +222,30 @@ export const useAnalyticsChartData = (
 
   return {
     chartData,
-    isLoading: isLoading || isMutating,
-    error,
+    isLoading: enabled ? isLoading || isMutating : false,
+    error: enabled ? error : null,
     refetch: fetchChartData,
     refresh: refreshChartData,
   };
 };
 
 // Hook for managing site cards data
-export const useAnalyticsSiteCards = () => {
-  const { selectedSiteIds, selectedSites } = useAnalyticsPreferences();
+export const useAnalyticsSiteCards = ({
+  selectedSiteIds,
+  selectedSites,
+  enabled = true,
+}: AnalyticsSelections) => {
   const { filters } = useAnalytics();
-  const { trigger: getRecentReadings, isMutating } = useGetRecentReadings();
+  const { user } = useUser();
 
   const [siteCards, setSiteCards] = useState<SiteData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const isFetchingRef = useRef(false);
-  const activeRequestKeyRef = useRef<string | null>(null);
-  const pendingRefetchRef = useRef(false);
   const selectedSitesRef = useRef(selectedSites);
   const selectedSiteIdsRef = useRef(selectedSiteIds);
   const pollutantRef = useRef(filters.pollutant);
-  const getRecentReadingsRef = useRef(getRecentReadings);
+  const enabledRef = useRef(enabled);
+  const requestAbortRef = useRef<AbortController | null>(null);
+  const requestSequenceRef = useRef(0);
 
   useEffect(() => {
     selectedSitesRef.current = selectedSites;
@@ -210,10 +260,14 @@ export const useAnalyticsSiteCards = () => {
   }, [filters.pollutant]);
 
   useEffect(() => {
-    getRecentReadingsRef.current = getRecentReadings;
-    pendingRefetchRef.current = false;
-    activeRequestKeyRef.current = null;
-  }, [getRecentReadings]);
+    enabledRef.current = enabled;
+  }, [enabled]);
+
+  useEffect(() => {
+    return () => {
+      requestAbortRef.current?.abort();
+    };
+  }, [user?.id]);
 
   const selectedSiteIdsKey = useMemo(
     () => selectedSiteIds.join(','),
@@ -225,48 +279,54 @@ export const useAnalyticsSiteCards = () => {
     const localSelectedSites = selectedSitesRef.current;
     const localSelectedSiteIds = selectedSiteIdsRef.current;
     const localPollutant = pollutantRef.current;
-    const requestKey = `${localSelectedSiteIds.join(',')}|${localPollutant}`;
 
-    // If no selected sites, show empty cards instead of returning early
-    if (!localSelectedSiteIds.length) {
-      activeRequestKeyRef.current = null;
-      pendingRefetchRef.current = false;
+    if (!enabledRef.current) {
+      setIsLoading(false);
       setSiteCards([]);
       return;
     }
 
-    if (isFetchingRef.current) {
-      pendingRefetchRef.current = true;
+    requestAbortRef.current?.abort();
+    const controller = new AbortController();
+    requestAbortRef.current = controller;
+    const requestId = ++requestSequenceRef.current;
+
+    // If no selected sites, show empty cards instead of returning early
+    if (!localSelectedSiteIds.length) {
+      setIsLoading(false);
+      setSiteCards([]);
+      if (requestAbortRef.current === controller) {
+        requestAbortRef.current = null;
+      }
       return;
     }
-
-    isFetchingRef.current = true;
-    activeRequestKeyRef.current = requestKey;
 
     setIsLoading(true);
 
     try {
-      // Join site IDs with comma
       const siteIdsParam = localSelectedSiteIds.join(',');
 
-      const response = await getRecentReadingsRef.current({
-        site_id: siteIdsParam,
-      });
+      const response = await analyticsService.getRecentReadings(
+        {
+          site_id: siteIdsParam,
+          user_id: user?.id,
+        },
+        controller.signal
+      );
 
-      if (activeRequestKeyRef.current !== requestKey) {
-        pendingRefetchRef.current = true;
+      if (
+        controller.signal.aborted ||
+        requestSequenceRef.current !== requestId
+      ) {
         return;
       }
 
-      // Create site cards for all selected sites
       const cards: SiteData[] = localSelectedSites.map(selectedSite => {
-        // Find matching measurement data
         const measurement = response?.measurements?.find(
           m => m.site_id === selectedSite._id
         );
 
         if (measurement) {
-          // Use the normalization for sites with data
           const normalized = normalizeRecentReadingsToSiteData(
             [measurement],
             localPollutant as 'pm2_5' | 'pm10'
@@ -294,14 +354,15 @@ export const useAnalyticsSiteCards = () => {
 
       setSiteCards(cards);
     } catch (err) {
-      if (activeRequestKeyRef.current !== requestKey) {
-        pendingRefetchRef.current = true;
+      if (
+        controller.signal.aborted ||
+        requestSequenceRef.current !== requestId
+      ) {
         return;
       }
 
       console.error('Error fetching recent readings:', err);
 
-      // Still show selected sites even if API fails
       const cards: SiteData[] = localSelectedSites.map(selectedSite => {
         return {
           _id: selectedSite._id,
@@ -321,30 +382,34 @@ export const useAnalyticsSiteCards = () => {
       });
       setSiteCards(cards);
     } finally {
-      setIsLoading(false);
-      isFetchingRef.current = false;
-      activeRequestKeyRef.current = null;
+      if (requestSequenceRef.current === requestId) {
+        setIsLoading(false);
+      }
 
-      if (pendingRefetchRef.current) {
-        pendingRefetchRef.current = false;
-        void fetchSiteCards();
+      if (requestAbortRef.current === controller) {
+        requestAbortRef.current = null;
       }
     }
-  }, []);
+  }, [user?.id]);
 
   // Auto-fetch when selectedSiteIds or pollutant changes
   useEffect(() => {
+    if (!enabled) {
+      requestAbortRef.current?.abort();
+      setIsLoading(false);
+      setSiteCards([]);
+      return;
+    }
     fetchSiteCards();
-  }, [fetchSiteCards, selectedSiteIdsKey, filters.pollutant]);
+  }, [fetchSiteCards, selectedSiteIdsKey, filters.pollutant, enabled]);
 
   const refetchSiteCards = useCallback(async () => {
-    pendingRefetchRef.current = false;
     await fetchSiteCards();
   }, [fetchSiteCards]);
 
   return {
     siteCards,
-    isLoading: isLoading || isMutating,
+    isLoading,
     error: null, // TODO: handle error from API
     refetch: refetchSiteCards,
   };
@@ -355,51 +420,38 @@ export const useDataDownload = () => {
   const { trigger, isMutating, error } = useDownloadData();
 
   const downloadData = useCallback(
-    async (request: DataDownloadRequest, customFilename?: string) => {
+    async (
+      request: DataDownloadRequest,
+      customFilename?: string,
+      transformOptions?: DownloadFileTransformOptions
+    ) => {
       try {
         const response = await trigger(request);
+        const { content, mimeType, extension } = buildDownloadFileContent(
+          response,
+          request.downloadType,
+          transformOptions?.selectedColumnKeys
+        );
 
         // Generate default filename if not provided
         const defaultFilename = `air-quality-data-${request.startDateTime.split('T')[0]}-to-${request.endDateTime.split('T')[0]}`;
         const baseFilename = customFilename || defaultFilename;
 
         // Ensure filename has correct extension
-        const extension = request.downloadType;
         const filename = baseFilename.endsWith(`.${extension}`)
           ? baseFilename
           : `${baseFilename}.${extension}`;
 
-        if (request.downloadType === 'csv') {
-          // Handle CSV download
-          const csvData = response as string;
-          const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
-          const link = document.createElement('a');
-          const url = URL.createObjectURL(blob);
-          link.setAttribute('href', url);
-          link.setAttribute('download', filename);
-          link.style.visibility = 'hidden';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-        } else if (request.downloadType === 'json') {
-          // Handle JSON download
-          const jsonData =
-            response as import('@/shared/types/api').DataDownloadResponse;
-          const dataStr = JSON.stringify(jsonData, null, 2);
-          const blob = new Blob([dataStr], {
-            type: 'application/json;charset=utf-8;',
-          });
-          const link = document.createElement('a');
-          const url = URL.createObjectURL(blob);
-          link.setAttribute('href', url);
-          link.setAttribute('download', filename);
-          link.style.visibility = 'hidden';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-        }
+        const blob = new Blob([content], { type: mimeType });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', filename);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
 
         return { success: true };
       } catch (err) {

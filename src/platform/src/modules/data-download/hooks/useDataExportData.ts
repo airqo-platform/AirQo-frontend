@@ -5,7 +5,6 @@ import {
   useActiveGroupCohortDevicesWithState,
   useGridsSummary,
   useGridsSummaryWithToken,
-  useSitesSummaryWithToken,
 } from '@/shared/hooks';
 import {
   CohortSitesResponse,
@@ -14,7 +13,6 @@ import {
   CohortDevicesParams,
   GridsSummaryResponse,
   GridsSummaryParams,
-  SitesSummaryResponse,
 } from '@/shared/types/api';
 import {
   TabType,
@@ -39,7 +37,8 @@ export const useDataExportData = (
   deviceCategory: DeviceCategory,
   selectedDeviceIds: string[],
   selectedDevicesData: TableItem[],
-  setSelectedDevices: (devices: string[]) => void
+  setSelectedDevices: (devices: string[]) => void,
+  enabled = true
 ) => {
   // Sites params
   const sitesParams = useMemo(() => {
@@ -108,58 +107,49 @@ export const useDataExportData = (
     tabStates.cities.search,
   ]);
 
-  // Fetch active group cohorts once and share the result across tabs.
-  // NOTE: `useActiveGroupCohorts()` reads Redux state; in public/token
-  // flows this can cause unnecessary selector reads. To avoid that, consider
-  // updating the hook to accept an `enabled` flag (or provide a noop fallback)
-  // so callers can avoid Redux reads when `isOrgFlow` is false. Keep in mind
-  // that hooks must be called unconditionally, so the safest change is to
-  // add an `enabled` parameter to the hook and early-return a safe noop
-  // result when disabled.
-  const activeGroupCohorts = useActiveGroupCohorts();
-
-  const orgSitesHook = useActiveGroupCohortSitesWithState(
-    sitesParams,
-    isOrgFlow && activeTab === 'sites',
-    activeGroupCohorts
+  // Sites and devices both depend on the active group's cohort ids.
+  // The user flow defaults the active group to AirQo in Redux, so the same
+  // cached cohort path works without an env-specific fallback.
+  const activeGroupCohorts = useActiveGroupCohorts(
+    enabled && (activeTab === 'sites' || activeTab === 'devices')
   );
 
-  const publicSitesHook = useSitesSummaryWithToken(
+  const sitesHook = useActiveGroupCohortSitesWithState(
     sitesParams,
-    !isOrgFlow && activeTab === 'sites'
+    enabled && activeTab === 'sites',
+    activeGroupCohorts
   );
 
   const devicesHook = useActiveGroupCohortDevicesWithState(
     devicesParams,
-    activeTab === 'devices',
+    enabled && activeTab === 'devices',
     activeGroupCohorts
   );
 
   const orgCountriesHook = useGridsSummary(
     countriesParams,
     undefined,
-    isOrgFlow && activeTab === 'countries'
+    enabled && isOrgFlow && activeTab === 'countries'
   );
 
   const publicCountriesHook = useGridsSummaryWithToken(
     countriesParams,
     undefined,
-    !isOrgFlow && activeTab === 'countries'
+    enabled && !isOrgFlow && activeTab === 'countries'
   );
 
   const orgCitiesHook = useGridsSummary(
     citiesParams,
     undefined,
-    isOrgFlow && activeTab === 'cities'
+    enabled && isOrgFlow && activeTab === 'cities'
   );
 
   const publicCitiesHook = useGridsSummaryWithToken(
     citiesParams,
     undefined,
-    !isOrgFlow && activeTab === 'cities'
+    enabled && !isOrgFlow && activeTab === 'cities'
   );
 
-  const sitesHook = isOrgFlow ? orgSitesHook : publicSitesHook;
   const countriesHook = isOrgFlow ? orgCountriesHook : publicCountriesHook;
   const citiesHook = isOrgFlow ? orgCitiesHook : publicCitiesHook;
 
@@ -174,10 +164,7 @@ export const useDataExportData = (
 
   // Process data for table display
   const processedSitesData = useMemo(
-    () =>
-      processSitesData(
-        (sitesHook.data as CohortSitesResponse | SitesSummaryResponse)?.sites
-      ),
+    () => processSitesData((sitesHook.data as CohortSitesResponse)?.sites),
     [sitesHook.data]
   );
 

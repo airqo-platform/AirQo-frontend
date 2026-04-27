@@ -15,6 +15,7 @@ interface DataExportTableProps {
   totalItems: number;
   searchTerm: string;
   selectedItems: string[];
+  compactRows?: boolean;
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
   onSearchChange: (search: string) => void;
@@ -36,6 +37,7 @@ export const DataExportTable: React.FC<DataExportTableProps> = ({
   totalItems,
   searchTerm,
   selectedItems,
+  compactRows = false,
   onPageChange,
   onPageSizeChange,
   onSearchChange,
@@ -61,7 +63,7 @@ export const DataExportTable: React.FC<DataExportTableProps> = ({
       multiSelect={activeTab !== 'countries' && activeTab !== 'cities'}
       selectedItems={selectedItems}
       onSelectedItemsChange={onSelectedItemsChange}
-      customHeader={undefined}
+      compactRows={compactRows}
     />
   );
 };

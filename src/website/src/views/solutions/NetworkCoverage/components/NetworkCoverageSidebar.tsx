@@ -91,11 +91,11 @@ const StatLine = ({
   label: string;
   value: React.ReactNode;
 }) => (
-  <div className="grid grid-cols-[110px_1fr] gap-2 py-1.5">
-    <span className="text-[11px] font-semibold uppercase tracking-[0.07em] text-slate-400">
+  <div className="grid grid-cols-[140px_1fr] gap-2 py-1.5">
+    <span className="text-[11px] font-semibold uppercase tracking-[0.07em] text-slate-600">
       {label}
     </span>
-    <span className="text-sm text-slate-800">{value}</span>
+    <span className="text-[15px] text-slate-900">{value}</span>
   </div>
 );
 
@@ -209,25 +209,25 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
   }, [selectedMonitor?.viewDataUrl]);
 
   return (
-    <aside className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm lg:rounded-none lg:border-0 lg:border-r lg:border-slate-200 lg:shadow-none">
+    <aside className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-slate-300 bg-white shadow-sm lg:rounded-none lg:border-0 lg:border-r lg:border-slate-300 lg:shadow-none">
       {/* ── Header ── */}
-      <div className="flex-shrink-0 border-b border-slate-100 bg-white px-4 py-3.5">
+      <div className="flex-shrink-0 border-b border-slate-200 bg-white px-4 py-3.5">
         {!selectedCountry ? (
           <>
             {/* Search input */}
             <div className="relative">
-              <AqSearchRefraction className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <AqSearchRefraction className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
               <input
                 value={query}
                 onChange={(event) => onQueryChange(event.target.value)}
                 placeholder="Search country, city, network or station..."
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-8 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition-colors focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100"
+                className="w-full rounded-lg border border-slate-300 bg-white py-2 pl-9 pr-8 text-sm text-slate-900 placeholder:text-slate-500 outline-none transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
               {query && (
                 <button
                   type="button"
                   onClick={() => onQueryChange('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-slate-400 transition-colors hover:bg-slate-200 hover:text-slate-600"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-700"
                   aria-label="Clear search"
                 >
                   <FiX className="h-3.5 w-3.5" />
@@ -284,12 +284,12 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
               {isOverviewLoading ? (
                 <div className="h-4 w-44 animate-pulse rounded bg-slate-200" />
               ) : (
-                <p className="text-sm text-slate-500">
-                  <span className="font-semibold text-slate-700">
+                <p className="text-sm font-medium text-slate-700">
+                  <span className="font-semibold text-slate-950">
                     {monitoredCountriesCount}
                   </span>{' '}
                   of{' '}
-                  <span className="font-semibold text-slate-700">
+                  <span className="font-semibold text-slate-950">
                     {countries.length}
                   </span>{' '}
                   countries monitored
@@ -301,12 +301,12 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
           <button
             type="button"
             onClick={onResetToOverview}
-            className="inline-flex max-w-full items-center gap-1.5 rounded-lg px-1 py-1 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+            className="inline-flex max-w-full items-center gap-1.5 rounded-lg px-1 py-1 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-950"
           >
             <FiChevronLeft className="h-4 w-4 flex-shrink-0" />
-            <span className="text-slate-500">All countries</span>
+            <span className="text-slate-600">All countries</span>
             <span className="text-slate-300">·</span>
-            <span className="truncate font-semibold text-slate-800">
+            <span className="truncate font-semibold text-slate-900">
               {selectedCountry.country}
             </span>
           </button>
@@ -321,15 +321,15 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
         {/* Error state */}
         {error && countries.length === 0 && !selectedCountry ? (
           <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm">
-            <p className="font-semibold text-red-800">
+            <p className="font-semibold text-red-900">
               Unable to load network coverage data
             </p>
-            <p className="mt-1 text-red-600">{error}</p>
+            <p className="mt-1 text-red-700">{error}</p>
             {onRetry && (
               <button
                 type="button"
                 onClick={onRetry}
-                className="mt-3 rounded-lg border border-red-300 bg-white px-3 py-1.5 text-xs font-semibold text-red-700 transition-colors hover:bg-red-50"
+                className="mt-3 rounded-lg border border-red-300 bg-white px-3 py-1.5 text-xs font-semibold text-red-800 transition-colors hover:bg-red-50"
               >
                 Try again
               </button>
@@ -424,18 +424,18 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                         <div className="min-w-0 flex-1">
                           <h3
                             className={`truncate text-[15px] font-semibold leading-6 ${
-                              isNoData ? 'text-slate-400' : 'text-slate-900'
+                              isNoData ? 'text-slate-500' : 'text-slate-950'
                             }`}
                           >
                             {country.country}
                           </h3>
                           {isNoData ? (
-                            <p className="mt-0.5 text-xs text-slate-400">
+                            <p className="mt-0.5 text-xs text-slate-500">
                               No monitors registered
                             </p>
                           ) : (
-                            <p className="mt-0.5 text-xs text-slate-500">
-                              <span className="font-medium text-slate-700">
+                            <p className="mt-0.5 text-xs text-slate-600">
+                              <span className="font-semibold text-slate-900">
                                 {totalMonitors}
                               </span>{' '}
                               monitor{totalMonitors !== 1 ? 's' : ''}
@@ -443,8 +443,8 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                               <span
                                 className={
                                   activeMonitors > 0
-                                    ? 'font-medium text-emerald-600'
-                                    : 'text-slate-400'
+                                    ? 'font-semibold text-emerald-700'
+                                    : 'text-slate-500'
                                 }
                               >
                                 {activeMonitors} active
@@ -460,19 +460,19 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                       {!isNoData && (
                         <div className="mt-2 flex flex-wrap gap-1.5">
                           {counts.LCS > 0 && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-600">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700">
                               <span className="h-1.5 w-1.5 rounded-full bg-blue-600" />
                               {typeLabels['LCS']} · {counts.LCS}
                             </span>
                           )}
                           {counts.Reference > 0 && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-600">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
                               <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
                               {typeLabels['Reference']} · {counts.Reference}
                             </span>
                           )}
                           {counts.Inactive > 0 && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">
                               <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
                               Inactive · {counts.Inactive}
                             </span>
@@ -483,7 +483,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
 
                     {isPromptOpen && (
                       <div
-                        className="absolute left-4 right-4 z-50 pointer-events-auto rounded-2xl border border-slate-200 bg-white p-4 shadow-xl"
+                        className="absolute left-4 right-4 z-50 pointer-events-auto rounded-2xl border border-slate-300 bg-white p-4 shadow-xl"
                         style={{ top: promptTop ?? 76 }}
                       >
                         <button
@@ -495,10 +495,10 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                           <FiX className="h-4 w-4" />
                         </button>
 
-                        <h4 className="mb-2 text-lg font-semibold text-slate-900">
+                        <h4 className="mb-2 text-lg font-semibold text-slate-950">
                           No monitors registered in {country.country}
                         </h4>
-                        <p className="mb-3 text-sm text-slate-500">
+                        <p className="mb-3 text-sm text-slate-600">
                           No monitors are registered. Add a monitor to start
                           collecting data for this country.
                         </p>
@@ -518,7 +518,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                                   'noopener,noreferrer',
                                 )
                           }
-                          className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                          className="w-full rounded-lg bg-blue-700 py-2 text-sm font-semibold text-white hover:bg-blue-800"
                         >
                           Add monitor
                         </button>
@@ -536,11 +536,11 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
         filteredCountries.length === 0 &&
         !error ? (
           <div className="rounded-xl border border-slate-200 bg-slate-50 p-6 text-center">
-            <AqSearchRefraction className="mx-auto h-7 w-7 text-slate-300" />
-            <p className="mt-2 text-sm font-medium text-slate-600">
+            <AqSearchRefraction className="mx-auto h-7 w-7 text-slate-400" />
+            <p className="mt-2 text-sm font-semibold text-slate-700">
               No countries match your search
             </p>
-            <p className="mt-0.5 text-xs text-slate-400">
+            <p className="mt-0.5 text-xs text-slate-500">
               Try adjusting the filters or search term
             </p>
           </div>
@@ -549,14 +549,14 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
         {/* ── Country monitor list ── */}
         {selectedCountry && !selectedMonitor && (
           <div className="space-y-2">
-            <div className="rounded-xl border border-slate-100 bg-gradient-to-br from-blue-50/70 to-slate-50 p-4">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
-                  <h3 className="text-xl font-bold text-slate-900">
+                  <h3 className="text-2xl font-bold tracking-tight text-slate-950">
                     {selectedCountry.country}
                   </h3>
-                  <p className="mt-0.5 text-sm text-slate-500">
-                    <span className="font-medium text-slate-700">
+                  <p className="mt-1 text-sm text-slate-600">
+                    <span className="font-semibold text-slate-900">
                       {filteredCountryMonitors.length}
                     </span>{' '}
                     monitor{filteredCountryMonitors.length !== 1 ? 's' : ''}{' '}
@@ -580,7 +580,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                             'noopener,noreferrer',
                           )
                     }
-                    className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                    className="rounded-lg bg-blue-700 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-800"
                   >
                     Add monitor
                   </button>
@@ -589,7 +589,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
             </div>
 
             {filteredCountryMonitors.length === 0 ? (
-              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-center text-sm text-slate-500">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-center text-sm text-slate-600">
                 No monitors match the current filters.
               </div>
             ) : (
@@ -600,15 +600,15 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                   onClick={() =>
                     onSelectMonitor(monitor.id, selectedCountry.id)
                   }
-                  className="group w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-left transition-all hover:border-blue-300 hover:bg-blue-50/20 hover:shadow-sm"
+                  className="group w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-left transition-all hover:border-blue-400 hover:bg-blue-50/20 hover:shadow-sm"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
-                      <h4 className="truncate text-[15px] font-semibold text-slate-900">
+                      <h4 className="truncate text-[15px] font-semibold text-slate-950">
                         {monitor.name}
                       </h4>
-                      <p className="mt-0.5 flex items-center gap-1 text-sm text-slate-500">
-                        <AqMarkerPin01 className="h-3.5 w-3.5 flex-shrink-0 text-slate-400" />
+                      <p className="mt-0.5 flex items-center gap-1 text-sm text-slate-600">
+                        <AqMarkerPin01 className="h-3.5 w-3.5 flex-shrink-0 text-slate-500" />
                         {monitor.city}
                       </p>
                     </div>
@@ -616,10 +616,10 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                       <span
                         className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
                           monitor.type === 'Reference'
-                            ? 'bg-emerald-100 text-emerald-700'
+                            ? 'bg-emerald-100 text-emerald-800'
                             : monitor.type === 'LCS'
-                              ? 'bg-blue-100 text-blue-700'
-                              : 'bg-slate-100 text-slate-500'
+                              ? 'bg-blue-100 text-blue-800'
+                              : 'bg-slate-100 text-slate-600'
                         }`}
                       >
                         {typeLabels[monitor.type]}
@@ -627,8 +627,8 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                       <span
                         className={`flex items-center gap-1 text-xs font-medium ${
                           monitor.status === 'active'
-                            ? 'text-emerald-600'
-                            : 'text-slate-400'
+                            ? 'text-emerald-700'
+                            : 'text-slate-500'
                         }`}
                       >
                         <span
@@ -650,7 +650,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
 
         {/* ── Monitor detail ── */}
         {monitorLoading && !selectedMonitor ? (
-          <div className="overflow-hidden rounded-xl border border-slate-200 bg-white p-4">
+          <div className="overflow-hidden rounded-xl border border-slate-300 bg-white p-4">
             <div className="animate-pulse">
               <div className="h-6 w-28 rounded bg-slate-200" />
               <div className="mt-3 h-4 w-40 rounded bg-slate-100" />
@@ -668,33 +668,31 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
         ) : null}
 
         {selectedMonitor && (
-          <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+          <div className="overflow-hidden rounded-xl border border-slate-300 bg-white shadow-sm">
             {/* Monitor header */}
-            <div className="border-b border-slate-100 bg-gradient-to-br from-blue-50/50 to-white p-4">
+            <div className="border-b border-slate-200 bg-slate-50 p-4">
               <div
                 className={getBadgeClassesForMonitorType(selectedMonitor.type)}
               >
                 {typeLabels[selectedMonitor.type]}
               </div>
-              <h3 className="mt-2 text-xl font-bold leading-tight text-slate-900 sm:text-2xl">
+              <h3 className="mt-2 text-2xl font-bold leading-tight tracking-tight text-slate-950">
                 {selectedMonitor.name}
               </h3>
-              <p className="mt-1 flex items-center gap-1.5 text-base text-slate-500">
-                <AqMarkerPin01 className="h-4 w-4 flex-shrink-0 text-slate-400" />
+              <p className="mt-1 flex items-center gap-1.5 text-base text-slate-600">
+                <AqMarkerPin01 className="h-4 w-4 flex-shrink-0 text-slate-500" />
                 {selectedMonitor.city}, {selectedMonitor.country}
               </p>
             </div>
 
-            {/* Network */}
-            <div className="border-b border-slate-100 p-4">
-              <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
-                Network
+            {/* Station details */}
+            <div className="border-b border-slate-200 p-4">
+              <h4 className="mb-3 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-700">
+                Station Details
               </h4>
-              <p className="mb-2 text-base font-semibold text-slate-900">
-                {formatNetworkName(selectedMonitor.network)}
-              </p>
+
               <StatLine
-                label="Operator"
+                label="Operator / Institution"
                 value={displayText(selectedMonitor.operator)}
               />
               <StatLine
@@ -711,20 +709,20 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                 label="Last Active"
                 value={formatRelativeTime(selectedMonitor.lastActive)}
               />
+              <StatLine
+                label="Network"
+                value={formatNetworkName(selectedMonitor.network)}
+              />
             </div>
 
             {/* Equipment */}
-            <div className="border-b border-slate-100 p-4">
-              <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
+            <div className="border-b border-slate-200 p-4">
+              <h4 className="mb-3 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-700">
                 Equipment
               </h4>
               <StatLine
                 label="Instrument"
                 value={displayText(selectedMonitor.equipment)}
-              />
-              <StatLine
-                label="Manufacturer"
-                value={displayText(selectedMonitor.manufacturer)}
               />
               <StatLine
                 label="Pollutants"
@@ -745,8 +743,8 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
             </div>
 
             {/* Location */}
-            <div className="border-b border-slate-100 p-4">
-              <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
+            <div className="border-b border-slate-200 p-4">
+              <h4 className="mb-3 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-700">
                 Location
               </h4>
               <StatLine
@@ -771,8 +769,8 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
             </div>
 
             {/* Calibration */}
-            <div className="border-b border-slate-100 p-4">
-              <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
+            <div className="border-b border-slate-200 p-4">
+              <h4 className="mb-3 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-700">
                 Calibration
               </h4>
               <StatLine
@@ -790,8 +788,8 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
             </div>
 
             {/* Data Access */}
-            <div className="border-b border-slate-100 p-4">
-              <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
+            <div className="border-b border-slate-200 p-4">
+              <h4 className="mb-3 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-700">
                 Data Access
               </h4>
               <StatLine
@@ -817,8 +815,8 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                   disabled={!validatedViewDataUrl}
                   className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors ${
                     validatedViewDataUrl
-                      ? 'bg-blue-600 text-white hover:bg-blue-700'
-                      : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                      ? 'bg-blue-700 text-white hover:bg-blue-800'
+                      : 'cursor-not-allowed bg-slate-100 text-slate-400'
                   }`}
                 >
                   Visit website
@@ -835,7 +833,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                       'noopener,noreferrer',
                     )
                   }
-                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-100 active:bg-blue-200"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-blue-300 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-800 transition-colors hover:bg-blue-100 active:bg-blue-200"
                 >
                   View on analytics
                   <FiChevronRight className="h-4 w-4" />
@@ -843,19 +841,14 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
               </div>
             </div>
 
-            {/* Organisation */}
+            {/* Manufacturer */}
             <div className="p-4">
-              <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
-                Organisation
+              <h4 className="mb-3 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-700">
+                Organization
               </h4>
               <StatLine
-                label="Organisation"
-                value={
-                  selectedMonitor.organisation &&
-                  selectedMonitor.organisation.trim().toLowerCase() === 'airqo'
-                    ? 'AirQo'
-                    : displayText(selectedMonitor.organisation)
-                }
+                label="Manufacturer"
+                value={displayText(selectedMonitor.manufacturer)}
               />
               <StatLine
                 label="Co-location"
@@ -863,7 +856,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
               />
               {selectedMonitor.coLocationNote &&
                 selectedMonitor.coLocationNote !== '--' && (
-                  <p className="mt-2 rounded-lg bg-slate-50 p-3 text-sm text-slate-500">
+                  <p className="mt-2 rounded-lg bg-slate-50 p-3 text-sm text-slate-600">
                     {displayText(selectedMonitor.coLocationNote)}
                   </p>
                 )}

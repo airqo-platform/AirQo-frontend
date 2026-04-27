@@ -1,7 +1,7 @@
 replicaCount: 1
 image:
   repository: airqoacr.azurecr.io/airqo-next-platform
-  tag: prod-2594bb74-1776249902
+  tag: prod-8c6e9176-1777028789
   pullPolicy: IfNotPresent
 imagePullSecrets: []
 nameOverride: ''
@@ -16,15 +16,24 @@ ingress:
   enabled: false
 resources:
   requests:
-    cpu: 20m
-    memory: 150Mi
+    cpu: 100m
+    memory: 300Mi
   limits:
-    cpu: 200m
-    memory: 350Mi
+    cpu: 500m
+    memory: 700Mi
 autoscaling:
   minReplicas: 1
-  maxReplicas: 4
-  targetCPUUtilizationPercentage: 70
+  maxReplicas: 2
+  targetCPUUtilizationPercentage: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 30
+      policies:
+        - type: Pods
+          value: 2
+          periodSeconds: 60
 app:
   name: airqo-next-platform
   label: airqo-platform

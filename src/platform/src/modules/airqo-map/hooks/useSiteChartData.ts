@@ -72,20 +72,23 @@ export const useSiteChartData = ({
       frequency,
       pollutant,
     ],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       if (!siteId) {
         return [];
       }
 
-      const response = await analyticsService.getChartData({
-        sites: [siteId],
-        startDate: dateRange.startDate,
-        endDate: dateRange.endDate,
-        chartType: 'line',
-        frequency,
-        pollutant: pollutant.toLowerCase().replace('.', '_'),
-        organisation_name: '',
-      });
+      const response = await analyticsService.getChartData(
+        {
+          sites: [siteId],
+          startDate: dateRange.startDate,
+          endDate: dateRange.endDate,
+          chartType: 'line',
+          frequency,
+          pollutant: pollutant.toLowerCase().replace('.', '_'),
+          organisation_name: '',
+        },
+        signal
+      );
 
       if (!Array.isArray(response?.data) || response.data.length === 0) {
         return [];
@@ -95,6 +98,7 @@ export const useSiteChartData = ({
     },
     enabled: shouldFetch,
     networkMode: 'online',
+    retry: false,
     staleTime: 1000 * 60 * 10,
     gcTime: 1000 * 60 * 60 * 12,
   });

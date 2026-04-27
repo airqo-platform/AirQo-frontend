@@ -8,6 +8,7 @@ import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { isValidIpAddress } from '@/shared/lib/validators';
 import { clientService } from '@/shared/services/clientService';
 import { trackEvent } from '@/shared/utils/analytics';
+import { trackApiClientAction } from '@/shared/utils/enhancedAnalytics';
 
 interface CreateClientDialogProps {
   isOpen: boolean;
@@ -90,6 +91,12 @@ const CreateClientDialog: React.FC<CreateClientDialogProps> = ({
 
       await clientService.createClient(clientData);
 
+      trackApiClientAction(posthog, 'create', {
+        has_ips: filteredIpAddresses.length > 0,
+        ip_count: filteredIpAddresses.length,
+        client_name_length: clientName.trim().length,
+      });
+
       posthog?.capture('client_created', {
         has_ips: filteredIpAddresses.length > 0,
         ip_count: filteredIpAddresses.length,
@@ -126,6 +133,8 @@ const CreateClientDialog: React.FC<CreateClientDialogProps> = ({
       isOpen={isOpen}
       onClose={handleClose}
       title="Create New API Client"
+      maxHeight="max-h-[75vh]"
+      contentClassName="pr-2"
       primaryAction={{
         label: 'Create',
         onClick: handleSubmit,
@@ -140,7 +149,7 @@ const CreateClientDialog: React.FC<CreateClientDialogProps> = ({
         loading: isSubmitting,
       }}
     >
-      <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
+      <div className="space-y-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Client Name *
