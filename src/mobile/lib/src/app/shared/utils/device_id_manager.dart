@@ -1,5 +1,3 @@
-import 'package:device_info_plus/device_info_plus.dart';
-import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
@@ -7,30 +5,17 @@ class DeviceIdManager {
   static const String _deviceIdKey = 'airqo_device_id';
   static const Uuid _uuid = Uuid();
 
-  /// Returns a persistent device ID.
-  /// On Android, uses ANDROID_ID which survives app reinstalls.
-  /// Falls back to a UUID stored in SharedPreferences.
+  /// Returns a persistent per-installation device ID (UUID v4).
   static Future<String> getDeviceId() async {
     try {
-      if (defaultTargetPlatform == TargetPlatform.android) {
-        final androidInfo = await DeviceInfoPlugin().androidInfo;
-        final androidId = androidInfo.id;
-        if (androidId.isNotEmpty) {
-          return androidId;
-        }
-      }
-
-      // Fallback: UUID persisted in SharedPreferences
       final prefs = await SharedPreferences.getInstance();
-      String? deviceId = prefs.getString(_deviceIdKey);
-
+      var deviceId = prefs.getString(_deviceIdKey);
       if (deviceId == null || deviceId.isEmpty) {
         deviceId = _uuid.v4();
         await prefs.setString(_deviceIdKey, deviceId);
       }
-
       return deviceId;
-    } catch (e) {
+    } catch (_) {
       return 'temp-${DateTime.now().millisecondsSinceEpoch}';
     }
   }
