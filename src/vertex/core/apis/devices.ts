@@ -377,7 +377,7 @@ export const devices = {
         latitude,
         longitude,
         ...(deviceData.site_id
-          ? { site_id: deviceData.site_id }
+          ? { site_id: deviceData.site_id, site_name: deviceData.site_name || `${deviceData.deviceName} Site` }
           : { site_name: deviceData.site_name || `${deviceData.deviceName} Site` }),
         network: deviceData.network,
         deviceName: deviceData.deviceName,

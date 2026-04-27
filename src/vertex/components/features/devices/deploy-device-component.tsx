@@ -657,6 +657,9 @@ const DeployDeviceComponent = ({
       return;
     }
 
+    const selectedPreviousSite = previousSites.find(s => s.id === deviceData.site_id);
+    const previousSiteName = selectedPreviousSite?.name || deviceData.siteName || `${deviceData.deviceName} Site`;
+
     deployDevice.mutate(
       {
         deviceName: deviceData.deviceName,
@@ -668,7 +671,7 @@ const DeployDeviceComponent = ({
         latitude: deviceData.latitude || "",
         longitude: deviceData.longitude || "",
         ...(siteSource === 'previous'
-          ? { site_id: deviceData.site_id }
+          ? { site_id: deviceData.site_id, site_name: previousSiteName }
           : { site_name: deviceData.siteName || `${deviceData.deviceName} Site` }),
         network: deviceData.network || "airqo",
         user_id: userDetails._id,
