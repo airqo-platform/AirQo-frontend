@@ -20,8 +20,9 @@ AirQo is a simple mobile application built with Flutter that provides air qualit
 To run this project locally:
 
 1. Clone the repository
-2. Run `flutter pub get` to install dependencies
-3. Use `flutter run` to start the app
+2. Install **Android NDK 28.0.13004108** via Android Studio → SDK Manager → SDK Tools → NDK (Side by side). This version is required for 16 KB memory page size support (Android 15+).
+3. Run `flutter pub get` to install dependencies
+4. Use `flutter run` to start the app
 
 ## Contributing:
 
