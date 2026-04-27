@@ -49,7 +49,11 @@ export function NetworkRequestDialog({ open, onOpenChange }: NetworkRequestDialo
     }, [form, onOpenChange]);
 
     const onSubmit = (values: NetworkRequestValues) => {
-        submitRequest(values, {
+        const cleanedValues = Object.fromEntries(
+            Object.entries(values).filter(([_, v]) => v !== "" && v !== null && v !== undefined)
+        ) as NetworkRequestValues;
+
+        submitRequest(cleanedValues, {
             onSuccess: () => {
                 handleClose();
             }
