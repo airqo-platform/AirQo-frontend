@@ -45,9 +45,12 @@ export function AdminLevelsModal({ isOpen, onClose }: AdminLevelsModalProps) {
   };
 
   const saveEdit = (levelId: string) => {
-    if (!editValue.trim()) return;
+    const name = editValue.trim();
+    if (!name) {
+      return;
+    }
     updateAdminLevel(
-      { levelId, data: { name: editValue } },
+      { levelId, data: { name } },
       {
         onSuccess: () => {
           setEditingId(null);
