@@ -34,7 +34,7 @@ interface MaintenanceMapProps {
     homeLocation?: Coordinates & { name?: string } // Start/End location
 }
 
-type DeviceHealth = 'good' | 'moderate' | 'critical';
+type DeviceHealth = 'good' | 'moderate' | 'critical' | 'offline';
 
 export default function MaintenanceMap({
     data,
@@ -68,6 +68,7 @@ export default function MaintenanceMap({
     // Helper to determine health
 
     const getUptimeStatus = (uptimePct: number): DeviceHealth => {
+        if (uptimePct === 0) return 'offline';
         if (uptimePct >= 85) return 'good';
         if (uptimePct >= 50) return 'moderate';
         return 'critical';
@@ -81,6 +82,20 @@ export default function MaintenanceMap({
 
     // Create custom icon
     const createMarkerIcon = (uptimeStatus: DeviceHealth, errorStatus: DeviceHealth, isSelected: boolean, isSuggestion: boolean = false) => {
+        // If device is offline (uptime = 0), render fully gray regardless of error margin
+        if (uptimeStatus === 'offline') {
+            let baseSize = Math.max(14, Math.min(48, 16 + (zoom - 7) * 3));
+            let size = isSelected ? baseSize * 1.4 : baseSize;
+            const selectionRing = isSelected ? 'ring-2 ring-blue-600 ring-offset-2' : '';
+            return L.divIcon({
+                className: 'custom-div-icon bg-transparent',
+                html: `<div style="width: ${size}px; height: ${size}px;" class="bg-gray-400 rounded-full border-[3px] border-gray-300 ${selectionRing} shadow-sm mx-auto transition-all duration-300"></div>`,
+                iconSize: [size, size],
+                iconAnchor: [size / 2, size / 2],
+                popupAnchor: [0, -size / 2]
+            });
+        }
+
         // Dot Color (Uptime)
         let bgColorClass = 'bg-green-500';
         if (uptimeStatus === 'moderate') bgColorClass = 'bg-yellow-500';
@@ -199,6 +214,7 @@ export default function MaintenanceMap({
             let uptimeColorClass = 'text-green-600';
             if (uptimeStatus === 'moderate') uptimeColorClass = 'text-yellow-600';
             if (uptimeStatus === 'critical') uptimeColorClass = 'text-red-600';
+            if (uptimeStatus === 'offline') uptimeColorClass = 'text-gray-400';
 
             let errorColorClass = 'text-green-600';
             if (errorStatus === 'moderate') errorColorClass = 'text-yellow-600';
@@ -479,37 +495,63 @@ export default function MaintenanceMap({
                 </Card>
 
                 {/* Legend */}
-                <Card className="p-3 shadow-lg bg-white/95 backdrop-blur border-slate-200 w-[180px]">
-                    <div className="text-xs font-semibold mb-2 text-gray-500">Device Health</div>
-                    <div className="flex flex-col gap-1.5">
-                        <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full bg-green-500 border-2 border-green-400" />
-                            <span className="text-xs text-gray-600">Good (Both)</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full bg-yellow-500 border-2 border-green-400" />
-                            <span className="text-xs text-gray-600">Mod. Uptime</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full bg-green-500 border-2 border-red-400" />
-                            <span className="text-xs text-gray-600">Crit. Error</span>
-                        </div>
-                        <div className="text-[10px] text-gray-400 mt-1">
-                            Dot = Uptime | Ring = Error
-                        </div>
-                        {(isRouteMode || routePath) && (
-                            <div className="flex items-center gap-2 mt-1 pt-1 border-t border-gray-100">
-                                <div className="w-2.5 h-2.5 rounded-full bg-purple-500 opacity-60" />
-                                <span className="text-xs text-purple-600 italic">Suggestion</span>
+                <Card className="p-3 shadow-lg bg-white/95 backdrop-blur border-slate-200 w-[190px]">
+                    <div className="text-xs font-semibold mb-2 text-gray-500 uppercase tracking-wider">Device Health</div>
+
+                    {/* Uptime — Dot Fill */}
+                    <div className="mb-2">
+                        <div className="text-[10px] font-semibold text-gray-400 uppercase mb-1">Dot — Uptime</div>
+                        <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 rounded-full bg-green-500 border-2 border-gray-300 flex-shrink-0" />
+                                <span className="text-xs text-gray-600">≥ 85% — Good</span>
                             </div>
-                        )}
-                        {routePath && (
-                            <div className="flex items-center gap-2 mt-1 pt-1 border-gray-100">
-                                <div className="w-2.5 h-2.5 rounded-full bg-slate-800" />
-                                <span className="text-xs text-gray-600 italic">Home / Depot</span>
+                            <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 rounded-full bg-yellow-500 border-2 border-gray-300 flex-shrink-0" />
+                                <span className="text-xs text-gray-600">50–84% — Moderate</span>
                             </div>
-                        )}
+                            <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 rounded-full bg-red-500 border-2 border-gray-300 flex-shrink-0" />
+                                <span className="text-xs text-gray-600">&lt; 50% — Critical</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 rounded-full bg-gray-400 border-2 border-gray-300 flex-shrink-0" />
+                                <span className="text-xs text-gray-600">0% — Offline</span>
+                            </div>
+                        </div>
                     </div>
+
+                    {/* Error Margin — Ring Color */}
+                    <div className="pt-2 border-t border-gray-100">
+                        <div className="text-[10px] font-semibold text-gray-400 uppercase mb-1">Ring — Error Margin</div>
+                        <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 rounded-full bg-gray-200 border-2 border-green-400 flex-shrink-0" />
+                                <span className="text-xs text-gray-600">≤ 10 — Good</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 rounded-full bg-gray-200 border-2 border-yellow-400 flex-shrink-0" />
+                                <span className="text-xs text-gray-600">11–20 — Moderate</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 rounded-full bg-gray-200 border-2 border-red-400 flex-shrink-0" />
+                                <span className="text-xs text-gray-600">&gt; 20 — Critical</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {(isRouteMode || routePath) && (
+                        <div className="flex items-center gap-2 mt-2 pt-2 border-t border-gray-100">
+                            <div className="w-2.5 h-2.5 rounded-full bg-purple-500 opacity-60 flex-shrink-0" />
+                            <span className="text-xs text-purple-600 italic">Suggested Stop</span>
+                        </div>
+                    )}
+                    {routePath && (
+                        <div className="flex items-center gap-2 mt-1">
+                            <div className="w-2.5 h-2.5 rounded-full bg-slate-800 flex-shrink-0" />
+                            <span className="text-xs text-gray-600 italic">Home / Depot</span>
+                        </div>
+                    )}
                 </Card>
             </div>
         </div>

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ArrowLeft, Calendar, Wifi, AlertTriangle, BarChart3 } from "lucide-react"
+import { ArrowLeft, Calendar, Wifi, AlertTriangle, BarChart3, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -25,6 +25,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { type AirQloudPerformanceData } from "@/services/airqloud.service"
+import { syncCohorts, syncThingSpeak } from "@/services/device-api.service"
+import { useToast } from "@/components/ui/use-toast"
 
 interface DateRange {
   from: string
@@ -367,6 +369,31 @@ export default function AnalysisResultsPage() {
   const [dateRange, setDateRange] = useState<DateRange | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [selectedTab, setSelectedTab] = useState<string>("")
+  const [isSyncing, setIsSyncing] = useState(false)
+  const { toast } = useToast()
+
+  const handleSync = async () => {
+    setIsSyncing(true)
+    try {
+      await Promise.all([
+        syncCohorts(),
+        syncThingSpeak(14),
+      ])
+      toast({
+        title: "Sync successful",
+        description: "Cohorts and ThingSpeak data have been synced.",
+      })
+    } catch (err) {
+      console.error("Error syncing performance data:", err)
+      toast({
+        variant: "destructive",
+        title: "Sync failed",
+        description: "An error occurred while syncing performance data.",
+      })
+    } finally {
+      setIsSyncing(false)
+    }
+  }
 
   useEffect(() => {
     // Load data from sessionStorage
@@ -489,9 +516,20 @@ export default function AnalysisResultsPage() {
               )}
             </div>
           </div>
-          <Badge variant="outline" className="text-sm">
-            {deviceData.length} Device{deviceData.length !== 1 ? 's' : ''} analysed
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="text-sm">
+              {deviceData.length} Device{deviceData.length !== 1 ? 's' : ''} analysed
+            </Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSync}
+              disabled={isSyncing}
+            >
+              <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+              {isSyncing ? 'Syncing...' : 'Sync Data'}
+            </Button>
+          </div>
         </div>
 
         {/* Overall Summary Cards */}
@@ -664,9 +702,20 @@ export default function AnalysisResultsPage() {
             )}
           </div>
         </div>
-        <Badge variant="outline" className="text-sm">
-          {data.length} Cohort{data.length !== 1 ? 's' : ''} analysed
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="text-sm">
+            {data.length} Cohort{data.length !== 1 ? 's' : ''} analysed
+          </Badge>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSync}
+            disabled={isSyncing}
+          >
+            <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+            {isSyncing ? 'Syncing...' : 'Sync Data'}
+          </Button>
+        </div>
       </div>
 
       {/* Overall Summary Cards */}
