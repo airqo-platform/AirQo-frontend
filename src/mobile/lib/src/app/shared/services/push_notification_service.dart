@@ -411,7 +411,7 @@ class PushNotificationService with UiLoggy {
     try {
       await _firebaseMessaging.deleteToken();
       _currentToken = null;
-      await HiveRepository.deleteData(_fcmTokenKey, _boxName);
+      await HiveRepository.deleteData(_boxName, _fcmTokenKey);
       loggy.info('FCM token deleted');
     } catch (e, stackTrace) {
       loggy.error('Failed to delete FCM token', e, stackTrace);
