@@ -61,15 +61,9 @@ function parseSSEChunk(buffer: string): { events: Array<{ event: string; data: s
  * Mirrors the pattern from ApiService.getEndpoint() + buildQueryString().
  */
 function buildStreamUrl(days: number, tags?: string): string {
-    const apiPrefix = config.apiPrefix || "/api/v1"
+    const apiPrefix = config.beaconApiPrefix || "/api/v1"
     const base = config.apiUrl
-
-    let path: string
-    if (config.isLocalhost) {
-        path = "/maintenance/map-view/stream"
-    } else {
-        path = `${apiPrefix}/beacon/maintenance/map-view/stream`
-    }
+    const path = `${apiPrefix}/maintenance/map-view/stream`
 
     const params = new URLSearchParams()
     params.set("days", String(days))
@@ -82,15 +76,9 @@ function buildStreamUrl(days: number, tags?: string): string {
  * Build the REST fallback URL (existing /map-view endpoint).
  */
 function buildFallbackUrl(days: number, tags?: string): string {
-    const apiPrefix = config.apiPrefix || "/api/v1"
+    const apiPrefix = config.beaconApiPrefix || "/api/v1"
     const base = config.apiUrl
-
-    let path: string
-    if (config.isLocalhost) {
-        path = `/maintenance/map-view`
-    } else {
-        path = `${apiPrefix}/beacon/maintenance/map-view`
-    }
+    const path = `${apiPrefix}/maintenance/map-view`
 
     const params = new URLSearchParams()
     params.set("days", String(days))

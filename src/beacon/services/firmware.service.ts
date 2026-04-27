@@ -74,7 +74,7 @@ class FirmwareService {
       if (params?.limit !== undefined) queryParams.append('limit', params.limit.toString());
       if (params?.firmware_type) queryParams.append('firmware_type', params.firmware_type);
 
-      const endpoint = this.getEndpoint('/firmware');
+      const endpoint = this.getEndpoint('/firmware/');
       const response = await axios.get(
         `${this.baseUrl}${endpoint}?${queryParams.toString()}`,
         this.getAxiosConfig()
@@ -151,7 +151,7 @@ class FirmwareService {
         }
       }
 
-      const endpoint = this.getEndpoint('/firmware/upload');
+      const endpoint = this.getEndpoint('/firmware/upload/');
       const response = await axios.post(
         `${this.baseUrl}${endpoint}`,
         formData,

@@ -629,9 +629,7 @@ class ApiService {
     config9?: string
     config10?: string
   }): Promise<any> {
-    const endpoint = config.isLocalhost
-      ? '/data/config'
-      : this.getEndpoint('/data/config')
+    const endpoint = this.getEndpoint('/data/config')
     const url = `${this.baseUrl}${endpoint}`
 
     return this.fetchWithRetry(url, {
@@ -677,9 +675,7 @@ class ApiService {
   }
   // Maintenance Stats APIs
   async getAirQloudStats(body: MaintenanceStatsBody): Promise<AirQloudStatsResponse> {
-    const endpoint = config.isLocalhost
-      ? '/maintenance/airqlouds/stats'
-      : this.getEndpoint('/maintenance/airqlouds/stats')
+    const endpoint = this.getEndpoint('/maintenance/airqlouds/stats')
     const url = `${this.baseUrl}${endpoint}`
 
     return this.fetchWithRetry<AirQloudStatsResponse>(url, {
@@ -689,9 +685,7 @@ class ApiService {
   }
 
   async getDeviceStatsMaintenance(body: MaintenanceStatsBody): Promise<DeviceMaintenanceStatsResponse> {
-    const endpoint = config.isLocalhost
-      ? '/maintenance/devices/stats'
-      : this.getEndpoint('/maintenance/devices/stats')
+    const endpoint = this.getEndpoint('/maintenance/devices/stats')
     const url = `${this.baseUrl}${endpoint}`
 
     return this.fetchWithRetry<DeviceMaintenanceStatsResponse>(url, {
@@ -701,9 +695,7 @@ class ApiService {
   }
 
   async getMaintenanceAnalytics(period_days: number = 14): Promise<MaintenanceAnalyticsResponse> {
-    const endpoint = config.isLocalhost
-      ? `/maintenance/analytics?days=${period_days}`
-      : this.getEndpoint(`/maintenance/analytics?days=${period_days}`)
+    const endpoint = this.getEndpoint(`/maintenance/analytics?days=${period_days}`)
     const url = `${this.baseUrl}${endpoint}`
 
     return this.fetchWithRetry<MaintenanceAnalyticsResponse>(url)
@@ -714,9 +706,7 @@ class ApiService {
 
     let query = `days=${period_days}`
     if (tags) query += `&tags=${tags}`
-    const endpoint = config.isLocalhost
-      ? `/maintenance/map-view?${query}`
-      : this.getEndpoint(`/maintenance/map-view?${query}`)
+    const endpoint = this.getEndpoint(`/maintenance/map-view?${query}`)
     const url = `${this.baseUrl}${endpoint}`
 
     const response = await this.fetchWithRetry<MaintenanceMapResponse>(url)
@@ -736,6 +726,33 @@ class ApiService {
   async syncDevicePerformance(): Promise<any> {
     const endpoint = this.getEndpoint('/maintenance/sync-performance')
     const url = `${this.baseUrl}${endpoint}?force=false&platform=true`
+    return this.fetchWithRetry<any>(url, {
+      method: 'POST',
+    })
+  }
+
+  // Sync Cohorts (Performance Analysis page)
+  async syncCohorts(): Promise<any> {
+    const endpoint = this.getEndpoint('/cohorts/sync')
+    const url = `${this.baseUrl}${endpoint}`
+    return this.fetchWithRetry<any>(url, {
+      method: 'POST',
+    })
+  }
+
+  // Sync ThingSpeak data (Performance Analysis page)
+  async syncThingSpeak(days: number = 14): Promise<any> {
+    const endpoint = this.getEndpoint(`/data-sync/sync-thingspeak?days=${days}`)
+    const url = `${this.baseUrl}${endpoint}`
+    return this.fetchWithRetry<any>(url, {
+      method: 'POST',
+    })
+  }
+
+  // Sync Sites (Site Collocation page)
+  async syncSites(): Promise<any> {
+    const endpoint = this.getEndpoint('/sites/sync')
+    const url = `${this.baseUrl}${endpoint}`
     return this.fetchWithRetry<any>(url, {
       method: 'POST',
     })
@@ -783,3 +800,6 @@ export const getMaintenanceAnalytics = (period_days: number = 14) => deviceApiSe
 export const getMaintenanceMapData = (period_days: number = 14, tags?: string) => deviceApiService.getMaintenanceMapData(period_days, tags)
 export const syncDevices = () => deviceApiService.syncDevices()
 export const syncDevicePerformance = () => deviceApiService.syncDevicePerformance()
+export const syncCohorts = () => deviceApiService.syncCohorts()
+export const syncThingSpeak = (days: number = 14) => deviceApiService.syncThingSpeak(days)
+export const syncSites = () => deviceApiService.syncSites()
