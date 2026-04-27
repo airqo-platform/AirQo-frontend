@@ -72,4 +72,57 @@ export const grids = {
       throw error;
     }
   },
+  createAdminLevelApi: async (data: { name: string }): Promise<AdminLevelResponse> => {
+    try {
+      const response = await jwtApiClient.post<AdminLevelResponse>(
+        `/devices/grids/levels`,
+        data,
+        { headers: { 'X-Auth-Type': 'JWT' } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  getAdminLevelsApi: async (): Promise<AdminLevelsListResponse> => {
+    try {
+      const response = await jwtApiClient.get<AdminLevelsListResponse>(
+        `/devices/grids/levels`,
+        { headers: { 'X-Auth-Type': 'JWT' } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  updateAdminLevelApi: async (levelId: string, data: { name: string }): Promise<AdminLevelResponse> => {
+    try {
+      const response = await jwtApiClient.put<AdminLevelResponse>(
+        `/devices/grids/levels/${levelId}`,
+        data,
+        { headers: { 'X-Auth-Type': 'JWT' } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
+
+export interface AdminLevel {
+  _id: string;
+  name: string;
+  __v?: number;
+}
+
+export interface AdminLevelResponse {
+  success: boolean;
+  message: string;
+  admin_levels: AdminLevel;
+}
+
+export interface AdminLevelsListResponse {
+  success: boolean;
+  message: string;
+  admin_levels: AdminLevel[];
+}

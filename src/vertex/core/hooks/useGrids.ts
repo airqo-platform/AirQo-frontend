@@ -4,7 +4,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { AxiosError } from "axios";
-import { GetGridsSummaryParams, grids } from "../apis/grids";
+import { GetGridsSummaryParams, grids, AdminLevelResponse, AdminLevelsListResponse } from "../apis/grids";
 import { CreateGrid, Grid, GridsSummaryResponse } from "@/app/types/grids";
 import { setError, setGrids } from "../redux/slices/gridsSlice";
 import { useDispatch } from "react-redux";
@@ -151,6 +151,30 @@ export const useCreateGrid = () => {
 
   return {
     createGrid,
+    isLoading,
+    error,
+  };
+};
+
+export const useCreateAdminLevel = () => {
+  const { mutate: createAdminLevel, isPending: isLoading, error } = useMutation<AdminLevelResponse, AxiosError<ErrorResponse>, { name: string }>({
+    mutationFn: (data: { name: string }) => grids.createAdminLevelApi(data),
+    onSuccess: (data) => {
+      ReusableToast({
+        message: `Admin level '${data.admin_levels.name}' created successfully`,
+        type: "SUCCESS",
+      });
+    },
+    onError: (error: AxiosError<ErrorResponse>) => {
+      ReusableToast({
+        message: `Failed to create admin level: ${getApiErrorMessage(error)}`,
+        type: "ERROR",
+      });
+    },
+  });
+
+  return {
+    createAdminLevel,
     isLoading,
     error,
   };
