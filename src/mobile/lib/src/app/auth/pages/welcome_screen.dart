@@ -47,9 +47,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is GuestUser) {
-          Future.microtask(() => Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => NavPage()),
-              ));
+          Future.microtask(() {
+            if (!context.mounted) return;
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => NavPage()),
+            );
+          });
         }
       },
       child: Scaffold(
@@ -69,7 +72,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     ],
                   ),
                 ),
-                Container(
+                SizedBox(
                   width: double.infinity,
                   height: MediaQuery.of(context).size.height * 0.6,
                   child: Column(
@@ -171,10 +174,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               'assets/icons/chevron-right.svg',
                               height: 16.0,
                               width: 16.0,
-                              color: Theme.of(context)
-                                  .textTheme
-                                  .headlineLarge
-                                  ?.color,
+                              colorFilter: ColorFilter.mode(
+                                Theme.of(context).textTheme.headlineLarge?.color ?? Colors.black,
+                                BlendMode.srcIn,
+                              ),
                             ),
                           ],
                         ),

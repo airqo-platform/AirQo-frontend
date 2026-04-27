@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
@@ -63,10 +64,10 @@ class SlackLogger {
   Future<bool> testConnection() async {
     // Auto-initialize if needed
     if (!_initialized) {
-      print("🔍 SlackLogger: Auto-initializing for test");
+      debugPrint("🔍 SlackLogger: Auto-initializing for test");
       final webhookUrl = dotenv.env['SLACK_WEBHOOK_URL'];
       if (webhookUrl == null || webhookUrl.isEmpty) {
-        print("❌ SlackLogger: Missing SLACK_WEBHOOK_URL in environment");
+        debugPrint("❌ SlackLogger: Missing SLACK_WEBHOOK_URL in environment");
         return false;
       }
       initialize(
@@ -110,7 +111,7 @@ Future<void> _tryAutoInitialize() async {
   try {
     final webhookUrl = dotenv.env['SLACK_WEBHOOK_URL'];
     if (webhookUrl == null || webhookUrl.isEmpty) {
-      print("❌ SlackLogger: Missing SLACK_WEBHOOK_URL in environment");
+      debugPrint("❌ SlackLogger: Missing SLACK_WEBHOOK_URL in environment");
       return;
     }
     
@@ -120,7 +121,7 @@ Future<void> _tryAutoInitialize() async {
       final packageInfo = await PackageInfo.fromPlatform();
       appVersion = '${packageInfo.version}(${packageInfo.buildNumber})';
     } catch (e) {
-      print("⚠️ SlackLogger: Couldn't get app version: $e");
+      debugPrint("⚠️ SlackLogger: Couldn't get app version: $e");
       appVersion = 'Unknown';
     }
     
@@ -129,9 +130,9 @@ Future<void> _tryAutoInitialize() async {
       appVersion: appVersion,
     );
     
-    print("✅ SlackLogger: Auto-initialized successfully");
+    debugPrint("✅ SlackLogger: Auto-initialized successfully");
   } catch (e) {
-    print("❌ SlackLogger: Auto-initialization failed: $e");
+    debugPrint("❌ SlackLogger: Auto-initialization failed: $e");
   }
 }
 
@@ -143,27 +144,27 @@ Future<void> _tryAutoInitialize() async {
     dynamic error,
     StackTrace? stackTrace,
   }) async {
-    print("🔍 SlackLogger: Attempting to send log to Slack");
+    debugPrint("🔍 SlackLogger: Attempting to send log to Slack");
 
     // Try to auto-initialize if not already initialized
     if (!_initialized) {
-      print(
+      debugPrint(
           "🔍 SlackLogger: Logger not initialized, attempting auto-initialization");
       await _tryAutoInitialize();
     }
 
-    print(
+    debugPrint(
         "🔍 SlackLogger: Initialized? $_initialized, Enabled? $_enableSlackLogging");
 
     if (!_initialized || !_enableSlackLogging) {
-      print(
+      debugPrint(
           "❌ SlackLogger: Not sending log - logger is not initialized or disabled");
       return false;
     }
 
     try {
       final url = Uri.parse(_webhookUrl!);
-      print("🔍 SlackLogger: Sending to webhook URL: $_webhookUrl");
+      debugPrint("🔍 SlackLogger: Sending to webhook URL: $_webhookUrl");
 
       // Format the message with details
       final formattedMsg = _formatMessage(
@@ -173,7 +174,7 @@ Future<void> _tryAutoInitialize() async {
         stackTrace: stackTrace,
       );
 
-      print("🔍 SlackLogger: Formatted message: $formattedMsg");
+      debugPrint("🔍 SlackLogger: Formatted message: $formattedMsg");
 
       // Create the Slack payload
       final Map<String, dynamic> payload = {};
@@ -196,8 +197,8 @@ Future<void> _tryAutoInitialize() async {
         }
       ];
 
-      print("🔍 SlackLogger: Payload prepared: ${jsonEncode(payload)}");
-      print("🔍 SlackLogger: Sending HTTP POST request to Slack...");
+      debugPrint("🔍 SlackLogger: Payload prepared: ${jsonEncode(payload)}");
+      debugPrint("🔍 SlackLogger: Sending HTTP POST request to Slack...");
 
       final response = await http.post(
         url,
@@ -205,22 +206,22 @@ Future<void> _tryAutoInitialize() async {
         headers: {'Content-Type': 'application/json'},
       ).timeout(const Duration(seconds: 10));
 
-      print(
+      debugPrint(
           "🔍 SlackLogger: Received response - Status: ${response.statusCode}");
-      print("🔍 SlackLogger: Response body: ${response.body}");
+      debugPrint("🔍 SlackLogger: Response body: ${response.body}");
 
       final successful = response.statusCode == 200;
-      print(successful
+      debugPrint(successful
           ? "✅ SlackLogger: Message sent successfully"
           : "❌ SlackLogger: Failed to send message");
 
       return successful;
     } catch (e) {
-      print("❌ SlackLogger: Error sending to Slack: $e");
+      debugPrint("❌ SlackLogger: Error sending to Slack: $e");
       if (e is FormatException) {
-        print("❌ SlackLogger: Format error - possible malformed JSON");
+        debugPrint("❌ SlackLogger: Format error - possible malformed JSON");
       } else if (e is http.ClientException) {
-        print("❌ SlackLogger: HTTP client error - check network connection");
+        debugPrint("❌ SlackLogger: HTTP client error - check network connection");
       }
       // Don't log this error to avoid potential infinite loops
       return false;

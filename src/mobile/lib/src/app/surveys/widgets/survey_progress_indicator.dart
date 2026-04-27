@@ -59,7 +59,7 @@ class SurveyProgressIndicator extends StatelessWidget {
                   Container(
                     height: 6,
                     decoration: BoxDecoration(
-                      color: theme.dividerColor.withOpacity(0.3),
+                      color: theme.dividerColor.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(3),
                     ),
                   ),
@@ -74,7 +74,7 @@ class SurveyProgressIndicator extends StatelessWidget {
                       gradient: LinearGradient(
                         colors: [
                           AppColors.primaryColor,
-                          AppColors.primaryColor.withOpacity(0.8),
+                          AppColors.primaryColor.withValues(alpha: 0.8),
                         ],
                         begin: Alignment.centerLeft,
                         end: Alignment.centerRight,
@@ -115,10 +115,10 @@ class SurveyProgressIndicator extends StatelessWidget {
               shape: BoxShape.circle,
               color: isCompleted || isCurrent
                   ? AppColors.primaryColor
-                  : theme.dividerColor.withOpacity(0.3),
+                  : theme.dividerColor.withValues(alpha: 0.3),
               border: isCurrent
                   ? Border.all(
-                      color: AppColors.primaryColor.withOpacity(0.3),
+                      color: AppColors.primaryColor.withValues(alpha: 0.3),
                       width: 3,
                     )
                   : null,
@@ -137,12 +137,12 @@ class SurveyCompletionIndicator extends StatelessWidget {
   final VoidCallback? onClose;
 
   const SurveyCompletionIndicator({
-    Key? key,
+    super.key,
     required this.title,
     required this.subtitle,
     this.isSuccess = true,
     this.onClose,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -182,7 +182,7 @@ class SurveyCompletionIndicator extends StatelessWidget {
               height: 48,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.red.withOpacity(0.1),
+                color: Colors.red.withValues(alpha: 0.1),
               ),
               child: Icon(
                 Icons.error,
@@ -256,9 +256,9 @@ class SurveySubmissionIndicator extends StatelessWidget {
   final String message;
 
   const SurveySubmissionIndicator({
-    Key? key,
+    super.key,
     this.message = 'Submitting your response...',
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -277,7 +277,7 @@ class SurveySubmissionIndicator extends StatelessWidget {
           Text(
             message,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
             ),
             textAlign: TextAlign.center,
           ),

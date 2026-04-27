@@ -230,6 +230,8 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
       return;
     }
 
+    if (!mounted) return;
+
     String locationName = "Location";
 
     for (var m in selectedMeasurements) {
@@ -292,7 +294,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
     if (result != null && mounted) {
       final expectedLocationIds = (result as List<String>);
       final expectedCount = expectedLocationIds.length;
-      loggy.info('Returned from location selection with ${expectedCount} locations: $expectedLocationIds');
+      loggy.info('Returned from location selection with $expectedCount locations: $expectedLocationIds');
       
       setState(() {
         isLoading = true;

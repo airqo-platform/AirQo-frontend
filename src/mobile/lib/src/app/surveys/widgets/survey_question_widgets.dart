@@ -115,7 +115,6 @@ class _SurveyQuestionWidgetState extends State<SurveyQuestionWidget> {
 
     return Column(
       children: options.asMap().entries.map((entry) {
-        final index = entry.key;
         final option = entry.value;
         final isSelected = widget.currentAnswer == option;
 
@@ -137,7 +136,7 @@ class _SurveyQuestionWidgetState extends State<SurveyQuestionWidget> {
                   ),
                   borderRadius: BorderRadius.circular(8),
                   color: isSelected
-                      ? AppColors.primaryColor.withOpacity(0.05)
+                      ? AppColors.primaryColor.withValues(alpha: 0.05)
                       : Colors.transparent,
                 ),
                 child: Row(
@@ -278,7 +277,7 @@ class _SurveyQuestionWidgetState extends State<SurveyQuestionWidget> {
             activeTrackColor: AppColors.primaryColor,
             inactiveTrackColor: theme.dividerColor,
             thumbColor: AppColors.primaryColor,
-            overlayColor: AppColors.primaryColor.withOpacity(0.2),
+            overlayColor: AppColors.primaryColor.withValues(alpha: 0.2),
             trackHeight: 4,
             thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
           ),
@@ -302,7 +301,6 @@ class _SurveyQuestionWidgetState extends State<SurveyQuestionWidget> {
   }
 
   Widget _buildYesNo(BuildContext context) {
-    final theme = Theme.of(context);
     final currentBool = widget.currentAnswer as bool?;
 
     return Row(
@@ -355,7 +353,7 @@ class _SurveyQuestionWidgetState extends State<SurveyQuestionWidget> {
             ),
             borderRadius: BorderRadius.circular(8),
             color: isSelected
-                ? AppColors.primaryColor.withOpacity(0.05)
+                ? AppColors.primaryColor.withValues(alpha: 0.05)
                 : Colors.transparent,
           ),
           child: Center(

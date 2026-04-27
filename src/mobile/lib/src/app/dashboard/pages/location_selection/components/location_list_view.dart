@@ -172,7 +172,7 @@ class LocationListView extends StatelessWidget with UiLoggy {
                                       .textTheme
                                       .bodyMedium
                                       ?.color
-                                      ?.withOpacity(0.7)),
+                                      ?.withValues(alpha: 0.7)),
                             ),
                             trailing: Checkbox(
                               value: selectedLocations.contains(site.id),
@@ -242,11 +242,10 @@ class LocationListView extends StatelessWidget with UiLoggy {
                   "assets/images/shared/empty_state.svg",
                   height: 100,
                   width: 100,
-                  color: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.color
-                      ?.withOpacity(0.6),
+                  colorFilter: ColorFilter.mode(
+                    Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.6) ?? Colors.grey,
+                    BlendMode.srcIn,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 if (currentFilter == "All")
@@ -310,8 +309,8 @@ class LocationListView extends StatelessWidget with UiLoggy {
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
                   color: Theme.of(context).brightness == Brightness.dark
-                      ? AppColors.darkHighlight.withOpacity(0.5)
-                      : AppColors.lightHighlight.withOpacity(0.5),
+                      ? AppColors.darkHighlight.withValues(alpha: 0.5)
+                      : AppColors.lightHighlight.withValues(alpha: 0.5),
                 ),
                 child: Row(
                   children: [
@@ -350,8 +349,8 @@ class LocationListView extends StatelessWidget with UiLoggy {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 color: Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.darkHighlight.withOpacity(0.5)
-                    : AppColors.lightHighlight.withOpacity(0.5),
+                    ? AppColors.darkHighlight.withValues(alpha: 0.5)
+                    : AppColors.lightHighlight.withValues(alpha: 0.5),
               ),
               child: Row(
                 children: [
@@ -393,8 +392,8 @@ class LocationListView extends StatelessWidget with UiLoggy {
           decoration: isSelected
               ? BoxDecoration(
                   color: Theme.of(context).brightness == Brightness.dark
-                      ? AppColors.primaryColor.withOpacity(0.15)
-                      : AppColors.primaryColor.withOpacity(0.05),
+                      ? AppColors.primaryColor.withValues(alpha: 0.15)
+                      : AppColors.primaryColor.withValues(alpha: 0.05),
                   border: Border(
                     left: BorderSide(
                       color: AppColors.primaryColor,
@@ -406,11 +405,11 @@ class LocationListView extends StatelessWidget with UiLoggy {
           child: ListTile(
             leading: CircleAvatar(
               backgroundColor: isSelected
-                  ? AppColors.primaryColor.withOpacity(0.2)
+                  ? AppColors.primaryColor.withValues(alpha: 0.2)
                   : Theme.of(context).highlightColor,
               child: SvgPicture.asset(
                 "assets/images/shared/location_pin.svg",
-                color: isSelected ? AppColors.primaryColor : null,
+                colorFilter: isSelected ? ColorFilter.mode(AppColors.primaryColor, BlendMode.srcIn) : null,
               ),
             ),
             title: Text(
@@ -433,7 +432,7 @@ class LocationListView extends StatelessWidget with UiLoggy {
                       .textTheme
                       .bodyMedium
                       ?.color
-                      ?.withOpacity(0.7)),
+                      ?.withValues(alpha: 0.7)),
             ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,

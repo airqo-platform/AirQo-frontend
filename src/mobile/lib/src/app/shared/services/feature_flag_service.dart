@@ -23,6 +23,7 @@ class FeatureFlagService with UiLoggy {
 
   Future<void> reloadFlags() async {
     try {
+      await Posthog().reloadFeatureFlags();
       for (final flag in AppFeatureFlag.values) {
         _flags[flag] = await Posthog().isFeatureEnabled(flag.key);
       }

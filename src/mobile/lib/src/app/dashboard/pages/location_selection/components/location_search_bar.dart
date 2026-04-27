@@ -70,13 +70,13 @@ class _LocationSearchBarState extends State<LocationSearchBar> {
                       .textTheme
                       .bodyMedium
                       ?.color
-                      ?.withOpacity(0.6)),
+                      ?.withValues(alpha: 0.6)),
               prefixIcon: Padding(
                 padding: const EdgeInsets.all(11.0),
                 child: SvgPicture.asset(
                   "assets/icons/search_icon.svg",
                   height: 15,
-                  color: Theme.of(context).textTheme.headlineLarge!.color,
+                  colorFilter: ColorFilter.mode(Theme.of(context).textTheme.headlineLarge!.color!, BlendMode.srcIn),
                 ),
               ),
               filled: true,

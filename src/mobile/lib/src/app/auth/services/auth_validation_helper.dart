@@ -26,6 +26,7 @@ class AuthValidationHelper with UiLoggy {
 
     if (isExpired) {
       logger.warning('Token is expired');
+      if (!context.mounted) return false;
       showAuthErrorSafe(
         context,
         message: 'Your session has expired. Please log in again.',

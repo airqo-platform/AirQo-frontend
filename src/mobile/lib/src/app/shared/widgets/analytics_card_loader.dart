@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class AnalyticsCardLoader extends StatelessWidget {
+  const AnalyticsCardLoader({super.key});
+
   @override
   Widget build(BuildContext context) {
     return InkWell(

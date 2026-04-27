@@ -124,7 +124,7 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),
@@ -233,7 +233,7 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
                             ),
                             decoration: BoxDecoration(
                               color: _getAqiColor(widget.measurement)
-                                  .withOpacity(0.15),
+                                  .withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: TranslatedText(
@@ -356,7 +356,7 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
                               .textTheme
                               .bodyLarge
                               ?.color
-                              ?.withOpacity(0.7),
+                              ?.withValues(alpha: 0.7),
                         ),
                       ),
               ],

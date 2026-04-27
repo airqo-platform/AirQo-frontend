@@ -6,7 +6,6 @@ import 'package:airqo/src/app/surveys/bloc/survey_bloc.dart';
 import 'package:airqo/src/app/surveys/models/survey_model.dart';
 import 'package:airqo/src/app/surveys/models/survey_response_model.dart';
 import 'package:airqo/src/app/surveys/pages/survey_detail_page.dart';
-import 'package:airqo/src/app/surveys/services/survey_notification_service.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 
 class LearnSurveysPage extends StatefulWidget {
@@ -17,7 +16,6 @@ class LearnSurveysPage extends StatefulWidget {
 }
 
 class _LearnSurveysPageState extends State<LearnSurveysPage> {
-  final SurveyNotificationService _notificationService = SurveyNotificationService();
 
   @override
   void initState() {
@@ -83,7 +81,7 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
                   userResponse: userResponse,
                 ),
               );
-            }).toList(),
+            }),
             const SizedBox(height: 16),
           ],
         ),
@@ -108,7 +106,7 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -232,7 +230,7 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
                     width: 32,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
-                      color: AppColors.primaryColor.withOpacity(0.1),
+                      color: AppColors.primaryColor.withValues(alpha: 0.1),
                     ),
                     child: Center(
                       child: Icon(
@@ -353,7 +351,7 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
         ),
       ),
     ).then((_) {
-      // Refresh surveys when returning from detail page
+      if (!mounted) return;
       context.read<SurveyBloc>().add(const LoadSurveys());
     });
   }

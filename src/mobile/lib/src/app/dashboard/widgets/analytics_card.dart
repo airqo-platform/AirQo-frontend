@@ -94,7 +94,7 @@ class AnalyticsCard extends StatelessWidget with UiLoggy {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 4,
               offset: Offset(0, 2),
             ),
@@ -152,7 +152,7 @@ class AnalyticsCard extends StatelessWidget with UiLoggy {
                                           .textTheme
                                           .bodyMedium
                                           ?.color
-                                          ?.withOpacity(0.7),
+                                          ?.withValues(alpha: 0.7),
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -253,7 +253,7 @@ class AnalyticsCard extends StatelessWidget with UiLoggy {
                       padding:
                           EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: _getAqiColor(measurement).withOpacity(0.15),
+                        color: _getAqiColor(measurement).withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(

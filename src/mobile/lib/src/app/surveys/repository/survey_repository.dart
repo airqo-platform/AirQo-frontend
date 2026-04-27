@@ -6,7 +6,6 @@ import 'package:airqo/src/app/shared/repository/hive_repository.dart';
 import 'package:airqo/src/app/shared/utils/device_id_manager.dart';
 import 'package:airqo/src/app/surveys/models/survey_model.dart';
 import 'package:airqo/src/app/surveys/models/survey_response_model.dart';
-import 'package:airqo/src/app/surveys/example/example_survey_data.dart';
 import 'package:loggy/loggy.dart';
 import 'package:http/http.dart' as http;
 
@@ -23,8 +22,6 @@ class SurveyRepository extends BaseRepository with UiLoggy {
   static const String _surveyResponsesBoxName = 'survey_responses';
   static const String _surveyStatsBoxName = 'survey_stats';
 
-  static const bool _useMockData = false;
-
   final Map<String, int> _retryCount = <String, int>{};
   static const int _baseDelayMs = 1000;
   static const String _surveysEndpoint = '/api/v2/users/surveys';
@@ -34,10 +31,6 @@ class SurveyRepository extends BaseRepository with UiLoggy {
 
   Future<List<Survey>> getSurveys({bool forceRefresh = false}) async {
     try {
-      if (_useMockData) {
-        return _getMockSurveys(forceRefresh: forceRefresh);
-      }
-
       final queryParams = {
         'isActive': 'true',
         'limit': '100',
@@ -320,29 +313,6 @@ class SurveyRepository extends BaseRepository with UiLoggy {
     }
   }
 
-  Future<List<Survey>> _getMockSurveys({bool forceRefresh = false}) async {
-    try {
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      if (!forceRefresh) {
-        final cachedSurveys = await _getCachedSurveys();
-        if (cachedSurveys.isNotEmpty) {
-          loggy.info('Returning ${cachedSurveys.length} cached mock surveys');
-          return cachedSurveys;
-        }
-      }
-
-      final surveys = ExampleSurveyData.getAllExampleSurveys();
-
-      await _cacheSurveys(surveys);
-
-      loggy.info('Returning ${surveys.length} mock surveys');
-      return surveys;
-    } catch (e) {
-      loggy.error('Error getting mock surveys: $e');
-      rethrow;
-    }
-  }
 
   Future<List<Survey>> _getCachedSurveys() async {
     try {
@@ -359,15 +329,6 @@ class SurveyRepository extends BaseRepository with UiLoggy {
     }
   }
 
-  Future<void> _cacheSurveys(List<Survey> surveys) async {
-    try {
-      final surveysJson = surveys.map((s) => s.toJson()).toList();
-      await HiveRepository.saveData(
-          _surveysBoxName, 'surveys', json.encode(surveysJson));
-    } catch (e) {
-      loggy.error('Error caching surveys: $e');
-    }
-  }
 
   Future<List<SurveyResponse>> _getCachedSurveyResponses() async {
     try {

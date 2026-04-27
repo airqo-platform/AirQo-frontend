@@ -72,7 +72,7 @@ class _SelectLanguagePageState extends State<SelectLanguagePage> {
             ),
           ],
         ),
-        backgroundColor: AppColors.primaryColor.withOpacity(0.9),
+        backgroundColor: AppColors.primaryColor.withValues(alpha: 0.9),
         behavior: SnackBarBehavior.floating,
         margin: EdgeInsets.all(16),
         padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),

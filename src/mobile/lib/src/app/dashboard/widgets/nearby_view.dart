@@ -97,8 +97,10 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
       // Then get current position for more accuracy
       try {
         position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high,
-          timeLimit: const Duration(seconds: 5),
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            timeLimit: Duration(seconds: 5),
+          ),
         );
         
         if (mounted) {
@@ -115,7 +117,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
         if (_userPosition != null) {
           loggy.warning('Current location unavailable, using cached: $e');
         } else {
-          throw e; // Re-throw if we don't have any position
+          rethrow; // Re-throw if we don't have any position
         }
       }
 
@@ -528,9 +530,9 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                   //   padding:
                   //       const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     // decoration: BoxDecoration(
-                    //   color: Colors.blue.withOpacity(0.1),
+                    //   color: Colors.blue.withValues(alpha: 0.1),
                     //   borderRadius: BorderRadius.circular(8),
-                    //   border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                    //   border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
                     // ),
                     // child: Row(
                     //   children: [

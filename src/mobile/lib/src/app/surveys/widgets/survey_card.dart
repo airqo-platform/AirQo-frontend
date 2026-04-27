@@ -27,7 +27,7 @@ class SurveyCard extends StatelessWidget {
         color: theme.highlightColor,
         borderRadius: BorderRadius.circular(12),
         elevation: 0,
-        shadowColor: Colors.black.withOpacity(0.1),
+        shadowColor: Colors.black.withValues(alpha: 0.1),
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
@@ -36,7 +36,7 @@ class SurveyCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),
@@ -128,7 +128,6 @@ class SurveyCard extends StatelessWidget {
   }
 
   Widget _buildSurveyIcon(BuildContext context) {
-    final theme = Theme.of(context);
     IconData iconData;
     Color iconColor;
 
@@ -158,7 +157,7 @@ class SurveyCard extends StatelessWidget {
       width: 40,
       height: 40,
       decoration: BoxDecoration(
-        color: iconColor.withOpacity(0.1),
+        color: iconColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Icon(
@@ -199,10 +198,10 @@ class SurveyCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: badgeColor.withOpacity(0.1),
+        color: badgeColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: badgeColor.withOpacity(0.3),
+          color: badgeColor.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -246,7 +245,7 @@ class SurveyCard extends StatelessWidget {
         const SizedBox(height: 8),
         LinearProgressIndicator(
           value: progress,
-          backgroundColor: theme.dividerColor.withOpacity(0.3),
+          backgroundColor: theme.dividerColor.withValues(alpha: 0.3),
           valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
           minHeight: 4,
         ),
