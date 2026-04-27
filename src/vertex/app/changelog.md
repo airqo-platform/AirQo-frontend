@@ -3,6 +3,32 @@
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
 ---
+
+## Version 1.23.28
+**Released:** April 27, 2026
+
+### Device Deployment Enhancements
+
+Introduced a robust device deployment component with support for deploying to both new and previous locations, along with associated API payload fixes.
+
+<details>
+<summary><strong>Device Deployment (3)</strong></summary>
+
+- **Device Deployment Component Updates**: Updated the existing device deployment component and associated API definitions to support registering device installations to previous locations.
+- **Deploy to Previous Location**: Added the ability to seamlessly deploy devices to previously used locations, auto-filling coordinates and site details.
+- **Deployment API Payload Fixes**: Resolved an issue where `site_name` was stripped from the deployment API payload when a previous `site_id` was provided.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (4)</strong></summary>
+
+- `components/features/devices/deploy-device-component.tsx`
+- `core/apis/devices.ts`
+- `core/hooks/useDevices.ts`
+- `app/changelog.md`
+
+</details>
  
 ## Version 1.23.27
 **Released:** April 22, 2026
