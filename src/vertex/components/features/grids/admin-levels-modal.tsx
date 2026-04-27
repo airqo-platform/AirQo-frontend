@@ -19,12 +19,19 @@ export function AdminLevelsModal({ isOpen, onClose }: AdminLevelsModalProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
 
-  const handleCopyId = (id: string) => {
-    navigator.clipboard.writeText(id);
-    ReusableToast({
-      message: "ID copied to clipboard",
-      type: "SUCCESS",
-    });
+  const handleCopyId = async (id: string) => {
+    try {
+      await navigator.clipboard.writeText(id);
+      ReusableToast({
+        message: "ID copied to clipboard",
+        type: "SUCCESS",
+      });
+    } catch {
+      ReusableToast({
+        message: "Failed to copy ID",
+        type: "ERROR",
+      });
+    }
   };
 
   const startEditing = (id: string, name: string) => {
