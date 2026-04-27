@@ -259,7 +259,26 @@ export const sites = {
     } catch (error) {
         throw error;
     }
+  },
+
+  refreshSiteMetadata: async (siteId: string): Promise<SiteRefreshResponse> => {
+    try {
+      const response = await createSecureApiClient().put<SiteRefreshResponse>(
+        `/devices/sites/refresh?id=${siteId}`,
+        {},
+        { headers: { "X-Auth-Type": "JWT" } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   }
 };
+
+export interface SiteRefreshResponse {
+  success: boolean;
+  message: string;
+  site: Site;
+}
 
 export type { ApproximateCoordinatesResponse };
