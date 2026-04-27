@@ -27,10 +27,10 @@ import {
   useCohort,
   useGroupCohorts,
 } from '@/shared/hooks';
-import { WarningBanner } from '@/shared/components/ui/banner';
 import { getEnvironmentAwareUrl } from '@/shared/utils/url';
 import { useUser } from '@/shared/hooks/useUser';
 import { AccessDenied } from '@/shared/components/AccessDenied';
+import { WarningBanner } from '@/shared/components/ui';
 import {
   trackChartInteraction,
   trackFeatureUsage,
@@ -404,28 +404,6 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   // Case 2: User HAS selected sites - show analytics dashboard with cards and charts
   return (
     <div className={`space-y-4 ${className}`}>
-      {/* Show banner if cohort data is private */}
-      {isCohortPrivate && (
-        <WarningBanner
-          title="Location card data unavailable"
-          message={
-            <>
-              Your organization&apos;s information is set to private. Use{' '}
-              <a
-                href={getEnvironmentAwareUrl('https://vertex.airqo.net/')}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:text-blue-800 underline"
-              >
-                AirQo Vertex
-              </a>{' '}
-              to manage data visibility and make it public to view air quality
-              measurements.
-            </>
-          }
-        />
-      )}
-
       {/* Favorite Locations Card */}
       <QuickAccessCard
         sites={siteCards}
@@ -435,6 +413,33 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         isLoading={siteCardsLoading}
         showIcon={showIcons}
         onShowIconsChange={setShowIcons}
+        infoLine={
+          isCohortPrivate
+            ? 'Recent readings are unavailable while this organization is private.'
+            : undefined
+        }
+        warningBanner={
+          isCohortPrivate ? (
+            <WarningBanner
+              title="Location card data unavailable"
+              message={
+                <p>
+                  Your organization&apos;s information is set to private. Use{' '}
+                  <a
+                    href={getEnvironmentAwareUrl('https://vertex.airqo.net/')}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline underline-offset-2"
+                  >
+                    AirQo Vertex
+                  </a>{' '}
+                  to manage data visibility and make it public to view air
+                  quality measurements.
+                </p>
+              }
+            />
+          ) : undefined
+        }
       />
 
       {/* Charts Grid */}

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -32,7 +32,8 @@ import { useRouter } from "next/navigation"
 
 import { fetchCollocationSites } from "@/lib/api"
 import { isMockMode } from "@/lib/mock-data"
-import { useEffect, useCallback, useMemo } from "react"
+import { syncSites } from "@/services/device-api.service"
+import { useToast } from "@/components/ui/use-toast"
 
 // --- Types ---
 
@@ -236,6 +237,29 @@ export default function SiteCollocationPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showEmptySites, setShowEmptySites] = useState(false)
+  const [isSyncing, setIsSyncing] = useState(false)
+  const { toast } = useToast()
+
+  const handleSyncSites = async () => {
+    setIsSyncing(true)
+    try {
+      await syncSites()
+      toast({
+        title: "Sync successful",
+        description: "Sites have been synced successfully.",
+      })
+      fetchData()
+    } catch (err) {
+      console.error("Error syncing sites:", err)
+      toast({
+        variant: "destructive",
+        title: "Sync failed",
+        description: "An error occurred while syncing sites.",
+      })
+    } finally {
+      setIsSyncing(false)
+    }
+}
 
   const fetchData = useCallback(async () => {
     setIsLoading(true)
@@ -344,16 +368,28 @@ export default function SiteCollocationPage() {
       {/* Page Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Site Collocation</h1>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="flex items-center" 
-          onClick={fetchData}
-          disabled={isLoading}
-        >
-          <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-          {isLoading ? 'Refreshing...' : 'Refresh Data'}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center"
+            onClick={handleSyncSites}
+            disabled={isSyncing || isLoading}
+          >
+            <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+            {isSyncing ? 'Syncing...' : 'Sync Sites'}
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="flex items-center" 
+            onClick={fetchData}
+            disabled={isLoading || isSyncing}
+          >
+            <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            {isLoading ? 'Refreshing...' : 'Refresh Data'}
+          </Button>
+        </div>
       </div>
 
       {/* Summary Cards */}

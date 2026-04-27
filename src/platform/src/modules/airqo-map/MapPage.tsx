@@ -182,6 +182,25 @@ const MapPage: React.FC<MapPageProps> = ({
     mutate: refetchCohort,
   } = useCohort(primaryCohortId, isOrganizationFlow && !!primaryCohortId);
 
+  const isCohortFetchCanceled = React.useMemo(() => {
+    if (!cohortError) {
+      return false;
+    }
+
+    const candidate = cohortError as {
+      name?: string;
+      code?: string;
+      message?: string;
+    };
+
+    return (
+      candidate.name === 'AbortError' ||
+      candidate.name === 'CanceledError' ||
+      candidate.code === 'ERR_CANCELED' ||
+      candidate.message === 'canceled'
+    );
+  }, [cohortError]);
+
   const normalizedReadings = React.useMemo(() => {
     const airqoReadings = normalizeMapReadings(readings, selectedPollutant);
     const dedupedReadings = new Map<string, (typeof airqoReadings)[number]>();
@@ -201,7 +220,7 @@ const MapPage: React.FC<MapPageProps> = ({
     return Array.from(dedupedReadings.values());
   }, [readings, selectedPollutant]);
 
-  const hasCohortError = Boolean(cohortError);
+  const hasCohortError = Boolean(cohortError && !isCohortFetchCanceled);
 
   const hasNoMapData =
     !cohortLoading &&

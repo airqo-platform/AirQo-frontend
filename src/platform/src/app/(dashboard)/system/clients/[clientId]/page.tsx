@@ -89,6 +89,8 @@ const ClientDetailsPage: React.FC = () => {
       })
     : '—';
 
+  const requiresClientSecret = Boolean(client?.requireClientSecret);
+
   const handleBack = () => {
     router.push('/system/clients');
   };
@@ -358,6 +360,26 @@ const ClientDetailsPage: React.FC = () => {
                     {client.isActive ? 'Active' : 'Inactive'}
                   </span>
                 </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Client Secret Requirement
+                </label>
+                <div className="mt-1">
+                  <span
+                    className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                      requiresClientSecret
+                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
+                        : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
+                    }`}
+                  >
+                    {requiresClientSecret ? 'Required' : 'Not required'}
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  When enabled, API requests must include the X-Client-Secret
+                  header.
+                </p>
               </div>
             </div>
           </Card>

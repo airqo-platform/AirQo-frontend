@@ -58,7 +58,7 @@ const RunDeviceTestCard: React.FC<RunDeviceTestCardProps> = ({ deviceNumber, get
         <>
           <div className="text-sm text-muted-foreground mb-1 px-3 py-2">
             {(() => {
-              const createdAtRaw = statusFeed.data.created_at;
+              const createdAtRaw = statusFeed.data.created_at || statusFeed.data.timestamp;
               const createdAt =
                 typeof createdAtRaw === "string" ? createdAtRaw : null;
               if (!createdAt) return null;
@@ -145,7 +145,7 @@ const RunDeviceTestCard: React.FC<RunDeviceTestCardProps> = ({ deviceNumber, get
             {Object.entries(statusFeed.data)
               .filter(
                 ([key]) =>
-                  !["created_at", "isCache", "satellites", "DeviceType", "undefined"].includes(
+                  !["created_at", "timestamp", "isCache", "satellites", "DeviceType", "undefined"].includes(
                     key
                   )
               )

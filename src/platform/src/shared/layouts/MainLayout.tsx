@@ -59,7 +59,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               {showSidebar && (
                 <motion.aside
                   className="hidden md:block shrink-0"
+                  style={{ width: sidebarCollapsed ? 64 : 256 }}
                   animate={{ width: sidebarCollapsed ? 64 : 256 }}
+                  initial={false}
                   transition={{ duration: 0.3, ease: 'easeInOut' }}
                 >
                   <Sidebar />

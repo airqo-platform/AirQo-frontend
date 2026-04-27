@@ -45,7 +45,7 @@ class StockService {
 
     const token = authService.getToken();
     if (token) {
-      return { 'Authorization': `Bearer ${token}` };
+      return { 'Authorization': token };
     }
     return {};
   }

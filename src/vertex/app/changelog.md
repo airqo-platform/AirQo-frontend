@@ -4,6 +4,56 @@
 
 ---
  
+## Version 1.23.29
+**Released:** April 27, 2026
+
+### Site Metadata Refresh & Grid Admin Level Management
+
+Introduced on-demand site metadata enrichment and comprehensive administrative level management for grids, along with critical UI refinements for device status and maintenance tracking.
+
+<details>
+<summary><strong>Site & Grid Management (3)</strong></summary>
+
+- **On-Demand Site Refresh**: Added a "Refresh Metadata" action to site details, allowing operators to trigger a full re-enrichment of site data (Google Maps, TAHMO, Grids) with intelligent feedback for partial success states.
+- **Admin Level CRUD**: Implemented a complete management workflow for grid administrative levels, including creation, listing with copiable IDs, and inline editing via a new centralized management modal.
+- **Dropdown Management Interface**: Integrated a new management dropdown on the Grids page to provide quick access to administrative level controls without cluttering the main workspace.
+
+</details>
+
+<details>
+<summary><strong>Device UI & Logic Refinements (2)</strong></summary>
+
+- **Missed Maintenance Indicators**: Overhauled the `MaintenanceStatusCard` to explicitly highlight missed maintenance tasks (past dates) using red status bars, secondary warning icons, and "Missed" badges for immediate operator awareness.
+- **Robust Telemetry Fallbacks**: Updated the `RunDeviceTestCard` to intelligently fall back to `timestamp` data when `created_at` metadata is missing, preventing "unknown" states during device diagnostics.
+
+</details>
+
+<details>
+<summary><strong>Technical Improvements (4)</strong></summary>
+
+- **Intelligent Cache Invalidation**: Optimized the `useRefreshSiteMetadata` hook to perform immediate cache updates followed by targeted invalidation, ensuring site data is consistently fresh across the application.
+- **Standardized Management Modals**: Leveraged `ReusableDialog` for administrative level management to maintain design consistency and support complex nested interactions.
+- **Enhanced Toast Feedback**: Refined notification logic to distinguish between successful, partial, and redundant (already complete) metadata enrichment cycles.
+- **Telemetry Parameter Filtering**: Cleaned up the technical parameters display in device tests to exclude redundant timing metadata, focusing on actionable device data.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (10)</strong></summary>
+
+- `app/(authenticated)/admin/sites/[id]/page.tsx`
+- `app/(authenticated)/admin/grids/page.tsx`
+- `components/features/devices/maintenance-status-card.tsx`
+- `components/features/devices/run-device-test-card.tsx`
+- `components/features/grids/create-admin-level.tsx`
+- `components/features/grids/admin-levels-modal.tsx`
+- `core/apis/sites.ts`
+- `core/apis/grids.ts`
+- `core/hooks/useSites.ts`
+- `core/hooks/useGrids.ts`
+
+</details>
+
 ## Version 1.23.26
 **Released:** April 09, 2026
 

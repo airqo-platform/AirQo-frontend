@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "postbuild": "node scripts/copy-standalone-assets.mjs",
+    "start": "node -e \"const { loadEnvConfig } = require('@next/env'); loadEnvConfig(process.cwd()); process.env.HOSTNAME='localhost'; require('./.next/standalone/server.js')\"",
     "lint": "next lint",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
