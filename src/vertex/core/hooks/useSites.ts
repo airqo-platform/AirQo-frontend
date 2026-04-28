@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery, type QueryFunctionContext } from "@tanstack/react-query";
 import {
   sites,
   ApproximateCoordinatesResponse,
@@ -11,6 +11,7 @@ import { DeviceActivitiesResponse } from "../apis/devices";
 
 import { useGroupCohorts } from "./useCohorts";
 import { useAppSelector } from "../redux/hooks";
+import { useMemo } from "react";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { AxiosError } from "axios";
 import { getApiErrorMessage } from "../utils/getApiErrorMessage";
@@ -65,9 +66,11 @@ export const useSites = (options: SiteListingOptions = {}) => {
   const safeLimit = Math.max(1, limit);
   const skip = (safePage - 1) * safeLimit;
 
+  const queryParams = useMemo(() => ({ page, limit, search, sortBy, order, status: options.status }), [page, limit, search, sortBy, order, options.status]);
+  
   const sitesQuery = useQuery<SitesSummaryResponse, AxiosError<ErrorResponse>>({
-    queryKey: ["sites", network, activeGroup?.grp_title, { page, limit, search, sortBy, order, status: options.status }],
-    queryFn: async () => {
+    queryKey: ["sites", network, activeGroup?.grp_title, queryParams],
+    queryFn: async ({ signal }: QueryFunctionContext) => {
       if (isAirQoGroup) {
         const params: GetSitesSummaryParams = {
           network: network || "",
@@ -85,7 +88,7 @@ export const useSites = (options: SiteListingOptions = {}) => {
                 ...params
             });
         }
-        return sites.getSitesSummary(params);
+        return sites.getSitesSummary(params, signal);
       }
 
       if (!groupCohortIds) {
@@ -100,7 +103,7 @@ export const useSites = (options: SiteListingOptions = {}) => {
         ...(sortBy && { sortBy }),
         ...(order && { order }),
         ...(network && { network }),
-      });
+      }, signal);
     },
     enabled: !!activeGroup?.grp_title && (isAirQoGroup || (!!groupCohortIds && groupCohortIds.length > 0)),
     staleTime: 300_000,

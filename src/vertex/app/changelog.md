@@ -3,6 +3,46 @@
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
 ---
+
+## Version 1.23.30
+**Released:** April 27, 2026
+
+### Cohort Performance Optimization & Request Stability
+
+Optimized cohort-based data fetching by migrating to cached endpoints and implementing request cancellation and stability patterns to prevent timeouts and redundant network traffic.
+
+<details>
+<summary><strong>Performance Improvements (3)</strong></summary>
+
+- **Cached Cohort Endpoints**: Migrated device and site fetching to the new `/cached-devices` and `/cached-sites` endpoints, significantly reducing response times for large organizations.
+- **Request Stability with `useMemo`**: Memoized query parameters in the `useDevices` and `useSites` hooks and UI components to prevent redundant API calls triggered by object reference changes during re-renders.
+- **Request Cancellation**: Integrated `AbortController` support into the API and hook layers, allowing the application to automatically cancel stale in-flight requests when filters or search terms change.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (3)</strong></summary>
+
+- **Type Safety**: Updated `DevicesSummaryResponse` and `SitesSummaryResponse` to support the new `cache_generated_at` timestamp.
+- **Hook Optimization**: Updated `useDevices`, `useSites`, and `useCohorts` to pass the `AbortSignal` from React Query to the API client.
+- **UI Refinement**: Memoized the options object in `DevicesTable` to ensure stable query triggers.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (8)</strong></summary>
+
+- `core/apis/devices.ts`
+- `core/apis/sites.ts`
+- `core/apis/cohorts.ts`
+- `core/hooks/useDevices.ts`
+- `core/hooks/useSites.ts`
+- `core/hooks/useCohorts.ts`
+- `app/types/devices.ts`
+- `components/features/devices/device-list-table.tsx`
+
+</details>
+
  
 ## Version 1.23.29
 **Released:** April 27, 2026

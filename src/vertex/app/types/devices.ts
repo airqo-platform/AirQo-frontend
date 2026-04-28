@@ -167,6 +167,7 @@ export interface DevicesSummaryResponse {
   message: string;
   devices: Device[];
   meta: PaginationMeta;
+  cache_generated_at?: string;
 }
 
 interface HealthTip {

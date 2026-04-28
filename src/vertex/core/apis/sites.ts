@@ -28,6 +28,7 @@ export interface SitesSummaryResponse {
   message: string;
   sites: Site[];
   meta: PaginationMeta;
+  cache_generated_at?: string;
 }
 
 export interface GetSitesSummaryParams {
@@ -73,7 +74,7 @@ export interface CreateSiteResponse {
 }
 
 export const sites = {
-  getSitesSummary: async (params: GetSitesSummaryParams): Promise<SitesSummaryResponse> => {
+  getSitesSummary: async (params: GetSitesSummaryParams, signal?: AbortSignal): Promise<SitesSummaryResponse> => {
     try {
       const { network, group, limit, skip, search, sortBy, order } = params;
       const queryParams = new URLSearchParams();
@@ -88,7 +89,7 @@ export const sites = {
 
       const response = await createSecureApiClient().get(
         `/devices/sites/summary?${queryParams.toString()}`,
-        { headers: { "X-Auth-Type": "JWT" } }
+        { headers: { "X-Auth-Type": "JWT" }, signal }
       );
       return response.data;
     } catch (error) {
@@ -104,7 +105,7 @@ export const sites = {
     sortBy?: string;
     order?: "asc" | "desc";
     network?: string;
-  }): Promise<SitesSummaryResponse> => {
+  }, signal?: AbortSignal): Promise<SitesSummaryResponse> => {
     try {
       const { cohort_ids, ...rest } = params;
       const queryParams = new URLSearchParams();
@@ -115,9 +116,9 @@ export const sites = {
       });
 
       const response = await createSecureApiClient().post<SitesSummaryResponse>(
-        `/devices/cohorts/sites?${queryParams.toString()}`,
+        `/devices/cohorts/cached-sites?${queryParams.toString()}`,
         { cohort_ids },
-        { headers: { "X-Auth-Type": "JWT" } }
+        { headers: { "X-Auth-Type": "JWT" }, signal }
       );
       return response.data;
     } catch (error) {

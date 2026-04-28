@@ -16,7 +16,7 @@ import { useState, useMemo } from "react";
 import { AssignCohortDevicesDialog } from "@/components/features/cohorts/assign-cohort-devices";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { UnassignCohortDevicesDialog } from "../cohorts/unassign-cohort-devices";
-import { useDevices } from "@/core/hooks/useDevices";
+import { useDevices, DeviceListingOptions } from "@/core/hooks/useDevices";
 import { getColumns, type TableDevice } from "./utils/table-columns";
 import { useServerSideTableState } from "@/core/hooks/useServerSideTableState";
 
@@ -68,15 +68,20 @@ export default function DevicesTable({
     setSorting,
   } = useServerSideTableState({ initialPageSize: itemsPerPage });
 
-  const { devices, meta, isFetching, error } = useDevices({
-    page: pagination.pageIndex + 1,
-    limit: pagination.pageSize,
-    search: searchTerm,
-    sortBy: sorting[0]?.id,
-    order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined,
-    filterStatus: status || undefined,
-    ...filterOptions,
-  });
+  const deviceOptions: DeviceListingOptions = useMemo(
+    () => ({
+      page: pagination.pageIndex + 1,
+      limit: pagination.pageSize,
+      search: searchTerm,
+      sortBy: sorting[0]?.id,
+      order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined,
+      filterStatus: status || undefined,
+      ...filterOptions,
+    }),
+    [pagination.pageIndex, pagination.pageSize, searchTerm, sorting, status, filterOptions]
+  );
+
+  const { devices, meta, isFetching, error } = useDevices(deviceOptions);
 
   const pageCount = meta?.totalPages ?? 0;
 
