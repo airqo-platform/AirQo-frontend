@@ -8,14 +8,14 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 import { format, subDays } from "date-fns"
-import { CalendarIcon, Search, X } from "lucide-react"
+import { CalendarIcon, Search, X, RefreshCw } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/components/ui/use-toast"
 import { airQloudService, type AirQloudBasic } from "@/services/airqloud.service"
-import { deviceApiService } from "@/services/device-api.service"
+import { deviceApiService, syncCohorts, syncThingSpeak } from "@/services/device-api.service"
 import type { Device } from "@/types/api.types"
 
 interface AnalyticsFiltersProps {
@@ -45,6 +45,7 @@ interface SelectedItem {
 
 export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysing }: AnalyticsFiltersProps) {
   const { toast } = useToast()
+  const [isSyncing, setIsSyncing] = useState(false)
   const [filterType, setFilterType] = useState<"airqlouds" | "devices">("airqlouds")
   const [selectedItems, setSelectedItems] = useState<string[]>([])
   const [selectedItemsMap, setSelectedItemsMap] = useState<Map<string, SelectedItem>>(new Map())
@@ -262,6 +263,29 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
   // No need for client-side filtering since API handles search
   const filteredItems = currentItems
 
+  const handleSync = async () => {
+    setIsSyncing(true)
+    try {
+      await Promise.all([
+        syncCohorts(),
+        syncThingSpeak(14),
+      ])
+      toast({
+        title: "Sync successful",
+        description: "Cohorts and ThingSpeak data synced for the last 14 days.",
+      })
+    } catch (err) {
+      console.error("Error syncing performance data:", err)
+      toast({
+        variant: "destructive",
+        title: "Sync failed",
+        description: "An error occurred while syncing performance data.",
+      })
+    } finally {
+      setIsSyncing(false)
+    }
+}
+
   // Helper to check if a date is today or in the future
   const isDateDisabled = (date: Date) => {
     const today = new Date()
@@ -272,7 +296,20 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Cohort Performance Analysis</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle>Cohort Performance Analysis</CardTitle>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSync}
+              disabled={isSyncing}
+            >
+              <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+              {isSyncing ? 'Syncing...' : 'Sync Cohorts & Data'}
+            </Button>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

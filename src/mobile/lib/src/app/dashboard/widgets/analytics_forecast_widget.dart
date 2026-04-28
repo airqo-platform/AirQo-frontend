@@ -183,7 +183,7 @@ class _AnalyticsForecastWidgetState extends State<AnalyticsForecastWidget> with 
               return _buildErrorUI(context, state.message);
             }
 
-            return Container(
+            return SizedBox(
               height: _getResponsiveHeight(context),
               child: Center(
                 child: TranslatedText(
@@ -207,7 +207,7 @@ class _AnalyticsForecastWidgetState extends State<AnalyticsForecastWidget> with 
       padding: EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        color: Colors.grey.withOpacity(0.1),
+        color: Colors.grey.withValues(alpha: 0.1),
       ),
       child: Row(
         children: [
@@ -265,7 +265,7 @@ class _AnalyticsForecastWidgetState extends State<AnalyticsForecastWidget> with 
       padding: EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        color: Colors.grey.withOpacity(0.1),
+        color: Colors.grey.withValues(alpha: 0.1),
       ),
       child: Row(
         children: [
@@ -317,7 +317,7 @@ class ForeCastChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+    final textScaleFactor = MediaQuery.of(context).textScaler.scale(1.0);
     final fontSize = (height * 0.2).clamp(12.0, 16.0);
 
     return Expanded(

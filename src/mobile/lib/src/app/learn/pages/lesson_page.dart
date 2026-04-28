@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 class LessonPage extends StatefulWidget {
   final KyaLesson lesson;
 
-  const LessonPage(this.lesson);
+  const LessonPage(this.lesson, {super.key});
   @override
   State<LessonPage> createState() => _LessonPageState();
 }
@@ -52,7 +52,7 @@ class _LessonPageState extends State<LessonPage> {
             ? LessonFinishedWidget()
             : Column(
                 children: [
-                  Container(
+                  SizedBox(
                       height: 6,
                       child: StepperWidget(
                           green: true,
@@ -91,8 +91,7 @@ class _LessonPageState extends State<LessonPage> {
                   ),
                   Expanded(
                       flex: 1,
-                      child: Container(
-                        child: Column(
+                      child: Column(
                           children: [
                             SizedBox(height: 16),
                             Row(
@@ -140,7 +139,7 @@ class _LessonPageState extends State<LessonPage> {
                                 ])
                           ],
                         ),
-                      ))
+                      )
                 ],
               ),
       ),

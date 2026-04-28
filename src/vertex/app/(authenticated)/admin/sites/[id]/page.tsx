@@ -4,10 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AqArrowLeft } from "@airqo/icons-react";
 import ReusableButton from "@/components/shared/button/ReusableButton";
-import { useSiteDetails } from "@/core/hooks/useSites";
+import { useSiteDetails, useRefreshSiteMetadata } from "@/core/hooks/useSites";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useParams } from "next/navigation";
+import { RefreshCw } from "lucide-react";
 import { SiteInformationCard } from "@/components/features/sites/site-information-card";
 import { SiteMobileAppCard } from "@/components/features/sites/site-mobile-app-card";
 import { EditSiteDetailsDialog } from "@/components/features/sites/edit-site-details-dialog";
@@ -27,6 +28,7 @@ export default function SiteDetailsPage() {
   const params = useParams();
   const siteId = params.id as string;
   const { data: site, isLoading, error } = useSiteDetails(siteId);
+  const { mutate: refreshMetadata, isPending: isRefreshing } = useRefreshSiteMetadata();
   const router = useRouter();
   const [editSection, setEditSection] = useState<"general" | "mobile" | null>(
     null
@@ -53,6 +55,17 @@ export default function SiteDetailsPage() {
           Icon={AqArrowLeft}
         >
           Back
+        </ReusableButton>
+
+        <ReusableButton
+          variant="outlined"
+          onClick={() => refreshMetadata(siteId)}
+          disabled={isRefreshing || isLoading || !site}
+          loading={isRefreshing}
+          Icon={RefreshCw}
+          className="text-xs font-medium"
+        >
+          Refresh Metadata
         </ReusableButton>
       </div>
 

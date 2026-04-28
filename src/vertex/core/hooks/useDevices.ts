@@ -3,6 +3,7 @@ import {
   useMutation,
   useQueryClient,
   useInfiniteQuery,
+  type QueryFunctionContext,
 } from '@tanstack/react-query';
 import { usePathname } from 'next/navigation';
 import {
@@ -14,6 +15,7 @@ import {
 } from '../apis/devices';
 import { useGroupCohorts } from './useCohorts';
 import { useAppSelector } from '../redux/hooks';
+import { useMemo } from 'react';
 import type {
   DevicesSummaryResponse,
   DeviceAvailabilityResponse,
@@ -80,7 +82,7 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
   const skip = (safePage - 1) * safeLimit;
 
   // Combine known params with dynamic rest params for the query key
-  const queryParams = { page, limit, search, sortBy, order, network, ...rest };
+  const queryParams = useMemo(() => ({ page, limit, search, sortBy, order, network, ...rest }), [page, limit, search, sortBy, order, network, JSON.stringify(rest)]);
 
   const queryKey = [
     'devices',
@@ -94,7 +96,7 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
     AxiosError<ErrorResponse>
   >({
     queryKey,
-    queryFn: async () => {
+    queryFn: async ({ signal }: QueryFunctionContext) => {
       // 1. Hybrid Strategy: If a generic status filter is provided, use the optimized status endpoint
       if (options.filterStatus) {
         const commonParams = {
@@ -133,7 +135,7 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
           ...(network && { network }),
           ...rest,
         };
-        return devices.getDevicesSummaryApi(params);
+        return devices.getDevicesSummaryApi(params, signal);
       }
 
       if (!groupCohortIds) {
@@ -150,7 +152,7 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
         ...(order && { order }),
         ...(network && { network }),
         ...rest,
-      });
+      }, signal);
     },
     enabled:
       enabled &&
@@ -599,7 +601,8 @@ export const useDeployDevice = () => {
       isPrimaryInLocation: boolean;
       latitude: string;
       longitude: string;
-      site_name: string;
+      site_name?: string;
+      site_id?: string;
       network: string;
       user_id: string;
       deployment_date: string | undefined;

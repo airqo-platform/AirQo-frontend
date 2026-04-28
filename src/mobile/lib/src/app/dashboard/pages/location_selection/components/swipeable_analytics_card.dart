@@ -126,7 +126,7 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
             borderRadius: BorderRadius.circular(8),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.3),
+                color: Colors.black.withValues(alpha: 0.3),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -289,7 +289,7 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
                       color: Colors.white,
                       size: 24,
                     ),
-                                          const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     TranslatedText(
                       'Remove',
                       style: TextStyle(
@@ -349,7 +349,7 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -405,7 +405,7 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
                                                     .textTheme
                                                     .bodyMedium
                                                     ?.color
-                                                    ?.withOpacity(0.7),
+                                                    ?.withValues(alpha: 0.7),
                                               ),
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
@@ -519,7 +519,7 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
                                   horizontal: 16, vertical: 8),
                               decoration: BoxDecoration(
                                 color: _getAqiColor(widget.measurement)
-                                    .withOpacity(0.15),
+                                    .withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: TranslatedText(

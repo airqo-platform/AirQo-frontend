@@ -13,7 +13,7 @@ export interface GetCohortsSummaryParams {
 }
 
 export const cohorts = {
-  getCohortsSummary: async (params: GetCohortsSummaryParams): Promise<CohortsSummaryResponse> => {
+  getCohortsSummary: async (params: GetCohortsSummaryParams, signal?: AbortSignal): Promise<CohortsSummaryResponse> => {
     try {
       const { network, limit, skip, search, sortBy, order } = params;
       const queryParams = new URLSearchParams();
@@ -31,14 +31,14 @@ export const cohorts = {
 
       const response = await createSecureApiClient().get(
         `/devices/cohorts/summary?${queryParams.toString()}`,
-        { headers: { 'X-Auth-Type': 'JWT' } }
+        { headers: { 'X-Auth-Type': 'JWT' }, signal }
       );
       return response.data;
     } catch (error) {
       throw error;
     }
   },
-  getUserCohortsSummary: async (params: GetCohortsSummaryParams): Promise<CohortsSummaryResponse> => {
+  getUserCohortsSummary: async (params: GetCohortsSummaryParams, signal?: AbortSignal): Promise<CohortsSummaryResponse> => {
     try {
       const { network, limit, skip, search, sortBy, order } = params;
       const queryParams = new URLSearchParams();
@@ -55,7 +55,7 @@ export const cohorts = {
 
       const response = await createSecureApiClient().get(
         `/devices/cohorts/users?${queryParams.toString()}`,
-        { headers: { 'X-Auth-Type': 'JWT' } }
+        { headers: { 'X-Auth-Type': 'JWT' }, signal }
       );
       return response.data;
     } catch (error) {

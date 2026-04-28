@@ -2,7 +2,6 @@ import 'package:airqo/src/app/auth/pages/login_page.dart';
 import 'package:airqo/src/app/profile/pages/widgets/guest_settings_widget.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 //import 'package:airqo/src/app/profile/pages/widgets/settings_tile.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -34,6 +33,7 @@ class _GuestProfilePageState extends State<GuestProfilePage> {
     });
 
     // Navigate to CreateAccountScreen or handle success
+    if (!mounted) return;
     Navigator.of(context).push(MaterialPageRoute(builder: (context) => CreateAccountScreen()));
   }
 
@@ -64,11 +64,11 @@ class _GuestProfilePageState extends State<GuestProfilePage> {
                   margin: const EdgeInsets.symmetric(horizontal: 20),
                   child: CircleAvatar(
                     backgroundColor: Theme.of(context).highlightColor,
+                    radius: 50,
                     child: Center(
                       child: SvgPicture.asset(
                           "assets/icons/user_icon.svg"),
                     ),
-                    radius: 50,
                   ),
                 ),
 
@@ -179,7 +179,7 @@ class _GuestProfilePageState extends State<GuestProfilePage> {
                         style: TextStyle(color: Theme.of(context).textTheme.headlineMedium?.color),),
                       SizedBox(height: 18,),
                       SvgPicture.asset('assets/images/shared/Frame 128.svg',
-                      color: Theme.of(context).textTheme.titleLarge?.color,)
+                      colorFilter: ColorFilter.mode(Theme.of(context).textTheme.titleLarge?.color ?? Colors.black, BlendMode.srcIn),)
                     ],
                   ),
 

@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 class KyaLessonContainer extends StatelessWidget {
   final KyaLesson kyaLesson;
 
-  const KyaLessonContainer(this.kyaLesson);
+  const KyaLessonContainer(this.kyaLesson, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +22,7 @@ class KyaLessonContainer extends StatelessWidget {
           height: 288,
           child: Stack(
             children: [
-              Container(
+              SizedBox(
                 width: double.infinity,
                 height: double.infinity,
                 child: ClipRRect(

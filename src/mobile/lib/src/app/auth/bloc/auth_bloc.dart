@@ -2,6 +2,7 @@ import 'package:airqo/src/app/auth/models/input_model.dart';
 import 'package:airqo/src/app/auth/repository/auth_repository.dart';
 import 'package:airqo/src/app/auth/services/auth_helper.dart';
 import 'package:airqo/src/app/shared/repository/global_auth_manager.dart';
+import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
@@ -29,8 +30,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
 
     on<SessionExpired>(_onSessionExpired);
 
-    on<UseAsGuest>((event, emit) {
+    on<UseAsGuest>((event, emit) async {
       GlobalAuthManager.instance.resetSessionExpiredGuard();
+      await AnalyticsService().trackGuestModeAccessed();
       emit(GuestUser());
     });
 
@@ -49,6 +51,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
           await _clearAuthData();
           emit(SessionExpiredState());
         } else {
+          final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
+          if (userId != null) {
+            await AnalyticsService().setUserIdentity(userId: userId);
+          }
           emit(AuthLoaded(AuthPurpose.login));
         }
       } else {
@@ -66,14 +72,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
     await authRepository.loginWithEmailAndPassword(
         event.username, event.password);
 
+    await AnalyticsService().trackUserLoggedIn();
+    final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
+    if (userId != null) {
+      await AnalyticsService().setUserIdentity(
+        userId: userId,
+        userProperties: {'email': event.username},
+      );
+    }
     GlobalAuthManager.instance.resetSessionExpiredGuard();
     emit(AuthLoaded(AuthPurpose.login));
   } catch (e) {
     debugPrint("Login error: $e");
-    
+
     final String errorMsg = e.toString().toLowerCase();
-    if (errorMsg.contains('not verified') || 
-        errorMsg.contains('unverified') || 
+    if (errorMsg.contains('not verified') ||
+        errorMsg.contains('unverified') ||
         errorMsg.contains('verify your email') ||
         errorMsg.contains('verification required')) {
       emit(EmailUnverifiedError(_extractErrorMessage(e), event.username));
@@ -88,6 +102,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
     emit(AuthLoading());
     try {
       await authRepository.registerWithEmailAndPassword(event.model);
+      await AnalyticsService().trackUserRegistered();
+      final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
+      if (userId != null) {
+        await AnalyticsService().setUserIdentity(
+          userId: userId,
+          userProperties: {'email': event.model.email ?? ''},
+        );
+      }
       GlobalAuthManager.instance.resetSessionExpiredGuard();
       emit(AuthLoaded(AuthPurpose.register));
     } catch (e) {
@@ -115,6 +137,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
     try {
       loggy.info('Starting logout process - clearing auth tokens');
       await _clearAuthData();
+      await AnalyticsService().trackUserLoggedOut();
+      await AnalyticsService().resetUser();
       emit(GuestUser());
     } catch (e) {
       debugPrint("Logout error: $e");
@@ -127,7 +151,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
     emit(AuthLoading());
     try {
       await authRepository.deleteUserAccount();
-      emit(GuestUser()); 
+      emit(GuestUser());
     } catch (e) {
       debugPrint("Account deletion error: $e");
       emit(AuthLoadingError(_extractErrorMessage(e)));

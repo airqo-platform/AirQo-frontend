@@ -4,7 +4,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { AxiosError } from "axios";
-import { GetGridsSummaryParams, grids } from "../apis/grids";
+import { GetGridsSummaryParams, grids, AdminLevelResponse, AdminLevelsListResponse } from "../apis/grids";
 import { CreateGrid, Grid, GridsSummaryResponse } from "@/app/types/grids";
 import { setError, setGrids } from "../redux/slices/gridsSlice";
 import { useDispatch } from "react-redux";
@@ -151,6 +151,72 @@ export const useCreateGrid = () => {
 
   return {
     createGrid,
+    isLoading,
+    error,
+  };
+};
+
+export const useCreateAdminLevel = () => {
+  const queryClient = useQueryClient();
+  const { mutate: createAdminLevel, isPending: isLoading, error } = useMutation<AdminLevelResponse, AxiosError<ErrorResponse>, { name: string }>({
+    mutationFn: (data: { name: string }) => grids.createAdminLevelApi(data),
+    onSuccess: (data) => {
+      ReusableToast({
+        message: `Admin level '${data.admin_levels.name}' created successfully`,
+        type: "SUCCESS",
+      });
+      queryClient.invalidateQueries({ queryKey: ["admin-levels"] });
+    },
+    onError: (error: AxiosError<ErrorResponse>) => {
+      ReusableToast({
+        message: `Failed to create admin level: ${getApiErrorMessage(error)}`,
+        type: "ERROR",
+      });
+    },
+  });
+
+  return {
+    createAdminLevel,
+    isLoading,
+    error,
+  };
+};
+
+export const useAdminLevels = () => {
+  const { data, isLoading, error } = useQuery<AdminLevelsListResponse, AxiosError<ErrorResponse>>({
+    queryKey: ["admin-levels"],
+    queryFn: () => grids.getAdminLevelsApi(),
+    staleTime: 300_000,
+  });
+
+  return {
+    adminLevels: data?.admin_levels ?? [],
+    isLoading,
+    error,
+  };
+};
+
+export const useUpdateAdminLevel = () => {
+  const queryClient = useQueryClient();
+  const { mutate: updateAdminLevel, isPending: isLoading, error } = useMutation<AdminLevelResponse, AxiosError<ErrorResponse>, { levelId: string; data: { name: string } }>({
+    mutationFn: ({ levelId, data }) => grids.updateAdminLevelApi(levelId, data),
+    onSuccess: (data) => {
+      ReusableToast({
+        message: `Admin level updated to '${data.admin_levels.name}' successfully`,
+        type: "SUCCESS",
+      });
+      queryClient.invalidateQueries({ queryKey: ["admin-levels"] });
+    },
+    onError: (error: AxiosError<ErrorResponse>) => {
+      ReusableToast({
+        message: `Failed to update admin level: ${getApiErrorMessage(error)}`,
+        type: "ERROR",
+      });
+    },
+  });
+
+  return {
+    updateAdminLevel,
     isLoading,
     error,
   };

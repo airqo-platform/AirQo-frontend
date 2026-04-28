@@ -42,7 +42,7 @@ class AqiRange {
       aqiColor: json['aqi_color'],
       aqiColorName: json['aqi_color_name'],
       label: json['label'],
-      max: json['max'] != null ? json['max'].toDouble() : null,
+      max: json['max']?.toDouble(),
       min: json['min'].toDouble(),
     );
   }

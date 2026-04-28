@@ -165,6 +165,7 @@ export interface DevicesSummaryResponse {
   message: string;
   devices: Device[];
   meta: PaginationMeta;
+  cache_generated_at?: string;
 }
 
 export interface DeviceAvailabilityResponse {

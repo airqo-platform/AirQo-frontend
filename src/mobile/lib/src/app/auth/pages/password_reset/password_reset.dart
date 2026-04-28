@@ -88,8 +88,7 @@ class _PasswordResetPage extends State<PasswordResetPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                child: Padding(
+              Padding(
                   padding: const EdgeInsets.only(left: 32, right: 32, top: 8),
                   child: SizedBox(
                     child: Column(
@@ -184,7 +183,6 @@ class _PasswordResetPage extends State<PasswordResetPage> {
                     ),
                   ),
                 ),
-              ),
               if (error != null)
                 Padding(
                   padding: const EdgeInsets.only(left: 32.0, top: 8),

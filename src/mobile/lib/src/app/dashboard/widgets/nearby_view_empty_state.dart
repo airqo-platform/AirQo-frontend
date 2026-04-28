@@ -45,14 +45,15 @@ class _NearbyViewEmptyStateState extends State<NearbyViewEmptyState> with UiLogg
       LocationPermission permission = await Geolocator.checkPermission();
       
       // If already granted, just continue
-      if (permission == LocationPermission.always || 
+      if (permission == LocationPermission.always ||
           permission == LocationPermission.whileInUse) {
         loggy.info('Location permission already granted: ${permission.toString()}');
-        
+
         if (widget.onRetry != null) {
           widget.onRetry!();
         } else {
           // Refresh dashboard data with location
+          if (!mounted) return;
           context.read<DashboardBloc>().add(LoadDashboard());
         }
         setState(() {
@@ -60,22 +61,24 @@ class _NearbyViewEmptyStateState extends State<NearbyViewEmptyState> with UiLogg
         });
         return;
       }
-      
+
       // Request permission if not already granted
       permission = await Geolocator.requestPermission();
 
-      if (permission == LocationPermission.always || 
+      if (permission == LocationPermission.always ||
           permission == LocationPermission.whileInUse) {
         loggy.info('Location permission granted: ${permission.toString()}');
-        
+
         // Refresh dashboard data with location
         if (widget.onRetry != null) {
           widget.onRetry!();
         } else {
+          if (!mounted) return;
           context.read<DashboardBloc>().add(LoadDashboard());
         }
       } else if (permission == LocationPermission.denied) {
         loggy.warning('Location permission denied');
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Location permission was denied. Please try again.'),
@@ -89,6 +92,7 @@ class _NearbyViewEmptyStateState extends State<NearbyViewEmptyState> with UiLogg
       }
     } catch (e) {
       loggy.error('Error requesting location permission: $e');
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('An error occurred: ${e.toString()}'),
@@ -167,11 +171,10 @@ class _NearbyViewEmptyStateState extends State<NearbyViewEmptyState> with UiLogg
           Stack(
             alignment: Alignment.center,
             children: [
-              // Container to establish the appropriate size
-              Container(
+              // SizedBox to establish the appropriate size
+              SizedBox(
                 height: 120,
                 width: 180,
-                // Use Stack instead of Row for more control
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
@@ -210,7 +213,7 @@ class _NearbyViewEmptyStateState extends State<NearbyViewEmptyState> with UiLogg
                         "assets/profile/places.svg",
                         height: 80,
                         width: 80,
-                        color: AppColors.primaryColor,
+                        colorFilter: ColorFilter.mode(AppColors.primaryColor, BlendMode.srcIn),
                       ),
                     ),
                   ],
@@ -218,7 +221,7 @@ class _NearbyViewEmptyStateState extends State<NearbyViewEmptyState> with UiLogg
               ),
             ],
           ),
-          
+
           SizedBox(height: 24),
           
           // Title
@@ -250,7 +253,7 @@ class _NearbyViewEmptyStateState extends State<NearbyViewEmptyState> with UiLogg
             Container(
               padding: EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
+                color: Colors.red.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -285,7 +288,7 @@ class _NearbyViewEmptyStateState extends State<NearbyViewEmptyState> with UiLogg
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                disabledBackgroundColor: AppColors.primaryColor.withOpacity(0.5),
+                disabledBackgroundColor: AppColors.primaryColor.withValues(alpha: 0.5),
               ),
               child: _isLoading
                   ? SizedBox(
