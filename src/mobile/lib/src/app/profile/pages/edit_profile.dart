@@ -10,8 +10,6 @@ import 'package:airqo/src/app/auth/services/auth_helper.dart';
 import 'package:airqo/src/app/shared/repository/secure_storage_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -31,7 +29,6 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
 
   String _currentProfilePicture = '';
   File? _selectedProfileImage;
-  final ImagePicker _picker = ImagePicker();
 
   bool _isLoading = false;
   bool _formChanged = false;
@@ -53,38 +50,6 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
         _emailController.text = user.email;
         _currentProfilePicture = user.profilePicture ?? '';
       });
-    }
-  }
-
-  Future<void> _pickImage() async {
-    try {
-      final XFile? pickedFile = await _picker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 800,
-        maxHeight: 800,
-        imageQuality: 85,
-      );
-
-      if (pickedFile != null) {
-        setState(() {
-          _selectedProfileImage = File(pickedFile.path);
-          _formChanged = true;
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Image selected. Save to upload.'),
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to pick image: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
   }
 
@@ -188,7 +153,7 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
       }
     } catch (e) {
       loggy.warning('Error uploading image to Cloudinary: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -239,6 +204,7 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
       if (response.statusCode == 200 || response.statusCode == 201) {
         var jsonResponse = json.decode(response.body);
         if (jsonResponse['success'] == true) {
+          if (!mounted) throw Exception('Widget disposed');
           context.read<UserBloc>().add(UpdateUser(
                 firstName: _firstNameController.text.trim(),
                 lastName: _lastNameController.text.trim(),
@@ -305,6 +271,7 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
             _selectedProfileImage = null;
           });
 
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Profile image successfully added'),
@@ -317,6 +284,7 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
           Navigator.of(context).pop();
         }
       } else {
+        if (!mounted) return;
         context.read<UserBloc>().add(
               UpdateUser(
                 firstName: _firstNameController.text.trim(),
@@ -365,86 +333,6 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
     });
   }
 
-  Widget _buildProfilePictureWidget() {
-    Widget profilePicture;
-
-    // If user has selected a new image, show that
-    if (_selectedProfileImage != null) {
-      profilePicture = CircleAvatar(
-        radius: MediaQuery.of(context).size.width * 0.15,
-        backgroundColor: Colors.transparent,
-        backgroundImage: FileImage(_selectedProfileImage!),
-      );
-    } else if (_currentProfilePicture.isNotEmpty) {
-      if (_currentProfilePicture.startsWith('http')) {
-        profilePicture = CircleAvatar(
-          radius: MediaQuery.of(context).size.width * 0.15,
-          backgroundColor: Theme.of(context).highlightColor,
-          backgroundImage: NetworkImage(_currentProfilePicture),
-          onBackgroundImageError: (exception, stackTrace) {
-            loggy.warning('Error loading profile image: $exception');
-          },
-        );
-      } else if (_currentProfilePicture.endsWith('.svg')) {
-        profilePicture = CircleAvatar(
-          radius: MediaQuery.of(context).size.width * 0.15,
-          backgroundColor: Theme.of(context).highlightColor,
-          child: SvgPicture.asset(
-            _currentProfilePicture,
-            width: MediaQuery.of(context).size.width * 0.15,
-            height: MediaQuery.of(context).size.width * 0.15,
-          ),
-        );
-      } else {
-        profilePicture = CircleAvatar(
-          radius: MediaQuery.of(context).size.width * 0.15,
-          backgroundColor: Theme.of(context).highlightColor,
-          backgroundImage: AssetImage(_currentProfilePicture),
-        );
-      }
-    } else {
-      // Default user icon
-      profilePicture = CircleAvatar(
-        backgroundColor: Theme.of(context).highlightColor,
-        radius: MediaQuery.of(context).size.width * 0.15,
-        child: SvgPicture.asset(
-          'assets/icons/user_icon.svg',
-          width: MediaQuery.of(context).size.width * 0.15,
-          height: MediaQuery.of(context).size.width * 0.15,
-          color: Theme.of(context).brightness == Brightness.dark
-              ? null
-              : AppColors.secondaryHeadlineColor,
-        ),
-      );
-    }
-
-    // Add loading overlay if uploading
-    if (_isLoading && _selectedProfileImage != null) {
-      return Stack(
-        alignment: Alignment.center,
-        children: [
-          profilePicture,
-          Container(
-            width: MediaQuery.of(context).size.width * 0.3,
-            height: MediaQuery.of(context).size.width * 0.3,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.black.withOpacity(0.5),
-            ),
-            child: Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
-                strokeWidth: 3,
-              ),
-            ),
-          ),
-        ],
-      );
-    }
-
-    return profilePicture;
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -452,7 +340,6 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
     final screenHeight = MediaQuery.of(context).size.height;
 
     final padding = screenWidth * 0.05;
-    final iconSize = screenWidth * 0.06;
 
     // Theme-based colors
     final textColor = isDarkMode ? Colors.white : AppColors.boldHeadlineColor4;
@@ -748,7 +635,7 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(
-              color: isDarkMode ? Colors.grey[400] : hintColor.withOpacity(0.6),
+              color: isDarkMode ? Colors.grey[400] : hintColor.withValues(alpha: 0.6),
             ),
             filled: true,
             fillColor: isDarkMode ? Color(0xFF404040) : Colors.white,

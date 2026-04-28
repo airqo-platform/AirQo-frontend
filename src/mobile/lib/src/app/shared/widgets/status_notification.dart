@@ -4,15 +4,19 @@ import 'package:flutter/material.dart';
 class StatusNotification extends StatefulWidget {
   final String message;
   final bool isSuccess;
+  final bool isInfo;
   final Duration duration;
   final VoidCallback? onDismissed;
+  final VoidCallback? onTap;
 
   const StatusNotification({
     super.key,
     required this.message,
     this.isSuccess = true,
+    this.isInfo = false,
     this.duration = const Duration(seconds: 3),
     this.onDismissed,
+    this.onTap,
   });
 
   @override
@@ -63,19 +67,33 @@ class _StatusNotificationState extends State<StatusNotification> with SingleTick
 
   @override
   Widget build(BuildContext context) {
+    Color bgColor;
+    IconData iconData;
+    if (widget.isInfo) {
+      bgColor = Colors.blue.shade700;
+      iconData = Icons.notifications_outlined;
+    } else if (widget.isSuccess) {
+      bgColor = Colors.green.shade800;
+      iconData = Icons.check_circle;
+    } else {
+      bgColor = Colors.red.shade800;
+      iconData = Icons.error;
+    }
+
     return SlideTransition(
       position: _offsetAnimation,
-      child: Container(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.onTap,
+        child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: widget.isSuccess 
-              ? Colors.green.shade800
-              : Colors.red.shade800,
+          color: bgColor,
           borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withValues(alpha: 0.2),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -84,7 +102,7 @@ class _StatusNotificationState extends State<StatusNotification> with SingleTick
         child: Row(
           children: [
             Icon(
-              widget.isSuccess ? Icons.check_circle : Icons.error,
+              iconData,
               color: Colors.white,
               size: 24,
             ),
@@ -115,6 +133,7 @@ class _StatusNotificationState extends State<StatusNotification> with SingleTick
             ),
           ],
         ),
+      ),
       ),
     );
   }

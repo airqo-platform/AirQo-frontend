@@ -20,7 +20,7 @@ class ConnectivityBloc extends Bloc<ConnectivityEvent, ConnectivityState> {
     _connectivitySubscription =
         _connectivity.onConnectivityChanged.listen((result) {
       debugPrint('Connectivity changed: $result');
-      add(ConnectivityChanged(result != ConnectivityResult.none));
+      add(ConnectivityChanged(!result.contains(ConnectivityResult.none)));
     });
 
     on<ConnectivityChanged>((event, emit) {
@@ -46,7 +46,7 @@ class ConnectivityBloc extends Bloc<ConnectivityEvent, ConnectivityState> {
       var connectivityResult = await _connectivity.checkConnectivity();
       debugPrint('Initial connectivity check result: $connectivityResult');
 
-      bool isConnected = connectivityResult != ConnectivityResult.none &&
+      bool isConnected = !connectivityResult.contains(ConnectivityResult.none) &&
           await _hasInternetConnection();
       add(ConnectivityChanged(isConnected));
     } catch (e) {

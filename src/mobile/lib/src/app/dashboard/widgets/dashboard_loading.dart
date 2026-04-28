@@ -6,18 +6,16 @@ class DashboardLoadingPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Column(
-        children: [
-          ShimmerContainer(
-              height: 200, borderRadius: 0, width: double.infinity),
-          SizedBox(height: 8),
-          ShimmerContainer(
-              height: 200, borderRadius: 0, width: double.infinity),
-          SizedBox(height: 8),
-          ShimmerContainer(height: 200, borderRadius: 0, width: double.infinity)
-        ],
-      ),
+    return Column(
+      children: [
+        ShimmerContainer(
+            height: 200, borderRadius: 0, width: double.infinity),
+        SizedBox(height: 8),
+        ShimmerContainer(
+            height: 200, borderRadius: 0, width: double.infinity),
+        SizedBox(height: 8),
+        ShimmerContainer(height: 200, borderRadius: 0, width: double.infinity)
+      ],
     );
   }
 }

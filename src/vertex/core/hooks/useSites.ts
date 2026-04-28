@@ -1,5 +1,12 @@
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery, type QueryFunctionContext } from "@tanstack/react-query";
-import { sites, ApproximateCoordinatesResponse, GetSitesSummaryParams, SitesSummaryResponse, CreateSiteResponse } from "../apis/sites";
+import {
+  sites,
+  ApproximateCoordinatesResponse,
+  GetSitesSummaryParams,
+  SitesSummaryResponse,
+  CreateSiteResponse,
+  SiteRefreshResponse,
+} from "../apis/sites";
 import { DeviceActivitiesResponse } from "../apis/devices";
 
 import { useGroupCohorts } from "./useCohorts";
@@ -251,6 +258,44 @@ export const useCreateSite = () => {
     onError: (error) => {
       ReusableToast({
         message: `Failed to create site: ${getApiErrorMessage(error)}`,
+        type: "ERROR",
+      });
+    },
+  });
+};
+
+export const useRefreshSiteMetadata = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<SiteRefreshResponse, AxiosError<ErrorResponse>, string>({
+    mutationFn: (siteId: string) => sites.refreshSiteMetadata(siteId),
+    onSuccess: (data, siteId) => {
+      // Update the cache with the newly enriched site data
+      queryClient.setQueryData(["site-details", siteId], data.site);
+      queryClient.invalidateQueries({ queryKey: ["sites"] });
+      queryClient.invalidateQueries({ queryKey: ["site-details", siteId] });
+
+      const msg = (data.message ?? "").toLowerCase();
+      if (msg.includes("partially refreshed")) {
+        ReusableToast({
+          message: data.message,
+          type: "WARNING",
+        });
+      } else if (msg.includes("already complete")) {
+        ReusableToast({
+          message: "Site metadata is already up to date.",
+          type: "INFO",
+        });
+      } else {
+        ReusableToast({
+          message: "Site metadata refreshed successfully.",
+          type: "SUCCESS",
+        });
+      }
+    },
+    onError: (error) => {
+      ReusableToast({
+        message: `Refresh Failed: ${getApiErrorMessage(error)}`,
         type: "ERROR",
       });
     },

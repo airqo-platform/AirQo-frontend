@@ -1,5 +1,5 @@
 // API utility functions for device management
-import { buildApiUrl } from './config';
+import { config } from './config';
 import authService from '@/services/api-service';
 
 /**
@@ -49,7 +49,7 @@ export async function getDevices() {
 export async function fetchCollocationSites(params = {}) {
   const query = new URLSearchParams(params).toString();
   const path = `/collocation/sites${query ? `?${query}` : ''}`;
-  const url = buildApiUrl(path);
+  const url = `${config.apiUrl}${config.beaconApiPrefix}${path}`;
 
   const headers = {};
   const token = authService.getToken();
@@ -69,7 +69,7 @@ export async function fetchCollocationSites(params = {}) {
 export async function fetchCollocationSiteDetails(id, params = {}) {
   const query = new URLSearchParams(params).toString();
   const path = `/collocation/sites/${id}${query ? `?${query}` : ''}`;
-  const url = buildApiUrl(path);
+  const url = `${config.apiUrl}${config.beaconApiPrefix}${path}`;
 
   const headers = {};
   const token = authService.getToken();

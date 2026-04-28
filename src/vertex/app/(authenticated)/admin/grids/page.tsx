@@ -1,6 +1,7 @@
 "use client";
 
 import { CreateGridForm } from "@/components/features/grids/create-grid";
+import { CreateAdminLevel } from "@/components/features/grids/create-admin-level";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import GridsTable from "@/components/features/grids/grids-list-table";
 
@@ -17,6 +18,7 @@ export default function GridsPage() {
           </div>
           <div className="flex gap-2">
             <CreateGridForm />
+            <CreateAdminLevel />
           </div>
         </div>
 

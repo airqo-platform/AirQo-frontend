@@ -20,6 +20,7 @@ version: 3.0.4+1
 
 environment:
   sdk: '>=3.3.2 <4.0.0'
+  flutter: '>=3.27.0'
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -77,6 +78,13 @@ dependencies:
   plugin_platform_interface: ^2.1.8
   url_launcher: ^6.3.1
   flutter_secure_storage: ^9.2.2
+  posthog_flutter: ^5.9.0
+  firebase_core: ^4.4.0
+  firebase_messaging: ^16.1.1
+  flutter_local_notifications: ^19.5.0
+  collection: ^1.19.1
+  device_info_plus: ^10.1.0
+  uuid: ^4.5.1
 
 
 dev_dependencies:
