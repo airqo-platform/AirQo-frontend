@@ -1,9 +1,17 @@
-import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
-import { sites, ApproximateCoordinatesResponse, GetSitesSummaryParams, SitesSummaryResponse, CreateSiteResponse } from "../apis/sites";
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery, type QueryFunctionContext } from "@tanstack/react-query";
+import {
+  sites,
+  ApproximateCoordinatesResponse,
+  GetSitesSummaryParams,
+  SitesSummaryResponse,
+  CreateSiteResponse,
+  SiteRefreshResponse,
+} from "../apis/sites";
 import { DeviceActivitiesResponse } from "../apis/devices";
 
 import { useGroupCohorts } from "./useCohorts";
 import { useAppSelector } from "../redux/hooks";
+import { useMemo } from "react";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { AxiosError } from "axios";
 import { getApiErrorMessage } from "../utils/getApiErrorMessage";
@@ -58,9 +66,11 @@ export const useSites = (options: SiteListingOptions = {}) => {
   const safeLimit = Math.max(1, limit);
   const skip = (safePage - 1) * safeLimit;
 
+  const queryParams = useMemo(() => ({ page, limit, search, sortBy, order, status: options.status }), [page, limit, search, sortBy, order, options.status]);
+  
   const sitesQuery = useQuery<SitesSummaryResponse, AxiosError<ErrorResponse>>({
-    queryKey: ["sites", network, activeGroup?.grp_title, { page, limit, search, sortBy, order, status: options.status }],
-    queryFn: async () => {
+    queryKey: ["sites", network, activeGroup?.grp_title, queryParams],
+    queryFn: async ({ signal }: QueryFunctionContext) => {
       if (isAirQoGroup) {
         const params: GetSitesSummaryParams = {
           network: network || "",
@@ -78,7 +88,7 @@ export const useSites = (options: SiteListingOptions = {}) => {
                 ...params
             });
         }
-        return sites.getSitesSummary(params);
+        return sites.getSitesSummary(params, signal);
       }
 
       if (!groupCohortIds) {
@@ -93,7 +103,7 @@ export const useSites = (options: SiteListingOptions = {}) => {
         ...(sortBy && { sortBy }),
         ...(order && { order }),
         ...(network && { network }),
-      });
+      }, signal);
     },
     enabled: !!activeGroup?.grp_title && (isAirQoGroup || (!!groupCohortIds && groupCohortIds.length > 0)),
     staleTime: 300_000,
@@ -248,6 +258,44 @@ export const useCreateSite = () => {
     onError: (error) => {
       ReusableToast({
         message: `Failed to create site: ${getApiErrorMessage(error)}`,
+        type: "ERROR",
+      });
+    },
+  });
+};
+
+export const useRefreshSiteMetadata = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<SiteRefreshResponse, AxiosError<ErrorResponse>, string>({
+    mutationFn: (siteId: string) => sites.refreshSiteMetadata(siteId),
+    onSuccess: (data, siteId) => {
+      // Update the cache with the newly enriched site data
+      queryClient.setQueryData(["site-details", siteId], data.site);
+      queryClient.invalidateQueries({ queryKey: ["sites"] });
+      queryClient.invalidateQueries({ queryKey: ["site-details", siteId] });
+
+      const msg = (data.message ?? "").toLowerCase();
+      if (msg.includes("partially refreshed")) {
+        ReusableToast({
+          message: data.message,
+          type: "WARNING",
+        });
+      } else if (msg.includes("already complete")) {
+        ReusableToast({
+          message: "Site metadata is already up to date.",
+          type: "INFO",
+        });
+      } else {
+        ReusableToast({
+          message: "Site metadata refreshed successfully.",
+          type: "SUCCESS",
+        });
+      }
+    },
+    onError: (error) => {
+      ReusableToast({
+        message: `Refresh Failed: ${getApiErrorMessage(error)}`,
         type: "ERROR",
       });
     },

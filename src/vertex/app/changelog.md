@@ -4,6 +4,99 @@
 
 ---
 
+## Version 1.23.30
+**Released:** April 27, 2026
+
+### Cohort Performance Optimization & Request Stability
+
+Optimized cohort-based data fetching by migrating to cached endpoints and implementing request cancellation and stability patterns to prevent timeouts and redundant network traffic.
+
+<details>
+<summary><strong>Performance Improvements (3)</strong></summary>
+
+- **Cached Cohort Endpoints**: Migrated device and site fetching to the new `/cached-devices` and `/cached-sites` endpoints, significantly reducing response times for large organizations.
+- **Request Stability with `useMemo`**: Memoized query parameters in the `useDevices` and `useSites` hooks and UI components to prevent redundant API calls triggered by object reference changes during re-renders.
+- **Request Cancellation**: Integrated `AbortController` support into the API and hook layers, allowing the application to automatically cancel stale in-flight requests when filters or search terms change.
+
+</details>
+<summary><strong>Technical Changes (3)</strong></summary>
+
+- **Type Safety**: Updated `DevicesSummaryResponse` and `SitesSummaryResponse` to support the new `cache_generated_at` timestamp.
+- **Hook Optimization**: Updated `useDevices`, `useSites`, and `useCohorts` to pass the `AbortSignal` from React Query to the API client.
+- **UI Refinement**: Memoized the options object in `DevicesTable` to ensure stable query triggers.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (8)</strong></summary>
+
+- `core/apis/devices.ts`
+- `core/apis/sites.ts`
+- `core/apis/cohorts.ts`
+- `core/hooks/useDevices.ts`
+- `core/hooks/useSites.ts`
+- `core/hooks/useCohorts.ts`
+- `app/types/devices.ts`
+- `components/features/devices/device-list-table.tsx`
+
+</details>
+
+---
+
+## Version 1.23.29
+**Released:** April 27, 2026
+
+### Site Metadata Refresh & Grid Admin Level Management
+
+Introduced on-demand site metadata enrichment and comprehensive administrative level management for grids, along with critical UI refinements for device status and maintenance tracking.
+
+<details>
+<summary><strong>Site & Grid Management (3)</strong></summary>
+
+- **On-Demand Site Refresh**: Added a "Refresh Metadata" action to site details, allowing operators to trigger a full re-enrichment of site data (Google Maps, TAHMO, Grids) with intelligent feedback for partial success states.
+- **Admin Level CRUD**: Implemented a complete management workflow for grid administrative levels, including creation, listing with copiable IDs, and inline editing via a new centralized management modal.
+- **Dropdown Management Interface**: Integrated a new management dropdown on the Grids page to provide quick access to administrative level controls without cluttering the main workspace.
+</details>
+
+<details>
+
+<summary><strong>Device UI & Logic Refinements (2)</strong></summary>
+
+- **Missed Maintenance Indicators**: Overhauled the `MaintenanceStatusCard` to explicitly highlight missed maintenance tasks (past dates) using red status bars, secondary warning icons, and "Missed" badges for immediate operator awareness.
+- **Robust Telemetry Fallbacks**: Updated the `RunDeviceTestCard` to intelligently fall back to `timestamp` data when `created_at` metadata is missing, preventing "unknown" states during device diagnostics.
+
+</details>
+
+<details>
+
+<summary><strong>Technical Improvements (4)</strong></summary>
+
+- **Intelligent Cache Invalidation**: Optimized the `useRefreshSiteMetadata` hook to perform immediate cache updates followed by targeted invalidation, ensuring site data is consistently fresh across the application.
+- **Standardized Management Modals**: Leveraged `ReusableDialog` for administrative level management to maintain design consistency and support complex nested interactions.
+- **Enhanced Toast Feedback**: Refined notification logic to distinguish between successful, partial, and redundant (already complete) metadata enrichment cycles.
+- **Telemetry Parameter Filtering**: Cleaned up the technical parameters display in device tests to exclude redundant timing metadata, focusing on actionable device data.
+
+</details>
+
+<details>
+
+<summary><strong>Files Modified (10)</strong></summary>
+
+- `app/(authenticated)/admin/sites/[id]/page.tsx`
+- `app/(authenticated)/admin/grids/page.tsx`
+- `components/features/devices/maintenance-status-card.tsx`
+- `components/features/devices/run-device-test-card.tsx`
+- `components/features/grids/create-admin-level.tsx`
+- `components/features/grids/admin-levels-modal.tsx`
+- `core/apis/sites.ts`
+- `core/apis/grids.ts`
+- `core/hooks/useSites.ts`
+- `core/hooks/useGrids.ts`
+
+</details>
+
+---
+
 ## Version 1.23.28
 **Released:** April 27, 2026
 
@@ -18,8 +111,6 @@ Introduced a robust device deployment component with support for deploying to bo
 - **Deploy to Previous Location**: Added the ability to seamlessly deploy devices to previously used locations, auto-filling coordinates and site details.
 - **Deployment API Payload Fixes**: Resolved an issue where `site_name` was stripped from the deployment API payload when a previous `site_id` was provided.
 
-</details>
-
 <details>
 <summary><strong>Files Modified (4)</strong></summary>
 
@@ -29,6 +120,8 @@ Introduced a robust device deployment component with support for deploying to bo
 - `app/changelog.md`
 
 </details>
+
+---
  
 ## Version 1.23.27
 **Released:** April 22, 2026
@@ -45,25 +138,16 @@ Improved table export controls (including extra export fields) and enhanced devi
 - **Current-Page Export Only**: Export is limited to the current table page, with a short banner explaining what will be downloaded.
 - **Consistent Banner Copy**: Normalized apostrophes and messaging for a consistent export experience.
 
-</details>
-
-<details>
 <summary><strong>Device Activity (3)</strong></summary>
 
 - **Previous Site on Recalls**: Recall entries can show a “Previous site” section.
 - **Collapsible Details + Copy**: Clicking the site name expands to show the Site ID with a copy button (with proper clipboard error handling).
 - **Safer Site Inference**: Tightened activity matching and prevented site inference across recall boundaries.
 
-</details>
-
-<details>
 <summary><strong>Types (1)</strong></summary>
 
 - **`previous_sites` Shape**: Updated typing to support object entries (with backward-compatible string support).
 
-</details>
-
-<details>
 <summary><strong>Files Modified (9)</strong></summary>
 
 - `app/types/devices.ts`

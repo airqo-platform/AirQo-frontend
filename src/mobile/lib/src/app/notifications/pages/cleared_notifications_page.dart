@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 class ClearedNotificationsScreen extends StatelessWidget {
+  const ClearedNotificationsScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

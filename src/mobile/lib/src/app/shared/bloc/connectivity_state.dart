@@ -14,5 +14,5 @@ class ConnectivityOnline extends ConnectivityState {}
 class ConnectivityOffline extends ConnectivityState {
   final bool isDismissed;
 
-  ConnectivityOffline([this.isDismissed = false]);
+  const ConnectivityOffline([this.isDismissed = false]);
 }

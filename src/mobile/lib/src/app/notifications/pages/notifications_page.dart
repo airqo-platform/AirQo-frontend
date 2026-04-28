@@ -12,6 +12,8 @@ class NotificationItem {
 }
 
 class NotificationsScreen extends StatelessWidget {
+  NotificationsScreen({super.key});
+
   final List<NotificationItem> notifications = [
     NotificationItem(
       title: 'Welcome to AirQo!',

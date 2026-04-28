@@ -6,6 +6,7 @@ import { cn } from '@/shared/lib/utils';
 import { Header } from '@/shared/components/header';
 import { Sidebar } from '@/shared/components/sidebar';
 import { GlobalSidebar } from '@/shared/components/global-sidebar';
+import { FeedbackLauncher } from '@/modules/feedback';
 import { MobileSidebar } from '@/shared/components/ui/mobile-sidebar';
 import { useAppSelector } from '@/shared/hooks/redux';
 import { LoadingOverlay } from '@/shared/components/ui/loading-overlay';
@@ -44,7 +45,9 @@ export const MapLayout: React.FC<MainLayoutProps> = ({
           {showSidebar && (
             <motion.aside
               className="hidden md:block shrink-0"
+              style={{ width: 64 }}
               animate={{ width: 64 }}
+              initial={false}
               transition={{ duration: 0.3, ease: 'easeInOut' }}
             >
               <Sidebar isCollapsed={true} hideToggle={true} />
@@ -60,6 +63,8 @@ export const MapLayout: React.FC<MainLayoutProps> = ({
           >
             <div className="flex-1 flex flex-col">{children}</div>
           </div>
+          {/* Footer at the end of the main container */}
+          <FeedbackLauncher />
         </div>
 
         {/* Bottom Navigation intentionally hidden on map pages to avoid

@@ -137,7 +137,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                       'assets/icons/email-icon.svg',
                       height: 30,
                       width: 30,
-                      color: AppColors.primaryColor,
+                      colorFilter: ColorFilter.mode(AppColors.primaryColor, BlendMode.srcIn),
                     ),
                   ),
                 ),

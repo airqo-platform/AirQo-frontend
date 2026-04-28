@@ -670,9 +670,9 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryColor,
                 foregroundColor: Colors.white,
-                disabledForegroundColor: Colors.white.withOpacity(0.7),
+                disabledForegroundColor: Colors.white.withValues(alpha: 0.7),
                 disabledBackgroundColor:
-                    AppColors.primaryColor.withOpacity(0.5),
+                    AppColors.primaryColor.withValues(alpha: 0.5),
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),

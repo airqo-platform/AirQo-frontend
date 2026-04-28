@@ -150,8 +150,10 @@ class LocationServiceManager with UiLoggy {
 
       // Get current position
       final position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: accuracy,
-        timeLimit: timeout,
+        locationSettings: LocationSettings(
+          accuracy: accuracy,
+          timeLimit: timeout,
+        ),
       );
       
       loggy.info('Current position obtained: ${position.latitude}, ${position.longitude}');
@@ -198,7 +200,9 @@ class LocationServiceManager with UiLoggy {
       if (permission == LocationPermission.deniedForever) return null;
 
       final position = await Geolocator.getCurrentPosition(
-        timeLimit: const Duration(seconds: 10),
+        locationSettings: const LocationSettings(
+          timeLimit: Duration(seconds: 10),
+        ),
       );
       final placemarks =
           await placemarkFromCoordinates(position.latitude, position.longitude);

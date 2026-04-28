@@ -109,7 +109,7 @@ export type GetDevicesSummaryParams = Partial<Device> & {
 };
 
 export const devices = {
-  getDevicesSummaryApi: async (params: GetDevicesSummaryParams) => {
+  getDevicesSummaryApi: async (params: GetDevicesSummaryParams, signal?: AbortSignal) => {
     try {
       const queryParams = new URLSearchParams();
 
@@ -121,7 +121,7 @@ export const devices = {
 
       const response = await jwtApiClient.get<DevicesSummaryResponse>(
         `/devices/summary?${queryParams.toString()}`,
-        { headers: { "X-Auth-Type": "JWT" } }
+        { headers: { "X-Auth-Type": "JWT" }, signal }
       );
       return response.data;
     } catch (error) {
@@ -136,7 +136,7 @@ export const devices = {
     search?: string;
     sortBy?: string;
     order?: "asc" | "desc";
-  }) => {
+  }, signal?: AbortSignal) => {
     try {
       const { cohort_ids, ...rest } = params;
       const queryParams = new URLSearchParams();
@@ -147,9 +147,9 @@ export const devices = {
       });
 
       const response = await jwtApiClient.post<DevicesSummaryResponse>(
-        `/devices/cohorts/devices?${queryParams.toString()}`,
+        `/devices/cohorts/cached-devices?${queryParams.toString()}`,
         { cohort_ids },
-        { headers: { "X-Auth-Type": "JWT" } }
+        { headers: { "X-Auth-Type": "JWT" }, signal }
       );
       return response.data;
     } catch (error) {

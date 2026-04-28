@@ -7,7 +7,7 @@ class WelcomeWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: MediaQuery.of(context).size.width,
       height: MediaQuery.of(context).size.height * 0.6,
       child: Stack(
@@ -33,7 +33,7 @@ class WelcomeWidget extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 SizedBox(height: 50),
-                Container(
+                SizedBox(
                     width: 80,
                     height: 56.14,
                     child: SvgPicture.asset("assets/images/shared/logo.svg")),
