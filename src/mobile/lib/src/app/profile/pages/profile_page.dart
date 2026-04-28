@@ -19,16 +19,6 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> with UiLoggy {
   bool isRetrying = false;
 
-  void _retryLoading() {
-    setState(() {
-      isRetrying = true;
-    });
-    context.read<UserBloc>().add(LoadUser());
-    setState(() {
-      isRetrying = false;
-    });
-  }
-
   bool _isHtmlError(String message) {
     return message.contains("<html>") ||
         message.contains("<!DOCTYPE") ||
@@ -328,9 +318,12 @@ class TabIcon extends StatelessWidget {
       children: [
         SvgPicture.asset(
           image,
-          color: Theme.of(context).brightness == Brightness.dark
-              ? Theme.of(context).highlightColor
-              : Colors.black,
+          colorFilter: ColorFilter.mode(
+            Theme.of(context).brightness == Brightness.dark
+                ? Theme.of(context).highlightColor
+                : Colors.black,
+            BlendMode.srcIn,
+          ),
         ),
         SizedBox(height: 8),
         TranslatedText(label)

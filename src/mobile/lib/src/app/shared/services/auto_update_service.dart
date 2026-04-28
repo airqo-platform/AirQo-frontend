@@ -391,6 +391,8 @@ class AutoUpdateService with UiLoggy {
       return;
     }
 
+    if (!context.mounted) return;
+
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     showDialog(
@@ -405,7 +407,7 @@ class AutoUpdateService with UiLoggy {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.primaryColor.withOpacity(0.1),
+                color: AppColors.primaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
@@ -493,10 +495,10 @@ class AutoUpdateService with UiLoggy {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.primaryColor.withOpacity(0.1),
+                color: AppColors.primaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: AppColors.primaryColor.withOpacity(0.3),
+                  color: AppColors.primaryColor.withValues(alpha: 0.3),
                 ),
               ),
               child: Row(

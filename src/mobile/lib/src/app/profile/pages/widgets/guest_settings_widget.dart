@@ -8,48 +8,35 @@ class GuestSettingsWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         SettingsTile(
             switchValue: true,
             iconPath: "assets/images/shared/location_icon.svg",
             title: "Location",
-            onChanged: (value) {
-              print(value);
-            },
+            onChanged: (_) {},
             description:
             "AirQo to use your precise location to locate the Air Quality of your nearest location"),
         SettingsTile(
-
             iconPath: "assets/icons/notification.svg",
             title: "Notifications",
-            onChanged: (value) {
-              print(value);
-            },
+            onChanged: (_) {},
             description:
             "Create an account to get air quality alerts"),
         SettingsTile(
           iconPath: "assets/images/shared/feedback_icon.svg",
           title: "Send Feedback",
-          onChanged: (value) {
-            print(value);
-          },
+          onChanged: (_) {},
         ),
         SettingsTile(
           iconPath: "assets/images/shared/airqo_story_icon.svg",
           title: "Our Story",
-          onChanged: (value) {
-            print(value);
-          },
+          onChanged: (_) {},
         ),
-
         SettingsTile(
           iconPath: "assets/images/shared/terms_and_privacy.svg",
           title: "Terms and Privacy Policy",
-          onChanged: (value) {
-            print(value);
-          },
+          onChanged: (_) {},
         ),
-
       ],
     );
   }

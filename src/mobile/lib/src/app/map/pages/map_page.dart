@@ -333,8 +333,10 @@ class _MapScreenState extends State<MapScreen>
       }
 
       Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-        timeLimit: const Duration(seconds: 5),
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 5),
+        ),
       );
 
       if (mounted) {
@@ -1088,7 +1090,7 @@ class _MapScreenState extends State<MapScreen>
                                     return InkWell(
                                       onTap: () =>
                                           viewDetails(measurement: measurement),
-                                      child: Container(
+                                      child: SizedBox(
                                         width: double.infinity,
                                         child: LocationDisplayWidget(
                                           title:
@@ -1115,7 +1117,7 @@ class _MapScreenState extends State<MapScreen>
                                   return InkWell(
                                     onTap: () => viewDetails(
                                         placeName: prediction.description),
-                                    child: Container(
+                                    child: SizedBox(
                                       width: double.infinity,
                                       child: LocationDisplayWidget(
                                           title: prediction.description,
@@ -1234,7 +1236,7 @@ class _MapScreenState extends State<MapScreen>
                                   return InkWell(
                                     onTap: () =>
                                         viewDetails(measurement: measurement),
-                                    child: Container(
+                                    child: SizedBox(
                                       width: double.infinity,
                                       child: LocationDisplayWidget(
                                         title: measurement.siteDetails?.city ??

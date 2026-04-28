@@ -244,7 +244,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
                       builder: (context) => LocationSelectionScreen(),
                     ),
                   ).then((value) {
-                    if (value != null) {
+                    if (value != null && context.mounted) {
                       context.read<DashboardBloc>().add(LoadDashboard());
                     }
                   });

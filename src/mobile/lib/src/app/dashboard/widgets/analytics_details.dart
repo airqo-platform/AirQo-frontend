@@ -28,12 +28,6 @@ class _AnalyticsDetailsState extends State<AnalyticsDetails> {
 
   void _collapse() => _animateSheet(sheet.snapSizes!.first);
 
-  void _anchor() => _animateSheet(sheet.snapSizes!.last);
-
-  void _expand() => _animateSheet(sheet.maxChildSize);
-
-  void _hide() => _animateSheet(sheet.minChildSize);
-
   void _animateSheet(double size) {
     _controller.animateTo(
       size,

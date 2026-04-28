@@ -176,7 +176,7 @@ class _AutoUpdateTestScreenState extends State<AutoUpdateTestScreen> {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: AppColors.primaryColor.withOpacity(0.1),
+                            color: AppColors.primaryColor.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Icon(
@@ -492,7 +492,7 @@ class _AutoUpdateTestScreenState extends State<AutoUpdateTestScreen> {
 
             // Info Card
             Card(
-              color: AppColors.primaryColor.withOpacity(0.1),
+              color: AppColors.primaryColor.withValues(alpha: 0.1),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -570,6 +570,7 @@ class _AutoUpdateTestScreenState extends State<AutoUpdateTestScreen> {
         _isLoading = false;
       });
 
+      if (!mounted) return;
       final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
       showDialog(
@@ -584,7 +585,7 @@ class _AutoUpdateTestScreenState extends State<AutoUpdateTestScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryColor.withOpacity(0.1),
+                  color: AppColors.primaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
@@ -672,10 +673,10 @@ class _AutoUpdateTestScreenState extends State<AutoUpdateTestScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryColor.withOpacity(0.1),
+                  color: AppColors.primaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: AppColors.primaryColor.withOpacity(0.3),
+                    color: AppColors.primaryColor.withValues(alpha: 0.3),
                   ),
                 ),
                 child: Row(

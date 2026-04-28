@@ -245,7 +245,7 @@ class _LoginPageState extends State<LoginPage> {
                                 width: double.infinity,
                                 padding: EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: Colors.red.withOpacity(0.1),
+                                  color: Colors.red.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
@@ -266,7 +266,7 @@ class _LoginPageState extends State<LoginPage> {
                               height: 56,
                               decoration: BoxDecoration(
                                 color: _isLoading 
-                                    ? AppColors.primaryColor.withOpacity(0.7)
+                                    ? AppColors.primaryColor.withValues(alpha: 0.7)
                                     : AppColors.primaryColor,
                                 borderRadius: BorderRadius.circular(4),
                               ),

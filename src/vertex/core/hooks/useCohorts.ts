@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, type QueryFunctionContext } from '@tanstack/react-query';
 import {
   GetCohortsSummaryParams,
   cohorts as cohortsApi,
@@ -42,7 +42,7 @@ export const useCohorts = (
     AxiosError<ErrorResponse>
   >({
     queryKey: ['cohorts', { page, limit, search, sortBy, order, cohort_id: options.cohort_id, tags: options.tags }],
-    queryFn: () => {
+    queryFn: ({ signal }: QueryFunctionContext) => {
       const params: GetCohortsSummaryParams = {
         limit: safeLimit,
         skip,
@@ -52,7 +52,7 @@ export const useCohorts = (
         ...(options.cohort_id && { cohort_id: options.cohort_id }),
         ...(options.tags && { tags: options.tags }),
       };
-      return cohortsApi.getCohortsSummary(params);
+      return cohortsApi.getCohortsSummary(params, signal);
     },
     staleTime: 300_000,
     refetchOnWindowFocus: false,
@@ -83,7 +83,7 @@ export const useUserCohorts = (
     AxiosError<ErrorResponse>
   >({
     queryKey: ['user-cohorts', { page, limit, search, sortBy, order, cohort_id: options.cohort_id }],
-    queryFn: () => {
+    queryFn: ({ signal }: QueryFunctionContext) => {
       const params: GetCohortsSummaryParams = {
         limit: safeLimit,
         skip,
@@ -92,7 +92,7 @@ export const useUserCohorts = (
         ...(order && { order }),
         ...(options.cohort_id && { cohort_id: options.cohort_id }),
       };
-      return cohortsApi.getUserCohortsSummary(params);
+      return cohortsApi.getUserCohortsSummary(params, signal);
     },
     staleTime: 300_000,
     refetchOnWindowFocus: false,

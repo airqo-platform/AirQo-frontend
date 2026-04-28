@@ -6,7 +6,7 @@ import 'package:airqo/src/app/shared/bloc/connectivity_bloc.dart';
 class NoInternetBanner extends StatelessWidget {
   final VoidCallback? onClose;
 
-  const NoInternetBanner({Key? key, this.onClose}) : super(key: key);
+  const NoInternetBanner({super.key, this.onClose});
 
   @override
   Widget build(BuildContext context) {

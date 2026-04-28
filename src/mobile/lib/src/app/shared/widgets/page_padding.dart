@@ -4,7 +4,7 @@ class PagePadding extends StatelessWidget {
   final Widget child;
   final double? padding;
 
-  PagePadding({required this.child, this.padding = 16});
+  const PagePadding({super.key, required this.child, this.padding = 16});
 
   @override
   Widget build(BuildContext context) {
