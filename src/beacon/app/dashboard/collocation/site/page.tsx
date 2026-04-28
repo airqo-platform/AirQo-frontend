@@ -34,6 +34,7 @@ import { fetchCollocationSites } from "@/lib/api"
 import { isMockMode } from "@/lib/mock-data"
 import { syncSites } from "@/services/device-api.service"
 import { useToast } from "@/components/ui/use-toast"
+import { REFERENCE_MONITOR_LABEL } from "@/lib/utils"
 
 // --- Types ---
 
@@ -282,34 +283,42 @@ export default function SiteCollocationPage() {
         startDateTime: start.toISOString(),
         endDateTime: end.toISOString(),
         summary: true,
+        includePerformance: true,
       }
 
       const response = await fetchCollocationSites(params)
       
       if (response.success && Array.isArray(response.sites)) {
         const mappedSites: SiteCollocationEntry[] = response.sites.map((site: any) => {
-          const dailyData = site.data || []
+          // Performance data from includePerformance=true (daily breakdown)
+          const performanceData: any[] = site.performance || site.data || []
+          
+          // Summary-level uptime/error_margin (from summary=true)
+          const summaryUptime = site.uptime ?? site.average_uptime ?? 0
+          const summaryErrorMargin = site.error_margin ?? site.average_error_margin ?? 0
+
           return {
-            id: site._id,
+            id: site._id || site.id,
             name: site.name,
             location: site.formatted_name || [site.city, site.district, site.country].filter(Boolean).join(", "),
             category: site.network === "usembassy" ? "bam" : "lowcost",
-            uptime: (site.uptime || 0) * 100,
-            errorMargin: site.error_margin || 0,
-            uptimeHistory: dailyData.map((d: any) => ({
-              value: (d.uptime || 0) * 100,
-              timestamp: d.date,
-            })),
-            errorMarginHistory: dailyData.map((d: any) => ({
-              value: d.error_margin || 0,
-              timestamp: d.date,
+            uptime: summaryUptime <= 1 ? summaryUptime * 100 : summaryUptime,
+            errorMargin: summaryErrorMargin,
+            uptimeHistory: performanceData.map((d: any) => {
+              const rawUptime = d.uptime ?? 0
+              const uptimeVal = rawUptime > 0 && rawUptime <= 1 ? rawUptime * 100 : rawUptime
+              return { value: uptimeVal, timestamp: d.date || d.timestamp }
+            }),
+            errorMarginHistory: performanceData.map((d: any) => ({
+              value: d.error_margin ?? d.errorMargin ?? 0,
+              timestamp: d.date || d.timestamp,
             })),
             devices: {
-              total: site.numberOfDevices || 0,
+              total: site.numberOfDevices || (site.devices || []).length || 0,
               lowcost: (site.devices || []).filter((d: any) => d.category === "lowcost").length,
-              lowcostOnline: (site.devices || []).filter((d: any) => d.category === "lowcost" && d.uptime > 0).length,
+              lowcostOnline: (site.devices || []).filter((d: any) => d.category === "lowcost" && (d.uptime ?? 0) > 0).length,
               bam: (site.devices || []).filter((d: any) => d.category === "bam").length,
-              bamOnline: (site.devices || []).filter((d: any) => d.category === "bam" && d.uptime > 0).length,
+              bamOnline: (site.devices || []).filter((d: any) => d.category === "bam" && (d.uptime ?? 0) > 0).length,
             }
           }
         })
@@ -412,7 +421,7 @@ export default function SiteCollocationPage() {
               </div>
               <div className="flex items-center gap-1.5">
                 <div className="h-3 w-3 rounded-full bg-purple-500"></div>
-                <span className="text-xs text-muted-foreground">BAM</span>
+                <span className="text-xs text-muted-foreground">{REFERENCE_MONITOR_LABEL}</span>
                 <span className="text-sm font-semibold">{summary.bamSites}</span>
               </div>
             </div>
@@ -563,7 +572,7 @@ export default function SiteCollocationPage() {
                                 <div className="flex items-center justify-between gap-4">
                                   <div className="flex items-center gap-1.5">
                                     <div className="h-2 w-2 rounded-full bg-purple-500"></div>
-                                    <span>BAM</span>
+                                    <span>{REFERENCE_MONITOR_LABEL}</span>
                                   </div>
                                   <span className="font-medium tracking-tight whitespace-nowrap">{site.devices.bam} {site.devices.bam === 1 ? 'device' : 'devices'}</span>
                                 </div>
@@ -657,7 +666,7 @@ export default function SiteCollocationPage() {
                                     <div className="flex items-center justify-between gap-4">
                                       <div className="flex items-center gap-1.5">
                                         <div className="h-2 w-2 rounded-full bg-purple-500"></div>
-                                        <span>BAM</span>
+                                        <span>{REFERENCE_MONITOR_LABEL}</span>
                                       </div>
                                       <span className="font-medium tracking-tight whitespace-nowrap">{site.devices.bam} {site.devices.bam === 1 ? 'device' : 'devices'}</span>
                                     </div>

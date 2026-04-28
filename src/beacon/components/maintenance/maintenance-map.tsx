@@ -204,7 +204,7 @@ export default function MaintenanceMap({
 
             const isSelected = localSelectedIds.includes(device.device_id);
 
-            const uptimePct = (device.uptime) * 100;
+            const uptimePct = device.uptime;
             const uptimeStatus = getUptimeStatus(uptimePct);
             const errorStatus = getErrorStatus(device.error_margin);
 
@@ -228,7 +228,7 @@ export default function MaintenanceMap({
                         </div>
                         <p class="text-xs text-gray-600 mb-2">${device.cohorts?.length ? device.cohorts.join(', ') : 'No cohorts'}</p>
                         <div class="grid grid-cols-2 gap-2 text-xs mb-2">
-                            <div><span class="font-medium">Uptime:</span> <span class="font-bold ${uptimeColorClass}">${((device.uptime) * 100).toFixed(0)}%</span></div>
+                            <div><span class="font-medium">Uptime:</span> <span class="font-bold ${uptimeColorClass}">${device.uptime.toFixed(0)}%</span></div>
                             <div><span class="font-medium">Error:</span> <span class="font-bold ${errorColorClass}">${device.error_margin.toFixed(1)}</span></div>
                         </div>
                         <div class="text-xs text-gray-500 mb-2"><span class="font-medium">Last Post:</span> ${device.last_active ? new Date(device.last_active).toLocaleString() : 'N/A'}</div>

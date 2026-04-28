@@ -26,14 +26,14 @@ const OFFLINE_DAYS_OPTIONS = [
     { label: "Offline ≥ 14 days", value: 14 },
     { label: "Offline ≥ 30 days", value: 30 },
 ]
-const AVAILABLE_TAGS = ["hardware", "software", "urban", "rural", "bam", "lowcost"]
+const AVAILABLE_TAGS = ["hardware", "duplicate", "organizational", "inlab", "misc"]
 
 export default function MaintenancePage() {
     const { toast } = useToast()
 
     // --- FILTER STATE ---
     const [selectedDays, setSelectedDays] = useState(14)
-    const [selectedTags, setSelectedTags] = useState<string[]>(["hardware"])
+    const [selectedTags, setSelectedTags] = useState<string[]>([])
 
     // --- COHORT LIST ---
     const [cohorts, setCohorts] = useState<AirQloudBasic[]>([])
