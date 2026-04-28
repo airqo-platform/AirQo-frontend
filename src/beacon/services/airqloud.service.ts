@@ -219,7 +219,10 @@ function deriveSensorErrorMargin(averages: any): number | null {
   const a1 = averages['pm2.5 sensor1']
   const a2 = averages['pm2.5 sensor2']
   if (a1 == null || a2 == null) return null
-  return Math.abs(Number(a1) - Number(a2))
+  const n1 = Number(a1)
+  const n2 = Number(a2)
+  if (Number.isNaN(n1) || Number.isNaN(n2)) return null
+  return Math.abs(n1 - n2)
 }
 
 /**
