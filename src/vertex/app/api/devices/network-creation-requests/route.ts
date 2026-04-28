@@ -1,12 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { options } from "../../../auth/[...nextauth]/options";
+import { options } from "../../auth/[...nextauth]/options";
 import logger from "@/lib/logger";
-import axios from "axios";
+import { networkService } from "@/core/services/network-service";
 
-const BACKEND_URL = `${process.env.NEXT_PUBLIC_API_URL}/devices/network-creation-requests`;
-
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const session = await getServerSession(options);
     const token = (session as { user?: { accessToken?: string } })?.user?.accessToken;
@@ -20,20 +18,15 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ message: "Server configuration error" }, { status: 500 });
     }
 
-    const { searchParams } = new URL(req.url);
-    searchParams.set("admin_secret", adminSecret);
+    const data = await networkService.getNetworkCreationRequests(token, adminSecret);
 
-    const response = await axios.get(`${BACKEND_URL}?${searchParams.toString()}`, {
-      headers: { 
-        Authorization: token.startsWith("JWT ") ? token : `JWT ${token}`,
-        "X-Auth-Type": "JWT"
-      },
-    });
-
-    return NextResponse.json(response.data, { status: 200 });
+    return NextResponse.json({ network_creation_requests: data, success: true }, { status: 200 });
   } catch (error: unknown) {
+    if (error instanceof Error && error.message === "NOT_FOUND") {
+      return NextResponse.json({ message: "Resource not found" }, { status: 404 });
+    }
     const err = error as { message: string; response?: { data: unknown; status: number } };
-    logger.error(`Error fetching network requests: ${err.message}`);
+    logger.error(`Error fetching network requests in route handler: ${err.message}`);
     return NextResponse.json(
       err.response?.data || { message: "Internal server error" },
       { status: err.response?.status || 500 }

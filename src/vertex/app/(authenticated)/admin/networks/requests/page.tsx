@@ -4,6 +4,9 @@ import NetworkRequestsClient from "./NetworkRequestsClient";
 import { NetworkCreationRequest } from "@/core/apis/networks";
 import logger from "@/lib/logger";
 
+import { notFound } from "next/navigation";
+import { networkService } from "@/core/services/network-service";
+
 async function getNetworkRequests(): Promise<NetworkCreationRequest[]> {
   try {
     const session = await getServerSession(options);
@@ -14,23 +17,16 @@ async function getNetworkRequests(): Promise<NetworkCreationRequest[]> {
     }
 
     const adminSecret = process.env.ADMIN_SECRET;
-    const backendUrl = `${process.env.NEXT_PUBLIC_API_URL}/devices/network-creation-requests`;
-    
-    const response = await fetch(`${backendUrl}?admin_secret=${adminSecret}`, {
-      headers: {
-        Authorization: token.startsWith("JWT ") ? token : `JWT ${token}`,
-        "X-Auth-Type": "JWT"
-      },
-      next: { revalidate: 300, tags: ['network-requests'] } // Cache for 5 minutes
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch: ${response.statusText}`);
+    if (!adminSecret) {
+      logger.error("ADMIN_SECRET is not defined in environment variables");
+      return [];
     }
-
-    const data = await response.json();
-    return data.network_creation_requests || [];
+    
+    return await networkService.getNetworkCreationRequests(token, adminSecret);
   } catch (error) {
+    if (error instanceof Error && error.message === "NOT_FOUND") {
+      notFound();
+    }
     logger.error(`Error fetching network requests on server: ${error}`);
     return [];
   }

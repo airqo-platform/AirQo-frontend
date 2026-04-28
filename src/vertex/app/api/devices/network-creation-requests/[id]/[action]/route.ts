@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { options } from "@/app/api/auth/[...nextauth]/options";
 import logger from "@/lib/logger";
-import axios from "axios";
+import { networkService } from "@/core/services/network-service";
 
 async function getAuthToken(): Promise<string | null> {
   const session = await getServerSession(options);
@@ -32,29 +32,24 @@ export async function PUT(
     }
 
     const body = await req.json();
-    const payload = {
-      ...body,
-      admin_secret: adminSecret,
-    };
+    const notes = body.reviewer_notes || "";
 
-    const backendUrl = `${process.env.NEXT_PUBLIC_API_URL}/devices/network-creation-requests/${id}/${action}`;
-    
-    logger.info(`Performing ${action} on network request ${id}`);
+    const responseData = await networkService.updateNetworkRequestStatus(
+      id,
+      action,
+      notes,
+      token,
+      adminSecret
+    );
 
-    const response = await axios.put(backendUrl, payload, {
-      headers: { 
-        Authorization: token.startsWith("JWT ") ? token : `JWT ${token}`,
-        "X-Auth-Type": "JWT"
-      },
-    });
-
-    return NextResponse.json(response.data, { status: 200 });
+    return NextResponse.json(responseData, { status: 200 });
   } catch (error: unknown) {
-    const err = error as { message: string; response?: { data: unknown; status: number } };
-    logger.error(`Error updating network request status: ${err.message}`);
+    const err = error as { message: string; status?: number };
+    logger.error(`Error updating network request status in route handler: ${err.message}`);
+    
     return NextResponse.json(
-      err.response?.data || { message: "Internal server error" },
-      { status: err.response?.status || 500 }
+      { message: err.message || "Internal server error" },
+      { status: err.status || 500 }
     );
   }
 }
