@@ -626,7 +626,8 @@ export const useDeployDevice = () => {
       isPrimaryInLocation: boolean;
       latitude: string;
       longitude: string;
-      site_name: string;
+      site_name?: string;
+      site_id?: string;
       network: string;
       user_id: string;
       deployment_date: string | undefined;

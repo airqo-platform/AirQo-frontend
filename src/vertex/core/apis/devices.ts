@@ -350,7 +350,8 @@ export const devices = {
     isPrimaryInLocation: boolean;
     latitude: string;
     longitude: string;
-    site_name: string;
+    site_name?: string;
+    site_id?: string;
     network: string;
     user_id: string;
     deployment_date: string | undefined;
@@ -375,7 +376,9 @@ export const devices = {
         isPrimaryInLocation: deviceData.isPrimaryInLocation,
         latitude,
         longitude,
-        site_name: deviceData.site_name,
+        ...(deviceData.site_id
+          ? { site_id: deviceData.site_id, site_name: deviceData.site_name || `${deviceData.deviceName} Site` }
+          : { site_name: deviceData.site_name || `${deviceData.deviceName} Site` }),
         network: deviceData.network,
         deviceName: deviceData.deviceName,
         height,
