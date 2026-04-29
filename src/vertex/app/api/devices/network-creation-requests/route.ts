@@ -25,11 +25,11 @@ export async function GET() {
     if (error instanceof Error && error.message === "NOT_FOUND") {
       return NextResponse.json({ message: "Resource not found" }, { status: 404 });
     }
-    const err = error as { message: string; response?: { data: unknown; status: number } };
+    const err = error as { message: string; status?: number; data?: unknown };
     logger.error(`Error fetching network requests in route handler: ${err.message}`);
     return NextResponse.json(
-      err.response?.data || { message: "Internal server error" },
-      { status: err.response?.status || 500 }
+      err.data || { message: err.message || "Internal server error" },
+      { status: err.status || 500 }
     );
   }
 }

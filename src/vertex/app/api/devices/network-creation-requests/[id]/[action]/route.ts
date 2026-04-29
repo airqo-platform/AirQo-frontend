@@ -44,11 +44,11 @@ export async function PUT(
 
     return NextResponse.json(responseData, { status: 200 });
   } catch (error: unknown) {
-    const err = error as { message: string; status?: number };
+    const err = error as { message: string; status?: number; data?: unknown };
     logger.error(`Error updating network request status in route handler: ${err.message}`);
     
     return NextResponse.json(
-      { message: err.message || "Internal server error" },
+      err.data || { message: err.message || "Internal server error" },
       { status: err.status || 500 }
     );
   }
