@@ -42,6 +42,7 @@ import 'package:airqo/src/app/surveys/repository/survey_repository.dart';
 import 'package:airqo/src/app/shared/services/navigation_service.dart';
 import 'package:airqo/src/app/shared/services/session_tracker.dart';
 import 'package:airqo/src/app/dashboard/services/enhanced_location_service_manager.dart';
+import 'package:airqo/src/app/research/services/research_location_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
@@ -268,6 +269,11 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
       NotificationHelper().checkAndShowPermissionPrompt(context);
       SessionTracker().startSession();
       EnhancedLocationServiceManager().startLocationTracking().catchError((_) {});
+      // Research: fire app-open event, start foreground service (background pings)
+      // and foreground timer (pings while app is active)
+      ResearchLocationService().onAppOpen();
+      ResearchLocationService().startForegroundService();
+      ResearchLocationService().startPeriodicPing();
     });
   }
 
@@ -284,8 +290,14 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       AutoUpdateService().checkForUpdates(showDialog: true);
       SessionTracker().startSession();
+      // Research: fire app-open event, restart foreground timer on resume
+      ResearchLocationService().onAppOpen();
+      ResearchLocationService().startForegroundService();
+      ResearchLocationService().startPeriodicPing();
     } else if (state == AppLifecycleState.paused) {
       SessionTracker().endSession();
+      // Stop foreground timer; native service keeps running in background
+      ResearchLocationService().stopPeriodicPing();
     }
   }
 

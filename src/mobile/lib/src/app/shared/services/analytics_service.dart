@@ -393,6 +393,30 @@ class AnalyticsService with UiLoggy {
     }
   }
 
+  // ── Research / World Bank pilot ───────────────────────────────────────────
+
+  /// Fired on every app open and foreground resume.
+  Future<void> trackAppOpenedWithLocation({
+    double? latitude,
+    double? longitude,
+  }) =>
+      trackEvent('app_opened_with_location', properties: {
+        if (latitude != null) 'device_latitude': latitude,
+        if (longitude != null) 'device_longitude': longitude,
+        'timestamp': DateTime.now().toIso8601String(),
+      });
+
+  /// Fired every 20 minutes while the app is in the foreground.
+  Future<void> trackLocationPing({
+    required double latitude,
+    required double longitude,
+  }) =>
+      trackEvent('location_ping', properties: {
+        'device_latitude': latitude,
+        'device_longitude': longitude,
+        'timestamp': DateTime.now().toIso8601String(),
+      });
+
   /// Reset user when they log out
   Future<void> resetUser() async {
     try {
