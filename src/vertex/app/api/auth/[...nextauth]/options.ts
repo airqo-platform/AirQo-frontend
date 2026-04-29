@@ -19,19 +19,6 @@ if (isProduction && !process.env.NEXTAUTH_SECRET) {
 if (isProduction && !process.env.NEXTAUTH_URL && !process.env.AUTH_TRUST_HOST) {
   logger.warn('[NextAuth] WARNING: NEXTAUTH_URL is missing. Dynamic host detection will be used.');
 }
-const sessionCookieName = isProduction
-  ? '__Secure-next-auth.session-token'
-  : 'vertex.next-auth.session-token';
-
-const sessionCookieConfig = {
-  name: sessionCookieName,
-  options: {
-    httpOnly: true,
-    sameSite: 'lax' as const,
-    path: '/',
-    secure: isProduction,
-  },
-};
 
 export const options: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
@@ -93,10 +80,6 @@ export const options: NextAuthOptions = {
       },
     }),
   ],
-
-  cookies: {
-    sessionToken: sessionCookieConfig,
-  },
 
   session: {
     strategy: 'jwt',

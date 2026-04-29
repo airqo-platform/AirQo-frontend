@@ -437,8 +437,8 @@ jobs:
             --name sta-env-vertex \
             --query value -o tsv > secrets.json
 
-          # Write .env into the build context for Next.js build time, excluding static URLs 
-          jq -r 'to_entries | .[] | select(.key != "NEXTAUTH_URL" and .key != "NEXTAUTH_COOKIE_DOMAIN") | "\(.key)=\(.value|tojson)"' secrets.json > src/vertex/.env
+          # Write .env into the build context for Next.js build time, excluding the staging auth URL.
+          jq -r 'to_entries | .[] | select(.key != "NEXTAUTH_URL") | "\(.key)=\(.value|tojson)"' secrets.json > src/vertex/.env
 
       - name: Build image
         run: |
@@ -451,10 +451,9 @@ jobs:
           APP="${BRANCH:0:12}-vertex-preview"
 
           # Build env vars string separately to avoid nested YAML/shell escaping issues.
-          # The shared staging secret contains NEXTAUTH_URL / NEXTAUTH_COOKIE_DOMAIN values that are wrong for
-          # per-PR preview hostnames. We drop them and inject a correct NEXTAUTH_URL based on the Container Apps
-          # Environment default domain.
-          ENV_VARS=$(jq -r 'to_entries | map(select(.key != "NEXTAUTH_URL" and .key != "NEXTAUTH_COOKIE_DOMAIN")) | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json)
+          # The shared staging secret contains a NEXTAUTH_URL value that is wrong for per-PR
+          # preview hostnames. Drop it and inject the Container Apps preview URL below.
+          ENV_VARS=$(jq -r 'to_entries | map(select(.key != "NEXTAUTH_URL")) | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json)
 
           # Fail fast if the secret is missing (NextAuth requires this in production).
           jq -e '.NEXTAUTH_SECRET and (.NEXTAUTH_SECRET|length > 0)' secrets.json >/dev/null
