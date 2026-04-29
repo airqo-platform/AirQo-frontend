@@ -137,7 +137,7 @@ export default function ResearchDataPage() {
     return responses.filter(response => {
       const completedDate = new Date(response.createdAt);
       const fromDate = dateFrom ? new Date(dateFrom) : null;
-      let toDate = dateTo ? new Date(dateTo) : null;
+      const toDate = dateTo ? new Date(dateTo) : null;
       if (toDate) {
         toDate.setHours(23, 59, 59, 999);
       }
