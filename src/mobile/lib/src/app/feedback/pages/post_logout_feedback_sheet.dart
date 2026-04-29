@@ -29,19 +29,31 @@ class _PostLogoutFeedbackSheetState extends State<PostLogoutFeedbackSheet>
 
   Future<void> _submit() async {
     if (_selectedRating == null) return;
+    final email = widget.userEmail;
+    if (email == null || email.isEmpty) {
+      if (mounted) Navigator.pop(context);
+      return;
+    }
     setState(() => _isSubmitting = true);
     try {
       await FeedbackRepository().submitFeedback(
-        email: widget.userEmail ?? '',
+        email: email,
         subject: 'Session Rating',
         message: 'User rated their session experience: $_selectedRating/5 stars',
         rating: _selectedRating,
         category: 'general',
       );
+      if (mounted) Navigator.pop(context);
     } catch (e) {
       loggy.warning('Post-logout feedback submission failed: $e');
-    } finally {
-      if (mounted) Navigator.pop(context);
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to submit. Please try again.'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 

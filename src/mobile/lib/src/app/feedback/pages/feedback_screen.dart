@@ -76,8 +76,8 @@ class _FeedbackScreenState extends State<FeedbackScreen> with UiLoggy {
       loggy.error('Feedback submission error: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to send feedback. Please try again.'),
+        const SnackBar(
+          content: TranslatedText('Failed to send feedback. Please try again.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -388,7 +388,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> with UiLoggy {
                       width: 1,
                     ),
             ),
-            child: Text(
+            child: TranslatedText(
               cat['label']!,
               style: TextStyle(
                 fontSize: 14,

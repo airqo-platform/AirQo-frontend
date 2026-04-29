@@ -25,7 +25,7 @@ class FeedbackRepository extends BaseRepository with UiLoggy {
     if (rating != null) data['rating'] = rating;
     if (metadata != null) data['metadata'] = metadata;
 
-    loggy.info('Submitting feedback: subject="$subject", category=$category');
+    loggy.info('Submitting feedback: category=$category, platform=mobile');
 
     final response = await createUnauthenticatedPostRequest(
       path: _endpoint,
