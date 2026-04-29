@@ -14,7 +14,9 @@ const getRequestOrigin = (req: NextRequest) => {
   return `${forwardedProto}://${host}`;
 };
 
-const getHandler = (req: NextRequest) => {
+const handler = NextAuth(options);
+
+const setRuntimeAuthUrls = (req: NextRequest) => {
   const requestOrigin = getRequestOrigin(req);
 
   if (requestOrigin) {
@@ -22,14 +24,14 @@ const getHandler = (req: NextRequest) => {
     process.env.NEXTAUTH_URL_INTERNAL =
       process.env.NEXTAUTH_URL_INTERNAL || requestOrigin;
   }
-
-  return NextAuth(options);
 };
 
-export function GET(req: NextRequest) {
-  return getHandler(req)(req);
+export async function GET(req: NextRequest, context: { params: Record<string, unknown> }) {
+  setRuntimeAuthUrls(req);
+  return handler(req, context);
 }
 
-export function POST(req: NextRequest) {
-  return getHandler(req)(req);
+export async function POST(req: NextRequest, context: { params: Record<string, unknown> }) {
+  setRuntimeAuthUrls(req);
+  return handler(req, context);
 }
