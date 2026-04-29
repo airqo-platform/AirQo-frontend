@@ -3,12 +3,14 @@
 import { useCallback, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Form, FormField } from "@/components/ui/form";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
 import { networkRequestSchema, NetworkRequestValues } from "./schema";
-import { useSubmitNetworkRequest } from "@/core/hooks/useNetworks";
 import { useAppSelector } from "@/core/redux/hooks";
+import ReusableToast from "@/components/shared/toast/ReusableToast";
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 
 interface NetworkRequestDialogProps {
     open: boolean;
@@ -17,7 +19,32 @@ interface NetworkRequestDialogProps {
 
 export function NetworkRequestDialog({ open, onOpenChange }: NetworkRequestDialogProps) {
     const userDetails = useAppSelector((state) => state.user.userDetails);
-    const { mutate: submitRequest, isPending } = useSubmitNetworkRequest();
+    const queryClient = useQueryClient();
+
+    const { mutate: submitRequest, isPending } = useMutation({
+        mutationFn: async (data: NetworkRequestValues) => {
+            const response = await fetch("/api/devices/network-creation-requests", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+            });
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: "Request failed" }));
+                throw Object.assign(new Error(errorData.message || "Request failed"), { status: response.status });
+            }
+            return response.json();
+        },
+        onSuccess: (resp) => {
+            ReusableToast({
+                message: resp.message || "Your request for a new Sensor Manufacturer has been submitted successfully!",
+                type: "SUCCESS",
+            });
+            queryClient.invalidateQueries({ queryKey: ["network-requests"] });
+        },
+        onError: (error) => {
+            ReusableToast({ message: getApiErrorMessage(error), type: "ERROR" });
+        },
+    });
 
     const form = useForm<NetworkRequestValues>({
         resolver: zodResolver(networkRequestSchema),

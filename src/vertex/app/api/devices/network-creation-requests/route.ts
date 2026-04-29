@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { options } from "../../auth/[...nextauth]/options";
 import logger from "@/lib/logger";
@@ -27,6 +27,21 @@ export async function GET() {
     }
     const err = error as { message: string; status?: number; data?: unknown };
     logger.error(`Error fetching network requests in route handler: ${err.message}`);
+    return NextResponse.json(
+      err.data || { message: err.message || "Internal server error" },
+      { status: err.status || 500 }
+    );
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const data = await networkService.submitNetworkRequest(body);
+    return NextResponse.json(data, { status: 200 });
+  } catch (error: unknown) {
+    const err = error as { message: string; status?: number; data?: unknown };
+    logger.error(`Error submitting network request in route handler: ${err.message}`);
     return NextResponse.json(
       err.data || { message: err.message || "Internal server error" },
       { status: err.status || 500 }

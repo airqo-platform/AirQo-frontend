@@ -1,4 +1,5 @@
-import { NetworkCreationRequest } from "@/core/apis/networks";
+import { NetworkCreationRequest, NetworkRequestActionResponse } from "@/core/apis/networks";
+import { NetworkRequestValues } from "@/components/features/networks/schema";
 import { getApiBaseUrl } from "@/lib/envConstants";
 import logger from "@/lib/logger";
 import axios from "axios";
@@ -85,5 +86,29 @@ export const networkService = {
       err.data = data;
       throw err;
     }
-  }
+  },
+
+  /**
+   * Submits a new network creation request. Public endpoint — no auth required.
+   */
+  submitNetworkRequest: async (data: NetworkRequestValues): Promise<NetworkRequestActionResponse> => {
+    const baseUrl = getApiBaseUrl();
+    const url = `${baseUrl}/devices/network-creation-requests`;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: "Request failed" }));
+      const err = new Error(errorData.message || "Request failed") as Error & { status?: number; data?: unknown };
+      err.status = response.status;
+      err.data = errorData;
+      throw err;
+    }
+
+    return response.json();
+  },
 };
