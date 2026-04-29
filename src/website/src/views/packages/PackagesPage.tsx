@@ -1,8 +1,8 @@
 'use client';
-import { AqBox, AqCheckCircle, AqDownload01 } from '@airqo/icons-react';
 import Link from 'next/link';
 import React, { useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
+import { FiBox, FiCheckCircle, FiDownload } from 'react-icons/fi';
 
 import FrameworkTabs from '@/components/packages/FrameworkTabs';
 import StatCard from '@/components/packages/StatCard';
@@ -68,7 +68,7 @@ export default function PackagesPage() {
                 Open-source packages for building modern applications.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <Link href={`/packages/${activePackage.id}`}>
+                <Link href={`/packages/${activePackage.id}`} prefetch={false}>
                   <CustomButton className="w-full sm:w-auto bg-white text-blue-600 hover:bg-blue-50 px-6 sm:px-8 py-3">
                     Explore {activePackage.displayName}
                   </CustomButton>
@@ -91,7 +91,7 @@ export default function PackagesPage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
             <StatCard
-              icon={<AqBox className="w-6 h-6" />}
+              icon={<FiBox className="w-6 h-6" />}
               label="Total Libraries"
               value={totalPackages}
               description={
@@ -101,13 +101,13 @@ export default function PackagesPage() {
               }
             />
             <StatCard
-              icon={<AqDownload01 className="w-6 h-6" />}
+              icon={<FiDownload className="w-6 h-6" />}
               label="Total Downloads"
               value={activePackage.totalDownloads}
               description="For this package"
             />
             <StatCard
-              icon={<AqCheckCircle className="w-6 h-6" />}
+              icon={<FiCheckCircle className="w-6 h-6" />}
               label="Framework Support"
               value={`${allFrameworks.size}+`}
               description={Array.from(allFrameworks).join(', ')}
@@ -135,13 +135,13 @@ export default function PackagesPage() {
                 <div className="space-y-3 mb-8">
                   {activePackage.features.slice(0, 4).map((feature, index) => (
                     <div key={index} className="flex items-start gap-3">
-                      <AqCheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                      <FiCheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                       <span className="text-gray-700">{feature}</span>
                     </div>
                   ))}
                 </div>
 
-                <Link href={`/packages/${activePackage.id}`}>
+                <Link href={`/packages/${activePackage.id}`} prefetch={false}>
                   <CustomButton className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3">
                     Explore More →
                   </CustomButton>
@@ -220,6 +220,7 @@ export default function PackagesPage() {
                 <div className="flex gap-3 mt-6">
                   <Link
                     href="/packages/icons/docs"
+                    prefetch={false}
                     className="flex-1 text-center px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-sm font-medium"
                   >
                     Docs

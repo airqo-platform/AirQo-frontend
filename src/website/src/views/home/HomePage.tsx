@@ -1,35 +1,11 @@
-import dynamic from 'next/dynamic';
 import React from 'react';
 
 import ReversibleContentSection from '@/components/sections/ReversibleContentSection';
 
 import AnalyticsContentSection from './AnalyticsContentSection';
 import AppDownloadSection from './AppDownloadSection';
+import HomeDeferredSections from './HomeDeferredSections';
 import HomePlayerSection from './HomePlayerSection';
-
-const StatisticsSection = dynamic(() => import('./HomeStatsSection'), {
-  ssr: false,
-  loading: () => (
-    <div className="min-h-[58rem] w-full rounded-[2rem] bg-[#ECF2FF] animate-pulse" />
-  ),
-});
-
-const AirQualityBillboard = dynamic(
-  () => import('@/components/sections/AirQualityBillboard'),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="min-h-[32rem] w-full rounded-[1.5rem] bg-blue-100 animate-pulse" />
-    ),
-  },
-);
-
-const FeaturedCarousel = dynamic(() => import('./FeaturedCarousel'), {
-  ssr: false,
-  loading: () => (
-    <div className="min-h-[40rem] w-full rounded-[1.5rem] bg-[#F0F4FA] animate-pulse md:min-h-[34rem]" />
-  ),
-});
 
 const HomePage = () => {
   return (
@@ -37,11 +13,7 @@ const HomePage = () => {
       {/* Home Player Section */}
       <HomePlayerSection />
 
-      {/* Statistics Section */}
-      <StatisticsSection />
-
-      {/* Air Quality Billboard */}
-      <AirQualityBillboard homepage className="px-2 md:px-3" />
+      <HomeDeferredSections />
 
       {/* Reversible Content Section 1 */}
       <ReversibleContentSection
@@ -139,9 +111,6 @@ const HomePage = () => {
         googlePlayLink="https://play.google.com/store/apps/details?id=com.airqo.app"
         mockupImage="https://res.cloudinary.com/dbibjvyhm/image/upload/v1742911840/website/photos/OurProducts/MobileApp/Home___Light_mode_aw3ysg.png"
       />
-
-      {/* Featured Carousel */}
-      <FeaturedCarousel />
     </div>
   );
 };
