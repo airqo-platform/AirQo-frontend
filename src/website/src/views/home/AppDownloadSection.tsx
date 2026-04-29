@@ -45,7 +45,7 @@ const AppDownloadSection: React.FC<AppDownloadSectionProps> = ({
                   width={140}
                   height={45}
                   className="w-full sm:w-[140px] h-auto object-contain"
-                  priority
+                  loading="lazy"
                 />
               </a>
               <a
@@ -60,7 +60,7 @@ const AppDownloadSection: React.FC<AppDownloadSectionProps> = ({
                   width={140}
                   height={45}
                   className="w-full sm:w-[140px] h-auto object-contain"
-                  priority
+                  loading="lazy"
                 />
               </a>
             </div>
@@ -76,7 +76,7 @@ const AppDownloadSection: React.FC<AppDownloadSectionProps> = ({
                   width={380}
                   height={760}
                   className="w-full h-auto"
-                  priority
+                  loading="lazy"
                 />
               </div>
             </div>

@@ -1,18 +1,10 @@
 'use client';
 
-import {
-  AqGood,
-  AqHazardous,
-  AqModerate,
-  AqNoValue,
-  AqUnhealthy,
-  AqUnhealthyForSensitiveGroups,
-  AqVeryUnhealthy,
-} from '@airqo/icons-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import React, { useEffect, useMemo, useState } from 'react';
 import { FiChevronDown } from 'react-icons/fi';
 
+import AirQualityStatusIcon from '@/components/common/AirQualityStatusIcon';
 import { hexToRgba } from '@/components/sections/AirQualityBillboard/utils';
 import {
   useGridRepresentativeReading,
@@ -39,28 +31,13 @@ type AdminLevel =
 
 // Get appropriate icon for air quality level
 const getAirQualityIcon = (category: string) => {
-  const level = categoryToLevel(category);
-  const iconProps = {
-    className: 'w-16 h-16',
-    style: { color: getAirQualityColor(category) },
-  };
-
-  switch (level) {
-    case 'good':
-      return <AqGood {...iconProps} />;
-    case 'moderate':
-      return <AqModerate {...iconProps} />;
-    case 'unhealthy-sensitive-groups':
-      return <AqUnhealthyForSensitiveGroups {...iconProps} />;
-    case 'unhealthy':
-      return <AqUnhealthy {...iconProps} />;
-    case 'very-unhealthy':
-      return <AqVeryUnhealthy {...iconProps} />;
-    case 'hazardous':
-      return <AqHazardous {...iconProps} />;
-    default:
-      return <AqNoValue {...iconProps} />;
-  }
+  return (
+    <AirQualityStatusIcon
+      status={categoryToLevel(category)}
+      className="w-16 h-16"
+      aria-hidden="true"
+    />
+  );
 };
 
 // Skeleton Components
@@ -252,7 +229,11 @@ const GridAirQualityMonitor: React.FC = () => {
             exit={{ opacity: 0 }}
             className="bg-white rounded-xl border-2 border-dashed border-gray-300 p-12 text-center"
           >
-            <AqNoValue className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+            <AirQualityStatusIcon
+              status="no-value"
+              className="mx-auto mb-4 h-16 w-16"
+              aria-hidden="true"
+            />
           </motion.div>
         ) : (
           <motion.div

@@ -13,6 +13,7 @@ interface HeroSectionProps {
   containerVariants: any;
   itemVariants: any;
   className?: string;
+  disableInitialAnimation?: boolean;
 }
 
 const HeroSection: React.FC<HeroSectionProps> = ({
@@ -23,13 +24,17 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   containerVariants,
   itemVariants,
   className,
+  disableInitialAnimation = false,
 }) => {
   return (
     <motion.section
       className={cn(bgColor, 'py-16 px-4 h-full max-h-[416px]', className)}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, amount: 0.2 }}
+      initial={disableInitialAnimation ? false : 'hidden'}
+      animate={disableInitialAnimation ? 'visible' : undefined}
+      whileInView={disableInitialAnimation ? undefined : 'visible'}
+      viewport={
+        disableInitialAnimation ? undefined : { once: true, amount: 0.2 }
+      }
       variants={containerVariants}
     >
       <div className="max-w-xl w-full mx-auto text-center">

@@ -74,16 +74,23 @@ const FeaturedCarousel = () => {
 
   if (isLoading) {
     return (
-      <section className="w-full bg-[#F0F4FA] py-16 md:py-24 overflow-hidden">
+      <section className="w-full min-h-[40rem] bg-[#F0F4FA] py-16 md:min-h-[34rem] md:py-24 overflow-hidden">
         <div className={`${mainConfig.containerClass} px-4 sm:px-6 lg:px-8`}>
-          <div className="flex space-x-4 animate-pulse">
-            <div className="w-1/2 h-64 bg-gray-300 rounded-lg" />
-            <div className="w-1/2 space-y-4">
-              <div className="h-12 bg-gray-300 rounded-lg" />
-              <div className="h-6 bg-gray-300 rounded-lg" />
-              <div className="h-6 bg-gray-300 rounded-lg" />
-              <div className="w-1/3 h-8 bg-gray-300 rounded-lg" />
+          <div className="animate-pulse">
+            <div className="flex flex-col gap-8 md:flex-row md:gap-16">
+              <div className="md:w-1/2">
+                <div className="aspect-[4/3] rounded-2xl bg-gray-300" />
+              </div>
+              <div className="md:w-1/2 space-y-4 md:flex md:flex-col md:justify-center">
+                <div className="h-8 w-40 rounded-full bg-white" />
+                <div className="h-12 rounded-lg bg-gray-300" />
+                <div className="h-12 rounded-lg bg-gray-300" />
+                <div className="h-6 rounded-lg bg-gray-300" />
+                <div className="h-6 w-5/6 rounded-lg bg-gray-300" />
+                <div className="h-8 w-1/3 rounded-lg bg-gray-300" />
+              </div>
             </div>
+            <div className="mt-8 h-10 w-40 rounded-full bg-gray-300" />
           </div>
         </div>
       </section>
@@ -93,7 +100,7 @@ const FeaturedCarousel = () => {
   if (!allHighlights || allHighlights.length === 0) return null;
 
   return (
-    <section className="w-full bg-[#F0F4FA] py-16 md:py-24 overflow-hidden">
+    <section className="w-full min-h-[40rem] bg-[#F0F4FA] py-16 md:min-h-[34rem] md:py-24 overflow-hidden">
       <div className={`${mainConfig.containerClass} px-4 sm:px-6 lg:px-8`}>
         <div className="relative">
           <div className="mb-4" />

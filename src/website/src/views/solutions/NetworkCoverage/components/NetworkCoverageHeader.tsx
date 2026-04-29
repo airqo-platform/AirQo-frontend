@@ -1,6 +1,5 @@
-import { AqDownload01 } from '@airqo/icons-react';
 import React, { useEffect, useRef, useState } from 'react';
-import { FiChevronDown } from 'react-icons/fi';
+import { FiChevronDown, FiDownload } from 'react-icons/fi';
 import { TbMenu2 } from 'react-icons/tb';
 
 import NetworkCoverageNavDrawer from './NetworkCoverageNavDrawer';
@@ -99,7 +98,7 @@ const NetworkCoverageHeader: React.FC<NetworkCoverageHeaderProps> = ({
                   />
                 </svg>
               ) : (
-                <AqDownload01 className="h-4 w-4" />
+                <FiDownload className="h-4 w-4" />
               )}
               <span className="hidden sm:inline">
                 {isDownloading ? 'Preparing...' : 'Download report'}
