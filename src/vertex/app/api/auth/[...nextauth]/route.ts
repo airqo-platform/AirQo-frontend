@@ -21,8 +21,8 @@ const setRuntimeAuthUrls = (req: NextRequest) => {
 
   if (requestOrigin) {
     process.env.NEXTAUTH_URL = requestOrigin;
-    process.env.NEXTAUTH_URL_INTERNAL =
-      process.env.NEXTAUTH_URL_INTERNAL || requestOrigin;
+    process.env.NEXTAUTH_URL_INTERNAL = requestOrigin;
+    process.env.AUTH_TRUST_HOST = process.env.AUTH_TRUST_HOST || 'true';
   }
 };
 
