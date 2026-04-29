@@ -12,6 +12,20 @@ import logger from '@/lib/logger';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
+const getValidUrl = (value?: string) => {
+  const url = value?.trim();
+
+  if (!url) {
+    return null;
+  }
+
+  try {
+    return new URL(url).toString().replace(/\/$/, '');
+  } catch {
+    return null;
+  }
+};
+
 const getAzureContainerAppsUrl = () => {
   const appName = process.env.CONTAINER_APP_NAME;
   const dnsSuffix = process.env.CONTAINER_APP_ENV_DNS_SUFFIX;
@@ -24,7 +38,22 @@ const getAzureContainerAppsUrl = () => {
 };
 
 const azureContainerAppsUrl = getAzureContainerAppsUrl();
-if (azureContainerAppsUrl) {
+const nextAuthUrl = getValidUrl(process.env.NEXTAUTH_URL);
+const nextAuthUrlInternal = getValidUrl(process.env.NEXTAUTH_URL_INTERNAL);
+
+if (nextAuthUrl) {
+  process.env.NEXTAUTH_URL = nextAuthUrl;
+} else {
+  delete process.env.NEXTAUTH_URL;
+}
+
+if (nextAuthUrlInternal) {
+  process.env.NEXTAUTH_URL_INTERNAL = nextAuthUrlInternal;
+} else {
+  delete process.env.NEXTAUTH_URL_INTERNAL;
+}
+
+if (!process.env.NEXTAUTH_URL && azureContainerAppsUrl) {
   process.env.NEXTAUTH_URL = azureContainerAppsUrl;
   process.env.NEXTAUTH_URL_INTERNAL =
     process.env.NEXTAUTH_URL_INTERNAL || azureContainerAppsUrl;
