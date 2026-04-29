@@ -4,7 +4,48 @@
 
 ---
 
+## Version 1.23.33
+**Released:** April 29, 2026
+
+### Network Request Submission Fix & Error Handling Hardening
+
+Fixed a critical staging-environment bug where submitting a new sensor manufacturer request produced a 404 due to a malformed URL, and hardened error propagation across the network request API route handlers.
+
+<details>
+<summary><strong>Bug Fixes (4)</strong></summary>
+
+- **Network Request 404 in Staging**: Resolved a critical bug where clicking "Request New Sensor Manufacturer" in staging produced the malformed URL `/devices/undefineddevices/network-creation-requests`. Root cause: `NEXT_PUBLIC_API_URL` was not injected at build time, causing the client-side URL construction to silently embed `"undefined"`. Fixed by routing the POST through a new Next.js API route handler, removing the env-var dependency from the client entirely.
+- **Route Handler Error Shape Mismatch**: Fixed the GET handler at `/api/devices/network-creation-requests` always returning a 500 status. The handler was reading `err.response?.data` and `err.response?.status`, but `networkService` throws errors with `err.data` and `err.status` attached directly. Actual error details from the backend were being silently dropped.
+- **Consistent Error Shape on Action Route**: Applied the same error shape fix to the PUT handler at `/api/devices/network-creation-requests/[id]/[action]/route.ts` to ensure backend error payloads and status codes are correctly surfaced.
+- **"undefined" in Requester Name Pre-fill**: Fixed an edge case where the `requester_name` field in the submission dialog could display `"undefined undefined"` if `firstName` or `lastName` was missing from the user's profile. Replaced the template literal with a `.filter().join()` approach that safely omits missing name parts.
+
+</details>
+
+<details>
+<summary><strong>Refactors (3)</strong></summary>
+
+- **Server-Side URL Construction**: Added a `submitNetworkRequest` method to `networkService` that builds the backend URL server-side via `getApiBaseUrl()`, which always resolves correctly in a server context regardless of staging environment variable configuration.
+- **New Public POST Route Handler**: Added a `POST` handler to `/api/devices/network-creation-requests/route.ts` that proxies public submission requests to the backend with no auth requirement, matching the public nature of the endpoint.
+- **Collocated Mutation Logic**: Removed the intermediate `useSubmitNetworkRequest` hook and `submitNetworkRequestApi` client API method. The `useMutation` + `fetch` logic is now inlined directly in `NetworkRequestDialog`, removing unnecessary abstraction layers for a straightforward, single-use call.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (6)</strong></summary>
+
+- `app/api/devices/network-creation-requests/route.ts`
+- `app/api/devices/network-creation-requests/[id]/[action]/route.ts`
+- `core/services/network-service.ts`
+- `core/apis/networks.ts`
+- `core/hooks/useNetworks.ts`
+- `components/features/networks/network-request-dialog.tsx`
+
+</details>
+
+---
+
 ## Version 1.23.32
+
 **Released:** April 27, 2026
 
 ### Cohort Performance Optimization & Request Stability
