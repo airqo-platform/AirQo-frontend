@@ -48,6 +48,7 @@ interface ReusableDialogProps {
   preventBackdropClose?: boolean
   className?: string
   contentAreaClassName?: string
+  zIndex?: number
 
   // Accessibility
   ariaLabel?: string
@@ -84,6 +85,7 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
   preventBackdropClose = false,
   className = "",
   contentAreaClassName = "",
+  zIndex = 999,
 
   // Accessibility
   ariaLabel,
@@ -234,18 +236,18 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
         <>
           {/* Backdrop */}
           <motion.div
-            className="fixed inset-0 z-[999] bg-black/50 dark:bg-black/80"
+            className={`fixed inset-0 z-[${zIndex}] bg-black/50 dark:bg-black/80`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={handleBackdropClick}
-            style={{marginTop: "0px"}}
+            style={{ marginTop: "0px" }}
           />
 
           {/* Dialog Container */}
           <motion.div
-            className="fixed inset-0 z-[1000] flex items-center justify-center p-4 pointer-events-none"
+            className={`fixed inset-0 z-[${zIndex}] flex items-center justify-center p-4 pointer-events-none`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

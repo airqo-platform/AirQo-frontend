@@ -1,4 +1,6 @@
 import createSecureApiClient from "@/core/utils/secureApiProxyClient";
+import axios from "axios";
+import { NetworkRequestValues } from "@/components/features/networks/schema";
 
 export interface NetworkManager {
   _id: string;
@@ -67,6 +69,36 @@ export interface CreateNetworkResponse {
   created_network: Network;
 }
 
+export interface NetworkCreationRequest {
+  _id: string;
+  requester_name: string;
+  requester_email: string;
+  net_name: string;
+  net_email: string;
+  net_website: string;
+  net_category: string;
+  net_description: string;
+  net_acronym: string;
+  status: 'pending' | 'under_review' | 'approved' | 'denied';
+  reviewer_notes?: string;
+  reviewed_by?: string;
+  reviewed_at?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NetworkCreationRequestsResponse {
+  success: boolean;
+  message: string;
+  network_creation_requests: NetworkCreationRequest[];
+}
+
+export interface NetworkRequestActionResponse {
+  success: boolean;
+  message: string;
+  data: any;
+}
+
 export const networks = {
   getNetworksApi: async (): Promise<Network[]> => {
     try {
@@ -80,18 +112,20 @@ export const networks = {
     }
   },
 
-  createNetworkApi: async (
-    data: CreateNetworkPayload
-  ): Promise<CreateNetworkResponse> => {
+  submitNetworkRequestApi: async (data: NetworkRequestValues): Promise<NetworkRequestActionResponse> => {
     try {
-      const response = await createSecureApiClient().post<CreateNetworkResponse>(
-        `/users/networks`,
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}devices/network-creation-requests`;
+      
+      const response = await axios.post<NetworkRequestActionResponse>(
+        `${apiUrl}`,
         data,
-        { headers: { "X-Auth-Type": "JWT" } }
+        { headers: { "Content-Type": "application/json" } }
       );
       return response.data;
     } catch (error) {
       throw error;
     }
   },
+
+
 };

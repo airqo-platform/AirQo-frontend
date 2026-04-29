@@ -1,6 +1,7 @@
 export const ROUTE_LINKS = {
   HOME: '/home',
   ADMIN_NETWORKS: '/admin/networks',
+  ADMIN_NETWORK_REQUESTS: '/admin/networks/requests',
   COHORTS: '/admin/cohorts',
   SITES: '/admin/sites',
   GRIDS: '/admin/grids',

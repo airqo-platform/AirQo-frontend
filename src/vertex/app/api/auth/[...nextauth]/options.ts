@@ -11,6 +11,14 @@ import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
 import logger from '@/lib/logger';
 
 const isProduction = process.env.NODE_ENV === 'production';
+
+if (isProduction && !process.env.NEXTAUTH_SECRET) {
+  logger.error('[NextAuth] CRITICAL: NEXTAUTH_SECRET is missing in production environment!');
+}
+
+if (isProduction && !process.env.NEXTAUTH_URL && !process.env.AUTH_TRUST_HOST) {
+  logger.warn('[NextAuth] WARNING: NEXTAUTH_URL is missing. Dynamic host detection will be used.');
+}
 const sessionCookieName = isProduction
   ? '__Secure-next-auth.session-token'
   : 'vertex.next-auth.session-token';
@@ -149,7 +157,7 @@ export const options: NextAuthOptions = {
 
   pages: {
     signIn: '/login',
-    error: '/login',
+    error: '/auth-error',
   },
 
   debug: false,

@@ -1,0 +1,89 @@
+import { NetworkCreationRequest } from "@/core/apis/networks";
+import { getApiBaseUrl } from "@/lib/envConstants";
+import logger from "@/lib/logger";
+import axios from "axios";
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
+
+/**
+ * Service for network-related operations on the server side.
+ * This service should be used by Server Components and Route Handlers.
+ */
+export const networkService = {
+  /**
+   * Fetches network creation requests from the backend.
+   */
+  getNetworkCreationRequests: async (token: string, adminSecret: string): Promise<NetworkCreationRequest[]> => {
+    try {
+      const baseUrl = getApiBaseUrl();
+      const url = `${baseUrl}/devices/network-creation-requests?admin_secret=${adminSecret.trim()}`;
+      
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: token.startsWith("JWT ") ? token : `JWT ${token}`,
+          "X-Auth-Type": "JWT"
+        }
+      });
+
+      return response.data.network_creation_requests || [];
+    } catch (error) {
+      const message = getApiErrorMessage(error);
+      const status = axios.isAxiosError(error) ? error.response?.status : 500;
+      
+      logger.error(`Error fetching network requests: ${message}`, { status });
+      
+      if (status === 404) {
+        throw new Error("NOT_FOUND");
+      }
+      
+      const err: any = new Error(message);
+      err.status = status;
+      throw err;
+    }
+  },
+
+  /**
+   * Updates the status of a network creation request.
+   */
+  updateNetworkRequestStatus: async (
+    id: string, 
+    action: string, 
+    notes: string, 
+    token: string, 
+    adminSecret: string
+  ): Promise<any> => {
+    try {
+      const baseUrl = getApiBaseUrl();
+      // Try putting admin_secret in both URL and body to be safe, 
+      // as some AirQo endpoints require it in one or the other.
+      const url = `${baseUrl}/devices/network-creation-requests/${id}/${action}?admin_secret=${adminSecret.trim()}`;
+      
+      const payload: Record<string, any> = {
+        admin_secret: adminSecret.trim(),
+      };
+
+      if (notes && notes.trim() !== "") {
+        payload.reviewer_notes = notes;
+      }
+
+      const response = await axios.put(url, payload, {
+        headers: {
+          Authorization: token.startsWith("JWT ") ? token : `JWT ${token}`,
+          "X-Auth-Type": "JWT"
+        }
+      });
+
+      return response.data;
+    } catch (error) {
+      const message = getApiErrorMessage(error);
+      const status = axios.isAxiosError(error) ? error.response?.status : 500;
+      const data = axios.isAxiosError(error) ? error.response?.data : null;
+
+      logger.error(`Error updating network request status: ${message}`, { status, data });
+      
+      const err = new Error(message) as Error & { status?: number; data?: any };
+      err.status = status;
+      err.data = data;
+      throw err;
+    }
+  }
+};

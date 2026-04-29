@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useAppSelector, useAppDispatch } from "@/core/redux/hooks";
@@ -11,7 +11,7 @@ import { useUserContext } from "@/core/hooks/useUserContext";
 import { UserContext } from "@/core/redux/slices/userSlice";
 import { AqGrid01 } from "@airqo/icons-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 
 const formatTitle = (title: string) => {
@@ -27,6 +27,17 @@ const OrganizationPicker: React.FC = () => {
   const userGroups = useAppSelector((state) => state.user.userGroups);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { isLoading } = useUserContext();
+  const { isSwitching } = useAppSelector((state) => state.user.organizationSwitching);
+  const pathname = usePathname();
+  const lastPathname = useRef(pathname);
+
+  // Clear isSwitching when navigation completes (pathname changes)
+  useEffect(() => {
+    if (isSwitching && pathname !== lastPathname.current) {
+      dispatch(setOrganizationSwitching({ isSwitching: false, switchingTo: "" }));
+    }
+    lastPathname.current = pathname;
+  }, [pathname, isSwitching, dispatch]);
 
   const validUserGroups = useMemo(() => {
     if (!Array.isArray(userGroups)) return [];
@@ -37,6 +48,10 @@ const OrganizationPicker: React.FC = () => {
   }, [userGroups]);
 
   const handleOrganizationChange = async (group: Group) => {
+    // 1. Instant UI Feedback
+    setIsModalOpen(false);
+
+    // 2. Start Background Transition
     dispatch(setOrganizationSwitching({
       isSwitching: true,
       switchingTo: group.grp_title
@@ -48,23 +63,44 @@ const OrganizationPicker: React.FC = () => {
         : "external-org";
 
     try {
-      await queryClient.cancelQueries();
-      await queryClient.invalidateQueries();
+      // 3. Optimized Background Cleanup (Non-blocking)
+      // We don't await these to prevent UI blocking
+      const orgScopedQueryKeys = [
+        ["devices"],
+        ["myDevices"],
+        ["sites"],
+        ["site-details"],
+        ["cohorts"],
+        ["user-cohorts"],
+        ["cohort-details"],
+        ["claimedDevices"],
+        ["deviceActivities"],
+        ["deviceCount"],
+        ["network-devices"],
+        ["groupCohorts"],
+        ["network-requests"],
+      ] as const;
 
+      orgScopedQueryKeys.forEach((queryKey) => {
+        void queryClient.cancelQueries({ queryKey });
+        queryClient.removeQueries({ queryKey });
+      });
+
+      // 4. Update Redux State
       dispatch(setActiveGroup(group));
       dispatch(setUserContext(newContext));
 
-      setIsModalOpen(false);
-
-      // All users navigate to /home (personal devices view)
-      // Sidebar modules control access to org-level features
-      router.push("/home");
+      // 5. Trigger Navigation
+      if (pathname === "/home") {
+        // If already on home, we must clear immediately as pathname won't change
+        dispatch(setOrganizationSwitching({ isSwitching: false, switchingTo: "" }));
+        router.refresh();
+      } else {
+        router.push("/home");
+      }
     } catch {
       ReusableToast({ message: "Failed to switch organization", type: "ERROR" });
-    } finally {
-      setTimeout(() => {
-        dispatch(setOrganizationSwitching({ isSwitching: false, switchingTo: "" }));
-      }, 3000);
+      dispatch(setOrganizationSwitching({ isSwitching: false, switchingTo: "" }));
     }
   };
 

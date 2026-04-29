@@ -123,6 +123,7 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       size="lg"
+      zIndex={2000}
       title="Organizations"
       subtitle={`${filteredGroups.length} of ${userGroups?.length || 0} available`}
       maxHeight="max-h-[65vh]"
