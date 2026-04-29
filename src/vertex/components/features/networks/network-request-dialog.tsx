@@ -37,7 +37,9 @@ export function NetworkRequestDialog({ open, onOpenChange }: NetworkRequestDialo
         if (open && userDetails) {
             form.reset({
                 ...form.getValues(),
-                requester_name: `${userDetails.firstName} ${userDetails.lastName}`.trim() || "",
+                requester_name: [userDetails.firstName, userDetails.lastName]
+                    .filter((part): part is string => Boolean(part && part.trim()))
+                    .join(" "),
                 requester_email: userDetails.email || "",
             });
         }
