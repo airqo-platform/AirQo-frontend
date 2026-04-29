@@ -182,7 +182,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
     emit(AuthLoading());
     try {
       await socialAuthRepository.loginWithProvider(event.provider);
-      await AnalyticsService().trackUserLoggedIn();
+      await AnalyticsService().trackUserLoggedIn(method: event.provider);
       final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
       if (userId != null) {
         await AnalyticsService().setUserIdentity(userId: userId);

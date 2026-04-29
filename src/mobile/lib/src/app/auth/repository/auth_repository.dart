@@ -11,6 +11,6 @@ abstract class AuthRepository with UiLoggy {
     required String confirmPassword,
   });
   Future<void> verifyEmailCode(String token, String email);
-  Future<String> verifyResetPin(String pin, String email);
+  Future<String> validatePinFormat(String pin, String email);
   Future<void> deleteUserAccount();
 }

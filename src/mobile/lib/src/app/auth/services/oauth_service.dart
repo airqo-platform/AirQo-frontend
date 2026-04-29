@@ -11,7 +11,10 @@ class OAuthServiceImpl implements OAuthService {
 
   @override
   Future<String> authenticate(String provider) async {
-    final baseUrl = dotenv.env['AIRQO_API_URL'] ?? '';
+    final baseUrl = dotenv.env['AIRQO_API_URL'];
+    if (baseUrl == null || baseUrl.isEmpty) {
+      throw Exception('AIRQO_API_URL is not configured. Check your .env file.');
+    }
     final authUrl = '$baseUrl/api/v2/users/auth/$provider?tenant=airqo';
 
     final String result;
@@ -29,7 +32,7 @@ class OAuthServiceImpl implements OAuthService {
 
     final uri = Uri.parse(result);
 
-    if (uri.path.contains('failure')) {
+    if (uri.host == 'oauth' && uri.path == '/failure') {
       throw Exception('Sign-in failed. Please try again.');
     }
 
