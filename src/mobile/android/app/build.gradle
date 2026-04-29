@@ -83,11 +83,11 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_9
         targetCompatibility JavaVersion.VERSION_1_9
         // Enable Java desugaring to support newer Java APIs on older Android versions
-        coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.0.4"
+        enableCoreLibraryDesugaring true
     }
 
     kotlinOptions {
-        jvmTarget = '1.9'
+        jvmTarget = "9"
     }
 
     sourceSets {
