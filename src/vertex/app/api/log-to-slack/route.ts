@@ -95,8 +95,12 @@ export async function POST(request: NextRequest) {
       );
       console.warn('Expected environment variable: SLACK_WEBHOOK_URL');
       return NextResponse.json(
-        { success: false, error: 'Slack webhook URL not configured' },
-        { status: 500 }
+        {
+          success: true,
+          skipped: true,
+          reason: 'Slack webhook URL not configured',
+        },
+        { status: 200 }
       );
     }
 

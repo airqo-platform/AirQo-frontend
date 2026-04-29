@@ -12,7 +12,28 @@ import logger from '@/lib/logger';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
-if (isProduction && !process.env.NEXTAUTH_SECRET) {
+const getAzureContainerAppsUrl = () => {
+  const appName = process.env.CONTAINER_APP_NAME;
+  const dnsSuffix = process.env.CONTAINER_APP_ENV_DNS_SUFFIX;
+
+  if (!appName || !dnsSuffix || !appName.endsWith('-vertex-preview')) {
+    return null;
+  }
+
+  return `https://${appName}.${dnsSuffix}`;
+};
+
+const azureContainerAppsUrl = getAzureContainerAppsUrl();
+if (azureContainerAppsUrl) {
+  process.env.NEXTAUTH_URL = azureContainerAppsUrl;
+  process.env.NEXTAUTH_URL_INTERNAL =
+    process.env.NEXTAUTH_URL_INTERNAL || azureContainerAppsUrl;
+  process.env.AUTH_TRUST_HOST = process.env.AUTH_TRUST_HOST || 'true';
+}
+
+const authSecret = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
+
+if (isProduction && !authSecret) {
   logger.error('[NextAuth] CRITICAL: NEXTAUTH_SECRET is missing in production environment!');
 }
 
@@ -21,7 +42,7 @@ if (isProduction && !process.env.NEXTAUTH_URL && !process.env.AUTH_TRUST_HOST) {
 }
 
 export const options: NextAuthOptions = {
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: authSecret,
   useSecureCookies: isProduction,
   providers: [
     CredentialsProvider({

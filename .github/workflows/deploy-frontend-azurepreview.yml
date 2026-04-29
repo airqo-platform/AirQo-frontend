@@ -432,13 +432,29 @@ jobs:
 
       - name: Pull secrets from Key Vault
         run: |
+          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
+          APP="${BRANCH:0:12}-vertex-preview"
+
+          DEFAULT_DOMAIN=$(az containerapp env show \
+            --name ${{ env.PR_PREVIEW_ENV }} \
+            --resource-group ${{ env.RG }} \
+            --query properties.defaultDomain -o tsv)
+
+          NEXTAUTH_URL="https://$APP.$DEFAULT_DOMAIN"
+
           az keyvault secret show \
             --vault-name ${{ env.KEYVAULT }} \
             --name sta-env-vertex \
             --query value -o tsv > secrets.json
 
-          # Write .env into the build context for Next.js build time, excluding the staging auth URL.
-          jq -r 'to_entries | .[] | select(.key != "NEXTAUTH_URL") | "\(.key)=\(.value|tojson)"' secrets.json > src/vertex/.env
+          # Write .env into the build context for Next.js build time, excluding static auth values
+          # that are wrong for per-PR Azure preview hostnames.
+          jq -r 'to_entries | .[] | select(.key != "NEXTAUTH_URL" and .key != "NEXTAUTH_URL_INTERNAL" and .key != "NEXTAUTH_COOKIE_DOMAIN") | "\(.key)=\(.value|tojson)"' secrets.json > src/vertex/.env
+          {
+            echo "NEXTAUTH_URL=$NEXTAUTH_URL"
+            echo "NEXTAUTH_URL_INTERNAL=$NEXTAUTH_URL"
+            echo "AUTH_TRUST_HOST=true"
+          } >> src/vertex/.env
 
       - name: Build image
         run: |
@@ -451,12 +467,12 @@ jobs:
           APP="${BRANCH:0:12}-vertex-preview"
 
           # Build env vars string separately to avoid nested YAML/shell escaping issues.
-          # The shared staging secret contains a NEXTAUTH_URL value that is wrong for per-PR
-          # preview hostnames. Drop it and inject the Container Apps preview URL below.
-          ENV_VARS=$(jq -r 'to_entries | map(select(.key != "NEXTAUTH_URL")) | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json)
+          # The shared staging secret contains static auth values that are wrong for per-PR
+          # preview hostnames. Drop them and inject the Container Apps preview URL below.
+          ENV_VARS=$(jq -r 'to_entries | map(select(.key != "NEXTAUTH_URL" and .key != "NEXTAUTH_URL_INTERNAL" and .key != "NEXTAUTH_COOKIE_DOMAIN")) | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json)
 
           # Fail fast if the secret is missing (NextAuth requires this in production).
-          jq -e '.NEXTAUTH_SECRET and (.NEXTAUTH_SECRET|length > 0)' secrets.json >/dev/null
+          jq -e '((.NEXTAUTH_SECRET // .AUTH_SECRET) | length > 0)' secrets.json >/dev/null
 
           DEFAULT_DOMAIN=$(az containerapp env show \
             --name ${{ env.PR_PREVIEW_ENV }} \
@@ -475,7 +491,18 @@ jobs:
             --registry-server ${{ env.REGISTRY_URL }} \
             --registry-username airqoacr \
             --registry-password ${{ secrets.ACR_PASSWORD }} \
-            --env-vars "$ENV_VARS NEXTAUTH_URL=$NEXTAUTH_URL"
+            --env-vars "$ENV_VARS NEXTAUTH_URL=$NEXTAUTH_URL NEXTAUTH_URL_INTERNAL=$NEXTAUTH_URL AUTH_TRUST_HOST=true"
+
+          AUTH_STATUS=$(curl -sS -o /tmp/nextauth-providers.json -w "%{http_code}" "$NEXTAUTH_URL/api/auth/providers")
+          if [ "$AUTH_STATUS" != "200" ]; then
+            echo "NextAuth providers endpoint returned HTTP $AUTH_STATUS"
+            cat /tmp/nextauth-providers.json || true
+            az containerapp logs show \
+              --name $APP \
+              --resource-group ${{ env.RG }} \
+              --tail 80 || true
+            exit 1
+          fi
 
       - id: preview
         run: |
