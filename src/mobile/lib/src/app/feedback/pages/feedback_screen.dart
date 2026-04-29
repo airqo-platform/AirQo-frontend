@@ -143,7 +143,6 @@ class _FeedbackScreenState extends State<FeedbackScreen> with UiLoggy {
         isDark ? Colors.grey[400]! : AppColors.secondaryHeadlineColor;
     final bgColor =
         isDark ? AppColors.darkThemeBackground : AppColors.backgroundColor;
-    final cardColor = isDark ? AppColors.highlightColor : Colors.white;
     final borderColor =
         isDark ? Colors.grey[800]! : AppColors.borderColor2;
     final fillColor = isDark ? const Color(0xFF404040) : Colors.white;
@@ -231,14 +230,8 @@ class _FeedbackScreenState extends State<FeedbackScreen> with UiLoggy {
 
                 // Category
                 _buildLabel('Category', textColor),
-                const SizedBox(height: 8),
-                _buildCategoryDropdown(
-                  cardColor: cardColor,
-                  borderColor: borderColor,
-                  textColor: textColor,
-                  fillColor: fillColor,
-                  isDark: isDark,
-                ),
+                const SizedBox(height: 12),
+                _buildCategoryChips(isDark),
                 const SizedBox(height: 20),
 
                 // Message
@@ -371,44 +364,45 @@ class _FeedbackScreenState extends State<FeedbackScreen> with UiLoggy {
     );
   }
 
-  Widget _buildCategoryDropdown({
-    required Color cardColor,
-    required Color borderColor,
-    required Color textColor,
-    required Color fillColor,
-    required bool isDark,
-  }) {
-    return DropdownButtonFormField<String>(
-      value: _selectedCategory,
-      dropdownColor: isDark ? AppColors.highlightColor : Colors.white,
-      style: TextStyle(
-        color: isDark ? Colors.white : AppColors.boldHeadlineColor4,
-        fontSize: 16,
-      ),
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: fillColor,
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: borderColor, width: 1.0),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide:
-              BorderSide(color: AppColors.primaryColor, width: 1.5),
-        ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      ),
-      items: _categories.map((cat) {
-        return DropdownMenuItem<String>(
-          value: cat['value'],
-          child: Text(cat['label']!),
+  Widget _buildCategoryChips(bool isDark) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: _categories.map((cat) {
+        final selected = _selectedCategory == cat['value'];
+        return GestureDetector(
+          onTap: () => setState(() => _selectedCategory = cat['value']!),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: selected
+                  ? AppColors.primaryColor
+                  : (isDark ? AppColors.darkThemeBackground : const Color(0xFFF4F6F8)),
+              borderRadius: BorderRadius.circular(8),
+              border: selected
+                  ? null
+                  : Border.all(
+                      color: isDark
+                          ? const Color(0xFF3A3A3C)
+                          : const Color(0xFFE2E3E5),
+                      width: 1,
+                    ),
+            ),
+            child: Text(
+              cat['label']!,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                color: selected
+                    ? Colors.white
+                    : (isDark
+                        ? AppColors.boldHeadlineColor2
+                        : const Color(0xFF1A1D23)),
+              ),
+            ),
+          ),
         );
       }).toList(),
-      onChanged: (value) {
-        if (value != null) setState(() => _selectedCategory = value);
-      },
     );
   }
 

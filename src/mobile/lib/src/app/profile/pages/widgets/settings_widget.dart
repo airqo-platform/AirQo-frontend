@@ -1,6 +1,8 @@
 import 'package:airqo/src/app/auth/pages/welcome_screen.dart';
 import 'package:airqo/src/app/feedback/pages/feedback_screen.dart';
+import 'package:airqo/src/app/feedback/pages/post_logout_feedback_sheet.dart';
 import 'package:airqo/src/app/profile/bloc/user_bloc.dart';
+import 'package:airqo/src/app/shared/services/feature_flag_service.dart';
 import 'package:airqo/src/app/profile/pages/languages/select_language_page.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -169,6 +171,13 @@ void _showLogoutConfirmation() {
   Future<void> _handleLogout(BuildContext dialogContext) async {
     Navigator.pop(dialogContext);
 
+    // Capture email before auth state is cleared
+    final userState = context.read<UserBloc>().state;
+    String? userEmail;
+    if (userState is UserLoaded && userState.model.users.isNotEmpty) {
+      userEmail = userState.model.users[0].email;
+    }
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -178,17 +187,22 @@ void _showLogoutConfirmation() {
     try {
       context.read<AuthBloc>().add(LogoutUser());
 
+      final navigator = Navigator.of(context);
       await for (final state in context.read<AuthBloc>().stream) {
         if (state is GuestUser) {
-          Navigator.pop(context);
-          await Navigator.pushAndRemoveUntil(
-            context,
+          navigator.pop();
+          if (!mounted) break;
+          if (FeatureFlagService.instance.isEnabled(AppFeatureFlag.feedback)) {
+            await PostLogoutFeedbackSheet.show(context, userEmail: userEmail);
+            if (!mounted) break;
+          }
+          await navigator.pushAndRemoveUntil(
             MaterialPageRoute(builder: (_) => const WelcomeScreen()),
             (route) => false,
           );
           break;
         } else if (state is AuthLoadingError) {
-          Navigator.pop(context);
+          navigator.pop();
           _showSnackBar(state.message);
           break;
         }
@@ -239,26 +253,27 @@ void _showLogoutConfirmation() {
 
             SizedBox(height: screenHeight * 0.02),
 
-            SettingsTile(
-              iconPath: "assets/images/shared/feedback_icon.svg",
-              title: "Send Feedback",
-              description:
-                  "Share your thoughts or report issues to help us improve AirQo",
-              onTap: () {
-                final userState = context.read<UserBloc>().state;
-                String? email;
-                if (userState is UserLoaded &&
-                    userState.model.users.isNotEmpty) {
-                  email = userState.model.users[0].email;
-                }
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        FeedbackScreen(initialEmail: email),
-                  ),
-                );
-              },
-            ),
+            if (FeatureFlagService.instance.isEnabled(AppFeatureFlag.feedback))
+              SettingsTile(
+                iconPath: "assets/images/shared/feedback_icon.svg",
+                title: "Send Feedback",
+                description:
+                    "Share your thoughts or report issues to help us improve AirQo",
+                onTap: () {
+                  final userState = context.read<UserBloc>().state;
+                  String? email;
+                  if (userState is UserLoaded &&
+                      userState.model.users.isNotEmpty) {
+                    email = userState.model.users[0].email;
+                  }
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          FeedbackScreen(initialEmail: email),
+                    ),
+                  );
+                },
+              ),
 
 
             Padding(
