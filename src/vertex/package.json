@@ -6,7 +6,7 @@
     "dev": "next dev",
     "dev:inspect": "cross-env NODE_OPTIONS='--inspect' next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "node start-next.js",
     "lint": "next lint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

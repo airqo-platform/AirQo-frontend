@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 import {
   Network,
@@ -8,9 +8,6 @@ import { DeviceListingOptions } from "./useDevices";
 import { devices } from "../apis/devices";
 import { AxiosError } from "axios";
 import type { DevicesSummaryResponse } from "@/app/types/devices";
-import { NetworkRequestValues } from "@/components/features/networks/schema";
-import ReusableToast from "@/components/shared/toast/ReusableToast";
-import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 
 
 interface ErrorResponse {
@@ -102,25 +99,4 @@ export const useNetworkDevices = (options: DeviceListingOptions = {}) => {
     error: devicesQuery.error,
   };
 };
-
-
-
-export const useSubmitNetworkRequest = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (data: NetworkRequestValues) => networksApi.submitNetworkRequestApi(data),
-        onSuccess: (resp) => {
-            ReusableToast({ 
-                message: resp.message || 'Your request for a new Sensor Manufacturer has been submitted successfully!', 
-                type: 'SUCCESS' 
-            });
-            queryClient.invalidateQueries({ queryKey: ['network-requests'] });
-        },
-        onError: (error) => {
-            ReusableToast({ 
-                message: getApiErrorMessage(error), 
-                type: 'ERROR' 
-            });
-        }
-    });
-};
+

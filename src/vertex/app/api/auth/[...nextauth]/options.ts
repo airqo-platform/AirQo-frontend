@@ -12,29 +12,66 @@ import logger from '@/lib/logger';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
-if (isProduction && !process.env.NEXTAUTH_SECRET) {
+const getValidUrl = (value?: string) => {
+  const url = value?.trim();
+
+  if (!url) {
+    return null;
+  }
+
+  try {
+    return new URL(url).toString().replace(/\/$/, '');
+  } catch {
+    return null;
+  }
+};
+
+const getAzureContainerAppsUrl = () => {
+  const appName = process.env.CONTAINER_APP_NAME;
+  const dnsSuffix = process.env.CONTAINER_APP_ENV_DNS_SUFFIX;
+
+  if (!appName || !dnsSuffix || !appName.endsWith('-vertex-preview')) {
+    return null;
+  }
+
+  return `https://${appName}.${dnsSuffix}`;
+};
+
+const azureContainerAppsUrl = getAzureContainerAppsUrl();
+const nextAuthUrl = getValidUrl(process.env.NEXTAUTH_URL);
+const nextAuthUrlInternal = getValidUrl(process.env.NEXTAUTH_URL_INTERNAL);
+
+if (nextAuthUrl) {
+  process.env.NEXTAUTH_URL = nextAuthUrl;
+} else {
+  delete process.env.NEXTAUTH_URL;
+}
+
+if (nextAuthUrlInternal) {
+  process.env.NEXTAUTH_URL_INTERNAL = nextAuthUrlInternal;
+} else {
+  delete process.env.NEXTAUTH_URL_INTERNAL;
+}
+
+if (!process.env.NEXTAUTH_URL && azureContainerAppsUrl) {
+  process.env.NEXTAUTH_URL = azureContainerAppsUrl;
+  process.env.NEXTAUTH_URL_INTERNAL =
+    process.env.NEXTAUTH_URL_INTERNAL || azureContainerAppsUrl;
+  process.env.AUTH_TRUST_HOST = process.env.AUTH_TRUST_HOST || 'true';
+}
+
+const authSecret = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
+
+if (isProduction && !authSecret) {
   logger.error('[NextAuth] CRITICAL: NEXTAUTH_SECRET is missing in production environment!');
 }
 
 if (isProduction && !process.env.NEXTAUTH_URL && !process.env.AUTH_TRUST_HOST) {
   logger.warn('[NextAuth] WARNING: NEXTAUTH_URL is missing. Dynamic host detection will be used.');
 }
-const sessionCookieName = isProduction
-  ? '__Secure-next-auth.session-token'
-  : 'vertex.next-auth.session-token';
-
-const sessionCookieConfig = {
-  name: sessionCookieName,
-  options: {
-    httpOnly: true,
-    sameSite: 'lax' as const,
-    path: '/',
-    secure: isProduction,
-  },
-};
 
 export const options: NextAuthOptions = {
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: authSecret,
   useSecureCookies: isProduction,
   providers: [
     CredentialsProvider({
@@ -93,10 +130,6 @@ export const options: NextAuthOptions = {
       },
     }),
   ],
-
-  cookies: {
-    sessionToken: sessionCookieConfig,
-  },
 
   session: {
     strategy: 'jwt',

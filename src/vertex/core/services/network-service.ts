@@ -1,8 +1,11 @@
-import { NetworkCreationRequest } from "@/core/apis/networks";
+import { NetworkCreationRequest, NetworkRequestActionResponse } from "@/core/apis/networks";
+import { NetworkRequestValues } from "@/components/features/networks/schema";
 import { getApiBaseUrl } from "@/lib/envConstants";
 import logger from "@/lib/logger";
 import axios from "axios";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
+
+const NETWORK_REQUEST_TIMEOUT_MS = 10_000;
 
 /**
  * Service for network-related operations on the server side.
@@ -85,5 +88,50 @@ export const networkService = {
       err.data = data;
       throw err;
     }
-  }
+  },
+
+  /**
+   * Submits a new network creation request. Public endpoint — no auth required.
+   */
+  submitNetworkRequest: async (data: NetworkRequestValues): Promise<NetworkRequestActionResponse> => {
+    const baseUrl = getApiBaseUrl();
+    const url = `${baseUrl}/devices/network-creation-requests`;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), NETWORK_REQUEST_TIMEOUT_MS);
+
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        signal: controller.signal,
+      });
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") {
+        const err = new Error("Network request timed out") as Error & {
+          status?: number;
+          data?: unknown;
+        };
+        err.status = 504;
+        err.data = { message: "Network request timed out" };
+        throw err;
+      }
+
+      throw error;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: "Request failed" }));
+      const err = new Error(errorData.message || "Request failed") as Error & { status?: number; data?: unknown };
+      err.status = response.status;
+      err.data = errorData;
+      throw err;
+    }
+
+    return response.json();
+  },
 };

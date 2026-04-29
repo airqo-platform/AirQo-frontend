@@ -4,7 +4,60 @@
 
 ---
 
+## Version 1.23.33
+**Released:** April 29, 2026
+
+### Network Request Submission Fix, Azure Preview Auth Hardening & Error Handling
+
+Fixed a critical staging-environment bug where submitting a new sensor manufacturer request produced a 404 due to a malformed URL, removed obsolete custom auth cookie handling after the SSO rollback, hardened Azure preview NextAuth configuration, and improved error propagation across the network request API route handlers.
+
+<details>
+<summary><strong>Bug Fixes (7)</strong></summary>
+
+- **Network Request 404 in Staging**: Resolved a critical bug where clicking "Request New Sensor Manufacturer" in staging produced the malformed URL `/devices/undefineddevices/network-creation-requests`. Root cause: `NEXT_PUBLIC_API_URL` was not injected at build time, causing the client-side URL construction to silently embed `"undefined"`. Fixed by routing the POST through a new Next.js API route handler, removing the env-var dependency from the client entirely.
+- **Route Handler Error Shape Mismatch**: Fixed the GET handler at `/api/devices/network-creation-requests` always returning a 500 status. The handler was reading `err.response?.data` and `err.response?.status`, but `networkService` throws errors with `err.data` and `err.status` attached directly. Actual error details from the backend were being silently dropped.
+- **Consistent Error Shape on Action Route**: Applied the same error shape fix to the PUT handler at `/api/devices/network-creation-requests/[id]/[action]/route.ts` to ensure backend error payloads and status codes are correctly surfaced.
+- **Malformed JSON Handling**: Updated the public POST handler at `/api/devices/network-creation-requests` to return `400` for invalid JSON payloads instead of falling through to the generic internal server error path.
+- **Backend Validation Message Preservation**: Preserved backend error payloads from failed network request submissions and taught `getApiErrorMessage` to extract messages from both Axios-style `response.data` and fetch/custom `error.data` shapes.
+- **Slack Logging Noise in Preview**: Updated `/api/log-to-slack` to skip cleanly when `SLACK_WEBHOOK_URL` is not configured, preventing logging failures from adding extra 500s to the browser console.
+- **"undefined" in Requester Name Pre-fill**: Fixed an edge case where the `requester_name` field in the submission dialog could display `"undefined undefined"` if `firstName` or `lastName` was missing from the user's profile. Replaced the template literal with a `.filter().join()` approach that safely omits missing name parts.
+
+</details>
+
+<details>
+<summary><strong>Refactors & Hardening (7)</strong></summary>
+
+- **Server-Side URL Construction**: Added a `submitNetworkRequest` method to `networkService` that builds the backend URL server-side via `getApiBaseUrl()`, which always resolves correctly in a server context regardless of staging environment variable configuration.
+- **New Public POST Route Handler**: Added a `POST` handler to `/api/devices/network-creation-requests/route.ts` that proxies public submission requests to the backend with no auth requirement, matching the public nature of the endpoint.
+- **Collocated Mutation Logic**: Removed the intermediate `useSubmitNetworkRequest` hook and `submitNetworkRequestApi` client API method. The `useMutation` + `fetch` logic is now inlined directly in `NetworkRequestDialog`, removing unnecessary abstraction layers for a straightforward, single-use call.
+- **Outbound Request Timeout**: Added an `AbortController` timeout to `networkService.submitNetworkRequest` so slow or unresponsive backend calls fail with a controlled `504` response instead of hanging the route handler.
+- **NextAuth Cookie Defaults Restored**: Removed Vertex's custom session cookie override and matching middleware cookie-name lookup now that cross-subdomain SSO cookie sharing is no longer needed. NextAuth now manages session cookie naming and retrieval through its defaults.
+- **Azure Preview NextAuth URL Hardening**: The Azure preview workflow now computes the per-PR Container Apps URL before build, writes `NEXTAUTH_URL`, `NEXTAUTH_URL_INTERNAL`, and `AUTH_TRUST_HOST=true` into the image `.env`, and also injects them at runtime.
+- **Preview Auth Health Check**: Added a post-deploy check against `/api/auth/providers` so broken NextAuth preview deployments fail fast and print recent Container App logs instead of silently publishing an unusable preview.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (11)</strong></summary>
+
+- `.github/workflows/deploy-frontend-azurepreview.yml`
+- `app/api/devices/network-creation-requests/route.ts`
+- `app/api/devices/network-creation-requests/[id]/[action]/route.ts`
+- `app/api/auth/[...nextauth]/options.ts`
+- `app/api/log-to-slack/route.ts`
+- `middleware.ts`
+- `core/services/network-service.ts`
+- `core/apis/networks.ts`
+- `core/hooks/useNetworks.ts`
+- `core/utils/getApiErrorMessage.ts`
+- `components/features/networks/network-request-dialog.tsx`
+
+</details>
+
+---
+
 ## Version 1.23.32
+
 **Released:** April 27, 2026
 
 ### Cohort Performance Optimization & Request Stability
