@@ -36,7 +36,13 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ message: "Invalid JSON payload" }, { status: 400 });
+    }
+
     const data = await networkService.submitNetworkRequest(body);
     return NextResponse.json(data, { status: 200 });
   } catch (error: unknown) {
