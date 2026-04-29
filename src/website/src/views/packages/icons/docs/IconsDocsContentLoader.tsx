@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FiBookOpen, FiCode, FiPlayCircle } from 'react-icons/fi';
 
 const IconsDocsContent = dynamic(() => import('./IconsDocsContent'), {
@@ -41,6 +41,14 @@ const IconsDocsContent = dynamic(() => import('./IconsDocsContent'), {
 
 export default function IconsDocsContentLoader() {
   const [isDocsEnabled, setIsDocsEnabled] = useState(false);
+
+  // If the URL contains a hash (deep-link to a section), enable the
+  // full documentation automatically so direct links land correctly.
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash) {
+      setIsDocsEnabled(true);
+    }
+  }, []);
 
   if (!isDocsEnabled) {
     return (

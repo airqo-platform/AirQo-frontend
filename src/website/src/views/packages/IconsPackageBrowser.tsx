@@ -20,8 +20,11 @@ export default function IconsPackageBrowser() {
   const [groups, setGroups] = useState<
     Array<{ name: string; displayName?: string; count: number }>
   >([]);
+  const [iconsLoadError, setIconsLoadError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const loadIcons = async () => {
+    setIsLoadingAll(true);
+    setIconsLoadError(null);
     try {
       const icons = AirQOIconsUtils.getAllIcons();
       setAllIcons(icons);
@@ -35,9 +38,16 @@ export default function IconsPackageBrowser() {
       setGroups(groupsWithCounts);
     } catch (error) {
       console.error('Error loading icons:', error);
+      setIconsLoadError(
+        error instanceof Error ? error.message : 'Failed to load icons',
+      );
     } finally {
       setIsLoadingAll(false);
     }
+  };
+
+  useEffect(() => {
+    loadIcons();
   }, []);
 
   const { results: searchResults, isLoading: isSearching } = useIconSearch(
@@ -80,11 +90,26 @@ export default function IconsPackageBrowser() {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-        <IconGrid
-          icons={filteredResults}
-          isLoading={isSearching || isLoadingAll}
-          onSelectIcon={handleSelectIcon}
-        />
+        {iconsLoadError ? (
+          <div className="rounded-xl border bg-white p-6 text-center">
+            <p className="mb-4 text-sm text-red-600">
+              Failed to load icons: {iconsLoadError}
+            </p>
+            <button
+              type="button"
+              onClick={() => loadIcons()}
+              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+            >
+              Retry
+            </button>
+          </div>
+        ) : (
+          <IconGrid
+            icons={filteredResults}
+            isLoading={isSearching || isLoadingAll}
+            onSelectIcon={handleSelectIcon}
+          />
+        )}
       </div>
 
       <IconPreviewDialog

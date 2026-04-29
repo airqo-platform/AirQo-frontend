@@ -40,6 +40,10 @@ export default function IconsDocsContent() {
     };
 
     window.addEventListener('scroll', handleScroll);
+    // Initialize the active section on mount so the sidebar highlight is
+    // correct before the user performs any scrolling. This calls the same
+    // logic used by the scroll listener to avoid duplicating state logic.
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
