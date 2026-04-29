@@ -30,7 +30,10 @@ export function NetworkRequestDialog({ open, onOpenChange }: NetworkRequestDialo
             });
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ message: "Request failed" }));
-                throw Object.assign(new Error(errorData.message || "Request failed"), { status: response.status });
+                throw Object.assign(new Error("Request failed"), {
+                    status: response.status,
+                    data: errorData,
+                });
             }
             return response.json();
         },
