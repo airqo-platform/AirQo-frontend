@@ -167,7 +167,7 @@ function useUserDetails(userId: string | null) {
 
 // --- Components ---
 
-const authRoutes = ['/login', '/forgot-password'];
+const authRoutes = ['/login', '/forgot-password', '/auth-error'];
 
 /**
  * Redirects authenticated users away from auth routes
