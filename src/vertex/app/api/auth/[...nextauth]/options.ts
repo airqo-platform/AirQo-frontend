@@ -61,12 +61,21 @@ if (!process.env.NEXTAUTH_URL && azureContainerAppsUrl) {
 }
 
 const authSecret = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
+const cookieDomain = process.env.NEXTAUTH_COOKIE_DOMAIN?.trim() || undefined;
+const cookieOptions = {
+  httpOnly: true,
+  sameSite: 'lax' as const,
+  path: '/',
+  secure: isProduction,
+  domain: cookieDomain,
+};
 
 if (isProduction && !authSecret) {
   logger.error('[NextAuth] CRITICAL: NEXTAUTH_SECRET is missing in production environment!');
 }
 
 if (isProduction && !process.env.NEXTAUTH_URL && !process.env.AUTH_TRUST_HOST) {
+  process.env.AUTH_TRUST_HOST = 'true';
   logger.warn('[NextAuth] WARNING: NEXTAUTH_URL is missing. Dynamic host detection will be used.');
 }
 
@@ -130,6 +139,15 @@ export const options: NextAuthOptions = {
       },
     }),
   ],
+
+  cookies: {
+    sessionToken: {
+      name: isProduction
+        ? '__Secure-next-auth.session-token'
+        : 'next-auth.session-token',
+      options: cookieOptions,
+    },
+  },
 
   session: {
     strategy: 'jwt',
