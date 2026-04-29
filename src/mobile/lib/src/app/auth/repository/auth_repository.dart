@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:airqo/src/app/auth/models/input_model.dart';
+import 'package:airqo/src/app/auth/repository/social_auth_repository.dart';
+import 'package:airqo/src/app/auth/services/oauth_service.dart';
 import 'package:airqo/src/app/shared/repository/secure_storage_repository.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
@@ -24,7 +26,12 @@ abstract class AuthRepository with UiLoggy {
   Future<void> deleteUserAccount();
 }
 
-class AuthImpl extends AuthRepository {
+class AuthImpl extends AuthRepository implements SocialAuthRepository {
+  final OAuthService _oauthService;
+
+  AuthImpl({OAuthService? oauthService})
+      : _oauthService = oauthService ?? OAuthServiceImpl();
+
   static String _sanitizeToken(String? rawToken) {
     if (rawToken == null) return '';
     
@@ -554,9 +561,51 @@ Future<void> verifyEmailCode(String token, String email) async {
   @override
   Future<String> verifyResetPin(String pin, String email) async {
     if (RegExp(r'^\d{5}$').hasMatch(pin)) {
-      return pin; 
+      return pin;
     } else {
       throw Exception('Invalid PIN. Please enter a 5-digit numeric PIN.');
+    }
+  }
+
+  @override
+  Future<void> loginWithProvider(String provider) async {
+    try {
+      final token = await _oauthService.authenticate(provider);
+      final sanitizedToken = _sanitizeToken(token);
+
+      if (sanitizedToken.isEmpty) {
+        throw Exception('Authentication failed. Invalid token received.');
+      }
+
+      String? userId;
+      try {
+        final Map<String, dynamic> decoded = JwtDecoder.decode(sanitizedToken);
+        const possibleIdFields = ['sub', 'id', 'userId', 'user_id', '_id', 'uid'];
+        for (final field in possibleIdFields) {
+          if (decoded.containsKey(field) && decoded[field] != null) {
+            userId = decoded[field].toString();
+            break;
+          }
+        }
+      } catch (_) {
+        loggy.error('Failed to decode OAuth JWT token');
+        throw Exception('Authentication failed. Invalid token format received.');
+      }
+
+      if (userId == null || userId.trim().isEmpty) {
+        throw Exception('Authentication failed. Token does not contain user information.');
+      }
+
+      await SecureStorageRepository.instance.saveSecureData(SecureStorageKeys.authToken, sanitizedToken);
+      await SecureStorageRepository.instance.saveSecureData(SecureStorageKeys.userId, userId);
+    } on OAuthCancelledException {
+      rethrow;
+    } on SocketException {
+      throw Exception('No internet connection. Please check your network and try again.');
+    } on TimeoutException {
+      throw Exception('Connection timed out. Please check your network and try again.');
+    } catch (e) {
+      rethrow;
     }
   }
 

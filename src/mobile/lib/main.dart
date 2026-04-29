@@ -4,6 +4,8 @@ import 'package:airqo/src/app/auth/bloc/ForgotPasswordBloc/forgot_password_bloc.
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
 import 'package:airqo/src/app/auth/pages/welcome_screen.dart';
 import 'package:airqo/src/app/auth/repository/auth_repository.dart';
+import 'package:airqo/src/app/auth/repository/social_auth_repository.dart';
+import 'package:airqo/src/app/auth/services/oauth_service.dart';
 import 'package:airqo/src/app/auth/services/auth_helper.dart';
 import 'package:airqo/src/app/shared/repository/global_auth_manager.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
@@ -80,8 +82,10 @@ void main() async {
 
         Bloc.observer = LoggingBlocObserver();
 
+        final authImpl = AuthImpl(oauthService: OAuthServiceImpl());
         runApp(AirqoMobile(
-          authRepository: AuthImpl(),
+          authRepository: authImpl,
+          socialAuthRepository: authImpl,
           userRepository: UserImpl(),
           kyaRepository: KyaImpl(),
           themeRepository: ThemeImpl(),
@@ -102,6 +106,7 @@ void main() async {
 
 class AirqoMobile extends StatelessWidget {
   final AuthRepository authRepository;
+  final SocialAuthRepository socialAuthRepository;
   final ForecastRepository forecastRepository;
   final UserRepository userRepository;
   final MapRepository mapRepository;
@@ -113,6 +118,7 @@ class AirqoMobile extends StatelessWidget {
   const AirqoMobile({
     super.key,
     required this.authRepository,
+    required this.socialAuthRepository,
     required this.mapRepository,
     required this.googlePlacesRepository,
     required this.kyaRepository,
@@ -129,7 +135,10 @@ class AirqoMobile extends StatelessWidget {
       providers: [
         BlocProvider(
           create: (context) {
-            final authBloc = AuthBloc(authRepository)..add(AppStarted());
+            final authBloc = AuthBloc(
+              authRepository: authRepository,
+              socialAuthRepository: socialAuthRepository,
+            )..add(AppStarted());
             GlobalAuthManager.instance.setAuthBloc(authBloc);
             return authBloc;
           },
@@ -316,6 +325,10 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
                 if (authState is AuthLoaded) {
                   context.read<UserBloc>().add(LoadUser());
                   return NavPage();
+                }
+
+                if (authState is OAuthCancelled) {
+                  return const WelcomeScreen();
                 }
 
                 if (authState is AuthLoadingError) {
