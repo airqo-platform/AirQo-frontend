@@ -477,13 +477,6 @@ jobs:
           # Fail fast if the secret is missing (NextAuth requires this in production).
           jq -e '((.NEXTAUTH_SECRET // .AUTH_SECRET) | length > 0)' secrets.json >/dev/null
 
-          DEFAULT_DOMAIN=$(az containerapp env show \
-            --name ${{ env.PR_PREVIEW_ENV }} \
-            --resource-group ${{ env.RG }} \
-            --query properties.defaultDomain -o tsv)
-
-          NEXTAUTH_URL="https://$APP.$DEFAULT_DOMAIN"
-
           az containerapp up \
             --name $APP \
             --resource-group ${{ env.RG }} \
@@ -506,6 +499,13 @@ jobs:
             --resource-group ${{ env.RG }} \
             --query "properties.template.containers[0].env[].name" \
             -o tsv | sort
+
+          DEFAULT_DOMAIN=$(az containerapp env show \
+            --name ${{ env.PR_PREVIEW_ENV }} \
+            --resource-group ${{ env.RG }} \
+            --query properties.defaultDomain -o tsv)
+
+          NEXTAUTH_URL="https://$APP.$DEFAULT_DOMAIN"
 
           AUTH_STATUS=$(curl -sS -o /tmp/nextauth-providers.json -w "%{http_code}" "$NEXTAUTH_URL/api/auth/providers")
           if [ "$AUTH_STATUS" != "200" ]; then
