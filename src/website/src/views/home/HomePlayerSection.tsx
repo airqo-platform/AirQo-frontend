@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 
 import { trackEvent } from '@/components/GoogleAnalytics';
 import mainConfig from '@/configs/mainConfigs';
@@ -29,6 +29,9 @@ const ReactPlayer = dynamic(
 
 ReactPlayer.displayName = 'ReactPlayer';
 
+const VIDEO_PREVIEW_IMAGE =
+  'https://res.cloudinary.com/dbibjvyhm/video/upload/so_0,f_jpg,q_auto,w_1280/v1716038850/website/videos/opening_jtpafn.jpg';
+
 const animations = {
   backdrop: {
     hidden: { opacity: 0 },
@@ -47,7 +50,6 @@ const animations = {
 
 interface VideoState {
   isModalOpen: boolean;
-  isBackgroundVideoPlaying: boolean;
 }
 
 const TextSection: React.FC<{
@@ -81,21 +83,19 @@ const TextSection: React.FC<{
 TextSection.displayName = 'TextSection';
 
 const VideoSection: React.FC<{
-  videoRef: React.RefObject<HTMLVideoElement>;
   onPlay: () => void;
-}> = React.memo(({ videoRef, onPlay }) => (
+}> = React.memo(({ onPlay }) => (
   <div className="lg:w-1/2 w-full relative flex items-center justify-center">
     <div className="w-full h-[250px] sm:h-[300px] md:h-[400px] lg:h-[450px] rounded-lg overflow-hidden relative">
-      <video
-        ref={videoRef}
-        src="https://res.cloudinary.com/dbibjvyhm/video/upload/f_mp4,q_auto:good/v1716038850/website/videos/opening_jtpafn.mov"
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="metadata"
+      <Image
+        src={VIDEO_PREVIEW_IMAGE}
+        alt="AirQo story preview"
+        fill
+        priority
+        sizes="(max-width: 1024px) 100vw, 50vw"
         className="absolute top-0 left-0 w-full h-full object-cover"
       />
+      <div className="absolute inset-0 bg-gradient-to-tr from-blue-950/40 via-blue-900/10 to-transparent" />
       <motion.button
         onClick={onPlay}
         className="absolute inset-0 flex items-center justify-center hover:scale-110 focus:outline-none transition-transform duration-300"
@@ -195,10 +195,8 @@ const HomePlayerSection: React.FC = () => {
   const dispatch = useDispatch();
   const [videoState, setVideoState] = useState<VideoState>({
     isModalOpen: false,
-    isBackgroundVideoPlaying: true,
   });
 
-  const backgroundVideoRef = useRef<HTMLVideoElement | null>(null);
   const modalPlayerRef = useRef<any>(null);
 
   const handlePlayButtonClick = useCallback(() => {
@@ -216,17 +214,6 @@ const HomePlayerSection: React.FC = () => {
     }
     setVideoState((prev) => ({ ...prev, isModalOpen: false }));
   }, []);
-
-  useEffect(() => {
-    const bgVideo = backgroundVideoRef.current;
-    if (bgVideo) {
-      if (videoState.isModalOpen) {
-        bgVideo.pause();
-      } else if (videoState.isBackgroundVideoPlaying) {
-        bgVideo.play();
-      }
-    }
-  }, [videoState.isModalOpen, videoState.isBackgroundVideoPlaying]);
 
   const handleExploreData = useCallback(() => {
     trackEvent({
@@ -254,10 +241,7 @@ const HomePlayerSection: React.FC = () => {
         onExploreData={handleExploreData}
         onGetInvolved={handleGetInvolved}
       />
-      <VideoSection
-        videoRef={backgroundVideoRef}
-        onPlay={handlePlayButtonClick}
-      />
+      <VideoSection onPlay={handlePlayButtonClick} />
       <AnimatePresence>
         {videoState.isModalOpen && (
           <VideoModal

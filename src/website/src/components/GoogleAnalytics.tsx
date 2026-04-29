@@ -6,6 +6,8 @@ import { useEffect, useState } from 'react';
 
 import { hasAnalyticsConsent } from '@/utils/cookieConsent';
 
+const FALLBACK_MEASUREMENT_ID = 'G-79ZVCLEDSG';
+
 declare global {
   interface Window {
     dataLayer?: Record<string, any>[];
@@ -28,6 +30,8 @@ export default function GoogleAnalytics({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [hasConsent, setHasConsent] = useState(false);
+  const resolvedMeasurementId =
+    measurementId?.trim() || FALLBACK_MEASUREMENT_ID;
 
   // Check for consent on mount and when consent changes
   useEffect(() => {
@@ -47,7 +51,6 @@ export default function GoogleAnalytics({
   useEffect(() => {
     if (
       typeof window === 'undefined' ||
-      !measurementId ||
       !hasConsent ||
       typeof window.gtag === 'undefined'
     ) {
@@ -59,12 +62,15 @@ export default function GoogleAnalytics({
       ? `${pathname}?${searchParams.toString()}`
       : pathname;
 
-    window.gtag('config', measurementId, {
+    window.gtag('event', 'page_view', {
+      page_location: window.location.href,
       page_path: pagePath,
+      page_title: document.title,
+      send_to: resolvedMeasurementId,
     });
-  }, [measurementId, pathname, searchParams, hasConsent]);
+  }, [pathname, resolvedMeasurementId, searchParams, hasConsent]);
 
-  if (!measurementId || !hasConsent) {
+  if (!resolvedMeasurementId || !hasConsent) {
     return null;
   }
 
@@ -72,16 +78,17 @@ export default function GoogleAnalytics({
     <>
       {/* Load the gtag script AFTER the page is interactive */}
       <Script
-        src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`}
+        src={`https://www.googletagmanager.com/gtag/js?id=${resolvedMeasurementId}`}
         strategy="afterInteractive"
       />
       <Script id="ga-init" strategy="afterInteractive">
         {`
           window.dataLayer = window.dataLayer || [];
           function gtag(){ dataLayer.push(arguments); }
+          window.gtag = gtag;
           gtag('js', new Date());
-          gtag('config', '${measurementId}', {
-            page_path: window.location.pathname,
+          gtag('config', '${resolvedMeasurementId}', {
+            send_page_view: false,
           });
         `}
       </Script>
