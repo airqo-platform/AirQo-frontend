@@ -3,6 +3,7 @@ import 'package:airqo/core/utils/logging_bloc_observer.dart';
 import 'package:airqo/src/app/auth/bloc/ForgotPasswordBloc/forgot_password_bloc.dart';
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
 import 'package:airqo/src/app/auth/pages/welcome_screen.dart';
+import 'package:airqo/src/app/auth/repository/auth_impl.dart';
 import 'package:airqo/src/app/auth/repository/auth_repository.dart';
 import 'package:airqo/src/app/auth/repository/social_auth_repository.dart';
 import 'package:airqo/src/app/auth/services/oauth_service.dart';
