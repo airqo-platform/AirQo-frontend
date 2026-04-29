@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { options } from "../../auth/[...nextauth]/options";
 import logger from "@/lib/logger";
 import { networkService } from "@/core/services/network-service";
+import type { NetworkRequestValues } from "@/components/features/networks/schema";
 
 export async function GET() {
   try {
@@ -36,9 +37,9 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    let body: unknown;
+    let body: NetworkRequestValues;
     try {
-      body = await req.json();
+      body = (await req.json()) as NetworkRequestValues;
     } catch {
       return NextResponse.json({ message: "Invalid JSON payload" }, { status: 400 });
     }
