@@ -179,6 +179,121 @@ export interface AirQloudPerformanceData {
   }>
 }
 
+/**
+ * Normalize a single data point from the new synced API shape
+ * (`pm2.5 sensor1` / `pm2.5 sensor2`) into a structure that also exposes the
+ * legacy field names (`s1_pm2_5` / `s2_pm2_5`) used by existing consumers.
+ */
+function normalizeSyncedDataPoint(d: any): any {
+  if (!d || typeof d !== 'object') return d
+  const s1 = d['pm2.5 sensor1']
+  const s2 = d['pm2.5 sensor2']
+  const s1Legacy = s1 == null ? null : Number(s1)
+  const s2Legacy = s2 == null ? null : Number(s2)
+  return {
+    ...d,
+    // Preserve legacy fields used by performance/analysis processors
+    s1_pm2_5: d.s1_pm2_5 ?? s1Legacy,
+    s2_pm2_5: d.s2_pm2_5 ?? s2Legacy,
+  }
+}
+
+/**
+ * Convert percentage values (0-100) coming from the new API back into the
+ * 0-1 fraction expected by legacy consumers. Values already in 0-1 are
+ * returned unchanged.
+ */
+function toLegacyFraction(value: any): number | null {
+  if (value == null) return null
+  const n = Number(value)
+  if (Number.isNaN(n)) return null
+  if (n >= 1) return n / 100
+  return n
+}
+
+/**
+ * Derive a sensor error margin from sensor1/sensor2 averages.
+ */
+function deriveSensorErrorMargin(averages: any): number | null {
+  if (!averages || typeof averages !== 'object') return null
+  const a1 = averages['pm2.5 sensor1']
+  const a2 = averages['pm2.5 sensor2']
+  if (a1 == null || a2 == null) return null
+  const n1 = Number(a1)
+  const n2 = Number(a2)
+  if (Number.isNaN(n1) || Number.isNaN(n2)) return null
+  return Math.abs(n1 - n2)
+}
+
+/**
+ * Normalize a device returned by the new `/cohorts/synced` endpoints into the
+ * legacy device shape consumed by the analytics/performance UI.
+ *
+ * New API:
+ *   { device_id, device_name, is_active, uptime (%, 0-100),
+ *     data_completeness (%, 0-100), averages: {...}, data: [...] }
+ *
+ * Legacy shape expected by consumers:
+ *   { _id, name, long_name, uptime (0-1), data_completeness (0-1),
+ *     sensor_error_margin, data: [{ ..., s1_pm2_5, s2_pm2_5 }] }
+ */
+function normalizeSyncedDevice(device: any): any {
+  if (!device) return device
+
+  const id = device._id ?? device.device_id
+  const name = device.name ?? device.device_name
+  const longName = device.long_name ?? device.device_name ?? name
+
+  // New API returns uptime/data_completeness as percentages (0-100). Legacy
+  // consumers expect a 0-1 fraction and multiply by 100 themselves.
+  const uptime = toLegacyFraction(device.uptime)
+  const dataCompleteness = toLegacyFraction(device.data_completeness)
+
+  // Derive a sensor error margin from the device averages when not provided.
+  const sensorErrorMargin = device.sensor_error_margin ?? deriveSensorErrorMargin(device.averages)
+
+  const data = Array.isArray(device.data) ? device.data.map(normalizeSyncedDataPoint) : []
+
+  return {
+    ...device,
+    _id: id,
+    name,
+    long_name: longName,
+    uptime,
+    data_completeness: dataCompleteness,
+    sensor_error_margin: sensorErrorMargin,
+    data,
+  }
+}
+
+/**
+ * Normalize a cohort returned by `/cohorts/synced` into the legacy shape.
+ */
+function normalizeSyncedCohort(cohort: any): any {
+  if (!cohort) return cohort
+
+  const id = cohort._id ?? cohort.cohort_id
+  const numberOfDevices = cohort.numberOfDevices ?? cohort.number_of_devices
+
+  const uptime = toLegacyFraction(cohort.uptime)
+  const dataCompleteness = toLegacyFraction(cohort.data_completeness)
+  const sensorErrorMargin = cohort.sensor_error_margin ?? deriveSensorErrorMargin(cohort.averages)
+
+  const devices = Array.isArray(cohort.devices) ? cohort.devices.map(normalizeSyncedDevice) : []
+  const data = Array.isArray(cohort.data) ? cohort.data.map(normalizeSyncedDataPoint) : []
+
+  return {
+    ...cohort,
+    _id: id,
+    numberOfDevices,
+    uptime,
+    data_completeness: dataCompleteness,
+    sensor_error_margin: sensorErrorMargin,
+    devices,
+    data,
+  }
+}
+
 class AirQloudService {
   private readonly baseUrl: string
   private readonly apiPrefix: string
@@ -297,17 +412,95 @@ class AirQloudService {
   }
 
   /**
-   * Get all AirQlouds with performance data - ALIAS for getCohorts
+   * Get all AirQlouds with performance data via the synced endpoint.
+   * Used by the Performance Analysis table.
+   *   GET /cohorts/synced?cohort_ids=...&includePerformance=true&startDateTime=...&endDateTime=...&frequency=hourly&tags=...&skip=&limit=
    */
-  async getAirQlouds(params: AirQloudsQueryParams = {}): Promise<MappedAirQloudsResponse> {
-    return this.getCohorts(params)
+  async getAirQlouds(
+    params: AirQloudsQueryParams & { cohort_ids?: string[] | string } = {}
+  ): Promise<MappedAirQloudsResponse> {
+    if (isMockMode()) {
+      return this.getCohorts(params)
+    }
+
+    const queryParams = new URLSearchParams()
+
+    if (params.cohort_ids) {
+      const ids = Array.isArray(params.cohort_ids) ? params.cohort_ids.join(',') : params.cohort_ids
+      if (ids) queryParams.append('cohort_ids', ids)
+    }
+
+    if (params.includePerformance !== undefined) {
+      queryParams.append('includePerformance', params.includePerformance.toString())
+    }
+    if (params.startDateTime) queryParams.append('startDateTime', params.startDateTime)
+    if (params.endDateTime) queryParams.append('endDateTime', params.endDateTime)
+    if (params.frequency) queryParams.append('frequency', params.frequency)
+    if (params.tags) queryParams.append('tags', params.tags)
+    if (params.skip !== undefined) queryParams.append('skip', params.skip.toString())
+    if (params.limit !== undefined) queryParams.append('limit', params.limit.toString())
+    if (params.search) queryParams.append('search', params.search)
+
+    const endpoint = this.getEndpoint('/cohorts/synced')
+    const qs = queryParams.toString()
+    const url = qs ? `${this.baseUrl}${endpoint}?${qs}` : `${this.baseUrl}${endpoint}`
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: this.getAuthHeaders(),
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      const rawCohorts: any[] = Array.isArray(data?.cohorts) ? data.cohorts : []
+
+      const mappedCohorts: AirQloudWithPerformance[] = rawCohorts.map((raw) => {
+        const cohort = normalizeSyncedCohort(raw)
+        return {
+          ...cohort,
+          id: cohort._id || cohort.name,
+          device_count: cohort.numberOfDevices,
+          is_active: cohort.visibility,
+          country: cohort.country || '',
+          freq: cohort.freq || [],
+          error_margin: cohort.error_margin ?? [],
+          timestamp: cohort.timestamp || [],
+        }
+      })
+
+      const metaTotal = Number.isFinite(data?.meta?.total) ? data.meta.total : mappedCohorts.length
+      const metaLimitRaw = data?.meta?.limit
+      const fallbackLimit = (params.limit ?? mappedCohorts.length) || 1
+      const effectiveLimit = Number.isFinite(metaLimitRaw) && metaLimitRaw > 0 ? metaLimitRaw : fallbackLimit
+      const computedTotalPages = Math.max(1, Math.ceil(metaTotal / effectiveLimit))
+
+      const meta: AirQloudsMeta = {
+        total: metaTotal,
+        page: Number.isFinite(data?.meta?.page) ? data.meta.page : 1,
+        totalPages: Number.isFinite(data?.meta?.totalPages) ? data.meta.totalPages : computedTotalPages,
+        limit: Number.isFinite(metaLimitRaw) ? metaLimitRaw : (params.limit ?? mappedCohorts.length),
+        skip: Number.isFinite(data?.meta?.skip) ? data.meta.skip : (params.skip ?? 0),
+      }
+
+      return { airqlouds: mappedCohorts, meta }
+    } catch (error) {
+      console.error('Error fetching synced Cohorts:', error)
+      throw error
+    }
   }
 
   /**
-   * Get all AirQlouds without performance data (for filters/dropdowns)
+   * Get all AirQlouds without performance data (for filters/dropdowns).
+   * Uses the synced endpoint without `includePerformance` for a lightweight list.
    */
   async getAirQloudsBasic(params: Omit<AirQloudsQueryParams, 'include_performance' | 'performance_days'> = {}): Promise<MappedAirQloudsResponse> {
-    return this.getCohorts(params)
+    // Don't pass includePerformance for the basic/dropdown call - keeps URL minimal
+    const { includePerformance: _ignored, ...rest } = params
+    return this.getAirQlouds(rest)
   }
 
   /**
@@ -332,7 +525,7 @@ class AirQloudService {
       }
     }
 
-    const endpoint = this.getEndpoint(`/cohorts/${airqloudId}`)
+    const endpoint = this.getEndpoint(`/cohorts/synced/${airqloudId}`)
 
     const queryParams = new URLSearchParams()
 
@@ -343,7 +536,8 @@ class AirQloudService {
       queryParams.append('frequency', 'hourly')
     }
 
-    const url = `${this.baseUrl}${endpoint}?${queryParams.toString()}`
+    const qs = queryParams.toString()
+    const url = qs ? `${this.baseUrl}${endpoint}?${qs}` : `${this.baseUrl}${endpoint}`
 
     try {
       const response = await fetch(url, {
@@ -356,11 +550,15 @@ class AirQloudService {
       }
 
       const data = await response.json()
-      const cohort = data.cohorts?.[0]
+      // The new /cohorts/synced/{id} endpoint returns a single cohort under
+      // `cohort`. Fall back to the legacy `cohorts[0]` shape for safety.
+      const rawCohort = data.cohort ?? data.cohorts?.[0]
 
-      if (!cohort) {
+      if (!rawCohort) {
         throw new Error(`Cohort ${airqloudId} not found`)
       }
+
+      const cohort = normalizeSyncedCohort(rawCohort)
 
       return {
         ...cohort,
@@ -468,13 +666,18 @@ class AirQloudService {
   }
 
   /**
-   * Get performance data for multiple AirQlouds
-   * Uses path-based IDs: /cohorts/id1,id2?includePerformance=true&...
+   * Get performance data for one or more cohorts.
+   * Uses the new synced endpoint:
+   *   /cohorts/synced?cohort_ids=id1,id2&includePerformance=true&...
    */
   async getAirQloudPerformance(params: {
     start: string
     end: string
     ids: string[]
+    tags?: string[] | string
+    skip?: number
+    limit?: number
+    frequency?: string
   }): Promise<AirQloudPerformanceData[]> {
     if (isMockMode()) return getMockCohortPerformance(params.ids) as any
 
@@ -483,13 +686,20 @@ class AirQloudService {
     }
 
     const queryParams = new URLSearchParams()
+    queryParams.append('cohort_ids', params.ids.join(','))
     queryParams.append('includePerformance', 'true')
     queryParams.append('startDateTime', params.start)
     queryParams.append('endDateTime', params.end)
-    queryParams.append('frequency', 'hourly')
+    queryParams.append('frequency', params.frequency || 'hourly')
 
-    const idsPath = params.ids.join(',')
-    const endpoint = this.getEndpoint(`/cohorts/${idsPath}`)
+    if (params.tags) {
+      const tagsValue = Array.isArray(params.tags) ? params.tags.join(',') : params.tags
+      if (tagsValue) queryParams.append('tags', tagsValue)
+    }
+    if (params.skip !== undefined) queryParams.append('skip', params.skip.toString())
+    if (params.limit !== undefined) queryParams.append('limit', params.limit.toString())
+
+    const endpoint = this.getEndpoint('/cohorts/synced')
     const url = `${this.baseUrl}${endpoint}?${queryParams.toString()}`
 
     try {
@@ -503,20 +713,24 @@ class AirQloudService {
       }
 
       const data = await response.json()
+      const rawCohorts: any[] = Array.isArray(data?.cohorts) ? data.cohorts : []
 
-      return data.cohorts.map((cohort: Cohort) => ({
-        id: cohort._id || cohort.name,
-        name: cohort.name,
-        uptime: cohort.uptime,
-        data_completeness: cohort.data_completeness,
-        sensor_error_margin: cohort.sensor_error_margin,
-        error_margin: cohort.error_margin,
-        data: cohort.data,
-        freq: cohort.freq || [],
-        timestamp: cohort.timestamp || [],
-        numberOfDevices: cohort.numberOfDevices,
-        devices: cohort.devices || [],
-      }))
+      return rawCohorts.map((raw) => {
+        const cohort = normalizeSyncedCohort(raw)
+        return {
+          id: cohort._id || cohort.name,
+          name: cohort.name,
+          uptime: cohort.uptime,
+          data_completeness: cohort.data_completeness,
+          sensor_error_margin: cohort.sensor_error_margin,
+          error_margin: cohort.error_margin,
+          data: cohort.data,
+          freq: cohort.freq || [],
+          timestamp: cohort.timestamp || [],
+          numberOfDevices: cohort.numberOfDevices,
+          devices: cohort.devices || [],
+        }
+      })
     } catch (error) {
       console.error('Error fetching Cohorts Performance:', error)
       throw error

@@ -6,7 +6,8 @@ enum AppFeatureFlag {
   exposureTracking('exposure_tracking'),
   surveys('surveys'),
   dataSharing('data_sharing'),
-  feedback('feedback');
+  feedback('feedback'),
+  socialLogin('social_login');
 
   final String key;
   const AppFeatureFlag(this.key);

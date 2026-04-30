@@ -57,3 +57,11 @@ class DeleteUserAccount extends AuthEvent {
 class SessionExpired extends AuthEvent {
   const SessionExpired();
 }
+
+class LoginWithProvider extends AuthEvent {
+  final String provider;
+  const LoginWithProvider(this.provider);
+
+  @override
+  List<Object> get props => [provider];
+}

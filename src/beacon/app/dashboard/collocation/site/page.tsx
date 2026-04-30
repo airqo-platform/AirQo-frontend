@@ -34,6 +34,7 @@ import { fetchCollocationSites } from "@/lib/api"
 import { isMockMode } from "@/lib/mock-data"
 import { syncSites } from "@/services/device-api.service"
 import { useToast } from "@/components/ui/use-toast"
+import { REFERENCE_MONITOR_LABEL } from "@/lib/utils"
 
 // --- Types ---
 
@@ -282,34 +283,68 @@ export default function SiteCollocationPage() {
         startDateTime: start.toISOString(),
         endDateTime: end.toISOString(),
         summary: true,
+        includePerformance: true,
       }
 
       const response = await fetchCollocationSites(params)
       
       if (response.success && Array.isArray(response.sites)) {
         const mappedSites: SiteCollocationEntry[] = response.sites.map((site: any) => {
-          const dailyData = site.data || []
+          // Performance data from includePerformance=true (daily breakdown)
+          const performanceData: any[] = site.performance || site.data || []
+
+          // Summary-level error margin (from summary=true)
+          const summaryErrorMargin = site.error_margin ?? site.average_error_margin ?? 0
+
+          // Compute uptime as the AVERAGE across ALL devices at the site.
+          // Devices with no data (or null/undefined uptime) count as 0 so the
+          // denominator is always the total number of devices.
+          const devicesArr: any[] = Array.isArray(site.devices) ? site.devices : []
+          const numberOfDevices = site.numberOfDevices || devicesArr.length || 0
+
+          const normalizeUptime = (u: any): number => {
+            const n = Number(u)
+            if (!Number.isFinite(n) || n <= 0) return 0
+            return n <= 1 ? n * 100 : n
+          }
+
+          let computedUptime = 0
+          if (numberOfDevices > 0) {
+            const sumDeviceUptime = devicesArr.reduce(
+              (acc, d) => acc + normalizeUptime(d?.uptime),
+              0,
+            )
+            computedUptime = sumDeviceUptime / numberOfDevices
+          } else {
+            // Fall back to summary-level uptime when device list is unavailable
+            const summaryUptime = site.uptime ?? site.average_uptime ?? 0
+            computedUptime = normalizeUptime(summaryUptime)
+          }
+
           return {
-            id: site._id,
+            id: site._id || site.id,
             name: site.name,
             location: site.formatted_name || [site.city, site.district, site.country].filter(Boolean).join(", "),
             category: site.network === "usembassy" ? "bam" : "lowcost",
-            uptime: (site.uptime || 0) * 100,
-            errorMargin: site.error_margin || 0,
-            uptimeHistory: dailyData.map((d: any) => ({
-              value: (d.uptime || 0) * 100,
-              timestamp: d.date,
+            uptime: computedUptime,
+            errorMargin: summaryErrorMargin,
+            uptimeHistory: performanceData.map((d: any) => ({
+              // Use the same normalizer as site-level uptime so a value of
+              // 0..1 is treated as a fraction and >1 as an already-percentage,
+              // keeping all uptime numbers on the 0..100 scale consistently.
+              value: normalizeUptime(d?.uptime),
+              timestamp: d.date || d.timestamp,
             })),
-            errorMarginHistory: dailyData.map((d: any) => ({
-              value: d.error_margin || 0,
-              timestamp: d.date,
+            errorMarginHistory: performanceData.map((d: any) => ({
+              value: d.error_margin ?? d.errorMargin ?? 0,
+              timestamp: d.date || d.timestamp,
             })),
             devices: {
-              total: site.numberOfDevices || 0,
-              lowcost: (site.devices || []).filter((d: any) => d.category === "lowcost").length,
-              lowcostOnline: (site.devices || []).filter((d: any) => d.category === "lowcost" && d.uptime > 0).length,
-              bam: (site.devices || []).filter((d: any) => d.category === "bam").length,
-              bamOnline: (site.devices || []).filter((d: any) => d.category === "bam" && d.uptime > 0).length,
+              total: numberOfDevices,
+              lowcost: devicesArr.filter((d: any) => d.category === "lowcost").length,
+              lowcostOnline: devicesArr.filter((d: any) => d.category === "lowcost" && (d.uptime ?? 0) > 0).length,
+              bam: devicesArr.filter((d: any) => d.category === "bam").length,
+              bamOnline: devicesArr.filter((d: any) => d.category === "bam" && (d.uptime ?? 0) > 0).length,
             }
           }
         })
@@ -412,7 +447,7 @@ export default function SiteCollocationPage() {
               </div>
               <div className="flex items-center gap-1.5">
                 <div className="h-3 w-3 rounded-full bg-purple-500"></div>
-                <span className="text-xs text-muted-foreground">BAM</span>
+                <span className="text-xs text-muted-foreground">{REFERENCE_MONITOR_LABEL}</span>
                 <span className="text-sm font-semibold">{summary.bamSites}</span>
               </div>
             </div>
@@ -563,7 +598,7 @@ export default function SiteCollocationPage() {
                                 <div className="flex items-center justify-between gap-4">
                                   <div className="flex items-center gap-1.5">
                                     <div className="h-2 w-2 rounded-full bg-purple-500"></div>
-                                    <span>BAM</span>
+                                    <span>{REFERENCE_MONITOR_LABEL}</span>
                                   </div>
                                   <span className="font-medium tracking-tight whitespace-nowrap">{site.devices.bam} {site.devices.bam === 1 ? 'device' : 'devices'}</span>
                                 </div>
@@ -657,7 +692,7 @@ export default function SiteCollocationPage() {
                                     <div className="flex items-center justify-between gap-4">
                                       <div className="flex items-center gap-1.5">
                                         <div className="h-2 w-2 rounded-full bg-purple-500"></div>
-                                        <span>BAM</span>
+                                        <span>{REFERENCE_MONITOR_LABEL}</span>
                                       </div>
                                       <span className="font-medium tracking-tight whitespace-nowrap">{site.devices.bam} {site.devices.bam === 1 ? 'device' : 'devices'}</span>
                                     </div>

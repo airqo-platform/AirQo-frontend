@@ -34,6 +34,9 @@ final class SessionExpiredState extends AuthState {}
 
 final class AuthVerified extends AuthState {}
 
+/// Emitted when the user dismisses the OAuth in-app browser without completing sign-in.
+final class OAuthCancelled extends AuthState {}
+
 final class EmailUnverifiedError extends AuthLoadingError {
   final String email;
 

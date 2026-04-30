@@ -33,6 +33,7 @@ import {
   Plus,
   Calendar as CalendarIcon,
 } from "lucide-react"
+import { formatCategoryLabel } from "@/lib/utils"
 
 // --- Mock Data ---
 
@@ -551,7 +552,7 @@ export default function InlabCollocationPage() {
                           <span className="font-medium">{device.deviceName}</span>
                         </td>
                         <td className="py-3 px-4">
-                          <span className="text-sm text-gray-600">{device.category}</span>
+                          <span className="text-sm text-gray-600">{formatCategoryLabel(device.category)}</span>
                         </td>
                         <td className="py-3 px-4">
                           <span className="text-sm text-gray-600">{device.channelId}</span>
