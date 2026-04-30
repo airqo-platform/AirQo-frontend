@@ -1,6 +1,5 @@
 import {
   useQuery,
-  UseQueryOptions,
   useMutation,
   useQueryClient,
   useInfiniteQuery,
@@ -15,12 +14,10 @@ import {
   type DeviceActivitiesResponse,
 } from '../apis/devices';
 import { useGroupCohorts } from './useCohorts';
-import { setError } from '@/core/redux/slices/devicesSlice';
 import { useAppSelector } from '../redux/hooks';
 import { useMemo } from 'react';
 import type {
   DevicesSummaryResponse,
-  ReadingsApiResponse,
   DeviceAvailabilityResponse,
   DeviceClaimRequest,
   DeviceClaimResponse,
@@ -262,28 +259,6 @@ export const useDeviceCount = (options: { enabled?: boolean; cohortIds?: string[
     ...query,
     isLoading: (shouldFetchGroupCohorts && isLoadingCohorts) || (isQueryEnabled && query.isLoading),
     isFetching: (shouldFetchGroupCohorts && isLoadingCohorts) || (isQueryEnabled && query.isFetching),
-  };
-};
-
-export const useMapReadings = () => {
-  const dispatch = useDispatch();
-
-  const mapReadingsQuery = useQuery<
-    ReadingsApiResponse,
-    AxiosError<ErrorResponse>
-  >({
-    queryKey: ['mapReadings'],
-    queryFn: () =>
-      devices.getMapReadingsApi() as Promise<unknown> as Promise<ReadingsApiResponse>,
-    onError: (error: AxiosError<ErrorResponse>) => {
-      dispatch(setError(error.message));
-    },
-  } as UseQueryOptions<ReadingsApiResponse, AxiosError<ErrorResponse>>);
-
-  return {
-    mapReadings: mapReadingsQuery.data?.measurements || [],
-    isLoading: mapReadingsQuery.isLoading,
-    error: mapReadingsQuery.error,
   };
 };
 

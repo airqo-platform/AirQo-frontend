@@ -18,6 +18,7 @@ import {
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
+import { formatCategoryLabel } from "@/lib/utils"
 import {
   Dialog,
   DialogContent,
@@ -364,7 +365,7 @@ export default function DeviceDetailsTab({
                               className="p-0 h-auto font-medium text-gray-800 hover:text-gray-600 text-sm"
                               onClick={() => router.push(`/dashboard/category/${encodeURIComponent(item.category)}`)}
                             >
-                              {item.category}
+                              {formatCategoryLabel(item.category)}
                               <ExternalLink className="h-3 w-3 ml-1" />
                             </Button>
                           </div>

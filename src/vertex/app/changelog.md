@@ -4,7 +4,60 @@
 
 ---
 
-## Version 1.23.30
+## Version 1.23.33
+**Released:** April 29, 2026
+
+### Network Request Submission Fix, Azure Preview Auth Hardening & Error Handling
+
+Fixed a critical staging-environment bug where submitting a new sensor manufacturer request produced a 404 due to a malformed URL, removed obsolete custom auth cookie handling after the SSO rollback, hardened Azure preview NextAuth configuration, and improved error propagation across the network request API route handlers.
+
+<details>
+<summary><strong>Bug Fixes (7)</strong></summary>
+
+- **Network Request 404 in Staging**: Resolved a critical bug where clicking "Request New Sensor Manufacturer" in staging produced the malformed URL `/devices/undefineddevices/network-creation-requests`. Root cause: `NEXT_PUBLIC_API_URL` was not injected at build time, causing the client-side URL construction to silently embed `"undefined"`. Fixed by routing the POST through a new Next.js API route handler, removing the env-var dependency from the client entirely.
+- **Route Handler Error Shape Mismatch**: Fixed the GET handler at `/api/devices/network-creation-requests` always returning a 500 status. The handler was reading `err.response?.data` and `err.response?.status`, but `networkService` throws errors with `err.data` and `err.status` attached directly. Actual error details from the backend were being silently dropped.
+- **Consistent Error Shape on Action Route**: Applied the same error shape fix to the PUT handler at `/api/devices/network-creation-requests/[id]/[action]/route.ts` to ensure backend error payloads and status codes are correctly surfaced.
+- **Malformed JSON Handling**: Updated the public POST handler at `/api/devices/network-creation-requests` to return `400` for invalid JSON payloads instead of falling through to the generic internal server error path.
+- **Backend Validation Message Preservation**: Preserved backend error payloads from failed network request submissions and taught `getApiErrorMessage` to extract messages from both Axios-style `response.data` and fetch/custom `error.data` shapes.
+- **Slack Logging Noise in Preview**: Updated `/api/log-to-slack` to skip cleanly when `SLACK_WEBHOOK_URL` is not configured, preventing logging failures from adding extra 500s to the browser console.
+- **"undefined" in Requester Name Pre-fill**: Fixed an edge case where the `requester_name` field in the submission dialog could display `"undefined undefined"` if `firstName` or `lastName` was missing from the user's profile. Replaced the template literal with a `.filter().join()` approach that safely omits missing name parts.
+
+</details>
+
+<details>
+<summary><strong>Refactors & Hardening (7)</strong></summary>
+
+- **Server-Side URL Construction**: Added a `submitNetworkRequest` method to `networkService` that builds the backend URL server-side via `getApiBaseUrl()`, which always resolves correctly in a server context regardless of staging environment variable configuration.
+- **New Public POST Route Handler**: Added a `POST` handler to `/api/devices/network-creation-requests/route.ts` that proxies public submission requests to the backend with no auth requirement, matching the public nature of the endpoint.
+- **Collocated Mutation Logic**: Removed the intermediate `useSubmitNetworkRequest` hook and `submitNetworkRequestApi` client API method. The `useMutation` + `fetch` logic is now inlined directly in `NetworkRequestDialog`, removing unnecessary abstraction layers for a straightforward, single-use call.
+- **Outbound Request Timeout**: Added an `AbortController` timeout to `networkService.submitNetworkRequest` so slow or unresponsive backend calls fail with a controlled `504` response instead of hanging the route handler.
+- **NextAuth Cookie Defaults Restored**: Removed Vertex's custom session cookie override and matching middleware cookie-name lookup now that cross-subdomain SSO cookie sharing is no longer needed. NextAuth now manages session cookie naming and retrieval through its defaults.
+- **Azure Preview NextAuth URL Hardening**: The Azure preview workflow now computes the per-PR Container Apps URL before build, writes `NEXTAUTH_URL`, `NEXTAUTH_URL_INTERNAL`, and `AUTH_TRUST_HOST=true` into the image `.env`, and also injects them at runtime.
+- **Preview Auth Health Check**: Added a post-deploy check against `/api/auth/providers` so broken NextAuth preview deployments fail fast and print recent Container App logs instead of silently publishing an unusable preview.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (11)</strong></summary>
+
+- `.github/workflows/deploy-frontend-azurepreview.yml`
+- `app/api/devices/network-creation-requests/route.ts`
+- `app/api/devices/network-creation-requests/[id]/[action]/route.ts`
+- `app/api/auth/[...nextauth]/options.ts`
+- `app/api/log-to-slack/route.ts`
+- `middleware.ts`
+- `core/services/network-service.ts`
+- `core/apis/networks.ts`
+- `core/hooks/useNetworks.ts`
+- `core/utils/getApiErrorMessage.ts`
+- `components/features/networks/network-request-dialog.tsx`
+
+</details>
+
+---
+
+## Version 1.23.32
+
 **Released:** April 27, 2026
 
 ### Cohort Performance Optimization & Request Stability
@@ -43,7 +96,7 @@ Optimized cohort-based data fetching by migrating to cached endpoints and implem
 
 ---
 
-## Version 1.23.29
+## Version 1.23.31
 **Released:** April 27, 2026
 
 ### Site Metadata Refresh & Grid Admin Level Management
@@ -97,7 +150,7 @@ Introduced on-demand site metadata enrichment and comprehensive administrative l
 
 ---
 
-## Version 1.23.28
+## Version 1.23.30
 **Released:** April 27, 2026
 
 ### Device Deployment Enhancements
@@ -121,9 +174,7 @@ Introduced a robust device deployment component with support for deploying to bo
 
 </details>
 
----
- 
-## Version 1.23.27
+## Version 1.23.29
 **Released:** April 22, 2026
 
 ### Device Exports & Recall History Site Details
@@ -158,6 +209,123 @@ Improved table export controls (including extra export fields) and enhanced devi
 - `components/features/devices/utils/table-columns.tsx`
 - `components/shared/table/ReusableTable.tsx`
 - `components/shared/table/TableExportModal.tsx`
+- `app/changelog.md`
+
+</details>
+
+---
+
+## Version 1.23.28
+**Released:** April 18, 2026
+
+### Mandatory Org Setup, Navigation Shimmer, and Performance Optimization
+
+Introduced a forced organization setup flow for new workspaces, enhanced navigation feedback with global shimmer transitions, and optimized core switching performance.
+
+<details>
+<summary><strong>Mandatory Organization Setup (3)</strong></summary>
+
+- **Forced Setup Flow**: Implemented a non-dismissible organization setup workflow for external organizations that haven't created any cohorts yet, ensuring a consistent onboarding experience.
+- **Introductory Experience**: Added a new "Intro" view to the `OrganizationSetupDialog` to guide users through the benefits of workspace configuration.
+- **Dialog Persistence**: Enhanced `ReusableDialog` with `preventDismiss` support to enforce critical workflows by disabling backdrop and Escape-key closures.
+
+</details>
+
+<details>
+<summary><strong>Navigation & Performance (4)</strong></summary>
+
+- **Instant Organization Switching**: Overhauled the organization picker to provide instantaneous UI feedback, moving heavy cache management and navigation to the background.
+- **Global Navigation Shimmer**: Integrated a top-aligned shimmer bar that provides immediate visual feedback during all route transitions and module switches.
+- **Smooth Page Transitions**: Leveraged `framer-motion` to implement global fade-in transitions between pages, improving the perceived quality of navigation.
+- **Optimistic Module Switching**: Improved the responsiveness of the module switcher (Devices vs. Admin) by updating UI state immediately upon selection.
+
+</details>
+
+<details>
+<summary><strong>UI Stability & Infrastructure (3)</strong></summary>
+
+- **Z-Index Harmonization**: Resolved stacking context issues between `OrganizationModal` and `ReusableDialog` to ensure overlays always render correctly over navigation elements.
+- **Preview Authentication Fix**: Resolved persistent login failures in `vertex` previews by stripping static `NEXTAUTH_URL` values, enabling `AUTH_TRUST_HOST=true`. Added a dynamic host inference wrapper in the auth route to handle Azure Container Apps dynamic URLs.
+- **Layout Robustness**: Refined the root layout structure to isolate the `OrganizationSetupBanner` from the main scroll container, preventing layout shifts during onboarding.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (8+)</strong></summary>
+
+- `src/vertex/components/features/cohorts/organization-setup-dialog.tsx`
+- `src/vertex/components/features/org-picker/organization-picker.tsx`
+- `src/vertex/components/layout/layout.tsx`
+- `src/vertex/components/layout/organization-setup-banner.tsx`
+- `src/vertex/components/shared/dialog/ReusableDialog.tsx`
+- `.github/workflows/deploy-frontend-pr-previews.yml`
+- `src/vertex/components/features/org-picker/organization-modal.tsx`
+
+</details>
+
+---
+
+## Version 1.23.27
+**Released:** April 16, 2026
+
+### Native Sensor Manufacturer Requests & Dashboard Overhaul
+
+Replaced the legacy Google Form workflow with a native, standalone administrative dashboard for managing new sensor manufacturer requests, featuring a tabbed navigation system and centralized review controls.
+
+<details>
+<summary><strong>Admin Request Dashboard (5)</strong></summary>
+
+- **Status-Tabbed Layout**: Introduced a new standalone dashboard at `/admin/networks/requests` with tabs for `Pending`, `In Review`, `Approved`, `Denied`, and `All`.
+- **Real-time Status Counts**: Dynamic count badges integrated into each status tab for immediate visibility of the requests queue.
+- **Centralized Admin Control**: Approval and denial workflows (including reviewer notes) are now managed globally at the page level for improved data integrity.
+- **Streamlined UI**: Removed redundant navigation elements (back buttons, search bars) to create a focused, high-density management interface.
+- **UI System Standardization**: Refined the `Tabs` component styling to mirror `ReusableButton` behavior (Filled for active states, Outlined for inactive).
+- **Optimized Actions**: Standardized the use of `ReusableButton` for administrative actions like refreshing the request queue.
+
+</details>
+
+<details>
+<summary><strong>Navigation & Integration (3)</strong></summary>
+
+- **Multi-Sidebar Integration**: Added dedicated entry points for "Manufacturer Requests" in both the Primary and Secondary sidebars.
+- **Icon Set Expansion**: Integrated `AqFileQuestion02` for requests and updated Sensor Manufacturers to use `AqCpuChip01` for better visual distinction.
+- **Strict Route Highlighting**: Implemented precise pathname matching in sidebars to ensure clear visual feedback when navigating between management modules.
+
+</details>
+
+<details>
+<summary><strong>UI/UX Improvements (4)</strong></summary>
+
+- **Instant Organization Switching**: Optimized the organization picker to close instantly and handle cache management in the background, providing a seamless transition experience.
+- **Search System Fix**: Resolved a critical synchronization glitch in the `ReusableTable` component that caused characters to be erased or reverted during rapid typing and backspacing.
+- **UI System Standardization**: Refined the `Tabs` component styling to mirror `ReusableButton` behavior (Filled for active states, Outlined for inactive).
+- **Docusaurus Config Optimization**: Streamlined the documentation site configuration by cleaning up unused plugins and refining navigation headers.
+
+</details>
+
+<details>
+<summary><strong>Codebase Maintenance (3)</strong></summary>
+
+- **Map-Readings Cleanup**: Removed the legacy Map-Readings types, API definitions, hooks, and utilities to reduce technical debt.
+- **Type Safety Hardening**: Resolved over a dozen TypeScript and linting errors, focusing on unused imports and removing unnecessary `any` types.
+- **API Response Refinement**: Updated Cohort API typing to better reflect backend response structures and ensure reliable data handling.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (16+)</strong></summary>
+
+- `app/(authenticated)/admin/networks/page.tsx`
+- `app/(authenticated)/admin/networks/requests/page.tsx`
+- `app/api/network/requests/route.ts`
+- `app/api/network/requests/[id]/[action]/route.ts`
+- `components/features/networks/network-request-dialog.tsx`
+- `components/features/networks/request-table.tsx`
+- `components/layout/primary-sidebar.tsx`
+- `components/layout/secondary-sidebar.tsx`
+- `core/apis/networks.ts`
+- `core/hooks/useNetworks.ts`
+- `core/routes.ts`
 - `app/changelog.md`
 
 </details>

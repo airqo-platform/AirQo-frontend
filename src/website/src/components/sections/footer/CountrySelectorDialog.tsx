@@ -94,6 +94,10 @@ const CountrySelectorDialog: React.FC = () => {
 
   // Effect: Get the user's coordinates and fetch the corresponding country
   useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
     let isMounted = true;
     const controller = new AbortController();
 
@@ -121,7 +125,7 @@ const CountrySelectorDialog: React.FC = () => {
       isMounted = false;
       controller.abort();
     };
-  }, [fetchUserCountry]);
+  }, [fetchUserCountry, isOpen]);
 
   // Process countries data when it loads
   useEffect(() => {

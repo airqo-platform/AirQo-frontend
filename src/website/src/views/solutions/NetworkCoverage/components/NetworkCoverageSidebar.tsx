@@ -1,7 +1,12 @@
 /* eslint-disable simple-import-sort/imports */
-import { AqMarkerPin01, AqSearchRefraction } from '@airqo/icons-react';
 import React from 'react';
-import { FiChevronLeft, FiChevronRight, FiX } from 'react-icons/fi';
+import {
+  FiChevronLeft,
+  FiChevronRight,
+  FiMapPin,
+  FiSearch,
+  FiX,
+} from 'react-icons/fi';
 import {
   type MonitorType,
   type NetworkCoverageCountry,
@@ -216,7 +221,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
           <>
             {/* Search input */}
             <div className="relative">
-              <AqSearchRefraction className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+              <FiSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
               <input
                 value={query}
                 onChange={(event) => onQueryChange(event.target.value)}
@@ -536,7 +541,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
         filteredCountries.length === 0 &&
         !error ? (
           <div className="rounded-xl border border-slate-200 bg-slate-50 p-6 text-center">
-            <AqSearchRefraction className="mx-auto h-7 w-7 text-slate-400" />
+            <FiSearch className="mx-auto h-7 w-7 text-slate-400" />
             <p className="mt-2 text-sm font-semibold text-slate-700">
               No countries match your search
             </p>
@@ -608,7 +613,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                         {monitor.name}
                       </h4>
                       <p className="mt-0.5 flex items-center gap-1 text-sm text-slate-600">
-                        <AqMarkerPin01 className="h-3.5 w-3.5 flex-shrink-0 text-slate-500" />
+                        <FiMapPin className="h-3.5 w-3.5 flex-shrink-0 text-slate-500" />
                         {monitor.city}
                       </p>
                     </div>
@@ -680,7 +685,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                 {selectedMonitor.name}
               </h3>
               <p className="mt-1 flex items-center gap-1.5 text-base text-slate-600">
-                <AqMarkerPin01 className="h-4 w-4 flex-shrink-0 text-slate-500" />
+                <FiMapPin className="h-4 w-4 flex-shrink-0 text-slate-500" />
                 {selectedMonitor.city}, {selectedMonitor.country}
               </p>
             </div>

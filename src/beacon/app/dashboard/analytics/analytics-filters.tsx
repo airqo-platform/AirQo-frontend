@@ -58,7 +58,7 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
 
   // Cohort Tags State
   const [cohortTags, setCohortTags] = useState<string[]>(["hardware"])
-  const availableTags = ["hardware", "software", "test", "production"] // Hardcoded for now, could be fetched
+  const availableTags = ["hardware", "duplicate", "organizational", "inlab", "misc"] // Hardcoded for now, could be fetched
 
   const [dateRange, setDateRange] = useState<{
     from: Date | undefined

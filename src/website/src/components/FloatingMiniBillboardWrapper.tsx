@@ -17,6 +17,27 @@ interface BillboardData {
   } | null;
 }
 
+const INITIAL_BILLBOARD_FETCH_DELAY_MS = 6000;
+
+const reportFloatingBillboardIssue = (
+  message: string,
+  error: unknown,
+  level: 'warn' | 'error' = 'warn',
+) => {
+  if (process.env.NODE_ENV === 'production') {
+    return;
+  }
+
+  const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+  if (level === 'error') {
+    console.error(message, errorMessage);
+    return;
+  }
+
+  console.warn(message, errorMessage);
+};
+
 /**
  * Client-side wrapper that fetches billboard data for all countries with pagination
  * Prioritizes Uganda first, then rotates through all other countries
@@ -38,6 +59,7 @@ export default function FloatingMiniBillboardWrapper() {
       return;
     }
     let mounted = true;
+    let fetchDelayId: number | null = null;
 
     const fetchAllCountriesData = async () => {
       try {
@@ -71,9 +93,9 @@ export default function FloatingMiniBillboardWrapper() {
               hasMorePages = false;
             }
           } catch (error) {
-            console.warn(
+            reportFloatingBillboardIssue(
               `[FloatingBillboard] Failed to fetch page ${currentPage}:`,
-              error instanceof Error ? error.message : 'Unknown error',
+              error,
             );
             hasMorePages = false;
           }
@@ -85,8 +107,6 @@ export default function FloatingMiniBillboardWrapper() {
           }
           return;
         }
-
-        console.log(`[FloatingBillboard] Fetched ${allGrids.length} countries`);
 
         // Step 2: Sort grids to prioritize Uganda first
         const sortedGrids = [...allGrids].sort((a, b) => {
@@ -116,9 +136,9 @@ export default function FloatingMiniBillboardWrapper() {
                 reading: reading?.data || null,
               } as BillboardData;
             } catch (error) {
-              console.warn(
+              reportFloatingBillboardIssue(
                 `[FloatingBillboard] Failed to fetch reading for grid ${grid._id} (${grid.name}):`,
-                error instanceof Error ? error.message : 'Unknown error',
+                error,
               );
               return {
                 grid,
@@ -142,10 +162,6 @@ export default function FloatingMiniBillboardWrapper() {
             item.reading?.pm2_5?.value != null && item.reading.pm2_5.value >= 0,
         );
 
-        console.log(
-          `[FloatingBillboard] ${validData.length} countries with valid PM2.5 data`,
-        );
-
         if (mounted && validData.length > 0) {
           setBillboardData(validData);
           setLoading(false);
@@ -153,9 +169,10 @@ export default function FloatingMiniBillboardWrapper() {
           setLoading(false);
         }
       } catch (error) {
-        console.error(
+        reportFloatingBillboardIssue(
           '[FloatingBillboard] Failed to fetch billboard data:',
-          error instanceof Error ? error.message : 'Unknown error',
+          error,
+          'error',
         );
         if (mounted) {
           setLoading(false);
@@ -163,10 +180,15 @@ export default function FloatingMiniBillboardWrapper() {
       }
     };
 
-    fetchAllCountriesData();
+    fetchDelayId = window.setTimeout(() => {
+      void fetchAllCountriesData();
+    }, INITIAL_BILLBOARD_FETCH_DELAY_MS);
 
     return () => {
       mounted = false;
+      if (fetchDelayId !== null) {
+        window.clearTimeout(fetchDelayId);
+      }
     };
   }, [pathname]);
 

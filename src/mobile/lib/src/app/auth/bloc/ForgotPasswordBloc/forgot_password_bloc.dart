@@ -51,7 +51,7 @@ class PasswordResetBloc extends Bloc<PasswordResetEvent, PasswordResetState> {
           return;
         }
 
-        final token = await authRepository.verifyResetPin(event.pin, email);
+        final token = await authRepository.validatePinFormat(event.pin, email);
         
         emit(PasswordResetVerified(
           message: "PIN successfully verified. Proceed to reset password.",

@@ -1,9 +1,8 @@
 'use client';
 
-import { AqCopy06 } from '@airqo/icons-react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { FiChevronDown } from 'react-icons/fi';
+import { FiChevronDown, FiCopy } from 'react-icons/fi';
 
 import { cn } from '@/lib/utils';
 
@@ -272,7 +271,7 @@ const BillboardHeader = ({
                                       Copied!
                                     </span>
                                   ) : (
-                                    <AqCopy06 className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                                    <FiCopy className="w-4 h-4 text-blue-600 flex-shrink-0" />
                                   )}
                                 </button>
                               </div>
@@ -442,7 +441,7 @@ const BillboardHeader = ({
                                       Copied!
                                     </span>
                                   ) : (
-                                    <AqCopy06 className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                                    <FiCopy className="w-4 h-4 text-blue-600 flex-shrink-0" />
                                   )}
                                 </button>
                               </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import dynamic from 'next/dynamic';
 import React from 'react';
 
 import CardWrapper from '@/components/sections/solutions/CardWrapper';
@@ -9,7 +10,26 @@ import { CustomButton, Divider } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
 import AfricanCities from '@/views/solutions/AfricanCities/AfricanCities';
 
-import GridAirQualityMonitor from '../../../components/sections/solutions/GridAirQualityMonitor';
+const GridAirQualityMonitor = dynamic(
+  () => import('../../../components/sections/solutions/GridAirQualityMonitor'),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="space-y-6 rounded-xl bg-blue-50 p-6">
+        <div className="h-8 w-72 animate-pulse rounded bg-blue-100" />
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          {Array.from({ length: 3 }, (_, index) => (
+            <div
+              key={index}
+              className="h-14 animate-pulse rounded-lg bg-white"
+            />
+          ))}
+        </div>
+        <div className="h-[28rem] animate-pulse rounded-xl bg-white" />
+      </div>
+    ),
+  },
+);
 
 // Define motion variants for different animations
 const containerVariants = {
@@ -45,14 +65,14 @@ const AfricanCityPage = () => {
               advance air quality management in African cities."
         containerVariants={containerVariants}
         itemVariants={itemVariants}
+        disableInitialAnimation
       />
 
       {/* Challenge Statement */}
       <motion.section
         className={`${mainConfig.containerClass} px-4 text-center py-16`}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
+        initial={false}
+        animate="visible"
         variants={containerVariants}
       >
         <motion.p

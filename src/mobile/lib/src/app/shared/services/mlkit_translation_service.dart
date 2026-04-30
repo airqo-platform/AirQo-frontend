@@ -39,11 +39,41 @@ class MlKitTranslationService with UiLoggy {
     }
   }
 
+  static const List<String> _criticalUiStrings = [
+    'Home', 'Search', 'Exposure', 'Learn',
+    'Near You', 'Favorites', "Today's Air Quality", 'Settings',
+    'Good', 'Moderate', 'Unhealthy for Sensitive Groups',
+    'Unhealthy', 'Very Unhealthy', 'Hazardous', 'Unknown',
+    'Location', 'Languages', 'Log out', 'Log Out', 'Delete Account',
+  ];
+
   bool supportsTranslation(String localeCode) =>
       _localeToMlKit.containsKey(localeCode);
 
   bool isModelReady(String localeCode) =>
       _downloadedModels.contains(localeCode);
+
+  void _hydrateCritical(String localeCode) {
+    for (final s in _criticalUiStrings) {
+      final key = '$localeCode:$s';
+      if (!_cache.containsKey(key)) _loadFromDisk(key);
+    }
+  }
+
+  bool isPrepared(String localeCode) {
+    if (!supportsTranslation(localeCode) || !isModelReady(localeCode)) return false;
+    _hydrateCritical(localeCode);
+    return _criticalUiStrings.every((s) => _cache.containsKey('$localeCode:$s'));
+  }
+
+  Future<void> prepareCriticalStrings(String localeCode) async {
+    if (!supportsTranslation(localeCode)) return;
+    _hydrateCritical(localeCode);
+    if (_criticalUiStrings.every((s) => _cache.containsKey('$localeCode:$s'))) return;
+    await Future.wait(
+      _criticalUiStrings.map((s) => translate(s, targetLocale: localeCode)),
+    );
+  }
 
   /// Downloads the translation model for [localeCode] if not already present.
   /// Safe to call multiple times — returns immediately if already downloaded.

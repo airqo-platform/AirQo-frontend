@@ -3,15 +3,23 @@ import Google from '@public/assets/images/partners/google.svg';
 import UN from '@public/assets/images/partners/UN.svg';
 import UsMission from '@public/assets/images/partners/usmissionuganda.svg';
 import WorldBank from '@public/assets/images/partners/worldbankgroup.svg';
+import type { IconType } from 'react-icons';
 import {
-  AqData,
-  AqFile02,
-  AqGlobe05,
-  AqMonitor,
-  AqStar06,
-  AqCoinsHand,
-} from '@airqo/icons-react';
+  FiDatabase,
+  FiFileText,
+  FiGlobe,
+  FiMonitor,
+  FiStar,
+  FiUsers,
+} from 'react-icons/fi';
 /* eslint-enable simple-import-sort/imports */
+
+interface StatItem {
+  label: string;
+  key: string;
+  icon: IconType;
+  color: string;
+}
 
 export const partnerLogos = [
   Google,
@@ -58,41 +66,41 @@ export const accordionItems = {
   ],
 };
 
-export const statItems = [
+export const statItems: StatItem[] = [
   {
     label: 'African Cities',
     key: 'african_cities',
-    icon: AqGlobe05,
+    icon: FiGlobe,
     color: '#145DFF',
   },
   {
     label: 'Community Champions',
     key: 'champions',
-    icon: AqStar06,
+    icon: FiStar,
     color: '#10B981',
   },
   {
     label: 'Monitor Installations',
     key: 'deployed_monitors',
-    icon: AqMonitor,
+    icon: FiMonitor,
     color: '#F59E0B',
   },
   {
     label: 'Data records',
     key: 'data_records',
-    icon: AqData,
+    icon: FiDatabase,
     color: '#EF4444',
   },
   {
     label: 'Research papers',
     key: 'research_papers',
-    icon: AqFile02,
+    icon: FiFileText,
     color: '#8B5CF6',
   },
   {
     label: 'Partners',
     key: 'partners',
-    icon: AqCoinsHand,
+    icon: FiUsers,
     color: '#06B6D4',
   },
 ];

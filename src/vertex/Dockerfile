@@ -26,6 +26,7 @@ COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/start-next.js ./start-next.js
 
 # Add healthcheck
 HEALTHCHECK --interval=30s --timeout=3s \

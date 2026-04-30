@@ -1,18 +1,10 @@
 'use client';
 
-import {
-  AqGood,
-  AqHazardous,
-  AqModerate,
-  AqNoValue,
-  AqUnhealthy,
-  AqUnhealthyForSensitiveGroups,
-  AqVeryUnhealthy,
-} from '@airqo/icons-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
+import AirQualityStatusIcon from '@/components/common/AirQualityStatusIcon';
 import { hexToRgba } from '@/components/sections/AirQualityBillboard/utils';
 import type { Grid } from '@/types/grids';
 import {
@@ -41,28 +33,15 @@ interface FloatingMiniBillboardProps {
 // Get appropriate icon for air quality level
 const getAirQualityIcon = (category: string) => {
   const level = categoryToLevel(category);
-  const color = getAirQualityColor(category);
-  const iconProps = {
-    className: 'w-full h-full',
-    style: { color },
-  };
+  const status = getAirQualityColor(category) ? level : 'no-value';
 
-  switch (level) {
-    case 'good':
-      return <AqGood {...iconProps} />;
-    case 'moderate':
-      return <AqModerate {...iconProps} />;
-    case 'unhealthy-sensitive-groups':
-      return <AqUnhealthyForSensitiveGroups {...iconProps} />;
-    case 'unhealthy':
-      return <AqUnhealthy {...iconProps} />;
-    case 'very-unhealthy':
-      return <AqVeryUnhealthy {...iconProps} />;
-    case 'hazardous':
-      return <AqHazardous {...iconProps} />;
-    default:
-      return <AqNoValue {...iconProps} />;
-  }
+  return (
+    <AirQualityStatusIcon
+      status={status}
+      className="w-full h-full"
+      aria-hidden="true"
+    />
+  );
 };
 
 export default function FloatingMiniBillboard({
@@ -239,6 +218,7 @@ export default function FloatingMiniBillboard({
           href="/solutions/african-cities#grids-section"
           className="block touch-manipulation"
           aria-label={`View air quality for ${gridName}`}
+          prefetch={false}
           scroll={true}
         >
           <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-lg shadow-xl p-2 w-[200px] active:scale-95 transition-all duration-200">
@@ -287,6 +267,7 @@ export default function FloatingMiniBillboard({
         href="/solutions/african-cities#grids-section"
         className="block touch-manipulation"
         aria-label={`View air quality for ${gridName}`}
+        prefetch={false}
         scroll={true}
       >
         <div

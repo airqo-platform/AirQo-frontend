@@ -1,4 +1,6 @@
+import 'package:airqo/src/app/feedback/pages/feedback_screen.dart';
 import 'package:airqo/src/app/profile/pages/widgets/settings_tile.dart';
+import 'package:airqo/src/app/shared/services/feature_flag_service.dart';
 import 'package:flutter/material.dart';
 
 class GuestSettingsWidget extends StatelessWidget {
@@ -22,11 +24,18 @@ class GuestSettingsWidget extends StatelessWidget {
             onChanged: (_) {},
             description:
             "Create an account to get air quality alerts"),
-        SettingsTile(
-          iconPath: "assets/images/shared/feedback_icon.svg",
-          title: "Send Feedback",
-          onChanged: (_) {},
-        ),
+        if (FeatureFlagService.instance.isEnabled(AppFeatureFlag.feedback))
+          SettingsTile(
+            iconPath: "assets/images/shared/feedback_icon.svg",
+            title: "Send Feedback",
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const FeedbackScreen(),
+                ),
+              );
+            },
+          ),
         SettingsTile(
           iconPath: "assets/images/shared/airqo_story_icon.svg",
           title: "Our Story",

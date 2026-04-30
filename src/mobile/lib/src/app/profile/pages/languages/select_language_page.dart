@@ -45,17 +45,22 @@ class _SelectLanguagePageState extends State<SelectLanguagePage> {
     final needsMlKitDownload =
         MlKitTranslationService().supportsTranslation(language.code) &&
             !MlKitTranslationService().isModelReady(language.code);
+    final needsMlKitStrings =
+        MlKitTranslationService().supportsTranslation(language.code) &&
+            !MlKitTranslationService().isPrepared(language.code);
     final needsSunbirdPrepare =
         SunbirdTranslationService().supportsTranslation(language.code) &&
             !SunbirdTranslationService().isPrepared(language.code);
-    final needsPrepare = needsMlKitDownload || needsSunbirdPrepare;
+    final needsPrepare = needsMlKitDownload || needsMlKitStrings || needsSunbirdPrepare;
 
     // Capture context-dependent references before any await.
     final bloc = context.read<LanguageBloc>();
     final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
 
     if (!needsPrepare) {
       bloc.add(ChangeLanguage(language.code));
+      navigator.pop();
       _showLanguageChangeNotification(messenger, language);
       return;
     }
@@ -65,6 +70,13 @@ class _SelectLanguagePageState extends State<SelectLanguagePage> {
       if (needsMlKitDownload) {
         await MlKitTranslationService()
             .prepareModel(language.code)
+            .timeout(const Duration(seconds: 30));
+        await MlKitTranslationService()
+            .prepareCriticalStrings(language.code)
+            .timeout(const Duration(seconds: 30));
+      } else if (needsMlKitStrings) {
+        await MlKitTranslationService()
+            .prepareCriticalStrings(language.code)
             .timeout(const Duration(seconds: 30));
       }
       if (needsSunbirdPrepare) {
@@ -96,6 +108,7 @@ class _SelectLanguagePageState extends State<SelectLanguagePage> {
     if (!mounted) return;
     setState(() => _preparingCode = null);
     bloc.add(ChangeLanguage(language.code));
+    navigator.pop();
     _showLanguageChangeNotification(messenger, language);
   }
 

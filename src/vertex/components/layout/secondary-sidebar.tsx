@@ -4,14 +4,17 @@ import React from 'react';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
 import {
   AqHomeSmile,
+  AqCpuChip01,
   AqMonitor,
   AqMarkerPin01,
   AqPackagePlus,
   AqCollocation,
   AqBezierCurve02,
+  AqFileQuestion02,
 } from '@airqo/icons-react';
 import { Button } from '@/components/ui/button';
 import { useUserContext } from '@/core/hooks/useUserContext';
+import { usePathname } from 'next/navigation';
 import { ROUTE_LINKS } from '@/core/routes';
 import { VERTEX_DESKTOP_DOWNLOADS } from '@/core/constants/app-downloads';
 import Card from '../shared/card/CardWrapper';
@@ -21,6 +24,7 @@ interface SecondarySidebarProps {
   isCollapsed: boolean;
   toggleSidebar: () => void;
   activeModule: string;
+  onNavigate?: () => void;
 }
 
 const styles = {
@@ -44,10 +48,12 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   isCollapsed,
   toggleSidebar,
   activeModule,
+  onNavigate,
 }) => {
   const { getContextPermissions, isExternalOrg } =
     useUserContext();
   const contextPermissions = getContextPermissions();
+  const pathname = usePathname();
 
   const [platform, setPlatform] = React.useState<'win' | 'linux' | 'other' | null>(null);
   const [downloadUrl, setDownloadUrl] = React.useState("");
@@ -124,6 +130,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                       disabled: false,
                     }}
                     isCollapsed={isCollapsed}
+                    onClick={onNavigate}
                   />
                   <SidebarSectionHeading isCollapsed={isCollapsed}>
                     Personal assets
@@ -136,6 +143,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                       disabled: false,
                     }}
                     isCollapsed={isCollapsed}
+                    onClick={onNavigate}
                   />
                   <NavItem
                     item={{
@@ -144,6 +152,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                       label: 'Claim Device',
                     }}
                     isCollapsed={isCollapsed}
+                    onClick={onNavigate}
                   />
                   <SidebarSectionHeading isCollapsed={isCollapsed}>
                     Data Access & Visibility
@@ -156,6 +165,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                       disabled: !contextPermissions.canViewDevices,
                     }}
                     isCollapsed={isCollapsed}
+                    onClick={onNavigate}
                   />
                 </>
               ) : (
@@ -169,6 +179,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                       disabled: false,
                     }}
                     isCollapsed={isCollapsed}
+                    onClick={onNavigate}
                   />
                   <SidebarSectionHeading isCollapsed={isCollapsed}>
                     Organization Assets
@@ -181,6 +192,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                       disabled: !contextPermissions.canViewDevices,
                     }}
                     isCollapsed={isCollapsed}
+                    onClick={onNavigate}
                   />
                   <NavItem
                     item={{
@@ -189,6 +201,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                       label: 'Claim Device',
                     }}
                     isCollapsed={isCollapsed}
+                    onClick={onNavigate}
                   />
                   <SidebarSectionHeading isCollapsed={isCollapsed}>
                     Data Access & Visibility
@@ -201,6 +214,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                       disabled: !contextPermissions.canViewDevices,
                     }}
                     isCollapsed={isCollapsed}
+                    onClick={onNavigate}
                   />
                 </>
               )}
@@ -219,9 +233,21 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
               <NavItem
                 item={{
                   href: ROUTE_LINKS.ADMIN_NETWORKS,
-                  icon: AqHomeSmile,
+                  icon: AqCpuChip01,
                   label: 'Sensor Manufacturers',
                   disabled: !contextPermissions.canViewNetworks,
+                  activeOverride: pathname === ROUTE_LINKS.ADMIN_NETWORKS,
+                }}
+                isCollapsed={isCollapsed}
+              />
+
+              <NavItem
+                item={{
+                  href: ROUTE_LINKS.ADMIN_NETWORK_REQUESTS,
+                  icon: AqFileQuestion02,
+                  label: 'Manufacturer Requests',
+                  disabled: !contextPermissions.canViewNetworks,
+                  activeOverride: pathname === ROUTE_LINKS.ADMIN_NETWORK_REQUESTS,
                 }}
                 isCollapsed={isCollapsed}
               />

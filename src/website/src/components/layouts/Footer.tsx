@@ -125,6 +125,7 @@ const Footer = () => {
               <li>
                 <Link
                   href="/solutions/african-cities"
+                  prefetch={false}
                   className="text-gray-600 hover:underline"
                 >
                   For African Cities
@@ -149,6 +150,7 @@ const Footer = () => {
               <li>
                 <Link
                   href="/solutions/network-coverage"
+                  prefetch={false}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-gray-600 hover:underline"
@@ -231,6 +233,7 @@ const Footer = () => {
               <li>
                 <Link
                   href="/packages"
+                  prefetch={false}
                   className="text-gray-600 hover:underline"
                 >
                   Packages

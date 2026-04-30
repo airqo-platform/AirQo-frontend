@@ -67,6 +67,36 @@ export interface CreateNetworkResponse {
   created_network: Network;
 }
 
+export interface NetworkCreationRequest {
+  _id: string;
+  requester_name: string;
+  requester_email: string;
+  net_name: string;
+  net_email: string;
+  net_website: string;
+  net_category: string;
+  net_description: string;
+  net_acronym: string;
+  status: 'pending' | 'under_review' | 'approved' | 'denied';
+  reviewer_notes?: string;
+  reviewed_by?: string;
+  reviewed_at?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NetworkCreationRequestsResponse {
+  success: boolean;
+  message: string;
+  network_creation_requests: NetworkCreationRequest[];
+}
+
+export interface NetworkRequestActionResponse {
+  success: boolean;
+  message: string;
+  data: any;
+}
+
 export const networks = {
   getNetworksApi: async (): Promise<Network[]> => {
     try {
@@ -79,19 +109,4 @@ export const networks = {
       throw error;
     }
   },
-
-  createNetworkApi: async (
-    data: CreateNetworkPayload
-  ): Promise<CreateNetworkResponse> => {
-    try {
-      const response = await createSecureApiClient().post<CreateNetworkResponse>(
-        `/users/networks`,
-        data,
-        { headers: { "X-Auth-Type": "JWT" } }
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
-};
+};
