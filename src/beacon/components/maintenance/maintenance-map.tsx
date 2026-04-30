@@ -6,6 +6,7 @@ import "leaflet/dist/leaflet.css"
 import { MaintenanceMapItem } from "@/types/api.types"
 import { calculateDistance, optimizeRoute, findDevicesAlongRoute, calculateCriticalityScore } from "@/utils/map-utils"
 import { Coordinates } from "@/utils/routing-utils"
+import { getDevicePerformanceData } from "@/services/device-api.service"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -66,6 +67,14 @@ export default function MaintenanceMap({
     }, [selectedDeviceIds])
 
     // Helper to determine health
+
+    // Normalize raw `uptime` to a 0-100 percentage. Some upstream sources
+    // provide a 0-1 fraction; treat values <= 1 as fractions and scale them.
+    const normalizeUptimePct = (uptime: number | null | undefined): number => {
+        const n = Number(uptime);
+        if (!Number.isFinite(n)) return 0;
+        return n <= 1 ? n * 100 : n;
+    };
 
     const getUptimeStatus = (uptimePct: number): DeviceHealth => {
         if (uptimePct === 0) return 'offline';
@@ -181,11 +190,158 @@ export default function MaintenanceMap({
         return () => clearTimeout(timer);
     }, [data, isRouteMode, routePath]);
 
+    // ---- Mini-graph (uptime / error margin / correlation) helpers ----
+    interface DailyPoint { value: number; timestamp: string }
+    interface MiniHistory { uptime: DailyPoint[]; error: DailyPoint[]; correlation: DailyPoint[]; loaded: boolean; loading: boolean; failed?: boolean }
+    // Cache keyed by device_id so we only fetch once per popup-open
+    const miniHistoryCache = useRef<Record<string, MiniHistory>>({})
+
+    const toNum = (v: any): number | null => {
+        if (v == null) return null
+        const n = typeof v === 'number' ? v : Number(v)
+        return Number.isFinite(n) ? n : null
+    }
+
+    // Compute per-day uptime%, error margin (|s1-s2| mean) and correlation (Pearson r of s1 vs s2)
+    const computeMiniHistory = (rawPoints: any[]): { uptime: DailyPoint[]; error: DailyPoint[]; correlation: DailyPoint[] } => {
+        const buckets: Record<string, { hours: Set<number>; errs: number[]; s1: number[]; s2: number[] }> = {}
+        for (const p of rawPoints) {
+            if (!p?.datetime) continue
+            const dt = new Date(p.datetime)
+            if (isNaN(dt.getTime())) continue
+            const dayKey = dt.toISOString().slice(0, 10) // YYYY-MM-DD
+            if (!buckets[dayKey]) buckets[dayKey] = { hours: new Set(), errs: [], s1: [], s2: [] }
+            buckets[dayKey].hours.add(dt.getUTCHours())
+            const s1 = toNum(p.s1_pm2_5 ?? p['pm2.5 sensor1'])
+            const s2 = toNum(p.s2_pm2_5 ?? p['pm2.5 sensor2'])
+            if (s1 != null && s2 != null) {
+                buckets[dayKey].errs.push(Math.abs(s1 - s2))
+                buckets[dayKey].s1.push(s1)
+                buckets[dayKey].s2.push(s2)
+            }
+        }
+        const days = Object.keys(buckets).sort()
+        const uptime: DailyPoint[] = []
+        const error: DailyPoint[] = []
+        const correlation: DailyPoint[] = []
+        const pearson = (xs: number[], ys: number[]): number | null => {
+            const n = xs.length
+            if (n < 2) return null
+            const mx = xs.reduce((a, b) => a + b, 0) / n
+            const my = ys.reduce((a, b) => a + b, 0) / n
+            let num = 0, dx = 0, dy = 0
+            for (let i = 0; i < n; i++) {
+                const ex = xs[i] - mx
+                const ey = ys[i] - my
+                num += ex * ey; dx += ex * ex; dy += ey * ey
+            }
+            const den = Math.sqrt(dx * dy)
+            return den === 0 ? null : num / den
+        }
+        for (const d of days) {
+            const b = buckets[d]
+            const ts = `${d}T00:00:00.000Z`
+            uptime.push({ timestamp: ts, value: (b.hours.size / 24) * 100 })
+            if (b.errs.length > 0) error.push({ timestamp: ts, value: b.errs.reduce((a, c) => a + c, 0) / b.errs.length })
+            const r = pearson(b.s1, b.s2)
+            if (r != null) correlation.push({ timestamp: ts, value: r })
+        }
+        return { uptime, error, correlation }
+    }
+
+    // Render mini bars as inline-styled HTML (Tailwind classes also work since popups
+    // are appended to document.body)
+    const renderMiniBars = (
+        history: DailyPoint[],
+        opts: { label: string; barColor: (v: number) => string; format: (v: number) => string; avgFormat: (v: number) => string; normalize: (v: number, all: number[]) => number }
+    ): string => {
+        if (history.length === 0) return `<div class="text-[10px] text-gray-400">No ${opts.label.toLowerCase()} data</div>`
+        const values = history.slice(-14)
+        const avg = values.reduce((a, b) => a + b.value, 0) / values.length
+        const all = values.map(v => v.value)
+        const bars = values.map(v => {
+            const ratio = Math.max(0.05, Math.min(1, opts.normalize(v.value, all)))
+            const h = Math.max(3, Math.round(ratio * 24))
+            const date = new Date(v.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+            return `<div title="${date}: ${opts.format(v.value)}" style="height:${h}px" class="w-[3px] rounded-t-sm ${opts.barColor(v.value)}"></div>`
+        }).join('')
+        return `
+            <div>
+                <div class="flex items-center justify-between mb-0.5">
+                    <span class="text-[10px] font-medium text-gray-600">${opts.label}</span>
+                    <span class="text-[10px] font-bold text-gray-700">${opts.avgFormat(avg)}</span>
+                </div>
+                <div class="flex items-end gap-[2px] h-6">${bars}</div>
+            </div>
+        `
+    }
+
+    const renderMiniGraphsHtml = (h: { uptime: DailyPoint[]; error: DailyPoint[]; correlation: DailyPoint[] }): string => {
+        const uptimeHtml = renderMiniBars(h.uptime, {
+            label: 'Uptime',
+            avgFormat: v => `${v.toFixed(0)}%`,
+            format: v => `${v.toFixed(1)}%`,
+            barColor: v => v >= 75 ? 'bg-green-500' : v >= 50 ? 'bg-orange-500' : 'bg-red-500',
+            normalize: v => v / 100,
+        })
+        const errorHtml = renderMiniBars(h.error, {
+            label: 'Error margin',
+            avgFormat: v => `\u00b1${v.toFixed(1)}`,
+            format: v => `\u00b1${v.toFixed(2)} \u00b5g/m\u00b3`,
+            barColor: v => v <= 3 ? 'bg-green-500' : v <= 5 ? 'bg-yellow-500' : 'bg-red-500',
+            normalize: (v, all) => v / Math.max(10, ...all),
+        })
+        const corrHtml = renderMiniBars(h.correlation, {
+            label: 'Correlation',
+            avgFormat: v => v.toFixed(2),
+            format: v => v.toFixed(3),
+            barColor: v => v >= 0.9 ? 'bg-green-500' : v >= 0.75 ? 'bg-yellow-500' : 'bg-red-500',
+            normalize: v => Math.max(0, v),
+        })
+        return `<div class="space-y-1.5 mt-2 pt-2 border-t border-gray-100">${uptimeHtml}${errorHtml}${corrHtml}</div>`
+    }
+
+    // Fetch and render mini graphs into a placeholder div (lazy on popup open)
+    const loadMiniGraphsForDevice = async (device: MaintenanceMapItem) => {
+        const containerId = `mini-graphs-${device.device_id}`
+        const container = document.getElementById(containerId)
+        if (!container) return
+        const cached = miniHistoryCache.current[device.device_id]
+        if (cached?.loaded) {
+            container.innerHTML = renderMiniGraphsHtml(cached)
+            return
+        }
+        if (cached?.loading) return
+        miniHistoryCache.current[device.device_id] = { uptime: [], error: [], correlation: [], loaded: false, loading: true }
+        container.innerHTML = `<div class="text-[10px] text-gray-400 mt-2 pt-2 border-t border-gray-100">Loading 14-day history\u2026</div>`
+        try {
+            const end = new Date()
+            const start = new Date(end.getTime() - 14 * 86400000)
+            const resp = await getDevicePerformanceData({
+                start: start.toISOString(),
+                end: end.toISOString(),
+                deviceNames: [device.device_name],
+            })
+            const arr = Array.isArray(resp) ? resp : []
+            const dev = arr[0] ?? {}
+            const points: any[] = Array.isArray(dev.raw_data) && dev.raw_data.length > 0
+                ? dev.raw_data
+                : Array.isArray(dev.data) ? dev.data : []
+            const computed = computeMiniHistory(points)
+            miniHistoryCache.current[device.device_id] = { ...computed, loaded: true, loading: false }
+            const stillThere = document.getElementById(containerId)
+            if (stillThere) stillThere.innerHTML = renderMiniGraphsHtml(computed)
+        } catch (err) {
+            console.error('[MaintenanceMap] mini-graph fetch failed:', err)
+            miniHistoryCache.current[device.device_id] = { uptime: [], error: [], correlation: [], loaded: false, loading: false, failed: true }
+            const stillThere = document.getElementById(containerId)
+            if (stillThere) stillThere.innerHTML = `<div class="text-[10px] text-red-500 mt-2 pt-2 border-t border-gray-100">Failed to load history</div>`
+        }
+    }
+
     // Render Markers
     useEffect(() => {
         if (!map.current || !data) return;
-
-        // Clear layers
         markersRef.current.forEach(m => m.remove());
         markersRef.current = [];
         suggestionMarkersRef.current.forEach(m => m.remove());
@@ -204,7 +360,7 @@ export default function MaintenanceMap({
 
             const isSelected = localSelectedIds.includes(device.device_id);
 
-            const uptimePct = device.uptime;
+            const uptimePct = normalizeUptimePct(device.uptime);
             const uptimeStatus = getUptimeStatus(uptimePct);
             const errorStatus = getErrorStatus(device.error_margin);
 
@@ -228,10 +384,11 @@ export default function MaintenanceMap({
                         </div>
                         <p class="text-xs text-gray-600 mb-2">${device.cohorts?.length ? device.cohorts.join(', ') : 'No cohorts'}</p>
                         <div class="grid grid-cols-2 gap-2 text-xs mb-2">
-                            <div><span class="font-medium">Uptime:</span> <span class="font-bold ${uptimeColorClass}">${device.uptime.toFixed(0)}%</span></div>
+                            <div><span class="font-medium">Uptime:</span> <span class="font-bold ${uptimeColorClass}">${uptimePct.toFixed(0)}%</span></div>
                             <div><span class="font-medium">Error:</span> <span class="font-bold ${errorColorClass}">${device.error_margin.toFixed(1)}</span></div>
                         </div>
                         <div class="text-xs text-gray-500 mb-2"><span class="font-medium">Last Post:</span> ${device.last_active ? new Date(device.last_active).toLocaleString() : 'N/A'}</div>
+                        <div id="mini-graphs-${device.device_id}"></div>
                          <button 
                             id="btn-select-${device.device_id}" 
                             class="w-full text-xs bg-blue-50 text-blue-600 py-1 rounded hover:bg-blue-100 transition-colors"
@@ -249,6 +406,8 @@ export default function MaintenanceMap({
                         marker.closePopup();
                     };
                 }
+                // Lazy-load 14-day mini graphs (uptime / error margin / correlation)
+                loadMiniGraphsForDevice(device);
             });
 
             marker.addTo(map.current!);
@@ -298,7 +457,7 @@ export default function MaintenanceMap({
 
             // Plot Suggestions
             opps.forEach(device => {
-                const uptimePct = (device.uptime) * 100;
+                const uptimePct = normalizeUptimePct(device.uptime);
                 const uptimeStatus = getUptimeStatus(uptimePct);
                 const errorStatus = getErrorStatus(device.error_margin);
 

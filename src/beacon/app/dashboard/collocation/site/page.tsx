@@ -292,33 +292,59 @@ export default function SiteCollocationPage() {
         const mappedSites: SiteCollocationEntry[] = response.sites.map((site: any) => {
           // Performance data from includePerformance=true (daily breakdown)
           const performanceData: any[] = site.performance || site.data || []
-          
-          // Summary-level uptime/error_margin (from summary=true)
-          const summaryUptime = site.uptime ?? site.average_uptime ?? 0
+
+          // Summary-level error margin (from summary=true)
           const summaryErrorMargin = site.error_margin ?? site.average_error_margin ?? 0
+
+          // Compute uptime as the AVERAGE across ALL devices at the site.
+          // Devices with no data (or null/undefined uptime) count as 0 so the
+          // denominator is always the total number of devices.
+          const devicesArr: any[] = Array.isArray(site.devices) ? site.devices : []
+          const numberOfDevices = site.numberOfDevices || devicesArr.length || 0
+
+          const normalizeUptime = (u: any): number => {
+            const n = Number(u)
+            if (!Number.isFinite(n) || n <= 0) return 0
+            return n <= 1 ? n * 100 : n
+          }
+
+          let computedUptime = 0
+          if (numberOfDevices > 0) {
+            const sumDeviceUptime = devicesArr.reduce(
+              (acc, d) => acc + normalizeUptime(d?.uptime),
+              0,
+            )
+            computedUptime = sumDeviceUptime / numberOfDevices
+          } else {
+            // Fall back to summary-level uptime when device list is unavailable
+            const summaryUptime = site.uptime ?? site.average_uptime ?? 0
+            computedUptime = normalizeUptime(summaryUptime)
+          }
 
           return {
             id: site._id || site.id,
             name: site.name,
             location: site.formatted_name || [site.city, site.district, site.country].filter(Boolean).join(", "),
             category: site.network === "usembassy" ? "bam" : "lowcost",
-            uptime: summaryUptime <= 1 ? summaryUptime * 100 : summaryUptime,
+            uptime: computedUptime,
             errorMargin: summaryErrorMargin,
-            uptimeHistory: performanceData.map((d: any) => {
-              const rawUptime = d.uptime ?? 0
-              const uptimeVal = rawUptime > 0 && rawUptime <= 1 ? rawUptime * 100 : rawUptime
-              return { value: uptimeVal, timestamp: d.date || d.timestamp }
-            }),
+            uptimeHistory: performanceData.map((d: any) => ({
+              // Use the same normalizer as site-level uptime so a value of
+              // 0..1 is treated as a fraction and >1 as an already-percentage,
+              // keeping all uptime numbers on the 0..100 scale consistently.
+              value: normalizeUptime(d?.uptime),
+              timestamp: d.date || d.timestamp,
+            })),
             errorMarginHistory: performanceData.map((d: any) => ({
               value: d.error_margin ?? d.errorMargin ?? 0,
               timestamp: d.date || d.timestamp,
             })),
             devices: {
-              total: site.numberOfDevices || (site.devices || []).length || 0,
-              lowcost: (site.devices || []).filter((d: any) => d.category === "lowcost").length,
-              lowcostOnline: (site.devices || []).filter((d: any) => d.category === "lowcost" && (d.uptime ?? 0) > 0).length,
-              bam: (site.devices || []).filter((d: any) => d.category === "bam").length,
-              bamOnline: (site.devices || []).filter((d: any) => d.category === "bam" && (d.uptime ?? 0) > 0).length,
+              total: numberOfDevices,
+              lowcost: devicesArr.filter((d: any) => d.category === "lowcost").length,
+              lowcostOnline: devicesArr.filter((d: any) => d.category === "lowcost" && (d.uptime ?? 0) > 0).length,
+              bam: devicesArr.filter((d: any) => d.category === "bam").length,
+              bamOnline: devicesArr.filter((d: any) => d.category === "bam" && (d.uptime ?? 0) > 0).length,
             }
           }
         })

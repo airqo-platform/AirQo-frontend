@@ -185,6 +185,11 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
       // Normalize: API returns data points under `data` with keys like
       // "pm2.5 sensor1" / "pm2.5 sensor2" / "battery". Map them to the shape
       // the component already consumes via `raw_data`.
+      const toNum = (v: any): number | null => {
+        if (v == null) return null
+        const n = typeof v === "number" ? v : Number(v)
+        return Number.isFinite(n) ? n : null
+      }
       const normalized: PerformanceData[] = data.map((device: any) => {
         const sourcePoints: any[] = Array.isArray(device.raw_data) && device.raw_data.length > 0
           ? device.raw_data
@@ -194,15 +199,15 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
           datetime: p.datetime,
           device_name: p.device_name ?? device.device_name,
           frequency: p.frequency,
-          humidity: p.humidity ?? null,
-          temperature: p.temperature ?? null,
-          pm2_5: p.pm2_5 ?? p["pm2.5"] ?? null,
-          pm10: p.pm10 ?? null,
-          s1_pm2_5: p.s1_pm2_5 ?? p["pm2.5 sensor1"] ?? null,
-          s2_pm2_5: p.s2_pm2_5 ?? p["pm2.5 sensor2"] ?? null,
-          s1_pm10: p.s1_pm10 ?? p["pm10 sensor1"] ?? null,
-          s2_pm10: p.s2_pm10 ?? p["pm10 sensor2"] ?? null,
-          battery_voltage: p.battery_voltage ?? p.battery ?? null,
+          humidity: toNum(p.humidity),
+          temperature: toNum(p.temperature),
+          pm2_5: toNum(p.pm2_5 ?? p["pm2.5"]),
+          pm10: toNum(p.pm10),
+          s1_pm2_5: toNum(p.s1_pm2_5 ?? p["pm2.5 sensor1"]),
+          s2_pm2_5: toNum(p.s2_pm2_5 ?? p["pm2.5 sensor2"]),
+          s1_pm10: toNum(p.s1_pm10 ?? p["pm10 sensor1"]),
+          s2_pm10: toNum(p.s2_pm10 ?? p["pm10 sensor2"]),
+          battery_voltage: toNum(p.battery_voltage ?? p.battery),
           longitude: p.longitude,
           latitude: p.latitude,
           network: p.network,
@@ -374,15 +379,25 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
         ? uptimeData.reduce((sum, d) => sum + Number.parseFloat(d.uptimePercentage), 0) / uptimeData.length
         : 0
 
-      // Prefer API-provided sensor_error_margin; otherwise compute average
-      // |s1_pm2_5 - s2_pm2_5| across raw data points where both are available.
+      // Prefer API-provided sensor_error_margin; otherwise compute the
+      // canonical |mean(s1_pm2_5) - mean(s2_pm2_5)| across raw data points
+      // (skipping nulls independently for each sensor).
       let avgErrorMargin: number | null = device.sensor_error_margin ?? null
       if (avgErrorMargin == null) {
-        const diffs = device.raw_data
-          .filter(p => p.s1_pm2_5 != null && p.s2_pm2_5 != null)
-          .map(p => Math.abs((p.s1_pm2_5 as number) - (p.s2_pm2_5 as number)))
-        avgErrorMargin = diffs.length > 0
-          ? diffs.reduce((a, b) => a + b, 0) / diffs.length
+        const s1Vals = device.raw_data
+          .map(p => p.s1_pm2_5)
+          .filter((v): v is number => v != null)
+        const s2Vals = device.raw_data
+          .map(p => p.s2_pm2_5)
+          .filter((v): v is number => v != null)
+        const meanS1 = s1Vals.length > 0
+          ? s1Vals.reduce((a, b) => a + b, 0) / s1Vals.length
+          : undefined
+        const meanS2 = s2Vals.length > 0
+          ? s2Vals.reduce((a, b) => a + b, 0) / s2Vals.length
+          : undefined
+        avgErrorMargin = meanS1 != null && meanS2 != null
+          ? Math.abs(meanS1 - meanS2)
           : null
       }
 

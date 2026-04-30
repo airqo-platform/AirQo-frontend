@@ -28,6 +28,21 @@ const OFFLINE_DAYS_OPTIONS = [
 ]
 const AVAILABLE_TAGS = ["hardware", "duplicate", "organizational", "inlab", "misc"]
 
+const UPTIME_OPTIONS: { label: string; value: 'all' | 'good' | 'moderate' | 'critical' | 'offline' }[] = [
+    { label: "All Uptime", value: 'all' },
+    { label: "Good (≥ 85%)", value: 'good' },
+    { label: "Moderate (50–85%)", value: 'moderate' },
+    { label: "Critical (< 50%)", value: 'critical' },
+    { label: "Offline (0%)", value: 'offline' },
+]
+
+const ERROR_MARGIN_OPTIONS: { label: string; value: 'all' | 'good' | 'moderate' | 'critical' }[] = [
+    { label: "All Error Margin", value: 'all' },
+    { label: "Good (≤ 10)", value: 'good' },
+    { label: "Moderate (10–20)", value: 'moderate' },
+    { label: "Critical (> 20)", value: 'critical' },
+]
+
 export default function MaintenancePage() {
     const { toast } = useToast()
 
@@ -46,6 +61,8 @@ export default function MaintenancePage() {
     const [mapData, setMapData] = useState<MaintenanceMapItem[] | null>(null)
     const [loadingMap, setLoadingMap] = useState(false)
     const [offlineDaysFilter, setOfflineDaysFilter] = useState<number | null>(null)
+    const [uptimeFilter, setUptimeFilter] = useState<'all' | 'good' | 'moderate' | 'critical' | 'offline'>('all')
+    const [errorMarginFilter, setErrorMarginFilter] = useState<'all' | 'good' | 'moderate' | 'critical'>('all')
     const [selectedAirQloud, setSelectedAirQloud] = useState<string>('all')
 
     // --- COHORT DROPDOWN STATE ---
@@ -107,8 +124,37 @@ export default function MaintenancePage() {
             });
         }
 
+        // 3. Uptime Filter (normalize 0..1 fractions to 0..100 percent)
+        if (uptimeFilter !== 'all') {
+            filtered = filtered.filter(device => {
+                const raw = Number(device.uptime);
+                const pct = !Number.isFinite(raw) ? 0 : (raw <= 1 ? raw * 100 : raw);
+                switch (uptimeFilter) {
+                    case 'offline': return pct === 0;
+                    case 'good': return pct >= 85;
+                    case 'moderate': return pct >= 50 && pct < 85;
+                    case 'critical': return pct > 0 && pct < 50;
+                    default: return true;
+                }
+            });
+        }
+
+        // 4. Error Margin Filter
+        if (errorMarginFilter !== 'all') {
+            filtered = filtered.filter(device => {
+                const em = Number(device.error_margin);
+                if (!Number.isFinite(em)) return false;
+                switch (errorMarginFilter) {
+                    case 'good': return em <= 10;
+                    case 'moderate': return em > 10 && em <= 20;
+                    case 'critical': return em > 20;
+                    default: return true;
+                }
+            });
+        }
+
         return filtered;
-    }, [mapData, offlineDaysFilter, selectedAirQloud]);
+    }, [mapData, offlineDaysFilter, selectedAirQloud, uptimeFilter, errorMarginFilter]);
 
     // Handlers
     const handleDeviceSelect = (id: string) => {
@@ -296,6 +342,40 @@ export default function MaintenancePage() {
                     {/* Separator */}
                     <div className="hidden sm:block w-px h-6 bg-gray-200" />
 
+                    {/* Uptime Filter */}
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-700">Uptime:</span>
+                        <select
+                            value={uptimeFilter}
+                            onChange={(e) => { setUptimeFilter(e.target.value as typeof uptimeFilter); clearRoute() }}
+                            className="px-3 py-1.5 rounded-md border border-gray-200 bg-white text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                            {UPTIME_OPTIONS.map(opt => (
+                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Separator */}
+                    <div className="hidden sm:block w-px h-6 bg-gray-200" />
+
+                    {/* Error Margin Filter */}
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-700">Error Margin:</span>
+                        <select
+                            value={errorMarginFilter}
+                            onChange={(e) => { setErrorMarginFilter(e.target.value as typeof errorMarginFilter); clearRoute() }}
+                            className="px-3 py-1.5 rounded-md border border-gray-200 bg-white text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                            {ERROR_MARGIN_OPTIONS.map(opt => (
+                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Separator */}
+                    <div className="hidden sm:block w-px h-6 bg-gray-200" />
+
                     {/* Cohort Dropdown with Search */}
                     <div className="flex items-center gap-2">
                         <span className="text-sm font-medium text-gray-700">Cohort:</span>
@@ -411,9 +491,25 @@ export default function MaintenancePage() {
                             <span className="font-medium text-sm">
                                 {selectedAirQloud === 'all' ? 'All Cohorts' : selectedAirQloud.toUpperCase()}
                             </span>
+                            <span className="ml-2 px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full font-medium">
+                                {filteredMapData.length} {filteredMapData.length === 1 ? 'device' : 'devices'}
+                                {mapData && mapData.length !== filteredMapData.length && (
+                                    <span className="text-blue-500/70"> / {mapData.length}</span>
+                                )}
+                            </span>
                             {offlineDaysFilter !== null && (
                                 <span className="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">
                                     Offline ≥ {offlineDaysFilter}d
+                                </span>
+                            )}
+                            {uptimeFilter !== 'all' && (
+                                <span className="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full capitalize">
+                                    Uptime: {uptimeFilter}
+                                </span>
+                            )}
+                            {errorMarginFilter !== 'all' && (
+                                <span className="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full capitalize">
+                                    Error: {errorMarginFilter}
                                 </span>
                             )}
                         </div>

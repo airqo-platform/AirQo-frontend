@@ -207,7 +207,7 @@ function toLegacyFraction(value: any): number | null {
   if (value == null) return null
   const n = Number(value)
   if (Number.isNaN(n)) return null
-  if (n > 1) return n / 100
+  if (n >= 1) return n / 100
   return n
 }
 
