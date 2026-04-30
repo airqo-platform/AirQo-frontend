@@ -106,6 +106,7 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
 
   const navigateWithShimmer = (targetPath: string, navigate: () => void) => {
     if (pathname === targetPath) return;
+    router.prefetch(targetPath);
     onNavigate?.();
     navigate();
   };

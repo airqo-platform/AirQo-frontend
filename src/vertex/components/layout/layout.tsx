@@ -56,15 +56,34 @@ export default function Layout({ children }: LayoutProps) {
     }
   }, [pathname, userDetails]);
 
+  useEffect(() => {
+    // Warm key routes so sidebar navigation resolves near-instantly.
+    const routesToPrefetch = [
+      '/home',
+      '/devices/my-devices',
+      '/devices/claim',
+      '/cohorts',
+      '/admin/networks',
+      '/admin/networks/requests',
+      '/admin/cohorts',
+      '/admin/sites',
+      '/admin/grids',
+      '/admin/shipping',
+    ];
+
+    routesToPrefetch.forEach((route) => {
+      router.prefetch(route);
+    });
+  }, [router]);
+
   const handleModuleChange = (module: string, targetPath?: string) => {
     const targetModule = module as 'devices' | 'admin';
     if (targetModule === activeModule && !targetPath) {
       setIsPrimarySidebarOpen(false);
       return;
     }
-    
-    // Set state immediately for "instant" feel
-    setActiveModule(targetModule);
+
+    // Keep module switch path-driven to avoid nav/content mismatch during transitions.
     setIsPrimarySidebarOpen(false);
 
     // Navigate to module default route or specific target
@@ -73,7 +92,10 @@ export default function Layout({ children }: LayoutProps) {
       admin: '/admin/networks',
     };
 
-    router.push(targetPath || defaultRoutes[module] || '/home');
+    const nextPath = targetPath || defaultRoutes[module] || '/home';
+    setIsNavigating(true);
+    router.prefetch(nextPath);
+    router.push(nextPath);
   };
 
   const toggleSecondarySidebar = () => {
