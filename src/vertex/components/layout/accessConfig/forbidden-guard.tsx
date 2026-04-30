@@ -10,9 +10,12 @@ interface ForbiddenGuardProps {
 
 export const ForbiddenGuard: React.FC<ForbiddenGuardProps> = ({ children }) => {
   const forbiddenState = useAppSelector((state) => state.user.forbidden);
+  const isOrganizationSwitching = useAppSelector(
+    (state) => state.user.organizationSwitching.isSwitching
+  );
 
   // If user is in forbidden state, show forbidden page
-  if (forbiddenState.isForbidden) {
+  if (forbiddenState.isForbidden && !isOrganizationSwitching) {
     return <ForbiddenPage message={forbiddenState.message} />;
   }
 
