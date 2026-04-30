@@ -61,7 +61,42 @@ if (!process.env.NEXTAUTH_URL && azureContainerAppsUrl) {
 }
 
 const authSecret = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
-const cookieDomain = process.env.NEXTAUTH_COOKIE_DOMAIN?.trim() || undefined;
+const configuredCookieDomain =
+  process.env.NEXTAUTH_COOKIE_DOMAIN?.trim() || undefined;
+const getCookieDomain = () => {
+  if (!configuredCookieDomain) {
+    return undefined;
+  }
+
+  const referenceUrl = process.env.NEXTAUTH_URL || process.env.NEXTAUTH_URL_INTERNAL;
+  if (!referenceUrl) {
+    return configuredCookieDomain;
+  }
+
+  try {
+    const host = new URL(referenceUrl).hostname.toLowerCase();
+    const normalizedDomain = configuredCookieDomain.replace(/^\./, '').toLowerCase();
+    const hostMatches =
+      host === normalizedDomain || host.endsWith(`.${normalizedDomain}`);
+
+    if (hostMatches) {
+      return configuredCookieDomain;
+    }
+
+    logger.warn(
+      '[NextAuth] NEXTAUTH_COOKIE_DOMAIN does not match NEXTAUTH_URL host; disabling cookie domain override.',
+      { configuredCookieDomain, host }
+    );
+    return undefined;
+  } catch {
+    logger.warn(
+      '[NextAuth] Invalid NEXTAUTH_URL while validating cookie domain; disabling cookie domain override.',
+      { configuredCookieDomain, referenceUrl }
+    );
+    return undefined;
+  }
+};
+const cookieDomain = getCookieDomain();
 const cookieOptions = {
   httpOnly: true,
   sameSite: 'lax' as const,

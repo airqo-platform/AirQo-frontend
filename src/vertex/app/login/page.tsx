@@ -7,7 +7,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 import { Form, FormField } from "@/components/ui/form"
 import { signUpUrl, forgotPasswordUrl } from "@/core/urls"
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField"
@@ -42,6 +42,25 @@ export default function LoginPage() {
       return "";
     }
   }, [searchParams]);
+  const waitForSession = useCallback(async () => {
+    const attempts = 8;
+    const delayMs = 150;
+
+    for (let attempt = 0; attempt < attempts; attempt += 1) {
+      const session = await getSession();
+      if (session?.user) {
+        return session;
+      }
+
+      if (attempt < attempts - 1) {
+        await new Promise<void>((resolve) => {
+          window.setTimeout(resolve, delayMs);
+        });
+      }
+    }
+
+    return null;
+  }, []);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -89,20 +108,30 @@ export default function LoginPage() {
     // Read preference BEFORE authentication to avoid timing issues
     const lastModule = getLastActiveModule(values.userName);
     const fallbackUrl = lastModule === 'admin' ? '/admin/networks' : '/home';
-    const redirectUrl = callbackUrl || fallbackUrl;
+    const isAuthRouteCallback =
+      callbackUrl.startsWith('/login') ||
+      callbackUrl.startsWith('/auth-error') ||
+      callbackUrl.startsWith('/forgot-password');
+    const redirectUrl =
+      callbackUrl && !isAuthRouteCallback ? callbackUrl : fallbackUrl;
 
     try {
       const result = await signIn("credentials", {
         redirect: false,
         userName: values.userName,
         password: values.password,
+        callbackUrl: redirectUrl,
       });
 
       if (!isMounted.current) return;
 
       if (result?.ok) {
+        const session = await waitForSession();
+        if (!session?.user) {
+          throw new Error("Could not confirm session. Please try again.");
+        }
         ReusableToast({ message: "Welcome back!", type: "SUCCESS" });
-        window.location.href = redirectUrl;
+        window.location.replace(result.url || redirectUrl);
       } else {
         let message = "Login failed. Please check your credentials.";
         if (result?.error) {
@@ -123,7 +152,7 @@ export default function LoginPage() {
       ReusableToast({ message, type: "ERROR" });
       setIsLoading(false);
     }
-  }, [callbackUrl]);
+  }, [callbackUrl, waitForSession]);
 
   return (
     <div className="flex min-h-screen lg:h-screen w-full flex-col bg-background text-foreground">

@@ -4,7 +4,12 @@ import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useAppSelector, useAppDispatch } from "@/core/redux/hooks";
-import { setActiveGroup, setUserContext, setOrganizationSwitching } from "@/core/redux/slices/userSlice";
+import {
+  clearForbiddenState,
+  setActiveGroup,
+  setUserContext,
+  setOrganizationSwitching,
+} from "@/core/redux/slices/userSlice";
 import type { Group } from "@/app/types/users";
 import OrganizationModal from "./organization-modal";
 import { useUserContext } from "@/core/hooks/useUserContext";
@@ -50,6 +55,8 @@ const OrganizationPicker: React.FC = () => {
   const handleOrganizationChange = async (group: Group) => {
     // 1. Instant UI Feedback
     setIsModalOpen(false);
+    // Clear any stale forbidden state from previous context before switching.
+    dispatch(clearForbiddenState());
 
     // 2. Start Background Transition
     dispatch(setOrganizationSwitching({
