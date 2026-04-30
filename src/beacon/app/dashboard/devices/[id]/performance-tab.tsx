@@ -28,6 +28,7 @@ import {
   Line,
   BarChart,
   Bar,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -64,7 +65,7 @@ interface PerformanceData {
   device_name: string
   uptime: number
   data_completeness: number
-  sensor_error_margin: number
+  sensor_error_margin: number | null
   raw_data: RawDataPoint[]
 }
 
@@ -72,7 +73,7 @@ interface DeviceSummary {
   deviceId: string
   deviceName: string
   avgFrequency: number
-  avgErrorMargin: number
+  avgErrorMargin: number | null
   avgUptime: number
   avgBatteryVoltage: number
 }
@@ -181,10 +182,46 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
 
       // response is already unwrapped to the data array by the service
       const data = Array.isArray(response) ? response : []
-      if (data.length > 0) {
-        setPerformanceData(data)
+      // Normalize: API returns data points under `data` with keys like
+      // "pm2.5 sensor1" / "pm2.5 sensor2" / "battery". Map them to the shape
+      // the component already consumes via `raw_data`.
+      const normalized: PerformanceData[] = data.map((device: any) => {
+        const sourcePoints: any[] = Array.isArray(device.raw_data) && device.raw_data.length > 0
+          ? device.raw_data
+          : Array.isArray(device.data) ? device.data : []
+
+        const raw_data: RawDataPoint[] = sourcePoints.map((p: any) => ({
+          datetime: p.datetime,
+          device_name: p.device_name ?? device.device_name,
+          frequency: p.frequency,
+          humidity: p.humidity ?? null,
+          temperature: p.temperature ?? null,
+          pm2_5: p.pm2_5 ?? p["pm2.5"] ?? null,
+          pm10: p.pm10 ?? null,
+          s1_pm2_5: p.s1_pm2_5 ?? p["pm2.5 sensor1"] ?? null,
+          s2_pm2_5: p.s2_pm2_5 ?? p["pm2.5 sensor2"] ?? null,
+          s1_pm10: p.s1_pm10 ?? p["pm10 sensor1"] ?? null,
+          s2_pm10: p.s2_pm10 ?? p["pm10 sensor2"] ?? null,
+          battery_voltage: p.battery_voltage ?? p.battery ?? null,
+          longitude: p.longitude,
+          latitude: p.latitude,
+          network: p.network,
+          site_name: p.site_name,
+        }))
+
+        return {
+          device_name: device.device_name,
+          uptime: device.uptime ?? 0,
+          data_completeness: device.data_completeness ?? 0,
+          sensor_error_margin: device.sensor_error_margin ?? null,
+          raw_data,
+        } as PerformanceData
+      })
+
+      if (normalized.length > 0 && normalized.some(d => d.raw_data.length > 0)) {
+        setPerformanceData(normalized)
       } else {
-        setPerformanceData([])
+        setPerformanceData(normalized)
         toast({
           title: "No data",
           description: "No performance data available for the selected period",
@@ -336,7 +373,18 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
       const avgUptime = uptimeData.length > 0
         ? uptimeData.reduce((sum, d) => sum + Number.parseFloat(d.uptimePercentage), 0) / uptimeData.length
         : 0
-      const avgErrorMargin = device.sensor_error_margin
+
+      // Prefer API-provided sensor_error_margin; otherwise compute average
+      // |s1_pm2_5 - s2_pm2_5| across raw data points where both are available.
+      let avgErrorMargin: number | null = device.sensor_error_margin ?? null
+      if (avgErrorMargin == null) {
+        const diffs = device.raw_data
+          .filter(p => p.s1_pm2_5 != null && p.s2_pm2_5 != null)
+          .map(p => Math.abs((p.s1_pm2_5 as number) - (p.s2_pm2_5 as number)))
+        avgErrorMargin = diffs.length > 0
+          ? diffs.reduce((a, b) => a + b, 0) / diffs.length
+          : null
+      }
 
       // Compute avg frequency: average entries per hour (from hourly buckets)
       const chartData = devicesChartData.find(d => d.deviceId === device.device_name)?.chartData || []
@@ -603,7 +651,7 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-500">Avg Error Margin</p>
-                      <p className="text-lg font-bold text-orange-600">{summary.avgErrorMargin.toFixed(2)}</p>
+                      <p className="text-lg font-bold text-orange-600">{summary.avgErrorMargin != null ? summary.avgErrorMargin.toFixed(2) : "N/A"}</p>
                     </div>
                   </div>
 
@@ -670,11 +718,16 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
                           />
                           <Bar
                             dataKey="uptimePercentage"
-                            fill="#22c55e"
                             name="Uptime %"
                             radius={[4, 4, 0, 0]}
                             maxBarSize={40}
-                          />
+                          >
+                            {deviceUptime.dailyUptimeData.map((entry, index) => {
+                              const v = Number.parseFloat(entry.uptimePercentage)
+                              const fill = v >= 75 ? "#22c55e" : v >= 50 ? "#f97316" : "#ef4444"
+                              return <Cell key={`uptime-cell-${index}`} fill={fill} />
+                            })}
+                          </Bar>
                         </BarChart>
                       </ResponsiveContainer>
                     </CardContent>
