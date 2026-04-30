@@ -1,32 +1,100 @@
+import 'dart:ui' as ui;
+
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/pages/location_selection/components/location_search_bar.dart';
 import 'package:airqo/src/app/dashboard/pages/location_selection/utils/location_helpers.dart';
-import 'package:airqo/src/app/dashboard/widgets/analytics_card.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_details.dart';
 import 'package:airqo/src/app/dashboard/widgets/google_places_loader.dart';
-import 'package:airqo/src/app/dashboard/widgets/location_display_widget.dart';
 import 'package:airqo/src/app/map/bloc/map_bloc.dart';
+import 'package:airqo/src/app/map/widgets/map_air_quality_card.dart';
+import 'package:airqo/src/app/map/widgets/map_style_picker.dart';
 import 'package:airqo/src/app/other/places/bloc/google_places_bloc.dart';
-import 'package:airqo/src/app/other/places/models/auto_complete_response.dart';
-import 'package:airqo/src/app/shared/widgets/analytics_card_loader.dart';
+import 'package:airqo/src/app/dashboard/models/country_model.dart';
+import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
-import 'package:airqo/src/app/shared/widgets/country_button';
-import 'package:airqo/src/app/shared/widgets/loading_widget.dart';
-import 'package:airqo/src/app/shared/widgets/modal_wrapper.dart';
+import 'package:airqo/src/app/shared/widgets/translated_tooltip.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/meta/utils/utils.dart';
 import 'package:airqo/src/meta/utils/widget_to_map_icon.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:airqo/src/app/dashboard/models/country_model.dart';
-import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:loggy/loggy.dart';
-import 'package:airqo/src/app/shared/widgets/translated_tooltip.dart';
+
+// ─── AQ level helper ────────────────────────────────────────────────────────
+
+({String asset, Color color}) _aqLevel(double pm25) {
+  if (pm25 < 12.1) {
+    return (
+      asset: 'assets/images/shared/airquality_indicators/good.svg',
+      color: const Color(0xFF34C759),
+    );
+  }
+  if (pm25 < 35.5) {
+    return (
+      asset: 'assets/images/shared/airquality_indicators/moderate.svg',
+      color: const Color(0xFFFDC412),
+    );
+  }
+  if (pm25 < 55.5) {
+    return (
+      asset:
+          'assets/images/shared/airquality_indicators/unhealthy-sensitive.svg',
+      color: const Color(0xFFFF851F),
+    );
+  }
+  if (pm25 < 150.5) {
+    return (
+      asset: 'assets/images/shared/airquality_indicators/unhealthy.svg',
+      color: const Color(0xFFFE726B),
+    );
+  }
+  if (pm25 < 250.5) {
+    return (
+      asset: 'assets/images/shared/airquality_indicators/very-unhealthy.svg',
+      color: const Color(0xFFC78AE8),
+    );
+  }
+  return (
+    asset: 'assets/images/shared/airquality_indicators/hazardous.svg',
+    color: const Color(0xFFD95BA3),
+  );
+}
+
+// AQ level entries (SVG asset + tooltip label) in Good → Hazardous order
+const List<({String asset, String label})> _aqLegendItems = [
+  (
+    asset: 'assets/images/shared/airquality_indicators/good.svg',
+    label: 'Air quality is Good',
+  ),
+  (
+    asset: 'assets/images/shared/airquality_indicators/moderate.svg',
+    label: 'Air quality is Moderate',
+  ),
+  (
+    asset: 'assets/images/shared/airquality_indicators/unhealthy-sensitive.svg',
+    label: 'Unhealthy for Sensitive Groups',
+  ),
+  (
+    asset: 'assets/images/shared/airquality_indicators/unhealthy.svg',
+    label: 'Air quality is Unhealthy',
+  ),
+  (
+    asset: 'assets/images/shared/airquality_indicators/very-unhealthy.svg',
+    label: 'Air quality is Very Unhealthy',
+  ),
+  (
+    asset: 'assets/images/shared/airquality_indicators/hazardous.svg',
+    label: 'Air quality is Hazardous',
+  ),
+];
+
+// ─── Screen ─────────────────────────────────────────────────────────────────
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -39,19 +107,16 @@ class _MapScreenState extends State<MapScreen>
     with AutomaticKeepAliveClientMixin, UiLoggy {
   late GoogleMapController mapController;
 
-  String? currentDetailsName;
   TextEditingController searchController = TextEditingController();
-
-  bool showDetails = false;
-  bool showCustomDetails = false;
-  Measurement? currentDetails;
-
-  List<Measurement> filteredMeasurements = [];
-  String currentFilter = "All";
+  final FocusNode _searchFocusNode = FocusNode();
+  final DraggableScrollableController _sheetController =
+      DraggableScrollableController();
 
   List<Measurement> allMeasurements = [];
   List<Measurement> localSearchResults = [];
   List<Measurement> nearbyMeasurements = [];
+  List<Measurement> filteredMeasurements = [];
+  String currentFilter = 'Nearby';
   Position? userPosition;
   String? userCountry;
 
@@ -61,151 +126,270 @@ class _MapScreenState extends State<MapScreen>
   bool mapControllerInitialized = false;
   GooglePlacesBloc? googlePlacesBloc;
 
-  final LatLng _center = const LatLng(0.347596, 32.582520);
+  MapType _currentMapType = MapType.normal;
+  Measurement? _selectedCardMeasurement;
+  String? _mapStyleJson;
 
-  // Map zoom controls
+  static const LatLng _center = LatLng(0.347596, 32.582520);
+  static const double _sheetPeekSize = 0.13;
+  static const double _sheetMidSize = 0.44;
+
+  // ── Map lifecycle ──────────────────────────────────────────────────────────
+
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
-    if (mounted) {
-      setState(() {
-        mapControllerInitialized = true;
-      });
-    }
-
-    if (markers.isNotEmpty) {
+    if (mounted) setState(() => mapControllerInitialized = true);
+    _snapToUser();
+    if (markers.isNotEmpty && userPosition == null) {
       _fitMarkersInView();
     }
   }
 
+  /// Loads the dark JSON asset (or clears it) and calls setState so GoogleMap
+  /// picks up the new [_mapStyleJson] via its `style` property.
+  Future<void> _applyMapStyle() async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    if (isDark && _currentMapType == MapType.normal) {
+      try {
+        final json = await DefaultAssetBundle.of(context)
+            .loadString('assets/map_styles/dark.json');
+        if (mounted) setState(() => _mapStyleJson = json);
+      } catch (e) {
+        loggy.warning('Failed to load dark map style: $e');
+      }
+    } else {
+      if (mounted) setState(() => _mapStyleJson = null);
+    }
+  }
+
+  Future<void> _snapToUser() async {
+    if (!mapControllerInitialized || userPosition == null) return;
+    await mapController.animateCamera(
+      CameraUpdate.newLatLngZoom(
+        LatLng(userPosition!.latitude, userPosition!.longitude),
+        12,
+      ),
+    );
+  }
+
   Future<void> _fitMarkersInView() async {
     if (!mapControllerInitialized || markers.isEmpty) return;
-
     try {
-      // Calculate bounds
-      double minLat = 90.0;
-      double maxLat = -90.0;
-      double minLng = 180.0;
-      double maxLng = -180.0;
-
+      double minLat = 90.0, maxLat = -90.0, minLng = 180.0, maxLng = -180.0;
       for (final marker in markers) {
-        final position = marker.position;
-        minLat = position.latitude < minLat ? position.latitude : minLat;
-        maxLat = position.latitude > maxLat ? position.latitude : maxLat;
-        minLng = position.longitude < minLng ? position.longitude : minLng;
-        maxLng = position.longitude > maxLng ? position.longitude : maxLng;
+        final p = marker.position;
+        if (p.latitude < minLat) minLat = p.latitude;
+        if (p.latitude > maxLat) maxLat = p.latitude;
+        if (p.longitude < minLng) minLng = p.longitude;
+        if (p.longitude > maxLng) maxLng = p.longitude;
       }
-
-      // Add padding
-      final latPadding = (maxLat - minLat) * 0.1;
-      final lngPadding = (maxLng - minLng) * 0.1;
-
-      final bounds = LatLngBounds(
-        southwest: LatLng(minLat - latPadding, minLng - lngPadding),
-        northeast: LatLng(maxLat + latPadding, maxLng + lngPadding),
+      final latPad = (maxLat - minLat) * 0.1;
+      final lngPad = (maxLng - minLng) * 0.1;
+      await mapController.animateCamera(
+        CameraUpdate.newLatLngBounds(
+          LatLngBounds(
+            southwest: LatLng(minLat - latPad, minLng - lngPad),
+            northeast: LatLng(maxLat + latPad, maxLng + lngPad),
+          ),
+          50.0,
+        ),
       );
-
-      final cameraUpdate = CameraUpdate.newLatLngBounds(bounds, 50.0);
-      await mapController.animateCamera(cameraUpdate);
     } catch (e) {
       loggy.error('Error fitting markers to bounds: $e');
-
       mapController.animateCamera(CameraUpdate.newLatLngZoom(_center, 6));
     }
   }
 
   Future<void> reduceZoom() async {
     if (!mapControllerInitialized) return;
-
-    var currentZoomLevel = await mapController.getZoomLevel();
-    currentZoomLevel = currentZoomLevel - 2;
-    mapController.animateCamera(CameraUpdate.zoomTo(currentZoomLevel));
+    final zoom = await mapController.getZoomLevel();
+    mapController.animateCamera(CameraUpdate.zoomTo(zoom - 2));
   }
 
   Future<void> increaseZoom() async {
     if (!mapControllerInitialized) return;
-
-    var currentZoomLevel = await mapController.getZoomLevel();
-    currentZoomLevel = currentZoomLevel + 2;
-    mapController.animateCamera(CameraUpdate.zoomTo(currentZoomLevel));
+    final zoom = await mapController.getZoomLevel();
+    mapController.animateCamera(CameraUpdate.zoomTo(zoom + 2));
   }
 
+  // ── Details / card ─────────────────────────────────────────────────────────
+
   void viewDetails({Measurement? measurement, String? placeName}) {
+    // Dismiss keyboard and collapse sheet whenever a result is selected
+    FocusScope.of(context).unfocus();
+    _sheetController.animateTo(
+      _sheetPeekSize,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
+
     if (measurement != null) {
       if (mapControllerInitialized &&
           measurement.siteDetails?.approximateLatitude != null &&
           measurement.siteDetails?.approximateLongitude != null) {
         mapController.animateCamera(
           CameraUpdate.newLatLngZoom(
-            LatLng(measurement.siteDetails!.approximateLatitude!,
-                measurement.siteDetails!.approximateLongitude!),
-            16,
+            LatLng(
+              measurement.siteDetails!.approximateLatitude!,
+              measurement.siteDetails!.approximateLongitude!,
+            ),
+            14,
           ),
         );
       }
-      
-      _showAnalyticsDetails(measurement);
-    } else if (measurement == null && placeName != null) {
+      if (mounted) setState(() => _selectedCardMeasurement = measurement);
+    } else if (placeName != null) {
       googlePlacesBloc!.add(GetPlaceDetails(placeName));
-      if (mounted) {
-        setState(() {
-          showDetails = true;
-          currentDetailsName = placeName;
-        });
-      }
     }
   }
 
+  void _hideTextInputOverlay() {
+    if (!mounted) return;
+    _searchFocusNode.unfocus();
+    FocusManager.instance.primaryFocus?.unfocus();
+    FocusScope.of(context).unfocus();
+    SystemChannels.textInput.invokeMethod<Object?>('TextInput.hide');
+  }
+
   void _showAnalyticsDetails(Measurement measurement) {
+    // showBottomSheet (not showModalBottomSheet) avoids a lingering scrim;
+    // we also drop IME so the draggable sheet isn't pushed by the keyboard.
+    _hideTextInputOverlay();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _hideTextInputOverlay();
+
+      Future<void>.delayed(const Duration(milliseconds: 48), () {
+        if (!mounted) return;
+        _hideTextInputOverlay();
+        showBottomSheet(
+          context: context,
+          backgroundColor: Colors.transparent,
+          builder: (_) => AnalyticsDetails(measurement: measurement),
+        );
+      });
+    });
+  }
+
+  void _openMapStylePicker() {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => AnalyticsDetails(
-        measurement: measurement,
+      builder: (_) => MapStylePicker(
+        currentMapType: _currentMapType,
+        onApply: (type) async {
+          if (mounted) setState(() => _currentMapType = type);
+          await _applyMapStyle();
+        },
       ),
     );
   }
 
-  void resetDetails() {
-    if (mapControllerInitialized) {
-      mapController.animateCamera(
-        CameraUpdate.newLatLngZoom(
-          _center,
-          6,
+  // ── Markers ────────────────────────────────────────────────────────────────
+
+  Future<void> addMarkers(AirQualityResponse response) async {
+    if (response.measurements == null || response.measurements!.isEmpty) return;
+    final newMarkers = <Marker>[];
+    for (final m in response.measurements!) {
+      if (m.siteDetails?.approximateLatitude != null &&
+          m.siteDetails?.approximateLongitude != null &&
+          m.id != null) {
+        try {
+          final pmValue = m.pm25?.value;
+          if (pmValue != null) {
+            final iconPath = getAirQualityIcon(m, pmValue);
+            final resolvedPath =
+                iconPath.isNotEmpty ? iconPath : _aqLevel(pmValue).asset;
+            newMarkers.add(Marker(
+              onTap: () => viewDetails(measurement: m),
+              icon: await bitmapDescriptorFromSvgAsset(resolvedPath),
+              position: LatLng(
+                m.siteDetails!.approximateLatitude!,
+                m.siteDetails!.approximateLongitude!,
+              ),
+              markerId: MarkerId(m.id!),
+            ));
+          }
+        } catch (e) {
+          loggy.warning('Error creating marker for ${m.id}: $e');
+        }
+      }
+    }
+    if (mounted) {
+      setState(() {
+        markers = newMarkers;
+        isInitializing = false;
+      });
+    }
+    if (mapControllerInitialized && markers.isNotEmpty && userPosition == null) {
+      _fitMarkersInView();
+    }
+  }
+
+  // ── Location ───────────────────────────────────────────────────────────────
+
+  Future<void> _getUserLocation() async {
+    try {
+      if (!await Geolocator.isLocationServiceEnabled()) return;
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) return;
+      }
+      if (permission == LocationPermission.deniedForever) return;
+
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 5),
         ),
       );
-    }
 
+      if (mounted) setState(() => userPosition = position);
+
+      try {
+        final placemarks = await placemarkFromCoordinates(
+            position.latitude, position.longitude);
+        if (placemarks.isNotEmpty && placemarks.first.country != null) {
+          if (mounted) setState(() => userCountry = placemarks.first.country!);
+        }
+      } catch (_) {}
+
+      _updateNearbyMeasurements();
+      _snapToUser();
+    } catch (e) {
+      loggy.error('Failed to get user location: $e');
+    }
+  }
+
+  void _updateNearbyMeasurements() {
+    if (userPosition == null || allMeasurements.isEmpty) return;
+    final measWithDistance = <MapEntry<Measurement, double>>[];
+    for (final m in allMeasurements) {
+      final lat = m.siteDetails?.approximateLatitude;
+      final lng = m.siteDetails?.approximateLongitude;
+      if (lat == null || lng == null) continue;
+      final d = Geolocator.distanceBetween(
+              userPosition!.latitude, userPosition!.longitude, lat, lng) /
+          1000;
+      if (d <= 50.0) measWithDistance.add(MapEntry(m, d));
+    }
+    measWithDistance.sort((a, b) => a.value.compareTo(b.value));
     if (mounted) {
       setState(() {
-        showDetails = false;
-        currentDetails = null;
-        currentDetailsName = null;
+        nearbyMeasurements =
+            measWithDistance.take(6).map((e) => e.key).toList();
       });
     }
   }
 
-  // Search handling
-  void clearGooglePlaces() {
-    googlePlacesBloc!.add(ResetGooglePlaces());
-    searchController.clear();
+  void filterByCountry(String country) {
     if (mounted) {
       setState(() {
-        localSearchResults = [];
-      });
-    }
-  }
-
-
-  void filterByCountry(String country, List<Measurement> measurements) {
-    if (mounted) {
-      setState(() {
-        filteredMeasurements = measurements.where((measurement) {
-          if (measurement.siteDetails != null) {
-            return measurement.siteDetails!.country == country;
-          }
-          return false;
-        }).toList();
+        filteredMeasurements = allMeasurements
+            .where((m) => m.siteDetails?.country == country)
+            .toList();
         currentFilter = country;
       });
     }
@@ -215,90 +399,17 @@ class _MapScreenState extends State<MapScreen>
     if (mounted) {
       setState(() {
         filteredMeasurements = [];
-        currentFilter = "All";
-      });
-    }
-  }
-
-  Future<void> addMarkers(AirQualityResponse response) async {
-    if (response.measurements == null || response.measurements!.isEmpty) {
-      loggy.warning('No measurements to create markers from');
-      return;
-    }
-
-    final newMarkers = <Marker>[];
-
-    for (var measurement in response.measurements!) {
-      if (measurement.siteDetails != null &&
-          measurement.siteDetails!.approximateLatitude != null &&
-          measurement.siteDetails!.approximateLongitude != null &&
-          measurement.id != null) {
-        try {
-          final double? pmValue = measurement.pm25?.value;
-          if (pmValue != null) {
-            newMarkers.add(Marker(
-              onTap: () => viewDetails(measurement: measurement),
-              icon: await bitmapDescriptorFromSvgAsset(
-                  getAirQualityIcon(measurement, pmValue)),
-              position: LatLng(measurement.siteDetails!.approximateLatitude!,
-                  measurement.siteDetails!.approximateLongitude!),
-              markerId: MarkerId(measurement.id!),
-            ));
-          }
-        } catch (e) {
-          loggy.warning(
-              'Error creating marker for measurement ${measurement.id}: $e');
-        }
-      }
-    }
-
-    if (mounted) {
-      setState(() {
-        markers = newMarkers;
-        isInitializing = false;
-      });
-    }
-
-    if (mapControllerInitialized && markers.isNotEmpty) {
-      _fitMarkersInView();
-    }
-  }
-
-  Future<void> _retryLoading() async {
-    if (isRetrying) return;
-
-    if (mounted) {
-      setState(() {
-        isRetrying = true;
-      });
-    }
-
-    // Load from map bloc
-    context.read<MapBloc>().add(LoadMap(forceRefresh: true));
-
-    // Wait a short time to show loading state
-    await Future.delayed(Duration(seconds: 2));
-
-    if (mounted) {
-      setState(() {
-        isRetrying = false;
+        currentFilter = 'Nearby';
       });
     }
   }
 
   void populateMeasurements(List<Measurement> measurements) {
-    List<Measurement> finalMeasurements = [];
-
-    for (var meas in measurements) {
-      if (meas.siteDetails != null) {
-        finalMeasurements.add(meas);
-      }
-    }
-
-    if (finalMeasurements.isNotEmpty) {
+    final valid = measurements.where((m) => m.siteDetails != null).toList();
+    if (valid.isNotEmpty) {
       if (mounted) {
         setState(() {
-          allMeasurements = finalMeasurements;
+          allMeasurements = valid;
           isInitializing = false;
         });
       }
@@ -306,204 +417,77 @@ class _MapScreenState extends State<MapScreen>
     }
   }
 
-  double _calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-    return Geolocator.distanceBetween(lat1, lon1, lat2, lon2) / 1000;
-  }
-
-  Future<void> _getUserLocation() async {
-    try {
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        loggy.warning('Location services are disabled');
-        return;
-      }
-
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          loggy.warning('Location permissions are denied');
-          return;
-        }
-      }
-
-      if (permission == LocationPermission.deniedForever) {
-        loggy.warning('Location permissions are permanently denied');
-        return;
-      }
-
-      Position position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 5),
-        ),
-      );
-
-      if (mounted) {
-        setState(() {
-          userPosition = position;
-        });
-      }
-
-      try {
-        final placemarks = await placemarkFromCoordinates(
-          position.latitude,
-          position.longitude,
-        );
-
-        if (placemarks.isNotEmpty && placemarks.first.country != null) {
-          final country = placemarks.first.country!;
-          if (mounted) {
-            setState(() {
-              userCountry = country;
-            });
-          }
-        }
-      } catch (e) {
-        loggy.warning('Failed to get country from coordinates: $e');
-      }
-
-      _updateNearbyMeasurements();
-    } catch (e) {
-      loggy.error('Failed to get user location: $e');
-    }
-  }
-
-  void _updateNearbyMeasurements() {
-    if (userPosition == null || allMeasurements.isEmpty) {
-      return;
-    }
-
-    List<MapEntry<Measurement, double>> measWithDistance = [];
-    const double searchRadius = 50.0; // 50km radius
-
-    for (var measurement in allMeasurements) {
-      final siteDetails = measurement.siteDetails;
-      if (siteDetails == null) continue;
-
-      double? latitude = siteDetails.approximateLatitude;
-      double? longitude = siteDetails.approximateLongitude;
-      
-      if (latitude == null || longitude == null) continue;
-
-      final distance = _calculateDistance(
-        userPosition!.latitude,
-        userPosition!.longitude,
-        latitude,
-        longitude,
-      );
-
-      if (distance <= searchRadius) {
-        measWithDistance.add(MapEntry(measurement, distance));
-      }
-    }
-
-    // Sort by distance and take the closest 6
-    measWithDistance.sort((a, b) => a.value.compareTo(b.value));
-    
-    if (mounted) {
-      setState(() {
-        nearbyMeasurements = measWithDistance
-            .take(6)
-            .map((entry) => entry.key)
-            .toList();
-      });
-    }
-  }
-
   void _initializeWithData(AirQualityResponse response) async {
-    await addMarkers(response);
     populateMeasurements(response.measurements ?? []);
+    await addMarkers(response);
   }
 
-  // UI state
-  bool isModalFull = false;
-
-  void toggleModal(bool value) {
-    if (isModalFull != value) {
-      if (mounted) {
-        setState(() {
-          isModalFull = value;
-        });
-      }
-    }
-  }
-
-  @override
-  void initState() {
-    googlePlacesBloc = context.read<GooglePlacesBloc>()
-      ..add(ResetGooglePlaces());
-
-    _loadDataFromAvailableSources();
-    _getUserLocation();
-
-    super.initState();
+  Future<void> _retryLoading() async {
+    if (isRetrying) return;
+    if (mounted) setState(() => isRetrying = true);
+    context.read<MapBloc>().add(LoadMap(forceRefresh: true));
+    await Future.delayed(const Duration(seconds: 2));
+    if (mounted) setState(() => isRetrying = false);
   }
 
   void _loadDataFromAvailableSources() {
-    final dashboardState = context.read<DashboardBloc>().state;
-    if (dashboardState is DashboardLoaded &&
-        dashboardState.response.measurements != null &&
-        dashboardState.response.measurements!.isNotEmpty) {
-      _initializeWithData(dashboardState.response);
+    final state = context.read<DashboardBloc>().state;
+    if (state is DashboardLoaded &&
+        state.response.measurements?.isNotEmpty == true) {
+      _initializeWithData(state.response);
     }
-
     context.read<MapBloc>().add(LoadMap());
   }
+
+  /// Programmatic clears do not invoke [TextField.onChanged]; syncing here
+  /// restores Nearby + chips and resets autocomplete when the field is emptied.
+  void _onSearchControllerChanged() {
+    if (!mounted) return;
+    if (searchController.text.trim().isNotEmpty) return;
+    googlePlacesBloc!.add(ResetGooglePlaces());
+    setState(() => localSearchResults = []);
+  }
+
+  // ── Lifecycle ──────────────────────────────────────────────────────────────
+
+  @override
+  void initState() {
+    super.initState();
+    searchController.addListener(_onSearchControllerChanged);
+    googlePlacesBloc =
+        context.read<GooglePlacesBloc>()..add(ResetGooglePlaces());
+    _loadDataFromAvailableSources();
+    _getUserLocation();
+    // Pre-load dark style JSON so it's ready before the map is created
+    WidgetsBinding.instance.addPostFrameCallback((_) => _applyMapStyle());
+  }
+
+  @override
+  void dispose() {
+    searchController.removeListener(_onSearchControllerChanged);
+    _sheetController.dispose();
+    _searchFocusNode.dispose();
+    searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  bool get wantKeepAlive => true;
+
+  // ── Build ──────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
-
-    final Set<String> activeCountryNames =
-        CountryRepository.extractActiveCountryNames(allMeasurements);
-    final List<CountryModel> countries =
-        CountryRepository.getActiveCountries(activeCountryNames);
-
-    final List<Map<String, String>> airQualityData = [
-      {
-        "name": "Good",
-        "airQualityRange": "0 - 12",
-        "image": "assets/images/shared/airquality_indicators/good.svg"
-      },
-      {
-        "name": "Moderate",
-        "airQualityRange": "12.1 - 35.4",
-        "image": "assets/images/shared/airquality_indicators/moderate.svg"
-      },
-      {
-        "name": "Unhealthy for Sensitive Groups",
-        "airQualityRange": "35.5 - 55.4",
-        "image":
-            "assets/images/shared/airquality_indicators/unhealthy-sensitive.svg"
-      },
-      {
-        "name": "Unhealthy",
-        "airQualityRange": "55.5 - 150.4",
-        "image": "assets/images/shared/airquality_indicators/unhealthy.svg"
-      },
-      {
-        "name": "Very Unhealthy",
-        "airQualityRange": "150.5 - 250.4",
-        "image": "assets/images/shared/airquality_indicators/very-unhealthy.svg"
-      },
-      {
-        "name": "Hazardous",
-        "airQualityRange": "250.5 and above",
-        "image": "assets/images/shared/airquality_indicators/hazardous.svg"
-      },
-    ];
 
     return MultiBlocListener(
       listeners: [
         BlocListener<DashboardBloc, DashboardState>(
           listener: (context, state) {
             if (state is DashboardLoaded &&
-                state.response.measurements != null &&
-                state.response.measurements!.isNotEmpty) {
-              if (markers.isEmpty || allMeasurements.isEmpty) {
-                _initializeWithData(state.response);
-              }
+                state.response.measurements?.isNotEmpty == true &&
+                (markers.isEmpty || allMeasurements.isEmpty)) {
+              _initializeWithData(state.response);
             }
           },
         ),
@@ -513,9 +497,7 @@ class _MapScreenState extends State<MapScreen>
               final response = state is MapLoaded
                   ? state.response
                   : (state as MapLoadedFromCache).response;
-
-              if (response.measurements != null &&
-                  response.measurements!.isNotEmpty) {
+              if (response.measurements?.isNotEmpty == true) {
                 _initializeWithData(response);
               }
             }
@@ -531,49 +513,42 @@ class _MapScreenState extends State<MapScreen>
                   measurement.siteDetails?.approximateLongitude != null) {
                 mapController.animateCamera(
                   CameraUpdate.newLatLngZoom(
-                    LatLng(measurement.siteDetails!.approximateLatitude!,
-                        measurement.siteDetails!.approximateLongitude!),
-                    16,
+                    LatLng(
+                      measurement.siteDetails!.approximateLatitude!,
+                      measurement.siteDetails!.approximateLongitude!,
+                    ),
+                    14,
                   ),
                 );
               }
-              
-              _showAnalyticsDetails(measurement);
-              
+              FocusScope.of(context).unfocus();
+              _sheetController.animateTo(
+                _sheetPeekSize,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOut,
+              );
               if (mounted) {
-                setState(() {
-                  showDetails = false;
-                  currentDetailsName = null;
-                });
+                setState(() => _selectedCardMeasurement = measurement);
               }
             }
           },
         ),
       ],
       child: Scaffold(
-        body: Stack(
-          children: [
-            // Map base layer
-            Container(
-              height: double.infinity,
-              width: double.infinity,
-              color: Colors.grey[200],
-            ),
-
-            if (isInitializing && markers.isEmpty && allMeasurements.isEmpty)
-              _buildLoadingView()
-            else if (!isInitializing &&
-                markers.isEmpty &&
-                allMeasurements.isEmpty &&
-                !isRetrying)
-              _buildErrorView()
-            else
-              _buildMapView(airQualityData, countries),
-          ],
-        ),
+        resizeToAvoidBottomInset: false,
+        body: isInitializing && markers.isEmpty && allMeasurements.isEmpty
+            ? _buildLoadingView()
+            : (!isInitializing &&
+                    markers.isEmpty &&
+                    allMeasurements.isEmpty &&
+                    !isRetrying)
+                ? _buildErrorView()
+                : _buildMapView(),
       ),
     );
   }
+
+  // ── Loading / error views ──────────────────────────────────────────────────
 
   Widget _buildLoadingView() {
     return Center(
@@ -581,13 +556,12 @@ class _MapScreenState extends State<MapScreen>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CircularProgressIndicator(color: AppColors.primaryColor),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           TranslatedText(
             "Loading map data...",
             style: TextStyle(
-              fontSize: 16,
-              color: Theme.of(context).textTheme.bodyMedium?.color,
-            ),
+                fontSize: 16,
+                color: Theme.of(context).textTheme.bodyMedium?.color),
           ),
         ],
       ),
@@ -599,664 +573,312 @@ class _MapScreenState extends State<MapScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.map_outlined,
-            size: 64,
-            color: Colors.grey,
-          ),
-          SizedBox(height: 16),
+          const Icon(Icons.map_outlined, size: 64, color: Colors.grey),
+          const SizedBox(height: 16),
           TranslatedText(
             "Unable to load map data",
             style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).textTheme.headlineMedium?.color,
-            ),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).textTheme.headlineMedium?.color),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           TranslatedText(
             "Please check your connection and try again",
             style: TextStyle(
-              fontSize: 16,
-              color: Theme.of(context).textTheme.bodyMedium?.color,
-            ),
+                fontSize: 16,
+                color: Theme.of(context).textTheme.bodyMedium?.color),
           ),
-          SizedBox(height: 24),
+          const SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: _retryLoading,
-            icon: Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh),
             label: TranslatedText('Try Again'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryColor,
-              foregroundColor: Colors.white,
-            ),
+                backgroundColor: AppColors.primaryColor,
+                foregroundColor: Colors.white),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMapView(
-      List<Map<String, String>> airQualityData, List<CountryModel> countries) {
+  // ── Map view ───────────────────────────────────────────────────────────────
+
+  Widget _buildMapView() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Keep card above the peek strip (13 % of screen height ≈ 103 px on most
+    // phones) with a comfortable 14 px gap.
+    final cardBottom =
+        MediaQuery.of(context).size.height * _sheetPeekSize + 14;
+
     return Stack(
       children: [
-        // Google Map
+        // ── Full-screen map ─────────────────────────────────────────────────
         GoogleMap(
+          mapType: _currentMapType,
+          style: _mapStyleJson,
           zoomControlsEnabled: false,
-          myLocationEnabled: false,
+          myLocationEnabled: true,
+          myLocationButtonEnabled: false,
           zoomGesturesEnabled: true,
           minMaxZoomPreference: MinMaxZoomPreference.unbounded,
           onMapCreated: _onMapCreated,
-          initialCameraPosition: CameraPosition(
-            target: _center,
-            zoom: 6,
-          ),
+          initialCameraPosition:
+              const CameraPosition(target: _center, zoom: 6),
           markers: markers.toSet(),
+          onTap: (_) {
+            if (mounted) setState(() => _selectedCardMeasurement = null);
+          },
         ),
 
-        // UI Overlay
-        SizedBox(
-          height: MediaQuery.of(context).size.height,
-          width: MediaQuery.of(context).size.width,
+        // ── Top-right — layers / style picker ──────────────────────────────
+        Positioned(
+          top: 50,
+          right: 12,
+          child: _MapIconButton(
+            icon: Icons.layers_outlined,
+            isDark: isDark,
+            onTap: _openMapStylePicker,
+          ),
+        ),
+
+        // ── Top-right — geolocate + zoom (below layers button) ─────────────
+        Positioned(
+          top: 102, // 50 (layers top) + 40 (button height) + 12 gap
+          right: 12,
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              if (!isModalFull || showDetails)
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        // Air quality legend
-                        Container(
-                          padding: const EdgeInsets.all(5),
-                          decoration: BoxDecoration(
-                            color:
-                                Theme.of(context).brightness == Brightness.dark
-                                    ? Color(0xff3E4147)
-                                    : Colors.white,
-                            borderRadius: BorderRadius.circular(44),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.1),
-                                blurRadius: 5,
-                                offset: Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              mainAxisSize: MainAxisSize.min,
-                              children: airQualityData.map((e) {
-                                return TranslatedTooltip(
-                                  preferBelow: false,
-                                  textStyle: TextStyle(color: Colors.white),
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(4),
-                                      color: Color(0xff3E4147)),
-                                  triggerMode: TooltipTriggerMode.tap,
-                                  message: "Air Quality is ${e['name']}",
-                                  verticalOffset: -18,
-                                  margin: EdgeInsets.only(left: 65),
-                                  child: Container(
-                                      margin: const EdgeInsets.only(top: 4),
-                                      height: 40,
-                                      width: 40,
-                                      child: SvgPicture.asset(
-                                        e['image']!,
-                                        fit: BoxFit.cover,
-                                      )),
-                                );
-                              }).toList()),
-                        ),
-                        Spacer(),
-                        // Zoom controls
-                        Container(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          height: 90,
-                          width: 44,
-                          decoration: BoxDecoration(
-                            color:
-                                Theme.of(context).brightness == Brightness.dark
-                                    ? Color(0xff3E4147)
-                                    : Colors.white,
-                            borderRadius: BorderRadius.circular(44),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.1),
-                                blurRadius: 5,
-                                offset: Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            children: [
-                              Expanded(
-                                  child: GestureDetector(
-                                      onTap: () async => await increaseZoom(),
-                                      child: Icon(Icons.add))),
-                              Divider(),
-                              Expanded(
-                                  child: GestureDetector(
-                                      onTap: () async => await reduceZoom(),
-                                      child: Icon(Icons.remove)))
-                            ],
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                ),
-
-              // Bottom panel with details or list
-              Expanded(
-                child: Builder(
-                  builder: (context) {
-                    if (showDetails && currentDetailsName == null) {
-                      return _buildMeasurementDetailsPanel();
-                    } else if (showDetails && currentDetailsName != null) {
-                      return _buildPlaceDetailsPanel();
-                    } else {
-                      return _buildSearchAndListPanel(countries);
-                    }
-                  },
-                ),
-              )
+              _MapIconButton(
+                icon: Icons.my_location,
+                isDark: isDark,
+                filled: true,
+                onTap: _snapToUser,
+              ),
+              const SizedBox(height: 6),
+              _ZoomGroup(
+                isDark: isDark,
+                onZoomIn: increaseZoom,
+                onZoomOut: reduceZoom,
+              ),
             ],
+          ),
+        ),
+
+        // ── Top-left — AQ legend with emoji icons + tooltips ───────────────
+        // top: 50 aligns the legend's top edge with the layers button on the
+        // right. Width fixed at 40 px to match _MapIconButton.
+        Positioned(
+          top: 50,
+          left: 10,
+          child: Container(
+            width: 40,
+            padding: const EdgeInsets.symmetric(vertical: 7),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? AppColors.darkHighlight.withValues(alpha: 0.94)
+                  : Colors.white.withValues(alpha: 0.95),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x33536A87),
+                  offset: Offset(0, 2),
+                  blurRadius: 5,
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: _aqLegendItems
+                  .map(
+                    (item) => Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: TranslatedTooltip(
+                        message: item.label,
+                        preferBelow: false,
+                        triggerMode: TooltipTriggerMode.tap,
+                        textStyle:
+                            const TextStyle(color: Colors.white, fontSize: 12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xff3E4147),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        verticalOffset: -18,
+                        margin: const EdgeInsets.only(left: 52),
+                        child: SvgPicture.asset(
+                          item.asset,
+                          width: 22,
+                          height: 22,
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ),
+        ),
+
+        // ── Bottom sheet ────────────────────────────────────────────────────
+        // expand: true (default) lets the sheet fill the Stack so it can
+        // anchor its draggable child to the bottom. The BackdropFilter lives
+        // inside the builder's child which is only rendered at initialChildSize
+        // height, so blur is correctly scoped to the visible strip only.
+        DraggableScrollableSheet(
+          controller: _sheetController,
+          initialChildSize: _sheetPeekSize,
+          minChildSize: _sheetPeekSize,
+          maxChildSize: _sheetMidSize,
+          snap: true,
+          snapSizes: const [_sheetPeekSize, _sheetMidSize],
+          builder: (context, scrollController) =>
+              _buildBottomSheet(scrollController, isDark),
+        ),
+
+        // ── Air quality card — above the sheet peek, rendered last (on top) ─
+        Positioned(
+          bottom: cardBottom,
+          left: 12,
+          right: 12,
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            transitionBuilder: (child, animation) => SlideTransition(
+              position: Tween(
+                      begin: const Offset(0, 0.25), end: Offset.zero)
+                  .animate(CurvedAnimation(
+                      parent: animation, curve: Curves.easeOut)),
+              child: FadeTransition(opacity: animation, child: child),
+            ),
+            child: _selectedCardMeasurement == null
+                ? const SizedBox.shrink()
+                : MapAirQualityCard(
+                    key: ValueKey(_selectedCardMeasurement!.id),
+                    measurement: _selectedCardMeasurement!,
+                    onDismiss: () =>
+                        setState(() => _selectedCardMeasurement = null),
+                    onViewForecast: () =>
+                        _showAnalyticsDetails(_selectedCardMeasurement!),
+                  ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildMeasurementDetailsPanel() {
-    if (currentDetails == null) return SizedBox.shrink();
+  // ── Bottom sheet ───────────────────────────────────────────────────────────
 
-    return SizedBox(
-        width: double.infinity,
-        child: ModalWrapper(
-          child: Padding(
-              padding: const EdgeInsets.only(top: 16),
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    margin: const EdgeInsets.only(bottom: 8),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        SizedBox(),
-                        Text(
-                          currentDetails!.siteDetails!.searchName ??
-                              currentDetails!.siteDetails!.name ??
-                              "---",
-                          style: TextStyle(
-                              color: Color(0xff9EA3AA),
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700),
-                        ),
-                        GestureDetector(
-                            onTap: () => resetDetails(),
-                            child: Icon(Icons.close))
-                      ],
-                    ),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.symmetric(vertical: 16),
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        TranslatedText("Today",
-                            style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 20,
-                                color: AppColors.boldHeadlineColor)),
-                        Row(children: [
-                          SizedBox(width: 8),
-                        ])
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: AnalyticsCard(currentDetails!),
-                  ),
-                ],
-              )),
-        ));
-  }
-
-  Widget _buildPlaceDetailsPanel() {
-    return BlocBuilder<GooglePlacesBloc, GooglePlacesState>(
-      builder: (context, state) {
-        if (state is PlaceDetailsLoaded) {
-          Measurement measurement = state.response.measurements[0];
-          return SizedBox(
-            width: double.infinity,
-            child: ModalWrapper(
-              child: Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        margin: const EdgeInsets.only(bottom: 8),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            SizedBox(),
-                            Text(
-                              measurement.siteDetails!.searchName ??
-                                  measurement.siteDetails!.name ??
-                                  "---",
-                              style: TextStyle(
-                                  color: Color(0xff9EA3AA),
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w700),
-                            ),
-                            GestureDetector(
-                                onTap: () => resetDetails(),
-                                child: Icon(Icons.close))
-                          ],
-                        ),
-                      ),
-                      Container(
-                        margin: const EdgeInsets.symmetric(vertical: 16),
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            TranslatedText("Today",
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 20,
-                                    color: AppColors.boldHeadlineColor)),
-                            Row(children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                    color: AppColors.highlightColor,
-                                    borderRadius: BorderRadius.circular(100)),
-                                height: 40,
-                                width: 52,
-                                child: Center(
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(left: 8.0),
-                                    child: Icon(
-                                      size: 20,
-                                      Icons.arrow_back_ios,
-                                      color: AppColors.boldHeadlineColor,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 8),
-                              Container(
-                                decoration: BoxDecoration(
-                                    color: AppColors.highlightColor,
-                                    borderRadius: BorderRadius.circular(100)),
-                                height: 40,
-                                width: 52,
-                                child: Center(
-                                  child: Icon(
-                                    Icons.arrow_forward_ios,
-                                    size: 20,
-                                    color: AppColors.boldHeadlineColor,
-                                  ),
-                                ),
-                              )
-                            ])
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: AnalyticsCard(measurement),
-                      ),
-                    ],
-                  )),
-            ),
-          );
-        } else if (state is PlaceDetailsLoading) {
-          return SizedBox(
-            width: double.infinity,
-            child: ModalWrapper(
-              child: Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        margin: const EdgeInsets.only(bottom: 8),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            SizedBox(),
-                            ShimmerText(
-                              height: 15,
-                              width: 150,
-                            ),
-                            GestureDetector(
-                                onTap: () => resetDetails(),
-                                child: Icon(Icons.close))
-                          ],
-                        ),
-                      ),
-                      Container(
-                        margin: const EdgeInsets.symmetric(vertical: 16),
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            TranslatedText("Today",
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 20,
-                                    color: AppColors.boldHeadlineColor)),
-                            Row(children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                    color: AppColors.highlightColor,
-                                    borderRadius: BorderRadius.circular(100)),
-                                height: 40,
-                                width: 52,
-                                child: Center(
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(left: 8.0),
-                                    child: Icon(
-                                      size: 20,
-                                      Icons.arrow_back_ios,
-                                      color: AppColors.boldHeadlineColor,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 8),
-                              Container(
-                                decoration: BoxDecoration(
-                                    color: AppColors.highlightColor,
-                                    borderRadius: BorderRadius.circular(100)),
-                                height: 40,
-                                width: 52,
-                                child: Center(
-                                  child: Icon(
-                                    Icons.arrow_forward_ios,
-                                    size: 20,
-                                    color: AppColors.boldHeadlineColor,
-                                  ),
-                                ),
-                              )
-                            ])
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: AnalyticsCardLoader(),
-                      ),
-                    ],
-                  )),
-            ),
-          );
-        }
-
-        return SizedBox();
-      },
-    );
-  }
-
-  Widget _buildSearchAndListPanel(List<CountryModel> countries) {
-    return AnimatedContainer(
-      duration: Duration(milliseconds: 300),
-      height: isModalFull ? MediaQuery.of(context).size.height : 350,
-      width: double.infinity,
-      child: ModalWrapper(
-        child: Padding(
-          padding: const EdgeInsets.only(left: 16, right: 16, top: 28),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (isModalFull) SizedBox(height: 16),
-              Row(
-                children: [
-                  TranslatedText("AirQo map",
-                      style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.boldHeadlineColor)),
-                  Spacer(),
-                  if (isModalFull)
-                    IconButton(
-                        onPressed: () => toggleModal(false),
-                        icon: Icon(Icons.close))
-                ],
+  Widget _buildBottomSheet(
+      ScrollController scrollController, bool isDark) {
+    final activeNames =
+        CountryRepository.extractActiveCountryNames(allMeasurements);
+    final countries = CountryRepository.getActiveCountries(activeNames);
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+        child: Container(
+          decoration: BoxDecoration(
+            color: isDark
+                ? AppColors.darkThemeBackground.withValues(alpha: 0.68)
+                : Colors.white.withValues(alpha: 0.58),
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(20)),
+            border: Border(
+              top: BorderSide(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.07)
+                    : Colors.white.withValues(alpha: 0.70),
+                width: 1,
               ),
-              SizedBox(height: 16),
-              LocationSearchBar(
-                controller: searchController,
-                padding: EdgeInsets.zero,
-                onTap: () => toggleModal(true),
-                onChanged: (value) {
-                  if (value.isEmpty) {
-                    googlePlacesBloc!.add(ResetGooglePlaces());
-                    if (mounted) {
-                      setState(() {
-                        localSearchResults = [];
-                      });
-                    }
-                  } else {
-                    googlePlacesBloc!.add(SearchPlace(value));
-                    if (mounted) {
-                      setState(() {
-                        localSearchResults = LocationHelper.searchAirQualityLocations(
-                            value, allMeasurements);
-                      });
-                    }
-                  }
-                },
-              ),
-              BlocBuilder<GooglePlacesBloc, GooglePlacesState>(
-                builder: (context, placesState) {
-                  if (placesState is SearchLoading) {
-                    return Column(
-                      children: [
-                        GooglePlacesLoader(),
-                        SizedBox(height: 12),
-                        GooglePlacesLoader(),
-                        SizedBox(height: 12),
-                        GooglePlacesLoader(),
-                      ],
-                    );
-                  } else if (placesState is SearchLoaded) {
-                    return Expanded(
-                      child: SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Show local AirQuality matches first
-                            if (localSearchResults.isNotEmpty) ...[
-                              ListView.separated(
-                                  shrinkWrap: true,
-                                  physics: NeverScrollableScrollPhysics(),
-                                  itemCount: localSearchResults.length,
-                                  separatorBuilder: (context, index) =>
-                                      Divider(indent: 50),
-                                  itemBuilder: (context, index) {
-                                    Measurement measurement =
-                                        localSearchResults[index];
-                                    return InkWell(
-                                      onTap: () =>
-                                          viewDetails(measurement: measurement),
-                                      child: SizedBox(
-                                        width: double.infinity,
-                                        child: LocationDisplayWidget(
-                                          title:
-                                              measurement.siteDetails!.locationName ??
-                                                  "",
-                                          subTitle:
-                                              measurement.siteDetails!.searchName ??
-                                                  measurement.siteDetails!.name ??
-                                                  "---",
-                                        ),
-                                      ),
-                                    );
-                                  }),
-                            ],
-                            ListView.separated(
-                                shrinkWrap: true,
-                                physics: NeverScrollableScrollPhysics(),
-                                itemCount: placesState.response.predictions.length,
-                                separatorBuilder: (context, index) =>
-                                    Divider(indent: 50),
-                                itemBuilder: (context, index) {
-                                  Prediction prediction =
-                                      placesState.response.predictions[index];
-                                  return InkWell(
-                                    onTap: () => viewDetails(
-                                        placeName: prediction.description),
-                                    child: SizedBox(
-                                      width: double.infinity,
-                                      child: LocationDisplayWidget(
-                                          title: prediction.description,
-                                          subTitle: prediction
-                                              .structuredFormatting.mainText),
-                                    ),
-                                  );
-                                }),
-                          ],
-                        ),
+            ),
+          ),
+          child: CustomScrollView(
+            controller: scrollController,
+            slivers: [
+              SliverToBoxAdapter(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Drag handle
+                    Center(
+                      child: Container(
+                        margin: const EdgeInsets.only(top: 10, bottom: 12),
+                        width: 36,
+                        height: 4,
+                        decoration: BoxDecoration(
+                            color: Colors.grey.withValues(alpha: 0.35),
+                            borderRadius: BorderRadius.circular(2)),
                       ),
-                    );
-                  }
-                  return Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: double.infinity,
-                          color: Theme.of(context).scaffoldBackgroundColor,
-                          height: 55,
-                          child: Container(
-                            margin: const EdgeInsets.only(bottom: 8, top: 4),
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                children: [
-                                  // Add consistent padding to the "All" button
-                                  Padding(
-                                    padding: const EdgeInsets.only(right: 8),
-                                    child: GestureDetector(
-                                      onTap: () => resetFilter(),
-                                      child: Container(
-                                        height: 48,
-                                        width: 51,
-                                        decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(40),
-                                            color: currentFilter == "All"
-                                                ? AppColors.primaryColor
-                                                : AppColors.highlightColor),
-                                        child: Center(
-                                          child: TranslatedText(
-                                            "All",
-                                            style: TextStyle(
-                                                color: currentFilter == "All"
-                                                    ? Colors.white
-                                                    : Colors.black),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  ListView.builder(
-                                      shrinkWrap: true,
-                                      physics:
-                                          const NeverScrollableScrollPhysics(),
-                                      scrollDirection: Axis.horizontal,
-                                      itemCount: countries.length,
-                                      itemBuilder: (context, index) {
-                                        return Padding(
-                                          padding:
-                                              const EdgeInsets.only(right: 8),
-                                          child: CountryButton(
-                                            flag: countries[index].flag,
-                                            name: countries[index].countryName,
-                                            isSelected: currentFilter ==
-                                                countries[index].countryName,
-                                            onTap: () => filterByCountry(
-                                                countries[index].countryName,
-                                                allMeasurements),
-                                            isUserCountry: userCountry?.toLowerCase() ==
-                                                countries[index].countryName.toLowerCase(),
-                                          ),
-                                        );
-                                      })
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        TranslatedText(
-                          "Suggestions",
-                          style: TextStyle(
-                              fontSize: 15,
-                              color: Color(0xff7A7F87),
-                              fontWeight: FontWeight.w500),
-                        ),
-                        SizedBox(height: 3),
-                        Divider(),
-                        Expanded(
-                          child: Builder(
-                            builder: (context) {
-                              List<Measurement> measurements =
-                                  currentFilter == "All"
-                                      ? (nearbyMeasurements.isNotEmpty 
-                                          ? nearbyMeasurements 
-                                          : allMeasurements.take(6).toList())
-                                      : filteredMeasurements;
-
-                              if (measurements.isEmpty) {
-                                return Center(
-                                  child: TranslatedText("No locations available"),
-                                );
-                              }
-
-                              return ListView.separated(
-                                separatorBuilder: (context, index) =>
-                                    const Divider(indent: 50),
-                                padding: EdgeInsets.zero,
-                                shrinkWrap: true,
-                                itemCount: measurements.length,
-                                itemBuilder: (context, index) {
-                                  Measurement measurement = measurements[index];
-                                  return InkWell(
-                                    onTap: () =>
-                                        viewDetails(measurement: measurement),
-                                    child: SizedBox(
-                                      width: double.infinity,
-                                      child: LocationDisplayWidget(
-                                        title: measurement.siteDetails?.city ??
-                                            "Unknown City",
-                                        subTitle:
-                                            measurement.siteDetails?.searchName ??
-                                                measurement.siteDetails?.name ??
-                                                "---",
-                                      ),
-                                    ),
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                        )
-                      ],
                     ),
-                  );
-                },
+                    // Search bar
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 4),
+                      child: LocationSearchBar(
+                        controller: searchController,
+                        focusNode: _searchFocusNode,
+                        padding: EdgeInsets.zero,
+                        onTap: () {
+                          // Dismiss any open card when the user activates search
+                          if (_selectedCardMeasurement != null && mounted) {
+                            setState(() => _selectedCardMeasurement = null);
+                          }
+                          _sheetController.animateTo(
+                            _sheetMidSize,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeOut,
+                          );
+                        },
+                        onChanged: (value) {
+                          final q = value.trim();
+                          // Empty clears are handled via [_onSearchControllerChanged].
+                          if (q.isEmpty) return;
+                          googlePlacesBloc!.add(SearchPlace(value));
+                          if (mounted) {
+                            setState(() {
+                              localSearchResults =
+                                  LocationHelper.searchAirQualityLocations(
+                                      value, allMeasurements);
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                  ],
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: BlocBuilder<GooglePlacesBloc, GooglePlacesState>(
+                  builder: (context, placesState) {
+                    final trimmed = searchController.text.trim();
+                    // Empty query = nearby + chips regardless of bloc state so a
+                    // stale in-flight autocomplete cannot block this UI after clear.
+                    if (trimmed.isEmpty) {
+                      return _buildNearbyList(isDark, countries);
+                    }
+
+                    if (placesState is SearchLoading) {
+                      return Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(children: [
+                          GooglePlacesLoader(),
+                          const SizedBox(height: 12),
+                          GooglePlacesLoader(),
+                          const SizedBox(height: 12),
+                          GooglePlacesLoader(),
+                        ]),
+                      );
+                    }
+
+                    if (placesState is SearchLoaded) {
+                      return _buildSearchResults(placesState, isDark);
+                    }
+
+                    return _buildNearbyList(isDark, countries);
+                  },
+                ),
               ),
             ],
           ),
@@ -1265,6 +887,480 @@ class _MapScreenState extends State<MapScreen>
     );
   }
 
+  // ── Nearby list ────────────────────────────────────────────────────────────
+
+  Widget _buildNearbyList(bool isDark, List<CountryModel> countries) {
+    // Resolve which measurements to show based on active chip
+    final measurements = currentFilter == 'Nearby'
+        ? (nearbyMeasurements.isNotEmpty
+            ? nearbyMeasurements
+            : allMeasurements.take(6).toList())
+        : filteredMeasurements;
+
+    final labelColor =
+        isDark ? AppColors.boldHeadlineColor2 : AppColors.boldHeadlineColor3;
+    final labelStyle = TextStyle(
+      fontSize: 11,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0.06,
+      color: labelColor,
+    );
+
+    // Chip colours
+    Color chipBg(bool selected) => selected
+        ? AppColors.primaryColor
+        : (isDark ? AppColors.darkHighlight : AppColors.dividerColorlight);
+    Color chipText(bool selected) =>
+        selected ? Colors.white : (isDark ? Colors.white : Colors.black87);
+
+    Widget buildChip({
+      required String label,
+      required bool selected,
+      required VoidCallback onTap,
+      String? flag,
+    }) {
+      return GestureDetector(
+        onTap: onTap,
+        child: Container(
+          height: 28,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          decoration: BoxDecoration(
+            color: chipBg(selected),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (flag != null) ...[
+                Text(flag, style: const TextStyle(fontSize: 12)),
+                const SizedBox(width: 4),
+              ],
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                  color: chipText(selected),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 6),
+          // ── Filter chips ─────────────────────────────────────────────────
+          SizedBox(
+            height: 32,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  buildChip(
+                    label: 'Nearby',
+                    selected: currentFilter == 'Nearby',
+                    onTap: resetFilter,
+                  ),
+                  ...countries.map((c) => Padding(
+                        padding: const EdgeInsets.only(left: 6),
+                        child: buildChip(
+                          label: c.countryName,
+                          flag: c.flag,
+                          selected: currentFilter == c.countryName,
+                          onTap: () => filterByCountry(c.countryName),
+                        ),
+                      )),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          // ── Section label ─────────────────────────────────────────────────
+          Text(
+            currentFilter == 'Nearby' ? 'Nearby' : currentFilter,
+            style: labelStyle,
+          ),
+          const SizedBox(height: 4),
+          // ── Nearby place rows ──────────────────────────────────────────────
+          if (measurements.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Center(
+                child: TranslatedText(
+                  'No locations available',
+                  style: TextStyle(
+                    color: labelColor,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            )
+          else
+            ...measurements.asMap().entries.map((entry) {
+              final i = entry.key;
+              final m = entry.value;
+              final pm25 = m.pm25?.value ?? 0;
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  InkWell(
+                    onTap: () {
+                      _sheetController.animateTo(
+                        _sheetPeekSize,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeOut,
+                      );
+                      viewDetails(measurement: m);
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: Row(
+                        children: [
+                          SvgPicture.asset(
+                            _aqLevel(pm25).asset,
+                            width: 20,
+                            height: 20,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              m.siteDetails?.searchName ??
+                                  m.siteDetails?.name ??
+                                  '—',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.color,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          _AqCategoryChip(
+                            label: m.aqiCategory ?? '',
+                            color: _aqLevel(pm25).color,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (i < measurements.length - 1)
+                    Divider(
+                      indent: 16,
+                      thickness: 0.5,
+                      color: isDark
+                          ? AppColors.dividerColordark
+                          : AppColors.dividerColorlight,
+                    ),
+                ],
+              );
+            }),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  // ── Search results ─────────────────────────────────────────────────────────
+
+  Widget _buildSearchResults(SearchLoaded state, bool isDark) {
+    final predictions = state.response.predictions;
+    final labelStyle = TextStyle(
+      fontSize: 11,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0.06,
+      color: isDark
+          ? AppColors.boldHeadlineColor2
+          : AppColors.boldHeadlineColor3,
+    );
+
+    final widgets = <Widget>[];
+
+    // AirQo places (matching local AQ data)
+    if (localSearchResults.isNotEmpty) {
+      final sectionLabel = predictions.isNotEmpty
+          ? 'places in ${searchController.text.trim().toLowerCase()}'
+          : '${localSearchResults.length} places found';
+
+      widgets.add(Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: Text(sectionLabel, style: labelStyle),
+      ));
+
+      for (int i = 0; i < localSearchResults.length; i++) {
+        final m = localSearchResults[i];
+        final pm25 = m.pm25?.value ?? 0;
+        widgets.add(InkWell(
+          onTap: () {
+            _sheetController.animateTo(
+              _sheetPeekSize,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+            viewDetails(measurement: m);
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: Row(
+              children: [
+                SvgPicture.asset(
+                  _aqLevel(pm25).asset,
+                  width: 20,
+                  height: 20,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    m.siteDetails?.searchName ?? m.siteDetails?.name ?? '—',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                _AqCategoryChip(
+                  label: m.aqiCategory ?? '',
+                  color: _aqLevel(pm25).color,
+                ),
+              ],
+            ),
+          ),
+        ));
+        if (i < localSearchResults.length - 1 || predictions.isNotEmpty) {
+          widgets.add(Divider(
+            indent: 16,
+            thickness: 0.5,
+            color: isDark
+                ? AppColors.dividerColordark
+                : AppColors.dividerColorlight,
+          ));
+        }
+      }
+    }
+
+    // Google Places rows
+    if (predictions.isNotEmpty) {
+      if (localSearchResults.isNotEmpty) {
+        widgets.add(const SizedBox(height: 8));
+      }
+      widgets.add(Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: Text('places', style: labelStyle),
+      ));
+
+      for (int i = 0; i < predictions.length; i++) {
+        final pred = predictions[i];
+        widgets.add(InkWell(
+          onTap: () => viewDetails(placeName: pred.description),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: Row(
+              children: [
+                SvgPicture.asset(
+                  'assets/images/shared/location_pin.svg',
+                  width: 20,
+                  height: 20,
+                  colorFilter: ColorFilter.mode(
+                    isDark
+                        ? AppColors.boldHeadlineColor2
+                        : AppColors.boldHeadlineColor3,
+                    BlendMode.srcIn,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    pred.description,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ));
+        if (i < predictions.length - 1) {
+          widgets.add(Divider(
+            indent: 16,
+            thickness: 0.5,
+            color: isDark
+                ? AppColors.dividerColordark
+                : AppColors.dividerColorlight,
+          ));
+        }
+      }
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 8),
+          ...widgets,
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Private control widgets ─────────────────────────────────────────────────
+
+class _MapIconButton extends StatelessWidget {
+  final IconData icon;
+  final bool isDark;
+  final bool filled;
+  final VoidCallback onTap;
+
+  const _MapIconButton({
+    required this.icon,
+    required this.isDark,
+    required this.onTap,
+    this.filled = false,
+  });
+
   @override
-  bool get wantKeepAlive => true;
+  Widget build(BuildContext context) {
+    final bg = filled
+        ? AppColors.primaryColor
+        : (isDark
+            ? AppColors.darkHighlight.withValues(alpha: 0.94)
+            : Colors.white.withValues(alpha: 0.95));
+    final iconColor =
+        filled ? Colors.white : Theme.of(context).textTheme.bodyMedium?.color;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x33536A87),
+              offset: Offset(0, 2),
+              blurRadius: 5,
+            ),
+          ],
+        ),
+        child: Icon(icon, size: 19, color: iconColor),
+      ),
+    );
+  }
+}
+
+class _ZoomGroup extends StatelessWidget {
+  final bool isDark;
+  final VoidCallback onZoomIn;
+  final VoidCallback onZoomOut;
+
+  const _ZoomGroup({
+    required this.isDark,
+    required this.onZoomIn,
+    required this.onZoomOut,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = isDark
+        ? AppColors.darkHighlight.withValues(alpha: 0.94)
+        : Colors.white.withValues(alpha: 0.95);
+    final iconColor = Theme.of(context).textTheme.bodyMedium?.color;
+    final divider = Colors.grey.withValues(alpha: 0.25);
+
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x33536A87),
+            offset: Offset(0, 2),
+            blurRadius: 5,
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GestureDetector(
+            onTap: onZoomIn,
+            child: Container(
+              width: 40,
+              height: 28,
+              decoration: BoxDecoration(
+                color: bg,
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(10)),
+                border: Border(
+                    bottom: BorderSide(color: divider, width: 0.8)),
+              ),
+              child: Icon(Icons.add, size: 17, color: iconColor),
+            ),
+          ),
+          GestureDetector(
+            onTap: onZoomOut,
+            child: Container(
+              width: 40,
+              height: 28,
+              decoration: BoxDecoration(
+                color: bg,
+                borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(10)),
+              ),
+              child: Icon(Icons.remove, size: 17, color: iconColor),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Compact AQ category chip — mirrors AnalyticsCard pill, scaled for rows ─
+
+class _AqCategoryChip extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _AqCategoryChip({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    if (label.isEmpty) return const SizedBox.shrink();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
+      ),
+    );
+  }
 }

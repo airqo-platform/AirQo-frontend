@@ -1,0 +1,7 @@
+<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- AirQo-style line icon (stroke 1.5); tint via SvgPicture colorFilter in app -->
+  <path d="M3.5 17.5V7L10 3L16.5 7V17.5" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M3.5 17.5H16.5" stroke="black" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M8 17.5V11.5H12V17.5" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M8 11.5H12" stroke="black" stroke-width="1.5" stroke-linecap="round"/>
+</svg>

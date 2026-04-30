@@ -66,18 +66,25 @@ class _AnalyticsDetailsState extends State<AnalyticsDetails> {
                 topRight: Radius.circular(12),
               ),
             ),
-            child: CustomScrollView(
-              controller: scrollController,
-              slivers: [
-                SliverList.list(
-                  children: [
-                    AnalyticsSpecifics(
-                      measurement: widget.measurement,
-                      fallbackLocationName: widget.fallbackLocationName,
-                    )
-                  ],
-                ),
-              ],
+            // Avoid scroll/route focus stealing IME back from the dismissed
+            // map search field on Android after this sheet attaches.
+            child: FocusScope(
+              canRequestFocus: false,
+              child: CustomScrollView(
+                controller: scrollController,
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                slivers: [
+                  SliverList.list(
+                    children: [
+                      AnalyticsSpecifics(
+                        measurement: widget.measurement,
+                        fallbackLocationName: widget.fallbackLocationName,
+                      )
+                    ],
+                  ),
+                ],
+              ),
             ),
           );
         },

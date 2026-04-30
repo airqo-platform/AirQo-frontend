@@ -121,6 +121,7 @@ flutter:
     - assets/data/data.json
     - assets/data/new_data.json
     - assets/images/shared/airquality_indicators/
+    - assets/map_styles/
     - .env.prod
     - .env.dev
   #   - images/a_dot_ham.jpeg
