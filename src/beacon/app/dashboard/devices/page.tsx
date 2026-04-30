@@ -32,6 +32,7 @@ import dynamic from "next/dynamic"
 import { getDeviceSummary, getDevicesForUIPaginated, syncDevices, syncDevicePerformance } from "@/services/device-api.service"
 import type { DeviceSummaryResponse, UIDevice } from "@/types/api.types"
 import UpdateDeviceDialog from "@/components/dashboard/update-device-dialog"
+import { formatCategoryLabel } from "@/lib/utils"
 
 // Dynamically import the map component to avoid SSR issues with better error handling
 const AfricaMap = dynamic(
@@ -722,7 +723,7 @@ export default function DevicesPage() {
                             </td>
                             <td className="py-3 px-4">
                               <span className="text-sm text-gray-600">
-                                {device.category || "-"}
+                                {formatCategoryLabel(device.category)}
                               </span>
                             </td>
                             <td className="py-3 px-4">
