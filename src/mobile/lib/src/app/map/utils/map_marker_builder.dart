@@ -114,8 +114,9 @@ class MapMarkerBuilder {
   }
 
   Future<BitmapDescriptor> _clusterIcon(int count, Color color) {
+    final views = ui.PlatformDispatcher.instance.views;
     final devicePixelRatio =
-        ui.PlatformDispatcher.instance.views.first.devicePixelRatio;
+        views.isNotEmpty ? views.first.devicePixelRatio : 1.0;
     final cacheKey = '$count:${color.toARGB32()}:$devicePixelRatio';
     return _clusterIconCache.putIfAbsent(
       cacheKey,
@@ -169,6 +170,9 @@ class MapMarkerBuilder {
     final picture = recorder.endRecording();
     final image = await picture.toImage(size, size);
     final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-    return BitmapDescriptor.bytes(byteData!.buffer.asUint8List());
+    if (byteData == null) {
+      return BitmapDescriptor.defaultMarker;
+    }
+    return BitmapDescriptor.bytes(byteData.buffer.asUint8List());
   }
 }

@@ -11,6 +11,7 @@ class LocationSearchBar extends StatefulWidget {
   final ValueChanged<String> onChanged;
   final VoidCallback? onTap;
   final EdgeInsetsGeometry padding;
+
   /// When set, the caller owns the node ([FocusNode.dispose] stays with caller).
   final FocusNode? focusNode;
 
@@ -54,6 +55,30 @@ class _LocationSearchBarState extends State<LocationSearchBar> {
     } else {
       _internalFocusNode = FocusNode()..addListener(_syncFocusGlow);
     }
+  }
+
+  @override
+  void didUpdateWidget(covariant LocationSearchBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.focusNode == widget.focusNode) return;
+
+    if (oldWidget.focusNode != null) {
+      oldWidget.focusNode!.removeListener(_syncFocusGlow);
+    } else {
+      _internalFocusNode
+        ?..removeListener(_syncFocusGlow)
+        ..dispose();
+      _internalFocusNode = null;
+    }
+
+    if (widget.focusNode != null) {
+      widget.focusNode!.addListener(_syncFocusGlow);
+    } else {
+      _internalFocusNode = FocusNode()..addListener(_syncFocusGlow);
+    }
+
+    _syncFocusGlow();
   }
 
   @override
@@ -113,8 +138,7 @@ class _LocationSearchBarState extends State<LocationSearchBar> {
 
     return BlocBuilder<LanguageBloc, LanguageState>(
       builder: (context, state) {
-        final localeCode =
-            state is LanguageLoaded ? state.languageCode : 'en';
+        final localeCode = state is LanguageLoaded ? state.languageCode : 'en';
 
         if (localeCode != _lastLocale) {
           _lastLocale = localeCode;
@@ -122,8 +146,7 @@ class _LocationSearchBarState extends State<LocationSearchBar> {
           _translate(localeCode);
         }
 
-        final idleBorder =
-            isDark ? _borderIdleDark : _borderIdle;
+        final idleBorder = isDark ? _borderIdleDark : _borderIdle;
 
         return Padding(
           padding: widget.padding,
@@ -132,16 +155,14 @@ class _LocationSearchBarState extends State<LocationSearchBar> {
               textSelectionTheme: TextSelectionThemeData(
                 cursorColor: AppColors.primaryColor,
                 selectionHandleColor: AppColors.primaryColor,
-                selectionColor:
-                    AppColors.primaryColor.withValues(alpha: 0.22),
+                selectionColor: AppColors.primaryColor.withValues(alpha: 0.22),
               ),
             ),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeInOut,
               decoration: BoxDecoration(
-                color:
-                    isDark ? AppColors.darkHighlight : Colors.white,
+                color: isDark ? AppColors.darkHighlight : Colors.white,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: _focused ? _borderFocused : idleBorder,
@@ -160,9 +181,7 @@ class _LocationSearchBarState extends State<LocationSearchBar> {
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w400,
-                  color: isDark
-                      ? Colors.white
-                      : const Color(0xFF333946),
+                  color: isDark ? Colors.white : const Color(0xFF333946),
                 ),
                 decoration: InputDecoration(
                   hintText: _hint,
@@ -189,8 +208,7 @@ class _LocationSearchBarState extends State<LocationSearchBar> {
                   filled: false,
                   border: InputBorder.none,
                   isDense: true,
-                  contentPadding: const EdgeInsets.symmetric(
-                      vertical: 13),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 13),
                 ),
               ),
             ),

@@ -10,8 +10,9 @@ Future<BitmapDescriptor> bitmapDescriptorFromSvgAsset(
   String assetName, [
   Size size = const Size(28, 28),
 ]) async {
+  final views = ui.PlatformDispatcher.instance.views;
   final devicePixelRatio =
-      ui.PlatformDispatcher.instance.views.first.devicePixelRatio;
+      views.isNotEmpty ? views.first.devicePixelRatio : 1.0;
   final cacheKey = '$assetName:${size.width}x${size.height}:$devicePixelRatio';
 
   return _bitmapDescriptorCache.putIfAbsent(
@@ -44,7 +45,10 @@ Future<BitmapDescriptor> _rasterizeSvgAsset(
   final rasterPicture = recorder.endRecording();
 
   final image = rasterPicture.toImageSync(width, height);
-  final bytes = (await image.toByteData(format: ui.ImageByteFormat.png))!;
+  final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+  if (bytes == null) {
+    return BitmapDescriptor.defaultMarker;
+  }
 
   return BitmapDescriptor.bytes(bytes.buffer.asUint8List());
 }

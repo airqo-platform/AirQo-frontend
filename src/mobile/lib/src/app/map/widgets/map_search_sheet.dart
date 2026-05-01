@@ -476,7 +476,8 @@ List<Widget> _measurementRows({
   return measurements.asMap().entries.map((entry) {
     final i = entry.key;
     final measurement = entry.value;
-    final pm25 = measurement.pm25?.value ?? 0;
+    final pm25 = measurement.pm25?.value;
+    final aqLevel = pm25 == null ? null : mapAqLevelFromPm25(pm25);
     final showDivider = i < measurements.length - 1 || addTrailingDivider;
 
     return Column(
@@ -489,7 +490,8 @@ List<Widget> _measurementRows({
             child: Row(
               children: [
                 SvgPicture.asset(
-                  mapAqLevelFromPm25(pm25).asset,
+                  aqLevel?.asset ??
+                      'assets/images/shared/airquality_indicators/unavailable.svg',
                   width: 20,
                   height: 20,
                 ),
@@ -509,8 +511,10 @@ List<Widget> _measurementRows({
                   ),
                 ),
                 _AqCategoryChip(
-                  label: measurement.aqiCategory ?? '',
-                  color: mapAqLevelFromPm25(pm25).color,
+                  label: pm25 == null
+                      ? 'No data'
+                      : (measurement.aqiCategory ?? ''),
+                  color: aqLevel?.color ?? Colors.grey,
                 ),
               ],
             ),

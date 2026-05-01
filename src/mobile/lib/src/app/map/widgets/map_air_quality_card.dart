@@ -38,8 +38,9 @@ class MapAirQualityCard extends StatelessWidget {
   });
 
   Color _aqiColor() {
-    final aq = mapAqLevelFromPm25(measurement.pm25?.value ?? 0);
-    return aq.color;
+    final pmValue = measurement.pm25?.value;
+    if (pmValue == null) return Colors.grey;
+    return mapAqLevelFromPm25(pmValue).color;
   }
 
   @override
@@ -47,11 +48,13 @@ class MapAirQualityCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final pmValue = measurement.pm25?.value;
     final aqColor = _aqiColor();
+    final aqLabel =
+        pmValue == null ? 'No data' : (measurement.aqiCategory ?? '');
     final locationText = _locationDescription(measurement);
     final dynamicAqIconPath =
         pmValue == null ? null : getAirQualityIcon(measurement, pmValue);
     final aqIconPath = pmValue == null
-        ? null
+        ? 'assets/images/shared/airquality_indicators/unavailable.svg'
         : dynamicAqIconPath?.isNotEmpty == true
             ? dynamicAqIconPath
             : mapAqLevelFromPm25(pmValue).asset;
@@ -158,7 +161,7 @@ class MapAirQualityCard extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                measurement.aqiCategory ?? '',
+                                aqLabel,
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,

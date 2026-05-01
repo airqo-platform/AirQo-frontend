@@ -27,23 +27,29 @@ class MapIconButton extends StatelessWidget {
     final iconColor =
         filled ? Colors.white : Theme.of(context).textTheme.bodyMedium?.color;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 32,
-        height: 32,
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x33536A87),
-              offset: Offset(0, 2),
-              blurRadius: 5,
+    return SizedBox(
+      width: 48,
+      height: 48,
+      child: Center(
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: bg,
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x33536A87),
+                  offset: Offset(0, 2),
+                  blurRadius: 5,
+                ),
+              ],
             ),
-          ],
+            child: Icon(icon, size: 16, color: iconColor),
+          ),
         ),
-        child: Icon(icon, size: 16, color: iconColor),
       ),
     );
   }
@@ -83,31 +89,44 @@ class MapZoomGroup extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          GestureDetector(
-            onTap: onZoomIn,
-            child: Container(
-              width: 32,
-              height: 24,
-              decoration: BoxDecoration(
-                color: bg,
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(8)),
-                border: Border(bottom: BorderSide(color: divider, width: 0.8)),
+          SizedBox(
+            width: 48,
+            height: 48,
+            child: Center(
+              child: GestureDetector(
+                onTap: onZoomIn,
+                child: Container(
+                  width: 32,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: bg,
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(8)),
+                    border:
+                        Border(bottom: BorderSide(color: divider, width: 0.8)),
+                  ),
+                  child: Icon(Icons.add, size: 16, color: iconColor),
+                ),
               ),
-              child: Icon(Icons.add, size: 16, color: iconColor),
             ),
           ),
-          GestureDetector(
-            onTap: onZoomOut,
-            child: Container(
-              width: 32,
-              height: 24,
-              decoration: BoxDecoration(
-                color: bg,
-                borderRadius:
-                    const BorderRadius.vertical(bottom: Radius.circular(8)),
+          SizedBox(
+            width: 48,
+            height: 48,
+            child: Center(
+              child: GestureDetector(
+                onTap: onZoomOut,
+                child: Container(
+                  width: 32,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: bg,
+                    borderRadius:
+                        const BorderRadius.vertical(bottom: Radius.circular(8)),
+                  ),
+                  child: Icon(Icons.remove, size: 16, color: iconColor),
+                ),
               ),
-              child: Icon(Icons.remove, size: 16, color: iconColor),
             ),
           ),
         ],
