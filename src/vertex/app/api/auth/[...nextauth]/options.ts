@@ -212,15 +212,8 @@ export const options: NextAuthOptions = {
     },
 
     async session({ session, token }) {
-      // Check if token is expired
-      if (token.exp) {
-        const expirationTime = (token.exp as number) * 1000;
-        if (Date.now() >= expirationTime) {
-          // Token expired, invalidate session
-          return { ...session, user: null };
-        }
-      }
-
+      // Let NextAuth JWT manage session expiration via maxAge
+      // Don't check backend token.exp as it can cause premature session invalidation
       if (token) {
         session.user = {
           ...session.user,
