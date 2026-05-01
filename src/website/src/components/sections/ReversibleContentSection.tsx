@@ -17,6 +17,7 @@ type ReversibleContentSectionProps = {
   leftWidth?: string;
   rightWidth?: string;
   imageClassName?: string;
+  priority?: boolean;
 };
 
 const ReversibleContentSection: React.FC<ReversibleContentSectionProps> = ({
@@ -33,6 +34,7 @@ const ReversibleContentSection: React.FC<ReversibleContentSectionProps> = ({
   leftWidth = 'lg:w-1/2',
   rightWidth = 'lg:w-1/2',
   imageClassName = 'object-contain lg:object-cover',
+  priority = false,
 }) => {
   return (
     <section className={cn(backgroundColor, 'py-16 px-4')}>
@@ -99,8 +101,8 @@ const ReversibleContentSection: React.FC<ReversibleContentSectionProps> = ({
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               className={cn(imageClassName)}
-              priority
-              loading="eager"
+              priority={priority}
+              loading={priority ? undefined : 'lazy'}
             />
           </div>
         </div>

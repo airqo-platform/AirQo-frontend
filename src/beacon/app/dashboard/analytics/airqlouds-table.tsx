@@ -33,22 +33,170 @@ interface ProcessedAirQloud {
   numberOfDevices: number
   offlineDevices: number | null
   errorMargin: number | null
+  correlation: number | null
   location: string
   uptimeHistory: Array<{ value: number; timestamp: string }>
+  errorMarginHistory: Array<{ value: number; timestamp: string }>
+  correlationHistory: Array<{ value: number; timestamp: string }>
 }
 
 interface AirQloudsTableProps {
   performanceDays?: number
 }
 
+// Pearson correlation coefficient between two numeric arrays of equal length.
+// Returns null when correlation cannot be computed (insufficient data or zero variance).
+const pearsonCorrelation = (xs: number[], ys: number[]): number | null => {
+  const n = Math.min(xs.length, ys.length)
+  if (n < 2) return null
+
+  let sumX = 0
+  let sumY = 0
+  for (let i = 0; i < n; i++) {
+    sumX += xs[i]
+    sumY += ys[i]
+  }
+  const meanX = sumX / n
+  const meanY = sumY / n
+
+  let num = 0
+  let denX = 0
+  let denY = 0
+  for (let i = 0; i < n; i++) {
+    const dx = xs[i] - meanX
+    const dy = ys[i] - meanY
+    num += dx * dy
+    denX += dx * dx
+    denY += dy * dy
+  }
+
+  if (denX === 0 || denY === 0) return null
+  return num / Math.sqrt(denX * denY)
+}
+
+// Compute uptime / error-margin / correlation summaries from the synced cohort data array.
+// `airqloud.data` is hourly aggregated points: { datetime, "pm2.5 sensor1", "pm2.5 sensor2", ... }
+const summarizeCohortData = (
+  rows: any[],
+  performanceDays: number,
+): {
+  averageUptime: number | null
+  averageErrorMargin: number | null
+  averageCorrelation: number | null
+  uptimeHistory: Array<{ value: number; timestamp: string }>
+  errorMarginHistory: Array<{ value: number; timestamp: string }>
+  correlationHistory: Array<{ value: number; timestamp: string }>
+} => {
+  if (!Array.isArray(rows) || rows.length === 0) {
+    return {
+      averageUptime: null,
+      averageErrorMargin: null,
+      averageCorrelation: null,
+      uptimeHistory: [],
+      errorMarginHistory: [],
+      correlationHistory: [],
+    }
+  }
+
+  const dailyBuckets: Record<string, {
+    hoursSet: Set<number>
+    errorMargins: number[]
+    s1: number[]
+    s2: number[]
+  }> = {}
+
+  for (const row of rows) {
+    if (!row?.datetime) continue
+    const dt = new Date(row.datetime)
+    if (Number.isNaN(dt.getTime())) continue
+    const dateKey = dt.toISOString().slice(0, 10)
+    const bucket = dailyBuckets[dateKey] ?? (dailyBuckets[dateKey] = {
+      hoursSet: new Set<number>(),
+      errorMargins: [],
+      s1: [],
+      s2: [],
+    })
+    bucket.hoursSet.add(dt.getUTCHours())
+
+    const s1 = row['pm2.5 sensor1'] ?? row.s1_pm2_5
+    const s2 = row['pm2.5 sensor2'] ?? row.s2_pm2_5
+    const s1Num = s1 == null ? null : Number(s1)
+    const s2Num = s2 == null ? null : Number(s2)
+
+    if (s1Num != null && s2Num != null && !Number.isNaN(s1Num) && !Number.isNaN(s2Num)) {
+      bucket.errorMargins.push(Math.abs(s1Num - s2Num))
+      bucket.s1.push(s1Num)
+      bucket.s2.push(s2Num)
+    }
+  }
+
+  const sortedDates = Object.keys(dailyBuckets).sort()
+  if (sortedDates.length === 0) {
+    return {
+      averageUptime: null,
+      averageErrorMargin: null,
+      averageCorrelation: null,
+      uptimeHistory: [],
+      errorMarginHistory: [],
+      correlationHistory: [],
+    }
+  }
+
+  const dailyUptimes: number[] = []
+  const dailyErrorMargins: number[] = []
+  const dailyCorrelations: number[] = []
+  const uptimeHistoryAll: Array<{ value: number; timestamp: string }> = []
+  const errorMarginHistoryAll: Array<{ value: number; timestamp: string }> = []
+  const correlationHistoryAll: Array<{ value: number; timestamp: string }> = []
+
+  for (const date of sortedDates) {
+    const bucket = dailyBuckets[date]
+    const uptimePct = Math.min(100, (bucket.hoursSet.size / 24) * 100)
+    dailyUptimes.push(uptimePct)
+    uptimeHistoryAll.push({ value: uptimePct, timestamp: date })
+
+    if (bucket.errorMargins.length > 0) {
+      const avgEm =
+        bucket.errorMargins.reduce((a, b) => a + b, 0) / bucket.errorMargins.length
+      dailyErrorMargins.push(avgEm)
+      errorMarginHistoryAll.push({ value: avgEm, timestamp: date })
+    }
+
+    const r = pearsonCorrelation(bucket.s1, bucket.s2)
+    if (r != null && !Number.isNaN(r)) {
+      dailyCorrelations.push(r)
+      correlationHistoryAll.push({ value: r, timestamp: date })
+    }
+  }
+
+  const avg = (arr: number[]): number | null =>
+    arr.length === 0 ? null : arr.reduce((a, b) => a + b, 0) / arr.length
+
+  return {
+    averageUptime: avg(dailyUptimes),
+    averageErrorMargin: avg(dailyErrorMargins),
+    averageCorrelation: avg(dailyCorrelations),
+    uptimeHistory: uptimeHistoryAll.slice(-performanceDays),
+    errorMarginHistory: errorMarginHistoryAll.slice(-performanceDays),
+    correlationHistory: correlationHistoryAll.slice(-performanceDays),
+  }
+}
+
 // Map pre-computed summary data from the API response
 const processAirQloudData = (airqloud: AirQloudWithPerformance, performanceDays: number = 14): ProcessedAirQloud => {
   const numberOfDevices = airqloud.numberOfDevices || (airqloud.devices ? airqloud.devices.length : (airqloud.device_count || 0));
 
-  // Use pre-computed summary uptime and error_margin (API returns as 0-1 decimals)
-  const overallUptime = airqloud.uptime != null ? airqloud.uptime * 100 : null;
-  const rawErrorMargin = airqloud.error_margin;
-  const overallErrorMargin = typeof rawErrorMargin === 'number' ? rawErrorMargin : null;
+  // Compute daily uptime / error-margin / correlation directly from the synced
+  // hourly data array. Falls back to the API-provided cohort.uptime when no
+  // data points are present.
+  const summary = summarizeCohortData(airqloud.data || [], performanceDays)
+
+  const fallbackUptime = airqloud.uptime != null ? airqloud.uptime * 100 : null
+  const overallUptime = summary.averageUptime ?? fallbackUptime
+
+  const fallbackErrorMargin =
+    typeof airqloud.error_margin === 'number' ? airqloud.error_margin : (airqloud.sensor_error_margin ?? null)
+  const overallErrorMargin = summary.averageErrorMargin ?? fallbackErrorMargin
 
   // Count offline devices: those whose last_active is before the start of yesterday
   let offlineDevices: number | null = null;
@@ -58,23 +206,11 @@ const processAirQloudData = (airqloud: AirQloudWithPerformance, performanceDays:
     yesterday.setHours(0, 0, 0, 0); // Start of yesterday
 
     offlineDevices = airqloud.devices.filter((d: any) => {
-      if (!d.last_active) return true; // No data = offline
+      if (!d.last_active && !d.is_active) return true; // No data and not active = offline
+      if (d.is_active === false) return true;
+      if (!d.last_active) return false;
       return new Date(d.last_active).getTime() < yesterday.getTime();
     }).length;
-  }
-
-  // Build daily uptime history from summary data[] array
-  let uptimeHistory: Array<{ value: number; timestamp: string }> = [];
-
-  if (airqloud.data && Array.isArray(airqloud.data)) {
-    uptimeHistory = airqloud.data
-      .filter((d: any) => d.date && d.uptime != null)
-      .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
-      .slice(-performanceDays)
-      .map((d: any) => ({
-        value: Math.min(100, d.uptime * 100),
-        timestamp: d.date
-      }));
   }
 
   return {
@@ -85,8 +221,11 @@ const processAirQloudData = (airqloud: AirQloudWithPerformance, performanceDays:
     numberOfDevices: numberOfDevices,
     offlineDevices: offlineDevices,
     errorMargin: overallErrorMargin,
+    correlation: summary.averageCorrelation,
     location: airqloud.country || "",
-    uptimeHistory: uptimeHistory
+    uptimeHistory: summary.uptimeHistory,
+    errorMarginHistory: summary.errorMarginHistory,
+    correlationHistory: summary.correlationHistory,
   }
 }
 
@@ -99,7 +238,7 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
 
   // Cohort Tags State
   const [cohortTags, setCohortTags] = useState<string[]>(["hardware"])
-  const availableTags = ["hardware", "software", "test", "production"] // Hardcoded for now, could be fetched
+  const availableTags = ["hardware", "duplicate", "organizational", "inlab", "misc"] // Hardcoded for now, could be fetched
 
   // Pagination state
   const [page, setPage] = useState(1)
@@ -116,7 +255,9 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
     try {
       setIsLoading(true)
       setError(null)
-      const skip = (page - 1) * pageSize
+      const safePage = Number.isFinite(page) && page > 0 ? page : 1
+      const safePageSize = Number.isFinite(pageSize) && pageSize > 0 ? pageSize : 5
+      const skip = (safePage - 1) * safePageSize
 
       const endDate = new Date()
       endDate.setDate(endDate.getDate() - 1)
@@ -141,9 +282,16 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
       const { airqlouds, meta } = response
 
       setProcessedData(airqlouds.map(aq => processAirQloudData(aq, performanceDays)))
-      setTotalItems(meta.total)
-      setTotalPages(meta.totalPages)
-      setPage(meta.page)
+      const total = Number.isFinite(meta?.total) ? meta.total : airqlouds.length
+      setTotalItems(total)
+      setTotalPages(
+        Number.isFinite(meta?.totalPages) && meta.totalPages > 0
+          ? meta.totalPages
+          : Math.max(1, Math.ceil(total / safePageSize))
+      )
+      // NOTE: do NOT sync `page` from `meta.page` here. The synced endpoint's
+      // meta.page does not reflect the skip/limit we sent, so syncing it would
+      // snap the user back to page 1 right after clicking "Next".
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch Cohorts')
@@ -262,8 +410,69 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
     )
   }
 
+  // Generic mini bar graph for any per-day metric (error margin, correlation, etc.)
+  const MetricMiniGraph = ({
+    history,
+    average,
+    formatAverage,
+    formatValue,
+    valueLabel,
+    getBarColor,
+    getTooltipBgColor,
+    normalize,
+  }: {
+    history: Array<{ value: number; timestamp: string }>
+    average: number | null
+    formatAverage: (v: number) => string
+    formatValue: (v: number) => string
+    valueLabel: string
+    getBarColor: (v: number) => string
+    getTooltipBgColor: (v: number) => string
+    normalize: (v: number, all: number[]) => number // returns 0..1
+  }) => {
+    if (average === null || history.length === 0) {
+      return <span className="text-muted-foreground">N/A</span>
+    }
+
+    const values = history.slice(-14)
+    const allValues = values.map(v => v.value)
+
+    const formatDate = (timestamp: string) => {
+      const date = new Date(timestamp)
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    }
+
+    return (
+      <TooltipProvider>
+        <div className="flex items-center gap-2">
+          <span className="font-medium min-w-[50px]">{formatAverage(average)}</span>
+          <div className="flex items-end gap-[2px] h-8">
+            {values.map((item) => {
+              const ratio = Math.max(0, Math.min(1, normalize(item.value, allValues)))
+              return (
+                <Tooltip key={item.timestamp} delayDuration={100}>
+                  <TooltipTrigger asChild>
+                    <div
+                      className={`w-1.5 rounded-t-full ${getBarColor(item.value)} transition-all cursor-pointer`}
+                      style={{ height: `${Math.max(4, ratio * 32)}px` }}
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent className={`${getTooltipBgColor(item.value)} text-white border`}>
+                    <div className="text-xs font-medium">
+                      <div>{formatDate(item.timestamp)}</div>
+                      <div>{valueLabel}: {formatValue(item.value)}</div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              )
+            })}
+          </div>
+        </div>
+      </TooltipProvider>
+    )
+  }
+
   const handleExportCSV = async () => {
-    // Helper to escape CSV values
     const escapeCSVValue = (value: string | number): string => {
       const str = String(value)
       // Escape values that could be interpreted as formulas
@@ -328,13 +537,14 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
         return 0
       })
 
-      const headers = ["Name", "Location", "Uptime (%)", "Devices", "Error Margin (%)"]
+      const headers = ["Name", "Location", "Uptime (%)", "Devices", "Error Margin (µg/m³)", "Correlation"]
       const rows = dataToExport.map(aq => [
         escapeCSVValue(aq.name),
         escapeCSVValue(aq.location || ""),
         escapeCSVValue(aq.uptime !== null ? aq.uptime.toFixed(2) : "N/A"),
         escapeCSVValue(aq.numberOfDevices),
         escapeCSVValue(aq.errorMargin !== null ? aq.errorMargin.toFixed(2) : "N/A"),
+        escapeCSVValue(aq.correlation !== null ? aq.correlation.toFixed(3) : "N/A"),
       ])
 
       const csvContent = [
@@ -464,6 +674,16 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
+                    <TableHead>
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleSort("correlation")}
+                        className="hover:bg-transparent p-0 h-auto font-semibold"
+                      >
+                        Correlation
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -517,19 +737,52 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
                         <TableCell>
                           {hasNoData ? (
                             <span className="text-muted-foreground italic">Data loading...</span>
-                          ) : airqloud.errorMargin !== null ? (
-                            <span
-                              className={`font-medium ${airqloud.errorMargin <= 3
-                                ? "text-green-600"
-                                : airqloud.errorMargin <= 5
-                                  ? "text-yellow-600"
-                                  : "text-red-600"
-                                }`}
-                            >
-                              ±{airqloud.errorMargin.toFixed(1)}
-                            </span>
                           ) : (
-                            <span className="text-muted-foreground">N/A</span>
+                            <MetricMiniGraph
+                              history={airqloud.errorMarginHistory}
+                              average={airqloud.errorMargin}
+                              valueLabel="Error margin"
+                              formatAverage={(v) => `±${v.toFixed(1)}`}
+                              formatValue={(v) => `±${v.toFixed(2)} µg/m³`}
+                              getBarColor={(v) => {
+                                if (v <= 3) return "bg-green-500 hover:bg-green-600"
+                                if (v <= 5) return "bg-yellow-500 hover:bg-yellow-600"
+                                return "bg-red-500 hover:bg-red-600"
+                              }}
+                              getTooltipBgColor={(v) => {
+                                if (v <= 3) return "bg-green-600 border-green-700"
+                                if (v <= 5) return "bg-yellow-600 border-yellow-700"
+                                return "bg-red-600 border-red-700"
+                              }}
+                              normalize={(v, all) => {
+                                const ceiling = Math.max(10, ...all)
+                                return v / ceiling
+                              }}
+                            />
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {hasNoData ? (
+                            <span className="text-muted-foreground italic">Data loading...</span>
+                          ) : (
+                            <MetricMiniGraph
+                              history={airqloud.correlationHistory}
+                              average={airqloud.correlation}
+                              valueLabel="Correlation"
+                              formatAverage={(v) => v.toFixed(2)}
+                              formatValue={(v) => v.toFixed(3)}
+                              getBarColor={(v) => {
+                                if (v >= 0.9) return "bg-green-500 hover:bg-green-600"
+                                if (v >= 0.75) return "bg-yellow-500 hover:bg-yellow-600"
+                                return "bg-red-500 hover:bg-red-600"
+                              }}
+                              getTooltipBgColor={(v) => {
+                                if (v >= 0.9) return "bg-green-600 border-green-700"
+                                if (v >= 0.75) return "bg-yellow-600 border-yellow-700"
+                                return "bg-red-600 border-red-700"
+                              }}
+                              normalize={(v) => Math.max(0, v)}
+                            />
                           )}
                         </TableCell>
                       </TableRow>

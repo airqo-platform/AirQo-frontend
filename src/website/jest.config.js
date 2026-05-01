@@ -11,6 +11,7 @@ module.exports = {
     // Add other aliases as needed
   },
   testPathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/node_modules/'],
+  modulePathIgnorePatterns: ['<rootDir>/.next/standalone/'],
   transform: {
     '^.+\\.(ts|tsx)$': 'ts-jest',
   },

@@ -18,6 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
+import { formatCategoryLabel } from "@/lib/utils"
 import {
   Tooltip,
   TooltipContent,
@@ -808,7 +809,7 @@ const CollocationBatchDetailPage = () => {
                     {data.devices.map((device) => (
                       <TableRow key={device.id} className="cursor-pointer hover:bg-gray-50" onClick={() => router.push(`/dashboard/devices/${device.deviceName}`)}>
                         <TableCell className="font-medium">{device.deviceName}</TableCell>
-                        <TableCell className="capitalize">{device.category}</TableCell>
+                        <TableCell>{formatCategoryLabel(device.category)}</TableCell>
                         <TableCell>{device.channelId}</TableCell>
                         <TableCell>
                           <Badge variant="outline">{device.firmware}</Badge>

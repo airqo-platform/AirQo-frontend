@@ -383,6 +383,7 @@ class SunbirdTranslationService with UiLoggy {
     'Location Permission Required',
     'Location Services Disabled',
     'Location permission was denied. Please try again.',
+    'Location', 'Languages', 'Log out', 'Log Out', 'Delete Account',
   ];
 
   // MAINTENANCE: matched by exact string value as cache keys — update here if any UI string changes.
@@ -391,6 +392,8 @@ class SunbirdTranslationService with UiLoggy {
     'Near You', 'Favorites', "Today's Air Quality", 'Settings',
     'Good', 'Moderate', 'Unhealthy for Sensitive Groups',
     'Unhealthy', 'Very Unhealthy', 'Hazardous', 'Unknown',
+    // Settings screen
+    'Location', 'Languages', 'Log out', 'Log Out', 'Delete Account',
   ];
 
   Future<void> prepare({required String targetLocale}) async {

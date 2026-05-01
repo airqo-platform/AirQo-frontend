@@ -732,9 +732,15 @@ const ReusableTable = <T extends TableItem>({
   }, [tableId, searchParams, router, pathname, pageSize, initialFilters]);
 
   const [searchInput, setSearchInput] = useState(searchTerm);
+  const lastLocalUpdateRef = useRef(searchTerm);
 
+  // Sync search input only when searchTerm prop changes externally (e.g., from router back or parent)
+  // and it doesn't match our last intentional local update.
   useEffect(() => {
-    setSearchInput(searchTerm);
+    if (searchTerm !== lastLocalUpdateRef.current) {
+      setSearchInput(searchTerm);
+      lastLocalUpdateRef.current = searchTerm;
+    }
   }, [searchTerm]);
 
   // Helper to validate search input
@@ -753,6 +759,7 @@ const ReusableTable = <T extends TableItem>({
 
       if (serverSidePagination) {
         const t = setTimeout(() => {
+          lastLocalUpdateRef.current = searchInput;
           onSearchChange?.(searchInput);
         }, 400);
         return () => clearTimeout(t);
@@ -760,11 +767,13 @@ const ReusableTable = <T extends TableItem>({
 
       if (tableId) {
         const t = setTimeout(() => {
+          lastLocalUpdateRef.current = searchInput;
           updateUrlState({ search: searchInput, page: 1 });
         }, 400);
 
         return () => clearTimeout(t);
       } else {
+        lastLocalUpdateRef.current = searchInput;
         setLocalSearchTerm(searchInput);
         if (!serverSidePagination) setLocalCurrentPage(1);
       }

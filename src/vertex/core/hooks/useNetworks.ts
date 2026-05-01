@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+
 import {
   Network,
   networks as networksApi,
@@ -7,6 +8,7 @@ import { DeviceListingOptions } from "./useDevices";
 import { devices } from "../apis/devices";
 import { AxiosError } from "axios";
 import type { DevicesSummaryResponse } from "@/app/types/devices";
+
 
 interface ErrorResponse {
   message: string;
@@ -87,7 +89,7 @@ export const useNetworkDevices = (options: DeviceListingOptions = {}) => {
     staleTime: 300_000,
     refetchOnWindowFocus: false,
   });
-
+  
   return {
     data: devicesQuery.data,
     devices: devicesQuery.data?.devices || [],
@@ -97,3 +99,4 @@ export const useNetworkDevices = (options: DeviceListingOptions = {}) => {
     error: devicesQuery.error,
   };
 };
+

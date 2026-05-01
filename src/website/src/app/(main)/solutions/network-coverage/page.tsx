@@ -3,7 +3,7 @@ import {
   generateViewport,
   METADATA_CONFIGS,
 } from '@/lib/metadata';
-import NetworkCoveragePage from '@/views/solutions/NetworkCoverage/NetworkCoveragePageApi';
+import NetworkCoverageDeferred from '@/views/solutions/NetworkCoverage/NetworkCoverageDeferred';
 
 // Generate metadata using the centralized utility
 export const metadata = createMetadata(
@@ -14,7 +14,7 @@ export const viewport = generateViewport();
 const page = () => {
   return (
     <div>
-      <NetworkCoveragePage />
+      <NetworkCoverageDeferred />
     </div>
   );
 };

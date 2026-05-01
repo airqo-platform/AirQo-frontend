@@ -26,9 +26,10 @@ const HomeStatsSection: React.FC = () => {
   return (
     <section className="py-8 px-4 w-full space-y-20 bg-[#ECF2FF]">
       <div className={`${mainConfig.containerClass} space-y-16`}>
-        {!partnersLoading && featuredPartners.length > 0 && (
-          <PartnerLogosSection partners={featuredPartners} />
-        )}
+        <PartnerLogosSection
+          partners={featuredPartners}
+          isLoading={partnersLoading}
+        />
         <HeadingSection activeTab={activeTab} setActiveTab={setActiveTab} />
         <AccordionAndImageSection activeTab={activeTab} />
       </div>
@@ -45,35 +46,47 @@ interface Partner {
   name?: string;
 }
 
-const PartnerLogosSection: React.FC<{ partners: Partner[] }> = ({
-  partners,
-}) => (
+const PartnerLogosSection: React.FC<{
+  partners: Partner[];
+  isLoading: boolean;
+}> = ({ partners, isLoading }) => (
   <section className="max-w-6xl mx-auto py-12 px-4">
     <div className="text-center space-y-6">
       <h3 className="text-lg font-semibold text-gray-500">
         AIRQO IS SUPPORTED BY
       </h3>
-      <div className="flex flex-wrap justify-center">
-        {partners.map((partner, index) => (
-          <div
-            key={partner.id || index}
-            className="flex items-center justify-center h-[100px] p-4 border border-gray-300 relative overflow-hidden w-1/2 sm:w-1/3 lg:w-1/5"
-          >
-            <Image
-              src={
-                partner.partner_logo_url ||
-                partner.logo ||
-                '/assets/images/placeholder.webp'
-              }
-              alt={
-                partner.partner_name || partner.name || `Partner ${index + 1}`
-              }
-              fill
-              className="object-contain p-3 mix-blend-multiply transition-transform duration-500 ease-in-out transform hover:scale-110 cursor-pointer"
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-            />
-          </div>
-        ))}
+      <div className="flex min-h-[220px] flex-wrap justify-center">
+        {isLoading || partners.length === 0
+          ? Array.from({ length: 6 }, (_, index) => (
+              <div
+                key={`partner-skeleton-${index}`}
+                className="h-[100px] w-1/2 border border-gray-300 p-4 sm:w-1/3 lg:w-1/5"
+              >
+                <div className="h-full w-full animate-pulse rounded-lg bg-white/70" />
+              </div>
+            ))
+          : partners.map((partner, index) => (
+              <div
+                key={partner.id || index}
+                className="flex items-center justify-center h-[100px] p-4 border border-gray-300 relative overflow-hidden w-1/2 sm:w-1/3 lg:w-1/5"
+              >
+                <Image
+                  src={
+                    partner.partner_logo_url ||
+                    partner.logo ||
+                    '/assets/images/placeholder.webp'
+                  }
+                  alt={
+                    partner.partner_name ||
+                    partner.name ||
+                    `Partner ${index + 1}`
+                  }
+                  fill
+                  className="object-contain p-3 mix-blend-multiply transition-transform duration-500 ease-in-out transform hover:scale-110 cursor-pointer"
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                />
+              </div>
+            ))}
       </div>
     </div>
   </section>
@@ -136,7 +149,8 @@ const AccordionAndImageSection: React.FC<{
           fill
           style={{ objectFit: 'cover' }}
           className="rounded-lg object-contain flex justify-self-center w-full h-full max-w-[440px] transition-transform duration-500 ease-in-out transform hover:scale-110 cursor-pointer"
-          loading="eager"
+          sizes="(max-width: 1024px) 100vw, 50vw"
+          loading="lazy"
         />
       </div>
     </div>

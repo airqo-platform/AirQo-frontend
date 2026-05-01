@@ -1,8 +1,8 @@
 'use client';
 /* eslint-disable simple-import-sort/imports */
 
-import { AqLoading02 } from '@airqo/icons-react';
 import { FiMenu } from 'react-icons/fi';
+import { FiLoader } from 'react-icons/fi';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import React, {
@@ -952,7 +952,7 @@ const NetworkCoveragePage = () => {
               loadingComponent={
                 <div className="flex h-full w-full items-center justify-center bg-slate-100">
                   <div className="text-blue-600">
-                    <AqLoading02 className="animate-spin" />
+                    <FiLoader className="animate-spin" />
                   </div>
                 </div>
               }
@@ -977,7 +977,7 @@ const NetworkCoveragePage = () => {
               monitorDetailQuery.isLoading) && (
               <div className="absolute inset-0 z-30 flex items-center justify-center bg-slate-100/70">
                 <div className="text-blue-600">
-                  <AqLoading02 className="animate-spin" />
+                  <FiLoader className="animate-spin" />
                 </div>
               </div>
             )}

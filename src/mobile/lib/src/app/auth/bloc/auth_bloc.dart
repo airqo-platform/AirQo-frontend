@@ -1,6 +1,8 @@
 import 'package:airqo/src/app/auth/models/input_model.dart';
 import 'package:airqo/src/app/auth/repository/auth_repository.dart';
+import 'package:airqo/src/app/auth/repository/social_auth_repository.dart';
 import 'package:airqo/src/app/auth/services/auth_helper.dart';
+import 'package:airqo/src/app/auth/services/oauth_service.dart';
 import 'package:airqo/src/app/shared/repository/global_auth_manager.dart';
 import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:bloc/bloc.dart';
@@ -16,8 +18,12 @@ part 'auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
   final AuthRepository authRepository;
+  final SocialAuthRepository socialAuthRepository;
 
-  AuthBloc(this.authRepository) : super(AuthInitial()) {
+  AuthBloc({
+    required this.authRepository,
+    required this.socialAuthRepository,
+  }) : super(AuthInitial()) {
     on<AppStarted>(_onAppStarted);
 
     on<LoginUser>(_onLoginUser);
@@ -37,6 +43,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
     });
 
     on<VerifyEmailCode>(_onVerifyEmailCode);
+
+    on<LoginWithProvider>(_onLoginWithProvider);
   }
 
   Future<void> _onAppStarted(AppStarted event, Emitter<AuthState> emit) async {
@@ -167,6 +175,27 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
       debugPrint("Session expiry cleanup error: $e");
       loggy.error("Session expiry cleanup error: $e");
       emit(SessionExpiredState());
+    }
+  }
+
+  Future<void> _onLoginWithProvider(LoginWithProvider event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    try {
+      await socialAuthRepository.loginWithProvider(event.provider);
+      await AnalyticsService().trackUserLoggedIn(method: event.provider);
+      final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
+      if (userId != null) {
+        await AnalyticsService().setUserIdentity(userId: userId);
+      }
+      GlobalAuthManager.instance.resetSessionExpiredGuard();
+      loggy.info('OAuth login successful via ${event.provider}');
+      emit(AuthLoaded(AuthPurpose.login));
+    } on OAuthCancelledException {
+      loggy.info('OAuth login cancelled by user');
+      emit(OAuthCancelled());
+    } catch (e) {
+      loggy.error('OAuth login error: $e');
+      emit(AuthLoadingError(_extractErrorMessage(e)));
     }
   }
 

@@ -1,11 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-const isProduction = process.env.NODE_ENV === "production";
-const sessionCookieName = isProduction
-  ? "__Secure-next-auth.session-token"
-  : "vertex.next-auth.session-token";
-
 export default async function middleware(req: NextRequest) {
   if (req.nextUrl.pathname === "/") {
     return NextResponse.redirect(new URL("/home", req.url));
@@ -13,8 +8,7 @@ export default async function middleware(req: NextRequest) {
 
   const token = await getToken({
     req,
-    secret: process.env.NEXTAUTH_SECRET,
-    cookieName: sessionCookieName,
+    secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
   });
 
   if (!token) {
@@ -37,6 +31,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public files with extensions
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|login|forgot-password|.*\\.).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|login|auth-error|forgot-password|.*\\.).*)',
   ],
 };

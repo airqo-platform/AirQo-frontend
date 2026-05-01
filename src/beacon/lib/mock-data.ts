@@ -334,7 +334,7 @@ export function getMockCohorts() {
       numberOfDevices: deviceCount,
       devices,
       groups: [],
-      cohort_tags: ['hardware'],
+      cohort_tags: ['hardware', 'duplicate', 'organizational', 'inlab', 'misc'],
       cohort_codes: [],
       visibility: true,
       uptime: cohortUptime, // 0-1 decimal — processAirQloudData multiplies by 100

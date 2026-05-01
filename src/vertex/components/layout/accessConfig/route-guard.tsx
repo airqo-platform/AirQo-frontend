@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useAppSelector } from "@/core/redux/hooks";
 import { usePermission, useUserRole, useHasAnyPermission } from "@/core/hooks/usePermissions";
 import { Permission, RoleName } from "@/core/permissions/constants";
 import { useRouter } from "next/navigation";
@@ -39,6 +40,9 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
 }) => {
   const router = useRouter();
   const { userContext, isLoading } = useUserContext();
+  const isOrganizationSwitching = useAppSelector(
+    (state) => state.user.organizationSwitching.isSwitching
+  );
   const hasPermission = usePermission(permission || '' as Permission, { resourceContext });
   const hasAnyPermission = useHasAnyPermission(permissions || [], { resourceContext });
   const userRole = useUserRole(resourceContext?.organizationId);
@@ -72,16 +76,16 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
   const hasAccess = hasValidContext && (hasPermissionAccess || hasRoleAccess);
 
   useEffect(() => {
-    if (isLoading) {
+    if (isLoading || isOrganizationSwitching) {
       return;
     }
 
     if (!hasAccess && !showError) {
       router.push(redirectTo);
     }
-  }, [hasAccess, isLoading, router, redirectTo, showError]);
+  }, [hasAccess, isLoading, isOrganizationSwitching, router, redirectTo, showError]);
 
-  if (isLoading) {
+  if (isLoading || isOrganizationSwitching) {
     return null;
   }
 

@@ -3,6 +3,9 @@
 import React, { useEffect } from 'react';
 
 import {
+  getGoogleTranslateTargetLanguage,
+  getPersistedLanguageCode,
+  GOOGLE_TRANSLATE_LOAD_EVENT,
   isGoogleTranslationActive,
   normalizeGoogleLanguageCode,
 } from '@/utils/googleTranslate';
@@ -28,6 +31,7 @@ const GOOGLE_TRANSLATE_SCRIPT_FALLBACK_SRC =
   'https://translate.googleapis.com/translate_a/element.js?cb=googleTranslateElementInit';
 const GOOGLE_TRANSLATE_SCRIPT_PROXY_SRC =
   '/api/translate/element?cb=googleTranslateElementInit';
+const DEFAULT_GOOGLE_LANGUAGE = 'en';
 const GOOGLE_TRANSLATE_BANNER_SELECTORS = [
   '.goog-te-banner-frame',
   '.goog-te-banner-frame.skiptranslate',
@@ -43,6 +47,24 @@ const GOOGLE_TRANSLATE_BANNER_SELECTORS = [
 
 const GoogleTranslate = () => {
   useEffect(() => {
+    const shouldLoadTranslateImmediately = () => {
+      const requestedLanguage =
+        getGoogleTranslateTargetLanguage() || getPersistedLanguageCode();
+
+      if (!requestedLanguage) {
+        return false;
+      }
+
+      const normalizedLanguage = normalizeGoogleLanguageCode(requestedLanguage)
+        .trim()
+        .toLowerCase();
+
+      return (
+        normalizedLanguage !== DEFAULT_GOOGLE_LANGUAGE &&
+        normalizedLanguage.split('-')[0] !== DEFAULT_GOOGLE_LANGUAGE
+      );
+    };
+
     const keepElementAliveButInvisible = (element: HTMLElement) => {
       // Keep node rendered (not display:none) so translate runtime remains active.
       element.style.setProperty('display', 'block', 'important');
@@ -123,9 +145,11 @@ const GoogleTranslate = () => {
       document.head.appendChild(link);
     };
 
-    addPreconnect('https://translate.google.com');
-    addPreconnect('https://translate.googleapis.com');
-    addPreconnect('https://translate.gstatic.com');
+    const addTranslatePreconnects = () => {
+      addPreconnect('https://translate.google.com');
+      addPreconnect('https://translate.googleapis.com');
+      addPreconnect('https://translate.gstatic.com');
+    };
 
     const initGoogleTranslate = () => {
       if (!window.google?.translate) return;
@@ -170,9 +194,14 @@ const GoogleTranslate = () => {
 
     window.googleTranslateElementInit = initGoogleTranslate;
 
-    if (window.google?.translate) {
-      initGoogleTranslate();
-    } else {
+    const ensureTranslateScript = () => {
+      addTranslatePreconnects();
+
+      if (window.google?.translate) {
+        initGoogleTranslate();
+        return;
+      }
+
       const existingScript = document.getElementById(
         GOOGLE_TRANSLATE_SCRIPT_ID,
       ) as HTMLScriptElement | null;
@@ -207,16 +236,33 @@ const GoogleTranslate = () => {
         };
 
         loadScript(GOOGLE_TRANSLATE_SCRIPT_SRC);
-      } else if (existingScript.getAttribute('data-gt-ready') === 'true') {
-        initGoogleTranslate();
-      } else {
-        const onLoad = () => {
-          existingScript.setAttribute('data-gt-ready', 'true');
-          initGoogleTranslate();
-          existingScript.removeEventListener('load', onLoad);
-        };
-        existingScript.addEventListener('load', onLoad);
+        return;
       }
+
+      if (existingScript.getAttribute('data-gt-ready') === 'true') {
+        initGoogleTranslate();
+        return;
+      }
+
+      const onLoad = () => {
+        existingScript.setAttribute('data-gt-ready', 'true');
+        initGoogleTranslate();
+        existingScript.removeEventListener('load', onLoad);
+      };
+
+      existingScript.addEventListener('load', onLoad);
+    };
+
+    const handleLoadRequest = () => {
+      ensureTranslateScript();
+    };
+
+    window.addEventListener(GOOGLE_TRANSLATE_LOAD_EVENT, handleLoadRequest);
+
+    if (window.google?.translate) {
+      initGoogleTranslate();
+    } else if (shouldLoadTranslateImmediately()) {
+      ensureTranslateScript();
     }
 
     const handleDocumentClick = (event: MouseEvent) => {
@@ -272,6 +318,10 @@ const GoogleTranslate = () => {
       if (bannerRaf) {
         window.cancelAnimationFrame(bannerRaf);
       }
+      window.removeEventListener(
+        GOOGLE_TRANSLATE_LOAD_EVENT,
+        handleLoadRequest,
+      );
       document.removeEventListener('click', handleDocumentClick, true);
     };
   }, []);

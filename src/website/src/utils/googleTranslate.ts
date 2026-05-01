@@ -1,6 +1,7 @@
 'use client';
 
 const GOOGTRANS_COOKIE_NAME = 'googtrans';
+export const GOOGLE_TRANSLATE_LOAD_EVENT = 'airqo-google-translate-load';
 const GOOGLE_TRANSLATE_COMBO_SELECTOR = '.goog-te-combo';
 const GOOGLE_TRANSLATE_CONTENT_ROOT_SELECTORS = [
   'main',
@@ -35,6 +36,13 @@ const triggerGoogleTranslateInit = () => {
   if (typeof initializer === 'function') {
     initializer();
   }
+};
+
+export const requestGoogleTranslateBootstrap = () => {
+  if (typeof window === 'undefined') return;
+
+  window.dispatchEvent(new Event(GOOGLE_TRANSLATE_LOAD_EVENT));
+  triggerGoogleTranslateInit();
 };
 
 export const isGoogleTranslateScriptBlocked = (): boolean => {
@@ -367,11 +375,13 @@ const ensureTranslateCombo = async (
 
   const normalizedTimeout = Math.max(timeoutMs, MIN_COMBO_WAIT_MS);
 
+  requestGoogleTranslateBootstrap();
+
   let combo = await waitForTranslateCombo(normalizedTimeout, signal);
   if (combo) return combo;
   if (signal?.aborted) return null;
 
-  triggerGoogleTranslateInit();
+  requestGoogleTranslateBootstrap();
 
   combo = await waitForTranslateCombo(
     Math.max(MIN_COMBO_WAIT_MS, Math.floor(normalizedTimeout / 2)),

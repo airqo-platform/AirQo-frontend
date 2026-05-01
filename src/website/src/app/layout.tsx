@@ -49,6 +49,7 @@ const interFont = localFont({
     'Segoe UI',
     'sans-serif',
   ],
+
   adjustFontFallback: 'Arial',
 });
 
@@ -283,8 +284,6 @@ export default async function RootLayout({
         {/* Performance optimizations - DNS prefetch and preconnect */}
         <link rel="dns-prefetch" href="//res.cloudinary.com" />
         <link rel="dns-prefetch" href="//www.googletagmanager.com" />
-        <link rel="dns-prefetch" href="//translate.google.com" />
-        <link rel="dns-prefetch" href="//translate.googleapis.com" />
         <link
           rel="preconnect"
           href="//res.cloudinary.com"
@@ -310,18 +309,6 @@ export default async function RootLayout({
           href="//translate.gstatic.com"
           crossOrigin="anonymous"
         />
-
-        {/* Preload critical resources */}
-        <link
-          rel="preload"
-          as="image"
-          href="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728138368/website/Logos/logo_rus4my.png"
-          type="image/png"
-        />
-
-        {/* Prefetch for next page navigation */}
-        <link rel="prefetch" href="/explore-data" />
-        <link rel="prefetch" href="/products/monitor" />
 
         {/* Structured data */}
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Static JSON-LD data, not user input */}

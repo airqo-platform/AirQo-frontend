@@ -26,7 +26,8 @@ interface PrimarySidebarProps {
   isOpen: boolean;
   onClose: () => void;
   activeModule: string;
-  onModuleChange: (module: string) => void;
+  onModuleChange: (module: string, targetPath?: string) => void;
+  onNavigate?: () => void;
 }
 
 interface AdminDropdownItemProps {
@@ -82,6 +83,7 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
   onClose,
   activeModule,
   onModuleChange: handleModuleChange,
+  onNavigate,
 }) => {
   const router = useRouter();
   const pathname = usePathname();
@@ -101,6 +103,13 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
     const allowedRoles = ['AIRQO_SUPER_ADMIN', 'AIRQO_ADMIN', 'AIRQO_NETWORK_ADMIN'];
     return allowedRoles.includes(activeGroup.role.role_name);
   }, [activeGroup]);
+
+  const navigateWithShimmer = (targetPath: string, navigate: () => void) => {
+    if (pathname === targetPath) return;
+    router.prefetch(targetPath);
+    onNavigate?.();
+    navigate();
+  };
 
   React.useEffect(() => {
     return () => {
@@ -145,7 +154,9 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
               label: 'Device Management',
               activeOverride: activeModule === 'devices',
             }}
-            onClick={() => handleModuleChange('devices')}
+            onClick={() => {
+              navigateWithShimmer(ROUTE_LINKS.HOME, () => handleModuleChange('devices'));
+            }}
           />
 
           {/* Administrative Panel - visible to authorized admin roles */}
@@ -202,24 +213,41 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                   permission={!!permissions.canViewNetworks}
                   permissionCode={PERMISSIONS.NETWORK.VIEW}
                   tooltipMessage="This action requires network view permission"
-                  onClick={() => {
-                    handleModuleChange('admin');
-                    router.push(ROUTE_LINKS.ADMIN_NETWORKS);
-                    setIsDropdownOpen(false);
+                   onClick={() => {
+                    navigateWithShimmer(ROUTE_LINKS.ADMIN_NETWORKS, () => {
+                      handleModuleChange('admin', ROUTE_LINKS.ADMIN_NETWORKS);
+                      setIsDropdownOpen(false);
+                    });
                   }}
                   label="Sensor Manufacturers"
                   subLabel="Manage and configure devices"
-                  isActive={pathname.startsWith(ROUTE_LINKS.ADMIN_NETWORKS)}
+                  isActive={pathname === ROUTE_LINKS.ADMIN_NETWORKS}
+                />
+
+                <AdminDropdownItem
+                  permission={!!permissions.canViewNetworks}
+                  permissionCode={PERMISSIONS.NETWORK.VIEW}
+                  tooltipMessage="This action requires network view permission"
+                   onClick={() => {
+                    navigateWithShimmer(ROUTE_LINKS.ADMIN_NETWORK_REQUESTS, () => {
+                      handleModuleChange('admin', ROUTE_LINKS.ADMIN_NETWORK_REQUESTS);
+                      setIsDropdownOpen(false);
+                    });
+                  }}
+                  label="Manufacturer Requests"
+                  subLabel="Review new sensor requests"
+                  isActive={pathname === ROUTE_LINKS.ADMIN_NETWORK_REQUESTS}
                 />
 
                 <AdminDropdownItem
                   permission={!!permissions.canViewDevices}
                   permissionCode={PERMISSIONS.DEVICE.VIEW}
                   tooltipMessage="This action requires device view permission"
-                  onClick={() => {
-                    handleModuleChange('admin');
-                    router.push(ROUTE_LINKS.COHORTS);
-                    setIsDropdownOpen(false);
+                   onClick={() => {
+                    navigateWithShimmer(ROUTE_LINKS.COHORTS, () => {
+                      handleModuleChange('admin', ROUTE_LINKS.COHORTS);
+                      setIsDropdownOpen(false);
+                    });
                   }}
                   label="Cohorts"
                   subLabel="Group devices for analytics"
@@ -230,10 +258,11 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                   permission={!!permissions.canViewSites}
                   permissionCode={PERMISSIONS.SITE.VIEW}
                   tooltipMessage="This action requires site view permission"
-                  onClick={() => {
-                    handleModuleChange('admin');
-                    router.push(ROUTE_LINKS.SITES);
-                    setIsDropdownOpen(false);
+                   onClick={() => {
+                    navigateWithShimmer(ROUTE_LINKS.SITES, () => {
+                      handleModuleChange('admin', ROUTE_LINKS.SITES);
+                      setIsDropdownOpen(false);
+                    });
                   }}
                   label="Sites"
                   subLabel="Manage location deployments"
@@ -244,10 +273,11 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                   permission={!!permissions.canViewSites}
                   permissionCode={PERMISSIONS.SITE.VIEW}
                   tooltipMessage="This action requires site view permission"
-                  onClick={() => {
-                    handleModuleChange('admin');
-                    router.push(ROUTE_LINKS.GRIDS);
-                    setIsDropdownOpen(false);
+                   onClick={() => {
+                    navigateWithShimmer(ROUTE_LINKS.GRIDS, () => {
+                      handleModuleChange('admin', ROUTE_LINKS.GRIDS);
+                      setIsDropdownOpen(false);
+                    });
                   }}
                   label="Grids"
                   subLabel="Configure spatial grids"
@@ -258,10 +288,11 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                   permission={!!permissions.canViewShipping || !!permissions.canViewNetworks}
                   permissionCode={PERMISSIONS.SHIPPING.VIEW}
                   tooltipMessage="This action requires shipping or network view permission"
-                  onClick={() => {
-                    handleModuleChange('admin');
-                    router.push(ROUTE_LINKS.ADMIN_SHIPPING);
-                    setIsDropdownOpen(false);
+                   onClick={() => {
+                    navigateWithShimmer(ROUTE_LINKS.ADMIN_SHIPPING, () => {
+                      handleModuleChange('admin', ROUTE_LINKS.ADMIN_SHIPPING);
+                      setIsDropdownOpen(false);
+                    });
                   }}
                   label="Shipping"
                   subLabel="Track device logistics"
@@ -323,16 +354,18 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                 {visitedPages.map((page, index) => (
                   <DropdownMenuItem
                     key={`${page.href}-${index}`}
-                    onClick={() => {
-                      // Detect module from href using route constants
-                      if (page.href.startsWith('/devices')) {
-                        handleModuleChange('devices');
-                      } else if (page.href.startsWith('/admin')) {
-                        handleModuleChange('admin');
-                      }
-
-                      router.push(page.href);
-                      setIsRecentOpen(false);
+                     onClick={() => {
+                      navigateWithShimmer(page.href, () => {
+                        // Detect module from href using route constants
+                        if (page.href.startsWith('/devices')) {
+                          handleModuleChange('devices', page.href);
+                        } else if (page.href.startsWith('/admin')) {
+                          handleModuleChange('admin', page.href);
+                        } else {
+                          router.push(page.href);
+                        }
+                        setIsRecentOpen(false);
+                      });
                     }}
                     className={cn(
                       "flex flex-col items-start gap-1 p-3 cursor-pointer",

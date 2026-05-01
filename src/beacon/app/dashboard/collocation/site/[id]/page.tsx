@@ -18,11 +18,15 @@ import {
   Loader2,
   AlertTriangle,
   MonitorPlay,
-  Server
+  Server,
+  MapPin,
+  Globe,
+  Network
 } from "lucide-react"
 
 import { fetchCollocationSiteDetails } from "@/lib/api"
 import { isMockMode } from "@/lib/mock-data"
+import { formatCategoryLabel, REFERENCE_MONITOR_LABEL } from "@/lib/utils"
 // Using standard require to dodge typing issues with deep JSON imports
 import mockDataRaw from "../../../../../data.json"
 
@@ -54,8 +58,26 @@ interface RawDataPoint {
 
 interface RawDevice {
   device_name: string
+  device_id?: string
   category: "lowcost" | "bam"
   data: RawDataPoint[]
+}
+
+interface SiteMeta {
+  site_id: string
+  name: string
+  generated_name?: string
+  latitude?: number
+  longitude?: number
+  network?: string
+  country?: string
+  city?: string
+  county?: string
+  district?: string
+  region?: string
+  data_provider?: string
+  description?: string
+  number_of_devices?: number
 }
 
 // --- Helper Functions ---
@@ -221,6 +243,9 @@ export default function SiteDetailsPage() {
   const [error, setError] = useState<string | null>(null)
   
   const [siteData, setSiteData] = useState<RawDevice[]>([])
+  const [siteMeta, setSiteMeta] = useState<SiteMeta | null>(null)
+
+  const HISTORY_DAYS = 14
 
   const fetchData = useCallback(async () => {
     setIsLoading(true)
@@ -228,11 +253,12 @@ export default function SiteDetailsPage() {
     try {
       const end = new Date()
       const start = new Date()
-      start.setDate(start.getDate() - 10)
+      start.setDate(start.getDate() - HISTORY_DAYS)
 
       if (isMockMode()) {
         // Fallback to local data json for mocked environment
         setSiteData((mockDataRaw.data as any) || [])
+        setSiteMeta(((mockDataRaw as any).site as SiteMeta) || null)
         setIsLoading(false)
         return
       }
@@ -240,12 +266,14 @@ export default function SiteDetailsPage() {
       const qParams = {
         startDateTime: start.toISOString(),
         endDateTime: end.toISOString(),
+        frequency: "hourly",
       }
 
       const response = await fetchCollocationSiteDetails(id, qParams)
       
       if (response.success && Array.isArray(response.data)) {
         setSiteData(response.data)
+        setSiteMeta(response.site || null)
       } else {
         throw new Error(response.message || "Failed to fetch site details")
       }
@@ -288,7 +316,7 @@ export default function SiteDetailsPage() {
       }
       
       // Compute Daily Uptime for device
-      const uptimeHistory = getDailyUptimeHistory(device.data, 10)
+      const uptimeHistory = getDailyUptimeHistory(device.data, HISTORY_DAYS)
       const avgUptime = uptimeHistory.length > 0
         ? uptimeHistory.reduce((s, a) => s + (a.value || 0), 0) / uptimeHistory.length
         : 0
@@ -352,7 +380,7 @@ export default function SiteDetailsPage() {
     
     // Compute site-level overall uptime
     const siteUptimeHistory: HistoryItem[] = []
-    for (let i = 9; i >= 0; i--) {
+    for (let i = HISTORY_DAYS - 1; i >= 0; i--) {
       const d = new Date(today)
       d.setDate(d.getDate() - i)
       const dateStr = d.toISOString().substring(0, 10)
@@ -384,7 +412,7 @@ export default function SiteDetailsPage() {
 
     // Build chart data
     const chartData: any[] = []
-    for (let i = 9; i >= 0; i--) {
+    for (let i = HISTORY_DAYS - 1; i >= 0; i--) {
       const d = new Date(today)
       d.setDate(d.getDate() - i)
       const dateStr = d.toISOString().substring(0, 10)
@@ -447,13 +475,36 @@ export default function SiteDetailsPage() {
   return (
     <div className="space-y-6 pb-12">
       {/* Header */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-start gap-4">
         <Button variant="outline" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <div>
-          <h1 className="text-2xl font-bold">Site {id}</h1>
-          <p className="text-muted-foreground text-sm">Reviewing 10-day history</p>
+        <div className="flex-1">
+          <h1 className="text-2xl font-bold">{siteMeta?.name || `Site ${id}`}</h1>
+          {siteMeta?.description && (
+            <p className="text-muted-foreground text-sm mt-1">{siteMeta.description}</p>
+          )}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-xs text-muted-foreground">
+            {(siteMeta?.city || siteMeta?.country) && (
+              <span className="flex items-center gap-1">
+                <MapPin className="h-3.5 w-3.5" />
+                {[siteMeta?.city, siteMeta?.district, siteMeta?.region, siteMeta?.country].filter(Boolean).join(", ")}
+              </span>
+            )}
+            {siteMeta?.latitude !== undefined && siteMeta?.longitude !== undefined && (
+              <span className="flex items-center gap-1">
+                <Globe className="h-3.5 w-3.5" />
+                {siteMeta.latitude.toFixed(4)}, {siteMeta.longitude.toFixed(4)}
+              </span>
+            )}
+            {siteMeta?.network && (
+              <span className="flex items-center gap-1">
+                <Network className="h-3.5 w-3.5" />
+                {siteMeta.network}
+              </span>
+            )}
+            <span>Reviewing {HISTORY_DAYS}-day hourly history</span>
+          </div>
         </div>
       </div>
 
@@ -477,7 +528,7 @@ export default function SiteDetailsPage() {
                </div>
                <div className="flex items-center gap-1.5">
                  <div className="h-3 w-3 rounded-full bg-purple-500"></div>
-                 <span className="text-xs text-muted-foreground">BAM: <span className="font-semibold text-foreground">{summary.totalBam}</span></span>
+                 <span className="text-xs text-muted-foreground">{REFERENCE_MONITOR_LABEL}: <span className="font-semibold text-foreground">{summary.totalBam}</span></span>
                </div>
             </div>
           </CardContent>
@@ -516,7 +567,7 @@ export default function SiteDetailsPage() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center">
               <MonitorPlay className="h-4 w-4 mr-2 text-purple-500" />
-              BAM Baseline Avg
+              {REFERENCE_MONITOR_LABEL} Baseline Avg
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-2">
@@ -524,7 +575,7 @@ export default function SiteDetailsPage() {
                 <span className="text-3xl font-bold">{summary.overallBamAvg}</span>
                 {summary.overallBamAvg !== "N/A" && <span className="text-sm text-muted-foreground">µg/m³</span>}
             </div>
-             <p className="mt-2 text-xs text-muted-foreground">Average PM2.5 over 10 days</p>
+             <p className="mt-2 text-xs text-muted-foreground">Average PM2.5 over {HISTORY_DAYS} days</p>
           </CardContent>
         </Card>
 
@@ -552,7 +603,7 @@ export default function SiteDetailsPage() {
                       <td className="p-4 font-medium">{dh.device.device_name}</td>
                       <td className="p-4">
                         <Badge variant={dh.device.category === "bam" ? "secondary" : "outline"} className={dh.device.category === "bam" ? "bg-purple-100 text-purple-800" : "bg-blue-50 text-blue-800 border-blue-200"}>
-                          {dh.device.category}
+                          {formatCategoryLabel(dh.device.category)}
                         </Badge>
                       </td>
                       <td className="p-4">
@@ -576,9 +627,9 @@ export default function SiteDetailsPage() {
         <CardHeader className="border-b bg-muted/20">
           <CardTitle className="text-lg flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <span>Air Quality Distribution</span>
-            <span className="text-sm font-normal text-muted-foreground mt-1 sm:mt-0">10 Day Summary</span>
+            <span className="text-sm font-normal text-muted-foreground mt-1 sm:mt-0">{HISTORY_DAYS} Day Summary</span>
           </CardTitle>
-          <CardDescription>Aggregate PM2.5 readings comparing the average Low Cost sensors to the BAM baseline.</CardDescription>
+          <CardDescription>Aggregate PM2.5 readings comparing the average Low Cost sensors to the Reference Monitor baseline.</CardDescription>
         </CardHeader>
         <CardContent className="p-6">
           <div className="h-[400px] w-full mt-4">
@@ -617,7 +668,7 @@ export default function SiteDetailsPage() {
                   />
                 ))}
                 <Line 
-                  name="BAM Level" 
+                  name="Reference Monitor Level" 
                   type="monotone" 
                   dataKey="bam" 
                   stroke="#8B5CF6" 
