@@ -8,7 +8,8 @@ import 'package:flutter/material.dart';
 class AnalyticsSpecifics extends StatefulWidget {
   final Measurement measurement;
   final String? fallbackLocationName;
-  const AnalyticsSpecifics({super.key, required this.measurement, this.fallbackLocationName});
+  const AnalyticsSpecifics(
+      {super.key, required this.measurement, this.fallbackLocationName});
 
   @override
   State<AnalyticsSpecifics> createState() => _AnalyticsSpecificsState();
@@ -66,12 +67,9 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final nameColor = Theme.of(context).textTheme.headlineSmall?.color;
     final subtitleColor =
         Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7);
-    final labelColor =
-        isDark ? AppColors.boldHeadlineColor2 : AppColors.boldHeadlineColor3;
 
     return SingleChildScrollView(
       child: Column(

@@ -1,47 +1,11 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+import 'package:airqo/src/app/map/utils/map_aq_presentation.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/meta/utils/utils.dart';
-
-// Shared AQ level helper — same breakpoints as hourly_detail_sheet.dart
-({String asset, Color color}) aqLevelFromPm25(double pm25) {
-  if (pm25 < 12.1) {
-    return (
-      asset: 'assets/images/shared/airquality_indicators/good.svg',
-      color: const Color(0xFF34C759),
-    );
-  }
-  if (pm25 < 35.5) {
-    return (
-      asset: 'assets/images/shared/airquality_indicators/moderate.svg',
-      color: const Color(0xFFFDC412),
-    );
-  }
-  if (pm25 < 55.5) {
-    return (
-      asset:
-          'assets/images/shared/airquality_indicators/unhealthy-sensitive.svg',
-      color: const Color(0xFFFF851F),
-    );
-  }
-  if (pm25 < 150.5) {
-    return (
-      asset: 'assets/images/shared/airquality_indicators/unhealthy.svg',
-      color: const Color(0xFFFE726B),
-    );
-  }
-  if (pm25 < 250.5) {
-    return (
-      asset: 'assets/images/shared/airquality_indicators/very-unhealthy.svg',
-      color: const Color(0xFFC78AE8),
-    );
-  }
-  return (
-    asset: 'assets/images/shared/airquality_indicators/hazardous.svg',
-    color: const Color(0xFFD95BA3),
-  );
-}
 
 String _locationDescription(Measurement measurement) {
   final s = measurement.siteDetails;
@@ -74,7 +38,7 @@ class MapAirQualityCard extends StatelessWidget {
   });
 
   Color _aqiColor() {
-    final aq = aqLevelFromPm25(measurement.pm25?.value ?? 0);
+    final aq = mapAqLevelFromPm25(measurement.pm25?.value ?? 0);
     return aq.color;
   }
 
@@ -84,237 +48,210 @@ class MapAirQualityCard extends StatelessWidget {
     final pmValue = measurement.pm25?.value;
     final aqColor = _aqiColor();
     final locationText = _locationDescription(measurement);
+    final dynamicAqIconPath =
+        pmValue == null ? null : getAirQualityIcon(measurement, pmValue);
+    final aqIconPath = pmValue == null
+        ? null
+        : dynamicAqIconPath?.isNotEmpty == true
+            ? dynamicAqIconPath
+            : mapAqLevelFromPm25(pmValue).asset;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+        child: Container(
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkHighlight : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.10),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── Header ────────────────────────────────────────────────
-          Padding(
-            padding:
-                const EdgeInsets.only(left: 16, right: 12, top: 14, bottom: 10),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        measurement.siteDetails?.searchName ??
-                            measurement.siteDetails?.name ??
-                            '—',
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                          color: Theme.of(context)
-                              .textTheme
-                              .headlineSmall
-                              ?.color,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if (locationText.isNotEmpty) ...[
-                        const SizedBox(height: 3),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.location_on,
-                              size: 13,
-                              color: AppColors.primaryColor,
-                            ),
-                            const SizedBox(width: 3),
-                            Expanded(
-                              child: Text(
-                                locationText,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(height: 3, color: aqColor),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                measurement.siteDetails?.searchName ??
+                                    measurement.siteDetails?.name ??
+                                    '—',
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
                                   color: Theme.of(context)
                                       .textTheme
-                                      .bodyMedium
-                                      ?.color
-                                      ?.withValues(alpha: 0.7),
+                                      .headlineSmall
+                                      ?.color,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
+                              if (locationText.isNotEmpty) ...[
+                                const SizedBox(height: 2),
+                                Text(
+                                  locationText,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w400,
+                                    color: isDark
+                                        ? AppColors.boldHeadlineColor2
+                                        : AppColors.boldHeadlineColor3,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: onDismiss,
+                          behavior: HitTestBehavior.opaque,
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(8, 0, 0, 8),
+                            child: Icon(
+                              Icons.close,
+                              size: 18,
+                              color: isDark
+                                  ? AppColors.boldHeadlineColor2
+                                  : AppColors.boldHeadlineColor3,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        if (aqIconPath != null)
+                          SvgPicture.asset(
+                            aqIconPath,
+                            width: 36,
+                            height: 36,
+                          )
+                        else
+                          const Icon(Icons.help_outline,
+                              size: 36, color: Colors.grey),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                measurement.aqiCategory ?? '',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: aqColor,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    pmValue != null
+                                        ? pmValue.toStringAsFixed(1)
+                                        : '—',
+                                    style: TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w800,
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .titleLarge
+                                          ?.color,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 3),
+                                    child: Text(
+                                      'µg/m³  PM2.5',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: isDark
+                                            ? AppColors.boldHeadlineColor2
+                                            : AppColors.boldHeadlineColor3,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    GestureDetector(
+                      onTap: onViewForecast,
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 11),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppColors.primaryColor.withValues(alpha: 0.14)
+                              : AppColors.primaryColor.withValues(alpha: 0.07),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: AppColors.primaryColor.withValues(
+                              alpha: isDark ? 0.22 : 0.14,
+                            ),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(left: 14),
+                              child: Text(
+                                'view forecast',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primaryColor,
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(right: 14),
+                              child: Icon(
+                                Icons.arrow_forward_ios,
+                                size: 13,
+                                color: AppColors.primaryColor,
+                              ),
                             ),
                           ],
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                // Close button
-                GestureDetector(
-                  onTap: onDismiss,
-                  behavior: HitTestBehavior.opaque,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(8, 0, 4, 4),
-                    child: Icon(
-                      Icons.close,
-                      size: 18,
-                      color: isDark
-                          ? AppColors.boldHeadlineColor2
-                          : AppColors.boldHeadlineColor3,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          Divider(
-            thickness: 0.5,
-            height: 1,
-            color: isDark
-                ? AppColors.dividerColordark
-                : AppColors.dividerColorlight,
-          ),
-
-          // ── Reading ───────────────────────────────────────────────
-          Padding(
-            padding:
-                const EdgeInsets.only(left: 16, right: 16, top: 10, bottom: 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // PM2.5 label
-                    Row(
-                      children: [
-                        SvgPicture.asset(
-                          isDark
-                              ? 'assets/images/shared/pm_rating.svg'
-                              : 'assets/images/shared/pm_rating_white.svg',
-                        ),
-                        const SizedBox(width: 3),
-                        Text(
-                          ' PM2.5',
-                          style: TextStyle(
-                            color: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
-                                ?.color,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    // Numeric reading
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          pmValue != null
-                              ? pmValue.toStringAsFixed(1)
-                              : '—',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 32,
-                            color: Theme.of(context)
-                                .textTheme
-                                .headlineLarge
-                                ?.color,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
-                          child: Text(
-                            ' μg/m³',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                              color: Theme.of(context)
-                                  .textTheme
-                                  .headlineLarge
-                                  ?.color,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    // AQ category chip
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: aqColor.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        measurement.aqiCategory ?? 'Unknown',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: aqColor,
                         ),
                       ),
                     ),
                   ],
                 ),
-
-                // AQ emoji icon (mirrors AnalyticsCard 86→60 scaled)
-                if (pmValue != null)
-                  SvgPicture.asset(
-                    getAirQualityIcon(measurement, pmValue),
-                    width: 64,
-                    height: 64,
-                  )
-                else
-                  const Icon(Icons.help_outline, size: 52, color: Colors.grey),
-              ],
-            ),
-          ),
-
-          // ── View forecast — outlined secondary button (auth screen style) ──
-          Padding(
-            padding:
-                const EdgeInsets.only(left: 16, right: 16, bottom: 14),
-            child: GestureDetector(
-              onTap: onViewForecast,
-              child: Container(
-                width: double.infinity,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: AppColors.primaryColor,
-                    width: 1.5,
-                  ),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  'View forecast',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.primaryColor,
-                  ),
-                ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
