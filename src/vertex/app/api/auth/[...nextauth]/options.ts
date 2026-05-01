@@ -212,8 +212,6 @@ export const options: NextAuthOptions = {
     },
 
     async session({ session, token }) {
-      // Let NextAuth JWT manage session expiration via maxAge
-      // Don't check backend token.exp as it can cause premature session invalidation
       if (token) {
         session.user = {
           ...session.user,
