@@ -212,15 +212,6 @@ export const options: NextAuthOptions = {
     },
 
     async session({ session, token }) {
-      // Check if token is expired
-      if (token.exp) {
-        const expirationTime = (token.exp as number) * 1000;
-        if (Date.now() >= expirationTime) {
-          // Token expired, invalidate session
-          return { ...session, user: null };
-        }
-      }
-
       if (token) {
         session.user = {
           ...session.user,
