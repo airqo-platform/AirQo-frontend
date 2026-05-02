@@ -8,7 +8,8 @@ import 'package:flutter/material.dart';
 class AnalyticsSpecifics extends StatefulWidget {
   final Measurement measurement;
   final String? fallbackLocationName;
-  const AnalyticsSpecifics({super.key, required this.measurement, this.fallbackLocationName});
+  const AnalyticsSpecifics(
+      {super.key, required this.measurement, this.fallbackLocationName});
 
   @override
   State<AnalyticsSpecifics> createState() => _AnalyticsSpecificsState();
@@ -66,6 +67,10 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
 
   @override
   Widget build(BuildContext context) {
+    final nameColor = Theme.of(context).textTheme.headlineSmall?.color;
+    final subtitleColor =
+        Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7);
+
     return SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -90,7 +95,7 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 24,
-                          color: AppColors.boldHeadlineColor,
+                          color: nameColor,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -99,7 +104,7 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
                       onTap: () => Navigator.pop(context),
                       child: Icon(
                         Icons.close,
-                        color: AppColors.boldHeadlineColor,
+                        color: nameColor,
                       ),
                     )
                   ],
@@ -118,11 +123,7 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
                         _getLocationDescription(widget.measurement),
                         style: TextStyle(
                           fontSize: 14,
-                          color: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
-                              ?.color
-                              ?.withValues(alpha: 0.7),
+                          color: subtitleColor,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -140,7 +141,7 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 20,
-                        color: AppColors.boldHeadlineColor,
+                        color: nameColor,
                       ),
                     ),
                   ],
