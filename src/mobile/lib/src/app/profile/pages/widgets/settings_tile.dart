@@ -47,11 +47,10 @@ class SettingsTile extends StatelessWidget {
             onTap: onTap,
             trailing: switchValue != null
                 ? Switch(
-                    activeThumbColor: Colors.white,
                     activeTrackColor: AppColors.primaryColor,
                     inactiveThumbColor: Colors.white,
-                    inactiveTrackColor: isDarkMode 
-                        ? Colors.grey[700] 
+                    inactiveTrackColor: isDarkMode
+                        ? Colors.grey[700]
                         : Theme.of(context).highlightColor,
                     value: switchValue!,
                     onChanged: onChanged)
