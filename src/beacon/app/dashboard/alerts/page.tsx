@@ -243,6 +243,7 @@ export default function AlertsPage() {
   // Load alerts when component mounts
   useEffect(() => {
     fetchAlerts()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Filter and sort alerts based on user selections

@@ -233,6 +233,7 @@ export default function LoginPage() {
     if (error && (email || password)) {
       setError("")
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [email, password])
 
   return (

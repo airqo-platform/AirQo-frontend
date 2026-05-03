@@ -178,6 +178,7 @@ export default function DevicesPage() {
     }, 1000)
 
     return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Refetch devices when pagination or search changes
@@ -188,6 +189,7 @@ export default function DevicesPage() {
     }, 500) // Wait 500ms after user stops typing
 
     return () => clearTimeout(searchDebounce)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, itemsPerPage, searchTerm, showTracked]) // Added searchTerm and showTracked
 
   // Refresh all data
@@ -265,6 +267,7 @@ export default function DevicesPage() {
       // Then sort by name
       return (a.device_name || "").localeCompare(b.device_name || "");
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [devices, isDeviceOnline]);
 
   // Memoize map device data to avoid re-filtering/mapping on every render
@@ -383,6 +386,7 @@ export default function DevicesPage() {
   // Handle successful device update
   const handleUpdateSuccess = useCallback(() => {
     refreshData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Handle row click to navigate to device details

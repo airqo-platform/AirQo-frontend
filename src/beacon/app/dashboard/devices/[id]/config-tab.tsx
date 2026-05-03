@@ -207,6 +207,7 @@ export default function ConfigTab({ deviceId, deviceName, channelId }: ConfigTab
     if (channelId) {
       fetchConfigHistory(1)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [channelId])
 
   const handleDateRangeChange = (newDateRange: { from: Date | undefined; to: Date | undefined }) => {

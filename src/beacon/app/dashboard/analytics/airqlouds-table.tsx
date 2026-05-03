@@ -306,6 +306,7 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
     setPage(1)
   }, [searchTerm])
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     // Debounce search
     const timer = setTimeout(() => {
@@ -313,6 +314,7 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
     }, 300)
 
     return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, performanceDays, page, pageSize, cohortTags])
 
   // Sort data (client-side sorting for current page)

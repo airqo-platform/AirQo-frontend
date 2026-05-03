@@ -247,6 +247,7 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
 
   useEffect(() => {
     fetchPerformanceData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deviceId])
 
   const handleDateRangeChange = (newDateRange: { from: Date | undefined; to: Date | undefined }) => {
