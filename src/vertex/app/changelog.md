@@ -26,6 +26,8 @@ Introduced a centralized Sites management module for standard users and organiza
 
 - **Reusable Management Components**: Refactored `SitesTable` and `CreateSiteForm` to support customizable base paths, enabling seamless reuse across administrative and organizational modules.
 - **Unified Site ID Resolution**: Standardized site identification to use nested site objects instead of flat ID fields, ensuring robust navigation and data consistency.
+- **Site ID Copy Feature**: Added a convenient copy-to-clipboard button for Site IDs in the site information card to match the Cohort management experience.
+- **Sidebar Clarity**: Renamed "Assets" to "Devices" in the organization view to provide a clear distinction from the new "Sites" management section.
 
 </details>
 
