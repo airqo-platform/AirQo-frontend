@@ -198,7 +198,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                     item={{
                       href: ROUTE_LINKS.ORG_ASSETS,
                       icon: AqMonitor,
-                      label: 'Assets',
+                      label: 'Devices',
                       disabled: !contextPermissions.canViewDevices,
                     }}
                     isCollapsed={isCollapsed}
