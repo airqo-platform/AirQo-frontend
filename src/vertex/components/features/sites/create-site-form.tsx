@@ -60,9 +60,10 @@ type SiteFormValues = z.infer<typeof siteFormSchema>;
 
 interface CreateSiteFormProps {
   disabled?: boolean;
+  basePath?: string;
 }
 
-export function CreateSiteForm({ disabled = false }: CreateSiteFormProps) {
+export function CreateSiteForm({ disabled = false, basePath = "/admin/sites" }: CreateSiteFormProps) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const [inputMode, setInputMode] = useState<"siteName" | "coordinates">("coordinates");
@@ -98,7 +99,7 @@ export function CreateSiteForm({ disabled = false }: CreateSiteFormProps) {
         onSuccess: (data) => {
           handleClose();
           if (data?.site?._id) {
-            router.push(`/admin/sites/${data.site._id}`);
+            router.push(`${basePath}/${data.site._id}`);
           }
         },
       }
