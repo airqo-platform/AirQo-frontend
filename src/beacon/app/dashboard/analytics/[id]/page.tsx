@@ -29,6 +29,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import AirQloudPerformanceTab from "./airqloud-performance-tab"
+import DevicePerformanceHeatmaps from "@/components/analytics/device-heatmap"
 
 interface AirQloudDetailData {
   id: string
@@ -422,6 +423,7 @@ export default function AirQloudDetailPage() {
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="performance">Performance</TabsTrigger>
+          <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6 mt-6">
@@ -666,6 +668,10 @@ export default function AirQloudDetailPage() {
             airqloudName={data.name}
             initialData={data}
           />
+        </TabsContent>
+
+        <TabsContent value="heatmap" className="mt-6">
+          <DevicePerformanceHeatmaps devices={processedDevices} />
         </TabsContent>
       </Tabs>
     </div>
