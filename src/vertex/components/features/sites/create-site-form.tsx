@@ -104,7 +104,7 @@ export function CreateSiteForm({ disabled = false, basePath = "/admin/sites" }: 
         },
       }
     );
-  }, [createSite, activeGroup?.grp_title, handleClose, router]);
+  }, [createSite, activeGroup?.grp_title, handleClose, router, basePath]);
 
   const handleCoordinateChange = useCallback((lat: string, lng: string) => {
     form.setValue("latitude", lat, { shouldValidate: true });

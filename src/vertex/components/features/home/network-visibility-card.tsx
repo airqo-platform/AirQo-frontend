@@ -58,7 +58,6 @@ const NetworkVisibilityCard = () => {
 
     const allPublic = cohorts.length > 0 && cohorts.every((c) => c.visibility === true);
     const allPrivate = cohorts.length > 0 && cohorts.every((c) => c.visibility === false);
-    const isMixed = !allPublic && !allPrivate;
 
     const handleRunningUpdate = async () => {
         if (!pendingCohort) return;
