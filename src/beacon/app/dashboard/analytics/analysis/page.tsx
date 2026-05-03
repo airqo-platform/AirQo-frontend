@@ -27,6 +27,7 @@ import {
 import { type AirQloudPerformanceData } from "@/services/airqloud.service"
 import { syncCohorts, syncThingSpeak } from "@/services/device-api.service"
 import { useToast } from "@/components/ui/use-toast"
+import DevicePerformanceHeatmaps from "@/components/analytics/device-heatmap"
 
 interface DateRange {
   from: string
@@ -594,6 +595,12 @@ export default function AnalysisResultsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            <Tabs defaultValue="summary" className="w-full">
+              <TabsList>
+                <TabsTrigger value="summary">Summary</TabsTrigger>
+                <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
+              </TabsList>
+              <TabsContent value="summary" className="mt-6">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -658,6 +665,11 @@ export default function AnalysisResultsPage() {
                 </TableBody>
               </Table>
             </div>
+              </TabsContent>
+              <TabsContent value="heatmap" className="mt-6">
+                <DevicePerformanceHeatmaps devices={processedDevices} />
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
       </div>
@@ -846,6 +858,13 @@ export default function AnalysisResultsPage() {
                       {getStatusBadge(stats.avgUptime)}
                     </div>
 
+                    <Tabs defaultValue="summary" className="w-full">
+                      <TabsList>
+                        <TabsTrigger value="summary">Summary</TabsTrigger>
+                        <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
+                      </TabsList>
+
+                      <TabsContent value="summary" className="mt-6 space-y-6">
                     {/* Stats Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <Card>
@@ -968,6 +987,12 @@ export default function AnalysisResultsPage() {
                         )}
                       </CardContent>
                     </Card>
+                      </TabsContent>
+
+                      <TabsContent value="heatmap" className="mt-6">
+                        <DevicePerformanceHeatmaps devices={processedDevices} />
+                      </TabsContent>
+                    </Tabs>
                   </div>
                 </TabsContent>
               )
