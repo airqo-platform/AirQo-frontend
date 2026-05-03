@@ -4,6 +4,39 @@
 
 ---
 
+## Version 1.23.34
+**Released:** May 03, 2026
+
+### Granular Network Visibility & Cohort Privacy Management
+
+Introduced individual visibility controls for organization cohorts, allowing for granular privacy management. The update includes a redesigned visibility dashboard with support for mixed visibility states and guarded confirmation workflows.
+
+<details>
+<summary><strong>Privacy & Visibility (4)</strong></summary>
+
+- **Individual Cohort Toggles**: Replaced the global organization visibility toggle with per-cohort switches, enabling fine-grained control over which device groups are public or private.
+- **Custom Visibility Dashboard**: Introduced a "Custom Visibility Settings" state and description for organizations with mixed public/private cohorts, ensuring clear status communication.
+- **Dynamic Status Indicators**: Added `Globe` (All Public), `Lock` (All Private), and `Shield` (Custom/Mixed) status icons with corresponding descriptions to provide clear context of the organization's privacy stance.
+- **Guarded Visibility Updates**: Every visibility change is now protected by a confirmation dialog that identifies the specific cohort by name and explains the impact of the change.
+
+</details>
+
+<details>
+<summary><strong>UI/UX Improvements (1)</strong></summary>
+
+- **Enhanced Cohort List**: Refined the cohort list layout with status indicators, responsive grid support, and hover effects for better scannability and interaction.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (1)</strong></summary>
+
+- `components/features/home/network-visibility-card.tsx`
+
+</details>
+
+---
+
 ## Version 1.23.33
 **Released:** April 29, 2026
 
