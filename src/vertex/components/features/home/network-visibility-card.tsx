@@ -12,13 +12,14 @@ import { usePermissions } from '@/core/hooks/usePermissions';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { useUserContext } from '@/core/hooks/useUserContext';
+import { Cohort } from '@/app/types/cohorts';
 
 const NetworkVisibilityCard = () => {
     const queryClient = useQueryClient();
     const router = useRouter();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [targetVisibility, setTargetVisibility] = useState<boolean>(false);
-    const [pendingCohort, setPendingCohort] = useState<any>(null);
+    const [pendingCohort, setPendingCohort] = useState<Cohort | null>(null);
     const [isUpdating, setIsUpdating] = useState(false);
 
     const { activeGroup, isExternalOrg } = useUserContext();
@@ -109,12 +110,12 @@ const NetworkVisibilityCard = () => {
                             <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 transition-all">
                                 {allPublic ? "Your devices are Public" : 
                                  allPrivate ? "Your devices are Private" : 
-                                 "Mixed Device Visibility"}
+                                 "Custom Visibility Settings"}
                             </h3>
                             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-xl">
                                 {allPublic ? "Your devices are visible to anyone on the AirQo Map. You are contributing to open data." :
                                  allPrivate ? "Your devices are hidden from the public. Data is visible only in your account." :
-                                 "Some of your cohorts are public while others are private. Manage each cohort below."}
+                                 "Visibility settings are customized per cohort. Manage each cohort below."}
                             </p>
                         </div>
                     </div>
@@ -204,4 +205,5 @@ const NetworkVisibilityCard = () => {
 };
 
 export default NetworkVisibilityCard;
+
 
