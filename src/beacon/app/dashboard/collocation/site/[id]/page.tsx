@@ -25,10 +25,7 @@ import {
 } from "lucide-react"
 
 import { fetchCollocationSiteDetails } from "@/lib/api"
-import { isMockMode } from "@/lib/mock-data"
 import { formatCategoryLabel, REFERENCE_MONITOR_LABEL } from "@/lib/utils"
-// Using standard require to dodge typing issues with deep JSON imports
-import mockDataRaw from "../../../../../data.json"
 
 import {
   LineChart,
@@ -254,14 +251,6 @@ export default function SiteDetailsPage() {
       const end = new Date()
       const start = new Date()
       start.setDate(start.getDate() - HISTORY_DAYS)
-
-      if (isMockMode()) {
-        // Fallback to local data json for mocked environment
-        setSiteData((mockDataRaw.data as any) || [])
-        setSiteMeta(((mockDataRaw as any).site as SiteMeta) || null)
-        setIsLoading(false)
-        return
-      }
 
       const qParams = {
         startDateTime: start.toISOString(),
