@@ -270,6 +270,7 @@ export default function DeviceDetailPage() {
     if (params?.id) {
       fetchDeviceData()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params?.id])
 
   const handleRefresh = () => {

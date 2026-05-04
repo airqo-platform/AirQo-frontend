@@ -855,7 +855,7 @@ const ReportTab = ({ data }: { data: InlabBatchWithPerformance }) => {
                 </div>
               </div>
             </div>
-            <p className="text-sm text-gray-500 mt-6 italic">Click "Download PDF" to get the full multi-page report.</p>
+            <p className="text-sm text-gray-500 mt-6 italic">Click &quot;Download PDF&quot; to get the full multi-page report.</p>
           </div>
         </CardContent>
       </Card>

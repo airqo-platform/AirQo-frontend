@@ -129,6 +129,7 @@ export default function MetadataTab({ deviceId, deviceName }: MetadataTabProps) 
 
   useEffect(() => {
     fetchMetadata()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deviceId, skip, limit])
 
   const handleDateRangeChange = (newDateRange: { from: Date | undefined; to: Date | undefined }) => {

@@ -82,6 +82,7 @@ export default function MaintenanceGraphCard({
     // Effect to trigger fetch on any filter change
     useEffect(() => {
         fetchData()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, period, min, max, sortOrder, globalFilters, type, metric])
 
     const handlePrevPage = () => {

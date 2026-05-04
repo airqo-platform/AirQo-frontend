@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, FormEvent, Component, ReactNode } from "react"
+import { useState, useEffect, FormEvent, Component, ReactNode, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -89,6 +89,8 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState<boolean>(false)
   const [pageReady, setPageReady] = useState<boolean>(false)
   const [modelFailed, setModelFailed] = useState<boolean>(false)
+  const [step, setStep] = useState<1 | 2>(1)
+  const passwordInputRef = useRef<HTMLInputElement>(null)
   
   /**
    * Check if on mobile and set page ready immediately (no 3D model on mobile)
@@ -150,18 +152,34 @@ export default function LoginPage() {
   /**
    * Handles form submission and authentication
    */
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
+  const handleFormSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault()
     setError("")
     
-    // Validate inputs
-    if (!email || !password) {
-      setError("Please enter both email and password")
+    if (step === 1) {
+      if (!email) {
+        setError("Please enter your email address")
+        return
+      }
+      
+      if (!isValidEmail(email)) {
+        setError("Please enter a valid email address")
+        return
+      }
+      
+      setStep(2)
+      
+      // Auto-focus password field when moving to step 2
+      setTimeout(() => {
+        passwordInputRef.current?.focus()
+      }, 50)
+      
       return
     }
     
-    if (!isValidEmail(email)) {
-      setError("Please enter a valid email address")
+    // Step 2 processing
+    if (!password) {
+      setError("Please enter your password")
       return
     }
     
@@ -233,6 +251,7 @@ export default function LoginPage() {
     if (error && (email || password)) {
       setError("")
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [email, password])
 
   return (
@@ -376,9 +395,9 @@ export default function LoginPage() {
             )}
 
             {/* Login Form */}
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleFormSubmit} className="space-y-6">
               {/* Email Field */}
-              <div className="space-y-2">
+              <div className={step === 1 ? "space-y-2" : "hidden"}>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                   Email Address
                 </label>
@@ -390,8 +409,8 @@ export default function LoginPage() {
                     id="email"
                     name="email"
                     type="email"
-                    autoComplete="email"
-                    required
+                    autoComplete="username"
+                    required={step === 1}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="pl-10"
@@ -401,21 +420,47 @@ export default function LoginPage() {
                 </div>
               </div>
 
+              {/* Email Summary (Shown in Step 2) */}
+              {step === 2 && (
+                <div className="flex items-center justify-between p-3 bg-blue-50/50 rounded-lg border border-blue-100">
+                  <div className="flex items-center space-x-3 truncate pr-4">
+                    <div className="bg-blue-100 p-1.5 rounded-full shrink-0">
+                      <Mail className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <span className="text-sm font-medium text-gray-700 truncate">{email}</span>
+                  </div>
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      setStep(1);
+                      setPassword("");
+                    }}
+                    className="text-xs text-blue-600 hover:text-blue-800 font-medium px-2 py-1 rounded-md hover:bg-blue-100 transition-colors shrink-0"
+                  >
+                    Change
+                  </button>
+                </div>
+              )}
+
               {/* Password Field */}
-              <div className="space-y-2">
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                  Password
-                </label>
+              <div className={step === 2 ? "space-y-2 animate-in fade-in slide-in-from-top-2 duration-300" : "hidden"}>
+                <div className="flex items-center justify-between">
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                    Password
+                  </label>
+                  {/* Forgot Password link can go here later */}
+                </div>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Lock className="h-5 w-5 text-gray-400" />
                   </div>
                   <Input
+                    ref={passwordInputRef}
                     id="password"
                     name="password"
                     type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
-                    required
+                    required={step === 2}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-10 pr-10"
@@ -438,33 +483,6 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              {/* Remember Me & Forgot Password  I will implement this later */}
-              {/* <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <input
-                    id="remember-me"
-                    name="remember-me"
-                    type="checkbox"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    disabled={isLoading}
-                  />
-                  <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
-                    Remember me
-                  </label>
-                </div>
-
-                <div className="text-sm">
-                  <Link 
-                    href="/forgot-password" 
-                    className="font-medium text-blue-600 hover:text-blue-500"
-                  >
-                    Forgot your password?
-                  </Link>
-                </div>
-              </div> */}
-
               {/* Submit Button */}
               <Button
                 type="submit"
@@ -477,7 +495,7 @@ export default function LoginPage() {
                     Signing in...
                   </>
                 ) : (
-                  "Sign in"
+                  step === 1 ? "Next" : "Sign in"
                 )}
               </Button>
             </form>
