@@ -88,11 +88,8 @@ class ApiClient {
 
     if (isServerSide) {
       // Server-side: Direct backend API call
-      // Normalize baseURL to ensure it ends with /api/v2
-      let normalizedBaseURL = this.baseURL.replace(/\/$/, ''); // Remove trailing slash
-      if (!normalizedBaseURL.endsWith('/api/v2')) {
-        normalizedBaseURL += '/api/v2';
-      }
+      // The server already receives full backend paths such as /website/api/v2/...
+      const normalizedBaseURL = this.baseURL.replace(/\/$/, '');
       const cleanEndpoint = endpoint.startsWith('/')
         ? endpoint
         : `/${endpoint}`;

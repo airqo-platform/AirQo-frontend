@@ -26,7 +26,32 @@ const normalizePublicationParams = (params?: {
   return compactParams(params);
 };
 
+const normalizeBlogParams = (params?: {
+  page?: number;
+  page_size?: number;
+  category?: string | string[];
+  search?: string;
+  ordering?: string;
+}) => {
+  if (!params) return undefined;
+
+  if (Array.isArray(params.category)) {
+    return compactParams({ ...params, category: params.category.join(',') });
+  }
+
+  return compactParams(params);
+};
+
 export const apiQueryKeys = {
+  blogs: (params?: {
+    page?: number;
+    page_size?: number;
+    category?: string | string[];
+    search?: string;
+    ordering?: string;
+  }) => ['blogs', normalizeBlogParams(params)] as const,
+  blogDetails: (slug: string | null) => ['blogDetails', slug] as const,
+  blogIdentifiers: (slug: string | null) => ['blogIdentifiers', slug] as const,
   pressArticles: (params?: { page?: number; page_size?: number }) =>
     ['pressArticles', compactParams(params)] as const,
   impactNumbers: () => ['impactNumbers'] as const,

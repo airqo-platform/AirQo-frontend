@@ -910,6 +910,21 @@ export const METADATA_CONFIGS = {
       type: 'image/webp',
     },
   },
+  blogs: {
+    title: 'Blogs & Insights | AirQo Air Quality Stories, Research and Updates',
+    description:
+      'Read AirQo blogs covering air quality insights, community impact stories, research updates, policy discussions, and product news from across Africa.',
+    keywords:
+      'AirQo blogs, air quality insights, environmental stories, clean air updates, air quality research, African air pollution news, community impact stories, air quality blog',
+    url: '/blogs',
+    image: {
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
+      alt: 'AirQo Blogs and Insights',
+      width: 1200,
+      height: 630,
+      type: 'image/webp',
+    },
+  },
   resources: {
     title: 'Resources & Publications | AirQo Research Papers, Reports & Guides',
     description:

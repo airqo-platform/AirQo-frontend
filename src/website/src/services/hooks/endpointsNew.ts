@@ -8,6 +8,7 @@ import {
 
 import {
   africanCountriesService,
+  blogService,
   boardMembersService,
   careersService,
   cleanAirResourcesService,
@@ -75,6 +76,45 @@ export const usePressArticles = (params?: {
     () => pressService.getPressArticles({}, params || {}),
     {
       staleTime: 15 * 60 * 1000,
+    },
+  );
+
+// Blogs
+export const useBlogs = (params?: {
+  page?: number;
+  page_size?: number;
+  category?: string | string[];
+  search?: string;
+  ordering?: string;
+}) =>
+  useServiceQuery(
+    apiQueryKeys.blogs(params),
+    () => blogService.getBlogs({}, params || {}),
+    {
+      staleTime: 10 * 60 * 1000,
+      placeholderData: keepPreviousData,
+    },
+  );
+
+export const useBlogDetail = (slug: string | null) =>
+  useServiceQuery(
+    apiQueryKeys.blogDetails(slug),
+    () => blogService.getBlogBySlug(slug as string),
+    {
+      enabled: !!slug,
+      staleTime: 30 * 60 * 1000,
+      placeholderData: keepPreviousData,
+    },
+  );
+
+export const useBlogIdentifiers = (slug: string | null) =>
+  useServiceQuery(
+    apiQueryKeys.blogIdentifiers(slug),
+    () => blogService.getBlogIdentifiers(slug as string),
+    {
+      enabled: !!slug,
+      staleTime: 30 * 60 * 1000,
+      placeholderData: keepPreviousData,
     },
   );
 

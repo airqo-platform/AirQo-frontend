@@ -177,6 +177,43 @@ export interface Press {
   updated_at: string;
 }
 
+export interface BlogPost {
+  id: number;
+  title: string;
+  summary: string;
+  author_name: string;
+  author_role?: string;
+  author_image_url?: string;
+  published_at: string;
+  meta_title?: string;
+  meta_description?: string;
+  cover_image_url?: string;
+  website_category?: string;
+  order?: number;
+  content_html?: string;
+  created?: string;
+  modified?: string;
+  is_deleted?: boolean;
+  public_identifier?: string;
+  api_url?: string;
+  has_slug?: string;
+}
+
+export type BlogListResponse = PaginatedResponse<BlogPost>;
+
+export interface BlogIdentifierPayload {
+  title: string;
+  summary: string;
+  author_name: string;
+  author_role?: string;
+  published_at: string;
+  meta_title: string;
+  meta_description: string;
+  website_category: string;
+  order?: number;
+  is_deleted?: boolean;
+}
+
 export interface CleanAirResource {
   id: string;
   title: string;
