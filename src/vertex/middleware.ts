@@ -1,25 +1,33 @@
-import { NextResponse, type NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { withAuth } from "next-auth/middleware";
+import { NextResponse } from "next/server";
 
-export default async function middleware(req: NextRequest) {
-  if (req.nextUrl.pathname === "/") {
-    return NextResponse.redirect(new URL("/home", req.url));
-  }
+const isProduction = process.env.NODE_ENV === "production";
+const sessionCookieName = isProduction
+  ? "__Secure-next-auth.session-token"
+  : "next-auth.session-token";
 
-  const token = await getToken({
-    req,
+export default withAuth(
+  function middleware(req) {
+    if (req.nextUrl.pathname === "/") {
+      return NextResponse.redirect(new URL("/home", req.url));
+    }
+  },
+  {
+    callbacks: {
+      authorized: ({ token }) => !!token,
+    },
+    pages: {
+      signIn: "/login",
+      error: "/auth-error",
+    },
+    cookies: {
+      sessionToken: {
+        name: sessionCookieName,
+      },
+    },
     secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
-  });
-
-  if (!token) {
-    const signInUrl = new URL("/login", req.url);
-    const requestedPath = `${req.nextUrl.pathname}${req.nextUrl.search}`;
-    signInUrl.searchParams.set("callbackUrl", requestedPath);
-    return NextResponse.redirect(signInUrl);
   }
-
-  return NextResponse.next();
-}
+);
 
 export const config = {
   matcher: [

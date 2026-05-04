@@ -4,6 +4,42 @@
 
 ---
 
+## Version 1.23.36
+**Released:** May 04, 2026
+
+### Production Authentication Middleware Fix
+
+Resolved a critical authentication redirect loop in production environments caused by a proxy protocol mismatch when reading session cookies.
+
+<details>
+<summary><strong>Authentication Fixes (1)</strong></summary>
+
+- **NextAuth Middleware Refactor**: Rewrote `middleware.ts` to use NextAuth's `withAuth` wrapper. This explicitly passes the custom production session cookie name to the middleware, preventing `getToken` from defaulting to the HTTP cookie name when Next.js receives requests through a reverse proxy. Unauthenticated users are now correctly redirected to `/login`, and authenticated users correctly access protected routes like `/home`.
+- **Backend JWT Expiry Sync**: Enhanced NextAuth options to actively check if the backend JWT has expired inside the NextAuth `session` callback. If the backend token expires, the NextAuth session is immediately invalidated, preventing users from lingering in a "logged in" state with a dead backend token.
+
+</details>
+
+<details>
+<summary><strong>Logout Architecture Hardening (3)</strong></summary>
+
+- **Logout Concurrency Lock**: Upgraded `useLogout` to use a module-level singleton Promise (`sharedLogoutPromise`). This guarantees that rapid double-clicks or simultaneous 401 triggers only execute the logout logic exactly once, preventing race conditions.
+- **Robust Storage Clearing**: Refactored `clearSessionData` from an "Explicit Allow" approach to a "Default Deny" approach. It now iteratively scans `localStorage` and deletes everything except explicitly whitelisted cross-tab keys (like remembered accounts and NextAuth tokens), closing potential data leaks when new cached items are added.
+- **Redux Persist Purging**: Switched from manually deleting `localStorage.removeItem("persist:user")` to correctly calling the official `await persistor.purge()` API for stable state clearance.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (4)</strong></summary>
+
+- `middleware.ts`
+- `app/api/auth/[...nextauth]/options.ts`
+- `core/hooks/useLogout.ts`
+- `core/utils/sessionManager.ts`
+
+</details>
+
+---
+
 ## Version 1.23.35
 **Released:** May 03, 2026
 
