@@ -81,20 +81,126 @@ export interface Event {
   updated_at: string;
 }
 
+export interface EventInquiry {
+  id: number;
+  created: string;
+  modified: string;
+  is_deleted?: boolean;
+  inquiry: string;
+  role: string;
+  email: string;
+  order: number;
+  event: number;
+}
+
+export interface EventSession {
+  id: number;
+  created: string;
+  modified: string;
+  is_deleted?: boolean;
+  start_time: string;
+  end_time: string;
+  venue: string;
+  session_title: string;
+  session_details: string;
+  order: number;
+  program: number;
+}
+
+export interface EventProgram {
+  id: number;
+  sessions: EventSession[];
+  created: string;
+  modified: string;
+  is_deleted?: boolean;
+  date: string;
+  program_details: string;
+  order: number;
+  event: number;
+}
+
+export interface EventPartnerLogo {
+  id: number;
+  partner_logo_url: string;
+  created: string;
+  modified: string;
+  is_deleted?: boolean;
+  partner_logo: string;
+  name: string;
+  order: number;
+  event: number;
+}
+
+export interface EventResource {
+  id: number;
+  resource_url: string;
+  created: string;
+  modified: string;
+  is_deleted?: boolean;
+  title: string;
+  link: string;
+  resource: string;
+  order: number;
+  event: number;
+}
+
 // Extended event shape returned by v2 API (some fields optional)
 export interface EventV2 extends Event {
+  slug?: string;
   public_identifier?: string;
   api_url?: string;
   event_tag?: string;
-  tags?: string[];
+  event_tag_display?: string;
+  event_category?: string;
+  event_category_display?: string;
+  website_category?: string;
+  website_category_display?: string;
   title_subtext?: string;
   start_time?: string; // e.g. '09:00:00'
   end_time?: string; // e.g. '17:00:00'
+  start_date?: string;
+  end_date?: string;
+  event_image?: string;
   event_image_url?: string;
+  background_image?: string;
   background_image_url?: string;
+  event_status?: string;
+  is_virtual?: boolean;
+  duration_days?: number;
+  has_slug?: string;
+  created?: string;
+  modified?: string;
+  order?: number;
   event_details?: string; // quill delta JSON string or HTML
   location_name?: string;
+  location_link?: string;
   registration_link?: string;
+  inquiries?: EventInquiry[];
+  programs?: EventProgram[];
+  partner_logos?: EventPartnerLogo[];
+  resources?: EventResource[];
+}
+
+export type EventListResponse = PaginatedResponse<EventV2>;
+
+export interface EventIdentifierPayload {
+  slug: string;
+  title: string;
+  title_subtext?: string;
+  start_date: string;
+  end_date: string;
+  start_time?: string;
+  end_time?: string;
+  registration_link?: string;
+  website_category: string;
+  event_tag?: string;
+  event_category?: string;
+  event_image?: string;
+  background_image?: string;
+  location_name?: string;
+  location_link?: string;
+  event_details?: string;
+  order?: number;
 }
 
 export interface TeamMember {

@@ -96,15 +96,22 @@ class ApiClient {
       url = `${normalizedBaseURL}${cleanEndpoint}`;
     } else {
       // Client-side: Use Next.js proxy
-      // baseURL is /api/v2, endpoint should be relative path like 'devices/grids/summary'
-      // We need to construct: /api/v2/devices/grids/summary
+      // baseURL is /api/v2. Website endpoints are normalized to /api/v2/website/...
+      // so we avoid repeating api/v2 in the browser URL while keeping the proxy path stable.
 
-      if (endpoint.startsWith('/website/') || endpoint.startsWith('website/')) {
-        // Website endpoints: /api/v2/website/...
-        const cleanEndpoint = endpoint.startsWith('/')
-          ? endpoint.slice(1)
-          : endpoint;
-        url = `${this.baseURL}/${cleanEndpoint}`;
+      const normalizeClientEndpoint = (value: string) => {
+        const cleanValue = value.startsWith('/') ? value.slice(1) : value;
+
+        return cleanValue.replace(/^website\/api\/v2\//, 'website/');
+      };
+
+      const normalizedEndpoint = normalizeClientEndpoint(endpoint);
+
+      if (
+        normalizedEndpoint.startsWith('website/') ||
+        normalizedEndpoint.startsWith('api/v2/')
+      ) {
+        url = `${this.baseURL}/${normalizedEndpoint}`;
       } else {
         // Regular API endpoints: /api/v2/devices/grids/summary
         const normalizedEndpoint = endpoint.startsWith('/')

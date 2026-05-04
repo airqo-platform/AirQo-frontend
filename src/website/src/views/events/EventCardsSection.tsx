@@ -31,6 +31,9 @@ const EventCardsSection: React.FC<{
     }
   };
 
+  const getEventRouteSlug = (event: EventV2) =>
+    event.slug || event.public_identifier || String(event.id);
+
   // Determine the events based on the selected tab - now we just use the events passed in
   const eventsToShow = events || [];
   const noEventsMessage =
@@ -116,9 +119,7 @@ const EventCardsSection: React.FC<{
                   {/* Read More Button */}
                   <CustomButton
                     onClick={() =>
-                      router.push(
-                        `/events/${event.public_identifier || event.id}`,
-                      )
+                      router.push(`/events/${getEventRouteSlug(event)}`)
                     }
                     className="text-blue-600 text-left p-0 bg-transparent mt-4"
                   >

@@ -142,6 +142,15 @@ export const useAirQoEvents = (params?: {
     },
   );
 
+export const useFeaturedEvents = () =>
+  useServiceQuery(
+    apiQueryKeys.featuredEvents(),
+    () => eventsService.getFeaturedEvents(),
+    {
+      staleTime: 10 * 60 * 1000,
+    },
+  );
+
 export const useCleanAirEvents = (params?: {
   page?: number;
   page_size?: number;

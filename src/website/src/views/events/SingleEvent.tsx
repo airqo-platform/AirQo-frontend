@@ -16,12 +16,12 @@ import mainConfig from '@/configs/mainConfigs';
 import { useEventDetails } from '@/hooks/useApiHooks';
 import { convertDeltaToHtml } from '@/utils/quillUtils';
 
-const SingleEvent: React.FC<{ id: string }> = ({ id }) => {
+const SingleEvent: React.FC<{ slug: string }> = ({ slug }) => {
   const router = useRouter();
 
   // Fetch event detail via v2 API. The endpoint may return a paginated response
   // or a single object. Normalize to a single object.
-  const { data, isLoading, error: isError } = useEventDetails(id);
+  const { data, isLoading, error: isError } = useEventDetails(slug);
 
   const eventDetails = useMemo(() => {
     if (!data) return null;
@@ -82,45 +82,53 @@ const SingleEvent: React.FC<{ id: string }> = ({ id }) => {
     ? convertDeltaToHtml(event.event_details)
     : '';
 
+  const heroImage =
+    event.background_image_url ||
+    event.background_image ||
+    event.event_image_url ||
+    (typeof event.event_image === 'string'
+      ? event.event_image
+      : event.event_image?.url) ||
+    null;
+
   return (
     <div className="w-full">
-      {/* Header Section */}
-      {event.background_image_url && (
-        <section
-          className="relative h-[250px] lg:h-[400px] bg-cover bg-center flex items-center justify-center text-white"
-          style={{
-            backgroundImage: `url(${event.background_image_url})`,
-          }}
+      {/* Header / Banner Section */}
+      <section
+        className="relative h-[250px] lg:h-[400px] bg-cover bg-center flex items-center justify-center text-white"
+        style={heroImage ? { backgroundImage: `url(${heroImage})` } : {}}
+      >
+        <div
+          className={`absolute inset-0 ${
+            heroImage
+              ? 'bg-black opacity-50'
+              : 'bg-gradient-to-r from-gray-900 via-gray-800 to-gray-700 opacity-90'
+          }`}
+        ></div>
+        <div
+          className={`relative z-10 ${mainConfig.containerClass} w-full space-y-6 text-start px-4`}
         >
-          <div className="absolute inset-0 bg-black opacity-50"></div>
-          <div
-            className={`relative z-10 ${mainConfig.containerClass} w-full space-y-6 text-start px-4`}
-          >
-            <nav className="flex items-start text-sm">
-              <button
-                type="button"
-                onClick={() => router.back()}
-                className="text-white hover:text-gray-200"
-              >
-                Events
-              </button>
-              <span className="mx-2">{'>'}</span>
-              <button
-                type="button"
-                className="text-gray-400 hover:text-gray-200"
-              >
-                {event.title}
-              </button>
-            </nav>
-            <h1 className="text-2xl lg:text-[40px] font-bold mb-2">
+          <nav className="flex items-start text-sm">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="text-white hover:text-gray-200"
+            >
+              Events
+            </button>
+            <span className="mx-2">{'>'}</span>
+            <button type="button" className="text-gray-400 hover:text-gray-200">
               {event.title}
-            </h1>
-            {event.title_subtext && (
-              <p className="text-lg mb-4">{event.title_subtext}</p>
-            )}
-          </div>
-        </section>
-      )}
+            </button>
+          </nav>
+          <h1 className="text-2xl lg:text-[40px] font-bold mb-2">
+            {event.title}
+          </h1>
+          {event.title_subtext && (
+            <p className="text-lg mb-4">{event.title_subtext}</p>
+          )}
+        </div>
+      </section>
 
       {/* Partner Logos Section */}
       {event.partner_logos?.length > 0 && (

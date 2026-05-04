@@ -18,6 +18,7 @@ export {
   useExternalTeamBiography,
   useExternalTeamMembers,
   useFAQs,
+  useFeaturedEvents,
   useForumEventDetails,
   useForumEvents,
   useForumEventTitles,

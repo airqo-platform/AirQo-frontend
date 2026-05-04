@@ -66,6 +66,7 @@ export const apiQueryKeys = {
     ['upcomingEvents', compactParams(params)] as const,
   pastEvents: (params?: { page?: number; page_size?: number }) =>
     ['pastEvents', compactParams(params)] as const,
+  featuredEvents: () => ['featuredEvents'] as const,
   eventDetails: (id: string | null) => ['eventDetails', id] as const,
   highlights: (params?: { page?: number; page_size?: number }) =>
     ['highlights', compactParams(params)] as const,
