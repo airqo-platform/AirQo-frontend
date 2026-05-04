@@ -15,6 +15,7 @@ import { toast } from '@/components/shared/toast/ReusableToast';
 
 import { feedbackService } from '@/core/apis/feedback';
 import { FEEDBACK_DIALOG_OPEN_EVENT } from './feedback-dialog';
+import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
 
 type MainCategory = 'issue' | 'idea';
 
@@ -30,10 +31,10 @@ const ISSUE_ACTIONS = [
 
 const RATING_ITEM_STYLES = {
   itemShapes: Star,
-  activeFillColor: 'primary',
-  inactiveFillColor: 'primary-100',
-  activeStrokeColor: 'primary',
-  inactiveStrokeColor: 'primary',
+  activeFillColor: 'rgb(var(--primary))',
+  inactiveFillColor: 'transparent',
+  activeStrokeColor: 'rgb(var(--primary))',
+  inactiveStrokeColor: 'rgb(var(--primary))',
   itemStrokeWidth: 2,
 };
 
@@ -150,7 +151,7 @@ export const FeedbackLauncher: React.FC = () => {
       toast.success('Feedback sent successfully');
       setIsOpen(false);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'An error occurred while submitting feedback');
+      toast.error(error instanceof Error ? getApiErrorMessage(error) : 'An error occurred while submitting feedback');
     } finally {
       setIsSubmitting(false);
     }
