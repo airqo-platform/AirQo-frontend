@@ -21,6 +21,7 @@ import {
 } from "@/core/redux/slices/userSlice";
 import { getLastActiveModule } from "@/core/utils/userPreferences";
 import { VERTEX_DESKTOP_DOWNLOADS } from "@/core/constants/app-downloads";
+import GoogleAuthSection from "@/components/features/auth/google-auth-section";
 
 const loginSchema = z.object({
   userName: z.string().email({ message: "Please enter a valid email address" }),
@@ -255,6 +256,9 @@ export default function LoginPage() {
                   </ReusableButton>
                 </form>
               </Form>
+
+              <GoogleAuthSection disabled={isLoading} />
+
               <div className="text-sm text-center my-6 text-muted-foreground">
                 Don&apos;t have an account?{" "}
                 <Link href={signUpUrl} className="font-semibold text-primary hover:text-primary/80 transition-colors">

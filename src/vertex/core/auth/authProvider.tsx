@@ -34,6 +34,8 @@ import type {
 import { ExtendedSession } from '../utils/secureApiProxyClient';
 import { useLogout } from '@/core/hooks/useLogout';
 import logger from '@/lib/logger';
+import { consumeOAuthTokenHandoffFromUrl } from './oauth-session';
+import { signIn } from 'next-auth/react';
 
 // --- Helper Functions ---
 
@@ -568,6 +570,61 @@ function AutoLogoutHandler() {
 }
 
 /**
+ * Component to handle the OAuth token handoff from the URL.
+ * It detects the token, triggers signIn, and handles the redirection.
+ */
+function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
+  const [isBootstrapping, setIsBootstrapping] = useState(true);
+  const router = useRouter();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    const bootstrap = async () => {
+      try {
+        const handoff = consumeOAuthTokenHandoffFromUrl();
+        if (handoff?.token) {
+          logger.info('[TokenHandoffHandler] OAuth token detected, signing in...');
+
+          const result = await signIn('credentials', {
+            redirect: false,
+            oauthToken: handoff.token,
+            oauthProvider: handoff.provider || 'google',
+          });
+
+          if (result?.ok) {
+            // Get session to find the user's email for redirect logic
+            const session = await getSession();
+            const email = session?.user?.email || '';
+            
+            const lastModule = getLastActiveModule(email);
+            const redirectUrl = lastModule === 'admin' ? '/admin/networks' : '/home';
+            
+            logger.info('[TokenHandoffHandler] OAuth sign-in successful, redirecting to', redirectUrl);
+            window.location.replace(redirectUrl);
+            return; // window.location.replace will handle the rest
+          } else {
+            logger.error('[TokenHandoffHandler] OAuth sign-in failed', { error: result?.error });
+            router.push(`/auth-error?error=${encodeURIComponent(result?.error || 'OAuthSignin')}`);
+          }
+        }
+      } catch (error) {
+        logger.error('[TokenHandoffHandler] Error during bootstrap', { error });
+      } finally {
+        setIsBootstrapping(false);
+      }
+    };
+
+    bootstrap();
+  }, [router, pathname]);
+
+  if (isBootstrapping && typeof window !== 'undefined' && window.location.hash.includes('token=')) {
+    return <SessionLoadingState />;
+  }
+
+  return <>{children}</>;
+}
+
+/**
  * Main AuthProvider component
  */
 export function AuthProvider({
@@ -579,7 +636,9 @@ export function AuthProvider({
 }) {
   return (
     <SessionProvider session={session} refetchOnWindowFocus={false} refetchInterval={0}>
-      <AuthWrapper>{children}</AuthWrapper>
+      <TokenHandoffHandler>
+        <AuthWrapper>{children}</AuthWrapper>
+      </TokenHandoffHandler>
     </SessionProvider>
   );
 }

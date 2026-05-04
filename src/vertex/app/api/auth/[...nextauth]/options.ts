@@ -9,6 +9,8 @@ import type {
 } from '@/app/types/users';
 import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
 import logger from '@/lib/logger';
+import { getApiBaseUrl } from '@/lib/envConstants';
+import { normalizeOAuthAccessToken } from '@/core/auth/oauth-session';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -119,6 +121,54 @@ if (isProduction && !process.env.NEXTAUTH_URL && !process.env.AUTH_TRUST_HOST) {
   logger.warn('[NextAuth] WARNING: NEXTAUTH_URL is missing. Dynamic host detection will be used.');
 }
 
+interface OAuthProfilePayload {
+  _id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  userName?: string;
+  organization?: string;
+  privilege?: string;
+  profilePicture?: string;
+}
+
+interface OAuthProfileResponse {
+  success: boolean;
+  message?: string;
+  data?: OAuthProfilePayload;
+}
+
+const fetchOAuthProfile = async (
+  accessToken: string
+): Promise<OAuthProfilePayload | null> => {
+  try {
+    const profileUrl = `${getApiBaseUrl()}/users/profile/enhanced`;
+    
+    const response = await fetch(profileUrl, {
+      method: 'GET',
+      cache: 'no-store',
+      headers: {
+        Accept: 'application/json',
+        Authorization: `JWT ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = (await response.json()) as OAuthProfileResponse;
+    if (!payload?.success || !payload.data?._id) {
+      return null;
+    }
+
+    return payload.data;
+  } catch (error) {
+    logger.error('Error fetching OAuth profile', { error });
+    return null;
+  }
+};
+
 export const options: NextAuthOptions = {
   secret: authSecret,
   useSecureCookies: isProduction,
@@ -129,8 +179,47 @@ export const options: NextAuthOptions = {
       credentials: {
         userName: { label: 'Username', type: 'text' },
         password: { label: 'Password', type: 'password' },
+        oauthToken: { label: 'OAuth Token', type: 'text' },
+        oauthProvider: { label: 'OAuth Provider', type: 'text' },
       },
       async authorize(credentials) {
+        const oauthToken = normalizeOAuthAccessToken(
+          typeof credentials?.oauthToken === 'string' ? credentials.oauthToken : ''
+        );
+
+        if (oauthToken) {
+          const profile = await fetchOAuthProfile(oauthToken);
+
+          if (!profile) {
+            logger.warn('OAuth authorization failed: profile fetch returned null.');
+            return null;
+          }
+
+          // Use JWT decode to get extra fields if the profile doesn't have them
+          let decoded: DecodedToken | null = null;
+          try {
+            decoded = jwtDecode<DecodedToken>(oauthToken);
+          } catch {
+            decoded = null;
+          }
+
+          return {
+            id: profile._id,
+            email: profile.email,
+            name: `${profile.firstName} ${profile.lastName}`.trim() || profile.email,
+            userName: profile.userName || decoded?.userName || profile.email,
+            accessToken: oauthToken,
+            organization: profile.organization || decoded?.organization || '',
+            privilege: profile.privilege || decoded?.privilege || '',
+            firstName: profile.firstName,
+            lastName: profile.lastName,
+            country: decoded?.country || '',
+            timezone: decoded?.timezone || '',
+            phoneNumber: decoded?.phoneNumber || '',
+            exp: decoded?.exp,
+          };
+        }
+
         if (!credentials?.userName || !credentials?.password) {
           logger.warn('Authorize call with missing credentials.');
           throw new Error('Username and password are required.');
