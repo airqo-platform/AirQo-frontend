@@ -67,15 +67,7 @@ export default function GoogleAuthSection({
   }, [disabled]);
 
   return (
-    <div className={cn('w-full space-y-6', className)}>
-      <div className="flex items-center gap-4">
-        <span className="h-px flex-1 bg-border" />
-        <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-          Or
-        </span>
-        <span className="h-px flex-1 bg-border" />
-      </div>
-
+    <div className={cn('w-full space-y-4', className)}>
       <ReusableButton
         type="button"
         variant="outlined"
@@ -87,6 +79,12 @@ export default function GoogleAuthSection({
       >
         Continue with Google
       </ReusableButton>
+
+      <div className="flex justify-center">
+        <span className="text-sm font-bold uppercase tracking-[0.2em] text-muted-foreground/60">
+          Or
+        </span>
+      </div>
     </div>
   );
 }
