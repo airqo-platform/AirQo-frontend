@@ -11,6 +11,7 @@ import SessionLoadingState from './loading/session-loading';
 import ErrorBoundary from '../shared/ErrorBoundary';
 import Footer from './Footer';
 import { OrganizationSetupBanner } from './organization-setup-banner';
+import { FeedbackLauncher } from '../features/feedback/feedback-launcher';
 
 import { setLastActiveModule } from '@/core/utils/userPreferences';
 
@@ -153,6 +154,7 @@ export default function Layout({ children }: LayoutProps) {
             </div>
             <Footer />
           </main>
+          <FeedbackLauncher />
         </div>
       )}
     </>
