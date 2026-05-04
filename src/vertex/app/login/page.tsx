@@ -207,7 +207,7 @@ export default function LoginPage() {
 
       {/* Main Content Area */}
       <main className="flex flex-1 overflow-y-auto">
-        <div className="flex flex-1 flex-col px-4 py-12 sm:px-6">
+        <div className="flex flex-1 flex-col px-4 py-10 sm:px-6">
           <div className="mx-auto w-full max-w-[450px] my-auto">
             <div className="mb-10 text-center">
               <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
@@ -219,7 +219,7 @@ export default function LoginPage() {
               </p>
             </div>
 
-            <div className="flex flex-col">
+            <div className="flex flex-col border border-primary/20 rounded-3xl p-6 shadow-md">
               {step === 'email' && (
                 <GoogleAuthSection disabled={isLoading} className="mb-6" />
               )}
@@ -328,7 +328,7 @@ export default function LoginPage() {
                 </form>
               </Form>
 
-              <div className="text-sm text-center my-8 text-muted-foreground">
+              <div className="text-sm text-center text-muted-foreground mt-4">
                 Don&apos;t have an account?{" "}
                 <Link href={signUpUrl} className="font-semibold text-primary hover:text-primary/80 transition-colors">
                   Sign up
