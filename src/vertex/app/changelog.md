@@ -4,6 +4,29 @@
 
 ---
 
+## Version 1.23.36
+**Released:** May 04, 2026
+
+### Production Authentication Middleware Fix
+
+Resolved a critical authentication redirect loop in production environments caused by a proxy protocol mismatch when reading session cookies.
+
+<details>
+<summary><strong>Authentication Fixes (1)</strong></summary>
+
+- **NextAuth Middleware Refactor**: Rewrote `middleware.ts` to use NextAuth's `withAuth` wrapper. This explicitly passes the custom production session cookie name to the middleware, preventing `getToken` from defaulting to the HTTP cookie name when Next.js receives requests through a reverse proxy. Unauthenticated users are now correctly redirected to `/login`, and authenticated users correctly access protected routes like `/home`.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (1)</strong></summary>
+
+- `middleware.ts`
+
+</details>
+
+---
+
 ## Version 1.23.35
 **Released:** May 03, 2026
 
