@@ -9,6 +9,7 @@ interface NoDataProps {
   altText?: string;
   message?: string;
   className?: string;
+  children?: React.ReactNode;
 }
 
 const NoData: React.FC<NoDataProps> = ({
@@ -16,6 +17,7 @@ const NoData: React.FC<NoDataProps> = ({
   altText = 'No data available',
   message = 'Sorry, there is no data available at the moment.',
   className = '',
+  children,
 }) => {
   return (
     <div
@@ -36,6 +38,7 @@ const NoData: React.FC<NoDataProps> = ({
 
       {/* Text Section */}
       <p className="mt-6 text-lg font-semibold text-gray-600">{message}</p>
+      {children}
     </div>
   );
 };

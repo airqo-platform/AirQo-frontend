@@ -92,18 +92,24 @@ async function handleRequest(
       cleanPath = cleanPath.slice(7);
     }
 
-    // For Django endpoints starting with 'website/', add trailing slash if not present
-    // Django REST framework typically expects trailing slashes for list endpoints
+    // Website routes should resolve to /website/api/v2/* on the backend.
+    // Support both the older /website/api/v2/* shape and the cleaner /website/* proxy shape.
     let finalPath = cleanPath;
-    if (cleanPath.startsWith('website/')) {
+    if (cleanPath.startsWith('website/api/v2/')) {
       if (!cleanPath.endsWith('/')) {
         finalPath = `${cleanPath}/`;
+      }
+    } else if (cleanPath.startsWith('website/')) {
+      const websitePath = cleanPath.slice('website/'.length);
+      finalPath = `website/api/v2/${websitePath}`;
+      if (!finalPath.endsWith('/')) {
+        finalPath = `${finalPath}/`;
       }
     } else {
       finalPath = `api/v2/${cleanPath}`;
     }
 
-    // The client passes the full API path starting with /website/api/v2/
+    // The client passes a proxy path that maps cleanly to the backend route.
     const externalUrl = `${API_BASE_URL}/${finalPath}`;
 
     // Get query parameters from the request

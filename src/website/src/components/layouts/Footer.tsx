@@ -215,12 +215,8 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link
-                  href="https://blog.airqo.net/"
-                  target="_blank"
-                  className="text-gray-600 hover:underline"
-                >
-                  Blog
+                <Link href="/blogs" className="text-gray-600 hover:underline">
+                  Blogs
                 </Link>
               </li>
             </ul>
