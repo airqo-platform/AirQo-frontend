@@ -130,7 +130,12 @@ const NetworkVisibilityCard = () => {
                                         "w-2 h-2 rounded-full transition-all duration-300",
                                         cohort.visibility ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]" : "bg-gray-300"
                                     )} />
-                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">{cohort.name}</span>
+                                    <span
+                                        id={`cohort-visibility-${cohort._id}`}
+                                        className="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-white transition-colors"
+                                    >
+                                        {cohort.name}
+                                    </span>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <span className={cn(
@@ -140,6 +145,7 @@ const NetworkVisibilityCard = () => {
                                         {cohort.visibility ? 'Public' : 'Private'}
                                     </span>
                                     <Switch
+                                        aria-labelledby={`cohort-visibility-${cohort._id}`}
                                         checked={cohort.visibility}
                                         onCheckedChange={(checked) => {
                                             setPendingCohort(cohort);
