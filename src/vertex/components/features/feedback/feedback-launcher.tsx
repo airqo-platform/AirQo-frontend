@@ -4,66 +4,37 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Rating, Star } from '@smastrom/react-rating';
 import '@smastrom/react-rating/style.css';
+import { Flag, Lightbulb, ChevronLeft } from 'lucide-react';
 
 import { useUserContext } from '@/core/hooks/useUserContext';
 import ReusableDialog from '@/components/shared/dialog/ReusableDialog';
 import ReusableInputField from '@/components/shared/inputfield/ReusableInputField';
 import ReusableSelectInput from '@/components/shared/select/ReusableSelectInput';
+import ReusableButton from '@/components/shared/button/ReusableButton';
 import { toast } from '@/components/shared/toast/ReusableToast';
 
 import { feedbackService } from '@/core/apis/feedback';
 import { FEEDBACK_DIALOG_OPEN_EVENT } from './feedback-dialog';
 
-type FeedbackCategory =
-  | 'general'
-  | 'bug'
-  | 'feature_request'
-  | 'performance'
-  | 'ux_design'
-  | 'other';
+type MainCategory = 'issue' | 'idea';
 
-const CATEGORY_OPTIONS: Array<{
-  value: FeedbackCategory;
-  label: string;
-}> = [
-  { value: 'general', label: 'General' },
-  { value: 'bug', label: 'Bug' },
-  { value: 'feature_request', label: 'Feature request' },
-  { value: 'performance', label: 'Performance' },
-  { value: 'ux_design', label: 'UX / Design' },
-  { value: 'other', label: 'Other' },
+const ISSUE_ACTIONS = [
+  'Claiming devices',
+  'Deploying devices',
+  'Recalling devices',
+  'Sharing data',
+  'Device metadata',
+  'General navigation',
+  'Other',
 ];
 
 const RATING_ITEM_STYLES = {
   itemShapes: Star,
-  activeFillColor: 'hsl(var(--primary))',
-  inactiveFillColor: 'hsl(var(--muted))',
-};
-
-const isValidEmail = (value: string) =>
-  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-
-const getBrowserLabel = (): string => {
-  if (typeof navigator === 'undefined') {
-    return 'Unknown browser';
-  }
-
-  const userAgent = navigator.userAgent;
-  const browserPatterns: Array<{ label: string; pattern: RegExp }> = [
-    { label: 'Edge', pattern: /Edg\/(\d+)/i },
-    { label: 'Chrome', pattern: /Chrome\/(\d+)/i },
-    { label: 'Firefox', pattern: /Firefox\/(\d+)/i },
-    { label: 'Safari', pattern: /Version\/(\d+).+Safari/i },
-  ];
-
-  for (const browser of browserPatterns) {
-    const match = userAgent.match(browser.pattern);
-    if (match?.[1]) {
-      return `${browser.label} ${match[1]}`;
-    }
-  }
-
-  return userAgent.slice(0, 80);
+  activeFillColor: 'primary',
+  inactiveFillColor: 'primary-100',
+  activeStrokeColor: 'primary',
+  inactiveStrokeColor: 'primary',
+  itemStrokeWidth: 2,
 };
 
 const buildFeedbackMetadata = (pathname: string) => {
@@ -76,6 +47,24 @@ const buildFeedbackMetadata = (pathname: string) => {
     };
   }
 
+  const getBrowserLabel = (): string => {
+    const userAgent = navigator.userAgent;
+    const browserPatterns: Array<{ label: string; pattern: RegExp }> = [
+      { label: 'Edge', pattern: /Edg\/(\d+)/i },
+      { label: 'Chrome', pattern: /Chrome\/(\d+)/i },
+      { label: 'Firefox', pattern: /Firefox\/(\d+)/i },
+      { label: 'Safari', pattern: /Version\/(\d+).+Safari/i },
+    ];
+
+    for (const browser of browserPatterns) {
+      const match = userAgent.match(browser.pattern);
+      if (match?.[1]) {
+        return `${browser.label} ${match[1]}`;
+      }
+    }
+    return userAgent.slice(0, 80);
+  };
+
   return {
     page: pathname,
     browser: getBrowserLabel(),
@@ -84,24 +73,16 @@ const buildFeedbackMetadata = (pathname: string) => {
   };
 };
 
-const resetFormState = () => ({
-  category: 'general' as FeedbackCategory,
-  rating: 3,
-  subject: '',
-  message: '',
-});
-
 export const FeedbackLauncher: React.FC = () => {
   const pathname = usePathname();
   const { userDetails } = useUserContext();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const [email, setEmail] = useState('');
-  const [category, setCategory] = useState<FeedbackCategory>('bug');
-  const [rating, setRating] = useState<number>(3);
-  const [subject, setSubject] = useState('');
+  const [mainCategory, setMainCategory] = useState<MainCategory | null>(null);
+  const [issueAction, setIssueAction] = useState('');
   const [message, setMessage] = useState('');
+  const [rating, setRating] = useState<number>(3);
 
   const defaultMetadata = useMemo(
     () => buildFeedbackMetadata(pathname || ''),
@@ -128,42 +109,40 @@ export const FeedbackLauncher: React.FC = () => {
 
   useEffect(() => {
     if (!isOpen) {
-      return;
+      setMainCategory(null);
+      setIssueAction('');
+      setMessage('');
+      setRating(3);
     }
-
-    const userEmail = userDetails?.email || userDetails?.userName || '';
-    setEmail(userEmail);
-    const nextDefaults = resetFormState();
-    setCategory(nextDefaults.category);
-    setRating(nextDefaults.rating);
-    setSubject(nextDefaults.subject);
-    setMessage(nextDefaults.message);
-  }, [isOpen, userDetails]);
+  }, [isOpen]);
 
   const handleSubmit = async () => {
-    const trimmedEmail = email.trim();
-    const trimmedSubject = subject.trim();
     const trimmedMessage = message.trim();
+    const userEmail = userDetails?.email || userDetails?.userName || '';
 
-    if (!trimmedEmail || !trimmedSubject || !trimmedMessage) {
-      toast.error('Please complete the email, subject, and message fields.');
+    if (!trimmedMessage) {
+      toast.error('Please provide a description.');
       return;
     }
 
-    if (!isValidEmail(trimmedEmail)) {
-      toast.error('Please enter a valid email address.');
+    if (mainCategory === 'issue' && !issueAction) {
+      toast.error('Please select what you were trying to do.');
       return;
     }
 
     setIsSubmitting(true);
 
     try {
+      const subject = mainCategory === 'issue' 
+        ? `Issue while trying to: ${issueAction}`
+        : 'Product Suggestion';
+
       await feedbackService.submitFeedback({
-        email: trimmedEmail,
-        subject: trimmedSubject,
+        email: userEmail,
+        subject,
         message: trimmedMessage,
         rating,
-        category,
+        category: mainCategory === 'issue' ? 'bug' : 'feature_request',
         platform: 'web',
         metadata: defaultMetadata,
       });
@@ -177,89 +156,116 @@ export const FeedbackLauncher: React.FC = () => {
     }
   };
 
+  const renderStep1 = () => (
+    <div className="flex flex-col gap-4 py-4">
+      <button
+        onClick={() => setMainCategory('issue')}
+        className="flex items-center gap-4 p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-left"
+      >
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600">
+          <Flag className="h-5 w-5" />
+        </div>
+        <span className="text-lg font-medium text-gray-900 dark:text-white">Report an issue</span>
+      </button>
+
+      <button
+        onClick={() => setMainCategory('idea')}
+        className="flex items-center gap-4 p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-left"
+      >
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600">
+          <Lightbulb className="h-5 w-5" />
+        </div>
+        <span className="text-lg font-medium text-gray-900 dark:text-white">Suggest an idea</span>
+      </button>
+    </div>
+  );
+
+  const renderStep2 = () => (
+    <div className="flex flex-col gap-6 py-2">
+      {mainCategory === 'issue' && (
+        <ReusableSelectInput
+          id="issueAction"
+          label="When you noticed this issue, what were you trying to do? (required)"
+          value={issueAction}
+          onChange={(event) => setIssueAction(event.target.value)}
+          required
+          placeholder="Choose an option"
+        >
+          {ISSUE_ACTIONS.map(action => (
+            <option key={action} value={action}>
+              {action}
+            </option>
+          ))}
+        </ReusableSelectInput>
+      )}
+
+      <ReusableInputField
+        as="textarea"
+        id="message"
+        label={mainCategory === 'issue' ? 'Describe the issue (required)' : 'Describe your suggestion (required)'}
+        value={message}
+        onChange={event => setMessage(event.target.value)}
+        placeholder={mainCategory === 'issue' ? 'Explain what happened and what you expected' : 'Tell us how we can improve our product'}
+        rows={5}
+        required
+        description="Please don't include any sensitive information"
+      />
+
+      <div>
+        <label className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center">
+          Experience rating <span className="ml-1 text-primary">*</span>
+        </label>
+        <div className="w-full max-w-[200px]">
+          <Rating
+            value={rating}
+            onChange={setRating}
+            isRequired
+            itemStyles={RATING_ITEM_STYLES}
+          />
+        </div>
+      </div>
+    </div>
+  );
+
+  const dialogTitle = mainCategory 
+    ? (mainCategory === 'issue' ? 'Report an issue' : 'Suggest an idea') 
+    : 'Send feedback to AirQo';
+
   return (
     <ReusableDialog
       isOpen={isOpen}
       onClose={() => setIsOpen(false)}
-      title="Share feedback"
-      subtitle="Help us improve your experience. Tell us what's working well, what could be better, or any problems you've faced."
-      size="2xl"
-      primaryAction={{
-        label: isSubmitting ? 'Sending...' : 'Send feedback',
+      title={dialogTitle}
+      size="xl"
+      customHeader={mainCategory ? (
+        <div className="flex items-center justify-between w-full px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-3">
+            <ReusableButton variant="text" onClick={() => setMainCategory(null)} padding="p-0" className="h-8 w-8">
+              <ChevronLeft className="w-5 h-5" />
+            </ReusableButton>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white capitalize">{dialogTitle}</h2>
+          </div>
+          <ReusableButton variant="text" onClick={() => setIsOpen(false)} padding="p-0" className="h-8 w-8">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+              <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+            </svg>
+          </ReusableButton>
+        </div>
+      ) : undefined}
+      showFooter={!!mainCategory}
+      primaryAction={mainCategory ? {
+        label: isSubmitting ? 'Sending...' : 'Send',
         onClick: handleSubmit,
         disabled: isSubmitting,
-      }}
-      secondaryAction={{
+      } : undefined}
+      secondaryAction={mainCategory ? {
         label: 'Cancel',
         onClick: () => setIsOpen(false),
         disabled: isSubmitting,
         variant: 'outline',
-      }}
+      } : undefined}
     >
-      <div className="grid gap-6 py-4 md:grid-cols-2">
-        <ReusableInputField
-          id="email"
-          label="Email"
-          type="email"
-          value={email}
-          onChange={event => setEmail(event.target.value)}
-          placeholder="you@airqo.net"
-          required
-        />
-
-        <ReusableSelectInput
-          id="category"
-          label="Category"
-          value={category}
-          onChange={(event) => setCategory(event.target.value as FeedbackCategory)}
-          required
-          placeholder="Select category"
-        >
-          {CATEGORY_OPTIONS.map(option => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </ReusableSelectInput>
-
-        <div className="md:col-span-2">
-          <ReusableInputField
-            id="subject"
-            label="Subject"
-            value={subject}
-            onChange={event => setSubject(event.target.value)}
-            placeholder="Bug: Export CSV button not working"
-            required
-          />
-        </div>
-
-        <div className="md:col-span-2">
-          <ReusableInputField
-            as="textarea"
-            id="message"
-            label="Message"
-            value={message}
-            onChange={event => setMessage(event.target.value)}
-            placeholder="Describe what happened, what you expected, and any error details you saw."
-            rows={5}
-            required
-          />
-        </div>
-
-        <div className="md:col-span-2">
-          <label className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center">
-            Experience rating <span style={{ color: "hsl(var(--primary))" }} className="ml-1">*</span>
-          </label>
-          <div className="w-full max-w-[200px]">
-            <Rating
-              value={rating}
-              onChange={setRating}
-              isRequired
-              itemStyles={RATING_ITEM_STYLES}
-            />
-          </div>
-        </div>
-      </div>
+      {!mainCategory ? renderStep1() : renderStep2()}
     </ReusableDialog>
   );
 };
