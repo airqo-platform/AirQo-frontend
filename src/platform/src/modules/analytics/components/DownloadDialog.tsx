@@ -181,9 +181,9 @@ export const DownloadDialog: React.FC<DownloadDialogProps> = ({
       selectedSites.map(site => ({
         id: site._id,
         displayName:
+          site.search_name ||
           site.name ||
           site.formatted_name ||
-          site.search_name ||
           site.generated_name ||
           `Site ${site._id.slice(-6)}`,
         location: site.country || site.region || site.city || '',

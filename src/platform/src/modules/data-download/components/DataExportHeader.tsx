@@ -1,7 +1,11 @@
 import React from 'react';
 import { Tooltip } from 'flowbite-react';
 import { Button } from '@/shared/components/ui';
-import { AqAnnotationX, AqDownload01 } from '@airqo/icons-react';
+import {
+  AqAnnotationX,
+  AqDownload01,
+  AqRefreshCcw01,
+} from '@airqo/icons-react';
 import { TabType } from '../types/dataExportTypes';
 
 interface DataExportHeaderProps {
@@ -13,6 +17,8 @@ interface DataExportHeaderProps {
   isDownloadReady: boolean;
   isDownloading: boolean;
   isGroupSyncing?: boolean;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
   onTabChange: (tab: TabType) => void;
   onClearSelections: () => void;
   onVisualizeData: () => void;
@@ -34,6 +40,8 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
   isDownloadReady,
   isDownloading,
   isGroupSyncing = false,
+  onRefresh,
+  isRefreshing = false,
   onTabChange,
   onClearSelections,
   onVisualizeData,
@@ -56,8 +64,8 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
   );
 
   return (
-    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-      <div className="flex items-start gap-4 w-full sm:w-auto">
+    <div className="flex flex-col xl:flex-row justify-between items-stretch xl:items-center gap-4 min-w-0">
+      <div className="flex items-start gap-4 w-full min-w-0 xl:w-auto">
         {/* Sidebar Toggle - Hidden on desktop */}
         {onToggleSidebar && (
           <div className="block lg:hidden">
@@ -76,7 +84,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
         )}
 
         {/* Tab Navigation */}
-        <div className="flex flex-wrap lg:flex-nowrap gap-2 gap-x-2 overflow-x-auto scrollbar-hide mt-2 lg:mt-0">
+        <div className="flex flex-wrap gap-2 gap-x-2 overflow-visible scrollbar-hide mt-2 lg:mt-0 min-w-0">
           <Button
             variant={activeTab === 'sites' ? 'filled' : 'outlined'}
             onClick={() => onTabChange('sites')}
@@ -116,14 +124,27 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
         </div>
       </div>
 
-      <div className="flex flex-col justify-end sm:flex-row gap-2 w-full sm:w-auto flex-wrap mt-3 sm:mt-0">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:flex xl:flex-wrap gap-2 w-full min-w-0 xl:w-auto mt-3 xl:mt-0">
+        {onRefresh && (
+          <Button
+            variant="outlined"
+            onClick={onRefresh}
+            Icon={AqRefreshCcw01}
+            loading={isRefreshing}
+            disabled={isGroupSyncing || isRefreshing}
+            size="sm"
+            className="px-4 py-2 w-full xl:w-auto"
+          >
+            Refresh
+          </Button>
+        )}
         {hasSelections && (
           <Button
             variant="outlined"
             onClick={onClearSelections}
             Icon={AqAnnotationX}
             disabled={isGroupSyncing}
-            className="px-4 py-2 w-full sm:w-auto"
+            className="px-4 py-2 w-full xl:w-auto"
           >
             Clear All
           </Button>
@@ -138,18 +159,18 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
             ((activeTab === 'countries' || activeTab === 'cities') &&
               selectedGridIds.length === 0)
           }
-          className="px-4 py-2 w-full sm:w-auto"
+          className="px-4 py-2 w-full xl:w-auto"
         >
           Visualize Data
         </Button>
         {/* Preview button removed: preview shown via Review & Download flow */}
         <Tooltip content={reviewDownloadTooltip} placement="top">
-          <span className="inline-flex w-full sm:w-auto">
+          <span className="inline-flex w-full xl:w-auto">
             <Button
               variant="filled"
               onClick={onDownload}
               Icon={AqDownload01}
-              className="px-4 py-2 w-full sm:w-auto"
+              className="px-4 py-2 w-full xl:w-auto"
               disabled={isGroupSyncing || !isDownloadReady}
               loading={isDownloading}
             >

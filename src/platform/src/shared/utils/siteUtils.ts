@@ -37,9 +37,9 @@ export const normalizeSiteData = (site: RawSiteData): NormalizedSiteData => {
   // Extract location name with fallback priority
   const location =
     site.search_name ||
+    site.name ||
     site.formatted_name ||
     site.location_name ||
-    site.name ||
     'Unknown Location';
 
   return {
@@ -77,9 +77,9 @@ export const getSiteDisplayValue = (
     case 'location':
       return (
         site.search_name ||
+        site.name ||
         site.formatted_name ||
         site.location_name ||
-        site.name ||
         'Unknown Location'
       );
     case 'city':

@@ -29,8 +29,8 @@ const getFirstNonEmptyString = (...values: unknown[]): string | undefined => {
 const getSiteDisplayName = (site?: SiteNameSource): string => {
   const displayName =
     getFirstNonEmptyString(
-      site?.name,
       site?.search_name,
+      site?.name,
       site?.formatted_name,
       site?.location_name
     ) || '--';
@@ -41,9 +41,9 @@ const getSiteSearchName = (site?: SiteNameSource): string => {
   return (
     getFirstNonEmptyString(
       site?.search_name,
+      site?.name,
       site?.formatted_name,
-      site?.location_name,
-      site?.name
+      site?.location_name
     ) || '--'
   );
 };

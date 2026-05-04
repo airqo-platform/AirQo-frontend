@@ -196,6 +196,9 @@ const DataExportPage = () => {
   const [savingFormat, setSavingFormat] = React.useState<SaveFormat | null>(
     null
   );
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
+  const refreshInFlightRef = React.useRef(false);
+  const isMountedRef = React.useRef(true);
   const [showHelpBanner, setShowHelpBanner] = React.useState(() => {
     // Check if user has dismissed the banner before
     if (typeof window !== 'undefined') {
@@ -204,6 +207,12 @@ const DataExportPage = () => {
     return true;
   });
   const previousGroupIdRef = React.useRef<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!isOrgFlow) {
@@ -604,6 +613,23 @@ const DataExportPage = () => {
     setSelectedGridForSites(null);
   };
 
+  const handleRefreshCurrentTab = useCallback(async () => {
+    if (isGroupSyncing || isRefreshing || refreshInFlightRef.current) {
+      return;
+    }
+
+    refreshInFlightRef.current = true;
+    setIsRefreshing(true);
+    try {
+      await currentHook.mutate?.();
+    } finally {
+      refreshInFlightRef.current = false;
+      if (isMountedRef.current) {
+        setIsRefreshing(false);
+      }
+    }
+  }, [currentHook, isGroupSyncing, isRefreshing]);
+
   const openSaveFormatDialog = (download: PreparedDownloadResult) => {
     if (fileType === 'json') {
       void savePreparedDownload(download, 'json');
@@ -826,6 +852,8 @@ const DataExportPage = () => {
               isDownloadReady={isDownloadReady}
               isDownloading={isDownloading}
               isGroupSyncing={isGroupSyncing}
+              onRefresh={handleRefreshCurrentTab}
+              isRefreshing={isRefreshing}
               onTabChange={wrappedHandleTabChange}
               onClearSelections={handleClearSelections}
               onVisualizeData={handleVisualizeData}
