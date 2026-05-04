@@ -93,7 +93,16 @@ class BlogService extends BaseApiService {
     slug: string,
     options: ServiceOptions = {},
   ): Promise<BlogPost | null> {
-    const candidates = [slug, decodeURIComponent(slug)].filter(Boolean);
+    const candidatesSet = new Set<string>();
+    candidatesSet.add(slug);
+    try {
+      const decoded = decodeURIComponent(slug);
+      if (decoded) candidatesSet.add(decoded);
+    } catch {
+      // ignore malformed escape sequences and continue with the raw slug
+    }
+
+    const candidates = Array.from(candidatesSet);
 
     for (const candidate of candidates) {
       const bySlugResponse = await this.get<BlogPost>(

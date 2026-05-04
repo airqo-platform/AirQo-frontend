@@ -1,6 +1,6 @@
 // src/utils/htmlValidator.ts
 
-import DOMPurify from 'dompurify';
+import createDOMPurify from 'dompurify';
 
 /**
  * Checks if the provided HTML content is valid for display.
@@ -38,6 +38,29 @@ export function isValidHTMLContent(html: string): boolean {
  * @returns The cleaned HTML string.
  */
 export function sanitizeAndCleanHTML(html: string, config?: any): string {
+  if (!html) return '';
+
+  // When running on the server (no window), do a minimal, safe cleanup
+  // to avoid referencing the browser-only DOMPurify API during SSR.
+  if (typeof window === 'undefined') {
+    // Remove script tags
+    let cleaned = html.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '');
+    // Remove inline event handlers like onclick="..."
+    cleaned = cleaned
+      .replace(/\son\w+=\"[^\"]*\"/gi, '')
+      .replace(/\son\w+='[^']*'/gi, '');
+    // Remove javascript: URIs in href/src
+    cleaned = cleaned.replace(
+      /(href|src)=\"\s*javascript:[^\"]*\"/gi,
+      '$1="#"',
+    );
+    // Remove data-external-decorated attribute to avoid React warnings
+    cleaned = cleaned.replace(/data-external-decorated="[^"]*"/g, '');
+    return cleaned;
+  }
+
+  // Client-side: initialize DOMPurify with the browser window
+  const DOMPurify = createDOMPurify(window as any);
   const sanitized = DOMPurify.sanitize(html, config) as unknown as string;
   // Remove data-external-decorated attribute to avoid React warnings
   return sanitized.replace(/data-external-decorated="[^"]*"/g, '');

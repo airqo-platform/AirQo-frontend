@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { generateViewport, METADATA_CONFIGS } from '@/lib/metadata';
 import { buildSiteUrl } from '@/lib/siteUrl';
 import { blogService } from '@/services/apiService';
+import type { BlogPost } from '@/services/types/api';
 import BlogDetailPage from '@/views/blogs/BlogDetailPage';
 
 export const viewport = generateViewport();
@@ -20,6 +21,27 @@ const resolveBlogImageUrl = (url: string, requestHost: string | null) => {
   return getAbsoluteUrl(url, requestHost);
 };
 
+const blogCache = new Map<string, Promise<BlogPost | null>>();
+
+function getCachedBlog(slug: string): Promise<BlogPost | null> {
+  if (blogCache.has(slug)) {
+    return blogCache.get(slug)!;
+  }
+
+  const p = (async () => {
+    try {
+      const result = await blogService.getBlogBySlug(slug);
+      return result;
+    } catch (err) {
+      blogCache.delete(slug);
+      throw err;
+    }
+  })();
+
+  blogCache.set(slug, p);
+  return p;
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -29,7 +51,7 @@ export async function generateMetadata({
   const requestHost =
     requestHeaders.get('x-forwarded-host') ?? requestHeaders.get('host');
   const slug = params.slug;
-  const blog = await blogService.getBlogBySlug(slug);
+  const blog = await getCachedBlog(slug);
 
   if (!blog) {
     return {
@@ -41,8 +63,10 @@ export async function generateMetadata({
     };
   }
 
+  const canonicalSlug =
+    blog?.public_identifier?.trim() || String(blog?.id) || slug;
   const canonicalUrl = getAbsoluteUrl(
-    `/blogs/${encodeURIComponent(slug)}`,
+    `/blogs/${encodeURIComponent(canonicalSlug)}`,
     requestHost,
   );
   const imageUrl = blog.cover_image_url
@@ -96,7 +120,7 @@ export async function generateMetadata({
 }
 
 const Page = async ({ params }: { params: { slug: string } }) => {
-  const blog = await blogService.getBlogBySlug(params.slug);
+  const blog = await getCachedBlog(params.slug);
 
   if (!blog) {
     notFound();

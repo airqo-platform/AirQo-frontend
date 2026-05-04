@@ -224,10 +224,14 @@ const BlogsPage: React.FC = () => {
               </div>
 
               <div className="space-y-3">
-                <span className="text-sm font-semibold text-gray-900">
+                <label
+                  htmlFor="blog-category"
+                  className="text-sm font-semibold text-gray-900"
+                >
                   Category
-                </span>
+                </label>
                 <select
+                  id="blog-category"
                   value={selectedCategory}
                   onChange={(event) => {
                     setSelectedCategory(event.target.value);
@@ -244,10 +248,14 @@ const BlogsPage: React.FC = () => {
               </div>
 
               <div className="space-y-3">
-                <span className="text-sm font-semibold text-gray-900">
+                <label
+                  htmlFor="blog-ordering"
+                  className="text-sm font-semibold text-gray-900"
+                >
                   Sort by
-                </span>
+                </label>
                 <select
+                  id="blog-ordering"
                   value={ordering}
                   onChange={(event) => {
                     setOrdering(event.target.value);

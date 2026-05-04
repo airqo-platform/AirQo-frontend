@@ -24,7 +24,8 @@ const FloatingMiniBillboardWrapper = lazy(
   () => import('@/components/FloatingMiniBillboardWrapper'),
 );
 
-const GOOGLE_ANALYTICS_MEASUREMENT_ID = 'G-79ZVCLEDSG';
+const GOOGLE_ANALYTICS_MEASUREMENT_ID =
+  process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
 const normalizedSiteUrl = getPrimarySiteUrl();
 

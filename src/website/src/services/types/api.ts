@@ -323,6 +323,10 @@ export interface BlogIdentifierPayload {
   published_at: string;
   meta_title: string;
   meta_description: string;
+  // Optional stable route fields to prefer explicit identifiers over title-derived slugs
+  public_identifier?: string;
+  has_slug?: boolean;
+  id?: string;
   website_category: string;
   order?: number;
   is_deleted?: boolean;

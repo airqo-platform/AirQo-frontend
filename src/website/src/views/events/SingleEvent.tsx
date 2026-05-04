@@ -111,7 +111,7 @@ const SingleEvent: React.FC<{ slug: string }> = ({ slug }) => {
           <nav className="flex items-start text-sm">
             <button
               type="button"
-              onClick={() => router.back()}
+              onClick={() => router.push('/events')}
               className="text-white hover:text-gray-200"
             >
               Events

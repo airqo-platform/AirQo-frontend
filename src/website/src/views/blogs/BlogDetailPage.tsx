@@ -4,6 +4,7 @@ import Link from 'next/link';
 
 import mainConfig from '@/configs/mainConfigs';
 import type { BlogPost } from '@/services/types/api';
+import { sanitizeAndCleanHTML } from '@/utils/htmlValidator';
 
 import {
   formatBlogDate,
@@ -111,7 +112,11 @@ const BlogDetailPage = ({ blog }: BlogDetailPageProps) => {
           <article className="border border-slate-200 bg-white p-6 sm:p-8 lg:p-10">
             <div className="space-y-6 text-[17px] leading-8 text-slate-700 [&_h2]:mt-10 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:leading-tight [&_h2]:text-slate-950 [&_h3]:mt-8 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:leading-tight [&_h3]:text-slate-950 [&_p]:leading-8 [&_p]:text-slate-700 [&_a]:font-medium [&_a]:text-blue-700 [&_a]:underline-offset-4 [&_a:hover]:underline [&_ul]:space-y-3 [&_ul]:pl-6 [&_ul]:list-disc [&_ol]:space-y-3 [&_ol]:pl-6 [&_ol]:list-decimal [&_blockquote]:border-l-4 [&_blockquote]:border-blue-200 [&_blockquote]:bg-blue-50 [&_blockquote]:px-5 [&_blockquote]:py-4 [&_blockquote]:italic [&_blockquote]:text-slate-700 [&_img]:my-8 [&_img]:h-auto [&_img]:w-full [&_img]:rounded-md [&_img]:shadow-sm [&_table]:my-8 [&_table]:w-full [&_table]:overflow-hidden [&_table]:rounded-md [&_table]:border [&_table]:border-slate-200 [&_th]:bg-slate-100 [&_th]:px-4 [&_th]:py-3 [&_th]:text-left [&_th]:text-sm [&_th]:font-semibold [&_th]:text-slate-900 [&_td]:border-t [&_td]:border-slate-200 [&_td]:px-4 [&_td]:py-3">
               {blog.content_html ? (
-                <div dangerouslySetInnerHTML={{ __html: blog.content_html }} />
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: sanitizeAndCleanHTML(blog.content_html || ''),
+                  }}
+                />
               ) : (
                 <div className="space-y-5 border border-slate-200 bg-slate-50 p-6 text-slate-700">
                   <h2 className="text-2xl font-semibold text-slate-950">

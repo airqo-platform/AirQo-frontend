@@ -33,7 +33,7 @@ export default function GoogleAnalytics({
   const [hasConsent, setHasConsent] = useState(false);
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
   const resolvedMeasurementId =
-    FALLBACK_MEASUREMENT_ID || measurementId?.trim();
+    measurementId?.trim() || FALLBACK_MEASUREMENT_ID;
   const configuredLinkerDomains = useMemo(
     () =>
       getConfiguredSiteUrls()

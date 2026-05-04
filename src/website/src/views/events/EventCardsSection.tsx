@@ -119,7 +119,11 @@ const EventCardsSection: React.FC<{
                   {/* Read More Button */}
                   <CustomButton
                     onClick={() =>
-                      router.push(`/events/${getEventRouteSlug(event)}`)
+                      router.push(
+                        `/events/${encodeURIComponent(
+                          getEventRouteSlug(event),
+                        )}`,
+                      )
                     }
                     className="text-blue-600 text-left p-0 bg-transparent mt-4"
                   >
