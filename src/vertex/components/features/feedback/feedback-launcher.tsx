@@ -131,6 +131,11 @@ export const FeedbackLauncher: React.FC = () => {
       return;
     }
 
+    if (!userEmail) {
+      toast.error('Unable to identify your account. Please try again in a moment.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
