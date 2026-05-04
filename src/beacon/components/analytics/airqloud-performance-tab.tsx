@@ -190,6 +190,7 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName, initi
 
     // Only fetch if no initialData was provided
     fetchPerformanceData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [airqloudId, initialData])
 
   const handleDateRangeChange = (newDateRange: { from: Date | undefined; to: Date | undefined }) => {
