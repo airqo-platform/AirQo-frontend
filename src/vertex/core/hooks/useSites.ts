@@ -55,17 +55,12 @@ export const useSiteActivitiesInfinite = (siteId: string) => {
 };
 
 export const useSites = (options: SiteListingOptions = {}) => {
-  const { userDetails, isExternalOrg, activeGroup } = useUserContext();
+  const activeGroup = useAppSelector((state) => state.user.activeGroup);
   const isAirQoGroup = activeGroup?.grp_title === "airqo";
 
   const { data: groupCohortIds, isLoading: isLoadingCohorts } = useGroupCohorts(activeGroup?._id, {
-    enabled: isExternalOrg && !!activeGroup?._id,
+    enabled: !isAirQoGroup && !!activeGroup?._id,
   });
-
-  const cohortIds = useMemo(() => {
-    if (isExternalOrg) return groupCohortIds || [];
-    return userDetails?.cohort_ids || [];
-  }, [isExternalOrg, groupCohortIds, userDetails?.cohort_ids]);
 
   const { page = 1, limit = 100, search, sortBy, order, network } = options;
   const safePage = Math.max(1, page);
@@ -75,7 +70,7 @@ export const useSites = (options: SiteListingOptions = {}) => {
   const queryParams = useMemo(() => ({ page, limit, search, sortBy, order, status: options.status }), [page, limit, search, sortBy, order, options.status]);
   
   const sitesQuery = useQuery<SitesSummaryResponse, AxiosError<ErrorResponse>>({
-    queryKey: ["sites", network, activeGroup?.grp_title, queryParams, cohortIds],
+    queryKey: ["sites", network, activeGroup?.grp_title, queryParams],
     queryFn: async ({ signal }: QueryFunctionContext) => {
       if (isAirQoGroup) {
         const params: GetSitesSummaryParams = {
@@ -97,31 +92,12 @@ export const useSites = (options: SiteListingOptions = {}) => {
         return sites.getSitesSummary(params, signal);
       }
 
-      if (cohortIds.length === 0 && !isLoadingCohorts) {
-        // If we have no cohorts and we're not loading, return empty result
-        return { 
-          success: true, 
-          message: "No sites found for the current cohorts", 
-          sites: [], 
-          meta: { 
-            total: 0,
-            totalResults: 0,
-            totalPages: 0, 
-            page: 1, 
-            limit: safeLimit,
-            skip: 0,
-            detailLevel: "summary",
-            usedCache: false
-          } 
-        } as SitesSummaryResponse;
-      }
-
-      if (cohortIds.length === 0 && isLoadingCohorts) {
-         throw new Error("Cohort IDs are loading...");
+      if (!groupCohortIds) {
+        throw new Error("Cohort IDs are not available yet.");
       }
 
       return sites.getSitesByCohorts({
-        cohort_ids: cohortIds,
+        cohort_ids: groupCohortIds,
         limit: safeLimit,
         skip,
         ...(search && { search }),
@@ -130,7 +106,7 @@ export const useSites = (options: SiteListingOptions = {}) => {
         ...(network && { network }),
       }, signal);
     },
-    enabled: !!activeGroup?.grp_title && (isAirQoGroup || (!isLoadingCohorts)),
+    enabled: !!activeGroup?.grp_title && (isAirQoGroup || (!!groupCohortIds && groupCohortIds.length > 0)),
     staleTime: 300_000,
     refetchOnWindowFocus: false,
   });

@@ -155,7 +155,7 @@ export const useUserContext = (): UserContextState => {
         return {
           title: 'My Monitors',
           showNetworkMap: false,
-          showSites: canViewSites, // Permission based
+          showSites: false, // Permission based
           showGrids: canViewSites,
           showCohorts: canViewDevices,
           showUserManagement: canViewUserManagement,

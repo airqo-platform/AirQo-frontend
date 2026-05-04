@@ -6,6 +6,8 @@ import { ROUTE_LINKS } from '@/core/routes';
 // Map routes to sidebar config properties
 const routeToSidebarConfig: Record<string, keyof SidebarConfig> = {
   [ROUTE_LINKS.SITES]: 'showSites',
+  [ROUTE_LINKS.ORG_SITES]: 'showSites',
+  [ROUTE_LINKS.SITE_DETAILS]: 'showSites',
   '/user-management': 'showUserManagement',
   '/access-control': 'showAccessControl',
   [ROUTE_LINKS.MY_DEVICES]: 'showMyDevices',
@@ -26,39 +28,20 @@ export const useContextAwareRouting = () => {
   const initializedRef = useRef(false);
 
   useEffect(() => {
-    // Don't run routing logic until the user context is fully initialized.
     if (!userContext) {
       return;
     }
 
-    if(!initializedRef.current) {
-      initializedRef.current = true;
-      previousContextRef.current = userContext;
-      return;
-    }
-
-    // Check if context actually changed
-    if (previousContextRef.current === userContext) {
-      return;
-    }
-
-    // Update previous context
-    previousContextRef.current = userContext;
-
     const sidebarConfig = getSidebarConfig();
-    
-    // Check if current route is accessible in new context
+
     const isRouteAccessible = (route: string): boolean => {
-      // Dashboard is always accessible
       if (route === ROUTE_LINKS.HOME) return true;
       
-      // Check if route maps to a sidebar config property
       const configKey = routeToSidebarConfig[route];
       if (configKey) {
         return sidebarConfig[configKey] === true;
       }
       
-      // For dynamic routes, check the base path
       const basePath = route.split('/')[1];
       const baseRoute = `/${basePath}`;
       const baseConfigKey = routeToSidebarConfig[baseRoute];
@@ -66,14 +49,23 @@ export const useContextAwareRouting = () => {
         return sidebarConfig[baseConfigKey] === true;
       }
       
-      // Default to accessible if not explicitly mapped
       return true;
     };
 
-    // If current route is not accessible, redirect to dashboard
-    if (!isRouteAccessible(pathname)) {
-      // logger.debug('Context-aware redirect', { from: pathname, to: '/home', userContext, sidebarConfig })
-      router.push(ROUTE_LINKS.HOME);
+    const contextChanged = initializedRef.current && previousContextRef.current !== userContext;
+
+    // Always check route on first load; also check when context changes
+    if (!initializedRef.current || contextChanged) {
+      initializedRef.current = true;
+      previousContextRef.current = userContext;
+
+      if (!isRouteAccessible(pathname)) {
+        router.push(ROUTE_LINKS.HOME);
+      }
+      return;
     }
+
+    // Same context, no action needed
+    previousContextRef.current = userContext;
   }, [userContext, pathname, getSidebarConfig, router]);
 }; 
