@@ -36,18 +36,6 @@ export default function UserSiteDetailsPage() {
     null
   );
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen p-4">
-        <Alert variant="destructive" className="max-w-md">
-          <ExclamationTriangleIcon className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error.message}</AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-
   return (
     <RouteGuard permission={PERMISSIONS.SITE.VIEW}>
       <div>
@@ -72,7 +60,17 @@ export default function UserSiteDetailsPage() {
           </ReusableButton>
         </div>
 
-        {isLoading ? (
+        {error ? (
+          <div className="flex items-center justify-center min-h-[50vh] p-4">
+            <Alert variant="destructive" className="max-w-md">
+              <ExclamationTriangleIcon className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>
+                Unable to load site details. Please try again.
+              </AlertDescription>
+            </Alert>
+          </div>
+        ) : isLoading ? (
           <ContentGridSkeleton />
         ) : !site ? (
           <div className="mt-8 text-center text-sm text-muted-foreground">
