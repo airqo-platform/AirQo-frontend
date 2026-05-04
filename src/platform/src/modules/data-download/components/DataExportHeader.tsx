@@ -1,7 +1,11 @@
 import React from 'react';
 import { Tooltip } from 'flowbite-react';
 import { Button } from '@/shared/components/ui';
-import { AqAnnotationX, AqDownload01 } from '@airqo/icons-react';
+import {
+  AqAnnotationX,
+  AqDownload01,
+  AqRefreshCcw01,
+} from '@airqo/icons-react';
 import { TabType } from '../types/dataExportTypes';
 
 interface DataExportHeaderProps {
@@ -13,6 +17,8 @@ interface DataExportHeaderProps {
   isDownloadReady: boolean;
   isDownloading: boolean;
   isGroupSyncing?: boolean;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
   onTabChange: (tab: TabType) => void;
   onClearSelections: () => void;
   onVisualizeData: () => void;
@@ -34,6 +40,8 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
   isDownloadReady,
   isDownloading,
   isGroupSyncing = false,
+  onRefresh,
+  isRefreshing = false,
   onTabChange,
   onClearSelections,
   onVisualizeData,
@@ -117,6 +125,19 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
       </div>
 
       <div className="flex flex-col justify-end sm:flex-row gap-2 w-full sm:w-auto flex-wrap mt-3 sm:mt-0">
+        {onRefresh && (
+          <Button
+            variant="outlined"
+            onClick={onRefresh}
+            Icon={AqRefreshCcw01}
+            loading={isRefreshing}
+            disabled={isGroupSyncing || isRefreshing}
+            size="sm"
+            className="px-4 py-2 w-full sm:w-auto"
+          >
+            Refresh
+          </Button>
+        )}
         {hasSelections && (
           <Button
             variant="outlined"

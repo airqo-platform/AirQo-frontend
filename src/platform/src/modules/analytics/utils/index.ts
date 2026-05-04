@@ -275,7 +275,11 @@ export const normalizeRecentReadingsToSiteData = (
 
     return {
       _id: siteDetails?._id || measurement.site_id,
-      name: siteDetails?.name || siteDetails?.formatted_name || 'Unknown Site',
+      name:
+        siteDetails?.search_name ||
+        siteDetails?.name ||
+        siteDetails?.formatted_name ||
+        'Unknown Site',
       location: siteDetails?.country || 'Unknown Country',
       value,
       status,

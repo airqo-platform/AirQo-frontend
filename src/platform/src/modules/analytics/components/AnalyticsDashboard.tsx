@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import { usePostHog } from 'posthog-js/react';
 import { QuickAccessCard, SuggestedLocations } from './';
@@ -58,7 +58,15 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   // Local state for UI preferences (doesn't trigger data reloads)
   const [showIcons, setShowIcons] = useState(true);
   const [isFavoritesDialogOpen, setIsFavoritesDialogOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const hasTrackedDashboardViewRef = useRef(false);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // Get user preferences and selected sites (primary data - always fetch first)
   const normalizedOrganizationSlug = React.useMemo(
@@ -98,7 +106,11 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   const hasSelectedSites = selectedSiteIds.length > 0;
 
   // Get site cards data - only when user has selected sites
-  const { siteCards, isLoading: siteCardsLoading } = useAnalyticsSiteCards({
+  const {
+    siteCards,
+    isLoading: siteCardsLoading,
+    refetch: refreshSiteCards,
+  } = useAnalyticsSiteCards({
     selectedSiteIds,
     selectedSites,
     enabled: isOrgContextReady,
@@ -180,6 +192,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         return {
           _id: siteId,
           name:
+            siteData?.search_name ||
             siteData?.name ||
             siteData?.formatted_name ||
             siteData?.generated_name ||
@@ -259,11 +272,12 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       selectedSites.map(site => ({
         _id: site._id,
         name:
+          site.search_name ||
           site.name ||
           site.formatted_name ||
           site.generated_name ||
           'Unknown Site',
-        search_name: site.search_name,
+        search_name: site.search_name || site.name,
         country: site.country,
       }));
 
@@ -274,8 +288,8 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   const handleCardClick = (siteData: SiteData) => {
     const selectedSite = {
       _id: siteData._id,
-      name: siteData.name,
-      search_name: siteData.name,
+      name: siteData.search_name || siteData.name,
+      search_name: siteData.search_name || siteData.name,
       country: siteData.location,
     };
 
@@ -296,6 +310,31 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
   const isInitialLoading =
     userContextLoading || preferencesLoading || isOrgSyncing;
+
+  const handleRefreshDashboard = useCallback(async () => {
+    if (isRefreshing || isInitialLoading) {
+      return;
+    }
+
+    setIsRefreshing(true);
+    try {
+      await Promise.all([
+        refreshSiteCards?.(),
+        refreshLineChart?.(),
+        refreshBarChart?.(),
+      ]);
+    } finally {
+      if (isMountedRef.current) {
+        setIsRefreshing(false);
+      }
+    }
+  }, [
+    isInitialLoading,
+    isRefreshing,
+    refreshBarChart,
+    refreshLineChart,
+    refreshSiteCards,
+  ]);
 
   useEffect(() => {
     if (isInitialLoading) {
@@ -408,6 +447,8 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       <QuickAccessCard
         sites={siteCards}
         onManageFavorites={handleManageFavorites}
+        onRefresh={handleRefreshDashboard}
+        isRefreshing={isRefreshing}
         selectedPollutant={filters.pollutant}
         onCardClick={handleCardClick}
         isLoading={siteCardsLoading}

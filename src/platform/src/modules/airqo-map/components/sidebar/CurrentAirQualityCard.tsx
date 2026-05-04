@@ -98,8 +98,8 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
     const locationName =
       (mapReading as AirQualityReading)?.locationName ||
       (mapReading as MapReading)?.siteDetails?.search_name ||
-      (mapReading as MapReading)?.siteDetails?.formatted_name ||
-      (mapReading as MapReading)?.siteDetails?.name;
+      (mapReading as MapReading)?.siteDetails?.name ||
+      (mapReading as MapReading)?.siteDetails?.formatted_name;
 
     return parseLocationDetails(locationName);
   };
