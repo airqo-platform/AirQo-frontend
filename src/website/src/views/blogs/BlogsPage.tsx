@@ -108,10 +108,10 @@ const BlogCard = ({ blog }: { blog: BlogPost }) => {
               alt={blog.author_name}
               width={44}
               height={44}
-              className="h-11 w-11 object-cover ring-2 ring-white shadow-sm"
+              className="rounded-full h-11 w-11 object-cover ring-2 ring-white shadow-sm"
             />
           ) : (
-            <div className="grid h-11 w-11 place-items-center bg-blue-50 text-sm font-semibold text-blue-700">
+            <div className="grid h-11 w-11 place-items-center rounded-full bg-blue-50 text-sm font-semibold text-blue-700">
               {blog.author_name
                 ? blog.author_name
                     .split(' ')
