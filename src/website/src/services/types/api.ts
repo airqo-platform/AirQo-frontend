@@ -145,7 +145,15 @@ export interface EventResource {
 }
 
 // Extended event shape returned by v2 API (some fields optional)
-export interface EventV2 extends Event {
+export interface EventV2 {
+  id: string | number;
+  title?: string;
+  description?: string;
+  location?: string;
+  image?: string;
+  is_featured?: boolean;
+  created_at?: string;
+  updated_at?: string;
   slug?: string;
   public_identifier?: string;
   api_url?: string;
