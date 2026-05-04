@@ -3,23 +3,22 @@ import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/pages/location_selection/utils/location_helpers.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_details.dart';
 import 'package:airqo/src/app/map/bloc/map_bloc.dart';
+import 'package:airqo/src/app/map/controllers/map_camera_controller.dart';
 import 'package:airqo/src/app/map/utils/map_marker_builder.dart';
-import 'package:airqo/src/app/map/widgets/map_air_quality_card.dart';
+import 'package:airqo/src/app/map/widgets/map_aq_card_layer.dart';
 import 'package:airqo/src/app/map/widgets/map_controls.dart';
+import 'package:airqo/src/app/map/widgets/map_error_view.dart';
+import 'package:airqo/src/app/map/widgets/map_loading_view.dart';
+import 'package:airqo/src/app/map/widgets/map_overlay_controls.dart';
 import 'package:airqo/src/app/map/widgets/map_search_sheet.dart';
 import 'package:airqo/src/app/map/widgets/map_style_picker.dart';
 import 'package:airqo/src/app/other/places/bloc/google_places_bloc.dart';
-import 'package:airqo/src/app/shared/widgets/translated_text.dart';
-import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:loggy/loggy.dart';
-
-// ─── Screen ─────────────────────────────────────────────────────────────────
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -30,7 +29,7 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen>
     with AutomaticKeepAliveClientMixin, UiLoggy {
-  late GoogleMapController mapController;
+  final _cameraController = MapCameraController();
 
   TextEditingController searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
@@ -41,13 +40,11 @@ class _MapScreenState extends State<MapScreen>
   List<Measurement> localSearchResults = [];
   List<Measurement> nearbyMeasurements = [];
   Position? userPosition;
-  String? userCountry;
 
   List<Marker> markers = [];
   bool isInitializing = true;
   bool isRetrying = false;
-  bool mapControllerInitialized = false;
-  GooglePlacesBloc? googlePlacesBloc;
+  late GooglePlacesBloc googlePlacesBloc;
 
   final MapMarkerBuilder _markerBuilder = MapMarkerBuilder();
   MapType _currentMapType = MapType.normal;
@@ -60,19 +57,16 @@ class _MapScreenState extends State<MapScreen>
   static const double _sheetPeekSize = 0.13;
   static const double _sheetMidSize = 0.44;
 
-  // ── Map lifecycle ──────────────────────────────────────────────────────────
-
   void _onMapCreated(GoogleMapController controller) {
-    mapController = controller;
-    if (mounted) setState(() => mapControllerInitialized = true);
-    _snapToUser();
-    if (markers.isNotEmpty && userPosition == null) {
-      _fitMarkersInView();
+    _cameraController.onCreated(controller);
+    if (mounted) setState(() {});
+    if (userPosition != null) {
+      _cameraController.snapToPosition(userPosition!);
+    } else if (markers.isNotEmpty) {
+      _cameraController.fitMeasurementsInView(allMeasurements);
     }
   }
 
-  /// Loads the dark JSON asset (or clears it) and calls setState so GoogleMap
-  /// picks up the new [_mapStyleJson] via its `style` property.
   Future<void> _applyMapStyle() async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     if (isDark && _currentMapType == MapType.normal) {
@@ -88,59 +82,6 @@ class _MapScreenState extends State<MapScreen>
     }
   }
 
-  Future<void> _snapToUser() async {
-    if (!mapControllerInitialized || userPosition == null) return;
-    await mapController.animateCamera(
-      CameraUpdate.newLatLngZoom(
-        LatLng(userPosition!.latitude, userPosition!.longitude),
-        12,
-      ),
-    );
-  }
-
-  Future<void> _fitMarkersInView() async {
-    if (!mapControllerInitialized || allMeasurements.isEmpty) return;
-    try {
-      double minLat = 90.0, maxLat = -90.0, minLng = 180.0, maxLng = -180.0;
-      for (final measurement in allMeasurements) {
-        final lat = measurement.siteDetails?.approximateLatitude;
-        final lng = measurement.siteDetails?.approximateLongitude;
-        if (lat == null || lng == null) continue;
-        if (lat < minLat) minLat = lat;
-        if (lat > maxLat) maxLat = lat;
-        if (lng < minLng) minLng = lng;
-        if (lng > maxLng) maxLng = lng;
-      }
-      if (minLat == 90.0 || minLng == 180.0) return;
-      final latPad = (maxLat - minLat) * 0.1;
-      final lngPad = (maxLng - minLng) * 0.1;
-      await mapController.animateCamera(
-        CameraUpdate.newLatLngBounds(
-          LatLngBounds(
-            southwest: LatLng(minLat - latPad, minLng - lngPad),
-            northeast: LatLng(maxLat + latPad, maxLng + lngPad),
-          ),
-          50.0,
-        ),
-      );
-    } catch (e) {
-      loggy.error('Error fitting markers to bounds: $e');
-      mapController.animateCamera(CameraUpdate.newLatLngZoom(_center, 6));
-    }
-  }
-
-  Future<void> reduceZoom() async {
-    if (!mapControllerInitialized) return;
-    final zoom = await mapController.getZoomLevel();
-    mapController.animateCamera(CameraUpdate.zoomTo(zoom - 2));
-  }
-
-  Future<void> increaseZoom() async {
-    if (!mapControllerInitialized) return;
-    final zoom = await mapController.getZoomLevel();
-    mapController.animateCamera(CameraUpdate.zoomTo(zoom + 2));
-  }
-
   Future<void> _animateSheetTo(double size) async {
     if (!_sheetController.isAttached) return;
     await _sheetController.animateTo(
@@ -150,30 +91,24 @@ class _MapScreenState extends State<MapScreen>
     );
   }
 
-  // ── Details / card ─────────────────────────────────────────────────────────
-
   void viewDetails({Measurement? measurement, String? placeName}) {
-    // Dismiss keyboard and collapse sheet whenever a result is selected
     FocusScope.of(context).unfocus();
     _animateSheetTo(_sheetPeekSize);
 
     if (measurement != null) {
-      if (mapControllerInitialized &&
+      if (_cameraController.isInitialized &&
           measurement.siteDetails?.approximateLatitude != null &&
           measurement.siteDetails?.approximateLongitude != null) {
-        mapController.animateCamera(
-          CameraUpdate.newLatLngZoom(
-            LatLng(
-              measurement.siteDetails!.approximateLatitude!,
-              measurement.siteDetails!.approximateLongitude!,
-            ),
-            14,
+        _cameraController.animateTo(
+          LatLng(
+            measurement.siteDetails!.approximateLatitude!,
+            measurement.siteDetails!.approximateLongitude!,
           ),
         );
       }
       if (mounted) setState(() => _selectedCardMeasurement = measurement);
     } else if (placeName != null) {
-      googlePlacesBloc!.add(GetPlaceDetails(placeName));
+      googlePlacesBloc.add(GetPlaceDetails(placeName));
     }
   }
 
@@ -220,8 +155,6 @@ class _MapScreenState extends State<MapScreen>
     );
   }
 
-  // ── Markers ────────────────────────────────────────────────────────────────
-
   Future<void> addMarkers(AirQualityResponse response) async {
     if (response.measurements == null || response.measurements!.isEmpty) return;
     await _refreshMarkers(response.measurements!);
@@ -234,7 +167,7 @@ class _MapScreenState extends State<MapScreen>
       measurements: measurements,
       zoom: _currentZoom,
       onMeasurementTap: (measurement) => viewDetails(measurement: measurement),
-      onClusterTap: _zoomToCluster,
+      onClusterTap: _cameraController.zoomToCluster,
     );
     if (!mounted || seq != _markerBuildSeq) return;
     if (mounted) {
@@ -243,48 +176,23 @@ class _MapScreenState extends State<MapScreen>
         isInitializing = false;
       });
     }
-    if (mapControllerInitialized &&
+    // Only fit on initial data load, not on zoom-triggered rebuilds — otherwise
+    // _onCameraMove → _refreshMarkers → _fitMarkersInView zooms back out after
+    // every cluster tap.
+    if (source != null &&
+        _cameraController.isInitialized &&
         markers.isNotEmpty &&
         userPosition == null) {
-      _fitMarkersInView();
-    }
-  }
-
-  Future<void> _zoomToCluster(List<Measurement> members) async {
-    if (!mapControllerInitialized) return;
-    try {
-      double minLat = 90.0, maxLat = -90.0, minLng = 180.0, maxLng = -180.0;
-      for (final measurement in members) {
-        final lat = measurement.siteDetails!.approximateLatitude!;
-        final lng = measurement.siteDetails!.approximateLongitude!;
-        if (lat < minLat) minLat = lat;
-        if (lat > maxLat) maxLat = lat;
-        if (lng < minLng) minLng = lng;
-        if (lng > maxLng) maxLng = lng;
-      }
-      await mapController.animateCamera(
-        CameraUpdate.newLatLngBounds(
-          LatLngBounds(
-            southwest: LatLng(minLat, minLng),
-            northeast: LatLng(maxLat, maxLng),
-          ),
-          60,
-        ),
-      );
-    } catch (e) {
-      loggy.warning('Failed to zoom to cluster: $e');
-      final zoom = await mapController.getZoomLevel();
-      await mapController.animateCamera(CameraUpdate.zoomTo(zoom + 2));
+      _cameraController.fitMeasurementsInView(allMeasurements);
     }
   }
 
   void _onCameraMove(CameraPosition position) {
+    if (!_cameraController.isInitialized) return;
     if (position.zoom.floor() == _currentZoom.floor()) return;
     _currentZoom = position.zoom;
     _refreshMarkers();
   }
-
-  // ── Location ───────────────────────────────────────────────────────────────
 
   Future<void> _getUserLocation() async {
     try {
@@ -304,17 +212,8 @@ class _MapScreenState extends State<MapScreen>
       );
 
       if (mounted) setState(() => userPosition = position);
-
-      try {
-        final placemarks = await placemarkFromCoordinates(
-            position.latitude, position.longitude);
-        if (placemarks.isNotEmpty && placemarks.first.country != null) {
-          if (mounted) setState(() => userCountry = placemarks.first.country!);
-        }
-      } catch (_) {}
-
       _updateNearbyMeasurements();
-      _snapToUser();
+      _cameraController.snapToPosition(userPosition!);
     } catch (e) {
       loggy.error('Failed to get user location: $e');
     }
@@ -354,7 +253,7 @@ class _MapScreenState extends State<MapScreen>
     }
   }
 
-  void _initializeWithData(AirQualityResponse response) async {
+  Future<void> _initializeWithData(AirQualityResponse response) async {
     populateMeasurements(response.measurements ?? []);
     await addMarkers(response);
   }
@@ -381,7 +280,7 @@ class _MapScreenState extends State<MapScreen>
   void _onSearchControllerChanged() {
     if (!mounted) return;
     if (searchController.text.trim().isNotEmpty) return;
-    googlePlacesBloc!.add(ResetGooglePlaces());
+    googlePlacesBloc.add(ResetGooglePlaces());
     _animateSheetTo(_sheetPeekSize);
     setState(() {
       localSearchResults = [];
@@ -398,7 +297,7 @@ class _MapScreenState extends State<MapScreen>
   void _onSearchChanged(String value) {
     final query = value.trim();
     if (query.isEmpty) return;
-    googlePlacesBloc!.add(SearchPlace(value));
+    googlePlacesBloc.add(SearchPlace(value));
     if (mounted) {
       setState(() {
         localSearchResults =
@@ -412,8 +311,6 @@ class _MapScreenState extends State<MapScreen>
     viewDetails(measurement: measurement);
   }
 
-  // ── Lifecycle ──────────────────────────────────────────────────────────────
-
   @override
   void initState() {
     super.initState();
@@ -422,7 +319,6 @@ class _MapScreenState extends State<MapScreen>
       ..add(ResetGooglePlaces());
     _loadDataFromAvailableSources();
     _getUserLocation();
-    // Pre-load dark style JSON so it's ready before the map is created
     WidgetsBinding.instance.addPostFrameCallback((_) => _applyMapStyle());
   }
 
@@ -432,13 +328,12 @@ class _MapScreenState extends State<MapScreen>
     _sheetController.dispose();
     _searchFocusNode.dispose();
     searchController.dispose();
+    _cameraController.dispose();
     super.dispose();
   }
 
   @override
   bool get wantKeepAlive => true;
-
-  // ── Build ──────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -461,7 +356,8 @@ class _MapScreenState extends State<MapScreen>
               final response = state is MapLoaded
                   ? state.response
                   : (state as MapLoadedFromCache).response;
-              if (response.measurements?.isNotEmpty == true) {
+              if (response.measurements?.isNotEmpty == true &&
+                  (markers.isEmpty || allMeasurements.isEmpty)) {
                 _initializeWithData(response);
               }
             }
@@ -471,17 +367,14 @@ class _MapScreenState extends State<MapScreen>
           listener: (context, state) {
             if (state is PlaceDetailsLoaded &&
                 state.response.measurements.isNotEmpty &&
-                mapControllerInitialized) {
+                _cameraController.isInitialized) {
               final measurement = state.response.measurements[0];
               if (measurement.siteDetails?.approximateLatitude != null &&
                   measurement.siteDetails?.approximateLongitude != null) {
-                mapController.animateCamera(
-                  CameraUpdate.newLatLngZoom(
-                    LatLng(
-                      measurement.siteDetails!.approximateLatitude!,
-                      measurement.siteDetails!.approximateLongitude!,
-                    ),
-                    14,
+                _cameraController.animateTo(
+                  LatLng(
+                    measurement.siteDetails!.approximateLatitude!,
+                    measurement.siteDetails!.approximateLongitude!,
                   ),
                 );
               }
@@ -497,84 +390,23 @@ class _MapScreenState extends State<MapScreen>
       child: Scaffold(
         resizeToAvoidBottomInset: false,
         body: isInitializing && markers.isEmpty && allMeasurements.isEmpty
-            ? _buildLoadingView()
+            ? const MapLoadingView()
             : (!isInitializing &&
                     markers.isEmpty &&
                     allMeasurements.isEmpty &&
                     !isRetrying)
-                ? _buildErrorView()
+                ? MapErrorView(onRetry: _retryLoading)
                 : _buildMapView(),
       ),
     );
   }
 
-  // ── Loading / error views ──────────────────────────────────────────────────
-
-  Widget _buildLoadingView() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(color: AppColors.primaryColor),
-          const SizedBox(height: 16),
-          TranslatedText(
-            "Loading map data...",
-            style: TextStyle(
-                fontSize: 16,
-                color: Theme.of(context).textTheme.bodyMedium?.color),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildErrorView() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.map_outlined, size: 64, color: Colors.grey),
-          const SizedBox(height: 16),
-          TranslatedText(
-            "Unable to load map data",
-            style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).textTheme.headlineMedium?.color),
-          ),
-          const SizedBox(height: 8),
-          TranslatedText(
-            "Please check your connection and try again",
-            style: TextStyle(
-                fontSize: 16,
-                color: Theme.of(context).textTheme.bodyMedium?.color),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: _retryLoading,
-            icon: const Icon(Icons.refresh),
-            label: TranslatedText('Try Again'),
-            style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryColor,
-                foregroundColor: Colors.white),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Map view ───────────────────────────────────────────────────────────────
-
   Widget _buildMapView() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    // Keep card above the peek strip (13 % of screen height ≈ 103 px on most
-    // phones) with a comfortable 14 px gap.
     final cardBottom = MediaQuery.of(context).size.height * _sheetPeekSize + 14;
 
     return Stack(
       children: [
-        // ── Full-screen map ─────────────────────────────────────────────────
         GoogleMap(
           mapType: _currentMapType,
           style: _mapStyleJson,
@@ -592,54 +424,24 @@ class _MapScreenState extends State<MapScreen>
           },
         ),
 
-        // ── Top-right — layers / style picker ──────────────────────────────
-        Positioned(
-          top: 50,
-          right: 12,
-          child: MapIconButton(
-            icon: Icons.layers_outlined,
+        Positioned.fill(
+          child: MapOverlayControls(
             isDark: isDark,
-            onTap: _openMapStylePicker,
+            onLayersTap: _openMapStylePicker,
+            onLocateTap: userPosition != null
+                ? () => _cameraController.snapToPosition(userPosition!)
+                : null,
+            onZoomIn: _cameraController.increaseZoom,
+            onZoomOut: _cameraController.reduceZoom,
           ),
         ),
 
-        // ── Top-right — geolocate + zoom (below layers button) ─────────────
-        Positioned(
-          top: 90, // 50 (layers top) + 32 (button height) + 8 gap
-          right: 12,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              MapIconButton(
-                icon: Icons.my_location,
-                isDark: isDark,
-                filled: true,
-                onTap: _snapToUser,
-              ),
-              const SizedBox(height: 6),
-              MapZoomGroup(
-                isDark: isDark,
-                onZoomIn: increaseZoom,
-                onZoomOut: reduceZoom,
-              ),
-            ],
-          ),
-        ),
-
-        // ── Top-left — AQ legend with emoji icons + tooltips ───────────────
-        // top: 50 aligns the legend's top edge with the layers button on the
-        // right. Width fixed at 40 px to match _MapIconButton.
         Positioned(
           top: 50,
           left: 10,
           child: MapAqLegend(isDark: isDark),
         ),
 
-        // ── Bottom sheet ────────────────────────────────────────────────────
-        // expand: true (default) lets the sheet fill the Stack so it can
-        // anchor its draggable child to the bottom. The BackdropFilter lives
-        // inside the builder's child which is only rendered at initialChildSize
-        // height, so blur is correctly scoped to the visible strip only.
         DraggableScrollableSheet(
           controller: _sheetController,
           initialChildSize: _sheetPeekSize,
@@ -663,30 +465,12 @@ class _MapScreenState extends State<MapScreen>
           ),
         ),
 
-        // ── Air quality card — above the sheet peek, rendered last (on top) ─
-        Positioned(
+        MapAqCardLayer(
           bottom: cardBottom,
-          left: 12,
-          right: 12,
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
-            transitionBuilder: (child, animation) => SlideTransition(
-              position: Tween(begin: const Offset(0, 0.25), end: Offset.zero)
-                  .animate(CurvedAnimation(
-                      parent: animation, curve: Curves.easeOut)),
-              child: FadeTransition(opacity: animation, child: child),
-            ),
-            child: _selectedCardMeasurement == null
-                ? const SizedBox.shrink()
-                : MapAirQualityCard(
-                    key: ValueKey(_selectedCardMeasurement!.id),
-                    measurement: _selectedCardMeasurement!,
-                    onDismiss: () =>
-                        setState(() => _selectedCardMeasurement = null),
-                    onViewForecast: () =>
-                        _showAnalyticsDetails(_selectedCardMeasurement!),
-                  ),
-          ),
+          measurement: _selectedCardMeasurement,
+          onDismiss: () => setState(() => _selectedCardMeasurement = null),
+          onViewForecast: () =>
+              _showAnalyticsDetails(_selectedCardMeasurement!),
         ),
       ],
     );

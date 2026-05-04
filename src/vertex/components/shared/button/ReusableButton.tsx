@@ -89,7 +89,7 @@ const ReusableButton = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, R
 
     const ButtonContent = (
       <>
-        {Icon && <Icon className={cn("w-4 h-4", iconMargin)} />}
+        {Icon && <Icon className={cn("w-4 h-4", children ? iconMargin : "")} />}
         <span className={cn(Icon && !showTextOnMobile ? "md:inline" : "")}>{children}</span>
       </>
     )

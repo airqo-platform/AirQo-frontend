@@ -37,6 +37,7 @@
     "@radix-ui/react-toast": "^1.2.5",
     "@radix-ui/react-tooltip": "^1.1.6",
     "@reduxjs/toolkit": "^2.5.0",
+    "@smastrom/react-rating": "^1.5.0",
     "@tanstack/query-sync-storage-persister": "^5.100.6",
     "@tanstack/react-query": "^5.62.11",
     "@tanstack/react-query-devtools": "^5.62.11",
