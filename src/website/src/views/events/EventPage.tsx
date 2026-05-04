@@ -7,15 +7,23 @@ import { FiCalendar } from 'react-icons/fi';
 
 import { CustomButton, Pagination } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
-import { useAirQoEvents } from '@/hooks/useApiHooks';
+import { useAirQoEvents, useFeaturedEvents } from '@/hooks/useApiHooks';
 import { EventV2 } from '@/services/types/api';
 import EventCardsSection from '@/views/events/EventCardsSection';
 
 const EventPage: React.FC = () => {
   const router = useRouter();
-  const [selectedTab, setSelectedTab] = useState('upcoming');
+  const [selectedTab, setSelectedTab] = useState<'upcoming' | 'past'>(
+    'upcoming',
+  );
   const [upcomingPage, setUpcomingPage] = useState(1);
   const [pastPage, setPastPage] = useState(1);
+
+  const {
+    data: featuredEventsData,
+    isLoading: isLoadingFeaturedEvents,
+    error: featuredEventsError,
+  } = useFeaturedEvents();
 
   // Get events based on selected tab with pagination
   const {
@@ -33,23 +41,14 @@ const EventPage: React.FC = () => {
     ? eventsData.results
     : [];
 
-  // Featured events are selected from upcoming events (look for featured tag or just use first upcoming event)
-  const featuredEvents = currentEvents.filter(
-    (event: EventV2) =>
-      selectedTab === 'upcoming' &&
-      ((event.event_tag || '').toLowerCase() === 'featured' ||
-        (event.tags || []).some(
-          (tag: string) => tag.toLowerCase() === 'featured',
-        )),
-  );
+  const featuredEvents = Array.isArray(featuredEventsData)
+    ? featuredEventsData
+    : [];
 
-  // If no featured events, use the first upcoming event as featured
-  const firstFeaturedEvent =
-    selectedTab === 'upcoming' && featuredEvents.length > 0
-      ? featuredEvents[0]
-      : selectedTab === 'upcoming' && currentEvents.length > 0
-        ? currentEvents[0]
-        : null;
+  const firstFeaturedEvent = featuredEvents[0] ?? null;
+
+  const getEventRouteSlug = (event: EventV2 | null) =>
+    event?.slug || event?.public_identifier || String(event?.id ?? '');
 
   // Function to format the date range based on whether the months are the same
   const formatDateRange = (startDate?: string, endDate?: string) => {
@@ -69,7 +68,7 @@ const EventPage: React.FC = () => {
   };
 
   const handleTabClick = (tab: string) => {
-    setSelectedTab(tab);
+    setSelectedTab(tab as 'upcoming' | 'past');
     // Reset page when switching tabs
     if (tab === 'upcoming') {
       setUpcomingPage(1);
@@ -83,8 +82,8 @@ const EventPage: React.FC = () => {
   // };
 
   // Determine loading and error states
-  const isHeaderLoading = selectedTab === 'upcoming' && isLoadingEvents;
-  const hasHeaderError = selectedTab === 'upcoming' && eventsError;
+  const isHeaderLoading = isLoadingFeaturedEvents && !firstFeaturedEvent;
+  const hasHeaderError = !firstFeaturedEvent && Boolean(featuredEventsError);
 
   return (
     <div className="flex flex-col w-full h-full">
@@ -172,10 +171,7 @@ const EventPage: React.FC = () => {
                 <CustomButton
                   onClick={() =>
                     router.push(
-                      `/events/${
-                        (firstFeaturedEvent as any)?.public_identifier ||
-                        firstFeaturedEvent?.id
-                      }`,
+                      `/events/${getEventRouteSlug(firstFeaturedEvent)}`,
                     )
                   }
                   className="bg-blue-100 text-blue-700 px-6 py-4"

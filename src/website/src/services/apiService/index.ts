@@ -2,6 +2,7 @@
 // Export all API services for easy importing
 
 export { default as africanCountriesService } from './africanCountries';
+export { default as blogService } from './blogs';
 export { default as boardMembersService } from './boardMembers';
 export { default as careersService } from './careers';
 export { default as cleanAirResourcesService } from './cleanAirResources';

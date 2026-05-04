@@ -2,8 +2,9 @@
 
 import { usePathname, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
+import { getConfiguredSiteUrls } from '@/lib/siteUrl';
 import { hasAnalyticsConsent } from '@/utils/cookieConsent';
 
 const FALLBACK_MEASUREMENT_ID = 'G-79ZVCLEDSG';
@@ -30,8 +31,22 @@ export default function GoogleAnalytics({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [hasConsent, setHasConsent] = useState(false);
+  const [isScriptLoaded, setIsScriptLoaded] = useState(false);
   const resolvedMeasurementId =
     measurementId?.trim() || FALLBACK_MEASUREMENT_ID;
+  const configuredLinkerDomains = useMemo(
+    () =>
+      getConfiguredSiteUrls()
+        .map((siteUrl) => {
+          try {
+            return new URL(siteUrl).hostname;
+          } catch {
+            return null;
+          }
+        })
+        .filter((domain): domain is string => Boolean(domain)),
+    [],
+  );
 
   // Check for consent on mount and when consent changes
   useEffect(() => {
@@ -52,6 +67,7 @@ export default function GoogleAnalytics({
     if (
       typeof window === 'undefined' ||
       !hasConsent ||
+      !isScriptLoaded ||
       typeof window.gtag === 'undefined'
     ) {
       return;
@@ -68,7 +84,13 @@ export default function GoogleAnalytics({
       page_title: document.title,
       send_to: resolvedMeasurementId,
     });
-  }, [pathname, resolvedMeasurementId, searchParams, hasConsent]);
+  }, [
+    pathname,
+    resolvedMeasurementId,
+    searchParams,
+    hasConsent,
+    isScriptLoaded,
+  ]);
 
   if (!resolvedMeasurementId || !hasConsent) {
     return null;
@@ -80,6 +102,9 @@ export default function GoogleAnalytics({
       <Script
         src={`https://www.googletagmanager.com/gtag/js?id=${resolvedMeasurementId}`}
         strategy="afterInteractive"
+        onLoad={() => {
+          setIsScriptLoaded(true);
+        }}
       />
       <Script id="ga-init" strategy="afterInteractive">
         {`
@@ -89,6 +114,11 @@ export default function GoogleAnalytics({
           gtag('js', new Date());
           gtag('config', '${resolvedMeasurementId}', {
             send_page_view: false,
+            allow_linker: true,
+            cookie_domain: 'auto',
+            linker: {
+              domains: ${JSON.stringify(configuredLinkerDomains)},
+            },
           });
         `}
       </Script>

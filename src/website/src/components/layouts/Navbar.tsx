@@ -196,6 +196,12 @@ const Navbar: React.FC = () => {
                 />
               </div>
             ))}
+            <Link
+              href="/blogs"
+              className="text-gray-800 font-medium hover:text-blue-600 text-sm transition-colors translate-element"
+            >
+              Blogs
+            </Link>
             <CustomButton
               onClick={() => {
                 trackEvent({
@@ -345,6 +351,18 @@ const Navbar: React.FC = () => {
                 </div>
               </div>
             ))}
+            <Link
+              href="/blogs"
+              onClick={handleLinkClick}
+              className="flex items-center justify-between px-5 py-3.5 text-left transition-colors hover:bg-gray-50"
+            >
+              <span className="text-sm font-semibold text-gray-800 translate-element">
+                Blogs
+              </span>
+              <span className="text-xs font-medium uppercase tracking-[0.18em] text-blue-600">
+                Latest
+              </span>
+            </Link>
           </div>
 
           {/* Drawer Footer CTAs */}

@@ -24,6 +24,9 @@ const FloatingMiniBillboardWrapper = lazy(
   () => import('@/components/FloatingMiniBillboardWrapper'),
 );
 
+const GOOGLE_ANALYTICS_MEASUREMENT_ID =
+  process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+
 const normalizedSiteUrl = getPrimarySiteUrl();
 
 const interFont = localFont({
@@ -323,9 +326,7 @@ export default async function RootLayout({
         <GoogleTranslate />
         <ExternalLinkDecorator />
         <Suspense fallback={null}>
-          <GoogleAnalytics
-            measurementId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}
-          />
+          <GoogleAnalytics measurementId={GOOGLE_ANALYTICS_MEASUREMENT_ID} />
         </Suspense>
         <ErrorBoundary>
           <ReduxDataProvider>

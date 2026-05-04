@@ -66,7 +66,7 @@ export async function generateMetadata({
 const page = ({ params }: { params: any }) => {
   return (
     <div>
-      <SingleEvent id={params.id} />
+      <SingleEvent slug={params.id} />
     </div>
   );
 };

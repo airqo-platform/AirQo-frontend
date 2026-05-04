@@ -14,9 +14,16 @@ interface MainLayoutProps {
   children: React.ReactNode;
   // Optional full-width element rendered above the centered container (e.g., full-width hero)
   topFullWidth?: React.ReactNode;
+  showMarketingSections?: boolean;
+  showNewsletter?: boolean;
 }
 
-const MainLayout = ({ children, topFullWidth }: MainLayoutProps) => {
+const MainLayout = ({
+  children,
+  topFullWidth,
+  showMarketingSections = true,
+  showNewsletter = true,
+}: MainLayoutProps) => {
   return (
     <div className="min-h-screen w-full flex flex-col overflow-x-hidden">
       {/* GitHub Ribbon */}
@@ -33,23 +40,29 @@ const MainLayout = ({ children, topFullWidth }: MainLayoutProps) => {
 
           <div className="text-gray-700 w-full">{children}</div>
 
-          {/* Highlight Section */}
-          <section className="mt-32 mb-8">
-            <Highlight />
-          </section>
+          {showMarketingSections && (
+            <>
+              {/* Highlight Section */}
+              <section className="mt-32 mb-8">
+                <Highlight />
+              </section>
 
-          {/* Action Buttons Section */}
-          <section className="my-8">
-            <ActionButtons />
-          </section>
+              {/* Action Buttons Section */}
+              <section className="my-8">
+                <ActionButtons />
+              </section>
+            </>
+          )}
         </PageTransitionWrapper>
       </main>
 
       <footer>
-        {/* Newsletter Section */}
-        <section className="my-16">
-          <NewsLetter />
-        </section>
+        {showNewsletter && (
+          /* Newsletter Section */
+          <section className="my-16">
+            <NewsLetter />
+          </section>
+        )}
 
         {/* Footer Section */}
         <Footer />
