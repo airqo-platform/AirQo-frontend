@@ -52,20 +52,15 @@ export const useContextAwareRouting = () => {
       return true;
     };
 
-    const contextChanged = initializedRef.current && previousContextRef.current !== userContext;
+    const contextChanged =
+      initializedRef.current && previousContextRef.current !== userContext;
+    initializedRef.current = true;
+    previousContextRef.current = userContext;
 
-    // Always check route on first load; also check when context changes
-    if (!initializedRef.current || contextChanged) {
-      initializedRef.current = true;
-      previousContextRef.current = userContext;
-
-      if (!isRouteAccessible(pathname)) {
-        router.push(ROUTE_LINKS.HOME);
-      }
+    // Enforce access on every pathname or context change
+    if (!isRouteAccessible(pathname)) {
+      router.replace(ROUTE_LINKS.HOME);
       return;
     }
-
-    // Same context, no action needed
-    previousContextRef.current = userContext;
   }, [userContext, pathname, getSidebarConfig, router]);
 }; 
