@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Rating, Star } from '@smastrom/react-rating';
 import '@smastrom/react-rating/style.css';
 import { Flag, Lightbulb, ChevronLeft } from 'lucide-react';
+import { AqXClose } from '@airqo/icons-react';
 
 import { useUserContext } from '@/core/hooks/useUserContext';
 import ReusableDialog from '@/components/shared/dialog/ReusableDialog';
@@ -246,16 +247,24 @@ export const FeedbackLauncher: React.FC = () => {
       customHeader={mainCategory ? (
         <div className="flex items-center justify-between w-full px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3">
-            <ReusableButton variant="text" onClick={() => setMainCategory(null)} padding="p-0" className="h-8 w-8">
-              <ChevronLeft className="w-5 h-5" />
-            </ReusableButton>
+            <ReusableButton 
+              variant="text" 
+              onClick={() => setMainCategory(null)} 
+              padding="p-0" 
+              className="h-8 w-8"
+              Icon={ChevronLeft}
+              aria-label="Go back"
+            />
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white capitalize">{dialogTitle}</h2>
           </div>
-          <ReusableButton variant="text" onClick={() => setIsOpen(false)} padding="p-0" className="h-8 w-8">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-              <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
-            </svg>
-          </ReusableButton>
+          <ReusableButton 
+            variant="text" 
+            onClick={() => setIsOpen(false)} 
+            padding="p-0" 
+            className="h-8 w-8"
+            Icon={AqXClose}
+            aria-label="Close dialog"
+          />
         </div>
       ) : undefined}
       showFooter={!!mainCategory}
