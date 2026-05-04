@@ -67,10 +67,15 @@ export const SiteInformationCard: React.FC<SiteInformationCardProps> = ({ site, 
                 <span className="font-mono text-sm truncate max-w-[150px] sm:max-w-none">{site._id}</span>
                 <ReusableButton
                   variant="text"
-                  onClick={() => {
+                  onClick={async () => {
                     if (site._id) {
-                      navigator.clipboard.writeText(site._id);
-                      ReusableToast({ message: "Copied", type: "SUCCESS" });
+                      try {
+                        await navigator.clipboard.writeText(site._id);
+                        ReusableToast({ message: "Copied", type: "SUCCESS" });
+                      } catch (error) {
+                        console.error("Failed to copy:", error);
+                        ReusableToast({ message: "Failed to copy", type: "ERROR" });
+                      }
                     }
                   }}
                   className="p-1 h-auto hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
