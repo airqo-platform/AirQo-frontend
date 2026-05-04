@@ -12,6 +12,11 @@ import logger from '@/lib/logger';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
+const isTokenExpired = (exp?: number): boolean => {
+  if (!exp) return false;
+  return Date.now() / 1000 > exp;
+};
+
 const getValidUrl = (value?: string) => {
   const url = value?.trim();
 
@@ -212,6 +217,10 @@ export const options: NextAuthOptions = {
     },
 
     async session({ session, token }) {
+      if (isTokenExpired(token.exp as number | undefined)) {
+        return { ...session, user: null as any };
+      }
+
       if (token) {
         session.user = {
           ...session.user,
