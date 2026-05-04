@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Globe, Lock } from 'lucide-react';
+import { Globe, Lock, Shield } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { useCohorts, useGroupCohorts } from '@/core/hooks/useCohorts';
 import { cohorts as cohortsApi } from '@/core/apis/cohorts';
@@ -12,12 +12,14 @@ import { usePermissions } from '@/core/hooks/usePermissions';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { useUserContext } from '@/core/hooks/useUserContext';
+import { Cohort } from '@/app/types/cohorts';
 
 const NetworkVisibilityCard = () => {
     const queryClient = useQueryClient();
     const router = useRouter();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [targetVisibility, setTargetVisibility] = useState<boolean>(false);
+    const [pendingCohort, setPendingCohort] = useState<Cohort | null>(null);
     const [isUpdating, setIsUpdating] = useState(false);
 
     const { activeGroup, isExternalOrg } = useUserContext();
@@ -54,41 +56,18 @@ const NetworkVisibilityCard = () => {
         return null; // Don't show card if no cohorts to manage
     }
 
-    // Determine current implied global state.
-    // Default to: if all are public -> ON (Public). Else -> OFF (Private).
     const allPublic = cohorts.length > 0 && cohorts.every((c) => c.visibility === true);
-
-    // Local state for the switch
-    const isChecked = allPublic;
-
-    const handleToggle = (checked: boolean) => {
-        setTargetVisibility(checked);
-        setIsDialogOpen(true);
-    };
+    const allPrivate = cohorts.length > 0 && cohorts.every((c) => c.visibility === false);
 
     const handleRunningUpdate = async () => {
+        if (!pendingCohort) return;
+        
         setIsUpdating(true);
         try {
-            const cohortsToUpdate = cohorts.filter(c => c.visibility !== targetVisibility);
-
-            if (cohortsToUpdate.length === 0) {
-                ReusableToast({
-                    message: `All cohorts are already ${targetVisibility ? 'Public' : 'Private'}`,
-                    type: 'INFO',
-                });
-                setIsDialogOpen(false);
-                setIsUpdating(false);
-                return;
-            }
-
-            await Promise.all(
-                cohortsToUpdate.map((cohort) =>
-                    cohortsApi.updateCohortDetailsApi(cohort._id, { visibility: targetVisibility })
-                )
-            );
+            await cohortsApi.updateCohortDetailsApi(pendingCohort._id, { visibility: targetVisibility });
 
             ReusableToast({
-                message: `Successfully set ${cohortsToUpdate.length} cohorts to ${targetVisibility ? 'Public' : 'Private'}`,
+                message: `Successfully set ${pendingCohort.name} to ${targetVisibility ? 'Public' : 'Private'}`,
                 type: 'SUCCESS',
             });
 
@@ -103,6 +82,7 @@ const NetworkVisibilityCard = () => {
         } finally {
             setIsUpdating(false);
             setIsDialogOpen(false);
+            setPendingCohort(null);
         }
     };
 
@@ -110,59 +90,83 @@ const NetworkVisibilityCard = () => {
         return null;
     }
 
-    // UI States
-    const isPrivate = !isChecked; // State A
-
     return (
         <>
             <div className="pt-2">
                 <div className="flex flex-col md:flex-row gap-6 justify-between items-start md:items-center">
                     <div className="flex gap-4">
                         <div className={cn(
-                            "w-12 h-12 rounded-full flex items-center justify-center shrink-0",
-                            isPrivate ? "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400" : "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
+                            "w-12 h-12 rounded-full flex items-center justify-center shrink-0 transition-colors duration-300",
+                            allPublic ? "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400" : 
+                            allPrivate ? "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400" :
+                            "bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400"
                         )}>
-                            {isPrivate ? <Lock className="w-6 h-6" /> : <Globe className="w-6 h-6" />}
+                            {allPublic ? <Globe className="w-6 h-6" /> : 
+                             allPrivate ? <Lock className="w-6 h-6" /> : 
+                             <Shield className="w-6 h-6" />}
                         </div>
                         <div>
-                            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-                                {isPrivate ? "Your devices are Private" : "Your devices are Public"}
+                            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 transition-all">
+                                {allPublic ? "Your devices are Public" : 
+                                 allPrivate ? "Your devices are Private" : 
+                                 "Custom Visibility Settings"}
                             </h3>
                             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-xl">
-                                {isPrivate
-                                    ? "Your devices are hidden from the public. Data is visible only in your account."
-                                    : "Your devices are visible to anyone on the AirQo Map. You are contributing to open data."
-                                }
+                                {allPublic ? "Your devices are visible to anyone on the AirQo Map. You are contributing to open data." :
+                                 allPrivate ? "Your devices are hidden from the public. Data is visible only in your account." :
+                                 "Visibility settings are customized per cohort. Manage each cohort below."}
                             </p>
                         </div>
                     </div>
+                </div>
 
-                    <div className="flex items-center gap-2 shrink-0">
-                        <span className={cn(
-                            "text-sm font-medium",
-                            isPrivate ? "text-gray-900 dark:text-gray-100" : "text-gray-500 dark:text-gray-400"
-                        )}>
-                            Private
-                        </span>
-                        <Switch
-                            checked={isChecked}
-                            onCheckedChange={handleToggle}
-                            className="data-[state=checked]:bg-green-500"
-                        />
-                        <span className={cn(
-                            "text-sm font-medium",
-                            !isPrivate ? "text-gray-900 dark:text-gray-100" : "text-gray-500 dark:text-gray-400"
-                        )}>
-                            Public
-                        </span>
+                <div className="mt-8 space-y-3">
+                    <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.1em] mb-3 px-1">Manage Cohorts Visibility</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {cohorts.map((cohort) => (
+                            <div key={cohort._id} className="flex items-center justify-between p-4 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/30 dark:bg-gray-800/20 hover:border-gray-200 dark:hover:border-gray-700 transition-all duration-200 group">
+                                <div className="flex items-center gap-3">
+                                    <div className={cn(
+                                        "w-2 h-2 rounded-full transition-all duration-300",
+                                        cohort.visibility ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]" : "bg-gray-300"
+                                    )} />
+                                    <span
+                                        id={`cohort-visibility-${cohort._id}`}
+                                        className="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-white transition-colors"
+                                    >
+                                        {cohort.name}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <span className={cn(
+                                        "text-[10px] font-bold uppercase tracking-wider transition-colors",
+                                        cohort.visibility ? "text-green-600 dark:text-green-400" : "text-gray-400"
+                                    )}>
+                                        {cohort.visibility ? 'Public' : 'Private'}
+                                    </span>
+                                    <Switch
+                                        aria-labelledby={`cohort-visibility-${cohort._id}`}
+                                        checked={cohort.visibility}
+                                        onCheckedChange={(checked) => {
+                                            setPendingCohort(cohort);
+                                            setTargetVisibility(checked);
+                                            setIsDialogOpen(true);
+                                        }}
+                                        className="data-[state=checked]:bg-green-500"
+                                    />
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
-                <div className="border-t border-t-gray-200 dark:border-t-gray-600 mt-6 flex justify-start -mx-6 px-6 pt-1">
+
+                <div className="border-t border-t-gray-100 dark:border-t-gray-800 mt-8 flex justify-start -mx-6 px-6 pt-2">
                     <ReusableButton
                         variant="text"
                         onClick={() => router.push('/cohorts')}
+                        className="text-primary hover:bg-primary/5"
                     >
-                        View Cohorts
+                        View All Cohorts Details
                     </ReusableButton>
                 </div>
             </div>
@@ -170,7 +174,7 @@ const NetworkVisibilityCard = () => {
             <ReusableDialog
                 isOpen={isDialogOpen}
                 onClose={() => !isUpdating && setIsDialogOpen(false)}
-                title={targetVisibility ? "Make all devices public?" : "Make all devices private?"}
+                title={targetVisibility ? `Make "${pendingCohort?.name}" public?` : `Make "${pendingCohort?.name}" private?`}
                 size="md"
                 customFooter={
                     <div className="flex items-center justify-end gap-3 w-full px-6 py-4 border-t border-gray-200 dark:border-gray-700">
@@ -195,8 +199,8 @@ const NetworkVisibilityCard = () => {
                 <div className="space-y-4 py-2">
                     <p className="text-gray-600 dark:text-gray-300">
                         {targetVisibility
-                            ? "You are about to make your devices visible on the public AirQo Map. This means anyone can see your air quality readings."
-                            : "You are about to make your devices private. Your data will only be visible to your organization and will not appear on the public map."
+                            ? `You are about to make the devices in "${pendingCohort?.name}" visible on the public AirQo Map. This means anyone can see the air quality readings for these devices.`
+                            : `You are about to make "${pendingCohort?.name}" private. Data from these devices will only be visible to your organization and will not appear on the public map.`
                         }
                     </p>
                 </div>
@@ -206,3 +210,5 @@ const NetworkVisibilityCard = () => {
 };
 
 export default NetworkVisibilityCard;
+
+

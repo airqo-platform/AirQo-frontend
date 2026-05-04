@@ -11,6 +11,7 @@ import { DeviceActivitiesResponse } from "../apis/devices";
 
 import { useGroupCohorts } from "./useCohorts";
 import { useAppSelector } from "../redux/hooks";
+import { useUserContext } from "./useUserContext";
 import { useMemo } from "react";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { AxiosError } from "axios";

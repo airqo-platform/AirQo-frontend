@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Device, DeviceSite } from "@/app/types/devices";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 
@@ -9,6 +9,8 @@ interface DeviceLocationCardProps {
 
 export function DeviceLocationCard({ device }: DeviceLocationCardProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const isAdminMode = pathname.startsWith("/admin");
 
   const toNumberOrNull = (v: unknown) => {
     if (v === null || v === undefined || v === '') return null;
@@ -19,9 +21,14 @@ export function DeviceLocationCard({ device }: DeviceLocationCardProps) {
   const lat = toNumberOrNull(device.latitude);
   const lon = toNumberOrNull(device.longitude);
 
+  const siteId = Array.isArray(device.site)
+    ? device.site[0]?._id
+    : (device.site as { _id: string })?._id;
+
   const handleEditLocation = () => {
-    if (device.site_id) {
-      router.push(`/admin/sites/${device.site_id}`);
+    if (siteId) {
+      const basePath = isAdminMode ? "/admin/sites" : "/sites";
+      router.push(`${basePath}/${siteId}`);
     }
   };
 
@@ -71,7 +78,7 @@ export function DeviceLocationCard({ device }: DeviceLocationCardProps) {
         </div>
       </div>
 
-      {device.site_id && (
+      {siteId && (
         <div className="border-t px-2 flex justify-end">
           <ReusableButton
             variant="text"

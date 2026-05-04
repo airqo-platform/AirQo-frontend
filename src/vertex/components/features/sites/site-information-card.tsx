@@ -8,8 +8,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { AqEdit01 } from "@airqo/icons-react";
+import { AqEdit01, AqCopy01 } from "@airqo/icons-react";
 import ReusableButton from "@/components/shared/button/ReusableButton";
+import ReusableToast from "@/components/shared/toast/ReusableToast";
 import {
   badgeColorClasses,
   formatDisplayDate,
@@ -59,7 +60,31 @@ export const SiteInformationCard: React.FC<SiteInformationCardProps> = ({ site, 
           <DetailItem label="Sub County" value={site.sub_county} />
           <DetailItem label="District" value={site.district} />
           <DetailItem label="Region" value={site.region} />
-          <DetailItem label="Altitude" value={`${site.altitude} m`} />
+          <DetailItem 
+            label="Site ID" 
+            value={
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-sm truncate max-w-[150px] sm:max-w-none">{site._id}</span>
+                <ReusableButton
+                  variant="text"
+                  onClick={async () => {
+                    if (site._id) {
+                      try {
+                        await navigator.clipboard.writeText(site._id);
+                        ReusableToast({ message: "Copied", type: "SUCCESS" });
+                      } catch (error) {
+                        console.error("Failed to copy:", error);
+                        ReusableToast({ message: "Failed to copy", type: "ERROR" });
+                      }
+                    }
+                  }}
+                  className="p-1 h-auto hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
+                  Icon={AqCopy01}
+                />
+              </div>
+            } 
+          />
+          <DetailItem label="Altitude" value={<span className="font-mono">{site.altitude} m</span>} />
           <DetailItem label="Nearest Road" value={site.distance_to_nearest_road != null ? `${site.distance_to_nearest_road.toFixed(2)} m` : "N/A"} />
           <div>
             <div className="text-xs text-muted-foreground uppercase font-medium tracking-wide mb-1">Status</div>

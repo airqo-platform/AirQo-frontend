@@ -4,6 +4,83 @@
 
 ---
 
+## Version 1.23.35
+**Released:** May 03, 2026
+
+### Sites Management Overview & Contextual Navigation
+
+Introduced a centralized Sites management module for standard users and organizations, bridging the gap between admin-only site management and organizational asset visibility.
+
+<details>
+<summary><strong>New Features (4)</strong></summary>
+
+- **Sites Overview Page**: Created a new management dashboard (`/sites/overview`) featuring site statistics, searchable tables, and site creation workflows tailored for standard user contexts.
+- **Contextual Site Details**: Implemented a user-facing site details page (`/sites/[id]`) that mirrors the rich administrative interface, allowing users to view metadata, app settings, and telemetry for their specific sites.
+- **Granular Scoped Fetching**: Enhanced the sites data hook to automatically resolve cohort-based visibility, ensuring users only manage sites they own or have access to in their active context.
+- **Dynamic Site Redirection**: Added contextual routing logic to device location cards that intelligently navigates to either the Admin or User sites view based on the current browsing context.
+
+</details>
+
+<details>
+<summary><strong>Core Improvements (2)</strong></summary>
+
+- **Reusable Management Components**: Refactored `SitesTable` and `CreateSiteForm` to support customizable base paths, enabling seamless reuse across administrative and organizational modules.
+- **Unified Site ID Resolution**: Standardized site identification to use nested site objects instead of flat ID fields, ensuring robust navigation and data consistency.
+- **Site ID Copy Feature**: Added a convenient copy-to-clipboard button for Site IDs in the site information card to match the Cohort management experience.
+- **Sidebar Clarity**: Renamed "Assets" to "Devices" in the organization view to provide a clear distinction from the new "Sites" management section.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (9)</strong></summary>
+
+- `app/(authenticated)/sites/overview/page.tsx`
+- `app/(authenticated)/sites/[id]/page.tsx`
+- `core/hooks/useSites.ts`
+- `components/features/sites/sites-list-table.tsx`
+- `components/features/sites/create-site-form.tsx`
+- `components/features/devices/device-location-card.tsx`
+- `core/hooks/useUserContext.ts`
+- `components/layout/secondary-sidebar.tsx`
+- `core/routes.ts`
+
+</details>
+
+---
+
+## Version 1.23.34
+**Released:** May 03, 2026
+
+### Granular Network Visibility & Cohort Privacy Management
+
+Introduced individual visibility controls for organization cohorts, allowing for granular privacy management. The update includes a redesigned visibility dashboard with support for mixed visibility states and guarded confirmation workflows.
+
+<details>
+<summary><strong>Privacy & Visibility (4)</strong></summary>
+
+- **Individual Cohort Toggles**: Replaced the global organization visibility toggle with per-cohort switches, enabling fine-grained control over which device groups are public or private.
+- **Custom Visibility Dashboard**: Introduced a "Custom Visibility Settings" state and description for organizations with mixed public/private cohorts, ensuring clear status communication.
+- **Dynamic Status Indicators**: Added `Globe` (All Public), `Lock` (All Private), and `Shield` (Custom/Mixed) status icons with corresponding descriptions to provide clear context of the organization's privacy stance.
+- **Guarded Visibility Updates**: Every visibility change is now protected by a confirmation dialog that identifies the specific cohort by name and explains the impact of the change.
+
+</details>
+
+<details>
+<summary><strong>UI/UX Improvements (1)</strong></summary>
+
+- **Enhanced Cohort List**: Refined the cohort list layout with status indicators, responsive grid support, and hover effects for better scannability and interaction.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (1)</strong></summary>
+
+- `components/features/home/network-visibility-card.tsx`
+
+</details>
+
+---
+
 ## Version 1.23.33
 **Released:** April 29, 2026
 

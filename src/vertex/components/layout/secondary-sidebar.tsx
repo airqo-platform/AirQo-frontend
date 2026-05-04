@@ -188,8 +188,18 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                     item={{
                       href: ROUTE_LINKS.ORG_ASSETS,
                       icon: AqMonitor,
-                      label: 'Assets',
+                      label: 'Devices',
                       disabled: !contextPermissions.canViewDevices,
+                    }}
+                    isCollapsed={isCollapsed}
+                    onClick={onNavigate}
+                  />
+                  <NavItem
+                    item={{
+                      href: ROUTE_LINKS.ORG_SITES,
+                      icon: AqMarkerPin01,
+                      label: 'Sites',
+                      disabled: !contextPermissions.canViewSites,
                     }}
                     isCollapsed={isCollapsed}
                     onClick={onNavigate}

@@ -11,4 +11,6 @@ export const ROUTE_LINKS = {
   ORG_ASSETS: '/devices/overview',
   ORG_REGISTER_DEVICE: '/devices/claim',
   DEVICE_COHORTS: '/cohorts',
+  ORG_SITES: '/sites/overview',
+  SITE_DETAILS: '/sites',
 };
