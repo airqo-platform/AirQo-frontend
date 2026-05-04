@@ -36,18 +36,18 @@ const BlogCardSkeleton = () => (
     <div className="aspect-[16/9] bg-gray-200" />
     <CardHeader className="space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <div className="h-4 w-28 rounded-full bg-gray-200" />
-        <div className="h-4 w-20 rounded-full bg-gray-200" />
+        <div className="h-4 w-28 bg-gray-200" />
+        <div className="h-4 w-20 bg-gray-200" />
       </div>
       <div className="space-y-2">
-        <div className="h-6 w-11/12 rounded-full bg-gray-200" />
-        <div className="h-6 w-4/5 rounded-full bg-gray-200" />
+        <div className="h-6 w-11/12 bg-gray-200" />
+        <div className="h-6 w-4/5 bg-gray-200" />
       </div>
     </CardHeader>
     <CardContent className="space-y-3 px-6 pb-6 pt-0">
-      <div className="h-4 w-full rounded-full bg-gray-200" />
-      <div className="h-4 w-5/6 rounded-full bg-gray-200" />
-      <div className="h-4 w-2/3 rounded-full bg-gray-200" />
+      <div className="h-4 w-full bg-gray-200" />
+      <div className="h-4 w-5/6 bg-gray-200" />
+      <div className="h-4 w-2/3 bg-gray-200" />
     </CardContent>
   </Card>
 );
@@ -73,7 +73,7 @@ const BlogCard = ({ blog }: { blog: BlogPost }) => {
           ) : (
             <div className="flex h-full w-full items-end bg-[#F2F1F6] p-6">
               <div className="max-w-md space-y-3">
-                <span className="inline-flex rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 shadow-sm">
+                <span className="inline-flex bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 shadow-sm">
                   {getBlogCategoryLabel(blog.website_category)}
                 </span>
                 <p className="text-lg font-semibold leading-7 text-gray-900">
@@ -108,10 +108,10 @@ const BlogCard = ({ blog }: { blog: BlogPost }) => {
               alt={blog.author_name}
               width={44}
               height={44}
-              className="h-11 w-11 rounded-full object-cover ring-2 ring-white shadow-sm"
+              className="h-11 w-11 object-cover ring-2 ring-white shadow-sm"
             />
           ) : (
-            <div className="grid h-11 w-11 place-items-center rounded-full bg-blue-50 text-sm font-semibold text-blue-700">
+            <div className="grid h-11 w-11 place-items-center bg-blue-50 text-sm font-semibold text-blue-700">
               {blog.author_name
                 ? blog.author_name
                     .split(' ')
@@ -135,7 +135,7 @@ const BlogCard = ({ blog }: { blog: BlogPost }) => {
         <Button
           asChild
           variant="outline"
-          className="rounded-full border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800"
+          className="border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800"
         >
           <Link href={detailHref}>Read more</Link>
         </Button>
@@ -270,7 +270,7 @@ const BlogsPage: React.FC = () => {
                   type="button"
                   variant="outline"
                   onClick={resetFilters}
-                  className="rounded-full border-gray-300 text-gray-700 hover:bg-gray-50"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50"
                 >
                   Reset filters
                 </Button>
@@ -315,7 +315,7 @@ const BlogsPage: React.FC = () => {
               <Button
                 type="button"
                 onClick={() => refetch()}
-                className="rounded-full bg-blue-600 text-white hover:bg-blue-700"
+                className="bg-blue-600 text-white hover:bg-blue-700"
               >
                 Try again
               </Button>
@@ -323,7 +323,7 @@ const BlogsPage: React.FC = () => {
                 type="button"
                 variant="outline"
                 onClick={resetFilters}
-                className="rounded-full border-gray-300 text-gray-700 hover:bg-gray-50"
+                className="border-gray-300 text-gray-700 hover:bg-gray-50"
               >
                 Clear filters
               </Button>
@@ -339,14 +339,14 @@ const BlogsPage: React.FC = () => {
               <Button
                 type="button"
                 onClick={resetFilters}
-                className="rounded-full bg-blue-600 text-white hover:bg-blue-700"
+                className="bg-blue-600 text-white hover:bg-blue-700"
               >
                 Reset filters
               </Button>
               <Button
                 asChild
                 variant="outline"
-                className="rounded-full border-gray-300 text-gray-700 hover:bg-gray-50"
+                className="border-gray-300 text-gray-700 hover:bg-gray-50"
               >
                 <Link href="/contact">Contact AirQo</Link>
               </Button>
