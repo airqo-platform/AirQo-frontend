@@ -218,7 +218,7 @@ export const options: NextAuthOptions = {
 
     async session({ session, token }) {
       if (isTokenExpired(token.exp as number | undefined)) {
-        return { ...session, user: null as any };
+        return { ...session, user: null };
       }
 
       if (token) {
