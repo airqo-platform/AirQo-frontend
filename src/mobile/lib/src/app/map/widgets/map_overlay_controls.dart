@@ -36,13 +36,15 @@ class MapOverlayControls extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              MapIconButton(
-                icon: Icons.my_location,
-                isDark: isDark,
-                filled: true,
-                onTap: onLocateTap ?? () {},
-              ),
-              const SizedBox(height: 6),
+              if (onLocateTap != null) ...[
+                MapIconButton(
+                  icon: Icons.my_location,
+                  isDark: isDark,
+                  filled: true,
+                  onTap: onLocateTap!,
+                ),
+                const SizedBox(height: 6),
+              ],
               MapZoomGroup(
                 isDark: isDark,
                 onZoomIn: onZoomIn,

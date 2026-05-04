@@ -42,6 +42,12 @@ class MapCameraController with UiLoggy {
         if (lng > maxLng) maxLng = lng;
       }
       if (minLat == 90.0 || minLng == 180.0) return;
+      if (minLat == maxLat && minLng == maxLng) {
+        await _controller!.animateCamera(
+          CameraUpdate.newLatLngZoom(LatLng(minLat, minLng), 12),
+        );
+        return;
+      }
       final latPad = (maxLat - minLat) * 0.1;
       final lngPad = (maxLng - minLng) * 0.1;
       await _controller!.animateCamera(
