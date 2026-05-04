@@ -193,9 +193,6 @@ const BlogsPage: React.FC = () => {
     <div className="pb-16">
       <section className="mb-12 bg-[#F2F1F6] px-4 py-16 lg:px-0">
         <div className={`${mainConfig.containerClass} w-full`}>
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-500">
-            AirQo Blogs
-          </p>
           <h1 className="mt-3 mb-2 text-4xl font-bold text-gray-900">
             AirQo Blogs
           </h1>
