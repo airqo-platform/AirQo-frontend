@@ -4,6 +4,45 @@
 
 ---
 
+## Version 1.23.37
+**Released:** May 04, 2026
+
+### New Feature: Integrated Feedback & Issue Reporting System
+
+Introduced a brand-new, native feedback submission module for Vertex, providing users with a structured way to report issues or suggest product improvements directly from the dashboard.
+
+<details>
+<summary><strong>New Features (4)</strong></summary>
+
+- **Initial Launch of Feedback Launcher**: Deployed a persistent feedback trigger in the top navigation bar, enabling users to share thoughts from any page in the platform.
+- **Structured Multi-Step Flow**: Implemented a guided experience where users first categorize their feedback ("Report an issue" vs "Suggest an idea") to ensure high-quality submissions.
+- **Contextual Action Reporting**: When reporting issues, users can select from a predefined list of Vertex actions (e.g., Claiming Devices, Sharing Data) to provide immediate context for troubleshooting.
+- **Automated Identity Attribution**: Integrated silent email retrieval from the user's active session context, eliminating the need for manual contact information entry.
+
+</details>
+
+<details>
+<summary><strong>Technical Details (3)</strong></summary>
+
+- **Core UI Foundation**: Built using Vertex's internal component library (`ReusableDialog`, `ReusableInputField`, `ReusableSelectInput`, and `ReusableToast`) to ensure a seamless and premium look and feel.
+- **Dynamic Category Mapping**: Implemented an intelligent mapping layer that routes submissions to the correct backend categories (`bug` vs `feature_request`) while preserving contextual details in the subject line.
+- **Branded Rating Component**: Integrated a customizable star-rating system that leverages the application's primary blue theme with custom outline/filled states.
+
+</details>
+
+<details>
+<summary><strong>Files Created/Modified (5)</strong></summary>
+
+- `src/vertex/components/features/feedback/feedback-launcher.tsx` [NEW]
+- `src/vertex/components/features/feedback/feedback-dialog.ts` [NEW]
+- `src/vertex/core/apis/feedback.ts` [NEW]
+- `src/vertex/components/layout/topbar.tsx` [MODIFIED]
+- `src/vertex/components/layout/layout.tsx` [MODIFIED]
+
+</details>
+
+---
+
 ## Version 1.23.36
 **Released:** May 04, 2026
 
