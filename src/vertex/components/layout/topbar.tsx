@@ -3,7 +3,7 @@
 import type React from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import { Moon, Sun } from 'lucide-react';
-import { AqMenu01 } from '@airqo/icons-react';
+import { AqMenu01, AqHelpCircle } from '@airqo/icons-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -20,6 +20,7 @@ import Image from 'next/image';
 import Card from '../shared/card/CardWrapper';
 import { useLogout } from '@/core/hooks/useLogout';
 import AppDropdown from './AppDropdown';
+import { openFeedbackDialog } from '../features/feedback/feedback-dialog';
 import { useSession } from 'next-auth/react';
 import type { UserDetails } from '@/app/types/users';
 import { useTheme } from "next-themes";
@@ -116,6 +117,16 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
 
           <div className="flex items-center gap-x-1 ml-auto">
             <OrganizationPicker />
+
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={openFeedbackDialog}
+              className="text-muted-foreground hover:text-foreground rounded-full"
+              title="Help & Feedback"
+            >
+              <AqHelpCircle className="h-10 w-10" />
+            </Button>
 
             <AppDropdown />
 
