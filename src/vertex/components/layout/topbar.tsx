@@ -124,6 +124,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
               onClick={openFeedbackDialog}
               className="text-muted-foreground hover:text-foreground rounded-full"
               title="Help & Feedback"
+              aria-label="Help & Feedback"
             >
               <AqHelpCircle className="h-10 w-10" />
             </Button>
