@@ -17,6 +17,7 @@ interface SitesTableProps {
   multiSelect?: boolean;
   onSelectedSitesChange?: (selectedSites: Site[]) => void;
   className?: string;
+  basePath?: string;
 }
 
 type TableSite = TableItem<unknown>;
@@ -27,6 +28,7 @@ export default function SitesTable({
   multiSelect = false,
   onSelectedSitesChange,
   className,
+  basePath = "/admin/sites",
 }: SitesTableProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -52,7 +54,7 @@ export default function SitesTable({
   const handleSiteClick = (item: unknown) => {
     const site = item as Site;
     if (onSiteClick) onSiteClick(site);
-    else if (site._id) router.push(`/admin/sites/${site._id}`);
+    else if (site._id) router.push(`${basePath}/${site._id}`);
   };
 
   const handleSelectedItemsChange = (selectedIds: (string | number)[]) => {

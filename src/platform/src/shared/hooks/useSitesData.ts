@@ -21,7 +21,7 @@ export interface UseSitesDataResult {
   // Loading states
   isLoading: boolean;
   error: string | null;
-  retry: () => void;
+  retry: () => Promise<unknown>;
 
   // Pagination controls
   setCurrentPage: (page: number) => void;
@@ -108,9 +108,7 @@ export function useSitesData({
     // Loading states
     isLoading,
     error: typeof error === 'string' ? error : (error?.message ?? null),
-    retry: () => {
-      void mutate();
-    },
+    retry: () => mutate(),
 
     // Pagination controls
     setCurrentPage,

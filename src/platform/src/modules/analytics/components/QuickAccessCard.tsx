@@ -12,6 +12,8 @@ export const QuickAccessCard: React.FC<QuickAccessLocationsProps> = memo(
   ({
     sites,
     onManageFavorites,
+    onRefresh,
+    isRefreshing,
     className,
     title = 'Favorite Locations',
     subtitle = 'Add up to 4 frequently monitored cities for instant access to air quality trends, visualizations, and quick data downloads.',
@@ -46,6 +48,8 @@ export const QuickAccessCard: React.FC<QuickAccessLocationsProps> = memo(
         {/* External filter bar - matches the design in the image (pill style) */}
         <FilterBar
           onManageFavorites={onManageFavorites}
+          onRefresh={onRefresh}
+          isRefreshing={isRefreshing}
           showIcons={showIcon}
           onShowIconsChange={onShowIconsChange}
         />

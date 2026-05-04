@@ -3,7 +3,9 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePostHog } from 'posthog-js/react';
+import { AqRefreshCcw01 } from '@airqo/icons-react';
 import WideDialog from '@/shared/components/ui/wide-dialog';
+import { Button } from '@/shared/components/ui';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import { EmptyState } from '@/shared/components/ui/empty-state';
 import LocationCard from '@/shared/components/ui/location-card';
@@ -18,6 +20,21 @@ import { useChecklistIntegration } from '@/modules/user-checklist';
 import type { Site } from '@/shared/types/api';
 import { trackEvent } from '@/shared/utils/analytics';
 
+const isCancellationError = (error: unknown) => {
+  const candidate = error as {
+    name?: string;
+    code?: string;
+    message?: string;
+  } | null;
+
+  return (
+    candidate?.name === 'AbortError' ||
+    candidate?.name === 'CanceledError' ||
+    candidate?.code === 'ERR_CANCELED' ||
+    candidate?.message === 'canceled'
+  );
+};
+
 interface AddFavoritesProps {
   isOpen: boolean;
   onClose: () => void;
@@ -27,6 +44,14 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
   const posthog = usePostHog();
   const [selectedIds, setSelectedIds] = useState<(string | number)[]>([]);
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const isMountedRef = React.useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // Cache for storing site data across pagination
   const [siteDataCache, setSiteDataCache] = useState<
@@ -37,8 +62,11 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
   const { user, activeGroup } = useUser();
 
   // Get current user preferences
-  const { data: preferences, isLoading: preferencesLoading } =
-    useUserPreferencesList(user?.id || '', activeGroup?.id || '');
+  const {
+    data: preferences,
+    isLoading: preferencesLoading,
+    mutate: refreshPreferences,
+  } = useUserPreferencesList(user?.id || '', activeGroup?.id || '');
 
   // Update preferences hook
   const { trigger: updatePreferences, isMutating: isUpdating } =
@@ -52,6 +80,7 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
     sites,
     isLoading,
     error,
+    retry,
     totalSites,
     totalPages,
     currentPage,
@@ -65,6 +94,30 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
     initialPageSize: 6,
     maxLimit: 80,
   });
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    setErrorMessage('');
+    try {
+      const results = await Promise.allSettled([
+        retry(),
+        refreshPreferences?.(),
+      ]);
+      const failures = results.filter(
+        result =>
+          result.status === 'rejected' && !isCancellationError(result.reason)
+      );
+
+      if (failures.length > 0) {
+        console.error('Failed to refresh favorites data:', failures);
+        setErrorMessage('Failed to refresh favorites. Please try again.');
+      }
+    } finally {
+      if (isMountedRef.current) {
+        setIsRefreshing(false);
+      }
+    }
+  }, [refreshPreferences, retry]);
 
   // Get the most recent preference from the list
   const currentPreference = useMemo(() => {
@@ -253,6 +306,18 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
       isOpen={isOpen}
       onClose={onClose}
       headerLeft={<h2 className="text-xl">Add Favorites</h2>}
+      headerRight={
+        <Button
+          variant="outlined"
+          size="sm"
+          onClick={() => void handleRefresh()}
+          Icon={AqRefreshCcw01}
+          loading={isRefreshing}
+          disabled={isRefreshing || isLoading || preferencesLoading}
+        >
+          Refresh
+        </Button>
+      }
       sidebar={
         <div className="h-full">
           {allSelectedLocations.length === 0 ? (
@@ -264,7 +329,7 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
             />
           ) : (
             <div className="space-y-2">
-              <h3 className="text-sm font-medium  dark:text-gray-100 mb-3">
+              <h3 className="text-sm font-medium dark:text-gray-100 mb-3">
                 Selected Favorites ({selectedIds.length}/4)
               </h3>
               <AnimatePresence>
@@ -278,7 +343,10 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
                   >
                     <LocationCard
                       locationName={
-                        location.name || location.generated_name || ''
+                        location.search_name ||
+                        location.name ||
+                        location.generated_name ||
+                        ''
                       }
                       subtitle={`${location.city}, ${location.country}`}
                       isChecked={true}

@@ -337,6 +337,7 @@ export const useAnalyticsSiteCards = ({
           return {
             _id: selectedSite._id,
             name:
+              selectedSite.search_name ||
               selectedSite.name ||
               selectedSite.formatted_name ||
               selectedSite.generated_name ||
@@ -367,6 +368,7 @@ export const useAnalyticsSiteCards = ({
         return {
           _id: selectedSite._id,
           name:
+            selectedSite.search_name ||
             selectedSite.name ||
             selectedSite.formatted_name ||
             selectedSite.generated_name ||

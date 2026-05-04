@@ -143,8 +143,8 @@ export function normalizeMapReadings(
         pm10Value: reading.pm10?.value || 0,
         locationName:
           reading.siteDetails.search_name ||
-          reading.siteDetails.formatted_name ||
           reading.siteDetails.name ||
+          reading.siteDetails.formatted_name ||
           `${reading.siteDetails.city}, ${reading.siteDetails.country}`,
         lastUpdated: (() => {
           try {

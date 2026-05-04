@@ -1,6 +1,6 @@
 export const DEVICE_CATEGORIES = [
   { value: "lowcost", label: "Low Cost" },
-  { value: "bam", label: "BAM" },
+  { value: "bam", label: "Reference Monitor" },
   { value: "gas", label: "Gas" },
 ] as const;
 

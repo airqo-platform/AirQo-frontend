@@ -63,6 +63,8 @@ export interface QuickAccessLocationsProps {
   warningBanner?: ReactNode;
   showIcon?: boolean;
   onShowIconsChange?: (showIcons: boolean) => void;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
   selectedPollutant?: PollutantType;
   isLoading?: boolean;
   onCardClick?: (site: SiteData) => void;
