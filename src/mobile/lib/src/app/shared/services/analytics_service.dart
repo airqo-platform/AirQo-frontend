@@ -404,6 +404,7 @@ class AnalyticsService with UiLoggy {
         if (latitude != null) 'device_latitude': latitude,
         if (longitude != null) 'device_longitude': longitude,
         'timestamp': DateTime.now().toIso8601String(),
+        'hour_of_day': DateTime.now().hour,
       });
 
   /// Fired every 20 minutes while the app is in the foreground.
@@ -414,6 +415,57 @@ class AnalyticsService with UiLoggy {
       trackEvent('location_ping', properties: {
         'device_latitude': latitude,
         'device_longitude': longitude,
+        'timestamp': DateTime.now().toIso8601String(),
+      });
+
+  // ── Notification analytics ────────────────────────────────────────────────
+
+  /// Tracks current notification permission status as both an event and a
+  /// PostHog person property so you can build cohorts of users who denied.
+  Future<void> trackNotificationPermissionStatus({
+    required String status, // 'granted' | 'denied' | 'permanently_denied' | 'not_determined'
+  }) async {
+    await trackEvent('notification_permission_checked', properties: {'status': status});
+    try {
+      final distinctId = await Posthog().getDistinctId();
+      await Posthog().identify(
+        userId: distinctId,
+        userProperties: {'notification_permission': status},
+      );
+    } catch (e) {
+      loggy.warning('Could not set notification_permission person property: $e');
+    }
+  }
+
+  /// Fired when a notification is shown to the user (foreground or background).
+  Future<void> trackNotificationDisplayed({
+    String? messageId,
+    String? title,
+    String? notificationType,
+  }) =>
+      trackEvent('notification_displayed', properties: {
+        if (messageId != null) 'message_id': messageId,
+        if (title != null) 'title': title,
+        if (notificationType != null) 'notification_type': notificationType,
+        'timestamp': DateTime.now().toIso8601String(),
+      });
+
+  /// Fired when the user taps a notification to open the app.
+  Future<void> trackNotificationTapped({
+    String? messageId,
+    String? notificationType,
+  }) =>
+      trackEvent('notification_tapped', properties: {
+        if (messageId != null) 'message_id': messageId,
+        if (notificationType != null) 'notification_type': notificationType,
+        'timestamp': DateTime.now().toIso8601String(),
+      });
+
+  /// Daily alive signal — used as a proxy for uninstall detection on Android.
+  /// PostHog users who stop emitting this for N days are likely uninstalled.
+  Future<void> trackAppHeartbeat() =>
+      trackEvent('app_heartbeat', properties: {
+        'date': DateTime.now().toIso8601String().substring(0, 10),
         'timestamp': DateTime.now().toIso8601String(),
       });
 

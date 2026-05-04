@@ -39,10 +39,12 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:airqo/src/app/surveys/bloc/survey_bloc.dart';
 import 'package:airqo/src/app/surveys/repository/survey_repository.dart';
+import 'package:airqo/src/app/shared/repository/hive_repository.dart';
 import 'package:airqo/src/app/shared/services/navigation_service.dart';
 import 'package:airqo/src/app/shared/services/session_tracker.dart';
 import 'package:airqo/src/app/dashboard/services/enhanced_location_service_manager.dart';
 import 'package:airqo/src/app/research/services/research_location_service.dart';
+import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
@@ -257,6 +259,9 @@ class Decider extends StatefulWidget {
 }
 
 class _DeciderState extends State<Decider> with WidgetsBindingObserver {
+  static const _heartbeatBox = 'research_heartbeat';
+  static const _heartbeatKey = 'last_heartbeat_date';
+
   @override
   void initState() {
     super.initState();
@@ -274,6 +279,8 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
       ResearchLocationService().onAppOpen();
       ResearchLocationService().startForegroundService();
       ResearchLocationService().startPeriodicPing();
+      PushNotificationService().checkAndTrackPermissionStatus();
+      _fireHeartbeatIfNeeded();
     });
   }
 
@@ -294,10 +301,26 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
       ResearchLocationService().onAppOpen();
       ResearchLocationService().startForegroundService();
       ResearchLocationService().startPeriodicPing();
+      PushNotificationService().checkAndTrackPermissionStatus();
+      _fireHeartbeatIfNeeded();
     } else if (state == AppLifecycleState.paused) {
       SessionTracker().endSession();
       // Stop foreground timer; native service keeps running in background
       ResearchLocationService().stopPeriodicPing();
+    }
+  }
+
+  /// Fires `app_heartbeat` at most once per calendar day.
+  /// PostHog users who stop emitting this are likely uninstalled (Android).
+  Future<void> _fireHeartbeatIfNeeded() async {
+    try {
+      final today = DateTime.now().toIso8601String().substring(0, 10);
+      final last = await HiveRepository.getData<String>(_heartbeatKey, _heartbeatBox);
+      if (last == today) return;
+      await AnalyticsService().trackAppHeartbeat();
+      await HiveRepository.saveData(_heartbeatBox, _heartbeatKey, today);
+    } catch (e) {
+      logDebug('Heartbeat check failed: $e');
     }
   }
 

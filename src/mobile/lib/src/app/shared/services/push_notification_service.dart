@@ -5,6 +5,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:loggy/loggy.dart';
 import 'package:airqo/src/app/shared/repository/hive_repository.dart';
+import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class PushNotificationService with UiLoggy {
@@ -123,6 +124,7 @@ class PushNotificationService with UiLoggy {
 
         if (status.isGranted) {
           loggy.info('Android notification permission already granted');
+          AnalyticsService().trackNotificationPermissionStatus(status: 'granted');
           return true;
         }
 
@@ -130,11 +132,15 @@ class PushNotificationService with UiLoggy {
           final result = await Permission.notification.request();
           final granted = result.isGranted;
           loggy.info('Android notification permission request result: $result');
+          AnalyticsService().trackNotificationPermissionStatus(
+            status: granted ? 'granted' : 'denied',
+          );
           return granted;
         }
 
         if (status.isPermanentlyDenied) {
           loggy.warning('Android notification permission permanently denied');
+          AnalyticsService().trackNotificationPermissionStatus(status: 'permanently_denied');
           return false;
         }
       }
@@ -155,6 +161,9 @@ class PushNotificationService with UiLoggy {
             settings.authorizationStatus == AuthorizationStatus.provisional;
 
         loggy.info('iOS notification permission status: ${settings.authorizationStatus}');
+        AnalyticsService().trackNotificationPermissionStatus(
+          status: enabled ? 'granted' : 'denied',
+        );
         return enabled;
       }
 
@@ -162,6 +171,42 @@ class PushNotificationService with UiLoggy {
     } catch (e, stackTrace) {
       loggy.error('Failed to request notification permission', e, stackTrace);
       return false;
+    }
+  }
+
+  /// Check current permission status and track it. Call on each app open/resume
+  /// so PostHog always reflects the current state (user may have changed it in OS settings).
+  Future<void> checkAndTrackPermissionStatus() async {
+    try {
+      String status;
+      if (Platform.isAndroid) {
+        final s = await Permission.notification.status;
+        if (s.isGranted) {
+          status = 'granted';
+        } else if (s.isPermanentlyDenied) {
+          status = 'permanently_denied';
+        } else {
+          status = 'denied';
+        }
+      } else if (Platform.isIOS) {
+        final settings = await _firebaseMessaging.getNotificationSettings();
+        switch (settings.authorizationStatus) {
+          case AuthorizationStatus.authorized:
+          case AuthorizationStatus.provisional:
+            status = 'granted';
+            break;
+          case AuthorizationStatus.denied:
+            status = 'denied';
+            break;
+          default:
+            status = 'not_determined';
+        }
+      } else {
+        return;
+      }
+      await AnalyticsService().trackNotificationPermissionStatus(status: status);
+    } catch (e) {
+      loggy.warning('Could not check notification permission status: $e');
     }
   }
 
@@ -275,6 +320,14 @@ class PushNotificationService with UiLoggy {
     loggy.debug('Message data: ${message.data}');
     loggy.debug('Notification: ${message.notification?.title}');
 
+    if (message.notification != null) {
+      AnalyticsService().trackNotificationDisplayed(
+        messageId: message.messageId,
+        title: message.notification?.title,
+        notificationType: message.data['type'] as String?,
+      );
+    }
+
     // Call custom callback if provided
     onForegroundMessage?.call(message);
 
@@ -357,6 +410,11 @@ class PushNotificationService with UiLoggy {
     loggy.info('Notification tapped: ${message.messageId}');
     loggy.debug('Message data: ${message.data}');
 
+    AnalyticsService().trackNotificationTapped(
+      messageId: message.messageId,
+      notificationType: message.data['type'] as String?,
+    );
+
     // Call custom callback if provided
     onNotificationTap?.call(message.data);
   }
@@ -367,6 +425,9 @@ class PushNotificationService with UiLoggy {
 
     if (response.payload != null) {
       final data = _decodePayload(response.payload!);
+      AnalyticsService().trackNotificationTapped(
+        notificationType: data['type'] as String?,
+      );
       onNotificationTap?.call(data);
     }
   }
