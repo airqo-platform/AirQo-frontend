@@ -20,6 +20,21 @@ import { useChecklistIntegration } from '@/modules/user-checklist';
 import type { Site } from '@/shared/types/api';
 import { trackEvent } from '@/shared/utils/analytics';
 
+const isCancellationError = (error: unknown) => {
+  const candidate = error as {
+    name?: string;
+    code?: string;
+    message?: string;
+  } | null;
+
+  return (
+    candidate?.name === 'AbortError' ||
+    candidate?.name === 'CanceledError' ||
+    candidate?.code === 'ERR_CANCELED' ||
+    candidate?.message === 'canceled'
+  );
+};
+
 interface AddFavoritesProps {
   isOpen: boolean;
   onClose: () => void;
@@ -82,8 +97,21 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
+    setErrorMessage('');
     try {
-      await Promise.all([retry(), refreshPreferences?.()]);
+      const results = await Promise.allSettled([
+        retry(),
+        refreshPreferences?.(),
+      ]);
+      const failures = results.filter(
+        result =>
+          result.status === 'rejected' && !isCancellationError(result.reason)
+      );
+
+      if (failures.length > 0) {
+        console.error('Failed to refresh favorites data:', failures);
+        setErrorMessage('Failed to refresh favorites. Please try again.');
+      }
     } finally {
       if (isMountedRef.current) {
         setIsRefreshing(false);

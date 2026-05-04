@@ -197,6 +197,7 @@ const DataExportPage = () => {
     null
   );
   const [isRefreshing, setIsRefreshing] = React.useState(false);
+  const refreshInFlightRef = React.useRef(false);
   const isMountedRef = React.useRef(true);
   const [showHelpBanner, setShowHelpBanner] = React.useState(() => {
     // Check if user has dismissed the banner before
@@ -613,19 +614,21 @@ const DataExportPage = () => {
   };
 
   const handleRefreshCurrentTab = useCallback(async () => {
-    if (isGroupSyncing) {
+    if (isGroupSyncing || isRefreshing || refreshInFlightRef.current) {
       return;
     }
 
+    refreshInFlightRef.current = true;
     setIsRefreshing(true);
     try {
       await currentHook.mutate?.();
     } finally {
+      refreshInFlightRef.current = false;
       if (isMountedRef.current) {
         setIsRefreshing(false);
       }
     }
-  }, [currentHook, isGroupSyncing]);
+  }, [currentHook, isGroupSyncing, isRefreshing]);
 
   const openSaveFormatDialog = (download: PreparedDownloadResult) => {
     if (fileType === 'json') {
