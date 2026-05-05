@@ -43,7 +43,7 @@ export default function GoogleAuthSection({
       });
       console.error('Failed to start Google OAuth flow:', error);
     }
-  }, [disabled]);
+  }, [disabled, callbackUrl]);
 
   return (
     <div className={cn('w-full space-y-4', className)}>
