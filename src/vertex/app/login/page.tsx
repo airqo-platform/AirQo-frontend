@@ -207,8 +207,8 @@ export default function LoginPage() {
 
       {/* Main Content Area */}
       <main className="flex flex-1 overflow-y-auto">
-        <div className="flex flex-1 flex-col px-4 py-10 sm:px-6">
-          <div className="mx-auto w-full max-w-[450px] my-auto border border-primary/20 rounded-lg p-6 shadow-md bg-white">
+        <div className="flex flex-1 flex-col px-4 sm:px-6">
+          <div className="mx-auto w-full max-w-[450px] my-auto border border-primary/20 rounded-lg p-8 shadow-md bg-white">
             <div className="mb-10 text-center">
               <h1 className="text-3xl font-semibold leading-relaxed text-foreground sm:text-4xl">
                 <span className="block">Deploy devices,</span>
