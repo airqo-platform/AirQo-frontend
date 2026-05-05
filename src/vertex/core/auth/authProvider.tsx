@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useCallback, useState } from 'react';
-import { useSession, SessionProvider, getSession } from 'next-auth/react';
+import { useSession, SessionProvider, getSession, signIn } from 'next-auth/react';
 import type { Session } from 'next-auth';
 import { useRouter, usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
@@ -36,7 +36,6 @@ import { ExtendedSession } from '../utils/secureApiProxyClient';
 import { useLogout } from '@/core/hooks/useLogout';
 import logger from '@/lib/logger';
 import { consumeOAuthTokenHandoffFromUrl } from './oauth-session';
-import { signIn } from 'next-auth/react';
 
 // --- Helper Functions ---
 
@@ -579,6 +578,26 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
+  const waitForSession = useCallback(async () => {
+    const attempts = 8;
+    const delayMs = 150;
+
+    for (let attempt = 0; attempt < attempts; attempt += 1) {
+      const session = await getSession();
+      if (session?.user) {
+        return session;
+      }
+
+      if (attempt < attempts - 1) {
+        await new Promise<void>((resolve) => {
+          window.setTimeout(resolve, delayMs);
+        });
+      }
+    }
+
+    return null;
+  }, []);
+
   useEffect(() => {
     const bootstrap = async () => {
       try {
@@ -593,12 +612,14 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
           });
 
           if (result?.ok) {
-            // Get session to find the user's email for redirect logic
-            const session = await getSession();
+            // Wait for session to be fully available before redirecting
+            const session = await waitForSession();
             const email = session?.user?.email || '';
             
+            // Priority: handoff.callbackUrl > lastActiveModule logic
             const lastModule = getLastActiveModule(email);
-            const redirectUrl = lastModule === 'admin' ? '/admin/networks' : '/home';
+            const fallbackUrl = lastModule === 'admin' ? '/admin/networks' : '/home';
+            const redirectUrl = handoff.callbackUrl || fallbackUrl;
             
             logger.info(`[TokenHandoffHandler] OAuth sign-in successful, redirecting to ${redirectUrl}`);
             window.location.replace(redirectUrl);

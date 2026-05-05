@@ -6,6 +6,7 @@ const OAUTH_SUCCESS_PROVIDER_KEY = 'success';
 export interface OAuthTokenHandoff {
   token: string;
   provider: string | null;
+  callbackUrl?: string | null;
 }
 
 const safeDecodeURIComponent = (value: string): string => {
@@ -67,9 +68,12 @@ export const consumeOAuthTokenHandoffFromUrl = (): OAuthTokenHandoff | null => {
     ?.trim()
     .toLowerCase();
 
+  const callbackUrl = hashParams.get('callbackUrl') || new URLSearchParams(window.location.search).get('callbackUrl');
+
   return {
     token,
     provider: provider || null,
+    callbackUrl: callbackUrl || null,
   };
 };
 
