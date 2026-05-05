@@ -10,6 +10,7 @@ import { FcGoogle } from 'react-icons/fc';
 interface GoogleAuthSectionProps {
   disabled?: boolean;
   className?: string;
+  callbackUrl?: string;
 }
 
 // Removed custom GoogleIcon in favor of react-icons/fc
@@ -17,6 +18,7 @@ interface GoogleAuthSectionProps {
 export default function GoogleAuthSection({
   disabled = false,
   className,
+  callbackUrl,
 }: GoogleAuthSectionProps) {
   const [isRedirecting, setIsRedirecting] = useState(false);
 
@@ -30,6 +32,7 @@ export default function GoogleAuthSection({
         buildOAuthInitiationUrl('google', {
           prompt: 'select_account',
           tenant: 'airqo',
+          callbackUrl: callbackUrl,
         })
       );
     } catch (error) {

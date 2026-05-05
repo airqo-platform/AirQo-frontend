@@ -221,7 +221,11 @@ export default function LoginPage() {
 
             <div className="flex flex-col">
               {step === 'email' && (
-                <GoogleAuthSection disabled={isLoading} className="mb-6" />
+                <GoogleAuthSection
+                  disabled={isLoading}
+                  className="mb-6"
+                  callbackUrl={callbackUrl}
+                />
               )}
 
               <Form {...form}>
