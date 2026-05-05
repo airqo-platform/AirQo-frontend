@@ -112,7 +112,8 @@ const AppDropdown: React.FC<AppDropdownProps> = ({ className = '' }) => {
         <DropdownMenu>
             <DropdownMenuTrigger
                 className={`p-2.5 rounded-full transition hover:bg-muted focus:outline-none ${className}`}
-                aria-label="Applications"
+                aria-label="AirQo Apps"
+                title="AirQo Apps"
             >
                 <AqDotsGrid className="w-6 h-6 text-muted-foreground hover:text-foreground" />
             </DropdownMenuTrigger>

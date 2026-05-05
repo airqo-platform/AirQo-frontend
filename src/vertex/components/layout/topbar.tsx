@@ -136,6 +136,8 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
                 <Button
                   variant="ghost"
                   className="flex items-center cursor-pointer hover:bg-transparent p-0 m-0"
+                  title={`AirQo Account\n${getUserName()}`}
+                  aria-label="AirQo Account"
                 >
                   <Avatar className="h-10 w-10">
                     <AvatarImage
