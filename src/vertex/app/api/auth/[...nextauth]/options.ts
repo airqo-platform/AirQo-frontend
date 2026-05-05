@@ -143,15 +143,18 @@ const fetchOAuthProfile = async (
 ): Promise<OAuthProfilePayload | null> => {
   try {
     const profileUrl = `${getApiBaseUrl()}/users/profile/enhanced`;
-    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
     const response = await fetch(profileUrl, {
       method: 'GET',
       cache: 'no-store',
+      signal: controller.signal,
       headers: {
         Accept: 'application/json',
         Authorization: `JWT ${accessToken}`,
       },
-    });
+    }).finally(() => clearTimeout(timeoutId));
 
     if (!response.ok) {
       return null;
