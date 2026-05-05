@@ -31,7 +31,7 @@ Introduced seamless Google sign-in and a modernized two-step authentication flow
 </details>
 
 <details>
-<summary><strong>Files Created/Modified (7)</strong></summary>
+<summary><strong>Files Created/Modified (11)</strong></summary>
 
 - `src/vertex/core/auth/oauth-session.ts` [NEW]
 - `src/vertex/components/features/auth/google-auth-section.tsx` [NEW]
@@ -40,6 +40,10 @@ Introduced seamless Google sign-in and a modernized two-step authentication flow
 - `src/vertex/app/login/page.tsx` [MODIFIED]
 - `src/vertex/components/layout/topbar.tsx` [MODIFIED]
 - `src/vertex/components/shared/button/ReusableButton.tsx` [MODIFIED]
+- `src/vertex/package.json` [MODIFIED]
+- `src/vertex/components/features/org-picker/organization-picker.tsx` [MODIFIED]
+- `src/vertex/components/layout/AppDropdown.tsx` [MODIFIED]
+- `src/vertex/app/globals.css` [MODIFIED]
 
 </details>
 
