@@ -23,6 +23,7 @@ import ReusableToast from '@/components/shared/toast/ReusableToast';
 import SessionLoadingState from '@/components/layout/loading/session-loading';
 import {
   getLastActiveGroupId,
+  getLastActiveModule,
   setLastActiveGroupId,
 } from '@/core/utils/userPreferences';
 import type {
@@ -599,7 +600,7 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
             const lastModule = getLastActiveModule(email);
             const redirectUrl = lastModule === 'admin' ? '/admin/networks' : '/home';
             
-            logger.info('[TokenHandoffHandler] OAuth sign-in successful, redirecting to', redirectUrl);
+            logger.info(`[TokenHandoffHandler] OAuth sign-in successful, redirecting to ${redirectUrl}`);
             window.location.replace(redirectUrl);
             return; // window.location.replace will handle the rest
           } else {
