@@ -60,7 +60,7 @@ export default function GoogleAuthSection({
       </ReusableButton>
 
       <div className="flex justify-center">
-        <span className="text-sm font-bold uppercase tracking-[0.2em] text-muted-foreground/60">
+        <span className="text-sm font-bold uppercase tracking-[0.2em] text-muted-foreground">
           Or
         </span>
       </div>
