@@ -281,8 +281,13 @@ export default function LoginPage() {
                         <div className="flex flex-col space-y-1">
                           <button
                             type="button"
-                            onClick={() => setStep('email')}
-                            className="flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors w-fit -ml-1 mb-2"
+                            disabled={isLoading}
+                            onClick={() => {
+                              form.resetField('password');
+                              form.clearErrors('password');
+                              setStep('email');
+                            }}
+                            className="flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors w-fit -ml-1 mb-2 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <ChevronLeft className="h-4 w-4 mr-0.5" />
                             Change email
