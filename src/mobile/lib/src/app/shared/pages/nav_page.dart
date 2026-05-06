@@ -24,8 +24,7 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
   int newSurveysCount = 0;
   final SurveyNotificationService _notificationService = SurveyNotificationService();
 
-  bool get _exposureEnabled =>
-      FeatureFlagService.instance.isEnabled(AppFeatureFlag.exposureTracking);
+  bool get _exposureEnabled => true; // TODO: restore feature flag
 
   bool get _surveysEnabled =>
       FeatureFlagService.instance.isEnabled(AppFeatureFlag.surveys);
