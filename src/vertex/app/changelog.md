@@ -4,6 +4,51 @@
 
 ---
 
+## Version 1.23.38
+**Released:** May 05, 2026
+
+### Google Login Integration & Multi-Step Authentication Refactor
+
+Introduced seamless Google sign-in and a modernized two-step authentication flow to enhance both security and the user onboarding experience.
+
+<details>
+<summary><strong>New Features (3)</strong></summary>
+
+- **Google Authentication Flow**: Integrated "Continue with Google" at the primary entry point of the login page, allowing users to sign in with one click via their Google workspace accounts.
+- **Two-Step Email Login**: Refactored the manual login journey into a guided two-step experience (Email → Password). This improves focus and aligns with modern security standards by deferring password entry.
+- **Branded Authentication Container**: Redesigned the login form layout with a primary-branded border, shadow-md depth, and smooth fade transitions using `framer-motion` for step navigation.
+
+</details>
+
+<details>
+<summary><strong>Fixes & Enhancements (4)</strong></summary>
+
+- **Help Icon Size Optimization**: Enhanced the visibility of the Help & Feedback button in the topbar by replacing the default icon with a larger, more accessible version (`h-7 w-7`) using new custom icon sizing support in `ReusableButton`.
+- **Topbar Accessibility Hardening**: Added descriptive `title` and `aria-label` attributes to all persistent navigation elements (App Switcher, Help Button, Organization Picker, and User Avatar) for improved screen reader support and hover tooltips.
+- **Social Login Layout Refinement**: Simplified the "OR" separator by removing horizontal lines, creating a cleaner visual hierarchy between social and manual login options.
+- **Login UI Spacing**: Optimized vertical padding and spacing on the login screen to ensure the branded container remains perfectly centered across various desktop resolutions.
+
+</details>
+
+<details>
+<summary><strong>Files Created/Modified (11)</strong></summary>
+
+- `src/vertex/core/auth/oauth-session.ts` [NEW]
+- `src/vertex/components/features/auth/google-auth-section.tsx` [NEW]
+- `src/vertex/app/api/auth/[...nextauth]/options.ts` [MODIFIED]
+- `src/vertex/core/auth/authProvider.tsx` [MODIFIED]
+- `src/vertex/app/login/page.tsx` [MODIFIED]
+- `src/vertex/components/layout/topbar.tsx` [MODIFIED]
+- `src/vertex/components/shared/button/ReusableButton.tsx` [MODIFIED]
+- `src/vertex/package.json` [MODIFIED]
+- `src/vertex/components/features/org-picker/organization-picker.tsx` [MODIFIED]
+- `src/vertex/components/layout/AppDropdown.tsx` [MODIFIED]
+- `src/vertex/app/globals.css` [MODIFIED]
+
+</details>
+
+---
+
 ## Version 1.23.37
 **Released:** May 04, 2026
 

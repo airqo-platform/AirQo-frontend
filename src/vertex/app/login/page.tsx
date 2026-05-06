@@ -21,6 +21,9 @@ import {
 } from "@/core/redux/slices/userSlice";
 import { getLastActiveModule } from "@/core/utils/userPreferences";
 import { VERTEX_DESKTOP_DOWNLOADS } from "@/core/constants/app-downloads";
+import GoogleAuthSection from "@/components/features/auth/google-auth-section";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeft } from "lucide-react";
 
 const loginSchema = z.object({
   userName: z.string().email({ message: "Please enter a valid email address" }),
@@ -29,6 +32,7 @@ const loginSchema = z.object({
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
+  const [step, setStep] = useState<'email' | 'password'>('email');
   const [downloadUrl, setDownloadUrl] = useState(VERTEX_DESKTOP_DOWNLOADS.windows);
   const searchParams = useSearchParams();
   const callbackUrl = useMemo(() => {
@@ -103,6 +107,19 @@ export default function LoginPage() {
 
 
   const onSubmit = useCallback(async (values: z.infer<typeof loginSchema>) => {
+    // If we are on the email step, just validate the email and move forward
+    if (step === 'email') {
+      const isEmailValid = await form.trigger('userName');
+      if (isEmailValid) {
+        setStep('password');
+      }
+      return;
+    }
+
+    // On the password step, ensure password is also validated
+    const isPasswordValid = await form.trigger('password');
+    if (!isPasswordValid) return;
+
     setIsLoading(true);
 
     // Read preference BEFORE authentication to avoid timing issues
@@ -152,12 +169,12 @@ export default function LoginPage() {
       ReusableToast({ message, type: "ERROR" });
       setIsLoading(false);
     }
-  }, [callbackUrl, waitForSession]);
+  }, [callbackUrl, waitForSession, step, form]);
 
   return (
-    <div className="flex min-h-screen lg:h-screen w-full flex-col bg-background text-foreground">
+    <div className="flex min-h-screen lg:h-screen w-full flex-col bg-primary-50 text-foreground">
       {/* Sticky Topbar */}
-      <header data-vertex-topbar className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header data-vertex-topbar className="sticky top-0 z-50 w-full border-b border-border/40 bg-primary-50 backdrop-blur supports-[backdrop-filter]:bg-primary-50/60">
         <div className="flex h-12 items-center justify-between px-6 md:px-8">
           <div className="flex items-center">
             <Image
@@ -190,72 +207,137 @@ export default function LoginPage() {
 
       {/* Main Content Area */}
       <main className="flex flex-1 overflow-y-auto">
-        <div className="flex flex-1 flex-col px-4 py-12 sm:px-6">
-          <div className="mx-auto w-full max-w-[450px] my-auto">
+        <div className="flex flex-1 flex-col px-4 sm:px-6">
+          <div className="mx-auto w-full max-w-[450px] my-auto border border-primary/20 rounded-lg p-8 shadow-md bg-white">
             <div className="mb-10 text-center">
-              <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+              <h1 className="text-3xl font-semibold leading-relaxed text-foreground sm:text-4xl">
                 <span className="block">Deploy devices,</span>
                 <span className="block">Share your data</span>
               </h1>
               <p className="mt-4 text-base text-muted-foreground leading-relaxed max-w-sm mx-auto">
-                Add your devices, manage their details, and stream live air quality data through AirQo&apos;s open data channels.
+                Add your devices and stream live air quality data through AirQo&apos;s open data channels.
               </p>
             </div>
 
             <div className="flex flex-col">
+              {step === 'email' && (
+                <GoogleAuthSection
+                  disabled={isLoading}
+                  className="mb-6"
+                  callbackUrl={callbackUrl}
+                />
+              )}
+
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-                  <FormField
-                    control={form.control}
-                    name="userName"
-                    render={({ field, fieldState }) => (
-                      <ReusableInputField
-                        label="Email"
-                        placeholder="login@airqo.net"
-                        type="email"
-                        required
-                        error={fieldState.error?.message}
-                        disabled={isLoading}
-                        {...field}
-                      />
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field, fieldState }) => (
-                      <div>
-                        <div className="flex items-center justify-between mb-1.5">
-                          <label htmlFor="password" className="text-sm font-medium text-foreground">Password</label>
-                          <Link href={forgotPasswordUrl} className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">
-                            Forgot password?
-                          </Link>
-                        </div>
-                        <ReusableInputField
-                          type={"password"}
-                          id="password"
-                          autoComplete="current-password"
-                          placeholder="••••••••"
-                          required
-                          error={fieldState.error?.message}
-                          disabled={isLoading}
-                          {...field}
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    onSubmit(form.getValues());
+                  }}
+                  className="space-y-5"
+                >
+                  <AnimatePresence mode="wait">
+                    {step === 'email' ? (
+                      <motion.div
+                        key="email-step"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 10 }}
+                        transition={{ duration: 0.2 }}
+                        className="space-y-5"
+                      >
+                        <FormField
+                          control={form.control}
+                          name="userName"
+                          render={({ field, fieldState }) => (
+                            <ReusableInputField
+                              placeholder="Enter your email"
+                              type="email"
+                              required
+                              error={fieldState.error?.message}
+                              disabled={isLoading}
+                              {...field}
+                            />
+                          )}
                         />
-                      </div>
+                        <ReusableButton
+                          type="submit"
+                          className="w-full font-medium bg-primary hover:bg-primary/90"
+                          disabled={isLoading}
+                          variant="filled"
+                        >
+                          Continue with email
+                        </ReusableButton>
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="password-step"
+                        initial={{ opacity: 0, x: 10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="space-y-5"
+                      >
+                        <div className="flex flex-col space-y-1">
+                          <button
+                            type="button"
+                            disabled={isLoading}
+                            onClick={() => {
+                              form.resetField('password');
+                              form.clearErrors('password');
+                              setStep('email');
+                            }}
+                            className="flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors w-fit -ml-1 mb-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <ChevronLeft className="h-4 w-4 mr-0.5" />
+                            Change email
+                          </button>
+                          <div className="rounded-lg bg-muted/50 p-3 flex flex-col">
+                            <span className="text-xs text-muted-foreground">Signing in as</span>
+                            <span className="text-sm font-semibold truncate">{form.getValues('userName')}</span>
+                          </div>
+                        </div>
+
+                        <FormField
+                          control={form.control}
+                          name="password"
+                          render={({ field, fieldState }) => (
+                            <div>
+                              <div className="flex items-center justify-between mb-1.5">
+                                <label htmlFor="password" className="text-sm font-medium text-foreground">Password</label>
+                                <Link href={forgotPasswordUrl} className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">
+                                  Forgot password?
+                                </Link>
+                              </div>
+                              <ReusableInputField
+                                type={"password"}
+                                id="password"
+                                autoComplete="current-password"
+                                placeholder="••••••••"
+                                required
+                                error={fieldState.error?.message}
+                                disabled={isLoading}
+                                {...field}
+                              />
+                            </div>
+                          )}
+                        />
+                        <ReusableButton
+                          type="submit"
+                          className="w-full font-medium bg-primary hover:bg-primary/90"
+                          disabled={isLoading}
+                          loading={isLoading}
+                          variant="filled"
+                        >
+                          {isLoading ? "Signing in..." : "Login"}
+                        </ReusableButton>
+                      </motion.div>
                     )}
-                  />
-                  <ReusableButton
-                    type="submit"
-                    className="w-full mt-2 font-medium bg-primary hover:bg-primary/90"
-                    disabled={isLoading}
-                    loading={isLoading}
-                    variant="filled"
-                  >
-                    {isLoading ? "Signing in..." : "Login"}
-                  </ReusableButton>
+                  </AnimatePresence>
                 </form>
               </Form>
-              <div className="text-sm text-center my-6 text-muted-foreground">
+
+              <div className="text-sm text-center text-muted-foreground mt-4">
                 Don&apos;t have an account?{" "}
                 <Link href={signUpUrl} className="font-semibold text-primary hover:text-primary/80 transition-colors">
                   Sign up

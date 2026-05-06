@@ -125,6 +125,8 @@ const OrganizationPicker: React.FC = () => {
         variant="outline"
         className={`flex items-center gap-0.5 space-x-2 rounded-lg border border-primary/20 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-primary/5 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:border-primary/30 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-primary/10 dark:focus:ring-primary/70 dark:focus:ring-offset-gray-800 transition-colors duration-200`}
         onClick={() => setIsModalOpen(true)}
+        title="My Organizations"
+        aria-label="My Organizations"
       >
         <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary dark:bg-primary/20 dark:text-primary">
           {getDisplayTitle()?.charAt(0)?.toUpperCase() || "O"}

@@ -3,7 +3,7 @@
 import type React from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import { Moon, Sun } from 'lucide-react';
-import { AqMenu01, AqHelpCircle } from '@airqo/icons-react';
+import { AqHelpCircle, AqMenu01 } from '@airqo/icons-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -18,6 +18,7 @@ import { useRouter } from 'next/navigation';
 import OrganizationPicker from '../features/org-picker/organization-picker';
 import Image from 'next/image';
 import Card from '../shared/card/CardWrapper';
+import ReusableButton from '../shared/button/ReusableButton';
 import { useLogout } from '@/core/hooks/useLogout';
 import AppDropdown from './AppDropdown';
 import { openFeedbackDialog } from '../features/feedback/feedback-dialog';
@@ -118,16 +119,15 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
           <div className="flex items-center gap-x-1 ml-auto">
             <OrganizationPicker />
 
-            <Button
-              variant="ghost"
-              size="icon"
+            <ReusableButton
+              variant="text"
               onClick={openFeedbackDialog}
-              className="text-muted-foreground hover:text-foreground rounded-full"
+              className="text-muted-foreground hover:text-foreground rounded-full p-2"
               title="Help & Feedback"
               aria-label="Help & Feedback"
-            >
-              <AqHelpCircle className="h-10 w-10" />
-            </Button>
+              Icon={AqHelpCircle}
+              iconClassName="!h-7 !w-7"
+            />
 
             <AppDropdown />
 
@@ -136,13 +136,15 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
                 <Button
                   variant="ghost"
                   className="flex items-center cursor-pointer hover:bg-transparent p-0 m-0"
+                  title={`AirQo Account\n${getUserName()}`}
+                  aria-label="AirQo Account"
                 >
                   <Avatar className="h-10 w-10">
                     <AvatarImage
                       src={user?.profilePicture || ''}
                       alt={getUserName()}
                     />
-                    <AvatarFallback className="bg-primary/10 text-primary">
+                    <AvatarFallback className="bg-primary/10 text-primary hover:text-foreground">
                       {getInitials()}
                     </AvatarFallback>
                   </Avatar>
