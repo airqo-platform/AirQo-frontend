@@ -10,7 +10,6 @@ import { registerSchema, type RegisterFormData } from '@/shared/lib/validators';
 import { useRegister } from '@/shared/hooks/useAuth';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { useRouter } from 'next/navigation';
-import GoogleAuthSection from '@/shared/components/auth/GoogleAuthSection';
 
 export default function RegisterPage() {
   const {
@@ -140,7 +139,7 @@ export default function RegisterPage() {
         </Button>
       </form>
 
-      <GoogleAuthSection mode="register" className="mt-6" />
+      {/* Google sign-in temporarily hidden */}
 
       <div className="w-full mt-6 text-center">
         <p className="text-sm">
