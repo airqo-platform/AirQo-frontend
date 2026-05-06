@@ -14,7 +14,6 @@ import {
   normalizeCallbackUrl,
   redirectWithReload,
 } from '@/shared/lib/auth-redirect';
-import GoogleAuthSection from '@/shared/components/auth/GoogleAuthSection';
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -170,7 +169,7 @@ export default function LoginPage() {
         </Button>
       </form>
 
-      <GoogleAuthSection mode="login" className="mt-6" />
+      {/* Google sign-in temporarily hidden */}
 
       <div className="w-full mt-6 text-center">
         <p className="text-sm">
