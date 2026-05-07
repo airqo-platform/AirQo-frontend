@@ -1,6 +1,7 @@
 'use client';
 
 import AuthLayout from '@/shared/layouts/AuthLayout';
+import GoogleAuthSection from '@/shared/components/auth/GoogleAuthSection';
 import Link from 'next/link';
 import { Button, Input } from '@/shared/components/ui';
 import { useForm } from 'react-hook-form';
@@ -59,7 +60,6 @@ export default function RegisterPage() {
       pageTitle="Register"
       heading={'Create your individual account'}
       subtitle={'Access open air quality data and insights across Africa'}
-      microLine="AirQo provides openly available air quality data to support research, policy, and public awareness."
     >
       <form onSubmit={handleSubmit(onSubmit)} className="w-full">
         <div className="flex gap-4 mb-4">
@@ -139,7 +139,11 @@ export default function RegisterPage() {
         </Button>
       </form>
 
-      {/* Google sign-in temporarily hidden */}
+      <GoogleAuthSection
+        mode="register"
+        disabled={isMutating}
+        className="mt-6"
+      />
 
       <div className="w-full mt-6 text-center">
         <p className="text-sm">

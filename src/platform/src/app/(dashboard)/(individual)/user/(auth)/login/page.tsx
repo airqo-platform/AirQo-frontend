@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import AuthLayout from '@/shared/layouts/AuthLayout';
+import GoogleAuthSection from '@/shared/components/auth/GoogleAuthSection';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -10,6 +11,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from '@/shared/components/ui';
 import { loginSchema, type LoginFormData } from '@/shared/lib/validators';
+import { buildOAuthInitiationUrl } from '@/shared/lib/oauth-session';
 import {
   normalizeCallbackUrl,
   redirectWithReload,
@@ -17,6 +19,7 @@ import {
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState<'email' | 'password'>('email');
   const searchParams = useSearchParams();
   const callbackUrl =
     normalizeCallbackUrl(searchParams.get('callbackUrl')) || '/user/home';
@@ -24,6 +27,10 @@ export default function LoginPage() {
   const {
     register,
     handleSubmit,
+    trigger,
+    watch,
+    resetField,
+    setFocus,
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -33,6 +40,37 @@ export default function LoginPage() {
     },
     mode: 'onChange',
   });
+
+  const emailValue = (watch('email') || '').trim();
+
+  useEffect(() => {
+    setFocus(step === 'email' ? 'email' : 'password');
+  }, [setFocus, step]);
+
+  const handleMarketGoogleAuth = useCallback(() => {
+    if (typeof window === 'undefined' || loading) return;
+
+    window.location.replace(
+      buildOAuthInitiationUrl('google', {
+        prompt: 'select_account',
+        tenant: 'airqo',
+      })
+    );
+  }, [loading]);
+
+  const handleContinue = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const isEmailValid = await trigger('email');
+    if (isEmailValid) {
+      setStep('password');
+    }
+  };
+
+  const handleGoBack = () => {
+    resetField('password');
+    setStep('email');
+  };
 
   const onSubmit = async (data: LoginFormData) => {
     setLoading(true);
@@ -132,61 +170,119 @@ export default function LoginPage() {
   return (
     <AuthLayout
       pageTitle="Login"
-      heading={'Access open air quality data and insights across Africa'}
-      subtitle={
-        'AirQo provides openly available air quality data to support research, policy, and public awareness.'
-      }
-      rightText="What you've built here is so much better for air pollution monitoring than anything else on the market!"
-    >
-      <form onSubmit={handleSubmit(onSubmit)} className="w-full">
-        <Input
-          label="Email Address"
-          type="email"
-          placeholder="user@example.com"
-          error={errors.email?.message}
-          containerClassName="mb-4"
-          {...register('email')}
-        />
-
-        <Input
-          label="Password"
-          type="password"
-          placeholder="password"
-          error={errors.password?.message}
-          containerClassName="mb-4"
-          showPasswordToggle
-          {...register('password')}
-        />
-
-        <Button
-          type="submit"
-          fullWidth
-          loading={loading}
-          disabled={loading}
-          className="mt-4"
-        >
-          {loading ? 'Signing in...' : 'Login'}
-        </Button>
-      </form>
-
-      {/* Google sign-in temporarily hidden */}
-
-      <div className="w-full mt-6 text-center">
-        <p className="text-sm">
-          Don&apos;t have an account?{' '}
-          <Link
-            href="/user/creation/individual/register"
-            className="text-blue-600"
+      heading="Access open air quality data and insights across Africa"
+      subtitle="AirQo provides openly available air quality data to support research, policy, and public awareness."
+      rightText={
+        <>
+          What you&apos;ve built here is so much better for air pollution
+          monitoring than anything else on the{' '}
+          <button
+            type="button"
+            onClick={handleMarketGoogleAuth}
+            className="inline border-0 bg-transparent p-0 m-0 align-baseline cursor-pointer"
+            style={{
+              color: 'inherit',
+              font: 'inherit',
+              lineHeight: 'inherit',
+              letterSpacing: 'inherit',
+            }}
+            aria-label="Continue with Google"
+            title="Continue with Google"
           >
-            Register
-          </Link>
-        </p>
-        <p className="mt-2 text-sm">
-          <Link href="/user/forgotPwd" className="text-blue-600">
-            Forgot Password
-          </Link>
-        </p>
-      </div>
+            market
+          </button>
+          !
+        </>
+      }
+    >
+      {step === 'email' ? (
+        <form onSubmit={handleContinue} className="w-full space-y-4">
+          <Input
+            label="Email Address"
+            type="email"
+            placeholder="user@example.com"
+            error={errors.email?.message}
+            {...register('email')}
+          />
+
+          <Button type="submit" fullWidth disabled={loading}>
+            Continue
+          </Button>
+
+          <GoogleAuthSection mode="login" disabled={loading} />
+
+          <div className="w-full pt-0 text-center">
+            <p className="text-sm">
+              Don&apos;t have an account?{' '}
+              <Link
+                href="/user/creation/individual/register"
+                className="text-blue-600"
+              >
+                Register
+              </Link>
+            </p>
+          </div>
+        </form>
+      ) : (
+        <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-4">
+          <div className="rounded-xl border border-gray-200 bg-gray-50/80 px-3 py-3 shadow-sm dark:border-gray-700 dark:bg-gray-800/50 sm:px-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500 dark:text-gray-400">
+                  Account
+                </p>
+                <p className="mt-0.5 truncate text-sm font-medium text-gray-900 dark:text-white">
+                  {emailValue || 'your email address'}
+                </p>
+              </div>
+
+              <Button
+                type="button"
+                variant="text"
+                size="sm"
+                onClick={handleGoBack}
+              >
+                Change
+              </Button>
+            </div>
+          </div>
+
+          <Input
+            label="Password"
+            type="password"
+            placeholder="password"
+            error={errors.password?.message}
+            containerClassName="mb-0"
+            showPasswordToggle
+            {...register('password')}
+          />
+
+          <div className="flex items-center justify-end gap-3">
+            <Link
+              href="/user/forgotPwd"
+              className="text-sm font-medium text-blue-600 hover:text-blue-800"
+            >
+              Forgot Password?
+            </Link>
+          </div>
+
+          <Button type="submit" fullWidth loading={loading} disabled={loading}>
+            {loading ? 'Signing in...' : 'Login'}
+          </Button>
+
+          <div className="w-full pt-0 text-center">
+            <p className="text-sm">
+              Don&apos;t have an account?{' '}
+              <Link
+                href="/user/creation/individual/register"
+                className="text-blue-600"
+              >
+                Register
+              </Link>
+            </p>
+          </div>
+        </form>
+      )}
     </AuthLayout>
   );
 }
