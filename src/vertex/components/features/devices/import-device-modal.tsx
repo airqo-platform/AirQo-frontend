@@ -14,6 +14,9 @@ import { useAppSelector } from "@/core/redux/hooks";
 import { usePathname } from "next/navigation";
 import logger from "@/lib/logger";
 import { NetworkRequestDialog } from "../networks/network-request-dialog";
+import { MultiSelectCombobox } from "@/components/ui/multi-select";
+import { DEFAULT_DEVICE_TAGS } from "@/core/constants/devices";
+import { Label } from "@/components/ui/label";
 
 interface ImportDeviceModalProps {
   open: boolean;
@@ -36,6 +39,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
     writeKey: "",
     readKey: "",
     api_code: "",
+    tags: [] as string[],
   });
 
   const [showMore, setShowMore] = useState(false);
@@ -148,6 +152,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         writeKey: "",
         readKey: "",
         api_code: "",
+        tags: [],
       });
       setErrors({});
       setShowMore(false);
@@ -268,6 +273,16 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
           placeholder="Enter device description"
           rows={3}
         />
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">Tags (Optional)</Label>
+          <MultiSelectCombobox
+            options={DEFAULT_DEVICE_TAGS}
+            placeholder="Select or create tags..."
+            value={formData.tags}
+            onValueChange={(tags) => setFormData((prev) => ({ ...prev, tags }))}
+            allowCreate={true}
+          />
+        </div>
 
         {showMore && (
           <div className="space-y-4 pt-2 border-t">

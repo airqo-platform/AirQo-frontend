@@ -21,3 +21,14 @@ export const DEFAULT_COHORT_TAGS = [
   { value: "inlab", label: "inlab"},
   { value: "misc", label: "misc" }
 ]
+
+export const DEFAULT_DEVICE_TAGS = [
+  { value: "urban", label: "urban" },
+  { value: "rural", label: "rural" },
+  { value: "industrial", label: "industrial" },
+  { value: "residential", label: "residential" },
+  { value: "commercial", label: "commercial" },
+  { value: "inlab", label: "inlab" },
+  { value: "reference-station", label: "reference-station" },
+  { value: "pilot", label: "pilot" }
+]
