@@ -68,7 +68,10 @@ interface ProcessedDeviceData {
   hourly_data: Array<{ date: string; hour: number; count: number; errorMargin: number | null }>
 }
 
-const processDevicePerformance = (device: AirQloudDetailData['devices'][0]): ProcessedDeviceData => {
+const processDevicePerformance = (
+  device: AirQloudDetailData['devices'][0],
+  daysOfData: number,
+): ProcessedDeviceData => {
   // Group data by date
   const dailyData: { [date: string]: { hoursSet: Set<number>; errorMargins: number[] } } = {}
   // Group data by date+hour for hourly heatmap
@@ -107,19 +110,19 @@ const processDevicePerformance = (device: AirQloudDetailData['devices'][0]): Pro
     }
   })
 
-  // Build the full 14-day window ending on the latest date with data so that
-  // days where the device produced no records still count as 0% uptime in the
-  // denominator. Previously only days that had data were averaged, which
-  // inflated uptime for sparsely-reporting devices.
-  const datesWithData = Object.keys(dailyData).sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
+  // Build a deterministic window of exactly `daysOfData` days ending
+  // yesterday. We anchor on yesterday rather than the device's last seen day
+  // so that every device in the cohort produces the same columns (which is
+  // what makes the heatmap align), and so devices with zero data still emit a
+  // full row of 0% cells instead of being dropped from the union.
   const dates: string[] = []
-  if (datesWithData.length > 0) {
-    const last = new Date(datesWithData.at(-1) ?? new Date().toDateString())
-    for (let i = 13; i >= 0; i--) {
-      const d = new Date(last)
-      d.setDate(d.getDate() - i)
-      dates.push(d.toDateString())
-    }
+  const windowEnd = new Date()
+  windowEnd.setDate(windowEnd.getDate() - 1)
+  windowEnd.setHours(0, 0, 0, 0)
+  for (let i = daysOfData - 1; i >= 0; i--) {
+    const d = new Date(windowEnd)
+    d.setDate(d.getDate() - i)
+    dates.push(d.toDateString())
   }
 
   const uptimeHistory = dates.map(date => ({
@@ -291,6 +294,7 @@ export default function AirQloudDetailPage() {
   const [data, setData] = useState<AirQloudDetailData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const daysOfData = 13
 
   useEffect(() => {
     const fetchAirQloudDetail = async () => {
@@ -309,7 +313,7 @@ export default function AirQloudDetailPage() {
         endDate.setHours(23, 59, 59, 999)
 
         const startDate = new Date(endDate)
-        startDate.setDate(endDate.getDate() - 13) // 14 days total including yesterday
+        startDate.setDate(endDate.getDate() - (daysOfData - 1)) // exactly `daysOfData` days ending yesterday
         startDate.setHours(0, 0, 0, 0)
 
         const response = await airQloudService.getAirQloudById(
@@ -395,7 +399,7 @@ export default function AirQloudDetailPage() {
   // Calculate summary statistics
   const averageErrorMargin = data.sensor_error_margin || 0
 
-  const processedDevices = data.devices ? data.devices.map(processDevicePerformance) : []
+  const processedDevices = data.devices ? data.devices.map(d => processDevicePerformance(d, daysOfData)) : []
 
   // Cohort average uptime = average of each device's per-window daily uptime,
   // where each device's per-window value already counts missing days as 0.
@@ -434,7 +438,7 @@ export default function AirQloudDetailPage() {
 
     const chartArr = Object.keys(dailyCohort)
       .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
-      .slice(-14)
+      .slice(-daysOfData)
       .map(date => {
         const day = dailyCohort[date]
         return {

@@ -720,16 +720,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (isCurrentPublicRoute) {
-          const backendProfile = await verifyBackendOAuthSession();
-          if (!isMounted) return;
-
-          if (backendProfile) {
-            setCachedSessionAccessToken(backendProfile.accessToken);
-            clearBackendOAuthSignedOutFlag();
-            setBootstrapSession(buildSessionFromProfile(backendProfile));
-            return;
-          }
-
+          // Public auth routes only need the lightweight NextAuth session check.
+          // Skipping the backend profile bootstrap here avoids an extra
+          // /users/profile/enhanced request on login/register screens.
           setBootstrapSession(null);
           return;
         }

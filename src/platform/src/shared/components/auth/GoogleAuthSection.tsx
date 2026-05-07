@@ -1,10 +1,9 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { FcGoogle } from 'react-icons/fc';
 import { Button, toast } from '@/shared/components/ui';
 import { cn } from '@/shared/lib/utils';
-import { buildOAuthInitiationUrl } from '@/shared/lib/oauth-session';
 
 interface GoogleAuthSectionProps {
   mode: 'login' | 'register';
@@ -17,31 +16,16 @@ export default function GoogleAuthSection({
   disabled = false,
   className,
 }: GoogleAuthSectionProps) {
-  const [isRedirecting, setIsRedirecting] = useState(false);
-
   const label =
     mode === 'register' ? 'Continue with Google' : 'Sign in with Google';
 
   const handleGoogleAuth = useCallback(() => {
     if (typeof window === 'undefined' || disabled) return;
 
-    setIsRedirecting(true);
-
-    try {
-      window.location.replace(
-        buildOAuthInitiationUrl('google', {
-          prompt: 'select_account',
-          tenant: 'airqo',
-        })
-      );
-    } catch (error) {
-      setIsRedirecting(false);
-      toast.error(
-        'Google sign-in unavailable',
-        'Please try again in a moment.'
-      );
-      console.error('Failed to start Google OAuth flow:', error);
-    }
+    toast.error(
+      'Google sign-in unavailable',
+      'Google sign-in is currently unavailable. Please continue with your email and password.'
+    );
   }, [disabled]);
 
   return (
@@ -58,8 +42,8 @@ export default function GoogleAuthSection({
         type="button"
         fullWidth
         variant="outlined"
-        loading={isRedirecting}
-        disabled={disabled || isRedirecting}
+        loading={false}
+        disabled={disabled}
         Icon={FcGoogle}
         iconPosition="start"
         onClick={handleGoogleAuth}

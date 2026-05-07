@@ -111,6 +111,21 @@ export function DeviceHeatmap({ devices, metric, title, description }: Readonly<
     return map
   }, [devices, metric])
 
+  // Always keep an uptime lookup around so error-margin cells can tell apart
+  // "no data" days (uptime === 0) from days where the device reported but
+  // happened to have a 0 error margin.
+  const uptimeLookup = useMemo(() => {
+    const map: Record<string, Record<string, number>> = {}
+    devices.forEach((d) => {
+      const inner: Record<string, number> = {}
+      d.uptime_history.forEach((h) => {
+        inner[h.timestamp] = h.value
+      })
+      map[d.device_id] = inner
+    })
+    return map
+  }, [devices])
+
   // Sort devices by their average for this metric
   const sortedDevices = useMemo(() => {
     const list = [...devices]
@@ -185,7 +200,12 @@ export function DeviceHeatmap({ devices, metric, title, description }: Readonly<
                       </td>
                       {allDates.map((date) => {
                         const value = lookup[device.device_id]?.[date]
+                        const dayUptime = uptimeLookup[device.device_id]?.[date]
+                        // For the error-margin heatmap, treat a day with zero
+                        // uptime as "no data" so the cell renders as a dash
+                        // instead of a misleading 0.
                         const hasValue = value !== undefined
+                          && (isUptime || (dayUptime !== undefined && dayUptime > 0))
                         const numericValue = hasValue ? value : 0
                         const colorClass = isUptime
                           ? getUptimeColor(numericValue)
