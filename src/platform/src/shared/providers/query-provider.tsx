@@ -54,7 +54,7 @@ const createQueryClient = () =>
     defaultOptions: {
       queries: {
         networkMode: 'online',
-        staleTime: 1000 * 60,
+        staleTime: 1000 * 60 * 5,
         gcTime: QUERY_CACHE_MAX_AGE_MS,
         refetchOnWindowFocus: true,
         refetchOnReconnect: false,
