@@ -225,6 +225,9 @@ export const cohorts = {
   },
   getOriginalCohortApi: async (cohortId: string): Promise<OriginalCohortResponse> => {
     try {
+      if (!cohortId?.trim()) {
+        throw new Error('Cohort ID is required');
+      }
       const response = await createSecureApiClient().get(
         `/devices/cohorts/${cohortId}/original`,
         { headers: { 'X-Auth-Type': 'JWT' } }
