@@ -7,53 +7,73 @@
 ## Version 1.23.39
 **Released:** May 07, 2026
 
-### Device Tagging, Map Stability & UI Refinements
+### Device Tagging, Original Cohort Visibility, Map Stability & UI Refinements
 
-Introduced a comprehensive device tagging system for better organization, overhauled the MiniMap component for industrial-grade stability, and enhanced device status visualization.
+Introduced a comprehensive device tagging system, added original cohort tracing for duplicates, overhauled the MiniMap for reliability and performance, and improved device status visualization.
 
 <details>
 <summary><strong>Device Tagging System (4)</strong></summary>
 
-- **Custom & Default Tagging**: Integrated a new tagging system across all device creation and import flows. Users can select from standard tags (e.g., `lowcost`, `mobile`) or create their own custom labels.
-- **Enhanced Device Tables**: Added a "Tags" column to all device listing tables, displaying attributes as color-coded badges for immediate scannability.
-- **In-Place Tag Management**: Updated the Device Details Card to allow operators to view and edit tags directly without leaving the page.
-- **Flexible Data Entry**: Leveraged a new `MultiSelectCombobox` with custom creation support to ensure tagging is both guided and flexible.
+- **Custom & Default Tagging**: Integrated a new tagging system across all device creation and import flows (`create-device-modal`, `import-device-modal`). Users can select from standard tags (e.g., `lowcost`, `mobile`, `inlab`) or create their own custom labels.
+- **Tags Column in Device Tables**: Added a "Tags" column to the device list table (`table-columns.tsx`), displaying tags as color-coded badges. Updated `Device` type in `app/types/devices.ts` to include the optional `tags` field.
+- **In-Place Tag Management**: Updated the Device Details Card to display current tags as badges and allow operators to edit them via a dialog — without leaving the page.
+- **API & Hook Updates**: Extended `createDevice` and `importDevice` in `core/apis/devices.ts` and `core/hooks/useDevices.ts` to accept and forward an optional `tags` array, omitting the field if empty.
 
 </details>
 
 <details>
-<summary><strong>Mapbox Stability & Speed (4)</strong></summary>
+<summary><strong>Cohort Improvements (1)</strong></summary>
 
-- **Industrial-Grade Map Loading**: Refactored the `MiniMap` component to use a `useRef` architecture and `on('load')` synchronization, eliminating intermittent "blank map" issues in Dialogs and Tabs.
-- **Auto-Resize Engine**: Integrated a `ResizeObserver` that automatically recalibrates the map canvas whenever its container's dimensions change, ensuring perfect rendering in dynamic layouts.
-- **Next.js Speed Optimizations**: Implemented `preconnect` resource hints for Mapbox domains to pre-warm connections, significantly reducing map initialization time.
-- **Style Upgrade**: Migrated to Mapbox `streets-v12` for improved vector tile parsing performance and visual clarity.
+- **Original Cohort Tracing**: Updated `cohort-detail-card.tsx` to display an `InfoBanner` linking to the original cohort when a duplicate is detected. Added `useOriginalCohort` hook and corresponding API (`core/apis/cohorts.ts`, `core/hooks/useCohorts.ts`) with `originalCohort` field added to `app/types/cohorts.ts`.
+
+</details>
+
+<details>
+<summary><strong>Mapbox Stability & Speed (3)</strong></summary>
+
+- **Reliable Map Loading**: Refactored `MiniMap` to use `useRef` for the map instance with an initialization guard, and deferred all controls/marker setup to inside the `map.on('load')` callback — fixing intermittent "blank map" issues in Dialogs and Tabs.
+- **Auto-Resize Support**: Integrated a `ResizeObserver` that calls `map.resize()` whenever the container dimensions change, ensuring correct canvas sizing in dynamic layouts.
+- **Next.js Preconnect Hints**: Added `<link rel="preconnect">` for `api.mapbox.com` and `events.mapbox.com` in `app/layout.tsx`, and upgraded the map style to `streets-v12`.
 
 </details>
 
 <details>
 <summary><strong>UI/UX Improvements (2)</strong></summary>
 
-- **Empty State Visualization**: Redesigned the Device Category Card to handle non-deployed states with a centered `AqPuzzlePiece02` icon and helpful instructional text.
-- **Hardenened UI Components**: Upgraded the `MultiSelectCombobox` with strict property guarding and safety checks to prevent runtime crashes when handling undefined data states.
+- **Device Category Empty State**: Redesigned `device-category-card.tsx` to show a centered `AqPuzzlePiece02` icon with the message "Device not deployed. You will see deployment category here" when `deployment_category` is absent. The info tooltip and category hierarchy are hidden in this state.
+- **Hardened MultiSelectCombobox**: Added default values for `options` and `value` props and a safety check for `value.length` to prevent runtime crashes from undefined prop values.
 
 </details>
 
 <details>
-<summary><strong>Files Created/Modified (12)</strong></summary>
+<summary><strong>Other Changes (2)</strong></summary>
 
+- **Grid Success Message**: Updated the grid creation success message copy in `core/hooks/useGrids.ts`.
+- **Temporarily Disabled Google Login**: Google sign-in was temporarily disabled in `app/login/page.tsx` while the feature is being stabilized.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (15)</strong></summary>
+
+- `src/vertex/app/types/devices.ts` [MODIFIED]
+- `src/vertex/app/types/cohorts.ts` [MODIFIED]
+- `src/vertex/app/layout.tsx` [MODIFIED]
+- `src/vertex/app/login/page.tsx` [MODIFIED]
 - `src/vertex/core/constants/devices.ts` [MODIFIED]
 - `src/vertex/core/apis/devices.ts` [MODIFIED]
+- `src/vertex/core/apis/cohorts.ts` [MODIFIED]
 - `src/vertex/core/hooks/useDevices.ts` [MODIFIED]
+- `src/vertex/core/hooks/useCohorts.ts` [MODIFIED]
+- `src/vertex/core/hooks/useGrids.ts` [MODIFIED]
 - `src/vertex/components/features/devices/create-device-modal.tsx` [MODIFIED]
 - `src/vertex/components/features/devices/import-device-modal.tsx` [MODIFIED]
 - `src/vertex/components/features/devices/device-details-card.tsx` [MODIFIED]
-- `src/vertex/components/features/devices/utils/table-columns.tsx` [MODIFIED]
 - `src/vertex/components/features/devices/device-category-card.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/utils/table-columns.tsx` [MODIFIED]
+- `src/vertex/components/features/cohorts/cohort-detail-card.tsx` [MODIFIED]
 - `src/vertex/components/features/mini-map/mini-map.tsx` [MODIFIED]
 - `src/vertex/components/ui/multi-select.tsx` [MODIFIED]
-- `src/vertex/app/layout.tsx` [MODIFIED]
-- `src/vertex/app/changelog.md` [MODIFIED]
 
 </details>
 
