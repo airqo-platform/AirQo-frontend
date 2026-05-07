@@ -6,6 +6,7 @@ export const ROUTE_LINKS = {
   SITES: '/admin/sites',
   GRIDS: '/admin/grids',
   ADMIN_SHIPPING: '/admin/shipping',
+  ADMIN_BULK_UPDATE_JOBS: '/admin/bulk-update-jobs',
   MY_DEVICES: '/devices/my-devices',
   ORG_OVERVIEW: '/home',
   ORG_ASSETS: '/devices/overview',

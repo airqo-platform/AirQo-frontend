@@ -70,6 +70,7 @@ export default function Layout({ children }: LayoutProps) {
       '/admin/sites',
       '/admin/grids',
       '/admin/shipping',
+      '/admin/bulk-update-jobs',
     ];
 
     routesToPrefetch.forEach((route) => {

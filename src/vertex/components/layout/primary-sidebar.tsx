@@ -298,6 +298,21 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                   subLabel="Track device logistics"
                   isActive={pathname.startsWith(ROUTE_LINKS.ADMIN_SHIPPING)}
                 />
+
+                <AdminDropdownItem
+                  permission={!!permissions.canUpdateNetworks}
+                  permissionCode={PERMISSIONS.NETWORK.UPDATE}
+                  tooltipMessage="This action requires network update permission"
+                   onClick={() => {
+                    navigateWithShimmer(ROUTE_LINKS.ADMIN_BULK_UPDATE_JOBS, () => {
+                      handleModuleChange('admin', ROUTE_LINKS.ADMIN_BULK_UPDATE_JOBS);
+                      setIsDropdownOpen(false);
+                    });
+                  }}
+                  label="Bulk Update Jobs"
+                  subLabel="Run and audit bulk device updates"
+                  isActive={pathname.startsWith(ROUTE_LINKS.ADMIN_BULK_UPDATE_JOBS)}
+                />
               </DropdownMenuContent>
             </DropdownMenu>
           )}

@@ -61,6 +61,7 @@ export const useUserContext = (): UserContextState => {
   const canViewUserManagement = usePermission(PERMISSIONS.USER.VIEW);
   const canViewAccessControl = usePermission(PERMISSIONS.ROLE.VIEW);
   const canViewNetworks = usePermission(PERMISSIONS.NETWORK.VIEW);
+  const canUpdateNetworks = usePermission(PERMISSIONS.NETWORK.UPDATE);
   const canViewShipping = usePermission(PERMISSIONS.SHIPPING.VIEW);
 
   // Determine loading states
@@ -214,6 +215,7 @@ export const useUserContext = (): UserContextState => {
         canViewAccessControl: false,
         canViewOrganizations: false,
         canViewNetworks: false,
+        canUpdateNetworks: false,
         canViewShipping: false,
       };
     }
@@ -228,6 +230,7 @@ export const useUserContext = (): UserContextState => {
         canViewAccessControl: canViewAccessControl || false,
         canViewOrganizations: false,
         canViewNetworks: canViewNetworks || false,
+        canUpdateNetworks: canUpdateNetworks || false,
       };
     }
 
@@ -237,6 +240,7 @@ export const useUserContext = (): UserContextState => {
       canViewUserManagement,
       canViewAccessControl,
       canViewNetworks,
+      canUpdateNetworks,
       canViewShipping,
     };
   };

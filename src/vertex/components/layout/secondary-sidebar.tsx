@@ -11,6 +11,7 @@ import {
   AqCollocation,
   AqBezierCurve02,
   AqFileQuestion02,
+  AqRefreshCw01,
 } from '@airqo/icons-react';
 import { Button } from '@/components/ui/button';
 import { useUserContext } from '@/core/hooks/useUserContext';
@@ -297,6 +298,17 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                   href: ROUTE_LINKS.ADMIN_SHIPPING,
                   icon: AqPackagePlus,
                   label: 'Shipping',
+                }}
+                isCollapsed={isCollapsed}
+              />
+
+              <NavItem
+                item={{
+                  href: ROUTE_LINKS.ADMIN_BULK_UPDATE_JOBS,
+                  icon: AqRefreshCw01,
+                  label: 'Bulk Update Jobs',
+                  disabled: !contextPermissions.canUpdateNetworks,
+                  activeOverride: pathname.startsWith(ROUTE_LINKS.ADMIN_BULK_UPDATE_JOBS),
                 }}
                 isCollapsed={isCollapsed}
               />
