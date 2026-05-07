@@ -48,7 +48,7 @@ export default function LoginPage() {
   }, [setFocus, step]);
 
   const handleMarketGoogleAuth = useCallback(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || loading) return;
 
     window.location.replace(
       buildOAuthInitiationUrl('google', {
@@ -56,7 +56,7 @@ export default function LoginPage() {
         tenant: 'airqo',
       })
     );
-  }, []);
+  }, [loading]);
 
   const handleContinue = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -209,7 +209,7 @@ export default function LoginPage() {
             Continue
           </Button>
 
-          <GoogleAuthSection mode="login" />
+          <GoogleAuthSection mode="login" disabled={loading} />
 
           <div className="w-full pt-0 text-center">
             <p className="text-sm">

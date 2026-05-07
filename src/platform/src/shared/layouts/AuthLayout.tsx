@@ -3,7 +3,6 @@
 import { ReactNode } from 'react';
 import Image from 'next/image';
 import Head from 'next/head';
-import { Toaster } from '@/shared/components/ui';
 import { AqAirQo } from '@airqo/icons-react';
 
 // ============================================================================
@@ -168,7 +167,6 @@ const AuthLayout = ({
           />
         </div>
       </div>
-      <Toaster />
     </>
   );
 };

@@ -139,7 +139,11 @@ export default function RegisterPage() {
         </Button>
       </form>
 
-      <GoogleAuthSection mode="register" className="mt-6" />
+      <GoogleAuthSection
+        mode="register"
+        disabled={isMutating}
+        className="mt-6"
+      />
 
       <div className="w-full mt-6 text-center">
         <p className="text-sm">
