@@ -25,6 +25,15 @@ export default function GoogleAuthSection({
   const handleGoogleAuth = useCallback(() => {
     if (typeof window === 'undefined' || disabled) return;
 
+    const isStagingUrl = window.location.href.toLowerCase().includes('staging');
+    if (!isStagingUrl) {
+      toast.error(
+        'Google sign-in unavailable',
+        'Google sign-in is currently unavailable. Please continue with your email and password.'
+      );
+      return;
+    }
+
     setIsRedirecting(true);
 
     try {

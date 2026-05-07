@@ -144,9 +144,11 @@ export const buildOAuthInitiationUrl = (
   provider = 'google',
   queryParams?: Record<string, string | undefined>
 ): string => {
-  const baseUrl = buildBackendApiUrl(
-    `/users/auth/${encodeURIComponent(provider)}`
-  );
+  const path = `/users/auth/${encodeURIComponent(provider)}`;
+  const baseUrl =
+    typeof window === 'undefined'
+      ? buildBackendApiUrl(path)
+      : buildBrowserApiUrl(path);
   const params = new URLSearchParams();
 
   if (queryParams) {

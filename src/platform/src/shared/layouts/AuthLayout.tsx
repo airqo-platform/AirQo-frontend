@@ -13,7 +13,7 @@ import { AqAirQo } from '@airqo/icons-react';
 interface AuthLayoutProps {
   pageTitle: string;
   children: ReactNode;
-  rightText?: string;
+  rightText?: ReactNode;
   sideBackgroundColor?: string;
   testimonialAuthor?: string;
   testimonialRole?: string;
@@ -43,7 +43,7 @@ const DEFAULT_TESTIMONIAL = {
 const Logo = () => <AqAirQo className="w-12 h-8" />;
 
 interface TestimonialSectionProps {
-  text: string;
+  text: ReactNode;
   author: string;
   role: string;
   organization: string;
@@ -112,7 +112,7 @@ const AuthLayout = ({
   headingClassName = 'text-lg lg:text-xl xl:text-3xl font-bold text-gray-900 dark:text-white',
   subtitleClassName = 'text-base lg:text-lg text-gray-700 dark:text-gray-300 font-medium leading-relaxed',
 }: AuthLayoutProps) => {
-  const testimonialText = rightText || DEFAULT_TESTIMONIAL.text;
+  const testimonialText = rightText ?? DEFAULT_TESTIMONIAL.text;
 
   return (
     <>

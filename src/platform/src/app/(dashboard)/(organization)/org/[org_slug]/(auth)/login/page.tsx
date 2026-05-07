@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { useParams } from 'next/navigation';
 import AuthLayout from '@/shared/layouts/AuthLayout';
 import { signIn } from 'next-auth/react';
@@ -18,6 +18,7 @@ import {
 
 export default function OrgLoginPage() {
   const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState<'email' | 'password'>('email');
   const params = useParams();
   const searchParams = useSearchParams();
   const orgSlug = params.org_slug as string;
@@ -26,6 +27,10 @@ export default function OrgLoginPage() {
   const {
     register,
     handleSubmit,
+    trigger,
+    watch,
+    resetField,
+    setFocus,
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -35,6 +40,26 @@ export default function OrgLoginPage() {
     },
     mode: 'onChange',
   });
+
+  const emailValue = (watch('email') || '').trim();
+
+  useEffect(() => {
+    setFocus(step === 'email' ? 'email' : 'password');
+  }, [setFocus, step]);
+
+  const handleContinue = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const isEmailValid = await trigger('email');
+    if (isEmailValid) {
+      setStep('password');
+    }
+  };
+
+  const handleGoBack = () => {
+    resetField('password');
+    setStep('email');
+  };
 
   const onSubmit = async (data: LoginFormData) => {
     setLoading(true);
@@ -128,67 +153,99 @@ export default function OrgLoginPage() {
   return (
     <AuthLayout
       pageTitle="Organization Login"
-      heading={`Login to ${orgSlug}`}
-      subtitle={'Access your organization dashboard'}
+      heading={`Sign in to ${orgSlug}`}
+      subtitle="Use your organization email first, then confirm your password on the next screen."
     >
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div>
-          <label
-            htmlFor="email"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            Email
-          </label>
+      {step === 'email' ? (
+        <form onSubmit={handleContinue} className="w-full space-y-4">
           <Input
-            id="email"
+            label="Email"
             type="email"
             {...register('email')}
             error={errors.email?.message}
             placeholder="Enter your email"
           />
-        </div>
 
-        <div>
-          <label
-            htmlFor="password"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            Password
-          </label>
+          <Button type="submit" fullWidth disabled={loading}>
+            Continue
+          </Button>
+
+          <div className="text-center">
+            <span className="text-sm text-gray-600 dark:text-gray-400">
+              Don&apos;t have an account?{' '}
+              <Link
+                href={`/org/${orgSlug}/register`}
+                className="text-primary hover:text-primary/80"
+              >
+                Sign up
+              </Link>
+            </span>
+          </div>
+        </form>
+      ) : (
+        <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-4">
+          <div className="rounded-xl border border-gray-200 bg-gray-50/80 px-3 py-3 shadow-sm dark:border-gray-700 dark:bg-gray-800/50 sm:px-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500 dark:text-gray-400">
+                  Account
+                </p>
+                <p className="mt-0.5 truncate text-sm font-medium text-gray-900 dark:text-white">
+                  {emailValue || 'your email address'}
+                </p>
+              </div>
+
+              <Button
+                type="button"
+                variant="text"
+                size="sm"
+                onClick={handleGoBack}
+              >
+                Change
+              </Button>
+            </div>
+          </div>
+
           <Input
-            id="password"
+            label="Password"
             type="password"
             {...register('password')}
             error={errors.password?.message}
             placeholder="Enter your password"
+            showPasswordToggle
           />
-        </div>
 
-        <div className="flex items-center justify-between">
-          <Link
-            href={`/org/${orgSlug}/forgot-password`}
-            className="text-sm text-primary hover:text-primary/80"
-          >
-            Forgot password?
-          </Link>
-        </div>
-
-        <Button type="submit" loading={loading} className="w-full">
-          {loading ? 'Signing in...' : 'Login'}
-        </Button>
-
-        <div className="text-center">
-          <span className="text-sm text-gray-600">
-            Don&apos;t have an account?{' '}
+          <div className="flex items-center justify-end gap-3">
             <Link
-              href={`/org/${orgSlug}/register`}
-              className="text-primary hover:text-primary/80"
+              href={`/org/${orgSlug}/forgot-password`}
+              className="text-sm text-primary hover:text-primary/80"
             >
-              Sign up
+              Forgot password?
             </Link>
-          </span>
-        </div>
-      </form>
+          </div>
+
+          <Button
+            type="submit"
+            loading={loading}
+            disabled={loading}
+            className="w-full"
+          >
+            {loading ? 'Signing in...' : 'Login'}
+          </Button>
+
+          <div className="text-center">
+            <span className="text-sm text-gray-600 dark:text-gray-400">
+              Don&apos;t have an account?{' '}
+              <Link
+                href={`/org/${orgSlug}/register`}
+                className="text-primary hover:text-primary/80"
+              >
+                Sign up
+              </Link>
+            </span>
+          </div>
+        </form>
+      )}
     </AuthLayout>
   );
 }
