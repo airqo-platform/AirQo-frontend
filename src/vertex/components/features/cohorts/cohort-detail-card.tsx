@@ -37,7 +37,9 @@ const CohortDetailsCard: React.FC<CohortDetailsCardProps> = ({
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const pathname = usePathname();
   const isAdminPath = pathname.startsWith("/admin");
-  const isDuplicate = cohort_tags?.includes("duplicate");
+  const isDuplicate = (cohort_tags ?? []).some(
+    (tag) => tag.toLowerCase() === "duplicate"
+  );
 
   const { mutate: updateCohort, isPending } = useUpdateCohortDetails();
   const { data: originalData } = useOriginalCohort(id, { enabled: !!isDuplicate });
