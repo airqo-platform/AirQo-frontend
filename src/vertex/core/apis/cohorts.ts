@@ -1,4 +1,4 @@
-import { Cohort, CohortsSummaryResponse, GroupCohortsResponse } from "@/app/types/cohorts";
+import { Cohort, CohortsSummaryResponse, GroupCohortsResponse, OriginalCohortResponse } from "@/app/types/cohorts";
 import createSecureApiClient from "../utils/secureApiProxyClient";
 
 export interface GetCohortsSummaryParams {
@@ -219,6 +219,17 @@ export const cohorts = {
         errors?: { message: string };
         cohort?: { name: string };
       };
+    } catch (error) {
+      throw error;
+    }
+  },
+  getOriginalCohortApi: async (cohortId: string): Promise<OriginalCohortResponse> => {
+    try {
+      const response = await createSecureApiClient().get(
+        `/devices/cohorts/${cohortId}/original`,
+        { headers: { 'X-Auth-Type': 'JWT' } }
+      );
+      return response.data;
     } catch (error) {
       throw error;
     }
