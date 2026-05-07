@@ -243,7 +243,7 @@ function MiniMap({
         markerRef.current = null;
       }
       if (drawRef.current && mapRef.current) {
-        mapRef.current.removeControl(drawRef.current as any);
+        mapRef.current.removeControl(drawRef.current as unknown as mapboxgl.IControl);
         drawRef.current = null;
       }
       if (mapRef.current) {
