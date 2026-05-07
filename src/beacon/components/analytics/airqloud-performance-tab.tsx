@@ -26,6 +26,9 @@ import {
   Line,
   BarChart,
   Bar,
+  ScatterChart,
+  Scatter,
+  ZAxis,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -97,7 +100,8 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName, initi
   const [summaryExpanded, setSummaryExpanded] = useState(false)
   const [uptimeExpanded, setUptimeExpanded] = useState(false)
   const [frequencyExpanded, setFrequencyExpanded] = useState(false)
-  const [errorMarginExpanded, setErrorMarginExpanded] = useState(false)
+  const [sensorHealthExpanded, setSensorHealthExpanded] = useState(false)
+  const [sensorHealthMode, setSensorHealthMode] = useState<"error" | "sensors" | "correlation">("correlation")
 
   const fetchPerformanceData = async () => {
     try {
@@ -229,16 +233,30 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName, initi
 
   // Process data for each device
   const devicesChartData = useMemo(() => {
-    return performanceData.map((device) => ({
-      deviceId: device.id,
-      deviceName: device.name,
-      chartData: device.backendData.map((d: any) => ({
-        timestamp: d.datetime,
-        formattedTime: format(new Date(d.datetime), "MMM dd HH:mm"),
-        freq: 1,
-        error_margin: (d.s1_pm2_5 != null && d.s2_pm2_5 != null) ? Math.abs(d.s1_pm2_5 - d.s2_pm2_5) : null,
-      })).sort((a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()),
-    }))
+    return performanceData.map((device) => {
+      const chartData = device.backendData.map((d: any) => {
+        const rc = d.record_count
+        return {
+          timestamp: d.datetime,
+          formattedTime: format(new Date(d.datetime), "MMM dd HH:mm"),
+          freq: typeof rc === "number" ? rc : 1,
+          error_margin: (d.s1_pm2_5 != null && d.s2_pm2_5 != null) ? Math.abs(d.s1_pm2_5 - d.s2_pm2_5) : null,
+          s1_pm2_5: d.s1_pm2_5 ?? null,
+          s2_pm2_5: d.s2_pm2_5 ?? null,
+        }
+      }).sort((a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+
+      const correlationData = device.backendData
+        .filter((d: any) => d.s1_pm2_5 != null && d.s2_pm2_5 != null)
+        .map((d: any) => ({ s1: d.s1_pm2_5 as number, s2: d.s2_pm2_5 as number }))
+
+      return {
+        deviceId: device.id,
+        deviceName: device.name,
+        chartData,
+        correlationData,
+      }
+    })
   }, [performanceData])
 
   // Calculate daily uptime for each device
@@ -260,27 +278,61 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName, initi
         dailyData[dateKey].hoursWithData++
       })
 
+      // Build the full list of expected days for the selected window so days
+      // with no data contribute 0% uptime instead of being dropped from the
+      // denominator.
+      const expectedKeys: string[] = []
+      const fromDate = dateRange.from
+      const toDate = dateRange.to
+      if (fromDate && toDate) {
+        const start = new Date(fromDate)
+        start.setHours(0, 0, 0, 0)
+        const end = new Date(toDate)
+        end.setHours(0, 0, 0, 0)
+        for (let d = new Date(start); d.getTime() <= end.getTime(); d.setDate(d.getDate() + 1)) {
+          expectedKeys.push(format(d, "yyyy-MM-dd"))
+        }
+      } else {
+        expectedKeys.push(...Object.keys(dailyData).sort((a, b) => a.localeCompare(b)))
+      }
+
+      const dailyUptimeData = expectedKeys.map((key) => {
+        const entry = dailyData[key]
+        const hours = entry ? entry.hoursWithData : 0
+        const date = entry ? entry.date : format(new Date(`${key}T00:00:00`), "MMM dd, yyyy")
+        return {
+          date,
+          uptimePercentage: Math.min(100, (hours / 24) * 100).toFixed(1),
+        }
+      })
+
       return {
         deviceId: device.id,
         deviceName: device.name,
-        dailyUptimeData: Object.keys(dailyData).sort().map(key => ({
-          date: dailyData[key].date,
-          uptimePercentage: Math.min(100, (dailyData[key].hoursWithData / dailyData[key].totalHours) * 100).toFixed(1),
-        })),
+        dailyUptimeData,
       }
     })
-  }, [performanceData])
+  }, [performanceData, dateRange])
 
-  // Calculate summary statistics for each device
+  // Calculate summary statistics for each device. Average uptime is derived
+  // from the per-day series above (which already counts missing days as 0%
+  // across the full selected window) rather than from the API's `device.uptime`
+  // field, so cohorts of mixed-reporting devices aren't artificially inflated.
   const devicesSummary = useMemo((): DeviceSummary[] => {
-    return performanceData.map((device) => ({
-      deviceId: device.id,
-      deviceName: device.name,
-      avgFrequency: device.data_completeness * 100, // Represented as percentage
-      avgErrorMargin: device.sensor_error_margin,
-      avgUptime: device.uptime * 100,
-    }))
-  }, [performanceData])
+    return performanceData.map((device) => {
+      const daily = devicesUptimeData.find(d => d.deviceId === device.id)?.dailyUptimeData ?? []
+      const avgUptime = daily.length > 0
+        ? daily.reduce((s, d) => s + Number.parseFloat(d.uptimePercentage), 0) / daily.length
+        : (device.uptime || 0) * 100
+      return {
+        deviceId: device.id,
+        deviceName: device.name,
+        avgFrequency: device.data_completeness * 100, // Represented as percentage
+        avgErrorMargin: device.sensor_error_margin,
+        avgUptime,
+      }
+    })
+  }, [performanceData, devicesUptimeData])
 
   const isSingleDevice = performanceData.length === 1
 
@@ -647,58 +699,158 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName, initi
                 )}
               </div>
 
-              {/* Error Margin Charts - Collapsible */}
+              {/* Sensor Health Charts - Collapsible with 3-way toggle */}
               <div>
                 <button
-                  onClick={() => setErrorMarginExpanded(!errorMarginExpanded)}
+                  onClick={() => setSensorHealthExpanded(!sensorHealthExpanded)}
                   className="flex items-center gap-2 mb-4 w-full hover:opacity-70 transition-opacity"
                   type="button"
-                  aria-expanded={errorMarginExpanded}
+                  aria-expanded={sensorHealthExpanded}
                 >
-                  {errorMarginExpanded ? (
+                  {sensorHealthExpanded ? (
                     <ChevronUp className="h-5 w-5 text-gray-500" />
                   ) : (
                     <ChevronDown className="h-5 w-5 text-gray-500" />
                   )}
                   <TrendingUp className="h-5 w-5 text-orange-600" />
-                  <h3 className="text-lg font-semibold">Error Margin</h3>
+                  <h3 className="text-lg font-semibold">Sensor Health</h3>
                 </button>
-                {errorMarginExpanded && (
-                  <div className={`grid gap-4 ${isSingleDevice ? 'md:grid-cols-2' : 'lg:grid-cols-2'}`}>
-                    {devicesChartData.map((deviceData) => (
-                      <Card key={`error-${deviceData.deviceId}`}>
-                        <CardHeader className="pb-2">
-                          <CardTitle className="text-sm font-medium">{deviceData.deviceName}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <ResponsiveContainer width="100%" height={250}>
-                            <LineChart data={deviceData.chartData}>
-                              <CartesianGrid strokeDasharray="3 3" />
-                              <XAxis
-                                dataKey="formattedTime"
-                                angle={-45}
-                                textAnchor="end"
-                                height={80}
-                                tick={{ fontSize: 9 }}
-                              />
-                              <YAxis tick={{ fontSize: 10 }} />
-                              <Tooltip />
-                              <Legend wrapperStyle={{ fontSize: '12px' }} />
-                              <Line
-                                type="monotone"
-                                dataKey="error_margin"
-                                stroke="#ea580c"
-                                name="Error Margin"
-                                strokeWidth={2}
-                                connectNulls
-                                dot={false}
-                              />
-                            </LineChart>
-                          </ResponsiveContainer>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+                {sensorHealthExpanded && (
+                  <>
+                    {/* Mode toggle */}
+                    <div className="flex justify-end mb-3">
+                      <div className="inline-flex rounded-md border bg-white p-0.5 text-xs">
+                        <button
+                          type="button"
+                          onClick={() => setSensorHealthMode("error")}
+                          className={cn(
+                            "px-2 py-1 rounded-sm transition-colors",
+                            sensorHealthMode === "error"
+                              ? "bg-orange-100 text-orange-700 font-medium"
+                              : "text-gray-500 hover:text-gray-700"
+                          )}
+                        >
+                          Error Margin
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSensorHealthMode("sensors")}
+                          className={cn(
+                            "px-2 py-1 rounded-sm transition-colors",
+                            sensorHealthMode === "sensors"
+                              ? "bg-orange-100 text-orange-700 font-medium"
+                              : "text-gray-500 hover:text-gray-700"
+                          )}
+                        >
+                          Sensors
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSensorHealthMode("correlation")}
+                          className={cn(
+                            "px-2 py-1 rounded-sm transition-colors",
+                            sensorHealthMode === "correlation"
+                              ? "bg-orange-100 text-orange-700 font-medium"
+                              : "text-gray-500 hover:text-gray-700"
+                          )}
+                        >
+                          Correlation
+                        </button>
+                      </div>
+                    </div>
+                    <div className={`grid gap-4 ${isSingleDevice ? 'md:grid-cols-2' : 'lg:grid-cols-2'}`}>
+                      {devicesChartData.map((deviceData) => (
+                        <Card key={`sensor-health-${deviceData.deviceId}`}>
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm font-medium">{deviceData.deviceName}</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <ResponsiveContainer width="100%" height={250}>
+                              {sensorHealthMode === "correlation" ? (
+                                <ScatterChart margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>
+                                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                                  <XAxis
+                                    type="number"
+                                    dataKey="s1"
+                                    name="Sensor 1 PM2.5"
+                                    tick={{ fontSize: 10, fill: "#6b7280" }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                    label={{ value: "Sensor 1 PM2.5", position: "insideBottom", offset: -2, fontSize: 10, fill: "#6b7280" }}
+                                  />
+                                  <YAxis
+                                    type="number"
+                                    dataKey="s2"
+                                    name="Sensor 2 PM2.5"
+                                    tick={{ fontSize: 10, fill: "#6b7280" }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                    label={{ value: "Sensor 2 PM2.5", angle: -90, position: "insideLeft", fontSize: 10, fill: "#6b7280" }}
+                                  />
+                                  <ZAxis range={[30, 30]} />
+                                  <Tooltip
+                                    cursor={{ strokeDasharray: "3 3" }}
+                                    contentStyle={{ borderRadius: "8px", border: "none", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }}
+                                    formatter={(value: any, name: any) => [Number(value).toFixed(2), name === "s1" ? "Sensor 1" : "Sensor 2"]}
+                                  />
+                                  <Scatter data={deviceData.correlationData} fill="#ea580c" fillOpacity={0.6} />
+                                </ScatterChart>
+                              ) : (
+                                <LineChart data={deviceData.chartData}>
+                                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                                  <XAxis
+                                    dataKey="formattedTime"
+                                    angle={-45}
+                                    textAnchor="end"
+                                    height={80}
+                                    tick={{ fontSize: 9 }}
+                                  />
+                                  <YAxis tick={{ fontSize: 10 }} />
+                                  <Tooltip />
+                                  {sensorHealthMode === "sensors" && (
+                                    <Legend wrapperStyle={{ fontSize: "12px" }} iconType="line" />
+                                  )}
+                                  {sensorHealthMode === "error" && (
+                                    <Line
+                                      type="monotone"
+                                      dataKey="error_margin"
+                                      stroke="#ea580c"
+                                      name="Error Margin"
+                                      strokeWidth={2}
+                                      connectNulls
+                                      dot={false}
+                                    />
+                                  )}
+                                  {sensorHealthMode === "sensors" && (
+                                    <>
+                                      <Line
+                                        type="monotone"
+                                        dataKey="s1_pm2_5"
+                                        stroke="#3b82f6"
+                                        name="Sensor 1"
+                                        strokeWidth={2}
+                                        connectNulls
+                                        dot={false}
+                                      />
+                                      <Line
+                                        type="monotone"
+                                        dataKey="s2_pm2_5"
+                                        stroke="#a855f7"
+                                        name="Sensor 2"
+                                        strokeWidth={2}
+                                        connectNulls
+                                        dot={false}
+                                      />
+                                    </>
+                                  )}
+                                </LineChart>
+                              )}
+                            </ResponsiveContainer>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </>
                 )}
               </div>
             </div>

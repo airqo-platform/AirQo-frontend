@@ -29,7 +29,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import AirQloudPerformanceTab from "./airqloud-performance-tab"
-import DevicePerformanceHeatmaps from "@/components/analytics/device-heatmap"
+import DevicePerformanceHeatmaps, { DeviceHourHeatmaps } from "@/components/analytics/device-heatmap"
 
 interface AirQloudDetailData {
   id: string
@@ -65,11 +65,14 @@ interface ProcessedDeviceData {
   last_active: string | null
   uptime_history: Array<{ value: number; timestamp: string }>
   error_margin_history: Array<{ value: number; timestamp: string }>
+  hourly_data: Array<{ date: string; hour: number; count: number; errorMargin: number | null }>
 }
 
 const processDevicePerformance = (device: AirQloudDetailData['devices'][0]): ProcessedDeviceData => {
   // Group data by date
   const dailyData: { [date: string]: { hoursSet: Set<number>; errorMargins: number[] } } = {}
+  // Group data by date+hour for hourly heatmap
+  const hourlyData: { [key: string]: { date: string; hour: number; count: number; errorMargins: number[] } } = {}
 
   const deviceData = device.data || []
 
@@ -82,38 +85,90 @@ const processDevicePerformance = (device: AirQloudDetailData['devices'][0]): Pro
     }
 
     // Track distinct hours per day
-    dailyData[date].hoursSet.add(dt.getHours())
+    const hour = dt.getHours()
+    dailyData[date].hoursSet.add(hour)
+
+    // Hourly bucket
+    const hourKey = `${date}|${hour}`
+    if (!hourlyData[hourKey]) {
+      hourlyData[hourKey] = { date, hour, count: 0, errorMargins: [] }
+    }
+    // The API pre-aggregates hourly. When `record_count` is provided we treat
+    // it as the true number of raw records in that hour; otherwise fall back
+    // to counting entries.
+    const recordCount = typeof d.record_count === "number" ? d.record_count : 1
+    hourlyData[hourKey].count += recordCount
 
     // Collect error margins for this day
     if (d.s1_pm2_5 != null && d.s2_pm2_5 != null) {
-      dailyData[date].errorMargins.push(Math.abs(d.s1_pm2_5 - d.s2_pm2_5))
+      const em = Math.abs(d.s1_pm2_5 - d.s2_pm2_5)
+      dailyData[date].errorMargins.push(em)
+      hourlyData[hourKey].errorMargins.push(em)
     }
   })
 
-  // Convert to arrays for history graphs
-  const dates = Object.keys(dailyData).sort((a, b) => new Date(a).getTime() - new Date(b).getTime()).slice(-14) // Sort chronologically and take last 14 days
+  // Build the full 14-day window ending on the latest date with data so that
+  // days where the device produced no records still count as 0% uptime in the
+  // denominator. Previously only days that had data were averaged, which
+  // inflated uptime for sparsely-reporting devices.
+  const datesWithData = Object.keys(dailyData).sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
+  const dates: string[] = []
+  if (datesWithData.length > 0) {
+    const last = new Date(datesWithData.at(-1) ?? new Date().toDateString())
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date(last)
+      d.setDate(d.getDate() - i)
+      dates.push(d.toDateString())
+    }
+  }
 
   const uptimeHistory = dates.map(date => ({
-    value: Math.min(100, (Math.min(24, dailyData[date].hoursSet.size) / 24) * 100), // Percentage of 24 hours
+    value: dailyData[date]
+      ? Math.min(100, (Math.min(24, dailyData[date].hoursSet.size) / 24) * 100)
+      : 0,
     timestamp: date
   }))
 
   const errorMarginHistory = dates.map(date => ({
-    value: dailyData[date].errorMargins.length > 0
+    value: dailyData[date] && dailyData[date].errorMargins.length > 0
       ? dailyData[date].errorMargins.reduce((sum, em) => sum + em, 0) / dailyData[date].errorMargins.length
       : 0,
     timestamp: date
   }))
 
+  // Compute average daily uptime from the actual per-day buckets (with
+  // missing days counted as 0) instead of relying on the API's `device.uptime`
+  // field (which is currently returning 1 for every device regardless of
+  // record_count). Falls back to the API value only when we have no raw data
+  // points at all.
+  const computedAvgUptime = uptimeHistory.length > 0
+    ? uptimeHistory.reduce((sum, d) => sum + d.value, 0) / uptimeHistory.length
+    : (device.uptime ?? 0) * 100
+
+  // Compute average error margin from raw data when possible, otherwise
+  // fall back to the API-provided value.
+  const allErrorMargins = Object.values(dailyData).flatMap(d => d.errorMargins)
+  const computedAvgErrorMargin = allErrorMargins.length > 0
+    ? allErrorMargins.reduce((s, v) => s + v, 0) / allErrorMargins.length
+    : (device.sensor_error_margin ?? 0)
+
   return {
     device_id: device._id || device.name,
     device_name: device.long_name || device.name,
-    daily_uptime_percentage: (device.uptime || 0) * 100,
-    average_error_margin: device.sensor_error_margin || 0,
+    daily_uptime_percentage: computedAvgUptime,
+    average_error_margin: computedAvgErrorMargin,
     data_points: deviceData.length,
     last_active: device.lastRawData || device.lastRawData || null,
     uptime_history: uptimeHistory,
-    error_margin_history: errorMarginHistory
+    error_margin_history: errorMarginHistory,
+    hourly_data: Object.values(hourlyData).map(h => ({
+      date: h.date,
+      hour: h.hour,
+      count: h.count,
+      errorMargin: h.errorMargins.length > 0
+        ? h.errorMargins.reduce((a, b) => a + b, 0) / h.errorMargins.length
+        : null,
+    })),
   }
 }
 
@@ -338,24 +393,38 @@ export default function AirQloudDetailPage() {
   }
 
   // Calculate summary statistics
-  const averageUptime = (data.uptime || 0) * 100
-
   const averageErrorMargin = data.sensor_error_margin || 0
 
   const processedDevices = data.devices ? data.devices.map(processDevicePerformance) : []
 
+  // Cohort average uptime = average of each device's per-window daily uptime,
+  // where each device's per-window value already counts missing days as 0.
+  // This makes the denominator (deviceCount × performanceDays) instead of the
+  // (potentially much smaller) number of (device, day) pairs that happened to
+  // report. Falls back to the API-provided cohort.uptime when there are no
+  // devices to average.
+  const averageUptime = processedDevices.length > 0
+    ? processedDevices.reduce((s, d) => s + d.daily_uptime_percentage, 0) / processedDevices.length
+    : (data.uptime || 0) * 100
+
   const chartData = []
 
   if (data) {
-    const dailyCohort: { [date: string]: { deviceCount: number, totalUptime: number, totalError: number, errorCount: number } } = {}
+    // For each day in the window, the cohort uptime is the average of every
+    // device's uptime on that day. Devices with no data on a given day
+    // contribute 0 (handled upstream in `uptime_history`). The denominator is
+    // therefore the total number of devices in the cohort, not just the ones
+    // that happened to report.
+    const totalDevices = processedDevices.length
+    const dailyCohort: { [date: string]: { totalUptime: number; totalError: number; errorCount: number } } = {}
 
     processedDevices.forEach(device => {
       device.uptime_history.forEach(u => {
-        if (!dailyCohort[u.timestamp]) dailyCohort[u.timestamp] = { deviceCount: 0, totalUptime: 0, totalError: 0, errorCount: 0 }
-        dailyCohort[u.timestamp].deviceCount += 1
+        if (!dailyCohort[u.timestamp]) dailyCohort[u.timestamp] = { totalUptime: 0, totalError: 0, errorCount: 0 }
         dailyCohort[u.timestamp].totalUptime += u.value
       })
       device.error_margin_history.forEach(e => {
+        if (!dailyCohort[e.timestamp]) dailyCohort[e.timestamp] = { totalUptime: 0, totalError: 0, errorCount: 0 }
         if (e.value > 0) {
           dailyCohort[e.timestamp].totalError += e.value
           dailyCohort[e.timestamp].errorCount += 1
@@ -370,7 +439,7 @@ export default function AirQloudDetailPage() {
         const day = dailyCohort[date]
         return {
           date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-          uptime: day.deviceCount > 0 ? day.totalUptime / day.deviceCount : 0,
+          uptime: totalDevices > 0 ? day.totalUptime / totalDevices : 0,
           errorMargin: day.errorCount > 0 ? day.totalError / day.errorCount : 0,
           timestamp: date
         }
@@ -422,8 +491,9 @@ export default function AirQloudDetailPage() {
       <Tabs defaultValue="overview" className="w-full">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="heatmap">Cohort Heatmap</TabsTrigger>
+          <TabsTrigger value="hourly">Device Heatmap</TabsTrigger>
           <TabsTrigger value="performance">Performance</TabsTrigger>
-          <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6 mt-6">
@@ -672,6 +742,10 @@ export default function AirQloudDetailPage() {
 
         <TabsContent value="heatmap" className="mt-6">
           <DevicePerformanceHeatmaps devices={processedDevices} />
+        </TabsContent>
+
+        <TabsContent value="hourly" className="mt-6">
+          <DeviceHourHeatmaps devices={processedDevices} />
         </TabsContent>
       </Tabs>
     </div>
