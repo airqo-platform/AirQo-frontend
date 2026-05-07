@@ -4,6 +4,61 @@
 
 ---
 
+## Version 1.23.39
+**Released:** May 07, 2026
+
+### Device Tagging, Map Stability & UI Refinements
+
+Introduced a comprehensive device tagging system for better organization, overhauled the MiniMap component for industrial-grade stability, and enhanced device status visualization.
+
+<details>
+<summary><strong>Device Tagging System (4)</strong></summary>
+
+- **Custom & Default Tagging**: Integrated a new tagging system across all device creation and import flows. Users can select from standard tags (e.g., `lowcost`, `mobile`) or create their own custom labels.
+- **Enhanced Device Tables**: Added a "Tags" column to all device listing tables, displaying attributes as color-coded badges for immediate scannability.
+- **In-Place Tag Management**: Updated the Device Details Card to allow operators to view and edit tags directly without leaving the page.
+- **Flexible Data Entry**: Leveraged a new `MultiSelectCombobox` with custom creation support to ensure tagging is both guided and flexible.
+
+</details>
+
+<details>
+<summary><strong>Mapbox Stability & Speed (4)</strong></summary>
+
+- **Industrial-Grade Map Loading**: Refactored the `MiniMap` component to use a `useRef` architecture and `on('load')` synchronization, eliminating intermittent "blank map" issues in Dialogs and Tabs.
+- **Auto-Resize Engine**: Integrated a `ResizeObserver` that automatically recalibrates the map canvas whenever its container's dimensions change, ensuring perfect rendering in dynamic layouts.
+- **Next.js Speed Optimizations**: Implemented `preconnect` resource hints for Mapbox domains to pre-warm connections, significantly reducing map initialization time.
+- **Style Upgrade**: Migrated to Mapbox `streets-v12` for improved vector tile parsing performance and visual clarity.
+
+</details>
+
+<details>
+<summary><strong>UI/UX Improvements (2)</strong></summary>
+
+- **Empty State Visualization**: Redesigned the Device Category Card to handle non-deployed states with a centered `AqPuzzlePiece02` icon and helpful instructional text.
+- **Hardenened UI Components**: Upgraded the `MultiSelectCombobox` with strict property guarding and safety checks to prevent runtime crashes when handling undefined data states.
+
+</details>
+
+<details>
+<summary><strong>Files Created/Modified (12)</strong></summary>
+
+- `src/vertex/core/constants/devices.ts` [MODIFIED]
+- `src/vertex/core/apis/devices.ts` [MODIFIED]
+- `src/vertex/core/hooks/useDevices.ts` [MODIFIED]
+- `src/vertex/components/features/devices/create-device-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/import-device-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/device-details-card.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/utils/table-columns.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/device-category-card.tsx` [MODIFIED]
+- `src/vertex/components/features/mini-map/mini-map.tsx` [MODIFIED]
+- `src/vertex/components/ui/multi-select.tsx` [MODIFIED]
+- `src/vertex/app/layout.tsx` [MODIFIED]
+- `src/vertex/app/changelog.md` [MODIFIED]
+
+</details>
+
+---
+
 ## Version 1.23.38
 **Released:** May 05, 2026
 
