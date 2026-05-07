@@ -21,7 +21,7 @@ import {
 } from "@/core/redux/slices/userSlice";
 import { getLastActiveModule } from "@/core/utils/userPreferences";
 import { VERTEX_DESKTOP_DOWNLOADS } from "@/core/constants/app-downloads";
-import GoogleAuthSection from "@/components/features/auth/google-auth-section";
+// import GoogleAuthSection from "@/components/features/auth/google-auth-section";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft } from "lucide-react";
 
@@ -220,13 +220,13 @@ export default function LoginPage() {
             </div>
 
             <div className="flex flex-col">
-              {step === 'email' && (
+              {/* {step === 'email' && (
                 <GoogleAuthSection
                   disabled={isLoading}
                   className="mb-6"
                   callbackUrl={callbackUrl}
                 />
-              )}
+              )} */}
 
               <Form {...form}>
                 <form
