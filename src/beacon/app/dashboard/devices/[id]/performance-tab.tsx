@@ -15,6 +15,7 @@ import { format, subDays } from "date-fns"
 import { getDevicePerformanceData } from "@/services/device-api.service"
 import { isMockMode } from "@/lib/mock-data"
 import { useToast } from "@/hooks/use-toast"
+import { DeviceHourHeatmaps, type HeatmapDevice } from "@/components/analytics/device-heatmap"
 import {
   Table,
   TableBody,
@@ -35,6 +36,9 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  ScatterChart,
+  Scatter,
+  ZAxis,
 } from "recharts"
 
 interface PerformanceTabProps {
@@ -263,6 +267,7 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
   }
 
   const [isCalendarOpen, setIsCalendarOpen] = useState(false)
+  const [sensorHealthMode, setSensorHealthMode] = useState<"error" | "sensors" | "correlation">("correlation")
 
   const handleApplyFilter = () => {
     setIsCalendarOpen(false)
@@ -285,6 +290,8 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
         timestamp: string
         errorMargins: number[]
         batteryVoltages: number[]
+        s1Pm25: number[]
+        s2Pm25: number[]
         count: number
       }> = {}
 
@@ -300,6 +307,8 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
             timestamp: hourKey,
             errorMargins: [],
             batteryVoltages: [],
+            s1Pm25: [],
+            s2Pm25: [],
             count: 0,
           }
         }
@@ -311,10 +320,20 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
           hourlyBuckets[hourKey].errorMargins.push(Math.abs(point.s1_pm2_5 - point.s2_pm2_5))
         }
 
+        if (point.s1_pm2_5 != null) {
+          hourlyBuckets[hourKey].s1Pm25.push(point.s1_pm2_5)
+        }
+        if (point.s2_pm2_5 != null) {
+          hourlyBuckets[hourKey].s2Pm25.push(point.s2_pm2_5)
+        }
+
         if (point.battery_voltage != null) {
           hourlyBuckets[hourKey].batteryVoltages.push(point.battery_voltage)
         }
       }
+
+      const avg = (arr: number[]) =>
+        arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : null
 
       // Convert buckets to sorted chart data
       const chartData = Object.values(hourlyBuckets)
@@ -323,18 +342,22 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
           timestamp: bucket.timestamp,
           formattedTime: format(new Date(bucket.timestamp), "MMM dd HH:mm"),
           freq: bucket.count, // number of entries in this hour
-          error_margin: bucket.errorMargins.length > 0
-            ? bucket.errorMargins.reduce((a, b) => a + b, 0) / bucket.errorMargins.length
-            : null,
-          battery_voltage: bucket.batteryVoltages.length > 0
-            ? bucket.batteryVoltages.reduce((a, b) => a + b, 0) / bucket.batteryVoltages.length
-            : null,
+          error_margin: avg(bucket.errorMargins),
+          s1_pm2_5: avg(bucket.s1Pm25),
+          s2_pm2_5: avg(bucket.s2Pm25),
+          battery_voltage: avg(bucket.batteryVoltages),
         }))
+
+      // Per-point pairs for sensor-correlation scatter (s1 vs s2)
+      const correlationData = device.raw_data
+        .filter((p) => p.s1_pm2_5 != null && p.s2_pm2_5 != null)
+        .map((p) => ({ s1: p.s1_pm2_5 as number, s2: p.s2_pm2_5 as number }))
 
       return {
         deviceId: device.device_name,
         deviceName: device.device_name,
         chartData,
+        correlationData,
       }
     })
   }, [performanceData])
@@ -360,14 +383,83 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
         dailyData[dateKey].hoursWithData.add(dt.getHours())
       }
 
+      // Build the full list of expected days for the selected window so that
+      // days where the device produced no records contribute 0% uptime to
+      // the average instead of being silently dropped from the denominator.
+      const expectedKeys: string[] = []
+      const fromDate = dateRange.from
+      const toDate = dateRange.to
+      if (fromDate && toDate) {
+        const start = new Date(fromDate)
+        start.setHours(0, 0, 0, 0)
+        const end = new Date(toDate)
+        end.setHours(0, 0, 0, 0)
+        for (let d = new Date(start); d.getTime() <= end.getTime(); d.setDate(d.getDate() + 1)) {
+          expectedKeys.push(format(d, "yyyy-MM-dd"))
+        }
+      } else {
+        // Fallback: just use whatever we observed.
+        expectedKeys.push(...Object.keys(dailyData).sort((a, b) => a.localeCompare(b)))
+      }
+
+      const dailyUptimeData = expectedKeys.map((key) => {
+        const entry = dailyData[key]
+        const hours = entry ? entry.hoursWithData.size : 0
+        const date = entry ? entry.date : format(new Date(`${key}T00:00:00`), "MMM dd, yyyy")
+        return {
+          date,
+          uptimePercentage: ((hours / 24) * 100).toFixed(1),
+        }
+      })
+
       return {
         deviceId: device.device_name,
         deviceName: device.device_name,
-        dailyUptimeData: Object.values(dailyData).map(day => ({
-          date: day.date,
-          uptimePercentage: ((day.hoursWithData.size / day.totalHours) * 100).toFixed(1),
-        })),
+        dailyUptimeData,
       }
+    })
+  }, [performanceData, dateRange])
+
+  // Build per-device hourly heatmap data (date+hour buckets)
+  const heatmapDevices = useMemo<HeatmapDevice[]>(() => {
+    return performanceData.map((device) => {
+      const buckets: Record<string, { date: string; hour: number; count: number; errorMargins: number[] }> = {}
+
+      for (const point of device.raw_data) {
+        const dt = new Date(point.datetime)
+        const dateKey = format(dt, "yyyy-MM-dd")
+        const hour = dt.getHours()
+        const key = `${dateKey}|${hour}`
+        if (!buckets[key]) {
+          buckets[key] = { date: dateKey, hour, count: 0, errorMargins: [] }
+        }
+        // Honor API-provided `record_count` (already-aggregated hourly bucket);
+        // otherwise fall back to counting raw entries.
+        const rc = (point as any).record_count
+        buckets[key].count += typeof rc === "number" ? rc : 1
+        if (point.s1_pm2_5 != null && point.s2_pm2_5 != null) {
+          buckets[key].errorMargins.push(Math.abs(point.s1_pm2_5 - point.s2_pm2_5))
+        }
+      }
+
+      const hourly_data = Object.values(buckets).map((b) => ({
+        date: b.date,
+        hour: b.hour,
+        count: b.count,
+        errorMargin: b.errorMargins.length > 0
+          ? b.errorMargins.reduce((a, b2) => a + b2, 0) / b.errorMargins.length
+          : null,
+      }))
+
+      return {
+        device_id: device.device_name,
+        device_name: device.device_name,
+        daily_uptime_percentage: device.uptime,
+        average_error_margin: device.sensor_error_margin ?? 0,
+        uptime_history: [],
+        error_margin_history: [],
+        hourly_data,
+      } satisfies HeatmapDevice
     })
   }, [performanceData])
 
@@ -795,47 +887,151 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
                   </Card>
                 ))}
 
-                {/* 3. Error Margin Chart */}
+                {/* 3. Sensor Health Chart (toggle: error margin / sensors / correlation) */}
                 {devicesChartData.map((deviceData) => (
-                  <Card key={`error-${deviceData.deviceId}`} className="overflow-hidden border-0 shadow-sm ring-1 ring-gray-200">
+                  <Card key={`sensor-health-${deviceData.deviceId}`} className="overflow-hidden border-0 shadow-sm ring-1 ring-gray-200">
                     <CardHeader className="border-b bg-gray-50/50 py-3">
-                      <div className="flex items-center gap-2">
-                        <TrendingUp className="h-4 w-4 text-orange-600" />
-                        <CardTitle className="text-sm font-medium text-gray-700">Error Margin</CardTitle>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <TrendingUp className="h-4 w-4 text-orange-600" />
+                          <CardTitle className="text-sm font-medium text-gray-700">Sensor Health</CardTitle>
+                        </div>
+                        <div className="inline-flex rounded-md border bg-white p-0.5 text-xs">
+                          <button
+                            type="button"
+                            onClick={() => setSensorHealthMode("error")}
+                            className={cn(
+                              "px-2 py-1 rounded-sm transition-colors",
+                              sensorHealthMode === "error"
+                                ? "bg-orange-100 text-orange-700 font-medium"
+                                : "text-gray-500 hover:text-gray-700"
+                            )}
+                          >
+                            Error Margin
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSensorHealthMode("sensors")}
+                            className={cn(
+                              "px-2 py-1 rounded-sm transition-colors",
+                              sensorHealthMode === "sensors"
+                                ? "bg-orange-100 text-orange-700 font-medium"
+                                : "text-gray-500 hover:text-gray-700"
+                            )}
+                          >
+                            Sensors
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSensorHealthMode("correlation")}
+                            className={cn(
+                              "px-2 py-1 rounded-sm transition-colors",
+                              sensorHealthMode === "correlation"
+                                ? "bg-orange-100 text-orange-700 font-medium"
+                                : "text-gray-500 hover:text-gray-700"
+                            )}
+                          >
+                            Correlation
+                          </button>
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent className="p-4">
                       <ResponsiveContainer width="100%" height={250}>
-                        <LineChart data={deviceData.chartData}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                          <XAxis
-                            dataKey="formattedTime"
-                            tick={{ fontSize: 10, fill: "#6b7280" }}
-                            axisLine={false}
-                            tickLine={false}
-                            dy={10}
-                            interval="preserveStartEnd"
-                            minTickGap={30}
-                          />
-                          <YAxis
-                            tick={{ fontSize: 10, fill: "#6b7280" }}
-                            axisLine={false}
-                            tickLine={false}
-                          />
-                          <Tooltip
-                            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                          />
-                          <Line
-                            type="monotone"
-                            dataKey="error_margin"
-                            stroke="#ea580c"
-                            name="Error Margin"
-                            strokeWidth={2}
-                            connectNulls
-                            dot={false}
-                            activeDot={{ r: 4, strokeWidth: 0 }}
-                          />
-                        </LineChart>
+                        {sensorHealthMode === "correlation" ? (
+                          <ScatterChart margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                            <XAxis
+                              type="number"
+                              dataKey="s1"
+                              name="Sensor 1 PM2.5"
+                              tick={{ fontSize: 10, fill: "#6b7280" }}
+                              axisLine={false}
+                              tickLine={false}
+                              label={{ value: "Sensor 1 PM2.5", position: "insideBottom", offset: -2, fontSize: 10, fill: "#6b7280" }}
+                            />
+                            <YAxis
+                              type="number"
+                              dataKey="s2"
+                              name="Sensor 2 PM2.5"
+                              tick={{ fontSize: 10, fill: "#6b7280" }}
+                              axisLine={false}
+                              tickLine={false}
+                              label={{ value: "Sensor 2 PM2.5", angle: -90, position: "insideLeft", fontSize: 10, fill: "#6b7280" }}
+                            />
+                            <ZAxis range={[30, 30]} />
+                            <Tooltip
+                              cursor={{ strokeDasharray: "3 3" }}
+                              contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                              formatter={(value: any, name: string) => [Number(value).toFixed(2), name === "s1" ? "Sensor 1" : "Sensor 2"]}
+                            />
+                            <Scatter
+                              data={deviceData.correlationData}
+                              fill="#ea580c"
+                              fillOpacity={0.6}
+                            />
+                          </ScatterChart>
+                        ) : (
+                          <LineChart data={deviceData.chartData}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                            <XAxis
+                              dataKey="formattedTime"
+                              tick={{ fontSize: 10, fill: "#6b7280" }}
+                              axisLine={false}
+                              tickLine={false}
+                              dy={10}
+                              interval="preserveStartEnd"
+                              minTickGap={30}
+                            />
+                            <YAxis
+                              tick={{ fontSize: 10, fill: "#6b7280" }}
+                              axisLine={false}
+                              tickLine={false}
+                            />
+                            <Tooltip
+                              contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                            />
+                            {sensorHealthMode === "sensors" && (
+                              <Legend wrapperStyle={{ fontSize: 11 }} iconType="line" />
+                            )}
+                            {sensorHealthMode === "error" && (
+                              <Line
+                                type="monotone"
+                                dataKey="error_margin"
+                                stroke="#ea580c"
+                                name="Error Margin"
+                                strokeWidth={2}
+                                connectNulls
+                                dot={false}
+                                activeDot={{ r: 4, strokeWidth: 0 }}
+                              />
+                            )}
+                            {sensorHealthMode === "sensors" && (
+                              <>
+                                <Line
+                                  type="monotone"
+                                  dataKey="s1_pm2_5"
+                                  stroke="#3b82f6"
+                                  name="Sensor 1"
+                                  strokeWidth={2}
+                                  connectNulls
+                                  dot={false}
+                                  activeDot={{ r: 4, strokeWidth: 0 }}
+                                />
+                                <Line
+                                  type="monotone"
+                                  dataKey="s2_pm2_5"
+                                  stroke="#a855f7"
+                                  name="Sensor 2"
+                                  strokeWidth={2}
+                                  connectNulls
+                                  dot={false}
+                                  activeDot={{ r: 4, strokeWidth: 0 }}
+                                />
+                              </>
+                            )}
+                          </LineChart>
+                        )}
                       </ResponsiveContainer>
                     </CardContent>
                   </Card>
@@ -890,6 +1086,22 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
                   </Card>
                 ))}
               </div>
+
+              {/* Sensor Health Heatmap (Day × Hour) */}
+              <Card className="overflow-hidden border-0 shadow-sm ring-1 ring-gray-200">
+                <CardHeader className="border-b bg-gray-50/50 py-3">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 text-orange-600" />
+                    <CardTitle className="text-sm font-medium text-gray-700">Sensor Health Heatmap</CardTitle>
+                  </div>
+                  <CardDescription className="text-xs">
+                    Hourly view across the selected period. Toggle between data presence (Uptime) and average sensor error margin (|s1 − s2|).
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <DeviceHourHeatmaps devices={heatmapDevices} />
+                </CardContent>
+              </Card>
             </div>
           )}
         </CardContent>

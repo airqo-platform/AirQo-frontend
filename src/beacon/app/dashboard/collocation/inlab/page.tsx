@@ -39,6 +39,7 @@ import { useApiData } from "@/hooks/useApiData"
 import { getInlabDevices, getBatches, createBatch } from "@/services/inlab.service"
 import type { InlabDevice, InlabBatch, InlabBatchDevice, InlabDeviceDaily, InlabDeviceDataPoint } from "@/types/inlab.types"
 import { toast } from "sonner"
+import AirQloudsTable from "@/app/dashboard/analytics/airqlouds-table"
 
 // --- Helpers ---
 
@@ -374,7 +375,7 @@ function ErrorMarginMiniGraph({ dailyData, averageMargin }: { dailyData: InlabDe
 
 export default function InlabCollocationPage() {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<"inlab" | "dispatched">("inlab")
+  const [activeTab, setActiveTab] = useState<"inlab" | "dispatched" | "cohorts">("inlab")
   const [searchTerm, setSearchTerm] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
 
@@ -507,6 +508,13 @@ export default function InlabCollocationPage() {
     allDevices.reduce((acc, d) => acc + (d.uptime || 0), 0) / allDevices.length : 0
   const inlabErrorAvg = allDevices.length ? 
     allDevices.reduce((acc, d) => acc + (d.error_margin || 0), 0) / allDevices.length : 0
+
+  const getTabTitle = () => {
+    if (activeTab === "inlab") return "Inlab Devices"
+    if (activeTab === "dispatched") return "Dispatched Collocation"
+    return "Inlab Cohorts"
+  }
+  const tabTitle = getTabTitle()
 
   return (
     <div className="space-y-6">
@@ -648,7 +656,7 @@ export default function InlabCollocationPage() {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center">
               <BarChart3 className="mr-2 h-5 w-5 text-primary" />
-              {activeTab === "inlab" ? "Inlab Devices" : "Dispatched Collocation"}
+              {tabTitle}
             </CardTitle>
 
             {/* Toggle Buttons */}
@@ -667,13 +675,20 @@ export default function InlabCollocationPage() {
               >
                 Dispatched Collocation
               </Button>
+              <Button
+                variant={activeTab === "cohorts" ? "default" : "outline"}
+                size="sm"
+                onClick={() => { setActiveTab("cohorts"); setSearchTerm("") }}
+              >
+                Inlab Cohorts
+              </Button>
             </div>
           </div>
         </CardHeader>
 
         <CardContent className="p-4">
-          {/* Search & Date Filters */}
-          <div className="flex flex-col md:flex-row md:items-end gap-3 mb-4">
+          {/* Search & Date Filters - hidden for cohorts tab (AirQloudsTable has its own) */}
+          <div className={`flex flex-col md:flex-row md:items-end gap-3 mb-4 ${activeTab === "cohorts" ? "hidden" : ""}`}>
             <div className="relative w-full md:max-w-md">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -963,6 +978,10 @@ export default function InlabCollocationPage() {
                 </div>
               )}
             </>
+          )}
+          {/* Inlab Cohorts Tab (AirQlouds filtered strictly to inlab tag) */}
+          {activeTab === "cohorts" && (
+            <AirQloudsTable lockedTags={["inlab"]} title="Inlab Cohorts" />
           )}
         </CardContent>
       </Card>

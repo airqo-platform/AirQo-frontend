@@ -42,6 +42,14 @@ interface ProcessedAirQloud {
 
 interface AirQloudsTableProps {
   performanceDays?: number
+  /**
+   * When provided, the table is strictly filtered by these tags and the tag
+   * filter UI is hidden. Useful for embedding the table in contexts where the
+   * cohort scope is fixed (e.g. the Inlab Cohorts tab).
+   */
+  lockedTags?: string[]
+  /** Optional override for the card title. */
+  title?: string
 }
 
 // Pearson correlation coefficient between two numeric arrays of equal length.
@@ -74,11 +82,16 @@ const pearsonCorrelation = (xs: number[], ys: number[]): number | null => {
   return num / Math.sqrt(denX * denY)
 }
 
-// Compute uptime / error-margin / correlation summaries from the synced cohort data array.
-// `airqloud.data` is hourly aggregated points: { datetime, "pm2.5 sensor1", "pm2.5 sensor2", ... }
+// Compute uptime / error-margin / correlation summaries from the synced cohort data.
+//
+// Uptime is computed PER-DEVICE per-day from each device's own `data` array
+// (so a cohort with N devices has a denominator of `N × days`, with missing
+// device-days counting as 0%). Error margin and correlation continue to use
+// the cohort-level aggregated rows since they're not device-count-sensitive.
 const summarizeCohortData = (
   rows: any[],
   performanceDays: number,
+  devices: any[] = [],
 ): {
   averageUptime: number | null
   averageErrorMargin: number | null
@@ -87,51 +100,75 @@ const summarizeCohortData = (
   errorMarginHistory: Array<{ value: number; timestamp: string }>
   correlationHistory: Array<{ value: number; timestamp: string }>
 } => {
-  if (!Array.isArray(rows) || rows.length === 0) {
-    return {
-      averageUptime: null,
-      averageErrorMargin: null,
-      averageCorrelation: null,
-      uptimeHistory: [],
-      errorMarginHistory: [],
-      correlationHistory: [],
-    }
+  // Per-device daily hour buckets keyed by `${deviceId}|${dateKey}` so we
+  // can average uptime across the full (deviceCount × days) grid.
+  const deviceDayHours: Record<string, Set<number>> = {}
+  const allDates = new Set<string>()
+  const deviceIds = new Set<string>()
+
+  const addRowToDevice = (deviceId: string, row: any) => {
+    if (!row?.datetime) return
+    const dt = new Date(row.datetime)
+    if (Number.isNaN(dt.getTime())) return
+    const dateKey = dt.toISOString().slice(0, 10)
+    allDates.add(dateKey)
+    deviceIds.add(deviceId)
+    const k = `${deviceId}|${dateKey}`
+    const set = deviceDayHours[k] ?? (deviceDayHours[k] = new Set<number>())
+    set.add(dt.getUTCHours())
   }
 
+  // Prefer per-device data when available so uptime is correctly averaged
+  // across the cohort. Falls back to the cohort-level rows tagged as a single
+  // synthetic "cohort" device when no per-device data is present.
+  if (Array.isArray(devices) && devices.length > 0) {
+    for (const device of devices) {
+      const id =
+        device?._id ?? device?.device_id ?? device?.name ?? device?.device_name ?? `device-${deviceIds.size}`
+      // Always register the device, even if its data is empty, so it counts
+      // toward the denominator with 0% uptime.
+      deviceIds.add(id)
+      const data = Array.isArray(device?.data) ? device.data : []
+      for (const row of data) addRowToDevice(id, row)
+    }
+  } else if (Array.isArray(rows)) {
+    for (const row of rows) addRowToDevice('__cohort__', row)
+  }
+
+  // Cohort-level error-margin / correlation buckets (sensor 1 vs sensor 2
+  // numbers come from cohort-aggregated rows).
   const dailyBuckets: Record<string, {
-    hoursSet: Set<number>
     errorMargins: number[]
     s1: number[]
     s2: number[]
   }> = {}
 
-  for (const row of rows) {
-    if (!row?.datetime) continue
-    const dt = new Date(row.datetime)
-    if (Number.isNaN(dt.getTime())) continue
-    const dateKey = dt.toISOString().slice(0, 10)
-    const bucket = dailyBuckets[dateKey] ?? (dailyBuckets[dateKey] = {
-      hoursSet: new Set<number>(),
-      errorMargins: [],
-      s1: [],
-      s2: [],
-    })
-    bucket.hoursSet.add(dt.getUTCHours())
+  if (Array.isArray(rows)) {
+    for (const row of rows) {
+      if (!row?.datetime) continue
+      const dt = new Date(row.datetime)
+      if (Number.isNaN(dt.getTime())) continue
+      const dateKey = dt.toISOString().slice(0, 10)
+      const bucket = dailyBuckets[dateKey] ?? (dailyBuckets[dateKey] = {
+        errorMargins: [],
+        s1: [],
+        s2: [],
+      })
 
-    const s1 = row['pm2.5 sensor1'] ?? row.s1_pm2_5
-    const s2 = row['pm2.5 sensor2'] ?? row.s2_pm2_5
-    const s1Num = s1 == null ? null : Number(s1)
-    const s2Num = s2 == null ? null : Number(s2)
+      const s1 = row['pm2.5 sensor1'] ?? row.s1_pm2_5
+      const s2 = row['pm2.5 sensor2'] ?? row.s2_pm2_5
+      const s1Num = s1 == null ? null : Number(s1)
+      const s2Num = s2 == null ? null : Number(s2)
 
-    if (s1Num != null && s2Num != null && !Number.isNaN(s1Num) && !Number.isNaN(s2Num)) {
-      bucket.errorMargins.push(Math.abs(s1Num - s2Num))
-      bucket.s1.push(s1Num)
-      bucket.s2.push(s2Num)
+      if (s1Num != null && s2Num != null && !Number.isNaN(s1Num) && !Number.isNaN(s2Num)) {
+        bucket.errorMargins.push(Math.abs(s1Num - s2Num))
+        bucket.s1.push(s1Num)
+        bucket.s2.push(s2Num)
+      }
     }
   }
 
-  const sortedDates = Object.keys(dailyBuckets).sort()
-  if (sortedDates.length === 0) {
+  if (deviceIds.size === 0 && allDates.size === 0 && Object.keys(dailyBuckets).length === 0) {
     return {
       averageUptime: null,
       averageErrorMargin: null,
@@ -141,6 +178,23 @@ const summarizeCohortData = (
       correlationHistory: [],
     }
   }
+
+  // Build the full set of expected days for the window ending on the latest
+  // date with data. Missing device-days contribute 0% uptime so the
+  // denominator is always (deviceCount × performanceDays).
+  const allDateKeys = [...allDates, ...Object.keys(dailyBuckets)]
+  const sortedAllDates = allDateKeys.toSorted((a, b) => a.localeCompare(b))
+  const lastDateKey = sortedAllDates.at(-1) ?? new Date().toISOString().slice(0, 10)
+  const lastDate = new Date(`${lastDateKey}T00:00:00Z`)
+  const expectedDates: string[] = []
+  for (let i = performanceDays - 1; i >= 0; i--) {
+    const d = new Date(lastDate)
+    d.setUTCDate(d.getUTCDate() - i)
+    expectedDates.push(d.toISOString().slice(0, 10))
+  }
+
+  const deviceList = [...deviceIds]
+  const deviceCount = deviceList.length || 1
 
   const dailyUptimes: number[] = []
   const dailyErrorMargins: number[] = []
@@ -149,23 +203,33 @@ const summarizeCohortData = (
   const errorMarginHistoryAll: Array<{ value: number; timestamp: string }> = []
   const correlationHistoryAll: Array<{ value: number; timestamp: string }> = []
 
-  for (const date of sortedDates) {
-    const bucket = dailyBuckets[date]
-    const uptimePct = Math.min(100, (bucket.hoursSet.size / 24) * 100)
-    dailyUptimes.push(uptimePct)
-    uptimeHistoryAll.push({ value: uptimePct, timestamp: date })
+  for (const date of expectedDates) {
+    // Cohort daily uptime = average of every device's uptime that day.
+    // Devices with no data for `date` contribute 0%.
+    let dayUptimeSum = 0
+    for (const deviceId of deviceList) {
+      const set = deviceDayHours[`${deviceId}|${date}`]
+      const hours = set ? Math.min(24, set.size) : 0
+      dayUptimeSum += (hours / 24) * 100
+    }
+    const cohortDayUptime = dayUptimeSum / deviceCount
+    dailyUptimes.push(cohortDayUptime)
+    uptimeHistoryAll.push({ value: cohortDayUptime, timestamp: date })
 
-    if (bucket.errorMargins.length > 0) {
+    const bucket = dailyBuckets[date]
+    if (bucket && bucket.errorMargins.length > 0) {
       const avgEm =
         bucket.errorMargins.reduce((a, b) => a + b, 0) / bucket.errorMargins.length
       dailyErrorMargins.push(avgEm)
       errorMarginHistoryAll.push({ value: avgEm, timestamp: date })
     }
 
-    const r = pearsonCorrelation(bucket.s1, bucket.s2)
-    if (r != null && !Number.isNaN(r)) {
-      dailyCorrelations.push(r)
-      correlationHistoryAll.push({ value: r, timestamp: date })
+    if (bucket) {
+      const r = pearsonCorrelation(bucket.s1, bucket.s2)
+      if (r != null && !Number.isNaN(r)) {
+        dailyCorrelations.push(r)
+        correlationHistoryAll.push({ value: r, timestamp: date })
+      }
     }
   }
 
@@ -173,12 +237,16 @@ const summarizeCohortData = (
     arr.length === 0 ? null : arr.reduce((a, b) => a + b, 0) / arr.length
 
   return {
+    // Uptime is averaged over the FULL window AND across all devices
+    // (missing device-days = 0).
     averageUptime: avg(dailyUptimes),
+    // Error margin / correlation only meaningful when both sensors reported,
+    // so keep their averages over days that actually produced values.
     averageErrorMargin: avg(dailyErrorMargins),
     averageCorrelation: avg(dailyCorrelations),
-    uptimeHistory: uptimeHistoryAll.slice(-performanceDays),
-    errorMarginHistory: errorMarginHistoryAll.slice(-performanceDays),
-    correlationHistory: correlationHistoryAll.slice(-performanceDays),
+    uptimeHistory: uptimeHistoryAll,
+    errorMarginHistory: errorMarginHistoryAll,
+    correlationHistory: correlationHistoryAll,
   }
 }
 
@@ -189,7 +257,11 @@ const processAirQloudData = (airqloud: AirQloudWithPerformance, performanceDays:
   // Compute daily uptime / error-margin / correlation directly from the synced
   // hourly data array. Falls back to the API-provided cohort.uptime when no
   // data points are present.
-  const summary = summarizeCohortData(airqloud.data || [], performanceDays)
+  const summary = summarizeCohortData(
+    airqloud.data || [],
+    performanceDays,
+    Array.isArray(airqloud.devices) ? airqloud.devices : [],
+  )
 
   const fallbackUptime = airqloud.uptime != null ? airqloud.uptime * 100 : null
   const overallUptime = summary.averageUptime ?? fallbackUptime
@@ -206,9 +278,12 @@ const processAirQloudData = (airqloud: AirQloudWithPerformance, performanceDays:
     yesterday.setHours(0, 0, 0, 0); // Start of yesterday
 
     offlineDevices = airqloud.devices.filter((d: any) => {
+      // Devices with no data in the requested window are treated as offline,
+      // even if their last_active timestamp is recent.
+      if (!Array.isArray(d.data) || d.data.length === 0) return true;
       if (!d.last_active && !d.is_active) return true; // No data and not active = offline
       if (d.is_active === false) return true;
-      if (!d.last_active) return false;
+      if (!d.last_active) return true;
       return new Date(d.last_active).getTime() < yesterday.getTime();
     }).length;
   }
@@ -229,15 +304,19 @@ const processAirQloudData = (airqloud: AirQloudWithPerformance, performanceDays:
   }
 }
 
-export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableProps) { //14days
+export default function AirQloudsTable({ performanceDays = 14, lockedTags, title }: AirQloudsTableProps) { //14days
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
   const [sortBy, setSortBy] = useState<keyof ProcessedAirQloud>("name")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
   const [processedData, setProcessedData] = useState<ProcessedAirQloud[]>([])
 
+  const isTagsLocked = Array.isArray(lockedTags) && lockedTags.length > 0
+
   // Cohort Tags State
-  const [cohortTags, setCohortTags] = useState<string[]>(["hardware"])
+  const [cohortTags, setCohortTags] = useState<string[]>(
+    isTagsLocked && lockedTags ? lockedTags : ["hardware"]
+  )
   const availableTags = ["hardware", "duplicate", "organizational", "inlab", "misc"] // Hardcoded for now, could be fetched
 
   // Pagination state
@@ -572,7 +651,7 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Cohorts Performance</CardTitle>
+          <CardTitle>{title ?? "Cohorts Performance"}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-red-500">
@@ -587,7 +666,7 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>Cohorts Performance</CardTitle>
+          <CardTitle>{title ?? "Cohorts Performance"}</CardTitle>
           <Button onClick={handleExportCSV} variant="outline" size="sm" disabled={isExporting}>
             {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             Export csv
@@ -604,26 +683,28 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
             />
           </div>
         </div>
-        {/* Tag Filters */}
-        <div className="flex flex-wrap gap-2 mt-4">
-          {availableTags.map(tag => (
-            <Badge
-              key={tag}
-              variant={cohortTags.includes(tag) ? "default" : "outline"}
-              className="cursor-pointer capitalize"
-              onClick={() => {
-                setCohortTags(prev =>
-                  prev.includes(tag)
-                    ? prev.filter(t => t !== tag)
-                    : [...prev, tag]
-                )
-                setPage(1) // Reset page on filter change
-              }}
-            >
-              {tag}
-            </Badge>
-          ))}
-        </div>
+        {/* Tag Filters - hidden when tags are locked */}
+        {!isTagsLocked && (
+          <div className="flex flex-wrap gap-2 mt-4">
+            {availableTags.map(tag => (
+              <Badge
+                key={tag}
+                variant={cohortTags.includes(tag) ? "default" : "outline"}
+                className="cursor-pointer capitalize"
+                onClick={() => {
+                  setCohortTags(prev =>
+                    prev.includes(tag)
+                      ? prev.filter(t => t !== tag)
+                      : [...prev, tag]
+                  )
+                  setPage(1) // Reset page on filter change
+                }}
+              >
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        )}
       </CardHeader>
       <CardContent>
         {isLoading ? (

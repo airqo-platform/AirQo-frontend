@@ -27,7 +27,7 @@ import {
 import { type AirQloudPerformanceData } from "@/services/airqloud.service"
 import { syncCohorts, syncThingSpeak } from "@/services/device-api.service"
 import { useToast } from "@/components/ui/use-toast"
-import DevicePerformanceHeatmaps from "@/components/analytics/device-heatmap"
+import DevicePerformanceHeatmaps, { DeviceHourHeatmaps } from "@/components/analytics/device-heatmap"
 
 interface DateRange {
   from: string
@@ -66,6 +66,7 @@ interface ProcessedDeviceData {
   data_points: number
   uptime_history: Array<{ value: number; timestamp: string }>
   error_margin_history: Array<{ value: number; timestamp: string }>
+  hourly_data: Array<{ date: string; hour: number; count: number; errorMargin: number | null }>
 }
 
 interface AirQloudDetailData {
@@ -77,6 +78,7 @@ interface AirQloudDetailData {
 // Process device performance data from Cohort API (nested structure)
 const processDevicePerformance = (device: DevicePerformanceRaw): ProcessedDeviceData => {
   const dailyData: { [date: string]: { hoursSet: Set<number>; errorMargins: number[] } } = {}
+  const hourlyData: { [key: string]: { date: string; hour: number; count: number; errorMargins: number[] } } = {}
 
   const deviceData = device.data || []
 
@@ -88,35 +90,82 @@ const processDevicePerformance = (device: DevicePerformanceRaw): ProcessedDevice
       dailyData[date] = { hoursSet: new Set(), errorMargins: [] }
     }
 
-    dailyData[date].hoursSet.add(dt.getHours())
+    const hour = dt.getHours()
+    dailyData[date].hoursSet.add(hour)
+
+    const hourKey = `${date}|${hour}`
+    if (!hourlyData[hourKey]) {
+      hourlyData[hourKey] = { date, hour, count: 0, errorMargins: [] }
+    }
+    // The API pre-aggregates hourly. When `record_count` is provided we treat
+    // it as the true number of raw records in that hour; otherwise fall back
+    // to counting entries.
+    const recordCount = typeof d.record_count === "number" ? d.record_count : 1
+    hourlyData[hourKey].count += recordCount
 
     if (d.s1_pm2_5 != null && d.s2_pm2_5 != null) {
-      dailyData[date].errorMargins.push(Math.abs(d.s1_pm2_5 - d.s2_pm2_5))
+      const em = Math.abs(d.s1_pm2_5 - d.s2_pm2_5)
+      dailyData[date].errorMargins.push(em)
+      hourlyData[hourKey].errorMargins.push(em)
     }
   })
 
-  const dates = Object.keys(dailyData).sort((a, b) => new Date(a).getTime() - new Date(b).getTime()).slice(-14)
+  // Build the full 14-day window ending on the latest date with data so that
+  // days the device produced no records still count as 0% uptime in the
+  // denominator.
+  const datesWithData = Object.keys(dailyData).sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
+  const dates: string[] = []
+  if (datesWithData.length > 0) {
+    const last = new Date(datesWithData.at(-1) ?? new Date().toDateString())
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date(last)
+      d.setDate(d.getDate() - i)
+      dates.push(d.toDateString())
+    }
+  }
 
   const uptimeHistory = dates.map(date => ({
-    value: Math.min(100, (Math.min(24, dailyData[date].hoursSet.size) / 24) * 100),
+    value: dailyData[date]
+      ? Math.min(100, (Math.min(24, dailyData[date].hoursSet.size) / 24) * 100)
+      : 0,
     timestamp: date
   }))
 
   const errorMarginHistory = dates.map(date => ({
-    value: dailyData[date].errorMargins.length > 0
+    value: dailyData[date] && dailyData[date].errorMargins.length > 0
       ? dailyData[date].errorMargins.reduce((sum, em) => sum + em, 0) / dailyData[date].errorMargins.length
       : 0,
     timestamp: date
   }))
 
+  // Compute averages from the actual per-day buckets (with missing days
+  // counted as 0 uptime) rather than relying on the API's `device.uptime` /
+  // `device.sensor_error_margin` which can be stale or unreliable (e.g.
+  // returning 1 for every device).
+  const computedAvgUptime = uptimeHistory.length > 0
+    ? uptimeHistory.reduce((sum, d) => sum + d.value, 0) / uptimeHistory.length
+    : (device.uptime ?? 0) * 100
+  const allErrorMargins = Object.values(dailyData).flatMap(d => d.errorMargins)
+  const computedAvgErrorMargin = allErrorMargins.length > 0
+    ? allErrorMargins.reduce((s, v) => s + v, 0) / allErrorMargins.length
+    : (device.sensor_error_margin ?? 0)
+
   return {
     device_id: device._id || device.name,
     device_name: device.long_name || device.name,
-    daily_uptime_percentage: (device.uptime || 0) * 100,
-    average_error_margin: device.sensor_error_margin || 0,
+    daily_uptime_percentage: computedAvgUptime,
+    average_error_margin: computedAvgErrorMargin,
     data_points: deviceData.length,
     uptime_history: uptimeHistory,
-    error_margin_history: errorMarginHistory
+    error_margin_history: errorMarginHistory,
+    hourly_data: Object.values(hourlyData).map(h => ({
+      date: h.date,
+      hour: h.hour,
+      count: h.count,
+      errorMargin: h.errorMargins.length > 0
+        ? h.errorMargins.reduce((a, b) => a + b, 0) / h.errorMargins.length
+        : null,
+    })),
   }
 }
 
@@ -147,6 +196,7 @@ const processDevicePerformanceFlat = (device: DevicePerformanceFlat): ProcessedD
       data_points: 0,
       uptime_history: [],
       error_margin_history: [],
+      hourly_data: [],
     }
   }
 
@@ -215,7 +265,8 @@ const processPerformanceData = (
     average_error_margin: avgErrorMargin,
     data_points: timestamp.length, // Total hourly data points
     uptime_history: uptimeHistory,
-    error_margin_history: errorMarginHistory
+    error_margin_history: errorMarginHistory,
+    hourly_data: [],
   }
 }
 
@@ -599,6 +650,7 @@ export default function AnalysisResultsPage() {
               <TabsList>
                 <TabsTrigger value="summary">Summary</TabsTrigger>
                 <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
+                <TabsTrigger value="hourly">Hourly</TabsTrigger>
               </TabsList>
               <TabsContent value="summary" className="mt-6">
             <div className="overflow-x-auto">
@@ -668,6 +720,9 @@ export default function AnalysisResultsPage() {
               </TabsContent>
               <TabsContent value="heatmap" className="mt-6">
                 <DevicePerformanceHeatmaps devices={processedDevices} />
+              </TabsContent>
+              <TabsContent value="hourly" className="mt-6">
+                <DeviceHourHeatmaps devices={processedDevices} />
               </TabsContent>
             </Tabs>
           </CardContent>
@@ -862,6 +917,7 @@ export default function AnalysisResultsPage() {
                       <TabsList>
                         <TabsTrigger value="summary">Summary</TabsTrigger>
                         <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
+                        <TabsTrigger value="hourly">Hourly</TabsTrigger>
                       </TabsList>
 
                       <TabsContent value="summary" className="mt-6 space-y-6">
@@ -991,6 +1047,9 @@ export default function AnalysisResultsPage() {
 
                       <TabsContent value="heatmap" className="mt-6">
                         <DevicePerformanceHeatmaps devices={processedDevices} />
+                      </TabsContent>
+                      <TabsContent value="hourly" className="mt-6">
+                        <DeviceHourHeatmaps devices={processedDevices} />
                       </TabsContent>
                     </Tabs>
                   </div>
