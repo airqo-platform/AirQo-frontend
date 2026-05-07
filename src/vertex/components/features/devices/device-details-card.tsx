@@ -22,9 +22,7 @@ const DeviceDetailsCard: React.FC<DeviceDetailsCardProps> = ({ deviceId, onShowD
   const { mutate: updateDevice, isPending } = useUpdateDeviceLocal();
 
   useEffect(() => {
-    if (device?.tags) {
-      setSelectedTags(device.tags);
-    }
+    setSelectedTags(device?.tags ?? []);
   }, [device?.tags]);
 
   const handleConfirmTagsUpdate = () => {
