@@ -276,18 +276,19 @@ const processAirQloudData = (airqloud: AirQloudWithPerformance, performanceDays:
   // in metadata but have stopped reporting are correctly flagged.
   let offlineDevices: number | null = null;
   if (airqloud.devices && Array.isArray(airqloud.devices)) {
-    const yesterdayStart = new Date();
-    yesterdayStart.setDate(yesterdayStart.getDate() - 1);
-    yesterdayStart.setHours(0, 0, 0, 0);
-    const todayStart = new Date(yesterdayStart);
-    todayStart.setDate(todayStart.getDate() + 1);
+    // Use UTC-midnight anchors so the window aligns with the UTC-based
+    // timestamps in row.datetime (which carry explicit offsets like +03:00 and
+    // are parsed by Date() into UTC milliseconds).
+    const nowUtc = new Date();
+    const todayStart = Date.UTC(nowUtc.getUTCFullYear(), nowUtc.getUTCMonth(), nowUtc.getUTCDate());
+    const yesterdayStart = todayStart - 86_400_000; // exactly 24 h earlier
 
     offlineDevices = airqloud.devices.filter((d: any) => {
       if (!Array.isArray(d.data) || d.data.length === 0) return true;
       const postedYesterday = d.data.some((row: any) => {
         if (!row?.datetime) return false;
         const t = new Date(row.datetime).getTime();
-        return t >= yesterdayStart.getTime() && t < todayStart.getTime();
+        return t >= yesterdayStart && t < todayStart;
       });
       return !postedYesterday;
     }).length;
