@@ -153,9 +153,9 @@ export const getColumns = (
         }
         return (
           <div className="flex flex-wrap gap-1 max-w-[200px]">
-            {tags.map((tag) => (
+            {tags.map((tag, index) => (
               <span
-                key={tag}
+                key={`${tag}-${index}`}
                 className="bg-blue-100 text-blue-800 text-[10px] font-medium px-2 py-0.5 rounded-full truncate capitalize"
               >
                 {tag}
