@@ -270,21 +270,27 @@ const processAirQloudData = (airqloud: AirQloudWithPerformance, performanceDays:
     typeof airqloud.error_margin === 'number' ? airqloud.error_margin : (airqloud.sensor_error_margin ?? null)
   const overallErrorMargin = summary.averageErrorMargin ?? fallbackErrorMargin
 
-  // Count offline devices: those whose last_active is before the start of yesterday
+  // A device is offline if it has no data at all, or didn't post any data
+  // yesterday. We check the per-device `data` rows directly (rather than the
+  // metadata `last_active`/`is_active` flags) so that devices that look active
+  // in metadata but have stopped reporting are correctly flagged.
   let offlineDevices: number | null = null;
   if (airqloud.devices && Array.isArray(airqloud.devices)) {
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    yesterday.setHours(0, 0, 0, 0); // Start of yesterday
+    // Use UTC-midnight anchors so the window aligns with the UTC-based
+    // timestamps in row.datetime (which carry explicit offsets like +03:00 and
+    // are parsed by Date() into UTC milliseconds).
+    const nowUtc = new Date();
+    const todayStart = Date.UTC(nowUtc.getUTCFullYear(), nowUtc.getUTCMonth(), nowUtc.getUTCDate());
+    const yesterdayStart = todayStart - 86_400_000; // exactly 24 h earlier
 
     offlineDevices = airqloud.devices.filter((d: any) => {
-      // Devices with no data in the requested window are treated as offline,
-      // even if their last_active timestamp is recent.
       if (!Array.isArray(d.data) || d.data.length === 0) return true;
-      if (!d.last_active && !d.is_active) return true; // No data and not active = offline
-      if (d.is_active === false) return true;
-      if (!d.last_active) return true;
-      return new Date(d.last_active).getTime() < yesterday.getTime();
+      const postedYesterday = d.data.some((row: any) => {
+        if (!row?.datetime) return false;
+        const t = new Date(row.datetime).getTime();
+        return t >= yesterdayStart && t < todayStart;
+      });
+      return !postedYesterday;
     }).length;
   }
 
