@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Switch } from "@/components/ui/switch";
 import { useAppSelector } from "@/core/redux/hooks";
+import { useQueryClient } from "@tanstack/react-query";
 import type {
   DeviceBulkUpdateJob,
   DeviceBulkUpdateJobStatus,
@@ -146,16 +147,28 @@ const JobDetailsDialog = ({
   jobId,
   isOpen,
   onClose,
+  tenant,
 }: {
   jobId: string | null;
   isOpen: boolean;
   onClose: () => void;
+  tenant: string;
 }) => {
+  const queryClient = useQueryClient();
   const { data, isFetching, error, refetch } = useDeviceBulkUpdateJob(jobId || undefined, {
     enabled: isOpen && !!jobId,
+    tenant,
   });
 
   const job = data?.job;
+
+  React.useEffect(() => {
+    if (!job) return;
+    if (job.dryRun) return;
+    if (!terminalStatuses.includes(job.status)) return;
+    queryClient.invalidateQueries({ queryKey: ["devices"] });
+    queryClient.invalidateQueries({ queryKey: ["deviceCount"] });
+  }, [job?.status, job?.dryRun, queryClient]);
 
   return (
     <ReusableDialog
@@ -291,10 +304,14 @@ const CreateJobDialog = ({
   isOpen,
   onClose,
   onCreated,
+  tenant,
+  onTenantChange,
 }: {
   isOpen: boolean;
   onClose: () => void;
   onCreated: (job: DeviceBulkUpdateJob) => void;
+  tenant: string;
+  onTenantChange: (value: string) => void;
 }) => {
   const userDetails = useAppSelector((s) => s.user.userDetails);
   const createMutation = useCreateDeviceBulkUpdateJob();
@@ -302,7 +319,6 @@ const CreateJobDialog = ({
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [tenant, setTenant] = useState("airqo");
   const [batchSize, setBatchSize] = useState(30);
   const [dryRun, setDryRun] = useState(true);
 
@@ -355,6 +371,7 @@ const CreateJobDialog = ({
   };
 
   const handleCreate = async (triggerNow: boolean) => {
+    const resolvedTenant = tenant?.trim() || "airqo";
     const payload: CreateDeviceBulkUpdateJobRequest = {
       name: name.trim(),
       description: description.trim() || undefined,
@@ -365,11 +382,11 @@ const CreateJobDialog = ({
       createdBy: createdBy || undefined,
     };
 
-    const result = await createMutation.mutateAsync({ payload, tenant });
+    const result = await createMutation.mutateAsync({ payload, tenant: resolvedTenant });
     onCreated(result.job);
 
     if (triggerNow) {
-      await triggerMutation.mutateAsync({ jobId: result.job._id, tenant });
+      await triggerMutation.mutateAsync({ jobId: result.job._id, tenant: resolvedTenant });
     }
 
     resetAndClose();
@@ -393,7 +410,7 @@ const CreateJobDialog = ({
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium">Tenant</label>
-            <Input value={tenant} onChange={(e) => setTenant(e.target.value)} placeholder="airqo" />
+            <Input value={tenant} onChange={(e) => onTenantChange(e.target.value)} placeholder="airqo" />
           </div>
           <div className="space-y-2 md:col-span-2">
             <label className="text-sm font-medium">Description</label>
@@ -563,6 +580,7 @@ const CreateJobDialog = ({
 };
 
 export default function BulkUpdateJobsPage() {
+  const [tenant, setTenant] = useState("airqo");
   const [status, setStatus] = useState<DeviceBulkUpdateJobStatus | "all">("all");
   const [skip, setSkip] = useState(0);
   const limit = 20;
@@ -572,6 +590,7 @@ export default function BulkUpdateJobsPage() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   const listQuery = useDeviceBulkUpdateJobs({
+    tenant: tenant?.trim() || "airqo",
     status: status === "all" ? undefined : status,
     limit,
     skip,
@@ -616,6 +635,17 @@ export default function BulkUpdateJobsPage() {
         </div>
 
         <div className="flex flex-col md:flex-row md:items-end gap-4">
+          <div className="w-full md:w-56 space-y-2">
+            <label className="text-sm font-medium">Tenant</label>
+            <Input
+              value={tenant}
+              onChange={(e) => {
+                setTenant(e.target.value);
+                setSkip(0);
+              }}
+              placeholder="airqo"
+            />
+          </div>
           <div className="w-full md:w-72 space-y-2">
             <label className="text-sm font-medium">Status</label>
             <SelectField
@@ -683,7 +713,7 @@ export default function BulkUpdateJobsPage() {
                   const canTrigger = job.status === "pending" || job.status === "paused";
                   const canPause = job.status === "running";
                   const canResume = job.status === "paused";
-                  const canCancel = job.status !== "cancelled" && !isTerminal && job.status !== "running";
+                  const canCancel = job.status === "pending" || job.status === "paused";
                   const canDelete = job.status !== "running";
 
                   return (
@@ -720,7 +750,7 @@ export default function BulkUpdateJobsPage() {
                             size="sm"
                             variant="outline"
                             disabled={!canTrigger || triggerMutation.isPending}
-                            onClick={() => triggerMutation.mutate({ jobId: job._id })}
+                            onClick={() => triggerMutation.mutate({ jobId: job._id, tenant })}
                           >
                             Trigger
                           </Button>
@@ -729,7 +759,7 @@ export default function BulkUpdateJobsPage() {
                             size="sm"
                             variant="outline"
                             disabled={!canPause || updateMutation.isPending}
-                            onClick={() => updateMutation.mutate({ jobId: job._id, payload: { status: "paused" } })}
+                            onClick={() => updateMutation.mutate({ jobId: job._id, payload: { status: "paused" }, tenant })}
                           >
                             Pause
                           </Button>
@@ -739,8 +769,8 @@ export default function BulkUpdateJobsPage() {
                             variant="outline"
                             disabled={!canResume || updateMutation.isPending}
                             onClick={async () => {
-                              await updateMutation.mutateAsync({ jobId: job._id, payload: { status: "pending" } });
-                              triggerMutation.mutate({ jobId: job._id });
+                              await updateMutation.mutateAsync({ jobId: job._id, payload: { status: "pending" }, tenant });
+                              triggerMutation.mutate({ jobId: job._id, tenant });
                             }}
                           >
                             Resume
@@ -750,7 +780,7 @@ export default function BulkUpdateJobsPage() {
                             title="Cancel job?"
                             description="Cancelling is irreversible. You will need to create a new job to run again."
                             confirmLabel="Cancel job"
-                            onConfirm={() => updateMutation.mutate({ jobId: job._id, payload: { status: "cancelled" } })}
+                            onConfirm={() => updateMutation.mutate({ jobId: job._id, payload: { status: "cancelled" }, tenant })}
                             disabled={!canCancel || updateMutation.isPending}
                           >
                             <Button size="sm" variant="outline" disabled={!canCancel || updateMutation.isPending}>
@@ -762,7 +792,7 @@ export default function BulkUpdateJobsPage() {
                             title="Delete job?"
                             description="This deletes the job permanently. Running jobs must be paused or cancelled first."
                             confirmLabel="Delete"
-                            onConfirm={() => deleteMutation.mutate({ jobId: job._id })}
+                            onConfirm={() => deleteMutation.mutate({ jobId: job._id, tenant })}
                             disabled={!canDelete || deleteMutation.isPending}
                           >
                             <Button size="sm" variant="destructive" disabled={!canDelete || deleteMutation.isPending}>
@@ -801,6 +831,8 @@ export default function BulkUpdateJobsPage() {
         <CreateJobDialog
           isOpen={isCreateOpen}
           onClose={() => setIsCreateOpen(false)}
+          tenant={tenant}
+          onTenantChange={setTenant}
           onCreated={(job) => {
             setSelectedJobId(job._id);
             setIsDetailsOpen(true);
@@ -811,6 +843,7 @@ export default function BulkUpdateJobsPage() {
           jobId={selectedJobId}
           isOpen={isDetailsOpen}
           onClose={() => setIsDetailsOpen(false)}
+          tenant={tenant?.trim() || "airqo"}
         />
       </div>
     </RouteGuard>

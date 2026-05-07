@@ -23,7 +23,7 @@ export const deviceBulkUpdateJobs = {
     const response = await apiClient.post<CreateDeviceBulkUpdateJobResponse>(
       `/devices/bulk-update-jobs`,
       payload,
-      { params, signal, headers: { 'X-Auth-Type': 'API_TOKEN' } },
+      { params, signal, headers: { 'X-Auth-Type': 'JWT' } },
     );
     return response.data;
   },
@@ -64,7 +64,7 @@ export const deviceBulkUpdateJobs = {
     const response = await apiClient.put<UpdateDeviceBulkUpdateJobResponse>(
       `/devices/bulk-update-jobs/${jobId}`,
       payload,
-      { params, signal, headers: { 'X-Auth-Type': 'API_TOKEN' } },
+      { params, signal, headers: { 'X-Auth-Type': 'JWT' } },
     );
     return response.data;
   },
@@ -76,7 +76,7 @@ export const deviceBulkUpdateJobs = {
   ): Promise<DeleteDeviceBulkUpdateJobResponse> => {
     const response = await apiClient.delete<DeleteDeviceBulkUpdateJobResponse>(
       `/devices/bulk-update-jobs/${jobId}`,
-      { params, signal, headers: { 'X-Auth-Type': 'API_TOKEN' } },
+      { params, signal, headers: { 'X-Auth-Type': 'JWT' } },
     );
     return response.data;
   },
@@ -89,9 +89,8 @@ export const deviceBulkUpdateJobs = {
     const response = await apiClient.post<TriggerDeviceBulkUpdateJobResponse>(
       `/devices/bulk-update-jobs/${jobId}/trigger`,
       {},
-      { params, signal, headers: { 'X-Auth-Type': 'API_TOKEN' } },
+      { params, signal, headers: { 'X-Auth-Type': 'JWT' } },
     );
     return response.data;
   },
 };
-
