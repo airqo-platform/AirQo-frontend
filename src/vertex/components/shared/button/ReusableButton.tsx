@@ -12,6 +12,7 @@ interface ReusableButtonBaseProps {
   disabled?: boolean
   dataTestId?: string
   Icon?: React.ComponentType<{ className?: string }>
+  iconClassName?: string
   children?: React.ReactNode
   showTextOnMobile?: boolean
   loading?: boolean
@@ -39,6 +40,7 @@ const ReusableButton = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, R
       className,
       disabled = false,
       Icon,
+      iconClassName,
       children,
       showTextOnMobile = false,
       loading,
@@ -89,7 +91,7 @@ const ReusableButton = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, R
 
     const ButtonContent = (
       <>
-        {Icon && <Icon className={cn("w-4 h-4", children ? iconMargin : "")} />}
+        {Icon && <Icon className={cn("w-4 h-4", children ? iconMargin : "", iconClassName)} />}
         <span className={cn(Icon && !showTextOnMobile ? "md:inline" : "")}>{children}</span>
       </>
     )

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useCallback, useState } from 'react';
-import { useSession, SessionProvider, getSession } from 'next-auth/react';
+import { useSession, SessionProvider, getSession, signIn } from 'next-auth/react';
 import type { Session } from 'next-auth';
 import { useRouter, usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
@@ -23,6 +23,7 @@ import ReusableToast from '@/components/shared/toast/ReusableToast';
 import SessionLoadingState from '@/components/layout/loading/session-loading';
 import {
   getLastActiveGroupId,
+  getLastActiveModule,
   setLastActiveGroupId,
 } from '@/core/utils/userPreferences';
 import type {
@@ -34,6 +35,7 @@ import type {
 import { ExtendedSession } from '../utils/secureApiProxyClient';
 import { useLogout } from '@/core/hooks/useLogout';
 import logger from '@/lib/logger';
+import { consumeOAuthTokenHandoffFromUrl } from './oauth-session';
 
 // --- Helper Functions ---
 
@@ -568,6 +570,83 @@ function AutoLogoutHandler() {
 }
 
 /**
+ * Component to handle the OAuth token handoff from the URL.
+ * It detects the token, triggers signIn, and handles the redirection.
+ */
+function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
+  const [isBootstrapping, setIsBootstrapping] = useState(true);
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const waitForSession = useCallback(async () => {
+    const attempts = 8;
+    const delayMs = 150;
+
+    for (let attempt = 0; attempt < attempts; attempt += 1) {
+      const session = await getSession();
+      if (session?.user) {
+        return session;
+      }
+
+      if (attempt < attempts - 1) {
+        await new Promise<void>((resolve) => {
+          window.setTimeout(resolve, delayMs);
+        });
+      }
+    }
+
+    return null;
+  }, []);
+
+  useEffect(() => {
+    const bootstrap = async () => {
+      try {
+        const handoff = consumeOAuthTokenHandoffFromUrl();
+        if (handoff?.token) {
+          logger.info('[TokenHandoffHandler] OAuth token detected, signing in...');
+
+          const result = await signIn('credentials', {
+            redirect: false,
+            oauthToken: handoff.token,
+            oauthProvider: handoff.provider || 'google',
+          });
+
+          if (result?.ok) {
+            // Wait for session to be fully available before redirecting
+            const session = await waitForSession();
+            const email = session?.user?.email || '';
+            
+            // Priority: handoff.callbackUrl > lastActiveModule logic
+            const lastModule = getLastActiveModule(email);
+            const fallbackUrl = lastModule === 'admin' ? '/admin/networks' : '/home';
+            const redirectUrl = handoff.callbackUrl || fallbackUrl;
+            
+            logger.info(`[TokenHandoffHandler] OAuth sign-in successful, redirecting to ${redirectUrl}`);
+            window.location.replace(redirectUrl);
+            return; // window.location.replace will handle the rest
+          } else {
+            logger.error('[TokenHandoffHandler] OAuth sign-in failed', { error: result?.error });
+            router.push(`/auth-error?error=${encodeURIComponent(result?.error || 'OAuthSignin')}`);
+          }
+        }
+      } catch (error) {
+        logger.error('[TokenHandoffHandler] Error during bootstrap', { error });
+      } finally {
+        setIsBootstrapping(false);
+      }
+    };
+
+    bootstrap();
+  }, [router, pathname]);
+
+  if (isBootstrapping && typeof window !== 'undefined' && window.location.hash.includes('token=')) {
+    return <SessionLoadingState />;
+  }
+
+  return <>{children}</>;
+}
+
+/**
  * Main AuthProvider component
  */
 export function AuthProvider({
@@ -579,7 +658,9 @@ export function AuthProvider({
 }) {
   return (
     <SessionProvider session={session} refetchOnWindowFocus={false} refetchInterval={0}>
-      <AuthWrapper>{children}</AuthWrapper>
+      <TokenHandoffHandler>
+        <AuthWrapper>{children}</AuthWrapper>
+      </TokenHandoffHandler>
     </SessionProvider>
   );
 }
