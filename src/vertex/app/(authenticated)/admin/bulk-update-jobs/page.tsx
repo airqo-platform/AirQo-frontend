@@ -36,6 +36,13 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { useAppSelector } from "@/core/redux/hooks";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  DEVICE_CATEGORIES,
+  DEVICE_DEPLOYMENT_TYPES,
+  DEVICE_IS_ACTIVE_OPTIONS,
+  DEVICE_MOBILITY_TYPES,
+  DEVICE_STATUSES,
+} from "@/core/constants/devices";
 import type {
   DeviceBulkUpdateJob,
   DeviceBulkUpdateJobStatus,
@@ -51,6 +58,7 @@ import {
   useTriggerDeviceBulkUpdateJob,
   useUpdateDeviceBulkUpdateJob,
 } from "@/core/hooks/useDeviceBulkUpdateJobs";
+import { useNetworks } from "@/core/hooks/useNetworks";
 
 const STATUS_OPTIONS: Array<{ label: string; value: DeviceBulkUpdateJobStatus | "all" }> = [
   { label: "All", value: "all" },
@@ -300,6 +308,23 @@ const parseFilterValue = (key: keyof DeviceBulkUpdateJobFilter, raw: string): an
   return raw;
 };
 
+const filterValueKind = (key: keyof DeviceBulkUpdateJobFilter) => {
+  if (key === "network") return "select-network";
+  if (key === "category") return "select-category";
+  if (key === "status") return "select-status";
+  if (key === "deployment_type") return "select-deployment-type";
+  if (key === "mobility") return "select-mobility";
+  if (key === "isActive") return "select-active";
+  if (key === "device_number") return "number";
+  return "text";
+};
+
+const updateValueKind = (key: keyof DeviceBulkUpdateJobUpdateData) => {
+  if (key === "category") return "select-category";
+  if (key === "mobility") return "select-mobility";
+  return "text";
+};
+
 const CreateJobDialog = ({
   isOpen,
   onClose,
@@ -316,6 +341,7 @@ const CreateJobDialog = ({
   const userDetails = useAppSelector((s) => s.user.userDetails);
   const createMutation = useCreateDeviceBulkUpdateJob();
   const triggerMutation = useTriggerDeviceBulkUpdateJob();
+  const { networks, isLoading: isLoadingNetworks } = useNetworks();
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -463,7 +489,89 @@ const CreateJobDialog = ({
             </div>
             <div className="space-y-1">
               <label className="text-xs text-muted-foreground">Value</label>
-              <Input value={filterValue} onChange={(e) => setFilterValue(e.target.value)} placeholder="Value" />
+              {filterValueKind(filterField) === "text" ? (
+                <Input value={filterValue} onChange={(e) => setFilterValue(e.target.value)} placeholder="Value" />
+              ) : filterValueKind(filterField) === "number" ? (
+                <Input
+                  type="number"
+                  value={filterValue}
+                  onChange={(e) => setFilterValue(e.target.value)}
+                  placeholder="Number"
+                />
+              ) : filterValueKind(filterField) === "select-network" ? (
+                <SelectField
+                  value={filterValue}
+                  onChange={(e) => setFilterValue(String(e.target.value))}
+                  placeholder={isLoadingNetworks ? "Loading networks…" : "Select network"}
+                  disabled={isLoadingNetworks}
+                >
+                  {(networks || []).map((n: any) => (
+                    <option key={String(n._id || n.name || n.network)} value={String(n.name || n.network || "")}>
+                      {String(n.name || n.network || "Unnamed network")}
+                    </option>
+                  ))}
+                </SelectField>
+              ) : filterValueKind(filterField) === "select-category" ? (
+                <SelectField
+                  value={filterValue}
+                  onChange={(e) => setFilterValue(String(e.target.value))}
+                  placeholder="Select category"
+                >
+                  {DEVICE_CATEGORIES.map((c) => (
+                    <option key={c.value} value={c.value}>
+                      {c.label}
+                    </option>
+                  ))}
+                </SelectField>
+              ) : filterValueKind(filterField) === "select-status" ? (
+                <SelectField
+                  value={filterValue}
+                  onChange={(e) => setFilterValue(String(e.target.value))}
+                  placeholder="Select status"
+                >
+                  {DEVICE_STATUSES.map((s) => (
+                    <option key={s.value} value={s.value}>
+                      {s.label}
+                    </option>
+                  ))}
+                </SelectField>
+              ) : filterValueKind(filterField) === "select-deployment-type" ? (
+                <SelectField
+                  value={filterValue}
+                  onChange={(e) => setFilterValue(String(e.target.value))}
+                  placeholder="Select deployment type"
+                >
+                  {DEVICE_DEPLOYMENT_TYPES.map((t) => (
+                    <option key={t.value} value={t.value}>
+                      {t.label}
+                    </option>
+                  ))}
+                </SelectField>
+              ) : filterValueKind(filterField) === "select-mobility" ? (
+                <SelectField
+                  value={filterValue}
+                  onChange={(e) => setFilterValue(String(e.target.value))}
+                  placeholder="Select mobility"
+                >
+                  {DEVICE_MOBILITY_TYPES.map((m) => (
+                    <option key={m.value} value={m.value}>
+                      {m.label}
+                    </option>
+                  ))}
+                </SelectField>
+              ) : (
+                <SelectField
+                  value={filterValue}
+                  onChange={(e) => setFilterValue(String(e.target.value))}
+                  placeholder="Select active state"
+                >
+                  {DEVICE_IS_ACTIVE_OPTIONS.map((a) => (
+                    <option key={String(a.value)} value={String(a.value)}>
+                      {a.label}
+                    </option>
+                  ))}
+                </SelectField>
+              )}
             </div>
             <Button
               variant="secondary"
@@ -521,7 +629,33 @@ const CreateJobDialog = ({
             </div>
             <div className="space-y-1">
               <label className="text-xs text-muted-foreground">Value</label>
-              <Input value={updateValue} onChange={(e) => setUpdateValue(e.target.value)} placeholder="Value" />
+              {updateValueKind(updateField) === "text" ? (
+                <Input value={updateValue} onChange={(e) => setUpdateValue(e.target.value)} placeholder="Value" />
+              ) : updateValueKind(updateField) === "select-category" ? (
+                <SelectField
+                  value={updateValue}
+                  onChange={(e) => setUpdateValue(String(e.target.value))}
+                  placeholder="Select category"
+                >
+                  {DEVICE_CATEGORIES.map((c) => (
+                    <option key={c.value} value={c.value}>
+                      {c.label}
+                    </option>
+                  ))}
+                </SelectField>
+              ) : (
+                <SelectField
+                  value={updateValue}
+                  onChange={(e) => setUpdateValue(String(e.target.value))}
+                  placeholder="Select mobility"
+                >
+                  {DEVICE_MOBILITY_TYPES.map((m) => (
+                    <option key={m.value} value={m.value}>
+                      {m.label}
+                    </option>
+                  ))}
+                </SelectField>
+              )}
             </div>
             <Button
               variant="secondary"
