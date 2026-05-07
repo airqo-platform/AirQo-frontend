@@ -18,5 +18,6 @@ export const DEFAULT_COHORT_TAGS = [
   { value: "organizational", label: "organizational" },
   { value: "individual", label: "individual" },
   { value: "hardware", label: "hardware" },
-  { value: "misc", label: "misc" },
+  { value: "inlab", label: "inlab"},
+  { value: "misc", label: "misc" }
 ]
