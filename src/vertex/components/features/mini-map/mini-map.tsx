@@ -104,9 +104,10 @@ function MiniMap({
   scrollZoom = true,
   height = 'h-72',
 }: MiniMapProps) {
-  const [mapInstance, setMapInstance] = useState<mapboxgl.Map | null>(null);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const markerRef = useRef<mapboxgl.Marker | null>(null);
+  const drawRef = useRef<MapboxDraw | null>(null);
   const [isGeocoding, setIsGeocoding] = useState(false);
   const dispatch = useDispatch();
 
@@ -144,7 +145,7 @@ function MiniMap({
   }, [onCoordinateChange, onSiteNameChange, customSiteName]);
 
   useEffect(() => {
-    if (!mapContainerRef.current || !mapboxgl.accessToken) return;
+    if (!mapContainerRef.current || !mapboxgl.accessToken || mapRef.current) return;
 
     const latNum = latitude?.trim() === '' ? NaN : Number(latitude);
     const lngNum = longitude?.trim() === '' ? NaN : Number(longitude);
@@ -153,82 +154,102 @@ function MiniMap({
 
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
-      style: 'mapbox://styles/mapbox/streets-v11',
+      style: 'mapbox://styles/mapbox/streets-v12',
       center: currentCenter,
       zoom: zoom,
       scrollZoom: scrollZoom,
+      trackResize: true,
     });
 
-    map.addControl(new mapboxgl.NavigationControl());
+    mapRef.current = map;
 
-    if (mapMode === 'marker') {
-      markerRef.current = new mapboxgl.Marker({ draggable: true })
-        .setLngLat(currentCenter)
-        .addTo(map);
+    map.on('load', () => {
+      if (!mapRef.current) return;
 
-      markerRef.current.on('dragend', () => {
-        const lngLat = markerRef.current?.getLngLat();
-        if (lngLat) {
-          handleCoordinateUpdate(lngLat.lat, lngLat.lng);
-        }
-      });
+      map.addControl(new mapboxgl.NavigationControl());
 
-      map.on('click', (event) => {
-        const { lng, lat } = event.lngLat;
-        markerRef.current?.setLngLat([lng, lat]);
-        handleCoordinateUpdate(lat, lng);
-      });
-    } else if (mapMode === 'polygon') {
-      const draw = new MapboxDraw({
-        displayControlsDefault: false,
-        controls: {
-          polygon: true,
-          trash: true,
-        },
-        defaultMode: 'draw_polygon',
-      });
-      map.addControl(draw);
+      if (mapMode === 'marker') {
+        markerRef.current = new mapboxgl.Marker({ draggable: true })
+          .setLngLat(currentCenter)
+          .addTo(map);
 
-      const updateArea = () => {
-        const data = draw.getAll();
-        if (data.features.length > 1) {
-          const idsToDelete = data.features.slice(0, -1).map((f: { id?: string | number }) => f.id as string);
-          draw.delete(idsToDelete);
-          return;
-        }
-
-        if (data.features.length > 0) {
-          const feature = data.features[0];
-          const geometry = feature.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon;
-          if (geometry.type === 'Polygon') {
-            const transformed = geometry.coordinates.map(ring =>
-              ring.map(([lng, lat]) => [lat, lng] as [number, number])
-            );
-            dispatch(setPolygon({ type: 'Polygon', coordinates: transformed }));
-          } else if (geometry.type === 'MultiPolygon') {
-            const transformed = geometry.coordinates.map(polygon =>
-              polygon.map(ring => ring.map(([lng, lat]) => [lat, lng] as [number, number]))
-            );
-            dispatch(setPolygon({ type: 'MultiPolygon', coordinates: transformed }));
+        markerRef.current.on('dragend', () => {
+          const lngLat = markerRef.current?.getLngLat();
+          if (lngLat) {
+            handleCoordinateUpdate(lngLat.lat, lngLat.lng);
           }
-        } else {
-          dispatch(setPolygon({ type: "Polygon", coordinates: null }));
-        }
-      };
+        });
 
-      map.on('draw.create', updateArea);
-      map.on('draw.update', updateArea);
-      map.on('draw.delete', updateArea);
-    }
+        map.on('click', (event) => {
+          const { lng, lat } = event.lngLat;
+          markerRef.current?.setLngLat([lng, lat]);
+          handleCoordinateUpdate(lat, lng);
+        });
+      } else if (mapMode === 'polygon') {
+        const draw = new MapboxDraw({
+          displayControlsDefault: false,
+          controls: {
+            polygon: true,
+            trash: true,
+          },
+          defaultMode: 'draw_polygon',
+        });
+        drawRef.current = draw;
+        map.addControl(draw);
 
-    setMapInstance(map);
+        const updateArea = () => {
+          const data = draw.getAll();
+          if (data.features.length > 1) {
+            const idsToDelete = data.features.slice(0, -1).map((f: { id?: string | number }) => f.id as string);
+            draw.delete(idsToDelete);
+            return;
+          }
+
+          if (data.features.length > 0) {
+            const feature = data.features[0];
+            const geometry = feature.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon;
+            if (geometry.type === 'Polygon') {
+              const transformed = geometry.coordinates.map(ring =>
+                ring.map(([lng, lat]) => [lat, lng] as [number, number])
+              );
+              dispatch(setPolygon({ type: 'Polygon', coordinates: transformed }));
+            } else if (geometry.type === 'MultiPolygon') {
+              const transformed = geometry.coordinates.map(polygon =>
+                polygon.map(ring => ring.map(([lng, lat]) => [lat, lng] as [number, number]))
+              );
+              dispatch(setPolygon({ type: 'MultiPolygon', coordinates: transformed }));
+            }
+          } else {
+            dispatch(setPolygon({ type: "Polygon", coordinates: null }));
+          }
+        };
+
+        map.on('draw.create', updateArea);
+        map.on('draw.update', updateArea);
+        map.on('draw.delete', updateArea);
+      }
+    });
+
+    // ResizeObserver to handle container size changes (e.g. inside Dialogs/Tabs)
+    const resizeObserver = new ResizeObserver(() => {
+      map.resize();
+    });
+    resizeObserver.observe(mapContainerRef.current);
 
     return () => {
+      resizeObserver.disconnect();
       if (markerRef.current) {
         markerRef.current.remove();
         markerRef.current = null;
       }
-      map.remove();
+      if (drawRef.current && mapRef.current) {
+        mapRef.current.removeControl(drawRef.current as any);
+        drawRef.current = null;
+      }
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapMode]);
@@ -237,11 +258,11 @@ function MiniMap({
     if (mapMode !== 'marker') return;
     const latNum = latitude?.trim() === '' ? NaN : Number(latitude);
     const lngNum = longitude?.trim() === '' ? NaN : Number(longitude);
-    if (markerRef.current && mapInstance && Number.isFinite(latNum) && Number.isFinite(lngNum)) {
+    if (markerRef.current && mapRef.current && Number.isFinite(latNum) && Number.isFinite(lngNum)) {
       markerRef.current.setLngLat([lngNum, latNum]);
-      mapInstance.setCenter([lngNum, latNum]);
+      mapRef.current.setCenter([lngNum, latNum]);
     }
-  }, [latitude, longitude, mapInstance, mapMode]);
+  }, [latitude, longitude, mapMode]);
 
   return (
     <div className="space-y-4">
