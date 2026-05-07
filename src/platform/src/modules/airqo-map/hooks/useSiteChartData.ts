@@ -113,7 +113,8 @@ export const useSiteChartData = ({
 
   return {
     chartData: gatedChartData,
-    isLoading: shouldFetch ? isLoading || isFetching : false,
+    isLoading: shouldFetch ? isLoading : false,
+    isRefreshing: shouldFetch ? isFetching : false,
     error: shouldFetch ? (error?.message ?? null) : null,
     refresh,
     // Metadata
