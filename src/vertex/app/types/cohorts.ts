@@ -30,6 +30,12 @@ export interface GroupCohortsResponse {
   data: string[];
 }
 
+export interface OriginalCohortResponse {
+  success: boolean;
+  message: string;
+  original_cohort: Cohort;
+}
+
 interface Grid {
     _id: string;
     visibility: boolean;

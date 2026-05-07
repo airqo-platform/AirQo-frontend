@@ -143,6 +143,28 @@ export const getColumns = (
         return !isNaN(num) ? num.toFixed(6) : "-";
       },
     },
+    {
+      key: "tags",
+      label: "Tags",
+      render: (value) => {
+        const tags = value as string[] | undefined;
+        if (!tags || tags.length === 0) {
+          return <span className="text-muted-foreground">-</span>;
+        }
+        return (
+          <div className="flex flex-wrap gap-1 max-w-[200px]">
+            {tags.map((tag, index) => (
+              <span
+                key={`${tag}-${index}`}
+                className="bg-blue-100 text-blue-800 text-[10px] font-medium px-2 py-0.5 rounded-full truncate capitalize"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        );
+      },
+    },
   ];
 
   if (isInternalView) {

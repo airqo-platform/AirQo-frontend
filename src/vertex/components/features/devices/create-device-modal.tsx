@@ -7,6 +7,9 @@ import { useAppSelector } from "@/core/redux/hooks";
 import { DEVICE_CATEGORIES } from "@/core/constants/devices";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
 import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
+import { MultiSelectCombobox } from "@/components/ui/multi-select";
+import { DEFAULT_DEVICE_TAGS } from "@/core/constants/devices";
+import { Label } from "@/components/ui/label";
 
 interface CreateDeviceModalProps {
   open: boolean;
@@ -23,6 +26,7 @@ const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
     long_name: "",
     category: "",
     description: "",
+    tags: [] as string[],
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -62,6 +66,7 @@ const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
         category: formData.category,
         description: formData.description.trim() || undefined,
         network: effectiveNetworkName,
+        tags: formData.tags,
       });
 
       // Reset form and close modal
@@ -69,6 +74,7 @@ const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
         long_name: "",
         category: "",
         description: "",
+        tags: [],
       });
       setErrors({});
       onOpenChange(false);
@@ -103,6 +109,7 @@ const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
         long_name: "",
         category: "",
         description: "",
+        tags: [],
       });
       setErrors({});
     }
@@ -167,6 +174,16 @@ const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
           placeholder="Enter device description"
           rows={3}
         />
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">Tags (Optional)</Label>
+          <MultiSelectCombobox
+            options={DEFAULT_DEVICE_TAGS}
+            placeholder="Select or create tags..."
+            value={formData.tags}
+            onValueChange={(tags) => setFormData((prev) => ({ ...prev, tags }))}
+            allowCreate={true}
+          />
+        </div>
       </div>
     </ReusableDialog>
   );

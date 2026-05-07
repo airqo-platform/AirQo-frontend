@@ -415,6 +415,7 @@ export const devices = {
     category: string;
     description?: string;
     network: string;
+    tags?: string[];
   }): Promise<DeviceCreationResponse> => {
     try {
       const response = await jwtApiClient.post(
@@ -440,6 +441,7 @@ export const devices = {
     api_code?: string;
     cohort_id?: string;
     user_id: string;
+    tags?: string[];
   }): Promise<DeviceCreationResponse> => {
     try {
       const response = await jwtApiClient.post(

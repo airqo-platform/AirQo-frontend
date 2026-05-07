@@ -136,7 +136,7 @@ export const useCreateGrid = () => {
       await grids.createGridApi(newGrid),
     onSuccess: (data) => {
       ReusableToast({
-        message: `Grid '${data.name}' created successfully`,
+        message: `New grid added!`,
         type: "SUCCESS",
       });
       queryClient.invalidateQueries({ queryKey: ["grids"] });
