@@ -54,7 +54,7 @@ Introduced a comprehensive device tagging system, added original cohort tracing 
 </details>
 
 <details>
-<summary><strong>Files Modified (15)</strong></summary>
+<summary><strong>Files Modified (18)</strong></summary>
 
 - `src/vertex/app/types/devices.ts` [MODIFIED]
 - `src/vertex/app/types/cohorts.ts` [MODIFIED]
