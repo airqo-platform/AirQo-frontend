@@ -5,11 +5,14 @@ import { AqCopy01, AqEdit01 } from "@airqo/icons-react";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { Switch } from "@/components/ui/switch";
 import { useEffect, useState } from "react";
-import { useUpdateCohortDetails } from "@/core/hooks/useCohorts";
+import { useUpdateCohortDetails, useOriginalCohort } from "@/core/hooks/useCohorts";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import { Badge } from "@/components/ui/badge";
 import { MultiSelectCombobox } from "@/components/ui/multi-select";
 import { DEFAULT_COHORT_TAGS } from "@/core/constants/devices";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
+import { InfoBanner } from "@/components/ui/banner";
 
 interface CohortDetailsCardProps {
   name: string;
@@ -32,8 +35,15 @@ const CohortDetailsCard: React.FC<CohortDetailsCardProps> = ({
   const [isTagsDialogOpen, setIsTagsDialogOpen] = useState(false);
   const [targetVisibility, setTargetVisibility] = useState<boolean>(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const pathname = usePathname();
+  const isAdminPath = pathname.startsWith("/admin");
+  const isDuplicate = (cohort_tags ?? []).some(
+    (tag) => tag.toLowerCase() === "duplicate"
+  );
 
   const { mutate: updateCohort, isPending } = useUpdateCohortDetails();
+  const { data: originalData } = useOriginalCohort(id, { enabled: !!isDuplicate });
+  const originalCohort = isDuplicate && originalData?.success ? originalData.original_cohort : null;
 
   useEffect(() => {
     setSelectedTags(cohort_tags ?? []);
@@ -181,6 +191,23 @@ const CohortDetailsCard: React.FC<CohortDetailsCardProps> = ({
               </div>
             </div>
           </div>
+
+          {originalCohort && (
+            <InfoBanner
+              className="mt-4"
+              message={
+                <>
+                  This cohort is a duplicate. The original cohort is{" "}
+                  <Link
+                    href={isAdminPath ? `/admin/cohorts/${originalCohort._id}` : `/cohorts/${originalCohort._id}`}
+                    className="font-semibold underline hover:text-blue-800 dark:hover:text-blue-200"
+                  >
+                    {originalCohort.name}
+                  </Link>
+                </>
+              }
+            />
+          )}
         </div>
       </Card>
 

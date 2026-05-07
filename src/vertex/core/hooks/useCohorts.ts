@@ -10,6 +10,7 @@ import { AxiosError } from 'axios';
 import {
   CohortsSummaryResponse,
   GroupCohortsResponse,
+  OriginalCohortResponse,
 } from '@/app/types/cohorts';
 
 interface ErrorResponse {
@@ -489,5 +490,19 @@ export const useVerifyCohort = () => {
       if (!cohortId) throw new Error('Cohort ID is required');
       return await cohortsApi.verifyCohortIdApi(cohortId);
     },
+  });
+};
+
+export const useOriginalCohort = (cohortId: string, options: { enabled?: boolean } = {}) => {
+  const { enabled = true } = options;
+  return useQuery({
+    queryKey: ['original-cohort', cohortId],
+    queryFn: async () => {
+      if (!cohortId) throw new Error('Cohort ID is required');
+      return await cohortsApi.getOriginalCohortApi(cohortId);
+    },
+    enabled: !!cohortId && enabled,
+    retry: false,
+    staleTime: 300_000,
   });
 };

@@ -147,6 +147,7 @@ export interface Device {
   lastActive?: string;
   lastRawData?: string;
   rawOnlineStatus?: boolean;
+  tags?: string[];
 }
 
 export interface PaginationMeta {

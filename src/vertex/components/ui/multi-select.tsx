@@ -36,9 +36,9 @@ interface MultiSelectComboboxProps {
 }
 
 export function MultiSelectCombobox({
-  options,
+  options = [],
   placeholder = "Select tags...",
-  value,
+  value = [],
   onValueChange,
   allowCreate = true,
   searchValue: controlledSearchValue,
@@ -119,7 +119,7 @@ export function MultiSelectCombobox({
           className="w-full justify-between h-auto min-h-[40px] flex-wrap bg-transparent"
         >
           <div className="flex flex-wrap gap-1">
-            {value.length === 0 ? (
+            {!value || value.length === 0 ? (
               <span className="text-muted-foreground">{placeholder}</span>
             ) : (
               value.map((val) => {

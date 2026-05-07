@@ -506,9 +506,17 @@ export const useCreateDevice = () => {
       category: string;
       description?: string;
       network: string;
+      tags?: string[];
     }
   >({
-    mutationFn: devices.createDevice,
+    mutationFn: (variables) => {
+      const { tags, ...rest } = variables;
+      const payload = {
+        ...rest,
+        ...(tags && tags.length > 0 && { tags }),
+      };
+      return devices.createDevice(payload);
+    },
     onSuccess: (data, variables) => {
       ReusableToast({
         message: `${variables.long_name} has been created.`,
@@ -556,9 +564,17 @@ export const useImportDevice = () => {
       api_code?: string;
       cohort_id?: string;
       user_id: string;
+      tags?: string[];
     }
   >({
-    mutationFn: devices.importDevice,
+    mutationFn: (variables) => {
+      const { tags, ...rest } = variables;
+      const payload = {
+        ...rest,
+        ...(tags && tags.length > 0 && { tags }),
+      };
+      return devices.importDevice(payload);
+    },
     onSuccess: (data, variables) => {
       ReusableToast({
         message: `${variables.long_name} has been imported.`,

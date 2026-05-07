@@ -74,6 +74,10 @@ export default async function RootLayout({
 
   return (
     <html lang="en" className={inter.className}>
+      <head>
+        <link rel="preconnect" href="https://api.mapbox.com" />
+        <link rel="preconnect" href="https://events.mapbox.com" />
+      </head>
       <ClientLayout session={session}>{children}</ClientLayout>
     </html>
   );
