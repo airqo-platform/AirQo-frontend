@@ -10,18 +10,10 @@ import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
 import SelectField from "@/components/ui/select-field";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import BulkUpdateJobsTable from "@/components/features/bulk-update-jobs/bulk-update-jobs-table";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -59,17 +51,6 @@ import {
   useUpdateDeviceBulkUpdateJob,
 } from "@/core/hooks/useDeviceBulkUpdateJobs";
 import { useNetworks } from "@/core/hooks/useNetworks";
-
-const STATUS_OPTIONS: Array<{ label: string; value: DeviceBulkUpdateJobStatus | "all" }> = [
-  { label: "All", value: "all" },
-  { label: "Queued", value: "pending" },
-  { label: "In progress", value: "running" },
-  { label: "Paused", value: "paused" },
-  { label: "Done", value: "completed" },
-  { label: "Done with errors", value: "completed_with_errors" },
-  { label: "Failed", value: "failed" },
-  { label: "Cancelled", value: "cancelled" },
-];
 
 const terminalStatuses: DeviceBulkUpdateJobStatus[] = [
   "completed",
@@ -308,6 +289,8 @@ const parseFilterValue = (key: keyof DeviceBulkUpdateJobFilter, raw: string): an
   return raw;
 };
 
+type SelectChangeEvent = { target: { value: string | number | readonly string[] } };
+
 const filterValueKind = (key: keyof DeviceBulkUpdateJobFilter) => {
   if (key === "network") return "select-network";
   if (key === "category") return "select-category";
@@ -429,32 +412,48 @@ const CreateJobDialog = ({
       preventBackdropClose={createMutation.isPending || triggerMutation.isPending}
     >
       <div className="space-y-6">
+        {!canSubmit ? (
+          <div className="rounded-lg border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+            Add at least one filter and one update field. Job name is required.
+          </div>
+        ) : null}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Job name</label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Reclassify usembassy devices" />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Tenant</label>
-            <Input value={tenant} onChange={(e) => onTenantChange(e.target.value)} placeholder="airqo" />
-          </div>
-          <div className="space-y-2 md:col-span-2">
-            <label className="text-sm font-medium">Description</label>
-            <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Optional description for audit trail" />
-          </div>
+          <ReusableInputField
+            label="Job name"
+            required
+            value={name}
+            onChange={(e) => setName((e.target as HTMLInputElement).value)}
+            placeholder="e.g. Reclassify usembassy devices"
+            description="Give the job a descriptive name for audit and future search."
+          />
+          <ReusableInputField
+            label="Tenant"
+            value={tenant}
+            onChange={(e) => onTenantChange((e.target as HTMLInputElement).value)}
+            placeholder="airqo"
+            description="Defaults to airqo. Change only if you manage multiple tenants."
+            disabled
+          />
+          <ReusableInputField
+            as="textarea"
+            label="Description"
+            value={description}
+            onChange={(e) => setDescription((e.target as HTMLTextAreaElement).value)}
+            placeholder="Optional description for audit trail"
+            containerClassName="md:col-span-2"
+          />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Batch size</label>
-            <Input
-              type="number"
-              min={1}
-              max={100}
-              value={batchSize}
-              onChange={(e) => setBatchSize(Number(e.target.value))}
-            />
-          </div>
+          <ReusableInputField
+            label="Batch size"
+            type="number"
+            min={1}
+            max={100}
+            value={batchSize}
+            onChange={(e) => setBatchSize(Number((e.target as HTMLInputElement).value))}
+            description="How many devices per server batch (1–100)."
+          />
           <div className="flex items-center gap-3 md:col-span-2">
             <Switch checked={dryRun} onCheckedChange={(v) => setDryRun(!!v)} />
             <div>
@@ -477,7 +476,7 @@ const CreateJobDialog = ({
               <label className="text-xs text-muted-foreground">Field</label>
               <SelectField
                 value={String(filterField)}
-                onChange={(e) => setFilterField(e.target.value as any)}
+                onChange={(e: SelectChangeEvent) => setFilterField(String(e.target.value) as any)}
                 placeholder="Select field"
               >
                 {FILTER_FIELDS.map((f) => (
@@ -490,31 +489,35 @@ const CreateJobDialog = ({
             <div className="space-y-1">
               <label className="text-xs text-muted-foreground">Value</label>
               {filterValueKind(filterField) === "text" ? (
-                <Input value={filterValue} onChange={(e) => setFilterValue(e.target.value)} placeholder="Value" />
+                <ReusableInputField
+                  value={filterValue}
+                  onChange={(e) => setFilterValue((e.target as HTMLInputElement).value)}
+                  placeholder="Value"
+                />
               ) : filterValueKind(filterField) === "number" ? (
-                <Input
+                <ReusableInputField
                   type="number"
                   value={filterValue}
-                  onChange={(e) => setFilterValue(e.target.value)}
+                  onChange={(e) => setFilterValue((e.target as HTMLInputElement).value)}
                   placeholder="Number"
                 />
               ) : filterValueKind(filterField) === "select-network" ? (
                 <SelectField
                   value={filterValue}
-                  onChange={(e) => setFilterValue(String(e.target.value))}
+                  onChange={(e: SelectChangeEvent) => setFilterValue(String(e.target.value))}
                   placeholder={isLoadingNetworks ? "Loading networks…" : "Select network"}
                   disabled={isLoadingNetworks}
                 >
-                  {(networks || []).map((n: any) => (
-                    <option key={String(n._id || n.name || n.network)} value={String(n.name || n.network || "")}>
-                      {String(n.name || n.network || "Unnamed network")}
+                  {(networks || []).map((n) => (
+                    <option key={n.net_name} value={n.net_name}>
+                      {n.net_name}
                     </option>
                   ))}
                 </SelectField>
               ) : filterValueKind(filterField) === "select-category" ? (
                 <SelectField
                   value={filterValue}
-                  onChange={(e) => setFilterValue(String(e.target.value))}
+                  onChange={(e: SelectChangeEvent) => setFilterValue(String(e.target.value))}
                   placeholder="Select category"
                 >
                   {DEVICE_CATEGORIES.map((c) => (
@@ -526,7 +529,7 @@ const CreateJobDialog = ({
               ) : filterValueKind(filterField) === "select-status" ? (
                 <SelectField
                   value={filterValue}
-                  onChange={(e) => setFilterValue(String(e.target.value))}
+                  onChange={(e: SelectChangeEvent) => setFilterValue(String(e.target.value))}
                   placeholder="Select status"
                 >
                   {DEVICE_STATUSES.map((s) => (
@@ -538,7 +541,7 @@ const CreateJobDialog = ({
               ) : filterValueKind(filterField) === "select-deployment-type" ? (
                 <SelectField
                   value={filterValue}
-                  onChange={(e) => setFilterValue(String(e.target.value))}
+                  onChange={(e: SelectChangeEvent) => setFilterValue(String(e.target.value))}
                   placeholder="Select deployment type"
                 >
                   {DEVICE_DEPLOYMENT_TYPES.map((t) => (
@@ -550,7 +553,7 @@ const CreateJobDialog = ({
               ) : filterValueKind(filterField) === "select-mobility" ? (
                 <SelectField
                   value={filterValue}
-                  onChange={(e) => setFilterValue(String(e.target.value))}
+                  onChange={(e: SelectChangeEvent) => setFilterValue(String(e.target.value))}
                   placeholder="Select mobility"
                 >
                   {DEVICE_MOBILITY_TYPES.map((m) => (
@@ -562,7 +565,7 @@ const CreateJobDialog = ({
               ) : (
                 <SelectField
                   value={filterValue}
-                  onChange={(e) => setFilterValue(String(e.target.value))}
+                  onChange={(e: SelectChangeEvent) => setFilterValue(String(e.target.value))}
                   placeholder="Select active state"
                 >
                   {DEVICE_IS_ACTIVE_OPTIONS.map((a) => (
@@ -617,7 +620,7 @@ const CreateJobDialog = ({
               <label className="text-xs text-muted-foreground">Field</label>
               <SelectField
                 value={String(updateField)}
-                onChange={(e) => setUpdateField(e.target.value as any)}
+                onChange={(e: SelectChangeEvent) => setUpdateField(String(e.target.value) as any)}
                 placeholder="Select field"
               >
                 {UPDATE_FIELDS.map((f) => (
@@ -630,11 +633,15 @@ const CreateJobDialog = ({
             <div className="space-y-1">
               <label className="text-xs text-muted-foreground">Value</label>
               {updateValueKind(updateField) === "text" ? (
-                <Input value={updateValue} onChange={(e) => setUpdateValue(e.target.value)} placeholder="Value" />
+                <ReusableInputField
+                  value={updateValue}
+                  onChange={(e) => setUpdateValue((e.target as HTMLInputElement).value)}
+                  placeholder="Value"
+                />
               ) : updateValueKind(updateField) === "select-category" ? (
                 <SelectField
                   value={updateValue}
-                  onChange={(e) => setUpdateValue(String(e.target.value))}
+                  onChange={(e: SelectChangeEvent) => setUpdateValue(String(e.target.value))}
                   placeholder="Select category"
                 >
                   {DEVICE_CATEGORIES.map((c) => (
@@ -646,7 +653,7 @@ const CreateJobDialog = ({
               ) : (
                 <SelectField
                   value={updateValue}
-                  onChange={(e) => setUpdateValue(String(e.target.value))}
+                  onChange={(e: SelectChangeEvent) => setUpdateValue(String(e.target.value))}
                   placeholder="Select mobility"
                 >
                   {DEVICE_MOBILITY_TYPES.map((m) => (
@@ -714,29 +721,16 @@ const CreateJobDialog = ({
 };
 
 export default function BulkUpdateJobsPage() {
-  const [tenant, setTenant] = useState("airqo");
-  const [status, setStatus] = useState<DeviceBulkUpdateJobStatus | "all">("all");
-  const [skip, setSkip] = useState(0);
-  const limit = 20;
+  const queryClient = useQueryClient();
+  const tenant = "airqo";
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
-  const listQuery = useDeviceBulkUpdateJobs({
-    tenant: tenant?.trim() || "airqo",
-    status: status === "all" ? undefined : status,
-    limit,
-    skip,
-    enabled: true,
-  });
-
   const triggerMutation = useTriggerDeviceBulkUpdateJob();
   const updateMutation = useUpdateDeviceBulkUpdateJob();
   const deleteMutation = useDeleteDeviceBulkUpdateJob();
-
-  const jobs = listQuery.data?.jobs ?? [];
-  const meta = listQuery.data?.meta;
 
   const openDetails = (jobId: string) => {
     setSelectedJobId(jobId);
@@ -757,8 +751,7 @@ export default function BulkUpdateJobsPage() {
             <ReusableButton
               variant="outlined"
               Icon={AqRefreshCw01}
-              onClick={() => listQuery.refetch()}
-              disabled={listQuery.isFetching}
+              onClick={() => queryClient.invalidateQueries({ queryKey: ["deviceBulkUpdateJobs"] })}
             >
               Refresh
             </ReusableButton>
@@ -768,205 +761,41 @@ export default function BulkUpdateJobsPage() {
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row md:items-end gap-4">
-          <div className="w-full md:w-56 space-y-2">
-            <label className="text-sm font-medium">Tenant</label>
-            <Input
-              value={tenant}
-              onChange={(e) => {
-                setTenant(e.target.value);
-                setSkip(0);
-              }}
-              placeholder="airqo"
-            />
-          </div>
-          <div className="w-full md:w-72 space-y-2">
-            <label className="text-sm font-medium">Status</label>
-            <SelectField
-              value={String(status)}
-              onChange={(e) => {
-                setStatus(e.target.value as any);
-                setSkip(0);
-              }}
-              placeholder="Filter by status"
-            >
-              {STATUS_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </SelectField>
-          </div>
-          <div className="text-xs text-muted-foreground">
-            {meta ? `${meta.totalResults} result(s) • Page ${meta.page} of ${meta.totalPages}` : null}
-          </div>
-        </div>
-
         <div className="rounded-lg border bg-card">
-          {listQuery.isLoading ? (
-            <div className="p-4 space-y-3">
-              {[...Array(6)].map((_, i) => (
-                <Skeleton key={i} className="h-10 w-full" />
-              ))}
-            </div>
-          ) : listQuery.error ? (
-            <div className="p-6">
-              <EmptyState
-                icon={<AqRefreshCw01 className="h-10 w-10 text-muted-foreground" />}
-                title="Failed to load jobs"
-                description="Please try again. If the issue persists, check your network connection or permissions."
-              />
-            </div>
-          ) : jobs.length === 0 ? (
-            <div className="p-6">
-              <EmptyState
-                icon={<AqPlus className="h-10 w-10 text-muted-foreground" />}
-                title="No bulk update jobs yet"
-                description="Create a job to apply bulk updates to a filtered set of devices."
-              />
-              <div className="mt-4">
-                <ReusableButton Icon={AqPlus} onClick={() => setIsCreateOpen(true)}>
-                  Create your first job
-                </ReusableButton>
-              </div>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Progress</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {jobs.map((job) => {
-                  const isTerminal = terminalStatuses.includes(job.status);
-                  const canTrigger = job.status === "pending" || job.status === "paused";
-                  const canPause = job.status === "running";
-                  const canResume = job.status === "paused";
-                  const canCancel = job.status === "pending" || job.status === "paused";
-                  const canDelete = job.status !== "running";
-
-                  return (
-                    <TableRow key={job._id} className="cursor-pointer" onClick={() => openDetails(job._id)}>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="font-medium">{job.name}</div>
-                          <div className="text-xs text-muted-foreground line-clamp-1">
-                            {job.description || "—"}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <StatusBadge status={job.status} />
-                          {job.dryRun ? <Badge variant="outline">Dry run</Badge> : null}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-2 min-w-[180px]">
-                          <Progress value={job.progress ?? 0} />
-                          <div className="text-xs text-muted-foreground">
-                            {job.processedCount ?? 0}
-                            {job.totalDevices ? ` / ${job.totalDevices}` : ""} • Failed {job.failedCount ?? 0}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {formatDateTime(job.createdAt)}
-                      </TableCell>
-                      <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex justify-end gap-2 flex-wrap">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            disabled={!canTrigger || triggerMutation.isPending}
-                            onClick={() => triggerMutation.mutate({ jobId: job._id, tenant })}
-                          >
-                            Trigger
-                          </Button>
-
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            disabled={!canPause || updateMutation.isPending}
-                            onClick={() => updateMutation.mutate({ jobId: job._id, payload: { status: "paused" }, tenant })}
-                          >
-                            Pause
-                          </Button>
-
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            disabled={!canResume || updateMutation.isPending}
-                            onClick={async () => {
-                              await updateMutation.mutateAsync({ jobId: job._id, payload: { status: "pending" }, tenant });
-                              triggerMutation.mutate({ jobId: job._id, tenant });
-                            }}
-                          >
-                            Resume
-                          </Button>
-
-                          <ConfirmAction
-                            title="Cancel job?"
-                            description="Cancelling is irreversible. You will need to create a new job to run again."
-                            confirmLabel="Cancel job"
-                            onConfirm={() => updateMutation.mutate({ jobId: job._id, payload: { status: "cancelled" }, tenant })}
-                            disabled={!canCancel || updateMutation.isPending}
-                          >
-                            <Button size="sm" variant="outline" disabled={!canCancel || updateMutation.isPending}>
-                              Cancel
-                            </Button>
-                          </ConfirmAction>
-
-                          <ConfirmAction
-                            title="Delete job?"
-                            description="This deletes the job permanently. Running jobs must be paused or cancelled first."
-                            confirmLabel="Delete"
-                            onConfirm={() => deleteMutation.mutate({ jobId: job._id, tenant })}
-                            disabled={!canDelete || deleteMutation.isPending}
-                          >
-                            <Button size="sm" variant="destructive" disabled={!canDelete || deleteMutation.isPending}>
-                              Delete
-                            </Button>
-                          </ConfirmAction>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          )}
+          <BulkUpdateJobsTable
+            tenant={tenant}
+            itemsPerPage={20}
+            onRowClick={openDetails}
+            onTrigger={(jobId, t) => triggerMutation.mutate({ jobId, tenant: t })}
+            onPause={(jobId, t) => updateMutation.mutate({ jobId, payload: { status: "paused" }, tenant: t })}
+            onResume={async (jobId, t) => {
+              await updateMutation.mutateAsync({ jobId, payload: { status: "pending" }, tenant: t });
+              triggerMutation.mutate({ jobId, tenant: t });
+            }}
+            onCancel={(jobId, t) => updateMutation.mutate({ jobId, payload: { status: "cancelled" }, tenant: t })}
+            onDelete={(jobId, t) => deleteMutation.mutate({ jobId, tenant: t })}
+            confirmAction={({ title, description, confirmLabel, disabled, onConfirm, children }) => (
+              <ConfirmAction
+                title={title}
+                description={description}
+                confirmLabel={confirmLabel}
+                onConfirm={onConfirm}
+                disabled={disabled}
+              >
+                {children}
+              </ConfirmAction>
+            )}
+            isTriggering={triggerMutation.isPending}
+            isUpdating={updateMutation.isPending}
+            isDeleting={deleteMutation.isPending}
+          />
         </div>
-
-        {meta && meta.totalPages > 1 ? (
-          <div className="flex items-center justify-between">
-            <Button
-              variant="outline"
-              disabled={skip <= 0}
-              onClick={() => setSkip((s) => Math.max(0, s - limit))}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              disabled={skip + limit >= meta.total}
-              onClick={() => setSkip((s) => s + limit)}
-            >
-              Next
-            </Button>
-          </div>
-        ) : null}
 
         <CreateJobDialog
           isOpen={isCreateOpen}
           onClose={() => setIsCreateOpen(false)}
           tenant={tenant}
-          onTenantChange={setTenant}
+          onTenantChange={() => {}}
           onCreated={(job) => {
             setSelectedJobId(job._id);
             setIsDetailsOpen(true);
@@ -977,7 +806,7 @@ export default function BulkUpdateJobsPage() {
           jobId={selectedJobId}
           isOpen={isDetailsOpen}
           onClose={() => setIsDetailsOpen(false)}
-          tenant={tenant?.trim() || "airqo"}
+          tenant={tenant}
         />
       </div>
     </RouteGuard>
