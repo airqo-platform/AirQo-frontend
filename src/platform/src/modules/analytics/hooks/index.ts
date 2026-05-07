@@ -159,9 +159,10 @@ export const useAnalyticsChartData = (
     };
   }, [filters.startDate, filters.endDate]);
 
-  const selectedSiteIdsKey = useMemo(() => selectedSiteIds.join(','), [
-    selectedSiteIds,
-  ]);
+  const selectedSiteIdsKey = useMemo(
+    () => selectedSiteIds.join(','),
+    [selectedSiteIds]
+  );
   const shouldFetch = enabled && selectedSiteIds.length > 0;
 
   const query = useQuery<ChartData[], Error>({
@@ -214,7 +215,7 @@ export const useAnalyticsChartData = (
   }, [query, shouldFetch]);
 
   return {
-    chartData: shouldFetch ? query.data ?? [] : [],
+    chartData: shouldFetch ? (query.data ?? []) : [],
     isLoading: shouldFetch ? query.isLoading : false,
     isRefreshing: shouldFetch ? query.isFetching : false,
     error: shouldFetch ? (query.error?.message ?? null) : null,
@@ -295,12 +296,7 @@ export const useAnalyticsSiteCards = ({
 
       return buildNoValueSiteCard(selectedSite, filters.pollutant);
     });
-  }, [
-    filters.pollutant,
-    measurementsBySiteId,
-    selectedSites,
-    shouldFetch,
-  ]);
+  }, [filters.pollutant, measurementsBySiteId, selectedSites, shouldFetch]);
 
   const refetchSiteCards = useCallback(async () => {
     if (!shouldFetch) {
