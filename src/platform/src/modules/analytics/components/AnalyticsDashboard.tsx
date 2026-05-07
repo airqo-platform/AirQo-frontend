@@ -8,6 +8,7 @@ import { ChartContainer } from '@/shared/components/charts';
 import { DynamicChart } from '@/shared/components/charts';
 import { LoadingState } from '@/shared/components/ui/loading-state';
 import { EmptyState } from '@/shared/components/ui/empty-state';
+import { toast } from '@/shared/components/ui/toast';
 import {
   useAnalyticsSiteCards,
   useAnalyticsPreferences,
@@ -323,6 +324,10 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         refreshLineChart?.(),
         refreshBarChart?.(),
       ]);
+      toast.success('Data refreshed', 'The dashboard has been updated.');
+    } catch (error) {
+      console.error('Failed to refresh analytics dashboard:', error);
+      toast.error('Refresh failed', 'We could not refresh the dashboard.');
     } finally {
       if (isMountedRef.current) {
         setIsRefreshing(false);
