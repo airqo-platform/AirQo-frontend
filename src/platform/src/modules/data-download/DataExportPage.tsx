@@ -622,6 +622,10 @@ const DataExportPage = () => {
     setIsRefreshing(true);
     try {
       await currentHook.mutate?.();
+      toast.success('Data refreshed', 'The current table has been updated.');
+    } catch (error) {
+      console.error('Failed to refresh export data:', error);
+      toast.error('Refresh failed', 'We could not refresh the data.');
     } finally {
       refreshInFlightRef.current = false;
       if (isMountedRef.current) {
