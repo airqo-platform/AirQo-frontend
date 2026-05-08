@@ -1,13 +1,12 @@
 "use client"
 
 import React, { useEffect, useState, useMemo, useCallback, useRef } from "react"
-import { Map as MapIcon, AlertTriangle, CheckCircle2, Search, ChevronDown, X } from "lucide-react"
-import { getMaintenanceMapData } from "@/services/device-api.service"
-import { MaintenanceMapItem } from "@/types/api.types"
+import { Map as MapIcon, CheckCircle2, Search, ChevronDown, X, ArrowRight } from "lucide-react"
+import { getMaintenanceMapData, getSyncedGrids } from "@/services/device-api.service"
+import { GridAdminLevel, MaintenanceMapItem, SyncedGrid } from "@/types/api.types"
 import { airQloudService, type AirQloudBasic } from "@/services/airqloud.service"
 import { calculateNearestNeighborRoute, Coordinates } from "@/utils/routing-utils"
 import { useToast } from "@/hooks/use-toast"
-import { ArrowRight } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import dynamic from "next/dynamic"
 
@@ -43,6 +42,21 @@ const ERROR_MARGIN_OPTIONS: { label: string; value: 'all' | 'good' | 'moderate' 
     { label: "Critical (> 20)", value: 'critical' },
 ]
 
+const GRID_ADMIN_LEVEL_OPTIONS: { label: string; value: GridAdminLevel }[] = [
+    { label: 'Municipality', value: 'Municipality' },
+    { label: 'county', value: 'county' },
+    { label: 'division', value: 'division' },
+    { label: 'city', value: 'city' },
+    { label: 'country', value: 'country' },
+    { label: 'state', value: 'state' },
+    { label: 'metropolitanmunicipality', value: 'metropolitanmunicipality' },
+    { label: 'province', value: 'province' },
+    { label: 'region', value: 'region' },
+    { label: 'district', value: 'district' },
+]
+
+const getGridLabel = (grid: SyncedGrid) => grid.long_name || grid.name
+
 export default function MaintenancePage() {
     const { toast } = useToast()
 
@@ -54,6 +68,10 @@ export default function MaintenancePage() {
     const [cohorts, setCohorts] = useState<AirQloudBasic[]>([])
     const [loadingAirQlouds, setLoadingAirQlouds] = useState(false)
 
+    // --- GRID LIST ---
+    const [grids, setGrids] = useState<SyncedGrid[]>([])
+    const [loadingGrids, setLoadingGrids] = useState(false)
+
     // --- SELECTION STATE ---
     const [selectedDeviceIds, setSelectedDeviceIds] = useState<string[]>([])
 
@@ -64,11 +82,18 @@ export default function MaintenancePage() {
     const [uptimeFilter, setUptimeFilter] = useState<'all' | 'good' | 'moderate' | 'critical' | 'offline'>('all')
     const [errorMarginFilter, setErrorMarginFilter] = useState<'all' | 'good' | 'moderate' | 'critical'>('all')
     const [selectedAirQloud, setSelectedAirQloud] = useState<string>('all')
+    const [selectedGrid, setSelectedGrid] = useState<string>('all')
 
     // --- COHORT DROPDOWN STATE ---
     const [cohortSearch, setCohortSearch] = useState('')
     const [cohortDropdownOpen, setCohortDropdownOpen] = useState(false)
     const cohortDropdownRef = useRef<HTMLDivElement>(null)
+
+    // --- GRID DROPDOWN STATE ---
+    const [gridSearch, setGridSearch] = useState('')
+    const [gridAdminLevelFilter, setGridAdminLevelFilter] = useState<'all' | GridAdminLevel>('all')
+    const [gridDropdownOpen, setGridDropdownOpen] = useState(false)
+    const gridDropdownRef = useRef<HTMLDivElement>(null)
 
     // --- ROUTING STATE ---
     const DEFAULT_HOME_LOCATION = { latitude: 0.332078, longitude: 32.570473, name: "Head Office" };
@@ -89,10 +114,18 @@ export default function MaintenancePage() {
             if (cohortDropdownRef.current && !cohortDropdownRef.current.contains(e.target as Node)) {
                 setCohortDropdownOpen(false)
             }
+            if (gridDropdownRef.current && !gridDropdownRef.current.contains(e.target as Node)) {
+                setGridDropdownOpen(false)
+            }
         }
         document.addEventListener('mousedown', handleClickOutside)
         return () => document.removeEventListener('mousedown', handleClickOutside)
     }, [])
+
+    const selectedGridItem = grids.find(item => item.name === selectedGrid)
+    const selectedGridLabel = selectedGrid === 'all'
+        ? 'All Grids'
+        : getGridLabel(selectedGridItem || { grid_id: selectedGrid, name: selectedGrid })
 
     // Filtered cohort list for the dropdown
     const filteredCohorts = useMemo(() => {
@@ -101,6 +134,9 @@ export default function MaintenancePage() {
         const q = cohortSearch.toLowerCase()
         return cohorts.filter(aq => aq.name.toLowerCase().includes(q))
     }, [cohorts, cohortSearch])
+
+    // Grid list is already filtered by the synced grids endpoint when searching.
+    const filteredGrids = grids
 
     // Filtered Map Data
     const filteredMapData = useMemo(() => {
@@ -113,9 +149,17 @@ export default function MaintenancePage() {
             filtered = filtered.filter(d => d.cohorts.includes(selectedAirQloud));
         }
 
+        // 1b. Grid Filter
+        if (selectedGrid !== 'all') {
+            filtered = filtered.filter(device => {
+                const deviceGrids = Array.isArray(device.grids) ? device.grids : [];
+                return deviceGrids.some(grid => String(grid).toLowerCase() === selectedGrid.toLowerCase());
+            });
+        }
+
         // 2. Offline Days Filter
         if (offlineDaysFilter !== null) {
-            const now = new Date().getTime();
+            const now = Date.now();
             const thresholdMs = offlineDaysFilter * 86400000; // days to milliseconds
             filtered = filtered.filter(device => {
                 if (!device.last_active) return true; // show devices with no last_active data
@@ -128,7 +172,10 @@ export default function MaintenancePage() {
         if (uptimeFilter !== 'all') {
             filtered = filtered.filter(device => {
                 const raw = Number(device.uptime);
-                const pct = !Number.isFinite(raw) ? 0 : (raw <= 1 ? raw * 100 : raw);
+                let pct = 0;
+                if (Number.isFinite(raw)) {
+                    pct = raw <= 1 ? raw * 100 : raw;
+                }
                 switch (uptimeFilter) {
                     case 'offline': return pct === 0;
                     case 'good': return pct >= 85;
@@ -154,7 +201,7 @@ export default function MaintenancePage() {
         }
 
         return filtered;
-    }, [mapData, offlineDaysFilter, selectedAirQloud, uptimeFilter, errorMarginFilter]);
+    }, [mapData, offlineDaysFilter, selectedAirQloud, selectedGrid, uptimeFilter, errorMarginFilter]);
 
     // Handlers
     const handleDeviceSelect = (id: string) => {
@@ -189,6 +236,30 @@ export default function MaintenancePage() {
         const timer = setTimeout(fetchCohorts, 300) // debounce for search
         return () => { cancelled = true; clearTimeout(timer) }
     }, [selectedTags, cohortSearch])
+
+    // Fetch grid list from synced grids endpoint
+    useEffect(() => {
+        let cancelled = false
+        const fetchGrids = async () => {
+            setLoadingGrids(true)
+            try {
+                const items = await getSyncedGrids({
+                    skip: 0,
+                    limit: 20,
+                    search: gridSearch || undefined,
+                    admin_level: gridAdminLevelFilter === 'all' ? undefined : gridAdminLevelFilter,
+                })
+                if (!cancelled) setGrids(items)
+            } catch (error) {
+                console.error('Failed to fetch grids', error)
+            } finally {
+                if (!cancelled) setLoadingGrids(false)
+            }
+        }
+
+        const timer = setTimeout(fetchGrids, 300)
+        return () => { cancelled = true; clearTimeout(timer) }
+    }, [gridSearch, gridAdminLevelFilter])
 
     // Fetch Map Data (re-fetch when days or tags change)
     const fetchMapData = useCallback(async () => {
@@ -233,8 +304,8 @@ export default function MaintenancePage() {
         const routePoints = validDevices.map(d => ({
             ...d,
             id: d.device_id,
-            latitude: d.latitude!,
-            longitude: d.longitude!
+            latitude: d.latitude,
+            longitude: d.longitude
         }));
 
         const optimizedPoints = calculateNearestNeighborRoute(homeLocation, routePoints);
@@ -376,6 +447,130 @@ export default function MaintenancePage() {
                     {/* Separator */}
                     <div className="hidden sm:block w-px h-6 bg-gray-200" />
 
+                    {/* Grid Dropdown with Search */}
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-700">Grid:</span>
+                        <div className="relative" ref={gridDropdownRef}>
+                            <button
+                                onClick={() => setGridDropdownOpen(!gridDropdownOpen)}
+                                className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-200 bg-white text-sm text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[180px]"
+                            >
+                                <span className="truncate flex-1 text-left">
+                                    {selectedGridLabel}
+                                </span>
+                                {selectedGrid === 'all' ? (
+                                    <ChevronDown className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                                ) : (
+                                    <X
+                                        className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600 flex-shrink-0"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            setSelectedGrid('all')
+                                            clearRoute()
+                                        }}
+                                    />
+                                )}
+                            </button>
+
+                            {gridDropdownOpen && (
+                                <div className="absolute top-full left-0 mt-1 w-[280px] bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
+                                    {/* Search Input */}
+                                    <div className="p-2 border-b border-gray-100">
+                                        <div className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-gray-50 border border-gray-200">
+                                            <Search className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                                            <input
+                                                type="text"
+                                                placeholder="Search grids..."
+                                                value={gridSearch}
+                                                onChange={(e) => setGridSearch(e.target.value)}
+                                                className="bg-transparent text-sm text-gray-700 placeholder-gray-400 outline-none w-full"
+                                                autoFocus
+                                            />
+                                            {gridSearch && (
+                                                <button onClick={() => setGridSearch('')}>
+                                                    <X className="w-3 h-3 text-gray-400 hover:text-gray-600" />
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        <div className="mt-2 flex items-center gap-2">
+                                            <span className="text-[11px] text-gray-500">Admin level:</span>
+                                            <select
+                                                value={gridAdminLevelFilter}
+                                                onChange={(e) => setGridAdminLevelFilter(e.target.value as 'all' | GridAdminLevel)}
+                                                className="flex-1 px-2 py-1 rounded-md border border-gray-200 bg-white text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            >
+                                                <option value="all">All levels</option>
+                                                {GRID_ADMIN_LEVEL_OPTIONS.map(opt => (
+                                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    {/* Options List */}
+                                    <div className="max-h-[240px] overflow-y-auto">
+                                        <button
+                                            onClick={() => {
+                                                setSelectedGrid('all')
+                                                clearRoute()
+                                                setGridDropdownOpen(false)
+                                                setGridSearch('')
+                                            }}
+                                            className={`w-full text-left px-3 py-2 text-sm transition-colors hover:bg-gray-50 flex items-center justify-between ${selectedGrid === 'all' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700'
+                                                }`}
+                                        >
+                                            All Grids
+                                            {selectedGrid === 'all' && (
+                                                <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
+                                            )}
+                                        </button>
+
+                                        {loadingGrids && (
+                                            <div className="p-3 space-y-2">
+                                                {[1, 2, 3].map(i => <div key={i} className="h-8 bg-gray-100 rounded animate-pulse" />)}
+                                            </div>
+                                        )}
+
+                                        {loadingGrids === false && filteredGrids.length === 0 && (
+                                            <div className="p-3 text-xs text-gray-400 text-center">No grids found</div>
+                                        )}
+
+                                        {loadingGrids === false && filteredGrids.length > 0 && (
+                                            filteredGrids.map((grid: SyncedGrid) => (
+                                                <button
+                                                    key={grid.grid_id || grid.name}
+                                                    onClick={() => {
+                                                        setSelectedGrid(grid.name)
+                                                        clearRoute()
+                                                        setGridDropdownOpen(false)
+                                                        setGridSearch('')
+                                                    }}
+                                                    className={`w-full text-left px-3 py-2 text-sm transition-colors hover:bg-gray-50 flex items-center justify-between gap-2 ${selectedGrid === grid.name ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                                                        }`}
+                                                >
+                                                    <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                                                        <span className={`truncate ${selectedGrid === grid.name ? 'font-medium' : ''}`}>{getGridLabel(grid)}</span>
+                                                        <div className="flex items-center gap-2 text-[10px] text-gray-400">
+                                                            {grid.admin_level && <span>{grid.admin_level}</span>}
+                                                            {typeof grid.number_of_sites === 'number' && <span>{grid.number_of_sites} sites</span>}
+                                                        </div>
+                                                    </div>
+                                                    {selectedGrid === grid.name && (
+                                                        <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+                                                    )}
+                                                </button>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Separator */}
+                    <div className="hidden sm:block w-px h-6 bg-gray-200" />
+
                     {/* Cohort Dropdown with Search */}
                     <div className="flex items-center gap-2">
                         <span className="text-sm font-medium text-gray-700">Cohort:</span>
@@ -387,7 +582,9 @@ export default function MaintenancePage() {
                                 <span className="truncate flex-1 text-left">
                                     {selectedAirQloud === 'all' ? 'All Cohorts' : selectedAirQloud}
                                 </span>
-                                {selectedAirQloud !== 'all' ? (
+                                {selectedAirQloud === 'all' ? (
+                                    <ChevronDown className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                                ) : (
                                     <X
                                         className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600 flex-shrink-0"
                                         onClick={(e) => {
@@ -396,8 +593,6 @@ export default function MaintenancePage() {
                                             clearRoute()
                                         }}
                                     />
-                                ) : (
-                                    <ChevronDown className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
                                 )}
                             </button>
 
@@ -442,13 +637,17 @@ export default function MaintenancePage() {
                                             )}
                                         </button>
 
-                                        {loadingAirQlouds ? (
+                                        {loadingAirQlouds && (
                                             <div className="p-3 space-y-2">
                                                 {[1, 2, 3].map(i => <div key={i} className="h-8 bg-gray-100 rounded animate-pulse" />)}
                                             </div>
-                                        ) : filteredCohorts.length === 0 ? (
+                                        )}
+
+                                        {loadingAirQlouds === false && filteredCohorts.length === 0 && (
                                             <div className="p-3 text-xs text-gray-400 text-center">No cohorts found</div>
-                                        ) : (
+                                        )}
+
+                                        {loadingAirQlouds === false && filteredCohorts.length > 0 && (
                                             filteredCohorts.map((aq: AirQloudBasic) => (
                                                 <button
                                                     key={aq.id || aq.name}
@@ -510,6 +709,11 @@ export default function MaintenancePage() {
                             {errorMarginFilter !== 'all' && (
                                 <span className="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full capitalize">
                                     Error: {errorMarginFilter}
+                                </span>
+                            )}
+                            {selectedGrid !== 'all' && (
+                                <span className="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">
+                                    Grid: {selectedGridLabel}
                                 </span>
                             )}
                         </div>
