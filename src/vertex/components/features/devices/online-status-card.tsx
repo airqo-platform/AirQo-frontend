@@ -201,6 +201,16 @@ const OnlineStatusCard: React.FC<OnlineStatusCardProps> = ({ deviceId }) => {
             </div>
           )}
         </div>
+
+        {/* --- Hourly Update Info Banner --- */}
+        <div className="flex items-start gap-2 bg-amber-50 dark:bg-amber-950/30 border-t border-amber-200 dark:border-amber-800 px-3 py-2">
+          <Info className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" aria-hidden="true" />
+          <p className="text-xs text-amber-700 dark:text-amber-400 leading-snug">
+            Statuses are updated on an hourly basis and may not reflect the
+            most recent state of the device.
+          </p>
+        </div>
+        {/* --- End Info Banner --- */}
       </TooltipProvider>
     </Card>
   );
