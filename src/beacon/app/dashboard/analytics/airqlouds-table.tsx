@@ -24,6 +24,26 @@ import {
 } from "@/components/ui/tooltip"
 import { Search, ArrowUpDown, ChevronRight, Loader2 } from "lucide-react"
 import { airQloudService, type AirQloudWithPerformance } from "@/services/airqloud.service"
+import type { GridAdminLevel } from "@/types/api.types"
+
+type PerformanceEntityType = "cohorts" | "grids"
+type GridAdminLevelFilter = GridAdminLevel | "all"
+
+const STANDARD_PAGE_SIZE = 5
+
+const GRID_ADMIN_LEVEL_OPTIONS: Array<{ label: string; value: GridAdminLevelFilter }> = [
+  { label: "All admin levels", value: "all" },
+  { label: "City", value: "city" },
+  { label: "Country", value: "country" },
+  { label: "County", value: "county" },
+  { label: "District", value: "district" },
+  { label: "Division", value: "division" },
+  { label: "Metropolitan municipality", value: "metropolitanmunicipality" },
+  { label: "Municipality", value: "municipality" },
+  { label: "Province", value: "province" },
+  { label: "Region", value: "region" },
+  { label: "State", value: "state" },
+]
 
 interface ProcessedAirQloud {
   id: string
@@ -42,6 +62,7 @@ interface ProcessedAirQloud {
 
 interface AirQloudsTableProps {
   performanceDays?: number
+  entityType?: PerformanceEntityType
   /**
    * When provided, the table is strictly filtered by these tags and the tag
    * filter UI is hidden. Useful for embedding the table in contexts where the
@@ -310,12 +331,13 @@ const processAirQloudData = (airqloud: AirQloudWithPerformance, performanceDays:
   }
 }
 
-export default function AirQloudsTable({ performanceDays = 14, lockedTags, title }: AirQloudsTableProps) { //14days
+export default function AirQloudsTable({ performanceDays = 14, entityType = "cohorts", lockedTags, title }: AirQloudsTableProps) { //14days
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
   const [sortBy, setSortBy] = useState<keyof ProcessedAirQloud>("name")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
   const [processedData, setProcessedData] = useState<ProcessedAirQloud[]>([])
+  const [gridAdminLevel, setGridAdminLevel] = useState<GridAdminLevelFilter>("all")
 
   const isTagsLocked = Array.isArray(lockedTags) && lockedTags.length > 0
 
@@ -327,13 +349,17 @@ export default function AirQloudsTable({ performanceDays = 14, lockedTags, title
 
   // Pagination state
   const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(5)
+  const pageSize = STANDARD_PAGE_SIZE
   const [totalItems, setTotalItems] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
 
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isExporting, setIsExporting] = useState(false)
+  const isGridMode = entityType === "grids"
+  const entityLabel = isGridMode ? "Grids" : "Cohorts"
+  const defaultTitle = `${entityLabel} Performance`
+  const selectedGridAdminLevel = gridAdminLevel === "all" ? undefined : gridAdminLevel
 
   // Fetch data from API
   const fetchAirQlouds = async () => {
@@ -352,7 +378,17 @@ export default function AirQloudsTable({ performanceDays = 14, lockedTags, title
       startDate.setDate(endDate.getDate() - performanceDays + 1)
       startDate.setHours(0, 0, 0, 0)
 
-      const response = await airQloudService.getAirQlouds({
+      const response = isGridMode ? await airQloudService.getGrids({
+        includePerformance: true,
+        summary: true,
+        startDateTime: startDate.toISOString(),
+        endDateTime: endDate.toISOString(),
+        frequency: 'hourly',
+        search: searchTerm || undefined,
+        limit: pageSize,
+        skip: skip,
+        admin_level: selectedGridAdminLevel,
+      }) : await airQloudService.getAirQlouds({
         includePerformance: true,
         summary: true,
         startDateTime: startDate.toISOString(),
@@ -369,18 +405,14 @@ export default function AirQloudsTable({ performanceDays = 14, lockedTags, title
       setProcessedData(airqlouds.map(aq => processAirQloudData(aq, performanceDays)))
       const total = Number.isFinite(meta?.total) ? meta.total : airqlouds.length
       setTotalItems(total)
-      setTotalPages(
-        Number.isFinite(meta?.totalPages) && meta.totalPages > 0
-          ? meta.totalPages
-          : Math.max(1, Math.ceil(total / safePageSize))
-      )
+      setTotalPages(Math.max(1, Math.ceil(total / safePageSize)))
       // NOTE: do NOT sync `page` from `meta.page` here. The synced endpoint's
       // meta.page does not reflect the skip/limit we sent, so syncing it would
       // snap the user back to page 1 right after clicking "Next".
 
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch Cohorts')
-      console.error('Error fetching AirQlouds:', err)
+      setError(err instanceof Error ? err.message : `Failed to fetch ${entityLabel}`)
+      console.error(`Error fetching ${entityLabel}:`, err)
     } finally {
       setIsLoading(false)
     }
@@ -389,7 +421,7 @@ export default function AirQloudsTable({ performanceDays = 14, lockedTags, title
   useEffect(() => {
     // Reset page to 1 when search changes
     setPage(1)
-  }, [searchTerm])
+  }, [searchTerm, gridAdminLevel])
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -400,7 +432,7 @@ export default function AirQloudsTable({ performanceDays = 14, lockedTags, title
 
     return () => clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTerm, performanceDays, page, pageSize, cohortTags])
+  }, [searchTerm, performanceDays, page, pageSize, cohortTags, entityType, gridAdminLevel])
 
   // Sort data (client-side sorting for current page)
   const sortedData = useMemo(() => {
@@ -431,6 +463,8 @@ export default function AirQloudsTable({ performanceDays = 14, lockedTags, title
     return sorted
   }, [processedData, sortBy, sortOrder])
 
+  const visibleData = useMemo(() => sortedData.slice(0, pageSize), [sortedData, pageSize])
+
   const handleSort = (column: keyof ProcessedAirQloud) => {
     if (column === sortBy) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc")
@@ -441,7 +475,7 @@ export default function AirQloudsTable({ performanceDays = 14, lockedTags, title
   }
 
   const handleRowClick = (airqloudId: string) => {
-    router.push(`/dashboard/analytics/${airqloudId}`)
+    router.push(`/dashboard/analytics/${airqloudId}${isGridMode ? '?type=grid' : ''}`)
   }
 
   // Mini bar graph component for uptime history
@@ -587,7 +621,17 @@ export default function AirQloudsTable({ performanceDays = 14, lockedTags, title
       startDate.setDate(endDate.getDate() - performanceDays + 1)
       startDate.setHours(0, 0, 0, 0)
 
-      const response = await airQloudService.getAirQlouds({
+      const response = isGridMode ? await airQloudService.getGrids({
+        includePerformance: true,
+        summary: true,
+        startDateTime: startDate.toISOString(),
+        endDateTime: endDate.toISOString(),
+        frequency: 'hourly',
+        search: searchTerm || undefined,
+        limit: limit,
+        skip: 0,
+        admin_level: selectedGridAdminLevel,
+      }) : await airQloudService.getAirQlouds({
         includePerformance: true,
         summary: true,
         startDateTime: startDate.toISOString(),
@@ -643,7 +687,7 @@ export default function AirQloudsTable({ performanceDays = 14, lockedTags, title
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement("a")
       a.href = url
-      a.download = `airqlouds-analytics-${new Date().toISOString().split("T")[0]}.csv`
+      a.download = `${isGridMode ? 'grids' : 'airqlouds'}-analytics-${new Date().toISOString().split("T")[0]}.csv`
       a.click()
       window.URL.revokeObjectURL(url) // Clean up to prevent memory leak
     } catch (err) {
@@ -657,7 +701,7 @@ export default function AirQloudsTable({ performanceDays = 14, lockedTags, title
     return (
       <Card>
         <CardHeader>
-          <CardTitle>{title ?? "Cohorts Performance"}</CardTitle>
+          <CardTitle>{title ?? defaultTitle}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-red-500">
@@ -672,7 +716,7 @@ export default function AirQloudsTable({ performanceDays = 14, lockedTags, title
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>{title ?? "Cohorts Performance"}</CardTitle>
+          <CardTitle>{title ?? defaultTitle}</CardTitle>
           <Button onClick={handleExportCSV} variant="outline" size="sm" disabled={isExporting}>
             {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             Export csv
@@ -682,15 +726,32 @@ export default function AirQloudsTable({ performanceDays = 14, lockedTags, title
           <div className="relative flex-1">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search Cohorts..."
+              placeholder={`Search ${entityLabel}...`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-8"
             />
           </div>
+          {isGridMode && (
+            <Select
+              value={gridAdminLevel}
+              onValueChange={(value) => setGridAdminLevel(value as GridAdminLevelFilter)}
+            >
+              <SelectTrigger className="w-[220px]">
+                <SelectValue placeholder="Admin level" />
+              </SelectTrigger>
+              <SelectContent>
+                {GRID_ADMIN_LEVEL_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
         {/* Tag Filters - hidden when tags are locked */}
-        {!isTagsLocked && (
+        {!isGridMode && !isTagsLocked && (
           <div className="flex flex-wrap gap-2 mt-4">
             {availableTags.map(tag => (
               <Badge
@@ -715,8 +776,8 @@ export default function AirQloudsTable({ performanceDays = 14, lockedTags, title
       <CardContent>
         {isLoading ? (
           <div className="text-center py-8 text-muted-foreground">Loading...</div>
-        ) : sortedData.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">No Cohorts found</div>
+        ) : visibleData.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">No {entityLabel} found</div>
         ) : (
           <div className="space-y-4">
             <div className="rounded-md border">
@@ -776,7 +837,7 @@ export default function AirQloudsTable({ performanceDays = 14, lockedTags, title
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {sortedData.map((airqloud) => {
+                  {visibleData.map((airqloud) => {
                     const hasNoData = airqloud.uptime === null && airqloud.errorMargin === null
 
                     return (
@@ -884,24 +945,6 @@ export default function AirQloudsTable({ performanceDays = 14, lockedTags, title
             {/* Pagination Controls */}
             <div className="mt-4 pt-4 border-t">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">Items per page:</span>
-                  <Select
-                    value={pageSize.toString()}
-                    onValueChange={(value) => {
-                      setPageSize(Number(value))
-                      setPage(1)
-                    }}
-                  >
-                    <SelectTrigger className="w-[100px]">
-                      <SelectValue placeholder="Per page" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="5">5</SelectItem>
-                      <SelectItem value="10">10</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
                 <Pagination
                   currentPage={page}
                   totalPages={totalPages}

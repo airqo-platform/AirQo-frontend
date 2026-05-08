@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, memo } from "react"
-import { useParams } from "next/navigation"
+import { useParams, useSearchParams } from "next/navigation"
 import { ArrowLeft, Calendar, MapPin, Wifi, AlertTriangle } from "lucide-react"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -289,7 +289,10 @@ const ErrorMarginMiniGraph = memo(function ErrorMarginMiniGraph({ errorMarginHis
 
 export default function AirQloudDetailPage() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const airqloudId = params?.id as string
+  const isGridMode = searchParams?.get("type") === "grid"
+  const entityLabel = isGridMode ? "Grid" : "Cohort"
 
   const [data, setData] = useState<AirQloudDetailData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -299,7 +302,7 @@ export default function AirQloudDetailPage() {
   useEffect(() => {
     const fetchAirQloudDetail = async () => {
       if (!airqloudId) {
-        setError('Cohort ID is required')
+        setError(`${entityLabel} ID is required`)
         setIsLoading(false)
         return
       }
@@ -316,21 +319,27 @@ export default function AirQloudDetailPage() {
         startDate.setDate(endDate.getDate() - (daysOfData - 1)) // exactly `daysOfData` days ending yesterday
         startDate.setHours(0, 0, 0, 0)
 
-        const response = await airQloudService.getAirQloudById(
-          airqloudId,
-          startDate.toISOString(),
-          endDate.toISOString()
-        )
+        const response = isGridMode
+          ? await airQloudService.getGridById(
+            airqloudId,
+            startDate.toISOString(),
+            endDate.toISOString()
+          )
+          : await airQloudService.getAirQloudById(
+            airqloudId,
+            startDate.toISOString(),
+            endDate.toISOString()
+          )
         setData(response as unknown as AirQloudDetailData)
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch Cohort details')
+        setError(err instanceof Error ? err.message : `Failed to fetch ${entityLabel} details`)
       } finally {
         setIsLoading(false)
       }
     }
 
     fetchAirQloudDetail()
-  }, [airqloudId])
+  }, [airqloudId, entityLabel, isGridMode])
 
   if (isLoading) {
     return (
@@ -495,7 +504,7 @@ export default function AirQloudDetailPage() {
       <Tabs defaultValue="overview" className="w-full">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="heatmap">Cohort Heatmap</TabsTrigger>
+          <TabsTrigger value="heatmap">{entityLabel} Heatmap</TabsTrigger>
           <TabsTrigger value="hourly">Device Heatmap</TabsTrigger>
           <TabsTrigger value="performance">Performance</TabsTrigger>
         </TabsList>
@@ -741,6 +750,7 @@ export default function AirQloudDetailPage() {
             airqloudId={airqloudId}
             airqloudName={data.name}
             initialData={data}
+            entityType={isGridMode ? "grid" : "cohort"}
           />
         </TabsContent>
 
