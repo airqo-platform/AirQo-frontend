@@ -75,6 +75,8 @@ interface AirQloudDetailData {
   devices: DevicePerformanceRaw[]
 }
 
+type AnalysisType = "airqlouds" | "devices" | "grids"
+
 // Process device performance data from Cohort API (nested structure)
 const processDevicePerformance = (device: DevicePerformanceRaw): ProcessedDeviceData => {
   const dailyData: { [date: string]: { hoursSet: Set<number>; errorMargins: number[] } } = {}
@@ -417,7 +419,7 @@ const getDeviceStatusBadge = (status: string) => {
 export default function AnalysisResultsPage() {
   const [data, setData] = useState<AirQloudPerformanceData[] | null>(null)
   const [deviceData, setDeviceData] = useState<DevicePerformanceFlat[] | null>(null)
-  const [analysisType, setAnalysisType] = useState<"airqlouds" | "devices">("airqlouds")
+  const [analysisType, setAnalysisType] = useState<AnalysisType>("airqlouds")
   const [dateRange, setDateRange] = useState<DateRange | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [selectedTab, setSelectedTab] = useState<string>("")
@@ -451,7 +453,7 @@ export default function AnalysisResultsPage() {
     // Load data from sessionStorage
     const storedData = sessionStorage.getItem('analysisData')
     const storedDateRange = sessionStorage.getItem('analysisDateRange')
-    const storedAnalysisType = sessionStorage.getItem('analysisType') as "airqlouds" | "devices" | null
+    const storedAnalysisType = sessionStorage.getItem('analysisType') as AnalysisType | null
 
     if (storedData && storedDateRange) {
       try {
@@ -464,7 +466,7 @@ export default function AnalysisResultsPage() {
           const parsedData = JSON.parse(storedData) as DevicePerformanceFlat[]
           setDeviceData(parsedData)
         } else {
-          // Cohort analysis - data includes devices in each cohort
+          // Cohort/grid analysis - data includes devices in each entity
           const parsedData = JSON.parse(storedData) as AirQloudPerformanceData[]
           setData(parsedData)
 
@@ -747,6 +749,8 @@ export default function AnalysisResultsPage() {
   const overallAvgErrorMargin = summaryStats.length > 0
     ? summaryStats.reduce((sum, aq) => sum + aq.stats.avgErrorMargin, 0) / summaryStats.length
     : 0
+  const entityLabel = analysisType === "grids" ? "Grid" : "Cohort"
+  const entityLabelPlural = analysisType === "grids" ? "Grids" : "Cohorts"
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -771,7 +775,7 @@ export default function AnalysisResultsPage() {
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="text-sm">
-            {data.length} Cohort{data.length !== 1 ? 's' : ''} analysed
+            {data.length} {data.length === 1 ? entityLabel : entityLabelPlural} analysed
           </Badge>
           <Button
             variant="outline"
@@ -790,7 +794,7 @@ export default function AnalysisResultsPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Cohorts
+              Total {entityLabelPlural}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -840,7 +844,7 @@ export default function AnalysisResultsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5" />
-            Cohort Summary
+            {entityLabel} Summary
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -848,7 +852,7 @@ export default function AnalysisResultsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Cohort Name</TableHead>
+                  <TableHead>{entityLabel} Name</TableHead>
                   <TableHead>Average Uptime</TableHead>
                   <TableHead>Error Margin</TableHead>
                   <TableHead>Days of Data</TableHead>
@@ -879,7 +883,7 @@ export default function AnalysisResultsPage() {
       {/* Individual AirQloud Tabs */}
       <Card>
         <CardHeader>
-          <CardTitle>Individual Cohort Details</CardTitle>
+          <CardTitle>Individual {entityLabel} Details</CardTitle>
         </CardHeader>
         <CardContent>
           <Tabs value={selectedTab} onValueChange={setSelectedTab}>
@@ -904,7 +908,7 @@ export default function AnalysisResultsPage() {
               return (
                 <TabsContent key={aq.id} value={aq.id} className="mt-6">
                   <div className="space-y-6">
-                    {/* Cohort Header */}
+                    {/* Entity Header */}
                     <div className="flex items-center justify-between">
                       <div>
                         <h3 className="text-lg font-semibold">{aq.name}</h3>
@@ -1038,7 +1042,7 @@ export default function AnalysisResultsPage() {
                           </div>
                         ) : (
                           <div className="flex items-center justify-center py-8 text-muted-foreground">
-                            No device performance data available for this AirQloud.
+                            No device performance data available for this {entityLabel.toLowerCase()}.
                           </div>
                         )}
                       </CardContent>

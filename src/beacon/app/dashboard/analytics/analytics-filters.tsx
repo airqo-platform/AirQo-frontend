@@ -18,14 +18,17 @@ import { airQloudService, type AirQloudBasic } from "@/services/airqloud.service
 import { deviceApiService, syncCohorts, syncThingSpeak } from "@/services/device-api.service"
 import type { Device } from "@/types/api.types"
 
+type AnalyticsFilterType = "airqlouds" | "devices" | "grids"
+
 interface AnalyticsFiltersProps {
+  initialFilterType?: AnalyticsFilterType
   onFilterChange?: (filters: FilterState) => void
   onAnalyse?: (filters: FilterState) => void
   isAnalysing?: boolean
 }
 
 export interface FilterState {
-  filterType: "airqlouds" | "devices"
+  filterType: AnalyticsFilterType
   selectedItems: string[]
   dateRange: {
     from: Date | undefined
@@ -43,17 +46,19 @@ interface SelectedItem {
   name: string
 }
 
-export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysing }: AnalyticsFiltersProps) {
+export default function AnalyticsFilters({ initialFilterType = "airqlouds", onFilterChange, onAnalyse, isAnalysing }: AnalyticsFiltersProps) {
   const { toast } = useToast()
   const [isSyncing, setIsSyncing] = useState(false)
-  const [filterType, setFilterType] = useState<"airqlouds" | "devices">("airqlouds")
+  const [filterType, setFilterType] = useState<AnalyticsFilterType>(initialFilterType)
   const [selectedItems, setSelectedItems] = useState<string[]>([])
   const [selectedItemsMap, setSelectedItemsMap] = useState<Map<string, SelectedItem>>(new Map())
   const [searchTerm, setSearchTerm] = useState("")
   const [includeTime, setIncludeTime] = useState(false)
   const [airqlouds, setAirqlouds] = useState<AirQloudBasic[]>([])
+  const [grids, setGrids] = useState<AirQloudBasic[]>([])
   const [devices, setDevices] = useState<Device[]>([])
   const [isLoadingAirqlouds, setIsLoadingAirqlouds] = useState(false)
+  const [isLoadingGrids, setIsLoadingGrids] = useState(false)
   const [isLoadingDevices, setIsLoadingDevices] = useState(false)
 
   // Cohort Tags State
@@ -76,6 +81,16 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
   })
 
   const [isCalendarOpen, setIsCalendarOpen] = useState(false)
+
+  useEffect(() => {
+    if (filterType === initialFilterType) return
+
+    setFilterType(initialFilterType)
+    setSearchTerm("")
+    notifyFilterChange(initialFilterType, [], dateRange, timeRange, includeTime)
+    // selectedItems and selectedItemsMap will be loaded from localStorage via the filterType effect
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialFilterType])
 
   // Load selected items from localStorage on mount
   useEffect(() => {
@@ -140,6 +155,33 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
     return () => clearTimeout(timer)
   }, [filterType, searchTerm, cohortTags])
 
+  // Fetch Grids from API
+  useEffect(() => {
+    const fetchGrids = async () => {
+      if (filterType === "grids") {
+        try {
+          setIsLoadingGrids(true)
+          const response = await airQloudService.getGridsBasic({
+            search: searchTerm || undefined,
+            limit: 100,
+          })
+
+          setGrids((response as any).airqlouds || [])
+        } catch (error) {
+          console.error('Error fetching grids:', error)
+        } finally {
+          setIsLoadingGrids(false)
+        }
+      }
+    }
+
+    const timer = setTimeout(() => {
+      fetchGrids()
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [filterType, searchTerm])
+
   // Fetch Devices from API
   useEffect(() => {
     const fetchDevices = async () => {
@@ -167,11 +209,19 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
     return () => clearTimeout(timer)
   }, [filterType, searchTerm])
 
-  const currentItems = filterType === "airqlouds"
-    ? airqlouds.map((aq: AirQloudBasic) => ({ id: aq.id, name: aq.name || '', isActive: (aq as any).is_active ?? true }))
-    : devices.map((d: Device) => ({ id: d.name || d.device_name || '', name: d.name || d.device_name || '', isActive: true }))
+  let currentItems: Array<{ id: string; name: string; isActive: boolean }>
+  if (filterType === "airqlouds") {
+    currentItems = airqlouds.map((aq: AirQloudBasic) => ({ id: aq.id, name: aq.name || '', isActive: (aq as any).is_active ?? true }))
+  } else if (filterType === "grids") {
+    currentItems = grids.map((grid: AirQloudBasic) => ({ id: grid.id, name: grid.name || '', isActive: (grid as any).is_active ?? true }))
+  } else {
+    currentItems = devices.map((d: Device) => ({ id: d.name || d.device_name || '', name: d.name || d.device_name || '', isActive: true }))
+  }
 
-  const handleFilterTypeChange = (value: "airqlouds" | "devices") => {
+  const filterTypeLabel = filterType === "airqlouds" ? "Cohorts" : filterType === "grids" ? "Grids" : "Devices"
+  const isLoadingItems = (isLoadingAirqlouds && filterType === "airqlouds") || (isLoadingGrids && filterType === "grids") || (isLoadingDevices && filterType === "devices")
+
+  const handleFilterTypeChange = (value: AnalyticsFilterType) => {
     setFilterType(value)
     setSearchTerm("")
     // selectedItems and selectedItemsMap will be loaded from localStorage via useEffect
@@ -225,7 +275,7 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
   }
 
   const notifyFilterChange = (
-    type: "airqlouds" | "devices",
+    type: AnalyticsFilterType,
     items: string[],
     range: { from: Date | undefined; to: Date | undefined },
     time: { from: string; to: string },
@@ -297,7 +347,7 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>Cohort Performance Analysis</CardTitle>
+          <CardTitle>Performance Analysis</CardTitle>
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
@@ -324,6 +374,7 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="airqlouds">Cohorts</SelectItem>
+                  <SelectItem value="grids">Grids</SelectItem>
                   <SelectItem value="devices">Devices</SelectItem>
                 </SelectContent>
               </Select>
@@ -333,7 +384,7 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label className="text-sm font-medium">
-                  Select {filterType === "airqlouds" ? "Cohorts" : "Devices"}
+                  Select {filterTypeLabel}
                 </label>
               </div>
 
@@ -356,7 +407,7 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder={`Search ${filterType}...`}
+                  placeholder={`Search ${filterTypeLabel.toLowerCase()}...`}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-8"
@@ -365,7 +416,7 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
 
               {/* Items List */}
               <div className="border rounded-md max-h-48 overflow-y-auto">
-                {(isLoadingAirqlouds && filterType === "airqlouds") || (isLoadingDevices && filterType === "devices") ? (
+                {isLoadingItems ? (
                   <div className="p-4 text-center text-sm text-muted-foreground">
                     Loading...
                   </div>
@@ -405,7 +456,7 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
                   })
                 ) : (
                   <div className="p-4 text-center text-sm text-muted-foreground">
-                    No {filterType} found
+                    No {filterTypeLabel.toLowerCase()} found
                   </div>
                 )}
               </div>
@@ -615,7 +666,7 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
             {/* Selected Items Display */}
             <div className="space-y-2">
               <label className="text-sm font-medium">
-                Selected {filterType === "airqlouds" ? "Cohorts" : "Devices"} ({selectedItems.length})
+                Selected {filterTypeLabel} ({selectedItems.length})
               </label>
               <div className="border rounded-md p-3 min-h-[100px] max-h-[150px] overflow-y-auto">
                 {selectedItems.length > 0 ? (
@@ -637,7 +688,7 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
                   </div>
                 ) : (
                   <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
-                    No {filterType} selected
+                    No {filterTypeLabel.toLowerCase()} selected
                   </div>
                 )}
               </div>

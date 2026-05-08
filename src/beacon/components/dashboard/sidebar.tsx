@@ -52,21 +52,39 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar }: SidebarProps) 
               )}
             </Link>
           </li>
-          <li>
-            <Link
-              href="/dashboard/analytics"
-              className={`flex items-center rounded-md hover:bg-gray-100 transition-colors group relative ${sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
+          <li className="relative group/analytics">
+            <div
+              className={`flex items-center rounded-md hover:bg-gray-100 transition-colors cursor-pointer ${sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
                 }`}
               title={!sidebarOpen ? "Performance Analysis" : ""}
             >
               <AqAirQlouds size={25} color="#374151" />
-              {sidebarOpen && <span className="ml-3 text-sm">Performance Analysis</span>}
+              {sidebarOpen && (
+                <>
+                  <span className="ml-3 text-sm flex-1 text-left">Performance Analysis</span>
+                  <ChevronRight className="h-4 w-4" />
+                </>
+              )}
               {!sidebarOpen && (
-                <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover/analytics:opacity-100 pointer-events-none transition-opacity z-50">
                   Performance Analysis
                 </span>
               )}
-            </Link>
+            </div>
+            <div className="absolute left-full top-0 ml-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-1 opacity-0 invisible group-hover/analytics:opacity-100 group-hover/analytics:visible transition-all duration-150 z-50">
+              <Link
+                href="/dashboard/analytics?analysis=cohorts"
+                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+              >
+                Cohort analysis
+              </Link>
+              <Link
+                href="/dashboard/analytics?analysis=grids"
+                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+              >
+                Grid analysis
+              </Link>
+            </div>
           </li>
 
           {/* Collocation - hover flyout menu */}

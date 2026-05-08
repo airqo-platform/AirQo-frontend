@@ -40,6 +40,7 @@ import {
 interface AirQloudPerformanceTabProps {
   airqloudId: string
   airqloudName: string
+  entityType?: "cohort" | "grid"
   initialData?: {
     devices: Array<{
       _id?: string
@@ -70,7 +71,7 @@ interface DeviceSummary {
   avgUptime: number
 }
 
-export default function AirQloudPerformanceTab({ airqloudId, airqloudName, initialData }: Readonly<AirQloudPerformanceTabProps>) {
+export default function AirQloudPerformanceTab({ airqloudId, airqloudName, entityType = "cohort", initialData }: Readonly<AirQloudPerformanceTabProps>) {
   const { toast } = useToast()
   const [performanceData, setPerformanceData] = useState<PerformanceData[]>([])
   const [loading, setLoading] = useState(!initialData)
@@ -132,12 +133,18 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName, initi
         endDate.setHours(23, 59, 59, 999)
       }
 
-      // Fetch airqloud details with device performance
-      const response = await airQloudService.getAirQloudById(
-        airqloudId,
-        startDate.toISOString(),
-        endDate.toISOString()
-      )
+      // Fetch entity details with device performance
+      const response = entityType === "grid"
+        ? await airQloudService.getGridById(
+          airqloudId,
+          startDate.toISOString(),
+          endDate.toISOString()
+        )
+        : await airQloudService.getAirQloudById(
+          airqloudId,
+          startDate.toISOString(),
+          endDate.toISOString()
+        )
 
       if (response && Array.isArray(response.devices) && response.devices.length > 0) {
         // Transform the data to match PerformanceData interface
@@ -163,7 +170,7 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName, initi
       setError(err.message || "Failed to load performance data")
       toast({
         title: "Error",
-        description: "Failed to load Cohort performance data",
+        description: `Failed to load ${entityType === "grid" ? "Grid" : "Cohort"} performance data`,
         variant: "destructive",
       })
     } finally {
@@ -195,7 +202,7 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName, initi
     // Only fetch if no initialData was provided
     fetchPerformanceData()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [airqloudId, initialData])
+  }, [airqloudId, entityType, initialData])
 
   const handleDateRangeChange = (newDateRange: { from: Date | undefined; to: Date | undefined }) => {
     setDateRange(newDateRange)
@@ -342,7 +349,7 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName, initi
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Cohort Performance</CardTitle>
+              <CardTitle>{entityType === "grid" ? "Grid" : "Cohort"} Performance</CardTitle>
               <CardDescription>
                 View performance metrics for {airqloudName}
               </CardDescription>

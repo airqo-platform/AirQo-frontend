@@ -23,7 +23,10 @@ import {
   DeviceMaintenanceStatsResponse,
   MaintenanceAnalyticsResponse,
   MaintenanceMapResponse,
-  MaintenanceMapItem
+  MaintenanceMapItem,
+  SyncedGrid,
+  SyncedGridsResponse,
+  SyncedGridsQueryParams
 } from '@/types/api.types'
 
 
@@ -433,17 +436,17 @@ class ApiService {
   // Device Summary API (new endpoint)
   // Device Summary API (new endpoint)
   async getDeviceSummary(): Promise<DeviceSummaryResponse> {
-    if (isMockMode()) return Promise.resolve(getMockDeviceSummary())
+    if (isMockMode()) return getMockDeviceSummary()
     
     // Return dummy data as the endpoint is no longer available
-    return Promise.resolve({
+    return {
       total_devices: 0,
       active_airqlouds: 0,
       tracked_devices: 0,
       deployed_devices: 0,
       tracked_online: 0,
       tracked_offline: 0
-    })
+    }
   }
 
   // System Health API (analytics prefix)
@@ -713,6 +716,25 @@ class ApiService {
     return response.data
   }
 
+  async getSyncedGrids(params?: SyncedGridsQueryParams): Promise<SyncedGrid[]> {
+    const adminLevelParam = Array.isArray(params?.admin_level)
+      ? params?.admin_level.join(',')
+      : params?.admin_level
+
+    const queryString = this.buildQueryString({
+      skip: params?.skip ?? 0,
+      limit: params?.limit ?? 20,
+      search: params?.search,
+      grid_ids: params?.grid_ids,
+      admin_level: adminLevelParam,
+    })
+    const endpoint = this.getEndpoint(`/grids/synced${queryString}`)
+    const url = `${this.baseUrl}${endpoint}`
+
+    const response = await this.fetchWithRetry<SyncedGridsResponse>(url)
+    return response.grids || []
+  }
+
   // Sync Devices
   async syncDevices(): Promise<any> {
     const endpoint = this.getEndpoint('/devices/sync')
@@ -798,6 +820,7 @@ export const getAirQloudStats = (body: MaintenanceStatsBody) => deviceApiService
 export const getDeviceStatsMaintenance = (body: MaintenanceStatsBody) => deviceApiService.getDeviceStatsMaintenance(body)
 export const getMaintenanceAnalytics = (period_days: number = 14) => deviceApiService.getMaintenanceAnalytics(period_days)
 export const getMaintenanceMapData = (period_days: number = 14, tags?: string) => deviceApiService.getMaintenanceMapData(period_days, tags)
+export const getSyncedGrids = (params?: SyncedGridsQueryParams) => deviceApiService.getSyncedGrids(params)
 export const syncDevices = () => deviceApiService.syncDevices()
 export const syncDevicePerformance = () => deviceApiService.syncDevicePerformance()
 export const syncCohorts = () => deviceApiService.syncCohorts()
