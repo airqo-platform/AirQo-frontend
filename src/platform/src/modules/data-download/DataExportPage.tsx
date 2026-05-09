@@ -209,6 +209,7 @@ const DataExportPage = () => {
   const previousGroupIdRef = React.useRef<string | null>(null);
 
   useEffect(() => {
+    isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
     };
@@ -305,6 +306,7 @@ const DataExportPage = () => {
     sitesHook,
     devicesHook,
     currentHook,
+    groupCohortsHook,
     tableData,
     processedSitesData,
     processedDevicesData,
@@ -314,6 +316,7 @@ const DataExportPage = () => {
     activeTab,
     tabStates,
     isOrgFlow,
+    activeGroup?.id ?? organizationGroupId,
     deviceCategory,
     selectedDeviceIds,
     selectedDevicesForActions,
@@ -367,7 +370,10 @@ const DataExportPage = () => {
     ? undefined
     : (currentHook.data as CohortDevicesResponse | undefined)?.devices;
   const tableLoading =
-    isGroupSyncing || (currentHook.isLoading && currentHook.data === undefined);
+    isGroupSyncing ||
+    groupCohortsHook.isLoading ||
+    currentHook.isLoading ||
+    currentHook.isValidating;
   const compactTableRows =
     activeTab === 'devices' ||
     activeTab === 'countries' ||
@@ -823,8 +829,16 @@ const DataExportPage = () => {
               isDownloadReady={isDownloadReady}
               sitesData={displaySitesData}
               devicesData={displayDevicesData}
-              isLoadingSites={isGroupSyncing || sitesHook.isLoading}
-              isLoadingDevices={isGroupSyncing || devicesHook.isLoading}
+              isLoadingSites={
+                isGroupSyncing ||
+                groupCohortsHook.isLoading ||
+                sitesHook.isLoading
+              }
+              isLoadingDevices={
+                isGroupSyncing ||
+                groupCohortsHook.isLoading ||
+                devicesHook.isLoading
+              }
               pathname={pathname}
             />
 
