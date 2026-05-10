@@ -359,18 +359,7 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
             </div>
           )}
 
-          {loading && !error && (
-            <div className="flex items-center justify-center h-full">
-              <div className="flex flex-col items-center space-y-3">
-                <LoadingSpinner />
-                <p className="text-sm text-muted-foreground">
-                  Loading chart data...
-                </p>
-              </div>
-            </div>
-          )}
-
-          {!loading && !error && React.isValidElement(children)
+          {!error && React.isValidElement(children)
             ? React.cloneElement(
                 children as React.ReactElement<{
                   showReferenceLines?: boolean;
@@ -381,7 +370,18 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
                   standards: currentStandardsOrg,
                 }
               )
-            : !loading && !error && children}
+            : !error && children}
+
+          {loading && !error && (
+            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-40">
+              <div className="flex flex-col items-center space-y-3">
+                <LoadingSpinner />
+                <p className="text-sm text-muted-foreground">
+                  Loading chart data...
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Export loading overlay */}
           {isExporting && (

@@ -36,6 +36,7 @@ import { useDataExportData } from './hooks/useDataExportData';
 import {
   buildDownloadFileContent,
   buildDownloadPdfBlob,
+  buildDownloadXlsxBlob,
 } from './utils/dataExportFile';
 import MoreInsights from '@/modules/location-insights/more-insights';
 import AddLocation from '@/modules/location-insights/add-location';
@@ -45,7 +46,7 @@ import { useUser } from '@/shared/hooks/useUser';
 import { useUserActions } from '@/shared/hooks/useUserActions';
 import { AccessDenied } from '@/shared/components/AccessDenied';
 
-type SaveFormat = 'csv' | 'pdf';
+type SaveFormat = 'csv' | 'xlsx' | 'pdf';
 type FinalSaveFormat = SaveFormat | 'json';
 
 const saveBlobToDisk = (blob: Blob, filename: string) => {
@@ -370,10 +371,9 @@ const DataExportPage = () => {
     ? undefined
     : (currentHook.data as CohortDevicesResponse | undefined)?.devices;
   const tableLoading =
-    isGroupSyncing ||
-    groupCohortsHook.isLoading ||
-    currentHook.isLoading ||
-    currentHook.isValidating;
+    isGroupSyncing || groupCohortsHook.isLoading || currentHook.isLoading;
+  const tableRefreshing =
+    !tableLoading && (currentHook.isValidating || isRefreshing);
   const compactTableRows =
     activeTab === 'devices' ||
     activeTab === 'countries' ||
@@ -676,6 +676,17 @@ const DataExportPage = () => {
         );
 
         saveBlobToDisk(blob, filename);
+      } else if (format === 'xlsx') {
+        const blob = buildDownloadXlsxBlob(
+          download.response,
+          download.selectedColumnKeys,
+          {
+            activeTab: download.activeTab,
+            preserveSelectedColumns,
+          }
+        );
+
+        saveBlobToDisk(blob, filename);
       } else {
         const downloadType = format === 'csv' ? 'csv' : 'json';
         const { content, mimeType } = buildDownloadFileContent(
@@ -704,9 +715,11 @@ const DataExportPage = () => {
       const savedMessage =
         format === 'pdf'
           ? 'Your professional PDF report has been saved.'
-          : format === 'csv'
-            ? 'Your CSV file has been saved.'
-            : 'Your JSON file has been saved.';
+          : format === 'xlsx'
+            ? 'Your Excel workbook has been saved with one sheet per location.'
+            : format === 'csv'
+              ? 'Your CSV file has been saved.'
+              : 'Your JSON file has been saved.';
 
       toast.success(`Saved as ${savedLabel}`, savedMessage);
       setSaveFormatDialogOpen(false);
@@ -886,6 +899,7 @@ const DataExportPage = () => {
               tableData={displayTableData}
               columns={config.columns}
               loading={tableLoading}
+              isRefreshing={tableRefreshing}
               error={currentHook.error?.message || null}
               currentPage={currentState.page}
               totalPages={meta.totalPages}
@@ -990,6 +1004,7 @@ const DataExportPage = () => {
           }
         }}
         onSave={handleSaveFormatSelection}
+        locationCount={pendingDownload?.locationCount || 0}
       />
     </div>
   );
