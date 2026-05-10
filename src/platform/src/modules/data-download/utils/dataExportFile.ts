@@ -1017,6 +1017,18 @@ export const buildDownloadXlsxBlob = (
   return new Blob([workbookBytes], { type: XLSX_MIME_TYPE });
 };
 
+const MAX_PDF_CELL_TEXT_LENGTH = 180;
+const MAX_PDF_COLUMNS_PER_SECTION = 7;
+const MAX_PDF_REPEAT_COLUMNS = 2;
+
+const truncatePdfText = (value: string) => {
+  if (value.length <= MAX_PDF_CELL_TEXT_LENGTH) {
+    return value;
+  }
+
+  return `${value.slice(0, MAX_PDF_CELL_TEXT_LENGTH - 3)}...`;
+};
+
 const formatPdfValue = (value: unknown): string => {
   if (value === null || value === undefined) {
     return '';
@@ -1027,10 +1039,31 @@ const formatPdfValue = (value: unknown): string => {
   }
 
   if (typeof value === 'object') {
-    return JSON.stringify(value);
+    return truncatePdfText(JSON.stringify(value));
   }
 
-  return String(value);
+  return truncatePdfText(String(value));
+};
+
+const getPdfRepeatHeaders = (headers: string[]) => {
+  const preferredHeaders = [
+    'site_name',
+    'device_name',
+    'country_name',
+    'city_name',
+    'datetime',
+    'site_id',
+    'device_id',
+  ];
+  const repeatHeaders = preferredHeaders.filter(header =>
+    headers.includes(header)
+  );
+
+  if (repeatHeaders.length > 0) {
+    return repeatHeaders.slice(0, MAX_PDF_REPEAT_COLUMNS);
+  }
+
+  return headers.slice(0, Math.min(1, headers.length));
 };
 
 export const buildDownloadPdfBlob = (
@@ -1070,6 +1103,8 @@ export const buildDownloadPdfBlob = (
   const summaryRows = Math.ceil(summaryItems.length / 2);
   const headerLineY = summaryItems.length > 0 ? 62 + summaryRows * 12 + 8 : 60;
   const tableStartY = summaryItems.length > 0 ? headerLineY + 12 : 78;
+  const repeatHeaders = getPdfRepeatHeaders(selectedHeaders);
+  const isWideTable = selectedHeaders.length > MAX_PDF_COLUMNS_PER_SECTION;
 
   autoTable(doc, {
     head: [selectedHeaders.map(formatColumnLabel)],
@@ -1079,19 +1114,27 @@ export const buildDownloadPdfBlob = (
     startY: tableStartY,
     margin: { top: tableStartY, left: margin, right: margin, bottom: 44 },
     theme: 'grid',
+    tableWidth: 'auto',
+    horizontalPageBreak: isWideTable,
+    horizontalPageBreakRepeat: repeatHeaders,
     styles: {
       font: 'helvetica',
-      fontSize: 8,
+      fontSize: isWideTable ? 7.5 : 8,
       cellPadding: 4,
       textColor: [30, 41, 59],
       lineColor: [226, 232, 240],
       overflow: 'linebreak',
-      valign: 'middle',
+      valign: 'top',
+      minCellWidth: isWideTable ? 58 : 34,
+      minCellHeight: 18,
     },
     headStyles: {
       fillColor: [30, 64, 175],
       textColor: [255, 255, 255],
       fontStyle: 'bold',
+      halign: 'left',
+      valign: 'middle',
+      minCellHeight: 20,
     },
     alternateRowStyles: {
       fillColor: [248, 250, 252],
@@ -1124,7 +1167,7 @@ export const buildDownloadPdfBlob = (
 
           doc.text(label, x, y, { maxWidth: 68 });
           doc.setFont('helvetica', 'normal');
-          doc.text(item.value || '—', valueX, y, {
+          doc.text(item.value || '-', valueX, y, {
             maxWidth: contentWidth / 2 - 80,
           });
           doc.setFont('helvetica', 'bold');
