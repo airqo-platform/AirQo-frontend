@@ -64,6 +64,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   const isMountedRef = useRef(true);
 
   useEffect(() => {
+    isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
     };
@@ -110,6 +111,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   const {
     siteCards,
     isLoading: siteCardsLoading,
+    isRefreshing: siteCardsRefreshing,
     refetch: refreshSiteCards,
   } = useAnalyticsSiteCards({
     selectedSiteIds,
@@ -122,6 +124,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     chartData: lineChartData,
     refresh: refreshLineChart,
     isLoading: lineChartLoading,
+    isRefreshing: lineChartRefreshing,
   } = useAnalyticsChartData(
     filters,
     'line',
@@ -134,6 +137,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     chartData: barChartData,
     refresh: refreshBarChart,
     isLoading: barChartLoading,
+    isRefreshing: barChartRefreshing,
   } = useAnalyticsChartData(filters, 'bar', selectedSiteIds, isOrgContextReady);
 
   const unresolvedOrganizationSlug =
@@ -456,7 +460,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         isRefreshing={isRefreshing}
         selectedPollutant={filters.pollutant}
         onCardClick={handleCardClick}
-        isLoading={siteCardsLoading}
+        isLoading={siteCardsLoading || siteCardsRefreshing || isRefreshing}
         showIcon={showIcons}
         onShowIconsChange={setShowIcons}
         infoLine={
@@ -502,7 +506,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           onRefresh={handleRefreshLineChart}
           onMoreInsights={handleMoreInsights}
           currentSites={extractSitesFromChartData(lineChartData)}
-          loading={lineChartLoading}
+          loading={lineChartLoading || lineChartRefreshing}
         >
           <DynamicChart
             data={lineChartData}
@@ -532,7 +536,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           onRefresh={handleRefreshBarChart}
           onMoreInsights={handleMoreInsights}
           currentSites={extractSitesFromChartData(barChartData)}
-          loading={barChartLoading}
+          loading={barChartLoading || barChartRefreshing}
         >
           <DynamicChart
             data={barChartData}

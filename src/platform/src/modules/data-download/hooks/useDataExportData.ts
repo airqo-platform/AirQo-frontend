@@ -1,8 +1,8 @@
 import { useMemo, useEffect } from 'react';
 import {
-  useActiveGroupCohorts,
   useActiveGroupCohortSitesWithState,
   useActiveGroupCohortDevicesWithState,
+  useGroupCohorts,
   useGridsSummary,
   useGridsSummaryWithToken,
 } from '@/shared/hooks';
@@ -26,6 +26,7 @@ import {
   processGridsData,
   mapDeviceIdsToNames,
 } from '../utils/dataExportUtils';
+import { normalizeCohortIds } from '@/shared/utils/cohortUtils';
 
 /**
  * Custom hook for data fetching and processing
@@ -34,6 +35,7 @@ export const useDataExportData = (
   activeTab: TabType,
   tabStates: Record<TabType, TabState>,
   isOrgFlow: boolean,
+  currentGroupId: string,
   deviceCategory: DeviceCategory,
   selectedDeviceIds: string[],
   selectedDevicesData: TableItem[],
@@ -107,23 +109,35 @@ export const useDataExportData = (
     tabStates.cities.search,
   ]);
 
-  // Sites and devices both depend on the active group's cohort ids.
-  // The user flow defaults the active group to AirQo in Redux, so the same
-  // cached cohort path works without an env-specific fallback.
-  const activeGroupCohorts = useActiveGroupCohorts(
-    enabled && (activeTab === 'sites' || activeTab === 'devices')
+  // Resolve cohort ids directly for the export page so sites/devices fetches
+  // do not depend on the shared Redux cohort cache settling first.
+  const groupCohortsHook = useGroupCohorts(
+    currentGroupId,
+    enabled &&
+      !!currentGroupId &&
+      (activeTab === 'sites' || activeTab === 'devices')
+  );
+
+  const cohortIds = useMemo(
+    () => normalizeCohortIds((groupCohortsHook.data?.data ?? []) as string[]),
+    [groupCohortsHook.data?.data]
+  );
+
+  const sharedCohortsState = useMemo(
+    () => ({ cohortIds, isLoading: groupCohortsHook.isLoading }),
+    [cohortIds, groupCohortsHook.isLoading]
   );
 
   const sitesHook = useActiveGroupCohortSitesWithState(
     sitesParams,
     enabled && activeTab === 'sites',
-    activeGroupCohorts
+    sharedCohortsState
   );
 
   const devicesHook = useActiveGroupCohortDevicesWithState(
     devicesParams,
     enabled && activeTab === 'devices',
-    activeGroupCohorts
+    sharedCohortsState
   );
 
   const orgCountriesHook = useGridsSummary(
@@ -228,6 +242,7 @@ export const useDataExportData = (
     countriesHook,
     citiesHook,
     currentHook,
+    groupCohortsHook,
     tableData,
     processedSitesData,
     processedDevicesData,

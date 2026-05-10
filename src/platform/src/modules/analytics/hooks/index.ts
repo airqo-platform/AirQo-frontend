@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useDownloadData } from '@/shared/hooks/useAnalytics';
 import { useUserPreferencesList } from '@/shared/hooks/usePreferences';
@@ -165,8 +165,8 @@ export const useAnalyticsChartData = (
   );
   const shouldFetch = enabled && selectedSiteIds.length > 0;
 
-  const query = useQuery<ChartData[], Error>({
-    queryKey: [
+  const chartQueryKey = useMemo(
+    () => [
       'analytics',
       'chart-data',
       chartType,
@@ -176,6 +176,23 @@ export const useAnalyticsChartData = (
       filters.frequency,
       filters.pollutant,
     ],
+    [
+      chartType,
+      dateRange.endDate,
+      dateRange.startDate,
+      filters.frequency,
+      filters.pollutant,
+      selectedSiteIdsKey,
+    ]
+  );
+  const currentRequestKey = useMemo(
+    () => JSON.stringify(chartQueryKey),
+    [chartQueryKey]
+  );
+  const lastSettledRequestKeyRef = useRef(currentRequestKey);
+
+  const query = useQuery<ChartData[], Error>({
+    queryKey: chartQueryKey,
     queryFn: async ({ signal }) => {
       const response = await analyticsService.getChartData(
         {
@@ -206,6 +223,28 @@ export const useAnalyticsChartData = (
     placeholderData: previousData => previousData,
   });
 
+  useEffect(() => {
+    if (!shouldFetch) {
+      lastSettledRequestKeyRef.current = currentRequestKey;
+      return;
+    }
+
+    if (!query.isFetching && (query.isSuccess || query.isError)) {
+      lastSettledRequestKeyRef.current = currentRequestKey;
+    }
+  }, [
+    currentRequestKey,
+    query.isError,
+    query.isFetching,
+    query.isSuccess,
+    shouldFetch,
+  ]);
+
+  const isFilterTransitionLoading =
+    shouldFetch &&
+    query.isFetching &&
+    currentRequestKey !== lastSettledRequestKeyRef.current;
+
   const refreshChartData = useCallback(async () => {
     if (!shouldFetch) {
       return;
@@ -216,7 +255,9 @@ export const useAnalyticsChartData = (
 
   return {
     chartData: shouldFetch ? (query.data ?? []) : [],
-    isLoading: shouldFetch ? query.isLoading : false,
+    isLoading: shouldFetch
+      ? query.isLoading || isFilterTransitionLoading
+      : false,
     isRefreshing: shouldFetch ? query.isFetching : false,
     error: shouldFetch ? (query.error?.message ?? null) : null,
     refetch: refreshChartData,
@@ -248,20 +289,15 @@ export const useAnalyticsSiteCards = ({
       filters.pollutant,
     ],
     queryFn: async ({ signal }) => {
-      try {
-        const response = await analyticsService.getRecentReadings(
-          {
-            site_id: selectedSiteIdsKey,
-            user_id: user?.id,
-          },
-          signal
-        );
+      const response = await analyticsService.getRecentReadings(
+        {
+          site_id: selectedSiteIdsKey,
+          user_id: user?.id,
+        },
+        signal
+      );
 
-        return response?.measurements ?? [];
-      } catch (error) {
-        console.error('Error fetching recent readings:', error);
-        return [];
-      }
+      return response?.measurements ?? [];
     },
     enabled: shouldFetch,
     networkMode: 'online',
@@ -270,6 +306,7 @@ export const useAnalyticsSiteCards = ({
     refetchOnReconnect: false,
     staleTime: ANALYTICS_QUERY_STALE_TIME_MS,
     gcTime: ANALYTICS_QUERY_GC_TIME_MS,
+    placeholderData: previousData => previousData,
   });
 
   const measurementsBySiteId = useMemo(() => {

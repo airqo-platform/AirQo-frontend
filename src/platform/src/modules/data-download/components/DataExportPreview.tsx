@@ -69,7 +69,7 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
   selectedGridSiteIds,
 }) => {
   const [selectedColumnKeys, setSelectedColumnKeys] = useState<string[]>(() =>
-    getDefaultDownloadColumnKeys(activeTab, selectedPollutants)
+    getDefaultDownloadColumnKeys(activeTab, selectedPollutants, dataType)
   );
   const previousOpenRef = useRef(false);
 
@@ -97,18 +97,18 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
   }, [dateRange]);
 
   const columnGroups = useMemo(
-    () => getDownloadColumnGroups(activeTab, selectedPollutants),
-    [activeTab, selectedPollutants]
+    () => getDownloadColumnGroups(activeTab, selectedPollutants, dataType),
+    [activeTab, dataType, selectedPollutants]
   );
 
   const columnLabelMap = useMemo(
-    () => getDownloadColumnLabelMap(activeTab, selectedPollutants),
-    [activeTab, selectedPollutants]
+    () => getDownloadColumnLabelMap(activeTab, selectedPollutants, dataType),
+    [activeTab, dataType, selectedPollutants]
   );
 
   const defaultColumnKeys = useMemo(
-    () => getDefaultDownloadColumnKeys(activeTab, selectedPollutants),
-    [activeTab, selectedPollutants]
+    () => getDefaultDownloadColumnKeys(activeTab, selectedPollutants, dataType),
+    [activeTab, dataType, selectedPollutants]
   );
 
   const selectedLocations = useMemo(() => {
@@ -247,10 +247,13 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
         const values = SAMPLE_POLLUTANT_VALUES[pollutant] || [36.37, 30.97];
         const value = index === 0 ? values[0] : values[1];
 
-        row[pollutant] = value;
-        row[`${pollutant}_calibrated_value`] = Number(
-          (value * 0.92).toFixed(2)
-        );
+        if (dataType === 'calibrated') {
+          row[`${pollutant}_calibrated_value`] = Number(
+            (value * 0.92).toFixed(2)
+          );
+        } else {
+          row[pollutant] = value;
+        }
       });
 
       return row;
@@ -260,6 +263,7 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
     frequency,
     locationColumnKey,
     locationSampleValue,
+    dataType,
     selectedPollutants,
   ]);
 
