@@ -79,7 +79,11 @@ export const QuickAccessCard: React.FC<QuickAccessLocationsProps> = memo(
           </div>
 
           {isLoading && (
-            <div className="absolute inset-0 z-20 flex items-center justify-center rounded-md bg-background/80 backdrop-blur-sm">
+            <div
+              className="absolute inset-0 z-20 flex items-center justify-center rounded-md bg-background/80 backdrop-blur-sm"
+              role="status"
+              aria-live="polite"
+            >
               <div className="flex items-center gap-2 rounded-md border border-border bg-card px-3 py-2 text-sm text-muted-foreground shadow-sm">
                 <LoadingSpinner size={16} />
                 <span>Updating locations...</span>
