@@ -5,12 +5,13 @@ import ReusableDialog from '@/shared/components/ui/dialog';
 import Radio from '@/shared/components/ui/radio';
 import { InfoBanner } from '@/shared/components/ui/banner';
 
-type SaveFormat = 'csv' | 'pdf';
+type SaveFormat = 'csv' | 'xlsx' | 'pdf';
 
 interface DownloadFormatDialogProps {
   isOpen: boolean;
   isSaving: boolean;
   savingFormat: SaveFormat | null;
+  locationCount: number;
   onClose: () => void;
   onSave: (format: SaveFormat) => void;
 }
@@ -18,26 +19,34 @@ interface DownloadFormatDialogProps {
 const formatCards: Array<{
   format: SaveFormat;
   title: string;
+  actionLabel: string;
   description: string;
-  accentClassName: string;
   badge: string;
+  requiresMultipleLocations?: boolean;
 }> = [
   {
     format: 'csv',
-    title: 'Save as CSV',
+    title: 'CSV spreadsheet',
+    actionLabel: 'Download CSV',
     description:
-      'Best for Excel, analysis, and reusing the data in other tools.',
-    accentClassName:
-      'border-sky-200 bg-sky-50/70 text-sky-900 hover:border-sky-400 hover:bg-sky-50 dark:border-sky-900/60 dark:bg-sky-950/30 dark:text-sky-50',
-    badge: 'Spreadsheet',
+      'Download one spreadsheet file with all rows together. Best for analysis, sharing, and importing into other tools.',
+    badge: 'Single file',
+  },
+  {
+    format: 'xlsx',
+    title: 'Excel workbook',
+    actionLabel: 'Download Excel workbook',
+    description:
+      'Download an Excel file where each selected location has its own sheet.',
+    badge: 'Separate sheets',
+    requiresMultipleLocations: true,
   },
   {
     format: 'pdf',
-    title: 'Save as PDF',
+    title: 'PDF report',
+    actionLabel: 'Download PDF',
     description:
-      'Creates a polished report with a title, summary, table, and page numbers.',
-    accentClassName:
-      'border-slate-200 bg-slate-50/80 text-slate-900 hover:border-primary hover:bg-primary/5 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-50',
+      'Download a formatted report with a summary, table, and page numbers.',
     badge: 'Report',
   },
 ];
@@ -46,10 +55,12 @@ export const DownloadFormatDialog: React.FC<DownloadFormatDialogProps> = ({
   isOpen,
   isSaving,
   savingFormat,
+  locationCount,
   onClose,
   onSave,
 }) => {
   const [selectedFormat, setSelectedFormat] = useState<SaveFormat>('csv');
+  const hasMultipleLocations = locationCount > 1;
 
   useEffect(() => {
     if (isOpen) {
@@ -58,8 +69,8 @@ export const DownloadFormatDialog: React.FC<DownloadFormatDialogProps> = ({
   }, [isOpen]);
 
   const selectedLabel =
-    formatCards.find(card => card.format === selectedFormat)?.title ||
-    'Save as CSV';
+    formatCards.find(card => card.format === selectedFormat)?.actionLabel ||
+    'Download CSV';
 
   const handleCardKeyDown = (
     event: React.KeyboardEvent<HTMLDivElement>,
@@ -80,9 +91,9 @@ export const DownloadFormatDialog: React.FC<DownloadFormatDialogProps> = ({
     <ReusableDialog
       isOpen={isOpen}
       onClose={onClose}
-      title="Choose Save Format"
-      subtitle="Pick the file format for the final save step."
-      size="lg"
+      title="Select Download Format"
+      subtitle="Choose the file type that works best for this export."
+      size="xl"
       showCloseButton={!isSaving}
       preventBackdropClose={isSaving}
       primaryAction={{
@@ -100,17 +111,28 @@ export const DownloadFormatDialog: React.FC<DownloadFormatDialogProps> = ({
         padding: 'px-4 py-2',
       }}
     >
-      <div className="space-y-5">
+      <div className="space-y-3">
         <InfoBanner
-          title="Ready to save"
-          message="Select CSV for spreadsheets or PDF for a polished report."
+          dense
+          title={
+            hasMultipleLocations
+              ? 'Export includes multiple locations'
+              : 'Choose a format'
+          }
+          message={
+            hasMultipleLocations
+              ? 'Excel can place each location on a separate sheet. CSV keeps all rows in one file.'
+              : 'CSV and PDF are available for this export. Excel sheets are available when two or more locations are selected.'
+          }
         />
 
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="space-y-2">
           {formatCards.map(card => {
             const isSelected = selectedFormat === card.format;
             const isCurrentSaving = isSaving && savingFormat === card.format;
-            const isDisabled = isSaving && !isCurrentSaving;
+            const isUnavailable =
+              card.requiresMultipleLocations && !hasMultipleLocations;
+            const isDisabled = isUnavailable || (isSaving && !isCurrentSaving);
 
             return (
               <div
@@ -127,35 +149,42 @@ export const DownloadFormatDialog: React.FC<DownloadFormatDialogProps> = ({
                 onKeyDown={event =>
                   handleCardKeyDown(event, card.format, isDisabled)
                 }
-                className={`group flex h-full flex-col rounded-2xl border p-4 text-left transition-all duration-200 ${card.accentClassName} ${isDisabled ? 'cursor-not-allowed opacity-80' : 'cursor-pointer hover:-translate-y-0.5'} ${isSelected ? 'ring-2 ring-primary/40 shadow-lg shadow-primary/10' : ''}`}
+                className={`group rounded-lg border px-3 py-3 text-left transition-colors duration-200 ${isDisabled ? 'cursor-not-allowed border-gray-200 bg-gray-50 text-gray-400 dark:border-gray-800 dark:bg-gray-900/60 dark:text-gray-500' : 'cursor-pointer border-gray-200 bg-white text-gray-900 hover:border-primary/50 hover:bg-primary/5 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:hover:border-primary/60'} ${isSelected ? 'border-primary bg-primary/5 ring-1 ring-primary/30 dark:border-primary/80' : ''}`}
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3">
-                    <Radio
-                      checked={isSelected}
-                      tabIndex={-1}
-                      disabled={isDisabled}
-                      onChange={() => {
-                        if (!isDisabled) {
-                          setSelectedFormat(card.format);
-                        }
-                      }}
-                    />
-                    <div>
-                      <p className="text-base font-semibold">{card.title}</p>
-                      <p className="mt-1 text-xs leading-5 opacity-80">
-                        {card.description}
-                      </p>
+                <div className="flex items-start gap-3">
+                  <Radio
+                    checked={isSelected}
+                    tabIndex={-1}
+                    disabled={isDisabled}
+                    onChange={() => {
+                      if (!isDisabled) {
+                        setSelectedFormat(card.format);
+                      }
+                    }}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-semibold">{card.title}</p>
+                      <span className="rounded-full border border-current px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide opacity-80">
+                        {card.format}
+                      </span>
+                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                        {card.badge}
+                      </span>
                     </div>
+                    <p className="mt-1 text-xs leading-5 text-gray-600 dark:text-gray-400">
+                      {isUnavailable
+                        ? 'Available when two or more locations are selected.'
+                        : card.description}
+                    </p>
                   </div>
-                  <span className="rounded-full border border-current px-3 py-1 text-[11px] font-medium uppercase tracking-[0.16em] opacity-90">
-                    {card.format}
+                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                    {isSelected
+                      ? 'Selected'
+                      : isUnavailable
+                        ? 'Unavailable'
+                        : ''}
                   </span>
-                </div>
-
-                <div className="mt-5 flex items-center justify-between text-xs font-medium uppercase tracking-[0.14em] opacity-75">
-                  <span>{card.badge}</span>
-                  <span>{isSelected ? 'Selected' : 'Available'}</span>
                 </div>
               </div>
             );

@@ -1,5 +1,6 @@
 import React from 'react';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
+import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
 import { TabType, TableItem, ColumnConfig } from '../types/dataExportTypes';
 import { getTabConfig } from '../utils/tableConfig';
 
@@ -8,6 +9,7 @@ interface DataExportTableProps {
   tableData: TableItem[];
   columns: ColumnConfig[];
   loading: boolean;
+  isRefreshing?: boolean;
   error: string | null;
   currentPage: number;
   totalPages: number;
@@ -30,6 +32,7 @@ export const DataExportTable: React.FC<DataExportTableProps> = ({
   tableData,
   columns,
   loading,
+  isRefreshing = false,
   error,
   currentPage,
   totalPages,
@@ -46,24 +49,38 @@ export const DataExportTable: React.FC<DataExportTableProps> = ({
   const config = getTabConfig(activeTab);
 
   return (
-    <ServerSideTable
-      title={config.title}
-      data={tableData}
-      columns={columns}
-      loading={loading}
-      error={error}
-      currentPage={currentPage}
-      totalPages={totalPages}
-      pageSize={pageSize}
-      totalItems={totalItems}
-      onPageChange={onPageChange}
-      onPageSizeChange={onPageSizeChange}
-      searchTerm={searchTerm}
-      onSearchChange={onSearchChange}
-      multiSelect={activeTab !== 'countries' && activeTab !== 'cities'}
-      selectedItems={selectedItems}
-      onSelectedItemsChange={onSelectedItemsChange}
-      compactRows={compactRows}
-    />
+    <div className="relative">
+      <ServerSideTable
+        title={config.title}
+        data={tableData}
+        columns={columns}
+        loading={loading}
+        error={error}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        totalItems={totalItems}
+        onPageChange={onPageChange}
+        onPageSizeChange={onPageSizeChange}
+        searchTerm={searchTerm}
+        onSearchChange={onSearchChange}
+        multiSelect={activeTab !== 'countries' && activeTab !== 'cities'}
+        selectedItems={selectedItems}
+        onSelectedItemsChange={onSelectedItemsChange}
+        compactRows={compactRows}
+      />
+
+      {isRefreshing && (
+        <div
+          className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center rounded-md bg-background/80 backdrop-blur-sm"
+          aria-live="polite"
+        >
+          <div className="flex items-center gap-2 rounded-md border border-border bg-card px-3 py-2 text-sm text-muted-foreground shadow-sm">
+            <LoadingSpinner size={16} />
+            <span>Refreshing data...</span>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
