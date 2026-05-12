@@ -1,7 +1,7 @@
 'use client';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useState } from 'react';
 import { RiCloseFill } from 'react-icons/ri';
 import { TbChevronDown, TbMenu } from 'react-icons/tb';
@@ -11,6 +11,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import mainConfig from '@/configs/mainConfigs';
 import { useDispatch } from '@/hooks';
 import useLockBodyScroll from '@/hooks/useLockBodyScroll';
+import { DEVCON_APPLY_URL, DEVCON_ROUTE } from '@/lib/devcon';
 import { NAV_ITEMS } from '@/lib/navItems';
 import { openModal } from '@/store/slices/modalSlice';
 
@@ -101,10 +102,12 @@ const DropdownMenuContent: React.FC<{
 const Navbar: React.FC = () => {
   const dispatch = useDispatch();
   const router = useRouter();
+  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
   const [isHidden, setIsHidden] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const isDevConPage = pathname?.startsWith(DEVCON_ROUTE);
 
   const toggleMenu = useCallback(() => setMenuOpen((prev) => !prev), []);
   const toggleExpandedMenu = useCallback(
@@ -117,6 +120,16 @@ const Navbar: React.FC = () => {
     setMenuOpen(false);
     setExpandedMenu(null);
   }, []);
+
+  const handleDevConApply = useCallback(() => {
+    trackEvent({
+      action: 'button_click',
+      category: 'navigation',
+      label: 'airqo_devcon_apply',
+    });
+    window.open(DEVCON_APPLY_URL, '_blank', 'noopener,noreferrer');
+    handleLinkClick();
+  }, [handleLinkClick]);
 
   // Use shared scroll-lock so multiple overlays don't clobber each other.
   useLockBodyScroll(menuOpen);
@@ -202,6 +215,14 @@ const Navbar: React.FC = () => {
             >
               Blogs
             </Link>
+            {isDevConPage && (
+              <CustomButton
+                onClick={handleDevConApply}
+                className="rounded-none bg-blue-600 text-white hover:bg-blue-700"
+              >
+                Apply Now
+              </CustomButton>
+            )}
             <CustomButton
               onClick={() => {
                 trackEvent({
@@ -367,6 +388,15 @@ const Navbar: React.FC = () => {
 
           {/* Drawer Footer CTAs */}
           <div className="flex flex-shrink-0 flex-col gap-2 border-t border-gray-200 bg-gray-50 px-4 py-4">
+            {isDevConPage && (
+              <button
+                type="button"
+                onClick={handleDevConApply}
+                className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+              >
+                Apply Now
+              </button>
+            )}
             <button
               type="button"
               onClick={() => {

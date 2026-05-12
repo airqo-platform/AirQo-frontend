@@ -513,6 +513,22 @@ export const METADATA_CONFIGS = {
       type: 'image/png',
     },
   },
+  airqoDevCon: {
+    title:
+      'AirQo DevCon 2026 | Free Student Developer Conference at Makerere University',
+    description:
+      'Apply for AirQo DevCon 2026, a free 2-day hands-on technical workshop at Makerere University where students build real air quality hardware, software, and AI solutions for Uganda.',
+    keywords:
+      'AirQo DevCon 2026, Makerere University developer conference, Uganda student developers, clean air hackathon Uganda, hardware firmware workshop, air quality AI workshop, student tech event Kampala, AirQo open source, PCB soldering workshop Uganda, data science air quality',
+    url: '/developers/airqo-devcon',
+    image: {
+      url: '/assets/images/devcon/airqo-devcon-workshop-v2.webp',
+      alt: 'Students building clean air hardware and software at AirQo DevCon 2026',
+      width: 1448,
+      height: 1086,
+      type: 'image/webp',
+    },
+  },
   mobileApp: {
     title:
       'AirQo App Uganda, Kenya, Nigeria | Free Air Quality Tracker - Kampala, Nairobi, Lagos',
