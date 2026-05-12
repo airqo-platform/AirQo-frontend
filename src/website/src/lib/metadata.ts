@@ -689,6 +689,21 @@ export const METADATA_CONFIGS = {
       type: 'image/jpeg',
     },
   },
+  cookiesPolicy: {
+    title: 'Cookies Policy | AirQo - Cookies & Local Storage',
+    description:
+      'Learn how AirQo uses cookies and local storage for authentication, preferences, performance, analytics, Google Auth, and Mapbox-powered services.',
+    keywords:
+      'AirQo cookies policy, local storage policy, cookies, browser storage, authentication cookies, analytics cookies, user preferences, Mapbox cookies, Google Auth cookies',
+    url: '/legal/cookies',
+    image: {
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1741869234/website/photos/OurProducts/Monitor/image15_ua8tyc.jpg',
+      alt: 'AirQo Cookies and Local Storage Policy',
+      width: 1200,
+      height: 630,
+      type: 'image/jpeg',
+    },
+  },
   termsOfService: {
     title: 'Terms of Service | AirQo Platform Usage Agreement',
     description:

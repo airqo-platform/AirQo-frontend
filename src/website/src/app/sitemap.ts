@@ -529,6 +529,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.3,
     },
     { path: '/legal/privacy-policy', changeFrequency: 'yearly', priority: 0.3 },
+    { path: '/legal/cookies', changeFrequency: 'yearly', priority: 0.3 },
     { path: '/legal/airqo-data', changeFrequency: 'yearly', priority: 0.3 },
     {
       path: '/legal/payment-refund-policy',

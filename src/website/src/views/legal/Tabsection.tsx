@@ -13,6 +13,7 @@ interface Tab {
 const tabs: Tab[] = [
   { label: 'Terms of Service', value: 'terms-of-service' },
   { label: 'Privacy Policy', value: 'privacy-policy' },
+  { label: 'Cookies Policy', value: 'cookies' },
   { label: 'AirQo Data', value: 'airqo-data' },
   { label: 'Payment Terms & Refund Policy', value: 'payment-refund-policy' },
 ];
