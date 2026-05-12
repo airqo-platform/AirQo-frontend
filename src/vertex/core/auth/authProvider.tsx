@@ -171,6 +171,8 @@ function useUserDetails(userId: string | null) {
 
 const authRoutes = ['/login', '/forgot-password', '/auth-error'];
 const publicRoutes = [...authRoutes, '/download'];
+const matchesRoute = (pathname: string, route: string) =>
+  pathname === route || pathname.startsWith(`${route}/`);
 
 /**
  * Redirects authenticated users away from auth routes
@@ -181,7 +183,7 @@ function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
   const { status } = useSession();
   const { activeGroup, isInitialized } = useAppSelector((state) => state.user);
 
-  const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
+  const isAuthRoute = authRoutes.some((route) => matchesRoute(pathname, route));
 
   useEffect(() => {
     if (status === 'authenticated' && isAuthRoute && activeGroup && isInitialized) {
@@ -370,8 +372,10 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   const logout = useLogout();
   const [hasHandledUnauthorized, setHasHandledUnauthorized] = useState(false);
 
-  const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
-  const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route));
+  const isAuthRoute = authRoutes.some((route) => matchesRoute(pathname, route));
+  const isPublicRoute = publicRoutes.some((route) =>
+    matchesRoute(pathname, route)
+  );
 
   // Handle unauthorized/expired token events
   const handleUnauthorized = useCallback(async () => {
