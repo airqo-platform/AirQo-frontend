@@ -86,6 +86,7 @@ dependencies:
   posthog_flutter: ^5.9.0
   firebase_core: ^4.4.0
   firebase_messaging: ^16.1.1
+  firebase_analytics: ^12.3.0
   flutter_local_notifications: ^19.5.0
 
 
