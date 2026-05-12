@@ -37,7 +37,7 @@ type Track = {
 };
 
 const devconStats: InfoCard[] = [
-  { icon: FiCalendar, label: 'Duration', value: '2 days' },
+  { icon: FiCalendar, label: 'Duration', value: '2 intensive days' },
   { icon: FiCpu, label: 'Track', value: '1 build track' },
   { icon: FiTool, label: 'Format', value: '100% hands on' },
   { icon: FiUsers, label: 'Access', value: 'Free for students' },
