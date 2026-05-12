@@ -335,6 +335,9 @@ const Footer = () => {
           <Link href="/legal/privacy-policy" className="hover:underline">
             Privacy Policy
           </Link>
+          <Link href="/legal/cookies" className="hover:underline">
+            Cookies Policy
+          </Link>
           <Link href="/legal/airqo-data" className="hover:underline">
             AirQo Data
           </Link>
