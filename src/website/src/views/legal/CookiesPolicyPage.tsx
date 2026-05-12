@@ -36,10 +36,21 @@ const storageItems = [
 
 const CookiesPolicyPage = () => {
   useEffect(() => {
-    // Add smooth scrolling behavior
-    if (typeof window !== 'undefined') {
-      document.documentElement.style.scrollBehavior = 'smooth';
+    const prefersReducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
+
+    if (prefersReducedMotion) {
+      return;
     }
+
+    const previousScrollBehavior =
+      document.documentElement.style.scrollBehavior;
+    document.documentElement.style.scrollBehavior = 'smooth';
+
+    return () => {
+      document.documentElement.style.scrollBehavior = previousScrollBehavior;
+    };
   }, []);
 
   const sections = [
