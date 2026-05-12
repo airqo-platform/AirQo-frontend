@@ -479,6 +479,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/products/mobile-app', changeFrequency: 'monthly', priority: 0.9 },
     { path: '/products/calibrate', changeFrequency: 'monthly', priority: 0.8 },
     { path: '/packages', changeFrequency: 'weekly', priority: 0.8 },
+    {
+      path: '/developers/airqo-devcon',
+      changeFrequency: 'weekly',
+      priority: 0.85,
+    },
     { path: '/packages/icons', changeFrequency: 'weekly', priority: 0.7 },
     {
       path: '/packages/icons/docs',

@@ -19,6 +19,8 @@ import {
 } from '@/utils/googleTranslate';
 import { Language, languages } from '@/utils/languages';
 
+import DevConTopTicker from './DevConTopTicker';
+
 const DEFAULT_LANGUAGE =
   languages.find((lang) => lang.code === 'en-GB') || languages[0];
 const DEFAULT_GOOGLE_LANGUAGE = 'en';
@@ -206,8 +208,8 @@ const TopBanner = () => {
   return (
     <>
       <div className="w-full bg-blue-50 border-b border-blue-100 notranslate">
-        <div className="container mx-auto max-w-5xl px-2 flex justify-between items-center py-1">
-          <div className="flex items-center space-x-4">
+        <div className="container mx-auto flex max-w-5xl items-center gap-2 px-2 py-1">
+          <div className="flex flex-none items-center space-x-4">
             <a
               href="mailto:info@airqo.net"
               className="hidden md:block text-blue-600 font-medium text-sm hover:text-blue-800 transition-colors"
@@ -253,10 +255,12 @@ const TopBanner = () => {
             </a>
           </div>
 
+          <DevConTopTicker />
+
           <button
             onClick={() => setIsModalOpen(true)}
             disabled={isApplyingLanguage}
-            className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-md px-3 py-1.5 text-sm disabled:opacity-70 disabled:cursor-wait"
+            className="ml-auto flex flex-none items-center space-x-2 rounded-md px-3 py-1.5 text-sm text-gray-700 transition-colors hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-wait disabled:opacity-70"
             aria-label="Select language"
           >
             <LanguageFlag

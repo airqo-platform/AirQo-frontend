@@ -55,12 +55,12 @@ const PartnerLogosSection: React.FC<{
       <h3 className="text-lg font-semibold text-gray-500">
         AIRQO IS SUPPORTED BY
       </h3>
-      <div className="flex min-h-[220px] flex-wrap justify-center">
+      <div className="grid grid-cols-2 border-l border-t border-gray-300 sm:grid-cols-3 lg:grid-cols-6">
         {isLoading || partners.length === 0
           ? Array.from({ length: 6 }, (_, index) => (
               <div
                 key={`partner-skeleton-${index}`}
-                className="h-[100px] w-1/2 border border-gray-300 p-4 sm:w-1/3 lg:w-1/5"
+                className="h-[100px] border-b border-r border-gray-300 p-4"
               >
                 <div className="h-full w-full animate-pulse rounded-lg bg-white/70" />
               </div>
@@ -68,7 +68,7 @@ const PartnerLogosSection: React.FC<{
           : partners.map((partner, index) => (
               <div
                 key={partner.id || index}
-                className="flex items-center justify-center h-[100px] p-4 border border-gray-300 relative overflow-hidden w-1/2 sm:w-1/3 lg:w-1/5"
+                className="relative h-[100px] overflow-hidden border-b border-r border-gray-300 p-4"
               >
                 <Image
                   src={
@@ -83,7 +83,7 @@ const PartnerLogosSection: React.FC<{
                   }
                   fill
                   className="object-contain p-3 mix-blend-multiply transition-transform duration-500 ease-in-out transform hover:scale-110 cursor-pointer"
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
                 />
               </div>
             ))}

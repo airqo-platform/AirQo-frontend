@@ -50,6 +50,30 @@ body {
   .animate-fade-in {
     animation: fade-in 0.4s ease-in;
   }
+
+  @keyframes devcon-top-ticker {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  .devcon-top-ticker-track {
+    animation: devcon-top-ticker 24s linear infinite;
+  }
+
+  .devcon-top-ticker:hover .devcon-top-ticker-track {
+    animation-play-state: paused;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .devcon-top-ticker-track {
+      animation: none;
+      transform: none;
+    }
+  }
 }
 
 @layer base {

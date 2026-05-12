@@ -5,6 +5,7 @@ import ReversibleContentSection from '@/components/sections/ReversibleContentSec
 import AnalyticsContentSection from './AnalyticsContentSection';
 import AppDownloadSection from './AppDownloadSection';
 import HomeDeferredSections from './HomeDeferredSections';
+import HomeDevConSection from './HomeDevConSection';
 import HomePlayerSection from './HomePlayerSection';
 
 const HomePage = () => {
@@ -48,11 +49,13 @@ const HomePage = () => {
         buttonText="Get started here"
         buttonLink="/products/api"
         imageUrl="https://res.cloudinary.com/dbibjvyhm/image/upload/v1729071534/website/photos/wrapper_zpnvdw.png"
-        reverse={false}
+        reverse={true}
         backgroundColor="bg-transparent"
         leftWidth="lg:w-1/3"
         rightWidth="lg:w-2/3"
       />
+
+      <HomeDevConSection />
 
       {/* Network Coverage */}
       <ReversibleContentSection
