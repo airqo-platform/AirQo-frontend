@@ -1,15 +1,18 @@
 "use client"
 
 import Link from "next/link"
-import { Home, Bell, Settings, Package, Layers, Box, ChevronLeft, ChevronRight, Wrench, FlaskConical } from "lucide-react"
+import { Package, Layers, Box, ChevronRight, Wrench, FlaskConical } from "lucide-react"
 import { AqMonitor, AqAirQlouds } from '@/components/icons'
+import { useGroup } from '@/lib/group-context'
 
 interface SidebarProps {
   sidebarOpen: boolean
   onToggleSidebar: () => void
 }
 
-export default function Sidebar({ sidebarOpen, onToggleSidebar }: SidebarProps) {
+export default function Sidebar({ sidebarOpen, onToggleSidebar }: Readonly<SidebarProps>) {
+  const { activeGroup } = useGroup()
+  const isAirqoGroup = activeGroup?.toLowerCase() === 'airqo'
 
   return (
     <div
@@ -135,54 +138,58 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar }: SidebarProps) 
               )}
             </Link>
           </li> */}
-          <li>
-            <Link
-              href="/dashboard/firmware"
-              className={`flex items-center rounded-md hover:bg-gray-100 transition-colors group relative ${sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
-                }`}
-              title={!sidebarOpen ? "Firmware" : ""}
-            >
-              <Package className="h-5 w-5 flex-shrink-0" />
-              {sidebarOpen && <span className="ml-3 text-sm">Firmware</span>}
-              {!sidebarOpen && (
-                <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
-                  Firmware
-                </span>
-              )}
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/dashboard/category"
-              className={`flex items-center rounded-md hover:bg-gray-100 transition-colors group relative ${sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
-                }`}
-              title={!sidebarOpen ? "Categories" : ""}
-            >
-              <Layers className="h-5 w-5 flex-shrink-0" />
-              {sidebarOpen && <span className="ml-3 text-sm">Categories</span>}
-              {!sidebarOpen && (
-                <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
-                  Categories
-                </span>
-              )}
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/dashboard/stock"
-              className={`flex items-center rounded-md hover:bg-gray-100 transition-colors group relative ${sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
-                }`}
-              title={!sidebarOpen ? "Stock" : ""}
-            >
-              <Box className="h-5 w-5 flex-shrink-0" />
-              {sidebarOpen && <span className="ml-3 text-sm">Stock</span>}
-              {!sidebarOpen && (
-                <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
-                  Stock
-                </span>
-              )}
-            </Link>
-          </li>
+          {isAirqoGroup && (
+            <>
+              <li>
+                <Link
+                  href="/dashboard/firmware"
+                  className={`flex items-center rounded-md hover:bg-gray-100 transition-colors group relative ${sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
+                    }`}
+                  title={!sidebarOpen ? "Firmware" : ""}
+                >
+                  <Package className="h-5 w-5 flex-shrink-0" />
+                  {sidebarOpen && <span className="ml-3 text-sm">Firmware</span>}
+                  {!sidebarOpen && (
+                    <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                      Firmware
+                    </span>
+                  )}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/dashboard/category"
+                  className={`flex items-center rounded-md hover:bg-gray-100 transition-colors group relative ${sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
+                    }`}
+                  title={!sidebarOpen ? "Categories" : ""}
+                >
+                  <Layers className="h-5 w-5 flex-shrink-0" />
+                  {sidebarOpen && <span className="ml-3 text-sm">Categories</span>}
+                  {!sidebarOpen && (
+                    <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                      Categories
+                    </span>
+                  )}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/dashboard/stock"
+                  className={`flex items-center rounded-md hover:bg-gray-100 transition-colors group relative ${sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
+                    }`}
+                  title={!sidebarOpen ? "Stock" : ""}
+                >
+                  <Box className="h-5 w-5 flex-shrink-0" />
+                  {sidebarOpen && <span className="ml-3 text-sm">Stock</span>}
+                  {!sidebarOpen && (
+                    <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                      Stock
+                    </span>
+                  )}
+                </Link>
+              </li>
+            </>
+          )}
           <li>
             <Link
               href="/dashboard/maintenance"
