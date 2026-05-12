@@ -107,6 +107,7 @@ export interface AirQloudsQueryParams {
   limit?: number
   tags?: string
   search?: string
+  group?: string
   include_performance?: boolean // Deprecated but kept for signature compatibility
   performance_days?: number
   is_active?: boolean
@@ -483,7 +484,7 @@ class AirQloudService {
         error_margin: cohort.error_margin || [],
         timestamp: cohort.timestamp || [],
       }))
-      return { airqlouds: mappedCohorts, meta: data.meta as AirQloudsMeta }
+      return { airqlouds: mappedCohorts, meta: data.meta }
     }
 
     const queryParams = new URLSearchParams()
@@ -493,6 +494,7 @@ class AirQloudService {
     if (params.tags) queryParams.append('tags', params.tags)
 
     if (params.search) queryParams.append('search', params.search)
+    if (params.group) queryParams.append('group', params.group)
 
     if (params.includePerformance) queryParams.append('includePerformance', params.includePerformance.toString())
     if (params.startDateTime) queryParams.append('startDateTime', params.startDateTime)
@@ -501,7 +503,8 @@ class AirQloudService {
     if (params.summary !== undefined) queryParams.append('summary', params.summary.toString())
 
     const endpoint = this.getEndpoint('/cohorts/')
-    const url = `${this.baseUrl}${endpoint}?${queryParams.toString()}`
+    const qs = queryParams.toString()
+    const url = qs ? `${this.baseUrl}${endpoint}?${qs}` : `${this.baseUrl}${endpoint}`
 
     try {
       const response = await fetch(url, {
@@ -568,6 +571,7 @@ class AirQloudService {
     appendParam(queryParams, 'skip', params.skip)
     appendParam(queryParams, 'limit', params.limit)
     appendParam(queryParams, 'search', params.search)
+    appendParam(queryParams, 'group', params.group)
 
     const endpoint = this.getEndpoint('/cohorts/synced')
     const qs = queryParams.toString()
@@ -611,6 +615,7 @@ class AirQloudService {
     appendParam(queryParams, 'skip', params.skip)
     appendParam(queryParams, 'limit', params.limit)
     appendParam(queryParams, 'search', params.search)
+    appendParam(queryParams, 'group', params.group)
 
     const endpoint = this.getEndpoint('/grids/synced')
     const qs = queryParams.toString()
@@ -730,11 +735,14 @@ class AirQloudService {
   async getGridById(
     gridId: string,
     startDateTime?: string,
-    endDateTime?: string
+    endDateTime?: string,
+    group?: string
   ): Promise<AirQloudWithPerformance> {
     const endpoint = this.getEndpoint(`/grids/synced/${gridId}`)
 
     const queryParams = new URLSearchParams()
+
+    appendParam(queryParams, 'group', group)
 
     if (startDateTime && endDateTime) {
       queryParams.append('includePerformance', 'true')
@@ -879,6 +887,7 @@ class AirQloudService {
     start: string
     end: string
     ids: string[]
+    group?: string
     tags?: string[] | string
     skip?: number
     limit?: number
@@ -896,6 +905,7 @@ class AirQloudService {
     queryParams.append('startDateTime', params.start)
     queryParams.append('endDateTime', params.end)
     queryParams.append('frequency', params.frequency || 'hourly')
+    appendParam(queryParams, 'group', params.group)
 
     if (params.tags) {
       const tagsValue = Array.isArray(params.tags) ? params.tags.join(',') : params.tags
@@ -949,6 +959,7 @@ class AirQloudService {
     start: string
     end: string
     ids: string[]
+    group?: string
     skip?: number
     limit?: number
     frequency?: string
@@ -964,6 +975,7 @@ class AirQloudService {
     queryParams.append('startDateTime', params.start)
     queryParams.append('endDateTime', params.end)
     queryParams.append('frequency', params.frequency || 'hourly')
+    appendParam(queryParams, 'group', params.group)
 
     if (params.admin_level) queryParams.append('admin_level', params.admin_level)
     if (params.skip !== undefined) queryParams.append('skip', params.skip.toString())

@@ -16,6 +16,7 @@ import { getDevicePerformanceData } from "@/services/device-api.service"
 import { isMockMode } from "@/lib/mock-data"
 import { useToast } from "@/hooks/use-toast"
 import { DeviceHourHeatmaps, type HeatmapDevice } from "@/components/analytics/device-heatmap"
+import { useGroup } from "@/lib/group-context"
 import {
   Table,
   TableBody,
@@ -84,8 +85,9 @@ interface DeviceSummary {
 
 export default function PerformanceTab({ deviceId, deviceName }: Readonly<PerformanceTabProps>) {
   const { toast } = useToast()
+  const { activeGroup, loading: groupLoading } = useGroup()
   const searchParams = useSearchParams()
-  const isMock = searchParams.get('mock') === 'true'
+  const isMock = searchParams?.get('mock') === 'true'
   const [performanceData, setPerformanceData] = useState<PerformanceData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -111,6 +113,10 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
   const [includeTime, setIncludeTime] = useState(false)
 
   const fetchPerformanceData = async () => {
+    if (!isMock && !isMockMode() && (groupLoading || !activeGroup)) {
+      return
+    }
+
     try {
       setLoading(true)
       setError(null)
@@ -182,6 +188,7 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
         start: startDate.toISOString(),
         end: endDate.toISOString(),
         deviceNames: [deviceId],
+        group: activeGroup ?? undefined,
       })
 
       // response is already unwrapped to the data array by the service
@@ -252,7 +259,7 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
   useEffect(() => {
     fetchPerformanceData()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deviceId])
+  }, [deviceId, activeGroup, groupLoading])
 
   const handleDateRangeChange = (newDateRange: { from: Date | undefined; to: Date | undefined }) => {
     setDateRange(newDateRange)
@@ -963,7 +970,7 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
                             <Tooltip
                               cursor={{ strokeDasharray: "3 3" }}
                               contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                              formatter={(value: any, name: string) => [Number(value).toFixed(2), name === "s1" ? "Sensor 1" : "Sensor 2"]}
+                              formatter={(value: any, name: any) => [Number(value).toFixed(2), name === "s1" ? "Sensor 1" : "Sensor 2"]}
                             />
                             <Scatter
                               data={deviceData.correlationData}

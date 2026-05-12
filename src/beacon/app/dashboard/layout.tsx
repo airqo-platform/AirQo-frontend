@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import authService from "@/services/api-service"
 import TopNav from "@/components/dashboard/top-nav"
 import Sidebar from "@/components/dashboard/sidebar"
+import { GroupProvider } from "@/lib/group-context"
 
 type User = {
   id?: number
@@ -188,27 +189,29 @@ export default function DashboardLayout({
   }, [router])
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100 overflow-hidden">
-      {/* Top Navigation - Fixed at top */}
-      <TopNav
-        user={user}
-        loading={loading}
-        isLoggingOut={isLoggingOut}
-        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
-        onLogout={handleLogout}
-      />
-
-      {/* Sidebar and Main Content Container */}
-      <div className="flex flex-1 overflow-hidden pt-3">
-        {/* Sidebar - Below Top Nav with spacing */}
-        <Sidebar
-          sidebarOpen={sidebarOpen}
+    <GroupProvider>
+      <div className="flex flex-col h-screen bg-gray-100 overflow-hidden">
+        {/* Top Navigation - Fixed at top */}
+        <TopNav
+          user={user}
+          loading={loading}
+          isLoggingOut={isLoggingOut}
           onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+          onLogout={handleLogout}
         />
 
-        {/* Main Content - Scrollable behind top nav */}
-        <main className="flex-1 overflow-y-auto p-4 pr-4 pt-20">{children}</main>
+        {/* Sidebar and Main Content Container */}
+        <div className="flex flex-1 overflow-hidden pt-3">
+          {/* Sidebar - Below Top Nav with spacing */}
+          <Sidebar
+            sidebarOpen={sidebarOpen}
+            onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+          />
+
+          {/* Main Content - Scrollable behind top nav */}
+          <main className="flex-1 overflow-y-auto p-4 pr-4 pt-20">{children}</main>
+        </div>
       </div>
-    </div>
+    </GroupProvider>
   )
 }

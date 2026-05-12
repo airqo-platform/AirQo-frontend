@@ -289,6 +289,7 @@ export interface DeviceQueryParams {
   network?: string
   status?: string
   search?: string
+  group?: string
 }
 
 export interface PerformanceQueryParams {
@@ -309,6 +310,7 @@ export interface StatsQueryParams {
   include_networks?: boolean
   include_categories?: boolean
   include_maintenance?: boolean
+  group?: string
 }
 
 // UI Compatible Types (for backward compatibility)
@@ -493,6 +495,7 @@ export interface SyncedGridsQueryParams {
   search?: string
   grid_ids?: string
   admin_level?: GridAdminLevel | GridAdminLevel[]
+  group?: string
 }
 
 export interface SyncedGridsResponse {

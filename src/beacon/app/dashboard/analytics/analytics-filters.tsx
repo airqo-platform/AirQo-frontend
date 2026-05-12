@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
-import { format, subDays } from "date-fns"
+import { format } from "date-fns"
 import { CalendarIcon, Search, X, RefreshCw } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -17,6 +17,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { airQloudService, type AirQloudBasic } from "@/services/airqloud.service"
 import { deviceApiService, syncCohorts, syncThingSpeak } from "@/services/device-api.service"
 import type { Device } from "@/types/api.types"
+import { useGroup } from "@/lib/group-context"
 
 type AnalyticsFilterType = "airqlouds" | "devices" | "grids"
 
@@ -48,6 +49,7 @@ interface SelectedItem {
 
 export default function AnalyticsFilters({ initialFilterType = "airqlouds", onFilterChange, onAnalyse, isAnalysing }: AnalyticsFiltersProps) {
   const { toast } = useToast()
+  const { activeGroup, loading: groupLoading } = useGroup()
   const [isSyncing, setIsSyncing] = useState(false)
   const [filterType, setFilterType] = useState<AnalyticsFilterType>(initialFilterType)
   const [selectedItems, setSelectedItems] = useState<string[]>([])
@@ -122,12 +124,15 @@ export default function AnalyticsFilters({ initialFilterType = "airqlouds", onFi
   useEffect(() => {
     const fetchAirqlouds = async () => {
       if (filterType === "airqlouds") {
+        if (groupLoading || !activeGroup) return
+
         try {
           setIsLoadingAirqlouds(true)
           const response = await airQloudService.getAirQloudsBasic({
             search: searchTerm || undefined,
             tags: cohortTags.length > 0 ? cohortTags.join(",") : undefined,
             limit: 100,
+            group: activeGroup,
           })
           // The API might return { airqlouds: [], meta: {} } or [] depending on the endpoint used in service
           // getAirQloudsBasic was updated to use the same endpoint structure?
@@ -153,17 +158,20 @@ export default function AnalyticsFilters({ initialFilterType = "airqlouds", onFi
     }, 300)
 
     return () => clearTimeout(timer)
-  }, [filterType, searchTerm, cohortTags])
+  }, [filterType, searchTerm, cohortTags, activeGroup, groupLoading])
 
   // Fetch Grids from API
   useEffect(() => {
     const fetchGrids = async () => {
       if (filterType === "grids") {
+        if (groupLoading || !activeGroup) return
+
         try {
           setIsLoadingGrids(true)
           const response = await airQloudService.getGridsBasic({
             search: searchTerm || undefined,
             limit: 100,
+            group: activeGroup,
           })
 
           setGrids((response as any).airqlouds || [])
@@ -180,18 +188,21 @@ export default function AnalyticsFilters({ initialFilterType = "airqlouds", onFi
     }, 300)
 
     return () => clearTimeout(timer)
-  }, [filterType, searchTerm])
+  }, [filterType, searchTerm, activeGroup, groupLoading])
 
   // Fetch Devices from API
   useEffect(() => {
     const fetchDevices = async () => {
       if (filterType === "devices") {
+        if (groupLoading || !activeGroup) return
+
         try {
           setIsLoadingDevices(true)
           const response = await deviceApiService.getDevicesPaginated({
-            network: "airqo",
+            network: activeGroup,
             search: searchTerm || undefined,
             limit: 100,
+            group: activeGroup,
           })
           setDevices(response.devices)
         } catch (error) {
@@ -207,7 +218,7 @@ export default function AnalyticsFilters({ initialFilterType = "airqlouds", onFi
     }, 300)
 
     return () => clearTimeout(timer)
-  }, [filterType, searchTerm])
+  }, [filterType, searchTerm, activeGroup, groupLoading])
 
   let currentItems: Array<{ id: string; name: string; isActive: boolean }>
   if (filterType === "airqlouds") {
