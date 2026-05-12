@@ -61,10 +61,13 @@ import {
 } from '@/components/ui/tooltip';
 import stockService from '@/services/stock.service';
 import { ItemsStock, ItemsStockCreate, ItemsStockUpdate, ItemsStockResponse } from '@/types/stock.types';
+import { useGroup } from '@/lib/group-context';
 
 const StockPage = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { activeGroup, loading: groupLoading } = useGroup();
+  const isAirqoGroup = activeGroup?.toLowerCase() === 'airqo';
 
   const [searchTerm, setSearchTerm] = useState("");
   const [newItemDialog, setNewItemDialog] = useState(false);
@@ -88,8 +91,9 @@ const StockPage = () => {
 
   // Fetch stock items
   const { data: stockData, isLoading, error } = useQuery<ItemsStockResponse>({
-    queryKey: ['stock-items'],
+    queryKey: ['stock-items', activeGroup],
     queryFn: () => stockService.getAllItems({ page: 1, page_size: 100 }) as Promise<ItemsStockResponse>,
+    enabled: isAirqoGroup,
   });
 
   // Create item mutation
@@ -408,6 +412,28 @@ const StockPage = () => {
       setIsExporting(false);
     }
   };
+
+  if (groupLoading) {
+    return (
+      <div className="p-6">
+        <Skeleton className="h-10 w-72 mb-6" />
+        <Skeleton className="h-40 w-full" />
+      </div>
+    );
+  }
+
+  if (!isAirqoGroup) {
+    return (
+      <div className="p-6">
+        <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+          <h2 className="text-lg font-semibold mb-2">Restricted section</h2>
+          <p className="text-sm text-muted-foreground">
+            Stock is only available when the selected group is <span className="font-semibold">airqo</span>.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">

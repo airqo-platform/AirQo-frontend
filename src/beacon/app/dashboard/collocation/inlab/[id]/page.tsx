@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useMemo } from "react"
+import React, { useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { ArrowLeft, Calendar, MapPin, Wifi, AlertTriangle, FlaskConical, CheckCircle2, Activity, FileText, Download, Loader2 } from "lucide-react"
 import Link from "next/link"

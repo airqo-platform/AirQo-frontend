@@ -9,6 +9,7 @@ import { calculateNearestNeighborRoute, Coordinates } from "@/utils/routing-util
 import { useToast } from "@/hooks/use-toast"
 import { Badge } from "@/components/ui/badge"
 import dynamic from "next/dynamic"
+import { useGroup } from "@/lib/group-context"
 
 // Dynamically import Map component to avoid SSR issues with Leaflet
 const MaintenanceMap = dynamic(() => import("@/components/maintenance/maintenance-map"), {
@@ -59,6 +60,7 @@ const getGridLabel = (grid: SyncedGrid) => grid.long_name || grid.name
 
 export default function MaintenancePage() {
     const { toast } = useToast()
+    const { activeGroup, loading: groupLoading } = useGroup()
 
     // --- FILTER STATE ---
     const [selectedDays, setSelectedDays] = useState(14)
@@ -214,6 +216,8 @@ export default function MaintenancePage() {
     useEffect(() => {
         let cancelled = false
         const fetchCohorts = async () => {
+            if (groupLoading || !activeGroup) return
+
             setLoadingAirQlouds(true)
             try {
                 const tagsParam = selectedTags.length > 0 ? selectedTags.join(',') : undefined
@@ -221,6 +225,7 @@ export default function MaintenancePage() {
                     search: cohortSearch || undefined,
                     tags: tagsParam,
                     limit: 100,
+                    group: activeGroup,
                 })
                 if (!cancelled) {
                     const items = Array.isArray(response) ? response : (response as any).airqlouds || []
@@ -235,12 +240,14 @@ export default function MaintenancePage() {
 
         const timer = setTimeout(fetchCohorts, 300) // debounce for search
         return () => { cancelled = true; clearTimeout(timer) }
-    }, [selectedTags, cohortSearch])
+    }, [selectedTags, cohortSearch, activeGroup, groupLoading])
 
     // Fetch grid list from synced grids endpoint
     useEffect(() => {
         let cancelled = false
         const fetchGrids = async () => {
+            if (groupLoading || !activeGroup) return
+
             setLoadingGrids(true)
             try {
                 const items = await getSyncedGrids({
@@ -248,6 +255,7 @@ export default function MaintenancePage() {
                     limit: 20,
                     search: gridSearch || undefined,
                     admin_level: gridAdminLevelFilter === 'all' ? undefined : gridAdminLevelFilter,
+                    group: activeGroup,
                 })
                 if (!cancelled) setGrids(items)
             } catch (error) {
@@ -259,14 +267,16 @@ export default function MaintenancePage() {
 
         const timer = setTimeout(fetchGrids, 300)
         return () => { cancelled = true; clearTimeout(timer) }
-    }, [gridSearch, gridAdminLevelFilter])
+    }, [gridSearch, gridAdminLevelFilter, activeGroup, groupLoading])
 
     // Fetch Map Data (re-fetch when days or tags change)
     const fetchMapData = useCallback(async () => {
+        if (groupLoading || !activeGroup) return null
+
         setLoadingMap(true)
         try {
             const tagsParam = selectedTags.length > 0 ? selectedTags.join(",") : undefined
-            const response = await getMaintenanceMapData(selectedDays, tagsParam)
+            const response = await getMaintenanceMapData(selectedDays, tagsParam, activeGroup)
             return response
         } catch (error) {
             console.error("Failed to fetch Map data", error)
@@ -274,7 +284,7 @@ export default function MaintenancePage() {
         } finally {
             setLoadingMap(false)
         }
-    }, [selectedDays, selectedTags])
+    }, [selectedDays, selectedTags, activeGroup, groupLoading])
 
     // --- ROUTING LOGIC ---
     const calculateRoute = () => {

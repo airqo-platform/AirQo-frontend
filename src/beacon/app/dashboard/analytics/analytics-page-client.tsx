@@ -7,6 +7,7 @@ import AirQloudsTable from "./airqlouds-table"
 import { useToast } from "@/components/ui/use-toast"
 import { airQloudService } from "@/services/airqloud.service"
 import { deviceApiService } from "@/services/device-api.service"
+import { useGroup } from "@/lib/group-context"
 
 const getFilterLabel = (filterType: FilterState["filterType"]) => {
   if (filterType === "airqlouds") return "Cohort"
@@ -31,12 +32,13 @@ const getDateWindow = (filterState: FilterState) => {
   return { startDate, endDate }
 }
 
-const fetchAnalysisData = async (filterState: FilterState, start: string, end: string) => {
+const fetchAnalysisData = async (filterState: FilterState, start: string, end: string, group: string) => {
   if (filterState.filterType === "airqlouds") {
     return airQloudService.getAirQloudPerformance({
       start,
       end,
       ids: filterState.selectedItems,
+      group,
     })
   }
 
@@ -46,6 +48,7 @@ const fetchAnalysisData = async (filterState: FilterState, start: string, end: s
       end,
       ids: filterState.selectedItems,
       admin_level: "city",
+      group,
     })
   }
 
@@ -53,11 +56,13 @@ const fetchAnalysisData = async (filterState: FilterState, start: string, end: s
     start,
     end,
     deviceNames: filterState.selectedItems,
+    group,
   })
 }
 
 export default function AnalyticsPageClient() {
   const { toast } = useToast()
+  const { activeGroup, loading: groupLoading } = useGroup()
   const router = useRouter()
   const searchParams = useSearchParams()
   const initialFilterType = searchParams?.get("analysis") === "grids" ? "grids" : "airqlouds"
@@ -73,6 +78,15 @@ export default function AnalyticsPageClient() {
   const [isAnalysing, setIsAnalysing] = useState(false)
 
   const handleAnalyse = async (filterState: FilterState) => {
+    if (groupLoading || !activeGroup) {
+      toast({
+        title: "Group Required",
+        description: "Please wait for your active group to load before running analysis.",
+        variant: "destructive",
+      })
+      return
+    }
+
     if (!filterState.dateRange.from || !filterState.dateRange.to) {
       toast({
         title: "Date Range Required",
@@ -95,7 +109,7 @@ export default function AnalyticsPageClient() {
 
     try {
       const { startDate, endDate } = getDateWindow(filterState)
-      const response = await fetchAnalysisData(filterState, startDate.toISOString(), endDate.toISOString())
+      const response = await fetchAnalysisData(filterState, startDate.toISOString(), endDate.toISOString(), activeGroup)
 
       sessionStorage.setItem("analysisData", JSON.stringify(response))
       sessionStorage.setItem("analysisDateRange", JSON.stringify({

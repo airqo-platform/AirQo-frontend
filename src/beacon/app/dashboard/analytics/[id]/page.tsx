@@ -28,6 +28,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { useGroup } from "@/lib/group-context"
 import AirQloudPerformanceTab from "./airqloud-performance-tab"
 import DevicePerformanceHeatmaps, { DeviceHourHeatmaps } from "@/components/analytics/device-heatmap"
 
@@ -290,6 +291,7 @@ const ErrorMarginMiniGraph = memo(function ErrorMarginMiniGraph({ errorMarginHis
 export default function AirQloudDetailPage() {
   const params = useParams()
   const searchParams = useSearchParams()
+  const { activeGroup, loading: groupLoading } = useGroup()
   const airqloudId = params?.id as string
   const isGridMode = searchParams?.get("type") === "grid"
   const entityLabel = isGridMode ? "Grid" : "Cohort"
@@ -304,6 +306,10 @@ export default function AirQloudDetailPage() {
       if (!airqloudId) {
         setError(`${entityLabel} ID is required`)
         setIsLoading(false)
+        return
+      }
+
+      if (isGridMode && (groupLoading || !activeGroup)) {
         return
       }
 
@@ -323,7 +329,8 @@ export default function AirQloudDetailPage() {
           ? await airQloudService.getGridById(
             airqloudId,
             startDate.toISOString(),
-            endDate.toISOString()
+            endDate.toISOString(),
+            activeGroup ?? undefined
           )
           : await airQloudService.getAirQloudById(
             airqloudId,
@@ -339,7 +346,7 @@ export default function AirQloudDetailPage() {
     }
 
     fetchAirQloudDetail()
-  }, [airqloudId, entityLabel, isGridMode])
+  }, [airqloudId, entityLabel, isGridMode, activeGroup, groupLoading])
 
   if (isLoading) {
     return (
