@@ -151,6 +151,7 @@ export const FeedbackLauncher: React.FC = () => {
         rating,
         category: mainCategory === 'issue' ? 'bug' : 'feature_request',
         platform: 'web',
+        app: 'vertex',
         metadata: defaultMetadata,
       });
 
