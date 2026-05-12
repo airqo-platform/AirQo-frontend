@@ -20,7 +20,7 @@ import {
   setLoggingOut,
 } from "@/core/redux/slices/userSlice";
 import { getLastActiveModule } from "@/core/utils/userPreferences";
-import { VERTEX_DESKTOP_DOWNLOADS } from "@/core/constants/app-downloads";
+import { ROUTE_LINKS } from "@/core/routes";
 // import GoogleAuthSection from "@/components/features/auth/google-auth-section";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft } from "lucide-react";
@@ -33,7 +33,6 @@ const loginSchema = z.object({
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [step, setStep] = useState<'email' | 'password'>('email');
-  const [downloadUrl, setDownloadUrl] = useState(VERTEX_DESKTOP_DOWNLOADS.windows);
   const searchParams = useSearchParams();
   const callbackUrl = useMemo(() => {
     const raw = searchParams.get("callbackUrl");
@@ -93,7 +92,6 @@ export default function LoginPage() {
     
     if (isWin) {
       setPlatform('win');
-      setDownloadUrl(VERTEX_DESKTOP_DOWNLOADS.windows);
     } else if (isLinux) {
       setPlatform('linux');
     } else {
@@ -189,17 +187,15 @@ export default function LoginPage() {
           
           {!isElectron && platform === 'win' && (
             <div className="flex items-center">
-              <a
-                href={downloadUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                href={ROUTE_LINKS.DOWNLOAD}
                 className="inline-flex items-center gap-2 rounded-md border border-border bg-primary px-4 py-2 text-sm font-medium text-white transition-all hover:bg-primary/80 hover:border-foreground/20 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M0 3.449L9.75 2.1V11.7H0V3.449zm0 9.151h9.75v9.6L0 20.551V12.6zm10.55-10.701L24 0v11.7h-13.45V1.899zm0 10.701H24V24l-13.45-1.899V12.6z"/>
                 </svg>
                 Download for Windows
-              </a>
+              </Link>
             </div>
           )}
         </div>
