@@ -1,10 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Bell, LogOut, Loader2 } from "lucide-react"
-import { AqAirQo, AqAlignLeft } from '@/components/icons'
+import { Bell, LogOut, Loader2, RefreshCw } from "lucide-react"
+import { AqAlignLeft } from '@/components/icons'
 import { Button } from "@/components/ui/button"
+import GroupSelector from "@/components/dashboard/group-selector"
+import { syncGroups } from "@/services/device-api.service"
+import authService from "@/services/api-service"
+import { useToast } from "@/components/ui/use-toast"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,15 +42,39 @@ interface TopNavProps {
   onLogout: () => void
 }
 
+const GROUP_SYNC_ADMIN_EMAIL = "gibson@airqo.net"
+
+function decodeJwtEmail(token: string | null): string | null {
+  if (!token) return null
+
+  try {
+    const rawToken = token.replace(/^(JWT|Bearer)\s+/i, "")
+    const parts = rawToken.split('.')
+    if (parts.length !== 3) return null
+
+    const payload = JSON.parse(atob(parts[1].replaceAll('-', '+').replaceAll('_', '/')))
+    return payload.email || payload.userName || payload.username || null
+  } catch {
+    return null
+  }
+}
+
 export default function TopNav({
   user,
   loading,
   isLoggingOut,
   onToggleSidebar,
   onLogout,
-}: TopNavProps) {
+}: Readonly<TopNavProps>) {
+  const { toast } = useToast()
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
+  const [isSyncingGroups, setIsSyncingGroups] = useState(false)
   const router = useRouter()
+
+  const canSyncGroups = useMemo(() => {
+    const email = decodeJwtEmail(authService.getToken())
+    return email?.toLowerCase() === GROUP_SYNC_ADMIN_EMAIL
+  }, [])
 
   // Generate user initials from first_name and last_name
   const getUserInitials = (user: User | null) => {
@@ -83,6 +111,26 @@ export default function TopNav({
     onLogout()
   }
 
+  const handleSyncGroups = async () => {
+    setIsSyncingGroups(true)
+    try {
+      await syncGroups()
+      toast({
+        title: "Groups sync successful",
+        description: "Groups synced successfully.",
+      })
+    } catch (error) {
+      console.error("Error syncing groups:", error)
+      toast({
+        variant: "destructive",
+        title: "Groups sync failed",
+        description: error instanceof Error ? error.message : "Failed to sync groups.",
+      })
+    } finally {
+      setIsSyncingGroups(false)
+    }
+  }
+
   return (
     <>
       <header className="bg-white shadow-sm h-14 flex items-center justify-between px-6 flex-shrink-0 mx-4 mt-3 rounded-xl border border-gray-300 fixed top-0 left-0 right-0 z-50">
@@ -95,14 +143,31 @@ export default function TopNav({
           >
             <AqAlignLeft size={30} color="#0A84FF" />
           </button>
-          <div 
-            className="flex items-center space-x-2 cursor-pointer" 
+          <button
+            type="button"
+            className="flex items-center space-x-2 cursor-pointer"
             onClick={() => router.push('/dashboard')}
           >
             <span className="text-xl font-bold text-gray-800">Beacon</span>
-          </div>
+          </button>
         </div>
         <div className="flex items-center space-x-4">
+          <GroupSelector />
+          {canSyncGroups && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSyncGroups}
+              disabled={isSyncingGroups}
+            >
+              {isSyncingGroups ? (
+                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4 mr-1" />
+              )}
+              <span className="hidden sm:inline">{isSyncingGroups ? "Syncing..." : "Sync Groups"}</span>
+            </Button>
+          )}
           <Bell className="h-5 w-5 text-gray-500 cursor-pointer hover:text-primary transition-colors" />
           <div className="flex items-center space-x-2">
             {/* User Avatar with initials */}

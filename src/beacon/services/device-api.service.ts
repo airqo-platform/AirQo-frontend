@@ -205,7 +205,8 @@ class ApiService {
     const queryString = this.buildQueryString({
       include_networks: params?.include_networks ?? true,
       include_categories: params?.include_categories ?? true,
-      include_maintenance: params?.include_maintenance ?? true
+      include_maintenance: params?.include_maintenance ?? true,
+      group: params?.group
     })
 
     const endpoint = this.getEndpoint('/devices/stats')
@@ -606,13 +607,18 @@ class ApiService {
     start: string
     end: string
     deviceNames: string[]
+    group?: string
   }): Promise<any> {
     if (isMockMode()) return getMockDevicePerformanceData(data.deviceNames)
 
     const endpoint = this.getEndpoint('/devices/performance')
-    // Use comma-separated device names
-    const deviceNamesParam = data.deviceNames.join(',')
-    const url = `${this.baseUrl}${endpoint}?device_name=${encodeURIComponent(deviceNamesParam)}&startDateTime=${encodeURIComponent(data.start)}&endDateTime=${encodeURIComponent(data.end)}`
+    const queryString = this.buildQueryString({
+      device_name: data.deviceNames.join(','),
+      startDateTime: data.start,
+      endDateTime: data.end,
+      group: data.group,
+    })
+    const url = `${this.baseUrl}${endpoint}${queryString}`
 
     const response = await this.fetchWithRetry<any>(url)
     return response.data ?? response
@@ -704,12 +710,15 @@ class ApiService {
     return this.fetchWithRetry<MaintenanceAnalyticsResponse>(url)
   }
 
-  async getMaintenanceMapData(period_days: number = 14, tags?: string): Promise<MaintenanceMapItem[]> {
+  async getMaintenanceMapData(period_days: number = 14, tags?: string, group?: string): Promise<MaintenanceMapItem[]> {
     if (isMockMode()) return getMockMaintenanceMapData() as any
 
-    let query = `days=${period_days}`
-    if (tags) query += `&tags=${tags}`
-    const endpoint = this.getEndpoint(`/maintenance/map-view?${query}`)
+    const queryString = this.buildQueryString({
+      days: period_days,
+      tags,
+      group,
+    })
+    const endpoint = this.getEndpoint(`/maintenance/map-view/synced${queryString}`)
     const url = `${this.baseUrl}${endpoint}`
 
     const response = await this.fetchWithRetry<MaintenanceMapResponse>(url)
@@ -727,6 +736,7 @@ class ApiService {
       search: params?.search,
       grid_ids: params?.grid_ids,
       admin_level: adminLevelParam,
+      group: params?.group,
     })
     const endpoint = this.getEndpoint(`/grids/synced${queryString}`)
     const url = `${this.baseUrl}${endpoint}`
@@ -779,6 +789,22 @@ class ApiService {
       method: 'POST',
     })
   }
+
+  // Sync Groups
+  async syncGroups(): Promise<any> {
+    const token = authService.getToken()
+    if (!token) {
+      throw new Error('Authentication required to sync groups')
+    }
+
+    const url = `${this.baseUrl}/api/v1/groups/sync`
+    return this.fetchWithRetry<any>(url, {
+      method: 'POST',
+      headers: {
+        Authorization: token,
+      },
+    })
+  }
 }
 
 // Export singleton instance
@@ -815,14 +841,15 @@ export const getDistrictAnalytics = (districtId: string, params?: { start_date?:
 export const getDeviceMetadata = (params?: { skip?: number; limit?: number; device_id?: string; category_name?: string }) => deviceApiService.getDeviceMetadata(params)
 export const getDeviceConfig = (params?: { device_id: string; category_name?: string; skip?: number; limit?: number }) => deviceApiService.getDeviceConfig(params)
 export const updateDeviceConfigs = (data: { device_ids: string[]; config1?: string; config2?: string; config3?: string; config4?: string; config5?: string; config6?: string; config7?: string; config8?: string; config9?: string; config10?: string }) => deviceApiService.updateDeviceConfigs(data)
-export const getDevicePerformanceData = (data: { start: string; end: string; deviceNames: string[] }) => deviceApiService.getDevicePerformanceData(data)
+export const getDevicePerformanceData = (data: { start: string; end: string; deviceNames: string[]; group?: string }) => deviceApiService.getDevicePerformanceData(data)
 export const getAirQloudStats = (body: MaintenanceStatsBody) => deviceApiService.getAirQloudStats(body)
 export const getDeviceStatsMaintenance = (body: MaintenanceStatsBody) => deviceApiService.getDeviceStatsMaintenance(body)
 export const getMaintenanceAnalytics = (period_days: number = 14) => deviceApiService.getMaintenanceAnalytics(period_days)
-export const getMaintenanceMapData = (period_days: number = 14, tags?: string) => deviceApiService.getMaintenanceMapData(period_days, tags)
+export const getMaintenanceMapData = (period_days: number = 14, tags?: string, group?: string) => deviceApiService.getMaintenanceMapData(period_days, tags, group)
 export const getSyncedGrids = (params?: SyncedGridsQueryParams) => deviceApiService.getSyncedGrids(params)
 export const syncDevices = () => deviceApiService.syncDevices()
 export const syncDevicePerformance = () => deviceApiService.syncDevicePerformance()
 export const syncCohorts = () => deviceApiService.syncCohorts()
 export const syncThingSpeak = (days: number = 14) => deviceApiService.syncThingSpeak(days)
 export const syncSites = () => deviceApiService.syncSites()
+export const syncGroups = () => deviceApiService.syncGroups()

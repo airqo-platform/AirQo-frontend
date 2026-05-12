@@ -25,6 +25,7 @@ import {
 import { Search, ArrowUpDown, ChevronRight, Loader2 } from "lucide-react"
 import { airQloudService, type AirQloudWithPerformance } from "@/services/airqloud.service"
 import type { GridAdminLevel } from "@/types/api.types"
+import { useGroup } from "@/lib/group-context"
 
 type PerformanceEntityType = "cohorts" | "grids"
 type GridAdminLevelFilter = GridAdminLevel | "all"
@@ -333,6 +334,7 @@ const processAirQloudData = (airqloud: AirQloudWithPerformance, performanceDays:
 
 export default function AirQloudsTable({ performanceDays = 14, entityType = "cohorts", lockedTags, title }: AirQloudsTableProps) { //14days
   const router = useRouter()
+  const { activeGroup, loading: groupLoading } = useGroup()
   const [searchTerm, setSearchTerm] = useState("")
   const [sortBy, setSortBy] = useState<keyof ProcessedAirQloud>("name")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
@@ -363,6 +365,8 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
 
   // Fetch data from API
   const fetchAirQlouds = async () => {
+    if (groupLoading || !activeGroup) return
+
     try {
       setIsLoading(true)
       setError(null)
@@ -388,6 +392,7 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
         limit: pageSize,
         skip: skip,
         admin_level: selectedGridAdminLevel,
+        group: activeGroup,
       }) : await airQloudService.getAirQlouds({
         includePerformance: true,
         summary: true,
@@ -397,7 +402,8 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
         search: searchTerm || undefined,
         limit: pageSize,
         skip: skip,
-        tags: cohortTags.length > 0 ? cohortTags.join(",") : undefined
+        tags: cohortTags.length > 0 ? cohortTags.join(",") : undefined,
+        group: activeGroup,
       })
 
       const { airqlouds, meta } = response
@@ -421,7 +427,7 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
   useEffect(() => {
     // Reset page to 1 when search changes
     setPage(1)
-  }, [searchTerm, gridAdminLevel])
+  }, [searchTerm, gridAdminLevel, activeGroup])
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -432,7 +438,7 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
 
     return () => clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTerm, performanceDays, page, pageSize, cohortTags, entityType, gridAdminLevel])
+  }, [searchTerm, performanceDays, page, pageSize, cohortTags, entityType, gridAdminLevel, activeGroup, groupLoading])
 
   // Sort data (client-side sorting for current page)
   const sortedData = useMemo(() => {
@@ -594,6 +600,8 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
   }
 
   const handleExportCSV = async () => {
+    if (groupLoading || !activeGroup) return
+
     const escapeCSVValue = (value: string | number): string => {
       const str = String(value)
       // Escape values that could be interpreted as formulas
@@ -631,6 +639,7 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
         limit: limit,
         skip: 0,
         admin_level: selectedGridAdminLevel,
+        group: activeGroup,
       }) : await airQloudService.getAirQlouds({
         includePerformance: true,
         summary: true,
@@ -640,7 +649,8 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
         search: searchTerm || undefined,
         limit: limit,
         skip: 0,
-        tags: cohortTags.length > 0 ? cohortTags.join(",") : undefined
+        tags: cohortTags.length > 0 ? cohortTags.join(",") : undefined,
+        group: activeGroup,
       })
 
       const { airqlouds } = response
