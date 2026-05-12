@@ -29,8 +29,10 @@ const ReactPlayer = dynamic(
 
 ReactPlayer.displayName = 'ReactPlayer';
 
+const HOME_FULL_VIDEO =
+  'https://res.cloudinary.com/dbibjvyhm/video/upload/v1728162527/website/videos/Final_1_qttrg3.mp4';
 const VIDEO_PREVIEW_IMAGE =
-  'https://res.cloudinary.com/dbibjvyhm/video/upload/so_0,f_jpg,q_auto,w_1280/v1716038850/website/videos/opening_jtpafn.jpg';
+  'https://res.cloudinary.com/dbibjvyhm/video/upload/so_2,f_jpg,q_auto,w_1280/v1716038850/website/videos/opening_jtpafn.jpg';
 
 const animations = {
   backdrop: {
@@ -87,14 +89,18 @@ const VideoSection: React.FC<{
 }> = React.memo(({ onPlay }) => (
   <div className="lg:w-1/2 w-full relative flex items-center justify-center">
     <div className="w-full h-[250px] sm:h-[300px] md:h-[400px] lg:h-[450px] rounded-lg overflow-hidden relative">
-      <Image
-        src={VIDEO_PREVIEW_IMAGE}
-        alt="AirQo story preview"
-        fill
-        priority
-        sizes="(max-width: 1024px) 100vw, 50vw"
-        className="absolute top-0 left-0 w-full h-full object-cover"
-      />
+      <video
+        className="absolute left-0 top-0 h-full w-full object-cover"
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        poster={VIDEO_PREVIEW_IMAGE}
+        aria-label="Muted AirQo story preview video"
+      >
+        <source src={HOME_FULL_VIDEO} type="video/mp4" />
+      </video>
       <div className="absolute inset-0 bg-gradient-to-tr from-blue-950/40 via-blue-900/10 to-transparent" />
       <motion.button
         onClick={onPlay}
@@ -168,7 +174,7 @@ const VideoModal = React.forwardRef<
       <div className="relative pb-[56.25%]">
         <ReactPlayer
           ref={playerRef}
-          url="https://res.cloudinary.com/dbibjvyhm/video/upload/v1728162527/website/videos/Final_1_qttrg3.mp4"
+          url={HOME_FULL_VIDEO}
           playing={isOpen}
           controls
           width="100%"
