@@ -14,6 +14,7 @@ export interface SubmitFeedbackRequest {
   rating: number;
   category: string;
   platform: string;
+  app?: string;
   metadata?: FeedbackSubmissionMetadata;
 }
 
