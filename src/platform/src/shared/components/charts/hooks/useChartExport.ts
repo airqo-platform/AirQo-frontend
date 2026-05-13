@@ -141,6 +141,16 @@ const applyCloneStyles = (clonedDoc: Document) => {
     });
 };
 
+const ensureFilenameExtension = (filename: string, extension: string) => {
+  const normalizedExtension = extension.startsWith('.')
+    ? extension
+    : `.${extension}`;
+
+  return filename.toLowerCase().endsWith(normalizedExtension)
+    ? filename
+    : `${filename}${normalizedExtension}`;
+};
+
 export const useChartExport = () => {
   const exportRef = useRef<HTMLDivElement>(null);
 
@@ -187,11 +197,14 @@ export const useChartExport = () => {
     async (options: ExportOptionsPartial = {}): Promise<void> => {
       try {
         const canvas = await renderChartToCanvas(options);
+        const filename = ensureFilenameExtension(
+          options.filename || `air-quality-chart-${Date.now()}`,
+          'png'
+        );
 
         // Create download link
         const link = document.createElement('a');
-        link.download =
-          options.filename || `air-quality-chart-${Date.now()}.png`;
+        link.download = filename;
         link.href = canvas.toDataURL('image/png', options.quality || 0.9);
 
         // Trigger download
@@ -210,28 +223,35 @@ export const useChartExport = () => {
     async (options: ExportOptionsPartial = {}): Promise<void> => {
       try {
         const canvas = await renderChartToCanvas(options);
+        const filename = ensureFilenameExtension(
+          options.filename || `air-quality-chart-${Date.now()}`,
+          'pdf'
+        );
 
         const imgData = canvas.toDataURL('image/png', options.quality || 0.9);
 
-        // Calculate PDF dimensions
-        const imgWidth = canvas.width;
-        const imgHeight = canvas.height;
-        const ratio = imgHeight / imgWidth;
-
-        // A4 page dimensions in mm
-        const pageWidth = 210;
-        const pageHeight = 297;
+        // Fit the rendered chart into the printable page area while preserving
+        // aspect ratio. This avoids cropped PDFs when the chart is wide or tall.
         const margin = 20;
-        const contentWidth = pageWidth - margin * 2;
-        const contentHeight = contentWidth * ratio;
+        const titleSpace = 20;
 
         // Create PDF
         const pdf = new jsPDF({
-          orientation:
-            contentHeight > pageHeight - margin * 2 ? 'landscape' : 'portrait',
+          orientation: canvas.width >= canvas.height ? 'landscape' : 'portrait',
           unit: 'mm',
           format: 'a4',
         });
+
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const maxWidth = pageWidth - margin * 2;
+        const maxHeight = pageHeight - margin * 2 - titleSpace;
+        const scale = Math.min(
+          maxWidth / canvas.width,
+          maxHeight / canvas.height
+        );
+        const finalWidth = canvas.width * scale;
+        const finalHeight = canvas.height * scale;
 
         // Add title
         const title = options.filename || 'Air Quality Chart';
@@ -247,23 +267,17 @@ export const useChartExport = () => {
         );
 
         // Add chart image
-        const finalWidth = contentWidth;
-        const finalHeight = Math.min(
-          contentHeight,
-          pageHeight - margin * 2 - 20
-        );
-
         pdf.addImage(
           imgData,
           'PNG',
           margin,
-          margin + 20,
+          margin + titleSpace,
           finalWidth,
           finalHeight
         );
 
         // Save PDF
-        pdf.save(options.filename || `air-quality-chart-${Date.now()}.pdf`);
+        pdf.save(filename);
       } catch (error) {
         console.error('Error exporting to PDF:', error);
         throw error;
@@ -302,8 +316,10 @@ export const useChartExport = () => {
 
         // Create download link
         const link = document.createElement('a');
-        link.download =
-          options.filename || `air-quality-chart-${Date.now()}.svg`;
+        link.download = ensureFilenameExtension(
+          options.filename || `air-quality-chart-${Date.now()}`,
+          'svg'
+        );
         link.href = URL.createObjectURL(svgBlob);
 
         // Trigger download
