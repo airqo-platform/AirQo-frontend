@@ -84,14 +84,15 @@ class AuthImpl extends AuthRepository implements SocialAuthRepository {
               break;
             }
           }
-          if (userId == null || userId.trim().isEmpty) {
-            throw Exception(
-                "Authentication failed. Token does not contain user information.");
-          }
         } catch (e) {
           loggy.error("Failed to decode JWT token");
           throw Exception(
               "Authentication failed. Invalid token format received.");
+        }
+
+        if (userId == null || userId.trim().isEmpty) {
+          throw Exception(
+              "Authentication failed. Token does not contain user information.");
         }
 
         try {

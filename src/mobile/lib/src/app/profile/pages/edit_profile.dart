@@ -244,7 +244,9 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
     if (!_validateForm()) return;
 
     final token = await AuthHelper.refreshTokenIfNeeded();
-    if (token == null && mounted) {
+    if (!mounted) return;
+
+    if (token == null) {
       GlobalAuthManager.instance.notifySessionExpired();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -400,6 +402,7 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
           if (errorString.contains('unauthorized') ||
               errorString.contains('session has expired') ||
               errorString.contains('please log in again to continue')) {
+            GlobalAuthManager.instance.notifySessionExpired();
             userFriendlyMessage = 'Please log in again to continue.';
           } else if (errorString.contains('network') ||
               errorString.contains('timeout')) {

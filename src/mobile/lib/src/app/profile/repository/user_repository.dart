@@ -61,6 +61,22 @@ class UserImpl extends UserRepository with UiLoggy {
     );
   }
 
+  String _requiredStringFromToken(
+    Map<String, dynamic> token,
+    List<String> keys,
+    String claimName,
+  ) {
+    final value = _stringFromToken(token, keys);
+    if (value.isEmpty) {
+      throw Exception("Token does not contain user $claimName");
+    }
+    return value;
+  }
+
+  DateTime _dateTimeFromToken(Map<String, dynamic> token, String key) {
+    return DateTime.tryParse(token[key]?.toString() ?? "") ?? DateTime.now();
+  }
+
   @override
   Future<ProfileResponseModel> loadUserProfile() async {
     try {
@@ -100,9 +116,10 @@ class UserImpl extends UserRepository with UiLoggy {
 
       // Create User object from JWT payload matching your provided structure
       final user = User(
-        id: _stringFromToken(
+        id: _requiredStringFromToken(
           decodedToken,
           ['_id', 'user_id', 'userId', 'id', 'sub', 'uid'],
+          'id',
         ),
         firstName: name.firstName,
         lastName: name.lastName,
@@ -117,22 +134,18 @@ class UserImpl extends UserRepository with UiLoggy {
             'photoURL',
           ],
         ),
-        lastLogin: decodedToken["lastLogin"] != null
-            ? DateTime.parse(decodedToken["lastLogin"])
-            : DateTime.now(),
+        lastLogin: _dateTimeFromToken(decodedToken, "lastLogin"),
         isActive: true, // Default since not in JWT
         loginCount: decodedToken["nrp"] ?? 1, // Use 'nrp' field from JWT
         userName: _stringFromToken(
           decodedToken,
           ['userName', 'username', 'displayName', 'display_name', 'email'],
         ),
-        email: _stringFromToken(decodedToken, ['email']),
+        email: _requiredStringFromToken(decodedToken, ['email'], 'email'),
         verified: true, // Default since user is authenticated
         analyticsVersion: 1, // Default
         privilege: decodedToken["privilege"] ?? "user",
-        updatedAt: decodedToken["updatedAt"] != null
-            ? DateTime.parse(decodedToken["updatedAt"])
-            : DateTime.now(),
+        updatedAt: _dateTimeFromToken(decodedToken, "updatedAt"),
       );
 
       // Return as ProfileResponseModel format
