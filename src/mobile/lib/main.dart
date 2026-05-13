@@ -44,7 +44,6 @@ import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:airqo/src/app/surveys/bloc/survey_bloc.dart';
 import 'package:airqo/src/app/surveys/repository/survey_repository.dart';
 
-
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   runZonedGuarded(
@@ -60,15 +59,16 @@ void main() async {
 
         FlutterError.onError = (FlutterErrorDetails details) {
           FlutterError.presentError(details);
-          Object()
-              .logError('Unhandled Flutter error', details.exception, details.stack);
+          Object().logError(
+              'Unhandled Flutter error', details.exception, details.stack);
         };
 
         await dotenv.load(fileName: ".env.prod");
 
         // Initialize PostHog for analytics and feature flags
         final postHogApiKey = dotenv.env['POSTHOG_API_KEY'] ?? '';
-        final postHogHost = dotenv.env['POSTHOG_HOST'] ?? 'https://us.i.posthog.com';
+        final postHogHost =
+            dotenv.env['POSTHOG_HOST'] ?? 'https://us.i.posthog.com';
         final postHogConfig = PostHogConfig(postHogApiKey);
         postHogConfig.host = postHogHost;
         postHogConfig.debug = !kReleaseMode;
@@ -237,8 +237,7 @@ class Decider extends StatefulWidget {
 }
 
 class _DeciderState extends State<Decider> with WidgetsBindingObserver {
-
-    @override
+  @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
@@ -276,13 +275,13 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
 
   Future<void> _checkTokenExpiryOnResume() async {
     final authBloc = context.read<AuthBloc>();
-    // Only check when the user is authenticated; guests have no token,
+    // Only refresh when the user is authenticated; guests have no token,
     // and if already expired we don't need to fire again.
     final currentState = authBloc.state;
     if (currentState is! AuthLoaded) return;
 
-    final isExpired = await AuthHelper.isTokenExpired();
-    if (isExpired && mounted) {
+    final token = await AuthHelper.refreshTokenIfNeeded();
+    if (token == null && mounted) {
       // Route through GlobalAuthManager so the de-duplication guard applies.
       GlobalAuthManager.instance.notifySessionExpired();
     }
@@ -300,7 +299,8 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
                 if (authState is SessionExpiredState) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Your session has expired. Please log in again.'),
+                      content: Text(
+                          'Your session has expired. Please log in again.'),
                       duration: Duration(seconds: 4),
                     ),
                   );

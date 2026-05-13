@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Bell, LogOut, Loader2, RefreshCw } from "lucide-react"
 import { AqAlignLeft } from '@/components/icons'
@@ -69,11 +69,12 @@ export default function TopNav({
   const { toast } = useToast()
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
   const [isSyncingGroups, setIsSyncingGroups] = useState(false)
+  const [canSyncGroups, setCanSyncGroups] = useState(false)
   const router = useRouter()
 
-  const canSyncGroups = useMemo(() => {
+  useEffect(() => {
     const email = decodeJwtEmail(authService.getToken())
-    return email?.toLowerCase() === GROUP_SYNC_ADMIN_EMAIL
+    setCanSyncGroups(email?.toLowerCase() === GROUP_SYNC_ADMIN_EMAIL)
   }, [])
 
   // Generate user initials from first_name and last_name
