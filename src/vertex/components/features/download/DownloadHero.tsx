@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { Monitor, ShieldCheck } from 'lucide-react';
 
 import ReusableButton from '@/components/shared/button/ReusableButton';
 import { VERTEX_DESKTOP_DOWNLOADS } from '@/core/constants/app-downloads';
@@ -14,25 +15,20 @@ const WindowsIcon = ({ className }: { className?: string }) => (
 export default function DownloadHero() {
   return (
     <section className="bg-primary-50 px-4 py-10 sm:px-6 sm:py-16 lg:px-8">
-      <div className="mx-auto w-full max-w-7xl">
+      <div className="mx-auto grid w-full max-w-7xl items-center gap-10 lg:min-h-[calc(100vh-5rem)] lg:grid-cols-[minmax(0,0.95fr)_minmax(420px,1.05fr)]">
         <div className="max-w-3xl">
-          <div className="mb-7 flex items-start gap-3 sm:mb-8 sm:items-center">
+          <div className="mb-7 flex items-center gap-2 sm:mb-8">
             <Image
               src="/images/airqo_logo.svg"
-              alt="AirQo"
-              width={36}
-              height={36}
-              className="h-8 w-auto shrink-0 sm:h-9"
+              alt="AirQo logo"
+              width={120}
+              height={32}
+              className="h-6 w-auto"
               priority
             />
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary sm:text-sm sm:tracking-[0.18em]">
-                AirQo Vertex Desktop
-              </p>
-              <p className="mt-1 text-sm leading-5 text-muted-foreground sm:mt-0">
-                Device deployment and data sharing from your desktop
-              </p>
-            </div>
+            <span className="text-lg font-medium tracking-tight text-foreground">
+              Vertex
+            </span>
           </div>
 
           <h1 className="max-w-2xl text-3xl font-semibold leading-tight tracking-normal text-heading sm:text-5xl lg:text-6xl">
@@ -60,6 +56,75 @@ export default function DownloadHero() {
             <span className="text-sm leading-6 text-muted-foreground">
               Windows is the currently supported platform.
             </span>
+          </div>
+        </div>
+
+        <div className="relative hidden lg:block">
+          <div className="rounded-lg border border-border bg-white shadow-xl">
+            <div className="flex items-center justify-between border-b border-border px-4 py-3">
+              <div className="flex items-center gap-2">
+                <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
+                <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+                <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+              </div>
+              <span className="text-xs font-medium text-muted-foreground">
+                Vertex Desktop
+              </span>
+            </div>
+            <div className="grid gap-4 p-4 sm:p-6">
+              <div className="flex items-center justify-between rounded-lg bg-primary px-4 py-3 text-white">
+                <div>
+                  <p className="text-sm font-semibold text-white">
+                    Device rollout
+                  </p>
+                  <p className="text-xs text-white/80">
+                    24 devices ready for deployment
+                  </p>
+                </div>
+                <Monitor className="h-8 w-8 text-white" />
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-lg border border-border bg-background p-4">
+                  <p className="text-sm font-semibold text-heading">
+                    Deployment checks
+                  </p>
+                  <div className="mt-4 space-y-3">
+                    {['Claim devices', 'Verify metadata', 'Share data'].map(
+                      step => (
+                        <div key={step} className="flex items-center gap-2">
+                          <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                          <span className="text-sm text-muted-foreground">
+                            {step}
+                          </span>
+                        </div>
+                      )
+                    )}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-border bg-background p-4">
+                  <p className="text-sm font-semibold text-heading">
+                    Network visibility
+                  </p>
+                  <div className="mt-4 space-y-3">
+                    {[82, 64, 48].map((width, index) => (
+                      <div key={width} className="space-y-1.5">
+                        <div className="h-2 rounded-full bg-secondary" />
+                        <div
+                          className="h-2 rounded-full bg-primary"
+                          style={{ width: `${width}%` }}
+                        />
+                        {index === 2 && (
+                          <p className="text-xs text-muted-foreground">
+                            Recent sync activity
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
