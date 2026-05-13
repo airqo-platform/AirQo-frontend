@@ -16,6 +16,7 @@ import { usePathname } from "next/navigation";
 import logger from "@/lib/logger";
 import { NetworkRequestDialog } from "../networks/network-request-dialog";
 import { MultiSelectCombobox } from "@/components/ui/multi-select";
+import ReusableFileUpload from "@/components/shared/fileupload/ReusableFileUpload";
 import { DEFAULT_DEVICE_TAGS } from "@/core/constants/devices";
 import { Label } from "@/components/ui/label";
 
@@ -331,20 +332,16 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
               </div>
             )}
 
-            <div className="space-y-1 pb-4 border-b">
-              <ReusableInputField
-                label="Bulk Import (Optional)"
-                id="bulk_file"
-                type="file"
-                accept=".csv,.json"
-                onChange={(e: any) => {
-                  const file = e.target.files?.[0];
-                  setBulkFile(file || null);
-                }}
-                placeholder="Upload file to bulk import devices"
-              />
-              <p className="text-xs text-slate-500">Supported file types are CSV and JSON. If a file is selected, single device fields below will be ignored (except Sensor Manufacturer if you want to override).</p>
-            </div>
+            <ReusableFileUpload
+              label="Import multiple devices at once (optional)"
+              id="bulk_file"
+              accept=".csv,.json"
+              file={bulkFile}
+              onChange={setBulkFile}
+              placeholder="Upload bulk import file"
+              description="Supported file types are CSV and JSON."
+              containerClassName="pb-4 border-b"
+            />
 
             <div className={bulkFile ? "opacity-50 pointer-events-none space-y-2" : "space-y-2"}>
               <ReusableInputField
