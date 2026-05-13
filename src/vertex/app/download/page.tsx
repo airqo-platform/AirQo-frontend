@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function DownloadPage() {
   return (
-    <main className="h-screen overflow-y-auto bg-background text-foreground">
+    <main className="min-h-screen bg-background text-foreground">
       <DownloadHero />
       <PlatformInfo />
     </main>
