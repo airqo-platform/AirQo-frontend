@@ -19,6 +19,20 @@ import { MultiSelectCombobox } from "@/components/ui/multi-select";
 import ReusableFileUpload from "@/components/shared/fileupload/ReusableFileUpload";
 import { DEFAULT_DEVICE_TAGS } from "@/core/constants/devices";
 import { Label } from "@/components/ui/label";
+import Papa from "papaparse";
+
+const EXPECTED_FIELDS = [
+  { key: 'long_name', label: 'Device Name', required: true },
+  { key: 'serial_number', label: 'Serial Number', required: true },
+  { key: 'network', label: 'Sensor Manufacturer', required: false },
+  { key: 'latitude', label: 'Latitude', required: false },
+  { key: 'longitude', label: 'Longitude', required: false },
+  { key: 'api_code', label: 'Device Connection URL', required: false },
+  { key: 'category', label: 'Category', required: false },
+  { key: 'description', label: 'Description', required: false },
+  { key: 'device_number', label: 'Device Number', required: false },
+  { key: 'tags', label: 'Tags (Comma separated)', required: false },
+];
 
 interface ImportDeviceModalProps {
   open: boolean;
@@ -49,6 +63,10 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [bulkFile, setBulkFile] = useState<File | null>(null);
   const [bulkResults, setBulkResults] = useState<BulkImportDeviceResponse | null>(null);
+  const [parsedData, setParsedData] = useState<any[]>([]);
+  const [fileHeaders, setFileHeaders] = useState<string[]>([]);
+  const [fieldMapping, setFieldMapping] = useState<Record<string, string>>({});
+  const [mappingMode, setMappingMode] = useState(false);
   const importDevice = useImportDevice();
   const bulkImport = useBulkImportDevices();
   const { networks, isLoading: isLoadingNetworks } = useNetworks();
@@ -117,9 +135,91 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
     document.body.removeChild(link);
   };
 
+  const autoMapFields = (headers: string[]) => {
+    const initialMapping: Record<string, string> = {};
+    const lowerHeaders = headers.map(h => h.toLowerCase().trim());
+    
+    EXPECTED_FIELDS.forEach(field => {
+      let matchIdx = -1;
+      const key = field.key.toLowerCase();
+      
+      if (key === 'long_name') {
+        matchIdx = lowerHeaders.findIndex(h => h === 'long_name' || h === 'locationname' || h === 'device_name' || h === 'name');
+      } else if (key === 'serial_number') {
+        matchIdx = lowerHeaders.findIndex(h => h === 'serial_number' || h === 'locationid' || h === 'serial' || h === 'id');
+      } else if (key === 'network') {
+        matchIdx = lowerHeaders.findIndex(h => h === 'network' || h === 'manufacturer');
+      } else {
+        matchIdx = lowerHeaders.findIndex(h => h === key);
+      }
+
+      if (matchIdx !== -1) {
+        initialMapping[field.key] = headers[matchIdx];
+      }
+    });
+    
+    setFieldMapping(initialMapping);
+  };
+
+  const handleFileUpload = async (file: File | null) => {
+    setBulkFile(file);
+    setErrors({});
+    if (!file) {
+      setMappingMode(false);
+      setParsedData([]);
+      setFileHeaders([]);
+      setFieldMapping({});
+      return;
+    }
+
+    const fileName = file.name.toLowerCase();
+    
+    if (fileName.endsWith('.csv')) {
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          const headers = results.meta.fields || [];
+          setFileHeaders(headers);
+          setParsedData(results.data);
+          autoMapFields(headers);
+          setMappingMode(true);
+        },
+        error: (err: any) => {
+          setErrors({ general: `Failed to parse CSV: ${err.message}` });
+        }
+      });
+    } else if (fileName.endsWith('.json')) {
+      try {
+        const text = await file.text();
+        const json = JSON.parse(text);
+        const devices = Array.isArray(json) ? json : (json.devices || []);
+        if (!Array.isArray(devices) || devices.length === 0) {
+          setErrors({ general: 'JSON file must contain an array of devices' });
+          return;
+        }
+        const headers = Object.keys(devices[0] || {});
+        setFileHeaders(headers);
+        setParsedData(devices);
+        autoMapFields(headers);
+        setMappingMode(true);
+      } catch (e) {
+        setErrors({ general: 'Invalid JSON file format' });
+      }
+    } else {
+      setErrors({ general: 'Unsupported file type. Please upload a CSV or JSON file.' });
+    }
+  };
+
   const handleSubmit = async () => {
     setErrors({});
-    if (bulkFile) {
+    if (mappingMode && parsedData.length > 0) {
+      const missingRequired = EXPECTED_FIELDS.filter(f => f.required && !fieldMapping[f.key]);
+      if (missingRequired.length > 0) {
+        setErrors({ general: `Please map the required fields: ${missingRequired.map(f => f.label).join(', ')}` });
+        return;
+      }
+
       const userId = userDetails?._id;
       if (!userId) {
         logger.warn("User ID is missing");
@@ -127,60 +227,38 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         return;
       }
       const cohortId = getCohortId();
-      const fileName = bulkFile.name.toLowerCase();
 
-      if (fileName.endsWith('.csv')) {
-        const formDataPayload = new FormData();
-        formDataPayload.append('file', bulkFile);
-        formDataPayload.append('user_id', userId);
-        if (cohortId) formDataPayload.append('cohort_id', cohortId);
-        if (formData.network) formDataPayload.append('network_override', formData.network);
+      const transformedDevices = parsedData.map(row => {
+        const device: any = {};
+        EXPECTED_FIELDS.forEach(field => {
+          const mappedHeader = fieldMapping[field.key];
+          if (mappedHeader && row[mappedHeader] !== undefined && row[mappedHeader] !== "") {
+            device[field.key] = row[mappedHeader];
+          }
+        });
+        return device;
+      });
 
-        bulkImport.mutate(
-          { type: 'csv', payload: formDataPayload },
-          {
-            onSuccess: (data) => {
-              if (data.results) {
-                setBulkResults(data);
-              } else {
-                onOpenChange(false);
-              }
+      const payload = {
+        user_id: userId,
+        ...(cohortId && { cohort_id: cohortId }),
+        ...(formData.network && { network_override: formData.network }),
+        devices: transformedDevices
+      };
+
+      bulkImport.mutate(
+        { type: 'json', payload },
+        {
+          onSuccess: (data) => {
+            if (data.results) {
+              setBulkResults(data);
+              setMappingMode(false);
+            } else {
+              onOpenChange(false);
             }
           }
-        );
-      } else if (fileName.endsWith('.json')) {
-        try {
-          const text = await bulkFile.text();
-          const json = JSON.parse(text);
-          const devices = Array.isArray(json) ? json : (json.devices || []);
-          if (!Array.isArray(devices) || devices.length === 0) {
-            setErrors({ general: 'JSON file must contain an array of devices' });
-            return;
-          }
-          const payload = {
-            user_id: userId,
-            ...(cohortId && { cohort_id: cohortId }),
-            ...(formData.network && { network_override: formData.network }),
-            devices
-          };
-          bulkImport.mutate(
-            { type: 'json', payload },
-            {
-              onSuccess: (data) => {
-                if (data.results) {
-                  setBulkResults(data);
-                } else {
-                  onOpenChange(false);
-                }
-              }
-            }
-          );
-        } catch (e) {
-          setErrors({ general: 'Invalid JSON file format' });
         }
-      } else {
-        setErrors({ general: 'Unsupported file type. Please upload a CSV or JSON file.' });
-      }
+      );
       return;
     }
 
@@ -252,6 +330,10 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       setIsRequestDialogOpen(false);
       setBulkFile(null);
       setBulkResults(null);
+      setParsedData([]);
+      setFileHeaders([]);
+      setFieldMapping({});
+      setMappingMode(false);
     }
   }, [open, prefilledNetwork]);
 
@@ -266,7 +348,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         onClick: handleClose,
         className: "min-w-[100px]",
       } : {
-        label: importDevice.isPending || bulkImport.isPending ? "Importing..." : "Import External Device",
+        label: importDevice.isPending || bulkImport.isPending ? "Importing..." : (mappingMode ? "Import Mapped Devices" : "Import External Device"),
         onClick: handleSubmit,
         disabled: importDevice.isPending || bulkImport.isPending,
         className: "min-w-[100px]",
@@ -280,6 +362,13 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
             }
           : bulkResults
           ? undefined
+          : mappingMode
+          ? {
+              label: "Cancel Mapping",
+              onClick: () => handleFileUpload(null),
+              disabled: importDevice.isPending || bulkImport.isPending,
+              variant: "outline",
+            }
           : {
               label: "Cancel",
               onClick: handleClose,
@@ -324,6 +413,53 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
               </table>
             </div>
           </div>
+        ) : mappingMode ? (
+          <div className="space-y-4">
+            <div className="bg-blue-50 text-blue-800 p-3 rounded-md text-sm">
+              <p>We found {parsedData.length} devices in your file. Please map the columns from your file to the expected device fields.</p>
+            </div>
+            
+            {errors.general && (
+              <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+                {errors.general}
+              </div>
+            )}
+
+            <div className="border rounded-md max-h-[400px] overflow-y-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="text-xs uppercase bg-slate-50 sticky top-0 z-10">
+                  <tr>
+                    <th className="px-4 py-3 font-medium border-b w-1/2">Expected Field</th>
+                    <th className="px-4 py-3 font-medium border-b w-1/2">Your File Column</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {EXPECTED_FIELDS.map((field) => (
+                    <tr key={field.key} className={field.required && !fieldMapping[field.key] ? "bg-red-50/30" : ""}>
+                      <td className="px-4 py-3 align-middle">
+                        <div className="flex items-center">
+                          <span className="font-medium">{field.label}</span>
+                          {field.required && <span className="ml-1 text-red-500">*</span>}
+                        </div>
+                      </td>
+                      <td className="px-4 py-2">
+                        <select
+                          className="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600 p-2"
+                          value={fieldMapping[field.key] || ""}
+                          onChange={(e) => setFieldMapping(prev => ({ ...prev, [field.key]: e.target.value }))}
+                        >
+                          <option value="">-- Ignore this field --</option>
+                          {fileHeaders.map(header => (
+                            <option key={header} value={header}>{header}</option>
+                          ))}
+                        </select>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         ) : (
           <>
             {errors.general && (
@@ -333,11 +469,11 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
             )}
 
             <ReusableFileUpload
-              label="Import multiple devices at once (optional)"
+              label="Import multiple devices at once."
               id="bulk_file"
               accept=".csv,.json"
               file={bulkFile}
-              onChange={setBulkFile}
+              onChange={handleFileUpload}
               placeholder="Upload bulk import file"
               description="Supported file types are CSV and JSON."
               containerClassName="pb-4 border-b"
