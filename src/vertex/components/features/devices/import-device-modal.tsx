@@ -24,14 +24,11 @@ import Papa from "papaparse";
 const EXPECTED_FIELDS = [
   { key: 'long_name', label: 'Device Name', required: true },
   { key: 'serial_number', label: 'Serial Number', required: true },
-  { key: 'network', label: 'Sensor Manufacturer', required: false },
   { key: 'latitude', label: 'Latitude', required: false },
   { key: 'longitude', label: 'Longitude', required: false },
   { key: 'api_code', label: 'Device Connection URL', required: false },
-  { key: 'category', label: 'Category', required: false },
   { key: 'description', label: 'Description', required: false },
   { key: 'device_number', label: 'Device Number', required: false },
-  { key: 'tags', label: 'Tags (Comma separated)', required: false },
 ];
 
 interface ImportDeviceModalProps {
@@ -147,8 +144,6 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         matchIdx = lowerHeaders.findIndex(h => h === 'long_name' || h === 'locationname' || h === 'device_name' || h === 'name');
       } else if (key === 'serial_number') {
         matchIdx = lowerHeaders.findIndex(h => h === 'serial_number' || h === 'locationid' || h === 'serial' || h === 'id');
-      } else if (key === 'network') {
-        matchIdx = lowerHeaders.findIndex(h => h === 'network' || h === 'manufacturer');
       } else {
         matchIdx = lowerHeaders.findIndex(h => h === key);
       }
@@ -214,6 +209,15 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
   const handleSubmit = async () => {
     setErrors({});
     if (mappingMode && parsedData.length > 0) {
+      if (!formData.network) {
+        setErrors({ general: "Please select a Sensor Manufacturer for this import." });
+        return;
+      }
+      if (!formData.category) {
+        setErrors({ general: "Please select a Category for this import." });
+        return;
+      }
+
       const missingRequired = EXPECTED_FIELDS.filter(f => f.required && !fieldMapping[f.key]);
       if (missingRequired.length > 0) {
         setErrors({ general: `Please map the required fields: ${missingRequired.map(f => f.label).join(', ')}` });
@@ -236,6 +240,13 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
             device[field.key] = row[mappedHeader];
           }
         });
+        
+        device.network = formData.network;
+        device.category = formData.category;
+        if (formData.tags && formData.tags.length > 0) {
+          device.tags = formData.tags;
+        }
+
         return device;
       });
 
@@ -458,6 +469,68 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            <div className="space-y-4 pt-4 mt-4 border-t">
+              <h4 className="font-medium text-sm text-gray-700 dark:text-gray-200">Apply to all imported devices:</h4>
+              
+              <div>
+                <ReusableSelectInput
+                  label="Sensor Manufacturer"
+                  id="network_bulk"
+                  value={formData.network}
+                  onChange={(e) => handleInputChange("network", e.target.value)}
+                  error={errors.network}
+                  required
+                  placeholder={isLoadingNetworks ? "Loading Sensor Manufacturer..." : "Select a Sensor Manufacturer"}
+                  disabled={isLoadingNetworks}
+                >
+                  {networks
+                    .filter((network) => network.net_name.toLowerCase() !== 'airqo')
+                    .map((network) => (
+                      <option key={network.net_name} value={network.net_name}>
+                        {network.net_name}
+                      </option>
+                    ))}
+                </ReusableSelectInput>
+                {!isAdminPage && (
+                  <div className="flex justify-end">
+                    <ReusableButton
+                      onClick={() => setIsRequestDialogOpen(true)}
+                      variant="text"
+                      className="text-xs p-0 px-1 mt-1 h-auto"
+                    >
+                      Can&apos;t find your Sensor Manufacturer?
+                    </ReusableButton>
+                  </div>
+                )}
+              </div>
+
+              <ReusableSelectInput
+                label="Category"
+                id="category_bulk"
+                value={formData.category}
+                onChange={(e) => handleInputChange("category", e.target.value)}
+                error={errors.category}
+                required
+              >
+                {DEVICE_CATEGORIES.map((category) => (
+                  <option key={category.value} value={category.value}>
+                    {category.label}
+                  </option>
+                ))}
+              </ReusableSelectInput>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Tags (Optional)</Label>
+                <MultiSelectCombobox
+                  options={DEFAULT_DEVICE_TAGS}
+                  placeholder="Select or create tags..."
+                  value={formData.tags}
+                  onValueChange={(tags) => setFormData((prev) => ({ ...prev, tags }))}
+                  allowCreate={true}
+                />
+              </div>
             </div>
           </div>
         ) : (
