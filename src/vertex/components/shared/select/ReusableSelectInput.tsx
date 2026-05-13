@@ -186,7 +186,7 @@ const ReusableSelectInput: React.FC<ReusableSelectInputProps> = ({
           className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center"
         >
           {label}
-          {required && <span className="ml-1 text-[var(--org-primary,var(--primary,#145fff))]">*</span>}
+          {required && <span className="ml-1 text-red-500">*</span>}
         </label>
       )}
 
