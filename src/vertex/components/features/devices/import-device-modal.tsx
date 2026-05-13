@@ -64,6 +64,8 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
   const [fileHeaders, setFileHeaders] = useState<string[]>([]);
   const [fieldMapping, setFieldMapping] = useState<Record<string, string>>({});
   const [mappingMode, setMappingMode] = useState(false);
+  const [previewMode, setPreviewMode] = useState(false);
+  const [transformedPreview, setTransformedPreview] = useState<any[]>([]);
   const importDevice = useImportDevice();
   const bulkImport = useBulkImportDevices();
   const { networks, isLoading: isLoadingNetworks } = useNetworks();
@@ -164,6 +166,8 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       setParsedData([]);
       setFileHeaders([]);
       setFieldMapping({});
+      setPreviewMode(false);
+      setTransformedPreview([]);
       return;
     }
 
@@ -224,14 +228,6 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         return;
       }
 
-      const userId = userDetails?._id;
-      if (!userId) {
-        logger.warn("User ID is missing");
-        setErrors({ general: "User ID is missing. Please log in again." });
-        return;
-      }
-      const cohortId = getCohortId();
-
       const transformedDevices = parsedData.map(row => {
         const device: any = {};
         EXPECTED_FIELDS.forEach(field => {
@@ -250,26 +246,9 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         return device;
       });
 
-      const payload = {
-        user_id: userId,
-        ...(cohortId && { cohort_id: cohortId }),
-        ...(formData.network && { network_override: formData.network }),
-        devices: transformedDevices
-      };
-
-      bulkImport.mutate(
-        { type: 'json', payload },
-        {
-          onSuccess: (data) => {
-            if (data.results) {
-              setBulkResults(data);
-              setMappingMode(false);
-            } else {
-              onOpenChange(false);
-            }
-          }
-        }
-      );
+      setTransformedPreview(transformedDevices);
+      setMappingMode(false);
+      setPreviewMode(true);
       return;
     }
 
@@ -300,6 +279,38 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         ...(cohortId && { cohort_id: cohortId }),
       },
       { onSuccess: () => onOpenChange(false) }
+    );
+  };
+
+  const handleConfirmImport = () => {
+    setErrors({});
+    const userId = userDetails?._id;
+    if (!userId) {
+      logger.warn("User ID is missing");
+      setErrors({ general: "User ID is missing. Please log in again." });
+      return;
+    }
+    const cohortId = getCohortId();
+
+    const payload = {
+      user_id: userId,
+      ...(cohortId && { cohort_id: cohortId }),
+      ...(formData.network && { network_override: formData.network }),
+      devices: transformedPreview
+    };
+
+    bulkImport.mutate(
+      { type: 'json', payload },
+      {
+        onSuccess: (data) => {
+          if (data.results) {
+            setBulkResults(data);
+            setPreviewMode(false);
+          } else {
+            onOpenChange(false);
+          }
+        }
+      }
     );
   };
 
@@ -345,6 +356,8 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       setFileHeaders([]);
       setFieldMapping({});
       setMappingMode(false);
+      setPreviewMode(false);
+      setTransformedPreview([]);
     }
   }, [open, prefilledNetwork]);
 
@@ -358,8 +371,13 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         label: "Done",
         onClick: handleClose,
         className: "min-w-[100px]",
+      } : previewMode ? {
+        label: importDevice.isPending || bulkImport.isPending ? "Importing..." : "Confirm Import",
+        onClick: handleConfirmImport,
+        disabled: importDevice.isPending || bulkImport.isPending,
+        className: "min-w-[100px]",
       } : {
-        label: importDevice.isPending || bulkImport.isPending ? "Importing..." : (mappingMode ? "Import Mapped Devices" : "Import External Device"),
+        label: importDevice.isPending || bulkImport.isPending ? "Importing..." : (mappingMode ? "Preview Import" : "Import External Device"),
         onClick: handleSubmit,
         disabled: importDevice.isPending || bulkImport.isPending,
         className: "min-w-[100px]",
@@ -373,6 +391,16 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
             }
           : bulkResults
           ? undefined
+          : previewMode
+          ? {
+              label: "Back to Mapping",
+              onClick: () => {
+                setPreviewMode(false);
+                setMappingMode(true);
+              },
+              disabled: importDevice.isPending || bulkImport.isPending,
+              variant: "outline",
+            }
           : mappingMode
           ? {
               label: "Cancel Mapping",
@@ -418,6 +446,45 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
                           <span className="text-red-600 font-medium text-xs break-words">{result.error || 'Failed'}</span>
                         )}
                       </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : previewMode ? (
+          <div className="space-y-4">
+            <div className="bg-blue-50 text-blue-800 p-3 rounded-md text-sm">
+              <p>Previewing the first {Math.min(5, transformedPreview.length)} of {transformedPreview.length} devices. Please verify the data looks correct before importing.</p>
+            </div>
+            
+            {errors.general && (
+              <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+                {errors.general}
+              </div>
+            )}
+
+            <div className="border rounded-md max-h-[400px] overflow-auto">
+              <table className="w-full text-sm text-left whitespace-nowrap">
+                <thead className="text-xs uppercase bg-slate-50 sticky top-0 z-10">
+                  <tr>
+                    <th className="px-4 py-3 font-medium border-b">Device Name</th>
+                    <th className="px-4 py-3 font-medium border-b">Serial Number</th>
+                    <th className="px-4 py-3 font-medium border-b">Manufacturer</th>
+                    <th className="px-4 py-3 font-medium border-b">Category</th>
+                    <th className="px-4 py-3 font-medium border-b">Latitude</th>
+                    <th className="px-4 py-3 font-medium border-b">Longitude</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {transformedPreview.slice(0, 5).map((device, idx) => (
+                    <tr key={idx} className="hover:bg-slate-50">
+                      <td className="px-4 py-3">{device.long_name || '-'}</td>
+                      <td className="px-4 py-3 font-mono text-xs">{device.serial_number || '-'}</td>
+                      <td className="px-4 py-3">{device.network || '-'}</td>
+                      <td className="px-4 py-3">{device.category || '-'}</td>
+                      <td className="px-4 py-3">{device.latitude || '-'}</td>
+                      <td className="px-4 py-3">{device.longitude || '-'}</td>
                     </tr>
                   ))}
                 </tbody>
