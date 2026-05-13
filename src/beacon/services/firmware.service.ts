@@ -20,9 +20,43 @@ class FirmwareService {
   private readonly baseUrl: string;
   private readonly apiPrefix: string;
 
+  private enforceHttpsForRemote(url: string): string {
+    const normalizedUrl = url.replace(/\/$/, '');
+
+    try {
+      const parsed = new URL(normalizedUrl);
+      const host = parsed.hostname;
+      const isPrivateNetworkHost =
+        host === 'localhost' ||
+        host === '127.0.0.1' ||
+        host.startsWith('192.168.') ||
+        host.startsWith('10.') ||
+        /^172\.(1[6-9]|2\d|3[0-1])\./.test(host);
+
+      if (parsed.protocol === 'http:' && !isPrivateNetworkHost) {
+        parsed.protocol = 'https:';
+        return parsed.toString().replace(/\/$/, '');
+      }
+
+      return normalizedUrl;
+    } catch {
+      if (
+        normalizedUrl.startsWith('http://') &&
+        !normalizedUrl.includes('localhost') &&
+        !normalizedUrl.includes('127.0.0.1') &&
+        !normalizedUrl.includes('192.168.') &&
+        !normalizedUrl.includes('10.')
+      ) {
+        return normalizedUrl.replace('http://', 'https://');
+      }
+
+      return normalizedUrl;
+    }
+  }
+
   constructor() {
     // Use centralized config for API URL
-    this.baseUrl = config.beaconApiUrl;
+    this.baseUrl = this.enforceHttpsForRemote(config.beaconApiUrl);
     this.apiPrefix = config.beaconApiPrefix || (config.isLocalhost ? '/api/v1' : '/api/v1/beacon');
   }
 

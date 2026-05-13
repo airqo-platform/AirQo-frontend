@@ -20,6 +20,44 @@ const isProduction = process.env.NODE_ENV === 'production';
 const stripTrailingSlash = (url) => url?.replace(/\/$/, '') || '';
 
 /**
+ * Keep localhost/private-network URLs on HTTP, force remote URLs to HTTPS
+ */
+const enforceHttpsForRemote = (url) => {
+  const normalizedUrl = stripTrailingSlash(url);
+  if (!normalizedUrl) return '';
+
+  try {
+    const parsed = new URL(normalizedUrl);
+    const host = parsed.hostname;
+    const isPrivateNetworkHost =
+      host === 'localhost' ||
+      host === '127.0.0.1' ||
+      host.startsWith('192.168.') ||
+      host.startsWith('10.') ||
+      /^172\.(1[6-9]|2\d|3[0-1])\./.test(host);
+
+    if (parsed.protocol === 'http:' && !isPrivateNetworkHost) {
+      parsed.protocol = 'https:';
+      return stripTrailingSlash(parsed.toString());
+    }
+
+    return normalizedUrl;
+  } catch {
+    if (
+      normalizedUrl.startsWith('http://') &&
+      !normalizedUrl.includes('localhost') &&
+      !normalizedUrl.includes('127.0.0.1') &&
+      !normalizedUrl.includes('192.168.') &&
+      !normalizedUrl.includes('10.')
+    ) {
+      return normalizedUrl.replace('http://', 'https://');
+    }
+
+    return normalizedUrl;
+  }
+};
+
+/**
  * Get the appropriate API URL based on environment
  * Priority: 
  * 1. NEXT_PUBLIC_LOCAL_API_URL (for local development with local backend)
@@ -31,23 +69,27 @@ const stripTrailingSlash = (url) => url?.replace(/\/$/, '') || '';
 const getBeaconApiUrl = () => {
   // For local development, use local API
   if (isLocalhost || isDevelopment) {
-    const localUrl = process.env.NEXT_PUBLIC_LOCAL_API_URL;
-    if (localUrl) return stripTrailingSlash(localUrl);
+    const localUrl = process.env.NEXT_PUBLIC_LOCAL_API_URL || process.env.BEACON_API_URL;
+    if (localUrl) return enforceHttpsForRemote(localUrl);
   }
   
   // For client-side, prefer NEXT_PUBLIC_ variables
   if (!isServer) {
+    const publicBeaconUrl = process.env.NEXT_PUBLIC_BEACON_API_URL;
     const stagingUrl = process.env.NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL;
     const prodUrl = process.env.NEXT_PUBLIC_AIRQO_API_BASE_URL;
-    if (stagingUrl) return stripTrailingSlash(stagingUrl);
-    if (prodUrl) return stripTrailingSlash(prodUrl);
+    if (publicBeaconUrl) return enforceHttpsForRemote(publicBeaconUrl);
+    if (stagingUrl) return enforceHttpsForRemote(stagingUrl);
+    if (prodUrl) return enforceHttpsForRemote(prodUrl);
   }
   
   // For server-side, can use non-public variables
+  const beaconUrl = process.env.BEACON_API_URL;
   const serverStagingUrl = process.env.AIRQO_STAGING_API_BASE_URL;
   const serverProdUrl = process.env.AIRQO_API_BASE_URL;
-  if (serverStagingUrl) return stripTrailingSlash(serverStagingUrl);
-  if (serverProdUrl) return stripTrailingSlash(serverProdUrl);
+  if (beaconUrl) return enforceHttpsForRemote(beaconUrl);
+  if (serverStagingUrl) return enforceHttpsForRemote(serverStagingUrl);
+  if (serverProdUrl) return enforceHttpsForRemote(serverProdUrl);
   
   // Default fallback (should be avoided in production)
   console.warn('No API URL configured, using default localhost:8000');
