@@ -225,7 +225,7 @@ class ApiService {
     if (isMockMode()) return getMockDevices() as any
 
     const queryString = this.buildQueryString(params || {})
-    const endpoint = this.getEndpoint('/devices/')
+    const endpoint = this.getEndpoint('/devices/synced')
     const url = `${this.baseUrl}${endpoint}${queryString}`
     console.log('Device API URL:', url)
     console.log('Base URL:', this.baseUrl)
@@ -243,7 +243,7 @@ class ApiService {
     }
 
     const queryString = this.buildQueryString(params || {})
-    const endpoint = this.getEndpoint('/devices/')
+    const endpoint = this.getEndpoint('/devices/synced')
     const url = `${this.baseUrl}${endpoint}${queryString}`
     console.log('Device API URL (Paginated):', url)
     console.log('Base URL:', this.baseUrl)
