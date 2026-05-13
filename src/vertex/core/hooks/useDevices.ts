@@ -27,6 +27,7 @@ import type {
   DeviceAssignmentResponse,
   Device,
   DeviceCreationResponse,
+  BulkImportDeviceResponse,
   DeviceUpdateGroupResponse,
   MaintenanceLogData,
   DecryptionRequest,
@@ -599,6 +600,68 @@ export const useImportDevice = () => {
     onError: error => {
       ReusableToast({
         message: `Import Failed: ${getApiErrorMessage(error)}`,
+        type: 'ERROR',
+      });
+    },
+  });
+};
+
+export const useBulkImportDevices = () => {
+  const queryClient = useQueryClient();
+  const pathname = usePathname();
+  const userContext = useAppSelector((state) => state.user.userContext);
+
+  const isAdminModule = pathname?.startsWith('/admin/');
+
+  return useMutation<
+    BulkImportDeviceResponse,
+    AxiosError<ErrorResponse>,
+    { type: 'csv'; payload: FormData } | { type: 'json'; payload: any }
+  >({
+    mutationFn: (variables) => {
+      if (variables.type === 'csv') {
+        return devices.importBulkDevicesCSV(variables.payload);
+      }
+      return devices.importBulkDevicesJSON(variables.payload);
+    },
+    onSuccess: (data) => {
+      // The API returns HTTP 207, which is a success from Axios perspective
+      // Handle the success/partial success/failure messages
+      if (data.failed === 0) {
+        ReusableToast({
+          message: `${data.imported} device(s) imported successfully!`,
+          type: 'SUCCESS',
+        });
+      } else if (data.imported === 0) {
+        ReusableToast({
+          message: `Failed to import all ${data.failed} device(s)`,
+          type: 'ERROR',
+        });
+      } else {
+        ReusableToast({
+          message: `${data.imported} device(s) imported, ${data.failed} failed`,
+          type: 'WARNING',
+        });
+      }
+
+      // Refresh based on active module
+      if (isAdminModule) {
+        queryClient.invalidateQueries({ queryKey: ['network-devices'] });
+      } else {
+        if (userContext === 'external-org') {
+          queryClient.invalidateQueries({ queryKey: ['devices'] });
+          queryClient.invalidateQueries({ queryKey: ['deviceCount'] });
+          queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
+        } else {
+          queryClient.invalidateQueries({ queryKey: ['myDevices'] });
+          queryClient.invalidateQueries({ queryKey: ['deviceCount'] });
+          queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
+        }
+      }
+    },
+    onError: error => {
+      ReusableToast({
+        message: `Bulk Import Failed: ${getApiErrorMessage(error)}`,
         type: 'ERROR',
       });
     },

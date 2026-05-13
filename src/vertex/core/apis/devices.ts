@@ -11,6 +11,7 @@ import type {
   DeviceAssignmentResponse,
   Device,
   DeviceCreationResponse,
+  BulkImportDeviceResponse,
   DeviceUpdateGroupResponse,
   MaintenanceLogData,
   DecryptionRequest,
@@ -447,6 +448,57 @@ export const devices = {
       const response = await jwtApiClient.post(
         `/devices/soft`,
         deviceData,
+        { headers: { 'X-Auth-Type': 'JWT' } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  importBulkDevicesCSV: async (
+    formData: FormData
+  ): Promise<BulkImportDeviceResponse> => {
+    try {
+      const response = await jwtApiClient.post(
+        `/devices/soft/bulk`,
+        formData,
+        {
+          headers: {
+            'X-Auth-Type': 'JWT',
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  importBulkDevicesJSON: async (
+    payload: {
+      user_id: string;
+      cohort_id?: string;
+      network_override?: string;
+      devices: Array<{
+        long_name: string;
+        serial_number: string;
+        network?: string;
+        latitude?: number;
+        longitude?: number;
+        api_code?: string;
+        category?: string;
+        description?: string;
+        device_number?: number;
+        tags?: string[];
+      }>;
+    }
+  ): Promise<BulkImportDeviceResponse> => {
+    try {
+      const response = await jwtApiClient.post(
+        `/devices/soft/bulk`,
+        payload,
         { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;

@@ -5,7 +5,8 @@ import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
 import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
 import ReusableButton from "@/components/shared/button/ReusableButton";
-import { useImportDevice } from "@/core/hooks/useDevices";
+import { useImportDevice, useBulkImportDevices } from "@/core/hooks/useDevices";
+import type { BulkImportDeviceResponse } from "@/app/types/devices";
 import { DEVICE_CATEGORIES } from "@/core/constants/devices";
 import { useNetworks } from "@/core/hooks/useNetworks";
 import { useUserContext } from "@/core/hooks/useUserContext";
@@ -45,7 +46,10 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
   const [showMore, setShowMore] = useState(false);
   const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [bulkFile, setBulkFile] = useState<File | null>(null);
+  const [bulkResults, setBulkResults] = useState<BulkImportDeviceResponse | null>(null);
   const importDevice = useImportDevice();
+  const bulkImport = useBulkImportDevices();
   const { networks, isLoading: isLoadingNetworks } = useNetworks();
 
   const { userContext, activeGroup } = useUserContext();
@@ -90,7 +94,95 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
     return undefined;
   };
 
-  const handleSubmit = () => {
+  const downloadFailedRows = () => {
+    if (!bulkResults || !bulkResults.results) return;
+    const failedRows = bulkResults.results.filter(r => !r.success);
+    if (failedRows.length === 0) return;
+
+    const headers = ['serial_number', 'long_name', 'error'];
+    const csvContent = [
+      headers.join(','),
+      ...failedRows.map(r => `"${r.serial_number || ''}","${r.long_name || ''}","${(r.error || '').replace(/"/g, '""')}"`)
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'failed_devices.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleSubmit = async () => {
+    setErrors({});
+    if (bulkFile) {
+      const userId = userDetails?._id;
+      if (!userId) {
+        logger.warn("User ID is missing");
+        setErrors({ general: "User ID is missing. Please log in again." });
+        return;
+      }
+      const cohortId = getCohortId();
+      const fileName = bulkFile.name.toLowerCase();
+
+      if (fileName.endsWith('.csv')) {
+        const formDataPayload = new FormData();
+        formDataPayload.append('file', bulkFile);
+        formDataPayload.append('user_id', userId);
+        if (cohortId) formDataPayload.append('cohort_id', cohortId);
+        if (formData.network) formDataPayload.append('network_override', formData.network);
+
+        bulkImport.mutate(
+          { type: 'csv', payload: formDataPayload },
+          {
+            onSuccess: (data) => {
+              if (data.results) {
+                setBulkResults(data);
+              } else {
+                onOpenChange(false);
+              }
+            }
+          }
+        );
+      } else if (fileName.endsWith('.json')) {
+        try {
+          const text = await bulkFile.text();
+          const json = JSON.parse(text);
+          const devices = Array.isArray(json) ? json : (json.devices || []);
+          if (!Array.isArray(devices) || devices.length === 0) {
+            setErrors({ general: 'JSON file must contain an array of devices' });
+            return;
+          }
+          const payload = {
+            user_id: userId,
+            ...(cohortId && { cohort_id: cohortId }),
+            ...(formData.network && { network_override: formData.network }),
+            devices
+          };
+          bulkImport.mutate(
+            { type: 'json', payload },
+            {
+              onSuccess: (data) => {
+                if (data.results) {
+                  setBulkResults(data);
+                } else {
+                  onOpenChange(false);
+                }
+              }
+            }
+          );
+        } catch (e) {
+          setErrors({ general: 'Invalid JSON file format' });
+        }
+      } else {
+        setErrors({ general: 'Unsupported file type. Please upload a CSV or JSON file.' });
+      }
+      return;
+    }
+
     if (!validateForm()) {
       return;
     }
@@ -157,6 +249,8 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       setErrors({});
       setShowMore(false);
       setIsRequestDialogOpen(false);
+      setBulkFile(null);
+      setBulkResults(null);
     }
   }, [open, prefilledNetwork]);
 
@@ -166,27 +260,94 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       onClose={handleClose}
       title="Import External Device"
       size="md"
-      primaryAction={{
-        label: importDevice.isPending ? "Importing..." : "Import External Device",
+      primaryAction={bulkResults ? {
+        label: "Done",
+        onClick: handleClose,
+        className: "min-w-[100px]",
+      } : {
+        label: importDevice.isPending || bulkImport.isPending ? "Importing..." : "Import External Device",
         onClick: handleSubmit,
-        disabled: importDevice.isPending,
+        disabled: importDevice.isPending || bulkImport.isPending,
         className: "min-w-[100px]",
       }}
-      secondaryAction={{
-        label: "Cancel",
-        onClick: handleClose,
-        disabled: importDevice.isPending,
-        variant: "outline",
-      }}
+      secondaryAction={
+        bulkResults && bulkResults.failed > 0
+          ? {
+              label: "Download Failed CSV",
+              onClick: downloadFailedRows,
+              variant: "outline",
+            }
+          : bulkResults
+          ? undefined
+          : {
+              label: "Cancel",
+              onClick: handleClose,
+              disabled: importDevice.isPending || bulkImport.isPending,
+              variant: "outline",
+            }
+      }
     >
       <div className="space-y-2">
-        {errors.general && (
-          <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
-            {errors.general}
+        {bulkResults ? (
+          <div className="space-y-4">
+            <div className={`p-4 rounded-md ${bulkResults.failed === 0 ? 'bg-green-50 text-green-700' : bulkResults.imported === 0 ? 'bg-red-50 text-red-700' : 'bg-yellow-50 text-yellow-800'}`}>
+              <h3 className="font-medium mb-1">
+                {bulkResults.imported} of {bulkResults.total} devices imported. {bulkResults.failed} failed.
+              </h3>
+            </div>
+            
+            <div className="border rounded-md max-h-[300px] overflow-y-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="text-xs uppercase bg-slate-50 sticky top-0">
+                  <tr>
+                    <th className="px-4 py-2 font-medium">Device Name</th>
+                    <th className="px-4 py-2 font-medium">Serial Number</th>
+                    <th className="px-4 py-2 font-medium">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {bulkResults.results.map((result, idx) => (
+                    <tr key={idx} className={!result.success ? "bg-red-50/50" : ""}>
+                      <td className="px-4 py-2">{result.long_name || '-'}</td>
+                      <td className="px-4 py-2 font-mono text-xs">{result.serial_number || '-'}</td>
+                      <td className="px-4 py-2">
+                        {result.success ? (
+                          <span className="text-green-600 font-medium">Success</span>
+                        ) : (
+                          <span className="text-red-600 font-medium text-xs break-words">{result.error || 'Failed'}</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        )}
+        ) : (
+          <>
+            {errors.general && (
+              <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+                {errors.general}
+              </div>
+            )}
 
-        <ReusableInputField
+            <div className="space-y-1 pb-4 border-b">
+              <ReusableInputField
+                label="Bulk Import (Optional)"
+                id="bulk_file"
+                type="file"
+                accept=".csv,.json"
+                onChange={(e: any) => {
+                  const file = e.target.files?.[0];
+                  setBulkFile(file || null);
+                }}
+                placeholder="Upload file to bulk import devices"
+              />
+              <p className="text-xs text-slate-500">Supported file types are CSV and JSON. If a file is selected, single device fields below will be ignored (except Sensor Manufacturer if you want to override).</p>
+            </div>
+
+            <div className={bulkFile ? "opacity-50 pointer-events-none space-y-2" : "space-y-2"}>
+              <ReusableInputField
           label="Device Name"
           id="long_name"
           value={formData.long_name}
@@ -312,9 +473,12 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
           </div>
         )}
 
-        <ReusableButton variant="text" onClick={() => setShowMore(!showMore)} className="p-0 h-auto">
-          {showMore ? "Show Less" : "Show More Options"}
-        </ReusableButton>
+              <ReusableButton variant="text" onClick={() => setShowMore(!showMore)} className="p-0 h-auto">
+                {showMore ? "Show Less" : "Show More Options"}
+              </ReusableButton>
+            </div>
+          </>
+        )}
       </div>
 
       <NetworkRequestDialog 
