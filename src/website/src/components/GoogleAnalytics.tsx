@@ -2,7 +2,7 @@
 
 import { usePathname, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import { getConfiguredSiteUrls } from '@/lib/siteUrl';
 
@@ -28,7 +28,6 @@ export default function GoogleAnalytics({
 }: GoogleAnalyticsProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [isInitialized, setIsInitialized] = useState(false);
   const resolvedMeasurementId =
     measurementId?.trim() || FALLBACK_MEASUREMENT_ID;
   const configuredLinkerDomains = useMemo(
@@ -57,28 +56,6 @@ export default function GoogleAnalytics({
         window.dataLayer?.push(args);
       });
 
-    window.gtag('js', new Date());
-    window.gtag('config', resolvedMeasurementId, {
-      send_page_view: false,
-      allow_linker: true,
-      cookie_domain: 'auto',
-      linker: {
-        domains: configuredLinkerDomains,
-      },
-    });
-
-    setIsInitialized(true);
-  }, [configuredLinkerDomains, resolvedMeasurementId]);
-
-  useEffect(() => {
-    if (
-      typeof window === 'undefined' ||
-      !isInitialized ||
-      typeof window.gtag === 'undefined'
-    ) {
-      return;
-    }
-
     // Construct page path with query strings (if any)
     const pagePath = searchParams.toString()
       ? `${pathname}?${searchParams.toString()}`
@@ -90,7 +67,7 @@ export default function GoogleAnalytics({
       page_title: document.title,
       send_to: resolvedMeasurementId,
     });
-  }, [pathname, resolvedMeasurementId, searchParams, isInitialized]);
+  }, [pathname, resolvedMeasurementId, searchParams]);
 
   if (!resolvedMeasurementId) {
     return null;
@@ -98,6 +75,21 @@ export default function GoogleAnalytics({
 
   return (
     <>
+      <Script id="ga-init" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          window.gtag = window.gtag || function(){ window.dataLayer.push(arguments); };
+          window.gtag('js', new Date());
+          window.gtag('config', '${resolvedMeasurementId}', {
+            send_page_view: false,
+            allow_linker: true,
+            cookie_domain: 'auto',
+            linker: {
+              domains: ${JSON.stringify(configuredLinkerDomains)},
+            },
+          });
+        `}
+      </Script>
       {/* Load the gtag script AFTER the page is interactive */}
       <Script
         src={`https://www.googletagmanager.com/gtag/js?id=${resolvedMeasurementId}`}
@@ -121,11 +113,20 @@ export function trackEvent({
   label: string;
   value?: number;
 }) {
-  if (typeof window !== 'undefined' && typeof window.gtag !== 'undefined') {
-    window.gtag('event', action, {
-      event_category: category,
-      event_label: label,
-      value,
-    });
+  if (typeof window === 'undefined') {
+    return;
   }
+
+  window.dataLayer = window.dataLayer || [];
+  window.gtag =
+    window.gtag ||
+    ((...args: any[]) => {
+      window.dataLayer?.push(args);
+    });
+
+  window.gtag('event', action, {
+    event_category: category,
+    event_label: label,
+    value,
+  });
 }
