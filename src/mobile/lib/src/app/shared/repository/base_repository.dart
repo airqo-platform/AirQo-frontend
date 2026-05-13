@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:airqo/src/app/auth/services/auth_token_storage.dart';
 import 'package:airqo/src/app/shared/exceptions/session_expired_exception.dart';
 import 'package:airqo/src/app/shared/repository/global_auth_manager.dart';
 import 'package:airqo/src/app/shared/repository/secure_storage_repository.dart';
@@ -21,7 +22,8 @@ class BaseRepository with UiLoggy {
   BaseRepository({
     SessionExpiryNotifier? sessionExpiryNotifier,
     TokenRefresher? tokenRefresher,
-  })  : _sessionExpiryNotifier = sessionExpiryNotifier ?? GlobalAuthManager.instance,
+  })  : _sessionExpiryNotifier =
+            sessionExpiryNotifier ?? GlobalAuthManager.instance,
         _tokenRefresher = tokenRefresher ?? const DefaultTokenRefresher();
 
   // ---------------------------------------------------------------------------
@@ -35,19 +37,12 @@ class BaseRepository with UiLoggy {
     final refreshed = await _tokenRefresher.refreshTokenIfNeeded();
     if (refreshed != null) return refreshed;
     // Refresh either failed or there's no token — return whatever is stored.
-    return SecureStorageRepository.instance.getSecureData(SecureStorageKeys.authToken);
+    return SecureStorageRepository.instance
+        .getSecureData(SecureStorageKeys.authToken);
   }
 
   Future<void> _handleTokenRefresh(Response response) async {
-    final newToken = response.headers['x-access-token'];
-    if (newToken != null && newToken.isNotEmpty) {
-      try {
-        await SecureStorageRepository.instance.saveSecureData(SecureStorageKeys.authToken, newToken);
-        loggy.info('Successfully refreshed and stored new auth token.');
-      } catch (e) {
-        loggy.error('Failed to save refreshed token: $e');
-      }
-    }
+    await AuthTokenStorage.saveTokenFromHeaders(response.headers);
   }
 
   /// Returns true when a 401 body explicitly signals a JWT/session problem,
@@ -56,8 +51,16 @@ class BaseRepository with UiLoggy {
     try {
       final body = json.decode(response.body);
       if (body is Map) {
-        final message = (body['message'] ?? body['error'] ?? '').toString().toLowerCase();
-        const sessionKeywords = ['jwt', 'token', 'session', 'expired', 'invalid signature', 'unauthorized'];
+        final message =
+            (body['message'] ?? body['error'] ?? '').toString().toLowerCase();
+        const sessionKeywords = [
+          'jwt',
+          'token',
+          'session',
+          'expired',
+          'invalid signature',
+          'unauthorized'
+        ];
         return sessionKeywords.any(message.contains);
       }
     } catch (_) {}
@@ -86,16 +89,16 @@ class BaseRepository with UiLoggy {
     }
 
     if (response.statusCode == 401 && hasToken) {
-      final shouldExpire = requireExplicitSessionBody
-          ? _isSessionRelated401(response)
-          : true;
+      final shouldExpire =
+          requireExplicitSessionBody ? _isSessionRelated401(response) : true;
 
       if (shouldExpire) {
         loggy.warning('401 received — notifying session expiry for $url');
         _sessionExpiryNotifier.notifySessionExpired();
         throw const SessionExpiredException();
       } else {
-        loggy.warning('401 received but body does not indicate session issue — skipping expiry for $url');
+        loggy.warning(
+            '401 received but body does not indicate session issue — skipping expiry for $url');
       }
     }
 
@@ -106,7 +109,8 @@ class BaseRepository with UiLoggy {
     String errorMessage = 'An error occurred';
     try {
       final contentType = response.headers['content-type'] ?? '';
-      if (contentType.toLowerCase().contains('application/json') && response.body.isNotEmpty) {
+      if (contentType.toLowerCase().contains('application/json') &&
+          response.body.isNotEmpty) {
         final body = json.decode(response.body);
         if (body is Map && body.containsKey('message')) {
           errorMessage = body['message'];
@@ -152,7 +156,8 @@ class BaseRepository with UiLoggy {
     return _processResponse(response, url);
   }
 
-  Future<Response> createPostRequest({required String path, dynamic data}) async {
+  Future<Response> createPostRequest(
+      {required String path, dynamic data}) async {
     final token = await _getToken();
     if (token == null) throw Exception('Authentication token not found');
 
@@ -173,7 +178,8 @@ class BaseRepository with UiLoggy {
     return _processResponse(response, url);
   }
 
-  Future<Response> createGetRequest(String path, Map<String, String> queryParams) async {
+  Future<Response> createGetRequest(
+      String path, Map<String, String> queryParams) async {
     final token = await _getToken();
     final url = ApiUtils.baseUrl + path;
 
@@ -192,7 +198,8 @@ class BaseRepository with UiLoggy {
     loggy.info('GET ← ${response.statusCode}');
     // Use requireExplicitSessionBody so that a 401 from a query-level API key
     // (not the user's JWT) does not incorrectly trigger a session expiry.
-    return _processResponse(response, url, hasToken: token != null, requireExplicitSessionBody: true);
+    return _processResponse(response, url,
+        hasToken: token != null, requireExplicitSessionBody: true);
   }
 
   Future<Response> createAuthenticatedGetRequest(
