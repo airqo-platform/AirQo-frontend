@@ -7,6 +7,8 @@ import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/app/shared/widgets/translated_tooltip.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/auth/services/auth_helper.dart';
+import 'package:airqo/src/app/auth/services/auth_token_storage.dart';
+import 'package:airqo/src/app/shared/repository/global_auth_manager.dart';
 import 'package:airqo/src/app/shared/repository/secure_storage_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -171,12 +173,16 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
 
       final userId = await AuthHelper.getCurrentUserId();
       if (userId == null) {
-        throw Exception("No valid user ID found - user may not be authenticated");
+        throw Exception(
+            "No valid user ID found - user may not be authenticated");
       }
 
       // Update user details on the server
-      var uri = Uri.parse('${dotenv.env["AIRQO_API_URL"]}/api/v2/users/$userId');
-      final authToken = await SecureStorageRepository.instance.getSecureData(SecureStorageKeys.authToken);
+      var uri =
+          Uri.parse('${dotenv.env["AIRQO_API_URL"]}/api/v2/users/$userId');
+      final authToken = await AuthHelper.refreshTokenIfNeeded() ??
+          await SecureStorageRepository.instance
+              .getSecureData(SecureStorageKeys.authToken);
       if (authToken == null) {
         throw Exception("Authentication token not found");
       }
@@ -201,7 +207,13 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
       loggy.info('Update completed. Status code: ${response.statusCode}');
       loggy.info('Response body: ${response.body}');
 
+      if (response.statusCode == 401) {
+        GlobalAuthManager.instance.notifySessionExpired();
+        throw Exception("Please log in again to continue.");
+      }
+
       if (response.statusCode == 200 || response.statusCode == 201) {
+        await AuthTokenStorage.saveTokenFromHeaders(response.headers);
         var jsonResponse = json.decode(response.body);
         if (jsonResponse['success'] == true) {
           if (!mounted) throw Exception('Widget disposed');
@@ -231,8 +243,9 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
 
     if (!_validateForm()) return;
 
-    final isExpired = await AuthHelper.isTokenExpired();
-    if (isExpired && mounted) {
+    final token = await AuthHelper.refreshTokenIfNeeded();
+    if (token == null && mounted) {
+      GlobalAuthManager.instance.notifySessionExpired();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Please log in again to continue.'),
@@ -252,7 +265,8 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
         _resetLoadingState();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('This is taking longer than expected. Please try again.'),
+            content:
+                Text('This is taking longer than expected. Please try again.'),
             backgroundColor: Colors.red,
           ),
         );
@@ -262,7 +276,8 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
     try {
       if (_selectedProfileImage != null) {
         // Upload and update profile
-        String? uploadResult = await _uploadProfileImage(_selectedProfileImage!);
+        String? uploadResult =
+            await _uploadProfileImage(_selectedProfileImage!);
 
         if (uploadResult != null) {
           _resetLoadingState();
@@ -299,14 +314,19 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
         _selectedProfileImage = null;
       });
 
-      String userFriendlyMessage = 'Unable to update profile. Please try again.';
-      
+      String userFriendlyMessage =
+          'Unable to update profile. Please try again.';
+
       final errorString = e.toString().toLowerCase();
-      if (errorString.contains('unauthorized') || errorString.contains('session has expired') || errorString.contains('please log in again to continue')) {
+      if (errorString.contains('unauthorized') ||
+          errorString.contains('session has expired') ||
+          errorString.contains('please log in again to continue')) {
         userFriendlyMessage = 'Please log in again to continue.';
-      } else if (errorString.contains('network') || errorString.contains('timeout')) {
+      } else if (errorString.contains('network') ||
+          errorString.contains('timeout')) {
         userFriendlyMessage = 'Check your internet connection and try again.';
-      } else if (errorString.contains('server') || errorString.contains('500')) {
+      } else if (errorString.contains('server') ||
+          errorString.contains('500')) {
         userFriendlyMessage = 'Something went wrong. Please try again later.';
       }
 
@@ -361,7 +381,6 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
             _formChanged = false;
           });
 
-
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Profile updated successfully'),
@@ -374,15 +393,22 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
         } else if (state is UserUpdateError) {
           _resetLoadingState();
 
-          String userFriendlyMessage = 'Unable to update profile. Please try again.';
-          
+          String userFriendlyMessage =
+              'Unable to update profile. Please try again.';
+
           final errorString = state.message.toLowerCase();
-          if (errorString.contains('unauthorized') || errorString.contains('session has expired') || errorString.contains('please log in again to continue')) {
+          if (errorString.contains('unauthorized') ||
+              errorString.contains('session has expired') ||
+              errorString.contains('please log in again to continue')) {
             userFriendlyMessage = 'Please log in again to continue.';
-          } else if (errorString.contains('network') || errorString.contains('timeout')) {
-            userFriendlyMessage = 'Check your internet connection and try again.';
-          } else if (errorString.contains('server') || errorString.contains('500')) {
-            userFriendlyMessage = 'Something went wrong. Please try again later.';
+          } else if (errorString.contains('network') ||
+              errorString.contains('timeout')) {
+            userFriendlyMessage =
+                'Check your internet connection and try again.';
+          } else if (errorString.contains('server') ||
+              errorString.contains('500')) {
+            userFriendlyMessage =
+                'Something went wrong. Please try again later.';
           }
 
           ScaffoldMessenger.of(context).showSnackBar(
@@ -635,7 +661,9 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(
-              color: isDarkMode ? Colors.grey[400] : hintColor.withValues(alpha: 0.6),
+              color: isDarkMode
+                  ? Colors.grey[400]
+                  : hintColor.withValues(alpha: 0.6),
             ),
             filled: true,
             fillColor: isDarkMode ? Color(0xFF404040) : Colors.white,

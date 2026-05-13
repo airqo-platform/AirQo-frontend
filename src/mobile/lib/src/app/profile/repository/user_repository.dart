@@ -20,6 +20,47 @@ abstract class UserRepository extends BaseRepository {
 }
 
 class UserImpl extends UserRepository with UiLoggy {
+  String _stringFromToken(Map<String, dynamic> token, List<String> keys) {
+    for (final key in keys) {
+      final value = token[key];
+      if (value != null && value.toString().trim().isNotEmpty) {
+        return value.toString().trim();
+      }
+    }
+    return "";
+  }
+
+  ({String firstName, String lastName}) _nameFromToken(
+    Map<String, dynamic> token,
+  ) {
+    final firstName = _stringFromToken(
+      token,
+      ['firstName', 'first_name', 'given_name'],
+    );
+    final lastName = _stringFromToken(
+      token,
+      ['lastName', 'last_name', 'family_name'],
+    );
+
+    if (firstName.isNotEmpty || lastName.isNotEmpty) {
+      return (firstName: firstName, lastName: lastName);
+    }
+
+    final displayName = _stringFromToken(
+      token,
+      ['displayName', 'display_name', 'name', 'fullName', 'full_name'],
+    );
+    if (displayName.isEmpty) {
+      return (firstName: "", lastName: "");
+    }
+
+    final parts = displayName.split(RegExp(r'\s+'));
+    return (
+      firstName: parts.first,
+      lastName: parts.length > 1 ? parts.skip(1).join(' ') : "",
+    );
+  }
+
   @override
   Future<ProfileResponseModel> loadUserProfile() async {
     try {
@@ -27,7 +68,7 @@ class UserImpl extends UserRepository with UiLoggy {
       return await loadUserProfileFromToken();
     } catch (e) {
       loggy.warning("Failed to load profile from JWT token");
-      
+
       // Fallback to API call
       final userId = await AuthHelper.getCurrentUserId();
       if (userId == null) {
@@ -45,8 +86,9 @@ class UserImpl extends UserRepository with UiLoggy {
 
   @override
   Future<ProfileResponseModel> loadUserProfileFromToken() async {
-    final token = await SecureStorageRepository.instance.getSecureData(SecureStorageKeys.authToken);
-    
+    final token = await SecureStorageRepository.instance
+        .getSecureData(SecureStorageKeys.authToken);
+
     if (token == null || token.isEmpty) {
       throw Exception("No authentication token found");
     }
@@ -54,25 +96,42 @@ class UserImpl extends UserRepository with UiLoggy {
     try {
       final Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
       loggy.info('Loading user profile from JWT token');
-      
+      final name = _nameFromToken(decodedToken);
+
       // Create User object from JWT payload matching your provided structure
       final user = User(
-        id: decodedToken["_id"] ?? "",
-        firstName: decodedToken["firstName"] ?? "",
-        lastName: decodedToken["lastName"] ?? "",
-        profilePicture: decodedToken["profilePicture"], // Allow null
-        lastLogin: decodedToken["lastLogin"] != null 
-            ? DateTime.parse(decodedToken["lastLogin"]) 
+        id: _stringFromToken(
+          decodedToken,
+          ['_id', 'user_id', 'userId', 'id', 'sub', 'uid'],
+        ),
+        firstName: name.firstName,
+        lastName: name.lastName,
+        profilePicture: _stringFromToken(
+          decodedToken,
+          [
+            'profilePicture',
+            'profile_picture',
+            'picture',
+            'avatar',
+            'photoUrl',
+            'photoURL',
+          ],
+        ),
+        lastLogin: decodedToken["lastLogin"] != null
+            ? DateTime.parse(decodedToken["lastLogin"])
             : DateTime.now(),
         isActive: true, // Default since not in JWT
         loginCount: decodedToken["nrp"] ?? 1, // Use 'nrp' field from JWT
-        userName: decodedToken["userName"] ?? decodedToken["email"] ?? "",
-        email: decodedToken["email"] ?? "",
+        userName: _stringFromToken(
+          decodedToken,
+          ['userName', 'username', 'displayName', 'display_name', 'email'],
+        ),
+        email: _stringFromToken(decodedToken, ['email']),
         verified: true, // Default since user is authenticated
         analyticsVersion: 1, // Default
         privilege: decodedToken["privilege"] ?? "user",
-        updatedAt: decodedToken["updatedAt"] != null 
-            ? DateTime.parse(decodedToken["updatedAt"]) 
+        updatedAt: decodedToken["updatedAt"] != null
+            ? DateTime.parse(decodedToken["updatedAt"])
             : DateTime.now(),
       );
 
@@ -115,7 +174,6 @@ class UserImpl extends UserRepository with UiLoggy {
       path: "/api/v2/users/$userId",
       data: requestBody,
     );
-
 
     try {
       final responseBody = json.decode(updateResponse.body);
