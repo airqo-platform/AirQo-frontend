@@ -95,7 +95,10 @@ const ReusableInputField: React.FC<ReusableInputFieldProps> = ({
         <label htmlFor={inputId} className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center">
           {label}
           {required && !readOnly && (
-            <span style={{ color: primaryColor || "hsl(var(--primary))" }} className="ml-1">
+            <span
+              className={cn("ml-1", !primaryColor && "text-red-500")}
+              style={primaryColor ? { color: primaryColor } : undefined}
+            >
               *
             </span>
           )}
