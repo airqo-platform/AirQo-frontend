@@ -90,6 +90,10 @@ const VideoSection: React.FC<{
   shouldReduceMotion: boolean | null;
 }> = React.memo(({ onPlay, videoRef, shouldReduceMotion }) => {
   const showPosterImage = shouldReduceMotion !== false;
+  const playButtonMotionProps =
+    shouldReduceMotion === false
+      ? { whileHover: { scale: 1.05 }, whileTap: { scale: 0.98 } }
+      : {};
 
   return (
     <div className="lg:w-1/2 w-full relative flex items-center justify-center">
@@ -120,9 +124,10 @@ const VideoSection: React.FC<{
         <div className="absolute inset-0 bg-gradient-to-tr from-blue-950/40 via-blue-900/10 to-transparent" />
         <motion.button
           onClick={onPlay}
-          className="absolute inset-0 flex items-center justify-center hover:scale-110 focus:outline-none transition-transform duration-300"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.98 }}
+          className={`absolute inset-0 flex items-center justify-center focus:outline-none transition-transform duration-300 ${
+            shouldReduceMotion === false ? 'hover:scale-110' : ''
+          }`}
+          {...playButtonMotionProps}
           aria-label="Play Video"
         >
           <Image
