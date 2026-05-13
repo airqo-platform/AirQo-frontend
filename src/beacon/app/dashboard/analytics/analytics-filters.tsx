@@ -47,6 +47,10 @@ interface SelectedItem {
   name: string
 }
 
+function getDefaultCohortTag(activeGroup: string | null): string {
+  return activeGroup?.toLowerCase() === "airqo" ? "hardware" : "organizational"
+}
+
 export default function AnalyticsFilters({ initialFilterType = "airqlouds", onFilterChange, onAnalyse, isAnalysing }: AnalyticsFiltersProps) {
   const { toast } = useToast()
   const { activeGroup, loading: groupLoading } = useGroup()
@@ -64,7 +68,7 @@ export default function AnalyticsFilters({ initialFilterType = "airqlouds", onFi
   const [isLoadingDevices, setIsLoadingDevices] = useState(false)
 
   // Cohort Tags State
-  const [cohortTags, setCohortTags] = useState<string[]>(["hardware"])
+  const [cohortTags, setCohortTags] = useState<string[]>([getDefaultCohortTag(activeGroup)])
   const availableTags = ["hardware", "duplicate", "organizational", "inlab", "misc"] // Hardcoded for now, could be fetched
 
   const [dateRange, setDateRange] = useState<{
@@ -83,6 +87,11 @@ export default function AnalyticsFilters({ initialFilterType = "airqlouds", onFi
   })
 
   const [isCalendarOpen, setIsCalendarOpen] = useState(false)
+
+  useEffect(() => {
+    if (groupLoading) return
+    setCohortTags([getDefaultCohortTag(activeGroup)])
+  }, [activeGroup, groupLoading])
 
   useEffect(() => {
     if (filterType === initialFilterType) return
