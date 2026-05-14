@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { Monitor, ShieldCheck } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 import ReusableButton from '@/components/shared/button/ReusableButton';
 import { VERTEX_DESKTOP_DOWNLOADS } from '@/core/constants/app-downloads';
@@ -13,6 +14,13 @@ const WindowsIcon = ({ className }: { className?: string }) => (
 );
 
 export default function DownloadHero() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <section className="bg-primary-50 px-4 py-10 sm:px-6 sm:py-16 lg:px-8">
       <div className="mx-auto grid w-full max-w-7xl items-center gap-10 lg:min-h-[calc(100vh-5rem)] lg:grid-cols-[minmax(0,0.95fr)_minmax(420px,1.05fr)]">
@@ -111,8 +119,8 @@ export default function DownloadHero() {
                       <div key={width} className="space-y-1.5">
                         <div className="h-2 rounded-full bg-secondary animate-pulse" />
                         <div
-                          className="h-2 rounded-full bg-primary"
-                          style={{ width: `${width}%` }}
+                          className="h-2 rounded-full bg-primary animate-pulse transition-all duration-1000 ease-out"
+                          style={{ width: mounted ? `${width}%` : '0%' }}
                         />
                         {index === 2 && (
                           <p className="text-xs text-muted-foreground">
