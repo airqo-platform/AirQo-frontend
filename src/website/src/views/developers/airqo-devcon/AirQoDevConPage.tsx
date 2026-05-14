@@ -112,7 +112,11 @@ const AirQoDevConPage = () => {
               </span>
               <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 font-medium text-blue-700">
                 <FiCalendar aria-hidden="true" />
-                June 2026
+                17 - 18 June 2026
+              </span>
+              <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 font-medium text-blue-700">
+                <FiCheckCircle aria-hidden="true" />
+                Applications open
               </span>
             </div>
             <h1 className="text-[44px] font-bold leading-[52px] text-gray-900 md:text-[48px] md:leading-[56px]">
@@ -128,6 +132,15 @@ const AirQoDevConPage = () => {
               Learn. Build. Break things. Fix them. Ship.
             </p>
             <div className="flex flex-col gap-3 pt-2 sm:flex-row">
+              <a
+                href={DEVCON_APPLY_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 bg-blue-600 px-6 py-4 text-sm font-medium text-white transition hover:bg-blue-700 active:scale-95"
+              >
+                Apply Now. It&apos;s Free
+                <FiExternalLink aria-hidden="true" />
+              </a>
               <Link
                 href="#devcon-tracks"
                 className="inline-flex items-center justify-center bg-blue-100 px-6 py-4 text-sm font-medium text-blue-700 transition hover:bg-blue-200 active:scale-95"
@@ -159,12 +172,12 @@ const AirQoDevConPage = () => {
               Countdown
             </p>
             <h2 className="mb-4 text-[32px] font-semibold leading-tight text-gray-900">
-              June 2026 build window starts in.
+              June 17, 2026 build window starts in.
             </h2>
             <p className="text-lg leading-8 text-gray-700">
-              AirQo DevCon takes place at Makerere University in June 2026.
-              Register your interest now and we will share confirmed dates,
-              joining details, and preparation notes with registered students.
+              AirQo DevCon runs on 17 - 18 June 2026 at Makerere University.
+              Register your interest now and we will share joining details and
+              preparation notes with registered students.
             </p>
           </div>
           <div>

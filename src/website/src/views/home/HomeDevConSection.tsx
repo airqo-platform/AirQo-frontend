@@ -1,16 +1,10 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { FiArrowRight, FiExternalLink } from 'react-icons/fi';
+import { FiCalendar, FiMapPin } from 'react-icons/fi';
 
 import mainConfig from '@/configs/mainConfigs';
-import {
-  DEVCON_APPLY_URL,
-  DEVCON_COUNTDOWN_TARGET,
-  DEVCON_IMAGE_SRC,
-  DEVCON_ROUTE,
-} from '@/lib/devcon';
-
-import CountdownTimer from '../developers/airqo-devcon/CountdownTimer';
+import { DEVCON_APPLY_URL, DEVCON_IMAGE_SRC, DEVCON_ROUTE } from '@/lib/devcon';
 
 const HomeDevConSection = () => {
   return (
@@ -30,11 +24,16 @@ const HomeDevConSection = () => {
             software, and AI systems for real air quality impact.
           </p>
 
-          <CountdownTimer
-            targetDate={DEVCON_COUNTDOWN_TARGET}
-            compact
-            className="mx-auto max-w-xl lg:mx-0"
-          />
+          <div className="flex flex-wrap justify-center gap-3 lg:justify-start">
+            <span className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-white px-4 py-2 text-sm font-medium text-blue-700 shadow-sm">
+              <FiCalendar aria-hidden="true" />
+              17 - 18 June 2026
+            </span>
+            <span className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-white px-4 py-2 text-sm font-medium text-blue-700 shadow-sm">
+              <FiMapPin aria-hidden="true" />
+              Makerere University
+            </span>
+          </div>
 
           <div className="flex flex-col justify-center gap-3 sm:flex-row lg:justify-start">
             <Link
