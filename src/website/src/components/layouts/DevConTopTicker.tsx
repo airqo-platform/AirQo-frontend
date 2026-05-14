@@ -2,13 +2,8 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { FiExternalLink } from 'react-icons/fi';
 
-import {
-  DEVCON_APPLY_URL,
-  DEVCON_COUNTDOWN_TARGET,
-  DEVCON_ROUTE,
-} from '@/lib/devcon';
+import { DEVCON_COUNTDOWN_TARGET, DEVCON_ROUTE } from '@/lib/devcon';
 
 type CompactCountdown = {
   days: number;
@@ -37,11 +32,13 @@ const tickerItems = [
 ];
 
 const DevConTopTicker = () => {
+  const [isMounted, setIsMounted] = useState(false);
   const [countdown, setCountdown] = useState<CompactCountdown>(() =>
     getCompactCountdown(),
   );
 
   useEffect(() => {
+    setIsMounted(true);
     const timer = window.setInterval(() => {
       setCountdown(getCompactCountdown());
     }, 60 * 1000);
@@ -51,13 +48,13 @@ const DevConTopTicker = () => {
 
   return (
     <div className="hidden min-w-0 flex-1 px-3 lg:block">
-      <div className="devcon-top-ticker flex h-8 items-center overflow-hidden rounded-full border border-blue-100 bg-white/80 text-blue-700 shadow-sm">
+      <div className="devcon-top-ticker flex h-8 items-center overflow-hidden rounded-lg border border-blue-100 bg-white/80 text-blue-700 shadow-sm">
         <Link
           href={DEVCON_ROUTE}
           className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden px-3 text-xs font-semibold"
           aria-label="Learn more about AirQo DevCon 2026"
         >
-          <span className="flex-none rounded-full bg-blue-600 px-2 py-0.5 text-white">
+          <span className="flex-none rounded-lg bg-blue-600 px-2 py-0.5 text-white">
             DevCon
           </span>
           <span className="relative min-w-0 flex-1 overflow-hidden whitespace-nowrap">
@@ -73,20 +70,15 @@ const DevConTopTicker = () => {
               ))}
             </span>
           </span>
-          <span className="flex-none text-gray-600" suppressHydrationWarning>
+          <span
+            className={`flex-none text-gray-600 transition-opacity duration-300 ${
+              isMounted ? 'opacity-100' : 'opacity-0'
+            }`}
+            suppressHydrationWarning
+          >
             {countdown.days}d {String(countdown.hours).padStart(2, '0')}h
           </span>
         </Link>
-
-        <a
-          href={DEVCON_APPLY_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex h-full flex-none items-center gap-1 bg-blue-600 px-3 text-xs font-semibold text-white transition hover:bg-blue-700"
-        >
-          Apply
-          <FiExternalLink size={12} aria-hidden="true" />
-        </a>
       </div>
     </div>
   );

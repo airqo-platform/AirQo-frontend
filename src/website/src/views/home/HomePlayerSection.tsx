@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { trackEvent } from '@/components/GoogleAnalytics';
 import mainConfig from '@/configs/mainConfigs';
@@ -86,40 +86,62 @@ TextSection.displayName = 'TextSection';
 
 const VideoSection: React.FC<{
   onPlay: () => void;
-}> = React.memo(({ onPlay }) => (
-  <div className="lg:w-1/2 w-full relative flex items-center justify-center">
-    <div className="w-full h-[250px] sm:h-[300px] md:h-[400px] lg:h-[450px] rounded-lg overflow-hidden relative">
-      <video
-        className="absolute left-0 top-0 h-full w-full object-cover"
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="metadata"
-        poster={VIDEO_PREVIEW_IMAGE}
-        aria-label="Muted AirQo story preview video"
-      >
-        <source src={HOME_FULL_VIDEO} type="video/mp4" />
-      </video>
-      <div className="absolute inset-0 bg-gradient-to-tr from-blue-950/40 via-blue-900/10 to-transparent" />
-      <motion.button
-        onClick={onPlay}
-        className="absolute inset-0 flex items-center justify-center hover:scale-110 focus:outline-none transition-transform duration-300"
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.98 }}
-        aria-label="Play Video"
-      >
-        <Image
-          src={PlayIcon || '/placeholder.svg'}
-          alt="Play Icon"
-          width={65}
-          height={65}
-          priority={true}
-        />
-      </motion.button>
+  videoRef: React.RefObject<HTMLVideoElement>;
+  shouldReduceMotion: boolean | null;
+}> = React.memo(({ onPlay, videoRef, shouldReduceMotion }) => {
+  const showPosterImage = shouldReduceMotion !== false;
+  const playButtonMotionProps =
+    shouldReduceMotion === false
+      ? { whileHover: { scale: 1.05 }, whileTap: { scale: 0.98 } }
+      : {};
+
+  return (
+    <div className="lg:w-1/2 w-full relative flex items-center justify-center">
+      <div className="w-full h-[250px] sm:h-[300px] md:h-[400px] lg:h-[450px] rounded-lg overflow-hidden relative">
+        {showPosterImage ? (
+          <Image
+            src={VIDEO_PREVIEW_IMAGE}
+            alt="AirQo story preview image"
+            fill
+            priority={false}
+            className="object-cover"
+          />
+        ) : (
+          <video
+            ref={videoRef}
+            className="absolute left-0 top-0 h-full w-full object-cover"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            poster={VIDEO_PREVIEW_IMAGE}
+            aria-label="Muted AirQo story preview video"
+          >
+            <source src={HOME_FULL_VIDEO} type="video/mp4" />
+          </video>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-tr from-blue-950/40 via-blue-900/10 to-transparent" />
+        <motion.button
+          onClick={onPlay}
+          className={`absolute inset-0 flex items-center justify-center focus:outline-none transition-transform duration-300 ${
+            shouldReduceMotion === false ? 'hover:scale-110' : ''
+          }`}
+          {...playButtonMotionProps}
+          aria-label="Play Video"
+        >
+          <Image
+            src={PlayIcon || '/placeholder.svg'}
+            alt="Play Icon"
+            width={65}
+            height={65}
+            priority={true}
+          />
+        </motion.button>
+      </div>
     </div>
-  </div>
-));
+  );
+});
 
 VideoSection.displayName = 'VideoSection';
 
@@ -202,8 +224,41 @@ const HomePlayerSection: React.FC = () => {
   const [videoState, setVideoState] = useState<VideoState>({
     isModalOpen: false,
   });
+  const [shouldReduceMotion, setShouldReduceMotion] = useState<boolean | null>(
+    null,
+  );
 
   const modalPlayerRef = useRef<any>(null);
+  const previewVideoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    const updateMotionPreference = () => {
+      const nextShouldReduceMotion = mediaQuery.matches;
+      setShouldReduceMotion(nextShouldReduceMotion);
+
+      if (nextShouldReduceMotion && previewVideoRef.current) {
+        previewVideoRef.current.pause();
+      }
+    };
+
+    updateMotionPreference();
+
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', updateMotionPreference);
+
+      return () => {
+        mediaQuery.removeEventListener('change', updateMotionPreference);
+      };
+    }
+
+    mediaQuery.addListener(updateMotionPreference);
+
+    return () => {
+      mediaQuery.removeListener(updateMotionPreference);
+    };
+  }, []);
 
   const handlePlayButtonClick = useCallback(() => {
     trackEvent({
@@ -247,7 +302,11 @@ const HomePlayerSection: React.FC = () => {
         onExploreData={handleExploreData}
         onGetInvolved={handleGetInvolved}
       />
-      <VideoSection onPlay={handlePlayButtonClick} />
+      <VideoSection
+        onPlay={handlePlayButtonClick}
+        videoRef={previewVideoRef}
+        shouldReduceMotion={shouldReduceMotion}
+      />
       <AnimatePresence>
         {videoState.isModalOpen && (
           <VideoModal
