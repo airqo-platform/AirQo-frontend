@@ -104,7 +104,7 @@ const AirQoDevConPage = () => {
           <div className="space-y-6">
             <div className="flex flex-wrap items-center gap-3 text-[14px] text-gray-500">
               <span>Developers {'>'}</span>
-              <span className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white px-4 py-2 text-sm font-semibold uppercase tracking-[0.24em] text-blue-700 shadow-sm">
+              <span className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-blue-700 shadow-sm sm:px-4 sm:py-2 sm:text-xs">
                 <span
                   className="h-2.5 w-2.5 rounded-full bg-blue-600"
                   aria-hidden="true"
