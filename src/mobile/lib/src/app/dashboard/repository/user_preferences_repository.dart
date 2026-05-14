@@ -2,11 +2,15 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:loggy/loggy.dart';
+import 'package:airqo/src/app/auth/services/auth_helper.dart';
+import 'package:airqo/src/app/auth/services/auth_token_storage.dart';
+import 'package:airqo/src/app/shared/repository/global_auth_manager.dart';
 import 'package:airqo/src/app/shared/repository/hive_repository.dart';
 import 'package:airqo/src/app/shared/repository/secure_storage_repository.dart';
 
 abstract class UserPreferencesRepository {
-  Future<Map<String, dynamic>> getUserPreferences(String userId, {String? groupId});
+  Future<Map<String, dynamic>> getUserPreferences(String userId,
+      {String? groupId});
   Future<Map<String, dynamic>> replacePreference(Map<String, dynamic> data);
 }
 
@@ -14,7 +18,8 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
   final String apiBaseUrl = '${dotenv.env["AIRQO_API_URL"]}/api/v2';
   final String preferencesEndpoint = '/users/preferences';
 
-  String _cacheKey(String userId, String groupId) => 'user_preferences_${userId}_$groupId';
+  String _cacheKey(String userId, String groupId) =>
+      'user_preferences_${userId}_$groupId';
 
   Future<Map<String, String>> _getHeaders({bool useAppToken = false}) async {
     final headers = {
@@ -23,7 +28,9 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
     };
 
     if (!useAppToken) {
-      final userToken = await SecureStorageRepository.instance.getSecureData(SecureStorageKeys.authToken);
+      final userToken = await AuthHelper.refreshTokenIfNeeded() ??
+          await SecureStorageRepository.instance
+              .getSecureData(SecureStorageKeys.authToken);
       if (userToken != null && userToken.isNotEmpty) {
         loggy.info('Using user authentication token');
         headers["Authorization"] = "JWT $userToken";
@@ -44,10 +51,22 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
     return headers;
   }
 
+  Future<void> _handleSuccessHeaders(http.Response response) async {
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      await AuthTokenStorage.saveTokenFromHeaders(response.headers);
+    }
+  }
+
+  void _handleUnauthorized(String operation) {
+    loggy.warning('$operation returned 401 - forcing session expiry');
+    GlobalAuthManager.instance.notifySessionExpired();
+  }
+
   static dynamic _deepConvert(dynamic value) {
     if (value is Map) {
       return Map<String, dynamic>.fromEntries(
-        value.entries.map((e) => MapEntry(e.key.toString(), _deepConvert(e.value))),
+        value.entries
+            .map((e) => MapEntry(e.key.toString(), _deepConvert(e.value))),
       );
     }
     if (value is List) {
@@ -56,7 +75,8 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
     return value;
   }
 
-  Future<Map<String, dynamic>?> _getCachedPreferences(String userId, String groupId) async {
+  Future<Map<String, dynamic>?> _getCachedPreferences(
+      String userId, String groupId) async {
     try {
       final cached = await HiveRepository.getCache(_cacheKey(userId, groupId));
       if (cached != null && cached is Map) {
@@ -69,7 +89,8 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
     return null;
   }
 
-  Future<void> _cachePreferences(String userId, String groupId, Map<String, dynamic> data) async {
+  Future<void> _cachePreferences(
+      String userId, String groupId, Map<String, dynamic> data) async {
     try {
       await HiveRepository.saveCache(_cacheKey(userId, groupId), data);
       loggy.info('Cached preferences for user: $userId');
@@ -79,7 +100,8 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
   }
 
   @override
-  Future<Map<String, dynamic>> getUserPreferences(String userId, {String? groupId}) async {
+  Future<Map<String, dynamic>> getUserPreferences(String userId,
+      {String? groupId}) async {
     String url = '$apiBaseUrl$preferencesEndpoint/$userId';
 
     if (groupId != null && groupId.isNotEmpty) {
@@ -96,7 +118,7 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
       loggy.info('Response status code: ${response.statusCode}');
 
       if (response.statusCode == 401) {
-        loggy.warning('GET preferences returned 401 - session may be expired');
+        _handleUnauthorized('GET preferences');
         final cached = await _getCachedPreferences(userId, groupId ?? '');
         if (cached != null) return cached;
         return {
@@ -106,20 +128,23 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
         };
       }
 
-      if (response.body.trim().startsWith('<') || response.body.trim() == 'Unauthorized') {
-        loggy.error('Received non-JSON response: ${response.body.substring(0, min(50, response.body.length))}');
+      if (response.body.trim().startsWith('<') ||
+          response.body.trim() == 'Unauthorized') {
+        loggy.error(
+            'Received non-JSON response: ${response.body.substring(0, min(50, response.body.length))}');
         final cached = await _getCachedPreferences(userId, groupId ?? '');
         if (cached != null) return cached;
         return {
           'success': false,
-          'message': 'Server returned invalid response. Please try again later.',
+          'message':
+              'Server returned invalid response. Please try again later.',
           'auth_error': response.statusCode == 401
         };
       }
 
       final Map<String, dynamic> data = json.decode(response.body);
 
-      if (response.statusCode != 200) {
+      if (response.statusCode < 200 || response.statusCode >= 300) {
         final cached = await _getCachedPreferences(userId, groupId ?? '');
         if (cached != null) return cached;
         return {
@@ -129,6 +154,7 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
         };
       }
 
+      await _handleSuccessHeaders(response);
       await _cachePreferences(userId, groupId ?? '', data);
       return data;
     } catch (e) {
@@ -152,7 +178,8 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
   int min(int a, int b) => a < b ? a : b;
 
   @override
-  Future<Map<String, dynamic>> replacePreference(Map<String, dynamic> data) async {
+  Future<Map<String, dynamic>> replacePreference(
+      Map<String, dynamic> data) async {
     final String url = '$apiBaseUrl$preferencesEndpoint/replace';
     final userId = data['user_id'];
     final String groupId = (data['group_id'] as String?) ?? '';
@@ -179,7 +206,7 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
       loggy.info('Replacement response status: ${updateResponse.statusCode}');
 
       if (updateResponse.statusCode == 401) {
-        loggy.warning('Authentication error (401): Token might be expired or invalid');
+        _handleUnauthorized('PATCH preferences');
         return {
           'success': false,
           'message': 'Your session has expired. Please log in again.',
@@ -190,22 +217,25 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
       if (updateResponse.statusCode >= 200 &&
           updateResponse.statusCode < 300 &&
           !updateResponse.body.trim().startsWith('<')) {
+        await _handleSuccessHeaders(updateResponse);
         try {
           final result = json.decode(updateResponse.body);
           loggy.info('Successfully updated preferences');
           final hasPreferencesData = result is Map &&
               (result.containsKey('preference') ||
-               result.containsKey('preferences') ||
-               result.containsKey('data'));
+                  result.containsKey('preferences') ||
+                  result.containsKey('data'));
           if (hasPreferencesData) {
-            await _cachePreferences(userId, groupId, result as Map<String, dynamic>);
+            await _cachePreferences(
+                userId, groupId, result as Map<String, dynamic>);
           }
           return result;
         } catch (e) {
           loggy.error('Error parsing success response: $e');
           return {
             'success': true,
-            'message': 'Successfully updated preferences, but response parsing failed',
+            'message':
+                'Successfully updated preferences, but response parsing failed',
           };
         }
       }

@@ -47,6 +47,7 @@ const CountdownTimer = ({
   compact = false,
   className,
 }: CountdownTimerProps) => {
+  const [isMounted, setIsMounted] = useState(false);
   const [timeLeft, setTimeLeft] = useState<CountdownParts>(() =>
     getTimeLeft(targetDate),
   );
@@ -54,6 +55,7 @@ const CountdownTimer = ({
   useEffect(() => {
     const tick = () => setTimeLeft(getTimeLeft(targetDate));
 
+    setIsMounted(true);
     tick();
     const timer = window.setInterval(tick, 1000);
 
@@ -70,8 +72,9 @@ const CountdownTimer = ({
   return (
     <div
       className={cn(
-        'grid grid-cols-2 gap-3 sm:grid-cols-4',
+        'grid grid-cols-2 gap-3 transition-opacity duration-300 sm:grid-cols-4',
         compact ? 'gap-2' : 'gap-3 md:gap-4',
+        isMounted ? 'opacity-100' : 'opacity-0',
         className,
       )}
       aria-label="Countdown to AirQo DevCon 2026"

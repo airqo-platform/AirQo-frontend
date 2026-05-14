@@ -50,16 +50,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
   Future<void> _onAppStarted(AppStarted event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
-      final token = await SecureStorageRepository.instance.getSecureData(SecureStorageKeys.authToken);
+      final token = await SecureStorageRepository.instance
+          .getSecureData(SecureStorageKeys.authToken);
 
       if (token != null && token.isNotEmpty) {
-        final isExpired = await AuthHelper.isTokenExpired();
-        if (isExpired) {
-          loggy.warning('Token found on app start but is expired — treating as session expiry');
+        final validToken = await AuthHelper.refreshTokenIfNeeded();
+        if (validToken == null) {
+          loggy.warning(
+              'Token found on app start but silent refresh failed — treating as session expiry');
           await _clearAuthData();
           emit(SessionExpiredState());
         } else {
-          final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
+          final userId =
+              await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
           if (userId != null) {
             await AnalyticsService().setUserIdentity(userId: userId);
           }
@@ -75,35 +78,36 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
   }
 
   Future<void> _onLoginUser(LoginUser event, Emitter<AuthState> emit) async {
-  emit(AuthLoading());
-  try {
-    await authRepository.loginWithEmailAndPassword(
-        event.username, event.password);
+    emit(AuthLoading());
+    try {
+      await authRepository.loginWithEmailAndPassword(
+          event.username, event.password);
 
-    await AnalyticsService().trackUserLoggedIn();
-    final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
-    if (userId != null) {
-      await AnalyticsService().setUserIdentity(
-        userId: userId,
-        userProperties: {'email': event.username},
-      );
-    }
-    GlobalAuthManager.instance.resetSessionExpiredGuard();
-    emit(AuthLoaded(AuthPurpose.login));
-  } catch (e) {
-    debugPrint("Login error: $e");
+      await AnalyticsService().trackUserLoggedIn();
+      final userId =
+          await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
+      if (userId != null) {
+        await AnalyticsService().setUserIdentity(
+          userId: userId,
+          userProperties: {'email': event.username},
+        );
+      }
+      GlobalAuthManager.instance.resetSessionExpiredGuard();
+      emit(AuthLoaded(AuthPurpose.login));
+    } catch (e) {
+      debugPrint("Login error: $e");
 
-    final String errorMsg = e.toString().toLowerCase();
-    if (errorMsg.contains('not verified') ||
-        errorMsg.contains('unverified') ||
-        errorMsg.contains('verify your email') ||
-        errorMsg.contains('verification required')) {
-      emit(EmailUnverifiedError(_extractErrorMessage(e), event.username));
-    } else {
-      emit(AuthLoadingError(_extractErrorMessage(e)));
+      final String errorMsg = e.toString().toLowerCase();
+      if (errorMsg.contains('not verified') ||
+          errorMsg.contains('unverified') ||
+          errorMsg.contains('verify your email') ||
+          errorMsg.contains('verification required')) {
+        emit(EmailUnverifiedError(_extractErrorMessage(e), event.username));
+      } else {
+        emit(AuthLoadingError(_extractErrorMessage(e)));
+      }
     }
   }
-}
 
   Future<void> _onRegisterUser(
       RegisterUser event, Emitter<AuthState> emit) async {
@@ -111,7 +115,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
     try {
       await authRepository.registerWithEmailAndPassword(event.model);
       await AnalyticsService().trackUserRegistered();
-      final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
+      final userId =
+          await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
       if (userId != null) {
         await AnalyticsService().setUserIdentity(
           userId: userId,
@@ -126,13 +131,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
     }
   }
 
-  Future<void> _onVerifyEmailCode(VerifyEmailCode event, Emitter<AuthState> emit) async {
+  Future<void> _onVerifyEmailCode(
+      VerifyEmailCode event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
       await authRepository.verifyEmailCode(
         event.token,
         event.email,
-        );
+      );
       emit(AuthVerified());
     } catch (e) {
       debugPrint("Email verification error: $e");
@@ -155,7 +161,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
     }
   }
 
-  Future<void> _onDeleteUserAccount(DeleteUserAccount event, Emitter<AuthState> emit) async {
+  Future<void> _onDeleteUserAccount(
+      DeleteUserAccount event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
       await authRepository.deleteUserAccount();
@@ -166,7 +173,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
     }
   }
 
-  Future<void> _onSessionExpired(SessionExpired event, Emitter<AuthState> emit) async {
+  Future<void> _onSessionExpired(
+      SessionExpired event, Emitter<AuthState> emit) async {
     try {
       loggy.info('Session expired - clearing auth tokens and cached data');
       await _clearAuthData();
@@ -178,12 +186,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
     }
   }
 
-  Future<void> _onLoginWithProvider(LoginWithProvider event, Emitter<AuthState> emit) async {
+  Future<void> _onLoginWithProvider(
+      LoginWithProvider event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
       await socialAuthRepository.loginWithProvider(event.provider);
       await AnalyticsService().trackUserLoggedIn(method: event.provider);
-      final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
+      final userId =
+          await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
       if (userId != null) {
         await AnalyticsService().setUserIdentity(userId: userId);
       }
@@ -200,8 +210,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
   }
 
   Future<void> _clearAuthData() async {
-    await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.authToken);
-    await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.userId);
+    await SecureStorageRepository.instance
+        .deleteSecureData(SecureStorageKeys.authToken);
+    await SecureStorageRepository.instance
+        .deleteSecureData(SecureStorageKeys.userId);
     await CacheManager().clearAll();
   }
 
