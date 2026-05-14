@@ -74,6 +74,10 @@ interface AirQloudsTableProps {
   title?: string
 }
 
+function getDefaultCohortTag(activeGroup: string | null): string {
+  return activeGroup?.toLowerCase() === "airqo" ? "hardware" : "organizational"
+}
+
 // Pearson correlation coefficient between two numeric arrays of equal length.
 // Returns null when correlation cannot be computed (insufficient data or zero variance).
 const pearsonCorrelation = (xs: number[], ys: number[]): number | null => {
@@ -345,7 +349,7 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
 
   // Cohort Tags State
   const [cohortTags, setCohortTags] = useState<string[]>(
-    isTagsLocked && lockedTags ? lockedTags : ["hardware"]
+    isTagsLocked && lockedTags ? lockedTags : [getDefaultCohortTag(activeGroup)]
   )
   const availableTags = ["hardware", "duplicate", "organizational", "inlab", "misc"] // Hardcoded for now, could be fetched
 
@@ -428,6 +432,12 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
     // Reset page to 1 when search changes
     setPage(1)
   }, [searchTerm, gridAdminLevel, activeGroup])
+
+  useEffect(() => {
+    if (groupLoading || isTagsLocked) return
+    setCohortTags([getDefaultCohortTag(activeGroup)])
+    setPage(1)
+  }, [activeGroup, groupLoading, isTagsLocked])
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {

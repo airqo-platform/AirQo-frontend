@@ -128,15 +128,6 @@ const AirQoDevConPage = () => {
               Learn. Build. Break things. Fix them. Ship.
             </p>
             <div className="flex flex-col gap-3 pt-2 sm:flex-row">
-              <a
-                href={DEVCON_APPLY_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 bg-blue-600 px-6 py-4 text-sm font-medium text-white transition-transform duration-300 active:scale-95"
-              >
-                Apply Now
-                <FiExternalLink aria-hidden="true" />
-              </a>
               <Link
                 href="#devcon-tracks"
                 className="inline-flex items-center justify-center bg-blue-100 px-6 py-4 text-sm font-medium text-blue-700 transition hover:bg-blue-200 active:scale-95"

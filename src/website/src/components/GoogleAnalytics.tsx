@@ -2,10 +2,9 @@
 
 import { usePathname, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import { getConfiguredSiteUrls } from '@/lib/siteUrl';
-import { hasAnalyticsConsent } from '@/utils/cookieConsent';
 
 const FALLBACK_MEASUREMENT_ID = 'G-79ZVCLEDSG';
 
@@ -23,15 +22,12 @@ interface GoogleAnalyticsProps {
 /**
  * Single component to initialize Google Analytics and
  * track page views on route changes using the Next.js App Router.
- * Only loads after user consent is granted.
  */
 export default function GoogleAnalytics({
   measurementId,
 }: GoogleAnalyticsProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [hasConsent, setHasConsent] = useState(false);
-  const [isScriptLoaded, setIsScriptLoaded] = useState(false);
   const resolvedMeasurementId =
     measurementId?.trim() || FALLBACK_MEASUREMENT_ID;
   const configuredLinkerDomains = useMemo(
@@ -48,30 +44,17 @@ export default function GoogleAnalytics({
     [],
   );
 
-  // Check for consent on mount and when consent changes
   useEffect(() => {
-    const checkConsent = () => {
-      setHasConsent(hasAnalyticsConsent());
-    };
-
-    checkConsent();
-
-    // Listen for consent changes
-    window.addEventListener('cookieConsentChanged', checkConsent);
-    return () => {
-      window.removeEventListener('cookieConsentChanged', checkConsent);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (
-      typeof window === 'undefined' ||
-      !hasConsent ||
-      !isScriptLoaded ||
-      typeof window.gtag === 'undefined'
-    ) {
+    if (typeof window === 'undefined') {
       return;
     }
+
+    window.dataLayer = window.dataLayer || [];
+    window.gtag =
+      window.gtag ||
+      ((...args: any[]) => {
+        window.dataLayer?.push(args);
+      });
 
     // Construct page path with query strings (if any)
     const pagePath = searchParams.toString()
@@ -84,35 +67,20 @@ export default function GoogleAnalytics({
       page_title: document.title,
       send_to: resolvedMeasurementId,
     });
-  }, [
-    pathname,
-    resolvedMeasurementId,
-    searchParams,
-    hasConsent,
-    isScriptLoaded,
-  ]);
+  }, [pathname, resolvedMeasurementId, searchParams]);
 
-  if (!resolvedMeasurementId || !hasConsent) {
+  if (!resolvedMeasurementId) {
     return null;
   }
 
   return (
     <>
-      {/* Load the gtag script AFTER the page is interactive */}
-      <Script
-        src={`https://www.googletagmanager.com/gtag/js?id=${resolvedMeasurementId}`}
-        strategy="afterInteractive"
-        onLoad={() => {
-          setIsScriptLoaded(true);
-        }}
-      />
       <Script id="ga-init" strategy="afterInteractive">
         {`
           window.dataLayer = window.dataLayer || [];
-          function gtag(){ dataLayer.push(arguments); }
-          window.gtag = gtag;
-          gtag('js', new Date());
-          gtag('config', '${resolvedMeasurementId}', {
+          window.gtag = window.gtag || function(){ window.dataLayer.push(arguments); };
+          window.gtag('js', new Date());
+          window.gtag('config', '${resolvedMeasurementId}', {
             send_page_view: false,
             allow_linker: true,
             cookie_domain: 'auto',
@@ -122,6 +90,11 @@ export default function GoogleAnalytics({
           });
         `}
       </Script>
+      {/* Load the gtag script AFTER the page is interactive */}
+      <Script
+        src={`https://www.googletagmanager.com/gtag/js?id=${resolvedMeasurementId}`}
+        strategy="afterInteractive"
+      />
     </>
   );
 }
@@ -140,11 +113,20 @@ export function trackEvent({
   label: string;
   value?: number;
 }) {
-  if (typeof window !== 'undefined' && typeof window.gtag !== 'undefined') {
-    window.gtag('event', action, {
-      event_category: category,
-      event_label: label,
-      value,
-    });
+  if (typeof window === 'undefined') {
+    return;
   }
+
+  window.dataLayer = window.dataLayer || [];
+  window.gtag =
+    window.gtag ||
+    ((...args: any[]) => {
+      window.dataLayer?.push(args);
+    });
+
+  window.gtag('event', action, {
+    event_category: category,
+    event_label: label,
+    value,
+  });
 }
