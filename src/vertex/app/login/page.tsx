@@ -1,49 +1,50 @@
-"use client"
+'use client';
 
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod"
-import Link from "next/link"
-import Image from "next/image"
-import { useState, useCallback, useRef, useEffect, useMemo } from "react";
-import { useSearchParams } from "next/navigation";
-import { getSession, signIn } from "next-auth/react";
-import { Form, FormField } from "@/components/ui/form"
-import { signUpUrl, forgotPasswordUrl } from "@/core/urls"
-import ReusableInputField from "@/components/shared/inputfield/ReusableInputField"
-import ReusableButton from "@/components/shared/button/ReusableButton"
-import ReusableToast from "@/components/shared/toast/ReusableToast"
-import logger from "@/lib/logger"
-import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
-import { useAppDispatch } from "@/core/redux/hooks";
-import {
-  setLoggingOut,
-} from "@/core/redux/slices/userSlice";
-import { getLastActiveModule } from "@/core/utils/userPreferences";
-import { VERTEX_DESKTOP_DOWNLOADS } from "@/core/constants/app-downloads";
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import Link from 'next/link';
+import Image from 'next/image';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { getSession, signIn } from 'next-auth/react';
+import { Form, FormField } from '@/components/ui/form';
+import { signUpUrl, forgotPasswordUrl } from '@/core/urls';
+import ReusableInputField from '@/components/shared/inputfield/ReusableInputField';
+import ReusableButton from '@/components/shared/button/ReusableButton';
+import ReusableToast from '@/components/shared/toast/ReusableToast';
+import logger from '@/lib/logger';
+import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
+import { useAppDispatch } from '@/core/redux/hooks';
+import { setLoggingOut } from '@/core/redux/slices/userSlice';
+import { getLastActiveModule } from '@/core/utils/userPreferences';
+import { VERTEX_DESKTOP_DOWNLOADS } from '@/core/constants/app-downloads';
 // import GoogleAuthSection from "@/components/features/auth/google-auth-section";
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft } from "lucide-react";
+import { motion, AnimatePresence } from 'framer-motion';
 
 const loginSchema = z.object({
-  userName: z.string().email({ message: "Please enter a valid email address" }),
-  password: z.string().min(8, { message: "Password must be at least 8 characters long" }),
-})
+  userName: z.string().email({ message: 'Please enter a valid email address' }),
+  password: z
+    .string()
+    .min(8, { message: 'Password must be at least 8 characters long' }),
+});
 
 export default function LoginPage() {
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState<'email' | 'password'>('email');
-  const [downloadUrl, setDownloadUrl] = useState(VERTEX_DESKTOP_DOWNLOADS.windows);
+  const [downloadUrl, setDownloadUrl] = useState(
+    VERTEX_DESKTOP_DOWNLOADS.windows
+  );
   const searchParams = useSearchParams();
   const callbackUrl = useMemo(() => {
-    const raw = searchParams.get("callbackUrl");
-    if (!raw) return "";
+    const raw = searchParams.get('callbackUrl');
+    if (!raw) return '';
     try {
       const parsed = new URL(raw, window.location.origin);
-      if (parsed.origin !== window.location.origin) return "";
+      if (parsed.origin !== window.location.origin) return '';
       return `${parsed.pathname}${parsed.search}${parsed.hash}`;
     } catch {
-      return "";
+      return '';
     }
   }, [searchParams]);
   const waitForSession = useCallback(async () => {
@@ -57,7 +58,7 @@ export default function LoginPage() {
       }
 
       if (attempt < attempts - 1) {
-        await new Promise<void>((resolve) => {
+        await new Promise<void>(resolve => {
           window.setTimeout(resolve, delayMs);
         });
       }
@@ -69,15 +70,17 @@ export default function LoginPage() {
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      userName: "",
-      password: "",
+      userName: '',
+      password: '',
     },
-  })
+  });
 
   const dispatch = useAppDispatch();
   const isMounted = useRef(true);
 
-  const [platform, setPlatform] = useState<'win' | 'linux' | 'other' | null>(null);
+  const [platform, setPlatform] = useState<'win' | 'linux' | 'other' | null>(
+    null
+  );
   const [isElectron, setIsElectron] = useState(false);
 
   useEffect(() => {
@@ -90,7 +93,7 @@ export default function LoginPage() {
     const isWin = userAgent.includes('win');
     const isLinux = userAgent.includes('linux');
     setIsElectron(userAgent.includes('electron'));
-    
+
     if (isWin) {
       setPlatform('win');
       setDownloadUrl(VERTEX_DESKTOP_DOWNLOADS.windows);
@@ -105,76 +108,83 @@ export default function LoginPage() {
     };
   }, [dispatch]);
 
-
-  const onSubmit = useCallback(async (values: z.infer<typeof loginSchema>) => {
-    // If we are on the email step, just validate the email and move forward
-    if (step === 'email') {
-      const isEmailValid = await form.trigger('userName');
-      if (isEmailValid) {
-        setStep('password');
-      }
-      return;
-    }
-
-    // On the password step, ensure password is also validated
-    const isPasswordValid = await form.trigger('password');
-    if (!isPasswordValid) return;
-
-    setIsLoading(true);
-
-    // Read preference BEFORE authentication to avoid timing issues
-    const lastModule = getLastActiveModule(values.userName);
-    const fallbackUrl = lastModule === 'admin' ? '/admin/networks' : '/home';
-    const isAuthRouteCallback =
-      callbackUrl.startsWith('/login') ||
-      callbackUrl.startsWith('/auth-error') ||
-      callbackUrl.startsWith('/forgot-password');
-    const redirectUrl =
-      callbackUrl && !isAuthRouteCallback ? callbackUrl : fallbackUrl;
-
-    try {
-      const result = await signIn("credentials", {
-        redirect: false,
-        userName: values.userName,
-        password: values.password,
-        callbackUrl: redirectUrl,
-      });
-
-      if (!isMounted.current) return;
-
-      if (result?.ok) {
-        const session = await waitForSession();
-        if (!session?.user) {
-          throw new Error("Could not confirm session. Please try again.");
+  const onSubmit = useCallback(
+    async (values: z.infer<typeof loginSchema>) => {
+      // If we are on the email step, just validate the email and move forward
+      if (step === 'email') {
+        const isEmailValid = await form.trigger('userName');
+        if (isEmailValid) {
+          setStep('password');
         }
-        ReusableToast({ message: "Welcome back!", type: "SUCCESS" });
-        window.location.replace(result.url || redirectUrl);
-      } else {
-        let message = "Login failed. Please check your credentials.";
-        if (result?.error) {
-          if (result.error === 'CredentialsSignin') {
-            message = "Invalid email or password. Please check your credentials.";
-          } else if (result.error.toLowerCase().includes('fetch')) {
-            message = "Network error. Please check your connection and try again.";
-          } else {
-            message = result.error;
+        return;
+      }
+
+      // On the password step, ensure password is also validated
+      const isPasswordValid = await form.trigger('password');
+      if (!isPasswordValid) return;
+
+      setIsLoading(true);
+
+      // Read preference BEFORE authentication to avoid timing issues
+      const lastModule = getLastActiveModule(values.userName);
+      const fallbackUrl = lastModule === 'admin' ? '/admin/networks' : '/home';
+      const isAuthRouteCallback =
+        callbackUrl.startsWith('/login') ||
+        callbackUrl.startsWith('/auth-error') ||
+        callbackUrl.startsWith('/forgot-password');
+      const redirectUrl =
+        callbackUrl && !isAuthRouteCallback ? callbackUrl : fallbackUrl;
+
+      try {
+        const result = await signIn('credentials', {
+          redirect: false,
+          userName: values.userName,
+          password: values.password,
+          callbackUrl: redirectUrl,
+        });
+
+        if (!isMounted.current) return;
+
+        if (result?.ok) {
+          const session = await waitForSession();
+          if (!session?.user) {
+            throw new Error('Could not confirm session. Please try again.');
           }
+          ReusableToast({ message: 'Welcome back!', type: 'SUCCESS' });
+          window.location.replace(result.url || redirectUrl);
+        } else {
+          let message = 'Login failed. Please check your credentials.';
+          if (result?.error) {
+            if (result.error === 'CredentialsSignin') {
+              message =
+                'Invalid email or password. Please check your credentials.';
+            } else if (result.error.toLowerCase().includes('fetch')) {
+              message =
+                'Network error. Please check your connection and try again.';
+            } else {
+              message = result.error;
+            }
+          }
+          throw new Error(message);
         }
-        throw new Error(message);
+      } catch (error) {
+        if (!isMounted.current) return;
+        const message = getApiErrorMessage(error);
+        logger.error('Sign-in failed', { error: message });
+        ReusableToast({ message, type: 'ERROR' });
+        setIsLoading(false);
       }
-    } catch (error) {
-      if (!isMounted.current) return;
-      const message = getApiErrorMessage(error);
-      logger.error("Sign-in failed", { error: message });
-      ReusableToast({ message, type: "ERROR" });
-      setIsLoading(false);
-    }
-  }, [callbackUrl, waitForSession, step, form]);
+    },
+    [callbackUrl, waitForSession, step, form]
+  );
 
   return (
     <div className="flex min-h-screen lg:h-screen w-full flex-col bg-primary-50 text-foreground">
       {/* Sticky Topbar */}
-      <header data-vertex-topbar className="sticky top-0 z-50 w-full border-b border-border/40 bg-primary-50 backdrop-blur supports-[backdrop-filter]:bg-primary-50/60">
+      <header
+        data-vertex-topbar
+        className="sticky top-0 z-50 w-full border-b border-border/40 bg-primary-50 backdrop-blur supports-[backdrop-filter]:bg-primary-50/60"
+      >
         <div className="flex h-12 items-center justify-between px-6 md:px-8">
           <div className="flex items-center">
             <Image
@@ -186,7 +196,7 @@ export default function LoginPage() {
               priority
             />
           </div>
-          
+
           {!isElectron && platform === 'win' && (
             <div className="flex items-center">
               <a
@@ -195,8 +205,13 @@ export default function LoginPage() {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-md border border-border bg-primary px-4 py-2 text-sm font-medium text-white transition-all hover:bg-primary/80 hover:border-foreground/20 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
               >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M0 3.449L9.75 2.1V11.7H0V3.449zm0 9.151h9.75v9.6L0 20.551V12.6zm10.55-10.701L24 0v11.7h-13.45V1.899zm0 10.701H24V24l-13.45-1.899V12.6z"/>
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M0 3.449L9.75 2.1V11.7H0V3.449zm0 9.151h9.75v9.6L0 20.551V12.6zm10.55-10.701L24 0v11.7h-13.45V1.899zm0 10.701H24V24l-13.45-1.899V12.6z" />
                 </svg>
                 Download for Windows
               </a>
@@ -215,7 +230,8 @@ export default function LoginPage() {
                 <span className="block">Share your data</span>
               </h1>
               <p className="mt-4 text-base text-muted-foreground leading-relaxed max-w-sm mx-auto">
-                Add your devices and stream live air quality data through AirQo&apos;s open data channels.
+                Add your devices and stream live air quality data through
+                AirQo&apos;s open data channels.
               </p>
             </div>
 
@@ -230,7 +246,7 @@ export default function LoginPage() {
 
               <Form {...form}>
                 <form
-                  onSubmit={(e) => {
+                  onSubmit={e => {
                     e.preventDefault();
                     onSubmit(form.getValues());
                   }}
@@ -278,7 +294,15 @@ export default function LoginPage() {
                         transition={{ duration: 0.2 }}
                         className="space-y-5"
                       >
-                        <div className="flex flex-col space-y-1">
+                        <div className="rounded-lg bg-muted/50 p-3 flex items-center justify-between">
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-xs text-muted-foreground">
+                              Signing in as
+                            </span>
+                            <span className="text-sm font-semibold truncate">
+                              {form.getValues('userName')}
+                            </span>
+                          </div>
                           <button
                             type="button"
                             disabled={isLoading}
@@ -287,15 +311,10 @@ export default function LoginPage() {
                               form.clearErrors('password');
                               setStep('email');
                             }}
-                            className="flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors w-fit -ml-1 mb-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="text-xs font-medium text-primary border border-primary/40 rounded-md px-2.5 py-1 hover:bg-primary/10 active:bg-primary/20 transition-colors ml-3 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            <ChevronLeft className="h-4 w-4 mr-0.5" />
                             Change email
                           </button>
-                          <div className="rounded-lg bg-muted/50 p-3 flex flex-col">
-                            <span className="text-xs text-muted-foreground">Signing in as</span>
-                            <span className="text-sm font-semibold truncate">{form.getValues('userName')}</span>
-                          </div>
                         </div>
 
                         <FormField
@@ -304,13 +323,21 @@ export default function LoginPage() {
                           render={({ field, fieldState }) => (
                             <div>
                               <div className="flex items-center justify-between mb-1.5">
-                                <label htmlFor="password" className="text-sm font-medium text-foreground">Password</label>
-                                <Link href={forgotPasswordUrl} className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">
+                                <label
+                                  htmlFor="password"
+                                  className="text-sm font-medium text-foreground"
+                                >
+                                  Password
+                                </label>
+                                <Link
+                                  href={forgotPasswordUrl}
+                                  className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+                                >
                                   Forgot password?
                                 </Link>
                               </div>
                               <ReusableInputField
-                                type={"password"}
+                                type={'password'}
                                 id="password"
                                 autoComplete="current-password"
                                 placeholder="••••••••"
@@ -329,7 +356,7 @@ export default function LoginPage() {
                           loading={isLoading}
                           variant="filled"
                         >
-                          {isLoading ? "Signing in..." : "Login"}
+                          {isLoading ? 'Signing in...' : 'Login'}
                         </ReusableButton>
                       </motion.div>
                     )}
@@ -338,8 +365,11 @@ export default function LoginPage() {
               </Form>
 
               <div className="text-sm text-center text-muted-foreground mt-4">
-                Don&apos;t have an account?{" "}
-                <Link href={signUpUrl} className="font-semibold text-primary hover:text-primary/80 transition-colors">
+                Don&apos;t have an account?{' '}
+                <Link
+                  href={signUpUrl}
+                  className="font-semibold text-primary hover:text-primary/80 transition-colors"
+                >
                   Sign up
                 </Link>
               </div>
@@ -348,5 +378,5 @@ export default function LoginPage() {
         </div>
       </main>
     </div>
-  )
+  );
 }
