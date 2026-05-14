@@ -32,7 +32,7 @@ export default function DownloadHero() {
           </div>
 
           <h1 className="max-w-2xl text-3xl font-semibold leading-tight tracking-normal text-heading sm:text-5xl lg:text-6xl">
-            Deploy Air Quality Devices and Share Data on your Desktop
+            Deploy Devices. Share Air Data
           </h1>
           <p className="mt-5 max-w-2xl text-sm leading-6 text-muted-foreground sm:mt-6 sm:text-lg sm:leading-7">
             Install Vertex Desktop for a focused workspace built around field
@@ -109,7 +109,7 @@ export default function DownloadHero() {
                   <div className="mt-4 space-y-3">
                     {[82, 64, 48].map((width, index) => (
                       <div key={width} className="space-y-1.5">
-                        <div className="h-2 rounded-full bg-secondary" />
+                        <div className="h-2 rounded-full bg-secondary animate-pulse" />
                         <div
                           className="h-2 rounded-full bg-primary"
                           style={{ width: `${width}%` }}
