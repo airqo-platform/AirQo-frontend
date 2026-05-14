@@ -102,9 +102,16 @@ const AirQoDevConPage = () => {
           className={`${mainConfig.containerClass} grid grid-cols-1 items-center gap-12 md:grid-cols-2`}
         >
           <div className="space-y-6">
-            <p className="mb-2 text-[14px] text-gray-500">
-              Developers {'>'} AirQo DevCon 2026
-            </p>
+            <div className="flex flex-wrap items-center gap-3 text-[14px] text-gray-500">
+              <span>Developers {'>'}</span>
+              <span className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white px-4 py-2 text-sm font-semibold uppercase tracking-[0.24em] text-blue-700 shadow-sm">
+                <span
+                  className="h-2.5 w-2.5 rounded-full bg-blue-600"
+                  aria-hidden="true"
+                />
+                AirQo DevCon 2026
+              </span>
+            </div>
             <div className="flex flex-wrap gap-3 text-sm text-gray-600">
               <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 font-medium text-blue-700">
                 <FiMapPin aria-hidden="true" />
@@ -119,7 +126,7 @@ const AirQoDevConPage = () => {
                 Applications open
               </span>
             </div>
-            <h1 className="text-[44px] font-bold leading-[52px] text-gray-900 md:text-[48px] md:leading-[56px]">
+            <h1 className="max-w-xl text-[44px] font-bold leading-[52px] text-gray-900 md:text-[48px] md:leading-[56px]">
               Build the Future of Clean Air
             </h1>
             <p className="text-[18px] leading-8 text-gray-700">
