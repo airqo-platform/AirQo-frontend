@@ -1,27 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
-import 'package:mockito/annotations.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:battery_plus/battery_plus.dart';
 import 'package:airqo/src/app/shared/services/cache_manager.dart';
 import 'dart:convert';
-
-// Generate mocks
-@GenerateMocks([Box, Connectivity, Battery])
-import 'cache_manager_test.mocks.dart';
 
 void main() {
   group('CacheManager', () {
     late CacheManager cacheManager;
-    late MockBox mockBox;
-    late MockConnectivity mockConnectivity;
-    late MockBattery mockBattery;
 
     setUp(() {
-      mockBox = MockBox();
-      mockConnectivity = MockConnectivity();
-      mockBattery = MockBattery();
       cacheManager = CacheManager();
     });
 
@@ -109,7 +94,7 @@ void main() {
 
         // Act - Test JSON serialization
         final jsonData = cachedData.toJson((data) => data);
-        
+
         // Assert serialization
         expect(jsonData['data'], equals(originalData));
         expect(jsonData['timestamp'], isA<String>());
@@ -118,7 +103,7 @@ void main() {
         // Act - Test deserialization
         final restored = CachedData<Map<String, dynamic>>.fromJson(
           jsonData,
-          (json) => json as Map<String, dynamic>,
+          (json) => json,
         );
 
         // Assert deserialization
@@ -251,7 +236,8 @@ void main() {
         expect(CacheBoxName.airQuality.toString(), contains('airQuality'));
         expect(CacheBoxName.forecast.toString(), contains('forecast'));
         expect(CacheBoxName.location.toString(), contains('location'));
-        expect(CacheBoxName.userPreferences.toString(), contains('userPreferences'));
+        expect(CacheBoxName.userPreferences.toString(),
+            contains('userPreferences'));
       });
     });
 
@@ -282,33 +268,30 @@ void main() {
     });
 
     group('Connection Type Logic', () {
-      test('getInterval returns correct durations for different connection types', () {
+      test(
+          'getInterval returns correct durations for different connection types',
+          () {
         const policy = RefreshPolicy.airQuality;
 
         // WiFi
-        expect(
-          policy.getInterval(ConnectionType.wifi, false),
-          equals(Duration(hours: 1))
-        );
+        expect(policy.getInterval(ConnectionType.wifi, false),
+            equals(Duration(hours: 1)));
 
         // Mobile
-        expect(
-          policy.getInterval(ConnectionType.mobile, false),
-          equals(Duration(hours: 2))
-        );
+        expect(policy.getInterval(ConnectionType.mobile, false),
+            equals(Duration(hours: 2)));
 
         // None
-        expect(
-          policy.getInterval(ConnectionType.none, false),
-          equals(Duration(days: 1))
-        );
+        expect(policy.getInterval(ConnectionType.none, false),
+            equals(Duration(days: 1)));
       });
 
       test('low battery factor is applied correctly', () {
         const policy = RefreshPolicy.airQuality;
 
         final normalInterval = policy.getInterval(ConnectionType.wifi, false);
-        final lowBatteryInterval = policy.getInterval(ConnectionType.wifi, true);
+        final lowBatteryInterval =
+            policy.getInterval(ConnectionType.wifi, true);
 
         expect(lowBatteryInterval, equals(normalInterval * 2.0));
       });
@@ -317,7 +300,8 @@ void main() {
         const policy = RefreshPolicy.userPreferences; // No lowBatteryFactor
 
         final normalInterval = policy.getInterval(ConnectionType.wifi, false);
-        final lowBatteryInterval = policy.getInterval(ConnectionType.wifi, true);
+        final lowBatteryInterval =
+            policy.getInterval(ConnectionType.wifi, true);
 
         expect(lowBatteryInterval, equals(normalInterval));
       });
@@ -460,7 +444,8 @@ void main() {
 
         expect(cachedData.data['metadata']['version'], equals('1.0'));
         expect(cachedData.data['data']['measurements'], hasLength(1));
-        expect(cachedData.data['data']['measurements'][0]['readings']['pm25'], equals(25.5));
+        expect(cachedData.data['data']['measurements'][0]['readings']['pm25'],
+            equals(25.5));
       });
 
       test('handles string data', () {
@@ -491,13 +476,13 @@ void main() {
       test('CacheManager maintains singleton behavior', () {
         final instance1 = CacheManager();
         final instance2 = CacheManager();
-        
+
         expect(identical(instance1, instance2), isTrue);
       });
 
       test('multiple calls return same instance', () {
         final instances = List.generate(5, (_) => CacheManager());
-        
+
         for (int i = 1; i < instances.length; i++) {
           expect(identical(instances[0], instances[i]), isTrue);
         }
@@ -557,7 +542,8 @@ void main() {
         );
 
         expect(cachedData.isValid, isFalse);
-        expect(cachedData.isStale(Duration(hours: 1)), isTrue); // Invalid data is always stale
+        expect(cachedData.isStale(Duration(hours: 1)),
+            isTrue); // Invalid data is always stale
       });
     });
   });
