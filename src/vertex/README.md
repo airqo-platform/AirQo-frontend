@@ -42,6 +42,7 @@ Use `src/vertex/.env.example` as the base. Common variables include:
 
 - `NEXT_PUBLIC_API_URL`: Backend API base URL.
 - `NEXT_PUBLIC_ANALYTICS_URL`: Analytics platform URL.
+- `NEXT_PUBLIC_VERTEX_DESKTOP_WINDOWS_DOWNLOAD_URL`: Optional Windows installer URL for Vertex Desktop downloads.
 - `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN`: Mapbox token for map features.
 - `NEXT_PUBLIC_ENV`: App environment label (for example `development`).
 - `NEXT_PUBLIC_MOCK_PERMISSIONS_ENABLED`: Enables mock permissions when needed.

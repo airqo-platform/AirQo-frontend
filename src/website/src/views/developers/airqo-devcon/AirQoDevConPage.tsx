@@ -102,9 +102,16 @@ const AirQoDevConPage = () => {
           className={`${mainConfig.containerClass} grid grid-cols-1 items-center gap-12 md:grid-cols-2`}
         >
           <div className="space-y-6">
-            <p className="mb-2 text-[14px] text-gray-500">
-              Developers {'>'} AirQo DevCon 2026
-            </p>
+            <div className="flex flex-wrap items-center gap-3 text-[14px] text-gray-500">
+              <span>Developers {'>'}</span>
+              <span className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-blue-700 shadow-sm sm:px-4 sm:py-2 sm:text-xs">
+                <span
+                  className="h-2.5 w-2.5 rounded-full bg-blue-600"
+                  aria-hidden="true"
+                />
+                AirQo DevCon 2026
+              </span>
+            </div>
             <div className="flex flex-wrap gap-3 text-sm text-gray-600">
               <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 font-medium text-blue-700">
                 <FiMapPin aria-hidden="true" />
@@ -112,10 +119,14 @@ const AirQoDevConPage = () => {
               </span>
               <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 font-medium text-blue-700">
                 <FiCalendar aria-hidden="true" />
-                June 2026
+                17 - 18 June 2026
+              </span>
+              <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 font-medium text-blue-700">
+                <FiCheckCircle aria-hidden="true" />
+                Applications open
               </span>
             </div>
-            <h1 className="text-[44px] font-bold leading-[52px] text-gray-900 md:text-[48px] md:leading-[56px]">
+            <h1 className="max-w-xl text-[44px] font-bold leading-[52px] text-gray-900 md:text-[48px] md:leading-[56px]">
               Build the Future of Clean Air
             </h1>
             <p className="text-[18px] leading-8 text-gray-700">
@@ -128,6 +139,15 @@ const AirQoDevConPage = () => {
               Learn. Build. Break things. Fix them. Ship.
             </p>
             <div className="flex flex-col gap-3 pt-2 sm:flex-row">
+              <a
+                href={DEVCON_APPLY_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 bg-blue-600 px-6 py-4 text-sm font-medium text-white transition hover:bg-blue-700 active:scale-95"
+              >
+                Apply Now. It&apos;s Free
+                <FiExternalLink aria-hidden="true" />
+              </a>
               <Link
                 href="#devcon-tracks"
                 className="inline-flex items-center justify-center bg-blue-100 px-6 py-4 text-sm font-medium text-blue-700 transition hover:bg-blue-200 active:scale-95"
@@ -159,12 +179,12 @@ const AirQoDevConPage = () => {
               Countdown
             </p>
             <h2 className="mb-4 text-[32px] font-semibold leading-tight text-gray-900">
-              June 2026 build window starts in.
+              June 17, 2026 build window starts in.
             </h2>
             <p className="text-lg leading-8 text-gray-700">
-              AirQo DevCon takes place at Makerere University in June 2026.
-              Register your interest now and we will share confirmed dates,
-              joining details, and preparation notes with registered students.
+              AirQo DevCon runs on 17 - 18 June 2026 at Makerere University.
+              Register your interest now and we will share joining details and
+              preparation notes with registered students.
             </p>
           </div>
           <div>
