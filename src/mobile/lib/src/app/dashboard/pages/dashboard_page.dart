@@ -9,7 +9,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:async';
 
 import '../../auth/bloc/auth_bloc.dart';
-import '../../profile/bloc/user_bloc.dart';
 import '../bloc/dashboard/dashboard_bloc.dart';
 import '../widgets/dashboard_app_bar.dart';
 import '../widgets/dashboard_header.dart';
@@ -31,20 +30,15 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
   DashboardView currentView = DashboardView.nearYou;
   String? selectedCountry;
   String? userCountry;
-  // Background refresher that triggers silently
   Timer? _backgroundRefreshTimer;
 
   @override
   void initState() {
     super.initState();
 
-    // Immediate load data (will use cache if available)
     context.read<DashboardBloc>().add(LoadDashboard());
-    context.read<UserBloc>().add(LoadUser());
 
     _getUserCountry();
-
-    // Both logged-in and guest users now default to Near You view
 
     _backgroundRefreshTimer = Timer.periodic(Duration(minutes: 30), (_) {
       _silentBackgroundRefresh();
@@ -68,9 +62,11 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
     if (!mounted) return;
     final country = await LocationServiceManager().getUserCountry();
     if (country != null && mounted) {
-      final match = CountryRepository.countries.where(
-        (c) => c.countryName.toLowerCase() == country.toLowerCase(),
-      ).firstOrNull;
+      final match = CountryRepository.countries
+          .where(
+            (c) => c.countryName.toLowerCase() == country.toLowerCase(),
+          )
+          .firstOrNull;
       final canonicalName = match?.countryName;
       setState(() {
         userCountry = canonicalName ?? country;
@@ -211,8 +207,9 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
                       Set<String>? activeCountries;
                       if (state is DashboardLoaded &&
                           state.response.measurements != null) {
-                        activeCountries = CountryRepository.extractActiveCountryNames(
-                            state.response.measurements!);
+                        activeCountries =
+                            CountryRepository.extractActiveCountryNames(
+                                state.response.measurements!);
                       }
 
                       return ViewSelector(
