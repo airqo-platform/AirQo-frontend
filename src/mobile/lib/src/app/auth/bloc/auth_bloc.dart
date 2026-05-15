@@ -23,7 +23,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
   AuthBloc({
     required this.authRepository,
     required this.socialAuthRepository,
-  }) : super(AuthInitial()) {
+  }) : super(GuestUser()) {
     on<AppStarted>(_onAppStarted);
 
     on<LoginUser>(_onLoginUser);
@@ -48,18 +48,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
   }
 
   Future<void> _onAppStarted(AppStarted event, Emitter<AuthState> emit) async {
-    emit(AuthLoading());
     try {
       final token = await SecureStorageRepository.instance
           .getSecureData(SecureStorageKeys.authToken);
 
       if (token != null && token.isNotEmpty) {
+        emit(AuthLoading());
         final validToken = await AuthHelper.refreshTokenIfNeeded();
         if (validToken == null) {
           loggy.warning(
               'Token found on app start but silent refresh failed — treating as session expiry');
           await _clearAuthData();
           emit(SessionExpiredState());
+          emit(GuestUser());
         } else {
           final userId =
               await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
@@ -68,12 +69,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
           }
           emit(AuthLoaded(AuthPurpose.login));
         }
-      } else {
-        emit(GuestUser());
       }
     } catch (e) {
       debugPrint("Error checking auth state: $e");
-      emit(AuthLoadingError("Failed to check authentication state."));
+      emit(GuestUser());
     }
   }
 
@@ -179,10 +178,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
       loggy.info('Session expired - clearing auth tokens and cached data');
       await _clearAuthData();
       emit(SessionExpiredState());
+      emit(GuestUser());
     } catch (e) {
       debugPrint("Session expiry cleanup error: $e");
       loggy.error("Session expiry cleanup error: $e");
       emit(SessionExpiredState());
+      emit(GuestUser());
     }
   }
 

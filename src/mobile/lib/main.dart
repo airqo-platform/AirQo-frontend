@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:airqo/core/utils/logging_bloc_observer.dart';
 import 'package:airqo/src/app/auth/bloc/ForgotPasswordBloc/forgot_password_bloc.dart';
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
-import 'package:airqo/src/app/auth/pages/welcome_screen.dart';
 import 'package:airqo/src/app/auth/repository/auth_repository_impl.dart';
 import 'package:airqo/src/app/auth/repository/auth_repository.dart';
 import 'package:airqo/src/app/auth/repository/social_auth_repository.dart';
@@ -237,6 +236,8 @@ class Decider extends StatefulWidget {
 }
 
 class _DeciderState extends State<Decider> with WidgetsBindingObserver {
+  bool _hasRequestedUserLoad = false;
+
   @override
   void initState() {
     super.initState();
@@ -275,14 +276,11 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
 
   Future<void> _checkTokenExpiryOnResume() async {
     final authBloc = context.read<AuthBloc>();
-    // Only refresh when the user is authenticated; guests have no token,
-    // and if already expired we don't need to fire again.
     final currentState = authBloc.state;
     if (currentState is! AuthLoaded) return;
 
     final token = await AuthHelper.refreshTokenIfNeeded();
     if (token == null && mounted) {
-      // Route through GlobalAuthManager so the de-duplication guard applies.
       GlobalAuthManager.instance.notifySessionExpired();
     }
   }
@@ -297,6 +295,7 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
             BlocConsumer<AuthBloc, AuthState>(
               listener: (context, authState) {
                 if (authState is SessionExpiredState) {
+                  _hasRequestedUserLoad = false;
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text(
@@ -304,6 +303,15 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
                       duration: Duration(seconds: 4),
                     ),
                   );
+                } else if (authState is AuthLoaded) {
+                  if (!_hasRequestedUserLoad) {
+                    _hasRequestedUserLoad = true;
+                    context.read<UserBloc>().add(LoadUser());
+                  }
+                } else if (authState is GuestUser ||
+                    authState is AuthLoadingError ||
+                    authState is OAuthCancelled) {
+                  _hasRequestedUserLoad = false;
                 }
               },
               builder: (context, authState) {
@@ -316,7 +324,7 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
                 }
 
                 if (authState is SessionExpiredState) {
-                  return const WelcomeScreen();
+                  return NavPage();
                 }
 
                 if (authState is GuestUser) {
@@ -324,12 +332,11 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
                 }
 
                 if (authState is AuthLoaded) {
-                  context.read<UserBloc>().add(LoadUser());
                   return NavPage();
                 }
 
                 if (authState is OAuthCancelled) {
-                  return const WelcomeScreen();
+                  return NavPage();
                 }
 
                 if (authState is AuthLoadingError) {
