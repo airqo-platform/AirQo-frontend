@@ -10,6 +10,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import SessionLoadingState from "@/components/layout/loading/session-loading";
 import { QueryProvider } from "@/core/providers/query-provider";
 import { runClientCacheMaintenance } from "@/core/utils/clientCache";
+import { BannerProvider, GlobalBannerContainer } from "@/context/banner-context";
 
 const NetworkStatusBanner = dynamic(
   () => import('@/components/features/network-status-banner'),
@@ -46,7 +47,10 @@ export default function Providers({ children, session }: { children: React.React
               enableSystem={false}
               disableTransitionOnChange
             >
-              {children}
+              <BannerProvider>
+                <GlobalBannerContainer />
+                {children}
+              </BannerProvider>
             </ThemeProvider>
             {process.env.NODE_ENV !== "production" && (
               <ReactQueryDevtools initialIsOpen={false} />
