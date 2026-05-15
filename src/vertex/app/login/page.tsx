@@ -1,5 +1,5 @@
 "use client"
-
+import { CookieInfoBanner } from '@/components/features/auth/cookie-info-banner';
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod"
@@ -31,6 +31,10 @@ const loginSchema = z.object({
 })
 
 export default function LoginPage() {
+ 
+  return (
+    
+      <CookieInfoBanner /> )
   const [isLoading, setIsLoading] = useState(false)
   const [step, setStep] = useState<'email' | 'password'>('email');
   const searchParams = useSearchParams();
