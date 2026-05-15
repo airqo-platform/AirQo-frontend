@@ -1,23 +1,21 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import { Banner, type BannerProps, type BannerSeverity } from '@/components/ui/banner';
+import { Banner, type BannerProps } from '@/components/ui/banner';
 
 // ============================================================================
 // Types
 // ============================================================================
 
+type BannerDisplayProps = Omit<BannerProps, 'dismissible' | 'onDismiss'>;
+
 interface BannerState {
-  severity: BannerSeverity;
-  message?: React.ReactNode;
-  title?: React.ReactNode;
+  bannerProps: BannerDisplayProps;
   isVisible: boolean;
   isScoped: boolean;
 }
 
-type ShowBannerOptions = Omit<BannerProps, 'dismissible' | 'onDismiss'> & {
-  scoped?: boolean;
-};
+type ShowBannerOptions = BannerDisplayProps & { scoped?: boolean };
 
 interface BannerContextValue {
   state: BannerState;
@@ -32,7 +30,7 @@ interface BannerContextValue {
 const BannerContext = createContext<BannerContextValue | null>(null);
 
 const DEFAULT_STATE: BannerState = {
-  severity: 'info',
+  bannerProps: { severity: 'info' },
   isVisible: false,
   isScoped: false,
 };
@@ -45,8 +43,8 @@ export function BannerProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<BannerState>(DEFAULT_STATE);
 
   const showBanner = useCallback((options: ShowBannerOptions) => {
-    const { scoped = false, severity, message, title } = options;
-    setState({ severity, message, title, isVisible: true, isScoped: scoped });
+    const { scoped = false, ...bannerProps } = options;
+    setState({ bannerProps, isVisible: true, isScoped: scoped });
   }, []);
 
   const hideBanner = useCallback(() => {
@@ -87,9 +85,7 @@ export function BannerSlot() {
 
   return (
     <Banner
-      severity={state.severity}
-      title={state.title}
-      message={state.message}
+      {...state.bannerProps}
       dismissible
       onDismiss={hideBanner}
       className="rounded-none border-x-0 border-t-0"
@@ -111,9 +107,7 @@ export function GlobalBannerContainer() {
   return (
     <div className="px-4 pt-3">
       <Banner
-        severity={state.severity}
-        title={state.title}
-        message={state.message}
+        {...state.bannerProps}
         dismissible
         onDismiss={hideBanner}
       />
