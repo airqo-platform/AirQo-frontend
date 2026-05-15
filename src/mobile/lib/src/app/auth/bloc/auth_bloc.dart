@@ -72,6 +72,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
       }
     } catch (e) {
       debugPrint("Error checking auth state: $e");
+      try {
+        await _clearAuthData();
+      } catch (clearError) {
+        loggy.error(
+            "Failed to clear auth data after startup error: $clearError");
+      }
       emit(GuestUser());
     }
   }

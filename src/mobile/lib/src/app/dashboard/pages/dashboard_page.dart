@@ -9,7 +9,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:async';
 
 import '../../auth/bloc/auth_bloc.dart';
-import '../../profile/bloc/user_bloc.dart';
 import '../bloc/dashboard/dashboard_bloc.dart';
 import '../widgets/dashboard_app_bar.dart';
 import '../widgets/dashboard_header.dart';
@@ -38,9 +37,6 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
     super.initState();
 
     context.read<DashboardBloc>().add(LoadDashboard());
-    if (context.read<AuthBloc>().state is AuthLoaded) {
-      context.read<UserBloc>().add(LoadUser());
-    }
 
     _getUserCountry();
 
