@@ -23,7 +23,7 @@ import { getLastActiveModule } from "@/core/utils/userPreferences";
 import { ROUTE_LINKS } from "@/core/routes";
 // import GoogleAuthSection from "@/components/features/auth/google-auth-section";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft } from "lucide-react";
+
 
 const loginSchema = z.object({
   userName: z.string().email({ message: "Please enter a valid email address" }),
@@ -276,7 +276,15 @@ export default function LoginPage() {
                         transition={{ duration: 0.2 }}
                         className="space-y-5"
                       >
-                        <div className="flex flex-col space-y-1">
+                       <div className="rounded-lg bg-muted/50 p-3 flex items-center justify-between">
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-xs text-muted-foreground">
+                              Signing in as
+                            </span>
+                            <span className="text-sm font-semibold truncate">
+                              {form.getValues('userName')}
+                            </span>
+                          </div>
                           <button
                             type="button"
                             disabled={isLoading}
@@ -285,15 +293,10 @@ export default function LoginPage() {
                               form.clearErrors('password');
                               setStep('email');
                             }}
-                            className="flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors w-fit -ml-1 mb-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="text-xs font-medium text-primary border border-primary/40 rounded-md px-2.5 py-1 hover:bg-primary/10 active:bg-primary/20 transition-colors ml-3 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            <ChevronLeft className="h-4 w-4 mr-0.5" />
                             Change email
                           </button>
-                          <div className="rounded-lg bg-muted/50 p-3 flex flex-col">
-                            <span className="text-xs text-muted-foreground">Signing in as</span>
-                            <span className="text-sm font-semibold truncate">{form.getValues('userName')}</span>
-                          </div>
                         </div>
 
                         <FormField
