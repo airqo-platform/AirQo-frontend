@@ -30,7 +30,7 @@ const POSITIVE_REASONS = [
 interface FeedbackModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (rating: number, reason: string, message: string) => Promise<void>;
+  onSubmit: (rating: number, reason: string, message: string) => Promise<boolean>;
   isSubmitting: boolean;
   type: 'positive' | 'negative';
 }
@@ -52,11 +52,12 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
       toast.error('Please select a reason');
       return;
     }
-    await onSubmit(
+    const submitted = await onSubmit(
       type === 'positive' ? 5 : 1,
       reason,
       message
     );
+    if (!submitted) return;
     setReason('');
     setMessage('');
     onClose();
@@ -121,7 +122,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
             htmlFor="additional-feedback"
             className="text-sm font-medium text-gray-700 dark:text-gray-200"
           >
-            Any additional feedback about this recommendation you would like to share with us?
+            Any additional feedback about this page you would like to share with us?
           </label>
           <textarea
             id="additional-feedback"
@@ -157,12 +158,12 @@ export const PageSatisfactionBanner: React.FC = () => {
     rating: number,
     reason: string,
     message: string
-  ) => {
+  ): Promise<boolean> => {
     const userEmail = userDetails?.email || userDetails?.userName || '';
 
     if (!userEmail) {
       toast.error('Unable to identify your account. Please try again in a moment.');
-      return;
+      return false;
     }
 
     setIsSubmitting(true);
@@ -190,15 +191,16 @@ export const PageSatisfactionBanner: React.FC = () => {
       });
 
       toast.success('Thank you for your feedback!');
+      return true;
     } catch (error) {
       toast.error(
         error instanceof Error
           ? getApiErrorMessage(error)
           : 'An error occurred while submitting feedback'
       );
+      return false;
     } finally {
       setIsSubmitting(false);
-      setModalType(null);
     }
   };
 
