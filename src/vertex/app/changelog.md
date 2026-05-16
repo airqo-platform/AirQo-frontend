@@ -4,6 +4,29 @@
 
 ---
 
+## Version 1.23.40
+**Released:** May 16, 2026
+
+### Graceful Handling of Canceled API Requests
+
+Fixed a false-positive production error alert caused by React Query's `AbortSignal` cancellations being treated as genuine API failures in the Axios response interceptor.
+
+<details>
+<summary><strong>Bug Fixes (1)</strong></summary>
+
+- **Canceled Request False-Positives**: Added an early-return guard using `axios.isCancel()` and `instanceof CanceledError` at the top of the `secureApiProxyClient` response error interceptor. Requests canceled by React Query's `AbortSignal` (e.g. on component unmount during navigation) are now silently passed through without triggering `logger.error`, token cache invalidation, or the `auth-token-expired` event — all of which were previously firing incorrectly for benign client-side aborts.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (1)</strong></summary>
+
+- `src/vertex/core/utils/secureApiProxyClient.ts` [MODIFIED]
+
+</details>
+
+---
+
 ## Version 1.23.39
 **Released:** May 07, 2026
 
