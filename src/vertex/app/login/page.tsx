@@ -147,8 +147,8 @@ export default function LoginPage() {
           throw new Error("Could not confirm session. Please try again.");
         }
         showBanner({ severity: 'success', message: 'Welcome back!', scoped: true });
-        const destination = result.url || redirectUrl;
-        window.setTimeout(() => window.location.replace(destination), 300);
+        
+         window.location.replace(result.url || redirectUrl);
       } else {
         let message = "Login failed. Please check your credentials.";
         if (result?.error) {
