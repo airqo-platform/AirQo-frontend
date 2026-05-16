@@ -4,6 +4,7 @@ import { useState } from "react";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
 import { useRecallDevice } from "@/core/hooks/useDevices";
+import { BannerSlot } from "@/context/banner-context";
 import { useUserContext } from "@/core/hooks/useUserContext";
 
 interface RecallDeviceDialogProps {
@@ -78,7 +79,9 @@ export default function RecallDeviceDialog({
         variant: "outline",
       }}
     >
-      <ReusableSelectInput
+      <div className="space-y-4">
+        <BannerSlot />
+        <ReusableSelectInput
         label="Set Recall Type"
         required
         value={recallType}
@@ -87,6 +90,7 @@ export default function RecallDeviceDialog({
       >
         {recallTypes.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
       </ReusableSelectInput>
+      </div>
     </ReusableDialog>
   );
 }

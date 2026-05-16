@@ -17,6 +17,7 @@ import { NetworkRequestDialog } from "../networks/network-request-dialog";
 import { MultiSelectCombobox } from "@/components/ui/multi-select";
 import { DEFAULT_DEVICE_TAGS } from "@/core/constants/devices";
 import { Label } from "@/components/ui/label";
+import { BannerSlot } from "@/context/banner-context";
 
 interface ImportDeviceModalProps {
   open: boolean;
@@ -180,11 +181,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       }}
     >
       <div className="space-y-2">
-        {errors.general && (
-          <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
-            {errors.general}
-          </div>
-        )}
+        <BannerSlot />
 
         <ReusableInputField
           label="Device Name"

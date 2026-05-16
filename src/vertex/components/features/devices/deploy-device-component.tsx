@@ -26,7 +26,7 @@ import { useUserContext } from "@/core/hooks/useUserContext";
 import { useDeviceDetails, useDevices, useDeployDevice } from "@/core/hooks/useDevices";
 import { ComboBox } from "@/components/ui/combobox";
 import { Device, type DevicePreviousSite } from "@/app/types/devices";
-import ReusableToast from "@/components/shared/toast/ReusableToast";
+import { useBanner, BannerSlot } from "@/context/banner-context";
 import LocationAutocomplete from "@/components/features/location-autocomplete/LocationAutocomplete";
 import { useNetworks } from "@/core/hooks/useNetworks";
 const MiniMap = React.lazy(() => import("../mini-map/mini-map"));
@@ -427,6 +427,7 @@ const DeployDeviceComponent = ({
   onDeploymentError
 }: DeployDeviceComponentProps) => {
   const queryClient = useQueryClient();
+  const { showBanner } = useBanner();
   const { userScope, userDetails } = useUserContext();
   const { devices: allDevices } = useDevices({ enabled: userScope !== 'personal' });
   const [currentStep, setCurrentStep] = React.useState<number>(0);
@@ -608,10 +609,7 @@ const DeployDeviceComponent = ({
 
   const handleNext = (): void => {
     if (currentStep === 0 && !validateDeviceDetails()) {
-      ReusableToast({
-        type: "ERROR",
-        message: "Incomplete Details: Please fill in all required device details.",
-      });
+      showBanner({ severity: 'error', message: 'Incomplete Details: Please fill in all required device details.', scoped: true });
       return;
     }
     setCurrentStep((prev) => Math.min(prev + 1, siteSource === 'new' ? 2 : 1));
@@ -642,18 +640,12 @@ const DeployDeviceComponent = ({
 
   const handleDeploy = (): void => {
     if (!userDetails?._id) {
-      ReusableToast({
-        type: "ERROR",
-        message: "User information not available. Please reload the page.",
-      });
+      showBanner({ severity: 'error', message: 'User information not available. Please reload the page.', scoped: true });
       return;
     }
 
     if (siteSource === 'previous' && !deviceData.site_id) {
-      ReusableToast({
-        type: "ERROR",
-        message: "Select a previous site to continue.",
-      });
+      showBanner({ severity: 'error', message: 'Select a previous site to continue.', scoped: true });
       return;
     }
 
@@ -815,6 +807,7 @@ const DeployDeviceComponent = ({
     <div className="flex flex-col md:flex-row h-full">
       {/* Main Steps Column */}
       <div className="flex-1 min-w-0">
+        <BannerSlot />
         {steps.map((step, idx) => (
           <StepCard
             key={step.title}
