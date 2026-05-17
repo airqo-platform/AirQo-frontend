@@ -7,6 +7,8 @@ import { feedbackService } from '@/core/apis/feedback';
 import { useUserContext } from '@/core/hooks/useUserContext';
 import { toast } from '@/components/shared/toast/ReusableToast';
 import ReusableDialog from '@/components/shared/dialog/ReusableDialog';
+import ReusableInputField from '@/components/shared/inputfield/ReusableInputField';
+import ReusableButton from '@/components/shared/button/ReusableButton';
 import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
 import { usePathname } from 'next/navigation';
 
@@ -117,22 +119,16 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
           </div>
         </div>
 
-        <div className="space-y-2">
-          <label
-            htmlFor="additional-feedback"
-            className="text-sm font-medium text-gray-700 dark:text-gray-200"
-          >
-            Any additional feedback about this page you would like to share with us?
-          </label>
-          <textarea
-            id="additional-feedback"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            rows={4}
-            placeholder="Your feedback helps us improve..."
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-        </div>
+        <ReusableInputField
+          as="textarea"
+          id="message"
+          label="Any additional feedback about this page you would like to share with us?"
+          value={message}
+          onChange={(event) => setMessage(event.target.value)}
+          placeholder="Your feedback helps us improve..."
+          rows={5}
+          description="Please don't include any sensitive information"
+        />
       </div>
     </ReusableDialog>
   );
@@ -184,7 +180,7 @@ export const PageSatisfactionBanner: React.FC = () => {
         subject: `Page Satisfaction: ${getPageName()}`,
         message: message || `Rating: ${rating}/5, Reason: ${reason}`,
         rating,
-        category: 'page_satisfaction',
+        category: 'other',
         platform: 'web',
         app: 'vertex',
         metadata,
@@ -206,8 +202,8 @@ export const PageSatisfactionBanner: React.FC = () => {
 
   return (
     <>
-      <div className="w-full border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 py-6 px-4 mt-8">
-        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="w-full border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 py-6 px-0 mt-8">
+        <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-4 px-4 sm:px-6">
           <div className="text-center sm:text-left">
             <h3 className="text-sm font-medium text-gray-900 dark:text-white">
               Overall, how satisfied are you with {getPageName()}?
@@ -215,29 +211,32 @@ export const PageSatisfactionBanner: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <button
+            <ReusableButton
+              variant="text"
               onClick={() => setModalType('positive')}
-              className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               aria-label="Satisfied"
             >
               <ThumbsUp className="h-6 w-6 text-gray-600 dark:text-gray-300" />
-            </button>
+            </ReusableButton>
 
-            <button
+            <ReusableButton
+              variant="text"
               onClick={() => setModalType('negative')}
-              className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               aria-label="Not satisfied"
             >
               <ThumbsDown className="h-6 w-6 text-gray-600 dark:text-gray-300" />
-            </button>
+            </ReusableButton>
 
-            <button
+            <ReusableButton
+              variant="text"
               onClick={openFeedbackDialog}
-              className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               aria-label="Comment"
             >
               <MessageSquare className="h-6 w-6 text-gray-600 dark:text-gray-300" />
-            </button>
+            </ReusableButton>
           </div>
         </div>
       </div>
