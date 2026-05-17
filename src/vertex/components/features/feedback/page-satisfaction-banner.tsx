@@ -46,6 +46,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
 }) => {
  const [reason, setReason] = useState('');
  const [message, setMessage] = useState('');
+ const { showBanner } = useBanner();
 
  const reasons = type === 'positive' ? POSITIVE_REASONS : NEGATIVE_REASONS;
 
@@ -62,6 +63,13 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
   setReason('');
   setMessage('');
   onClose();
+  setTimeout(() => {
+   showBanner({
+    severity: 'success',
+    title: 'Thank you for your feedback!',
+    message: 'Your input helps us improve the platform.',
+   });
+  }, 150);
  };
 
  return (
@@ -162,6 +170,7 @@ export const PageSatisfactionBanner: React.FC = () => {
     severity: 'error',
     title: 'Unable to identify your account',
     message: 'Please try again in a moment.',
+    scoped: true,
    });
    return false;
   }
@@ -190,17 +199,14 @@ export const PageSatisfactionBanner: React.FC = () => {
     metadata,
    });
 
-   showBanner({
-    severity: 'success',
-    title: 'Thank you for your feedback!',
-    message: 'Your input helps us improve the platform.',
-   });
+   
    return true;
   } catch (error) {
    showBanner({
     severity: 'error',
     title: 'Failed to submit feedback',
     message: error instanceof Error ? getApiErrorMessage(error) : 'An error occurred while submitting feedback',
+    scoped: true,
    });
    return false;
   } finally {
