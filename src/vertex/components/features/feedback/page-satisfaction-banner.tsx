@@ -210,10 +210,10 @@ export const PageSatisfactionBanner: React.FC = () => {
 
  return (
   <>
-   <div className="w-full sticky bottom-0 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 py-6">
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+   <div className="w-full border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 py-4 px-4">
+    <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
      <div className="text-center sm:text-left">
-      <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+      <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
        Overall, how satisfied are you with {getPageName()}?
       </h3>
      </div>
