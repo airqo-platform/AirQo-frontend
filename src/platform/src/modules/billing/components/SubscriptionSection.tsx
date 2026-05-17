@@ -156,9 +156,7 @@ const SubscriptionSection: React.FC = () => {
 
       window.location.assign(checkoutUrl);
     } catch (error) {
-      console.error(
-        `Checkout error: ${getBillingErrorLogMessage(error)}`
-      );
+      console.error(`Checkout error: ${getBillingErrorLogMessage(error)}`);
       toast.error(
         error instanceof Error
           ? error.message
@@ -191,9 +189,7 @@ const SubscriptionSection: React.FC = () => {
       await refreshData();
       toast.success(payload.message || 'Automatic renewal enabled');
     } catch (error) {
-      console.error(
-        `Auto-renewal error: ${getBillingErrorLogMessage(error)}`
-      );
+      console.error(`Auto-renewal error: ${getBillingErrorLogMessage(error)}`);
       toast.error(
         error instanceof Error
           ? error.message
@@ -482,7 +478,7 @@ const SubscriptionSection: React.FC = () => {
                           ? 'Retry payment'
                           : currentStatus === 'cancelled'
                             ? 'Restart subscription'
-                          : 'Current plan'
+                            : 'Current plan'
                         : allowCheckout
                           ? isUpgrade
                             ? `Upgrade to ${plan.name}`
