@@ -4,6 +4,7 @@ import Layout from "@/components/layout/layout";
 import { ForbiddenGuard } from "@/components/layout/accessConfig/forbidden-guard";
 import { useForbiddenHandler } from "@/core/hooks/useForbiddenHandler";
 import { useContextAwareRouting } from "@/core/hooks/useContextAwareRouting";
+import { PageSatisfactionBanner } from "@/components/features/feedback/page-satisfaction-banner";
 
 export default function AuthenticatedLayout({
   children,
@@ -20,6 +21,7 @@ export default function AuthenticatedLayout({
     <ForbiddenGuard>
       <Layout>
         {children}
+        <PageSatisfactionBanner />
       </Layout>
     </ForbiddenGuard>
   );
