@@ -109,11 +109,14 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
     }
   }, [isOpen])
 
-  // Clear any active banner when the dialog is closed to prevent state leakage
+  const wasOpenRef = useRef(isOpen)
+
+  // Clear any active banner when the dialog transitions from open to closed to prevent state leakage
   useEffect(() => {
-    if (!isOpen) {
+    if (wasOpenRef.current && !isOpen) {
       hideBanner()
     }
+    wasOpenRef.current = isOpen
   }, [isOpen, hideBanner])
 
   // Escape key handler and body scroll lock
