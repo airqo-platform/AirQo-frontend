@@ -7,7 +7,18 @@ import {
 const OAUTH_SIGNED_OUT_FLAG = 'airqo:oauth-signed-out';
 const OAUTH_FRAGMENT_TOKEN_KEY = 'token';
 const OAUTH_SUCCESS_PROVIDER_KEY = 'success';
+const LAST_USED_OAUTH_PROVIDER_KEY = 'airqo:last-oauth-provider';
 const OAUTH_PROFILE_FETCH_TIMEOUT_MS = 10000;
+
+export const SUPPORTED_SOCIAL_AUTH_PROVIDERS = [
+  'google',
+  'github',
+  'linkedin',
+  'twitter',
+] as const;
+
+export type SupportedSocialAuthProvider =
+  (typeof SUPPORTED_SOCIAL_AUTH_PROVIDERS)[number];
 
 export interface BackendOAuthProfile {
   _id: string;
@@ -44,11 +55,39 @@ export interface OAuthTokenHandoff {
   provider: string | null;
 }
 
+export const isSupportedSocialAuthProvider = (
+  value: string | null | undefined
+): value is SupportedSocialAuthProvider => {
+  if (!value) {
+    return false;
+  }
+
+  return (SUPPORTED_SOCIAL_AUTH_PROVIDERS as readonly string[]).includes(value);
+};
+
 const safeDecodeURIComponent = (value: string): string => {
   try {
     return decodeURIComponent(value);
   } catch {
     return value;
+  }
+};
+
+export const resolveOAuthRedirectAfterUrl = (
+  targetPath = '/user/home'
+): string | null => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  const normalizedTargetPath = targetPath.startsWith('/')
+    ? targetPath
+    : `/${targetPath}`;
+
+  try {
+    return new URL(normalizedTargetPath, window.location.origin).toString();
+  } catch {
+    return null;
   }
 };
 
@@ -138,6 +177,32 @@ export const setBackendOAuthSignedOutFlag = (): void => {
   }
 
   localStorage.setItem(OAUTH_SIGNED_OUT_FLAG, 'true');
+};
+
+export const getLastUsedOAuthProvider =
+  (): SupportedSocialAuthProvider | null => {
+    if (typeof window === 'undefined') {
+      return null;
+    }
+
+    const provider = localStorage.getItem(LAST_USED_OAUTH_PROVIDER_KEY)?.trim();
+
+    return isSupportedSocialAuthProvider(provider) ? provider : null;
+  };
+
+export const setLastUsedOAuthProvider = (
+  provider: string | null | undefined
+): void => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  if (!isSupportedSocialAuthProvider(provider)) {
+    localStorage.removeItem(LAST_USED_OAUTH_PROVIDER_KEY);
+    return;
+  }
+
+  localStorage.setItem(LAST_USED_OAUTH_PROVIDER_KEY, provider);
 };
 
 export const buildOAuthInitiationUrl = (

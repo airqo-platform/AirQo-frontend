@@ -1,8 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import AuthLayout from '@/shared/layouts/AuthLayout';
-import GoogleAuthSection from '@/shared/components/auth/GoogleAuthSection';
+import SocialAuthSection from '@/shared/components/auth/SocialAuthSection';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -11,7 +11,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from '@/shared/components/ui';
 import { loginSchema, type LoginFormData } from '@/shared/lib/validators';
-import { buildOAuthInitiationUrl } from '@/shared/lib/oauth-session';
 import {
   normalizeCallbackUrl,
   redirectWithReload,
@@ -46,17 +45,6 @@ export default function LoginPage() {
   useEffect(() => {
     setFocus(step === 'email' ? 'email' : 'password');
   }, [setFocus, step]);
-
-  const handleMarketGoogleAuth = useCallback(() => {
-    if (typeof window === 'undefined' || loading) return;
-
-    window.location.replace(
-      buildOAuthInitiationUrl('google', {
-        prompt: 'select_account',
-        tenant: 'airqo',
-      })
-    );
-  }, [loading]);
 
   const handleContinue = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -175,23 +163,7 @@ export default function LoginPage() {
       rightText={
         <>
           What you&apos;ve built here is so much better for air pollution
-          monitoring than anything else on the{' '}
-          <button
-            type="button"
-            onClick={handleMarketGoogleAuth}
-            className="inline border-0 bg-transparent p-0 m-0 align-baseline cursor-pointer"
-            style={{
-              color: 'inherit',
-              font: 'inherit',
-              lineHeight: 'inherit',
-              letterSpacing: 'inherit',
-            }}
-            aria-label="Continue with Google"
-            title="Continue with Google"
-          >
-            market
-          </button>
-          !
+          monitoring than anything else on the market!
         </>
       }
     >
@@ -209,7 +181,11 @@ export default function LoginPage() {
             Continue
           </Button>
 
-          <GoogleAuthSection mode="login" disabled={loading} />
+          <SocialAuthSection
+            mode="login"
+            disabled={loading}
+            callbackUrl={callbackUrl}
+          />
 
           <div className="w-full pt-0 text-center">
             <p className="text-sm">
