@@ -40,7 +40,6 @@ const SubscriptionSection: React.FC = () => {
 
   const currentTier: SubscriptionTier = subscription?.tier || 'Free';
   const currentStatus = subscription?.status || 'inactive';
-  const currentSubscriptionId = subscription?.currentSubscriptionId || '';
 
   const refreshData = useCallback(async () => {
     setLoading(true);
@@ -134,17 +133,10 @@ const SubscriptionSection: React.FC = () => {
   };
 
   const handleEnableAutoRenew = async () => {
-    if (!currentSubscriptionId) {
-      toast.error('No active subscription id found for this account');
-      return;
-    }
-
     try {
       setRunningAction('autoRenew');
 
-      const payload = await subscriptionService.enableAutoRenewal(
-        currentSubscriptionId
-      );
+      const payload = await subscriptionService.enableAutoRenewal();
 
       if (!payload.success) {
         if (payload.comingSoon) {
@@ -180,11 +172,6 @@ const SubscriptionSection: React.FC = () => {
   };
 
   const handleCancelSubscription = async () => {
-    if (!currentSubscriptionId) {
-      toast.error('No active subscription id found for this account');
-      return;
-    }
-
     const confirmed = window.confirm(
       'Cancel your subscription now? You will retain access until the end of the current billing period.'
     );
@@ -196,9 +183,7 @@ const SubscriptionSection: React.FC = () => {
     try {
       setRunningAction('cancel');
 
-      const payload = await subscriptionService.cancelSubscription(
-        currentSubscriptionId
-      );
+      const payload = await subscriptionService.cancelSubscription();
 
       if (!payload.success) {
         if (payload.comingSoon) {
@@ -231,17 +216,10 @@ const SubscriptionSection: React.FC = () => {
   };
 
   const handleRenewSubscription = async () => {
-    if (!currentSubscriptionId) {
-      toast.error('No active subscription id found for this account');
-      return;
-    }
-
     try {
       setRunningAction('renew');
 
-      const payload = await subscriptionService.reactivateSubscription(
-        currentSubscriptionId
-      );
+      const payload = await subscriptionService.reactivateSubscription();
 
       if (!payload.success) {
         if (payload.comingSoon) {
@@ -350,7 +328,7 @@ const SubscriptionSection: React.FC = () => {
           </div>
 
           <div className="relative mt-6 flex flex-wrap gap-2">
-            {!subscription?.automaticRenewal && currentSubscriptionId && (
+            {!subscription?.automaticRenewal && currentStatus === 'active' && (
               <Button
                 variant="outlined"
                 onClick={handleEnableAutoRenew}
@@ -361,7 +339,7 @@ const SubscriptionSection: React.FC = () => {
               </Button>
             )}
 
-            {currentSubscriptionId && currentStatus === 'active' && (
+            {currentStatus === 'active' && (
               <Button
                 variant="outlined"
                 onClick={handleCancelSubscription}
@@ -373,17 +351,16 @@ const SubscriptionSection: React.FC = () => {
               </Button>
             )}
 
-            {currentSubscriptionId &&
-              (currentStatus === 'cancelled' ||
-                currentStatus === 'past_due') && (
-                <Button
-                  onClick={handleRenewSubscription}
-                  disabled={runningAction === 'renew'}
-                  loading={runningAction === 'renew'}
-                >
-                  Renew Subscription
-                </Button>
-              )}
+            {(currentStatus === 'cancelled' ||
+              currentStatus === 'past_due') && (
+              <Button
+                onClick={handleRenewSubscription}
+                disabled={runningAction === 'renew'}
+                loading={runningAction === 'renew'}
+              >
+                Renew Subscription
+              </Button>
+            )}
           </div>
         </Card>
 

@@ -526,18 +526,6 @@ export class SubscriptionService {
     throw lastError || new Error('Unable to resolve user profile endpoint');
   }
 
-  private async resolveSubscriptionId(
-    subscriptionId?: string
-  ): Promise<string | null> {
-    const trimmedInput = (subscriptionId || '').trim();
-    if (trimmedInput) {
-      return trimmedInput;
-    }
-
-    const profile = await this.getUsersProfilePayload();
-    return (profile.currentSubscriptionId || '').trim() || null;
-  }
-
   async getSubscription(): Promise<GetSubscriptionResponse> {
     const profile = await this.getUsersProfilePayload();
 
@@ -549,7 +537,7 @@ export class SubscriptionService {
     if (currentSubscriptionId) {
       try {
         const statusResponse = await this.authenticatedClient.get<unknown>(
-          `/users/transactions/${encodeURIComponent(currentSubscriptionId)}/subscription-status`,
+          '/users/transactions/subscription-status',
           {
             params: this.withTenant(),
           }
@@ -713,21 +701,12 @@ export class SubscriptionService {
     }
   }
 
-  async enableAutoRenewal(subscriptionId?: string): Promise<MutationResponse> {
+  async enableAutoRenewal(): Promise<MutationResponse> {
     await this.ensureAuthenticated();
-    const resolvedSubscriptionId =
-      await this.resolveSubscriptionId(subscriptionId);
-
-    if (!resolvedSubscriptionId) {
-      return {
-        success: false,
-        message: 'Subscription id is required to enable auto-renew',
-      };
-    }
 
     try {
       const response = await this.authenticatedClient.post<unknown>(
-        `/users/transactions/${encodeURIComponent(resolvedSubscriptionId)}/enable-auto-renew`,
+        '/users/transactions/enable-auto-renew',
         undefined,
         {
           params: this.withTenant(),
@@ -762,21 +741,12 @@ export class SubscriptionService {
     }
   }
 
-  async cancelSubscription(subscriptionId?: string): Promise<MutationResponse> {
+  async cancelSubscription(): Promise<MutationResponse> {
     await this.ensureAuthenticated();
-    const resolvedSubscriptionId =
-      await this.resolveSubscriptionId(subscriptionId);
-
-    if (!resolvedSubscriptionId) {
-      return {
-        success: false,
-        message: 'Subscription id is required to cancel a subscription',
-      };
-    }
 
     try {
       const response = await this.authenticatedClient.post<unknown>(
-        `/users/transactions/${encodeURIComponent(resolvedSubscriptionId)}/cancel-subscription`,
+        '/users/transactions/cancel-subscription',
         undefined,
         {
           params: this.withTenant(),
@@ -809,23 +779,12 @@ export class SubscriptionService {
     }
   }
 
-  async reactivateSubscription(
-    subscriptionId?: string
-  ): Promise<MutationResponse> {
+  async reactivateSubscription(): Promise<MutationResponse> {
     await this.ensureAuthenticated();
-    const resolvedSubscriptionId =
-      await this.resolveSubscriptionId(subscriptionId);
-
-    if (!resolvedSubscriptionId) {
-      return {
-        success: false,
-        message: 'Subscription id is required to renew a subscription',
-      };
-    }
 
     try {
       const response = await this.authenticatedClient.post<unknown>(
-        `/users/transactions/${encodeURIComponent(resolvedSubscriptionId)}/renew-subscription`,
+        '/users/transactions/renew-subscription',
         undefined,
         {
           params: this.withTenant(),
