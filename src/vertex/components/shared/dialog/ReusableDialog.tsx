@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion"
 import ReusableButton from "@/components/shared/button/ReusableButton"
 import { X } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { BannerSlot, useBanner } from "@/context/banner-context"
 
 interface ReusableDialogProps {
   // Core props
@@ -93,6 +94,7 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
 }) => {
   const dialogRef = useRef<HTMLDivElement>(null)
   const previousActiveElement = useRef<Element | null>(null)
+  const { hideBanner } = useBanner()
 
   // Focus management
   useEffect(() => {
@@ -106,6 +108,16 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
       ;(previousActiveElement.current as HTMLElement)?.focus()
     }
   }, [isOpen])
+
+  const wasOpenRef = useRef(isOpen)
+
+  // Clear any active banner when the dialog transitions from open to closed to prevent state leakage
+  useEffect(() => {
+    if (wasOpenRef.current && !isOpen) {
+      hideBanner()
+    }
+    wasOpenRef.current = isOpen
+  }, [isOpen, hideBanner])
 
   // Escape key handler and body scroll lock
   useEffect(() => {
@@ -278,6 +290,9 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
             >
               {/* Header */}
               {createHeaderContent()}
+
+              {/* Banner Slot */}
+              <BannerSlot />
 
               {/* Content */}
               <div className={cn("flex-1", maxHeight, "overflow-y-auto", contentClassName)}>
