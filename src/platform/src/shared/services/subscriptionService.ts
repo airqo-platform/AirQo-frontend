@@ -534,33 +534,31 @@ export class SubscriptionService {
     let nextBillingDate = profile.nextBillingDate ?? null;
     const currentSubscriptionId = profile.currentSubscriptionId || null;
 
-    if (currentSubscriptionId) {
-      try {
-        const statusResponse = await this.authenticatedClient.get<unknown>(
-          '/users/transactions/subscription-status',
-          {
-            params: this.withTenant(),
-          }
-        );
-
-        const statusData = extractEnvelopeData<SubscriptionStatusPayload>(
-          statusResponse.data
-        );
-
-        if (statusData?.tier) {
-          tier = normalizeTier(statusData.tier);
+    try {
+      const statusResponse = await this.authenticatedClient.get<unknown>(
+        '/users/transactions/subscription-status',
+        {
+          params: this.withTenant(),
         }
+      );
 
-        if (statusData?.status) {
-          status = normalizeStatus(statusData.status);
-        }
+      const statusData = extractEnvelopeData<SubscriptionStatusPayload>(
+        statusResponse.data
+      );
 
-        if (statusData?.nextBillingDate !== undefined) {
-          nextBillingDate = statusData.nextBillingDate ?? null;
-        }
-      } catch {
-        // Fall back to profile details when status endpoint is unavailable.
+      if (statusData?.tier) {
+        tier = normalizeTier(statusData.tier);
       }
+
+      if (statusData?.status) {
+        status = normalizeStatus(statusData.status);
+      }
+
+      if (statusData?.nextBillingDate !== undefined) {
+        nextBillingDate = statusData.nextBillingDate ?? null;
+      }
+    } catch {
+      // Fall back to profile details when status endpoint is unavailable.
     }
 
     const rateLimits = profile.apiRateLimits ?? null;
