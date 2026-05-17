@@ -13,6 +13,7 @@ import Footer from './Footer';
 import { OrganizationSetupBanner } from './organization-setup-banner';
 import { FeedbackLauncher } from '../features/feedback/feedback-launcher';
 import { PageSatisfactionBanner } from '../features/feedback/page-satisfaction-banner';
+import { GlobalBannerContainer } from '@/context/banner-context';
 
 import { setLastActiveModule } from '@/core/utils/userPreferences';
 
@@ -138,9 +139,11 @@ export default function Layout({ children }: LayoutProps) {
             data-vertex-main
             className={`flex-1 transition-[margin-left] duration-300 ease-in-out bg-background w-full flex flex-col ${isSecondarySidebarCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'} overflow-y-auto mt-[calc(50px+var(--vertex-ui-top-offset))] md:mt-[calc(50px+var(--vertex-ui-top-offset))] lg:mt-[calc(48px+var(--vertex-ui-top-offset))]`}
           >
+            
             <div
               className={`flex-1 w-full bg-background max-w-7xl mx-auto flex flex-col gap-4 md:gap-8 px-3 py-3 md:px-2 lg:py-6 lg:px-6 pb-20 md:pb-0`}
             >
+              <GlobalBannerContainer />
               <ErrorBoundary>
                 <motion.div
                   key={pathname}
