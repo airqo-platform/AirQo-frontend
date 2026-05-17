@@ -44,6 +44,21 @@ const formatRateLimitSummary = (
     .join(' | ');
 };
 
+const getBillingErrorLogMessage = (error: unknown): string => {
+  if (error instanceof Error && error.message.trim()) {
+    return error.message.trim();
+  }
+
+  if (typeof error === 'object' && error !== null) {
+    const code = (error as { code?: unknown }).code;
+    if (typeof code === 'string' && code.trim()) {
+      return code.trim();
+    }
+  }
+
+  return 'Unknown billing error';
+};
+
 const SubscriptionSection: React.FC = () => {
   const [subscription, setSubscription] = useState<UserSubscription | null>(
     null
@@ -82,7 +97,9 @@ const SubscriptionSection: React.FC = () => {
           : []
       );
     } catch (error) {
-      console.error('Error loading subscription view:', error);
+      console.error(
+        `Error loading subscription view: ${getBillingErrorLogMessage(error)}`
+      );
       toast.error('Failed to load subscription data');
     } finally {
       setLoading(false);
@@ -139,7 +156,9 @@ const SubscriptionSection: React.FC = () => {
 
       window.location.assign(checkoutUrl);
     } catch (error) {
-      console.error('Checkout error:', error);
+      console.error(
+        `Checkout error: ${getBillingErrorLogMessage(error)}`
+      );
       toast.error(
         error instanceof Error
           ? error.message
@@ -172,7 +191,9 @@ const SubscriptionSection: React.FC = () => {
       await refreshData();
       toast.success(payload.message || 'Automatic renewal enabled');
     } catch (error) {
-      console.error('Auto-renewal error:', error);
+      console.error(
+        `Auto-renewal error: ${getBillingErrorLogMessage(error)}`
+      );
       toast.error(
         error instanceof Error
           ? error.message
@@ -211,7 +232,9 @@ const SubscriptionSection: React.FC = () => {
       await refreshData();
       toast.success(payload.message || 'Automatic renewal disabled');
     } catch (error) {
-      console.error('Disable auto-renewal error:', error);
+      console.error(
+        `Disable auto-renewal error: ${getBillingErrorLogMessage(error)}`
+      );
       toast.error(
         error instanceof Error
           ? error.message
@@ -248,7 +271,9 @@ const SubscriptionSection: React.FC = () => {
       await refreshData();
       toast.success(payload.message || 'Subscription cancelled');
     } catch (error) {
-      console.error('Cancel subscription error:', error);
+      console.error(
+        `Cancel subscription error: ${getBillingErrorLogMessage(error)}`
+      );
       toast.error(
         error instanceof Error ? error.message : 'Failed to cancel subscription'
       );
@@ -391,7 +416,9 @@ const SubscriptionSection: React.FC = () => {
                 const isCurrent = plan.tier === currentTier;
                 const allowCheckout =
                   plan.tier !== 'Free' &&
-                  (!isCurrent || currentStatus === 'past_due');
+                  (!isCurrent ||
+                    currentStatus === 'past_due' ||
+                    currentStatus === 'cancelled');
                 const isUpgrade =
                   currentTier === 'Free' ||
                   (currentPlan ? plan.price > currentPlan.price : false);
@@ -453,6 +480,8 @@ const SubscriptionSection: React.FC = () => {
                       {isCurrent
                         ? currentStatus === 'past_due'
                           ? 'Retry payment'
+                          : currentStatus === 'cancelled'
+                            ? 'Restart subscription'
                           : 'Current plan'
                         : allowCheckout
                           ? isUpgrade

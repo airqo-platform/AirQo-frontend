@@ -168,6 +168,54 @@ const getDefaultPlans = (): SubscriptionPlan[] => [
   },
 ];
 
+const getPlanRateLimits = (tier: SubscriptionTier): ApiRateLimitsPayload => {
+  const plan =
+    getDefaultPlans().find(plan => plan.tier === tier) || getDefaultPlans()[0];
+
+  return {
+    hourlyLimit: plan.limits.hourly,
+    dailyLimit: plan.limits.daily,
+    weeklyLimit: plan.limits.weekly,
+    monthlyLimit: plan.limits.monthly,
+  };
+};
+
+const mergeRateLimitsWithDefaults = (
+  tier: SubscriptionTier,
+  ...sources: Array<ApiRateLimitsPayload | null | undefined>
+): ApiRateLimitsPayload => {
+  const defaults = getPlanRateLimits(tier);
+  const merged: ApiRateLimitsPayload = { ...defaults };
+
+  sources.forEach(source => {
+    if (!source) {
+      return;
+    }
+
+    const hourlyLimit = normalizeNumber(source.hourlyLimit);
+    if (hourlyLimit !== null) {
+      merged.hourlyLimit = hourlyLimit;
+    }
+
+    const dailyLimit = normalizeNumber(source.dailyLimit);
+    if (dailyLimit !== null) {
+      merged.dailyLimit = dailyLimit;
+    }
+
+    const weeklyLimit = normalizeNumber(source.weeklyLimit);
+    if (weeklyLimit !== null) {
+      merged.weeklyLimit = weeklyLimit;
+    }
+
+    const monthlyLimit = normalizeNumber(source.monthlyLimit);
+    if (monthlyLimit !== null) {
+      merged.monthlyLimit = monthlyLimit;
+    }
+  });
+
+  return merged;
+};
+
 const normalizeTier = (tier?: string): SubscriptionTier => {
   const normalized = (tier || '').trim().toLowerCase();
 
@@ -610,7 +658,7 @@ export class SubscriptionService {
     let nextBillingDate = profile.nextBillingDate ?? null;
     let automaticRenewal = Boolean(profile.automaticRenewal);
     let currentSubscriptionId = profile.currentSubscriptionId || null;
-    let rateLimits = normalizeRateLimits(profile.apiRateLimits);
+    let statusRateLimitsPayload: ApiRateLimitsPayload | null | undefined;
 
     try {
       const statusResponse = await this.authenticatedClient.get<unknown>(
@@ -647,13 +695,18 @@ export class SubscriptionService {
         currentSubscriptionId = statusData.currentSubscriptionId ?? null;
       }
 
-      const statusRateLimits = normalizeRateLimits(statusData?.apiRateLimits);
-      if (statusRateLimits) {
-        rateLimits = statusRateLimits;
-      }
+      statusRateLimitsPayload = statusData?.apiRateLimits;
     } catch {
       // Fall back to profile details when status endpoint is unavailable.
     }
+
+    const rateLimits = normalizeRateLimits(
+      mergeRateLimitsWithDefaults(
+        tier,
+        profile.apiRateLimits,
+        statusRateLimitsPayload
+      )
+    );
 
     const subscription: UserSubscription = {
       tier,
@@ -702,10 +755,18 @@ export class SubscriptionService {
 
     const getFallbackRateLimits = async () => {
       if (!profile) {
-        profile = await this.getUsersProfilePayload();
+        try {
+          profile = await this.getUsersProfilePayload();
+        } catch {
+          profile = null;
+        }
       }
 
-      return normalizeRateLimits(profile.apiRateLimits);
+      const tier = normalizeTier(profile?.subscriptionTier);
+
+      return normalizeRateLimits(
+        mergeRateLimitsWithDefaults(tier, profile?.apiRateLimits)
+      );
     };
 
     try {
