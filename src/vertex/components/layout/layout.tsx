@@ -12,6 +12,7 @@ import ErrorBoundary from '../shared/ErrorBoundary';
 import Footer from './Footer';
 import { OrganizationSetupBanner } from './organization-setup-banner';
 import { FeedbackLauncher } from '../features/feedback/feedback-launcher';
+import { PageSatisfactionBanner } from '../features/feedback/page-satisfaction-banner';
 
 import { setLastActiveModule } from '@/core/utils/userPreferences';
 
@@ -135,7 +136,6 @@ export default function Layout({ children }: LayoutProps) {
           />
           <main
             data-vertex-main
-            className={`flex-1 transition-[margin-left] duration-300 ease-in-out bg-background w-full flex flex-col ${isSecondarySidebarCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'} overflow-y-auto mt-[calc(50px+var(--vertex-ui-top-offset))] md:mt-[calc(50px+var(--vertex-ui-top-offset))] lg:mt-[calc(48px+var(--vertex-ui-top-offset))] pb-20 md:pb-0`}
             className={`flex-1 transition-[margin-left] duration-300 ease-in-out bg-background w-full flex flex-col ${isSecondarySidebarCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'} overflow-y-auto mt-[calc(50px+var(--vertex-ui-top-offset))] md:mt-[calc(50px+var(--vertex-ui-top-offset))] lg:mt-[calc(48px+var(--vertex-ui-top-offset))]`}
           >
             <div
