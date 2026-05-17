@@ -4,6 +4,31 @@
 
 ---
 
+## Version 1.23.42
+**Released:** May 17, 2026
+
+### Centralized Modal Banners & ReusableDialog Integration
+
+Integrated the context-aware `<BannerSlot />` directly into the centralized `ReusableDialog` component, enabling automatic and standardized banner rendering inside modals throughout the application. Built auto-cleanup logic into the dialog transition state to prevent banner leakage.
+
+<details>
+<summary><strong>Shared UI Components (2)</strong></summary>
+
+- **Centralized BannerSlot Integration**: Embedded `<BannerSlot />` from the `useBanner` system natively inside `ReusableDialog.tsx` immediately below the dialog header and above the scrollable content area. Feature modals now support inline, styled banner alerts without manual markup.
+- **Auto-Cleanup on Dialog Close**: Integrated active cleanup logic inside `ReusableDialog.tsx` that calls `hideBanner()` when the dialog is closed, resetting notification state and preventing alerts from leaking between different dialog instances.
+- **Gated Transition Guard**: Hardened the dialog cleanup logic by introducing `wasOpenRef` to track state transitions. This prevents mounted-but-closed dialogs from triggering `hideBanner()` on initial render, ensuring other active on-page or modal banners are not cleared prematurely.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (1)</strong></summary>
+
+- `src/vertex/components/shared/dialog/ReusableDialog.tsx` [MODIFIED]
+
+</details>
+
+---
+
 ## Version 1.23.41
 **Released:** May 16, 2026
 
