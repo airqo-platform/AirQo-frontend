@@ -4,6 +4,75 @@
 
 ---
 
+## Version 1.23.42
+**Released:** May 17, 2026
+
+### Centralized Modal Banners & ReusableDialog Integration
+
+Integrated the context-aware `<BannerSlot />` directly into the centralized `ReusableDialog` component, enabling automatic and standardized banner rendering inside modals throughout the application. Built auto-cleanup logic into the dialog transition state to prevent banner leakage.
+
+<details>
+<summary><strong>Shared UI Components (2)</strong></summary>
+
+- **Centralized BannerSlot Integration**: Embedded `<BannerSlot />` from the `useBanner` system natively inside `ReusableDialog.tsx` immediately below the dialog header and above the scrollable content area. Feature modals now support inline, styled banner alerts without manual markup.
+- **Auto-Cleanup on Dialog Close**: Integrated active cleanup logic inside `ReusableDialog.tsx` that calls `hideBanner()` when the dialog is closed, resetting notification state and preventing alerts from leaking between different dialog instances.
+- **Gated Transition Guard**: Hardened the dialog cleanup logic by introducing `wasOpenRef` to track state transitions. This prevents mounted-but-closed dialogs from triggering `hideBanner()` on initial render, ensuring other active on-page or modal banners are not cleared prematurely.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (1)</strong></summary>
+
+- `src/vertex/components/shared/dialog/ReusableDialog.tsx` [MODIFIED]
+
+</details>
+
+---
+
+## Version 1.23.41
+**Released:** May 16, 2026
+
+### Scoped Banner System Migration, Login UX Fixes & Dead Code Cleanup
+
+Migrated auth-flow feedback from imperative toast notifications to scoped `InfoBanner` components, hardened the banner-context state management to prevent silent message drops, fixed post-login banner render timing, and removed the defunct local forgot-password page.
+
+<details>
+<summary><strong>Auth UX — Scoped Banner Migration (3)</strong></summary>
+
+- **Login Page Banners**: Replaced all `ReusableToast` calls in the login flow (`app/login/page.tsx`) with scoped `showBanner` / `BannerSlot` calls. Success, error, and validation feedback is now rendered inline within the login form card rather than as floating toasts, giving users precise contextual feedback without losing their place.
+- **Google Auth Section Banners**: Migrated `components/features/auth/google-auth-section.tsx` to use scoped `InfoBanner` for OAuth error states, replacing previous inline alert elements and ensuring visual consistency across all sign-in paths.
+- **Login Render Timing Fix**: Fixed a race condition where the success banner was not visible before the page redirected after a successful credential login. Resolved by removing an extraneous `setTimeout` that was interfering with React's paint cycle, ensuring the welcome banner renders correctly before navigation occurs.
+
+</details>
+
+<details>
+<summary><strong>Banner Context Hardening (1)</strong></summary>
+
+- **Full Props Stored in State**: Refactored `context/banner-context.tsx` to store the complete banner props object in state rather than individual fields. This prevents silent message drops that occurred when rapid successive `showBanner` calls partially overwrote state before the component re-rendered, resulting in blank or stale banners being displayed.
+
+</details>
+
+<details>
+<summary><strong>Dead Code Removal (1)</strong></summary>
+
+- **Forgot Password Page Deleted**: Removed the local `/forgot-password` Next.js route (`app/forgot-password/page.tsx`), which was a dead stub that only `console.log`ed submitted emails without calling any API. The "Forgot password?" link in the login page continues to redirect users directly to AirQo Analytics (`NEXT_PUBLIC_ANALYTICS_URL/user/forgotPwd`) where actual password reset is handled. Cleaned up the middleware route matcher and `authProvider` auth-routes list accordingly.
+
+</details>
+
+<details>
+<summary><strong>Files Modified/Deleted (5)</strong></summary>
+
+- `src/vertex/app/forgot-password/page.tsx` [DELETED]
+- `src/vertex/app/login/page.tsx` [MODIFIED]
+- `src/vertex/components/features/auth/google-auth-section.tsx` [MODIFIED]
+- `src/vertex/context/banner-context.tsx` [MODIFIED]
+- `src/vertex/core/auth/authProvider.tsx` [MODIFIED]
+- `src/vertex/middleware.ts` [MODIFIED]
+
+</details>
+
+---
+
 ## Version 1.23.40
 **Released:** May 16, 2026
 
