@@ -16,6 +16,7 @@ Integrated the context-aware `<BannerSlot />` directly into the centralized `Reu
 
 - **Centralized BannerSlot Integration**: Embedded `<BannerSlot />` from the `useBanner` system natively inside `ReusableDialog.tsx` immediately below the dialog header and above the scrollable content area. Feature modals now support inline, styled banner alerts without manual markup.
 - **Auto-Cleanup on Dialog Close**: Integrated active cleanup logic inside `ReusableDialog.tsx` that calls `hideBanner()` when the dialog is closed, resetting notification state and preventing alerts from leaking between different dialog instances.
+- **Gated Transition Guard**: Hardened the dialog cleanup logic by introducing `wasOpenRef` to track state transitions. This prevents mounted-but-closed dialogs from triggering `hideBanner()` on initial render, ensuring other active on-page or modal banners are not cleared prematurely.
 
 </details>
 
