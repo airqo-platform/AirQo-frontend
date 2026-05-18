@@ -10,6 +10,7 @@ import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput"
 import { MultiSelectCombobox } from "@/components/ui/multi-select";
 import { DEFAULT_DEVICE_TAGS } from "@/core/constants/devices";
 import { Label } from "@/components/ui/label";
+import { useBanner } from "@/context/banner-context";
 
 interface CreateDeviceModalProps {
   open: boolean;
@@ -30,6 +31,7 @@ const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const { showBanner } = useBanner();
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
   const createDevice = useCreateDevice();
 
@@ -56,7 +58,7 @@ const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
     const effectiveNetworkName = networkName || activeNetwork?.net_name;
 
     if (!effectiveNetworkName) {
-      setErrors({ general: "No active Sensor Manufacturer found" });
+      showBanner({ severity: 'error', message: 'No active Sensor Manufacturer found', scoped: true });
       return;
     }
 
@@ -136,11 +138,6 @@ const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
       }}
     >
       <div className="space-y-4">
-        {errors.general && (
-          <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
-            {errors.general}
-          </div>
-        )}
         <ReusableInputField
           label="Device Name"
           id="long_name"

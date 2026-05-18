@@ -9,7 +9,7 @@ import { useUserContext } from "@/core/hooks/useUserContext";
 import { MultiSelectCombobox } from "@/components/ui/multi-select";
 import { Switch } from "@/components/ui/switch";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
-import ReusableToast from "@/components/shared/toast/ReusableToast";
+import { useBanner } from "@/context/banner-context";
 
 interface AddMaintenanceLogModalProps {
   open: boolean;
@@ -51,6 +51,7 @@ const AddMaintenanceLogModal: React.FC<AddMaintenanceLogModalProps> = ({ open, o
   const [maintenanceType, setMaintenanceType] = useState<"preventive" | "corrective">("preventive");
 
   const { userDetails } = useUserContext();
+  const { showBanner } = useBanner();
   const addMaintenanceLog = useAddMaintenanceLog();
 
   // Reset form when modal opens/closes
@@ -65,7 +66,7 @@ const AddMaintenanceLogModal: React.FC<AddMaintenanceLogModalProps> = ({ open, o
 
   const handleSubmit = async () => {
     if (!date || selectedTags.length === 0) {
-      ReusableToast({message: "Please fill all fields", type:"ERROR"})
+      showBanner({ severity: 'error', message: 'Please fill all required fields', scoped: true });
       return;
     }
 

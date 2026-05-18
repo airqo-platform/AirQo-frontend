@@ -13,6 +13,7 @@ import { useGroupCohorts } from "@/core/hooks/useCohorts";
 import { useAppSelector } from "@/core/redux/hooks";
 import { usePathname } from "next/navigation";
 import logger from "@/lib/logger";
+import { useBanner } from "@/context/banner-context";
 import { NetworkRequestDialog } from "../networks/network-request-dialog";
 import { MultiSelectCombobox } from "@/components/ui/multi-select";
 import { DEFAULT_DEVICE_TAGS } from "@/core/constants/devices";
@@ -45,6 +46,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
   const [showMore, setShowMore] = useState(false);
   const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const { showBanner } = useBanner();
   const importDevice = useImportDevice();
   const { networks, isLoading: isLoadingNetworks } = useNetworks();
 
@@ -108,6 +110,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
 
     if (!userId) {
       logger.warn("User ID is missing");
+      showBanner({ severity: 'error', message: 'Unable to identify user. Please reload and try again.', scoped: true });
       return;
     }
 
@@ -180,11 +183,6 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       }}
     >
       <div className="space-y-2">
-        {errors.general && (
-          <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
-            {errors.general}
-          </div>
-        )}
 
         <ReusableInputField
           label="Device Name"
