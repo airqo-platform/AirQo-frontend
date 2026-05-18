@@ -193,7 +193,7 @@ export const PageSatisfactionBanner: React.FC = () => {
     subject: `Page Satisfaction: ${getPageName()}`,
     message: message || `Rating: ${rating}/5, Reason: ${reason}`,
     rating,
-    category: 'other',
+    category: 'page_satisfaction',
     platform: 'web',
     app: 'vertex',
     metadata,
