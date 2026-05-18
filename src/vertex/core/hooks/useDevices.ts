@@ -597,35 +597,11 @@ export const useDeployDevice = () => {
       email?: string;
       userName?: string;
     }) => devices.deployDevice(deviceData),
-    onSuccess: (data, variables) => {
-      ReusableToast({
-        message: `${variables.deviceName} has been deployed.`,
-        type: 'SUCCESS',
-      });
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['devices'] });
       queryClient.invalidateQueries({ queryKey: ['claimedDevices'] });
       queryClient.invalidateQueries({ queryKey: ['myDevices'] });
       queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
-    },
-    onError: (error: AxiosError<any>) => {
-      let errorMessage = getApiErrorMessage(error);
-      const errorData = error.response?.data as any;
-
-      if (errorData?.failed_deployments?.length > 0) {
-        const failedMessages = errorData.failed_deployments
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          .map((deployment: any) => deployment.error?.message)
-          .filter(Boolean);
-
-        if (failedMessages.length > 0) {
-          errorMessage = failedMessages.join(', ');
-        }
-      }
-
-      ReusableToast({
-        message: `Deployment Failed: ${errorMessage}`,
-        type: 'ERROR',
-      });
     },
   });
 };
@@ -670,20 +646,10 @@ export const useAddMaintenanceLog = () => {
       logData: MaintenanceLogData;
     }) => devices.addMaintenanceLog(deviceName, logData),
     onSuccess: (data, variables) => {
-      ReusableToast({
-        message: `Maintenance log has been added for ${variables.deviceName}.`,
-        type: 'SUCCESS',
-      });
       queryClient.invalidateQueries({ queryKey: ['devices'] });
       queryClient.invalidateQueries({ queryKey: ['device-details'] });
       queryClient.invalidateQueries({ queryKey: ['deviceStatus'] });
       queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
-    },
-    onError: error => {
-      ReusableToast({
-        message: `Failed to Add Maintenance Log: ${getApiErrorMessage(error)}`,
-        type: 'ERROR',
-      });
     },
   });
 };
