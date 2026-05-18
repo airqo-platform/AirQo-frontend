@@ -8,7 +8,7 @@ final Map<String, Future<BitmapDescriptor>> _bitmapDescriptorCache = {};
 
 Future<BitmapDescriptor> bitmapDescriptorFromSvgAsset(
   String assetName, [
-  Size size = const Size(28, 28),
+  Size size = const Size(24, 24),
 ]) async {
   final views = ui.PlatformDispatcher.instance.views;
   final devicePixelRatio =

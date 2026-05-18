@@ -61,9 +61,7 @@ const SubscriptionManagement: React.FC = () => {
 
     try {
       setUpdating(true);
-      const data = await subscriptionService.enableAutoRenewal(
-        subscription.currentSubscriptionId || undefined
-      );
+      const data = await subscriptionService.enableAutoRenewal();
 
       if (data.success) {
         setSubscription(prev =>
@@ -92,9 +90,7 @@ const SubscriptionManagement: React.FC = () => {
 
     try {
       setCancelling(true);
-      const data = await subscriptionService.cancelSubscription(
-        subscription.currentSubscriptionId || undefined
-      );
+      const data = await subscriptionService.cancelSubscription();
 
       if (data.success) {
         setSubscription(prev =>
@@ -124,9 +120,7 @@ const SubscriptionManagement: React.FC = () => {
   const handleReactivateSubscription = async () => {
     try {
       setUpdating(true);
-      const data = await subscriptionService.reactivateSubscription(
-        subscription?.currentSubscriptionId || undefined
-      );
+      const data = await subscriptionService.reactivateSubscription();
 
       if (data.success) {
         setSubscription(prev =>

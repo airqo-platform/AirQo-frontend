@@ -65,41 +65,6 @@ class MapCameraController with UiLoggy {
     }
   }
 
-  Future<void> zoomToCluster(List<Measurement> members) async {
-    if (!isInitialized) return;
-    try {
-      double minLat = 90.0, maxLat = -90.0, minLng = 180.0, maxLng = -180.0;
-      for (final measurement in members) {
-        final lat = measurement.siteDetails!.approximateLatitude!;
-        final lng = measurement.siteDetails!.approximateLongitude!;
-        if (lat < minLat) minLat = lat;
-        if (lat > maxLat) maxLat = lat;
-        if (lng < minLng) minLng = lng;
-        if (lng > maxLng) maxLng = lng;
-      }
-      // LatLngBounds requires SW != NE — use simple zoom for single-point clusters.
-      if (minLat == maxLat && minLng == maxLng) {
-        await _controller!.animateCamera(
-          CameraUpdate.newLatLngZoom(LatLng(minLat, minLng), 14),
-        );
-      } else {
-        await _controller!.animateCamera(
-          CameraUpdate.newLatLngBounds(
-            LatLngBounds(
-              southwest: LatLng(minLat, minLng),
-              northeast: LatLng(maxLat, maxLng),
-            ),
-            60,
-          ),
-        );
-      }
-    } catch (e) {
-      loggy.warning('Failed to zoom to cluster: $e');
-      final zoom = await _controller!.getZoomLevel();
-      await _controller!.animateCamera(CameraUpdate.zoomTo(zoom + 2));
-    }
-  }
-
   Future<void> increaseZoom() async {
     if (!isInitialized) return;
     final zoom = await _controller!.getZoomLevel();

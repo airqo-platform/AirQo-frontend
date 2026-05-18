@@ -15,6 +15,7 @@ type PrimitiveQueryValue = string | number | boolean;
 interface ApiRateLimitsPayload {
   hourlyLimit?: number;
   dailyLimit?: number;
+  weeklyLimit?: number;
   monthlyLimit?: number;
 }
 
@@ -37,17 +38,30 @@ interface UsersMePayload {
 }
 
 interface SubscriptionStatusPayload {
+  subscriptionStatus?: string;
+  subscriptionTier?: string;
   status?: string;
   tier?: string;
   nextBillingDate?: string | null;
+  automaticRenewal?: boolean;
+  currentSubscriptionId?: string | null;
+  apiRateLimits?: ApiRateLimitsPayload | null;
+}
+
+interface UsagePeriodPayload {
+  used?: number | null;
+  limit?: number | null;
+  resetTime?: string | null;
+}
+
+interface UsagePayload {
+  hourly?: UsagePeriodPayload | null;
+  daily?: UsagePeriodPayload | null;
+  monthly?: UsagePeriodPayload | null;
 }
 
 interface CheckoutRequest {
   tier: SubscriptionTier;
-  priceId?: string;
-  customerId?: string;
-  successUrl?: string;
-  cancelUrl?: string;
 }
 
 interface CheckoutResponse {
@@ -79,6 +93,9 @@ type BackendTransaction = {
   date?: string;
 };
 
+type NormalizedSubscriptionStatus = UserSubscription['status'];
+type NormalizedRateLimits = NonNullable<UserSubscription['apiRateLimits']>;
+
 const USERS_PROFILE_CANDIDATE_PATHS = [
   '/users/profile/enhanced',
   '/users/me',
@@ -101,6 +118,7 @@ const getDefaultPlans = (): SubscriptionPlan[] => [
     limits: {
       hourly: 100,
       daily: 1000,
+      weekly: 7000,
       monthly: 10000,
     },
   },
@@ -122,6 +140,7 @@ const getDefaultPlans = (): SubscriptionPlan[] => [
     limits: {
       hourly: 500,
       daily: 5000,
+      weekly: 35000,
       monthly: 50000,
     },
   },
@@ -143,10 +162,59 @@ const getDefaultPlans = (): SubscriptionPlan[] => [
     limits: {
       hourly: 2000,
       daily: 20000,
+      weekly: 140000,
       monthly: 200000,
     },
   },
 ];
+
+const getPlanRateLimits = (tier: SubscriptionTier): ApiRateLimitsPayload => {
+  const plan =
+    getDefaultPlans().find(plan => plan.tier === tier) || getDefaultPlans()[0];
+
+  return {
+    hourlyLimit: plan.limits.hourly,
+    dailyLimit: plan.limits.daily,
+    weeklyLimit: plan.limits.weekly,
+    monthlyLimit: plan.limits.monthly,
+  };
+};
+
+const mergeRateLimitsWithDefaults = (
+  tier: SubscriptionTier,
+  ...sources: Array<ApiRateLimitsPayload | null | undefined>
+): ApiRateLimitsPayload => {
+  const defaults = getPlanRateLimits(tier);
+  const merged: ApiRateLimitsPayload = { ...defaults };
+
+  sources.forEach(source => {
+    if (!source) {
+      return;
+    }
+
+    const hourlyLimit = normalizeNumber(source.hourlyLimit);
+    if (hourlyLimit !== null) {
+      merged.hourlyLimit = hourlyLimit;
+    }
+
+    const dailyLimit = normalizeNumber(source.dailyLimit);
+    if (dailyLimit !== null) {
+      merged.dailyLimit = dailyLimit;
+    }
+
+    const weeklyLimit = normalizeNumber(source.weeklyLimit);
+    if (weeklyLimit !== null) {
+      merged.weeklyLimit = weeklyLimit;
+    }
+
+    const monthlyLimit = normalizeNumber(source.monthlyLimit);
+    if (monthlyLimit !== null) {
+      merged.monthlyLimit = monthlyLimit;
+    }
+  });
+
+  return merged;
+};
 
 const normalizeTier = (tier?: string): SubscriptionTier => {
   const normalized = (tier || '').trim().toLowerCase();
@@ -162,13 +230,15 @@ const normalizeTier = (tier?: string): SubscriptionTier => {
   return 'Free';
 };
 
-const normalizeStatus = (
-  status?: string
-): 'active' | 'inactive' | 'past_due' | 'cancelled' => {
+const normalizeStatus = (status?: string): NormalizedSubscriptionStatus => {
   const normalized = (status || '').trim().toLowerCase();
 
   if (normalized === 'active') {
     return 'active';
+  }
+
+  if (normalized === 'trialing') {
+    return 'trialing';
   }
 
   if (normalized === 'past_due') {
@@ -180,6 +250,12 @@ const normalizeStatus = (
   }
 
   return 'inactive';
+};
+
+const normalizeNumber = (value: unknown): number | null => {
+  const parsed = typeof value === 'number' ? value : Number(value);
+
+  return Number.isFinite(parsed) ? parsed : null;
 };
 
 const buildResetTime = (period: 'hourly' | 'daily' | 'monthly') => {
@@ -204,46 +280,94 @@ const buildResetTime = (period: 'hourly' | 'daily' | 'monthly') => {
   return reset.toISOString();
 };
 
-const toUsage = (rateLimits?: ApiRateLimitsPayload | null): ApiUsage => ({
+const buildUsageFromRateLimits = (
+  rateLimits?: ApiRateLimitsPayload | NormalizedRateLimits | null
+): ApiUsage => ({
   hourly: {
     used: null,
-    limit: rateLimits?.hourlyLimit ?? null,
+    limit: normalizeNumber(rateLimits?.hourlyLimit),
     resetTime: buildResetTime('hourly'),
   },
   daily: {
     used: null,
-    limit: rateLimits?.dailyLimit ?? null,
+    limit: normalizeNumber(rateLimits?.dailyLimit),
     resetTime: buildResetTime('daily'),
   },
   monthly: {
     used: null,
-    limit: rateLimits?.monthlyLimit ?? null,
+    limit: normalizeNumber(rateLimits?.monthlyLimit),
     resetTime: buildResetTime('monthly'),
   },
 });
 
+const normalizeUsagePeriod = (
+  period: 'hourly' | 'daily' | 'monthly',
+  payload: UsagePeriodPayload | null | undefined,
+  fallbackLimit?: number | null
+): ApiUsage['hourly'] => {
+  const limit = normalizeNumber(payload?.limit);
+  const used =
+    payload?.used === null || payload?.used === undefined
+      ? null
+      : normalizeNumber(payload.used);
+
+  return {
+    used,
+    limit: limit ?? fallbackLimit ?? null,
+    resetTime:
+      typeof payload?.resetTime === 'string' && payload.resetTime.trim()
+        ? payload.resetTime
+        : buildResetTime(period),
+  };
+};
+
+const buildUsage = (
+  payload?: UsagePayload | null,
+  fallbackRateLimits?: NormalizedRateLimits
+): ApiUsage => ({
+  hourly: normalizeUsagePeriod(
+    'hourly',
+    payload?.hourly,
+    fallbackRateLimits?.hourlyLimit
+  ),
+  daily: normalizeUsagePeriod(
+    'daily',
+    payload?.daily,
+    fallbackRateLimits?.dailyLimit
+  ),
+  monthly: normalizeUsagePeriod(
+    'monthly',
+    payload?.monthly,
+    fallbackRateLimits?.monthlyLimit
+  ),
+});
+
+const hasMissingUsageLimits = (usage: ApiUsage) =>
+  usage.hourly.limit === null ||
+  usage.daily.limit === null ||
+  usage.monthly.limit === null;
+
 const normalizeRateLimits = (
   rateLimits?: ApiRateLimitsPayload | null
-):
-  | {
-      hourlyLimit: number;
-      dailyLimit: number;
-      monthlyLimit: number;
-    }
-  | undefined => {
-  if (
-    !rateLimits ||
-    typeof rateLimits.hourlyLimit !== 'number' ||
-    typeof rateLimits.dailyLimit !== 'number' ||
-    typeof rateLimits.monthlyLimit !== 'number'
-  ) {
+): NormalizedRateLimits | undefined => {
+  if (!rateLimits) {
+    return undefined;
+  }
+
+  const hourlyLimit = normalizeNumber(rateLimits.hourlyLimit);
+  const dailyLimit = normalizeNumber(rateLimits.dailyLimit);
+  const monthlyLimit = normalizeNumber(rateLimits.monthlyLimit);
+  const weeklyLimit = normalizeNumber(rateLimits.weeklyLimit);
+
+  if (hourlyLimit === null || dailyLimit === null || monthlyLimit === null) {
     return undefined;
   }
 
   return {
-    hourlyLimit: rateLimits.hourlyLimit,
-    dailyLimit: rateLimits.dailyLimit,
-    monthlyLimit: rateLimits.monthlyLimit,
+    hourlyLimit,
+    dailyLimit,
+    monthlyLimit,
+    ...(weeklyLimit !== null ? { weeklyLimit } : {}),
   };
 };
 
@@ -526,71 +650,78 @@ export class SubscriptionService {
     throw lastError || new Error('Unable to resolve user profile endpoint');
   }
 
-  private async resolveSubscriptionId(
-    subscriptionId?: string
-  ): Promise<string | null> {
-    const trimmedInput = (subscriptionId || '').trim();
-    if (trimmedInput) {
-      return trimmedInput;
-    }
-
-    const profile = await this.getUsersProfilePayload();
-    return (profile.currentSubscriptionId || '').trim() || null;
-  }
-
   async getSubscription(): Promise<GetSubscriptionResponse> {
     const profile = await this.getUsersProfilePayload();
 
     let tier = normalizeTier(profile.subscriptionTier);
     let status = normalizeStatus(profile.subscriptionStatus);
     let nextBillingDate = profile.nextBillingDate ?? null;
-    const currentSubscriptionId = profile.currentSubscriptionId || null;
+    let automaticRenewal = Boolean(profile.automaticRenewal);
+    let currentSubscriptionId = profile.currentSubscriptionId || null;
+    let statusRateLimitsPayload: ApiRateLimitsPayload | null | undefined;
 
-    if (currentSubscriptionId) {
-      try {
-        const statusResponse = await this.authenticatedClient.get<unknown>(
-          `/users/transactions/${encodeURIComponent(currentSubscriptionId)}/subscription-status`,
-          {
-            params: this.withTenant(),
-          }
-        );
-
-        const statusData = extractEnvelopeData<SubscriptionStatusPayload>(
-          statusResponse.data
-        );
-
-        if (statusData?.tier) {
-          tier = normalizeTier(statusData.tier);
+    try {
+      const statusResponse = await this.authenticatedClient.get<unknown>(
+        '/users/transactions/subscription-status',
+        {
+          params: this.withTenant(),
         }
+      );
 
-        if (statusData?.status) {
-          status = normalizeStatus(statusData.status);
-        }
+      const statusData = extractEnvelopeData<SubscriptionStatusPayload>(
+        statusResponse.data
+      );
 
-        if (statusData?.nextBillingDate !== undefined) {
-          nextBillingDate = statusData.nextBillingDate ?? null;
-        }
-      } catch {
-        // Fall back to profile details when status endpoint is unavailable.
+      const statusTier = statusData?.subscriptionTier ?? statusData?.tier;
+      const statusValue = statusData?.subscriptionStatus ?? statusData?.status;
+
+      if (statusTier) {
+        tier = normalizeTier(statusTier);
       }
+
+      if (statusValue) {
+        status = normalizeStatus(statusValue);
+      }
+
+      if (statusData?.nextBillingDate !== undefined) {
+        nextBillingDate = statusData.nextBillingDate ?? null;
+      }
+
+      if (typeof statusData?.automaticRenewal === 'boolean') {
+        automaticRenewal = statusData.automaticRenewal;
+      }
+
+      if (statusData?.currentSubscriptionId !== undefined) {
+        currentSubscriptionId = statusData.currentSubscriptionId ?? null;
+      }
+
+      statusRateLimitsPayload = statusData?.apiRateLimits;
+    } catch {
+      // Fall back to profile details when status endpoint is unavailable.
     }
 
-    const rateLimits = profile.apiRateLimits ?? null;
+    const rateLimits = normalizeRateLimits(
+      mergeRateLimitsWithDefaults(
+        tier,
+        profile.apiRateLimits,
+        statusRateLimitsPayload
+      )
+    );
 
     const subscription: UserSubscription = {
       tier,
       status,
       nextBillingDate,
       lastRenewalDate: profile.lastRenewalDate ?? null,
-      automaticRenewal: Boolean(profile.automaticRenewal),
+      automaticRenewal,
       currentSubscriptionId,
       currentPlanDetails: {
         priceId: profile.currentPlanDetails?.priceId ?? null,
         currency: profile.currentPlanDetails?.currency ?? null,
         billingCycle: profile.currentPlanDetails?.billingCycle ?? null,
       },
-      apiRateLimits: normalizeRateLimits(profile.apiRateLimits),
-      autoRenewal: Boolean(profile.automaticRenewal),
+      apiRateLimits: rateLimits,
+      autoRenewal: automaticRenewal,
       startDate: profile.lastRenewalDate || undefined,
       endDate: nextBillingDate || undefined,
       billingCycle:
@@ -599,7 +730,7 @@ export class SubscriptionService {
           : 'monthly',
     };
 
-    const usage = toUsage(rateLimits);
+    const usage = buildUsageFromRateLimits(rateLimits);
 
     return {
       success: true,
@@ -618,15 +749,65 @@ export class SubscriptionService {
     success: boolean;
     message: string;
     usage: ApiUsage;
+    live: boolean;
   }> {
-    const profile = await this.getUsersProfilePayload();
-    const usage = toUsage(profile.apiRateLimits ?? null);
+    let profile: UsersMePayload | null = null;
 
-    return {
-      success: true,
-      message: 'Usage statistics retrieved successfully',
-      usage,
+    const getFallbackRateLimits = async () => {
+      if (!profile) {
+        try {
+          profile = await this.getUsersProfilePayload();
+        } catch {
+          profile = null;
+        }
+      }
+
+      const tier = normalizeTier(profile?.subscriptionTier);
+
+      return normalizeRateLimits(
+        mergeRateLimitsWithDefaults(tier, profile?.apiRateLimits)
+      );
     };
+
+    try {
+      await this.ensureAuthenticated();
+
+      const response = await this.authenticatedClient.get<unknown>(
+        '/users/transactions/usage',
+        {
+          params: this.withTenant(),
+        }
+      );
+
+      const usagePayload = extractEnvelopeData<UsagePayload>(response.data);
+      let fallbackRateLimits: NormalizedRateLimits | undefined;
+      let usage = buildUsage(usagePayload);
+
+      if (hasMissingUsageLimits(usage)) {
+        fallbackRateLimits = await getFallbackRateLimits();
+        usage = buildUsage(usagePayload, fallbackRateLimits);
+      }
+
+      return {
+        success: true,
+        message: extractMessage(
+          response.data,
+          'Usage statistics retrieved successfully'
+        ),
+        usage,
+        live: true,
+      };
+    } catch {
+      const fallbackRateLimits = await getFallbackRateLimits();
+
+      return {
+        success: true,
+        message:
+          'Live usage counters are temporarily unavailable. Showing your current plan limits instead.',
+        usage: buildUsageFromRateLimits(fallbackRateLimits),
+        live: false,
+      };
+    }
   }
 
   async getPlans(): Promise<{
@@ -657,22 +838,6 @@ export class SubscriptionService {
     const payload: Record<string, string> = {
       tier,
     };
-
-    if (request.priceId?.trim()) {
-      payload.priceId = request.priceId.trim();
-    }
-
-    if (request.customerId?.trim()) {
-      payload.customerId = request.customerId.trim();
-    }
-
-    if (request.successUrl?.trim()) {
-      payload.successUrl = request.successUrl.trim();
-    }
-
-    if (request.cancelUrl?.trim()) {
-      payload.cancelUrl = request.cancelUrl.trim();
-    }
 
     try {
       const response = await this.authenticatedClient.post<unknown>(
@@ -713,21 +878,12 @@ export class SubscriptionService {
     }
   }
 
-  async enableAutoRenewal(subscriptionId?: string): Promise<MutationResponse> {
+  async enableAutoRenewal(): Promise<MutationResponse> {
     await this.ensureAuthenticated();
-    const resolvedSubscriptionId =
-      await this.resolveSubscriptionId(subscriptionId);
-
-    if (!resolvedSubscriptionId) {
-      return {
-        success: false,
-        message: 'Subscription id is required to enable auto-renew',
-      };
-    }
 
     try {
       const response = await this.authenticatedClient.post<unknown>(
-        `/users/transactions/${encodeURIComponent(resolvedSubscriptionId)}/enable-auto-renew`,
+        '/users/transactions/enable-auto-renew',
         undefined,
         {
           params: this.withTenant(),
@@ -762,21 +918,52 @@ export class SubscriptionService {
     }
   }
 
-  async cancelSubscription(subscriptionId?: string): Promise<MutationResponse> {
+  async disableAutoRenewal(): Promise<MutationResponse> {
     await this.ensureAuthenticated();
-    const resolvedSubscriptionId =
-      await this.resolveSubscriptionId(subscriptionId);
-
-    if (!resolvedSubscriptionId) {
-      return {
-        success: false,
-        message: 'Subscription id is required to cancel a subscription',
-      };
-    }
 
     try {
       const response = await this.authenticatedClient.post<unknown>(
-        `/users/transactions/${encodeURIComponent(resolvedSubscriptionId)}/cancel-subscription`,
+        '/users/transactions/disable-auto-renew',
+        undefined,
+        {
+          params: this.withTenant(),
+        }
+      );
+
+      return {
+        success: true,
+        message: extractMessage(
+          response.data,
+          'Automatic renewal disabled successfully'
+        ),
+        data: {
+          automaticRenewal: false,
+        },
+      };
+    } catch (error) {
+      const response = (
+        error as { response?: { status?: number; data?: unknown } }
+      ).response;
+      const status = response?.status || 500;
+      const errorPayload = response?.data;
+
+      return {
+        success: false,
+        message: extractMessage(
+          errorPayload,
+          'Failed to disable automatic renewal'
+        ),
+        comingSoon: isPaymentProviderUnavailable(status, errorPayload),
+      };
+    }
+  }
+
+  async cancelSubscription(): Promise<MutationResponse> {
+    await this.ensureAuthenticated();
+
+    try {
+      const response = await this.authenticatedClient.post<unknown>(
+        '/users/transactions/cancel-subscription',
         undefined,
         {
           params: this.withTenant(),
@@ -791,7 +978,9 @@ export class SubscriptionService {
         ),
         data: {
           status: 'cancelled',
+          tier: 'Free',
           automaticRenewal: false,
+          currentSubscriptionId: null,
         },
       };
     } catch (error) {
@@ -809,53 +998,12 @@ export class SubscriptionService {
     }
   }
 
-  async reactivateSubscription(
-    subscriptionId?: string
-  ): Promise<MutationResponse> {
-    await this.ensureAuthenticated();
-    const resolvedSubscriptionId =
-      await this.resolveSubscriptionId(subscriptionId);
-
-    if (!resolvedSubscriptionId) {
-      return {
-        success: false,
-        message: 'Subscription id is required to renew a subscription',
-      };
-    }
-
-    try {
-      const response = await this.authenticatedClient.post<unknown>(
-        `/users/transactions/${encodeURIComponent(resolvedSubscriptionId)}/renew-subscription`,
-        undefined,
-        {
-          params: this.withTenant(),
-        }
-      );
-
-      return {
-        success: true,
-        message: extractMessage(
-          response.data,
-          'Subscription renewed successfully'
-        ),
-        data: {
-          status: 'active',
-          automaticRenewal: true,
-        },
-      };
-    } catch (error) {
-      const response = (
-        error as { response?: { status?: number; data?: unknown } }
-      ).response;
-      const status = response?.status || 500;
-      const errorPayload = response?.data;
-
-      return {
-        success: false,
-        message: extractMessage(errorPayload, 'Failed to renew subscription'),
-        comingSoon: isPaymentProviderUnavailable(status, errorPayload),
-      };
-    }
+  async reactivateSubscription(): Promise<MutationResponse> {
+    return {
+      success: false,
+      message:
+        'Subscription reactivation is handled through checkout. Choose a paid plan to start a new subscription.',
+    };
   }
 
   async getTransactionHistory(
