@@ -11,6 +11,7 @@ import { MultiSelectCombobox } from "@/components/ui/multi-select";
 import { DEFAULT_DEVICE_TAGS } from "@/core/constants/devices";
 import { Label } from "@/components/ui/label";
 import { useBanner } from "@/context/banner-context";
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 
 interface CreateDeviceModalProps {
   open: boolean;
@@ -71,18 +72,12 @@ const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
         tags: formData.tags,
       });
 
-      // Reset form and close modal
-      setFormData({
-        long_name: "",
-        category: "",
-        description: "",
-        tags: [],
-      });
+      showBanner({ severity: 'success', message: `${formData.long_name.trim()} has been created.`, scoped: false });
+      setFormData({ long_name: "", category: "", description: "", tags: [] });
       setErrors({});
       onOpenChange(false);
     } catch (error) {
-      // Error handling is done in the hook
-      console.error("Create device failed:", error);
+      showBanner({ severity: 'error', message: `Creation Failed: ${getApiErrorMessage(error)}`, scoped: true });
     }
   };
 

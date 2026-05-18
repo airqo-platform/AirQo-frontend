@@ -487,11 +487,7 @@ export const useCreateDevice = () => {
       };
       return devices.createDevice(payload);
     },
-    onSuccess: (data, variables) => {
-      ReusableToast({
-        message: `${variables.long_name} has been created.`,
-        type: 'SUCCESS',
-      });
+    onSuccess: (data) => {
       if (data.created_device && activeGroup?.grp_title) {
         updateDeviceGroup.mutate({
           deviceId: data.created_device._id || '',
@@ -501,12 +497,6 @@ export const useCreateDevice = () => {
       queryClient.invalidateQueries({ queryKey: ['devices'] });
       queryClient.invalidateQueries({ queryKey: ['network-devices'] });
       queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
-    },
-    onError: error => {
-      ReusableToast({
-        message: `Creation Failed: ${getApiErrorMessage(error)}`,
-        type: 'ERROR',
-      });
     },
   });
 };
