@@ -107,7 +107,7 @@ flutter build ipa --release
 ```
 
 The `.ipa` file will be at:
-```
+```text
 build/ios/ipa/airqo.ipa
 ```
 
@@ -180,7 +180,7 @@ Apple review typically takes **1–3 business days**.
 ## Firebase / GoogleService-Info.plist
 
 The Firebase config file is already in the repo at:
-```
+```text
 ios/Runner/GoogleService-Info.plist
 ```
 Firebase project: `airqo-250220`
