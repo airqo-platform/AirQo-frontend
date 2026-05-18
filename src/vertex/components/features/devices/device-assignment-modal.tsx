@@ -13,6 +13,8 @@ import { Button } from "@/components/ui/button";
 import { useAppSelector } from "@/core/redux/hooks";
 import { Device } from "@/app/types/devices";
 import { useAssignDeviceToOrganization } from "@/core/hooks/useDevices";
+import { useBanner } from "@/context/banner-context";
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import { Label } from "@/components/ui/label";
 import { ComboBox } from "@/components/ui/combobox";
 import { useRouter } from "next/navigation";
@@ -45,16 +47,22 @@ const DeviceAssignmentModal: React.FC<DeviceAssignmentModalProps> = ({
   const [selectedDevice, setSelectedDevice] = useState("");
 
   const assignDevice = useAssignDeviceToOrganization();
+  const { showBanner } = useBanner();
 
   const handleAssign = async () => {
     if (!selectedOrganization || !selectedDevice || !userDetails?._id) return;
 
-    await assignDevice.mutateAsync({
-      device_name: selectedDevice,
-      organization_id: selectedOrganization,
-      user_id: userDetails._id,
-    });
-    onSuccess();
+    try {
+      const data = await assignDevice.mutateAsync({
+        device_name: selectedDevice,
+        organization_id: selectedOrganization,
+        user_id: userDetails._id,
+      });
+      showBanner({ severity: 'success', message: `${data.device.name} has been assigned to the organization.`, scoped: false });
+      onSuccess();
+    } catch (error) {
+      showBanner({ severity: 'error', message: `Assignment Failed: ${getApiErrorMessage(error)}`, scoped: false });
+    }
   };
 
   const handleClose = () => {

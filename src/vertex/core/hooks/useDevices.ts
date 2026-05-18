@@ -349,19 +349,9 @@ export const useAssignDeviceToOrganization = () => {
     DeviceAssignmentRequest
   >({
     mutationFn: devices.assignDeviceToOrganization,
-    onSuccess: data => {
-      ReusableToast({
-        message: `${data.device.name} has been assigned to the organization.`,
-        type: 'SUCCESS',
-      });
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myDevices'] });
       queryClient.invalidateQueries({ queryKey: ['devices'] });
-    },
-    onError: error => {
-      ReusableToast({
-        message: `Assignment Failed: ${getApiErrorMessage(error)}`,
-        type: 'ERROR',
-      });
     },
   });
 };
@@ -413,20 +403,10 @@ export const useUpdateDeviceLocal = () => {
       deviceData: Partial<Device>;
     }) => devices.updateDeviceLocal(deviceId, deviceData),
     onSuccess: (data, variables) => {
-      ReusableToast({
-        message: 'Device information has been updated locally.',
-        type: 'SUCCESS',
-      });
       queryClient.invalidateQueries({
         queryKey: ['device-details', variables.deviceId],
       });
       queryClient.invalidateQueries({ queryKey: ['devices'] });
-    },
-    onError: (error: AxiosError<ErrorResponse>) => {
-      ReusableToast({
-        message: `Update Failed: ${getApiErrorMessage(error)}`,
-        type: 'ERROR',
-      });
     },
   });
 };
@@ -443,20 +423,10 @@ export const useUpdateDeviceGlobal = () => {
       deviceData: Partial<Device>;
     }) => devices.updateDeviceGlobal(deviceId, deviceData),
     onSuccess: (data, variables) => {
-      ReusableToast({
-        message: 'Device information has been updated globally.',
-        type: 'SUCCESS',
-      });
       queryClient.invalidateQueries({
         queryKey: ['device-details', variables.deviceId],
       });
       queryClient.invalidateQueries({ queryKey: ['devices'] });
-    },
-    onError: (error: AxiosError<ErrorResponse>) => {
-      ReusableToast({
-        message: `Sync Failed: ${getApiErrorMessage(error)}`,
-        type: 'ERROR',
-      });
     },
   });
 };
@@ -680,20 +650,10 @@ export const useRecallDevice = () => {
       };
     }) => devices.recallDevice(deviceName, recallData),
     onSuccess: (data, variables) => {
-      ReusableToast({
-        message: `${variables.deviceName} has been recalled.`,
-        type: 'SUCCESS',
-      });
       queryClient.invalidateQueries({ queryKey: ['devices'] });
       queryClient.invalidateQueries({ queryKey: ['device-details'] });
       queryClient.invalidateQueries({ queryKey: ['myDevices'] });
       queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
-    },
-    onError: error => {
-      ReusableToast({
-        message: `Recall Failed: ${getApiErrorMessage(error)}`,
-        type: 'ERROR',
-      });
     },
   });
 };
@@ -737,12 +697,6 @@ export const useDecryptDeviceKeys = () => {
     mutationFn: devices.decryptDeviceKeys,
     onSuccess: () => {
       logger.info('Keys decrypted successfully!');
-    },
-    onError: error => {
-      ReusableToast({
-        message: `Decryption Failed: ${getApiErrorMessage(error)}`,
-        type: 'ERROR',
-      });
     },
   });
 };

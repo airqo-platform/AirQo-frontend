@@ -5,6 +5,8 @@ import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
 import { useRecallDevice } from "@/core/hooks/useDevices";
 import { useUserContext } from "@/core/hooks/useUserContext";
+import { useBanner } from "@/context/banner-context";
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 
 interface RecallDeviceDialogProps {
   open: boolean;
@@ -27,6 +29,7 @@ export default function RecallDeviceDialog({
   const [recallType, setRecallType] = useState<string>("");
   const recallDevice = useRecallDevice();
   const { userDetails } = useUserContext();
+  const { showBanner } = useBanner();
 
   const handleRecall = async () => {
     if (!recallType || !userDetails?._id) {
@@ -47,12 +50,11 @@ export default function RecallDeviceDialog({
         },
       });
 
-      // Reset form and close dialog
+      showBanner({ severity: 'success', message: `${deviceDisplayName || deviceName} has been recalled.`, scoped: true });
       setRecallType("");
       onOpenChange(false);
     } catch (error) {
-      // Error handling is done in the hook
-      console.error("Recall failed:", error);
+      showBanner({ severity: 'error', message: `Recall Failed: ${getApiErrorMessage(error)}`, scoped: true });
     }
   };
 
