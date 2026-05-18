@@ -43,6 +43,17 @@ class ResearchLocationService with UiLoggy {
   /// The service runs a 20-min ping loop and survives app backgrounding.
   Future<void> startForegroundService() async {
     try {
+      // Android 14+ requires location permission to be granted before starting
+      // a foreground service of type "location". Guard here so we never send
+      // the start intent without it — the Kotlin service also catches the
+      // SecurityException, but this avoids the attempt entirely.
+      final permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        loggy.info('[ResearchLocation] location permission not granted, skipping foreground service start');
+        return;
+      }
+
       final distinctId = await Posthog().getDistinctId();
       await _channel.invokeMethod<void>('start', {
         'distinctId': distinctId,
@@ -61,6 +72,11 @@ class ResearchLocationService with UiLoggy {
   void startPeriodicPing() {
     _pingTimer?.cancel();
     _pingTimer = Timer.periodic(const Duration(minutes: 20), (_) async {
+      // Skip if location permission was revoked between ticks
+      final permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) return;
+
       final position = await _resolvePosition(context: 'periodic_ping');
       if (position == null) return;
       await AnalyticsService().trackLocationPing(

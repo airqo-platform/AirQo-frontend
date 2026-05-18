@@ -54,7 +54,16 @@ class LocationForegroundService : Service() {
         when (intent?.action) {
             ACTION_START -> {
                 distinctId = intent.getStringExtra(EXTRA_DISTINCT_ID) ?: ""
-                startForeground(NOTIFICATION_ID, buildNotification())
+                // Android 14+ enforces that location permission must be granted
+                // before a foreground service of type "location" can start.
+                // If the user hasn't granted it yet, stop gracefully.
+                try {
+                    startForeground(NOTIFICATION_ID, buildNotification())
+                } catch (e: SecurityException) {
+                    Log.w(TAG, "Cannot start location FGS: location permission not granted. $e")
+                    stopSelf()
+                    return START_NOT_STICKY
+                }
                 schedulePings()
             }
             ACTION_STOP -> {

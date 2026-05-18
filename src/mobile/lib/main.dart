@@ -56,20 +56,65 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   debugPrint('Background message: ${message.messageId}');
 }
 
+// Initialise PostHog and push-notifications in the background so they never
+// block the UI.  Both can tolerate being ready a few seconds after first frame.
+Future<void> _initServicesInBackground() async {
+  final apiKey = dotenv.env['POSTHOG_API_KEY'] ?? '';
+  final host = dotenv.env['POSTHOG_HOST'] ?? 'https://us.i.posthog.com';
+
+  final config = PostHogConfig(apiKey);
+  config.host = host;
+  config.debug = true;
+  config.captureApplicationLifecycleEvents = true;
+  config.personProfiles = PostHogPersonProfiles.always;
+  config.maxBatchSize = 1;
+
+  try {
+    await Posthog()
+        .setup(config)
+        .timeout(const Duration(seconds: 10), onTimeout: () {});
+    await Posthog()
+        .debug(true)
+        .timeout(const Duration(seconds: 5), onTimeout: () {});
+    Object().logInfo('PostHog initialized successfully');
+  } catch (e) {
+    Object().logError('Failed to initialize PostHog', e, null);
+  }
+
+  try {
+    await PushNotificationService().initialize();
+    Object().logInfo('Push notification service initialized successfully');
+  } catch (e) {
+    Object().logError('Failed to initialize push notifications', e, null);
+  }
+}
+
 void main() async {
   runZonedGuarded(
     () async {
       try {
         WidgetsFlutterBinding.ensureInitialized();
 
-        // Initialize Firebase
-        await Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform,
-        );
-        Object().logInfo('Firebase initialized successfully');
+        // Initialize Firebase — guarded with a timeout so stub/invalid
+        // credentials don't block the splash screen indefinitely.
+        bool firebaseReady = false;
+        try {
+          await Firebase.initializeApp(
+            options: DefaultFirebaseOptions.currentPlatform,
+          ).timeout(const Duration(seconds: 8));
+          firebaseReady = true;
+          Object().logInfo('Firebase initialized successfully');
+        } catch (e) {
+          // Stub credentials cause Firebase to hang on Play-Services handshake.
+          // Continue without Firebase — auth will fall back to guest mode.
+          debugPrint('Firebase.initializeApp failed/timed-out: $e');
+        }
 
-        // Set background message handler
-        FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+        // Only register the background handler if Firebase actually started.
+        if (firebaseReady) {
+          FirebaseMessaging.onBackgroundMessage(
+              _firebaseMessagingBackgroundHandler);
+        }
 
         await CacheManager().initialize();
 
@@ -84,34 +129,11 @@ void main() async {
 
         await dotenv.load(fileName: ".env.prod");
 
-        final apiKey = dotenv.env['POSTHOG_API_KEY'] ?? '';
-        final host = dotenv.env['POSTHOG_HOST'] ?? 'https://us.i.posthog.com';
-
-        final config = PostHogConfig(apiKey);
-        config.host = host;
-        config.debug = true;
-        config.captureApplicationLifecycleEvents = true;
-        config.personProfiles = PostHogPersonProfiles.always;
-        config.maxBatchSize = 1;
-
-        try {
-          await Posthog().setup(config);
-          await Posthog().debug(true);
-          Object().logInfo('PostHog initialized successfully');
-        } catch (e) {
-          Object().logError('Failed to initialize PostHog', e, null);
-        }
-
-        // Initialize push notifications
-        try {
-          await PushNotificationService().initialize();
-          Object().logInfo('Push notification service initialized successfully');
-        } catch (e) {
-          Object().logError('Failed to initialize push notifications', e, null);
-        }
-
         Bloc.observer = LoggingBlocObserver();
 
+        // Launch UI immediately — don't await PostHog or push-notification
+        // init here because both can block on network/permission calls with
+        // stub Firebase credentials and would freeze the splash screen.
         runApp(AirqoMobile(
           authRepository: AuthImpl(),
           userRepository: UserImpl(),
@@ -122,6 +144,9 @@ void main() async {
           googlePlacesRepository: GooglePlacesImpl(),
           dashboardRepository: DashboardImpl(),
         ));
+
+        // Fire-and-forget: PostHog + push notifications ready a moment later.
+        unawaited(_initServicesInBackground());
       } catch (e, stackTrace) {
         Object().logError('Failed to initialize application', e, stackTrace);
       }

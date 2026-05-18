@@ -61,7 +61,9 @@ class PushNotificationService with UiLoggy {
       FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
 
       // Check if app was opened from a terminated state by tapping notification
-      final initialMessage = await _firebaseMessaging.getInitialMessage();
+      final initialMessage = await _firebaseMessaging
+          .getInitialMessage()
+          .timeout(const Duration(seconds: 5), onTimeout: () => null);
       if (initialMessage != null) {
         loggy.info('App opened from terminated state via notification');
         _handleNotificationTap(initialMessage);
@@ -265,7 +267,8 @@ class PushNotificationService with UiLoggy {
         }
       }
 
-      final token = await _firebaseMessaging.getToken();
+      final token = await _firebaseMessaging.getToken()
+          .timeout(const Duration(seconds: 8), onTimeout: () => null);
       if (token != null) {
         _currentToken = token;
         await _saveToken(token);
