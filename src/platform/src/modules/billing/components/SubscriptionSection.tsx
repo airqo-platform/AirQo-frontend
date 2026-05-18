@@ -19,9 +19,44 @@ const statusBadgeStyles: Record<string, string> = {
   active:
     'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200',
   inactive: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200',
+  trialing: 'bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-200',
   past_due:
     'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200',
   cancelled: 'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200',
+};
+
+const formatRateLimitSummary = (
+  rateLimits?: UserSubscription['apiRateLimits']
+) => {
+  if (!rateLimits) {
+    return 'Limits unavailable';
+  }
+
+  return [
+    `${rateLimits.hourlyLimit.toLocaleString()}/hr`,
+    `${rateLimits.dailyLimit.toLocaleString()}/day`,
+    typeof rateLimits.weeklyLimit === 'number'
+      ? `${rateLimits.weeklyLimit.toLocaleString()}/week`
+      : null,
+    `${rateLimits.monthlyLimit.toLocaleString()}/month`,
+  ]
+    .filter(Boolean)
+    .join(' | ');
+};
+
+const getBillingErrorLogMessage = (error: unknown): string => {
+  if (error instanceof Error && error.message.trim()) {
+    return error.message.trim();
+  }
+
+  if (typeof error === 'object' && error !== null) {
+    const code = (error as { code?: unknown }).code;
+    if (typeof code === 'string' && code.trim()) {
+      return code.trim();
+    }
+  }
+
+  return 'Unknown billing error';
 };
 
 const SubscriptionSection: React.FC = () => {
@@ -35,12 +70,11 @@ const SubscriptionSection: React.FC = () => {
     null
   );
   const [runningAction, setRunningAction] = useState<
-    'checkout' | 'autoRenew' | 'cancel' | 'renew' | null
+    'checkout' | 'enableAutoRenew' | 'disableAutoRenew' | 'cancel' | null
   >(null);
 
   const currentTier: SubscriptionTier = subscription?.tier || 'Free';
   const currentStatus = subscription?.status || 'inactive';
-  const currentSubscriptionId = subscription?.currentSubscriptionId || '';
 
   const refreshData = useCallback(async () => {
     setLoading(true);
@@ -63,7 +97,9 @@ const SubscriptionSection: React.FC = () => {
           : []
       );
     } catch (error) {
-      console.error('Error loading subscription view:', error);
+      console.error(
+        `Error loading subscription view: ${getBillingErrorLogMessage(error)}`
+      );
       toast.error('Failed to load subscription data');
     } finally {
       setLoading(false);
@@ -79,6 +115,13 @@ const SubscriptionSection: React.FC = () => {
     [plans, currentTier]
   );
   const hasPlans = plans.length > 0;
+  const canManageAutoRenew =
+    currentTier !== 'Free' &&
+    (currentStatus === 'active' || currentStatus === 'trialing');
+  const canCancelSubscription =
+    currentTier !== 'Free' &&
+    currentStatus !== 'inactive' &&
+    currentStatus !== 'cancelled';
 
   const handleOpenCheckout = (plan: SubscriptionPlan) => {
     setSelectedPlan(plan);
@@ -93,15 +136,8 @@ const SubscriptionSection: React.FC = () => {
     try {
       setRunningAction('checkout');
 
-      const currentUrl = new URL(window.location.href);
-      const successUrl = `${currentUrl.origin}${currentUrl.pathname}?tab=subscription&checkout=success`;
-      const cancelUrl = `${currentUrl.origin}${currentUrl.pathname}?tab=subscription&checkout=cancel`;
-
       const payload = await subscriptionService.createCheckoutSession({
         tier: selectedPlan.tier,
-        priceId: selectedPlan.priceId,
-        successUrl,
-        cancelUrl,
       });
 
       if (!payload.success) {
@@ -120,7 +156,7 @@ const SubscriptionSection: React.FC = () => {
 
       window.location.assign(checkoutUrl);
     } catch (error) {
-      console.error('Checkout error:', error);
+      console.error(`Checkout error: ${getBillingErrorLogMessage(error)}`);
       toast.error(
         error instanceof Error
           ? error.message
@@ -134,17 +170,10 @@ const SubscriptionSection: React.FC = () => {
   };
 
   const handleEnableAutoRenew = async () => {
-    if (!currentSubscriptionId) {
-      toast.error('No active subscription id found for this account');
-      return;
-    }
-
     try {
-      setRunningAction('autoRenew');
+      setRunningAction('enableAutoRenew');
 
-      const payload = await subscriptionService.enableAutoRenewal(
-        currentSubscriptionId
-      );
+      const payload = await subscriptionService.enableAutoRenewal();
 
       if (!payload.success) {
         if (payload.comingSoon) {
@@ -157,18 +186,51 @@ const SubscriptionSection: React.FC = () => {
         );
       }
 
-      setSubscription(prev =>
-        prev
-          ? {
-              ...prev,
-              automaticRenewal: true,
-              autoRenewal: true,
-            }
-          : prev
-      );
+      await refreshData();
       toast.success(payload.message || 'Automatic renewal enabled');
     } catch (error) {
-      console.error('Auto-renewal error:', error);
+      console.error(`Auto-renewal error: ${getBillingErrorLogMessage(error)}`);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : 'Failed to update automatic renewal'
+      );
+    } finally {
+      setRunningAction(null);
+    }
+  };
+
+  const handleDisableAutoRenew = async () => {
+    const confirmed = window.confirm(
+      'Disable auto-renewal? Your current plan will stay active until the next billing date, but it will not renew automatically.'
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setRunningAction('disableAutoRenew');
+
+      const payload = await subscriptionService.disableAutoRenewal();
+
+      if (!payload.success) {
+        if (payload.comingSoon) {
+          toast.warning(BILLING_SERVICE_UNAVAILABLE_MESSAGE);
+          return;
+        }
+
+        throw new Error(
+          payload.message || 'Failed to disable automatic renewal'
+        );
+      }
+
+      await refreshData();
+      toast.success(payload.message || 'Automatic renewal disabled');
+    } catch (error) {
+      console.error(
+        `Disable auto-renewal error: ${getBillingErrorLogMessage(error)}`
+      );
       toast.error(
         error instanceof Error
           ? error.message
@@ -180,13 +242,8 @@ const SubscriptionSection: React.FC = () => {
   };
 
   const handleCancelSubscription = async () => {
-    if (!currentSubscriptionId) {
-      toast.error('No active subscription id found for this account');
-      return;
-    }
-
     const confirmed = window.confirm(
-      'Cancel your subscription now? You will retain access until the end of the current billing period.'
+      'Cancel your subscription now? This moves your account back to the Free tier immediately.'
     );
 
     if (!confirmed) {
@@ -196,9 +253,7 @@ const SubscriptionSection: React.FC = () => {
     try {
       setRunningAction('cancel');
 
-      const payload = await subscriptionService.cancelSubscription(
-        currentSubscriptionId
-      );
+      const payload = await subscriptionService.cancelSubscription();
 
       if (!payload.success) {
         if (payload.comingSoon) {
@@ -209,55 +264,14 @@ const SubscriptionSection: React.FC = () => {
         throw new Error(payload.message || 'Failed to cancel subscription');
       }
 
-      setSubscription(prev =>
-        prev
-          ? {
-              ...prev,
-              status: 'cancelled',
-              automaticRenewal: false,
-              autoRenewal: false,
-            }
-          : prev
-      );
+      await refreshData();
       toast.success(payload.message || 'Subscription cancelled');
     } catch (error) {
-      console.error('Cancel subscription error:', error);
+      console.error(
+        `Cancel subscription error: ${getBillingErrorLogMessage(error)}`
+      );
       toast.error(
         error instanceof Error ? error.message : 'Failed to cancel subscription'
-      );
-    } finally {
-      setRunningAction(null);
-    }
-  };
-
-  const handleRenewSubscription = async () => {
-    if (!currentSubscriptionId) {
-      toast.error('No active subscription id found for this account');
-      return;
-    }
-
-    try {
-      setRunningAction('renew');
-
-      const payload = await subscriptionService.reactivateSubscription(
-        currentSubscriptionId
-      );
-
-      if (!payload.success) {
-        if (payload.comingSoon) {
-          toast.warning(BILLING_SERVICE_UNAVAILABLE_MESSAGE);
-          return;
-        }
-
-        throw new Error(payload.message || 'Failed to renew subscription');
-      }
-
-      toast.success(payload.message || 'Subscription renewed');
-      await refreshData();
-    } catch (error) {
-      console.error('Renew subscription error:', error);
-      toast.error(
-        error instanceof Error ? error.message : 'Failed to renew subscription'
       );
     } finally {
       setRunningAction(null);
@@ -287,7 +301,7 @@ const SubscriptionSection: React.FC = () => {
               </h3>
               <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
                 {currentPlan
-                  ? `${currentPlan.currency} ${currentPlan.price}/${currentPlan.price === 0 ? 'month' : 'month'}`
+                  ? `${currentPlan.currency} ${currentPlan.price}/month`
                   : 'Subscription status from your account profile'}
               </p>
             </div>
@@ -342,26 +356,35 @@ const SubscriptionSection: React.FC = () => {
                 Current Limits
               </p>
               <p className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
-                {subscription?.apiRateLimits
-                  ? `${subscription.apiRateLimits.hourlyLimit.toLocaleString()}/hr`
-                  : 'Limits unavailable'}
+                {formatRateLimitSummary(subscription?.apiRateLimits)}
               </p>
             </div>
           </div>
 
           <div className="relative mt-6 flex flex-wrap gap-2">
-            {!subscription?.automaticRenewal && currentSubscriptionId && (
+            {canManageAutoRenew && !subscription?.automaticRenewal && (
               <Button
                 variant="outlined"
                 onClick={handleEnableAutoRenew}
-                disabled={runningAction === 'autoRenew'}
-                loading={runningAction === 'autoRenew'}
+                disabled={runningAction === 'enableAutoRenew'}
+                loading={runningAction === 'enableAutoRenew'}
               >
                 Enable Auto-Renew
               </Button>
             )}
 
-            {currentSubscriptionId && currentStatus === 'active' && (
+            {canManageAutoRenew && subscription?.automaticRenewal && (
+              <Button
+                variant="outlined"
+                onClick={handleDisableAutoRenew}
+                disabled={runningAction === 'disableAutoRenew'}
+                loading={runningAction === 'disableAutoRenew'}
+              >
+                Disable Auto-Renew
+              </Button>
+            )}
+
+            {canCancelSubscription && (
               <Button
                 variant="outlined"
                 onClick={handleCancelSubscription}
@@ -372,18 +395,6 @@ const SubscriptionSection: React.FC = () => {
                 Cancel Subscription
               </Button>
             )}
-
-            {currentSubscriptionId &&
-              (currentStatus === 'cancelled' ||
-                currentStatus === 'past_due') && (
-                <Button
-                  onClick={handleRenewSubscription}
-                  disabled={runningAction === 'renew'}
-                  loading={runningAction === 'renew'}
-                >
-                  Renew Subscription
-                </Button>
-              )}
           </div>
         </Card>
 
@@ -399,7 +410,14 @@ const SubscriptionSection: React.FC = () => {
             <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
               {plans.map(plan => {
                 const isCurrent = plan.tier === currentTier;
-                const allowCheckout = !isCurrent && plan.tier !== 'Free';
+                const allowCheckout =
+                  plan.tier !== 'Free' &&
+                  (!isCurrent ||
+                    currentStatus === 'past_due' ||
+                    currentStatus === 'cancelled');
+                const isUpgrade =
+                  currentTier === 'Free' ||
+                  (currentPlan ? plan.price > currentPlan.price : false);
 
                 return (
                   <Card
@@ -429,6 +447,7 @@ const SubscriptionSection: React.FC = () => {
                     <div className="mt-4 rounded-lg bg-gray-50 dark:bg-gray-900/40 p-3 text-xs text-gray-700 dark:text-gray-300">
                       <p>{plan.limits.hourly.toLocaleString()} requests/hour</p>
                       <p>{plan.limits.daily.toLocaleString()} requests/day</p>
+                      <p>{plan.limits.weekly.toLocaleString()} requests/week</p>
                       <p>
                         {plan.limits.monthly.toLocaleString()} requests/month
                       </p>
@@ -455,9 +474,15 @@ const SubscriptionSection: React.FC = () => {
                       onClick={() => handleOpenCheckout(plan)}
                     >
                       {isCurrent
-                        ? 'Current plan'
+                        ? currentStatus === 'past_due'
+                          ? 'Retry payment'
+                          : currentStatus === 'cancelled'
+                            ? 'Restart subscription'
+                            : 'Current plan'
                         : allowCheckout
-                          ? `Upgrade to ${plan.name}`
+                          ? isUpgrade
+                            ? `Upgrade to ${plan.name}`
+                            : `Choose ${plan.name}`
                           : 'Unavailable'}
                     </Button>
                   </Card>
