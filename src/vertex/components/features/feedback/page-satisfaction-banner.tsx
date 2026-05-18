@@ -146,7 +146,7 @@ export const PageSatisfactionBanner: React.FC = () => {
  const [isSubmitting, setIsSubmitting] = useState(false);
  const pathname = usePathname();
  const { userDetails } = useUserContext();
- const { showBanner, hideBanner } = useBanner();
+ const { showBanner } = useBanner();
 
  const getPageName = () => {
   if (!pathname) return 'this page';
