@@ -69,7 +69,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
     title: 'Thank you for your feedback!',
     message: 'Your input helps us improve the platform.',
    });
-  }, 150);
+  }, 300);
  };
 
  return (
