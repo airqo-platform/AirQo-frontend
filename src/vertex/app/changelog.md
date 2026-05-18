@@ -4,6 +4,47 @@
 
 ---
 
+## Version 1.23.43
+**Released:** May 17, 2026
+
+### Page Satisfaction Feedback Banner & Global Banner Positioning
+
+Implements a full-featured, page-satisfaction feedback banner for the Vertex platform (Issue #3480), and resolves several core layout and banner rendering issues to ensure perfect visual presentation on both desktop and mobile viewports.
+
+<details>
+<summary><strong>New Features (4)</strong></summary>
+
+- **Page Satisfaction Feedback Banner**: Designed and deployed a new `PageSatisfactionBanner` component situated statically directly below the page footer for all authenticated sessions, encouraging quick, one-tap platform feedback.
+- **Structured Feedback Modal Flow**: Integrated interactive positive/negative feedback modals (`FeedbackModal`) that prompt users for structured reasons and optional comments when voting.
+- **Session & API Integration**: Automatically pre-fills the user's registered identity from the active user session context and forwards feedback payloads to the backend `feedbackService.submitFeedback` with rich client telemetry.
+- **Dynamic Context Detection**: Automatically parses the active URL path to display the localized screen name (e.g. "Home", "Cohorts") in the satisfaction prompt.
+
+</details>
+
+<details>
+<summary><strong>Layout & UI Bug Fixes (5)</strong></summary>
+
+- **Mobile Viewport Bottom Spacing**: Fixed a 80px white space below the satisfaction banner on mobile and tablet screens. Relocated `pb-20 md:pb-0` padding classes from the outer scrolling `<main>` container to the inner `max-w-7xl` page content wrapper, ensuring the banner rests perfectly flush at the absolute bottom of the viewport.
+- **Dialog Notification Hardening**: Hardened dialog error feedback by setting `scoped: true` on submission and authentication error banners. Error messages are now rendered beautifully inline at the top of the modal (`BannerSlot` inside `ReusableDialog`) instead of being hidden behind the backdrop.
+- **Deferred Success Notification**: Deferred the global success banner schedule inside `FeedbackModal`'s `handleSubmit` via a 150ms timeout. This allows `ReusableDialog`'s unmount cleanup `hideBanner()` to complete before the persistent success banner is successfully scheduled on the main screen.
+- **Overlapping Global Banners Resolved**: Moved `<GlobalBannerContainer />` from the root application tree (`providers.tsx`) to the `max-w-7xl` page content wrapper inside `<main>` (`layout.tsx`). The global banner now respects all layout boundaries and sidebars, avoiding any overlapping or clipping underneath the fixed `Topbar` and `Sidebar` layouts.
+- **Global Banner Margins Refinement**: Removed the trailing `px-4` margin from the `GlobalBannerContainer` wrapper inside `context/banner-context.tsx` to fully leverage the parent responsive grid padding (`px-3 py-3 md:px-2 lg:py-6 lg:px-6`).
+
+</details>
+
+<details>
+<summary><strong>Files Created/Modified (5)</strong></summary>
+
+- `src/vertex/app/providers.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/layout.tsx` [MODIFIED]
+- `src/vertex/components/features/feedback/page-satisfaction-banner.tsx` [NEW]
+- `src/vertex/components/layout/layout.tsx` [MODIFIED]
+- `src/vertex/context/banner-context.tsx` [MODIFIED]
+
+</details>
+
+---
+
 ## Version 1.23.42
 **Released:** May 17, 2026
 
