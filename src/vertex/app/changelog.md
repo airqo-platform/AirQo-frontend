@@ -4,6 +4,50 @@
 
 ---
 
+## Version 1.23.44
+**Released:** May 19, 2026
+
+### Device Management Scoped Banner Migration & Mutation Callback Cleanup
+
+Migrated feedback notifications from global floating toasts (`ReusableToast`) to context-aware `InfoBanner` components (`useBanner`) inside device management modules to keep alerts inline and centered within their active modal or dialog containers. Refactored React Query hook callbacks to push feedback responsibility to the UI components.
+
+<details>
+<summary><strong>Device Management — Scoped Banner Migration (7)</strong></summary>
+
+- **Create Device Modal**: Integrated `useBanner` for scoped validation and creation alerts. The `showBanner` utility replaces the old inline red error block for missing network errors.
+- **Import Device Modal**: Integrated `useBanner` to surface a previously silent missing user ID warning and errors. Replaced old inline red error alerts and fixed a critical TypeScript compilation error where `importDevice.mutate()` was called with 3 arguments instead of 1-2 by merging the `onSuccess` and `onError` options into a single second argument. Added missing `getApiErrorMessage` import.
+- **Add Maintenance Log Modal**: Replaced `ReusableToast` with scoped `showBanner` for validation errors to align modal design feedback.
+- **Deploy Device Component**: Swapped 3 occurrences of `ReusableToast` with `showBanner` alerts.
+- **Recall Device Dialog**: Added `useBanner` support and shifted all success and error UI notifications from raw hook callbacks directly to try/catch blocks within the component.
+- **Device Details Modal**: Migrated all validation, detail update, and key decryption feedback from floating toasts to `showBanner`. Added local callback overrides to the `updateLocal` and `updateGlobal` mutate invocations.
+- **Device Assignment Modal**: Added `useBanner` with `scoped: false` (since this dialog extends base Radix `Dialog` rather than `ReusableDialog`), keeping assignment feedback in the modal itself instead of hook side-effects.
+
+</details>
+
+<details>
+<summary><strong>Custom Hook & Callback Separation (1)</strong></summary>
+
+- **useDevices Hooks Overhaul**: Removed imperative `ReusableToast` side-effects from `useRecallDevice`, `useUpdateDeviceLocal`, `useUpdateDeviceGlobal`, `useAssignDeviceToOrganization`, and `useDecryptDeviceKeys`. Hooks are now clean, focused solely on API interactions and cache invalidation.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (8)</strong></summary>
+
+- `src/vertex/app/changelog.md` [MODIFIED]
+- `src/vertex/components/features/devices/create-device-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/import-device-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/add-maintenance-log-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/deploy-device-component.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/recall-device-dialog.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/device-details-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/device-assignment-modal.tsx` [MODIFIED]
+- `src/vertex/core/hooks/useDevices.ts` [MODIFIED]
+
+</details>
+
+---
+
 ## Version 1.23.43
 **Released:** May 17, 2026
 
