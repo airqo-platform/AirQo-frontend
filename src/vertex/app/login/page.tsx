@@ -1,5 +1,5 @@
 "use client"
-
+import { CookieInfoBanner } from '@/components/features/auth/cookie-info-banner';
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod"
@@ -352,6 +352,7 @@ export default function LoginPage() {
           </div>
         </div>
       </main>
+      <CookieInfoBanner />
     </div>
   )
 }
