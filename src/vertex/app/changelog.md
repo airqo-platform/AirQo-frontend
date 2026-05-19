@@ -14,20 +14,22 @@ Added hCaptcha human verification to the password step of the login form to prot
 <details>
 <summary><strong>Login — hCaptcha Integration (3)</strong></summary>
 
-- **HCaptchaWidget component**: Created reusable `HCaptchaWidget` at `src/vertex/components/ui/hcaptcha-widget.tsx` wrapping `@hcaptcha/react-hcaptcha`. Reads `NEXT_PUBLIC_HCAPTCHA_SITE_KEY` from env and renders nothing if the key is absent.
+- **HCaptchaWidget component**: Created reusable `HCaptchaWidget` at `src/vertex/components/ui/hcaptcha-widget.tsx` wrapping `@hcaptcha/react-hcaptcha`. Reads `NEXT_PUBLIC_HCAPTCHA_SITE_KEY` from env and renders a warning message if the key is absent or empty.
 - **Login page**: Added `captchaToken` state. Widget renders on the password step above the Login button. Login button is disabled until CAPTCHA is verified. Token is cleared on login failure (requiring re-verification) and when the user navigates back to the email step via "Change email".
 - **NextAuth authorize callback**: Added `captchaToken` to the credentials definition and forwarded it to the backend `loginWithDetails` request body.
 
 </details>
 
 <details>
-<summary><strong>Files Modified (5)</strong></summary>
+<summary><strong>Files Modified (7)</strong></summary>
 
 - `src/vertex/app/changelog.md` [MODIFIED]
 - `src/vertex/app/login/page.tsx` [MODIFIED]
 - `src/vertex/app/api/auth/[...nextauth]/options.ts` [MODIFIED]
 - `src/vertex/app/types/users.ts` [MODIFIED]
 - `src/vertex/components/ui/hcaptcha-widget.tsx` [ADDED]
+- `src/vertex/package.json` [MODIFIED]
+- `src/vertex/package-lock.json` [MODIFIED]
 
 </details>
 
