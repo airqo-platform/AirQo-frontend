@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { COOKIE_POLICY_URL } from '@/lib/envConstants';
 
 export function CookieInfoBanner() {
   const [isVisible, setIsVisible] = useState(false);
@@ -29,7 +30,7 @@ export function CookieInfoBanner() {
           AirQo uses cookies to deliver and enhance the quality of its services and to analyze traffic.
           {' '}
           <Link 
-            href="https://airqo.net/legal/cookies" 
+            href={COOKIE_POLICY_URL} 
             target="_blank"
             rel="noopener noreferrer"
             className="text-white underline hover:text-white/80 transition-colors"
