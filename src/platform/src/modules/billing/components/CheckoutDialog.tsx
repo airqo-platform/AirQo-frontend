@@ -67,7 +67,7 @@ const CheckoutDialog: React.FC<CheckoutDialogProps> = ({
           </div>
           <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
             <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
-              Upgrading To
+              Selected Plan
             </p>
             <p className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
               {plan?.name || '--'}

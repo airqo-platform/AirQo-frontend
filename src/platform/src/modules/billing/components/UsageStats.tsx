@@ -24,6 +24,9 @@ interface UsagePeriod {
 const UsageStats: React.FC = () => {
   const [usage, setUsage] = useState<ApiUsage | null>(null);
   const [loading, setLoading] = useState(true);
+  const [liveUsage, setLiveUsage] = useState(true);
+  const [usageMessage, setUsageMessage] = useState('');
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
 
   useEffect(() => {
     const fetchUsage = async () => {
@@ -31,6 +34,8 @@ const UsageStats: React.FC = () => {
         const data = await subscriptionService.getUsage();
         if (data.success) {
           setUsage(data.usage || null);
+          setLiveUsage(data.live ?? true);
+          setUsageMessage(data.message || '');
         }
       } catch (error) {
         console.error('Error fetching usage stats:', error);
@@ -44,23 +49,46 @@ const UsageStats: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 30 * 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   const formatResetTime = (resetTime: string): string => {
-    const reset = new Date(resetTime);
-    const now = new Date();
-    const diff = reset.getTime() - now.getTime();
+    const resetTimestamp = new Date(resetTime).getTime();
 
-    if (diff < 0) return 'Resetting...';
-
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-
-    if (hours > 24) {
-      const days = Math.floor(hours / 24);
-      return `Resets in ${days} day${days > 1 ? 's' : ''}`;
+    if (!Number.isFinite(resetTimestamp)) {
+      return 'Reset time unavailable';
     }
+
+    const diff = resetTimestamp - currentTime;
+
+    if (diff <= 0) {
+      return 'Resetting now';
+    }
+
+    const totalMinutes = Math.ceil(diff / (1000 * 60));
+    const days = Math.floor(totalMinutes / (60 * 24));
+    const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+    const minutes = totalMinutes % 60;
+
+    if (days > 0) {
+      return hours > 0
+        ? `Resets in ${days}d ${hours}h`
+        : `Resets in ${days} day${days > 1 ? 's' : ''}`;
+    }
+
     if (hours > 0) {
       return `Resets in ${hours}h ${minutes}m`;
     }
+
+    if (minutes <= 1) {
+      return 'Resets in less than 1 minute';
+    }
+
     return `Resets in ${minutes} minute${minutes !== 1 ? 's' : ''}`;
   };
 
@@ -143,10 +171,21 @@ const UsageStats: React.FC = () => {
           API Usage Statistics
         </h3>
         <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-          Monitor your rate-limit usage across hourly, daily, and monthly
+          Monitor live API usage across the current hourly, daily, and monthly
           windows.
         </p>
       </div>
+
+      {!liveUsage && (
+        <InfoBanner
+          title="Live counters unavailable"
+          message={
+            usageMessage ||
+            'Showing your current plan limits until live usage counters are available again.'
+          }
+          className="mb-6"
+        />
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {usagePeriods.map(period => {
@@ -188,7 +227,9 @@ const UsageStats: React.FC = () => {
                   <div className="mt-1 flex items-center justify-between">
                     <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
                       {period.data.used === null
-                        ? 'Usage data unavailable'
+                        ? liveUsage
+                          ? 'No usage yet or temporarily unavailable'
+                          : 'Live counter unavailable'
                         : `${percentage.toFixed(1)}% used`}
                     </span>
                     {period.data.used !== null && percentage >= 90 && (

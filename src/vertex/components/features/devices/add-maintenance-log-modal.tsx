@@ -9,7 +9,8 @@ import { useUserContext } from "@/core/hooks/useUserContext";
 import { MultiSelectCombobox } from "@/components/ui/multi-select";
 import { Switch } from "@/components/ui/switch";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
-import ReusableToast from "@/components/shared/toast/ReusableToast";
+import { useBanner } from "@/context/banner-context";
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 
 interface AddMaintenanceLogModalProps {
   open: boolean;
@@ -51,6 +52,7 @@ const AddMaintenanceLogModal: React.FC<AddMaintenanceLogModalProps> = ({ open, o
   const [maintenanceType, setMaintenanceType] = useState<"preventive" | "corrective">("preventive");
 
   const { userDetails } = useUserContext();
+  const { showBanner } = useBanner();
   const addMaintenanceLog = useAddMaintenanceLog();
 
   // Reset form when modal opens/closes
@@ -65,7 +67,7 @@ const AddMaintenanceLogModal: React.FC<AddMaintenanceLogModalProps> = ({ open, o
 
   const handleSubmit = async () => {
     if (!date || selectedTags.length === 0) {
-      ReusableToast({message: "Please fill all fields", type:"ERROR"})
+      showBanner({ severity: 'error', message: 'Please fill all required fields', scoped: true });
       return;
     }
 
@@ -81,8 +83,20 @@ const AddMaintenanceLogModal: React.FC<AddMaintenanceLogModalProps> = ({ open, o
       user_id: userDetails?._id || "",
     };
 
-    await addMaintenanceLog.mutateAsync({ deviceName, logData });
-    onOpenChange(false);
+    try {
+      await addMaintenanceLog.mutateAsync({ deviceName, logData });
+      setTimeout(() => {
+        showBanner({
+          severity: 'success',
+          title: 'Success',
+          message: `Maintenance log for ${deviceName} has been added successfully.`,
+          scoped: false
+        });
+      }, 300);
+      onOpenChange(false);
+    } catch (error) {
+      showBanner({ severity: 'error', message: `Failed to Add Maintenance Log: ${getApiErrorMessage(error)}`, scoped: true });
+    }
   };
 
   return (

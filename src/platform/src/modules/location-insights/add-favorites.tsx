@@ -13,6 +13,7 @@ import { areArraysEqual } from '@/shared/utils/arrays';
 import { useSitesData } from '@/shared/hooks/useSitesData';
 import { useUser } from '@/shared/hooks/useUser';
 import {
+  getLatestPreferenceForGroup,
   useUserPreferencesList,
   useUpdateUserPreferences,
 } from '@/shared/hooks/usePreferences';
@@ -121,16 +122,11 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
 
   // Get the most recent preference from the list
   const currentPreference = useMemo(() => {
-    if (!preferences?.preferences || preferences.preferences.length === 0) {
-      return null;
-    }
-    // Sort by lastAccessed date (most recent first) and take the first one
-    return [...preferences.preferences].sort(
-      (a, b) =>
-        new Date(b.lastAccessed || b.updatedAt).getTime() -
-        new Date(a.lastAccessed || a.updatedAt).getTime()
-    )[0];
-  }, [preferences?.preferences]);
+    return getLatestPreferenceForGroup(
+      preferences?.preferences,
+      activeGroup?.id
+    );
+  }, [activeGroup?.id, preferences?.preferences]);
 
   // Initialize selectedIds and cache with current favorite sites from preferences
   useEffect(() => {

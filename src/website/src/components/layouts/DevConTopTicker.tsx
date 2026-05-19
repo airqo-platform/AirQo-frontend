@@ -1,27 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
 
-import { DEVCON_COUNTDOWN_TARGET, DEVCON_ROUTE } from '@/lib/devcon';
-
-type CompactCountdown = {
-  days: number;
-  hours: number;
-};
-
-const getCompactCountdown = (): CompactCountdown => {
-  const difference = new Date(DEVCON_COUNTDOWN_TARGET).getTime() - Date.now();
-
-  if (difference <= 0) {
-    return { days: 0, hours: 0 };
-  }
-
-  return {
-    days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-    hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-  };
-};
+import { DEVCON_ROUTE } from '@/lib/devcon';
 
 const tickerItems = [
   'AirQo DevCon 2026',
@@ -32,20 +13,6 @@ const tickerItems = [
 ];
 
 const DevConTopTicker = () => {
-  const [isMounted, setIsMounted] = useState(false);
-  const [countdown, setCountdown] = useState<CompactCountdown>(() =>
-    getCompactCountdown(),
-  );
-
-  useEffect(() => {
-    setIsMounted(true);
-    const timer = window.setInterval(() => {
-      setCountdown(getCompactCountdown());
-    }, 60 * 1000);
-
-    return () => window.clearInterval(timer);
-  }, []);
-
   return (
     <div className="hidden min-w-0 flex-1 px-3 lg:block">
       <div className="devcon-top-ticker flex h-11 items-center overflow-hidden rounded-md border border-blue-100 bg-gradient-to-r from-white via-white to-blue-50 text-blue-700 shadow-sm">
@@ -69,14 +36,6 @@ const DevConTopTicker = () => {
                 </span>
               ))}
             </span>
-          </span>
-          <span
-            className={`flex-none rounded-md bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 transition-opacity duration-300 ${
-              isMounted ? 'opacity-100' : 'opacity-0'
-            }`}
-            suppressHydrationWarning
-          >
-            {countdown.days}d {String(countdown.hours).padStart(2, '0')}h
           </span>
         </Link>
       </div>

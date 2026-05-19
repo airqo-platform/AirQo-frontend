@@ -35,6 +35,12 @@ export const getApiToken = (): string => {
 };
 
 /**
+ * Gets the Cookie Policy URL
+ * @returns {string} The cookie policy URL
+ */
+export const COOKIE_POLICY_URL = process.env.NEXT_PUBLIC_COOKIE_POLICY_URL || 'https://airqo.net/legal/cookies';
+
+/**
  * Gets environment configuration
  * @returns {object} Environment configuration object
  */
@@ -44,6 +50,7 @@ export const getEnvConfig = () => {
     apiToken: process.env.NEXT_PUBLIC_API_TOKEN,
     environment: process.env.NEXT_PUBLIC_ENV || 'development',
     analyticsUrl: process.env.NEXT_PUBLIC_ANALYTICS_URL,
+    cookiePolicyUrl: COOKIE_POLICY_URL,
     mapboxToken: process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN,
     mockPermissionsEnabled: process.env.NEXT_PUBLIC_MOCK_PERMISSIONS_ENABLED === 'true',
   };
