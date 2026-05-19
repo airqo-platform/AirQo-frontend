@@ -37,6 +37,8 @@ class ApiService {
   private readonly maxRetries: number = 3
   private readonly retryDelay: number = 1000
   private readonly apiPrefix: string
+  private readonly mapCacheTtlMs: number = 5 * 60 * 1000
+  private readonly mapCache = new Map<string, { data: any; expiresAt: number }>()
 
   constructor() {
     this.baseUrl = config.apiUrl
@@ -119,6 +121,55 @@ class ApiService {
       .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
 
     return validParams.length > 0 ? `?${validParams.join('&')}` : ''
+  }
+
+  private buildMapCacheKey(scope: string, params?: Record<string, any>): string {
+    if (!params) return `map-cache:${scope}`
+    const normalized = Object.entries(params)
+      .filter(([_, value]) => value !== undefined && value !== null)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, value]) => `${key}:${String(value)}`)
+      .join('|')
+    return `map-cache:${scope}:${normalized}`
+  }
+
+  private getCachedMapResponse<T>(key: string): T | null {
+    const now = Date.now()
+
+    const inMemory = this.mapCache.get(key)
+    if (inMemory) {
+      if (inMemory.expiresAt > now) return inMemory.data as T
+      this.mapCache.delete(key)
+    }
+
+    if (globalThis.window === undefined) return null
+
+    try {
+      const raw = globalThis.window.sessionStorage.getItem(key)
+      if (!raw) return null
+      const parsed = JSON.parse(raw) as { data: T; expiresAt: number }
+      if (!parsed || parsed.expiresAt <= now) {
+        globalThis.window.sessionStorage.removeItem(key)
+        return null
+      }
+      this.mapCache.set(key, { data: parsed.data, expiresAt: parsed.expiresAt })
+      return parsed.data
+    } catch {
+      return null
+    }
+  }
+
+  private setCachedMapResponse<T>(key: string, data: T): void {
+    const entry = { data, expiresAt: Date.now() + this.mapCacheTtlMs }
+    this.mapCache.set(key, entry)
+
+    if (globalThis.window === undefined) return
+
+    try {
+      globalThis.window.sessionStorage.setItem(key, JSON.stringify(entry))
+    } catch {
+      // ignore storage errors
+    }
   }
 
   // Transform API response to UI format for backward compatibility
@@ -496,9 +547,15 @@ class ApiService {
   async getMapData(): Promise<any> {
     if (isMockMode()) return getMockMapData()
 
+    const cacheKey = this.buildMapCacheKey('devices-map-data')
+    const cached = this.getCachedMapResponse<any>(cacheKey)
+    if (cached) return cached
+
     const endpoint = this.getEndpoint('/devices/map-data')
     const url = `${this.baseUrl}${endpoint}`
-    return this.fetchWithRetry<any>(url)
+    const response = await this.fetchWithRetry<any>(url)
+    this.setCachedMapResponse(cacheKey, response)
+    return response
   }
 
   // Site Analytics APIs
@@ -713,6 +770,14 @@ class ApiService {
   async getMaintenanceMapData(period_days: number = 14, tags?: string, group?: string): Promise<MaintenanceMapItem[]> {
     if (isMockMode()) return getMockMaintenanceMapData() as any
 
+    const cacheKey = this.buildMapCacheKey('maintenance-map-view', {
+      period_days,
+      tags,
+      group,
+    })
+    const cached = this.getCachedMapResponse<MaintenanceMapItem[]>(cacheKey)
+    if (cached) return cached
+
     const queryString = this.buildQueryString({
       days: period_days,
       tags,
@@ -722,6 +787,7 @@ class ApiService {
     const url = `${this.baseUrl}${endpoint}`
 
     const response = await this.fetchWithRetry<MaintenanceMapResponse>(url)
+    this.setCachedMapResponse(cacheKey, response.data)
     return response.data
   }
 
