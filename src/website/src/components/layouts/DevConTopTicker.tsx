@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+
 import { DEVCON_ROUTE } from '@/lib/devcon';
 
 const tickerItems = [
