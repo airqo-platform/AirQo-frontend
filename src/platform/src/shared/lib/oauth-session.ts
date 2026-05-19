@@ -155,6 +155,12 @@ export const buildBackendApiUrl = (path: string): string => {
   }
 };
 
+export const buildOAuthCallbackUrl = (
+  provider: SupportedSocialAuthProvider
+): string => {
+  return buildBackendApiUrl(`/users/auth/callback/${provider}`);
+};
+
 export const shouldSkipBackendOAuthBootstrap = (): boolean => {
   if (typeof window === 'undefined') {
     return false;
@@ -206,14 +212,11 @@ export const setLastUsedOAuthProvider = (
 };
 
 export const buildOAuthInitiationUrl = (
-  provider = 'google',
+  provider: SupportedSocialAuthProvider = 'google',
   queryParams?: Record<string, string | undefined>
 ): string => {
   const path = `/users/auth/${encodeURIComponent(provider)}`;
-  const baseUrl =
-    typeof window === 'undefined'
-      ? buildBackendApiUrl(path)
-      : buildBrowserApiUrl(path);
+  const baseUrl = buildBackendApiUrl(path);
   const params = new URLSearchParams();
 
   if (queryParams) {
