@@ -72,7 +72,13 @@ const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
         tags: formData.tags,
       });
 
-      showBanner({ severity: 'success', message: `${formData.long_name.trim()} has been created.`, scoped: false });
+      setTimeout(() => {
+        showBanner({
+          severity: 'success',
+          title: 'Success',
+          message: `${formData.long_name.trim()} has been created successfully.`,
+        });
+      }, 300);
       setFormData({ long_name: "", category: "", description: "", tags: [] });
       setErrors({});
       onOpenChange(false);

@@ -85,7 +85,13 @@ const AddMaintenanceLogModal: React.FC<AddMaintenanceLogModalProps> = ({ open, o
 
     try {
       await addMaintenanceLog.mutateAsync({ deviceName, logData });
-      showBanner({ severity: 'success', message: `Maintenance log has been added for ${deviceName}.`, scoped: false });
+      setTimeout(() => {
+        showBanner({
+          severity: 'success',
+          title: 'Success',
+          message: `Maintenance log for ${deviceName} has been added successfully.`,
+        });
+      }, 300);
       onOpenChange(false);
     } catch (error) {
       showBanner({ severity: 'error', message: `Failed to Add Maintenance Log: ${getApiErrorMessage(error)}`, scoped: true });

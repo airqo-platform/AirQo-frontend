@@ -535,12 +535,7 @@ export const useImportDevice = () => {
       };
       return devices.importDevice(payload);
     },
-    onSuccess: (data, variables) => {
-      ReusableToast({
-        message: `${variables.long_name} has been imported.`,
-        type: 'SUCCESS',
-      });
-
+    onSuccess: () => {
       // Refresh based on active module
       if (isAdminModule) {
         queryClient.invalidateQueries({ queryKey: ['network-devices'] });
@@ -555,13 +550,7 @@ export const useImportDevice = () => {
           queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
         }
       }
-    },
-    onError: error => {
-      ReusableToast({
-        message: `Import Failed: ${getApiErrorMessage(error)}`,
-        type: 'ERROR',
-      });
-    },
+    }
   });
 };
 

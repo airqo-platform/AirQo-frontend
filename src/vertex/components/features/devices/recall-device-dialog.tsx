@@ -49,8 +49,13 @@ export default function RecallDeviceDialog({
           userName: userDetails.userName,
         },
       });
-
-      showBanner({ severity: 'success', message: `${deviceDisplayName || deviceName} has been recalled.`, scoped: true });
+      setTimeout(() => {
+        showBanner({
+          severity: 'success',
+          title: 'Success',
+          message: `${deviceDisplayName || deviceName} has been recalled successfully.`,
+        });
+      }, 300);
       setRecallType("");
       onOpenChange(false);
     } catch (error) {

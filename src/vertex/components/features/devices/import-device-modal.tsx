@@ -18,6 +18,8 @@ import { NetworkRequestDialog } from "../networks/network-request-dialog";
 import { MultiSelectCombobox } from "@/components/ui/multi-select";
 import { DEFAULT_DEVICE_TAGS } from "@/core/constants/devices";
 import { Label } from "@/components/ui/label";
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
+
 
 interface ImportDeviceModalProps {
   open: boolean;
@@ -120,7 +122,21 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         user_id: userId,
         ...(cohortId && { cohort_id: cohortId }),
       },
-      { onSuccess: () => onOpenChange(false) }
+      {
+        onSuccess: (data, variables) => {
+          onOpenChange(false);
+          setTimeout(() => {
+            showBanner({
+              severity: 'success',
+              title: 'Success',
+              message: `${variables.long_name.trim()} has been imported successfully.`,
+            });
+          }, 300);
+        },
+        onError: (error) => {
+          showBanner({ severity: 'error', message: `Import Failed: ${getApiErrorMessage(error)}`, scoped: true });
+        },
+      }
     );
   };
 

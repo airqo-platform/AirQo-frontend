@@ -679,7 +679,13 @@ const DeployDeviceComponent = ({
             queryClient.invalidateQueries({ queryKey: ["device-details", prefilledDevice._id] });
           }
 
-          showBanner({ severity: 'success', message: `${deviceData.deviceName} has been deployed.`, scoped: false });
+          setTimeout(() => {
+            showBanner({
+              severity: 'success',
+              title: 'Success',
+              message: `${deviceData.deviceName} has been deployed successfully.`,
+            });
+          }, 300);
 
           setDeviceData({
             deviceName: "",

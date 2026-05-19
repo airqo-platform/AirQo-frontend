@@ -58,7 +58,13 @@ const DeviceAssignmentModal: React.FC<DeviceAssignmentModalProps> = ({
         organization_id: selectedOrganization,
         user_id: userDetails._id,
       });
-      showBanner({ severity: 'success', message: `${data.device.name} has been assigned to the organization.`, scoped: false });
+      setTimeout(() => {
+        showBanner({
+          severity: 'success',
+          title: 'Success',
+          message: `${data.device.name} has been assigned successfully.`,
+        });
+      }, 300);
       onSuccess();
     } catch (error) {
       showBanner({ severity: 'error', message: `Assignment Failed: ${getApiErrorMessage(error)}`, scoped: false });
