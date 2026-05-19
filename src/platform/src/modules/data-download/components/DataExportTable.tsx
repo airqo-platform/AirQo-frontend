@@ -1,6 +1,5 @@
 import React from 'react';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
-import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
 import { TabType, TableItem, ColumnConfig } from '../types/dataExportTypes';
 import { getTabConfig } from '../utils/tableConfig';
 
@@ -55,6 +54,7 @@ export const DataExportTable: React.FC<DataExportTableProps> = ({
         data={tableData}
         columns={columns}
         loading={loading}
+        isRefreshing={isRefreshing}
         error={error}
         currentPage={currentPage}
         totalPages={totalPages}
@@ -69,18 +69,6 @@ export const DataExportTable: React.FC<DataExportTableProps> = ({
         onSelectedItemsChange={onSelectedItemsChange}
         compactRows={compactRows}
       />
-
-      {isRefreshing && (
-        <div
-          className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center rounded-md bg-background/80 backdrop-blur-sm"
-          aria-live="polite"
-        >
-          <div className="flex items-center gap-2 rounded-md border border-border bg-card px-3 py-2 text-sm text-muted-foreground shadow-sm">
-            <LoadingSpinner size={16} />
-            <span>Refreshing data...</span>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
