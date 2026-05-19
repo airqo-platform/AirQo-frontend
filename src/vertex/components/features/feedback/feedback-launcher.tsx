@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Rating, Star } from '@smastrom/react-rating';
 import '@smastrom/react-rating/style.css';
@@ -15,10 +15,33 @@ import ReusableButton from '@/components/shared/button/ReusableButton';
 import { toast } from '@/components/shared/toast/ReusableToast';
 
 import { feedbackService } from '@/core/apis/feedback';
+import { uploadToCloudinary } from '@/core/apis/cloudinary';
 import { FEEDBACK_DIALOG_OPEN_EVENT } from './feedback-dialog';
 import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
 
 type MainCategory = 'issue' | 'idea';
+
+const MAX_FEEDBACK_SCREENSHOT_SIZE_BYTES = 2 * 1024 * 1024;
+const ALLOWED_FEEDBACK_SCREENSHOT_MIME_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+] as const;
+
+const validateFeedbackScreenshotFile = (file: File) => {
+  if (!file) {
+    throw new Error('No screenshot selected.');
+  }
+
+  if (!ALLOWED_FEEDBACK_SCREENSHOT_MIME_TYPES.includes(file.type as typeof ALLOWED_FEEDBACK_SCREENSHOT_MIME_TYPES[number])) {
+    throw new Error('Unsupported file format. Please upload JPG, PNG, GIF, or WEBP images.');
+  }
+
+  if (file.size > MAX_FEEDBACK_SCREENSHOT_SIZE_BYTES) {
+    throw new Error('File is too large. Maximum allowed size is 2MB.');
+  }
+};
 
 const ISSUE_ACTIONS = [
   'Claiming devices',
@@ -78,13 +101,16 @@ const buildFeedbackMetadata = (pathname: string) => {
 export const FeedbackLauncher: React.FC = () => {
   const pathname = usePathname();
   const { userDetails } = useUserContext();
+  const screenshotInputRef = useRef<HTMLInputElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingScreenshot, setIsUploadingScreenshot] = useState(false);
   
   const [mainCategory, setMainCategory] = useState<MainCategory | null>(null);
   const [issueAction, setIssueAction] = useState('');
   const [message, setMessage] = useState('');
   const [rating, setRating] = useState<number>(3);
+  const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
 
   const defaultMetadata = useMemo(
     () => buildFeedbackMetadata(pathname || ''),
@@ -115,8 +141,41 @@ export const FeedbackLauncher: React.FC = () => {
       setIssueAction('');
       setMessage('');
       setRating(3);
+      setScreenshotFile(null);
+      setIsUploadingScreenshot(false);
+      if (screenshotInputRef.current) {
+        screenshotInputRef.current.value = '';
+      }
     }
   }, [isOpen]);
+
+  const handleScreenshotChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      setScreenshotFile(null);
+      return;
+    }
+
+    try {
+      validateFeedbackScreenshotFile(file);
+      setScreenshotFile(file);
+    } catch (error) {
+      setScreenshotFile(null);
+      event.target.value = '';
+      toast.error(
+        'Invalid screenshot',
+        error instanceof Error ? error.message : 'Please upload a valid image file.'
+      );
+    }
+  };
+
+  const handleRemoveScreenshot = () => {
+    setScreenshotFile(null);
+    if (screenshotInputRef.current) {
+      screenshotInputRef.current.value = '';
+    }
+  };
 
   const handleSubmit = async () => {
     const trimmedMessage = message.trim();
@@ -140,6 +199,29 @@ export const FeedbackLauncher: React.FC = () => {
     setIsSubmitting(true);
 
     try {
+      let screenshot_url: string | undefined;
+
+      if (screenshotFile) {
+        setIsUploadingScreenshot(true);
+
+        try {
+          const uploadedScreenshot = await uploadToCloudinary(screenshotFile, {
+            folder: 'feedback',
+            tags: ['vertex', 'feedback'],
+          });
+
+          screenshot_url = uploadedScreenshot.secure_url;
+        } catch (error) {
+          console.error('Screenshot upload failed, proceeding without it', error);
+          toast.warning(
+            'Screenshot upload failed',
+            'We could not attach the screenshot to your feedback. Your feedback will still be submitted.'
+          );
+        } finally {
+          setIsUploadingScreenshot(false);
+        }
+      }
+
       const subject = mainCategory === 'issue' 
         ? `Issue while trying to: ${issueAction}`
         : 'Product Suggestion';
@@ -152,6 +234,7 @@ export const FeedbackLauncher: React.FC = () => {
         category: mainCategory === 'issue' ? 'bug' : 'feature_request',
         platform: 'web',
         app: 'vertex',
+        screenshot_url,
         metadata: defaultMetadata,
       });
 
@@ -206,6 +289,58 @@ export const FeedbackLauncher: React.FC = () => {
           ))}
         </ReusableSelectInput>
       )}
+
+      <div className="space-y-2">
+        <label className="mb-2 flex items-center text-sm font-medium text-gray-700 dark:text-gray-200">
+          A screenshot will help us better understand the issue.
+          <span className="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-300">
+            Optional
+          </span>
+        </label>
+
+        <div className="rounded-xl border border-dashed border-gray-300 bg-white p-4 transition-colors hover:border-primary/60 dark:border-gray-700 dark:bg-gray-800">
+          <label
+            htmlFor="screenshot"
+            className="mb-2 block text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400"
+          >
+            Capture screenshot
+          </label>
+
+          <input
+            ref={screenshotInputRef}
+            id="screenshot"
+            type="file"
+            accept={ALLOWED_FEEDBACK_SCREENSHOT_MIME_TYPES.join(',')}
+            onChange={handleScreenshotChange}
+            className="block w-full cursor-pointer rounded-lg border border-gray-300 bg-white text-sm text-gray-700 shadow-sm file:mr-4 file:cursor-pointer file:rounded-md file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-primary/90 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
+          />
+
+          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium text-gray-900 dark:text-white">
+                {screenshotFile ? screenshotFile.name : 'Capture screenshot'}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                JPG, JPEG, PNG, GIF or WEBP. Maximum size {Math.round(MAX_FEEDBACK_SCREENSHOT_SIZE_BYTES / 1024 / 1024)}MB.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {screenshotFile && (
+                <ReusableButton
+                  variant="text"
+                  onClick={handleRemoveScreenshot}
+                  padding="px-3 py-2"
+                  className="text-sm"
+                  disabled={isSubmitting}
+                >
+                  Remove
+                </ReusableButton>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
 
       <ReusableInputField
         as="textarea"
@@ -270,14 +405,14 @@ export const FeedbackLauncher: React.FC = () => {
       ) : undefined}
       showFooter={!!mainCategory}
       primaryAction={mainCategory ? {
-        label: isSubmitting ? 'Sending...' : 'Send',
+        label: isUploadingScreenshot ? 'Uploading...' : isSubmitting ? 'Sending...' : 'Send',
         onClick: handleSubmit,
-        disabled: isSubmitting,
+        disabled: isSubmitting || isUploadingScreenshot,
       } : undefined}
       secondaryAction={mainCategory ? {
         label: 'Cancel',
         onClick: () => setIsOpen(false),
-        disabled: isSubmitting,
+        disabled: isSubmitting || isUploadingScreenshot,
         variant: 'outline',
       } : undefined}
     >
