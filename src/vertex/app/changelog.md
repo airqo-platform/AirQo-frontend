@@ -4,6 +4,41 @@
 
 ---
 
+## Version 1.23.45
+**Released:** May 19, 2026
+
+### Cookie Info Banner & Responsive Styling Migration
+
+Deploys the brand-new client-side Cookie Info Banner component to ensure standard compliance for cookie use and telemetry transparency. Refactored the entire component's styling from rigid inline rules to responsive Tailwind CSS classes and integrated it directly into the login page.
+
+<details>
+<summary><strong>New Features & UX Integration (2)</strong></summary>
+
+- **Cookie Info Banner Component**: Created and deployed the `CookieInfoBanner` component to notify users of cookie usage and privacy terms ("AirQo uses cookies to deliver and enhance the quality of its services and to analyze traffic"). Resolves its cookie policy hyperlink dynamically via environment constants to support various environment routing configurations.
+- **Login Page Integration**: Mounted the banner globally at the bottom of the main layout inside the `LoginPage` (`app/login/page.tsx`), ensuring immediate display for unauthenticated users before onboarding.
+
+</details>
+
+<details>
+<summary><strong>Tailwind & Layout Optimization (3)</strong></summary>
+
+- **Responsive Tailwind Migration**: Refactored the banner's inline styles into utility classes, converting absolute pixel positions and custom properties into clean, responsive Tailwind classes.
+- **Bottom-Viewport Alignment**: Relocated the banner from the top of the viewport (`top: 0`) to the bottom (`bottom: 0`) with an elevated `z-[100]` stacking order. This resolves all visual overlapping, spacing, and layout collisions with the sticky site header and the Electron Desktop title bar.
+- **Micro-Transitions and Hover States**: Added smooth transitions, hover scaling, and active color states for the banner's hyperlink ("Learn more") and dismiss button ("OK, got it") to align with premium platform aesthetics.
+
+</details>
+
+<details>
+<summary><strong>Files Created/Modified (3)</strong></summary>
+
+- `src/vertex/app/login/page.tsx` [MODIFIED]
+- `src/vertex/components/features/auth/cookie-info-banner.tsx` [MODIFIED]
+- `src/vertex/lib/envConstants.ts` [MODIFIED]
+
+</details>
+
+---
+
 ## Version 1.23.44
 **Released:** May 19, 2026
 
