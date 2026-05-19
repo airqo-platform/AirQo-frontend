@@ -184,6 +184,7 @@ export const options: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
         oauthToken: { label: 'OAuth Token', type: 'text' },
         oauthProvider: { label: 'OAuth Provider', type: 'text' },
+        captchaToken: { label: 'Captcha Token', type: 'text' },
       },
       async authorize(credentials) {
         const oauthToken = normalizeOAuthAccessToken(
@@ -232,6 +233,7 @@ export const options: NextAuthOptions = {
           const loginResponse = (await users.loginWithDetails({
             userName: credentials.userName,
             password: credentials.password,
+            captchaToken: credentials.captchaToken,
           } as LoginCredentials)) as LoginResponse;
 
           if (loginResponse?.token) {

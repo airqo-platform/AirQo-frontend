@@ -13,6 +13,7 @@ import { signUpUrl, forgotPasswordUrl } from "@/core/urls"
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField"
 import ReusableButton from "@/components/shared/button/ReusableButton"
 import { useBanner, BannerSlot } from "@/context/banner-context"
+import { HCaptchaWidget, type HCaptchaWidgetHandle } from "@/components/ui/hcaptcha-widget"
 import logger from "@/lib/logger"
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import { useAppDispatch } from "@/core/redux/hooks";
@@ -34,6 +35,8 @@ export default function LoginPage() {
   const { showBanner, hideBanner } = useBanner();
   const [isLoading, setIsLoading] = useState(false)
   const [step, setStep] = useState<'email' | 'password'>('email');
+  const [captchaToken, setCaptchaToken] = useState("");
+  const captchaRef = useRef<HCaptchaWidgetHandle>(null);
   const searchParams = useSearchParams();
   const callbackUrl = useMemo(() => {
     const raw = searchParams.get("callbackUrl");
@@ -136,6 +139,7 @@ export default function LoginPage() {
         redirect: false,
         userName: values.userName,
         password: values.password,
+        captchaToken,
         callbackUrl: redirectUrl,
       });
 
@@ -167,9 +171,11 @@ export default function LoginPage() {
       const message = getApiErrorMessage(error);
       logger.error("Sign-in failed", { error: message });
       showBanner({ severity: 'error', message, scoped: true });
+      setCaptchaToken("");
+      captchaRef.current?.reset();
       setIsLoading(false);
     }
-  }, [callbackUrl, waitForSession, step, form, showBanner]);
+  }, [callbackUrl, waitForSession, step, form, showBanner, captchaToken]);
 
   return (
     <div className="flex min-h-screen lg:h-screen w-full flex-col bg-primary-50 text-foreground">
@@ -295,6 +301,8 @@ export default function LoginPage() {
                               form.resetField('password');
                               form.clearErrors('password');
                               hideBanner();
+                              setCaptchaToken("");
+                              captchaRef.current?.reset();
                               setStep('email');
                             }}
                             className="text-xs font-medium text-primary border border-primary/40 rounded-md px-2.5 py-1 hover:bg-primary/10 active:bg-primary/20 transition-colors ml-3 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -327,10 +335,15 @@ export default function LoginPage() {
                             </div>
                           )}
                         />
+                        <HCaptchaWidget
+                          ref={captchaRef}
+                          onVerify={(token) => setCaptchaToken(token)}
+                          onExpire={() => setCaptchaToken("")}
+                        />
                         <ReusableButton
                           type="submit"
                           className="w-full font-medium bg-primary hover:bg-primary/90"
-                          disabled={isLoading}
+                          disabled={isLoading || !captchaToken}
                           loading={isLoading}
                           variant="filled"
                         >
