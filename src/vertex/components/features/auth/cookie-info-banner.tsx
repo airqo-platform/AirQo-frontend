@@ -23,57 +23,23 @@ export function CookieInfoBanner() {
   }
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      zIndex: 50,
-      backgroundColor: '#0066b3', // Primary color - adjust if different
-      color: 'white',
-      padding: '12px 16px',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-    }}>
-      <div style={{
-        maxWidth: '1200px',
-        margin: '0 auto',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: '12px'
-      }}>
-        <p style={{
-          fontSize: '14px',
-          textAlign: 'center',
-          margin: 0
-        }}>
+    <div className="fixed bottom-0 left-0 right-0 z-[100] bg-[#0066b3] text-white py-3 px-4 shadow">
+      <div className="mx-auto flex max-w-[1200px] flex-col items-center justify-between gap-3 sm:flex-row w-full">
+        <p className="m-0 text-center text-sm sm:text-left">
           AirQo uses cookies to deliver and enhance the quality of its services and to analyze traffic.
           {' '}
           <Link 
             href="https://airqo.net/legal/cookies" 
             target="_blank"
             rel="noopener noreferrer"
-            style={{
-              color: 'white',
-              textDecoration: 'underline'
-            }}
+            className="text-white underline hover:text-white/80 transition-colors"
           >
             Learn more
           </Link>
         </p>
         <button
           onClick={handleDismiss}
-          style={{
-            backgroundColor: 'white',
-            color: '#0066b3',
-            border: 'none',
-            padding: '4px 16px',
-            borderRadius: '6px',
-            fontSize: '14px',
-            fontWeight: 500,
-            cursor: 'pointer'
-          }}
+          className="rounded-md bg-white px-4 py-1 text-sm font-medium text-[#0066b3] transition-colors hover:bg-white/90 active:bg-white/80 cursor-pointer"
         >
           OK, got it
         </button>
