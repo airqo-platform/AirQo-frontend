@@ -35,6 +35,7 @@ import {
   clearBackendOAuthSignedOutFlag,
   consumeOAuthTokenHandoffFromUrl,
   buildSessionFromProfile,
+  setLastUsedOAuthProvider,
   normalizeOAuthAccessToken,
   type BackendOAuthSession,
   shouldSkipBackendOAuthBootstrap,
@@ -708,6 +709,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             getSessionAccessTokenFromSession(nextAuthSession)
           );
           clearBackendOAuthSignedOutFlag();
+
+          if (oauthTokenHandoff?.provider) {
+            setLastUsedOAuthProvider(oauthTokenHandoff.provider);
+          }
+
           setBootstrapSession(nextAuthSession as BackendOAuthSession);
           return;
         }
