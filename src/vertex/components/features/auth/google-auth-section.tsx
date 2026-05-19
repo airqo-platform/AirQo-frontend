@@ -4,7 +4,7 @@ import { useCallback, useState } from 'react';
 import ReusableButton from '@/components/shared/button/ReusableButton';
 import { cn } from '@/lib/utils';
 import { buildOAuthInitiationUrl } from '@/core/auth/oauth-session';
-import ReusableToast from '@/components/shared/toast/ReusableToast';
+import { useBanner } from '@/context/banner-context';
 import { FcGoogle } from 'react-icons/fc';
 
 interface GoogleAuthSectionProps {
@@ -20,6 +20,7 @@ export default function GoogleAuthSection({
   className,
   callbackUrl,
 }: GoogleAuthSectionProps) {
+  const { showBanner } = useBanner();
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   const handleGoogleAuth = useCallback(() => {
@@ -37,13 +38,14 @@ export default function GoogleAuthSection({
       );
     } catch (error) {
       setIsRedirecting(false);
-      ReusableToast({
+      showBanner({
+        severity: 'error',
         message: 'Google sign-in unavailable. Please try again in a moment.',
-        type: 'ERROR',
+        scoped: true,
       });
       console.error('Failed to start Google OAuth flow:', error);
     }
-  }, [disabled, callbackUrl]);
+  }, [disabled, callbackUrl, showBanner]);
 
   return (
     <div className={cn('w-full space-y-4', className)}>

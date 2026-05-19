@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosHeaders } from 'axios';
+import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosHeaders, CanceledError } from 'axios';
 import { getSession } from 'next-auth/react';
 import { getApiToken } from '@/lib/envConstants';
 import logger from '@/lib/logger';
@@ -132,6 +132,10 @@ const createSecureApiClient = (): AxiosInstance => {
       return response;
     },
     (error) => {
+      if (axios.isCancel(error) || error instanceof CanceledError) {
+        return Promise.reject(error);
+      }
+
       const status = error.response?.status;
       const url = error.config?.url;
       const authType = (error.config?.headers?.['x-auth-type'] || 'jwt').toString().toLowerCase();
