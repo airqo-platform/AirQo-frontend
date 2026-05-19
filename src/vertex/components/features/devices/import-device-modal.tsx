@@ -130,6 +130,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
               severity: 'success',
               title: 'Success',
               message: `${variables.long_name.trim()} has been imported successfully.`,
+              scoped: false
             });
           }, 300);
         },

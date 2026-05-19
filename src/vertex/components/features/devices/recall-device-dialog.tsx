@@ -54,6 +54,7 @@ export default function RecallDeviceDialog({
           severity: 'success',
           title: 'Success',
           message: `${deviceDisplayName || deviceName} has been recalled successfully.`,
+          scoped: false
         });
       }, 300);
       setRecallType("");

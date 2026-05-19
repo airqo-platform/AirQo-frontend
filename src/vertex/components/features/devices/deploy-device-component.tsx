@@ -684,6 +684,7 @@ const DeployDeviceComponent = ({
               severity: 'success',
               title: 'Success',
               message: `${deviceData.deviceName} has been deployed successfully.`,
+              scoped: false
             });
           }, 300);
 

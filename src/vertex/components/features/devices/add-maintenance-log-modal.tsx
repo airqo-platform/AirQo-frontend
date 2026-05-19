@@ -90,6 +90,7 @@ const AddMaintenanceLogModal: React.FC<AddMaintenanceLogModalProps> = ({ open, o
           severity: 'success',
           title: 'Success',
           message: `Maintenance log for ${deviceName} has been added successfully.`,
+          scoped: false
         });
       }, 300);
       onOpenChange(false);

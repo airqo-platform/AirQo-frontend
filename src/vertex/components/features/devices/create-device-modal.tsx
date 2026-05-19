@@ -70,18 +70,24 @@ const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
         description: formData.description.trim() || undefined,
         network: effectiveNetworkName,
         tags: formData.tags,
+      }, {
+        onSuccess: (data, variables) => {
+          setTimeout(() => {
+            showBanner({
+              severity: 'success',
+              title: 'Success',
+              message: `${variables.long_name.trim()} has been created successfully.`,
+              scoped: false
+            });
+          }, 300);
+          setFormData({ long_name: "", category: "", description: "", tags: [] });
+          setErrors({});
+          onOpenChange(false);
+        },
+        onError: (error) => {
+          showBanner({ severity: 'error', message: `Creation Failed: ${getApiErrorMessage(error)}`, scoped: true });
+        },
       });
-
-      setTimeout(() => {
-        showBanner({
-          severity: 'success',
-          title: 'Success',
-          message: `${formData.long_name.trim()} has been created successfully.`,
-        });
-      }, 300);
-      setFormData({ long_name: "", category: "", description: "", tags: [] });
-      setErrors({});
-      onOpenChange(false);
     } catch (error) {
       showBanner({ severity: 'error', message: `Creation Failed: ${getApiErrorMessage(error)}`, scoped: true });
     }
