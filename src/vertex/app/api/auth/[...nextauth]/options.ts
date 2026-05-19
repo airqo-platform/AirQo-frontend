@@ -233,7 +233,7 @@ export const options: NextAuthOptions = {
           const loginResponse = (await users.loginWithDetails({
             userName: credentials.userName,
             password: credentials.password,
-            captchaToken: credentials.captchaToken,
+            captchaToken: credentials.captchaToken ?? "",
           } as LoginCredentials)) as LoginResponse;
 
           if (loginResponse?.token) {
