@@ -78,7 +78,7 @@ const fetchAnalysisData = async (filterState: FilterState, start: string, end: s
 }
 
 // Same processing logic from analytics/analysis/page.tsx
-const processDevicePerformanceFlat = (device: any): any => {
+const processDevicePerformanceFlat = (device: any, endDate: Date): any => {
   const data = device.data
   const rawData = device.raw_data
   const readings = Array.isArray(data) && data.length > 0 ? data : rawData
@@ -109,7 +109,7 @@ const processDevicePerformanceFlat = (device: any): any => {
     })
 
     const dates: string[] = []
-    const end = new Date()
+    const end = new Date(endDate)
     for (let i = 13; i >= 0; i--) {
       const d = new Date(end)
       d.setDate(d.getDate() - i)
@@ -185,7 +185,7 @@ const processDevicePerformanceFlat = (device: any): any => {
   })
 
   const dates: string[] = []
-  const end = new Date()
+  const end = new Date(endDate)
   for (let i = 13; i >= 0; i--) {
     const d = new Date(end)
     d.setDate(d.getDate() - i)
@@ -329,6 +329,7 @@ export default function ReportsPage() {
       const pdf = new jsPDF('p', 'mm', 'a4')
       const margin = 10
       const pageWidth = pdf.internal.pageSize.getWidth() - (margin * 2)
+      const maxHeight = pdf.internal.pageSize.getHeight() - (margin * 2)
       
       for (let i = 0; i < elementsToCapture.length; i++) {
         const element = elementsToCapture[i] as HTMLElement
@@ -342,10 +343,13 @@ export default function ReportsPage() {
         const imgData = canvas.toDataURL('image/png')
         const imgProps = pdf.getImageProperties(imgData)
         const usableHeight = (imgProps.height * pageWidth) / imgProps.width
+        const scaleFactor = usableHeight > maxHeight ? maxHeight / usableHeight : 1
+        const drawWidth = pageWidth * scaleFactor
+        const drawHeight = usableHeight * scaleFactor
         
         if (i > 0) pdf.addPage()
         
-        pdf.addImage(imgData, 'PNG', margin, margin, pageWidth, usableHeight)
+        pdf.addImage(imgData, 'PNG', margin, margin, drawWidth, drawHeight)
       }
 
       pdf.save(`device_health_report_${new Date().getTime()}.pdf`)
@@ -390,7 +394,8 @@ export default function ReportsPage() {
   let allDevicesForMap: any[] = []
 
   if (filters.filterType === "devices" && deviceData) {
-    processedDevices = deviceData.map(processDevicePerformanceFlat)
+    const { endDate } = getDateWindow(filters)
+    processedDevices = deviceData.map((device: any) => processDevicePerformanceFlat(device, endDate))
     allDevicesForMap = deviceData.map((d: any) => ({
       device_id: d.id || d.device_id,
       device_name: d.name || d.device_name,
@@ -401,9 +406,10 @@ export default function ReportsPage() {
       cohorts: []
     }))
   } else if (analysisData && analysisData.length > 0) {
+    const { endDate } = getDateWindow(filters)
     processedDevices = analysisData.flatMap((aq: any) => {
       const devices = Array.isArray(aq.devices) ? aq.devices : []
-      return devices.map(processDevicePerformanceFlat)
+      return devices.map((device: any) => processDevicePerformanceFlat(device, endDate))
     })
     allDevicesForMap = analysisData.flatMap((aq: any) => {
       const devices = Array.isArray(aq.devices) ? aq.devices : []

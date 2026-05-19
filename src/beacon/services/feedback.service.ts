@@ -38,11 +38,13 @@ const extractResponseData = <T extends { success?: boolean; message?: string }>(
 export class FeedbackService {
   private readonly baseUrl: string;
   private readonly apiPrefix: string;
+  private readonly defaultRequestTimeoutMs: number;
 
   constructor() {
     // User feedback is sent to staging on localhost, and to the appropriate platform URL otherwise
     this.baseUrl = config.isLocalhost ? 'https://staging-platform.airqo.net' : config.airqoPlatformUrl;
     this.apiPrefix = '/api/v2';
+    this.defaultRequestTimeoutMs = 10000;
   }
 
   private getEndpoint(resource: string): string {
@@ -62,16 +64,31 @@ export class FeedbackService {
   }
 
   async submitFeedback(
-    payload: SubmitFeedbackRequest
+    payload: SubmitFeedbackRequest,
+    timeoutMs: number = this.defaultRequestTimeoutMs
   ): Promise<SubmitFeedbackResponse> {
     const endpoint = this.getEndpoint('/users/feedback/submit');
     const url = `${this.baseUrl}${endpoint}`;
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify(payload)
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    let response: Response;
+
+    try {
+      response = await fetch(url, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        throw new Error('Feedback submission timed out. Please try again.');
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     if (!response.ok) {
       let errorMessage = 'Failed to submit feedback';
