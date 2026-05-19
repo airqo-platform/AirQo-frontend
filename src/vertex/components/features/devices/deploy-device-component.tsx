@@ -26,7 +26,8 @@ import { useUserContext } from "@/core/hooks/useUserContext";
 import { useDeviceDetails, useDevices, useDeployDevice } from "@/core/hooks/useDevices";
 import { ComboBox } from "@/components/ui/combobox";
 import { Device, type DevicePreviousSite } from "@/app/types/devices";
-import ReusableToast from "@/components/shared/toast/ReusableToast";
+import { useBanner } from "@/context/banner-context";
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import LocationAutocomplete from "@/components/features/location-autocomplete/LocationAutocomplete";
 import { useNetworks } from "@/core/hooks/useNetworks";
 const MiniMap = React.lazy(() => import("../mini-map/mini-map"));
@@ -427,6 +428,7 @@ const DeployDeviceComponent = ({
   onDeploymentError
 }: DeployDeviceComponentProps) => {
   const queryClient = useQueryClient();
+  const { showBanner } = useBanner();
   const { userScope, userDetails } = useUserContext();
   const { devices: allDevices } = useDevices({ enabled: userScope !== 'personal' });
   const [currentStep, setCurrentStep] = React.useState<number>(0);
@@ -608,10 +610,7 @@ const DeployDeviceComponent = ({
 
   const handleNext = (): void => {
     if (currentStep === 0 && !validateDeviceDetails()) {
-      ReusableToast({
-        type: "ERROR",
-        message: "Incomplete Details: Please fill in all required device details.",
-      });
+      showBanner({ severity: 'error', message: 'Incomplete Details: Please fill in all required device details.', scoped: true });
       return;
     }
     setCurrentStep((prev) => Math.min(prev + 1, siteSource === 'new' ? 2 : 1));
@@ -642,18 +641,12 @@ const DeployDeviceComponent = ({
 
   const handleDeploy = (): void => {
     if (!userDetails?._id) {
-      ReusableToast({
-        type: "ERROR",
-        message: "User information not available. Please reload the page.",
-      });
+      showBanner({ severity: 'error', message: 'User information not available. Please reload the page.', scoped: true });
       return;
     }
 
     if (siteSource === 'previous' && !deviceData.site_id) {
-      ReusableToast({
-        type: "ERROR",
-        message: "Select a previous site to continue.",
-      });
+      showBanner({ severity: 'error', message: 'Select a previous site to continue.', scoped: true });
       return;
     }
 
@@ -686,7 +679,15 @@ const DeployDeviceComponent = ({
             queryClient.invalidateQueries({ queryKey: ["device-details", prefilledDevice._id] });
           }
 
-          // On successful deployment, reset form fields
+          setTimeout(() => {
+            showBanner({
+              severity: 'success',
+              title: 'Success',
+              message: `${deviceData.deviceName} has been deployed successfully.`,
+              scoped: false
+            });
+          }, 300);
+
           setDeviceData({
             deviceName: "",
             deployment_date: undefined,
@@ -709,6 +710,22 @@ const DeployDeviceComponent = ({
           if (onClose) onClose();
         },
         onError: (error) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const errorData = (error as any)?.response?.data;
+          let errorMessage = getApiErrorMessage(error);
+
+          if (errorData?.failed_deployments?.length > 0) {
+            const failedMessages = errorData.failed_deployments
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              .map((deployment: any) => deployment.error?.message)
+              .filter(Boolean);
+
+            if (failedMessages.length > 0) {
+              errorMessage = failedMessages.join(', ');
+            }
+          }
+
+          showBanner({ severity: 'error', message: `Deployment Failed: ${errorMessage}`, scoped: true });
           onDeploymentError?.(error instanceof Error ? error : new Error("Unknown error"));
         },
       }

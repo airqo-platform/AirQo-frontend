@@ -7,33 +7,42 @@
 ## Version 1.23.44
 **Released:** May 19, 2026
 
-### Cookie Info Banner & Responsive Styling Migration
+### Device Management Scoped Banner Migration & Mutation Callback Cleanup
 
-Deploys the brand-new client-side Cookie Info Banner component to ensure standard compliance for cookie use and telemetry transparency. Refactored the entire component's styling from rigid inline rules to responsive Tailwind CSS classes and integrated it directly into the login page.
+Migrated feedback notifications from global floating toasts (`ReusableToast`) to context-aware `InfoBanner` components (`useBanner`) inside device management modules to keep alerts inline and centered within their active modal or dialog containers. Refactored React Query hook callbacks to push feedback responsibility to the UI components.
 
 <details>
-<summary><strong>New Features & UX Integration (2)</strong></summary>
+<summary><strong>Device Management — Scoped Banner Migration (7)</strong></summary>
 
-- **Cookie Info Banner Component**: Created and deployed the `CookieInfoBanner` component to notify users of cookie usage and privacy terms ("AirQo uses cookies to deliver and enhance the quality of its services and to analyze traffic"). Resolves its cookie policy hyperlink dynamically via environment constants to support various environment routing configurations.
-- **Login Page Integration**: Mounted the banner globally at the bottom of the main layout inside the `LoginPage` (`app/login/page.tsx`), ensuring immediate display for unauthenticated users before onboarding.
+- **Create Device Modal**: Integrated `useBanner` for scoped validation and creation alerts. The `showBanner` utility replaces the old inline red error block for missing network errors.
+- **Import Device Modal**: Integrated `useBanner` to surface a previously silent missing user ID warning and errors. Replaced old inline red error alerts and fixed a critical TypeScript compilation error where `importDevice.mutate()` was called with 3 arguments instead of 1-2 by merging the `onSuccess` and `onError` options into a single second argument. Added missing `getApiErrorMessage` import.
+- **Add Maintenance Log Modal**: Replaced `ReusableToast` with scoped `showBanner` for validation errors to align modal design feedback.
+- **Deploy Device Component**: Swapped 3 occurrences of `ReusableToast` with `showBanner` alerts.
+- **Recall Device Dialog**: Added `useBanner` support and shifted all success and error UI notifications from raw hook callbacks directly to try/catch blocks within the component.
+- **Device Details Modal**: Migrated all validation, detail update, and key decryption feedback from floating toasts to `showBanner`. Added local callback overrides to the `updateLocal` and `updateGlobal` mutate invocations.
+- **Device Assignment Modal**: Added `useBanner` with `scoped: false` (since this dialog extends base Radix `Dialog` rather than `ReusableDialog`), keeping assignment feedback in the modal itself instead of hook side-effects.
 
 </details>
 
 <details>
-<summary><strong>Tailwind & Layout Optimization (3)</strong></summary>
+<summary><strong>Custom Hook & Callback Separation (1)</strong></summary>
 
-- **Responsive Tailwind Migration**: Refactored the banner's inline styles into utility classes, converting absolute pixel positions and custom properties into clean, responsive Tailwind classes.
-- **Bottom-Viewport Alignment**: Relocated the banner from the top of the viewport (`top: 0`) to the bottom (`bottom: 0`) with an elevated `z-[100]` stacking order. This resolves all visual overlapping, spacing, and layout collisions with the sticky site header and the Electron Desktop title bar.
-- **Micro-Transitions and Hover States**: Added smooth transitions, hover scaling, and active color states for the banner's hyperlink ("Learn more") and dismiss button ("OK, got it") to align with premium platform aesthetics.
+- **useDevices Hooks Overhaul**: Removed imperative `ReusableToast` side-effects from `useRecallDevice`, `useUpdateDeviceLocal`, `useUpdateDeviceGlobal`, `useAssignDeviceToOrganization`, and `useDecryptDeviceKeys`. Hooks are now clean, focused solely on API interactions and cache invalidation.
 
 </details>
 
 <details>
-<summary><strong>Files Created/Modified (3)</strong></summary>
+<summary><strong>Files Modified (8)</strong></summary>
 
-- `src/vertex/app/login/page.tsx` [MODIFIED]
-- `src/vertex/components/features/auth/cookie-info-banner.tsx` [MODIFIED]
-- `src/vertex/lib/envConstants.ts` [MODIFIED]
+- `src/vertex/app/changelog.md` [MODIFIED]
+- `src/vertex/components/features/devices/create-device-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/import-device-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/add-maintenance-log-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/deploy-device-component.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/recall-device-dialog.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/device-details-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/device-assignment-modal.tsx` [MODIFIED]
+- `src/vertex/core/hooks/useDevices.ts` [MODIFIED]
 
 </details>
 
