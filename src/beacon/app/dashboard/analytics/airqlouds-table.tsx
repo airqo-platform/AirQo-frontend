@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import {
   Table,
@@ -352,6 +352,7 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
     isTagsLocked && lockedTags ? lockedTags : [getDefaultCohortTag(activeGroup)]
   )
   const availableTags = ["hardware", "duplicate", "organizational", "inlab", "misc"] // Hardcoded for now, could be fetched
+  const lastSuccessfulCohortTagRef = useRef<string>(getDefaultCohortTag(activeGroup))
 
   // Pagination state
   const [page, setPage] = useState(1)
@@ -386,29 +387,67 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
       startDate.setDate(endDate.getDate() - performanceDays + 1)
       startDate.setHours(0, 0, 0, 0)
 
-      const response = isGridMode ? await airQloudService.getGrids({
-        includePerformance: true,
-        summary: true,
-        startDateTime: startDate.toISOString(),
-        endDateTime: endDate.toISOString(),
-        frequency: 'hourly',
-        search: searchTerm || undefined,
-        limit: pageSize,
-        skip: skip,
-        admin_level: selectedGridAdminLevel,
-        group: activeGroup,
-      }) : await airQloudService.getAirQlouds({
-        includePerformance: true,
-        summary: true,
-        startDateTime: startDate.toISOString(),
-        endDateTime: endDate.toISOString(),
-        frequency: 'hourly',
-        search: searchTerm || undefined,
-        limit: pageSize,
-        skip: skip,
-        tags: cohortTags.length > 0 ? cohortTags.join(",") : undefined,
-        group: activeGroup,
-      })
+      let response
+
+      if (isGridMode) {
+        response = await airQloudService.getGrids({
+          includePerformance: true,
+          summary: true,
+          startDateTime: startDate.toISOString(),
+          endDateTime: endDate.toISOString(),
+          frequency: 'hourly',
+          search: searchTerm || undefined,
+          limit: pageSize,
+          skip: skip,
+          admin_level: selectedGridAdminLevel,
+          group: activeGroup,
+        })
+      } else {
+        const fetchCohortsByTags = async (tags: string[]) => {
+          return airQloudService.getAirQlouds({
+            includePerformance: true,
+            summary: true,
+            startDateTime: startDate.toISOString(),
+            endDateTime: endDate.toISOString(),
+            frequency: 'hourly',
+            search: searchTerm || undefined,
+            limit: pageSize,
+            skip: skip,
+            tags: tags.length > 0 ? tags.join(",") : undefined,
+            group: activeGroup,
+          })
+        }
+
+        let effectiveTags = cohortTags
+        response = await fetchCohortsByTags(effectiveTags)
+
+        if ((response.airqlouds?.length ?? 0) > 0 && effectiveTags.length === 1) {
+          lastSuccessfulCohortTagRef.current = effectiveTags[0]
+        }
+
+        const canFallback = (response.airqlouds?.length ?? 0) === 0 && !searchTerm.trim()
+        if (canFallback) {
+          const fallbackTags = [
+            lastSuccessfulCohortTagRef.current,
+            "hardware",
+            "organizational",
+            "duplicate",
+            "inlab",
+            "misc",
+          ].filter((tag, index, arr) => Boolean(tag) && arr.indexOf(tag) === index && !effectiveTags.includes(tag))
+
+          for (const fallbackTag of fallbackTags) {
+            const fallbackResponse = await fetchCohortsByTags([fallbackTag])
+            if ((fallbackResponse.airqlouds?.length ?? 0) > 0) {
+              response = fallbackResponse
+              effectiveTags = [fallbackTag]
+              lastSuccessfulCohortTagRef.current = fallbackTag
+              setCohortTags([fallbackTag])
+              break
+            }
+          }
+        }
+      }
 
       const { airqlouds, meta } = response
 

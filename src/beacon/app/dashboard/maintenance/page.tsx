@@ -426,7 +426,7 @@ export default function MaintenancePage() {
                     {/* Uptime + Error Margin Filters */}
                     <div className="flex flex-col gap-2">
                         <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-gray-700">Uptime:</span>
+                            <span className="text-sm font-medium text-gray-700">Device Uptime:</span>
                             <select
                                 value={uptimeFilter}
                                 onChange={(e) => { setUptimeFilter(e.target.value as typeof uptimeFilter); clearRoute() }}

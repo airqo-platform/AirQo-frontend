@@ -37,6 +37,7 @@ interface DateRange {
 // Device performance from Cohort API (nested structure)
 interface DevicePerformanceRaw {
   _id?: string
+  device_id?: string
   name: string
   long_name: string
   uptime?: number | null
@@ -53,9 +54,16 @@ interface DevicePerformanceRaw {
 interface DevicePerformanceFlat {
   id: string
   name: string
+  device_id?: string
+  device_name?: string
   freq: number[]
   error_margin: (number | null)[]
   timestamp: string[]
+  uptime?: number | null
+  data_completeness?: number | null
+  sensor_error_margin?: number | null
+  raw_data?: any[]
+  data?: any[]
 }
 
 interface ProcessedDeviceData {
@@ -77,12 +85,25 @@ interface AirQloudDetailData {
 
 type AnalysisType = "airqlouds" | "devices" | "grids"
 
+const normalizePercentage = (value: number) => {
+  if (value >= 0 && value <= 1) return value * 100
+  return value
+}
+
 // Process device performance data from Cohort API (nested structure)
 const processDevicePerformance = (device: DevicePerformanceRaw): ProcessedDeviceData => {
   const dailyData: { [date: string]: { hoursSet: Set<number>; errorMargins: number[] } } = {}
   const hourlyData: { [key: string]: { date: string; hour: number; count: number; errorMargins: number[] } } = {}
 
   const deviceData = device.data || []
+
+  const getSensorValue = (reading: any, keys: string[]) => {
+    for (const key of keys) {
+      const value = reading?.[key]
+      if (typeof value === "number") return value
+    }
+    return null
+  }
 
   deviceData.forEach((d: any) => {
     const dt = new Date(d.datetime)
@@ -105,8 +126,11 @@ const processDevicePerformance = (device: DevicePerformanceRaw): ProcessedDevice
     const recordCount = typeof d.record_count === "number" ? d.record_count : 1
     hourlyData[hourKey].count += recordCount
 
-    if (d.s1_pm2_5 != null && d.s2_pm2_5 != null) {
-      const em = Math.abs(d.s1_pm2_5 - d.s2_pm2_5)
+    const s1 = getSensorValue(d, ["s1_pm2_5", "pm2.5 sensor1", "pm2_5_sensor1", "pm2_5_s1", "pm2_5_s1_raw"])
+    const s2 = getSensorValue(d, ["s2_pm2_5", "pm2.5 sensor2", "pm2_5_sensor2", "pm2_5_s2", "pm2_5_s2_raw"])
+
+    if (s1 != null && s2 != null) {
+      const em = Math.abs(s1 - s2)
       dailyData[date].errorMargins.push(em)
       hourlyData[hourKey].errorMargins.push(em)
     }
@@ -140,24 +164,26 @@ const processDevicePerformance = (device: DevicePerformanceRaw): ProcessedDevice
     timestamp: date
   }))
 
-  // Compute averages from the actual per-day buckets (with missing days
-  // counted as 0 uptime) rather than relying on the API's `device.uptime` /
-  // `device.sensor_error_margin` which can be stale or unreliable (e.g.
-  // returning 1 for every device).
-  const computedAvgUptime = uptimeHistory.length > 0
-    ? uptimeHistory.reduce((sum, d) => sum + d.value, 0) / uptimeHistory.length
-    : (device.uptime ?? 0) * 100
+  let computedAvgUptime = 0
+
+  if (typeof device.uptime === "number") {
+    computedAvgUptime = normalizePercentage(device.uptime)
+  } else if (uptimeHistory.length > 0) {
+    computedAvgUptime = uptimeHistory.reduce((sum, d) => sum + d.value, 0) / uptimeHistory.length
+  }
   const allErrorMargins = Object.values(dailyData).flatMap(d => d.errorMargins)
   const computedAvgErrorMargin = allErrorMargins.length > 0
     ? allErrorMargins.reduce((s, v) => s + v, 0) / allErrorMargins.length
     : (device.sensor_error_margin ?? 0)
 
+  const totalDataPoints = Object.values(hourlyData).reduce((sum, h) => sum + h.count, 0)
+
   return {
-    device_id: device._id || device.name,
+    device_id: device._id || device.device_id || device.name,
     device_name: device.long_name || device.name,
     daily_uptime_percentage: computedAvgUptime,
     average_error_margin: computedAvgErrorMargin,
-    data_points: deviceData.length,
+    data_points: totalDataPoints || deviceData.length,
     uptime_history: uptimeHistory,
     error_margin_history: errorMarginHistory,
     hourly_data: Object.values(hourlyData).map(h => ({
@@ -174,13 +200,19 @@ const processDevicePerformance = (device: DevicePerformanceRaw): ProcessedDevice
 // Process device performance data from Device API (flat structure)
 const processDevicePerformanceFlat = (device: DevicePerformanceFlat): ProcessedDeviceData => {
   // If the device has raw_data (actual API response), process like nested format
-  if ((device as any).raw_data && Array.isArray((device as any).raw_data)) {
+  const data = (device as any).data
+  const rawData = (device as any).raw_data
+  const readings = Array.isArray(data) && data.length > 0 ? data : rawData
+
+  if (readings && Array.isArray(readings)) {
     return processDevicePerformance({
       name: (device as any).device_name || device.name || device.id,
       long_name: (device as any).device_name || device.name || device.id,
+      _id: (device as any).device_id || readings[0]?.device_id,
       uptime: (device as any).uptime,
+      data_completeness: (device as any).data_completeness,
       sensor_error_margin: (device as any).sensor_error_margin,
-      data: (device as any).raw_data,
+      data: readings,
     })
   }
 
@@ -463,7 +495,10 @@ export default function AnalysisResultsPage() {
 
         if (storedAnalysisType === "devices") {
           // Device analysis - data is array of device performance (flat structure)
-          const parsedData = JSON.parse(storedData) as DevicePerformanceFlat[]
+          const parsedPayload = JSON.parse(storedData)
+          const parsedData = Array.isArray(parsedPayload)
+            ? parsedPayload
+            : parsedPayload?.data || []
           setDeviceData(parsedData)
         } else {
           // Cohort/grid analysis - data includes devices in each entity

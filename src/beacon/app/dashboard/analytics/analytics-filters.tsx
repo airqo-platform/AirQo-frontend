@@ -1,13 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
-import { format } from "date-fns"
+import { format, subDays } from "date-fns"
 import { CalendarIcon, Search, RefreshCw } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -26,6 +26,7 @@ interface AnalyticsFiltersProps {
   onFilterChange?: (filters: FilterState) => void
   onAnalyse?: (filters: FilterState) => void
   isAnalysing?: boolean
+  hideDateRange?: boolean
 }
 
 export interface FilterState {
@@ -51,7 +52,13 @@ function getDefaultCohortTag(activeGroup: string | null): string {
   return activeGroup?.toLowerCase() === "airqo" ? "hardware" : "organizational"
 }
 
-export default function AnalyticsFilters({ initialFilterType = "airqlouds", onFilterChange, onAnalyse, isAnalysing }: AnalyticsFiltersProps) {
+export default function AnalyticsFilters({ 
+  initialFilterType = "airqlouds", 
+  onFilterChange, 
+  onAnalyse, 
+  isAnalysing,
+  hideDateRange = false
+}: AnalyticsFiltersProps) {
   const { toast } = useToast()
   const { activeGroup, loading: groupLoading } = useGroup()
   const [isSyncing, setIsSyncing] = useState(false)
@@ -70,13 +77,23 @@ export default function AnalyticsFilters({ initialFilterType = "airqlouds", onFi
   // Cohort Tags State
   const [cohortTags, setCohortTags] = useState<string[]>([getDefaultCohortTag(activeGroup)])
   const availableTags = ["hardware", "duplicate", "organizational", "inlab", "misc"] // Hardcoded for now, could be fetched
+  const lastSuccessfulCohortTagRef = useRef<string>(getDefaultCohortTag(activeGroup))
 
   const [dateRange, setDateRange] = useState<{
     from: Date | undefined
     to: Date | undefined
-  }>({
-    from: undefined,
-    to: undefined,
+  }>(() => {
+    if (hideDateRange) {
+      const today = new Date()
+      today.setHours(23, 59, 59, 999)
+      const from = subDays(today, 13)
+      from.setHours(0, 0, 0, 0)
+      return { from, to: today }
+    }
+    return {
+      from: undefined,
+      to: undefined,
+    }
   })
   const [timeRange, setTimeRange] = useState<{
     from: string
@@ -137,23 +154,53 @@ export default function AnalyticsFilters({ initialFilterType = "airqlouds", onFi
 
         try {
           setIsLoadingAirqlouds(true)
-          const response = await airQloudService.getAirQloudsBasic({
-            search: searchTerm || undefined,
-            tags: cohortTags.length > 0 ? cohortTags.join(",") : undefined,
-            limit: 100,
-            group: activeGroup,
-          })
-          // The API might return { airqlouds: [], meta: {} } or [] depending on the endpoint used in service
-          // getAirQloudsBasic was updated to use the same endpoint structure?
-          // Let's check airqloud.service.ts again. getAirQloudsBasic calls /airqlouds with include_performance=false
-          // The /airqlouds endpoint now returns { airqlouds: [], meta: {} }
-
-          if (Array.isArray(response)) {
-            setAirqlouds(response)
-          } else {
-            // It's the new format
-            setAirqlouds((response as any).airqlouds || [])
+          const normalizeAirqlouds = (response: any): AirQloudBasic[] => {
+            if (Array.isArray(response)) return response
+            return response.airqlouds || []
           }
+
+          const fetchByTags = async (tags: string[]) => {
+            return airQloudService.getAirQloudsBasic({
+              search: searchTerm || undefined,
+              tags: tags.length > 0 ? tags.join(",") : undefined,
+              limit: 100,
+              group: activeGroup,
+            })
+          }
+
+          let effectiveTags = cohortTags
+          let response = await fetchByTags(effectiveTags)
+          let resolvedAirqlouds = normalizeAirqlouds(response)
+
+          if (resolvedAirqlouds.length > 0 && effectiveTags.length === 1) {
+            lastSuccessfulCohortTagRef.current = effectiveTags[0]
+          }
+
+          const canFallback = resolvedAirqlouds.length === 0 && !searchTerm.trim()
+          if (canFallback) {
+            const fallbackTags = [
+              lastSuccessfulCohortTagRef.current,
+              "hardware",
+              "organizational",
+              "duplicate",
+              "inlab",
+              "misc",
+            ].filter((tag, index, arr) => Boolean(tag) && arr.indexOf(tag) === index && !effectiveTags.includes(tag))
+
+            for (const fallbackTag of fallbackTags) {
+              const fallbackResponse = await fetchByTags([fallbackTag])
+              const fallbackAirqlouds = normalizeAirqlouds(fallbackResponse)
+              if (fallbackAirqlouds.length > 0) {
+                resolvedAirqlouds = fallbackAirqlouds
+                effectiveTags = [fallbackTag]
+                lastSuccessfulCohortTagRef.current = fallbackTag
+                setCohortTags([fallbackTag])
+                break
+              }
+            }
+          }
+
+          setAirqlouds(resolvedAirqlouds)
         } catch (error) {
           console.error('Error fetching airqlouds:', error)
         } finally {
@@ -466,8 +513,9 @@ export default function AnalyticsFilters({ initialFilterType = "airqlouds", onFi
           {/* Right Side: Date and Time Selection */}
           <div className="space-y-4">
             {/* Date Range Selection */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Date Range</label>
+            {!hideDateRange && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Date Range</label>
               <div className="grid grid-cols-2 gap-2">
                 {/* Date Range Picker - Half Width */}
                 <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
@@ -662,6 +710,7 @@ export default function AnalyticsFilters({ initialFilterType = "airqlouds", onFi
                 </Popover>
               </div>
             </div>
+            )}
 
             {/* Selected Items Display */}
             <div className="space-y-2">
