@@ -221,7 +221,7 @@ export const FeedbackLauncher: React.FC = () => {
           rows={5}
           required
         />
-        <p className="text-xs text-gray-500">Please don't include any sensitive information</p>
+        <p className="text-xs text-gray-500">Please don&apos;t include any sensitive information</p>
       </div>
 
       <div>
