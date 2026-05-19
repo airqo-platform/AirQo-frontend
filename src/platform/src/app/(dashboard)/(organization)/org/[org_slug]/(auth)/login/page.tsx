@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { useParams } from 'next/navigation';
 import AuthLayout from '@/shared/layouts/AuthLayout';
 import SocialAuthSection from '@/shared/components/auth/SocialAuthSection';
+import SelectedEmailCard from '@/shared/components/auth/SelectedEmailCard';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -191,27 +192,7 @@ export default function OrgLoginPage() {
         </form>
       ) : (
         <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-4">
-          <div className="rounded-xl border border-gray-200 bg-gray-50/80 px-3 py-3 shadow-sm dark:border-gray-700 dark:bg-gray-800/50 sm:px-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500 dark:text-gray-400">
-                  Account
-                </p>
-                <p className="mt-0.5 truncate text-sm font-medium text-gray-900 dark:text-white">
-                  {emailValue || 'your email address'}
-                </p>
-              </div>
-
-              <Button
-                type="button"
-                variant="text"
-                size="sm"
-                onClick={handleGoBack}
-              >
-                Change
-              </Button>
-            </div>
-          </div>
+          <SelectedEmailCard email={emailValue} onChangeEmail={handleGoBack} />
 
           <Input
             label="Password"

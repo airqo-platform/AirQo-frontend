@@ -115,8 +115,11 @@ export const useAnalyticsPreferences = (
   }, [currentPreference, preferencesLoading]);
 
   // Combined loading state - only show loading if we should fetch and are actually loading
+  const isWaitingForGroup = isEnabled && !resolvedGroupId;
   const isLoading =
-    userLoading || (shouldFetchPreferences && preferencesLoading);
+    userLoading ||
+    isWaitingForGroup ||
+    (shouldFetchPreferences && preferencesLoading);
 
   return {
     selectedSiteIds,
@@ -146,7 +149,7 @@ export const useAnalyticsChartData = (
   selectedSiteIds: string[] = EMPTY_SELECTED_SITE_IDS,
   enabled = true
 ) => {
-  const { activeGroup } = useUser();
+  const { user, activeGroup } = useUser();
 
   // Calculate date range based on filters
   const dateRange = useMemo(() => {
@@ -167,6 +170,7 @@ export const useAnalyticsChartData = (
     () => [
       'analytics',
       'chart-data',
+      user?.id ?? 'anonymous',
       activeGroupKey,
       chartType,
       selectedSiteIdsKey,
@@ -179,6 +183,7 @@ export const useAnalyticsChartData = (
       chartType,
       dateRange.endDate,
       dateRange.startDate,
+      user?.id,
       activeGroupKey,
       filters.frequency,
       filters.pollutant,
@@ -272,7 +277,7 @@ export const useAnalyticsSiteCards = ({
   enabled = true,
 }: AnalyticsSelections) => {
   const { filters } = useAnalytics();
-  const { activeGroup } = useUser();
+  const { user, activeGroup } = useUser();
   const selectedSiteIdsKey = useMemo(
     () => selectedSiteIds.join(','),
     [selectedSiteIds]
@@ -284,11 +289,12 @@ export const useAnalyticsSiteCards = ({
     () => [
       'analytics',
       'site-cards',
+      user?.id ?? 'anonymous',
       activeGroupKey,
       selectedSiteIdsKey,
       filters.pollutant,
     ],
-    [activeGroupKey, filters.pollutant, selectedSiteIdsKey]
+    [activeGroupKey, filters.pollutant, selectedSiteIdsKey, user?.id]
   );
   const currentRequestKey = useMemo(() => JSON.stringify(queryKey), [queryKey]);
   const lastSettledRequestKeyRef = useRef(currentRequestKey);

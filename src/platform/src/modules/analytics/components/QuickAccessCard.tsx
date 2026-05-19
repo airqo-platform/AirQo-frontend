@@ -7,7 +7,7 @@ import { cn } from '@/shared/lib/utils';
 import type { QuickAccessLocationsProps } from '../types';
 import { AnalyticsCard } from './AnalyticsCard';
 import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
-import { WarningBanner } from '@/shared/components/ui';
+import { EmptyState } from '@/shared/components/ui';
 
 export const QuickAccessCard: React.FC<QuickAccessLocationsProps> = memo(
   ({
@@ -25,16 +25,14 @@ export const QuickAccessCard: React.FC<QuickAccessLocationsProps> = memo(
     selectedPollutant,
     isLoading = false,
     placeholderCount = 0,
-    hasError = false,
+    errorMessage = null,
     onCardClick,
   }) => {
     const visiblePlaceholderCount = Math.min(Math.max(placeholderCount, 1), 4);
-    const shouldShowSkeleton =
-      visiblePlaceholderCount > 0 &&
-      (isLoading || (hasError && sites.length === 0));
-    const shouldShowAddFavorite = shouldShowSkeleton
-      ? visiblePlaceholderCount < 4
-      : sites.length < 4;
+    const shouldShowSkeleton = visiblePlaceholderCount > 0 && isLoading;
+    const shouldShowErrorState = !isLoading && Boolean(errorMessage);
+    const shouldShowAddFavorite =
+      !shouldShowSkeleton && !shouldShowErrorState && sites.length < 4;
 
     return (
       <div className={cn('w-full space-y-4', className)}>
@@ -65,54 +63,66 @@ export const QuickAccessCard: React.FC<QuickAccessLocationsProps> = memo(
           </div>
         )}
 
-        {hasError && (
-          <WarningBanner
-            dense={true}
-            title="Latest readings are temporarily unavailable"
-            message="Try Refresh again. Your saved favorites are still available."
-          />
-        )}
-
         {warningBanner && <div>{warningBanner}</div>}
 
         {/* Sites Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {shouldShowSkeleton
-            ? Array.from({ length: visiblePlaceholderCount }).map(
-                (_, index) => (
-                  <div
-                    key={`favorite-skeleton-${index}`}
-                    className="h-[185px] rounded-md border border-border bg-card p-4 shadow-sm"
-                    aria-hidden="true"
-                  >
-                    <div className="animate-pulse space-y-4">
-                      <div className="space-y-2">
-                        <div className="h-6 w-3/5 rounded bg-muted" />
-                        <div className="h-4 w-1/3 rounded bg-muted" />
-                      </div>
-                      <div className="flex items-center justify-between pt-8">
-                        <div className="space-y-3">
-                          <div className="h-5 w-8 rounded bg-muted" />
-                          <div className="h-8 w-20 rounded bg-muted" />
-                        </div>
-                        <div className="h-16 w-16 rounded-full bg-muted" />
-                      </div>
-                    </div>
+          {shouldShowErrorState ? (
+            <div className="col-span-full">
+              <EmptyState
+                compact={true}
+                title="Latest readings could not be loaded"
+                description={
+                  errorMessage ||
+                  'Your favorites are saved. Refresh to try loading the latest readings again.'
+                }
+                action={
+                  onRefresh
+                    ? {
+                        label: 'Refresh',
+                        onClick: onRefresh,
+                        variant: 'outlined',
+                      }
+                    : undefined
+                }
+              />
+            </div>
+          ) : shouldShowSkeleton ? (
+            Array.from({ length: visiblePlaceholderCount }).map((_, index) => (
+              <div
+                key={`favorite-skeleton-${index}`}
+                className="h-[185px] rounded-md border border-border bg-card p-4 shadow-sm"
+                aria-hidden="true"
+              >
+                <div className="animate-pulse space-y-4">
+                  <div className="space-y-2">
+                    <div className="h-6 w-3/5 rounded bg-muted" />
+                    <div className="h-4 w-1/3 rounded bg-muted" />
                   </div>
-                )
-              )
-            : sites
-                .slice(0, 4)
-                .map(site => (
-                  <AnalyticsCard
-                    key={site._id}
-                    siteData={site}
-                    className="w-full"
-                    showIcon={showIcon}
-                    selectedPollutant={selectedPollutant}
-                    onClick={onCardClick || (() => {})}
-                  />
-                ))}
+                  <div className="flex items-center justify-between pt-8">
+                    <div className="space-y-3">
+                      <div className="h-5 w-8 rounded bg-muted" />
+                      <div className="h-8 w-20 rounded bg-muted" />
+                    </div>
+                    <div className="h-16 w-16 rounded-full bg-muted" />
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            sites
+              .slice(0, 4)
+              .map(site => (
+                <AnalyticsCard
+                  key={site._id}
+                  siteData={site}
+                  className="w-full"
+                  showIcon={showIcon}
+                  selectedPollutant={selectedPollutant}
+                  onClick={onCardClick || (() => {})}
+                />
+              ))
+          )}
 
           {shouldShowAddFavorite && (
             <button
