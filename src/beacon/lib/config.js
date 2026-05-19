@@ -22,7 +22,7 @@ const stripTrailingSlash = (url) => url?.replace(/\/$/, '') || '';
 /**
  * Keep localhost/private-network URLs on HTTP, force remote URLs to HTTPS
  */
-const enforceHttpsForRemote = (url) => {
+export const enforceHttpsForRemote = (url) => {
   const normalizedUrl = stripTrailingSlash(url);
   if (!normalizedUrl) return '';
 
@@ -31,8 +31,10 @@ const enforceHttpsForRemote = (url) => {
     const host = parsed.hostname;
     const isPrivateNetworkHost =
       host === 'localhost' ||
-      host === '127.0.0.1' ||
+      host === '::1' ||
+      host.startsWith('127.') ||
       host.startsWith('192.168.') ||
+      host.startsWith('169.254.') ||
       host.startsWith('10.') ||
       /^172\.(1[6-9]|2\d|3[0-1])\./.test(host);
 
@@ -46,8 +48,10 @@ const enforceHttpsForRemote = (url) => {
     if (
       normalizedUrl.startsWith('http://') &&
       !normalizedUrl.includes('localhost') &&
-      !normalizedUrl.includes('127.0.0.1') &&
+      !normalizedUrl.includes('::1') &&
+      !normalizedUrl.includes('//127.') &&
       !normalizedUrl.includes('192.168.') &&
+      !normalizedUrl.includes('169.254.') &&
       !normalizedUrl.includes('10.')
     ) {
       return normalizedUrl.replace('http://', 'https://');

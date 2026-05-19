@@ -1,38 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const enforceHttpsForRemote = (url: string): string => {
-  const normalizedUrl = url.replace(/\/$/, '');
-
-  try {
-    const parsed = new URL(normalizedUrl);
-    const host = parsed.hostname;
-    const isPrivateNetworkHost =
-      host === 'localhost' ||
-      host === '127.0.0.1' ||
-      host.startsWith('192.168.') ||
-      host.startsWith('10.') ||
-      /^172\.(1[6-9]|2\d|3[0-1])\./.test(host);
-
-    if (parsed.protocol === 'http:' && !isPrivateNetworkHost) {
-      parsed.protocol = 'https:';
-      return parsed.toString().replace(/\/$/, '');
-    }
-
-    return normalizedUrl;
-  } catch {
-    if (
-      normalizedUrl.startsWith('http://') &&
-      !normalizedUrl.includes('localhost') &&
-      !normalizedUrl.includes('127.0.0.1') &&
-      !normalizedUrl.includes('192.168.') &&
-      !normalizedUrl.includes('10.')
-    ) {
-      return normalizedUrl.replace('http://', 'https://');
-    }
-
-    return normalizedUrl;
-  }
-};
+import { enforceHttpsForRemote } from '@/lib/config';
 
 const getBeaconApiUrl = () => {
   const isDevelopment = process.env.NODE_ENV === 'development';
