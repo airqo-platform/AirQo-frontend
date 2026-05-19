@@ -123,7 +123,7 @@ export default function LoginPage() {
     if (!isPasswordValid) return;
 
     // If the user didn't provide the captchaToken
-   if (captchaToken === "") {
+    if (captchaToken === "") {
        showBanner({
          severity: 'error',
          message: 'Please complete the CAPTCHA before signing in.',
