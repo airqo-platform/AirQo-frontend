@@ -21,7 +21,7 @@ export const HCaptchaWidget = forwardRef<HCaptchaWidgetHandle, HCaptchaWidgetPro
       reset: () => captchaRef.current?.resetCaptcha(),
     }));
 
-    if (!siteKey) {
+    if (!siteKey || siteKey.trim() === "") {
       return (
         <div className="p-3 text-sm text-yellow-800 bg-yellow-50 border border-yellow-200 rounded-md my-2">
           {process.env.NODE_ENV === 'development'
