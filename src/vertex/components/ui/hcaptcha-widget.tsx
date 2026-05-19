@@ -21,7 +21,15 @@ export const HCaptchaWidget = forwardRef<HCaptchaWidgetHandle, HCaptchaWidgetPro
       reset: () => captchaRef.current?.resetCaptcha(),
     }));
 
-    if (!siteKey) return null;
+    if (!siteKey) {
+      return (
+        <div className="p-3 text-sm text-yellow-800 bg-yellow-50 border border-yellow-200 rounded-md my-2">
+          {process.env.NODE_ENV === 'development'
+            ? 'HCaptcha site key is missing. Please set NEXT_PUBLIC_HCAPTCHA_SITE_KEY.'
+            : 'Security check configuration is missing. Please contact support.'}
+        </div>
+      );
+    }
 
     return (
       <HCaptcha

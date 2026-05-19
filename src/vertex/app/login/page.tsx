@@ -122,6 +122,11 @@ export default function LoginPage() {
     const isPasswordValid = await form.trigger('password');
     if (!isPasswordValid) return;
 
+    // If the user didn't provide the captchaToken
+    if(captchaToken === ""){
+      return ;
+    }
+
     setIsLoading(true);
 
     // Read preference BEFORE authentication to avoid timing issues

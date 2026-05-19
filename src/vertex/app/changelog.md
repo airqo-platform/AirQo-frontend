@@ -21,7 +21,7 @@ Added hCaptcha human verification to the password step of the login form to prot
 </details>
 
 <details>
-<summary><strong>Files Modified (4)</strong></summary>
+<summary><strong>Files Modified (5)</strong></summary>
 
 - `src/vertex/app/changelog.md` [MODIFIED]
 - `src/vertex/app/login/page.tsx` [MODIFIED]
