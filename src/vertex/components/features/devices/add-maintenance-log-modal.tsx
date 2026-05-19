@@ -10,6 +10,7 @@ import { MultiSelectCombobox } from "@/components/ui/multi-select";
 import { Switch } from "@/components/ui/switch";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import { useBanner } from "@/context/banner-context";
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 
 interface AddMaintenanceLogModalProps {
   open: boolean;
@@ -82,8 +83,13 @@ const AddMaintenanceLogModal: React.FC<AddMaintenanceLogModalProps> = ({ open, o
       user_id: userDetails?._id || "",
     };
 
-    await addMaintenanceLog.mutateAsync({ deviceName, logData });
-    onOpenChange(false);
+    try {
+      await addMaintenanceLog.mutateAsync({ deviceName, logData });
+      showBanner({ severity: 'success', message: `Maintenance log has been added for ${deviceName}.`, scoped: false });
+      onOpenChange(false);
+    } catch (error) {
+      showBanner({ severity: 'error', message: `Failed to Add Maintenance Log: ${getApiErrorMessage(error)}`, scoped: true });
+    }
   };
 
   return (

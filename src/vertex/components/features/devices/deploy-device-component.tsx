@@ -27,6 +27,7 @@ import { useDeviceDetails, useDevices, useDeployDevice } from "@/core/hooks/useD
 import { ComboBox } from "@/components/ui/combobox";
 import { Device, type DevicePreviousSite } from "@/app/types/devices";
 import { useBanner } from "@/context/banner-context";
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import LocationAutocomplete from "@/components/features/location-autocomplete/LocationAutocomplete";
 import { useNetworks } from "@/core/hooks/useNetworks";
 const MiniMap = React.lazy(() => import("../mini-map/mini-map"));
@@ -678,7 +679,8 @@ const DeployDeviceComponent = ({
             queryClient.invalidateQueries({ queryKey: ["device-details", prefilledDevice._id] });
           }
 
-          // On successful deployment, reset form fields
+          showBanner({ severity: 'success', message: `${deviceData.deviceName} has been deployed.`, scoped: false });
+
           setDeviceData({
             deviceName: "",
             deployment_date: undefined,
@@ -701,6 +703,22 @@ const DeployDeviceComponent = ({
           if (onClose) onClose();
         },
         onError: (error) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const errorData = (error as any)?.response?.data;
+          let errorMessage = getApiErrorMessage(error);
+
+          if (errorData?.failed_deployments?.length > 0) {
+            const failedMessages = errorData.failed_deployments
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              .map((deployment: any) => deployment.error?.message)
+              .filter(Boolean);
+
+            if (failedMessages.length > 0) {
+              errorMessage = failedMessages.join(', ');
+            }
+          }
+
+          showBanner({ severity: 'error', message: `Deployment Failed: ${errorMessage}`, scoped: true });
           onDeploymentError?.(error instanceof Error ? error : new Error("Unknown error"));
         },
       }

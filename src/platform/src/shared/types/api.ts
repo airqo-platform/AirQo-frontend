@@ -1626,13 +1626,14 @@ export interface SubscriptionPlan {
   limits: {
     hourly: number;
     daily: number;
+    weekly: number;
     monthly: number;
   };
 }
 
 export interface UserSubscription {
   tier: SubscriptionTier;
-  status: 'active' | 'inactive' | 'past_due' | 'cancelled';
+  status: 'active' | 'inactive' | 'past_due' | 'cancelled' | 'trialing';
   nextBillingDate?: string | null;
   lastRenewalDate?: string | null;
   automaticRenewal?: boolean;
@@ -1645,6 +1646,7 @@ export interface UserSubscription {
   apiRateLimits?: {
     hourlyLimit: number;
     dailyLimit: number;
+    weeklyLimit?: number | null;
     monthlyLimit: number;
   };
   // Legacy fields kept for backwards compatibility in older UI code paths.
@@ -1676,7 +1678,7 @@ export interface GetSubscriptionResponse {
   success: boolean;
   message: string;
   data?: {
-    status: 'active' | 'inactive' | 'past_due' | 'cancelled';
+    status: 'active' | 'inactive' | 'past_due' | 'cancelled' | 'trialing';
     tier: SubscriptionTier;
     nextBillingDate?: string | null;
   };

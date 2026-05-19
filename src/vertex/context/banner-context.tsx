@@ -105,7 +105,7 @@ export function GlobalBannerContainer() {
   if (!state.isVisible || state.isScoped) return null;
 
   return (
-    <div className="px-4 pt-3">
+    <div className="pt-3">
       <Banner
         {...state.bannerProps}
         dismissible
