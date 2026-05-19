@@ -112,6 +112,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     siteCards,
     isLoading: siteCardsLoading,
     isRefreshing: siteCardsRefreshing,
+    error: siteCardsError,
     refetch: refreshSiteCards,
   } = useAnalyticsSiteCards({
     selectedSiteIds,
@@ -457,10 +458,12 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         sites={siteCards}
         onManageFavorites={handleManageFavorites}
         onRefresh={handleRefreshDashboard}
-        isRefreshing={isRefreshing}
+        isRefreshing={siteCardsRefreshing || isRefreshing}
         selectedPollutant={filters.pollutant}
         onCardClick={handleCardClick}
-        isLoading={siteCardsLoading || siteCardsRefreshing || isRefreshing}
+        isLoading={siteCardsLoading}
+        placeholderCount={selectedSites.length}
+        hasError={Boolean(siteCardsError)}
         showIcon={showIcons}
         onShowIconsChange={setShowIcons}
         infoLine={

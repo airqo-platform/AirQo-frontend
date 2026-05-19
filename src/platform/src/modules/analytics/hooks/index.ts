@@ -272,7 +272,7 @@ export const useAnalyticsSiteCards = ({
   enabled = true,
 }: AnalyticsSelections) => {
   const { filters } = useAnalytics();
-  const { user, activeGroup } = useUser();
+  const { activeGroup } = useUser();
   const selectedSiteIdsKey = useMemo(
     () => selectedSiteIds.join(','),
     [selectedSiteIds]
@@ -280,21 +280,25 @@ export const useAnalyticsSiteCards = ({
   const activeGroupKey = activeGroup?.id ?? 'no-active-group';
 
   const shouldFetch = enabled && selectedSiteIds.length > 0;
-
-  const query = useQuery<RecentReading[], Error>({
-    queryKey: [
+  const queryKey = useMemo(
+    () => [
       'analytics',
       'site-cards',
       activeGroupKey,
-      user?.id ?? 'anonymous',
       selectedSiteIdsKey,
       filters.pollutant,
     ],
+    [activeGroupKey, filters.pollutant, selectedSiteIdsKey]
+  );
+  const currentRequestKey = useMemo(() => JSON.stringify(queryKey), [queryKey]);
+  const lastSettledRequestKeyRef = useRef(currentRequestKey);
+
+  const query = useQuery<RecentReading[], Error>({
+    queryKey,
     queryFn: async ({ signal }) => {
       const response = await analyticsService.getRecentReadings(
         {
           site_id: selectedSiteIdsKey,
-          user_id: user?.id,
         },
         signal
       );
@@ -308,8 +312,29 @@ export const useAnalyticsSiteCards = ({
     refetchOnReconnect: false,
     staleTime: ANALYTICS_QUERY_STALE_TIME_MS,
     gcTime: ANALYTICS_QUERY_GC_TIME_MS,
-    placeholderData: previousData => previousData,
   });
+
+  useEffect(() => {
+    if (!shouldFetch) {
+      lastSettledRequestKeyRef.current = currentRequestKey;
+      return;
+    }
+
+    if (!query.isFetching && (query.isSuccess || query.isError)) {
+      lastSettledRequestKeyRef.current = currentRequestKey;
+    }
+  }, [
+    currentRequestKey,
+    query.isError,
+    query.isFetching,
+    query.isSuccess,
+    shouldFetch,
+  ]);
+
+  const isTransitionLoading =
+    shouldFetch &&
+    query.isFetching &&
+    currentRequestKey !== lastSettledRequestKeyRef.current;
 
   const measurementsBySiteId = useMemo(() => {
     return new Map<string, RecentReading>(
@@ -317,8 +342,10 @@ export const useAnalyticsSiteCards = ({
     );
   }, [query.data]);
 
+  const hasStableMeasurements = query.data !== undefined;
+
   const siteCards = useMemo(() => {
-    if (!shouldFetch) {
+    if (!shouldFetch || !hasStableMeasurements) {
       return [];
     }
 
@@ -335,7 +362,13 @@ export const useAnalyticsSiteCards = ({
 
       return buildNoValueSiteCard(selectedSite, filters.pollutant);
     });
-  }, [filters.pollutant, measurementsBySiteId, selectedSites, shouldFetch]);
+  }, [
+    filters.pollutant,
+    hasStableMeasurements,
+    measurementsBySiteId,
+    selectedSites,
+    shouldFetch,
+  ]);
 
   const refetchSiteCards = useCallback(async () => {
     if (!shouldFetch) {
@@ -347,8 +380,10 @@ export const useAnalyticsSiteCards = ({
 
   return {
     siteCards,
-    isLoading: shouldFetch ? query.isLoading : false,
-    isRefreshing: shouldFetch ? query.isFetching : false,
+    isLoading: shouldFetch ? query.isLoading || isTransitionLoading : false,
+    isRefreshing: shouldFetch
+      ? query.isFetching && !isTransitionLoading
+      : false,
     error: shouldFetch ? (query.error?.message ?? null) : null,
     refetch: refetchSiteCards,
   };

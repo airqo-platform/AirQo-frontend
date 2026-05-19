@@ -15,13 +15,13 @@ export const getLatestPreferenceForGroup = (
   preferences: UserPreference[] | null | undefined,
   groupId?: string
 ) => {
-  if (!preferences || preferences.length === 0) {
+  if (!preferences || preferences.length === 0 || !groupId) {
     return null;
   }
 
-  const scopedPreferences = groupId
-    ? preferences.filter(preference => preference.group_id === groupId)
-    : preferences;
+  const scopedPreferences = preferences.filter(
+    preference => preference.group_id === groupId
+  );
 
   if (scopedPreferences.length === 0) {
     return null;
