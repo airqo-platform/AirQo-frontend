@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useSession } from 'next-auth/react';
 import { AqCheck } from '@airqo/icons-react';
 import { Button, Card, LoadingSpinner, toast } from '@/shared/components/ui';
 import { formatDate } from '@/shared/utils';
@@ -20,6 +21,10 @@ import CheckoutDialog from './CheckoutDialog';
 
 const BILLING_SERVICE_UNAVAILABLE_MESSAGE =
   'Billing service is temporarily unavailable. Please try again later.';
+
+interface ExtendedSessionUser {
+  _id?: string;
+}
 
 const statusBadgeStyles: Record<string, string> = {
   active:
@@ -66,6 +71,7 @@ const getBillingErrorLogMessage = (error: unknown): string => {
 };
 
 const SubscriptionSection: React.FC = () => {
+  const { data: session } = useSession();
   const [subscription, setSubscription] = useState<UserSubscription | null>(
     null
   );
@@ -79,6 +85,8 @@ const SubscriptionSection: React.FC = () => {
     'checkout' | 'enableAutoRenew' | 'disableAutoRenew' | 'cancel' | null
   >(null);
   const isMountedRef = useRef(true);
+  const userId =
+    (session?.user as ExtendedSessionUser | null)?._id?.trim() || '';
 
   const currentTier: SubscriptionTier = subscription?.tier || 'Free';
   const currentStatus = subscription?.status || 'inactive';
@@ -151,11 +159,20 @@ const SubscriptionSection: React.FC = () => {
       return;
     }
 
+    if (!userId) {
+      toast.error(
+        'Unable to determine the current user. Please refresh and try again.'
+      );
+      return;
+    }
+
     try {
       setRunningAction('checkout');
 
       const payload = await subscriptionService.createCheckoutSession({
+        userId,
         tier: selectedPlan.tier,
+        currency: selectedPlan.currency?.trim() || 'USD',
       });
 
       if (!payload.success) {

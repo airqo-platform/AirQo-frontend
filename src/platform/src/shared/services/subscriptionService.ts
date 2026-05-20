@@ -61,7 +61,9 @@ interface UsagePayload {
 }
 
 interface CheckoutRequest {
+  userId: string;
   tier: SubscriptionTier;
+  currency: string;
 }
 
 interface CheckoutResponse {
@@ -517,7 +519,65 @@ const extractMessage = (payload: unknown, fallback: string): string => {
   }
 
   const message = (payload as { message?: unknown }).message;
-  return typeof message === 'string' && message.trim() ? message : fallback;
+  const validationErrors = (() => {
+    const errors = (payload as { errors?: unknown }).errors;
+
+    if (!Array.isArray(errors)) {
+      return [] as string[];
+    }
+
+    return errors
+      .map(error => {
+        if (typeof error === 'string') {
+          return error.trim();
+        }
+
+        if (!error || typeof error !== 'object') {
+          return '';
+        }
+
+        const candidate = error as {
+          param?: unknown;
+          field?: unknown;
+          message?: unknown;
+        };
+        const param =
+          typeof candidate.param === 'string' && candidate.param.trim()
+            ? candidate.param.trim()
+            : typeof candidate.field === 'string' && candidate.field.trim()
+              ? candidate.field.trim()
+              : '';
+        const errorMessage =
+          typeof candidate.message === 'string' && candidate.message.trim()
+            ? candidate.message.trim()
+            : '';
+
+        if (param && errorMessage) {
+          return `${param}: ${errorMessage}`;
+        }
+
+        return errorMessage || param;
+      })
+      .filter((item): item is string => Boolean(item));
+  })();
+
+  if (validationErrors.length) {
+    const normalizedMessage =
+      typeof message === 'string' ? message.trim().toLowerCase() : '';
+
+    if (
+      !normalizedMessage ||
+      normalizedMessage.includes('bad request') ||
+      normalizedMessage.includes('validation') ||
+      normalizedMessage === 'errors'
+    ) {
+      return validationErrors.join('; ');
+    }
+  }
+
+  return typeof message === 'string' && message.trim()
+    ? message.trim()
+    : fallback;
 };
 
 const isPaymentProviderUnavailable = (status: number, payload: unknown) => {
@@ -688,37 +748,47 @@ export class SubscriptionService {
         '/users/transactions/subscription-status',
         {
           params: this.withTenant(),
+          validateStatus: status =>
+            (status >= 200 && status < 300) ||
+            status === 400 ||
+            status === 404 ||
+            status === 405,
         }
       );
 
-      const statusData = extractEnvelopeData<SubscriptionStatusPayload>(
-        statusResponse.data
-      );
+      if (statusResponse.status < 200 || statusResponse.status >= 300) {
+        statusRateLimitsPayload = undefined;
+      } else {
+        const statusData = extractEnvelopeData<SubscriptionStatusPayload>(
+          statusResponse.data
+        );
 
-      const statusTier = statusData?.subscriptionTier ?? statusData?.tier;
-      const statusValue = statusData?.subscriptionStatus ?? statusData?.status;
+        const statusTier = statusData?.subscriptionTier ?? statusData?.tier;
+        const statusValue =
+          statusData?.subscriptionStatus ?? statusData?.status;
 
-      if (statusTier) {
-        tier = normalizeTier(statusTier);
+        if (statusTier) {
+          tier = normalizeTier(statusTier);
+        }
+
+        if (statusValue) {
+          status = normalizeStatus(statusValue);
+        }
+
+        if (statusData?.nextBillingDate !== undefined) {
+          nextBillingDate = statusData.nextBillingDate ?? null;
+        }
+
+        if (typeof statusData?.automaticRenewal === 'boolean') {
+          automaticRenewal = statusData.automaticRenewal;
+        }
+
+        if (statusData?.currentSubscriptionId !== undefined) {
+          currentSubscriptionId = statusData.currentSubscriptionId ?? null;
+        }
+
+        statusRateLimitsPayload = statusData?.apiRateLimits;
       }
-
-      if (statusValue) {
-        status = normalizeStatus(statusValue);
-      }
-
-      if (statusData?.nextBillingDate !== undefined) {
-        nextBillingDate = statusData.nextBillingDate ?? null;
-      }
-
-      if (typeof statusData?.automaticRenewal === 'boolean') {
-        automaticRenewal = statusData.automaticRenewal;
-      }
-
-      if (statusData?.currentSubscriptionId !== undefined) {
-        currentSubscriptionId = statusData.currentSubscriptionId ?? null;
-      }
-
-      statusRateLimitsPayload = statusData?.apiRateLimits;
     } catch {
       // Fall back to profile details when status endpoint is unavailable.
     }
@@ -857,6 +927,14 @@ export class SubscriptionService {
   ): Promise<CheckoutResponse> {
     await this.ensureAuthenticated();
 
+    const userId = request.userId.trim();
+    if (!userId) {
+      return {
+        success: false,
+        message: 'User ID is required to create a checkout session',
+      };
+    }
+
     const tier = normalizeTier(request.tier);
     if (tier === 'Free') {
       return {
@@ -865,8 +943,12 @@ export class SubscriptionService {
       };
     }
 
+    const currency = request.currency.trim() || 'USD';
+
     const payload: Record<string, string> = {
+      user_id: userId,
       tier,
+      currency,
     };
 
     try {
