@@ -435,7 +435,15 @@ export const FeedbackLauncher: React.FC = () => {
         if (track.readyState === 'live') {
           resolve();
         } else {
-          track.addEventListener('unmute', () => resolve(), { once: true });
+          const timeout = setTimeout(() => resolve(), 3000);
+          track.addEventListener(
+            'unmute',
+            () => {
+              clearTimeout(timeout);
+              resolve();
+            },
+            { once: true }
+          );
         }
       });
 
@@ -443,7 +451,8 @@ export const FeedbackLauncher: React.FC = () => {
       //    composited frame buffer before we grab.
       await new Promise<void>((resolve) => setTimeout(resolve, 500));
 
-      const imageCapture = new ImageCapture(track);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const imageCapture = new (window as any).ImageCapture(track);
       const bitmap = await imageCapture.grabFrame();
       track.stop();
 
