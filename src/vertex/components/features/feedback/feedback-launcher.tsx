@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Rating, Star } from '@smastrom/react-rating';
 import '@smastrom/react-rating/style.css';
-import { Flag, Lightbulb, ChevronLeft } from 'lucide-react';
+import { Flag, Lightbulb, ChevronLeft, Monitor } from 'lucide-react';
 import { AqXClose } from '@airqo/icons-react';
 
 import { useUserContext } from '@/core/hooks/useUserContext';
@@ -290,58 +290,6 @@ export const FeedbackLauncher: React.FC = () => {
         </ReusableSelectInput>
       )}
 
-      <div className="space-y-2">
-        <label className="mb-2 flex items-center text-sm font-medium text-gray-700 dark:text-gray-200">
-          A screenshot will help us better understand the issue.
-          <span className="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-300">
-            Optional
-          </span>
-        </label>
-
-        <div className="rounded-xl border border-dashed border-gray-300 bg-white p-4 transition-colors hover:border-primary/60 dark:border-gray-700 dark:bg-gray-800">
-          <label
-            htmlFor="screenshot"
-            className="mb-2 block text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400"
-          >
-            Capture screenshot
-          </label>
-
-          <input
-            ref={screenshotInputRef}
-            id="screenshot"
-            type="file"
-            accept={ALLOWED_FEEDBACK_SCREENSHOT_MIME_TYPES.join(',')}
-            onChange={handleScreenshotChange}
-            className="block w-full cursor-pointer rounded-lg border border-gray-300 bg-white text-sm text-gray-700 shadow-sm file:mr-4 file:cursor-pointer file:rounded-md file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-primary/90 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
-          />
-
-          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-gray-900 dark:text-white">
-                {screenshotFile ? screenshotFile.name : 'Capture screenshot'}
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                JPG, JPEG, PNG, GIF or WEBP. Maximum size {Math.round(MAX_FEEDBACK_SCREENSHOT_SIZE_BYTES / 1024 / 1024)}MB.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {screenshotFile && (
-                <ReusableButton
-                  variant="text"
-                  onClick={handleRemoveScreenshot}
-                  padding="px-3 py-2"
-                  className="text-sm"
-                  disabled={isSubmitting}
-                >
-                  Remove
-                </ReusableButton>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
       <ReusableInputField
         as="textarea"
         id="message"
@@ -353,6 +301,50 @@ export const FeedbackLauncher: React.FC = () => {
         required
         description="Please don't include any sensitive information"
       />
+
+      <div className="space-y-2">
+        <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
+          A screenshot will help us better understand {mainCategory === 'issue' ? 'the issue' : 'your idea'}.
+        </p>
+
+        {screenshotFile ? (
+          <div className="flex w-full items-center justify-between gap-3 rounded-lg border border-gray-300 bg-gray-50/50 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800/30">
+            <div className="flex items-center gap-2 min-w-0">
+              <Monitor className="h-4 w-4 shrink-0 text-blue-500 dark:text-blue-400" />
+              <span className="truncate text-gray-700 dark:text-gray-300 font-medium">
+                {screenshotFile.name}
+              </span>
+              <span className="text-xs text-gray-500 shrink-0">
+                ({(screenshotFile.size / 1024).toFixed(0)} KB)
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={handleRemoveScreenshot}
+              className="text-xs font-semibold text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 transition-colors"
+            >
+              Remove
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => screenshotInputRef.current?.click()}
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-transparent py-2.5 text-sm font-medium text-blue-500 hover:bg-gray-50 dark:border-gray-700 dark:text-blue-400 dark:hover:bg-gray-800/50 transition-colors"
+          >
+            <Monitor className="h-4 w-4" />
+            <span>Capture screenshot</span>
+          </button>
+        )}
+        <input
+          ref={screenshotInputRef}
+          id="screenshot"
+          type="file"
+          accept={ALLOWED_FEEDBACK_SCREENSHOT_MIME_TYPES.join(',')}
+          onChange={handleScreenshotChange}
+          className="hidden"
+        />
+      </div>
 
       <div>
         <label className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center">
