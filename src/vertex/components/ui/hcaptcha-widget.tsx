@@ -2,7 +2,7 @@
 
 import HCaptcha from "@hcaptcha/react-hcaptcha";
 import { forwardRef, useImperativeHandle, useRef } from "react";
-import { getEnvConfig } from "@/lib/envConstants";
+import { getHCaptchaSiteKey, getEnvironment } from "@/lib/envConstants";
 
 interface HCaptchaWidgetProps {
   onVerify: (token: string) => void;
@@ -15,7 +15,8 @@ export interface HCaptchaWidgetHandle {
 
 export const HCaptchaWidget = forwardRef<HCaptchaWidgetHandle, HCaptchaWidgetProps>(
   function HCaptchaWidget({ onVerify, onExpire }, ref) {
-    const { hCaptchaSiteKey: siteKey, environment } = getEnvConfig();
+    const siteKey = getHCaptchaSiteKey();
+    const environment = getEnvironment();
     const captchaRef = useRef<HCaptcha>(null);
 
     useImperativeHandle(ref, () => ({

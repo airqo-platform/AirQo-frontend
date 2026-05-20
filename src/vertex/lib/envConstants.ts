@@ -41,15 +41,31 @@ export const getApiToken = (): string => {
 export const COOKIE_POLICY_URL = process.env.NEXT_PUBLIC_COOKIE_POLICY_URL || 'https://airqo.net/legal/cookies';
 
 /**
+ * Gets the HCaptcha site key from environment variables
+ * @returns {string} The HCaptcha site key
+ */
+export const getHCaptchaSiteKey = (): string => {
+  return process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY || '';
+};
+
+/**
+ * Gets the current environment from environment variables
+ * @returns {string} The environment name
+ */
+export const getEnvironment = (): string => {
+  return process.env.NEXT_PUBLIC_ENV || 'development';
+};
+
+/**
  * Gets environment configuration
  * @returns {object} Environment configuration object
  */
 export const getEnvConfig = () => {
   return {
+    hCaptchaSiteKey: getHCaptchaSiteKey(),
+    environment: getEnvironment(),
     apiUrl: process.env.NEXT_PUBLIC_API_URL,
     apiToken: process.env.NEXT_PUBLIC_API_TOKEN,
-    hCaptchaSiteKey: process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY || '',
-    environment: process.env.NEXT_PUBLIC_ENV || 'development',
     analyticsUrl: process.env.NEXT_PUBLIC_ANALYTICS_URL,
     cookiePolicyUrl: COOKIE_POLICY_URL,
     mapboxToken: process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN,

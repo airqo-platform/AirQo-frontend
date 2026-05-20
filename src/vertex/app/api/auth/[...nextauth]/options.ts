@@ -229,11 +229,17 @@ export const options: NextAuthOptions = {
           throw new Error('Username and password are required.');
         }
 
+        const captchaToken = typeof credentials.captchaToken === 'string' ? credentials.captchaToken.trim() : "";
+        if (!captchaToken) {
+          logger.warn('Authorize call with missing CAPTCHA token.');
+          throw new Error('CAPTCHA validation is required.');
+        }
+
         try {
           const loginResponse = (await users.loginWithDetails({
             userName: credentials.userName,
             password: credentials.password,
-            captchaToken: typeof credentials.captchaToken === 'string' ? credentials.captchaToken : "",
+            captchaToken: captchaToken,
           } as LoginCredentials)) as LoginResponse;
 
           if (loginResponse?.token) {
