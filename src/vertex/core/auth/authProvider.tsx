@@ -169,7 +169,7 @@ function useUserDetails(userId: string | null) {
 
 // --- Components ---
 
-const authRoutes = ['/login', '/forgot-password', '/auth-error'];
+const authRoutes = ['/login', '/auth-error'];
 const publicRoutes = [...authRoutes, '/download'];
 const matchesRoute = (pathname: string, route: string) =>
   pathname === route || pathname.startsWith(`${route}/`);

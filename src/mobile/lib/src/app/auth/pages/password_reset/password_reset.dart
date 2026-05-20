@@ -22,12 +22,11 @@ class PasswordResetPage extends StatefulWidget {
 }
 
 class _PasswordResetPage extends State<PasswordResetPage> {
-
   String? error;
   late PasswordResetBloc passwordResetBloc;
-  late TextEditingController passwordConfirmController = TextEditingController();
+  late TextEditingController passwordConfirmController =
+      TextEditingController();
   late TextEditingController passwordController = TextEditingController();
-  late TextEditingController resetController= TextEditingController();
   late GlobalKey<FormState> formKey = GlobalKey<FormState>();
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
@@ -37,11 +36,9 @@ class _PasswordResetPage extends State<PasswordResetPage> {
     super.initState();
     passwordConfirmController = TextEditingController();
     passwordController = TextEditingController();
-    resetController= TextEditingController();
 
     try {
       passwordResetBloc = context.read<PasswordResetBloc>();
-
     } catch (e) {
       logError('Failed to initialize PasswordResetBloc: $e');
     }
@@ -51,20 +48,22 @@ class _PasswordResetPage extends State<PasswordResetPage> {
   void dispose() {
     passwordConfirmController.dispose();
     passwordController.dispose();
-    resetController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final RegExp passwordReg = RegExp(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@#?!$%^&*,.]{6,}$');
+    final RegExp passwordReg = RegExp(
+      r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#?!$%^&*,.])[A-Za-z\d@#?!$%^&*,.]{10,}$',
+    );
 
     return BlocListener<PasswordResetBloc, PasswordResetState>(
       listener: (context, state) {
         if (state is PasswordResetSuccess) {
+          passwordConfirmController.clear();
+          passwordController.clear();
           Navigator.of(context).push(
-              MaterialPageRoute(
-                  builder: (context) => ResetSuccessPage()));
+              MaterialPageRoute(builder: (context) => ResetSuccessPage()));
         } else if (state is PasswordResetError) {
           setState(() {
             error = state.message.replaceAll("Exception: ", "");
@@ -78,8 +77,7 @@ class _PasswordResetPage extends State<PasswordResetPage> {
             style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
-              color: Theme.of(context).textTheme.headlineLarge?.color
-                ),
+                color: Theme.of(context).textTheme.headlineLarge?.color),
           ),
           centerTitle: true,
         ),
@@ -89,100 +87,103 @@ class _PasswordResetPage extends State<PasswordResetPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                  padding: const EdgeInsets.only(left: 32, right: 32, top: 8),
-                  child: SizedBox(
-                    child: Column(
-                      children: [
-                        SizedBox(
-                          height: 20,
-                        ),
-                        TranslatedText("Please enter your new password below. Make sure it's something secure that you can remember.",
-                          style: TextStyle(
+                padding: const EdgeInsets.only(left: 32, right: 32, top: 8),
+                child: SizedBox(
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        height: 20,
+                      ),
+                      TranslatedText(
+                        "Please enter your new password below. Make sure it's something secure that you can remember.",
+                        style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
-                            color: Theme.of(context).textTheme.titleMedium?.color
+                            color:
+                                Theme.of(context).textTheme.titleMedium?.color),
+                      ),
+                      SizedBox(height: 16),
+                      FormFieldWidget(
+                        prefixIcon: Container(
+                          padding: const EdgeInsets.all(13.5),
+                          child: SvgPicture.asset(
+                            "assets/icons/password.svg",
+                            height: 10,
                           ),
                         ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _isPasswordVisible
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                            color: AppColors.primaryColor,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isPasswordVisible = !_isPasswordVisible;
+                            });
+                          },
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "This field cannot be blank.";
+                          }
 
-                        SizedBox(height: 16),
-                        FormFieldWidget(
+                          if (!passwordReg.hasMatch(value)) {
+                            return 'Password must be at least 10 characters,\ninclude uppercase, lowercase, number, and special character.';
+                          }
+                          return null;
+                        },
+                        hintText: "Enter your password",
+                        label: "Password",
+                        isPassword: !_isPasswordVisible,
+                        controller: passwordController,
+                        onChanged: (value) {},
+                      ),
+                      SizedBox(height: 16),
+                      FormFieldWidget(
+                        prefixIcon: Container(
+                          padding: const EdgeInsets.all(13.5),
+                          child: SvgPicture.asset(
+                            "assets/icons/password.svg",
+                            height: 10,
+                          ),
+                        ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _isConfirmPasswordVisible
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                            color: AppColors.primaryColor,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isConfirmPasswordVisible =
+                                  !_isConfirmPasswordVisible;
+                            });
+                          },
+                        ),
+                        validator: (value) {
+                          if (value != passwordController.text) {
+                            return "Passwords do not match";
+                          }
 
-                            prefixIcon: Container(
-                              padding: const EdgeInsets.all(13.5),
-                              child: SvgPicture.asset(
-                                "assets/icons/password.svg",
-                                height: 10,
-                              ),
-                            ),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _isPasswordVisible
-                                    ? Icons.visibility
-                                    : Icons.visibility_off,
-                                color: AppColors.primaryColor,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  _isPasswordVisible = !_isPasswordVisible;
-                                });
-                              },
-                            ),
-                            validator: (value) {
-
-                              if (value == null || value.isEmpty) {
-                                return "This field cannot be blank.";
-                              }
-
-                              if(!passwordReg.hasMatch(value)){
-                                return 'Password must be at least 6 characters,\ninclude at least one letter and one number.';
-                              }
-                              return null;
-                            },
-                            hintText: "Enter your password",
-                            label: "Password",
-                            isPassword: !_isPasswordVisible,
-                            controller: passwordController, onChanged: (value) {  },),
-                        SizedBox(height: 16),
-                        FormFieldWidget(
-                            prefixIcon: Container(
-                              padding: const EdgeInsets.all(13.5),
-                              child: SvgPicture.asset(
-                                "assets/icons/password.svg",
-                                height: 10,
-                              ),
-                            ),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _isConfirmPasswordVisible
-                                    ? Icons.visibility
-                                    : Icons.visibility_off,
-                                color: AppColors.primaryColor,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
-                                });
-                              },
-                            ),
-                            validator: (value) {
-                              if(value != passwordController.text){
-                                return "Passwords do not match";
-                              }
-
-                              if (value == null || value.isEmpty) {
-                                return "This field cannot be blank.";
-                              }
-                              return null;
-                            },
-                            hintText: "Re-enter your new password",
-                            label: "Confirm Password",
-                            isPassword: !_isConfirmPasswordVisible,
-                            controller: passwordConfirmController, onChanged: (value) {  },),
-                        SizedBox(height: 16),
-                      ],
-                    ),
+                          if (value == null || value.isEmpty) {
+                            return "This field cannot be blank.";
+                          }
+                          return null;
+                        },
+                        hintText: "Re-enter your new password",
+                        label: "Confirm Password",
+                        isPassword: !_isConfirmPasswordVisible,
+                        controller: passwordConfirmController,
+                        onChanged: (value) {},
+                      ),
+                      SizedBox(height: 16),
+                    ],
                   ),
                 ),
+              ),
               if (error != null)
                 Padding(
                   padding: const EdgeInsets.only(left: 32.0, top: 8),
@@ -199,22 +200,16 @@ class _PasswordResetPage extends State<PasswordResetPage> {
                       onTap: loading
                           ? null
                           : () {
-
-
-
-                        final currentForm = formKey.currentState;
-                        if (currentForm != null &&
-                            currentForm.validate()) {
-                          passwordResetBloc.add(UpdatePassword(
-                              confirmPassword: passwordConfirmController.text.trim(),
-                              token: widget.token,
-                              password:passwordController.text.trim()));
-
-                        }
-                        resetController.clear();
-                        passwordConfirmController.clear();
-                        passwordController.clear();
-                      },
+                              final currentForm = formKey.currentState;
+                              if (currentForm != null &&
+                                  currentForm.validate()) {
+                                passwordResetBloc.add(UpdatePassword(
+                                    confirmPassword:
+                                        passwordConfirmController.text.trim(),
+                                    token: widget.token,
+                                    password: passwordController.text.trim()));
+                              }
+                            },
                       child: Container(
                         height: 56,
                         decoration: BoxDecoration(
@@ -224,12 +219,12 @@ class _PasswordResetPage extends State<PasswordResetPage> {
                           child: loading
                               ? Spinner()
                               : TranslatedText(
-                            "Reset Password",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              color: Colors.white,
-                            ),
-                          ),
+                                  "Reset Password",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white,
+                                  ),
+                                ),
                         ),
                       ),
                     );
@@ -237,7 +232,6 @@ class _PasswordResetPage extends State<PasswordResetPage> {
                 ),
               ),
               SizedBox(height: 16),
-
             ],
           ),
         ),

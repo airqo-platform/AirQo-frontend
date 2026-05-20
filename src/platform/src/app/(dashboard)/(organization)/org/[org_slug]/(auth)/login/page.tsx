@@ -3,6 +3,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useParams } from 'next/navigation';
 import AuthLayout from '@/shared/layouts/AuthLayout';
+import SocialAuthSection from '@/shared/components/auth/SocialAuthSection';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -169,6 +170,12 @@ export default function OrgLoginPage() {
           <Button type="submit" fullWidth disabled={loading}>
             Continue
           </Button>
+
+          <SocialAuthSection
+            mode="login"
+            disabled={loading}
+            callbackUrl={callbackUrl || `/org/${orgSlug}/dashboard`}
+          />
 
           <div className="text-center">
             <span className="text-sm text-gray-600 dark:text-gray-400">

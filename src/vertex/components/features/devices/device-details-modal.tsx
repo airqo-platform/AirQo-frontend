@@ -14,7 +14,8 @@ import ReusableButton from "@/components/shared/button/ReusableButton";
 import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
 import { AqEdit01 as AqEdit, AqKey01 } from "@airqo/icons-react";
-import ReusableToast from "@/components/shared/toast/ReusableToast";
+import { useBanner } from "@/context/banner-context";
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import logger from "@/lib/logger";
 
 interface DeviceDetailsModalProps {
@@ -60,6 +61,7 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
   const updateLocal = useUpdateDeviceLocal();
   const updateGlobal = useUpdateDeviceGlobal();
   const decryptKeys = useDecryptDeviceKeys();
+  const { showBanner } = useBanner();
 
   const form = useForm<DeviceUpdateFormData>({
     resolver: zodResolver(deviceUpdateSchema),
@@ -132,7 +134,7 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
 
   const onSubmitLocal = async (data: DeviceUpdateFormData) => {
     if (!device?._id) {
-      ReusableToast({ message: "Cannot update device: missing device ID", type: "WARNING" });
+      showBanner({ severity: 'warning', message: "Cannot update device: missing device ID", scoped: true });
       return;
     }
 
@@ -168,8 +170,12 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
       { deviceId: device._id, deviceData: processedData },
       {
         onSuccess: () => {
+          showBanner({ severity: 'success', message: 'Device information has been updated locally.', scoped: true });
           setIsEditMode(false);
           form.reset(data);
+        },
+        onError: (error) => {
+          showBanner({ severity: 'error', message: `Update Failed: ${getApiErrorMessage(error)}`, scoped: true });
         },
       }
     );
@@ -177,7 +183,7 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
 
   const onSubmitGlobal = async (data: DeviceUpdateFormData) => {
     if (!device?._id) {
-      ReusableToast({ message: "Cannot update device: missing device ID", type: "WARNING" });
+      showBanner({ severity: 'warning', message: "Cannot update device: missing device ID", scoped: true });
       return;
     }
 
@@ -213,8 +219,12 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
       { deviceId: device._id, deviceData: processedData },
       {
         onSuccess: () => {
+          showBanner({ severity: 'success', message: 'Device information has been updated globally.', scoped: true });
           setIsEditMode(false);
           form.reset(data);
+        },
+        onError: (error) => {
+          showBanner({ severity: 'error', message: `Sync Failed: ${getApiErrorMessage(error)}`, scoped: true });
         },
       }
     );
@@ -224,9 +234,9 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
     if (valueToCopy !== undefined && valueToCopy !== null) {
       try {
         await navigator.clipboard?.writeText(String(valueToCopy))
-        ReusableToast({ message: "Decrypted Key Copied", type: "SUCCESS" })
+        showBanner({ severity: 'success', message: "Decrypted Key Copied", scoped: true });
       } catch (err) {
-        ReusableToast({ message: `Failed to copy key: ${String(err)}`, type: "ERROR" })
+        showBanner({ severity: 'error', message: `Failed to copy key: ${String(err)}`, scoped: true });
       }
     }
   }
@@ -236,7 +246,7 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
     const deviceNumber = device.device_number;
 
     if (!encryptedKey || !deviceNumber) {
-      ReusableToast({ message: `No ${keyType} or device number available for decryption.`, type: "WARNING" });
+      showBanner({ severity: 'warning', message: `No ${keyType} or device number available for decryption.`, scoped: true });
       return;
     }
 
@@ -251,10 +261,11 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
       if (response.success && response.decrypted_keys && response.decrypted_keys.length > 0) {
         handleCopy(response.decrypted_keys[0].decrypted_key);
       } else {
-        ReusableToast({ message: "Decryption failed or no key returned.", type: "ERROR" });
+        showBanner({ severity: 'error', message: "Decryption failed or no key returned.", scoped: true });
       }
-    } catch {
-      logger.info("Decryption failed"); // simple log
+    } catch (error) {
+      showBanner({ severity: 'error', message: `Decryption Failed: ${getApiErrorMessage(error)}`, scoped: true });
+      logger.info("Decryption failed");
     }
   };
 

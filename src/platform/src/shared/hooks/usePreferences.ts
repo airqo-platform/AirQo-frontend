@@ -6,9 +6,33 @@ import { preferencesService } from '../services/preferencesService';
 import type {
   UpdatePreferencesRequest,
   UpdateUserPreferencesRequest,
+  UserPreference,
   Theme,
   UpdateOrganizationGroupThemeRequest,
 } from '../types/api';
+
+export const getLatestPreferenceForGroup = (
+  preferences: UserPreference[] | null | undefined,
+  groupId?: string
+) => {
+  if (!preferences || preferences.length === 0) {
+    return null;
+  }
+
+  const scopedPreferences = groupId
+    ? preferences.filter(preference => preference.group_id === groupId)
+    : preferences;
+
+  if (scopedPreferences.length === 0) {
+    return null;
+  }
+
+  return [...scopedPreferences].sort(
+    (a, b) =>
+      new Date(b.lastAccessed || b.updatedAt).getTime() -
+      new Date(a.lastAccessed || a.updatedAt).getTime()
+  )[0];
+};
 
 // Authenticated preferences update
 export const useUpdatePreferences = () => {

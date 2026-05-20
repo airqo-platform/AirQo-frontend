@@ -1,5 +1,5 @@
 "use client"
-
+import { CookieInfoBanner } from '@/components/features/auth/cookie-info-banner';
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod"
@@ -12,7 +12,7 @@ import { Form, FormField } from "@/components/ui/form"
 import { signUpUrl, forgotPasswordUrl } from "@/core/urls"
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField"
 import ReusableButton from "@/components/shared/button/ReusableButton"
-import ReusableToast from "@/components/shared/toast/ReusableToast"
+import { useBanner, BannerSlot } from "@/context/banner-context"
 import logger from "@/lib/logger"
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import { useAppDispatch } from "@/core/redux/hooks";
@@ -23,7 +23,7 @@ import { getLastActiveModule } from "@/core/utils/userPreferences";
 import { ROUTE_LINKS } from "@/core/routes";
 // import GoogleAuthSection from "@/components/features/auth/google-auth-section";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft } from "lucide-react";
+
 
 const loginSchema = z.object({
   userName: z.string().email({ message: "Please enter a valid email address" }),
@@ -31,6 +31,7 @@ const loginSchema = z.object({
 })
 
 export default function LoginPage() {
+  const { showBanner, hideBanner } = useBanner();
   const [isLoading, setIsLoading] = useState(false)
   const [step, setStep] = useState<'email' | 'password'>('email');
   const searchParams = useSearchParams();
@@ -145,8 +146,9 @@ export default function LoginPage() {
         if (!session?.user) {
           throw new Error("Could not confirm session. Please try again.");
         }
-        ReusableToast({ message: "Welcome back!", type: "SUCCESS" });
-        window.location.replace(result.url || redirectUrl);
+        showBanner({ severity: 'success', message: 'Welcome back!', scoped: true });
+        
+         window.location.replace(result.url || redirectUrl);
       } else {
         let message = "Login failed. Please check your credentials.";
         if (result?.error) {
@@ -164,10 +166,10 @@ export default function LoginPage() {
       if (!isMounted.current) return;
       const message = getApiErrorMessage(error);
       logger.error("Sign-in failed", { error: message });
-      ReusableToast({ message, type: "ERROR" });
+      showBanner({ severity: 'error', message, scoped: true });
       setIsLoading(false);
     }
-  }, [callbackUrl, waitForSession, step, form]);
+  }, [callbackUrl, waitForSession, step, form, showBanner]);
 
   return (
     <div className="flex min-h-screen lg:h-screen w-full flex-col bg-primary-50 text-foreground">
@@ -276,24 +278,29 @@ export default function LoginPage() {
                         transition={{ duration: 0.2 }}
                         className="space-y-5"
                       >
-                        <div className="flex flex-col space-y-1">
+                        <BannerSlot />
+                       <div className="rounded-lg bg-muted/50 p-3 flex items-center justify-between">
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-xs text-muted-foreground">
+                              Signing in as
+                            </span>
+                            <span className="text-sm font-semibold truncate">
+                              {form.getValues('userName')}
+                            </span>
+                          </div>
                           <button
                             type="button"
                             disabled={isLoading}
                             onClick={() => {
                               form.resetField('password');
                               form.clearErrors('password');
+                              hideBanner();
                               setStep('email');
                             }}
-                            className="flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors w-fit -ml-1 mb-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="text-xs font-medium text-primary border border-primary/40 rounded-md px-2.5 py-1 hover:bg-primary/10 active:bg-primary/20 transition-colors ml-3 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            <ChevronLeft className="h-4 w-4 mr-0.5" />
                             Change email
                           </button>
-                          <div className="rounded-lg bg-muted/50 p-3 flex flex-col">
-                            <span className="text-xs text-muted-foreground">Signing in as</span>
-                            <span className="text-sm font-semibold truncate">{form.getValues('userName')}</span>
-                          </div>
                         </div>
 
                         <FormField
@@ -303,7 +310,7 @@ export default function LoginPage() {
                             <div>
                               <div className="flex items-center justify-between mb-1.5">
                                 <label htmlFor="password" className="text-sm font-medium text-foreground">Password</label>
-                                <Link href={forgotPasswordUrl} className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">
+                                <Link href={forgotPasswordUrl} target="_blank" className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">
                                   Forgot password?
                                 </Link>
                               </div>
@@ -345,6 +352,7 @@ export default function LoginPage() {
           </div>
         </div>
       </main>
+      <CookieInfoBanner />
     </div>
   )
 }
