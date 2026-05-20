@@ -111,7 +111,7 @@ const buildSiteCardsFromChartPoints = (
     const percentageDifference =
       Number.isFinite(previousValue) && previousValue !== 0
         ? ((latestValue - previousValue) / Math.abs(previousValue)) * 100
-        : 0;
+        : undefined;
     const displayName = getSiteDisplayName(selectedSite);
 
     return {

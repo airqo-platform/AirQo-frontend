@@ -100,6 +100,25 @@ const USERS_PROFILE_CANDIDATE_PATHS = ['/users/profile/enhanced'] as const;
 
 const RETRYABLE_PROFILE_STATUSES = new Set([400, 404, 405]);
 
+const isAbortError = (error: unknown): boolean => {
+  const candidate = error as {
+    name?: string;
+    code?: string;
+    message?: string;
+  } | null;
+
+  if (!candidate) {
+    return false;
+  }
+
+  return (
+    candidate.name === 'AbortError' ||
+    candidate.name === 'CanceledError' ||
+    candidate.code === 'ERR_CANCELED' ||
+    candidate.message === 'canceled'
+  );
+};
+
 const getDefaultPlans = (): SubscriptionPlan[] => [
   {
     tier: 'Free',
@@ -607,7 +626,9 @@ export class SubscriptionService {
     return params;
   }
 
-  private async getUsersProfilePayload(): Promise<UsersMePayload> {
+  private async getUsersProfilePayload(
+    signal?: AbortSignal
+  ): Promise<UsersMePayload> {
     await this.ensureAuthenticated();
 
     const orderedPaths = this.resolvedUsersProfilePath
@@ -627,12 +648,17 @@ export class SubscriptionService {
           profilePath,
           {
             params: this.withTenant(),
+            signal,
           }
         );
 
         this.resolvedUsersProfilePath = profilePath;
         return resolveUsersProfilePayload(response.data);
       } catch (error) {
+        if (isAbortError(error)) {
+          throw error;
+        }
+
         const status =
           (error as { response?: { status?: number } })?.response?.status || 0;
 
@@ -742,7 +768,7 @@ export class SubscriptionService {
     };
   }
 
-  async getUsage(): Promise<{
+  async getUsage(options: { signal?: AbortSignal } = {}): Promise<{
     success: boolean;
     message: string;
     usage: ApiUsage;
@@ -755,8 +781,12 @@ export class SubscriptionService {
     > => {
       if (!profile) {
         try {
-          profile = await this.getUsersProfilePayload();
-        } catch {
+          profile = await this.getUsersProfilePayload(options.signal);
+        } catch (error) {
+          if (isAbortError(error)) {
+            throw error;
+          }
+
           profile = null;
         }
       }
@@ -771,6 +801,7 @@ export class SubscriptionService {
         '/users/transactions/usage',
         {
           params: this.withTenant(),
+          signal: options.signal,
         }
       );
 
@@ -792,7 +823,11 @@ export class SubscriptionService {
         usage,
         live: true,
       };
-    } catch {
+    } catch (error) {
+      if (isAbortError(error)) {
+        throw error;
+      }
+
       const fallbackRateLimits = await getFallbackRateLimits();
 
       return {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Card,
   InfoBanner,
@@ -10,6 +10,25 @@ import {
 import { AqRefreshCcw01 } from '@airqo/icons-react';
 import { subscriptionService } from '@/shared/services/subscriptionService';
 import type { ApiUsage } from '@/shared/types/api';
+
+const isAbortError = (error: unknown): boolean => {
+  const candidate = error as {
+    name?: string;
+    code?: string;
+    message?: string;
+  } | null;
+
+  if (!candidate) {
+    return false;
+  }
+
+  return (
+    candidate.name === 'AbortError' ||
+    candidate.name === 'CanceledError' ||
+    candidate.code === 'ERR_CANCELED' ||
+    candidate.message === 'canceled'
+  );
+};
 
 interface UsagePeriod {
   title: string;
@@ -27,14 +46,28 @@ const UsageStats: React.FC = () => {
   const [liveUsage, setLiveUsage] = useState(true);
   const [usageMessage, setUsageMessage] = useState('');
   const [currentTime, setCurrentTime] = useState(() => Date.now());
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const requestIdRef = useRef(0);
 
   useEffect(() => {
     let isActive = true;
 
     const fetchUsage = async () => {
+      const requestId = ++requestIdRef.current;
+      abortControllerRef.current?.abort();
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
       try {
-        const data = await subscriptionService.getUsage();
-        if (!isActive) {
+        const data = await subscriptionService.getUsage({
+          signal: controller.signal,
+        });
+
+        if (
+          !isActive ||
+          controller.signal.aborted ||
+          requestId !== requestIdRef.current
+        ) {
           return;
         }
 
@@ -44,11 +77,23 @@ const UsageStats: React.FC = () => {
           setUsageMessage(data.message || '');
         }
       } catch (error) {
+        if (!isActive || isAbortError(error) || controller.signal.aborted) {
+          return;
+        }
+
         if (isActive) {
           console.error('Error fetching usage stats:', error);
         }
       } finally {
-        if (isActive) {
+        if (abortControllerRef.current === controller) {
+          abortControllerRef.current = null;
+        }
+
+        if (
+          isActive &&
+          !controller.signal.aborted &&
+          requestId === requestIdRef.current
+        ) {
           setLoading(false);
         }
       }
@@ -64,6 +109,8 @@ const UsageStats: React.FC = () => {
 
     return () => {
       isActive = false;
+      abortControllerRef.current?.abort();
+      abortControllerRef.current = null;
       clearInterval(interval);
     };
   }, []);

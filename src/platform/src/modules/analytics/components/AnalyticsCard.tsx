@@ -141,8 +141,8 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
               <Tooltip
                 content={
                   percentageDifference !== undefined
-                    ? `Air quality ${percentageDifference > 0 ? 'worsened' : 'improved'} by ${Math.abs(percentageDifference).toFixed(1)}% compared to last week.`
-                    : 'Air quality trend compared to last week.'
+                    ? `Air quality ${percentageDifference > 0 ? 'worsened' : 'improved'} by ${Math.abs(percentageDifference).toFixed(1)}% compared with the previous reading.`
+                    : 'Air quality trend compared with the previous reading.'
                 }
                 className="bg-black"
               >
