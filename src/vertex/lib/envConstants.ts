@@ -71,6 +71,36 @@ export const getCloudinaryPreset = (): string => {
 };
 
 /**
+ * Gets the Cloudinary API key (server-side only)
+ * @returns {string} The Cloudinary API key
+ * @throws {Error} If CLOUDINARY_API_KEY is not defined
+ */
+export const getCloudinaryApiKey = (): string => {
+  const apiKey = process.env.CLOUDINARY_API_KEY;
+  
+  if (!apiKey) {
+    throw new Error('CLOUDINARY_API_KEY environment variable is not defined');
+  }
+  
+  return apiKey;
+};
+
+/**
+ * Gets the Cloudinary API secret (server-side only)
+ * @returns {string} The Cloudinary API secret
+ * @throws {Error} If CLOUDINARY_API_SECRET is not defined
+ */
+export const getCloudinaryApiSecret = (): string => {
+  const apiSecret = process.env.CLOUDINARY_API_SECRET;
+  
+  if (!apiSecret) {
+    throw new Error('CLOUDINARY_API_SECRET environment variable is not defined');
+  }
+  
+  return apiSecret;
+};
+
+/**
  * Gets environment configuration
  * @returns {object} Environment configuration object
  */
@@ -99,6 +129,10 @@ export const validateEnvironment = (): boolean => {
     'NEXT_PUBLIC_CLOUDINARY_NAME',
     'NEXT_PUBLIC_CLOUDINARY_PRESET',
   ];
+  
+  if (typeof window === 'undefined') {
+    required.push('CLOUDINARY_API_KEY', 'CLOUDINARY_API_SECRET');
+  }
   
   const missing = required.filter(key => !process.env[key]);
   

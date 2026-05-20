@@ -58,11 +58,9 @@ export const uploadToCloudinary = async (
   options: CloudinaryUploadOptions = {}
 ): Promise<CloudinaryUploadResult> => {
   validateFile(file);
-  const { cloudinaryUrl, uploadPreset } = getCloudinaryConfig();
 
   const formData = new FormData();
   formData.append('file', file);
-  formData.append('upload_preset', uploadPreset);
 
   if (options.folder) {
     formData.append('folder', options.folder);
@@ -73,7 +71,7 @@ export const uploadToCloudinary = async (
   }
 
   try {
-    const response = await fetch(`${cloudinaryUrl}/image/upload`, {
+    const response = await fetch('/api/cloudinary/upload', {
       method: 'POST',
       body: formData,
     });
@@ -81,17 +79,18 @@ export const uploadToCloudinary = async (
     const result = await response.json();
 
     if (!response.ok) {
-        throw new Error(result.error?.message || 'Upload failed');
+      throw new Error(result.error || 'Upload failed');
     }
 
     return result as CloudinaryUploadResult;
-  } catch (error: any) {
-    throw new Error(error.message || 'Upload failed');
+  } catch (error: unknown) {
+    const errMsg = error instanceof Error ? error.message : 'Upload failed';
+    throw new Error(errMsg);
   }
 };
 
 // Maintain backward compatibility if needed, or deprecate
-export const cloudinaryImageUpload = async (formData: any) => {
+export const cloudinaryImageUpload = async (formData: FormData) => {
   const { cloudinaryUrl } = getCloudinaryConfig();
   return await fetch(`${cloudinaryUrl}/image/upload`, {
     method: 'POST',

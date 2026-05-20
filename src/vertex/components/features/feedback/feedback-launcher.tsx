@@ -586,7 +586,6 @@ export const FeedbackLauncher: React.FC = () => {
 
       setScreenshotDataUrl(dataUrl);
       setScreenshotFile(file);
-      showBanner({ severity: 'success', message: 'Screenshot captured successfully', scoped: true });
     } catch {
       showBanner({ severity: 'error', message: 'Failed to process screenshot annotations', scoped: true });
     }
@@ -648,7 +647,7 @@ export const FeedbackLauncher: React.FC = () => {
               severity: 'warning',
               title: 'Screenshot upload failed',
               message: 'We could not attach the screenshot to your feedback. Your feedback will still be submitted.',
-              scoped: false,
+              scoped: true,
             });
           }, 300);
         } finally {
@@ -671,15 +670,19 @@ export const FeedbackLauncher: React.FC = () => {
         metadata: defaultMetadata,
       });
 
-      showBanner({ severity: 'success', message: 'Feedback sent successfully' });
       setIsOpen(false);
+
+      setTimeout(() => {
+        showBanner({ severity: 'success', message: 'Thank you! Your feedback has been sent.', scoped: false });
+      }, 300);
+
     } catch (error) {
       showBanner({
         severity: 'error',
         message:
           error instanceof Error
             ? getApiErrorMessage(error)
-            : 'An error occurred while submitting feedback',
+            : 'Oops! An error occurred while submitting your feedback. Please try again later.',
         scoped: true,
       });
     } finally {
