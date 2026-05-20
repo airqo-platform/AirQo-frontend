@@ -695,6 +695,7 @@ export const FeedbackLauncher: React.FC = () => {
               className="group relative w-full overflow-hidden rounded-lg border border-gray-300 dark:border-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               aria-label="Preview screenshot"
             >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={screenshotDataUrl}
                 alt="Captured screenshot"
@@ -846,6 +847,7 @@ export const FeedbackLauncher: React.FC = () => {
             className="relative max-h-[90vh] max-w-[90vw] overflow-auto rounded-xl shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={screenshotDataUrl}
               alt="Screenshot preview"
