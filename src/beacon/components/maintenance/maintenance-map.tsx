@@ -390,7 +390,7 @@ export default function MaintenanceMap({
                         <p class="text-xs text-gray-600 mb-2">${device.cohorts?.length ? device.cohorts.join(', ') : 'No cohorts'}</p>
                         <div class="grid grid-cols-2 gap-2 text-xs mb-2">
                             <div><span class="font-medium">Uptime:</span> <span class="font-bold ${uptimeColorClass}">${uptimePct.toFixed(0)}%</span></div>
-                            <div><span class="font-medium">Error:</span> <span class="font-bold ${errorColorClass}">${device.error_margin.toFixed(1)}</span></div>
+                            <div><span class="font-medium">Error:</span> <span class="font-bold ${errorColorClass}">${(device.error_margin ?? 0).toFixed(1)}</span></div>
                         </div>
                         <div class="text-xs text-gray-500 mb-2"><span class="font-medium">Last Post:</span> ${device.last_active ? new Date(device.last_active).toLocaleString() : 'N/A'}</div>
                         <div id="mini-graphs-${device.device_id}"></div>
