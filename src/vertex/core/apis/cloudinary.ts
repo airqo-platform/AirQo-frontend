@@ -17,6 +17,8 @@
  * DO NOT use a signed preset here as we are uploading directly from the client.
  */
 
+import { getCloudinaryName, getCloudinaryPreset } from '@/lib/envConstants';
+
 export interface CloudinaryUploadOptions {
   folder?: string;
   tags?: string[];
@@ -42,16 +44,8 @@ const validateFile = (file: File) => {
 };
 
 const getCloudinaryConfig = () => {
-  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_NAME;
-  const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_PRESET;
-
-  if (!cloudName) {
-    throw new Error('Configuration Error: NEXT_PUBLIC_CLOUDINARY_NAME is missing in environment variables.');
-  }
-
-  if (!uploadPreset) {
-    throw new Error('Configuration Error: NEXT_PUBLIC_CLOUDINARY_PRESET is missing in environment variables.');
-  }
+  const cloudName = getCloudinaryName();
+  const uploadPreset = getCloudinaryPreset();
 
   return {
     cloudinaryUrl: `https://api.cloudinary.com/v1_1/${cloudName}`,

@@ -642,13 +642,15 @@ export const FeedbackLauncher: React.FC = () => {
             tags: ['vertex', 'feedback'],
           });
           screenshot_url = uploaded.secure_url;
-        } catch (err) {
-          showBanner({
-            severity: 'warning',
-            title: 'Screenshot upload failed',
-            message: 'We could not attach the screenshot to your feedback. Your feedback will still be submitted.',
-            scoped: false,
-          });
+        } catch {
+          setTimeout(() => {
+            showBanner({
+              severity: 'warning',
+              title: 'Screenshot upload failed',
+              message: 'We could not attach the screenshot to your feedback. Your feedback will still be submitted.',
+              scoped: false,
+            });
+          }, 300);
         } finally {
           setIsUploadingScreenshot(false);
         }

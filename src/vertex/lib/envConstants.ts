@@ -41,6 +41,36 @@ export const getApiToken = (): string => {
 export const COOKIE_POLICY_URL = process.env.NEXT_PUBLIC_COOKIE_POLICY_URL || 'https://airqo.net/legal/cookies';
 
 /**
+ * Gets the Cloudinary cloud name
+ * @returns {string} The Cloudinary cloud name
+ * @throws {Error} If NEXT_PUBLIC_CLOUDINARY_NAME is not defined
+ */
+export const getCloudinaryName = (): string => {
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_NAME;
+  
+  if (!cloudName) {
+    throw new Error('NEXT_PUBLIC_CLOUDINARY_NAME environment variable is not defined');
+  }
+  
+  return cloudName;
+};
+
+/**
+ * Gets the Cloudinary upload preset
+ * @returns {string} The Cloudinary upload preset
+ * @throws {Error} If NEXT_PUBLIC_CLOUDINARY_PRESET is not defined
+ */
+export const getCloudinaryPreset = (): string => {
+  const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_PRESET;
+  
+  if (!uploadPreset) {
+    throw new Error('NEXT_PUBLIC_CLOUDINARY_PRESET environment variable is not defined');
+  }
+  
+  return uploadPreset;
+};
+
+/**
  * Gets environment configuration
  * @returns {object} Environment configuration object
  */
@@ -53,6 +83,8 @@ export const getEnvConfig = () => {
     cookiePolicyUrl: COOKIE_POLICY_URL,
     mapboxToken: process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN,
     mockPermissionsEnabled: process.env.NEXT_PUBLIC_MOCK_PERMISSIONS_ENABLED === 'true',
+    cloudinaryName: process.env.NEXT_PUBLIC_CLOUDINARY_NAME,
+    cloudinaryPreset: process.env.NEXT_PUBLIC_CLOUDINARY_PRESET,
   };
 };
 
@@ -64,6 +96,8 @@ export const validateEnvironment = (): boolean => {
   const required = [
     'NEXT_PUBLIC_API_URL',
     'NEXT_PUBLIC_API_TOKEN',
+    'NEXT_PUBLIC_CLOUDINARY_NAME',
+    'NEXT_PUBLIC_CLOUDINARY_PRESET',
   ];
   
   const missing = required.filter(key => !process.env[key]);
