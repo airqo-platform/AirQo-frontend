@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useRef, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { ArrowLeft, Calendar, MapPin, Wifi, AlertTriangle, FlaskConical, CheckCircle2, Activity, FileText, Download, Loader2 } from "lucide-react"
 import Link from "next/link"
@@ -38,6 +38,7 @@ import {
 
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
+import html2canvas from "html2canvas"
 import { useApiData } from "@/hooks/useApiData"
 import { getBatchDetail } from "@/services/inlab.service"
 import type { InlabBatchWithPerformance, InlabBatchDeviceWithPerformance, InlabDeviceDaily, InlabDeviceDataPoint } from "@/types/inlab.types"
@@ -136,6 +137,114 @@ function deriveDailyFromData(data?: InlabDeviceDataPoint[]): InlabDeviceDaily[] 
       correlation,
     }
   })
+}
+
+const CHART_COLORS = [
+  "#8884d8", "#82ca9d", "#ffc658", "#ff7300", "#0088fe",
+  "#00c49f", "#ffbb28", "#ff8042", "#a4de6c", "#d0ed57"
+]
+
+type PerformanceChartRow = {
+  timestamp: string
+  averagePm?: number
+  [key: string]: string | number | null | undefined
+}
+
+type CapturedChartImage = {
+  title: string
+  dataUrl: string
+}
+
+function buildPerformanceChartData(devices: InlabBatchDeviceWithPerformance[]): PerformanceChartRow[] {
+  const deviceDailyMap = new Map<string, InlabDeviceDaily[]>()
+  devices.forEach(d => {
+    const daily = d.daily && d.daily.length > 0 ? d.daily : deriveDailyFromData(d.data)
+    deviceDailyMap.set(d.device_id, daily)
+  })
+
+  const allDates = new Set<string>()
+  devices.forEach(d => {
+    const daily = deviceDailyMap.get(d.device_id) || []
+    daily.forEach(item => allDates.add(item.date))
+    if (d.data) {
+      d.data.forEach(item => {
+        const dateStr = new Date(item.datetime).toISOString().split('T')[0]
+        allDates.add(dateStr)
+      })
+    }
+  })
+
+  const sortedDates = Array.from(allDates).sort((a, b) => a.localeCompare(b))
+
+  return sortedDates.map(ts => {
+    const entry: PerformanceChartRow = { timestamp: ts }
+    let totalPm = 0
+    let pmCount = 0
+
+    devices.forEach(device => {
+      const deviceDaily = deviceDailyMap.get(device.device_id) || []
+      const dayDaily = deviceDaily.find(d => d.date === ts)
+      const dayDataList = device.data?.filter(d => new Date(d.datetime).toISOString().split('T')[0] === ts) || []
+
+      let avgPmForDevice: number | null = null
+      if (dayDataList.length > 0) {
+        let sum = 0
+        let count = 0
+        dayDataList.forEach(p => {
+          const s1 = p['pm2.5 sensor1']
+          const s2 = p['pm2.5 sensor2']
+          if (s1 !== null && s2 !== null) {
+            sum += (s1 + s2) / 2
+            count++
+          } else if (s1 !== null) {
+            sum += s1
+            count++
+          } else if (s2 !== null) {
+            sum += s2
+            count++
+          }
+        })
+        if (count > 0) avgPmForDevice = sum / count
+      }
+
+      if (avgPmForDevice !== null) {
+        entry[`pm_${device.device_name}`] = avgPmForDevice
+        totalPm += avgPmForDevice
+        pmCount++
+      }
+
+      if (dayDaily) {
+        entry[`err_${device.device_name}`] = dayDaily.error_margin
+        entry[`corr_${device.device_name}`] = dayDaily.correlation
+      }
+    })
+
+    if (pmCount > 0) {
+      entry.averagePm = Math.round((totalPm / pmCount) * 10) / 10
+    }
+
+    return entry
+  })
+}
+
+function waitForChartPaint() {
+  return new Promise<void>((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+  })
+}
+
+async function captureChartElement(element: HTMLDivElement | null): Promise<string | null> {
+  if (!element) return null
+
+  await waitForChartPaint()
+  const canvas = await html2canvas(element, {
+    backgroundColor: "#ffffff",
+    scale: 2,
+    logging: false,
+    useCORS: true,
+  })
+
+  return canvas.toDataURL("image/png", 1)
 }
 
 // --- Components ---
@@ -321,90 +430,8 @@ const UptimeMiniGraph = ({ dailyData, averageUptime }: { dailyData?: InlabDevice
 }
 
 const PerformanceAnalysis = ({ devices }: { devices: InlabBatchDeviceWithPerformance[] }) => {
-  // Colors for different devices
-  const colors = [
-    "#8884d8", "#82ca9d", "#ffc658", "#ff7300", "#0088fe", 
-    "#00c49f", "#ffbb28", "#ff8042", "#a4de6c", "#d0ed57"
-  ]
-
-  // We need to group dailyData by timestamp
-  // We extract all unique dates from all devices' daily array or data array
-  // If we don't have daily array, we use data array to compute daily PM2.5 at least
-  
-  // Build a per-device daily summary map (use API-provided daily if any, else derive from raw data)
-  const deviceDailyMap = new Map<string, InlabDeviceDaily[]>()
-  devices.forEach(d => {
-    const daily = d.daily && d.daily.length > 0 ? d.daily : deriveDailyFromData(d.data)
-    deviceDailyMap.set(d.device_id, daily)
-  })
-
-  const allDates = new Set<string>()
-  devices.forEach(d => {
-    const daily = deviceDailyMap.get(d.device_id) || []
-    daily.forEach(item => allDates.add(item.date))
-    if (d.data) {
-      d.data.forEach(item => {
-        // extract just the date part
-        const dateStr = new Date(item.datetime).toISOString().split('T')[0]
-        allDates.add(dateStr)
-      })
-    }
-  })
-
-  const sortedDates = Array.from(allDates).sort()
-
-  const combinedData = sortedDates.map(ts => {
-    const entry: any = { timestamp: ts }
-    let totalPm = 0
-    let pmCount = 0
-
-    devices.forEach(device => {
-      // Find daily data for error_margin and correlation
-      const deviceDaily = deviceDailyMap.get(device.device_id) || []
-      const dayDaily = deviceDaily.find(d => d.date === ts)
-      
-      // Find data points for this day for PM2.5
-      // If frequency was daily, datetime might just be the day
-      const dayDataList = device.data?.filter(d => new Date(d.datetime).toISOString().split('T')[0] === ts) || []
-      
-      let avgPmForDevice: number | null = null
-      if (dayDataList.length > 0) {
-        let sum = 0
-        let count = 0
-        dayDataList.forEach(p => {
-          const s1 = p['pm2.5 sensor1']
-          const s2 = p['pm2.5 sensor2']
-          if (s1 !== null && s2 !== null) {
-            sum += (s1 + s2) / 2
-            count++
-          } else if (s1 !== null) {
-            sum += s1
-            count++
-          } else if (s2 !== null) {
-            sum += s2
-            count++
-          }
-        })
-        if (count > 0) avgPmForDevice = sum / count
-      }
-
-      if (avgPmForDevice !== null) {
-        entry[`pm_${device.device_name}`] = avgPmForDevice
-        totalPm += avgPmForDevice
-        pmCount++
-      }
-
-      if (dayDaily) {
-        entry[`err_${device.device_name}`] = dayDaily.error_margin
-        entry[`corr_${device.device_name}`] = dayDaily.correlation
-      }
-    })
-
-    if (pmCount > 0) {
-      entry.averagePm = Math.round((totalPm / pmCount) * 10) / 10
-    }
-    return entry
-  })
+  const colors = CHART_COLORS
+  const combinedData = buildPerformanceChartData(devices)
 
   return (
     <div className="space-y-6 mt-4">
@@ -563,8 +590,177 @@ const PerformanceAnalysis = ({ devices }: { devices: InlabBatchDeviceWithPerform
   )
 }
 
+const ReportChartCard = ({
+  title,
+  children,
+}: {
+  title: string
+  children: React.ReactNode
+}) => (
+  <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm">
+    <div className="text-lg font-semibold text-gray-900 mb-4">{title}</div>
+    <div className="h-[360px] w-full bg-white">
+      {children}
+    </div>
+  </div>
+)
+
+const ReportChartsForCapture = ({
+  data,
+  errorMarginRef,
+  pm25Ref,
+  correlationRef,
+}: {
+  data: InlabBatchWithPerformance
+  errorMarginRef: React.RefObject<HTMLDivElement>
+  pm25Ref: React.RefObject<HTMLDivElement>
+  correlationRef: React.RefObject<HTMLDivElement>
+}) => {
+  const colors = CHART_COLORS
+  const combinedData = buildPerformanceChartData(data.devices)
+
+  return (
+    <div className="fixed -left-[10000px] top-0 w-[960px] bg-white p-6" aria-hidden="true">
+      <div ref={errorMarginRef} className="bg-white p-2">
+        <ReportChartCard title="Sensor Error Margin (All Devices)">
+          {combinedData.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={combinedData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis
+                  dataKey="timestamp"
+                  fontSize={12}
+                  tickFormatter={(str) => new Date(str).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                />
+                <YAxis fontSize={12} />
+                <RechartsTooltip
+                  labelFormatter={(label) => new Date(label).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
+                />
+                <Legend />
+                {data.devices.map((device, index) => (
+                  <Line
+                    key={device.device_id}
+                    type="monotone"
+                    dataKey={`err_${device.device_name}`}
+                    name={device.device_name}
+                    stroke={colors[index % colors.length]}
+                    strokeWidth={2}
+                    dot={{ r: 3 }}
+                    activeDot={{ r: 5 }}
+                  />
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex h-full items-center justify-center text-gray-400">No historical error margin data available</div>
+          )}
+        </ReportChartCard>
+      </div>
+
+      <div ref={pm25Ref} className="bg-white p-2 mt-6">
+        <ReportChartCard title="Mean Daily PM2.5 Readings">
+          {combinedData.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={combinedData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis
+                  dataKey="timestamp"
+                  fontSize={12}
+                  tickFormatter={(str) => new Date(str).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                />
+                <YAxis fontSize={12} unit=" µg/m³" />
+                <RechartsTooltip
+                  labelFormatter={(label) => new Date(label).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
+                />
+                <Legend />
+                {data.devices.map((device, index) => (
+                  <Line
+                    key={device.device_id}
+                    type="monotone"
+                    dataKey={`pm_${device.device_name}`}
+                    name={device.device_name}
+                    stroke={colors[index % colors.length]}
+                    strokeWidth={1.5}
+                    strokeOpacity={0.6}
+                    dot={false}
+                  />
+                ))}
+                <Line
+                  type="monotone"
+                  dataKey="averagePm"
+                  name="BATCH AVERAGE"
+                  stroke="#000000"
+                  strokeWidth={3}
+                  dot={{ r: 4, fill: "#000000" }}
+                  activeDot={{ r: 6 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex h-full items-center justify-center text-gray-400">No PM2.5 data available</div>
+          )}
+        </ReportChartCard>
+      </div>
+
+      <div ref={correlationRef} className="bg-white p-2 mt-6">
+        <ReportChartCard title="Inter-sensor Correlation">
+          {combinedData.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={combinedData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis
+                  dataKey="timestamp"
+                  fontSize={12}
+                  tickFormatter={(str) => new Date(str).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                />
+                <YAxis fontSize={12} domain={['auto', 'auto']} />
+                <RechartsTooltip
+                  labelFormatter={(label) => new Date(label).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
+                />
+                <Legend />
+                {data.devices.map((device, index) => (
+                  <Line
+                    key={device.device_id}
+                    type="monotone"
+                    dataKey={`corr_${device.device_name}`}
+                    name={device.device_name}
+                    stroke={colors[index % colors.length]}
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex h-full items-center justify-center text-gray-400">No correlation data available</div>
+          )}
+        </ReportChartCard>
+      </div>
+    </div>
+  )
+}
+
 const ReportTab = ({ data }: { data: InlabBatchWithPerformance }) => {
   const [isGenerating, setIsGenerating] = useState(false)
+  const errorMarginChartRef = useRef<HTMLDivElement>(null)
+  const pm25ChartRef = useRef<HTMLDivElement>(null)
+  const correlationChartRef = useRef<HTMLDivElement>(null)
+
+  const captureReportCharts = async (): Promise<CapturedChartImage[]> => {
+    const chartRefs = [
+      { title: "Sensor Error Margin (All Devices)", ref: errorMarginChartRef },
+      { title: "Mean Daily PM2.5 Readings", ref: pm25ChartRef },
+      { title: "Inter-sensor Correlation", ref: correlationChartRef },
+    ]
+
+    const images: CapturedChartImage[] = []
+    for (const chart of chartRefs) {
+      const dataUrl = await captureChartElement(chart.ref.current)
+      if (dataUrl) images.push({ title: chart.title, dataUrl })
+    }
+
+    return images
+  }
 
   const generatePDF = async () => {
     setIsGenerating(true)
@@ -576,6 +772,7 @@ const ReportTab = ({ data }: { data: InlabBatchWithPerformance }) => {
       const doc = new jsPDF()
       const pageWidth = doc.internal.pageSize.getWidth()
       const pageHeight = doc.internal.pageSize.getHeight()
+      const chartImages = await captureReportCharts()
 
       // Add Logo or Header
       doc.setFontSize(22)
@@ -617,6 +814,30 @@ const ReportTab = ({ data }: { data: InlabBatchWithPerformance }) => {
       })
 
       let currentY = (doc as any).lastAutoTable.finalY + 15
+
+      if (chartImages.length > 0) {
+        doc.setFontSize(14)
+        doc.setTextColor(0)
+        doc.text("Performance Charts", 14, currentY)
+        currentY += 7
+
+        chartImages.forEach((chart) => {
+          const imageWidth = pageWidth - 28
+          const imageHeight = imageWidth * 0.48
+
+          if (currentY + imageHeight + 12 > pageHeight - 20) {
+            doc.addPage()
+            currentY = 20
+          }
+
+          doc.setFontSize(11)
+          doc.setTextColor(80)
+          doc.text(chart.title, 14, currentY)
+          currentY += 4
+          doc.addImage(chart.dataUrl, "PNG", 14, currentY, imageWidth, imageHeight, undefined, "FAST")
+          currentY += imageHeight + 10
+        })
+      }
 
       // Build per-device daily summaries (fall back to derived if API didn't provide them)
       const deviceDailyMap = new Map<string, InlabDeviceDaily[]>()
@@ -767,6 +988,12 @@ const ReportTab = ({ data }: { data: InlabBatchWithPerformance }) => {
 
   return (
     <div className="space-y-6 mt-4">
+      <ReportChartsForCapture
+        data={data}
+        errorMarginRef={errorMarginChartRef}
+        pm25Ref={pm25ChartRef}
+        correlationRef={correlationChartRef}
+      />
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>

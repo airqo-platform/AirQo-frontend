@@ -1,7 +1,7 @@
 'use client';
 
 import AuthLayout from '@/shared/layouts/AuthLayout';
-import GoogleAuthSection from '@/shared/components/auth/GoogleAuthSection';
+import SocialAuthSection from '@/shared/components/auth/SocialAuthSection';
 import Link from 'next/link';
 import { Button, Input } from '@/shared/components/ui';
 import { useForm } from 'react-hook-form';
@@ -139,7 +139,7 @@ export default function RegisterPage() {
         </Button>
       </form>
 
-      <GoogleAuthSection
+      <SocialAuthSection
         mode="register"
         disabled={isMutating}
         className="mt-6"

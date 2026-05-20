@@ -1,14 +1,14 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
-import { format } from "date-fns"
-import { CalendarIcon, Search, X, RefreshCw } from "lucide-react"
+import { format, subDays } from "date-fns"
+import { CalendarIcon, Search, RefreshCw } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -26,6 +26,7 @@ interface AnalyticsFiltersProps {
   onFilterChange?: (filters: FilterState) => void
   onAnalyse?: (filters: FilterState) => void
   isAnalysing?: boolean
+  hideDateRange?: boolean
 }
 
 export interface FilterState {
@@ -51,7 +52,13 @@ function getDefaultCohortTag(activeGroup: string | null): string {
   return activeGroup?.toLowerCase() === "airqo" ? "hardware" : "organizational"
 }
 
-export default function AnalyticsFilters({ initialFilterType = "airqlouds", onFilterChange, onAnalyse, isAnalysing }: AnalyticsFiltersProps) {
+export default function AnalyticsFilters({ 
+  initialFilterType = "airqlouds", 
+  onFilterChange, 
+  onAnalyse, 
+  isAnalysing,
+  hideDateRange = false
+}: AnalyticsFiltersProps) {
   const { toast } = useToast()
   const { activeGroup, loading: groupLoading } = useGroup()
   const [isSyncing, setIsSyncing] = useState(false)
@@ -70,13 +77,23 @@ export default function AnalyticsFilters({ initialFilterType = "airqlouds", onFi
   // Cohort Tags State
   const [cohortTags, setCohortTags] = useState<string[]>([getDefaultCohortTag(activeGroup)])
   const availableTags = ["hardware", "duplicate", "organizational", "inlab", "misc"] // Hardcoded for now, could be fetched
+  const lastSuccessfulCohortTagRef = useRef<string>(getDefaultCohortTag(activeGroup))
 
   const [dateRange, setDateRange] = useState<{
     from: Date | undefined
     to: Date | undefined
-  }>({
-    from: undefined,
-    to: undefined,
+  }>(() => {
+    if (hideDateRange) {
+      const today = new Date()
+      today.setHours(23, 59, 59, 999)
+      const from = subDays(today, 13)
+      from.setHours(0, 0, 0, 0)
+      return { from, to: today }
+    }
+    return {
+      from: undefined,
+      to: undefined,
+    }
   })
   const [timeRange, setTimeRange] = useState<{
     from: string
@@ -137,23 +154,53 @@ export default function AnalyticsFilters({ initialFilterType = "airqlouds", onFi
 
         try {
           setIsLoadingAirqlouds(true)
-          const response = await airQloudService.getAirQloudsBasic({
-            search: searchTerm || undefined,
-            tags: cohortTags.length > 0 ? cohortTags.join(",") : undefined,
-            limit: 100,
-            group: activeGroup,
-          })
-          // The API might return { airqlouds: [], meta: {} } or [] depending on the endpoint used in service
-          // getAirQloudsBasic was updated to use the same endpoint structure?
-          // Let's check airqloud.service.ts again. getAirQloudsBasic calls /airqlouds with include_performance=false
-          // The /airqlouds endpoint now returns { airqlouds: [], meta: {} }
-
-          if (Array.isArray(response)) {
-            setAirqlouds(response)
-          } else {
-            // It's the new format
-            setAirqlouds((response as any).airqlouds || [])
+          const normalizeAirqlouds = (response: any): AirQloudBasic[] => {
+            if (Array.isArray(response)) return response
+            return response.airqlouds || []
           }
+
+          const fetchByTags = async (tags: string[]) => {
+            return airQloudService.getAirQloudsBasic({
+              search: searchTerm || undefined,
+              tags: tags.length > 0 ? tags.join(",") : undefined,
+              limit: 100,
+              group: activeGroup,
+            })
+          }
+
+          let effectiveTags = cohortTags
+          let response = await fetchByTags(effectiveTags)
+          let resolvedAirqlouds = normalizeAirqlouds(response)
+
+          if (resolvedAirqlouds.length > 0 && effectiveTags.length === 1) {
+            lastSuccessfulCohortTagRef.current = effectiveTags[0]
+          }
+
+          const canFallback = resolvedAirqlouds.length === 0 && !searchTerm.trim()
+          if (canFallback) {
+            const fallbackTags = [
+              lastSuccessfulCohortTagRef.current,
+              "hardware",
+              "organizational",
+              "duplicate",
+              "inlab",
+              "misc",
+            ].filter((tag, index, arr) => Boolean(tag) && arr.indexOf(tag) === index && !effectiveTags.includes(tag))
+
+            for (const fallbackTag of fallbackTags) {
+              const fallbackResponse = await fetchByTags([fallbackTag])
+              const fallbackAirqlouds = normalizeAirqlouds(fallbackResponse)
+              if (fallbackAirqlouds.length > 0) {
+                resolvedAirqlouds = fallbackAirqlouds
+                effectiveTags = [fallbackTag]
+                lastSuccessfulCohortTagRef.current = fallbackTag
+                setCohortTags([fallbackTag])
+                break
+              }
+            }
+          }
+
+          setAirqlouds(resolvedAirqlouds)
         } catch (error) {
           console.error('Error fetching airqlouds:', error)
         } finally {
@@ -229,13 +276,13 @@ export default function AnalyticsFilters({ initialFilterType = "airqlouds", onFi
     return () => clearTimeout(timer)
   }, [filterType, searchTerm, activeGroup, groupLoading])
 
-  let currentItems: Array<{ id: string; name: string; isActive: boolean }>
+  let currentItems: Array<{ id: string; name: string }>
   if (filterType === "airqlouds") {
-    currentItems = airqlouds.map((aq: AirQloudBasic) => ({ id: aq.id, name: aq.name || '', isActive: (aq as any).is_active ?? true }))
+    currentItems = airqlouds.map((aq: AirQloudBasic) => ({ id: aq.id, name: aq.name || '' }))
   } else if (filterType === "grids") {
-    currentItems = grids.map((grid: AirQloudBasic) => ({ id: grid.id, name: grid.name || '', isActive: (grid as any).is_active ?? true }))
+    currentItems = grids.map((grid: AirQloudBasic) => ({ id: grid.id, name: grid.name || '' }))
   } else {
-    currentItems = devices.map((d: Device) => ({ id: d.name || d.device_name || '', name: d.name || d.device_name || '', isActive: true }))
+    currentItems = devices.map((d: Device) => ({ id: d.name || d.device_name || '', name: d.name || d.device_name || '' }))
   }
 
   const filterTypeLabel = filterType === "airqlouds" ? "Cohorts" : filterType === "grids" ? "Grids" : "Devices"
@@ -248,18 +295,7 @@ export default function AnalyticsFilters({ initialFilterType = "airqlouds", onFi
     notifyFilterChange(value, [], dateRange, timeRange, includeTime)
   }
 
-  const handleItemSelect = (itemId: string, itemName: string, isActive: boolean = true) => {
-    // Check if trying to select an inactive airqloud
-    if (!isActive && filterType === "airqlouds") {
-      toast({
-        title: "Cannot select untracked Cohort",
-        description: "You need to activate this Cohort to track it. Go to the table below and click on 'Untracked' to enable tracking.",
-        variant: "destructive",
-        duration: 5000,
-      })
-      return
-    }
-
+  const handleItemSelect = (itemId: string, itemName: string) => {
     let newMap = new Map(selectedItemsMap)
     let newSelection: string[]
 
@@ -442,34 +478,25 @@ export default function AnalyticsFilters({ initialFilterType = "airqlouds", onFi
                   </div>
                 ) : filteredItems.length > 0 ? (
                   filteredItems.map(item => {
-                    const isInactive = filterType === "airqlouds" && !item.isActive
                     return (
                       <div
                         key={item.id}
                         className={cn(
                           "p-2 cursor-pointer hover:bg-accent transition-colors",
-                          selectedItems.includes(item.id || '') && "bg-accent",
-                          isInactive && "opacity-60"
+                          selectedItems.includes(item.id || '') && "bg-accent"
                         )}
-                        onClick={() => handleItemSelect(item.id || '', item.name || 'Unknown', item.isActive)}
+                        onClick={() => handleItemSelect(item.id || '', item.name || 'Unknown')}
                       >
                         <div className="flex items-center gap-2">
-                          {isInactive ? (
-                            <X className="h-4 w-4 text-red-500 flex-shrink-0" />
-                          ) : (
-                            <input
-                              type="checkbox"
-                              checked={selectedItems.includes(item.id || '')}
-                              onChange={() => { }}
-                              className="cursor-pointer"
-                            />
-                          )}
-                          <span className={cn("text-sm flex-1", isInactive && "text-muted-foreground")}>
+                          <input
+                            type="checkbox"
+                            checked={selectedItems.includes(item.id || '')}
+                            onChange={() => { }}
+                            className="cursor-pointer"
+                          />
+                          <span className="text-sm flex-1">
                             {item.name || 'Unknown'}
                           </span>
-                          {isInactive && (
-                            <span className="text-xs text-red-500">Untracked</span>
-                          )}
                         </div>
                       </div>
                     )
@@ -486,8 +513,9 @@ export default function AnalyticsFilters({ initialFilterType = "airqlouds", onFi
           {/* Right Side: Date and Time Selection */}
           <div className="space-y-4">
             {/* Date Range Selection */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Date Range</label>
+            {!hideDateRange && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Date Range</label>
               <div className="grid grid-cols-2 gap-2">
                 {/* Date Range Picker - Half Width */}
                 <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
@@ -682,6 +710,7 @@ export default function AnalyticsFilters({ initialFilterType = "airqlouds", onFi
                 </Popover>
               </div>
             </div>
+            )}
 
             {/* Selected Items Display */}
             <div className="space-y-2">

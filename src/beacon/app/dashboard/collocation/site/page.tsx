@@ -178,6 +178,7 @@ function ErrorMarginMiniGraph({ errorMarginHistory, averageMargin }: { errorMarg
 
   const values = errorMarginHistory.slice(-14).filter((item) => item.value !== undefined)
   const maxMargin = 10
+  const maxBarHeight = 32
 
   const getBarColor = (value: number) => {
     if (value <= 3) return "bg-green-500 hover:bg-green-600"
@@ -212,7 +213,12 @@ function ErrorMarginMiniGraph({ errorMarginHistory, averageMargin }: { errorMarg
               <TooltipTrigger asChild>
                 <div
                   className={`w-1.5 rounded-t-full ${getBarColor(item.value)} transition-all cursor-pointer`}
-                  style={{ height: `${Math.max(4, ((item.value ?? 0) / maxMargin) * 32)}px` }}
+                  style={{
+                    height: `${Math.min(
+                      maxBarHeight,
+                      Math.max(4, ((item.value ?? 0) / maxMargin) * maxBarHeight),
+                    )}px`,
+                  }}
                 />
               </TooltipTrigger>
               <TooltipContent className={`${getTooltipBgColor(item.value)} text-white border`}>
@@ -529,7 +535,7 @@ export default function SiteCollocationPage() {
               <thead>
                 <tr className="bg-gray-50">
                   <th className="text-left py-3 px-4 font-medium text-gray-600">Name</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-600">Location</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-600">Site</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">Devices</th>
 
                   <th className="text-left py-3 px-4 font-medium text-gray-600">Uptime</th>

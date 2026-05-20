@@ -4,7 +4,7 @@
  */
 
 import axios, { AxiosRequestConfig } from 'axios';
-import { config } from '@/lib/config';
+import { config, enforceHttpsForRemote } from '@/lib/config';
 import authService from './api-service';
 import { isMockMode, getMockFirmwareVersions } from '@/lib/mock-data';
 import {
@@ -22,7 +22,7 @@ class FirmwareService {
 
   constructor() {
     // Use centralized config for API URL
-    this.baseUrl = config.beaconApiUrl;
+    this.baseUrl = enforceHttpsForRemote(config.beaconApiUrl);
     this.apiPrefix = config.beaconApiPrefix || (config.isLocalhost ? '/api/v1' : '/api/v1/beacon');
   }
 
