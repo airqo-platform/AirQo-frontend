@@ -67,11 +67,7 @@ if (!process.env.NEXTAUTH_URL && azureContainerAppsUrl) {
   process.env.AUTH_TRUST_HOST = process.env.AUTH_TRUST_HOST || 'true';
 }
 
-const configuredAuthSecret = (
-  process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || ''
-).trim();
-const authSecret =
-  configuredAuthSecret || (isProduction ? undefined : 'vertex-local-dev-secret');
+const authSecret = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
 const configuredCookieDomain =
   process.env.NEXTAUTH_COOKIE_DOMAIN?.trim() || undefined;
 const getCookieDomain = () => {
@@ -120,11 +116,6 @@ if (isProduction && !authSecret) {
   logger.error('[NextAuth] CRITICAL: NEXTAUTH_SECRET is missing in production environment!');
 }
 
-if (!isProduction && !configuredAuthSecret) {
-  logger.warn(
-    '[NextAuth] NEXTAUTH_SECRET is empty. Using development fallback secret for local runtime.'
-  );
-}
 
 if (isProduction && !process.env.NEXTAUTH_URL && !process.env.AUTH_TRUST_HOST) {
   process.env.AUTH_TRUST_HOST = 'true';
