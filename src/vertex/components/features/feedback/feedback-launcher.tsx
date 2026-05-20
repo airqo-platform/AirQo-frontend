@@ -410,6 +410,22 @@ export const FeedbackLauncher: React.FC = () => {
     }
   }, [isOpen]);
 
+  // Close screenshot preview on Escape key press
+  useEffect(() => {
+    if (!previewOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setPreviewOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [previewOpen]);
+
   // -------------------------------------------------------------------------
   // Capture — uses getDisplayMedia for pixel-perfect output
   // -------------------------------------------------------------------------
