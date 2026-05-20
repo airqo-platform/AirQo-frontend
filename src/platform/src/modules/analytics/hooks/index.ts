@@ -9,7 +9,7 @@ import {
 } from '@/shared/hooks/usePreferences';
 import { useUser } from '@/shared/hooks/useUser';
 import { normalizeAirQualityData } from '@/shared/components/charts/utils';
-import { normalizeRecentReadingsToSiteData } from '../utils';
+import { generateTrend, getAirQualityLevel } from '../utils';
 import { useAnalytics } from './useAnalytics';
 import { analyticsService } from '@/shared/services/analyticsService';
 import type { SiteData, ChartData } from '../types';
@@ -17,7 +17,6 @@ import type {
   ChartDataPoint,
   DataDownloadRequest,
   Site,
-  RecentReading,
 } from '@/shared/types/api';
 import {
   buildDownloadFileContent,
@@ -34,6 +33,7 @@ const EMPTY_SELECTED_SITE_IDS: string[] = [];
 
 const ANALYTICS_QUERY_STALE_TIME_MS = 1000 * 60 * 5;
 const ANALYTICS_QUERY_GC_TIME_MS = 1000 * 60 * 60 * 12;
+const SITE_CARD_LOOKBACK_WINDOW_MS = 1000 * 60 * 60 * 24;
 
 const buildNoValueSiteCard = (
   selectedSite: Site,
@@ -54,6 +54,97 @@ const buildNoValueSiteCard = (
   trend: 'stable',
   percentageDifference: 0,
 });
+
+const buildSiteCardLocation = (selectedSite: Site) => {
+  return (
+    [selectedSite.city, selectedSite.region, selectedSite.country]
+      .filter(Boolean)
+      .join(', ') ||
+    selectedSite.country ||
+    'Unknown Country'
+  );
+};
+
+const createLatestSiteCardDateRange = () => {
+  const endDate = new Date();
+  const startDate = new Date(endDate.getTime() - SITE_CARD_LOOKBACK_WINDOW_MS);
+
+  return {
+    startDate: startDate.toISOString(),
+    endDate: endDate.toISOString(),
+  };
+};
+
+const buildSiteCardsFromChartPoints = (
+  chartPoints: ChartDataPoint[],
+  selectedSites: Site[],
+  pollutant: string
+): SiteData[] => {
+  if (!Array.isArray(chartPoints) || chartPoints.length === 0) {
+    return selectedSites.map(selectedSite =>
+      buildNoValueSiteCard(selectedSite, pollutant)
+    );
+  }
+
+  const pointsBySiteId = new Map<string, ChartDataPoint[]>();
+
+  chartPoints.forEach(point => {
+    if (!point?.site_id) {
+      return;
+    }
+
+    const sitePoints = pointsBySiteId.get(point.site_id) ?? [];
+    sitePoints.push(point);
+    pointsBySiteId.set(point.site_id, sitePoints);
+  });
+
+  return selectedSites.map(selectedSite => {
+    const sortedPoints = [...(pointsBySiteId.get(selectedSite._id) ?? [])].sort(
+      (left, right) =>
+        new Date(right.time).getTime() - new Date(left.time).getTime()
+    );
+    const latestPoint = sortedPoints[0];
+    const previousPoint = sortedPoints[1];
+    const latestValue = Number(latestPoint?.value);
+    const previousValue = Number(previousPoint?.value);
+
+    if (!latestPoint || !Number.isFinite(latestValue)) {
+      return buildNoValueSiteCard(selectedSite, pollutant);
+    }
+
+    const percentageDifference =
+      Number.isFinite(previousValue) && previousValue !== 0
+        ? ((latestValue - previousValue) / Math.abs(previousValue)) * 100
+        : 0;
+
+    return {
+      _id: selectedSite._id,
+      name:
+        selectedSite.search_name ||
+        selectedSite.name ||
+        selectedSite.formatted_name ||
+        selectedSite.generated_name ||
+        latestPoint.name ||
+        latestPoint.generated_name ||
+        'Unknown Site',
+      search_name:
+        selectedSite.search_name ||
+        selectedSite.name ||
+        latestPoint.name ||
+        latestPoint.generated_name,
+      location: buildSiteCardLocation(selectedSite),
+      country: selectedSite.country,
+      city: selectedSite.city,
+      region: selectedSite.region,
+      value: latestValue,
+      status: getAirQualityLevel(latestValue, pollutant),
+      pollutant,
+      unit: 'μg/m³',
+      trend: generateTrend(latestValue, previousValue),
+      percentageDifference,
+    };
+  });
+};
 
 interface AnalyticsPreferencesOptions {
   groupId?: string;
@@ -299,17 +390,28 @@ export const useAnalyticsSiteCards = ({
   const currentRequestKey = useMemo(() => JSON.stringify(queryKey), [queryKey]);
   const lastSettledRequestKeyRef = useRef(currentRequestKey);
 
-  const query = useQuery<RecentReading[], Error>({
+  const query = useQuery<SiteData[], Error>({
     queryKey,
     queryFn: async ({ signal }) => {
-      const response = await analyticsService.getRecentReadings(
+      const latestDateRange = createLatestSiteCardDateRange();
+      const response = await analyticsService.getChartData(
         {
-          site_id: selectedSiteIdsKey,
+          sites: selectedSiteIds,
+          startDate: latestDateRange.startDate,
+          endDate: latestDateRange.endDate,
+          chartType: 'line',
+          frequency: 'hourly',
+          pollutant: filters.pollutant.toLowerCase().replace('.', '_'),
+          organisation_name: '',
         },
         signal
       );
 
-      return response?.measurements ?? [];
+      return buildSiteCardsFromChartPoints(
+        response?.data ?? [],
+        selectedSites,
+        filters.pollutant
+      );
     },
     enabled: shouldFetch,
     networkMode: 'online',
@@ -342,39 +444,13 @@ export const useAnalyticsSiteCards = ({
     query.isFetching &&
     currentRequestKey !== lastSettledRequestKeyRef.current;
 
-  const measurementsBySiteId = useMemo(() => {
-    return new Map<string, RecentReading>(
-      (query.data ?? []).map(measurement => [measurement.site_id, measurement])
-    );
-  }, [query.data]);
-
-  const hasStableMeasurements = query.data !== undefined;
-
   const siteCards = useMemo(() => {
-    if (!shouldFetch || !hasStableMeasurements) {
+    if (!shouldFetch) {
       return [];
     }
 
-    return selectedSites.map(selectedSite => {
-      const measurement = measurementsBySiteId.get(selectedSite._id);
-
-      if (measurement) {
-        const normalized = normalizeRecentReadingsToSiteData(
-          [measurement],
-          filters.pollutant as 'pm2_5' | 'pm10'
-        );
-        return normalized[0];
-      }
-
-      return buildNoValueSiteCard(selectedSite, filters.pollutant);
-    });
-  }, [
-    filters.pollutant,
-    hasStableMeasurements,
-    measurementsBySiteId,
-    selectedSites,
-    shouldFetch,
-  ]);
+    return query.data ?? [];
+  }, [query.data, shouldFetch]);
 
   const refetchSiteCards = useCallback(async () => {
     if (!shouldFetch) {

@@ -165,10 +165,38 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
     ...config,
   };
 
+  const resolvedMargin = useMemo(() => {
+    const margin = {
+      ...DEFAULT_CHART_CONFIG.margin,
+      ...chartConfig.margin,
+    };
+
+    return {
+      ...margin,
+      right: Math.max(margin.right ?? 0, 16),
+    };
+  }, [chartConfig.margin]);
+
+  const xAxisPadding = useMemo(() => {
+    if (chartType === 'bar') {
+      return { left: 8, right: 20 };
+    }
+
+    if (
+      chartType === 'line' ||
+      chartType === 'area' ||
+      chartType === 'scatter'
+    ) {
+      return { left: 4, right: 16 };
+    }
+
+    return { left: 0, right: 0 };
+  }, [chartType]);
+
   // Common props for all charts
   const commonProps = {
     data: chartData as unknown as NormalizedChartData[],
-    margin: chartConfig.margin,
+    margin: resolvedMargin,
     ...CHART_ANIMATIONS[chartType as keyof typeof CHART_ANIMATIONS],
   };
 
@@ -187,6 +215,8 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
   const renderXAxis = () => (
     <XAxis
       dataKey={config.xAxisKey || 'time'}
+      padding={xAxisPadding}
+      interval="preserveStartEnd"
       tick={AXIS_CONFIG.tick}
       tickLine={AXIS_CONFIG.tickLine}
       axisLine={AXIS_CONFIG.axisLine}
@@ -483,12 +513,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
   if (!chart) return null;
 
   return (
-    <div
-      className={cn(
-        'w-full flex justify-center items-center min-h-[300px] min-w-0',
-        className
-      )}
-    >
+    <div className={cn('w-full min-h-[300px] min-w-0', className)}>
       <Container {...containerProps}>{chart}</Container>
     </div>
   );

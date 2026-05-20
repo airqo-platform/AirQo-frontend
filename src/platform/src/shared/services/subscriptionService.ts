@@ -96,10 +96,7 @@ type BackendTransaction = {
 type NormalizedSubscriptionStatus = UserSubscription['status'];
 type NormalizedRateLimits = NonNullable<UserSubscription['apiRateLimits']>;
 
-const USERS_PROFILE_CANDIDATE_PATHS = [
-  '/users/profile/enhanced',
-  '/users/me',
-] as const;
+const USERS_PROFILE_CANDIDATE_PATHS = ['/users/profile/enhanced'] as const;
 
 const RETRYABLE_PROFILE_STATUSES = new Set([400, 404, 405]);
 
@@ -323,7 +320,7 @@ const normalizeUsagePeriod = (
 
 const buildUsage = (
   payload?: UsagePayload | null,
-  fallbackRateLimits?: NormalizedRateLimits
+  fallbackRateLimits?: ApiRateLimitsPayload | NormalizedRateLimits | null
 ): ApiUsage => ({
   hourly: normalizeUsagePeriod(
     'hourly',
@@ -753,7 +750,9 @@ export class SubscriptionService {
   }> {
     let profile: UsersMePayload | null = null;
 
-    const getFallbackRateLimits = async () => {
+    const getFallbackRateLimits = async (): Promise<
+      ApiRateLimitsPayload | undefined
+    > => {
       if (!profile) {
         try {
           profile = await this.getUsersProfilePayload();
@@ -762,11 +761,7 @@ export class SubscriptionService {
         }
       }
 
-      const tier = normalizeTier(profile?.subscriptionTier);
-
-      return normalizeRateLimits(
-        mergeRateLimitsWithDefaults(tier, profile?.apiRateLimits)
-      );
+      return profile?.apiRateLimits ?? undefined;
     };
 
     try {
@@ -780,7 +775,7 @@ export class SubscriptionService {
       );
 
       const usagePayload = extractEnvelopeData<UsagePayload>(response.data);
-      let fallbackRateLimits: NormalizedRateLimits | undefined;
+      let fallbackRateLimits: ApiRateLimitsPayload | undefined;
       let usage = buildUsage(usagePayload);
 
       if (hasMissingUsageLimits(usage)) {

@@ -17,39 +17,53 @@ const SubscriptionManagement: React.FC = () => {
   const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
-    fetchSubscription();
-  }, []);
+    let isMounted = true;
 
-  const fetchSubscription = async () => {
-    try {
-      setLoading(true);
-      const data = await subscriptionService.getSubscription();
+    const fetchSubscription = async () => {
+      try {
+        setLoading(true);
+        const data = await subscriptionService.getSubscription();
 
-      if (data.success) {
-        const subscription = data.subscription || null;
-        const normalizedSubscription = subscription
-          ? {
-              ...subscription,
-              automaticRenewal:
-                subscription.automaticRenewal ??
-                subscription.autoRenewal ??
-                false,
-              autoRenewal:
-                subscription.autoRenewal ??
-                subscription.automaticRenewal ??
-                false,
-            }
-          : null;
+        if (!isMounted) {
+          return;
+        }
 
-        setSubscription(normalizedSubscription);
+        if (data.success) {
+          const subscription = data.subscription || null;
+          const normalizedSubscription = subscription
+            ? {
+                ...subscription,
+                automaticRenewal:
+                  subscription.automaticRenewal ??
+                  subscription.autoRenewal ??
+                  false,
+                autoRenewal:
+                  subscription.autoRenewal ??
+                  subscription.automaticRenewal ??
+                  false,
+              }
+            : null;
+
+          setSubscription(normalizedSubscription);
+        }
+      } catch (error) {
+        if (isMounted) {
+          console.error('Error fetching subscription:', error);
+          toast.error('Failed to load subscription information');
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
-    } catch (error) {
-      console.error('Error fetching subscription:', error);
-      toast.error('Failed to load subscription information');
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    void fetchSubscription();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleToggleAutoRenewal = async () => {
     if (!subscription) return;

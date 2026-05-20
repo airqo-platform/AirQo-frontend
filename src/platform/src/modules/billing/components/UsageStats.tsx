@@ -29,24 +29,43 @@ const UsageStats: React.FC = () => {
   const [currentTime, setCurrentTime] = useState(() => Date.now());
 
   useEffect(() => {
+    let isActive = true;
+
     const fetchUsage = async () => {
       try {
         const data = await subscriptionService.getUsage();
+        if (!isActive) {
+          return;
+        }
+
         if (data.success) {
           setUsage(data.usage || null);
           setLiveUsage(data.live ?? true);
           setUsageMessage(data.message || '');
         }
       } catch (error) {
-        console.error('Error fetching usage stats:', error);
+        if (isActive) {
+          console.error('Error fetching usage stats:', error);
+        }
       } finally {
-        setLoading(false);
+        if (isActive) {
+          setLoading(false);
+        }
       }
     };
 
-    fetchUsage();
-    const interval = setInterval(fetchUsage, 5 * 60 * 1000);
-    return () => clearInterval(interval);
+    void fetchUsage();
+    const interval = setInterval(
+      () => {
+        void fetchUsage();
+      },
+      5 * 60 * 1000
+    );
+
+    return () => {
+      isActive = false;
+      clearInterval(interval);
+    };
   }, []);
 
   useEffect(() => {

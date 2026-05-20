@@ -1,6 +1,12 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { AqCheck } from '@airqo/icons-react';
 import { Button, Card, LoadingSpinner, toast } from '@/shared/components/ui';
 import { formatDate } from '@/shared/utils';
@@ -72,6 +78,7 @@ const SubscriptionSection: React.FC = () => {
   const [runningAction, setRunningAction] = useState<
     'checkout' | 'enableAutoRenew' | 'disableAutoRenew' | 'cancel' | null
   >(null);
+  const isMountedRef = useRef(true);
 
   const currentTier: SubscriptionTier = subscription?.tier || 'Free';
   const currentStatus = subscription?.status || 'inactive';
@@ -84,6 +91,10 @@ const SubscriptionSection: React.FC = () => {
         subscriptionService.getSubscription(),
         subscriptionService.getPlans(),
       ]);
+
+      if (!isMountedRef.current) {
+        return;
+      }
 
       setSubscription(
         subscriptionResponse.success
@@ -102,12 +113,19 @@ const SubscriptionSection: React.FC = () => {
       );
       toast.error('Failed to load subscription data');
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
     }
   }, []);
 
   useEffect(() => {
-    refreshData();
+    isMountedRef.current = true;
+    void refreshData();
+
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [refreshData]);
 
   const currentPlan = useMemo(
