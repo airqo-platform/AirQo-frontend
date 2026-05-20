@@ -6,8 +6,11 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const file = formData.get('file') as File | null;
-    const folder = formData.get('folder') as string || 'feedback';
+    const requestedFolder = formData.get('folder') as string || 'feedback';
     const tags = formData.get('tags') as string || '';
+
+    const ALLOWED_FOLDERS = new Set(['feedback']);
+    const folder = ALLOWED_FOLDERS.has(requestedFolder) ? requestedFolder : 'feedback';
 
     const VALID_TYPES = new Set(['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
     const MAX_BYTES = 2 * 1024 * 1024; // 2MB
