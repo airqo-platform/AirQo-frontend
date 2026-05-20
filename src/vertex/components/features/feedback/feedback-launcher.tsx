@@ -451,21 +451,62 @@ export const FeedbackLauncher: React.FC = () => {
       //    composited frame buffer before we grab.
       await new Promise<void>((resolve) => setTimeout(resolve, 500));
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const imageCapture = new (window as any).ImageCapture(track);
-      const bitmap = await imageCapture.grabFrame();
-      track.stop();
+      let dataUrl = '';
+      let captureWidth = 0;
+      let captureHeight = 0;
 
-      const canvas = document.createElement('canvas');
-      canvas.width = bitmap.width;
-      canvas.height = bitmap.height;
-      canvas.getContext('2d')!.drawImage(bitmap, 0, 0);
+      if ('ImageCapture' in window) {
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const imageCapture = new (window as any).ImageCapture(track);
+          const bitmap = await imageCapture.grabFrame();
+          track.stop();
 
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+          const canvas = document.createElement('canvas');
+          canvas.width = bitmap.width;
+          canvas.height = bitmap.height;
+          canvas.getContext('2d')!.drawImage(bitmap, 0, 0);
+
+          dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+          captureWidth = bitmap.width;
+          captureHeight = bitmap.height;
+        } catch (captureErr) {
+          console.warn('ImageCapture failed, falling back to video element:', captureErr);
+        }
+      }
+
+      // Fallback: Use <video> element to extract the frame if ImageCapture is missing or failed
+      if (!dataUrl) {
+        const video = document.createElement('video');
+        video.srcObject = stream;
+        video.autoplay = true;
+        video.playsInline = true;
+        video.muted = true;
+
+        await new Promise<void>((resolve) => {
+          video.onloadedmetadata = () => {
+            video.play().then(() => resolve()).catch(() => resolve());
+          };
+          // Safety timeout in case metadata loading stalls
+          setTimeout(resolve, 1000);
+        });
+
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth || window.innerWidth;
+        canvas.height = video.videoHeight || window.innerHeight;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        }
+        track.stop();
+        dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+        captureWidth = canvas.width;
+        captureHeight = canvas.height;
+      }
 
       // Store raw screenshot + dimensions, then open the annotator.
       setRawDataUrl(dataUrl);
-      setRawDimensions({ w: bitmap.width, h: bitmap.height });
+      setRawDimensions({ w: captureWidth, h: captureHeight });
       setAnnotatorOpen(true);
     } catch (error: unknown) {
       if (error instanceof Error && error.name === 'NotAllowedError') return; // user cancelled
