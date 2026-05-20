@@ -2,6 +2,7 @@
 
 import HCaptcha from "@hcaptcha/react-hcaptcha";
 import { forwardRef, useImperativeHandle, useRef } from "react";
+import { getEnvConfig } from "@/lib/envConstants";
 
 interface HCaptchaWidgetProps {
   onVerify: (token: string) => void;
@@ -14,7 +15,7 @@ export interface HCaptchaWidgetHandle {
 
 export const HCaptchaWidget = forwardRef<HCaptchaWidgetHandle, HCaptchaWidgetProps>(
   function HCaptchaWidget({ onVerify, onExpire }, ref) {
-    const siteKey = process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY;
+    const { hCaptchaSiteKey: siteKey, environment } = getEnvConfig();
     const captchaRef = useRef<HCaptcha>(null);
 
     useImperativeHandle(ref, () => ({
@@ -24,7 +25,7 @@ export const HCaptchaWidget = forwardRef<HCaptchaWidgetHandle, HCaptchaWidgetPro
     if (!siteKey || siteKey.trim() === "") {
       return (
         <div className="p-3 text-sm text-yellow-800 bg-yellow-50 border border-yellow-200 rounded-md my-2">
-          {process.env.NODE_ENV === 'development'
+          {environment === 'development'
             ? 'HCaptcha site key is missing. Please set NEXT_PUBLIC_HCAPTCHA_SITE_KEY.'
             : 'Security check configuration is missing. Please contact support.'}
         </div>

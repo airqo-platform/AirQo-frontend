@@ -48,6 +48,7 @@ export const getEnvConfig = () => {
   return {
     apiUrl: process.env.NEXT_PUBLIC_API_URL,
     apiToken: process.env.NEXT_PUBLIC_API_TOKEN,
+    hCaptchaSiteKey: process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY || '',
     environment: process.env.NEXT_PUBLIC_ENV || 'development',
     analyticsUrl: process.env.NEXT_PUBLIC_ANALYTICS_URL,
     cookiePolicyUrl: COOKIE_POLICY_URL,
