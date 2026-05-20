@@ -31,7 +31,7 @@ export interface CloudinaryUploadResult {
 }
 
 const VALID_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 
 const validateFile = (file: File) => {
   if (!file) throw new Error('No file provided');
@@ -39,7 +39,7 @@ const validateFile = (file: File) => {
     throw new Error('Invalid file type. Please upload an image (JPEG, PNG, GIF, WEBP).');
   }
   if (file.size > MAX_FILE_SIZE) {
-    throw new Error('File size too large. Maximum size is 10MB.');
+    throw new Error('File size too large. Maximum size is 2MB.');
   }
 };
 

@@ -9,8 +9,19 @@ export async function POST(req: NextRequest) {
     const folder = formData.get('folder') as string || 'feedback';
     const tags = formData.get('tags') as string || '';
 
+    const VALID_TYPES = new Set(['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
+    const MAX_BYTES = 2 * 1024 * 1024; // 2MB
+
     if (!file) {
       return NextResponse.json({ success: false, error: 'No file provided' }, { status: 400 });
+    }
+
+    if (!VALID_TYPES.has(file.type)) {
+      return NextResponse.json({ success: false, error: 'Invalid file type' }, { status: 400 });
+    }
+
+    if (file.size > MAX_BYTES) {
+      return NextResponse.json({ success: false, error: 'File too large (max 2MB)' }, { status: 400 });
     }
 
     let cloudName: string;
