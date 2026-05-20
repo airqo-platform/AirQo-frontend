@@ -42,6 +42,7 @@ import { useUser } from '@/shared/hooks/useUser';
 import { useGetChartData } from '@/shared/hooks/useAnalytics';
 import { useDataDownload } from '@/modules/analytics/hooks';
 import { toast } from '@/shared/components/ui/toast';
+import { getSiteDisplayName } from '@/shared/utils/siteUtils';
 
 type MoreInsightsProps = {
   activeTab?: 'sites' | 'devices';
@@ -361,7 +362,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
     if (selectedSites.length === 0) {
       return 'Air Quality Insights';
     } else if (selectedSites.length === 1) {
-      return `Air Quality Insights - ${selectedSites[0].name}`;
+      return `Air Quality Insights - ${getSiteDisplayName(selectedSites[0])}`;
     } else {
       return `Air Quality Insights - ${selectedSites.length} Locations`;
     }
@@ -529,7 +530,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
           filteredSites.map((site: SelectedSite) => (
             <LocationCard
               key={site._id}
-              locationName={site.name}
+              locationName={getSiteDisplayName(site)}
               country={site.country}
               deviceName={site.device_name}
               isChecked={visibleSites.has(site._id)}

@@ -10,6 +10,7 @@ import {
 import { useUser } from '@/shared/hooks/useUser';
 import { normalizeAirQualityData } from '@/shared/components/charts/utils';
 import { generateTrend, getAirQualityLevel } from '../utils';
+import { getSiteDisplayName } from '@/shared/utils/siteUtils';
 import { useAnalytics } from './useAnalytics';
 import { analyticsService } from '@/shared/services/analyticsService';
 import type { SiteData, ChartData } from '../types';
@@ -40,12 +41,7 @@ const buildNoValueSiteCard = (
   pollutant: string
 ): SiteData => ({
   _id: selectedSite._id,
-  name:
-    selectedSite.search_name ||
-    selectedSite.name ||
-    selectedSite.formatted_name ||
-    selectedSite.generated_name ||
-    'Unknown Site',
+  name: getSiteDisplayName(selectedSite),
   location: selectedSite.country || 'Unknown Country',
   value: 0,
   status: 'no-value',
@@ -116,22 +112,12 @@ const buildSiteCardsFromChartPoints = (
       Number.isFinite(previousValue) && previousValue !== 0
         ? ((latestValue - previousValue) / Math.abs(previousValue)) * 100
         : 0;
+    const displayName = getSiteDisplayName(selectedSite);
 
     return {
       _id: selectedSite._id,
-      name:
-        selectedSite.search_name ||
-        selectedSite.name ||
-        selectedSite.formatted_name ||
-        selectedSite.generated_name ||
-        latestPoint.name ||
-        latestPoint.generated_name ||
-        'Unknown Site',
-      search_name:
-        selectedSite.search_name ||
-        selectedSite.name ||
-        latestPoint.name ||
-        latestPoint.generated_name,
+      name: displayName,
+      search_name: displayName,
       location: buildSiteCardLocation(selectedSite),
       country: selectedSite.country,
       city: selectedSite.city,

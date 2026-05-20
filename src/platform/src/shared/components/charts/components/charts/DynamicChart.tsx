@@ -141,9 +141,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
     (value: string | number | undefined, entry: LegendPayload) => {
       const seriesKey = String(entry.dataKey ?? entry.value ?? '').trim();
       const isHidden = seriesKey ? hiddenSeries.has(seriesKey) : false;
-      const formattedValue = String(value ?? '')
-        .replace(/_/g, ' ')
-        .trim();
+      const formattedValue = String(value ?? '').trim();
 
       return (
         <span

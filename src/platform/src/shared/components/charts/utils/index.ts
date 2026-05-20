@@ -8,6 +8,32 @@ import {
 import { format, parseISO } from 'date-fns';
 import { CHART_TYPE_THRESHOLDS } from '../constants';
 
+type ChartLocationDisplaySource = {
+  search_name?: string;
+  location_name?: string;
+  name?: string;
+  formatted_name?: string;
+  generated_name?: string;
+  site?: string;
+};
+
+/**
+ * Resolves the display name for a chart site/location.
+ */
+export const getChartLocationDisplayName = (
+  source: ChartLocationDisplaySource
+): string => {
+  return (
+    source.search_name?.trim() ||
+    source.location_name?.trim() ||
+    source.name?.trim() ||
+    source.formatted_name?.trim() ||
+    source.site?.trim() ||
+    source.generated_name?.trim() ||
+    'Unknown Location'
+  );
+};
+
 /**
  * Normalizes air quality data for chart consumption
  */
@@ -22,10 +48,15 @@ export const normalizeAirQualityData = (
   return data.map(point => ({
     time: point.time,
     value: Math.round(point.value * 100) / 100, // Round to 2 decimal places
-    site: point.name || point.generated_name,
+    site: getChartLocationDisplayName(point),
     device_id: point.device_id,
     site_id: point.site_id,
     rawTime: point.time,
+    search_name: point.search_name,
+    location_name: point.location_name,
+    formatted_name: point.formatted_name,
+    name: point.name,
+    generated_name: point.generated_name,
   }));
 };
 

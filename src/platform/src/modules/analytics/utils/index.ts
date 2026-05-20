@@ -22,6 +22,7 @@ import {
 } from '@/shared/utils/airQuality';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import type { RecentReading } from '@/shared/types/api';
+import { getSiteDisplayName } from '@/shared/utils/siteUtils';
 
 // Re-export shared utilities for convenience
 export {
@@ -168,6 +169,11 @@ export const transformAnalyticsData = (
 
     const latestPoint = sortedPoints[0];
     const previousPoint = sortedPoints[1];
+    const displayName = getSiteDisplayName({
+      search_name: latestPoint.site_name,
+      name: latestPoint.site_name,
+      formatted_name: latestPoint.generated_name,
+    });
 
     const level = getAirQualityLevel(
       latestPoint.value,
@@ -177,8 +183,7 @@ export const transformAnalyticsData = (
 
     return {
       _id: siteId,
-      name:
-        latestPoint.site_name || latestPoint.generated_name || `Site ${siteId}`,
+      name: displayName || `Site ${siteId}`,
       location: latestPoint.generated_name || 'Unknown Location',
       value: latestPoint.value,
       status: level,
@@ -253,6 +258,7 @@ export const normalizeRecentReadingsToSiteData = (
 
   return measurements.map(measurement => {
     const { siteDetails, averages, pm2_5, pm10 } = measurement;
+    const displayName = getSiteDisplayName(siteDetails);
 
     // Get value based on active pollutant
     const pollutantValue =
@@ -275,11 +281,7 @@ export const normalizeRecentReadingsToSiteData = (
 
     return {
       _id: siteDetails?._id || measurement.site_id,
-      name:
-        siteDetails?.search_name ||
-        siteDetails?.name ||
-        siteDetails?.formatted_name ||
-        'Unknown Site',
+      name: displayName,
       location: siteDetails?.country || 'Unknown Country',
       value,
       status,
