@@ -12,7 +12,7 @@ import ReusableDialog from '@/components/shared/dialog/ReusableDialog';
 import ReusableInputField from '@/components/shared/inputfield/ReusableInputField';
 import ReusableSelectInput from '@/components/shared/select/ReusableSelectInput';
 import ReusableButton from '@/components/shared/button/ReusableButton';
-import { toast } from '@/components/shared/toast/ReusableToast';
+import { useBanner } from '@/context/banner-context';
 
 import { feedbackService } from '@/core/apis/feedback';
 import { uploadToCloudinary } from '@/core/apis/cloudinary';
@@ -357,6 +357,7 @@ const ScreenshotAnnotator: React.FC<ScreenshotAnnotatorProps> = ({
 export const FeedbackLauncher: React.FC = () => {
   const pathname = usePathname();
   const { userDetails } = useUserContext();
+  const { showBanner } = useBanner();
 
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -526,8 +527,7 @@ export const FeedbackLauncher: React.FC = () => {
       setAnnotatorOpen(true);
     } catch (error: unknown) {
       if (error instanceof Error && error.name === 'NotAllowedError') return; // user cancelled
-      console.error('Screenshot capture failed:', error);
-      toast.error('Failed to capture screenshot');
+      showBanner({ severity: 'error', message: 'Failed to capture screenshot', scoped: true });
     } finally {
       setIsCapturing(false);
     }
@@ -568,7 +568,7 @@ export const FeedbackLauncher: React.FC = () => {
             if (blob) {
               setScreenshotDataUrl(dataUrl);
               setScreenshotFile(new File([blob], 'screenshot.jpg', { type: 'image/jpeg' }));
-              toast.success('Screenshot captured successfully');
+              showBanner({ severity: 'success', message: 'Screenshot captured successfully', scoped: true });
             }
           },
           'image/jpeg',
@@ -586,9 +586,9 @@ export const FeedbackLauncher: React.FC = () => {
 
       setScreenshotDataUrl(dataUrl);
       setScreenshotFile(file);
-      toast.success('Screenshot captured successfully');
+      showBanner({ severity: 'success', message: 'Screenshot captured successfully', scoped: true });
     } catch {
-      toast.error('Failed to process screenshot annotations');
+      showBanner({ severity: 'error', message: 'Failed to process screenshot annotations', scoped: true });
     }
   };
 
@@ -617,15 +617,15 @@ export const FeedbackLauncher: React.FC = () => {
     const userEmail = userDetails?.email || userDetails?.userName || '';
 
     if (!trimmedMessage) {
-      toast.error('Please provide a description.');
+      showBanner({ severity: 'error', message: 'Please provide a description.', scoped: true });
       return;
     }
     if (mainCategory === 'issue' && !issueAction) {
-      toast.error('Please select what you were trying to do.');
+      showBanner({ severity: 'error', message: 'Please select what you were trying to do.', scoped: true });
       return;
     }
     if (!userEmail) {
-      toast.error('Unable to identify your account. Please try again in a moment.');
+      showBanner({ severity: 'error', message: 'Unable to identify your account. Please try again in a moment.', scoped: true });
       return;
     }
 
@@ -643,11 +643,12 @@ export const FeedbackLauncher: React.FC = () => {
           });
           screenshot_url = uploaded.secure_url;
         } catch (err) {
-          console.error('Screenshot upload failed, proceeding without it', err);
-          toast.warning(
-            'Screenshot upload failed',
-            'We could not attach the screenshot to your feedback. Your feedback will still be submitted.',
-          );
+          showBanner({
+            severity: 'warning',
+            title: 'Screenshot upload failed',
+            message: 'We could not attach the screenshot to your feedback. Your feedback will still be submitted.',
+            scoped: false,
+          });
         } finally {
           setIsUploadingScreenshot(false);
         }
@@ -668,14 +669,17 @@ export const FeedbackLauncher: React.FC = () => {
         metadata: defaultMetadata,
       });
 
-      toast.success('Feedback sent successfully');
+      showBanner({ severity: 'success', message: 'Feedback sent successfully' });
       setIsOpen(false);
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? getApiErrorMessage(error)
-          : 'An error occurred while submitting feedback',
-      );
+      showBanner({
+        severity: 'error',
+        message:
+          error instanceof Error
+            ? getApiErrorMessage(error)
+            : 'An error occurred while submitting feedback',
+        scoped: true,
+      });
     } finally {
       setIsSubmitting(false);
     }
