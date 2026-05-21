@@ -72,6 +72,7 @@ interface CheckoutResponse {
   comingSoon?: boolean;
   data?: {
     checkoutUrl?: string;
+    sessionId?: string;
   };
 }
 
@@ -960,7 +961,11 @@ export class SubscriptionService {
         }
       );
 
-      const data = extractEnvelopeData<{ checkoutUrl?: string }>(response.data);
+      const data = extractEnvelopeData<{
+        checkoutUrl?: string;
+        sessionId?: string;
+        session_id?: string;
+      }>(response.data);
 
       return {
         success: true,
@@ -970,6 +975,7 @@ export class SubscriptionService {
         ),
         data: {
           checkoutUrl: data?.checkoutUrl,
+          sessionId: data?.sessionId ?? data?.session_id,
         },
       };
     } catch (error) {
