@@ -26,6 +26,7 @@ export interface ServerSideTableProps<T = TableItem> {
   data: T[];
   columns: TableColumn<T>[];
   loading?: boolean;
+  isRefreshing?: boolean;
   error?: string | null;
   onRefresh?: () => void;
   className?: string;
@@ -64,6 +65,7 @@ export function ServerSideTable<T extends TableItem>({
   data,
   columns,
   loading = false,
+  isRefreshing = false,
   error,
   onRefresh,
   className,
@@ -178,6 +180,7 @@ export function ServerSideTable<T extends TableItem>({
         title={`${title}`}
         columns={columns}
         loading={loading}
+        isRefreshing={isRefreshing}
         error={error}
         onRefresh={onRefresh}
         multiSelect={multiSelect}

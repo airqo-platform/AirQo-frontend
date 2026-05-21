@@ -1,6 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { enforceHttpsForRemote } from '@/lib/config';
 
-const BEACON_API_URL = process.env.NEXT_PUBLIC_LOCAL_API_URL || 'http://localhost:8000';
+const getBeaconApiUrl = () => {
+  const isDevelopment = process.env.NODE_ENV === 'development';
+
+  if (isDevelopment && process.env.NEXT_PUBLIC_LOCAL_API_URL) {
+    return enforceHttpsForRemote(process.env.NEXT_PUBLIC_LOCAL_API_URL);
+  }
+
+  const candidates = [
+    process.env.BEACON_API_URL,
+    process.env.AIRQO_STAGING_API_BASE_URL,
+    process.env.AIRQO_API_BASE_URL,
+    process.env.NEXT_PUBLIC_BEACON_API_URL,
+    process.env.NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL,
+    process.env.NEXT_PUBLIC_AIRQO_API_BASE_URL,
+  ];
+
+  for (const candidate of candidates) {
+    if (candidate) return enforceHttpsForRemote(candidate);
+  }
+
+  return 'http://localhost:8000';
+};
+
+const BEACON_API_URL = getBeaconApiUrl();
 
 export async function GET(
   request: NextRequest,

@@ -736,6 +736,18 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName, entit
                       <div className="inline-flex rounded-md border bg-white p-0.5 text-xs">
                         <button
                           type="button"
+                          onClick={() => setSensorHealthMode("correlation")}
+                          className={cn(
+                            "px-2 py-1 rounded-sm transition-colors",
+                            sensorHealthMode === "correlation"
+                              ? "bg-orange-100 text-orange-700 font-medium"
+                              : "text-gray-500 hover:text-gray-700"
+                          )}
+                        >
+                          Correlation
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => setSensorHealthMode("error")}
                           className={cn(
                             "px-2 py-1 rounded-sm transition-colors",
@@ -756,19 +768,7 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName, entit
                               : "text-gray-500 hover:text-gray-700"
                           )}
                         >
-                          Sensors
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setSensorHealthMode("correlation")}
-                          className={cn(
-                            "px-2 py-1 rounded-sm transition-colors",
-                            sensorHealthMode === "correlation"
-                              ? "bg-orange-100 text-orange-700 font-medium"
-                              : "text-gray-500 hover:text-gray-700"
-                          )}
-                        >
-                          Correlation
+                          Sensors Readings
                         </button>
                       </div>
                     </div>

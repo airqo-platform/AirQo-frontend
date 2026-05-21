@@ -3,7 +3,10 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useDownloadData } from '@/shared/hooks/useAnalytics';
-import { useUserPreferencesList } from '@/shared/hooks/usePreferences';
+import {
+  getLatestPreferenceForGroup,
+  useUserPreferencesList,
+} from '@/shared/hooks/usePreferences';
 import { useUser } from '@/shared/hooks/useUser';
 import { normalizeAirQualityData } from '@/shared/components/charts/utils';
 import { normalizeRecentReadingsToSiteData } from '../utils';
@@ -82,19 +85,11 @@ export const useAnalyticsPreferences = (
 
   // Get the most recent preference from the list
   const currentPreference = useMemo(() => {
-    if (
-      !preferencesData?.preferences ||
-      preferencesData.preferences.length === 0
-    ) {
-      return null;
-    }
-    // Sort by lastAccessed date (most recent first) and take the first one
-    return [...preferencesData.preferences].sort(
-      (a, b) =>
-        new Date(b.lastAccessed || b.updatedAt).getTime() -
-        new Date(a.lastAccessed || a.updatedAt).getTime()
-    )[0];
-  }, [preferencesData?.preferences]);
+    return getLatestPreferenceForGroup(
+      preferencesData?.preferences,
+      resolvedGroupId
+    );
+  }, [preferencesData?.preferences, resolvedGroupId]);
 
   // Extract selected sites IDs
   const selectedSiteIds = useMemo(() => {
@@ -151,6 +146,8 @@ export const useAnalyticsChartData = (
   selectedSiteIds: string[] = EMPTY_SELECTED_SITE_IDS,
   enabled = true
 ) => {
+  const { activeGroup } = useUser();
+
   // Calculate date range based on filters
   const dateRange = useMemo(() => {
     return {
@@ -163,12 +160,14 @@ export const useAnalyticsChartData = (
     () => selectedSiteIds.join(','),
     [selectedSiteIds]
   );
+  const activeGroupKey = activeGroup?.id ?? 'no-active-group';
   const shouldFetch = enabled && selectedSiteIds.length > 0;
 
   const chartQueryKey = useMemo(
     () => [
       'analytics',
       'chart-data',
+      activeGroupKey,
       chartType,
       selectedSiteIdsKey,
       dateRange.startDate,
@@ -180,6 +179,7 @@ export const useAnalyticsChartData = (
       chartType,
       dateRange.endDate,
       dateRange.startDate,
+      activeGroupKey,
       filters.frequency,
       filters.pollutant,
       selectedSiteIdsKey,
@@ -272,11 +272,12 @@ export const useAnalyticsSiteCards = ({
   enabled = true,
 }: AnalyticsSelections) => {
   const { filters } = useAnalytics();
-  const { user } = useUser();
+  const { user, activeGroup } = useUser();
   const selectedSiteIdsKey = useMemo(
     () => selectedSiteIds.join(','),
     [selectedSiteIds]
   );
+  const activeGroupKey = activeGroup?.id ?? 'no-active-group';
 
   const shouldFetch = enabled && selectedSiteIds.length > 0;
 
@@ -284,6 +285,7 @@ export const useAnalyticsSiteCards = ({
     queryKey: [
       'analytics',
       'site-cards',
+      activeGroupKey,
       user?.id ?? 'anonymous',
       selectedSiteIdsKey,
       filters.pollutant,

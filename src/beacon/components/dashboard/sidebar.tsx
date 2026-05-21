@@ -1,9 +1,11 @@
 "use client"
 
 import Link from "next/link"
-import { Package, Layers, Box, ChevronRight, Wrench, FlaskConical } from "lucide-react"
+import { Package, Layers, Box, ChevronRight, Wrench, FlaskConical, FileText, MessageSquare } from "lucide-react"
 import { AqMonitor, AqAirQlouds } from '@/components/icons'
 import { useGroup } from '@/lib/group-context'
+import { openFeedbackDialog } from '@/components/features/feedback/feedback-dialog'
+import { FeedbackLauncher } from '@/components/features/feedback/feedback-launcher'
 
 interface SidebarProps {
   sidebarOpen: boolean
@@ -210,6 +212,22 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar }: Readonly<Sideb
               )}
             </Link>
           </li>
+          <li>
+            <Link
+              href="/dashboard/reports"
+              className={`flex items-center rounded-md hover:bg-gray-100 transition-colors group relative ${sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
+                }`}
+              title={!sidebarOpen ? "Reports" : ""}
+            >
+              <FileText className="h-5 w-5 flex-shrink-0" />
+              {sidebarOpen && <span className="ml-3 text-sm">Reports</span>}
+              {!sidebarOpen && (
+                <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                  Reports
+                </span>
+              )}
+            </Link>
+          </li>
 
           {/* <li>
             <Link
@@ -230,6 +248,27 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar }: Readonly<Sideb
           </li> */}
         </ul>
       </nav>
+
+      {/* Bottom Section */}
+      <div className="px-2 py-3 border-t border-gray-200">
+        <button
+          onClick={openFeedbackDialog}
+          className={`w-full flex items-center rounded-md hover:bg-gray-100 transition-colors group relative ${
+            sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
+          }`}
+          title={!sidebarOpen ? "Feedback" : ""}
+        >
+          <MessageSquare className="h-5 w-5 flex-shrink-0" />
+          {sidebarOpen && <span className="ml-3 text-sm">Feedback</span>}
+          {!sidebarOpen && (
+            <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+              Feedback
+            </span>
+          )}
+        </button>
+      </div>
+
+      <FeedbackLauncher />
     </div>
   )
 }

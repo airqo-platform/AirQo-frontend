@@ -41,6 +41,66 @@ export const getApiToken = (): string => {
 export const COOKIE_POLICY_URL = process.env.NEXT_PUBLIC_COOKIE_POLICY_URL || 'https://airqo.net/legal/cookies';
 
 /**
+ * Gets the Cloudinary cloud name
+ * @returns {string} The Cloudinary cloud name
+ * @throws {Error} If NEXT_PUBLIC_CLOUDINARY_NAME is not defined
+ */
+export const getCloudinaryName = (): string => {
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_NAME;
+  
+  if (!cloudName) {
+    throw new Error('NEXT_PUBLIC_CLOUDINARY_NAME environment variable is not defined');
+  }
+  
+  return cloudName;
+};
+
+/**
+ * Gets the Cloudinary upload preset
+ * @returns {string} The Cloudinary upload preset
+ * @throws {Error} If NEXT_PUBLIC_CLOUDINARY_PRESET is not defined
+ */
+export const getCloudinaryPreset = (): string => {
+  const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_PRESET;
+  
+  if (!uploadPreset) {
+    throw new Error('NEXT_PUBLIC_CLOUDINARY_PRESET environment variable is not defined');
+  }
+  
+  return uploadPreset;
+};
+
+/**
+ * Gets the Cloudinary API key (server-side only)
+ * @returns {string} The Cloudinary API key
+ * @throws {Error} If CLOUDINARY_API_KEY is not defined
+ */
+export const getCloudinaryApiKey = (): string => {
+  const apiKey = process.env.CLOUDINARY_API_KEY;
+  
+  if (!apiKey) {
+    throw new Error('CLOUDINARY_API_KEY environment variable is not defined');
+  }
+  
+  return apiKey;
+};
+
+/**
+ * Gets the Cloudinary API secret (server-side only)
+ * @returns {string} The Cloudinary API secret
+ * @throws {Error} If CLOUDINARY_API_SECRET is not defined
+ */
+export const getCloudinaryApiSecret = (): string => {
+  const apiSecret = process.env.CLOUDINARY_API_SECRET;
+  
+  if (!apiSecret) {
+    throw new Error('CLOUDINARY_API_SECRET environment variable is not defined');
+  }
+  
+  return apiSecret;
+};
+
+/**
  * Gets the HCaptcha site key from environment variables
  * @returns {string} The HCaptcha site key
  */
@@ -70,6 +130,8 @@ export const getEnvConfig = () => {
     cookiePolicyUrl: COOKIE_POLICY_URL,
     mapboxToken: process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN,
     mockPermissionsEnabled: process.env.NEXT_PUBLIC_MOCK_PERMISSIONS_ENABLED === 'true',
+    cloudinaryName: process.env.NEXT_PUBLIC_CLOUDINARY_NAME,
+    cloudinaryPreset: process.env.NEXT_PUBLIC_CLOUDINARY_PRESET,
   };
 };
 
@@ -81,7 +143,13 @@ export const validateEnvironment = (): boolean => {
   const required = [
     'NEXT_PUBLIC_API_URL',
     'NEXT_PUBLIC_API_TOKEN',
+    'NEXT_PUBLIC_CLOUDINARY_NAME',
+    'NEXT_PUBLIC_CLOUDINARY_PRESET',
   ];
+  
+  if (typeof window === 'undefined') {
+    required.push('CLOUDINARY_API_KEY', 'CLOUDINARY_API_SECRET');
+  }
   
   const missing = required.filter(key => !process.env[key]);
   

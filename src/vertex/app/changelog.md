@@ -4,8 +4,8 @@
 
 ---
 
-## Version 1.23.46
-**Released:** May 19, 2026
+## Version 1.23.47
+**Released:** May 21, 2026
 
 ### hCaptcha Integration on Login Page
 
@@ -30,6 +30,39 @@ Added hCaptcha human verification to the password step of the login form to prot
 - `src/vertex/components/ui/hcaptcha-widget.tsx` [ADDED]
 - `src/vertex/package.json` [MODIFIED]
 - `src/vertex/package-lock.json` [MODIFIED]
+
+</details>
+
+---
+
+## Version 1.23.46
+**Released:** May 20, 2026
+
+### Automated Feedback Screenshot Capture
+
+Introduced automated screen capture for the feedback launcher, allowing users to automatically take and attach screenshots of their current view.
+
+<details>
+<summary><strong>New Features (1)</strong></summary>
+
+- **Automated Feedback Screenshot Capture**: Adds screenshot upload functionality to the feedback submission system in the Vertex application, enabling users to attach visual context when reporting issues or suggesting improvements.
+
+</details>
+
+<details>
+<summary><strong>Technical Details (3)</strong></summary>
+
+- **On-Demand Viewport Capture**: Integrated `html2canvas` for dynamic, client-side screen rendering.
+- **Intelligent Modal Hiding**: The feedback dialog and backdrop are temporarily hidden from the DOM layout during screen capture to ensure only the app viewport behind the modal is photographed.
+- **JPEG Compression**: Automatically outputs captured canvases as lightweight JPEG blobs (`0.85` quality) to minimize network payload size and bypass size restrictions.
+
+</details>
+
+<details>
+<summary><strong>Files Created/Modified (2)</strong></summary>
+
+- `src/vertex/components/features/feedback/feedback-launcher.tsx` [MODIFIED]
+- `src/vertex/package.json` [MODIFIED]
 
 </details>
 
