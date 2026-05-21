@@ -12,6 +12,7 @@ import {
   FREQUENCY_LABELS,
   POLLUTANT_LABELS,
 } from '@/shared/components/charts/constants';
+import { getSiteDisplayName } from '@/shared/utils/siteUtils';
 
 interface DownloadDialogProps {
   isOpen: boolean;
@@ -180,12 +181,7 @@ export const DownloadDialog: React.FC<DownloadDialogProps> = ({
     () =>
       selectedSites.map(site => ({
         id: site._id,
-        displayName:
-          site.search_name ||
-          site.name ||
-          site.formatted_name ||
-          site.generated_name ||
-          `Site ${site._id.slice(-6)}`,
+        displayName: getSiteDisplayName(site),
         location: site.country || site.region || site.city || '',
       })),
     [selectedSites]

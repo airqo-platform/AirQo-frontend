@@ -20,6 +20,7 @@ import {
 import { useChecklistIntegration } from '@/modules/user-checklist';
 import type { Site } from '@/shared/types/api';
 import { trackEvent } from '@/shared/utils/analytics';
+import { getSiteDisplayName } from '@/shared/utils/siteUtils';
 
 const isCancellationError = (error: unknown) => {
   const candidate = error as {
@@ -338,12 +339,7 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
                     transition={{ duration: 0.2, ease: 'easeOut' }}
                   >
                     <LocationCard
-                      locationName={
-                        location.search_name ||
-                        location.name ||
-                        location.generated_name ||
-                        ''
-                      }
+                      locationName={getSiteDisplayName(location)}
                       subtitle={`${location.city}, ${location.country}`}
                       isChecked={true}
                       showCloseButton={true}

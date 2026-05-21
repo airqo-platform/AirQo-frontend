@@ -15,6 +15,24 @@ export interface RawSiteData {
   [key: string]: unknown;
 }
 
+/**
+ * Resolves the display label for a site/location using the shared precedence.
+ */
+export const getSiteDisplayName = (
+  site: Pick<
+    RawSiteData,
+    'search_name' | 'location_name' | 'name' | 'formatted_name'
+  >
+): string => {
+  return (
+    site.search_name?.trim() ||
+    site.location_name?.trim() ||
+    site.name?.trim() ||
+    site.formatted_name?.trim() ||
+    'Unknown Location'
+  );
+};
+
 // Normalized site data for table display
 export interface NormalizedSiteData {
   id: string;
@@ -35,12 +53,7 @@ export interface NormalizedSiteData {
  */
 export const normalizeSiteData = (site: RawSiteData): NormalizedSiteData => {
   // Extract location name with fallback priority
-  const location =
-    site.search_name ||
-    site.name ||
-    site.formatted_name ||
-    site.location_name ||
-    'Unknown Location';
+  const location = getSiteDisplayName(site);
 
   return {
     id: site._id,
@@ -75,13 +88,7 @@ export const getSiteDisplayValue = (
 ): string => {
   switch (property) {
     case 'location':
-      return (
-        site.search_name ||
-        site.name ||
-        site.formatted_name ||
-        site.location_name ||
-        'Unknown Location'
-      );
+      return getSiteDisplayName(site);
     case 'city':
       return site.city || 'Unknown City';
     case 'country':

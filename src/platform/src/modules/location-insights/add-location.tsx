@@ -21,6 +21,7 @@ import {
   trackLocationSelection,
   trackFeatureUsage,
 } from '@/shared/utils/enhancedAnalytics';
+import { getSiteDisplayName } from '@/shared/utils/siteUtils';
 
 const AddLocation: React.FC = () => {
   const dispatch = useDispatch();
@@ -220,7 +221,7 @@ const AddLocation: React.FC = () => {
                     transition={{ duration: 0.2, ease: 'easeOut' }}
                   >
                     <LocationCard
-                      locationName={siteData.name}
+                      locationName={getSiteDisplayName(siteData)}
                       country={siteData.country}
                       subtitle={siteData.city}
                       isChecked={true}

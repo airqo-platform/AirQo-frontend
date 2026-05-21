@@ -35,7 +35,7 @@ const CheckoutDialog: React.FC<CheckoutDialogProps> = ({
           : 'Select a subscription plan'
       }
       primaryAction={{
-        label: loading ? 'Redirecting...' : 'Proceed To Checkout',
+        label: loading ? 'Opening...' : 'Open Checkout',
         onClick: onConfirm,
         disabled: !plan || loading,
         loading,
@@ -51,8 +51,8 @@ const CheckoutDialog: React.FC<CheckoutDialogProps> = ({
       <div className="space-y-4">
         <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
           <p className="text-sm text-gray-700 dark:text-gray-200">
-            Payments are handled on our provider-hosted checkout page. No card
-            number or CVV is collected in this application.
+            Payments are handled in a secure checkout overlay. No card number or
+            CVV is collected in this application.
           </p>
         </div>
 

@@ -1,8 +1,16 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { useSession } from 'next-auth/react';
 import { AqCheck } from '@airqo/icons-react';
 import { Button, Card, LoadingSpinner, toast } from '@/shared/components/ui';
+import { PADDLE_CHECKOUT_COMPLETED_EVENT } from '@/shared/lib/paddle';
 import { formatDate } from '@/shared/utils';
 import { subscriptionService } from '@/shared/services/subscriptionService';
 import type {
@@ -14,6 +22,13 @@ import CheckoutDialog from './CheckoutDialog';
 
 const BILLING_SERVICE_UNAVAILABLE_MESSAGE =
   'Billing service is temporarily unavailable. Please try again later.';
+
+const CHECKOUT_STATUS_POLL_INTERVAL_MS = 2000;
+const CHECKOUT_STATUS_MAX_ATTEMPTS = 6;
+
+interface ExtendedSessionUser {
+  _id?: string;
+}
 
 const statusBadgeStyles: Record<string, string> = {
   active:
@@ -59,7 +74,13 @@ const getBillingErrorLogMessage = (error: unknown): string => {
   return 'Unknown billing error';
 };
 
+const delay = (milliseconds: number): Promise<void> =>
+  new Promise(resolve => {
+    setTimeout(resolve, milliseconds);
+  });
+
 const SubscriptionSection: React.FC = () => {
+  const { data: session } = useSession();
   const [subscription, setSubscription] = useState<UserSubscription | null>(
     null
   );
@@ -72,6 +93,9 @@ const SubscriptionSection: React.FC = () => {
   const [runningAction, setRunningAction] = useState<
     'checkout' | 'enableAutoRenew' | 'disableAutoRenew' | 'cancel' | null
   >(null);
+  const isMountedRef = useRef(true);
+  const userId =
+    (session?.user as ExtendedSessionUser | null)?._id?.trim() || '';
 
   const currentTier: SubscriptionTier = subscription?.tier || 'Free';
   const currentStatus = subscription?.status || 'inactive';
@@ -84,6 +108,10 @@ const SubscriptionSection: React.FC = () => {
         subscriptionService.getSubscription(),
         subscriptionService.getPlans(),
       ]);
+
+      if (!isMountedRef.current) {
+        return;
+      }
 
       setSubscription(
         subscriptionResponse.success
@@ -102,12 +130,19 @@ const SubscriptionSection: React.FC = () => {
       );
       toast.error('Failed to load subscription data');
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
     }
   }, []);
 
   useEffect(() => {
-    refreshData();
+    isMountedRef.current = true;
+    void refreshData();
+
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [refreshData]);
 
   const currentPlan = useMemo(
@@ -123,6 +158,67 @@ const SubscriptionSection: React.FC = () => {
     currentStatus !== 'inactive' &&
     currentStatus !== 'cancelled';
 
+  const syncSubscriptionAfterCheckout = useCallback(async () => {
+    let latestSubscription: UserSubscription | null = null;
+
+    for (
+      let attempt = 0;
+      attempt < CHECKOUT_STATUS_MAX_ATTEMPTS;
+      attempt += 1
+    ) {
+      if (!isMountedRef.current) {
+        return latestSubscription;
+      }
+
+      const response = await subscriptionService.getSubscription();
+
+      if (!response.success) {
+        throw new Error(
+          response.message || 'Failed to refresh subscription status'
+        );
+      }
+
+      latestSubscription = response.subscription ?? null;
+
+      if (isMountedRef.current) {
+        setSubscription(latestSubscription);
+      }
+
+      if (latestSubscription?.status === 'active') {
+        return latestSubscription;
+      }
+
+      if (attempt < CHECKOUT_STATUS_MAX_ATTEMPTS - 1) {
+        await delay(CHECKOUT_STATUS_POLL_INTERVAL_MS);
+      }
+    }
+
+    return latestSubscription;
+  }, []);
+
+  useEffect(() => {
+    const handleCheckoutCompleted = () => {
+      void syncSubscriptionAfterCheckout().catch(error => {
+        console.error(
+          `Checkout sync error: ${getBillingErrorLogMessage(error)}`
+        );
+        toast.error('Payment completed, but the subscription sync failed');
+      });
+    };
+
+    window.addEventListener(
+      PADDLE_CHECKOUT_COMPLETED_EVENT,
+      handleCheckoutCompleted
+    );
+
+    return () => {
+      window.removeEventListener(
+        PADDLE_CHECKOUT_COMPLETED_EVENT,
+        handleCheckoutCompleted
+      );
+    };
+  }, [syncSubscriptionAfterCheckout]);
+
   const handleOpenCheckout = (plan: SubscriptionPlan) => {
     setSelectedPlan(plan);
     setDialogOpen(true);
@@ -133,11 +229,20 @@ const SubscriptionSection: React.FC = () => {
       return;
     }
 
+    if (!userId) {
+      toast.error(
+        'Unable to determine the current user. Please refresh and try again.'
+      );
+      return;
+    }
+
     try {
       setRunningAction('checkout');
 
       const payload = await subscriptionService.createCheckoutSession({
+        userId,
         tier: selectedPlan.tier,
+        currency: selectedPlan.currency?.trim() || 'USD',
       });
 
       if (!payload.success) {
@@ -149,12 +254,18 @@ const SubscriptionSection: React.FC = () => {
         throw new Error(payload.message || 'Failed to create checkout session');
       }
 
-      const checkoutUrl = payload?.data?.checkoutUrl;
-      if (!checkoutUrl) {
-        throw new Error('Checkout session did not return a redirect URL');
+      const sessionId = payload?.data?.sessionId;
+      if (!sessionId) {
+        throw new Error('Checkout session did not return a Paddle session ID');
       }
 
-      window.location.assign(checkoutUrl);
+      if (typeof window === 'undefined' || !window.Paddle?.Checkout?.open) {
+        throw new Error('Checkout overlay is unavailable right now');
+      }
+
+      window.Paddle.Checkout.open({
+        transactionId: sessionId,
+      });
     } catch (error) {
       console.error(`Checkout error: ${getBillingErrorLogMessage(error)}`);
       toast.error(

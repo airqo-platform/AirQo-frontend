@@ -96,6 +96,12 @@ const WideDialog: React.FC<WideDialogProps> = ({
     };
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) {
+      setSidebarOpen(false);
+    }
+  }, [isOpen]);
+
   // close on escape
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

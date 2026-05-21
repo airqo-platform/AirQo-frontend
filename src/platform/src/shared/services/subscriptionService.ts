@@ -61,7 +61,9 @@ interface UsagePayload {
 }
 
 interface CheckoutRequest {
+  userId: string;
   tier: SubscriptionTier;
+  currency: string;
 }
 
 interface CheckoutResponse {
@@ -70,6 +72,7 @@ interface CheckoutResponse {
   comingSoon?: boolean;
   data?: {
     checkoutUrl?: string;
+    sessionId?: string;
   };
 }
 
@@ -96,12 +99,28 @@ type BackendTransaction = {
 type NormalizedSubscriptionStatus = UserSubscription['status'];
 type NormalizedRateLimits = NonNullable<UserSubscription['apiRateLimits']>;
 
-const USERS_PROFILE_CANDIDATE_PATHS = [
-  '/users/profile/enhanced',
-  '/users/me',
-] as const;
+const USERS_PROFILE_CANDIDATE_PATHS = ['/users/profile/enhanced'] as const;
 
 const RETRYABLE_PROFILE_STATUSES = new Set([400, 404, 405]);
+
+const isAbortError = (error: unknown): boolean => {
+  const candidate = error as {
+    name?: string;
+    code?: string;
+    message?: string;
+  } | null;
+
+  if (!candidate) {
+    return false;
+  }
+
+  return (
+    candidate.name === 'AbortError' ||
+    candidate.name === 'CanceledError' ||
+    candidate.code === 'ERR_CANCELED' ||
+    candidate.message === 'canceled'
+  );
+};
 
 const getDefaultPlans = (): SubscriptionPlan[] => [
   {
@@ -323,7 +342,7 @@ const normalizeUsagePeriod = (
 
 const buildUsage = (
   payload?: UsagePayload | null,
-  fallbackRateLimits?: NormalizedRateLimits
+  fallbackRateLimits?: ApiRateLimitsPayload | NormalizedRateLimits | null
 ): ApiUsage => ({
   hourly: normalizeUsagePeriod(
     'hourly',
@@ -501,7 +520,65 @@ const extractMessage = (payload: unknown, fallback: string): string => {
   }
 
   const message = (payload as { message?: unknown }).message;
-  return typeof message === 'string' && message.trim() ? message : fallback;
+  const validationErrors = (() => {
+    const errors = (payload as { errors?: unknown }).errors;
+
+    if (!Array.isArray(errors)) {
+      return [] as string[];
+    }
+
+    return errors
+      .map(error => {
+        if (typeof error === 'string') {
+          return error.trim();
+        }
+
+        if (!error || typeof error !== 'object') {
+          return '';
+        }
+
+        const candidate = error as {
+          param?: unknown;
+          field?: unknown;
+          message?: unknown;
+        };
+        const param =
+          typeof candidate.param === 'string' && candidate.param.trim()
+            ? candidate.param.trim()
+            : typeof candidate.field === 'string' && candidate.field.trim()
+              ? candidate.field.trim()
+              : '';
+        const errorMessage =
+          typeof candidate.message === 'string' && candidate.message.trim()
+            ? candidate.message.trim()
+            : '';
+
+        if (param && errorMessage) {
+          return `${param}: ${errorMessage}`;
+        }
+
+        return errorMessage || param;
+      })
+      .filter((item): item is string => Boolean(item));
+  })();
+
+  if (validationErrors.length) {
+    const normalizedMessage =
+      typeof message === 'string' ? message.trim().toLowerCase() : '';
+
+    if (
+      !normalizedMessage ||
+      normalizedMessage.includes('bad request') ||
+      normalizedMessage.includes('validation') ||
+      normalizedMessage === 'errors'
+    ) {
+      return validationErrors.join('; ');
+    }
+  }
+
+  return typeof message === 'string' && message.trim()
+    ? message.trim()
+    : fallback;
 };
 
 const isPaymentProviderUnavailable = (status: number, payload: unknown) => {
@@ -610,7 +687,9 @@ export class SubscriptionService {
     return params;
   }
 
-  private async getUsersProfilePayload(): Promise<UsersMePayload> {
+  private async getUsersProfilePayload(
+    signal?: AbortSignal
+  ): Promise<UsersMePayload> {
     await this.ensureAuthenticated();
 
     const orderedPaths = this.resolvedUsersProfilePath
@@ -630,12 +709,17 @@ export class SubscriptionService {
           profilePath,
           {
             params: this.withTenant(),
+            signal,
           }
         );
 
         this.resolvedUsersProfilePath = profilePath;
         return resolveUsersProfilePayload(response.data);
       } catch (error) {
+        if (isAbortError(error)) {
+          throw error;
+        }
+
         const status =
           (error as { response?: { status?: number } })?.response?.status || 0;
 
@@ -665,37 +749,47 @@ export class SubscriptionService {
         '/users/transactions/subscription-status',
         {
           params: this.withTenant(),
+          validateStatus: status =>
+            (status >= 200 && status < 300) ||
+            status === 400 ||
+            status === 404 ||
+            status === 405,
         }
       );
 
-      const statusData = extractEnvelopeData<SubscriptionStatusPayload>(
-        statusResponse.data
-      );
+      if (statusResponse.status < 200 || statusResponse.status >= 300) {
+        statusRateLimitsPayload = undefined;
+      } else {
+        const statusData = extractEnvelopeData<SubscriptionStatusPayload>(
+          statusResponse.data
+        );
 
-      const statusTier = statusData?.subscriptionTier ?? statusData?.tier;
-      const statusValue = statusData?.subscriptionStatus ?? statusData?.status;
+        const statusTier = statusData?.subscriptionTier ?? statusData?.tier;
+        const statusValue =
+          statusData?.subscriptionStatus ?? statusData?.status;
 
-      if (statusTier) {
-        tier = normalizeTier(statusTier);
+        if (statusTier) {
+          tier = normalizeTier(statusTier);
+        }
+
+        if (statusValue) {
+          status = normalizeStatus(statusValue);
+        }
+
+        if (statusData?.nextBillingDate !== undefined) {
+          nextBillingDate = statusData.nextBillingDate ?? null;
+        }
+
+        if (typeof statusData?.automaticRenewal === 'boolean') {
+          automaticRenewal = statusData.automaticRenewal;
+        }
+
+        if (statusData?.currentSubscriptionId !== undefined) {
+          currentSubscriptionId = statusData.currentSubscriptionId ?? null;
+        }
+
+        statusRateLimitsPayload = statusData?.apiRateLimits;
       }
-
-      if (statusValue) {
-        status = normalizeStatus(statusValue);
-      }
-
-      if (statusData?.nextBillingDate !== undefined) {
-        nextBillingDate = statusData.nextBillingDate ?? null;
-      }
-
-      if (typeof statusData?.automaticRenewal === 'boolean') {
-        automaticRenewal = statusData.automaticRenewal;
-      }
-
-      if (statusData?.currentSubscriptionId !== undefined) {
-        currentSubscriptionId = statusData.currentSubscriptionId ?? null;
-      }
-
-      statusRateLimitsPayload = statusData?.apiRateLimits;
     } catch {
       // Fall back to profile details when status endpoint is unavailable.
     }
@@ -745,7 +839,7 @@ export class SubscriptionService {
     };
   }
 
-  async getUsage(): Promise<{
+  async getUsage(options: { signal?: AbortSignal } = {}): Promise<{
     success: boolean;
     message: string;
     usage: ApiUsage;
@@ -753,20 +847,22 @@ export class SubscriptionService {
   }> {
     let profile: UsersMePayload | null = null;
 
-    const getFallbackRateLimits = async () => {
+    const getFallbackRateLimits = async (): Promise<
+      ApiRateLimitsPayload | undefined
+    > => {
       if (!profile) {
         try {
-          profile = await this.getUsersProfilePayload();
-        } catch {
+          profile = await this.getUsersProfilePayload(options.signal);
+        } catch (error) {
+          if (isAbortError(error)) {
+            throw error;
+          }
+
           profile = null;
         }
       }
 
-      const tier = normalizeTier(profile?.subscriptionTier);
-
-      return normalizeRateLimits(
-        mergeRateLimitsWithDefaults(tier, profile?.apiRateLimits)
-      );
+      return profile?.apiRateLimits ?? undefined;
     };
 
     try {
@@ -776,11 +872,12 @@ export class SubscriptionService {
         '/users/transactions/usage',
         {
           params: this.withTenant(),
+          signal: options.signal,
         }
       );
 
       const usagePayload = extractEnvelopeData<UsagePayload>(response.data);
-      let fallbackRateLimits: NormalizedRateLimits | undefined;
+      let fallbackRateLimits: ApiRateLimitsPayload | undefined;
       let usage = buildUsage(usagePayload);
 
       if (hasMissingUsageLimits(usage)) {
@@ -797,7 +894,11 @@ export class SubscriptionService {
         usage,
         live: true,
       };
-    } catch {
+    } catch (error) {
+      if (isAbortError(error)) {
+        throw error;
+      }
+
       const fallbackRateLimits = await getFallbackRateLimits();
 
       return {
@@ -827,6 +928,14 @@ export class SubscriptionService {
   ): Promise<CheckoutResponse> {
     await this.ensureAuthenticated();
 
+    const userId = request.userId.trim();
+    if (!userId) {
+      return {
+        success: false,
+        message: 'User ID is required to create a checkout session',
+      };
+    }
+
     const tier = normalizeTier(request.tier);
     if (tier === 'Free') {
       return {
@@ -835,8 +944,12 @@ export class SubscriptionService {
       };
     }
 
+    const currency = request.currency.trim() || 'USD';
+
     const payload: Record<string, string> = {
+      user_id: userId,
       tier,
+      currency,
     };
 
     try {
@@ -848,7 +961,11 @@ export class SubscriptionService {
         }
       );
 
-      const data = extractEnvelopeData<{ checkoutUrl?: string }>(response.data);
+      const data = extractEnvelopeData<{
+        checkoutUrl?: string;
+        sessionId?: string;
+        session_id?: string;
+      }>(response.data);
 
       return {
         success: true,
@@ -858,6 +975,7 @@ export class SubscriptionService {
         ),
         data: {
           checkoutUrl: data?.checkoutUrl,
+          sessionId: data?.sessionId ?? data?.session_id,
         },
       };
     } catch (error) {
