@@ -673,7 +673,7 @@ export const FeedbackLauncher: React.FC = () => {
       setIsOpen(false);
 
       setTimeout(() => {
-        showBanner({ severity: 'success', message: 'Thank you! Your feedback has been sent.', scoped: false });
+        showBanner({ severity: 'success', message: 'Thank you! Your feedback has been received.', scoped: false });
       }, 300);
 
     } catch (error) {
