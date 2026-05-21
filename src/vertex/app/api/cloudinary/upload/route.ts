@@ -80,6 +80,7 @@ export async function POST(req: NextRequest) {
     const response = await fetch(cloudinaryUrl, {
       method: 'POST',
       body: cloudinaryFormData,
+      signal: AbortSignal.timeout(15000),
     });
 
     const result = await response.json();
