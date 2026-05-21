@@ -15,6 +15,7 @@ export interface SubmitFeedbackRequest {
   category: string;
   platform: string;
   app?: string;
+  screenshot_url?: string;
   metadata?: FeedbackSubmissionMetadata;
 }
 
