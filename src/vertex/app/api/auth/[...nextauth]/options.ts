@@ -116,7 +116,6 @@ if (isProduction && !authSecret) {
   logger.error('[NextAuth] CRITICAL: NEXTAUTH_SECRET is missing in production environment!');
 }
 
-
 if (isProduction && !process.env.NEXTAUTH_URL && !process.env.AUTH_TRUST_HOST) {
   process.env.AUTH_TRUST_HOST = 'true';
   logger.warn('[NextAuth] WARNING: NEXTAUTH_URL is missing. Dynamic host detection will be used.');
