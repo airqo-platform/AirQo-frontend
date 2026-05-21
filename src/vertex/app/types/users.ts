@@ -95,6 +95,7 @@ export interface UserDetailsResponse {
 export interface LoginCredentials {
   userName: string;
   password: string;
+  captchaToken: string;
 }
 
 export interface DecodedToken {
