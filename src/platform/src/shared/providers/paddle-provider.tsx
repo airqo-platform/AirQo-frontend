@@ -30,9 +30,18 @@ const PaddleProvider = () => {
       return;
     }
 
+    const paddleWithEnvironment = paddle as typeof paddle & {
+      Environment?: {
+        set?: (environment: string) => void;
+      };
+    };
+
+    if (paddleEnvironment && paddleWithEnvironment.Environment?.set) {
+      paddleWithEnvironment.Environment.set(paddleEnvironment);
+    }
+
     paddle.Initialize({
       token: paymentClientToken,
-      ...(paddleEnvironment ? { environment: paddleEnvironment } : {}),
       eventCallback: event => {
         if (event.name === 'checkout.completed') {
           window.dispatchEvent(new Event(PADDLE_CHECKOUT_COMPLETED_EVENT));
