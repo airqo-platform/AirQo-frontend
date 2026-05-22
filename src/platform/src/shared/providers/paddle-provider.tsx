@@ -32,7 +32,7 @@ const PaddleProvider = () => {
 
     const paddleWithEnvironment = paddle as typeof paddle & {
       Environment?: {
-        set?: (environment: string) => void;
+        set?: (environment: 'sandbox' | 'production') => void;
       };
     };
 

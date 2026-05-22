@@ -62,7 +62,8 @@ const shouldShowSocialAuth = (hostname: string): boolean => {
   const normalizedHostname = hostname.toLowerCase();
 
   return (
-    normalizedHostname.includes('staging') ||
+    normalizedHostname === 'staging' ||
+    normalizedHostname.startsWith('staging.') ||
     LOCAL_TEST_HOSTNAMES.has(normalizedHostname)
   );
 };
