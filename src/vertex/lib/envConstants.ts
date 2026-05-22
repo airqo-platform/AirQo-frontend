@@ -117,6 +117,15 @@ export const getEnvironment = (): string => {
 };
 
 /**
+ * Whether hCaptcha should be enabled for this deployment.
+ *
+ * Requirement: only available on staging (never production).
+ */
+export const isHCaptchaEnabled = (): boolean => {
+  return getEnvironment().toLowerCase() === 'staging';
+};
+
+/**
  * Gets environment configuration
  * @returns {object} Environment configuration object
  */
@@ -124,6 +133,7 @@ export const getEnvConfig = () => {
   return {
     hCaptchaSiteKey: getHCaptchaSiteKey(),
     environment: getEnvironment(),
+    hCaptchaEnabled: isHCaptchaEnabled(),
     apiUrl: process.env.NEXT_PUBLIC_API_URL,
     apiToken: process.env.NEXT_PUBLIC_API_TOKEN,
     analyticsUrl: process.env.NEXT_PUBLIC_ANALYTICS_URL,
