@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ArrowLeft, Calendar, Wifi, AlertTriangle, BarChart3, RefreshCw } from "lucide-react"
+import { ArrowLeft, Calendar, Wifi, AlertTriangle, BarChart3 } from "lucide-react"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -25,8 +25,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { type AirQloudPerformanceData } from "@/services/airqloud.service"
-import { syncCohorts, syncGrids, syncThingSpeak } from "@/services/device-api.service"
-import { useToast } from "@/components/ui/use-toast"
+import { useSyncActions, SyncToolbar } from "@/components/analytics/sync-toolbar"
 import DevicePerformanceHeatmaps, { DeviceHourHeatmaps } from "@/components/analytics/device-heatmap"
 
 interface DateRange {
@@ -455,70 +454,7 @@ export default function AnalysisResultsPage() {
   const [dateRange, setDateRange] = useState<DateRange | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [selectedTab, setSelectedTab] = useState<string>("")
-  const [isSyncingCohorts, setIsSyncingCohorts] = useState(false)
-  const [isSyncingGrids, setIsSyncingGrids] = useState(false)
-  const [isSyncingData, setIsSyncingData] = useState(false)
-  const { toast } = useToast()
-
-  const handleSyncCohorts = async () => {
-    setIsSyncingCohorts(true)
-    try {
-      await syncCohorts()
-      toast({
-        title: "Sync successful",
-        description: "Cohorts synced successfully.",
-      })
-    } catch (err) {
-      console.error("Error syncing cohorts:", err)
-      toast({
-        variant: "destructive",
-        title: "Sync failed",
-        description: "An error occurred while syncing cohorts.",
-      })
-    } finally {
-      setIsSyncingCohorts(false)
-    }
-  }
-
-  const handleSyncGrids = async () => {
-    setIsSyncingGrids(true)
-    try {
-      await syncGrids()
-      toast({
-        title: "Sync successful",
-        description: "Grids synced successfully.",
-      })
-    } catch (err) {
-      console.error("Error syncing grids:", err)
-      toast({
-        variant: "destructive",
-        title: "Sync failed",
-        description: "An error occurred while syncing grids.",
-      })
-    } finally {
-      setIsSyncingGrids(false)
-    }
-  }
-
-  const handleSyncData = async () => {
-    setIsSyncingData(true)
-    try {
-      await syncThingSpeak(14)
-      toast({
-        title: "Sync successful",
-        description: "ThingSpeak data synced for the last 14 days.",
-      })
-    } catch (err) {
-      console.error("Error syncing ThingSpeak data:", err)
-      toast({
-        variant: "destructive",
-        title: "Sync failed",
-        description: "An error occurred while syncing ThingSpeak data.",
-      })
-    } finally {
-      setIsSyncingData(false)
-    }
-  }
+  const syncActions = useSyncActions()
 
   useEffect(() => {
     // Load data from sessionStorage
@@ -648,33 +584,7 @@ export default function AnalysisResultsPage() {
             <Badge variant="outline" className="text-sm">
               {deviceData.length} Device{deviceData.length !== 1 ? 's' : ''} analysed
             </Badge>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSyncCohorts}
-              disabled={isSyncingCohorts}
-            >
-              <RefreshCw className={`mr-2 h-4 w-4 ${isSyncingCohorts ? 'animate-spin' : ''}`} />
-              {isSyncingCohorts ? 'Syncing...' : 'Sync Cohorts'}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSyncGrids}
-              disabled={isSyncingGrids}
-            >
-              <RefreshCw className={`mr-2 h-4 w-4 ${isSyncingGrids ? 'animate-spin' : ''}`} />
-              {isSyncingGrids ? 'Syncing...' : 'Sync Grids'}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSyncData}
-              disabled={isSyncingData}
-            >
-              <RefreshCw className={`mr-2 h-4 w-4 ${isSyncingData ? 'animate-spin' : ''}`} />
-              {isSyncingData ? 'Syncing...' : 'Sync Data'}
-            </Button>
+            <SyncToolbar {...syncActions} />
           </div>
         </div>
 
@@ -869,33 +779,7 @@ export default function AnalysisResultsPage() {
           <Badge variant="outline" className="text-sm">
             {data.length} {data.length === 1 ? entityLabel : entityLabelPlural} analysed
           </Badge>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSyncCohorts}
-            disabled={isSyncingCohorts}
-          >
-            <RefreshCw className={`mr-2 h-4 w-4 ${isSyncingCohorts ? 'animate-spin' : ''}`} />
-            {isSyncingCohorts ? 'Syncing...' : 'Sync Cohorts'}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSyncGrids}
-            disabled={isSyncingGrids}
-          >
-            <RefreshCw className={`mr-2 h-4 w-4 ${isSyncingGrids ? 'animate-spin' : ''}`} />
-            {isSyncingGrids ? 'Syncing...' : 'Sync Grids'}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSyncData}
-            disabled={isSyncingData}
-          >
-            <RefreshCw className={`mr-2 h-4 w-4 ${isSyncingData ? 'animate-spin' : ''}`} />
-            {isSyncingData ? 'Syncing...' : 'Sync Data'}
-          </Button>
+          <SyncToolbar {...syncActions} />
         </div>
       </div>
 

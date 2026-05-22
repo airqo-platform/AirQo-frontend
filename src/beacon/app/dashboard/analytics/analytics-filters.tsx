@@ -8,16 +8,16 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 import { format, subDays } from "date-fns"
-import { CalendarIcon, Search, RefreshCw } from "lucide-react"
+import { CalendarIcon, Search } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
-import { useToast } from "@/components/ui/use-toast"
 import { airQloudService, type AirQloudBasic } from "@/services/airqloud.service"
-import { deviceApiService, syncCohorts, syncGrids, syncThingSpeak } from "@/services/device-api.service"
+import { deviceApiService } from "@/services/device-api.service"
 import type { Device } from "@/types/api.types"
 import { useGroup } from "@/lib/group-context"
+import { useSyncActions, SyncToolbar } from "@/components/analytics/sync-toolbar"
 
 type AnalyticsFilterType = "airqlouds" | "devices" | "grids"
 
@@ -59,11 +59,8 @@ export default function AnalyticsFilters({
   isAnalysing,
   hideDateRange = false
 }: AnalyticsFiltersProps) {
-  const { toast } = useToast()
   const { activeGroup, loading: groupLoading } = useGroup()
-  const [isSyncingCohorts, setIsSyncingCohorts] = useState(false)
-  const [isSyncingGrids, setIsSyncingGrids] = useState(false)
-  const [isSyncingData, setIsSyncingData] = useState(false)
+  const syncActions = useSyncActions()
   const [filterType, setFilterType] = useState<AnalyticsFilterType>(initialFilterType)
   const [selectedItems, setSelectedItems] = useState<string[]>([])
   const [selectedItemsMap, setSelectedItemsMap] = useState<Map<string, SelectedItem>>(new Map())
@@ -371,66 +368,6 @@ export default function AnalyticsFilters({
   // No need for client-side filtering since API handles search
   const filteredItems = currentItems
 
-  const handleSyncCohorts = async () => {
-    setIsSyncingCohorts(true)
-    try {
-      await syncCohorts()
-      toast({
-        title: "Sync successful",
-        description: "Cohorts synced successfully.",
-      })
-    } catch (err) {
-      console.error("Error syncing cohorts:", err)
-      toast({
-        variant: "destructive",
-        title: "Sync failed",
-        description: "An error occurred while syncing cohorts.",
-      })
-    } finally {
-      setIsSyncingCohorts(false)
-    }
-  }
-
-  const handleSyncGrids = async () => {
-    setIsSyncingGrids(true)
-    try {
-      await syncGrids()
-      toast({
-        title: "Sync successful",
-        description: "Grids synced successfully.",
-      })
-    } catch (err) {
-      console.error("Error syncing grids:", err)
-      toast({
-        variant: "destructive",
-        title: "Sync failed",
-        description: "An error occurred while syncing grids.",
-      })
-    } finally {
-      setIsSyncingGrids(false)
-    }
-  }
-
-  const handleSyncData = async () => {
-    setIsSyncingData(true)
-    try {
-      await syncThingSpeak(14)
-      toast({
-        title: "Sync successful",
-        description: "ThingSpeak data synced for the last 14 days.",
-      })
-    } catch (err) {
-      console.error("Error syncing ThingSpeak data:", err)
-      toast({
-        variant: "destructive",
-        title: "Sync failed",
-        description: "An error occurred while syncing ThingSpeak data.",
-      })
-    } finally {
-      setIsSyncingData(false)
-    }
-  }
-
   // Helper to check if a date is today or in the future
   const isDateDisabled = (date: Date) => {
     const today = new Date()
@@ -444,33 +381,7 @@ export default function AnalyticsFilters({
         <div className="flex items-center justify-between">
           <CardTitle>Performance Analysis</CardTitle>
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSyncCohorts}
-              disabled={isSyncingCohorts}
-            >
-              <RefreshCw className={`mr-2 h-4 w-4 ${isSyncingCohorts ? 'animate-spin' : ''}`} />
-              {isSyncingCohorts ? 'Syncing...' : 'Sync Cohorts'}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSyncGrids}
-              disabled={isSyncingGrids}
-            >
-              <RefreshCw className={`mr-2 h-4 w-4 ${isSyncingGrids ? 'animate-spin' : ''}`} />
-              {isSyncingGrids ? 'Syncing...' : 'Sync Grids'}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSyncData}
-              disabled={isSyncingData}
-            >
-              <RefreshCw className={`mr-2 h-4 w-4 ${isSyncingData ? 'animate-spin' : ''}`} />
-              {isSyncingData ? 'Syncing...' : 'Sync Data'}
-            </Button>
+            <SyncToolbar {...syncActions} />
           </div>
         </div>
       </CardHeader>
