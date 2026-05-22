@@ -51,6 +51,23 @@ const SOCIAL_PROVIDERS: Array<{
   },
 ];
 
+const LOCAL_TEST_HOSTNAMES = new Set([
+  'localhost',
+  '127.0.0.1',
+  '::1',
+  '0.0.0.0',
+]);
+
+const shouldShowSocialAuth = (hostname: string): boolean => {
+  const normalizedHostname = hostname.toLowerCase();
+
+  return (
+    normalizedHostname === 'staging' ||
+    normalizedHostname.startsWith('staging.') ||
+    LOCAL_TEST_HOSTNAMES.has(normalizedHostname)
+  );
+};
+
 export default function SocialAuthSection({
   mode,
   disabled = false,
@@ -59,10 +76,12 @@ export default function SocialAuthSection({
 }: SocialAuthSectionProps) {
   const actionLabel = mode === 'register' ? 'Continue with' : 'Sign in with';
   const redirectPath = normalizeCallbackUrl(callbackUrl) || '/user/home';
+  const [isStagingDomain, setIsStagingDomain] = useState(false);
   const [lastUsedProvider, setLastUsedProvider] =
     useState<SupportedSocialAuthProvider | null>(null);
 
   useEffect(() => {
+    setIsStagingDomain(shouldShowSocialAuth(window.location.hostname));
     setLastUsedProvider(getLastUsedOAuthProvider());
   }, []);
 
@@ -96,6 +115,10 @@ export default function SocialAuthSection({
     },
     [disabled, redirectPath]
   );
+
+  if (!isStagingDomain) {
+    return null;
+  }
 
   return (
     <div className={cn('w-full space-y-2.5', className)}>
