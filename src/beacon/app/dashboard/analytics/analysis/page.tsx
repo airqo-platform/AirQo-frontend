@@ -25,7 +25,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { type AirQloudPerformanceData } from "@/services/airqloud.service"
-import { syncCohorts, syncThingSpeak } from "@/services/device-api.service"
+import { syncCohorts, syncGrids, syncThingSpeak } from "@/services/device-api.service"
 import { useToast } from "@/components/ui/use-toast"
 import DevicePerformanceHeatmaps, { DeviceHourHeatmaps } from "@/components/analytics/device-heatmap"
 
@@ -455,29 +455,68 @@ export default function AnalysisResultsPage() {
   const [dateRange, setDateRange] = useState<DateRange | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [selectedTab, setSelectedTab] = useState<string>("")
-  const [isSyncing, setIsSyncing] = useState(false)
+  const [isSyncingCohorts, setIsSyncingCohorts] = useState(false)
+  const [isSyncingGrids, setIsSyncingGrids] = useState(false)
+  const [isSyncingData, setIsSyncingData] = useState(false)
   const { toast } = useToast()
 
-  const handleSync = async () => {
-    setIsSyncing(true)
+  const handleSyncCohorts = async () => {
+    setIsSyncingCohorts(true)
     try {
-      await Promise.all([
-        syncCohorts(),
-        syncThingSpeak(14),
-      ])
+      await syncCohorts()
       toast({
         title: "Sync successful",
-        description: "Cohorts and ThingSpeak data have been synced.",
+        description: "Cohorts synced successfully.",
       })
     } catch (err) {
-      console.error("Error syncing performance data:", err)
+      console.error("Error syncing cohorts:", err)
       toast({
         variant: "destructive",
         title: "Sync failed",
-        description: "An error occurred while syncing performance data.",
+        description: "An error occurred while syncing cohorts.",
       })
     } finally {
-      setIsSyncing(false)
+      setIsSyncingCohorts(false)
+    }
+  }
+
+  const handleSyncGrids = async () => {
+    setIsSyncingGrids(true)
+    try {
+      await syncGrids()
+      toast({
+        title: "Sync successful",
+        description: "Grids synced successfully.",
+      })
+    } catch (err) {
+      console.error("Error syncing grids:", err)
+      toast({
+        variant: "destructive",
+        title: "Sync failed",
+        description: "An error occurred while syncing grids.",
+      })
+    } finally {
+      setIsSyncingGrids(false)
+    }
+  }
+
+  const handleSyncData = async () => {
+    setIsSyncingData(true)
+    try {
+      await syncThingSpeak(14)
+      toast({
+        title: "Sync successful",
+        description: "ThingSpeak data synced for the last 14 days.",
+      })
+    } catch (err) {
+      console.error("Error syncing ThingSpeak data:", err)
+      toast({
+        variant: "destructive",
+        title: "Sync failed",
+        description: "An error occurred while syncing ThingSpeak data.",
+      })
+    } finally {
+      setIsSyncingData(false)
     }
   }
 
@@ -612,11 +651,29 @@ export default function AnalysisResultsPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={handleSync}
-              disabled={isSyncing}
+              onClick={handleSyncCohorts}
+              disabled={isSyncingCohorts}
             >
-              <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
-              {isSyncing ? 'Syncing...' : 'Sync Data'}
+              <RefreshCw className={`mr-2 h-4 w-4 ${isSyncingCohorts ? 'animate-spin' : ''}`} />
+              {isSyncingCohorts ? 'Syncing...' : 'Sync Cohorts'}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSyncGrids}
+              disabled={isSyncingGrids}
+            >
+              <RefreshCw className={`mr-2 h-4 w-4 ${isSyncingGrids ? 'animate-spin' : ''}`} />
+              {isSyncingGrids ? 'Syncing...' : 'Sync Grids'}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSyncData}
+              disabled={isSyncingData}
+            >
+              <RefreshCw className={`mr-2 h-4 w-4 ${isSyncingData ? 'animate-spin' : ''}`} />
+              {isSyncingData ? 'Syncing...' : 'Sync Data'}
             </Button>
           </div>
         </div>
@@ -815,11 +872,29 @@ export default function AnalysisResultsPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={handleSync}
-            disabled={isSyncing}
+            onClick={handleSyncCohorts}
+            disabled={isSyncingCohorts}
           >
-            <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
-            {isSyncing ? 'Syncing...' : 'Sync Data'}
+            <RefreshCw className={`mr-2 h-4 w-4 ${isSyncingCohorts ? 'animate-spin' : ''}`} />
+            {isSyncingCohorts ? 'Syncing...' : 'Sync Cohorts'}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSyncGrids}
+            disabled={isSyncingGrids}
+          >
+            <RefreshCw className={`mr-2 h-4 w-4 ${isSyncingGrids ? 'animate-spin' : ''}`} />
+            {isSyncingGrids ? 'Syncing...' : 'Sync Grids'}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSyncData}
+            disabled={isSyncingData}
+          >
+            <RefreshCw className={`mr-2 h-4 w-4 ${isSyncingData ? 'animate-spin' : ''}`} />
+            {isSyncingData ? 'Syncing...' : 'Sync Data'}
           </Button>
         </div>
       </div>

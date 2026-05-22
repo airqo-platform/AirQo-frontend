@@ -856,6 +856,23 @@ class ApiService {
     })
   }
 
+  // Sync Grids
+  async syncGrids(): Promise<any> {
+    const token = authService.getToken()
+    if (!token) {
+      throw new Error('Authentication required to sync grids')
+    }
+
+    const endpoint = this.getEndpoint('/grids/sync')
+    const url = `${this.baseUrl}${endpoint}`
+    return this.fetchWithRetry<any>(url, {
+      method: 'POST',
+      headers: {
+        Authorization: token,
+      },
+    })
+  }
+
   // Sync Groups
   async syncGroups(): Promise<any> {
     const token = authService.getToken()
@@ -918,4 +935,5 @@ export const syncDevicePerformance = () => deviceApiService.syncDevicePerformanc
 export const syncCohorts = () => deviceApiService.syncCohorts()
 export const syncThingSpeak = (days: number = 14) => deviceApiService.syncThingSpeak(days)
 export const syncSites = () => deviceApiService.syncSites()
+export const syncGrids = () => deviceApiService.syncGrids()
 export const syncGroups = () => deviceApiService.syncGroups()
