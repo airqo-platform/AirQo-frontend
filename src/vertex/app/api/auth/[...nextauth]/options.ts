@@ -9,7 +9,7 @@ import type {
 } from '@/app/types/users';
 import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
 import logger from '@/lib/logger';
-import { getApiBaseUrl } from '@/lib/envConstants';
+import { getApiBaseUrl, isHCaptchaEnabled } from '@/lib/envConstants';
 import { normalizeOAuthAccessToken } from '@/core/auth/oauth-session';
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -229,8 +229,13 @@ export const options: NextAuthOptions = {
           throw new Error('Username and password are required.');
         }
 
-        const captchaToken = typeof credentials.captchaToken === 'string' ? credentials.captchaToken.trim() : "";
-        if (!captchaToken) {
+        const hcaptchaEnabled = isHCaptchaEnabled();
+        const captchaToken =
+          typeof credentials.captchaToken === 'string'
+            ? credentials.captchaToken.trim()
+            : '';
+
+        if (hcaptchaEnabled && !captchaToken) {
           logger.warn('Authorize call with missing CAPTCHA token.');
           throw new Error('CAPTCHA validation is required.');
         }
@@ -239,7 +244,7 @@ export const options: NextAuthOptions = {
           const loginResponse = (await users.loginWithDetails({
             userName: credentials.userName,
             password: credentials.password,
-            captchaToken: captchaToken,
+            captchaToken: hcaptchaEnabled ? captchaToken : undefined,
           } as LoginCredentials)) as LoginResponse;
 
           if (loginResponse?.token) {

@@ -17,6 +17,7 @@ import { HCaptchaWidget, type HCaptchaWidgetHandle } from "@/components/ui/hcapt
 import logger from "@/lib/logger"
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import { useAppDispatch } from "@/core/redux/hooks";
+import { isHCaptchaEnabled } from "@/lib/envConstants";
 import {
   setLoggingOut,
 } from "@/core/redux/slices/userSlice";
@@ -37,6 +38,7 @@ export default function LoginPage() {
   const [step, setStep] = useState<'email' | 'password'>('email');
   const [captchaToken, setCaptchaToken] = useState("");
   const captchaRef = useRef<HCaptchaWidgetHandle>(null);
+  const hcaptchaEnabled = useMemo(() => isHCaptchaEnabled(), []);
   const searchParams = useSearchParams();
   const callbackUrl = useMemo(() => {
     const raw = searchParams.get("callbackUrl");
@@ -123,7 +125,7 @@ export default function LoginPage() {
     if (!isPasswordValid) return;
 
     // If the user didn't provide the captchaToken
-    if (captchaToken === "") {
+    if (hcaptchaEnabled && captchaToken === "") {
        showBanner({
          severity: 'error',
          message: 'Please complete the CAPTCHA before signing in.',
@@ -149,7 +151,7 @@ export default function LoginPage() {
         redirect: false,
         userName: values.userName,
         password: values.password,
-        captchaToken,
+        captchaToken: hcaptchaEnabled ? captchaToken : undefined,
         callbackUrl: redirectUrl,
       });
 
@@ -185,7 +187,7 @@ export default function LoginPage() {
       captchaRef.current?.reset();
       setIsLoading(false);
     }
-  }, [callbackUrl, waitForSession, step, form, showBanner, captchaToken]);
+  }, [callbackUrl, waitForSession, step, form, showBanner, captchaToken, hcaptchaEnabled]);
 
   return (
     <div className="flex min-h-screen lg:h-screen w-full flex-col bg-primary-50 text-foreground">
@@ -345,15 +347,17 @@ export default function LoginPage() {
                             </div>
                           )}
                         />
-                        <HCaptchaWidget
-                          ref={captchaRef}
-                          onVerify={(token) => setCaptchaToken(token)}
-                          onExpire={() => setCaptchaToken("")}
-                        />
+                        {hcaptchaEnabled ? (
+                          <HCaptchaWidget
+                            ref={captchaRef}
+                            onVerify={(token) => setCaptchaToken(token)}
+                            onExpire={() => setCaptchaToken("")}
+                          />
+                        ) : null}
                         <ReusableButton
                           type="submit"
                           className="w-full font-medium bg-primary hover:bg-primary/90"
-                          disabled={isLoading || !captchaToken}
+                          disabled={isLoading || (hcaptchaEnabled && !captchaToken)}
                           loading={isLoading}
                           variant="filled"
                         >
