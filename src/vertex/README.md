@@ -49,6 +49,7 @@ Use `src/vertex/.env.example` as the base. Common variables include:
 - `ADMIN_SECRET`: Secret used by admin/protected server operations.
 - `NEXT_PUBLIC_CLOUDINARY_NAME`: Cloudinary cloud name.
 - `NEXT_PUBLIC_CLOUDINARY_PRESET`: Cloudinary upload preset.
+- `NEXT_PUBLIC_HCAPTCHA_SITE_KEY`: HCaptcha site key needed for the new login flow.
 - `SLACK_WEBHOOK_URL`: Slack webhook for server-side notifications.
 - `NEXT_PUBLIC_SLACK_BOT_TOKEN`, `NEXT_PUBLIC_SLACK_CHANNEL`: Slack client configuration.
 

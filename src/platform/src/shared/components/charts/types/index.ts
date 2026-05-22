@@ -6,6 +6,9 @@ export interface AirQualityDataPoint {
   generated_name: string;
   device_id: string;
   name: string;
+  search_name?: string;
+  location_name?: string;
+  formatted_name?: string;
 }
 
 export interface NormalizedChartData {

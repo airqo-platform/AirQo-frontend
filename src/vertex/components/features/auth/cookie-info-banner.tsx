@@ -35,7 +35,7 @@ export function CookieInfoBanner() {
             rel="noopener noreferrer"
             className="text-white underline hover:text-white/80 transition-colors"
           >
-            Learn more
+            Learn more about our cookie policy
           </Link>
         </p>
         <button

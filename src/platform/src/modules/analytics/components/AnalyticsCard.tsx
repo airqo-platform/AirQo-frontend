@@ -18,6 +18,7 @@ import type { PollutantType } from '@/shared/components/charts/types';
 import { useResizeObserver } from '@/shared/hooks';
 import { AqWind01 } from '@airqo/icons-react';
 import { anonymizeSiteData, trackEvent } from '@/shared/utils/analytics';
+import { getSiteDisplayName } from '@/shared/utils/siteUtils';
 
 export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
   ({ siteData, className, showIcon = true, selectedPollutant, onClick }) => {
@@ -45,7 +46,6 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
     useResizeObserver(locationRef.current, checkTruncation);
 
     const {
-      name,
       location,
       value,
       status: rawStatus,
@@ -69,8 +69,7 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
     // Use selected pollutant for display, fallback to site data pollutant
     const displayPollutant = selectedPollutant || (pollutant as PollutantType);
 
-    // Format name for display by replacing underscores with spaces
-    const displayName = name.replace(/_/g, ' ');
+    const displayName = getSiteDisplayName(siteData);
 
     // Get appropriate icons
     // Narrow types before indexing into the icon maps to satisfy TS
@@ -142,8 +141,8 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
               <Tooltip
                 content={
                   percentageDifference !== undefined
-                    ? `Air quality ${percentageDifference > 0 ? 'worsened' : 'improved'} by ${Math.abs(percentageDifference).toFixed(1)}% compared to last week.`
-                    : 'Air quality trend compared to last week.'
+                    ? `Air quality ${percentageDifference > 0 ? 'worsened' : 'improved'} by ${Math.abs(percentageDifference).toFixed(1)}% compared with the previous reading.`
+                    : 'Air quality trend compared with the previous reading.'
                 }
                 className="bg-black"
               >

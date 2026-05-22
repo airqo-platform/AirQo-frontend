@@ -184,6 +184,7 @@ export const options: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
         oauthToken: { label: 'OAuth Token', type: 'text' },
         oauthProvider: { label: 'OAuth Provider', type: 'text' },
+        captchaToken: { label: 'Captcha Token', type: 'text' },
       },
       async authorize(credentials) {
         const oauthToken = normalizeOAuthAccessToken(
@@ -228,10 +229,17 @@ export const options: NextAuthOptions = {
           throw new Error('Username and password are required.');
         }
 
+        const captchaToken = typeof credentials.captchaToken === 'string' ? credentials.captchaToken.trim() : "";
+        if (!captchaToken) {
+          logger.warn('Authorize call with missing CAPTCHA token.');
+          throw new Error('CAPTCHA validation is required.');
+        }
+
         try {
           const loginResponse = (await users.loginWithDetails({
             userName: credentials.userName,
             password: credentials.password,
+            captchaToken: captchaToken,
           } as LoginCredentials)) as LoginResponse;
 
           if (loginResponse?.token) {

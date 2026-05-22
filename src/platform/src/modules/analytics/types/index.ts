@@ -67,6 +67,8 @@ export interface QuickAccessLocationsProps {
   isRefreshing?: boolean;
   selectedPollutant?: PollutantType;
   isLoading?: boolean;
+  placeholderCount?: number;
+  errorMessage?: string | null;
   onCardClick?: (site: SiteData) => void;
 }
 
