@@ -21,6 +21,7 @@ import MaintenanceStatusCard from "@/components/features/devices/maintenance-sta
 import DeviceCategoryCard from "@/components/features/devices/device-category-card";
 import DeviceHistoryCard from "@/components/features/devices/device-history-card";
 import { AqArrowLeft, AqSignal02, AqTool01 } from "@airqo/icons-react";
+import { usePageTitle } from "@/context/page-title-context";
 
 const ActionButtonsSkeleton = () => (
     <div className="flex gap-1">
@@ -46,6 +47,10 @@ export default function DeviceDetailsLayout({ deviceId }: DeviceDetailsLayoutPro
     const { data: deviceResponse, isLoading, error } = useDeviceDetails(deviceId);
     const device = (deviceResponse?.data as Device | undefined) ?? undefined;
     const router = useRouter();
+    usePageTitle({
+        title: device?.long_name || device?.name || "Device Details",
+        section: "Devices",
+    });
 
     const deploymentStatus = device?.status || "unknown";
 
