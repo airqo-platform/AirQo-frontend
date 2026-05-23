@@ -23,10 +23,11 @@ Added a post-login satisfaction feedback flow and extracted its toast UI into a 
 </details>
 
 <details>
-<summary><strong>Reusable Satisfaction Feedback Toast (4)</strong></summary>
+<summary><strong>Reusable Satisfaction Feedback Toast & API (5)</strong></summary>
 
 - **Reusable Component Extraction**: Created `ReusableSatisfactionFeedbackToast` as a shared component for satisfaction-style feedback prompts.
 - **Configurable Copy and Reasons**: Supports custom titles, subtitles, positive/negative labels, reason lists, thank-you copy, show delay, auto-dismiss delay, and submit handlers.
+- **Generic Satisfaction Submission Helper**: Added `feedbackService.submitSatisfactionFeedback` so future feature prompts can submit consistent satisfaction feedback without adding a new API method per feature.
 - **Shared Input Styling**: Uses `ReusableInputField` for the "Other" textarea field to stay aligned with the app's shared form styling.
 - **Thank-You State Polish**: Restored the celebratory emoji in the thank-you state after feedback submission.
 
