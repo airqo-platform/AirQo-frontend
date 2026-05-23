@@ -11,6 +11,7 @@ import ReusableInputField from '@/components/shared/inputfield/ReusableInputFiel
 import ReusableButton from '@/components/shared/button/ReusableButton';
 import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
 import { usePathname } from 'next/navigation';
+import { usePageTitleContext } from '@/context/page-title-context';
 
 const NEGATIVE_REASONS = [
  'Confusing',
@@ -147,16 +148,7 @@ export const PageSatisfactionBanner: React.FC = () => {
  const pathname = usePathname();
  const { userDetails } = useUserContext();
  const { showBanner } = useBanner();
-
- const getPageName = () => {
-  if (!pathname) return 'this page';
-  const parts = pathname.split('/').filter(Boolean);
-  const lastPart = parts[parts.length - 1] || 'home';
-  return lastPart
-   .split('-')
-   .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-   .join(' ');
- };
+ const { title: pageName, section: pageSection } = usePageTitleContext();
 
  const handleSubmitFeedback = async (
   rating: number,
@@ -180,6 +172,8 @@ export const PageSatisfactionBanner: React.FC = () => {
   try {
    const metadata = {
     page: pathname || window.location.pathname,
+    pageTitle: pageName,
+    pageSection,
     reason,
     browser:
      typeof window !== 'undefined'
@@ -190,7 +184,7 @@ export const PageSatisfactionBanner: React.FC = () => {
 
    await feedbackService.submitFeedback({
     email: userEmail,
-    subject: `Page Satisfaction: ${getPageName()}`,
+    subject: `Page Satisfaction: ${pageName}`,
     message: message || `Rating: ${rating}/5, Reason: ${reason}`,
     rating,
     category: 'page_satisfaction',
@@ -220,7 +214,7 @@ export const PageSatisfactionBanner: React.FC = () => {
     <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
      <div className="text-center sm:text-left">
       <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-       Overall, how satisfied are you with {getPageName()}?
+       Overall, how satisfied are you with {pageName}?
       </h3>
      </div>
 
