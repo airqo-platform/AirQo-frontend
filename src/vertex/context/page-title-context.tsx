@@ -142,7 +142,30 @@ export const PageTitleProvider: React.FC<{ children: React.ReactNode }> = ({
   const clearPageTitle = useCallback(() => setOverrideTitle(null), []);
 
   useEffect(() => {
-    document.title = formatBrowserTitle(currentTitle);
+    const expectedTitle = formatBrowserTitle(currentTitle);
+    const applyTitle = () => {
+      if (document.title !== expectedTitle) {
+        document.title = expectedTitle;
+      }
+    };
+
+    applyTitle();
+
+    const timeoutId = window.setTimeout(applyTitle, 0);
+    const animationFrameId = window.requestAnimationFrame(applyTitle);
+
+    const observer = new MutationObserver(applyTitle);
+    observer.observe(document.head, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    });
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      window.cancelAnimationFrame(animationFrameId);
+      observer.disconnect();
+    };
   }, [currentTitle]);
 
   const value = useMemo<PageTitleContextValue>(
