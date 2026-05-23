@@ -26,6 +26,7 @@ interface LoginFeedbackToastProps {
 const LoginFeedbackToast: React.FC<LoginFeedbackToastProps> = ({ userId, email }) => {
   const [phase, setPhase] = useState<ToastPhase>("idle");
   const [description, setDescription] = useState("");
+  const [otherText, setOtherText] = useState("");
   const loginDurationRef = useRef(0);
 
   useEffect(() => {
@@ -76,10 +77,14 @@ const LoginFeedbackToast: React.FC<LoginFeedbackToastProps> = ({ userId, email }
   const handleNegativeSubmit = async () => {
     setPhase("submitting");
     try {
+      const finalDescription = description === "Other" 
+        ? `Other: ${otherText.trim()}`
+        : description.trim() || undefined;
+
       await feedbackService.submitLoginFeedback({
         email,
         rating: 1,
-        description: description.trim() || undefined,
+        description: finalDescription,
         loginDurationMs: loginDurationRef.current,
         submittedAt: Date.now(),
       });
@@ -90,6 +95,8 @@ const LoginFeedbackToast: React.FC<LoginFeedbackToastProps> = ({ userId, email }
     }
     showThankYouAndDismiss();
   };
+
+  const isSubmitDisabled = phase === "submitting" || !description || (description === "Other" && !otherText.trim());
 
   const showThankYouAndDismiss = () => {
     setPhase("thankyou");
@@ -178,7 +185,10 @@ const LoginFeedbackToast: React.FC<LoginFeedbackToastProps> = ({ userId, email }
                                 name="reason"
                                 value={r}
                                 checked={description === r}
-                                onChange={() => setDescription(r)}
+                                onChange={() => {
+                                  setDescription(r);
+                                  if (r !== "Other") setOtherText("");
+                                }}
                                 disabled={phase === "submitting"}
                                 className="h-4 w-4 text-primary accent-primary"
                               />
@@ -188,13 +198,31 @@ const LoginFeedbackToast: React.FC<LoginFeedbackToastProps> = ({ userId, email }
                             </label>
                           ))}
                         </div>
-                        <div className="flex gap-2">
+                        <AnimatePresence>
+                          {description === "Other" && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              className="overflow-hidden"
+                            >
+                              <textarea
+                                placeholder="Please provide details (required)"
+                                className="w-full text-sm rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 p-3 outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none min-h-[70px] mt-1"
+                                value={otherText}
+                                onChange={(e) => setOtherText(e.target.value)}
+                                disabled={phase === "submitting"}
+                              />
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                        <div className="flex gap-2 mt-1">
                           <ReusableButton
                             variant="filled"
                             className="w-full py-2"
                             onClick={handleNegativeSubmit}
                             loading={phase === "submitting"}
-                            disabled={phase === "submitting"}
+                            disabled={isSubmitDisabled}
                           >
                             Submit
                           </ReusableButton>
