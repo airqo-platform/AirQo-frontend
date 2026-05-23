@@ -16,7 +16,8 @@ export const clearSessionData = () => {
       key.startsWith('next-auth') ||
       key === 'vertex_remembered_accounts_v1' ||
       key.startsWith('lastActiveModule') ||
-      key.startsWith('lastActiveGroupId')
+      key.startsWith('lastActiveGroupId') ||
+      key.startsWith('vertex_login_feedback')
     ) {
       continue;
     }

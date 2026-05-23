@@ -7,7 +7,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { feedbackService } from "@/core/apis/feedback";
 import { getLoginFeedbackRecord, setLoginFeedbackRecord } from "@/core/utils/userPreferences";
-import { openFeedbackDialog } from "./feedback-dialog";
 
 type ToastPhase = "idle" | "visible" | "negative-expanded" | "submitting" | "thankyou" | "dismissed";
 
@@ -82,12 +81,6 @@ const LoginFeedbackToast: React.FC<LoginFeedbackToastProps> = ({ userId, email }
       // Swallow error
     }
     showThankYouAndDismiss();
-  };
-
-  const handleNegativeAddDetails = () => {
-    // Open the comprehensive feedback dialog and dismiss this toast silently
-    openFeedbackDialog();
-    setPhase("dismissed");
   };
 
   const showThankYouAndDismiss = () => {
@@ -176,20 +169,12 @@ const LoginFeedbackToast: React.FC<LoginFeedbackToastProps> = ({ userId, email }
                         <div className="flex gap-2">
                           <ReusableButton
                             variant="filled"
-                            className="flex-1 py-2"
+                            className="w-full py-2"
                             onClick={handleNegativeSubmit}
                             loading={phase === "submitting"}
                             disabled={phase === "submitting"}
                           >
                             Submit
-                          </ReusableButton>
-                          <ReusableButton
-                            variant="outlined"
-                            className="flex-1 py-2"
-                            onClick={handleNegativeAddDetails}
-                            disabled={phase === "submitting"}
-                          >
-                            Add Details
                           </ReusableButton>
                         </div>
                       </div>
