@@ -148,6 +148,7 @@ export const ReusableSatisfactionFeedbackToast: React.FC<
           <CardContent className="p-5 flex flex-col gap-4">
             {phase === "thankyou" ? (
               <div className="flex flex-col items-center justify-center py-4 text-center">
+                <span className="text-xl mb-2">🎉</span>
                 <p className="text-sm font-medium text-gray-900 dark:text-white">
                   {thankYouTitle}
                 </p>
