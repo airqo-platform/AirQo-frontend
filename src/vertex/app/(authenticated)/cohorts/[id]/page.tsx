@@ -13,6 +13,7 @@ import ReusableButton from "@/components/shared/button/ReusableButton";
 import CohortMeasurementsApiCard from "@/components/features/cohorts/cohort-measurements-api-card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { usePageTitle } from "@/context/page-title-context";
 
 const ContentGridSkeleton = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 items-start">
@@ -28,6 +29,7 @@ export default function CohortDetailsPage() {
     const cohortId = typeof params?.id === "string" ? params.id : "";
 
     const { data: cohort, isLoading, error } = useCohortDetails(cohortId, { enabled: !!cohortId });
+    usePageTitle({ title: cohort?.name || "Cohort Details", section: "Cohorts" });
 
     const [cohortDetails, setCohortDetails] = useState<{
         name: string;

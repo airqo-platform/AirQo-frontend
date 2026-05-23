@@ -135,6 +135,12 @@ export default function LoginPage() {
       }
 
     setIsLoading(true);
+    // Record the login start time so the Home page can compute login duration
+    // for the post-login feedback toast. sessionStorage survives the redirect
+    // but is cleared automatically when the tab closes.
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('vertex_login_start_ts', String(Date.now()));
+    }
 
     // Read preference BEFORE authentication to avoid timing issues
     const lastModule = getLastActiveModule(values.userName);
