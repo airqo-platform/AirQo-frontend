@@ -4,6 +4,82 @@
 
 ---
 
+## Version 1.23.48
+**Released:** May 23, 2026
+
+### Post-Login Feedback, Page Titles & Cookie Banner Refinements
+
+Added a post-login satisfaction feedback flow and extracted its toast UI into a reusable feedback component that can be reused for future workflows such as site creation feedback. Also aligned authenticated page titles with the satisfaction banner and refreshed the unauthenticated cookie information banner styling to use shared button primitives.
+
+<details>
+<summary><strong>Post-Login Feedback Flow (5)</strong></summary>
+
+- **Login Feedback Prompt**: Added `LoginFeedbackToast` on the authenticated home page to ask users how their login experience went shortly after sign-in.
+- **Login Timing Metadata**: Captures login start time from the login flow and submits login duration metadata with feedback payloads.
+- **Suppression Window**: Added local user preference helpers to avoid repeatedly prompting the same user after successful feedback submission.
+- **Structured Negative Feedback**: Added radio-button reason options and an "Other" details field so users can explain poor login experiences without typing from scratch.
+- **Auto-Dismiss Behavior**: Tuned delayed display and auto-dismiss timing so the toast appears after login but disappears if the user does not interact.
+
+</details>
+
+<details>
+<summary><strong>Reusable Satisfaction Feedback Toast & API (5)</strong></summary>
+
+- **Reusable Component Extraction**: Created `ReusableSatisfactionFeedbackToast` as a shared component for satisfaction-style feedback prompts.
+- **Configurable Copy and Reasons**: Supports custom titles, subtitles, positive/negative labels, reason lists, thank-you copy, show delay, auto-dismiss delay, and submit handlers.
+- **Generic Satisfaction Submission Helper**: Added `feedbackService.submitSatisfactionFeedback` so future feature prompts can submit consistent satisfaction feedback without adding a new API method per feature.
+- **Shared Input Styling**: Uses `ReusableInputField` for the "Other" textarea field to stay aligned with the app's shared form styling.
+- **Thank-You State Polish**: Restored the celebratory emoji in the thank-you state after feedback submission.
+
+</details>
+
+<details>
+<summary><strong>Authenticated Page Title Alignment (5)</strong></summary>
+
+- **Shared Page Title Context**: Added a `PageTitleProvider` and `usePageTitle` hook for authenticated pages so visible page headings, browser tab titles, and satisfaction prompts can use the same title source.
+- **Route-Based Defaults**: Added sensible fallback titles for authenticated routes including Home, My Devices, Sites, Cohorts, Sensor Manufacturers, Grids, Shipping, and common detail pages.
+- **Dynamic Entity Titles**: Added title overrides for detail pages so site, cohort, device, grid, sensor manufacturer, and shipping batch pages can display human-readable names instead of IDs.
+- **Satisfaction Banner Alignment**: Updated `PageSatisfactionBanner` to read the shared page title instead of deriving labels from the URL path.
+- **Title Reset Hardening**: Added document-head mutation handling so client-side page titles are restored if Next.js re-applies the root `AirQo Vertex` title after navigation.
+
+</details>
+
+<details>
+<summary><strong>Cookie Info Banner Refinement (1)</strong></summary>
+
+- **Shared Button Migration**: Refactored `CookieInfoBanner` to use `ReusableButton` and refreshed its styling for better consistency with the rest of the Vertex UI.
+
+</details>
+
+<details>
+<summary><strong>Files Created/Modified (21)</strong></summary>
+
+- `src/vertex/app/(authenticated)/admin/cohorts/[id]/page.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/admin/cohorts/page.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/admin/grids/[id]/page.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/admin/networks/[id]/page.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/admin/shipping/[batchId]/page.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/admin/sites/[id]/page.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/admin/sites/page.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/cohorts/[id]/page.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/home/page.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/layout.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/sites/[id]/page.tsx` [MODIFIED]
+- `src/vertex/app/login/page.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/device-details-layout.tsx` [MODIFIED]
+- `src/vertex/components/features/auth/cookie-info-banner.tsx` [MODIFIED]
+- `src/vertex/components/features/feedback/page-satisfaction-banner.tsx` [MODIFIED]
+- `src/vertex/components/features/feedback/login-feedback-toast.tsx` [ADDED/MODIFIED]
+- `src/vertex/components/features/feedback/reusable-satisfaction-feedback-toast.tsx` [ADDED]
+- `src/vertex/context/page-title-context.tsx` [ADDED]
+- `src/vertex/core/apis/feedback.ts` [MODIFIED]
+- `src/vertex/core/utils/sessionManager.ts` [MODIFIED]
+- `src/vertex/core/utils/userPreferences.ts` [MODIFIED]
+
+</details>
+
+---
+
 ## Version 1.23.47
 **Released:** May 21, 2026
 
