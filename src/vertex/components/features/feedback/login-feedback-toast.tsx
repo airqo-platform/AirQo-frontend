@@ -8,6 +8,14 @@ import ReusableButton from "@/components/shared/button/ReusableButton";
 import { feedbackService } from "@/core/apis/feedback";
 import { getLoginFeedbackRecord, setLoginFeedbackRecord } from "@/core/utils/userPreferences";
 
+const NEGATIVE_REASONS = [
+  "It took too long to load",
+  "I had trouble with my password",
+  "I got an error message",
+  "The page froze or crashed",
+  "Other",
+];
+
 type ToastPhase = "idle" | "visible" | "negative-expanded" | "submitting" | "thankyou" | "dismissed";
 
 interface LoginFeedbackToastProps {
@@ -159,13 +167,27 @@ const LoginFeedbackToast: React.FC<LoginFeedbackToastProps> = ({ userId, email }
                       className="overflow-hidden"
                     >
                       <div className="pt-3 border-t border-gray-100 dark:border-gray-700 mt-1 flex flex-col gap-3">
-                        <textarea
-                          placeholder="Tell us more (optional)"
-                          className="w-full text-sm rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 p-3 outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none min-h-[70px]"
-                          value={description}
-                          onChange={(e) => setDescription(e.target.value)}
-                          disabled={phase === "submitting"}
-                        />
+                        <div className="space-y-2 mb-1">
+                          {NEGATIVE_REASONS.map((r) => (
+                            <label
+                              key={r}
+                              className="flex items-center gap-2 cursor-pointer"
+                            >
+                              <input
+                                type="radio"
+                                name="reason"
+                                value={r}
+                                checked={description === r}
+                                onChange={() => setDescription(r)}
+                                disabled={phase === "submitting"}
+                                className="h-4 w-4 text-primary accent-primary"
+                              />
+                              <span className="text-sm text-gray-700 dark:text-gray-300">
+                                {r}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
                         <div className="flex gap-2">
                           <ReusableButton
                             variant="filled"
