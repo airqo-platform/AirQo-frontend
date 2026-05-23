@@ -37,11 +37,11 @@ const LoginFeedbackToast: React.FC<LoginFeedbackToastProps> = ({ userId, email }
       setPhase((current) => (current === "idle" ? "visible" : current));
     }, 3000);
 
-    // Auto-dismiss after 10 minutes (3s wait + 10m visibility)
+    // Auto-dismiss after 30 seconds (3s wait + 30s visibility)
     // Only dismiss if the user hasn't interacted (still in "visible" phase)
     const autoTimer = setTimeout(() => {
       setPhase((current) => (current === "visible" ? "dismissed" : current));
-    }, 603000);
+    }, 33000);
 
     return () => {
       clearTimeout(showTimer);
