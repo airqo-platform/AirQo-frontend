@@ -15,6 +15,7 @@ import ImportDeviceModal from "@/components/features/devices/import-device-modal
 import { useState } from "react";
 import { usePermission } from "@/core/hooks/usePermissions";
 import { NetworkStatsCards } from "@/components/features/networks/NetworkStatsCards";
+import { usePageTitle } from "@/context/page-title-context";
 
 // Loading skeleton for content grid
 const ContentGridSkeleton = () => (
@@ -38,6 +39,10 @@ export default function NetworkDetailsPage() {
     const network = useMemo(() => {
         return networks.find((n) => n._id === networkId);
     }, [networks, networkId]);
+    usePageTitle({
+        title: network?.net_name || "Sensor Manufacturer Details",
+        section: "Sensor Manufacturers",
+    });
 
     const isAirQoNetwork = network?.net_name?.toLowerCase() === "airqo";
 

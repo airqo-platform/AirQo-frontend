@@ -57,6 +57,38 @@ export interface Cohort {
   timestamp?: string[]
 }
 
+export interface Grid {
+  _id?: string
+  grid_id?: string
+  name: string
+  long_name?: string
+  visibility?: boolean
+  admin_level?: string
+  network?: string
+  flag_url?: string | null
+  number_of_sites?: number
+  numberOfDevices?: number
+  device_count?: number
+  country?: string
+  createdAt?: string
+  sites?: Array<{
+    site_id?: string
+    name?: string
+    country?: string
+    city?: string
+    devices?: any[]
+  }>
+  devices?: Device[]
+  uptime?: number | null
+  data_completeness?: number | null
+  sensor_error_margin?: number | null
+  error_margin?: number | number[] | null
+  averages?: Record<string, any>
+  data?: any[]
+  freq?: number[]
+  timestamp?: string[]
+}
+
 // Retaining old interface name for compatibility effectively, but mapping to Cohort structure
 export interface AirQloudWithPerformance extends Cohort {
   id: string // Mapped from name
@@ -75,6 +107,7 @@ export interface AirQloudsQueryParams {
   limit?: number
   tags?: string
   search?: string
+  group?: string
   include_performance?: boolean // Deprecated but kept for signature compatibility
   performance_days?: number
   is_active?: boolean
@@ -83,6 +116,7 @@ export interface AirQloudsQueryParams {
   endDateTime?: string
   frequency?: string
   summary?: boolean
+  admin_level?: string
 }
 
 export interface AirQloudsMeta {
@@ -178,6 +212,8 @@ export interface AirQloudPerformanceData {
     data?: any[]
   }>
 }
+
+export type PerformanceEntityType = 'cohorts' | 'grids'
 
 /**
  * Normalize a single data point from the new synced API shape
@@ -294,6 +330,106 @@ function normalizeSyncedCohort(cohort: any): any {
   }
 }
 
+function flattenGridDevices(grid: any): any[] {
+  const directDevices = Array.isArray(grid?.devices) ? grid.devices : []
+  const siteDevices = Array.isArray(grid?.sites)
+    ? grid.sites.flatMap((site: any) => Array.isArray(site?.devices) ? site.devices : [])
+    : []
+
+  return [...directDevices, ...siteDevices]
+}
+
+/**
+ * Normalize a grid returned by `/grids/synced` into the legacy cohort-like
+ * shape consumed by the existing performance UI.
+ */
+function normalizeSyncedGrid(grid: any): any {
+  if (!grid) return grid
+
+  const id = grid._id ?? grid.grid_id
+  const devices = flattenGridDevices(grid).map(normalizeSyncedDevice)
+  const numberOfDevices = grid.numberOfDevices ?? grid.device_count ?? devices.length
+  const country = grid.country ?? grid.sites?.find((site: any) => site?.country)?.country ?? ''
+
+  const uptime = toLegacyFraction(grid.uptime)
+  const dataCompleteness = toLegacyFraction(grid.data_completeness)
+  const sensorErrorMargin = grid.sensor_error_margin ?? deriveSensorErrorMargin(grid.averages)
+  const data = Array.isArray(grid.data) ? grid.data.map(normalizeSyncedDataPoint) : []
+
+  return {
+    ...grid,
+    _id: id,
+    id,
+    name: grid.long_name || grid.name,
+    country,
+    visibility: grid.visibility ?? true,
+    is_active: grid.visibility ?? true,
+    createdAt: grid.createdAt ?? '',
+    numberOfDevices,
+    device_count: numberOfDevices,
+    sensor_error_margin: sensorErrorMargin,
+    uptime,
+    data_completeness: dataCompleteness,
+    devices,
+    data,
+  }
+}
+
+function appendParam(queryParams: URLSearchParams, key: string, value?: string | number | boolean | null) {
+  if (value === undefined || value === null || value === '') return
+  queryParams.append(key, String(value))
+}
+
+function appendIdsParam(queryParams: URLSearchParams, key: string, value?: string[] | string) {
+  if (!value) return
+  const ids = Array.isArray(value) ? value.join(',') : value
+  appendParam(queryParams, key, ids)
+}
+
+function buildSyncedMeta(data: any, count: number, params: Pick<AirQloudsQueryParams, 'limit' | 'skip'>): AirQloudsMeta {
+  const metaTotal = Number.isFinite(data?.meta?.total) ? data.meta.total : count
+  const metaLimitRaw = data?.meta?.limit
+  const fallbackLimit = (params.limit ?? count) || 1
+  const effectiveLimit = Number.isFinite(metaLimitRaw) && metaLimitRaw > 0 ? metaLimitRaw : fallbackLimit
+  const computedTotalPages = Math.max(1, Math.ceil(metaTotal / effectiveLimit))
+
+  return {
+    total: metaTotal,
+    page: Number.isFinite(data?.meta?.page) ? data.meta.page : 1,
+    totalPages: Number.isFinite(data?.meta?.totalPages) ? data.meta.totalPages : computedTotalPages,
+    limit: Number.isFinite(metaLimitRaw) ? metaLimitRaw : (params.limit ?? count),
+    skip: Number.isFinite(data?.meta?.skip) ? data.meta.skip : (params.skip ?? 0),
+  }
+}
+
+function mapSyncedCohort(raw: any): AirQloudWithPerformance {
+  const cohort = normalizeSyncedCohort(raw)
+  return {
+    ...cohort,
+    id: cohort._id || cohort.name,
+    device_count: cohort.numberOfDevices,
+    is_active: cohort.visibility,
+    country: cohort.country || '',
+    freq: cohort.freq || [],
+    error_margin: cohort.error_margin ?? [],
+    timestamp: cohort.timestamp || [],
+  }
+}
+
+function mapSyncedGrid(raw: any): AirQloudWithPerformance {
+  const grid = normalizeSyncedGrid(raw)
+  return {
+    ...grid,
+    id: grid._id || grid.name,
+    device_count: grid.numberOfDevices,
+    is_active: grid.visibility,
+    country: grid.country || '',
+    freq: grid.freq || [],
+    error_margin: grid.error_margin ?? [],
+    timestamp: grid.timestamp || [],
+  }
+}
+
 class AirQloudService {
   private readonly baseUrl: string
   private readonly apiPrefix: string
@@ -348,7 +484,7 @@ class AirQloudService {
         error_margin: cohort.error_margin || [],
         timestamp: cohort.timestamp || [],
       }))
-      return { airqlouds: mappedCohorts, meta: data.meta as AirQloudsMeta }
+      return { airqlouds: mappedCohorts, meta: data.meta }
     }
 
     const queryParams = new URLSearchParams()
@@ -358,6 +494,7 @@ class AirQloudService {
     if (params.tags) queryParams.append('tags', params.tags)
 
     if (params.search) queryParams.append('search', params.search)
+    if (params.group) queryParams.append('group', params.group)
 
     if (params.includePerformance) queryParams.append('includePerformance', params.includePerformance.toString())
     if (params.startDateTime) queryParams.append('startDateTime', params.startDateTime)
@@ -366,7 +503,8 @@ class AirQloudService {
     if (params.summary !== undefined) queryParams.append('summary', params.summary.toString())
 
     const endpoint = this.getEndpoint('/cohorts/')
-    const url = `${this.baseUrl}${endpoint}?${queryParams.toString()}`
+    const qs = queryParams.toString()
+    const url = qs ? `${this.baseUrl}${endpoint}?${qs}` : `${this.baseUrl}${endpoint}`
 
     try {
       const response = await fetch(url, {
@@ -424,22 +562,16 @@ class AirQloudService {
     }
 
     const queryParams = new URLSearchParams()
-
-    if (params.cohort_ids) {
-      const ids = Array.isArray(params.cohort_ids) ? params.cohort_ids.join(',') : params.cohort_ids
-      if (ids) queryParams.append('cohort_ids', ids)
-    }
-
-    if (params.includePerformance !== undefined) {
-      queryParams.append('includePerformance', params.includePerformance.toString())
-    }
-    if (params.startDateTime) queryParams.append('startDateTime', params.startDateTime)
-    if (params.endDateTime) queryParams.append('endDateTime', params.endDateTime)
-    if (params.frequency) queryParams.append('frequency', params.frequency)
-    if (params.tags) queryParams.append('tags', params.tags)
-    if (params.skip !== undefined) queryParams.append('skip', params.skip.toString())
-    if (params.limit !== undefined) queryParams.append('limit', params.limit.toString())
-    if (params.search) queryParams.append('search', params.search)
+    appendIdsParam(queryParams, 'cohort_ids', params.cohort_ids)
+    appendParam(queryParams, 'includePerformance', params.includePerformance)
+    appendParam(queryParams, 'startDateTime', params.startDateTime)
+    appendParam(queryParams, 'endDateTime', params.endDateTime)
+    appendParam(queryParams, 'frequency', params.frequency)
+    appendParam(queryParams, 'tags', params.tags)
+    appendParam(queryParams, 'skip', params.skip)
+    appendParam(queryParams, 'limit', params.limit)
+    appendParam(queryParams, 'search', params.search)
+    appendParam(queryParams, 'group', params.group)
 
     const endpoint = this.getEndpoint('/cohorts/synced')
     const qs = queryParams.toString()
@@ -457,40 +589,63 @@ class AirQloudService {
 
       const data = await response.json()
       const rawCohorts: any[] = Array.isArray(data?.cohorts) ? data.cohorts : []
-
-      const mappedCohorts: AirQloudWithPerformance[] = rawCohorts.map((raw) => {
-        const cohort = normalizeSyncedCohort(raw)
-        return {
-          ...cohort,
-          id: cohort._id || cohort.name,
-          device_count: cohort.numberOfDevices,
-          is_active: cohort.visibility,
-          country: cohort.country || '',
-          freq: cohort.freq || [],
-          error_margin: cohort.error_margin ?? [],
-          timestamp: cohort.timestamp || [],
-        }
-      })
-
-      const metaTotal = Number.isFinite(data?.meta?.total) ? data.meta.total : mappedCohorts.length
-      const metaLimitRaw = data?.meta?.limit
-      const fallbackLimit = (params.limit ?? mappedCohorts.length) || 1
-      const effectiveLimit = Number.isFinite(metaLimitRaw) && metaLimitRaw > 0 ? metaLimitRaw : fallbackLimit
-      const computedTotalPages = Math.max(1, Math.ceil(metaTotal / effectiveLimit))
-
-      const meta: AirQloudsMeta = {
-        total: metaTotal,
-        page: Number.isFinite(data?.meta?.page) ? data.meta.page : 1,
-        totalPages: Number.isFinite(data?.meta?.totalPages) ? data.meta.totalPages : computedTotalPages,
-        limit: Number.isFinite(metaLimitRaw) ? metaLimitRaw : (params.limit ?? mappedCohorts.length),
-        skip: Number.isFinite(data?.meta?.skip) ? data.meta.skip : (params.skip ?? 0),
-      }
+      const mappedCohorts = rawCohorts.map(mapSyncedCohort)
+      const meta = buildSyncedMeta(data, mappedCohorts.length, params)
 
       return { airqlouds: mappedCohorts, meta }
     } catch (error) {
       console.error('Error fetching synced Cohorts:', error)
       throw error
     }
+  }
+
+  /**
+   * Get all grids with performance data via the synced grid endpoint.
+   */
+  async getGrids(
+    params: AirQloudsQueryParams & { grid_ids?: string[] | string } = {}
+  ): Promise<MappedAirQloudsResponse> {
+    const queryParams = new URLSearchParams()
+    appendIdsParam(queryParams, 'grid_ids', params.grid_ids)
+    appendParam(queryParams, 'includePerformance', params.includePerformance)
+    appendParam(queryParams, 'startDateTime', params.startDateTime)
+    appendParam(queryParams, 'endDateTime', params.endDateTime)
+    appendParam(queryParams, 'frequency', params.frequency)
+    appendParam(queryParams, 'admin_level', params.admin_level)
+    appendParam(queryParams, 'skip', params.skip)
+    appendParam(queryParams, 'limit', params.limit)
+    appendParam(queryParams, 'search', params.search)
+    appendParam(queryParams, 'group', params.group)
+
+    const endpoint = this.getEndpoint('/grids/synced')
+    const qs = queryParams.toString()
+    const url = qs ? `${this.baseUrl}${endpoint}?${qs}` : `${this.baseUrl}${endpoint}`
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: this.getAuthHeaders(),
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      const rawGrids: any[] = Array.isArray(data?.grids) ? data.grids : []
+      const mappedGrids = rawGrids.map(mapSyncedGrid)
+      const meta = buildSyncedMeta(data, mappedGrids.length, params)
+
+      return { airqlouds: mappedGrids, meta }
+    } catch (error) {
+      console.error('Error fetching synced Grids:', error)
+      throw error
+    }
+  }
+
+  async getGridsBasic(params: Omit<AirQloudsQueryParams, 'include_performance' | 'performance_days'> = {}): Promise<MappedAirQloudsResponse> {
+    const { includePerformance: _ignored, ...rest } = params
+    return this.getGrids(rest)
   }
 
   /**
@@ -570,6 +725,64 @@ class AirQloudService {
       }
     } catch (error) {
       console.error(`Error fetching Cohort ${airqloudId}:`, error)
+      throw error
+    }
+  }
+
+  /**
+   * Get a specific grid by ID with performance data.
+   */
+  async getGridById(
+    gridId: string,
+    startDateTime?: string,
+    endDateTime?: string,
+    group?: string
+  ): Promise<AirQloudWithPerformance> {
+    const endpoint = this.getEndpoint(`/grids/synced/${gridId}`)
+
+    const queryParams = new URLSearchParams()
+
+    appendParam(queryParams, 'group', group)
+
+    if (startDateTime && endDateTime) {
+      queryParams.append('includePerformance', 'true')
+      queryParams.append('startDateTime', startDateTime)
+      queryParams.append('endDateTime', endDateTime)
+      queryParams.append('frequency', 'hourly')
+    }
+
+    const qs = queryParams.toString()
+    const url = qs ? `${this.baseUrl}${endpoint}?${qs}` : `${this.baseUrl}${endpoint}`
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: this.getAuthHeaders(),
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      const rawGrid = data.grid ?? data.grids?.[0]
+
+      if (!rawGrid) {
+        throw new Error(`Grid ${gridId} not found`)
+      }
+
+      const grid = normalizeSyncedGrid(rawGrid)
+
+      return {
+        ...grid,
+        id: grid._id || grid.name,
+        device_count: grid.numberOfDevices,
+        is_active: grid.visibility,
+        country: grid.country || '',
+        error_margin: grid.error_margin,
+      }
+    } catch (error) {
+      console.error(`Error fetching Grid ${gridId}:`, error)
       throw error
     }
   }
@@ -674,6 +887,7 @@ class AirQloudService {
     start: string
     end: string
     ids: string[]
+    group?: string
     tags?: string[] | string
     skip?: number
     limit?: number
@@ -691,6 +905,7 @@ class AirQloudService {
     queryParams.append('startDateTime', params.start)
     queryParams.append('endDateTime', params.end)
     queryParams.append('frequency', params.frequency || 'hourly')
+    appendParam(queryParams, 'group', params.group)
 
     if (params.tags) {
       const tagsValue = Array.isArray(params.tags) ? params.tags.join(',') : params.tags
@@ -733,6 +948,73 @@ class AirQloudService {
       })
     } catch (error) {
       console.error('Error fetching Cohorts Performance:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Get performance data for one or more grids.
+   */
+  async getGridPerformance(params: {
+    start: string
+    end: string
+    ids: string[]
+    group?: string
+    skip?: number
+    limit?: number
+    frequency?: string
+    admin_level?: string
+  }): Promise<AirQloudPerformanceData[]> {
+    if (!params.ids || params.ids.length === 0) {
+      return []
+    }
+
+    const queryParams = new URLSearchParams()
+    queryParams.append('grid_ids', params.ids.join(','))
+    queryParams.append('includePerformance', 'true')
+    queryParams.append('startDateTime', params.start)
+    queryParams.append('endDateTime', params.end)
+    queryParams.append('frequency', params.frequency || 'hourly')
+    appendParam(queryParams, 'group', params.group)
+
+    if (params.admin_level) queryParams.append('admin_level', params.admin_level)
+    if (params.skip !== undefined) queryParams.append('skip', params.skip.toString())
+    if (params.limit !== undefined) queryParams.append('limit', params.limit.toString())
+
+    const endpoint = this.getEndpoint('/grids/synced')
+    const url = `${this.baseUrl}${endpoint}?${queryParams.toString()}`
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: this.getAuthHeaders(),
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      const rawGrids: any[] = Array.isArray(data?.grids) ? data.grids : []
+
+      return rawGrids.map((raw) => {
+        const grid = normalizeSyncedGrid(raw)
+        return {
+          id: grid._id || grid.name,
+          name: grid.name,
+          uptime: grid.uptime,
+          data_completeness: grid.data_completeness,
+          sensor_error_margin: grid.sensor_error_margin,
+          error_margin: grid.error_margin,
+          data: grid.data,
+          freq: grid.freq || [],
+          timestamp: grid.timestamp || [],
+          numberOfDevices: grid.numberOfDevices,
+          devices: grid.devices || [],
+        }
+      })
+    } catch (error) {
+      console.error('Error fetching Grids Performance:', error)
       throw error
     }
   }

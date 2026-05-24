@@ -13,12 +13,14 @@ import { areArraysEqual } from '@/shared/utils/arrays';
 import { useSitesData } from '@/shared/hooks/useSitesData';
 import { useUser } from '@/shared/hooks/useUser';
 import {
+  getLatestPreferenceForGroup,
   useUserPreferencesList,
   useUpdateUserPreferences,
 } from '@/shared/hooks/usePreferences';
 import { useChecklistIntegration } from '@/modules/user-checklist';
 import type { Site } from '@/shared/types/api';
 import { trackEvent } from '@/shared/utils/analytics';
+import { getSiteDisplayName } from '@/shared/utils/siteUtils';
 
 const isCancellationError = (error: unknown) => {
   const candidate = error as {
@@ -121,16 +123,11 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
 
   // Get the most recent preference from the list
   const currentPreference = useMemo(() => {
-    if (!preferences?.preferences || preferences.preferences.length === 0) {
-      return null;
-    }
-    // Sort by lastAccessed date (most recent first) and take the first one
-    return [...preferences.preferences].sort(
-      (a, b) =>
-        new Date(b.lastAccessed || b.updatedAt).getTime() -
-        new Date(a.lastAccessed || a.updatedAt).getTime()
-    )[0];
-  }, [preferences?.preferences]);
+    return getLatestPreferenceForGroup(
+      preferences?.preferences,
+      activeGroup?.id
+    );
+  }, [activeGroup?.id, preferences?.preferences]);
 
   // Initialize selectedIds and cache with current favorite sites from preferences
   useEffect(() => {
@@ -342,12 +339,7 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
                     transition={{ duration: 0.2, ease: 'easeOut' }}
                   >
                     <LocationCard
-                      locationName={
-                        location.search_name ||
-                        location.name ||
-                        location.generated_name ||
-                        ''
-                      }
+                      locationName={getSiteDisplayName(location)}
                       subtitle={`${location.city}, ${location.country}`}
                       isChecked={true}
                       showCloseButton={true}

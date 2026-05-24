@@ -37,6 +37,7 @@ export interface PreparedDownloadResult {
   filenameBase: string;
   fallbackApplied: boolean;
   activeTab: TabType;
+  locationCount: number;
   summaryItems: Array<{ label: string; value: string }>;
 }
 
@@ -662,6 +663,30 @@ const isNoDataDownloadError = (error: unknown): boolean => {
   return Boolean(message && /\bno data\b/i.test(message));
 };
 
+const shouldUseMetadataFallback = (error: unknown): boolean => {
+  if (isNoDataDownloadError(error)) {
+    return true;
+  }
+
+  const axiosError = error as AxiosError<ApiErrorResponse>;
+  const status = axiosError?.response?.status;
+
+  if (status === 401 || status === 403 || axiosError?.code === 'ERR_CANCELED') {
+    return false;
+  }
+
+  return !status || status === 404 || status >= 500;
+};
+
+const hasDownloadRecords = (response: DataDownloadResponse | string) => {
+  if (typeof response === 'string') {
+    const [, ...dataRows] = parseDownloadCsvRows(response);
+    return dataRows.some(row => row.some(value => value.trim() !== ''));
+  }
+
+  return Array.isArray(response.data) && response.data.length > 0;
+};
+
 const getCalendarDayDifference = (from: Date, to: Date) => {
   const startUtc = Date.UTC(
     from.getFullYear(),
@@ -701,13 +726,13 @@ const buildDownloadSummaryItems = (
   { label: 'Pollutants', value: String(selectedPollutants.length) },
   {
     label: 'Columns',
-    value: String(selectedColumnKeys?.length || 0),
+    value: selectedColumnKeys ? String(selectedColumnKeys.length) : 'Available',
   },
 ];
 
 const buildFilenameBase = (fileTitle: string, request: DataDownloadRequest) => {
   const defaultFilename = `air-quality-data-${request.startDateTime.split('T')[0]}-to-${request.endDateTime.split('T')[0]}`;
-  return (fileTitle || defaultFilename).replace(/\.(csv|json|pdf)$/i, '');
+  return (fileTitle || defaultFilename).replace(/\.(csv|json|pdf|xlsx)$/i, '');
 };
 
 const getDownloadColumnKeysForRequest = (
@@ -912,12 +937,71 @@ export const useDataExportActions = (
         });
       }
 
-      try {
-        const downloadColumnKeys = getDownloadColumnKeysForRequest(
+      const downloadColumnKeys = getDownloadColumnKeysForRequest(
+        activeTab,
+        exportColumnKeys
+      );
+
+      const prepareMetadataFallback = (): PreparedDownloadResult => {
+        const fallbackRecords = buildMetadataFallbackRecords(
           activeTab,
-          exportColumnKeys
+          selectedSiteIds,
+          selectedDeviceIds,
+          selectedGridIds,
+          selectedGridSites,
+          effectiveSelectedGridSiteIds,
+          sitesData,
+          devicesData,
+          countriesData,
+          citiesData
         );
 
+        const fallbackResponse = {
+          status: 'success',
+          message: 'Metadata export generated for the selected items.',
+          data: fallbackRecords,
+        } as unknown as DataDownloadResponse;
+        const normalizedFallbackResponse =
+          activeTab === 'countries' || activeTab === 'cities'
+            ? normalizeCountryCityDownloadResponse(
+                fallbackResponse,
+                activeTab,
+                activeTab === 'countries' ? countriesData : citiesData,
+                selectedGridIds,
+                selectedGridSites,
+                effectiveSelectedGridSiteIds
+              )
+            : fallbackResponse;
+
+        const effectiveLocationCountFallback =
+          activeTab === 'sites'
+            ? selectedSites.length
+            : activeTab === 'devices'
+              ? selectedDeviceIds.length
+              : sitesForDownload.length;
+
+        return {
+          request,
+          response: normalizedFallbackResponse,
+          selectedColumnKeys: undefined,
+          filenameBase: `${buildFilenameBase(fileTitle, request)}-metadata`,
+          fallbackApplied: true,
+          activeTab,
+          locationCount: effectiveLocationCountFallback,
+          summaryItems: buildDownloadSummaryItems(
+            activeTab,
+            effectiveDataType,
+            frequency,
+            dateRange,
+            selectedPollutants,
+            effectiveLocationCountFallback,
+            undefined,
+            true
+          ),
+        };
+      };
+
+      try {
         const rawResponse = await fetchDownloadData(request);
         const normalizedResponse =
           activeTab === 'countries' || activeTab === 'cities'
@@ -930,6 +1014,11 @@ export const useDataExportActions = (
                 effectiveSelectedGridSiteIds
               )
             : rawResponse;
+
+        if (!hasDownloadRecords(normalizedResponse)) {
+          return prepareMetadataFallback();
+        }
+
         const effectiveLocationCount =
           activeTab === 'sites'
             ? selectedSites.length
@@ -944,6 +1033,7 @@ export const useDataExportActions = (
           filenameBase: buildFilenameBase(fileTitle, request),
           fallbackApplied: false,
           activeTab,
+          locationCount: effectiveLocationCount,
           summaryItems: buildDownloadSummaryItems(
             activeTab,
             effectiveDataType,
@@ -956,66 +1046,8 @@ export const useDataExportActions = (
           ),
         };
       } catch (error) {
-        if (isNoDataDownloadError(error)) {
-          const downloadColumnKeys = getDownloadColumnKeysForRequest(
-            activeTab,
-            exportColumnKeys
-          );
-          const fallbackRecords = buildMetadataFallbackRecords(
-            activeTab,
-            selectedSiteIds,
-            selectedDeviceIds,
-            selectedGridIds,
-            selectedGridSites,
-            effectiveSelectedGridSiteIds,
-            sitesData,
-            devicesData,
-            countriesData,
-            citiesData
-          );
-
-          const fallbackResponse = {
-            status: 'success',
-            message: 'Metadata export generated for the selected items.',
-            data: fallbackRecords,
-          } as unknown as DataDownloadResponse;
-          const normalizedFallbackResponse =
-            activeTab === 'countries' || activeTab === 'cities'
-              ? normalizeCountryCityDownloadResponse(
-                  fallbackResponse,
-                  activeTab,
-                  activeTab === 'countries' ? countriesData : citiesData,
-                  selectedGridIds,
-                  selectedGridSites,
-                  effectiveSelectedGridSiteIds
-                )
-              : fallbackResponse;
-
-          const effectiveLocationCountFallback =
-            activeTab === 'sites'
-              ? selectedSites.length
-              : activeTab === 'devices'
-                ? selectedDeviceIds.length
-                : sitesForDownload.length;
-
-          return {
-            request,
-            response: normalizedFallbackResponse,
-            selectedColumnKeys: downloadColumnKeys,
-            filenameBase: `${buildFilenameBase(fileTitle, request)}-metadata`,
-            fallbackApplied: true,
-            activeTab,
-            summaryItems: buildDownloadSummaryItems(
-              activeTab,
-              effectiveDataType,
-              frequency,
-              dateRange,
-              selectedPollutants,
-              effectiveLocationCountFallback,
-              downloadColumnKeys,
-              true
-            ),
-          };
+        if (shouldUseMetadataFallback(error)) {
+          return prepareMetadataFallback();
         }
 
         console.error('Download failed:', error);

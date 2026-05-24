@@ -8,6 +8,7 @@ interface DataExportTableProps {
   tableData: TableItem[];
   columns: ColumnConfig[];
   loading: boolean;
+  isRefreshing?: boolean;
   error: string | null;
   currentPage: number;
   totalPages: number;
@@ -30,6 +31,7 @@ export const DataExportTable: React.FC<DataExportTableProps> = ({
   tableData,
   columns,
   loading,
+  isRefreshing = false,
   error,
   currentPage,
   totalPages,
@@ -46,24 +48,27 @@ export const DataExportTable: React.FC<DataExportTableProps> = ({
   const config = getTabConfig(activeTab);
 
   return (
-    <ServerSideTable
-      title={config.title}
-      data={tableData}
-      columns={columns}
-      loading={loading}
-      error={error}
-      currentPage={currentPage}
-      totalPages={totalPages}
-      pageSize={pageSize}
-      totalItems={totalItems}
-      onPageChange={onPageChange}
-      onPageSizeChange={onPageSizeChange}
-      searchTerm={searchTerm}
-      onSearchChange={onSearchChange}
-      multiSelect={activeTab !== 'countries' && activeTab !== 'cities'}
-      selectedItems={selectedItems}
-      onSelectedItemsChange={onSelectedItemsChange}
-      compactRows={compactRows}
-    />
+    <div className="relative">
+      <ServerSideTable
+        title={config.title}
+        data={tableData}
+        columns={columns}
+        loading={loading}
+        isRefreshing={isRefreshing}
+        error={error}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        totalItems={totalItems}
+        onPageChange={onPageChange}
+        onPageSizeChange={onPageSizeChange}
+        searchTerm={searchTerm}
+        onSearchChange={onSearchChange}
+        multiSelect={activeTab !== 'countries' && activeTab !== 'cities'}
+        selectedItems={selectedItems}
+        onSelectedItemsChange={onSelectedItemsChange}
+        compactRows={compactRows}
+      />
+    </div>
   );
 };

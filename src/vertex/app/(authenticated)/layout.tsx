@@ -4,6 +4,7 @@ import Layout from "@/components/layout/layout";
 import { ForbiddenGuard } from "@/components/layout/accessConfig/forbidden-guard";
 import { useForbiddenHandler } from "@/core/hooks/useForbiddenHandler";
 import { useContextAwareRouting } from "@/core/hooks/useContextAwareRouting";
+import { PageTitleProvider } from "@/context/page-title-context";
 
 export default function AuthenticatedLayout({
   children,
@@ -18,9 +19,11 @@ export default function AuthenticatedLayout({
 
   return (
     <ForbiddenGuard>
-      <Layout>
-        {children}
-      </Layout>
+      <PageTitleProvider>
+        <Layout>
+          {children}
+        </Layout>
+      </PageTitleProvider>
     </ForbiddenGuard>
   );
 }

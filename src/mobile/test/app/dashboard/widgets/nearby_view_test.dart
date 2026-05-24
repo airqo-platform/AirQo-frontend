@@ -10,20 +10,16 @@ import 'package:airqo/src/app/dashboard/widgets/nearby_measurement_card.dart';
 import 'package:airqo/src/app/dashboard/widgets/nearby_view_empty_state.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
-import 'package:airqo/src/app/shared/services/cache_manager.dart';
 
-// Generate mocks
-@GenerateMocks([DashboardBloc, CacheManager])
+@GenerateMocks([DashboardBloc])
 import 'nearby_view_test.mocks.dart';
 
 void main() {
   group('NearbyView Widget Tests', () {
     late MockDashboardBloc mockDashboardBloc;
-    late MockCacheManager mockCacheManager;
 
     setUp(() {
       mockDashboardBloc = MockDashboardBloc();
-      mockCacheManager = MockCacheManager();
     });
 
     Widget createTestWidget() {
@@ -44,15 +40,12 @@ void main() {
 
     testWidgets('shows loading indicator when getting location',
         (WidgetTester tester) async {
-      // Arrange
       when(mockDashboardBloc.state).thenReturn(DashboardLoading());
       when(mockDashboardBloc.stream).thenAnswer((_) => Stream.empty());
 
-      // Act
       await tester.pumpWidget(createTestWidget());
       await tester.pump();
 
-      // Assert
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       expect(find.text('Getting your location...'), findsOneWidget);
     });
@@ -60,36 +53,25 @@ void main() {
     testWidgets(
         'shows location services disabled message when services are off',
         (WidgetTester tester) async {
-      // Arrange
       when(mockDashboardBloc.state).thenReturn(DashboardLoaded(
         AirQualityResponse(success: true, measurements: []),
       ));
       when(mockDashboardBloc.stream).thenAnswer((_) => Stream.empty());
 
-      // Mock Geolocator to return false for location services
-      // Note: This would require additional setup for mocking static methods
-
-      // Act
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle(const Duration(seconds: 3));
-
-      // The widget will try to get location, this test is more complex
-      // and would need proper mocking of Geolocator static methods
     });
 
     testWidgets('shows empty state when location permission is denied',
         (WidgetTester tester) async {
-      // Arrange
       when(mockDashboardBloc.state).thenReturn(DashboardLoaded(
         AirQualityResponse(success: true, measurements: []),
       ));
       when(mockDashboardBloc.stream).thenAnswer((_) => Stream.empty());
 
-      // Act
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
-      // Assert - Will likely show empty state due to permission issues in test environment
       expect(find.byType(NearbyViewEmptyState), findsAtLeastNWidgets(0));
     });
 

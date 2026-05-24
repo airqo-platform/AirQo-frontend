@@ -237,6 +237,14 @@ const Footer = () => {
               </li>
               <li>
                 <Link
+                  href="/developers/airqo-devcon"
+                  className="text-gray-600 hover:underline"
+                >
+                  AirQo DevCon 2026
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="https://docs.airqo.net/airqo-rest-api-documentation/"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -334,6 +342,9 @@ const Footer = () => {
           </Link>
           <Link href="/legal/privacy-policy" className="hover:underline">
             Privacy Policy
+          </Link>
+          <Link href="/legal/cookies" className="hover:underline">
+            Cookies Policy
           </Link>
           <Link href="/legal/airqo-data" className="hover:underline">
             AirQo Data

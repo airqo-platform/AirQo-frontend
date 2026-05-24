@@ -13,6 +13,7 @@ import GridMeasurementsApiCard from "@/components/features/grids/grid-measuremen
 import EditGridDetailsDialog from "@/components/features/grids/edit-grid-details-dialog";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import ClientPaginatedSitesTable from "@/components/features/sites/client-paginated-sites-table";
+import { usePageTitle } from "@/context/page-title-context";
 
 const ContentGridSkeleton = () => (
   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 items-start">
@@ -28,6 +29,7 @@ export default function GridDetailsPage() {
   const gridId = id.toString();
   const { gridDetails, isLoading, error } = useGridDetails(gridId);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  usePageTitle({ title: gridDetails?.name || "Grid Details", section: "Grids" });
 
   if (error) {
     return (

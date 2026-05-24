@@ -104,11 +104,12 @@ const useCohortSitesQuery = (
     isPaused: () => cohortsLoading,
   });
   const resolvedError = isAbortError(result.error) ? null : result.error;
+  const hasData = typeof result.data !== 'undefined';
 
   return {
     ...result,
     error: resolvedError,
-    isLoading: result.isLoading || cohortsLoading,
+    isLoading: !hasData && (result.isLoading || cohortsLoading),
     cohortIds,
   };
 };
@@ -137,11 +138,12 @@ const useCohortDevicesQuery = (
     isPaused: () => cohortsLoading,
   });
   const resolvedError = isAbortError(result.error) ? null : result.error;
+  const hasData = typeof result.data !== 'undefined';
 
   return {
     ...result,
     error: resolvedError,
-    isLoading: result.isLoading || cohortsLoading,
+    isLoading: !hasData && (result.isLoading || cohortsLoading),
     cohortIds,
   };
 };

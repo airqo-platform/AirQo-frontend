@@ -71,7 +71,7 @@ const NetworkCoverageHeader: React.FC<NetworkCoverageHeaderProps> = ({
               type="button"
               disabled={isDownloading}
               onClick={() => !isDownloading && setShowDownloadMenu((p) => !p)}
-              className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold shadow-sm transition-all sm:px-4 sm:text-sm ${
+              className={`inline-flex items-center gap-1.5 border px-3 py-1.5 text-xs font-semibold shadow-sm transition-all sm:px-4 sm:text-sm ${
                 isDownloading
                   ? 'cursor-not-allowed border-blue-300 bg-blue-100 text-blue-400'
                   : 'border-blue-700 bg-blue-700 text-white hover:bg-blue-800 active:bg-blue-900'

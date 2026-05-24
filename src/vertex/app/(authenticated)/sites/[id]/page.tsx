@@ -17,6 +17,7 @@ import SiteMeasurementsApiCard from "@/components/features/sites/site-measuremen
 import SiteActivityCard from "@/components/features/sites/site-activity-card";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { PERMISSIONS } from "@/core/permissions/constants";
+import { usePageTitle } from "@/context/page-title-context";
 
 const ContentGridSkeleton = () => (
   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 items-start">
@@ -35,6 +36,7 @@ export default function UserSiteDetailsPage() {
   const [editSection, setEditSection] = useState<"general" | "mobile" | null>(
     null
   );
+  usePageTitle({ title: site?.name || "Site Details", section: "Sites" });
 
   return (
     <RouteGuard permission={PERMISSIONS.SITE.VIEW}>

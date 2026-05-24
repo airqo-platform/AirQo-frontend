@@ -1,12 +1,11 @@
 "use client"
 
 import React, { useState, useEffect, memo } from "react"
-import { useParams } from "next/navigation"
+import { useParams, useSearchParams } from "next/navigation"
 import { ArrowLeft, Calendar, MapPin, Wifi, AlertTriangle } from "lucide-react"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
@@ -28,6 +27,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { useGroup } from "@/lib/group-context"
 import AirQloudPerformanceTab from "./airqloud-performance-tab"
 import DevicePerformanceHeatmaps, { DeviceHourHeatmaps } from "@/components/analytics/device-heatmap"
 
@@ -161,7 +161,7 @@ const processDevicePerformance = (
     daily_uptime_percentage: computedAvgUptime,
     average_error_margin: computedAvgErrorMargin,
     data_points: deviceData.length,
-    last_active: device.lastRawData || device.lastRawData || null,
+    last_active: device.lastRawData || device.lastActive || null,
     uptime_history: uptimeHistory,
     error_margin_history: errorMarginHistory,
     hourly_data: Object.values(hourlyData).map(h => ({
@@ -184,6 +184,37 @@ interface UptimeMiniGraphProps {
 interface ErrorMarginMiniGraphProps {
   errorMarginHistory: Array<{ value: number; timestamp: string }>
   averageErrorMargin: number
+}
+
+interface CorrelationMiniGraphProps {
+  correlationHistory: Array<{ value: number; timestamp: string }>
+  averageCorrelation: number
+}
+
+const pearsonCorrelation = (xs: number[], ys: number[]): number | null => {
+  const n = Math.min(xs.length, ys.length)
+  if (n < 2) return null
+
+  const xVals = xs.slice(0, n)
+  const yVals = ys.slice(0, n)
+
+  const meanX = xVals.reduce((sum, value) => sum + value, 0) / n
+  const meanY = yVals.reduce((sum, value) => sum + value, 0) / n
+
+  let numerator = 0
+  let denominatorX = 0
+  let denominatorY = 0
+
+  for (let i = 0; i < n; i++) {
+    const dx = xVals[i] - meanX
+    const dy = yVals[i] - meanY
+    numerator += dx * dy
+    denominatorX += dx * dx
+    denominatorY += dy * dy
+  }
+
+  if (denominatorX === 0 || denominatorY === 0) return null
+  return numerator / Math.sqrt(denominatorX * denominatorY)
 }
 
 // Helper functions for bar colors
@@ -211,6 +242,18 @@ const getErrorMarginTooltipBgColor = (value: number) => {
   return "bg-red-600 border-red-700"
 }
 
+const getCorrelationBarColor = (value: number) => {
+  if (value >= 0.9) return "bg-green-500 hover:bg-green-600"
+  if (value >= 0.75) return "bg-orange-500 hover:bg-orange-600"
+  return "bg-red-500 hover:bg-red-600"
+}
+
+const getCorrelationTooltipBgColor = (value: number) => {
+  if (value >= 0.9) return "bg-green-600 border-green-700"
+  if (value >= 0.75) return "bg-orange-600 border-orange-700"
+  return "bg-red-600 border-red-700"
+}
+
 const formatDateForTooltip = (timestamp: string) => {
   const date = new Date(timestamp)
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -229,8 +272,8 @@ const UptimeMiniGraph = memo(function UptimeMiniGraph({ uptimeHistory, averageUp
       <div className="flex items-center gap-2">
         <span className="font-medium min-w-[50px]">{averageUptime.toFixed(1)}%</span>
         <div className="flex items-end gap-[2px] h-8">
-          {values.map((item, index) => (
-            <Tooltip key={index} delayDuration={100}>
+          {values.map((item) => (
+            <Tooltip key={`${item.timestamp}-${item.value}`} delayDuration={100}>
               <TooltipTrigger asChild>
                 <div
                   className={`w-1.5 rounded-t-full ${getUptimeBarColor(item.value)} transition-all cursor-pointer`}
@@ -265,8 +308,8 @@ const ErrorMarginMiniGraph = memo(function ErrorMarginMiniGraph({ errorMarginHis
       <div className="flex items-center gap-2">
         <span className="font-medium min-w-[50px]">±{averageErrorMargin.toFixed(1)}</span>
         <div className="flex items-end gap-[2px] h-8">
-          {values.map((item, index) => (
-            <Tooltip key={index} delayDuration={100}>
+          {values.map((item) => (
+            <Tooltip key={`${item.timestamp}-${item.value}`} delayDuration={100}>
               <TooltipTrigger asChild>
                 <div
                   className={`w-1.5 rounded-t-full ${getErrorMarginBarColor(item.value)} transition-all cursor-pointer`}
@@ -287,9 +330,50 @@ const ErrorMarginMiniGraph = memo(function ErrorMarginMiniGraph({ errorMarginHis
   )
 })
 
+const CorrelationMiniGraph = memo(function CorrelationMiniGraph({ correlationHistory, averageCorrelation }: CorrelationMiniGraphProps) {
+  if (correlationHistory.length === 0) {
+    return <span className="text-muted-foreground">N/A</span>
+  }
+
+  const values = correlationHistory.slice(-14)
+
+  return (
+    <TooltipProvider>
+      <div className="flex items-center gap-2">
+        <span className="font-medium min-w-[50px]">{averageCorrelation.toFixed(2)}</span>
+        <div className="flex items-end gap-[2px] h-8">
+          {values.map((item) => {
+            const normalized = Math.max(0, item.value)
+            return (
+              <Tooltip key={`${item.timestamp}-${item.value}`} delayDuration={100}>
+                <TooltipTrigger asChild>
+                  <div
+                    className={`w-1.5 rounded-t-full ${getCorrelationBarColor(item.value)} transition-all cursor-pointer`}
+                    style={{ height: `${Math.max(4, normalized * 32)}px` }}
+                  />
+                </TooltipTrigger>
+                <TooltipContent className={`${getCorrelationTooltipBgColor(item.value)} text-white border`}>
+                  <div className="text-xs font-medium">
+                    <div>{formatDateForTooltip(item.timestamp)}</div>
+                    <div>Correlation: {item.value.toFixed(3)}</div>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            )
+          })}
+        </div>
+      </div>
+    </TooltipProvider>
+  )
+})
+
 export default function AirQloudDetailPage() {
   const params = useParams()
+  const searchParams = useSearchParams()
+  const { activeGroup, loading: groupLoading } = useGroup()
   const airqloudId = params?.id as string
+  const isGridMode = searchParams?.get("type") === "grid"
+  const entityLabel = isGridMode ? "Grid" : "Cohort"
 
   const [data, setData] = useState<AirQloudDetailData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -299,8 +383,12 @@ export default function AirQloudDetailPage() {
   useEffect(() => {
     const fetchAirQloudDetail = async () => {
       if (!airqloudId) {
-        setError('Cohort ID is required')
+        setError(`${entityLabel} ID is required`)
         setIsLoading(false)
+        return
+      }
+
+      if (isGridMode && (groupLoading || !activeGroup)) {
         return
       }
 
@@ -316,21 +404,28 @@ export default function AirQloudDetailPage() {
         startDate.setDate(endDate.getDate() - (daysOfData - 1)) // exactly `daysOfData` days ending yesterday
         startDate.setHours(0, 0, 0, 0)
 
-        const response = await airQloudService.getAirQloudById(
-          airqloudId,
-          startDate.toISOString(),
-          endDate.toISOString()
-        )
-        setData(response as unknown as AirQloudDetailData)
+        const response = isGridMode
+          ? await airQloudService.getGridById(
+            airqloudId,
+            startDate.toISOString(),
+            endDate.toISOString(),
+            activeGroup ?? undefined
+          )
+          : await airQloudService.getAirQloudById(
+            airqloudId,
+            startDate.toISOString(),
+            endDate.toISOString()
+          )
+        setData(response)
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch Cohort details')
+        setError(err instanceof Error ? err.message : `Failed to fetch ${entityLabel} details`)
       } finally {
         setIsLoading(false)
       }
     }
 
     fetchAirQloudDetail()
-  }, [airqloudId])
+  }, [airqloudId, entityLabel, isGridMode, activeGroup, groupLoading])
 
   if (isLoading) {
     return (
@@ -340,8 +435,8 @@ export default function AirQloudDetailPage() {
           <Skeleton className="h-8 w-48" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {[...Array(4)].map((_, i) => (
-            <Card key={i}>
+          {Array.from({ length: 4 }, (_, idx) => `summary-skeleton-${idx}`).map((key) => (
+            <Card key={key}>
               <CardHeader className="pb-2">
                 <Skeleton className="h-4 w-20" />
               </CardHeader>
@@ -396,9 +491,6 @@ export default function AirQloudDetailPage() {
     return null
   }
 
-  // Calculate summary statistics
-  const averageErrorMargin = data.sensor_error_margin || 0
-
   const processedDevices = data.devices ? data.devices.map(d => processDevicePerformance(d, daysOfData)) : []
 
   // Cohort average uptime = average of each device's per-window daily uptime,
@@ -410,6 +502,10 @@ export default function AirQloudDetailPage() {
   const averageUptime = processedDevices.length > 0
     ? processedDevices.reduce((s, d) => s + d.daily_uptime_percentage, 0) / processedDevices.length
     : (data.uptime || 0) * 100
+
+  const averageErrorMargin = processedDevices.length > 0
+    ? processedDevices.reduce((s, d) => s + d.average_error_margin, 0) / processedDevices.length
+    : (data.sensor_error_margin || 0)
 
   const chartData = []
 
@@ -451,6 +547,53 @@ export default function AirQloudDetailPage() {
 
     chartData.push(...chartArr)
   }
+
+  const correlationBuckets: Record<string, { s1: number[]; s2: number[] }> = {}
+  ;(data.data || []).forEach((row: any) => {
+    if (!row?.datetime) return
+    const dt = new Date(row.datetime)
+    if (Number.isNaN(dt.getTime())) return
+
+    const dateKey = dt.toDateString()
+    const s1 = row['pm2.5 sensor1'] ?? row.s1_pm2_5
+    const s2 = row['pm2.5 sensor2'] ?? row.s2_pm2_5
+    const s1Num = s1 == null ? null : Number(s1)
+    const s2Num = s2 == null ? null : Number(s2)
+
+    if (s1Num == null || s2Num == null || Number.isNaN(s1Num) || Number.isNaN(s2Num)) {
+      return
+    }
+
+    if (!correlationBuckets[dateKey]) {
+      correlationBuckets[dateKey] = { s1: [], s2: [] }
+    }
+
+    correlationBuckets[dateKey].s1.push(s1Num)
+    correlationBuckets[dateKey].s2.push(s2Num)
+  })
+
+  const correlationHistory = Object.keys(correlationBuckets)
+    .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
+    .slice(-daysOfData)
+    .map((dateKey) => {
+      const bucket = correlationBuckets[dateKey]
+      const value = pearsonCorrelation(bucket.s1, bucket.s2)
+      return {
+        timestamp: dateKey,
+        value: value == null || Number.isNaN(value) ? 0 : value,
+      }
+    })
+
+  const validCorrelations = correlationHistory
+    .map((item) => item.value)
+    .filter((value) => Number.isFinite(value))
+
+  const averageCorrelation = validCorrelations.length > 0
+    ? validCorrelations.reduce((sum, value) => sum + value, 0) / validCorrelations.length
+    : 0
+
+  const cohortUptimeHistory = chartData.map((item) => ({ value: item.uptime, timestamp: item.timestamp }))
+  const cohortErrorMarginHistory = chartData.map((item) => ({ value: item.errorMargin, timestamp: item.timestamp }))
 
   const chartConfig = {
     uptime: {
@@ -495,7 +638,7 @@ export default function AirQloudDetailPage() {
       <Tabs defaultValue="overview" className="w-full">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="heatmap">Cohort Heatmap</TabsTrigger>
+          <TabsTrigger value="heatmap">{entityLabel} Heatmap</TabsTrigger>
           <TabsTrigger value="hourly">Device Heatmap</TabsTrigger>
           <TabsTrigger value="performance">Performance</TabsTrigger>
         </TabsList>
@@ -521,8 +664,10 @@ export default function AirQloudDetailPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{averageUptime.toFixed(1)}%</div>
-                <Progress value={averageUptime} className="mt-2" />
+                <UptimeMiniGraph
+                  uptimeHistory={cohortUptimeHistory}
+                  averageUptime={averageUptime}
+                />
               </CardContent>
             </Card>
 
@@ -533,20 +678,24 @@ export default function AirQloudDetailPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{averageErrorMargin.toFixed(2)}</div>
-                <div className="text-sm text-muted-foreground">± margin</div>
+                <ErrorMarginMiniGraph
+                  errorMarginHistory={cohortErrorMarginHistory}
+                  averageErrorMargin={averageErrorMargin}
+                />
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Days of Analysis
+                  Average Correlation
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{chartData.length}</div>
-                <div className="text-sm text-muted-foreground">Days captured</div>
+                <CorrelationMiniGraph
+                  correlationHistory={correlationHistory}
+                  averageCorrelation={averageCorrelation}
+                />
               </CardContent>
             </Card>
           </div>
@@ -658,7 +807,18 @@ export default function AirQloudDetailPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {processedDevices.map((device) => (
+                      {processedDevices.map((device) => {
+                        let statusVariant: "default" | "secondary" | "destructive" = "destructive"
+                        let statusLabel = "Poor"
+                        if (device.daily_uptime_percentage > 80) {
+                          statusVariant = "default"
+                          statusLabel = "Good"
+                        } else if (device.daily_uptime_percentage > 50) {
+                          statusVariant = "secondary"
+                          statusLabel = "Fair"
+                        }
+
+                        return (
                         <TableRow key={device.device_id}>
                           <TableCell className="font-medium">
                             <div>
@@ -689,8 +849,19 @@ export default function AirQloudDetailPage() {
                               const now = new Date()
                               const hoursAgo = Math.floor((now.getTime() - lastActiveDate.getTime()) / (1000 * 60 * 60))
                               const daysAgo = Math.floor(hoursAgo / 24)
-                              const colorClass = hoursAgo < 24 ? 'text-green-600' : daysAgo < 3 ? 'text-yellow-600' : 'text-red-600'
-                              const timeAgo = hoursAgo < 1 ? 'Just now' : hoursAgo < 24 ? `${hoursAgo}h ago` : `${daysAgo}d ago`
+                              let colorClass = 'text-red-600'
+                              if (hoursAgo < 24) {
+                                colorClass = 'text-green-600'
+                              } else if (daysAgo < 3) {
+                                colorClass = 'text-yellow-600'
+                              }
+
+                              let timeAgo = `${daysAgo}d ago`
+                              if (hoursAgo < 1) {
+                                timeAgo = 'Just now'
+                              } else if (hoursAgo < 24) {
+                                timeAgo = `${hoursAgo}h ago`
+                              }
                               return (
                                 <TooltipProvider>
                                   <Tooltip>
@@ -709,25 +880,12 @@ export default function AirQloudDetailPage() {
                           </TableCell>
                           <TableCell>{device.data_points}</TableCell>
                           <TableCell>
-                            <Badge
-                              variant={
-                                device.daily_uptime_percentage > 80
-                                  ? "default"
-                                  : device.daily_uptime_percentage > 50
-                                    ? "secondary"
-                                    : "destructive"
-                              }
-                            >
-                              {device.daily_uptime_percentage > 80
-                                ? "Good"
-                                : device.daily_uptime_percentage > 50
-                                  ? "Fair"
-                                  : "Poor"
-                              }
+                            <Badge variant={statusVariant}>
+                              {statusLabel}
                             </Badge>
                           </TableCell>
                         </TableRow>
-                      ))}
+                      )})}
                     </TableBody>
                   </Table>
                 </div>
@@ -741,6 +899,7 @@ export default function AirQloudDetailPage() {
             airqloudId={airqloudId}
             airqloudName={data.name}
             initialData={data}
+            entityType={isGridMode ? "grid" : "cohort"}
           />
         </TabsContent>
 

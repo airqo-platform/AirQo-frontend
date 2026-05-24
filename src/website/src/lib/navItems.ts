@@ -81,6 +81,11 @@ export const NAV_ITEMS: NavMenuSection = {
       href: '/packages',
     },
     {
+      title: 'AirQo DevCon 2026',
+      description: 'Free hands-on student developer conference',
+      href: '/developers/airqo-devcon',
+    },
+    {
       title: 'Documentation',
       description: 'API guides and technical resources',
       href: 'https://docs.airqo.net/airqo-rest-api-documentation/',

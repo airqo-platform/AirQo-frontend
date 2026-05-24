@@ -60,8 +60,11 @@ import {
   getOfflineDevices,
   getUpcomingMaintenance
 } from "@/services/device-api.service"
+import { useGroup } from "@/lib/group-context"
 
 export default function DashboardPage() {
+  const { activeGroup, loading: groupLoading } = useGroup()
+
   // State for dashboard data
   const [dashboardData, setDashboardData] = useState<any>(null)
   const [systemHealth, setSystemHealth] = useState<any>(null)
@@ -119,8 +122,10 @@ export default function DashboardPage() {
 
   // Fetch device statistics
   const fetchDeviceStatistics = async () => {
+    if (groupLoading || !activeGroup) return
+
     try {
-      const stats = await getDeviceStats({ include_networks: true, include_categories: true, include_maintenance: true })
+      const stats = await getDeviceStats({ include_networks: true, include_categories: true, include_maintenance: true, group: activeGroup })
       setDeviceStats(stats)
     } catch (err) {
       console.error("Error fetching device stats:", err)
@@ -129,9 +134,11 @@ export default function DashboardPage() {
 
   // Fetch device lists
   const fetchDeviceLists = async () => {
+    if (groupLoading || !activeGroup) return
+
     try {
       const [deviceList, offline, maintenance] = await Promise.all([
-        getDevices({ limit: 10 }),
+        getDevices({ limit: 10, group: activeGroup }),
         getOfflineDevices({ hours: 24, limit: 10 }),
         getUpcomingMaintenance({ days: 30, limit: 10 })
       ])
@@ -164,6 +171,8 @@ export default function DashboardPage() {
 
   // Call fetch functions on component mount
   useEffect(() => {
+    if (groupLoading || !activeGroup) return
+
     // Fetch critical dashboard data first
     fetchDashboardSummary()
     
@@ -173,7 +182,7 @@ export default function DashboardPage() {
     fetchNetworkData()
     fetchDeviceStatistics()
     fetchDeviceLists()
-  }, [])
+  }, [activeGroup, groupLoading])
 
   // Get device counts from dashboard data
   const deviceCounts = dashboardData?.devices || {

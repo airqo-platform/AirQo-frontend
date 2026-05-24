@@ -10,6 +10,8 @@ import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput"
 import { MultiSelectCombobox } from "@/components/ui/multi-select";
 import { DEFAULT_DEVICE_TAGS } from "@/core/constants/devices";
 import { Label } from "@/components/ui/label";
+import { useBanner } from "@/context/banner-context";
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 
 interface CreateDeviceModalProps {
   open: boolean;
@@ -30,6 +32,7 @@ const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const { showBanner } = useBanner();
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
   const createDevice = useCreateDevice();
 
@@ -56,7 +59,7 @@ const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
     const effectiveNetworkName = networkName || activeNetwork?.net_name;
 
     if (!effectiveNetworkName) {
-      setErrors({ general: "No active Sensor Manufacturer found" });
+      showBanner({ severity: 'error', message: 'No active Sensor Manufacturer found', scoped: true });
       return;
     }
 
@@ -67,20 +70,26 @@ const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
         description: formData.description.trim() || undefined,
         network: effectiveNetworkName,
         tags: formData.tags,
+      }, {
+        onSuccess: (data, variables) => {
+          setTimeout(() => {
+            showBanner({
+              severity: 'success',
+              title: 'Success',
+              message: `${variables.long_name.trim()} has been created successfully.`,
+              scoped: false
+            });
+          }, 300);
+          setFormData({ long_name: "", category: "", description: "", tags: [] });
+          setErrors({});
+          onOpenChange(false);
+        },
+        onError: (error) => {
+          showBanner({ severity: 'error', message: `Creation Failed: ${getApiErrorMessage(error)}`, scoped: true });
+        },
       });
-
-      // Reset form and close modal
-      setFormData({
-        long_name: "",
-        category: "",
-        description: "",
-        tags: [],
-      });
-      setErrors({});
-      onOpenChange(false);
     } catch (error) {
-      // Error handling is done in the hook
-      console.error("Create device failed:", error);
+      showBanner({ severity: 'error', message: `Creation Failed: ${getApiErrorMessage(error)}`, scoped: true });
     }
   };
 
@@ -136,11 +145,6 @@ const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
       }}
     >
       <div className="space-y-4">
-        {errors.general && (
-          <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
-            {errors.general}
-          </div>
-        )}
         <ReusableInputField
           label="Device Name"
           id="long_name"

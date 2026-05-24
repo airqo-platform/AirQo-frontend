@@ -6,25 +6,25 @@ import { useRouter } from 'next/navigation';
 import {
   Search,
   Layers,
-  ChevronRight,
-  ChevronDown
+  ChevronRight
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Pagination } from "@/components/ui/pagination";
 import categoryService from '@/services/category.service';
 import { Category } from '@/types/category.types';
+import { useGroup } from '@/lib/group-context';
 
 const CategoriesPage = () => {
-  const { toast } = useToast();
   const router = useRouter();
+  const { activeGroup, loading: groupLoading } = useGroup();
+  const isAirqoGroup = activeGroup?.toLowerCase() === 'airqo';
 
   // Pagination and Search States
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(25);
+  const pageSize = 25;
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
@@ -40,13 +40,38 @@ const CategoriesPage = () => {
 
   // Fetch categories
   const { data: categoryResponse, isLoading, error } = useQuery({
-    queryKey: ['categories', currentPage, pageSize, debouncedSearch],
+    queryKey: ['categories', currentPage, pageSize, debouncedSearch, activeGroup],
     queryFn: () => categoryService.getAllCategories({
       page: currentPage,
       page_size: pageSize,
       name: debouncedSearch || undefined
     }),
+    enabled: isAirqoGroup,
   });
+
+  if (groupLoading) {
+    return (
+      <div className="p-6">
+        <Skeleton className="h-10 w-72 mb-6" />
+        <Skeleton className="h-40 w-full" />
+      </div>
+    );
+  }
+
+  if (!isAirqoGroup) {
+    return (
+      <div className="p-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Restricted section</CardTitle>
+            <CardDescription>
+              Categories are only available when the selected group is <span className="font-semibold">airqo</span>.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
 
   const categories = categoryResponse?.categories || [];
   const totalPages = categoryResponse ? Math.ceil(categoryResponse.total / categoryResponse.page_size) : 0;

@@ -33,6 +33,7 @@ import { getDeviceSummary, getDevicesForUIPaginated, syncDevices, syncDevicePerf
 import type { DeviceSummaryResponse, UIDevice } from "@/types/api.types"
 import UpdateDeviceDialog from "@/components/dashboard/update-device-dialog"
 import { formatCategoryLabel } from "@/lib/utils"
+import { useGroup } from "@/lib/group-context"
 
 // Dynamically import the map component to avoid SSR issues with better error handling
 const AfricaMap = dynamic(
@@ -74,6 +75,7 @@ import { Label } from "@/components/ui/label"
 
 export default function DevicesPage() {
   const { toast } = useToast()
+  const { activeGroup, loading: groupLoading } = useGroup()
 
   // State for device data
   const [devices, setDevices] = useState<UIDevice[]>([])
@@ -122,6 +124,17 @@ export default function DevicesPage() {
 
   // Fetch devices list with pagination
   const fetchDevices = async () => {
+    if (!activeGroup) {
+      setDevices([])
+      setTotalDevices(0)
+      setTotalPages(0)
+      setHasNext(false)
+      setHasPrevious(false)
+      setLoading(false)
+      setIsRefreshing(false)
+      return
+    }
+
     try {
       setLoading(true)
       setError(null)
@@ -132,7 +145,8 @@ export default function DevicesPage() {
       // Prepare query params
       const params: any = {
         skip,
-        limit: itemsPerPage
+        limit: itemsPerPage,
+        group: activeGroup,
       }
 
       // Add search term if provided (backend search)
@@ -170,7 +184,9 @@ export default function DevicesPage() {
 
   // Initial data load
   useEffect(() => {
-    Promise.all([fetchDeviceCounts(), fetchDevices()])
+    if (groupLoading || !activeGroup) return
+
+    fetchDeviceCounts()
 
     // Delay showing the map to avoid React reconciliation issues
     const timer = setTimeout(() => {
@@ -179,10 +195,12 @@ export default function DevicesPage() {
 
     return () => clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [activeGroup, groupLoading])
 
   // Refetch devices when pagination or search changes
   useEffect(() => {
+    if (groupLoading || !activeGroup) return
+
     // Debounce search to avoid too many API calls
     const searchDebounce = setTimeout(() => {
       fetchDevices()
@@ -190,7 +208,7 @@ export default function DevicesPage() {
 
     return () => clearTimeout(searchDebounce)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, itemsPerPage, searchTerm, showTracked]) // Added searchTerm and showTracked
+  }, [currentPage, itemsPerPage, searchTerm, showTracked, activeGroup, groupLoading]) // Added searchTerm and showTracked
 
   // Refresh all data
   const refreshData = () => {

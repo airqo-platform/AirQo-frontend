@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Map as MapIcon, Navigation, Info, AlertTriangle, CheckCircle, CircleDot } from "lucide-react"
+import { useGroup } from "@/lib/group-context"
 
 // Fix for default marker icons in Next.js/Leaflet
 const DefaultIcon = L.icon({
@@ -46,12 +47,13 @@ export default function MaintenanceMap({
     routePath,
     homeLocation
 }: MaintenanceMapProps) {
+    const { activeGroup, loading: groupLoading } = useGroup()
     const mapContainer = useRef<HTMLDivElement>(null)
-    const map = useRef<L.Map | null>(null)
-    const markersRef = useRef<L.Marker[]>([])
-    const routeLayerRef = useRef<L.Polyline | null>(null)
-    const homeMarkerRef = useRef<L.Marker | null>(null)
-    const suggestionMarkersRef = useRef<L.Marker[]>([])
+    const map = useRef<any>(null)
+    const markersRef = useRef<any[]>([])
+    const routeLayerRef = useRef<any>(null)
+    const homeMarkerRef = useRef<any>(null)
+    const suggestionMarkersRef = useRef<any[]>([])
 
     // Local state for routing if not controlled fully by parent yet
     const [localSelectedIds, setLocalSelectedIds] = useState<string[]>(selectedDeviceIds)
@@ -303,6 +305,8 @@ export default function MaintenanceMap({
 
     // Fetch and render mini graphs into a placeholder div (lazy on popup open)
     const loadMiniGraphsForDevice = async (device: MaintenanceMapItem) => {
+        if (groupLoading || !activeGroup) return
+
         const containerId = `mini-graphs-${device.device_id}`
         const container = document.getElementById(containerId)
         if (!container) return
@@ -321,6 +325,7 @@ export default function MaintenanceMap({
                 start: start.toISOString(),
                 end: end.toISOString(),
                 deviceNames: [device.device_name],
+                group: activeGroup,
             })
             const arr = Array.isArray(resp) ? resp : []
             const dev = arr[0] ?? {}
@@ -385,7 +390,7 @@ export default function MaintenanceMap({
                         <p class="text-xs text-gray-600 mb-2">${device.cohorts?.length ? device.cohorts.join(', ') : 'No cohorts'}</p>
                         <div class="grid grid-cols-2 gap-2 text-xs mb-2">
                             <div><span class="font-medium">Uptime:</span> <span class="font-bold ${uptimeColorClass}">${uptimePct.toFixed(0)}%</span></div>
-                            <div><span class="font-medium">Error:</span> <span class="font-bold ${errorColorClass}">${device.error_margin.toFixed(1)}</span></div>
+                            <div><span class="font-medium">Error:</span> <span class="font-bold ${errorColorClass}">${(device.error_margin ?? 0).toFixed(1)}</span></div>
                         </div>
                         <div class="text-xs text-gray-500 mb-2"><span class="font-medium">Last Post:</span> ${device.last_active ? new Date(device.last_active).toLocaleString() : 'N/A'}</div>
                         <div id="mini-graphs-${device.device_id}"></div>

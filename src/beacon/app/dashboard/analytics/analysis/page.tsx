@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ArrowLeft, Calendar, Wifi, AlertTriangle, BarChart3, RefreshCw } from "lucide-react"
+import { ArrowLeft, Calendar, Wifi, AlertTriangle, BarChart3 } from "lucide-react"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -25,8 +25,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { type AirQloudPerformanceData } from "@/services/airqloud.service"
-import { syncCohorts, syncThingSpeak } from "@/services/device-api.service"
-import { useToast } from "@/components/ui/use-toast"
+import { useSyncActions, SyncToolbar } from "@/components/analytics/sync-toolbar"
 import DevicePerformanceHeatmaps, { DeviceHourHeatmaps } from "@/components/analytics/device-heatmap"
 
 interface DateRange {
@@ -37,6 +36,7 @@ interface DateRange {
 // Device performance from Cohort API (nested structure)
 interface DevicePerformanceRaw {
   _id?: string
+  device_id?: string
   name: string
   long_name: string
   uptime?: number | null
@@ -53,9 +53,16 @@ interface DevicePerformanceRaw {
 interface DevicePerformanceFlat {
   id: string
   name: string
+  device_id?: string
+  device_name?: string
   freq: number[]
   error_margin: (number | null)[]
   timestamp: string[]
+  uptime?: number | null
+  data_completeness?: number | null
+  sensor_error_margin?: number | null
+  raw_data?: any[]
+  data?: any[]
 }
 
 interface ProcessedDeviceData {
@@ -75,12 +82,27 @@ interface AirQloudDetailData {
   devices: DevicePerformanceRaw[]
 }
 
+type AnalysisType = "airqlouds" | "devices" | "grids"
+
+const normalizePercentage = (value: number) => {
+  if (value >= 0 && value <= 1) return value * 100
+  return value
+}
+
 // Process device performance data from Cohort API (nested structure)
 const processDevicePerformance = (device: DevicePerformanceRaw): ProcessedDeviceData => {
   const dailyData: { [date: string]: { hoursSet: Set<number>; errorMargins: number[] } } = {}
   const hourlyData: { [key: string]: { date: string; hour: number; count: number; errorMargins: number[] } } = {}
 
   const deviceData = device.data || []
+
+  const getSensorValue = (reading: any, keys: string[]) => {
+    for (const key of keys) {
+      const value = reading?.[key]
+      if (typeof value === "number") return value
+    }
+    return null
+  }
 
   deviceData.forEach((d: any) => {
     const dt = new Date(d.datetime)
@@ -103,8 +125,11 @@ const processDevicePerformance = (device: DevicePerformanceRaw): ProcessedDevice
     const recordCount = typeof d.record_count === "number" ? d.record_count : 1
     hourlyData[hourKey].count += recordCount
 
-    if (d.s1_pm2_5 != null && d.s2_pm2_5 != null) {
-      const em = Math.abs(d.s1_pm2_5 - d.s2_pm2_5)
+    const s1 = getSensorValue(d, ["s1_pm2_5", "pm2.5 sensor1", "pm2_5_sensor1", "pm2_5_s1", "pm2_5_s1_raw"])
+    const s2 = getSensorValue(d, ["s2_pm2_5", "pm2.5 sensor2", "pm2_5_sensor2", "pm2_5_s2", "pm2_5_s2_raw"])
+
+    if (s1 != null && s2 != null) {
+      const em = Math.abs(s1 - s2)
       dailyData[date].errorMargins.push(em)
       hourlyData[hourKey].errorMargins.push(em)
     }
@@ -138,24 +163,26 @@ const processDevicePerformance = (device: DevicePerformanceRaw): ProcessedDevice
     timestamp: date
   }))
 
-  // Compute averages from the actual per-day buckets (with missing days
-  // counted as 0 uptime) rather than relying on the API's `device.uptime` /
-  // `device.sensor_error_margin` which can be stale or unreliable (e.g.
-  // returning 1 for every device).
-  const computedAvgUptime = uptimeHistory.length > 0
-    ? uptimeHistory.reduce((sum, d) => sum + d.value, 0) / uptimeHistory.length
-    : (device.uptime ?? 0) * 100
+  let computedAvgUptime = 0
+
+  if (typeof device.uptime === "number") {
+    computedAvgUptime = normalizePercentage(device.uptime)
+  } else if (uptimeHistory.length > 0) {
+    computedAvgUptime = uptimeHistory.reduce((sum, d) => sum + d.value, 0) / uptimeHistory.length
+  }
   const allErrorMargins = Object.values(dailyData).flatMap(d => d.errorMargins)
   const computedAvgErrorMargin = allErrorMargins.length > 0
     ? allErrorMargins.reduce((s, v) => s + v, 0) / allErrorMargins.length
     : (device.sensor_error_margin ?? 0)
 
+  const totalDataPoints = Object.values(hourlyData).reduce((sum, h) => sum + h.count, 0)
+
   return {
-    device_id: device._id || device.name,
+    device_id: device._id || device.device_id || device.name,
     device_name: device.long_name || device.name,
     daily_uptime_percentage: computedAvgUptime,
     average_error_margin: computedAvgErrorMargin,
-    data_points: deviceData.length,
+    data_points: totalDataPoints || deviceData.length,
     uptime_history: uptimeHistory,
     error_margin_history: errorMarginHistory,
     hourly_data: Object.values(hourlyData).map(h => ({
@@ -172,13 +199,19 @@ const processDevicePerformance = (device: DevicePerformanceRaw): ProcessedDevice
 // Process device performance data from Device API (flat structure)
 const processDevicePerformanceFlat = (device: DevicePerformanceFlat): ProcessedDeviceData => {
   // If the device has raw_data (actual API response), process like nested format
-  if ((device as any).raw_data && Array.isArray((device as any).raw_data)) {
+  const data = (device as any).data
+  const rawData = (device as any).raw_data
+  const readings = Array.isArray(data) && data.length > 0 ? data : rawData
+
+  if (readings && Array.isArray(readings)) {
     return processDevicePerformance({
       name: (device as any).device_name || device.name || device.id,
       long_name: (device as any).device_name || device.name || device.id,
+      _id: (device as any).device_id || readings[0]?.device_id,
       uptime: (device as any).uptime,
+      data_completeness: (device as any).data_completeness,
       sensor_error_margin: (device as any).sensor_error_margin,
-      data: (device as any).raw_data,
+      data: readings,
     })
   }
 
@@ -417,41 +450,17 @@ const getDeviceStatusBadge = (status: string) => {
 export default function AnalysisResultsPage() {
   const [data, setData] = useState<AirQloudPerformanceData[] | null>(null)
   const [deviceData, setDeviceData] = useState<DevicePerformanceFlat[] | null>(null)
-  const [analysisType, setAnalysisType] = useState<"airqlouds" | "devices">("airqlouds")
+  const [analysisType, setAnalysisType] = useState<AnalysisType>("airqlouds")
   const [dateRange, setDateRange] = useState<DateRange | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [selectedTab, setSelectedTab] = useState<string>("")
-  const [isSyncing, setIsSyncing] = useState(false)
-  const { toast } = useToast()
-
-  const handleSync = async () => {
-    setIsSyncing(true)
-    try {
-      await Promise.all([
-        syncCohorts(),
-        syncThingSpeak(14),
-      ])
-      toast({
-        title: "Sync successful",
-        description: "Cohorts and ThingSpeak data have been synced.",
-      })
-    } catch (err) {
-      console.error("Error syncing performance data:", err)
-      toast({
-        variant: "destructive",
-        title: "Sync failed",
-        description: "An error occurred while syncing performance data.",
-      })
-    } finally {
-      setIsSyncing(false)
-    }
-  }
+  const syncActions = useSyncActions()
 
   useEffect(() => {
     // Load data from sessionStorage
     const storedData = sessionStorage.getItem('analysisData')
     const storedDateRange = sessionStorage.getItem('analysisDateRange')
-    const storedAnalysisType = sessionStorage.getItem('analysisType') as "airqlouds" | "devices" | null
+    const storedAnalysisType = sessionStorage.getItem('analysisType') as AnalysisType | null
 
     if (storedData && storedDateRange) {
       try {
@@ -461,10 +470,13 @@ export default function AnalysisResultsPage() {
 
         if (storedAnalysisType === "devices") {
           // Device analysis - data is array of device performance (flat structure)
-          const parsedData = JSON.parse(storedData) as DevicePerformanceFlat[]
+          const parsedPayload = JSON.parse(storedData)
+          const parsedData = Array.isArray(parsedPayload)
+            ? parsedPayload
+            : parsedPayload?.data || []
           setDeviceData(parsedData)
         } else {
-          // Cohort analysis - data includes devices in each cohort
+          // Cohort/grid analysis - data includes devices in each entity
           const parsedData = JSON.parse(storedData) as AirQloudPerformanceData[]
           setData(parsedData)
 
@@ -572,15 +584,7 @@ export default function AnalysisResultsPage() {
             <Badge variant="outline" className="text-sm">
               {deviceData.length} Device{deviceData.length !== 1 ? 's' : ''} analysed
             </Badge>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSync}
-              disabled={isSyncing}
-            >
-              <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
-              {isSyncing ? 'Syncing...' : 'Sync Data'}
-            </Button>
+            <SyncToolbar {...syncActions} />
           </div>
         </div>
 
@@ -747,6 +751,8 @@ export default function AnalysisResultsPage() {
   const overallAvgErrorMargin = summaryStats.length > 0
     ? summaryStats.reduce((sum, aq) => sum + aq.stats.avgErrorMargin, 0) / summaryStats.length
     : 0
+  const entityLabel = analysisType === "grids" ? "Grid" : "Cohort"
+  const entityLabelPlural = analysisType === "grids" ? "Grids" : "Cohorts"
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -771,17 +777,9 @@ export default function AnalysisResultsPage() {
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="text-sm">
-            {data.length} Cohort{data.length !== 1 ? 's' : ''} analysed
+            {data.length} {data.length === 1 ? entityLabel : entityLabelPlural} analysed
           </Badge>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSync}
-            disabled={isSyncing}
-          >
-            <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
-            {isSyncing ? 'Syncing...' : 'Sync Data'}
-          </Button>
+          <SyncToolbar {...syncActions} />
         </div>
       </div>
 
@@ -790,7 +788,7 @@ export default function AnalysisResultsPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Cohorts
+              Total {entityLabelPlural}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -840,7 +838,7 @@ export default function AnalysisResultsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5" />
-            Cohort Summary
+            {entityLabel} Summary
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -848,7 +846,7 @@ export default function AnalysisResultsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Cohort Name</TableHead>
+                  <TableHead>{entityLabel} Name</TableHead>
                   <TableHead>Average Uptime</TableHead>
                   <TableHead>Error Margin</TableHead>
                   <TableHead>Days of Data</TableHead>
@@ -879,7 +877,7 @@ export default function AnalysisResultsPage() {
       {/* Individual AirQloud Tabs */}
       <Card>
         <CardHeader>
-          <CardTitle>Individual Cohort Details</CardTitle>
+          <CardTitle>Individual {entityLabel} Details</CardTitle>
         </CardHeader>
         <CardContent>
           <Tabs value={selectedTab} onValueChange={setSelectedTab}>
@@ -904,7 +902,7 @@ export default function AnalysisResultsPage() {
               return (
                 <TabsContent key={aq.id} value={aq.id} className="mt-6">
                   <div className="space-y-6">
-                    {/* Cohort Header */}
+                    {/* Entity Header */}
                     <div className="flex items-center justify-between">
                       <div>
                         <h3 className="text-lg font-semibold">{aq.name}</h3>
@@ -1038,7 +1036,7 @@ export default function AnalysisResultsPage() {
                           </div>
                         ) : (
                           <div className="flex items-center justify-center py-8 text-muted-foreground">
-                            No device performance data available for this AirQloud.
+                            No device performance data available for this {entityLabel.toLowerCase()}.
                           </div>
                         )}
                       </CardContent>

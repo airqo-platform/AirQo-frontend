@@ -1,5 +1,18 @@
 // API Response Types for Device Management System
 
+export type GridAdminLevel =
+  | 'Municipality'
+  | 'municipality'
+  | 'county'
+  | 'division'
+  | 'city'
+  | 'country'
+  | 'state'
+  | 'metropolitanmunicipality'
+  | 'province'
+  | 'region'
+  | 'district'
+
 // Device Stats Response Types
 export interface DeviceStatsSummary {
   total: number
@@ -276,6 +289,7 @@ export interface DeviceQueryParams {
   network?: string
   status?: string
   search?: string
+  group?: string
 }
 
 export interface PerformanceQueryParams {
@@ -296,6 +310,7 @@ export interface StatsQueryParams {
   include_networks?: boolean
   include_categories?: boolean
   include_maintenance?: boolean
+  group?: string
 }
 
 // UI Compatible Types (for backward compatibility)
@@ -457,11 +472,37 @@ export interface MaintenanceMapItem {
   data_completeness: number
   error_margin: number
   cohorts: string[]
+  grids?: string[]
 }
 
 export interface MaintenanceMapResponse {
   success: boolean
   data: MaintenanceMapItem[]
+}
+
+export interface SyncedGrid {
+  grid_id: string
+  name: string
+  long_name?: string | null
+  admin_level?: GridAdminLevel | null
+  network?: string | null
+  number_of_sites?: number
+}
+
+export interface SyncedGridsQueryParams {
+  skip?: number
+  limit?: number
+  search?: string
+  grid_ids?: string
+  admin_level?: GridAdminLevel | GridAdminLevel[]
+  group?: string
+}
+
+export interface SyncedGridsResponse {
+  success: boolean
+  message?: string
+  meta?: ApiResponseMeta
+  grids: SyncedGrid[]
 }
 
 export interface MaintenanceAnalyticsResponse {

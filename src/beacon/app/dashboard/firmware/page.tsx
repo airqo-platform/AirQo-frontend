@@ -36,10 +36,13 @@ import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import firmwareService from '@/services/firmware.service';
 import { FirmwareVersion, FirmwareType } from '@/types/firmware.types';
+import { useGroup } from '@/lib/group-context';
 
 const FirmwarePage = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { activeGroup, loading: groupLoading } = useGroup();
+  const isAirqoGroup = activeGroup?.toLowerCase() === 'airqo';
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bootloaderInputRef = useRef<HTMLInputElement>(null);
 
@@ -62,9 +65,10 @@ const FirmwarePage = () => {
   const [editedFirmwareType, setEditedFirmwareType] = useState<FirmwareType>(FirmwareType.BETA);
 
   // Fetch firmware versions
-  const { data: firmwareVersions = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['firmwares'],
+  const { data: firmwareVersions = [], isLoading, error } = useQuery({
+    queryKey: ['firmwares', activeGroup],
     queryFn: () => firmwareService.getAllFirmwares({ limit: 1000 }),
+    enabled: isAirqoGroup,
   });
 
   // Upload mutation
@@ -315,6 +319,30 @@ const FirmwarePage = () => {
     }
     return changes;
   };
+
+  if (groupLoading) {
+    return (
+      <div className="p-6">
+        <Skeleton className="h-10 w-72 mb-6" />
+        <Skeleton className="h-40 w-full" />
+      </div>
+    );
+  }
+
+  if (!isAirqoGroup) {
+    return (
+      <div className="p-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Restricted section</CardTitle>
+            <CardDescription>
+              Firmware is only available when the selected group is <span className="font-semibold">airqo</span>.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6 space-y-6">

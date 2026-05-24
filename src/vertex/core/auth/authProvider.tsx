@@ -169,7 +169,10 @@ function useUserDetails(userId: string | null) {
 
 // --- Components ---
 
-const authRoutes = ['/login', '/forgot-password', '/auth-error'];
+const authRoutes = ['/login', '/auth-error'];
+const publicRoutes = [...authRoutes, '/download'];
+const matchesRoute = (pathname: string, route: string) =>
+  pathname === route || pathname.startsWith(`${route}/`);
 
 /**
  * Redirects authenticated users away from auth routes
@@ -180,7 +183,7 @@ function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
   const { status } = useSession();
   const { activeGroup, isInitialized } = useAppSelector((state) => state.user);
 
-  const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
+  const isAuthRoute = authRoutes.some((route) => matchesRoute(pathname, route));
 
   useEffect(() => {
     if (status === 'authenticated' && isAuthRoute && activeGroup && isInitialized) {
@@ -369,11 +372,14 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   const logout = useLogout();
   const [hasHandledUnauthorized, setHasHandledUnauthorized] = useState(false);
 
-  const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
+  const isAuthRoute = authRoutes.some((route) => matchesRoute(pathname, route));
+  const isPublicRoute = publicRoutes.some((route) =>
+    matchesRoute(pathname, route)
+  );
 
   // Handle unauthorized/expired token events
   const handleUnauthorized = useCallback(async () => {
-    if (isAuthRoute) return;
+    if (isPublicRoute) return;
     if (hasHandledUnauthorized) return;
     if (isLoggingOut) return;
 
@@ -460,7 +466,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       setHasHandledUnauthorized(true);
       logout();
     }
-  }, [logout, update, isAuthRoute, hasHandledUnauthorized, isLoggingOut]);
+  }, [logout, update, isPublicRoute, hasHandledUnauthorized, isLoggingOut]);
 
   // Listen for auth token expiration events
   useEffect(() => {
@@ -483,11 +489,11 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     if (status === 'authenticated' && isAuthRoute) {
       logger.debug('[AuthWrapper] Authenticated user on auth route, redirecting to /home');
       router.push('/home');
-    } else if (status === 'unauthenticated' && !isAuthRoute && !isLoggingOut) {
+    } else if (status === 'unauthenticated' && !isPublicRoute && !isLoggingOut) {
       logger.debug('[AuthWrapper] Unauthenticated user on protected route, redirecting to /login');
       router.push('/login');
     }
-  }, [status, isAuthRoute, router, isLoggingOut]);
+  }, [status, isAuthRoute, isPublicRoute, router, isLoggingOut]);
 
   // Check if we have a session from SSR or client fetch
   const hasSession = !!session;
@@ -500,6 +506,10 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   // For auth routes, wrap in ActiveGroupGuard
   if (isAuthRoute) {
     return <ActiveGroupGuard>{children}</ActiveGroupGuard>;
+  }
+
+  if (isPublicRoute) {
+    return <>{children}</>;
   }
 
   // For protected routes without session, show loading while redirecting

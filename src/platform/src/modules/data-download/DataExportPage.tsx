@@ -36,6 +36,7 @@ import { useDataExportData } from './hooks/useDataExportData';
 import {
   buildDownloadFileContent,
   buildDownloadPdfBlob,
+  buildDownloadXlsxBlob,
 } from './utils/dataExportFile';
 import MoreInsights from '@/modules/location-insights/more-insights';
 import AddLocation from '@/modules/location-insights/add-location';
@@ -45,7 +46,7 @@ import { useUser } from '@/shared/hooks/useUser';
 import { useUserActions } from '@/shared/hooks/useUserActions';
 import { AccessDenied } from '@/shared/components/AccessDenied';
 
-type SaveFormat = 'csv' | 'pdf';
+type SaveFormat = 'csv' | 'xlsx' | 'pdf';
 type FinalSaveFormat = SaveFormat | 'json';
 
 const saveBlobToDisk = (blob: Blob, filename: string) => {
@@ -209,6 +210,7 @@ const DataExportPage = () => {
   const previousGroupIdRef = React.useRef<string | null>(null);
 
   useEffect(() => {
+    isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
     };
@@ -305,6 +307,7 @@ const DataExportPage = () => {
     sitesHook,
     devicesHook,
     currentHook,
+    groupCohortsHook,
     tableData,
     processedSitesData,
     processedDevicesData,
@@ -314,6 +317,7 @@ const DataExportPage = () => {
     activeTab,
     tabStates,
     isOrgFlow,
+    activeGroup?.id ?? organizationGroupId,
     deviceCategory,
     selectedDeviceIds,
     selectedDevicesForActions,
@@ -367,7 +371,9 @@ const DataExportPage = () => {
     ? undefined
     : (currentHook.data as CohortDevicesResponse | undefined)?.devices;
   const tableLoading =
-    isGroupSyncing || (currentHook.isLoading && currentHook.data === undefined);
+    isGroupSyncing || groupCohortsHook.isLoading || currentHook.isLoading;
+  const tableRefreshing =
+    !tableLoading && (currentHook.isValidating || isRefreshing);
   const compactTableRows =
     activeTab === 'devices' ||
     activeTab === 'countries' ||
@@ -622,6 +628,10 @@ const DataExportPage = () => {
     setIsRefreshing(true);
     try {
       await currentHook.mutate?.();
+      toast.success('Data refreshed', 'The current table has been updated.');
+    } catch (error) {
+      console.error('Failed to refresh export data:', error);
+      toast.error('Refresh failed', 'We could not refresh the data.');
     } finally {
       refreshInFlightRef.current = false;
       if (isMountedRef.current) {
@@ -666,6 +676,17 @@ const DataExportPage = () => {
         );
 
         saveBlobToDisk(blob, filename);
+      } else if (format === 'xlsx') {
+        const blob = buildDownloadXlsxBlob(
+          download.response,
+          download.selectedColumnKeys,
+          {
+            activeTab: download.activeTab,
+            preserveSelectedColumns,
+          }
+        );
+
+        saveBlobToDisk(blob, filename);
       } else {
         const downloadType = format === 'csv' ? 'csv' : 'json';
         const { content, mimeType } = buildDownloadFileContent(
@@ -694,9 +715,11 @@ const DataExportPage = () => {
       const savedMessage =
         format === 'pdf'
           ? 'Your professional PDF report has been saved.'
-          : format === 'csv'
-            ? 'Your CSV file has been saved.'
-            : 'Your JSON file has been saved.';
+          : format === 'xlsx'
+            ? 'Your Excel workbook has been saved with one sheet per location.'
+            : format === 'csv'
+              ? 'Your CSV file has been saved.'
+              : 'Your JSON file has been saved.';
 
       toast.success(`Saved as ${savedLabel}`, savedMessage);
       setSaveFormatDialogOpen(false);
@@ -819,8 +842,16 @@ const DataExportPage = () => {
               isDownloadReady={isDownloadReady}
               sitesData={displaySitesData}
               devicesData={displayDevicesData}
-              isLoadingSites={isGroupSyncing || sitesHook.isLoading}
-              isLoadingDevices={isGroupSyncing || devicesHook.isLoading}
+              isLoadingSites={
+                isGroupSyncing ||
+                groupCohortsHook.isLoading ||
+                sitesHook.isLoading
+              }
+              isLoadingDevices={
+                isGroupSyncing ||
+                groupCohortsHook.isLoading ||
+                devicesHook.isLoading
+              }
               pathname={pathname}
             />
 
@@ -868,6 +899,7 @@ const DataExportPage = () => {
               tableData={displayTableData}
               columns={config.columns}
               loading={tableLoading}
+              isRefreshing={tableRefreshing}
               error={currentHook.error?.message || null}
               currentPage={currentState.page}
               totalPages={meta.totalPages}
@@ -972,6 +1004,7 @@ const DataExportPage = () => {
           }
         }}
         onSave={handleSaveFormatSelection}
+        locationCount={pendingDownload?.locationCount || 0}
       />
     </div>
   );

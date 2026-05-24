@@ -1,15 +1,20 @@
 "use client"
 
 import Link from "next/link"
-import { Home, Bell, Settings, Package, Layers, Box, ChevronLeft, ChevronRight, Wrench, FlaskConical } from "lucide-react"
+import { Package, Layers, Box, ChevronRight, Wrench, FlaskConical, FileText, MessageSquare } from "lucide-react"
 import { AqMonitor, AqAirQlouds } from '@/components/icons'
+import { useGroup } from '@/lib/group-context'
+import { openFeedbackDialog } from '@/components/features/feedback/feedback-dialog'
+import { FeedbackLauncher } from '@/components/features/feedback/feedback-launcher'
 
 interface SidebarProps {
   sidebarOpen: boolean
   onToggleSidebar: () => void
 }
 
-export default function Sidebar({ sidebarOpen, onToggleSidebar }: SidebarProps) {
+export default function Sidebar({ sidebarOpen, onToggleSidebar }: Readonly<SidebarProps>) {
+  const { activeGroup } = useGroup()
+  const isAirqoGroup = activeGroup?.toLowerCase() === 'airqo'
 
   return (
     <div
@@ -52,53 +57,75 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar }: SidebarProps) 
               )}
             </Link>
           </li>
-          <li>
-            <Link
-              href="/dashboard/analytics"
-              className={`flex items-center rounded-md hover:bg-gray-100 transition-colors group relative ${sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
+          <li className="relative group/analytics">
+            <div
+              className={`flex items-center rounded-md hover:bg-gray-100 transition-colors cursor-pointer ${sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
                 }`}
               title={!sidebarOpen ? "Performance Analysis" : ""}
             >
               <AqAirQlouds size={25} color="#374151" />
-              {sidebarOpen && <span className="ml-3 text-sm">Performance Analysis</span>}
-              {!sidebarOpen && (
-                <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
-                  Performance Analysis
-                </span>
-              )}
-            </Link>
-          </li>
-
-          {/* Collocation - hover flyout menu */}
-          <li className="relative group/collocation">
-            <div
-              className={`flex items-center rounded-md hover:bg-gray-100 transition-colors cursor-pointer ${sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
-                }`}
-            >
-              <FlaskConical className="h-5 w-5 flex-shrink-0" />
               {sidebarOpen && (
                 <>
-                  <span className="ml-3 text-sm flex-1 text-left">Collocation</span>
+                  <span className="ml-3 text-sm flex-1 text-left">Performance Analysis</span>
                   <ChevronRight className="h-4 w-4" />
                 </>
               )}
+              {!sidebarOpen && (
+                <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover/analytics:opacity-100 pointer-events-none transition-opacity z-50">
+                  Performance Analysis
+                </span>
+              )}
             </div>
-            {/* Flyout submenu */}
-            <div className="absolute left-full top-0 ml-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-1 opacity-0 invisible group-hover/collocation:opacity-100 group-hover/collocation:visible transition-all duration-150 z-50">
+            <div className="absolute left-full top-0 ml-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-1 opacity-0 invisible group-hover/analytics:opacity-100 group-hover/analytics:visible transition-all duration-150 z-50">
               <Link
-                href="/dashboard/collocation/inlab"
+                href="/dashboard/analytics?analysis=cohorts"
                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
               >
-                Inlab collocation
+                Cohort analysis
               </Link>
               <Link
-                href="/dashboard/collocation/site"
+                href="/dashboard/analytics?analysis=grids"
                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
               >
-                Site collocation
+                Grid analysis
               </Link>
             </div>
           </li>
+
+          {isAirqoGroup && (
+            <>
+              {/* Collocation - hover flyout menu */}
+              <li className="relative group/collocation">
+                <div
+                  className={`flex items-center rounded-md hover:bg-gray-100 transition-colors cursor-pointer ${sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
+                    }`}
+                >
+                  <FlaskConical className="h-5 w-5 flex-shrink-0" />
+                  {sidebarOpen && (
+                    <>
+                      <span className="ml-3 text-sm flex-1 text-left">Collocation</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </>
+                  )}
+                </div>
+                {/* Flyout submenu */}
+                <div className="absolute left-full top-0 ml-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-1 opacity-0 invisible group-hover/collocation:opacity-100 group-hover/collocation:visible transition-all duration-150 z-50">
+                  <Link
+                    href="/dashboard/collocation/inlab"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                  >
+                    Inlab collocation
+                  </Link>
+                  <Link
+                    href="/dashboard/collocation/site"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                  >
+                    Site collocation
+                  </Link>
+                </div>
+              </li>
+            </>
+          )}
 
           {/* <li>
             <Link
@@ -117,54 +144,58 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar }: SidebarProps) 
               )}
             </Link>
           </li> */}
-          <li>
-            <Link
-              href="/dashboard/firmware"
-              className={`flex items-center rounded-md hover:bg-gray-100 transition-colors group relative ${sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
-                }`}
-              title={!sidebarOpen ? "Firmware" : ""}
-            >
-              <Package className="h-5 w-5 flex-shrink-0" />
-              {sidebarOpen && <span className="ml-3 text-sm">Firmware</span>}
-              {!sidebarOpen && (
-                <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
-                  Firmware
-                </span>
-              )}
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/dashboard/category"
-              className={`flex items-center rounded-md hover:bg-gray-100 transition-colors group relative ${sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
-                }`}
-              title={!sidebarOpen ? "Categories" : ""}
-            >
-              <Layers className="h-5 w-5 flex-shrink-0" />
-              {sidebarOpen && <span className="ml-3 text-sm">Categories</span>}
-              {!sidebarOpen && (
-                <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
-                  Categories
-                </span>
-              )}
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/dashboard/stock"
-              className={`flex items-center rounded-md hover:bg-gray-100 transition-colors group relative ${sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
-                }`}
-              title={!sidebarOpen ? "Stock" : ""}
-            >
-              <Box className="h-5 w-5 flex-shrink-0" />
-              {sidebarOpen && <span className="ml-3 text-sm">Stock</span>}
-              {!sidebarOpen && (
-                <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
-                  Stock
-                </span>
-              )}
-            </Link>
-          </li>
+          {isAirqoGroup && (
+            <>
+              <li>
+                <Link
+                  href="/dashboard/firmware"
+                  className={`flex items-center rounded-md hover:bg-gray-100 transition-colors group relative ${sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
+                    }`}
+                  title={!sidebarOpen ? "Firmware" : ""}
+                >
+                  <Package className="h-5 w-5 flex-shrink-0" />
+                  {sidebarOpen && <span className="ml-3 text-sm">Firmware</span>}
+                  {!sidebarOpen && (
+                    <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                      Firmware
+                    </span>
+                  )}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/dashboard/category"
+                  className={`flex items-center rounded-md hover:bg-gray-100 transition-colors group relative ${sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
+                    }`}
+                  title={!sidebarOpen ? "Categories" : ""}
+                >
+                  <Layers className="h-5 w-5 flex-shrink-0" />
+                  {sidebarOpen && <span className="ml-3 text-sm">Categories</span>}
+                  {!sidebarOpen && (
+                    <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                      Categories
+                    </span>
+                  )}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/dashboard/stock"
+                  className={`flex items-center rounded-md hover:bg-gray-100 transition-colors group relative ${sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
+                    }`}
+                  title={!sidebarOpen ? "Stock" : ""}
+                >
+                  <Box className="h-5 w-5 flex-shrink-0" />
+                  {sidebarOpen && <span className="ml-3 text-sm">Stock</span>}
+                  {!sidebarOpen && (
+                    <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                      Stock
+                    </span>
+                  )}
+                </Link>
+              </li>
+            </>
+          )}
           <li>
             <Link
               href="/dashboard/maintenance"
@@ -177,6 +208,22 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar }: SidebarProps) 
               {!sidebarOpen && (
                 <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
                   Maintenance
+                </span>
+              )}
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/dashboard/reports"
+              className={`flex items-center rounded-md hover:bg-gray-100 transition-colors group relative ${sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
+                }`}
+              title={!sidebarOpen ? "Reports" : ""}
+            >
+              <FileText className="h-5 w-5 flex-shrink-0" />
+              {sidebarOpen && <span className="ml-3 text-sm">Reports</span>}
+              {!sidebarOpen && (
+                <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                  Reports
                 </span>
               )}
             </Link>
@@ -201,6 +248,27 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar }: SidebarProps) 
           </li> */}
         </ul>
       </nav>
+
+      {/* Bottom Section */}
+      <div className="px-2 py-3 border-t border-gray-200">
+        <button
+          onClick={openFeedbackDialog}
+          className={`w-full flex items-center rounded-md hover:bg-gray-100 transition-colors group relative ${
+            sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
+          }`}
+          title={!sidebarOpen ? "Feedback" : ""}
+        >
+          <MessageSquare className="h-5 w-5 flex-shrink-0" />
+          {sidebarOpen && <span className="ml-3 text-sm">Feedback</span>}
+          {!sidebarOpen && (
+            <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+              Feedback
+            </span>
+          )}
+        </button>
+      </div>
+
+      <FeedbackLauncher />
     </div>
   )
 }

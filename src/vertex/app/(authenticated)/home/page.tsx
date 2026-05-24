@@ -58,6 +58,11 @@ const ImportDeviceModal = dynamic(
   { ssr: false }
 );
 
+const LoginFeedbackToast = dynamic(
+  () => import("@/components/features/feedback/login-feedback-toast"),
+  { ssr: false }
+);
+
 const WelcomePage = () => {
   const { data: session } = useSession();
   const { userContext, userScope, hasError, error, isLoading: isLoadingUserContext } = useUserContext();
@@ -220,6 +225,9 @@ const WelcomePage = () => {
         open={isImportModalOpen}
         onOpenChange={setIsImportModalOpen}
       />
+      {userId && (user?.email || user?.userName) && (
+        <LoginFeedbackToast userId={userId} email={(user?.email || user?.userName) as string} />
+      )}
     </div>
   );
 };

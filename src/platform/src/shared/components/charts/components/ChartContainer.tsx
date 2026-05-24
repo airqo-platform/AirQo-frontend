@@ -340,8 +340,14 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
         />
       )}
 
-      <CardContent ref={exportRef} className="pl-1 pb-2 flex-1">
-        <div className="relative w-full h-full flex justify-center items-center min-h-[400px]">
+      <CardContent
+        ref={exportRef}
+        className={cn(
+          'px-1 pb-2 flex-1',
+          !showTitle && !showMoreButton && 'pt-3'
+        )}
+      >
+        <div className="relative w-full min-h-[400px] min-w-0">
           {error && (
             <div className="flex items-center justify-center h-64 text-destructive">
               <div className="text-center">
@@ -359,8 +365,29 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
             </div>
           )}
 
+          {!error && (
+            <div className="w-full h-full min-h-[400px] min-w-0">
+              {React.isValidElement(children)
+                ? React.cloneElement(
+                    children as React.ReactElement<{
+                      showReferenceLines?: boolean;
+                      standards?: string;
+                    }>,
+                    {
+                      showReferenceLines,
+                      standards: currentStandardsOrg,
+                    }
+                  )
+                : children}
+            </div>
+          )}
+
           {loading && !error && (
-            <div className="flex items-center justify-center h-full">
+            <div
+              className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-40"
+              role="status"
+              aria-live="polite"
+            >
               <div className="flex flex-col items-center space-y-3">
                 <LoadingSpinner />
                 <p className="text-sm text-muted-foreground">
@@ -369,19 +396,6 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
               </div>
             </div>
           )}
-
-          {!loading && !error && React.isValidElement(children)
-            ? React.cloneElement(
-                children as React.ReactElement<{
-                  showReferenceLines?: boolean;
-                  standards?: string;
-                }>,
-                {
-                  showReferenceLines,
-                  standards: currentStandardsOrg,
-                }
-              )
-            : !loading && !error && children}
 
           {/* Export loading overlay */}
           {isExporting && (

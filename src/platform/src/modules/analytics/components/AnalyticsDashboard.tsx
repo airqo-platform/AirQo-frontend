@@ -8,6 +8,7 @@ import { ChartContainer } from '@/shared/components/charts';
 import { DynamicChart } from '@/shared/components/charts';
 import { LoadingState } from '@/shared/components/ui/loading-state';
 import { EmptyState } from '@/shared/components/ui/empty-state';
+import { toast } from '@/shared/components/ui/toast';
 import {
   useAnalyticsSiteCards,
   useAnalyticsPreferences,
@@ -22,6 +23,7 @@ import type { SiteData } from '../types';
 import { openMoreInsights } from '@/shared/store/insightsSlice';
 import type { NormalizedChartData } from '@/shared/components/charts/types';
 import { trackEvent } from '@/shared/utils/analytics';
+import { getSiteDisplayName } from '@/shared/utils/siteUtils';
 import {
   useActiveGroupCohorts,
   useCohort,
@@ -63,6 +65,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   const isMountedRef = useRef(true);
 
   useEffect(() => {
+    isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
     };
@@ -109,6 +112,8 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   const {
     siteCards,
     isLoading: siteCardsLoading,
+    isRefreshing: siteCardsRefreshing,
+    error: siteCardsError,
     refetch: refreshSiteCards,
   } = useAnalyticsSiteCards({
     selectedSiteIds,
@@ -121,6 +126,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     chartData: lineChartData,
     refresh: refreshLineChart,
     isLoading: lineChartLoading,
+    isRefreshing: lineChartRefreshing,
   } = useAnalyticsChartData(
     filters,
     'line',
@@ -133,6 +139,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     chartData: barChartData,
     refresh: refreshBarChart,
     isLoading: barChartLoading,
+    isRefreshing: barChartRefreshing,
   } = useAnalyticsChartData(filters, 'bar', selectedSiteIds, isOrgContextReady);
 
   const unresolvedOrganizationSlug =
@@ -189,15 +196,11 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     return Array.from(uniqueSiteIds)
       .map(siteId => {
         const siteData = selectedSites.find(site => site._id === siteId);
+        const displayName = getSiteDisplayName(siteData || {});
         return {
           _id: siteId,
-          name:
-            siteData?.search_name ||
-            siteData?.name ||
-            siteData?.formatted_name ||
-            siteData?.generated_name ||
-            'Unknown Site',
-          search_name: siteData?.search_name,
+          name: displayName,
+          search_name: displayName,
           country: siteData?.country,
         };
       })
@@ -271,13 +274,8 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       sites ||
       selectedSites.map(site => ({
         _id: site._id,
-        name:
-          site.search_name ||
-          site.name ||
-          site.formatted_name ||
-          site.generated_name ||
-          'Unknown Site',
-        search_name: site.search_name || site.name,
+        name: getSiteDisplayName(site),
+        search_name: getSiteDisplayName(site),
         country: site.country,
       }));
 
@@ -286,10 +284,11 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
   // Handle individual card click - open more insights for specific site
   const handleCardClick = (siteData: SiteData) => {
+    const displayName = getSiteDisplayName(siteData);
     const selectedSite = {
       _id: siteData._id,
-      name: siteData.search_name || siteData.name,
-      search_name: siteData.search_name || siteData.name,
+      name: displayName,
+      search_name: displayName,
       country: siteData.location,
     };
 
@@ -323,6 +322,10 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         refreshLineChart?.(),
         refreshBarChart?.(),
       ]);
+      toast.success('Data refreshed', 'The dashboard has been updated.');
+    } catch (error) {
+      console.error('Failed to refresh analytics dashboard:', error);
+      toast.error('Refresh failed', 'We could not refresh the dashboard.');
     } finally {
       if (isMountedRef.current) {
         setIsRefreshing(false);
@@ -448,10 +451,12 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         sites={siteCards}
         onManageFavorites={handleManageFavorites}
         onRefresh={handleRefreshDashboard}
-        isRefreshing={isRefreshing}
+        isRefreshing={siteCardsRefreshing || isRefreshing}
         selectedPollutant={filters.pollutant}
         onCardClick={handleCardClick}
         isLoading={siteCardsLoading}
+        placeholderCount={selectedSites.length}
+        errorMessage={siteCardsError}
         showIcon={showIcons}
         onShowIconsChange={setShowIcons}
         infoLine={
@@ -497,7 +502,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           onRefresh={handleRefreshLineChart}
           onMoreInsights={handleMoreInsights}
           currentSites={extractSitesFromChartData(lineChartData)}
-          loading={lineChartLoading}
+          loading={lineChartLoading || lineChartRefreshing}
         >
           <DynamicChart
             data={lineChartData}
@@ -527,7 +532,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           onRefresh={handleRefreshBarChart}
           onMoreInsights={handleMoreInsights}
           currentSites={extractSitesFromChartData(barChartData)}
-          loading={barChartLoading}
+          loading={barChartLoading || barChartRefreshing}
         >
           <DynamicChart
             data={barChartData}

@@ -4,6 +4,10 @@ import { useSWRConfig } from 'swr';
 import { usePostHog } from 'posthog-js/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { setActiveGroup, setActiveGroupById } from '@/shared/store/userSlice';
+import {
+  clearSelectedSites,
+  closeAllDialogs,
+} from '@/shared/store/insightsSlice';
 import { useUser } from './useUser';
 import { useLogout } from './useLogout';
 import type { NormalizedGroup } from '@/shared/utils/userUtils';
@@ -165,6 +169,8 @@ export const useUserActions = () => {
 
       // Switch to new group
       dispatch(setActiveGroup(group));
+      dispatch(closeAllDialogs());
+      dispatch(clearSelectedSites());
 
       invalidateGroupScopedCache(previousGroupId, group.id);
     },
@@ -197,6 +203,8 @@ export const useUserActions = () => {
           toGroupId: groupId,
         });
         dispatch(setActiveGroupById(groupId));
+        dispatch(closeAllDialogs());
+        dispatch(clearSelectedSites());
         invalidateGroupScopedCache(previousGroupId, groupId);
       }
     },
