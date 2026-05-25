@@ -158,6 +158,10 @@ const isPublicAuthRoute = (pathname: string): boolean =>
   publicRoutes.some(route => pathname.startsWith(route)) ||
   /^\/org\/[^/]+\/(login|register)$/.test(pathname);
 
+const isAuthenticatedAccessiblePublicRoute = (pathname: string): boolean =>
+  pathname.startsWith('/org-invite') ||
+  pathname.startsWith('/request-organization');
+
 const UNAUTHORIZED_WINDOW_MS = 30000;
 const UNAUTHORIZED_THRESHOLD = 3;
 const ACCOUNT_DELETION_TTL_MS = 5 * 60 * 1000;
@@ -582,7 +586,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    if (pathname.startsWith('/org-invite')) {
+    if (isAuthenticatedAccessiblePublicRoute(pathname)) {
       return;
     }
 

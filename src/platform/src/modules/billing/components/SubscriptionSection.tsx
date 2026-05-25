@@ -679,15 +679,38 @@ const SubscriptionSection: React.FC = () => {
             <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
               {plans.map(plan => {
                 const isCurrent = plan.tier === currentTier;
+                const isCurrentFreePlan = isCurrent && plan.tier === 'Free';
+                const isCurrentPlanPendingExpiry =
+                  isCurrent &&
+                  currentStatus === 'cancelled' &&
+                  Boolean(accessDateText);
                 const allowCheckout =
                   plan.tier !== 'Free' &&
                   (!isCurrent ||
                     currentStatus === 'past_due' ||
-                    currentStatus === 'cancelled' ||
+                    (currentStatus === 'cancelled' &&
+                      !isCurrentPlanPendingExpiry) ||
                     currentStatus === 'paused');
                 const isUpgrade =
                   currentTier === 'Free' ||
                   (currentPlan ? plan.price > currentPlan.price : false);
+                const actionLabel = isCurrent
+                  ? isCurrentFreePlan
+                    ? 'Included plan'
+                    : currentStatus === 'past_due'
+                      ? 'Retry billing'
+                      : currentStatus === 'cancelled'
+                        ? isCurrentPlanPendingExpiry
+                          ? 'Current plan'
+                          : 'Reactivate plan'
+                        : currentStatus === 'paused'
+                          ? 'Resume plan'
+                          : 'Current plan'
+                  : allowCheckout
+                    ? isUpgrade
+                      ? `Upgrade to ${plan.name}`
+                      : `Switch to ${plan.name}`
+                    : 'Unavailable';
 
                 return (
                   <Card
@@ -743,19 +766,7 @@ const SubscriptionSection: React.FC = () => {
                       disabled={!allowCheckout}
                       onClick={() => handleOpenCheckout(plan)}
                     >
-                      {isCurrent
-                        ? currentStatus === 'past_due'
-                          ? 'Retry billing'
-                          : currentStatus === 'cancelled'
-                            ? 'Start this plan again'
-                            : currentStatus === 'paused'
-                              ? 'Resume plan'
-                              : 'Current plan'
-                        : allowCheckout
-                          ? isUpgrade
-                            ? `Upgrade to ${plan.name}`
-                            : `Switch to ${plan.name}`
-                          : 'Unavailable'}
+                      {actionLabel}
                     </Button>
                   </Card>
                 );
