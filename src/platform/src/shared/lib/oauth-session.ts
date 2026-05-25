@@ -50,8 +50,12 @@ export interface BackendOAuthSession {
     lastName: string;
     name: string;
     image: string;
-    authMethods?: AuthMethods;
   };
+}
+
+export interface FetchEnhancedUserProfileOptions {
+  accessToken?: string;
+  signal?: AbortSignal;
 }
 
 export interface OAuthTokenHandoff {
@@ -295,60 +299,91 @@ export const buildSessionFromProfile = (
       lastName: profile.lastName,
       name: fullName || profile.email,
       image: profile.profilePicture ?? '',
-      authMethods,
     },
   };
 };
 
-export const verifyBackendOAuthSession =
-  async (): Promise<BackendOAuthProfile | null> => {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-      controller.abort();
-    }, OAUTH_PROFILE_FETCH_TIMEOUT_MS);
+const resolveEnhancedUserProfileUrl = (): string => {
+  return typeof window === 'undefined'
+    ? buildServerApiUrl('/users/profile/enhanced')
+    : buildBrowserApiUrl('/users/profile/enhanced');
+};
 
-    try {
-      const profileUrl =
-        typeof window === 'undefined'
-          ? buildServerApiUrl('/users/profile/enhanced')
-          : buildBrowserApiUrl('/users/profile/enhanced');
+const normalizeBackendOAuthProfile = (
+  payload: BackendOAuthProfileResponse
+): BackendOAuthProfile | null => {
+  if (!payload?.success || !payload.data?._id) {
+    return null;
+  }
 
-      const response = await fetch(profileUrl, {
-        method: 'GET',
-        signal: controller.signal,
-        credentials: 'include',
-        cache: 'no-store',
-        headers: {
-          Accept: 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        return null;
-      }
-
-      const payload = (await response.json()) as BackendOAuthProfileResponse;
-      if (!payload?.success || !payload.data?._id) {
-        return null;
-      }
-
-      return {
-        ...payload.data,
-        accessToken: payload.data.accessToken
-          ? normalizeOAuthAccessToken(payload.data.accessToken) || undefined
-          : payload.accessToken
-            ? normalizeOAuthAccessToken(payload.accessToken) || undefined
-            : undefined,
-        authMethods: normalizeAuthMethods(payload.data.authMethods),
-      };
-    } catch (error) {
-      const errorName = (error as { name?: string })?.name;
-      if (errorName === 'AbortError') {
-        return null;
-      }
-
-      return null;
-    } finally {
-      clearTimeout(timeoutId);
-    }
+  return {
+    ...payload.data,
+    accessToken: payload.data.accessToken
+      ? normalizeOAuthAccessToken(payload.data.accessToken) || undefined
+      : payload.accessToken
+        ? normalizeOAuthAccessToken(payload.accessToken) || undefined
+        : undefined,
+    authMethods: normalizeAuthMethods(payload.data.authMethods),
   };
+};
+
+export const fetchEnhancedUserProfile = async (
+  options: FetchEnhancedUserProfileOptions = {}
+): Promise<BackendOAuthProfile | null> => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, OAUTH_PROFILE_FETCH_TIMEOUT_MS);
+  const normalizedAccessToken = normalizeOAuthAccessToken(
+    typeof options.accessToken === 'string' ? options.accessToken : ''
+  );
+  const handleExternalAbort = () => {
+    controller.abort();
+  };
+
+  if (options.signal?.aborted) {
+    controller.abort();
+  } else if (options.signal) {
+    options.signal.addEventListener('abort', handleExternalAbort, {
+      once: true,
+    });
+  }
+
+  try {
+    const response = await fetch(resolveEnhancedUserProfileUrl(), {
+      method: 'GET',
+      signal: controller.signal,
+      credentials: 'include',
+      cache: 'no-store',
+      headers: {
+        Accept: 'application/json',
+        ...(normalizedAccessToken
+          ? { Authorization: `JWT ${normalizedAccessToken}` }
+          : {}),
+      },
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = (await response.json()) as BackendOAuthProfileResponse;
+    return normalizeBackendOAuthProfile(payload);
+  } catch (error) {
+    const errorName = (error as { name?: string })?.name;
+    if (errorName === 'AbortError') {
+      return null;
+    }
+
+    return null;
+  } finally {
+    clearTimeout(timeoutId);
+    options.signal?.removeEventListener('abort', handleExternalAbort);
+  }
+};
+
+export const verifyBackendOAuthSession = async (
+  options: Omit<FetchEnhancedUserProfileOptions, 'accessToken'> = {}
+): Promise<BackendOAuthProfile | null> => {
+  return fetchEnhancedUserProfile(options);
+};
