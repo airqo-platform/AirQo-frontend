@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useSession } from 'next-auth/react';
@@ -17,19 +17,6 @@ import type { AuthMethods } from '@/shared/types/api';
 const DISMISS_STORAGE_KEY_PREFIX = 'airqo:set-password-dismissed:';
 const SET_PASSWORD_PROMPT_DELAY_MS = 5000;
 
-const CONNECTED_PROVIDER_LABELS: Record<
-  Exclude<keyof AuthMethods, 'password'>,
-  string
-> = {
-  google: 'Google',
-  github: 'GitHub',
-  linkedin: 'LinkedIn',
-  microsoft: 'Microsoft',
-  twitter: 'X',
-  facebook: 'Facebook',
-  apple: 'Apple',
-};
-
 const DEFAULT_AUTH_METHODS: AuthMethods = {
   password: false,
   google: false,
@@ -42,22 +29,6 @@ const DEFAULT_AUTH_METHODS: AuthMethods = {
 };
 
 type SessionRefreshOutcome = 'fresh' | 'fallback' | 'failed';
-
-const buildProviderSummary = (providers: string[]) => {
-  if (!providers.length) {
-    return 'a connected account';
-  }
-
-  if (providers.length === 1) {
-    return providers[0];
-  }
-
-  if (providers.length === 2) {
-    return `${providers[0]} and ${providers[1]}`;
-  }
-
-  return `${providers.slice(0, -1).join(', ')}, and ${providers.at(-1)}`;
-};
 
 const SetPasswordPromptDialog = () => {
   const { data: session, status, update } = useSession();
@@ -82,24 +53,6 @@ const SetPasswordPromptDialog = () => {
   const dismissStorageKey = userId
     ? `${DISMISS_STORAGE_KEY_PREFIX}${userId}`
     : null;
-  const linkedProviders = useMemo(
-    () =>
-      authMethods
-        ? (
-            Object.entries(CONNECTED_PROVIDER_LABELS) as Array<
-              [Exclude<keyof AuthMethods, 'password'>, string]
-            >
-          )
-            .filter(([provider]) => authMethods[provider])
-            .map(([, label]) => label)
-        : [],
-    [authMethods]
-  );
-  const providerSummary = useMemo(
-    () => buildProviderSummary(linkedProviders),
-    [linkedProviders]
-  );
-
   const {
     register,
     handleSubmit,
@@ -313,7 +266,7 @@ const SetPasswordPromptDialog = () => {
       isOpen={isOpen}
       onClose={closeForNow}
       title="Add a password for direct sign-in"
-      subtitle={`You're signed in with ${providerSummary}. Add a password to enable direct email sign-in for this account.`}
+      subtitle="You're signed in with a third-party provider. Add a password to enable direct email sign-in for this account."
       size="lg"
       className="outline-none focus:outline-none focus-visible:outline-none ring-0"
       preventBackdropClose={isMutating}
@@ -343,7 +296,7 @@ const SetPasswordPromptDialog = () => {
         <Banner
           severity="info"
           title="Why set a password"
-          message="A password adds another secure sign-in method, so you can access this account directly with your email whenever needed."
+          message="A password gives you another secure sign-in option, so you can use email and password directly even if you usually sign in with a third-party provider."
           showIcon={true}
         />
 
