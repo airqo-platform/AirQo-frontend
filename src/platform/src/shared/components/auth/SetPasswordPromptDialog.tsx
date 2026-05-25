@@ -130,20 +130,26 @@ const SetPasswordPromptDialog = () => {
     setIsOpen(false);
   };
 
-  const markPasswordAsConfigured = async () => {
+  const markPasswordAsConfigured = async (): Promise<boolean> => {
     const nextAuthMethods: AuthMethods = {
       ...DEFAULT_AUTH_METHODS,
       ...authMethods,
       password: true,
     };
 
-    await update({ authMethods: nextAuthMethods });
+    try {
+      await update({ authMethods: nextAuthMethods });
+      return true;
+    } catch (error) {
+      console.warn('Failed to refresh session after setting password', error);
+      return false;
+    } finally {
+      if (dismissStorageKey) {
+        sessionStorage.removeItem(dismissStorageKey);
+      }
 
-    if (dismissStorageKey) {
-      sessionStorage.removeItem(dismissStorageKey);
+      setIsOpen(false);
     }
-
-    setIsOpen(false);
   };
 
   const onSubmit = async (data: SetPasswordFormData) => {
@@ -153,12 +159,20 @@ const SetPasswordPromptDialog = () => {
         confirmPassword: data.confirmPassword,
       });
 
-      await markPasswordAsConfigured();
+      const sessionUpdated = await markPasswordAsConfigured();
       reset();
-      toast.success(
-        'Password added',
-        'You can now sign in with your email and password whenever you need to.'
-      );
+
+      if (sessionUpdated) {
+        toast.success(
+          'Password added',
+          'You can now sign in with your email and password whenever you need to.'
+        );
+      } else {
+        toast.warning(
+          'Password saved',
+          'Your password was saved, but this session could not be refreshed. Please reload if the prompt appears again.'
+        );
+      }
     } catch (error) {
       const message =
         error instanceof Error && error.message.trim()
@@ -166,11 +180,19 @@ const SetPasswordPromptDialog = () => {
           : 'Unable to set your password right now.';
 
       if (message.toLowerCase().includes('already set')) {
-        await markPasswordAsConfigured();
-        toast.success(
-          'Password already available',
-          'Your account already has a password. You can manage it from Security settings.'
-        );
+        const sessionUpdated = await markPasswordAsConfigured();
+
+        if (sessionUpdated) {
+          toast.success(
+            'Password already available',
+            'Your account already has a password. You can manage it from Security settings.'
+          );
+        } else {
+          toast.warning(
+            'Password already available',
+            'Your account already has a password, but the current session could not be refreshed.'
+          );
+        }
         return;
       }
 
