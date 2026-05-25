@@ -26,5 +26,5 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ['/user/:path*', '/org/:path*', '/org-invite'],
+  matcher: ['/user/:path*', '/org/:path*'],
 };

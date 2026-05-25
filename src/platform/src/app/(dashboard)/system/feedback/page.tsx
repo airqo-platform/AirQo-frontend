@@ -161,18 +161,22 @@ const FeedbackListContent: React.FC = () => {
       {
         key: 'subject',
         label: 'Subject',
+        minWidth: '240px',
+        maxWidth: '360px',
         render: (_value: unknown, item: FeedbackRow) => (
-          <div className="space-y-1">
-            <p className="font-medium text-foreground">{item.subject}</p>
-            <p className="max-w-xl text-sm text-muted-foreground line-clamp-2">
-              {item.message}
-            </p>
-          </div>
+          <p
+            className="font-medium text-foreground truncate"
+            title={item.subject}
+          >
+            {item.subject}
+          </p>
         ),
       },
       {
         key: 'category',
         label: 'Category',
+        minWidth: '140px',
+        cellClassName: 'whitespace-nowrap',
         render: (value: unknown) => (
           <span className="inline-flex rounded-full bg-muted px-2.5 py-1 text-xs font-medium capitalize text-foreground">
             {CATEGORY_LABELS[String(value)] || String(value)}
@@ -182,6 +186,8 @@ const FeedbackListContent: React.FC = () => {
       {
         key: 'status',
         label: 'Status',
+        minWidth: '120px',
+        cellClassName: 'whitespace-nowrap',
         render: (value: unknown) => (
           <span
             className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium capitalize ${
@@ -195,6 +201,8 @@ const FeedbackListContent: React.FC = () => {
       {
         key: 'rating',
         label: 'Rating',
+        minWidth: '90px',
+        cellClassName: 'whitespace-nowrap',
         render: (value: unknown) => (
           <span className="text-sm font-medium text-foreground">
             {value as number}/5
@@ -204,13 +212,23 @@ const FeedbackListContent: React.FC = () => {
       {
         key: 'email',
         label: 'Email',
+        minWidth: '220px',
+        maxWidth: '280px',
+        cellClassName: 'whitespace-nowrap',
         render: (value: unknown) => (
-          <span className="text-sm text-muted-foreground">{String(value)}</span>
+          <span
+            className="block truncate text-sm text-muted-foreground"
+            title={String(value)}
+          >
+            {String(value)}
+          </span>
         ),
       },
       {
         key: 'createdAt',
         label: 'Submitted',
+        minWidth: '190px',
+        cellClassName: 'whitespace-nowrap',
         render: (value: unknown) => (
           <span className="text-sm text-muted-foreground">
             {formatDateTime(String(value))}
@@ -220,6 +238,8 @@ const FeedbackListContent: React.FC = () => {
       {
         key: 'actions',
         label: 'Actions',
+        minWidth: '96px',
+        cellClassName: 'whitespace-nowrap',
         render: (_value: unknown, item: FeedbackRow) => (
           <Button
             variant="ghost"

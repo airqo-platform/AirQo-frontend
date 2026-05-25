@@ -264,8 +264,12 @@ const normalizeStatus = (status?: string): NormalizedSubscriptionStatus => {
     return 'past_due';
   }
 
-  if (normalized === 'cancelled') {
+  if (normalized === 'cancelled' || normalized === 'canceled') {
     return 'cancelled';
+  }
+
+  if (normalized === 'paused') {
+    return 'paused';
   }
 
   return 'inactive';
