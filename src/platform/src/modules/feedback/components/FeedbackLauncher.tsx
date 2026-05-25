@@ -75,7 +75,7 @@ const buildFeedbackMetadata = (pathname: string) => {
   }
 
   return {
-    page: pathname,
+    page: `${window.location.pathname}${window.location.search}`,
     browser: getBrowserLabel(),
     appVersion: process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0',
     screenResolution: `${window.screen.width}x${window.screen.height}`,
@@ -168,7 +168,7 @@ export const FeedbackLauncher: React.FC = () => {
         message: trimmedMessage,
         rating,
         category,
-        platform: 'web',
+        platform: 'Analytics',
         metadata: defaultMetadata,
       });
 

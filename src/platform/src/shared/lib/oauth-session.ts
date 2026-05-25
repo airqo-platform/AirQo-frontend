@@ -3,6 +3,7 @@ import {
   buildServerApiUrl,
   resolveApiOrigin,
 } from '@/shared/lib/api-routing';
+import type { AuthMethods } from '@/shared/types/api';
 
 const OAUTH_SIGNED_OUT_FLAG = 'airqo:oauth-signed-out';
 const OAUTH_FRAGMENT_TOKEN_KEY = 'token';
@@ -28,6 +29,7 @@ export interface BackendOAuthProfile {
   profilePicture?: string;
   verified?: boolean;
   accessToken?: string;
+  authMethods?: AuthMethods;
 }
 
 export interface BackendOAuthProfileResponse {
@@ -40,6 +42,7 @@ export interface BackendOAuthProfileResponse {
 export interface BackendOAuthSession {
   expires: string;
   accessToken?: string;
+  authMethods?: AuthMethods;
   user: {
     _id: string;
     email: string;
@@ -47,6 +50,7 @@ export interface BackendOAuthSession {
     lastName: string;
     name: string;
     image: string;
+    authMethods?: AuthMethods;
   };
 }
 
@@ -63,6 +67,43 @@ export const isSupportedSocialAuthProvider = (
   }
 
   return (SUPPORTED_SOCIAL_AUTH_PROVIDERS as readonly string[]).includes(value);
+};
+
+const AUTH_METHOD_KEYS = [
+  'password',
+  'google',
+  'github',
+  'linkedin',
+  'microsoft',
+  'twitter',
+  'facebook',
+  'apple',
+] as const;
+
+const normalizeAuthMethods = (value: unknown): AuthMethods | undefined => {
+  if (!value || typeof value !== 'object') {
+    return undefined;
+  }
+
+  const candidate = value as Partial<
+    Record<(typeof AUTH_METHOD_KEYS)[number], unknown>
+  >;
+  const hasKnownKey = AUTH_METHOD_KEYS.some(key => key in candidate);
+
+  if (!hasKnownKey) {
+    return undefined;
+  }
+
+  return {
+    password: Boolean(candidate.password),
+    google: Boolean(candidate.google),
+    github: Boolean(candidate.github),
+    linkedin: Boolean(candidate.linkedin),
+    microsoft: Boolean(candidate.microsoft),
+    twitter: Boolean(candidate.twitter),
+    facebook: Boolean(candidate.facebook),
+    apple: Boolean(candidate.apple),
+  };
 };
 
 const safeDecodeURIComponent = (value: string): string => {
@@ -241,10 +282,12 @@ export const buildSessionFromProfile = (
   const normalizedAccessToken = profile.accessToken
     ? normalizeOAuthAccessToken(profile.accessToken) || undefined
     : undefined;
+  const authMethods = normalizeAuthMethods(profile.authMethods);
 
   return {
     expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
     accessToken: normalizedAccessToken,
+    authMethods,
     user: {
       _id: profile._id,
       email: profile.email,
@@ -252,6 +295,7 @@ export const buildSessionFromProfile = (
       lastName: profile.lastName,
       name: fullName || profile.email,
       image: profile.profilePicture ?? '',
+      authMethods,
     },
   };
 };
@@ -295,6 +339,7 @@ export const verifyBackendOAuthSession =
           : payload.accessToken
             ? normalizeOAuthAccessToken(payload.accessToken) || undefined
             : undefined,
+        authMethods: normalizeAuthMethods(payload.data.authMethods),
       };
     } catch (error) {
       const errorName = (error as { name?: string })?.name;

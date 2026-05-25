@@ -10,6 +10,7 @@ import React, {
 import { useSession } from 'next-auth/react';
 import { AqCheck } from '@airqo/icons-react';
 import { Button, Card, LoadingSpinner, toast } from '@/shared/components/ui';
+import ReusableDialog from '@/shared/components/ui/dialog';
 import { PADDLE_CHECKOUT_COMPLETED_EVENT } from '@/shared/lib/paddle';
 import { formatDate } from '@/shared/utils';
 import { subscriptionService } from '@/shared/services/subscriptionService';
@@ -26,6 +27,9 @@ const BILLING_SERVICE_UNAVAILABLE_MESSAGE =
 const CHECKOUT_STATUS_POLL_INTERVAL_MS = 2000;
 const CHECKOUT_STATUS_MAX_ATTEMPTS = 6;
 
+type ConfirmationAction = 'enableAutoRenew' | 'disableAutoRenew' | 'cancel';
+type RunningAction = 'checkout' | ConfirmationAction | null;
+
 interface ExtendedSessionUser {
   _id?: string;
 }
@@ -37,26 +41,19 @@ const statusBadgeStyles: Record<string, string> = {
   trialing: 'bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-200',
   past_due:
     'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200',
-  cancelled: 'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200',
+  cancelled:
+    'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200',
+  paused:
+    'bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-200',
 };
 
-const formatRateLimitSummary = (
-  rateLimits?: UserSubscription['apiRateLimits']
-) => {
-  if (!rateLimits) {
-    return 'Limits unavailable';
-  }
-
-  return [
-    `${rateLimits.hourlyLimit.toLocaleString()}/hr`,
-    `${rateLimits.dailyLimit.toLocaleString()}/day`,
-    typeof rateLimits.weeklyLimit === 'number'
-      ? `${rateLimits.weeklyLimit.toLocaleString()}/week`
-      : null,
-    `${rateLimits.monthlyLimit.toLocaleString()}/month`,
-  ]
-    .filter(Boolean)
-    .join(' | ');
+const statusLabels: Record<UserSubscription['status'], string> = {
+  active: 'Active',
+  inactive: 'Inactive',
+  trialing: 'Trialing',
+  past_due: 'Past due',
+  cancelled: 'Ended',
+  paused: 'Paused',
 };
 
 const getBillingErrorLogMessage = (error: unknown): string => {
@@ -90,15 +87,62 @@ const SubscriptionSection: React.FC = () => {
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(
     null
   );
-  const [runningAction, setRunningAction] = useState<
-    'checkout' | 'enableAutoRenew' | 'disableAutoRenew' | 'cancel' | null
-  >(null);
+  const [runningAction, setRunningAction] = useState<RunningAction>(null);
+  const [pendingConfirmation, setPendingConfirmation] =
+    useState<ConfirmationAction | null>(null);
   const isMountedRef = useRef(true);
   const userId =
     (session?.user as ExtendedSessionUser | null)?._id?.trim() || '';
 
   const currentTier: SubscriptionTier = subscription?.tier || 'Free';
   const currentStatus = subscription?.status || 'inactive';
+  const accessDateText = useMemo(() => {
+    if (!subscription?.nextBillingDate) {
+      return null;
+    }
+
+    return formatDate(subscription.nextBillingDate, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  }, [subscription?.nextBillingDate]);
+  const currentStatusLabel = useMemo(() => {
+    if (currentStatus === 'cancelled' && accessDateText) {
+      return 'Scheduled to end';
+    }
+
+    return statusLabels[currentStatus] || currentStatus.replace('_', ' ');
+  }, [accessDateText, currentStatus]);
+  const summaryDateLabel = useMemo(() => {
+    if (currentTier === 'Free' && currentStatus !== 'cancelled') {
+      return 'Plan status';
+    }
+
+    if (currentStatus === 'cancelled' && !accessDateText) {
+      return 'Plan status';
+    }
+
+    return subscription?.automaticRenewal
+      ? 'Next renewal date'
+      : 'Access through';
+  }, [
+    accessDateText,
+    currentStatus,
+    currentTier,
+    subscription?.automaticRenewal,
+  ]);
+  const summaryDateValue = useMemo(() => {
+    if (currentTier === 'Free' && currentStatus !== 'cancelled') {
+      return 'Free tier';
+    }
+
+    if (currentStatus === 'cancelled' && !accessDateText) {
+      return 'Ended';
+    }
+
+    return accessDateText || 'Not scheduled';
+  }, [accessDateText, currentStatus, currentTier]);
 
   const refreshData = useCallback(async () => {
     setLoading(true);
@@ -149,10 +193,115 @@ const SubscriptionSection: React.FC = () => {
     () => plans.find(plan => plan.tier === currentTier),
     [plans, currentTier]
   );
+  const statusNotice = useMemo(() => {
+    if (currentStatus === 'past_due') {
+      return {
+        tone: 'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-200',
+        eyebrow: 'Action required',
+        title: 'We could not complete your latest renewal',
+        message:
+          'Retry billing or update your payment setup to keep API access active without interruption.',
+      };
+    }
+
+    if (currentStatus === 'cancelled') {
+      if (accessDateText) {
+        return {
+          tone: 'border-sky-200 bg-sky-50 text-sky-900 dark:border-sky-900/40 dark:bg-sky-950/20 dark:text-sky-200',
+          eyebrow: 'Renewal off',
+          title: `Paid access remains available through ${accessDateText}`,
+          message:
+            'Automatic renewal is off for this subscription. Resume renewal before that date to continue service without interruption.',
+        };
+      }
+
+      return {
+        tone: 'border-slate-200 bg-slate-50 text-slate-900 dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-200',
+        eyebrow: 'Subscription ended',
+        title: 'This paid plan is no longer active',
+        message:
+          'Your account is currently on the Free tier. Choose a paid plan below whenever you need higher API capacity again.',
+      };
+    }
+
+    if (currentStatus === 'paused') {
+      return {
+        tone: 'border-violet-200 bg-violet-50 text-violet-900 dark:border-violet-900/40 dark:bg-violet-950/20 dark:text-violet-200',
+        eyebrow: 'Subscription paused',
+        title: 'Billing is paused for this plan',
+        message:
+          'Resume renewal when you are ready to restart scheduled billing and higher-rate access.',
+      };
+    }
+
+    if (currentTier !== 'Free' && !subscription?.automaticRenewal) {
+      return {
+        tone: 'border-sky-200 bg-sky-50 text-sky-900 dark:border-sky-900/40 dark:bg-sky-950/20 dark:text-sky-200',
+        eyebrow: 'Renewal off',
+        title: accessDateText
+          ? `Your plan stays active through ${accessDateText}`
+          : 'Automatic renewal is turned off',
+        message: accessDateText
+          ? 'Resume renewal before that date to continue service without interruption.'
+          : 'This plan will remain available until the current access period ends and will not renew automatically.',
+      };
+    }
+
+    return null;
+  }, [
+    accessDateText,
+    currentStatus,
+    currentTier,
+    subscription?.automaticRenewal,
+  ]);
+  const confirmationDialog = useMemo(() => {
+    if (!pendingConfirmation) {
+      return null;
+    }
+
+    const accessWindow =
+      accessDateText || 'the end of the current billing period';
+
+    if (pendingConfirmation === 'enableAutoRenew') {
+      return {
+        title: 'Resume automatic renewal?',
+        subtitle: 'Keep this plan renewing on its scheduled billing cycle.',
+        body: 'We will update your billing settings so this subscription renews automatically on the next scheduled billing date.',
+        confirmLabel: 'Resume renewal',
+        secondaryLabel: 'Not now',
+      };
+    }
+
+    if (pendingConfirmation === 'disableAutoRenew') {
+      return {
+        title: 'Turn off automatic renewal?',
+        subtitle:
+          'Your current plan remains available until the active access period ends.',
+        body: `After ${accessWindow}, this subscription will stop renewing automatically unless you turn renewal back on first.`,
+        confirmLabel: 'Turn off renewal',
+        secondaryLabel: 'Keep renewal on',
+      };
+    }
+
+    return {
+      title: 'Cancel this subscription?',
+      subtitle:
+        'We will send the cancellation request to the billing provider and refresh the latest status here.',
+      body: 'Use this option only if you want to end the current subscription record. If you only want to stop the next renewal, choose Turn off renewal instead.',
+      confirmLabel: 'Cancel subscription',
+      secondaryLabel: 'Keep subscription',
+      confirmClassName:
+        'text-sm bg-rose-600 hover:bg-rose-700 focus:ring-rose-600 text-white disabled:opacity-50',
+    };
+  }, [accessDateText, pendingConfirmation]);
+  const confirmationLoading =
+    pendingConfirmation !== null && runningAction === pendingConfirmation;
   const hasPlans = plans.length > 0;
   const canManageAutoRenew =
     currentTier !== 'Free' &&
-    (currentStatus === 'active' || currentStatus === 'trialing');
+    (currentStatus === 'active' ||
+      currentStatus === 'trialing' ||
+      currentStatus === 'cancelled');
   const canCancelSubscription =
     currentTier !== 'Free' &&
     currentStatus !== 'inactive' &&
@@ -298,7 +447,11 @@ const SubscriptionSection: React.FC = () => {
       }
 
       await refreshData();
-      toast.success(payload.message || 'Automatic renewal enabled');
+      toast.success(
+        'Renewal resumed',
+        payload.message ||
+          'This plan will continue renewing automatically on its scheduled billing date.'
+      );
     } catch (error) {
       console.error(`Auto-renewal error: ${getBillingErrorLogMessage(error)}`);
       toast.error(
@@ -308,18 +461,11 @@ const SubscriptionSection: React.FC = () => {
       );
     } finally {
       setRunningAction(null);
+      setPendingConfirmation(null);
     }
   };
 
   const handleDisableAutoRenew = async () => {
-    const confirmed = window.confirm(
-      'Disable auto-renewal? Your current plan will stay active until the next billing date, but it will not renew automatically.'
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
     try {
       setRunningAction('disableAutoRenew');
 
@@ -337,7 +483,11 @@ const SubscriptionSection: React.FC = () => {
       }
 
       await refreshData();
-      toast.success(payload.message || 'Automatic renewal disabled');
+      toast.success(
+        'Renewal turned off',
+        payload.message ||
+          'The current plan will remain available until the active period ends.'
+      );
     } catch (error) {
       console.error(
         `Disable auto-renewal error: ${getBillingErrorLogMessage(error)}`
@@ -349,18 +499,11 @@ const SubscriptionSection: React.FC = () => {
       );
     } finally {
       setRunningAction(null);
+      setPendingConfirmation(null);
     }
   };
 
   const handleCancelSubscription = async () => {
-    const confirmed = window.confirm(
-      'Cancel your subscription now? This moves your account back to the Free tier immediately.'
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
     try {
       setRunningAction('cancel');
 
@@ -376,7 +519,11 @@ const SubscriptionSection: React.FC = () => {
       }
 
       await refreshData();
-      toast.success(payload.message || 'Subscription cancelled');
+      toast.success(
+        'Subscription updated',
+        payload.message ||
+          'The latest billing status has been applied to your account.'
+      );
     } catch (error) {
       console.error(
         `Cancel subscription error: ${getBillingErrorLogMessage(error)}`
@@ -386,6 +533,7 @@ const SubscriptionSection: React.FC = () => {
       );
     } finally {
       setRunningAction(null);
+      setPendingConfirmation(null);
     }
   };
 
@@ -400,8 +548,8 @@ const SubscriptionSection: React.FC = () => {
   return (
     <>
       <div className="space-y-6">
-        <Card className="relative overflow-hidden p-6">
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-emerald-500/10 pointer-events-none" />
+        <Card className="relative overflow-hidden rounded-2xl border border-slate-200/70 p-6 shadow-sm dark:border-slate-800/70">
+          <div className="absolute inset-0 bg-gradient-to-r from-orange-50/80 via-white to-emerald-50/80 pointer-events-none dark:from-orange-950/20 dark:via-slate-950 dark:to-emerald-950/20" />
           <div className="relative flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.14em] text-gray-500 dark:text-gray-400">
@@ -421,33 +569,46 @@ const SubscriptionSection: React.FC = () => {
               <span
                 className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${statusBadgeStyles[currentStatus] || statusBadgeStyles.inactive}`}
               >
-                {currentStatus.replace('_', ' ')}
+                {currentStatusLabel}
               </span>
               {subscription?.automaticRenewal && (
                 <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800 dark:bg-blue-900/40 dark:text-blue-200">
-                  Auto-renew enabled
+                  Renewal on
+                </span>
+              )}
+              {!subscription?.automaticRenewal && currentTier !== 'Free' && (
+                <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                  Renewal off
                 </span>
               )}
             </div>
           </div>
 
-          <div className="relative mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-            <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+          {statusNotice && (
+            <div
+              className={`relative mt-5 rounded-2xl border px-5 py-4 ${statusNotice.tone}`}
+            >
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] opacity-70">
+                {statusNotice.eyebrow}
+              </p>
+              <p className="mt-2 text-base font-semibold">
+                {statusNotice.title}
+              </p>
+              <p className="mt-2 text-sm leading-6">{statusNotice.message}</p>
+            </div>
+          )}
+
+          <div className="relative mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="rounded-xl border border-gray-200/80 bg-white/80 p-4 dark:border-gray-700 dark:bg-slate-950/50">
               <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                Next Billing Date
+                {summaryDateLabel}
               </p>
               <p className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
-                {subscription?.nextBillingDate
-                  ? formatDate(subscription.nextBillingDate, {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })
-                  : 'Not scheduled'}
+                {summaryDateValue}
               </p>
             </div>
 
-            <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+            <div className="rounded-xl border border-gray-200/80 bg-white/80 p-4 dark:border-gray-700 dark:bg-slate-950/50">
               <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                 Last Renewal
               </p>
@@ -461,60 +622,57 @@ const SubscriptionSection: React.FC = () => {
                   : 'No renewals yet'}
               </p>
             </div>
-
-            <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
-              <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                Current Limits
-              </p>
-              <p className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
-                {formatRateLimitSummary(subscription?.apiRateLimits)}
-              </p>
-            </div>
           </div>
 
           <div className="relative mt-6 flex flex-wrap gap-2">
             {canManageAutoRenew && !subscription?.automaticRenewal && (
               <Button
                 variant="outlined"
-                onClick={handleEnableAutoRenew}
+                onClick={() => setPendingConfirmation('enableAutoRenew')}
                 disabled={runningAction === 'enableAutoRenew'}
                 loading={runningAction === 'enableAutoRenew'}
               >
-                Enable Auto-Renew
+                Resume Renewal
               </Button>
             )}
 
             {canManageAutoRenew && subscription?.automaticRenewal && (
               <Button
                 variant="outlined"
-                onClick={handleDisableAutoRenew}
+                onClick={() => setPendingConfirmation('disableAutoRenew')}
                 disabled={runningAction === 'disableAutoRenew'}
                 loading={runningAction === 'disableAutoRenew'}
               >
-                Disable Auto-Renew
+                Turn Off Renewal
               </Button>
             )}
 
             {canCancelSubscription && (
               <Button
                 variant="outlined"
-                onClick={handleCancelSubscription}
+                onClick={() => setPendingConfirmation('cancel')}
                 disabled={runningAction === 'cancel'}
                 loading={runningAction === 'cancel'}
                 className="border-rose-600 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20"
               >
-                Cancel Subscription
+                Cancel Plan
               </Button>
             )}
           </div>
+
+          <p className="relative mt-4 text-xs text-gray-500 dark:text-gray-400">
+            Included request limits are listed in the plan cards below for quick
+            comparison.
+          </p>
         </Card>
 
         <div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-            Pricing Tiers
+            Available Plans
           </h3>
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-            Upgrade your API access based on your product and traffic needs.
+            Choose the API access tier that matches your usage and traffic
+            profile.
           </p>
 
           {hasPlans ? (
@@ -525,7 +683,8 @@ const SubscriptionSection: React.FC = () => {
                   plan.tier !== 'Free' &&
                   (!isCurrent ||
                     currentStatus === 'past_due' ||
-                    currentStatus === 'cancelled');
+                    currentStatus === 'cancelled' ||
+                    currentStatus === 'paused');
                 const isUpgrade =
                   currentTier === 'Free' ||
                   (currentPlan ? plan.price > currentPlan.price : false);
@@ -586,14 +745,16 @@ const SubscriptionSection: React.FC = () => {
                     >
                       {isCurrent
                         ? currentStatus === 'past_due'
-                          ? 'Retry payment'
+                          ? 'Retry billing'
                           : currentStatus === 'cancelled'
-                            ? 'Restart subscription'
-                            : 'Current plan'
+                            ? 'Start this plan again'
+                            : currentStatus === 'paused'
+                              ? 'Resume plan'
+                              : 'Current plan'
                         : allowCheckout
                           ? isUpgrade
                             ? `Upgrade to ${plan.name}`
-                            : `Choose ${plan.name}`
+                            : `Switch to ${plan.name}`
                           : 'Unavailable'}
                     </Button>
                   </Card>
@@ -608,6 +769,56 @@ const SubscriptionSection: React.FC = () => {
           )}
         </div>
       </div>
+
+      {confirmationDialog && (
+        <ReusableDialog
+          isOpen={!!confirmationDialog}
+          onClose={() => {
+            if (!confirmationLoading) {
+              setPendingConfirmation(null);
+            }
+          }}
+          title={confirmationDialog.title}
+          subtitle={confirmationDialog.subtitle}
+          size="md"
+          preventBackdropClose={confirmationLoading}
+          showCloseButton={!confirmationLoading}
+          primaryAction={{
+            label: confirmationLoading
+              ? 'Saving...'
+              : confirmationDialog.confirmLabel,
+            onClick: () => {
+              if (pendingConfirmation === 'enableAutoRenew') {
+                void handleEnableAutoRenew();
+                return;
+              }
+
+              if (pendingConfirmation === 'disableAutoRenew') {
+                void handleDisableAutoRenew();
+                return;
+              }
+
+              void handleCancelSubscription();
+            },
+            loading: confirmationLoading,
+            disabled: confirmationLoading,
+            className: confirmationDialog.confirmClassName,
+          }}
+          secondaryAction={{
+            label: confirmationDialog.secondaryLabel,
+            onClick: () => setPendingConfirmation(null),
+            disabled: confirmationLoading,
+            variant: 'outlined',
+          }}
+          ariaLabel={confirmationDialog.title}
+        >
+          <div className="space-y-3">
+            <p className="text-sm leading-6 text-gray-700 dark:text-gray-300">
+              {confirmationDialog.body}
+            </p>
+          </div>
+        </ReusableDialog>
+      )}
 
       <CheckoutDialog
         isOpen={dialogOpen}

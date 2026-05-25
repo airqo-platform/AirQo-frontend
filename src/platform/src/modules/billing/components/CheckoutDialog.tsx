@@ -28,11 +28,11 @@ const CheckoutDialog: React.FC<CheckoutDialogProps> = ({
     <ReusableDialog
       isOpen={isOpen}
       onClose={onClose}
-      title="Continue To Secure Checkout"
+      title="Review plan change"
       subtitle={
         plan
-          ? `${plan.name} · $${plan.price}/${billingCycleLabel}`
-          : 'Select a subscription plan'
+          ? `${plan.name} · ${plan.currency} ${plan.price}/${billingCycleLabel}`
+          : 'Select an API subscription plan'
       }
       primaryAction={{
         label: loading ? 'Opening...' : 'Open Checkout',
@@ -51,8 +51,9 @@ const CheckoutDialog: React.FC<CheckoutDialogProps> = ({
       <div className="space-y-4">
         <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
           <p className="text-sm text-gray-700 dark:text-gray-200">
-            Payments are handled in a secure checkout overlay. No card number or
-            CVV is collected in this application.
+            Checkout opens in our secure billing window. Payment details are
+            handled by our billing provider and are never stored in this
+            application.
           </p>
         </div>
 
@@ -67,7 +68,7 @@ const CheckoutDialog: React.FC<CheckoutDialogProps> = ({
           </div>
           <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
             <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
-              Selected Plan
+              Plan To Activate
             </p>
             <p className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
               {plan?.name || '--'}
@@ -78,7 +79,7 @@ const CheckoutDialog: React.FC<CheckoutDialogProps> = ({
         {plan && (
           <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
             <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">
-              Included with {plan.name}
+              Plan highlights
             </p>
             <ul className="space-y-2">
               {plan.features.slice(0, 4).map(feature => (

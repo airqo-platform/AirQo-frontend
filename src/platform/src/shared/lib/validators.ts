@@ -38,6 +38,23 @@ export const resetPwdSchema = z
     path: ['confirmPassword'],
   });
 
+export const setPasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(6, 'Password must be at least 6 characters')
+      .max(30, 'Password must be 30 characters or less')
+      .regex(
+        /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@#?!$%^&*.,]+$/,
+        'Password must include at least one letter and one number'
+      ),
+    confirmPassword: z.string(),
+  })
+  .refine(data => data.password === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  });
+
 export const profileSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
@@ -130,6 +147,7 @@ export type LoginFormData = z.infer<typeof loginSchema>;
 export type RegisterFormData = z.infer<typeof registerSchema>;
 export type ForgotPwdFormData = z.infer<typeof forgotPwdSchema>;
 export type ResetPwdFormData = z.infer<typeof resetPwdSchema>;
+export type SetPasswordFormData = z.infer<typeof setPasswordSchema>;
 export type ProfileFormData = z.infer<typeof profileSchema>;
 export type SecurityFormData = z.infer<typeof securitySchema>;
 export type OrganizationRequestFormData = z.infer<

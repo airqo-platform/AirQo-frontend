@@ -18,6 +18,7 @@ export { useRBAC } from './useRBAC';
 export {
   useUpdateUserDetails,
   useUpdatePassword,
+  useSetPassword,
   useCreateOrganizationRequest,
   useInitiateAccountDeletion,
   useConfirmAccountDeletion,

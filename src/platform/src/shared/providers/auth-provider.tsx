@@ -21,6 +21,7 @@ import { toast } from '@/shared/components/ui/toast';
 import logger from '@/shared/lib/logger';
 import { SWRProvider } from '@/shared/providers/swr-provider';
 import { QueryProvider } from '@/shared/providers/query-provider';
+import SetPasswordPromptDialog from '@/shared/components/auth/SetPasswordPromptDialog';
 import { runClientCacheMaintenance } from '@/shared/lib/clientCache';
 import {
   normalizeCallbackUrl,
@@ -150,6 +151,7 @@ const publicRoutes = [
   '/user/forgotPwd/reset',
   '/user/delete/confirm', // covers /user/delete/confirm/[token]
   '/org-invite', // Public invitation acceptance page
+  '/request-organization',
 ];
 
 const isPublicAuthRoute = (pathname: string): boolean =>
@@ -650,6 +652,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   return (
     <UserDataFetcher>
       <ActiveGroupGuard>{children}</ActiveGroupGuard>
+      <SetPasswordPromptDialog />
     </UserDataFetcher>
   );
 }

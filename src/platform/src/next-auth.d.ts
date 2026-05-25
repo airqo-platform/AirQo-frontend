@@ -1,4 +1,5 @@
 import type { DefaultSession, DefaultUser } from 'next-auth';
+import type { AuthMethods } from '@/shared/types/api';
 
 declare module 'next-auth' {
   interface User extends DefaultUser {
@@ -6,13 +7,17 @@ declare module 'next-auth' {
     firstName?: string;
     lastName?: string;
     accessToken?: string;
+    expiresAt?: string;
     email?: string | null;
     name?: string | null;
     image?: string | null;
+    authMethods?: AuthMethods;
   }
 
   interface Session extends DefaultSession {
     accessToken?: string;
+    expiresAt?: string;
+    authMethods?: AuthMethods;
     user: (DefaultSession['user'] & User) | null;
   }
 }
@@ -23,5 +28,7 @@ declare module 'next-auth/jwt' {
     firstName?: string;
     lastName?: string;
     accessToken?: string;
+    expiresAt?: string;
+    authMethods?: AuthMethods;
   }
 }
