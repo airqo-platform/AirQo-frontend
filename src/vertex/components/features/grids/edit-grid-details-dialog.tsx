@@ -83,7 +83,7 @@ const EditGridDetailsDialog: React.FC<EditGridDetailsDialogProps> = ({
         if (form.visibility !== grid.visibility) updates.visibility = form.visibility;
 
         try {
-            updateGridDetails(updates);
+            await updateGridDetails(updates);
         } catch {
             return;
         }
