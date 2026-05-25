@@ -1008,7 +1008,6 @@ const SubscriptionSection: React.FC = () => {
                 onClick={() => setPendingConfirmation('cancel')}
                 disabled={runningAction === 'cancel'}
                 loading={runningAction === 'cancel'}
-                className={NEUTRAL_OUTLINED_BUTTON_CLASS}
               >
                 Cancel Plan
               </Button>

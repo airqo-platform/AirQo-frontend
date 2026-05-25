@@ -59,7 +59,7 @@ const CheckoutDialog: React.FC<CheckoutDialogProps> = ({
         : 'Confirm Upgrade';
 
   const summaryMessage = isCheckout
-    ? 'Checkout opens in our secure billing window. Payment details stay with the billing provider and are never stored in this application.'
+    ? null
     : isDowngrade
       ? 'Switching to a lower tier schedules the change for your next billing period. Your current limits stay in place until then.'
       : 'Switching to a higher tier applies immediately. Your updated API limits and access are available as soon as the request succeeds.';
@@ -89,24 +89,24 @@ const CheckoutDialog: React.FC<CheckoutDialogProps> = ({
         label: 'Cancel',
         onClick: onClose,
         disabled: loading,
-        className:
-          'text-sm border border-slate-200 bg-white text-slate-700 hover:!border-slate-900 hover:!bg-slate-900 hover:!text-white',
       }}
       size="lg"
       ariaLabel="Plan change confirmation"
     >
       <div className="space-y-5">
-        <div
-          className={`rounded-lg border p-4 sm:p-5 ${
-            isDowngrade
-              ? 'border-amber-200 bg-amber-50/80'
-              : 'border-slate-200 bg-slate-50/80'
-          }`}
-        >
-          <p className="text-sm leading-6 text-slate-700 dark:text-slate-200">
-            {summaryMessage}
-          </p>
-        </div>
+        {summaryMessage && (
+          <div
+            className={`rounded-lg border p-4 sm:p-5 ${
+              isDowngrade
+                ? 'border-amber-200 bg-amber-50/80'
+                : 'border-slate-200 bg-slate-50/80'
+            }`}
+          >
+            <p className="text-sm leading-6 text-slate-700 dark:text-slate-200">
+              {summaryMessage}
+            </p>
+          </div>
+        )}
 
         <div className="rounded-lg border border-slate-200 bg-slate-50/80 p-4 sm:p-5">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center">
