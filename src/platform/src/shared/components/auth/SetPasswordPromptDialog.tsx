@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useSession } from 'next-auth/react';
@@ -14,6 +14,7 @@ import {
 import type { AuthMethods } from '@/shared/types/api';
 
 const DISMISS_STORAGE_KEY_PREFIX = 'airqo:set-password-dismissed:';
+const SET_PASSWORD_PROMPT_DELAY_MS = 5000;
 
 const CONNECTED_PROVIDER_LABELS: Record<
   Exclude<keyof AuthMethods, 'password'>,
@@ -59,6 +60,7 @@ const SetPasswordPromptDialog = () => {
   const { data: session, status, update } = useSession();
   const { trigger: setPassword, isMutating } = useSetPassword();
   const [isOpen, setIsOpen] = useState(false);
+  const openTimerRef = useRef<number | null>(null);
   const sessionData = session as {
     authMethods?: AuthMethods;
     user?: {
@@ -70,6 +72,8 @@ const SetPasswordPromptDialog = () => {
 
   const authMethods =
     sessionData?.authMethods || sessionData?.user?.authMethods || undefined;
+  const hasAuthMethods = !!authMethods;
+  const hasPassword = authMethods?.password === true;
   const userId =
     sessionData?.user?._id?.trim() || sessionData?.user?.email?.trim();
   const dismissStorageKey = userId
@@ -108,20 +112,41 @@ const SetPasswordPromptDialog = () => {
   });
 
   useEffect(() => {
-    if (status !== 'authenticated' || !dismissStorageKey || !authMethods) {
+    if (openTimerRef.current) {
+      window.clearTimeout(openTimerRef.current);
+      openTimerRef.current = null;
+    }
+
+    if (status !== 'authenticated' || !dismissStorageKey || !hasAuthMethods) {
       setIsOpen(false);
       return;
     }
 
-    if (authMethods.password) {
+    if (hasPassword) {
       sessionStorage.removeItem(dismissStorageKey);
       setIsOpen(false);
       return;
     }
 
     const dismissed = sessionStorage.getItem(dismissStorageKey) === 'true';
-    setIsOpen(!dismissed);
-  }, [authMethods, dismissStorageKey, status]);
+    if (dismissed) {
+      setIsOpen(false);
+      return;
+    }
+
+    setIsOpen(false);
+    openTimerRef.current = window.setTimeout(() => {
+      setIsOpen(true);
+      openTimerRef.current = null;
+    }, SET_PASSWORD_PROMPT_DELAY_MS);
+
+    return () => {
+      if (openTimerRef.current) {
+        window.clearTimeout(openTimerRef.current);
+        openTimerRef.current = null;
+      }
+    };
+  }, [dismissStorageKey, hasAuthMethods, hasPassword, status]);
 
   const closeForNow = () => {
     if (dismissStorageKey) {
