@@ -4,13 +4,11 @@ import {
   cohorts as cohortsApi,
 } from '../apis/cohorts';
 import { useAppSelector } from '../redux/hooks';
-import ReusableToast from '@/components/shared/toast/ReusableToast';
-import { getApiErrorMessage } from '../utils/getApiErrorMessage';
 import { AxiosError } from 'axios';
 import {
+  Cohort,
   CohortsSummaryResponse,
   GroupCohortsResponse,
-  OriginalCohortResponse,
 } from '@/app/types/cohorts';
 
 interface ErrorResponse {
@@ -145,7 +143,12 @@ export const useCohortDetails = (
   });
 };
 
-export const useUpdateCohortDetails = () => {
+interface UseUpdateCohortDetailsOptions {
+  onSuccess?: () => void;
+  onError?: (error: AxiosError) => void;
+}
+
+export const useUpdateCohortDetails = (options?: UseUpdateCohortDetailsOptions) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({
@@ -155,28 +158,27 @@ export const useUpdateCohortDetails = () => {
       cohortId: string;
       data: Partial<{ name: string; visibility: boolean; cohort_tags: string[] }>;
     }) => cohortsApi.updateCohortDetailsApi(cohortId, data),
-    onSuccess: (data, variables) => {
-      ReusableToast({
-        message: 'Cohort details updated successfully',
-        type: 'SUCCESS',
-      });
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
         queryKey: ['cohort-details', variables.cohortId],
       });
       queryClient.invalidateQueries({ queryKey: ['cohorts'] });
       queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
       queryClient.invalidateQueries({ queryKey: ['groupCohorts'] });
+      options?.onSuccess?.();
     },
-    onError: error => {
-      ReusableToast({
-        message: `Failed to update cohort: ${getApiErrorMessage(error)}`,
-        type: 'ERROR',
-      });
+    onError: (error: AxiosError) => {
+      options?.onError?.(error);
     },
   });
 };
 
-export const useUpdateCohortName = () => {
+interface UseUpdateCohortNameOptions {
+  onSuccess?: () => void;
+  onError?: (error: AxiosError) => void;
+}
+
+export const useUpdateCohortName = (options?: UseUpdateCohortNameOptions) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({
@@ -193,27 +195,26 @@ export const useUpdateCohortName = () => {
         confirm_update: true,
         update_reason: updateReason,
       }),
-    onSuccess: (data, variables) => {
-      ReusableToast({
-        message: 'Cohort name updated successfully',
-        type: 'SUCCESS',
-      });
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
         queryKey: ['cohort-details', variables.cohortId],
       });
       queryClient.invalidateQueries({ queryKey: ['cohorts'] });
       queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
+      options?.onSuccess?.();
     },
-    onError: error => {
-      ReusableToast({
-        message: `Failed to update cohort name: ${getApiErrorMessage(error)}`,
-        type: 'ERROR',
-      });
+    onError: (error: AxiosError) => {
+      options?.onError?.(error);
     },
   });
 };
 
-export const useCreateCohort = () => {
+interface UseCreateCohortOptions {
+    onSuccess?: (data: { success: boolean; message: string; cohort: Cohort }) => void;
+    onError?: (error: AxiosError) => void;
+}
+
+export const useCreateCohort = (options?: UseCreateCohortOptions) => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async ({
@@ -230,24 +231,23 @@ export const useCreateCohort = () => {
             if (!cohortId) throw new Error('Cohort created but missing id');
             return createResp;
         },
-        onSuccess: (resp, variables) => {
-            ReusableToast({
-                message: `${variables.name} created`,
-                type: 'SUCCESS',
-            });
+        onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ['cohorts'] });
             queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
+            options?.onSuccess?.(data);
         },
-        onError: error => {
-            ReusableToast({
-                message: `Failed to create cohort: ${getApiErrorMessage(error)}`,
-                type: 'ERROR',
-            });
+        onError: (error: AxiosError) => {
+            options?.onError?.(error);
         },
     });
 }
 
-export const useCreateCohortWithDevices = () => {
+interface UseCreateCohortWithDevicesOptions {
+  onSuccess?: (data: { success: boolean; message: string; cohort: Cohort }) => void;
+  onError?: (error: AxiosError) => void;
+}
+
+export const useCreateCohortWithDevices = (options?: UseCreateCohortWithDevicesOptions) => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -270,24 +270,23 @@ export const useCreateCohortWithDevices = () => {
       }
       return createResp;
     },
-    onSuccess: (resp, variables) => {
-      ReusableToast({
-        message: `${variables.name} created`,
-        type: 'SUCCESS',
-      });
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['cohorts'] });
       queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
+      options?.onSuccess?.(data);
     },
-    onError: error => {
-      ReusableToast({
-        message: `Failed to create cohort: ${getApiErrorMessage(error)}`,
-        type: 'ERROR',
-      });
+    onError: (error: AxiosError) => {
+      options?.onError?.(error);
     },
   });
 };
 
-export const useCreateCohortFromCohorts = () => {
+interface UseCreateCohortFromCohortsOptions {
+  onSuccess?: (data: { success: boolean; message: string; data: Cohort }) => void;
+  onError?: (error: AxiosError) => void;
+}
+
+export const useCreateCohortFromCohorts = (options?: UseCreateCohortFromCohortsOptions) => {
   const queryClient = useQueryClient();
   const activeNetwork = useAppSelector(state => state.user.activeNetwork);
 
@@ -312,26 +311,25 @@ export const useCreateCohortFromCohorts = () => {
         network,
         cohort_tags,
       }),
-    onSuccess: (data, variables) => {
-      ReusableToast({
-        message: `Cohort '${variables.name}' created successfully.`,
-        type: 'SUCCESS',
-      });
+    onSuccess: (data) => {
       queryClient.invalidateQueries({
         queryKey: ['cohorts', activeNetwork?.net_name],
       });
       queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
+      options?.onSuccess?.(data);
     },
-    onError: error => {
-      ReusableToast({
-        message: `Failed to create from cohorts: ${getApiErrorMessage(error)}`,
-        type: 'ERROR',
-      });
+    onError: (error: AxiosError) => {
+      options?.onError?.(error);
     },
   });
 };
 
-export const useAssignDevicesToCohort = () => {
+interface UseAssignDevicesToCohortOptions {
+  onSuccess?: (variables: { cohortId: string; deviceIds: string[] }) => void;
+  onError?: (error: AxiosError) => void;
+}
+
+export const useAssignDevicesToCohort = (options?: UseAssignDevicesToCohortOptions) => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -347,28 +345,27 @@ export const useAssignDevicesToCohort = () => {
       }
       return cohortsApi.assignDevicesToCohort(cohortId, deviceIds);
     },
-    onSuccess: (data, variables) => {
-      ReusableToast({
-        message: `${variables.deviceIds.length} device(s) assigned to cohort successfully`,
-        type: 'SUCCESS',
-      });
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['cohorts'] });
       queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
       queryClient.invalidateQueries({ queryKey: ['devices'], exact: false });
       queryClient.invalidateQueries({
         queryKey: ['cohort-details', variables.cohortId],
       });
+      options?.onSuccess?.(variables);
     },
-    onError: error => {
-      ReusableToast({
-        message: `Failed to assign devices: ${getApiErrorMessage(error)}`,
-        type: 'ERROR',
-      });
+    onError: (error: AxiosError) => {
+      options?.onError?.(error);
     },
   });
 };
 
-export const useUnassignDevicesFromCohort = () => {
+interface UseUnassignDevicesFromCohortOptions {
+  onSuccess?: (variables: { cohortId: string; device_ids: string[] }) => void;
+  onError?: (error: AxiosError) => void;
+}
+
+export const useUnassignDevicesFromCohort = (options?: UseUnassignDevicesFromCohortOptions) => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -384,28 +381,27 @@ export const useUnassignDevicesFromCohort = () => {
       }
       return cohortsApi.unassignDevicesFromCohort({ cohortId, device_ids });
     },
-    onSuccess: (data, variables) => {
-      ReusableToast({
-        message: `${variables.device_ids.length} device(s) unassigned from cohort successfully`,
-        type: 'SUCCESS',
-      });
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['cohorts'] });
       queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
       queryClient.invalidateQueries({ queryKey: ['devices'], exact: false });
       queryClient.invalidateQueries({
         queryKey: ['cohort-details', variables.cohortId],
       });
+      options?.onSuccess?.(variables);
     },
-    onError: error => {
-      ReusableToast({
-        message: `Failed to unassign devices: ${getApiErrorMessage(error)}`,
-        type: 'ERROR',
-      });
+    onError: (error: AxiosError) => {
+      options?.onError?.(error);
     },
   });
 };
 
-export const useAssignCohortsToGroup = () => {
+interface UseAssignCohortsToGroupOptions {
+  onSuccess?: () => void;
+  onError?: (error: AxiosError) => void;
+}
+
+export const useAssignCohortsToGroup = (options?: UseAssignCohortsToGroupOptions) => {
   const queryClient = useQueryClient();
   const activeNetwork = useAppSelector(state => state.user.activeNetwork);
 
@@ -425,7 +421,7 @@ export const useAssignCohortsToGroup = () => {
       }
       return cohortsApi.assignCohortsToGroup(groupId, cohortIds);
     },
-    onSuccess: (data, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ['cohorts', activeNetwork?.net_name],
       });
@@ -433,17 +429,20 @@ export const useAssignCohortsToGroup = () => {
       queryClient.invalidateQueries({ queryKey: ['deviceCount'] });
       queryClient.invalidateQueries({ queryKey: ['devices'] });
       queryClient.invalidateQueries({ queryKey: ['myDevices'] });
+      options?.onSuccess?.();
     },
-    onError: error => {
-      ReusableToast({
-        message: `Failed to assign cohorts to organization: ${getApiErrorMessage(error)}`,
-        type: 'ERROR',
-      });
+    onError: (error: AxiosError) => {
+      options?.onError?.(error);
     },
   });
 };
 
-export const useAssignCohortsToUser = () => {
+interface UseAssignCohortsToUserOptions {
+  onSuccess?: (variables: { userId: string; cohortIds: string[] }) => void;
+  onError?: (error: AxiosError) => void;
+}
+
+export const useAssignCohortsToUser = (options?: UseAssignCohortsToUserOptions) => {
   const queryClient = useQueryClient();
   const activeNetwork = useAppSelector(state => state.user.activeNetwork);
 
@@ -474,12 +473,10 @@ export const useAssignCohortsToUser = () => {
         queryKey: ['myDevices'],
       });
       queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
+      options?.onSuccess?.(variables);
     },
-    onError: error => {
-      ReusableToast({
-        message: `Failed to assign cohorts: ${getApiErrorMessage(error)}`,
-        type: 'ERROR',
-      });
+    onError: (error: AxiosError) => {
+      options?.onError?.(error);
     },
   });
 };

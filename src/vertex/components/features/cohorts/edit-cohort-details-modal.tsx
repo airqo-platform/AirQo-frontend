@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 
 import { useUpdateCohortDetails, useUpdateCohortName } from "@/core/hooks/useCohorts";
 import { PERMISSIONS } from "@/core/permissions/constants";
-import logger from "@/lib/logger";
+import { useBanner } from "@/context/banner-context";
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import { buildCohortName, sanitizeCohortInput, splitCohortName } from "@/core/utils/cohortName";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { MultiSelectCombobox } from "@/components/ui/multi-select";
@@ -43,6 +44,7 @@ const CohortDetailsModal: React.FC<CohortDetailsModalProps> = ({
         updateReason: "",
         tags: [] as string[],
     });
+    const { showBanner } = useBanner();
     const updateCohortName = useUpdateCohortName();
     const updateCohortDetails = useUpdateCohortDetails();
     const [showIgnoredTooltip, setShowIgnoredTooltip] = useState({
@@ -123,8 +125,19 @@ const CohortDetailsModal: React.FC<CohortDetailsModalProps> = ({
                 });
             }
             onClose();
-        } catch {
-            logger.info("Something went wrong")
+            setTimeout(() => {
+                showBanner({
+                    severity: 'success',
+                    message: 'Cohort details updated successfully',
+                    scoped: false,
+                });
+            }, 100);
+        } catch (error) {
+            showBanner({
+                severity: 'error',
+                message: `Failed to update cohort: ${getApiErrorMessage(error)}`,
+                scoped: true,
+            });
         }
     };
 
