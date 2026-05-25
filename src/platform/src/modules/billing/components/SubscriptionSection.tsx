@@ -9,7 +9,13 @@ import React, {
 } from 'react';
 import { useSession } from 'next-auth/react';
 import { AqCheck } from '@airqo/icons-react';
-import { Button, Card, LoadingSpinner, toast } from '@/shared/components/ui';
+import {
+  Banner,
+  Button,
+  Card,
+  LoadingSpinner,
+  toast,
+} from '@/shared/components/ui';
 import ReusableDialog from '@/shared/components/ui/dialog';
 import { PADDLE_CHECKOUT_COMPLETED_EVENT } from '@/shared/lib/paddle';
 import { formatDate } from '@/shared/utils';
@@ -196,7 +202,7 @@ const SubscriptionSection: React.FC = () => {
   const statusNotice = useMemo(() => {
     if (currentStatus === 'past_due') {
       return {
-        tone: 'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-200',
+        severity: 'warning' as const,
         eyebrow: 'Action required',
         title: 'We could not complete your latest renewal',
         message:
@@ -207,7 +213,7 @@ const SubscriptionSection: React.FC = () => {
     if (currentStatus === 'cancelled') {
       if (accessDateText) {
         return {
-          tone: 'border-sky-200 bg-sky-50 text-sky-900 dark:border-sky-900/40 dark:bg-sky-950/20 dark:text-sky-200',
+          severity: 'info' as const,
           eyebrow: 'Renewal off',
           title: `Paid access remains available through ${accessDateText}`,
           message:
@@ -216,7 +222,7 @@ const SubscriptionSection: React.FC = () => {
       }
 
       return {
-        tone: 'border-slate-200 bg-slate-50 text-slate-900 dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-200',
+        severity: 'info' as const,
         eyebrow: 'Subscription ended',
         title: 'This paid plan is no longer active',
         message:
@@ -226,7 +232,7 @@ const SubscriptionSection: React.FC = () => {
 
     if (currentStatus === 'paused') {
       return {
-        tone: 'border-violet-200 bg-violet-50 text-violet-900 dark:border-violet-900/40 dark:bg-violet-950/20 dark:text-violet-200',
+        severity: 'info' as const,
         eyebrow: 'Subscription paused',
         title: 'Billing is paused for this plan',
         message:
@@ -236,7 +242,7 @@ const SubscriptionSection: React.FC = () => {
 
     if (currentTier !== 'Free' && !subscription?.automaticRenewal) {
       return {
-        tone: 'border-sky-200 bg-sky-50 text-sky-900 dark:border-sky-900/40 dark:bg-sky-950/20 dark:text-sky-200',
+        severity: 'info' as const,
         eyebrow: 'Renewal off',
         title: accessDateText
           ? `Your plan stays active through ${accessDateText}`
@@ -585,17 +591,21 @@ const SubscriptionSection: React.FC = () => {
           </div>
 
           {statusNotice && (
-            <div
-              className={`relative mt-5 rounded-2xl border px-5 py-4 ${statusNotice.tone}`}
-            >
-              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] opacity-70">
-                {statusNotice.eyebrow}
-              </p>
-              <p className="mt-2 text-base font-semibold">
-                {statusNotice.title}
-              </p>
-              <p className="mt-2 text-sm leading-6">{statusNotice.message}</p>
-            </div>
+            <Banner
+              severity={statusNotice.severity}
+              className="relative mt-5"
+              message={
+                <div className="space-y-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] opacity-70">
+                    {statusNotice.eyebrow}
+                  </p>
+                  <p className="text-base font-semibold leading-snug">
+                    {statusNotice.title}
+                  </p>
+                  <p className="text-sm leading-6">{statusNotice.message}</p>
+                </div>
+              }
+            />
           )}
 
           <div className="relative mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">

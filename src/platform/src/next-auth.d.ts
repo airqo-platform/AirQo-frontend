@@ -1,6 +1,12 @@
 import type { DefaultSession, DefaultUser } from 'next-auth';
 import type { AuthMethods } from '@/shared/types/api';
 
+type SessionUser = NonNullable<DefaultSession['user']> & {
+  _id?: string;
+  firstName?: string;
+  lastName?: string;
+};
+
 declare module 'next-auth' {
   interface User extends DefaultUser {
     _id?: string;
@@ -18,7 +24,7 @@ declare module 'next-auth' {
     accessToken?: string;
     expiresAt?: string;
     authMethods?: AuthMethods;
-    user: (DefaultSession['user'] & User) | null;
+    user: SessionUser | null;
   }
 }
 
