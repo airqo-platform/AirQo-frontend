@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Rating, Star } from '@smastrom/react-rating';
 import { useUser } from '@/shared/hooks/useUser';
@@ -38,6 +38,19 @@ const RATING_ITEM_STYLES = {
   inactiveFillColor: '#dbe4ea',
 };
 
+const SENSITIVE_QUERY_KEYS = new Set([
+  'code',
+  'state',
+  'token',
+  'access_token',
+  'refresh_token',
+  'id_token',
+  'session',
+  'auth',
+  'nonce',
+  'secret',
+]);
+
 const isValidEmail = (value: string) =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
@@ -64,10 +77,35 @@ const getBrowserLabel = (): string => {
   return userAgent.slice(0, 80);
 };
 
+const buildSanitizedPageValue = (fallbackPathname: string): string => {
+  if (typeof window === 'undefined') {
+    return fallbackPathname;
+  }
+
+  const { pathname, search } = window.location;
+
+  if (!search) {
+    return pathname;
+  }
+
+  const searchParams = new URLSearchParams(search);
+
+  for (const key of Array.from(searchParams.keys())) {
+    if (SENSITIVE_QUERY_KEYS.has(key.toLowerCase())) {
+      searchParams.delete(key);
+    }
+  }
+
+  const safeQuery = searchParams.toString();
+  return safeQuery ? `${pathname}?${safeQuery}` : pathname;
+};
+
 const buildFeedbackMetadata = (pathname: string) => {
+  const page = buildSanitizedPageValue(pathname);
+
   if (typeof window === 'undefined') {
     return {
-      page: pathname,
+      page,
       browser: 'Unknown browser',
       appVersion: process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0',
       screenResolution: 'Unknown',
@@ -75,7 +113,7 @@ const buildFeedbackMetadata = (pathname: string) => {
   }
 
   return {
-    page: pathname,
+    page,
     browser: getBrowserLabel(),
     appVersion: process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0',
     screenResolution: `${window.screen.width}x${window.screen.height}`,
@@ -99,11 +137,6 @@ export const FeedbackLauncher: React.FC = () => {
   const [rating, setRating] = useState<number>(3);
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
-
-  const defaultMetadata = useMemo(
-    () => buildFeedbackMetadata(pathname),
-    [pathname]
-  );
 
   const shouldHideLauncher = pathname.startsWith('/system/feedback');
 
@@ -162,14 +195,16 @@ export const FeedbackLauncher: React.FC = () => {
     setIsSubmitting(true);
 
     try {
+      const metadata = buildFeedbackMetadata(pathname);
+
       await feedbackService.submitFeedback({
         email: trimmedEmail,
         subject: trimmedSubject,
         message: trimmedMessage,
         rating,
         category,
-        platform: 'web',
-        metadata: defaultMetadata,
+        platform: 'Analytics',
+        metadata,
       });
 
       toast.success('Feedback sent successfully');

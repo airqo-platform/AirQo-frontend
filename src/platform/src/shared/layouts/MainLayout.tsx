@@ -22,6 +22,7 @@ interface MainLayoutProps {
   className?: string;
   showSidebar?: boolean;
   showBottomNav?: boolean;
+  showHeaderAuthControlsOnlyWhenAuthenticated?: boolean;
 }
 
 export const MainLayout: React.FC<MainLayoutProps> = ({
@@ -29,6 +30,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   className,
   showSidebar = true,
   showBottomNav = true,
+  showHeaderAuthControlsOnlyWhenAuthenticated = false,
 }) => {
   const sidebarCollapsed = useAppSelector(state => state.ui.sidebarCollapsed);
   const theme = useAppSelector(state => state.theme);
@@ -48,7 +50,12 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             )}
           >
             {/* Fixed Header */}
-            <Header hideOnScroll={false} />
+            <Header
+              hideOnScroll={false}
+              showAuthControlsOnlyWhenAuthenticated={
+                showHeaderAuthControlsOnlyWhenAuthenticated
+              }
+            />
 
             {/* Secondary Navigation - Mobile Only */}
             <SecondaryNavigation className="z-30 md:hidden" />

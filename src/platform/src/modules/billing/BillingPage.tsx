@@ -19,7 +19,7 @@ const BillingPage: React.FC = () => {
       return {
         className:
           'border-emerald-300 bg-emerald-50 dark:border-emerald-700 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-200',
-        text: 'Payment completed. Your subscription details are syncing now.',
+        text: 'Checkout completed. Your subscription details are updating now.',
       };
     }
 
@@ -27,7 +27,7 @@ const BillingPage: React.FC = () => {
       return {
         className:
           'border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-950/30 text-amber-800 dark:text-amber-200',
-        text: 'Checkout was canceled. You can resume anytime from this page.',
+        text: 'Checkout was closed before confirmation. You can restart whenever you are ready.',
       };
     }
 
@@ -43,10 +43,10 @@ const BillingPage: React.FC = () => {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
-          Subscription & Access
+          API Subscription & Billing
         </h2>
         <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-          Manage your API tier, renewal preferences, and billing transactions.
+          Review your current plan, renewal settings, and billing activity.
         </p>
       </div>
 

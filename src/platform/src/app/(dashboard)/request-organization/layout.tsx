@@ -14,7 +14,14 @@ export const metadata: Metadata = {
 const RequestOrganizationLayout = ({
   children,
 }: RequestOrganizationLayoutProps) => {
-  return <MainLayout showSidebar={false}>{children}</MainLayout>;
+  return (
+    <MainLayout
+      showSidebar={false}
+      showHeaderAuthControlsOnlyWhenAuthenticated={true}
+    >
+      {children}
+    </MainLayout>
+  );
 };
 
 export default RequestOrganizationLayout;

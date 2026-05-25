@@ -5,6 +5,17 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface AuthMethods {
+  password: boolean;
+  google: boolean;
+  github: boolean;
+  linkedin: boolean;
+  microsoft: boolean;
+  twitter: boolean;
+  facebook: boolean;
+  apple: boolean;
+}
+
 export interface LoginResponse {
   _id: string;
   token: string;
@@ -27,6 +38,7 @@ export interface LoginResponse {
   rateLimit: unknown;
   lastLogin: string;
   expiresAt: string;
+  authMethods?: AuthMethods;
 }
 
 // Roles and Permissions Types for Admin Management
@@ -250,6 +262,16 @@ export interface ResetPasswordResponse {
   user: Record<string, unknown>;
 }
 
+export interface SetPasswordRequest {
+  password: string;
+  confirmPassword: string;
+}
+
+export interface SetPasswordResponse {
+  success: boolean;
+  message: string;
+}
+
 export interface MaintenanceItem {
   _id: string;
   product: string;
@@ -304,6 +326,7 @@ export interface User {
   networks: Network[];
   clients: Client[];
   permissions: RolePermission[];
+  authMethods?: AuthMethods;
 }
 
 export interface Network {
@@ -1633,7 +1656,13 @@ export interface SubscriptionPlan {
 
 export interface UserSubscription {
   tier: SubscriptionTier;
-  status: 'active' | 'inactive' | 'past_due' | 'cancelled' | 'trialing';
+  status:
+    | 'active'
+    | 'inactive'
+    | 'past_due'
+    | 'cancelled'
+    | 'trialing'
+    | 'paused';
   nextBillingDate?: string | null;
   lastRenewalDate?: string | null;
   automaticRenewal?: boolean;
@@ -1678,7 +1707,13 @@ export interface GetSubscriptionResponse {
   success: boolean;
   message: string;
   data?: {
-    status: 'active' | 'inactive' | 'past_due' | 'cancelled' | 'trialing';
+    status:
+      | 'active'
+      | 'inactive'
+      | 'past_due'
+      | 'cancelled'
+      | 'trialing'
+      | 'paused';
     tier: SubscriptionTier;
     nextBillingDate?: string | null;
   };

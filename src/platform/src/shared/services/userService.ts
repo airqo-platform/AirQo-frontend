@@ -17,6 +17,8 @@ import type {
   UpdateUserDetailsResponse,
   UpdatePasswordRequest,
   UpdatePasswordResponse,
+  SetPasswordRequest,
+  SetPasswordResponse,
   VerifyEmailResponse,
   CreateOrganizationRequest,
   CreateOrganizationResponse,
@@ -229,6 +231,43 @@ export class UserService {
     }
 
     return data as UpdatePasswordResponse;
+  }
+
+  // Set password for OAuth-authenticated users - authenticated endpoint
+  async setPassword(
+    passwordData: SetPasswordRequest
+  ): Promise<SetPasswordResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.post<
+      SetPasswordResponse | ApiErrorResponse
+    >('/users/setPassword?tenant=airqo', passwordData);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      const candidateErrors = (data as { errors?: unknown }).errors;
+      const errorMessage = Array.isArray(candidateErrors)
+        ? candidateErrors
+            .map(error => {
+              if (!error || typeof error !== 'object') {
+                return '';
+              }
+
+              const message = (error as { message?: unknown }).message;
+              return typeof message === 'string' ? message.trim() : '';
+            })
+            .filter(Boolean)
+            .join('; ')
+        : candidateErrors && typeof candidateErrors === 'object'
+          ? typeof (candidateErrors as { message?: unknown }).message ===
+            'string'
+            ? (candidateErrors as { message?: string }).message?.trim()
+            : ''
+          : '';
+
+      throw new Error(errorMessage || data.message || 'Failed to set password');
+    }
+
+    return data as SetPasswordResponse;
   }
 
   // Verify email - open endpoint
