@@ -663,7 +663,7 @@ const SubscriptionSection: React.FC = () => {
                 onClick={() => setPendingConfirmation('cancel')}
                 disabled={runningAction === 'cancel'}
                 loading={runningAction === 'cancel'}
-                className="border-rose-600 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20"
+                className="border-rose-600 text-rose-600 hover:!border-rose-600 hover:!bg-rose-600 hover:!text-white dark:hover:!border-rose-500 dark:hover:!bg-rose-500 dark:hover:!text-white"
               >
                 Cancel Plan
               </Button>
