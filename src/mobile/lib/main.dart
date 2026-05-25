@@ -58,6 +58,22 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 // Initialise PostHog and push-notifications in the background so they never
 // block the UI.  Both can tolerate being ready a few seconds after first frame.
+Future<bool> _initFirebaseInBackground() async {
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    ).timeout(const Duration(seconds: 8));
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    Object().logInfo('Firebase initialized successfully');
+    return true;
+  } catch (e) {
+    // Continue without Firebase so a slow Play Services handshake never keeps
+    // users on the native splash screen.
+    debugPrint('Firebase.initializeApp failed/timed-out: $e');
+    return false;
+  }
+}
+
 Future<void> _initServicesInBackground() async {
   final apiKey = dotenv.env['POSTHOG_API_KEY'] ?? '';
   final host = dotenv.env['POSTHOG_HOST'] ?? 'https://us.i.posthog.com';
@@ -81,11 +97,14 @@ Future<void> _initServicesInBackground() async {
     Object().logError('Failed to initialize PostHog', e, null);
   }
 
-  try {
-    await PushNotificationService().initialize();
-    Object().logInfo('Push notification service initialized successfully');
-  } catch (e) {
-    Object().logError('Failed to initialize push notifications', e, null);
+  final firebaseReady = await _initFirebaseInBackground();
+  if (firebaseReady) {
+    try {
+      await PushNotificationService().initialize();
+      Object().logInfo('Push notification service initialized successfully');
+    } catch (e) {
+      Object().logError('Failed to initialize push notifications', e, null);
+    }
   }
 }
 
@@ -94,27 +113,6 @@ void main() async {
     () async {
       try {
         WidgetsFlutterBinding.ensureInitialized();
-
-        // Initialize Firebase — guarded with a timeout so stub/invalid
-        // credentials don't block the splash screen indefinitely.
-        bool firebaseReady = false;
-        try {
-          await Firebase.initializeApp(
-            options: DefaultFirebaseOptions.currentPlatform,
-          ).timeout(const Duration(seconds: 8));
-          firebaseReady = true;
-          Object().logInfo('Firebase initialized successfully');
-        } catch (e) {
-          // Stub credentials cause Firebase to hang on Play-Services handshake.
-          // Continue without Firebase — auth will fall back to guest mode.
-          debugPrint('Firebase.initializeApp failed/timed-out: $e');
-        }
-
-        // Only register the background handler if Firebase actually started.
-        if (firebaseReady) {
-          FirebaseMessaging.onBackgroundMessage(
-              _firebaseMessagingBackgroundHandler);
-        }
 
         await CacheManager().initialize();
 
@@ -298,7 +296,9 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
       NotificationHelper().subscribeToRelevantTopics();
       NotificationHelper().checkAndShowPermissionPrompt(context);
       SessionTracker().startSession();
-      EnhancedLocationServiceManager().startLocationTracking().catchError((_) {});
+      EnhancedLocationServiceManager()
+          .startLocationTracking()
+          .catchError((_) {});
       // Research: fire app-open event, start foreground service (background pings)
       // and foreground timer (pings while app is active)
       ResearchLocationService().onAppOpen();
@@ -340,7 +340,8 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
   Future<void> _fireHeartbeatIfNeeded() async {
     try {
       final today = DateTime.now().toIso8601String().substring(0, 10);
-      final last = await HiveRepository.getData<String>(_heartbeatKey, _heartbeatBox);
+      final last =
+          await HiveRepository.getData<String>(_heartbeatKey, _heartbeatBox);
       if (last == today) return;
       await AnalyticsService().trackAppHeartbeat();
       await HiveRepository.saveData(_heartbeatBox, _heartbeatKey, today);
