@@ -9,8 +9,7 @@ import { CreateGrid, Grid, GridsSummaryResponse } from "@/app/types/grids";
 import { setError, setGrids } from "../redux/slices/gridsSlice";
 import { useDispatch } from "react-redux";
 import React from "react";
-import ReusableToast from "@/components/shared/toast/ReusableToast";
-import { getApiErrorMessage } from "../utils/getApiErrorMessage";
+
 
 interface ErrorResponse {
   message: string;
@@ -95,8 +94,13 @@ export const useGridDetails = (gridId: string) => {
   };
 };
 
+interface UseUpdateGridDetailsOptions {
+  onSuccess?: (data: Grid) => void;
+  onError?: (error: AxiosError<ErrorResponse>) => void;
+}
+
 // Hook to update grid details
-export const useUpdateGridDetails = (gridId: string) => {
+export const useUpdateGridDetails = (gridId: string, options?: UseUpdateGridDetailsOptions) => {
   const queryClient = useQueryClient();
   const {
     mutateAsync: updateGridDetails,
@@ -105,81 +109,62 @@ export const useUpdateGridDetails = (gridId: string) => {
   } = useMutation<Grid, AxiosError<ErrorResponse>, { name?: string; visibility?: boolean; admin_level?: string }>({
     mutationFn: (updatedFields: { name?: string; visibility?: boolean; admin_level?: string }) =>
       grids.updateGridDetailsApi(gridId, updatedFields),
-    onSuccess: () => {
-      ReusableToast({
-        message: "Grid details updated successfully",
-        type: "SUCCESS",
-      });
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["gridDetails", gridId] });
       queryClient.invalidateQueries({ queryKey: ["grids"] });
+      options?.onSuccess?.(data);
     },
     onError: (error: AxiosError<ErrorResponse>) => {
-      ReusableToast({
-        message: `Failed to update grid: ${getApiErrorMessage(error)}`,
-        type: "ERROR",
-      });
+      options?.onError?.(error);
     },
   });
 
-  return {
-    updateGridDetails,
-    isLoading,
-    error,
-  };
+  return { updateGridDetails, isLoading, error };
 };
 
+interface UseCreateGridOptions {
+  onSuccess?: (data: Grid) => void;
+  onError?: (error: AxiosError<ErrorResponse>) => void;
+}
+
 // Hook to create a new grid
-export const useCreateGrid = () => {
+export const useCreateGrid = (options?: UseCreateGridOptions) => {
   const queryClient = useQueryClient();
   const { mutate: createGrid, isPending: isLoading, error } = useMutation<Grid, AxiosError<ErrorResponse>, CreateGrid>({
     mutationFn: async (newGrid: CreateGrid) =>
       await grids.createGridApi(newGrid),
     onSuccess: (data) => {
-      ReusableToast({
-        message: `New grid added!`,
-        type: "SUCCESS",
-      });
       queryClient.invalidateQueries({ queryKey: ["grids"] });
+      options?.onSuccess?.(data);
     },
     onError: (error: AxiosError<ErrorResponse>) => {
-      ReusableToast({
-        message: `Failed to create grid: ${getApiErrorMessage(error)}`,
-        type: "ERROR",
-      });
+      options?.onError?.(error);
     },
   });
 
-  return {
-    createGrid,
-    isLoading,
-    error,
-  };
+  return { createGrid, isLoading, error };
 };
 
-export const useCreateAdminLevel = () => {
+interface UseCreateAdminLevelOptions {
+  onSuccess?: (data: AdminLevelResponse) => void;
+  onError?: (error: AxiosError<ErrorResponse>) => void;
+}
+
+export const useCreateAdminLevel = (options?: UseCreateAdminLevelOptions) => {
   const queryClient = useQueryClient();
   const { mutate: createAdminLevel, isPending: isLoading, error } = useMutation<AdminLevelResponse, AxiosError<ErrorResponse>, { name: string }>({
     mutationFn: (data: { name: string }) => grids.createAdminLevelApi(data),
     onSuccess: (data) => {
-      ReusableToast({
-        message: `Admin level '${data.admin_levels.name}' created successfully`,
-        type: "SUCCESS",
-      });
       queryClient.invalidateQueries({ queryKey: ["admin-levels"] });
+      options?.onSuccess?.(data);
     },
     onError: (error: AxiosError<ErrorResponse>) => {
-      ReusableToast({
-        message: `Failed to create admin level: ${getApiErrorMessage(error)}`,
-        type: "ERROR",
-      });
+      options?.onError?.(error);
+    
     },
   });
 
-  return {
-    createAdminLevel,
-    isLoading,
-    error,
-  };
+  return { createAdminLevel, isLoading, error };
 };
 
 export const useAdminLevels = () => {
@@ -196,28 +181,23 @@ export const useAdminLevels = () => {
   };
 };
 
-export const useUpdateAdminLevel = () => {
+interface UseUpdateAdminLevelOptions {
+  onSuccess?: (data: AdminLevelResponse) => void;
+  onError?: (error: AxiosError<ErrorResponse>) => void;
+}
+
+export const useUpdateAdminLevel = (options?: UseUpdateAdminLevelOptions) => {
   const queryClient = useQueryClient();
   const { mutate: updateAdminLevel, isPending: isLoading, error } = useMutation<AdminLevelResponse, AxiosError<ErrorResponse>, { levelId: string; data: { name: string } }>({
     mutationFn: ({ levelId, data }) => grids.updateAdminLevelApi(levelId, data),
     onSuccess: (data) => {
-      ReusableToast({
-        message: `Admin level updated to '${data.admin_levels.name}' successfully`,
-        type: "SUCCESS",
-      });
       queryClient.invalidateQueries({ queryKey: ["admin-levels"] });
+      options?.onSuccess?.(data);
     },
     onError: (error: AxiosError<ErrorResponse>) => {
-      ReusableToast({
-        message: `Failed to update admin level: ${getApiErrorMessage(error)}`,
-        type: "ERROR",
-      });
+      options?.onError?.(error);
     },
   });
 
-  return {
-    updateAdminLevel,
-    isLoading,
-    error,
-  };
+  return { updateAdminLevel, isLoading, error };
 };

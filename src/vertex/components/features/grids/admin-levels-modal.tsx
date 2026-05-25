@@ -6,7 +6,8 @@ import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
 import { Copy, Edit2, Check, X } from "lucide-react";
-import ReusableToast from "@/components/shared/toast/ReusableToast";
+import { useBanner } from "@/context/banner-context";
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 
 interface AdminLevelsModalProps {
   isOpen: boolean;
@@ -15,21 +16,43 @@ interface AdminLevelsModalProps {
 
 export function AdminLevelsModal({ isOpen, onClose }: AdminLevelsModalProps) {
   const { adminLevels, isLoading: isLoadingLevels } = useAdminLevels();
-  const { updateAdminLevel, isLoading: isUpdating } = useUpdateAdminLevel();
+  const { showBanner } = useBanner();
+  
+  const { updateAdminLevel, isLoading: isUpdating } = useUpdateAdminLevel({
+    onSuccess: (data) => {
+      showBanner({
+        message: `Admin level updated to '${data.admin_levels.name}' successfully`,
+        severity: "success",
+        scoped: true,
+      });
+      setEditingId(null);
+      setEditValue("");
+    },
+    onError: (error) => {
+      showBanner({
+        message: `Failed to update admin level: ${getApiErrorMessage(error)}`,
+        severity: "error",
+        scoped: true,
+      });
+    }
+  });
+
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
 
   const handleCopyId = async (id: string) => {
     try {
       await navigator.clipboard.writeText(id);
-      ReusableToast({
+      showBanner({
         message: "ID copied to clipboard",
-        type: "SUCCESS",
+        severity: "success",
+        scoped: true,
       });
     } catch {
-      ReusableToast({
+      showBanner({
         message: "Failed to copy ID",
-        type: "ERROR",
+        severity: "error",
+        scoped: true,
       });
     }
   };
@@ -49,15 +72,7 @@ export function AdminLevelsModal({ isOpen, onClose }: AdminLevelsModalProps) {
     if (!name) {
       return;
     }
-    updateAdminLevel(
-      { levelId, data: { name } },
-      {
-        onSuccess: () => {
-          setEditingId(null);
-          setEditValue("");
-        },
-      }
-    );
+    updateAdminLevel({ levelId, data: { name } });
   };
 
   return (

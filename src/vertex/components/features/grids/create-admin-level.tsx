@@ -17,6 +17,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AdminLevelsModal } from "./admin-levels-modal";
+import { useBanner } from "@/context/banner-context";
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 
 const adminLevelFormSchema = z.object({
   name: z.string().min(2, {
@@ -29,7 +31,7 @@ type AdminLevelFormValues = z.infer<typeof adminLevelFormSchema>;
 export function CreateAdminLevel() {
   const [open, setOpen] = useState(false);
   const [viewModalOpen, setViewModalOpen] = useState(false);
-  const { createAdminLevel, isLoading } = useCreateAdminLevel();
+  const { showBanner } = useBanner();
 
   const form = useForm<AdminLevelFormValues>({
     resolver: zodResolver(adminLevelFormSchema),
@@ -43,12 +45,28 @@ export function CreateAdminLevel() {
     form.reset();
   };
 
+  const { createAdminLevel, isLoading } = useCreateAdminLevel({
+    onSuccess: () => {
+      handleClose();
+      setTimeout(() => {
+        showBanner({
+          message: "Admin level created successfully",
+          severity: "success",
+          scoped: false,
+        });
+      }, 100);
+    },
+    onError: (error) => {
+      showBanner({
+        message: `Failed to create admin level: ${getApiErrorMessage(error)}`,
+        severity: "error",
+        scoped: true,
+      });
+    },
+  });
+
   const onSubmit = (data: AdminLevelFormValues) => {
-    createAdminLevel(data, {
-      onSuccess: () => {
-        handleClose();
-      },
-    });
+    createAdminLevel(data);
   };
 
   return (

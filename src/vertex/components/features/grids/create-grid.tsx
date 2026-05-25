@@ -15,6 +15,8 @@ import ReusableButton from "@/components/shared/button/ReusableButton";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
 import { useNetworks } from "@/core/hooks/useNetworks";
 import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
+import { useBanner } from "@/context/banner-context";
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 
 // Lazy load MiniMap to reduce initial bundle size
 const MiniMap = dynamic(() => import("@/components/features/mini-map/mini-map"), {
@@ -58,7 +60,33 @@ type GridFormValues = z.infer<typeof gridFormSchema>;
 export function CreateGridForm() {
   const [open, setOpen] = useState(false);
   const polygon = useAppSelector((state) => state.grids.polygon);
-  const { createGrid, isLoading } = useCreateGrid();
+  const { showBanner } = useBanner();
+  
+  const handleClose = () => {
+    setOpen(false);
+    form.reset();
+  };
+
+  const { createGrid, isLoading } = useCreateGrid({
+    onSuccess: () => {
+      handleClose();
+      setTimeout(() => {
+        showBanner({
+          message: `New grid added!`,
+          severity: "success",
+          scoped: false,
+        });
+      }, 100);
+    },
+    onError: (error) => {
+      showBanner({
+        message: `Failed to create grid: ${getApiErrorMessage(error)}`,
+        severity: "error",
+        scoped: true,
+      });
+    }
+  });
+
   const { networks, isLoading: isLoadingNetworks } = useNetworks();
 
   const form = useForm<GridFormValues>({
@@ -79,11 +107,6 @@ export function CreateGridForm() {
     }
   }, [polygon, form]);
 
-  const handleClose = () => {
-    setOpen(false);
-    form.reset();
-  };
-
   const onSubmit = (data: GridFormValues) => {
     const gridData = {
       name: data.name,
@@ -92,11 +115,7 @@ export function CreateGridForm() {
       network: data.network,
     };
 
-    createGrid(gridData, {
-      onSuccess: () => {
-        handleClose();
-      },
-    });
+    createGrid(gridData);
   };
 
   return (

@@ -6,6 +6,8 @@ import { useUpdateGridDetails } from "@/core/hooks/useGrids";
 import { usePermission } from "@/core/hooks/usePermissions";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { Grid } from "@/app/types/grids";
+import { useBanner } from "@/context/banner-context";
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 
 interface EditGridDetailsDialogProps {
     open: boolean;
@@ -19,7 +21,28 @@ const EditGridDetailsDialog: React.FC<EditGridDetailsDialogProps> = ({
     onClose,
 }) => {
     const [form, setForm] = useState({ name: "", visibility: false, admin_level: "" });
-    const { updateGridDetails, isLoading } = useUpdateGridDetails(grid._id);
+    const { showBanner } = useBanner();
+    
+    const { updateGridDetails, isLoading } = useUpdateGridDetails(grid._id, {
+        onSuccess: () => {
+            onClose();
+            setTimeout(() => {
+                showBanner({
+                    message: "Grid details updated successfully",
+                    severity: "success",
+                    scoped: false,
+                });
+            }, 100);
+        },
+        onError: (error) => {
+            showBanner({
+                message: `Failed to update grid: ${getApiErrorMessage(error)}`,
+                severity: "error",
+                scoped: true,
+            });
+        }
+    });
+
     const canUpdate = usePermission(PERMISSIONS.SITE.UPDATE);
 
     useEffect(() => {
@@ -39,6 +62,11 @@ const EditGridDetailsDialog: React.FC<EditGridDetailsDialogProps> = ({
         const trimmedAdminLevel = form.admin_level.trim();
         
         if (trimmedName.length === 0 || trimmedAdminLevel.length === 0) {
+            showBanner({
+                severity: "error",
+                message: "Grid Name and Admin Level cannot be empty.",
+                scoped: true,
+            });
             return;
         }
 
@@ -55,10 +83,9 @@ const EditGridDetailsDialog: React.FC<EditGridDetailsDialogProps> = ({
         if (form.visibility !== grid.visibility) updates.visibility = form.visibility;
 
         try {
-            await updateGridDetails(updates);
-            onClose();
+            updateGridDetails(updates);
         } catch {
-            return
+            return;
         }
     };
 
