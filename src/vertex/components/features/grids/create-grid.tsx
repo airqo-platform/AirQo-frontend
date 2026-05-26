@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -62,7 +62,14 @@ export function CreateGridForm() {
   const [open, setOpen] = useState(false);
   const polygon = useAppSelector((state) => state.grids.polygon);
   const { showBanner } = useBanner();
-  
+  const bannerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (bannerTimerRef.current) clearTimeout(bannerTimerRef.current);
+    };
+  }, []);
+
   const handleClose = () => {
     setOpen(false);
     form.reset();
@@ -71,7 +78,7 @@ export function CreateGridForm() {
   const { createGrid, isLoading } = useCreateGrid({
     onSuccess: () => {
       handleClose();
-      setTimeout(() => {
+      bannerTimerRef.current = setTimeout(() => {
         showBanner({
           message: `New grid added!`,
           severity: "success",

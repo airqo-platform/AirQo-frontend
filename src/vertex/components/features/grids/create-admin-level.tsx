@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -33,6 +33,13 @@ export function CreateAdminLevel() {
   const [open, setOpen] = useState(false);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const { showBanner } = useBanner();
+  const bannerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (bannerTimerRef.current) clearTimeout(bannerTimerRef.current);
+    };
+  }, []);
 
   const form = useForm<AdminLevelFormValues>({
     resolver: zodResolver(adminLevelFormSchema),
@@ -49,7 +56,7 @@ export function CreateAdminLevel() {
   const { createAdminLevel, isLoading } = useCreateAdminLevel({
     onSuccess: () => {
       handleClose();
-      setTimeout(() => {
+      bannerTimerRef.current = setTimeout(() => {
         showBanner({
           message: "Admin level created successfully",
           severity: "success",

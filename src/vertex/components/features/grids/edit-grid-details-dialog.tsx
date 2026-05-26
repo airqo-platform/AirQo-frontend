@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
 import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
@@ -23,11 +23,18 @@ const EditGridDetailsDialog: React.FC<EditGridDetailsDialogProps> = ({
 }) => {
     const [form, setForm] = useState({ name: "", visibility: false, admin_level: "" });
     const { showBanner } = useBanner();
-    
+    const bannerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    useEffect(() => {
+        return () => {
+            if (bannerTimerRef.current) clearTimeout(bannerTimerRef.current);
+        };
+    }, []);
+
     const { updateGridDetails, isLoading } = useUpdateGridDetails(grid._id, {
         onSuccess: () => {
             onClose();
-            setTimeout(() => {
+            bannerTimerRef.current = setTimeout(() => {
                 showBanner({
                     message: "Grid details updated successfully",
                     severity: "success",
