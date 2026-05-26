@@ -54,6 +54,24 @@ const SENSITIVE_QUERY_KEYS = new Set([
 const isValidEmail = (value: string) =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
+const FEEDBACK_SOURCE_TAG = 'From Analytics';
+
+const appendFeedbackSourceTag = (message: string): string => {
+  const trimmedMessage = message.trim();
+
+  if (!trimmedMessage) {
+    return trimmedMessage;
+  }
+
+  if (
+    trimmedMessage.toLowerCase().endsWith(FEEDBACK_SOURCE_TAG.toLowerCase())
+  ) {
+    return trimmedMessage;
+  }
+
+  return `${trimmedMessage}\n\n${FEEDBACK_SOURCE_TAG}`;
+};
+
 const getBrowserLabel = (): string => {
   if (typeof navigator === 'undefined') {
     return 'Unknown browser';
@@ -181,6 +199,7 @@ export const FeedbackLauncher: React.FC = () => {
     const trimmedEmail = email.trim();
     const trimmedSubject = subject.trim();
     const trimmedMessage = message.trim();
+    const submissionMessage = appendFeedbackSourceTag(trimmedMessage);
 
     if (!trimmedEmail || !trimmedSubject || !trimmedMessage) {
       toast.error('Please complete the email, subject, and message fields.');
@@ -200,10 +219,10 @@ export const FeedbackLauncher: React.FC = () => {
       await feedbackService.submitFeedback({
         email: trimmedEmail,
         subject: trimmedSubject,
-        message: trimmedMessage,
+        message: submissionMessage,
         rating,
         category,
-        platform: 'Analytics',
+        platform: 'web',
         metadata,
       });
 

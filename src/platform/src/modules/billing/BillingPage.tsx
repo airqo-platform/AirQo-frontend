@@ -4,12 +4,13 @@ import React, { useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import SubscriptionSection from './components/SubscriptionSection';
 import TransactionHistory from './components/TransactionHistory';
+import UsageStats from './components/UsageStats';
 import { Card } from '@/shared/components/ui';
 
 const BillingPage: React.FC = () => {
   const searchParams = useSearchParams();
   const [activeSubTab, setActiveSubTab] = useState<
-    'subscription' | 'transactions'
+    'subscription' | 'usage' | 'transactions'
   >('subscription');
 
   const checkoutState = searchParams.get('checkout');
@@ -36,6 +37,7 @@ const BillingPage: React.FC = () => {
 
   const subTabs = [
     { id: 'subscription' as const, label: 'Subscription & Tiers' },
+    { id: 'usage' as const, label: 'Usage & Limits' },
     { id: 'transactions' as const, label: 'Transactions' },
   ];
 
@@ -43,10 +45,11 @@ const BillingPage: React.FC = () => {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
-          API Subscription & Billing
+          Subscription & Billing
         </h2>
         <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-          Review your current plan, renewal settings, and billing activity.
+          Review your current plan, switch tiers, and monitor API usage from one
+          place.
         </p>
       </div>
 
@@ -75,6 +78,7 @@ const BillingPage: React.FC = () => {
       </div>
 
       {activeSubTab === 'subscription' && <SubscriptionSection />}
+      {activeSubTab === 'usage' && <UsageStats />}
       {activeSubTab === 'transactions' && <TransactionHistory />}
     </div>
   );

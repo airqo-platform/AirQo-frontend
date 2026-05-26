@@ -15,7 +15,6 @@ import CreateClientDialog from './components/CreateClientDialog';
 import EditClientDialog from './components/EditClientDialog';
 import TokenDisplay from './components/TokenDisplay';
 import type { Client } from '@/shared/types/api';
-import UsageStats from '../billing/components/UsageStats';
 import { trackApiClientAction } from '@/shared/utils/enhancedAnalytics';
 
 type TableClient = Client & { id: string };
@@ -324,8 +323,6 @@ const ApiClientPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <UsageStats />
-
       {/* API Clients Table */}
       <MultiSelectTable
         title="API Clients"
