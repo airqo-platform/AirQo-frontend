@@ -13,11 +13,14 @@ interface ErrorWithData extends Error {
     data?: ApiErrorResponse | string;
 }
 
+const HTML_PATTERN = /<\/?[a-z][\s\S]*>/i;
+const GENERIC_ERROR = 'An unexpected error occurred. Please try again.';
+
+const sanitize = (msg: string): string => (HTML_PATTERN.test(msg) ? GENERIC_ERROR : msg);
+
 const getMessageFromApiData = (data: ApiErrorResponse | string): string | null => {
     if (typeof data === 'string') {
-        return /<\/?[a-z][\s\S]*>/i.test(data)
-            ? 'An unexpected error occurred. Please try again.'
-            : data;
+        return data;
     }
 
     // 1. Nested validation errors: { "errors": { "field": { "msg": "..." } } } OR { "errors": { "field": "..." } }
@@ -66,19 +69,19 @@ export const getApiErrorMessage = (error: unknown): string => {
 
         if (error.response?.data) {
             const message = getMessageFromApiData(error.response.data as ApiErrorResponse | string);
-            if (message) return message;
+            if (message) return sanitize(message);
         }
     }
 
     // 5. Fetch/custom errors with preserved backend payload: Object.assign(new Error(...), { data })
     if (error instanceof Error && 'data' in error) {
         const message = getMessageFromApiData((error as ErrorWithData).data ?? {});
-        if (message) return message;
+        if (message) return sanitize(message);
     }
 
     // 6. Fallback to standard Error message
     if (error instanceof Error) {
-        return error.message;
+        return sanitize(error.message);
     }
 
     // 7. Generic fallback
