@@ -15,7 +15,9 @@ interface ErrorWithData extends Error {
 
 const getMessageFromApiData = (data: ApiErrorResponse | string): string | null => {
     if (typeof data === 'string') {
-        return data;
+        return /<\/?[a-z][\s\S]*>/i.test(data)
+            ? 'An unexpected error occurred. Please try again.'
+            : data;
     }
 
     // 1. Nested validation errors: { "errors": { "field": { "msg": "..." } } } OR { "errors": { "field": "..." } }

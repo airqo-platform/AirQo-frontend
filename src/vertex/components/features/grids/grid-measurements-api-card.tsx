@@ -22,18 +22,7 @@ const GridMeasurementsApiCard: React.FC<GridMeasurementsApiCardProps> = ({ grid,
     const handleCopy = async (text: string) => {
         if (!text) return;
         try {
-            if (navigator?.clipboard?.writeText) {
-                await navigator.clipboard.writeText(text);
-            } else {
-                const el = document.createElement("textarea");
-                el.value = text;
-                el.style.position = "fixed";
-                el.style.opacity = "0";
-                document.body.appendChild(el);
-                el.select();
-                document.execCommand("copy");
-                document.body.removeChild(el);
-            }
+            await navigator.clipboard.writeText(text);
             showBanner({ message: "API URL copied!", severity: "success", scoped: false });
         } catch {
             showBanner({ message: "Failed to copy to clipboard", severity: "error", scoped: false });
