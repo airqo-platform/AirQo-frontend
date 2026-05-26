@@ -8,6 +8,7 @@ import { PERMISSIONS } from "@/core/permissions/constants";
 import { Grid } from "@/app/types/grids";
 import { useBanner } from "@/context/banner-context";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
+import { AFTER_DIALOG_CLOSE_MS } from "@/core/constants/ui";
 
 interface EditGridDetailsDialogProps {
     open: boolean;
@@ -32,7 +33,7 @@ const EditGridDetailsDialog: React.FC<EditGridDetailsDialogProps> = ({
                     severity: "success",
                     scoped: false,
                 });
-            }, 100);
+            }, AFTER_DIALOG_CLOSE_MS);
         },
         onError: (error) => {
             showBanner({

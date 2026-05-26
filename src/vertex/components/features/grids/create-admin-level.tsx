@@ -19,6 +19,7 @@ import {
 import { AdminLevelsModal } from "./admin-levels-modal";
 import { useBanner } from "@/context/banner-context";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
+import { AFTER_DIALOG_CLOSE_MS } from "@/core/constants/ui";
 
 const adminLevelFormSchema = z.object({
   name: z.string().min(2, {
@@ -54,7 +55,7 @@ export function CreateAdminLevel() {
           severity: "success",
           scoped: false,
         });
-      }, 100);
+      }, AFTER_DIALOG_CLOSE_MS);
     },
     onError: (error) => {
       showBanner({

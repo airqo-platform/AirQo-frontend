@@ -17,6 +17,7 @@ import { useNetworks } from "@/core/hooks/useNetworks";
 import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
 import { useBanner } from "@/context/banner-context";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
+import { AFTER_DIALOG_CLOSE_MS } from "@/core/constants/ui";
 
 // Lazy load MiniMap to reduce initial bundle size
 const MiniMap = dynamic(() => import("@/components/features/mini-map/mini-map"), {
@@ -76,7 +77,7 @@ export function CreateGridForm() {
           severity: "success",
           scoped: false,
         });
-      }, 100);
+      }, AFTER_DIALOG_CLOSE_MS);
     },
     onError: (error) => {
       showBanner({
