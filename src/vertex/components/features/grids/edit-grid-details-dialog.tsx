@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
 import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
@@ -8,7 +8,7 @@ import { PERMISSIONS } from "@/core/permissions/constants";
 import { Grid } from "@/app/types/grids";
 import { useBanner } from "@/context/banner-context";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
-import { AFTER_DIALOG_CLOSE_MS } from "@/core/constants/ui";
+import { useDeferredBanner } from "@/core/hooks/useDeferredBanner";
 
 interface EditGridDetailsDialogProps {
     open: boolean;
@@ -23,24 +23,12 @@ const EditGridDetailsDialog: React.FC<EditGridDetailsDialogProps> = ({
 }) => {
     const [form, setForm] = useState({ name: "", visibility: false, admin_level: "" });
     const { showBanner } = useBanner();
-    const bannerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-    useEffect(() => {
-        return () => {
-            if (bannerTimerRef.current) clearTimeout(bannerTimerRef.current);
-        };
-    }, []);
+    const { showDeferredBanner } = useDeferredBanner();
 
     const { updateGridDetails, isLoading } = useUpdateGridDetails(grid._id, {
         onSuccess: () => {
             onClose();
-            bannerTimerRef.current = setTimeout(() => {
-                showBanner({
-                    message: "Grid details updated successfully",
-                    severity: "success",
-                    scoped: false,
-                });
-            }, AFTER_DIALOG_CLOSE_MS);
+            showDeferredBanner({ message: "Grid details updated successfully", severity: "success", scoped: false });
         },
         onError: (error) => {
             showBanner({

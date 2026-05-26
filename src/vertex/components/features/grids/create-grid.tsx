@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -17,7 +17,7 @@ import { useNetworks } from "@/core/hooks/useNetworks";
 import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
 import { useBanner } from "@/context/banner-context";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
-import { AFTER_DIALOG_CLOSE_MS } from "@/core/constants/ui";
+import { useDeferredBanner } from "@/core/hooks/useDeferredBanner";
 
 // Lazy load MiniMap to reduce initial bundle size
 const MiniMap = dynamic(() => import("@/components/features/mini-map/mini-map"), {
@@ -62,13 +62,7 @@ export function CreateGridForm() {
   const [open, setOpen] = useState(false);
   const polygon = useAppSelector((state) => state.grids.polygon);
   const { showBanner } = useBanner();
-  const bannerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (bannerTimerRef.current) clearTimeout(bannerTimerRef.current);
-    };
-  }, []);
+  const { showDeferredBanner } = useDeferredBanner();
 
   const { networks, isLoading: isLoadingNetworks } = useNetworks();
 
@@ -90,13 +84,7 @@ export function CreateGridForm() {
   const { createGrid, isLoading } = useCreateGrid({
     onSuccess: () => {
       handleClose();
-      bannerTimerRef.current = setTimeout(() => {
-        showBanner({
-          message: `New grid added!`,
-          severity: "success",
-          scoped: false,
-        });
-      }, AFTER_DIALOG_CLOSE_MS);
+      showDeferredBanner({ message: `New grid added!`, severity: "success", scoped: false });
     },
     onError: (error) => {
       showBanner({
