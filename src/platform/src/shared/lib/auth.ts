@@ -1,8 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { authService } from '../services/authService';
-import { buildServerApiUrl } from '@/shared/lib/api-routing';
-import { normalizeOAuthAccessToken } from './oauth-session';
+import {
+  fetchEnhancedUserProfile,
+  normalizeOAuthAccessToken,
+  type BackendOAuthProfile,
+} from './oauth-session';
 import type { AuthMethods } from '@/shared/types/api';
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -26,59 +29,10 @@ const isExpiredAt = (value: unknown): boolean => {
   return expiresAt <= Date.now();
 };
 
-interface OAuthProfilePayload {
-  _id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  profilePicture?: string;
-  authMethods?: AuthMethods;
-}
-
-interface OAuthProfileResponse {
-  success: boolean;
-  message?: string;
-  data?: OAuthProfilePayload;
-}
-
 const fetchOAuthProfile = async (
   accessToken: string
-): Promise<OAuthProfilePayload | null> => {
-  let profileUrl = '';
-
-  try {
-    profileUrl = buildServerApiUrl('/users/profile/enhanced');
-  } catch {
-    profileUrl = '';
-  }
-
-  if (!profileUrl) {
-    return null;
-  }
-
-  try {
-    const response = await fetch(profileUrl, {
-      method: 'GET',
-      cache: 'no-store',
-      headers: {
-        Accept: 'application/json',
-        Authorization: `JWT ${accessToken}`,
-      },
-    });
-
-    if (!response.ok) {
-      return null;
-    }
-
-    const payload = (await response.json()) as OAuthProfileResponse;
-    if (!payload?.success || !payload.data?._id) {
-      return null;
-    }
-
-    return payload.data;
-  } catch {
-    return null;
-  }
+): Promise<BackendOAuthProfile | null> => {
+  return fetchEnhancedUserProfile({ accessToken });
 };
 
 // Helper function to check token expiration and log
@@ -301,9 +255,6 @@ export const authOptions: any = {
         (session.user as any)._id = (token as any)._id;
         (session.user as any).firstName = (token as any).firstName;
         (session.user as any).lastName = (token as any).lastName;
-        (session.user as any).accessToken = accessToken;
-        (session.user as any).expiresAt = expiresAt;
-        (session.user as any).authMethods = authMethods;
       }
       return session;
     },
