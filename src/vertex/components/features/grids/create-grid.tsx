@@ -70,6 +70,18 @@ export function CreateGridForm() {
     };
   }, []);
 
+  const { networks, isLoading: isLoadingNetworks } = useNetworks();
+
+  const form = useForm<GridFormValues>({
+    resolver: zodResolver(gridFormSchema),
+    defaultValues: {
+      name: "",
+      administrativeLevel: "",
+      shapefile: '{"type":"","coordinates":[]}',
+      network: "",
+    },
+  });
+
   const handleClose = () => {
     setOpen(false);
     form.reset();
@@ -93,18 +105,6 @@ export function CreateGridForm() {
         scoped: true,
       });
     }
-  });
-
-  const { networks, isLoading: isLoadingNetworks } = useNetworks();
-
-  const form = useForm<GridFormValues>({
-    resolver: zodResolver(gridFormSchema),
-    defaultValues: {
-      name: "",
-      administrativeLevel: "",
-      shapefile: '{"type":"","coordinates":[]}',
-      network: "",
-    },
   });
 
   useEffect(() => {

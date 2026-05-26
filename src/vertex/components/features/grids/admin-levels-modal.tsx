@@ -18,6 +18,9 @@ export function AdminLevelsModal({ isOpen, onClose }: AdminLevelsModalProps) {
   const { adminLevels, isLoading: isLoadingLevels } = useAdminLevels();
   const { showBanner } = useBanner();
   
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
+
   const { updateAdminLevel, isLoading: isUpdating } = useUpdateAdminLevel({
     onSuccess: (data) => {
       showBanner({
@@ -36,9 +39,6 @@ export function AdminLevelsModal({ isOpen, onClose }: AdminLevelsModalProps) {
       });
     }
   });
-
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState("");
 
   const handleCopyId = async (id: string) => {
     try {
