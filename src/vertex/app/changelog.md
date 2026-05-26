@@ -16,7 +16,7 @@ Migrated all toast-based notifications in the Grid Management module to the cent
 
 - **Dialog Error Feedback**: `create-grid.tsx`, `edit-grid-details-dialog.tsx`, and `admin-levels-modal.tsx` now use `scoped: true` so validation and action errors remain visible inside the active dialog without closing it.
 - **Post-Dialog Success Feedback**: `create-grid.tsx` and `edit-grid-details-dialog.tsx` now use `scoped: false` with a `setTimeout(100ms)` to allow the dialog to unmount before showing the global success banner.
-- **Missing Banner Feedback Added**: `create-admin-level.tsx` now surfaces error feedback that was previously silent.
+ - **Admin Level Error Feedback Migrated**: `create-admin-level.tsx` now routes existing error feedback through the centralized banner flow instead of the previous toast-based mechanism.
 - **Copy Feedback Hardened**: `grid-details-card.tsx` and `grid-measurements-api-card.tsx` now use `scoped: false` and handle async copy failures with a fallback error message.
 
 </details>
