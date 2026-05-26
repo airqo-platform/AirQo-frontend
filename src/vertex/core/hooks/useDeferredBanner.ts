@@ -13,6 +13,7 @@ export const useDeferredBanner = () => {
   }, []);
 
   const showDeferredBanner = (options: ShowBannerOptions) => {
+    if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
       showBanner(options);
     }, AFTER_DIALOG_CLOSE_MS);

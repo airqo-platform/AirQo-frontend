@@ -16,7 +16,10 @@ interface ErrorWithData extends Error {
 const HTML_PATTERN = /<\/?[a-z][\s\S]*>/i;
 const GENERIC_ERROR = 'An unexpected error occurred. Please try again.';
 
-const fallbackIfHtml = (msg: string): string => (HTML_PATTERN.test(msg) ? GENERIC_ERROR : msg);
+const fallbackIfHtml = (msg: string): string => {
+    const trimmed = msg.trim();
+    return !trimmed || HTML_PATTERN.test(trimmed) ? GENERIC_ERROR : trimmed;
+};
 
 const getMessageFromApiData = (data: ApiErrorResponse | string): string | null => {
     if (typeof data === 'string') {
@@ -85,5 +88,5 @@ export const getApiErrorMessage = (error: unknown): string => {
     }
 
     // 7. Generic fallback
-    return 'An unexpected error occurred. Please try again.';
+    return GENERIC_ERROR;
 };
