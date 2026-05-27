@@ -248,6 +248,15 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         return;
       }
 
+      const mappedHeaders = Object.values(fieldMapping).filter(Boolean);
+      const duplicateHeaders = mappedHeaders.filter(
+        (header, index) => mappedHeaders.indexOf(header) !== index
+      );
+      if (duplicateHeaders.length > 0) {
+        setErrors({ general: "Each file column can only be mapped once." });
+        return;
+      }
+
       const transformedDevices = parsedData.map(row => {
         const device: Record<string, string | string[] | number | undefined> = {};
         EXPECTED_FIELDS.forEach(field => {
