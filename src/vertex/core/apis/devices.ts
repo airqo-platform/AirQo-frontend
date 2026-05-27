@@ -461,15 +461,14 @@ export const devices = {
   ): Promise<BulkImportDeviceResponse> => {
     try {
       const response = await jwtApiClient.post(
-        `/devices/soft/bulk`,
-        formData,
-        {
-          headers: {
-            'X-Auth-Type': 'JWT',
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      );
+  `/devices/soft/bulk`,
+  formData,
+  {
+    headers: {
+      'X-Auth-Type': 'JWT',
+    },
+  }
+);
       return response.data;
     } catch (error) {
       throw error;
