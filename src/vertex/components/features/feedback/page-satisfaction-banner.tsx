@@ -231,7 +231,7 @@ export const PageSatisfactionBanner: React.FC<PageSatisfactionBannerProps> = ({
           bordered
           padding="py-2 px-2"
           radius="rounded-xl"
-          className="ml-auto w-fit max-w-full pointer-events-auto"
+          className="ml-auto w-fit max-w-7xl pointer-events-auto"
         >
           <div className="flex flex-col sm:flex-row items-center justify-end gap-4">
             <div className="text-center sm:text-right">
