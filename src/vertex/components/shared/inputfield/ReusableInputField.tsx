@@ -96,7 +96,7 @@ const ReusableInputField: React.FC<ReusableInputFieldProps> = ({
           {label}
           {required && !readOnly && (
             <span
-              className={cn("ml-1", !primaryColor && "text-red-500")}
+              className={cn("ml-1", !primaryColor && "text-destructive")}
               style={primaryColor ? { color: primaryColor } : undefined}
             >
               *
