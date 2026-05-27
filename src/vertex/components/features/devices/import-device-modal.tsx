@@ -141,18 +141,22 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
 
   const autoMapFields = (headers: string[]) => {
     const initialMapping: Record<string, string> = {};
-    const lowerHeaders = headers.map(h => h.toLowerCase().trim());
+    const normalizeHeader = (value: string) =>
+      value.toLowerCase().trim().replace(/[^a-z0-9]/g, "");
+    const normalizedHeaders = headers.map(normalizeHeader);
     
     EXPECTED_FIELDS.forEach(field => {
       let matchIdx = -1;
-      const key = field.key.toLowerCase();
+      const key = normalizeHeader(field.key);
       
-      if (key === 'long_name') {
-        matchIdx = lowerHeaders.findIndex(h => h === 'long_name' || h === 'locationname' || h === 'device_name' || h === 'name');
-      } else if (key === 'serial_number') {
-        matchIdx = lowerHeaders.findIndex(h => h === 'serial_number' || h === 'locationid' || h === 'serial' || h === 'id');
+      if (key === 'longname') {
+        const aliases = ['longname', 'locationname', 'devicename', 'name'];
+        matchIdx = normalizedHeaders.findIndex(h => aliases.includes(h));
+      } else if (key === 'serialnumber') {
+        const aliases = ['serialnumber', 'locationid', 'serial', 'id'];
+        matchIdx = normalizedHeaders.findIndex(h => aliases.includes(h));
       } else {
-        matchIdx = lowerHeaders.findIndex(h => h === key);
+        matchIdx = normalizedHeaders.findIndex(h => h === key);
       }
 
       if (matchIdx !== -1) {
