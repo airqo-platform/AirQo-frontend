@@ -4,6 +4,59 @@
 
 ---
 
+## Version 1.23.50
+**Released:** May 27, 2026
+
+### Device Bulk Upload Feature
+
+Introduced a comprehensive bulk upload and column mapping system for devices, enabling operators to import multiple devices simultaneously via CSV or JSON files. The feature features interactive column matching, live preview, data validation, and custom failure reports.
+
+<details>
+<summary><strong>Bulk Device Upload Flow (5)</strong></summary>
+
+- **Interactive File Import**: Supports uploading `.csv` and `.json` files via the new `ReusableFileUpload` component integrated into the `ImportDeviceModal`.
+- **Intelligent Field Auto-Mapping**: Automatically detects and maps file columns to expected device fields (like Device Name, Serial Number, Latitude, Longitude, API Code/Connection URL, Description, and Device Number) based on header names, with manual overrides.
+- **Bulk Import Preview**: Displays a tabular preview of the first 5 parsed and transformed devices, allowing users to verify mapped values prior to final submission.
+- **Import Results & Inline Banners**: Integrates with the context-aware `useBanner` system to show inline success, warning, or error alerts inside the modal. Provides a summary breakdown table and supports downloading a custom `failed_devices.csv` for any rejected rows.
+- **Global Settings Application**: Allows operators to set a single Sensor Manufacturer (Network), Category, and optional tags to apply across all imported devices in a batch.
+
+</details>
+
+<details>
+<summary><strong>Core Infrastructure & APIs (3)</strong></summary>
+
+- **Bulk Device Import API Calls**: Added `importBulkDevicesCSV` and `importBulkDevicesJSON` methods under `devices` api client to submit imports through the `/devices/soft/bulk` API endpoint.
+- **Bulk Import Hook**: Created `useBulkImportDevices` hook using `useMutation` to handle both CSV and JSON payloads, delegating feedback notifications to caller callbacks, and invalidating corresponding React Query lists.
+- **Types Definition**: Added TypeScript interfaces `BulkImportDeviceResult` and `BulkImportDeviceResponse` in `app/types/devices.ts`.
+
+</details>
+
+<details>
+<summary><strong>Shared Component Additions & Fixes (3)</strong></summary>
+
+- **ReusableFileUpload Component**: Introduced `ReusableFileUpload.tsx` to provide a drag/click upload interface with validation states and styling.
+- **Form Asterisk Standardization**: Standardized styling of required fields (`*`) to use `text-red-500` in `ReusableInputField` and `ReusableSelectInput` for visual alignment.
+- **TypeScript Dependencies**: Updated `@types/papaparse` to version `^5.5.2` in `package.json` for stable parsing typing.
+
+</details>
+
+<details>
+<summary><strong>Files Created/Modified (9)</strong></summary>
+
+- `src/vertex/app/types/devices.ts` [MODIFIED]
+- `src/vertex/components/features/devices/import-device-modal.tsx` [MODIFIED]
+- `src/vertex/components/shared/fileupload/ReusableFileUpload.tsx` [ADDED]
+- `src/vertex/components/shared/inputfield/ReusableInputField.tsx` [MODIFIED]
+- `src/vertex/components/shared/select/ReusableSelectInput.tsx` [MODIFIED]
+- `src/vertex/core/apis/devices.ts` [MODIFIED]
+- `src/vertex/core/hooks/useDevices.ts` [MODIFIED]
+- `src/vertex/package.json` [MODIFIED]
+- `src/vertex/app/changelog.md` [MODIFIED]
+
+</details>
+
+---
+
 ## Version 1.23.49
 **Released:** May 26, 2026
 
