@@ -16,11 +16,10 @@ let cacheVersion = 0;
 
 const extractSessionAccessToken = (session: unknown): string | null => {
   const candidate = session as {
-    accessToken?: string;
-    user?: { accessToken?: string | null } | null;
+    accessToken?: string | null;
   } | null;
 
-  const accessToken = candidate?.accessToken ?? candidate?.user?.accessToken;
+  const accessToken = candidate?.accessToken;
   if (typeof accessToken !== 'string') {
     return null;
   }

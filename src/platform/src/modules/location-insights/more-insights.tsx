@@ -42,6 +42,7 @@ import { useUser } from '@/shared/hooks/useUser';
 import { useGetChartData } from '@/shared/hooks/useAnalytics';
 import { useDataDownload } from '@/modules/analytics/hooks';
 import { toast } from '@/shared/components/ui/toast';
+import { getSiteDisplayName } from '@/shared/utils/siteUtils';
 
 type MoreInsightsProps = {
   activeTab?: 'sites' | 'devices';
@@ -59,7 +60,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
   const isOpen = useSelector(selectIsDialogOpen('more-insights'));
 
   // Get user data for personalized banner dismissal
-  const { user } = useUser();
+  const { user, activeGroup } = useUser();
 
   // Initialize default date range to last 7 days
   const getDefaultDateRange = () => {
@@ -104,6 +105,18 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
   const visibleSiteIds = useMemo(() => {
     return Array.from(visibleSites);
   }, [visibleSites]);
+  const dialogContextKey = useMemo(
+    () =>
+      [
+        activeGroup?.id || 'no-active-group',
+        activeTab || 'sites',
+        selectedSites
+          .map((site: SelectedSite) => site._id)
+          .sort()
+          .join(','),
+      ].join('::'),
+    [activeGroup?.id, activeTab, selectedSites]
+  );
 
   // Chart data hook - create a per-params SWR key to avoid cross-talk between
   // multiple chart instances elsewhere in the app.
@@ -186,79 +199,115 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
   // Chart data state
   const [chartData, setChartData] = useState<ChartData[]>([]);
 
-  // Fetch chart data when filters or visible sites change
-  const fetchChartData = useCallback(async () => {
-    // Only fetch if we have visible sites and a date range
-    if (visibleSiteIds.length === 0 || !dateRange?.from || !dateRange?.to) {
+  // Fetch data when dependencies change and ignore stale responses when the
+  // dialog closes or a different site/group context replaces the current one.
+  useEffect(() => {
+    let isActive = true;
+
+    if (
+      !isOpen ||
+      visibleSiteIds.length === 0 ||
+      !dateRange?.from ||
+      !dateRange?.to
+    ) {
       setChartData([]);
-      return;
+      return () => {
+        isActive = false;
+      };
     }
 
-    try {
-      const response = await getChartData({
-        sites: visibleSiteIds,
-        startDate: dateRange.from.toISOString().split('T')[0],
-        endDate: dateRange.to.toISOString().split('T')[0],
-        chartType: chartType,
-        frequency: frequency,
-        pollutant: pollutant.toLowerCase().replace('.', '_'),
-        organisation_name: '',
-      });
+    setChartData([]);
 
-      if (
-        response?.data &&
-        Array.isArray(response.data) &&
-        response.data.length > 0
-      ) {
-        // Transform API data to chart format
-        const transformed = normalizeAirQualityData(
-          response.data as ChartDataPoint[]
-        );
-        setChartData(transformed);
-      } else {
+    const run = async () => {
+      try {
+        const response = await getChartData({
+          sites: visibleSiteIds,
+          startDate: dateRange.from.toISOString().split('T')[0],
+          endDate: dateRange.to.toISOString().split('T')[0],
+          chartType: chartType,
+          frequency: frequency,
+          pollutant: pollutant.toLowerCase().replace('.', '_'),
+          organisation_name: '',
+        });
+
+        if (!isActive) {
+          return;
+        }
+
+        if (
+          response?.data &&
+          Array.isArray(response.data) &&
+          response.data.length > 0
+        ) {
+          const transformed = normalizeAirQualityData(
+            response.data as ChartDataPoint[]
+          );
+          setChartData(transformed);
+          return;
+        }
+
+        setChartData([]);
+      } catch (error) {
+        if (!isActive) {
+          return;
+        }
+
+        console.error('Error fetching chart data:', error);
         setChartData([]);
       }
-    } catch (error) {
-      console.error('Error fetching chart data:', error);
-      setChartData([]);
-    }
-  }, [
-    visibleSiteIds,
-    dateRange?.from,
-    dateRange?.to,
-    chartType,
-    frequency,
-    pollutant,
-    getChartData,
-  ]);
+    };
 
-  // Fetch data when dependencies change
-  useEffect(() => {
-    fetchChartData();
-  }, [fetchChartData]);
+    run();
+
+    return () => {
+      isActive = false;
+    };
+  }, [
+    chartType,
+    dateRange,
+    frequency,
+    getChartData,
+    isOpen,
+    pollutant,
+    visibleSiteIds,
+  ]);
 
   // Initialize visible sites when selectedSites changes or dialog opens
   React.useEffect(() => {
-    if (isOpen && selectedSites.length > 0) {
-      // Smart initial selection: show only first N sites to avoid chart clutter
-      const initialVisibleCount = Math.min(
-        INITIAL_VISIBLE_SITES,
-        selectedSites.length
-      );
-      const initialVisibleSites = selectedSites
-        .slice(0, initialVisibleCount)
-        .map((site: SelectedSite) => site._id);
-      setVisibleSites(new Set(initialVisibleSites));
-
-      // Show toast notification if there are more sites available
-      if (selectedSites.length > INITIAL_VISIBLE_SITES) {
-        toast.info(
-          'Chart Optimized',
-          `Showing ${initialVisibleCount} of ${selectedSites.length} selected sites on chart. Use the sidebar to add more sites for comparison.`
-        );
-      }
+    if (!isOpen) {
+      setChartData([]);
+      setVisibleSites(new Set());
+      setSearchQuery('');
+      return;
     }
-  }, [selectedSites, isOpen]);
+
+    if (selectedSites.length === 0) {
+      setChartData([]);
+      setVisibleSites(new Set());
+      setSearchQuery('');
+      return;
+    }
+
+    // Smart initial selection: show only first N sites to avoid chart clutter
+    const initialVisibleCount = Math.min(
+      INITIAL_VISIBLE_SITES,
+      selectedSites.length
+    );
+    const initialVisibleSites = selectedSites
+      .slice(0, initialVisibleCount)
+      .map((site: SelectedSite) => site._id);
+    setVisibleSites(new Set(initialVisibleSites));
+    setSearchQuery('');
+    setChartData([]);
+
+    // Show toast notification if there are more sites available
+    if (selectedSites.length > INITIAL_VISIBLE_SITES) {
+      toast.info(
+        'Chart Optimized',
+        `Showing ${initialVisibleCount} of ${selectedSites.length} selected sites on chart. Use the sidebar to add more sites for comparison.`
+      );
+    }
+  }, [dialogContextKey, isOpen, selectedSites]);
 
   // Handle site visibility toggle (for chart display)
   const handleSiteVisibilityToggle = (siteId: string) => {
@@ -313,7 +362,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
     if (selectedSites.length === 0) {
       return 'Air Quality Insights';
     } else if (selectedSites.length === 1) {
-      return `Air Quality Insights - ${selectedSites[0].name}`;
+      return `Air Quality Insights - ${getSiteDisplayName(selectedSites[0])}`;
     } else {
       return `Air Quality Insights - ${selectedSites.length} Locations`;
     }
@@ -481,7 +530,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
           filteredSites.map((site: SelectedSite) => (
             <LocationCard
               key={site._id}
-              locationName={site.name}
+              locationName={getSiteDisplayName(site)}
               country={site.country}
               deviceName={site.device_name}
               isChecked={visibleSites.has(site._id)}

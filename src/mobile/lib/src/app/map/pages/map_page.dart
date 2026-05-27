@@ -50,7 +50,6 @@ class _MapScreenState extends State<MapScreen>
   MapType _currentMapType = MapType.normal;
   Measurement? _selectedCardMeasurement;
   String? _mapStyleJson;
-  double _currentZoom = 6.0;
   int _markerBuildSeq = 0;
 
   static const LatLng _center = LatLng(0.347596, 32.582520);
@@ -165,9 +164,7 @@ class _MapScreenState extends State<MapScreen>
     final measurements = source ?? allMeasurements;
     final newMarkers = await _markerBuilder.buildMarkers(
       measurements: measurements,
-      zoom: _currentZoom,
       onMeasurementTap: (measurement) => viewDetails(measurement: measurement),
-      onClusterTap: _cameraController.zoomToCluster,
     );
     if (!mounted || seq != _markerBuildSeq) return;
     if (mounted) {
@@ -176,22 +173,13 @@ class _MapScreenState extends State<MapScreen>
         isInitializing = false;
       });
     }
-    // Only fit on initial data load, not on zoom-triggered rebuilds — otherwise
-    // _onCameraMove → _refreshMarkers → _fitMarkersInView zooms back out after
-    // every cluster tap.
+    // Only fit on initial data load, not on later marker refreshes.
     if (source != null &&
         _cameraController.isInitialized &&
         markers.isNotEmpty &&
         userPosition == null) {
       _cameraController.fitMeasurementsInView(allMeasurements);
     }
-  }
-
-  void _onCameraMove(CameraPosition position) {
-    if (!_cameraController.isInitialized) return;
-    if (position.zoom.floor() == _currentZoom.floor()) return;
-    _currentZoom = position.zoom;
-    _refreshMarkers();
   }
 
   Future<void> _getUserLocation() async {
@@ -416,14 +404,12 @@ class _MapScreenState extends State<MapScreen>
           zoomGesturesEnabled: true,
           minMaxZoomPreference: MinMaxZoomPreference.unbounded,
           onMapCreated: _onMapCreated,
-          onCameraMove: _onCameraMove,
           initialCameraPosition: const CameraPosition(target: _center, zoom: 6),
           markers: markers.toSet(),
           onTap: (_) {
             if (mounted) setState(() => _selectedCardMeasurement = null);
           },
         ),
-
         Positioned.fill(
           child: MapOverlayControls(
             isDark: isDark,
@@ -435,13 +421,11 @@ class _MapScreenState extends State<MapScreen>
             onZoomOut: _cameraController.reduceZoom,
           ),
         ),
-
         Positioned(
           top: 50,
           left: 10,
           child: MapAqLegend(isDark: isDark),
         ),
-
         DraggableScrollableSheet(
           controller: _sheetController,
           initialChildSize: _sheetPeekSize,
@@ -464,7 +448,6 @@ class _MapScreenState extends State<MapScreen>
             onPlaceSelected: (placeName) => viewDetails(placeName: placeName),
           ),
         ),
-
         MapAqCardLayer(
           bottom: cardBottom,
           measurement: _selectedCardMeasurement,

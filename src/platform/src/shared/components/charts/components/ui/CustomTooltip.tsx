@@ -5,6 +5,7 @@ import { TooltipData } from '../../types';
 import { cn } from '@/shared/lib/utils';
 import { format, parseISO } from 'date-fns';
 import { getAirQualityInfo } from '@/shared/utils/airQuality';
+import { getChartLocationDisplayName } from '../../utils';
 
 interface CustomTooltipProps extends TooltipData {
   className?: string;
@@ -45,6 +46,7 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
   const primaryData = payload[0];
   const value = primaryData.value as number;
   const airQualityLevel = getAirQualityInfo(value, pollutant);
+  const locationName = getChartLocationDisplayName(primaryData.payload);
 
   return (
     <div
@@ -69,7 +71,7 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
                 style={{ backgroundColor: entry.color }}
               />
               <span className="text-sm font-medium text-foreground truncate max-w-[220px] block">
-                {String(entry.name || entry.dataKey || '').replace(/_/g, ' ')}
+                {String(entry.name || entry.dataKey || '').trim()}
               </span>
             </div>
             <div className="text-right ml-2 flex-shrink-0">
@@ -103,11 +105,10 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
         )}
 
       {/* Location info if available */}
-      {primaryData.payload?.site && (
+      {locationName !== 'Unknown Location' && (
         <div className="mt-2 pt-2 border-t border-border">
           <div className="text-xs text-muted-foreground">
-            <span className="font-medium">Location:</span>{' '}
-            {String(primaryData.payload.site || '').replace(/_/g, ' ')}
+            <span className="font-medium">Location:</span> {locationName}
           </div>
           {primaryData.payload?.device_id && (
             <div className="text-xs text-muted-foreground">

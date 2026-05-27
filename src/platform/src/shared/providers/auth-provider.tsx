@@ -21,6 +21,7 @@ import { toast } from '@/shared/components/ui/toast';
 import logger from '@/shared/lib/logger';
 import { SWRProvider } from '@/shared/providers/swr-provider';
 import { QueryProvider } from '@/shared/providers/query-provider';
+import SetPasswordPromptDialog from '@/shared/components/auth/SetPasswordPromptDialog';
 import { runClientCacheMaintenance } from '@/shared/lib/clientCache';
 import {
   normalizeCallbackUrl,
@@ -35,6 +36,7 @@ import {
   clearBackendOAuthSignedOutFlag,
   consumeOAuthTokenHandoffFromUrl,
   buildSessionFromProfile,
+  setLastUsedOAuthProvider,
   normalizeOAuthAccessToken,
   type BackendOAuthSession,
   shouldSkipBackendOAuthBootstrap,
@@ -149,11 +151,16 @@ const publicRoutes = [
   '/user/forgotPwd/reset',
   '/user/delete/confirm', // covers /user/delete/confirm/[token]
   '/org-invite', // Public invitation acceptance page
+  '/request-organization',
 ];
 
 const isPublicAuthRoute = (pathname: string): boolean =>
   publicRoutes.some(route => pathname.startsWith(route)) ||
   /^\/org\/[^/]+\/(login|register)$/.test(pathname);
+
+const isAuthenticatedAccessiblePublicRoute = (pathname: string): boolean =>
+  pathname.startsWith('/org-invite') ||
+  pathname.startsWith('/request-organization');
 
 const UNAUTHORIZED_WINDOW_MS = 30000;
 const UNAUTHORIZED_THRESHOLD = 3;
@@ -579,7 +586,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    if (pathname.startsWith('/org-invite')) {
+    if (isAuthenticatedAccessiblePublicRoute(pathname)) {
       return;
     }
 
@@ -649,6 +656,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   return (
     <UserDataFetcher>
       <ActiveGroupGuard>{children}</ActiveGroupGuard>
+      <SetPasswordPromptDialog />
     </UserDataFetcher>
   );
 }
@@ -708,6 +716,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             getSessionAccessTokenFromSession(nextAuthSession)
           );
           clearBackendOAuthSignedOutFlag();
+
+          if (oauthTokenHandoff?.provider) {
+            setLastUsedOAuthProvider(oauthTokenHandoff.provider);
+          }
+
           setBootstrapSession(nextAuthSession as BackendOAuthSession);
           return;
         }

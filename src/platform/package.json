@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "postbuild": "node scripts/copy-standalone-assets.mjs",
+    "postbuild": "node -e \"const fs=require('node:fs'); const path=require('node:path'); const projectRoot=process.cwd(); const standaloneRoot=path.join(projectRoot,'.next','standalone'); const publicSource=path.join(projectRoot,'public'); const publicTarget=path.join(standaloneRoot,'public'); const staticSource=path.join(projectRoot,'.next','static'); const staticTarget=path.join(standaloneRoot,'.next','static'); const copyDirectory=(source,target)=>{ if(!fs.existsSync(source)) return false; fs.mkdirSync(path.dirname(target),{recursive:true}); fs.rmSync(target,{recursive:true,force:true}); fs.cpSync(source,target,{recursive:true}); return true; }; if(!fs.existsSync(standaloneRoot)){ throw new Error(`Standalone output not found at ${standaloneRoot}. Run 'yarn build' first.`); } copyDirectory(publicSource, publicTarget); copyDirectory(staticSource, staticTarget);\"",
     "start": "node -e \"const { loadEnvConfig } = require('@next/env'); loadEnvConfig(process.cwd()); process.env.HOSTNAME='localhost'; require('./.next/standalone/server.js')\"",
     "lint": "next lint",
     "format": "prettier --write .",

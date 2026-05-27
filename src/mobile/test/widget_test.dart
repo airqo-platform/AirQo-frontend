@@ -1,5 +1,6 @@
 import 'package:airqo/src/app/auth/models/input_model.dart';
 import 'package:airqo/src/app/auth/repository/auth_repository.dart';
+import 'package:airqo/src/app/auth/repository/social_auth_repository.dart';
 import 'package:airqo/src/app/dashboard/repository/dashboard_repository.dart';
 import 'package:airqo/src/app/dashboard/repository/forecast_repository.dart';
 import 'package:airqo/src/app/learn/repository/kya_repository.dart';
@@ -16,7 +17,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:loggy/loggy.dart';
-
 
 class FakePathProviderPlatform extends PathProviderPlatform
     with MockPlatformInterfaceMixin {
@@ -36,16 +36,15 @@ class FakePathProviderPlatform extends PathProviderPlatform
   }
 }
 
-// Test implementations of repositories
 class TestAuthRepository extends AuthRepository {
   @override
-  Future<String> loginWithEmailAndPassword(String username, String password) async {
+  Future<String> loginWithEmailAndPassword(
+      String username, String password) async {
     return 'test_token';
   }
 
   @override
-  Future<void> registerWithEmailAndPassword(RegisterInputModel model) async {
-  }
+  Future<void> registerWithEmailAndPassword(RegisterInputModel model) async {}
 
   @override
   Future<String> requestPasswordReset(String email) async {
@@ -62,13 +61,23 @@ class TestAuthRepository extends AuthRepository {
   }
 
   @override
-  Future<void> verifyEmailCode(String token, String email) async {
+  Future<void> verifyEmailCode(String token, String email) async {}
+
+  @override
+  Future<String> validateResetCodeFormat(String pin) async {
+    if (!RegExp(r'^\d{6}$').hasMatch(pin)) {
+      throw Exception('Invalid PIN. Please enter a 6-digit numeric PIN.');
+    }
+    return 'Reset pin verified';
   }
 
   @override
-  Future<String> verifyResetPin(String pin, String email) async {
-    return 'Reset pin verified';
-  }
+  Future<void> deleteUserAccount() async {}
+}
+
+class TestSocialAuthRepository extends SocialAuthRepository {
+  @override
+  Future<void> loginWithProvider(String provider) async {}
 }
 
 void main() {
@@ -76,29 +85,27 @@ void main() {
 
   setUpAll(() async {
     PathProviderPlatform.instance = FakePathProviderPlatform();
-    
+
     try {
       final path = '.';
       Hive.init(path);
     } catch (e) {
-      print('Hive initialization: $e');
+      debugPrint('Hive initialization: $e');
     }
-    
+
     try {
       await CacheManager().initialize();
     } catch (e) {
-      print('CacheManager initialization: $e');
+      debugPrint('CacheManager initialization: $e');
     }
-    
-    // Load test environment variables
+
     dotenv.testLoad(mergeWith: {
       'AIRQO_MOBILE_TOKEN': 'test_token',
       'API_KEY': 'test_api_key',
       'BASE_URL': 'https://test.example.com',
       'GOOGLE_MAPS_API_KEY': 'test_google_maps_key',
     });
-    
-    // Initialize logging
+
     Loggy.initLoggy(
       logPrinter: const PrettyPrinter(
         showColors: false,
@@ -107,25 +114,23 @@ void main() {
   });
 
   tearDown(() async {
-    // Clean up Hive boxes after each test
     try {
       await Hive.deleteFromDisk();
     } catch (e) {
-      // Ignore cleanup errors
+      // Hive may not initialize in widget-test environments.
     }
   });
 
   group('AirqoMobile Widget Tests', () {
-    testWidgets('App loads without crashing with test repositories', 
+    testWidgets('App loads without crashing with test repositories',
         (WidgetTester tester) async {
-      // Use a shorter timeout for async operations
       await tester.runAsync(() async {
-        // Build our app with test repositories
         await tester.pumpWidget(
           MaterialApp(
             home: Builder(
               builder: (context) => AirqoMobile(
                 authRepository: TestAuthRepository(),
+                socialAuthRepository: TestSocialAuthRepository(),
                 userRepository: UserImpl(),
                 kyaRepository: KyaImpl(),
                 themeRepository: ThemeImpl(),
@@ -142,16 +147,16 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 100));
         await tester.pump();
 
-
         expect(find.byType(AirqoMobile), findsOneWidget);
-        expect(find.byType(MaterialApp), findsWidgets); 
+        expect(find.byType(MaterialApp), findsWidgets);
       });
     });
 
-    testWidgets('Simple widget test - App structure exists', 
+    testWidgets('Simple widget test - App structure exists',
         (WidgetTester tester) async {
       final widget = AirqoMobile(
         authRepository: TestAuthRepository(),
+        socialAuthRepository: TestSocialAuthRepository(),
         userRepository: UserImpl(),
         kyaRepository: KyaImpl(),
         themeRepository: ThemeImpl(),
@@ -171,7 +176,7 @@ void main() {
       expect(widget.dashboardRepository, isA<DashboardRepository>());
     });
 
-    testWidgets('Minimal app test - Just verify widget creation', 
+    testWidgets('Minimal app test - Just verify widget creation',
         (WidgetTester tester) async {
       await tester.pumpWidget(
         Directionality(

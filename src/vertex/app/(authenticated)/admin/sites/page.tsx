@@ -3,6 +3,7 @@
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import SitesTable from "@/components/features/sites/sites-list-table";
 import { SiteStatsCards } from "@/components/features/sites/site-stats-cards";
+import { usePageTitle } from "@/context/page-title-context";
 import dynamic from "next/dynamic";
 
 const CreateSiteForm = dynamic(() =>
@@ -14,6 +15,8 @@ const CreateSiteForm = dynamic(() =>
 );
 
 export default function SitesPage() {
+  usePageTitle({ title: "Sites", section: "Administrative Panel" });
+
   return (
     <RouteGuard permission="SITE_VIEW">
       <div>

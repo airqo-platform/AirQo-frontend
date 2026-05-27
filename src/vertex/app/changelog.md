@@ -4,6 +4,390 @@
 
 ---
 
+## Version 1.23.49
+**Released:** May 26, 2026
+
+### Grid Management Banner Migration
+
+Migrated all toast-based notifications in the Grid Management module to the centralized `InfoBanner` system powered by `useBanner`. Since most grid actions occur inside dialogs, banner scoping was applied to keep errors inline in the active dialog while deferring success banners until the dialog has closed.
+
+<details>
+<summary><strong>Grid Management Banner Migration (4)</strong></summary>
+
+- **Dialog Error Feedback**: `create-grid.tsx`, `edit-grid-details-dialog.tsx`, and `admin-levels-modal.tsx` now use `scoped: true` so validation and action errors remain visible inside the active dialog without closing it.
+- **Post-Dialog Success Feedback**: `create-grid.tsx` and `edit-grid-details-dialog.tsx` now use `scoped: false` with a `setTimeout(100ms)` to allow the dialog to unmount before showing the global success banner.
+ - **Admin Level Error Feedback Migrated**: `create-admin-level.tsx` now routes existing error feedback through the centralized banner flow instead of the previous toast-based mechanism.
+- **Copy Feedback Hardened**: `grid-details-card.tsx` and `grid-measurements-api-card.tsx` now use `scoped: false` and handle async copy failures with a fallback error message.
+
+</details>
+
+<details>
+<summary><strong>Files Updated (7)</strong></summary>
+
+- `src/vertex/components/features/grids/create-grid.tsx` [MODIFIED]
+- `src/vertex/components/features/grids/edit-grid-details-dialog.tsx` [MODIFIED]
+- `src/vertex/components/features/grids/admin-levels-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/grids/create-admin-level.tsx` [MODIFIED]
+- `src/vertex/components/features/grids/grid-details-card.tsx` [MODIFIED]
+- `src/vertex/components/features/grids/grid-measurements-api-card.tsx` [MODIFIED]
+- `src/vertex/core/hooks/useGrids.ts` [MODIFIED]
+
+</details>
+
+---
+
+## Version 1.23.48
+**Released:** May 23, 2026
+
+### Post-Login Feedback, Page Titles & Cookie Banner Refinements
+
+Added a post-login satisfaction feedback flow and extracted its toast UI into a reusable feedback component that can be reused for future workflows such as site creation feedback. Also aligned authenticated page titles with the satisfaction banner and refreshed the unauthenticated cookie information banner styling to use shared button primitives.
+
+<details>
+<summary><strong>Post-Login Feedback Flow (5)</strong></summary>
+
+- **Login Feedback Prompt**: Added `LoginFeedbackToast` on the authenticated home page to ask users how their login experience went shortly after sign-in.
+- **Login Timing Metadata**: Captures login start time from the login flow and submits login duration metadata with feedback payloads.
+- **Suppression Window**: Added local user preference helpers to avoid repeatedly prompting the same user after successful feedback submission.
+- **Structured Negative Feedback**: Added radio-button reason options and an "Other" details field so users can explain poor login experiences without typing from scratch.
+- **Auto-Dismiss Behavior**: Tuned delayed display and auto-dismiss timing so the toast appears after login but disappears if the user does not interact.
+
+</details>
+
+<details>
+<summary><strong>Reusable Satisfaction Feedback Toast & API (5)</strong></summary>
+
+- **Reusable Component Extraction**: Created `ReusableSatisfactionFeedbackToast` as a shared component for satisfaction-style feedback prompts.
+- **Configurable Copy and Reasons**: Supports custom titles, subtitles, positive/negative labels, reason lists, thank-you copy, show delay, auto-dismiss delay, and submit handlers.
+- **Generic Satisfaction Submission Helper**: Added `feedbackService.submitSatisfactionFeedback` so future feature prompts can submit consistent satisfaction feedback without adding a new API method per feature.
+- **Shared Input Styling**: Uses `ReusableInputField` for the "Other" textarea field to stay aligned with the app's shared form styling.
+- **Thank-You State Polish**: Restored the celebratory emoji in the thank-you state after feedback submission.
+
+</details>
+
+<details>
+<summary><strong>Authenticated Page Title Alignment (5)</strong></summary>
+
+- **Shared Page Title Context**: Added a `PageTitleProvider` and `usePageTitle` hook for authenticated pages so visible page headings, browser tab titles, and satisfaction prompts can use the same title source.
+- **Route-Based Defaults**: Added sensible fallback titles for authenticated routes including Home, My Devices, Sites, Cohorts, Sensor Manufacturers, Grids, Shipping, and common detail pages.
+- **Dynamic Entity Titles**: Added title overrides for detail pages so site, cohort, device, grid, sensor manufacturer, and shipping batch pages can display human-readable names instead of IDs.
+- **Satisfaction Banner Alignment**: Updated `PageSatisfactionBanner` to read the shared page title instead of deriving labels from the URL path.
+- **Title Reset Hardening**: Added document-head mutation handling so client-side page titles are restored if Next.js re-applies the root `AirQo Vertex` title after navigation.
+
+</details>
+
+<details>
+<summary><strong>Cookie Info Banner Refinement (1)</strong></summary>
+
+- **Shared Button Migration**: Refactored `CookieInfoBanner` to use `ReusableButton` and refreshed its styling for better consistency with the rest of the Vertex UI.
+
+</details>
+
+<details>
+<summary><strong>Files Created/Modified (21)</strong></summary>
+
+- `src/vertex/app/(authenticated)/admin/cohorts/[id]/page.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/admin/cohorts/page.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/admin/grids/[id]/page.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/admin/networks/[id]/page.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/admin/shipping/[batchId]/page.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/admin/sites/[id]/page.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/admin/sites/page.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/cohorts/[id]/page.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/home/page.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/layout.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/sites/[id]/page.tsx` [MODIFIED]
+- `src/vertex/app/login/page.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/device-details-layout.tsx` [MODIFIED]
+- `src/vertex/components/features/auth/cookie-info-banner.tsx` [MODIFIED]
+- `src/vertex/components/features/feedback/page-satisfaction-banner.tsx` [MODIFIED]
+- `src/vertex/components/features/feedback/login-feedback-toast.tsx` [ADDED/MODIFIED]
+- `src/vertex/components/features/feedback/reusable-satisfaction-feedback-toast.tsx` [ADDED]
+- `src/vertex/context/page-title-context.tsx` [ADDED]
+- `src/vertex/core/apis/feedback.ts` [MODIFIED]
+- `src/vertex/core/utils/sessionManager.ts` [MODIFIED]
+- `src/vertex/core/utils/userPreferences.ts` [MODIFIED]
+
+</details>
+
+---
+
+## Version 1.23.47
+**Released:** May 21, 2026
+
+### hCaptcha Integration on Login Page
+
+Added hCaptcha human verification to the password step of the login form to protect against credential stuffing and brute-force attacks. The CAPTCHA widget appears above the Login button and must be completed before the button is enabled. The token is passed through NextAuth's `signIn` call and forwarded to the backend authentication endpoint, which already has CAPTCHA middleware wired in.
+
+<details>
+<summary><strong>Login — hCaptcha Integration (3)</strong></summary>
+
+- **HCaptchaWidget component**: Created reusable `HCaptchaWidget` at `src/vertex/components/ui/hcaptcha-widget.tsx` wrapping `@hcaptcha/react-hcaptcha`. Reads `NEXT_PUBLIC_HCAPTCHA_SITE_KEY` from env and renders a warning message if the key is absent or empty.
+- **Login page**: Added `captchaToken` state. Widget renders on the password step above the Login button. Login button is disabled until CAPTCHA is verified. Token is cleared on login failure (requiring re-verification) and when the user navigates back to the email step via "Change email".
+- **NextAuth authorize callback**: Added `captchaToken` to the credentials definition and forwarded it to the backend `loginWithDetails` request body.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (7)</strong></summary>
+
+- `src/vertex/app/changelog.md` [MODIFIED]
+- `src/vertex/app/login/page.tsx` [MODIFIED]
+- `src/vertex/app/api/auth/[...nextauth]/options.ts` [MODIFIED]
+- `src/vertex/app/types/users.ts` [MODIFIED]
+- `src/vertex/components/ui/hcaptcha-widget.tsx` [ADDED]
+- `src/vertex/package.json` [MODIFIED]
+- `src/vertex/package-lock.json` [MODIFIED]
+
+</details>
+
+---
+
+## Version 1.23.46
+**Released:** May 20, 2026
+
+### Automated Feedback Screenshot Capture
+
+Introduced automated screen capture for the feedback launcher, allowing users to automatically take and attach screenshots of their current view.
+
+<details>
+<summary><strong>New Features (1)</strong></summary>
+
+- **Automated Feedback Screenshot Capture**: Adds screenshot upload functionality to the feedback submission system in the Vertex application, enabling users to attach visual context when reporting issues or suggesting improvements.
+
+</details>
+
+<details>
+<summary><strong>Technical Details (3)</strong></summary>
+
+- **On-Demand Viewport Capture**: Integrated `html2canvas` for dynamic, client-side screen rendering.
+- **Intelligent Modal Hiding**: The feedback dialog and backdrop are temporarily hidden from the DOM layout during screen capture to ensure only the app viewport behind the modal is photographed.
+- **JPEG Compression**: Automatically outputs captured canvases as lightweight JPEG blobs (`0.85` quality) to minimize network payload size and bypass size restrictions.
+
+</details>
+
+<details>
+<summary><strong>Files Created/Modified (2)</strong></summary>
+
+- `src/vertex/components/features/feedback/feedback-launcher.tsx` [MODIFIED]
+- `src/vertex/package.json` [MODIFIED]
+
+</details>
+
+---
+
+## Version 1.23.45
+**Released:** May 19, 2026
+
+### Cookie Info Banner & Responsive Styling Migration
+
+Deploys the brand-new client-side Cookie Info Banner component to ensure standard compliance for cookie use and telemetry transparency. Refactored the entire component's styling from rigid inline rules to responsive Tailwind CSS classes and integrated it directly into the login page.
+
+<details>
+<summary><strong>New Features & UX Integration (2)</strong></summary>
+
+- **Cookie Info Banner Component**: Created and deployed the `CookieInfoBanner` component to notify users of cookie usage and privacy terms ("AirQo uses cookies to deliver and enhance the quality of its services and to analyze traffic"). Resolves its cookie policy hyperlink dynamically via environment constants to support various environment routing configurations.
+- **Login Page Integration**: Mounted the banner globally at the bottom of the main layout inside the `LoginPage` (`app/login/page.tsx`), ensuring immediate display for unauthenticated users before onboarding.
+
+</details>
+
+<details>
+<summary><strong>Tailwind & Layout Optimization (3)</strong></summary>
+
+- **Responsive Tailwind Migration**: Refactored the banner's inline styles into utility classes, converting absolute pixel positions and custom properties into clean, responsive Tailwind classes.
+- **Bottom-Viewport Alignment**: Relocated the banner from the top of the viewport (`top: 0`) to the bottom (`bottom: 0`) with an elevated `z-[100]` stacking order. This resolves all visual overlapping, spacing, and layout collisions with the sticky site header and the Electron Desktop title bar.
+- **Micro-Transitions and Hover States**: Added smooth transitions, hover scaling, and active color states for the banner's hyperlink ("Learn more") and dismiss button ("OK, got it") to align with premium platform aesthetics.
+
+</details>
+
+<details>
+<summary><strong>Files Created/Modified (3)</strong></summary>
+
+- `src/vertex/app/login/page.tsx` [MODIFIED]
+- `src/vertex/components/features/auth/cookie-info-banner.tsx` [MODIFIED]
+- `src/vertex/lib/envConstants.ts` [MODIFIED]
+
+</details>
+
+---
+
+## Version 1.23.44
+**Released:** May 19, 2026
+
+### Device Management Scoped Banner Migration & Mutation Callback Cleanup
+
+Migrated feedback notifications from global floating toasts (`ReusableToast`) to context-aware `InfoBanner` components (`useBanner`) inside device management modules to keep alerts inline and centered within their active modal or dialog containers. Refactored React Query hook callbacks to push feedback responsibility to the UI components.
+
+<details>
+<summary><strong>Device Management — Scoped Banner Migration (7)</strong></summary>
+
+- **Create Device Modal**: Integrated `useBanner` for scoped validation and creation alerts. The `showBanner` utility replaces the old inline red error block for missing network errors.
+- **Import Device Modal**: Integrated `useBanner` to surface a previously silent missing user ID warning and errors. Replaced old inline red error alerts and fixed a critical TypeScript compilation error where `importDevice.mutate()` was called with 3 arguments instead of 1-2 by merging the `onSuccess` and `onError` options into a single second argument. Added missing `getApiErrorMessage` import.
+- **Add Maintenance Log Modal**: Replaced `ReusableToast` with scoped `showBanner` for validation errors to align modal design feedback.
+- **Deploy Device Component**: Swapped 3 occurrences of `ReusableToast` with `showBanner` alerts.
+- **Recall Device Dialog**: Added `useBanner` support and shifted all success and error UI notifications from raw hook callbacks directly to try/catch blocks within the component.
+- **Device Details Modal**: Migrated all validation, detail update, and key decryption feedback from floating toasts to `showBanner`. Added local callback overrides to the `updateLocal` and `updateGlobal` mutate invocations.
+- **Device Assignment Modal**: Added `useBanner` with `scoped: false` (since this dialog extends base Radix `Dialog` rather than `ReusableDialog`), keeping assignment feedback in the modal itself instead of hook side-effects.
+
+</details>
+
+<details>
+<summary><strong>Custom Hook & Callback Separation (1)</strong></summary>
+
+- **useDevices Hooks Overhaul**: Removed imperative `ReusableToast` side-effects from `useRecallDevice`, `useUpdateDeviceLocal`, `useUpdateDeviceGlobal`, `useAssignDeviceToOrganization`, and `useDecryptDeviceKeys`. Hooks are now clean, focused solely on API interactions and cache invalidation.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (8)</strong></summary>
+
+- `src/vertex/app/changelog.md` [MODIFIED]
+- `src/vertex/components/features/devices/create-device-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/import-device-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/add-maintenance-log-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/deploy-device-component.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/recall-device-dialog.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/device-details-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/device-assignment-modal.tsx` [MODIFIED]
+- `src/vertex/core/hooks/useDevices.ts` [MODIFIED]
+
+</details>
+
+---
+
+## Version 1.23.43
+**Released:** May 17, 2026
+
+### Page Satisfaction Feedback Banner & Global Banner Positioning
+
+Implements a full-featured, page-satisfaction feedback banner for the Vertex platform (Issue #3480), and resolves several core layout and banner rendering issues to ensure perfect visual presentation on both desktop and mobile viewports.
+
+<details>
+<summary><strong>New Features (4)</strong></summary>
+
+- **Page Satisfaction Feedback Banner**: Designed and deployed a new `PageSatisfactionBanner` component situated statically directly below the page footer for all authenticated sessions, encouraging quick, one-tap platform feedback.
+- **Structured Feedback Modal Flow**: Integrated interactive positive/negative feedback modals (`FeedbackModal`) that prompt users for structured reasons and optional comments when voting.
+- **Session & API Integration**: Automatically pre-fills the user's registered identity from the active user session context and forwards feedback payloads to the backend `feedbackService.submitFeedback` with rich client telemetry.
+- **Dynamic Context Detection**: Automatically parses the active URL path to display the localized screen name (e.g. "Home", "Cohorts") in the satisfaction prompt.
+
+</details>
+
+<details>
+<summary><strong>Layout & UI Bug Fixes (5)</strong></summary>
+
+- **Mobile Viewport Bottom Spacing**: Fixed a 80px white space below the satisfaction banner on mobile and tablet screens. Relocated `pb-20 md:pb-0` padding classes from the outer scrolling `<main>` container to the inner `max-w-7xl` page content wrapper, ensuring the banner rests perfectly flush at the absolute bottom of the viewport.
+- **Dialog Notification Hardening**: Hardened dialog error feedback by setting `scoped: true` on submission and authentication error banners. Error messages are now rendered beautifully inline at the top of the modal (`BannerSlot` inside `ReusableDialog`) instead of being hidden behind the backdrop.
+- **Deferred Success Notification**: Deferred the global success banner schedule inside `FeedbackModal`'s `handleSubmit` via a 150ms timeout. This allows `ReusableDialog`'s unmount cleanup `hideBanner()` to complete before the persistent success banner is successfully scheduled on the main screen.
+- **Overlapping Global Banners Resolved**: Moved `<GlobalBannerContainer />` from the root application tree (`providers.tsx`) to the `max-w-7xl` page content wrapper inside `<main>` (`layout.tsx`). The global banner now respects all layout boundaries and sidebars, avoiding any overlapping or clipping underneath the fixed `Topbar` and `Sidebar` layouts.
+- **Global Banner Margins Refinement**: Removed the trailing `px-4` margin from the `GlobalBannerContainer` wrapper inside `context/banner-context.tsx` to fully leverage the parent responsive grid padding (`px-3 py-3 md:px-2 lg:py-6 lg:px-6`).
+
+</details>
+
+<details>
+<summary><strong>Files Created/Modified (5)</strong></summary>
+
+- `src/vertex/app/providers.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/layout.tsx` [MODIFIED]
+- `src/vertex/components/features/feedback/page-satisfaction-banner.tsx` [NEW]
+- `src/vertex/components/layout/layout.tsx` [MODIFIED]
+- `src/vertex/context/banner-context.tsx` [MODIFIED]
+
+</details>
+
+---
+
+## Version 1.23.42
+**Released:** May 17, 2026
+
+### Centralized Modal Banners & ReusableDialog Integration
+
+Integrated the context-aware `<BannerSlot />` directly into the centralized `ReusableDialog` component, enabling automatic and standardized banner rendering inside modals throughout the application. Built auto-cleanup logic into the dialog transition state to prevent banner leakage.
+
+<details>
+<summary><strong>Shared UI Components (2)</strong></summary>
+
+- **Centralized BannerSlot Integration**: Embedded `<BannerSlot />` from the `useBanner` system natively inside `ReusableDialog.tsx` immediately below the dialog header and above the scrollable content area. Feature modals now support inline, styled banner alerts without manual markup.
+- **Auto-Cleanup on Dialog Close**: Integrated active cleanup logic inside `ReusableDialog.tsx` that calls `hideBanner()` when the dialog is closed, resetting notification state and preventing alerts from leaking between different dialog instances.
+- **Gated Transition Guard**: Hardened the dialog cleanup logic by introducing `wasOpenRef` to track state transitions. This prevents mounted-but-closed dialogs from triggering `hideBanner()` on initial render, ensuring other active on-page or modal banners are not cleared prematurely.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (1)</strong></summary>
+
+- `src/vertex/components/shared/dialog/ReusableDialog.tsx` [MODIFIED]
+
+</details>
+
+---
+
+## Version 1.23.41
+**Released:** May 16, 2026
+
+### Scoped Banner System Migration, Login UX Fixes & Dead Code Cleanup
+
+Migrated auth-flow feedback from imperative toast notifications to scoped `InfoBanner` components, hardened the banner-context state management to prevent silent message drops, fixed post-login banner render timing, and removed the defunct local forgot-password page.
+
+<details>
+<summary><strong>Auth UX — Scoped Banner Migration (3)</strong></summary>
+
+- **Login Page Banners**: Replaced all `ReusableToast` calls in the login flow (`app/login/page.tsx`) with scoped `showBanner` / `BannerSlot` calls. Success, error, and validation feedback is now rendered inline within the login form card rather than as floating toasts, giving users precise contextual feedback without losing their place.
+- **Google Auth Section Banners**: Migrated `components/features/auth/google-auth-section.tsx` to use scoped `InfoBanner` for OAuth error states, replacing previous inline alert elements and ensuring visual consistency across all sign-in paths.
+- **Login Render Timing Fix**: Fixed a race condition where the success banner was not visible before the page redirected after a successful credential login. Resolved by removing an extraneous `setTimeout` that was interfering with React's paint cycle, ensuring the welcome banner renders correctly before navigation occurs.
+
+</details>
+
+<details>
+<summary><strong>Banner Context Hardening (1)</strong></summary>
+
+- **Full Props Stored in State**: Refactored `context/banner-context.tsx` to store the complete banner props object in state rather than individual fields. This prevents silent message drops that occurred when rapid successive `showBanner` calls partially overwrote state before the component re-rendered, resulting in blank or stale banners being displayed.
+
+</details>
+
+<details>
+<summary><strong>Dead Code Removal (1)</strong></summary>
+
+- **Forgot Password Page Deleted**: Removed the local `/forgot-password` Next.js route (`app/forgot-password/page.tsx`), which was a dead stub that only `console.log`ed submitted emails without calling any API. The "Forgot password?" link in the login page continues to redirect users directly to AirQo Analytics (`NEXT_PUBLIC_ANALYTICS_URL/user/forgotPwd`) where actual password reset is handled. Cleaned up the middleware route matcher and `authProvider` auth-routes list accordingly.
+
+</details>
+
+<details>
+<summary><strong>Files Modified/Deleted (5)</strong></summary>
+
+- `src/vertex/app/forgot-password/page.tsx` [DELETED]
+- `src/vertex/app/login/page.tsx` [MODIFIED]
+- `src/vertex/components/features/auth/google-auth-section.tsx` [MODIFIED]
+- `src/vertex/context/banner-context.tsx` [MODIFIED]
+- `src/vertex/core/auth/authProvider.tsx` [MODIFIED]
+- `src/vertex/middleware.ts` [MODIFIED]
+
+</details>
+
+---
+
+## Version 1.23.40
+**Released:** May 16, 2026
+
+### Graceful Handling of Canceled API Requests
+
+Fixed a false-positive production error alert caused by React Query's `AbortSignal` cancellations being treated as genuine API failures in the Axios response interceptor.
+
+<details>
+<summary><strong>Bug Fixes (1)</strong></summary>
+
+- **Canceled Request False-Positives**: Added an early-return guard using `axios.isCancel()` and `instanceof CanceledError` at the top of the `secureApiProxyClient` response error interceptor. Requests canceled by React Query's `AbortSignal` (e.g. on component unmount during navigation) are now silently passed through without triggering `logger.error`, token cache invalidation, or the `auth-token-expired` event — all of which were previously firing incorrectly for benign client-side aborts.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (1)</strong></summary>
+
+- `src/vertex/core/utils/secureApiProxyClient.ts` [MODIFIED]
+
+</details>
+
+---
+
 ## Version 1.23.39
 **Released:** May 07, 2026
 

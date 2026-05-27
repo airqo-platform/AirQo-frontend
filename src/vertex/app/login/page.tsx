@@ -1,5 +1,5 @@
 "use client"
-
+import { CookieInfoBanner } from '@/components/features/auth/cookie-info-banner';
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod"
@@ -12,18 +12,20 @@ import { Form, FormField } from "@/components/ui/form"
 import { signUpUrl, forgotPasswordUrl } from "@/core/urls"
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField"
 import ReusableButton from "@/components/shared/button/ReusableButton"
-import ReusableToast from "@/components/shared/toast/ReusableToast"
+import { useBanner, BannerSlot } from "@/context/banner-context"
+import { HCaptchaWidget, type HCaptchaWidgetHandle } from "@/components/ui/hcaptcha-widget"
 import logger from "@/lib/logger"
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import { useAppDispatch } from "@/core/redux/hooks";
+import { isHCaptchaEnabled } from "@/lib/envConstants";
 import {
   setLoggingOut,
 } from "@/core/redux/slices/userSlice";
 import { getLastActiveModule } from "@/core/utils/userPreferences";
-import { VERTEX_DESKTOP_DOWNLOADS } from "@/core/constants/app-downloads";
+import { ROUTE_LINKS } from "@/core/routes";
 // import GoogleAuthSection from "@/components/features/auth/google-auth-section";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft } from "lucide-react";
+
 
 const loginSchema = z.object({
   userName: z.string().email({ message: "Please enter a valid email address" }),
@@ -31,9 +33,12 @@ const loginSchema = z.object({
 })
 
 export default function LoginPage() {
+  const { showBanner, hideBanner } = useBanner();
   const [isLoading, setIsLoading] = useState(false)
   const [step, setStep] = useState<'email' | 'password'>('email');
-  const [downloadUrl, setDownloadUrl] = useState(VERTEX_DESKTOP_DOWNLOADS.windows);
+  const [captchaToken, setCaptchaToken] = useState("");
+  const captchaRef = useRef<HCaptchaWidgetHandle>(null);
+  const hcaptchaEnabled = useMemo(() => isHCaptchaEnabled(), []);
   const searchParams = useSearchParams();
   const callbackUrl = useMemo(() => {
     const raw = searchParams.get("callbackUrl");
@@ -93,7 +98,6 @@ export default function LoginPage() {
     
     if (isWin) {
       setPlatform('win');
-      setDownloadUrl(VERTEX_DESKTOP_DOWNLOADS.windows);
     } else if (isLinux) {
       setPlatform('linux');
     } else {
@@ -120,7 +124,23 @@ export default function LoginPage() {
     const isPasswordValid = await form.trigger('password');
     if (!isPasswordValid) return;
 
+    // If the user didn't provide the captchaToken
+    if (hcaptchaEnabled && captchaToken === "") {
+       showBanner({
+         severity: 'error',
+         message: 'Please complete the CAPTCHA before signing in.',
+         scoped: true
+       });
+       return;
+      }
+
     setIsLoading(true);
+    // Record the login start time so the Home page can compute login duration
+    // for the post-login feedback toast. sessionStorage survives the redirect
+    // but is cleared automatically when the tab closes.
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('vertex_login_start_ts', String(Date.now()));
+    }
 
     // Read preference BEFORE authentication to avoid timing issues
     const lastModule = getLastActiveModule(values.userName);
@@ -137,6 +157,7 @@ export default function LoginPage() {
         redirect: false,
         userName: values.userName,
         password: values.password,
+        captchaToken: hcaptchaEnabled ? captchaToken : undefined,
         callbackUrl: redirectUrl,
       });
 
@@ -147,8 +168,9 @@ export default function LoginPage() {
         if (!session?.user) {
           throw new Error("Could not confirm session. Please try again.");
         }
-        ReusableToast({ message: "Welcome back!", type: "SUCCESS" });
-        window.location.replace(result.url || redirectUrl);
+        showBanner({ severity: 'success', message: 'Welcome back!', scoped: true });
+        
+         window.location.replace(result.url || redirectUrl);
       } else {
         let message = "Login failed. Please check your credentials.";
         if (result?.error) {
@@ -166,10 +188,12 @@ export default function LoginPage() {
       if (!isMounted.current) return;
       const message = getApiErrorMessage(error);
       logger.error("Sign-in failed", { error: message });
-      ReusableToast({ message, type: "ERROR" });
+      showBanner({ severity: 'error', message, scoped: true });
+      setCaptchaToken("");
+      captchaRef.current?.reset();
       setIsLoading(false);
     }
-  }, [callbackUrl, waitForSession, step, form]);
+  }, [callbackUrl, waitForSession, step, form, showBanner, captchaToken, hcaptchaEnabled]);
 
   return (
     <div className="flex min-h-screen lg:h-screen w-full flex-col bg-primary-50 text-foreground">
@@ -189,8 +213,8 @@ export default function LoginPage() {
           
           {!isElectron && platform === 'win' && (
             <div className="flex items-center">
-              <a
-                href={downloadUrl}
+              <Link
+                href={ROUTE_LINKS.DOWNLOAD}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-md border border-border bg-primary px-4 py-2 text-sm font-medium text-white transition-all hover:bg-primary/80 hover:border-foreground/20 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
@@ -199,7 +223,7 @@ export default function LoginPage() {
                   <path d="M0 3.449L9.75 2.1V11.7H0V3.449zm0 9.151h9.75v9.6L0 20.551V12.6zm10.55-10.701L24 0v11.7h-13.45V1.899zm0 10.701H24V24l-13.45-1.899V12.6z"/>
                 </svg>
                 Download for Windows
-              </a>
+              </Link>
             </div>
           )}
         </div>
@@ -278,24 +302,31 @@ export default function LoginPage() {
                         transition={{ duration: 0.2 }}
                         className="space-y-5"
                       >
-                        <div className="flex flex-col space-y-1">
+                        <BannerSlot />
+                       <div className="rounded-lg bg-muted/50 p-3 flex items-center justify-between">
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-xs text-muted-foreground">
+                              Signing in as
+                            </span>
+                            <span className="text-sm font-semibold truncate">
+                              {form.getValues('userName')}
+                            </span>
+                          </div>
                           <button
                             type="button"
                             disabled={isLoading}
                             onClick={() => {
                               form.resetField('password');
                               form.clearErrors('password');
+                              hideBanner();
+                              setCaptchaToken("");
+                              captchaRef.current?.reset();
                               setStep('email');
                             }}
-                            className="flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors w-fit -ml-1 mb-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="text-xs font-medium text-primary border border-primary/40 rounded-md px-2.5 py-1 hover:bg-primary/10 active:bg-primary/20 transition-colors ml-3 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            <ChevronLeft className="h-4 w-4 mr-0.5" />
                             Change email
                           </button>
-                          <div className="rounded-lg bg-muted/50 p-3 flex flex-col">
-                            <span className="text-xs text-muted-foreground">Signing in as</span>
-                            <span className="text-sm font-semibold truncate">{form.getValues('userName')}</span>
-                          </div>
                         </div>
 
                         <FormField
@@ -305,7 +336,7 @@ export default function LoginPage() {
                             <div>
                               <div className="flex items-center justify-between mb-1.5">
                                 <label htmlFor="password" className="text-sm font-medium text-foreground">Password</label>
-                                <Link href={forgotPasswordUrl} className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">
+                                <Link href={forgotPasswordUrl} target="_blank" className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">
                                   Forgot password?
                                 </Link>
                               </div>
@@ -322,10 +353,17 @@ export default function LoginPage() {
                             </div>
                           )}
                         />
+                        {hcaptchaEnabled ? (
+                          <HCaptchaWidget
+                            ref={captchaRef}
+                            onVerify={(token) => setCaptchaToken(token)}
+                            onExpire={() => setCaptchaToken("")}
+                          />
+                        ) : null}
                         <ReusableButton
                           type="submit"
                           className="w-full font-medium bg-primary hover:bg-primary/90"
-                          disabled={isLoading}
+                          disabled={isLoading || (hcaptchaEnabled && !captchaToken)}
                           loading={isLoading}
                           variant="filled"
                         >
@@ -347,6 +385,7 @@ export default function LoginPage() {
           </div>
         </div>
       </main>
+      <CookieInfoBanner />
     </div>
   )
 }

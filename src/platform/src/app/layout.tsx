@@ -6,6 +6,7 @@ import { Inter } from 'next/font/google';
 import NextTopLoader from 'nextjs-toploader';
 import { ReduxProvider } from '@/shared/providers/redux-provider';
 import { AuthProvider } from '@/shared/providers/auth-provider';
+import PaddleProvider from '@/shared/providers/paddle-provider';
 import { PostHogProvider } from '@/shared/providers/posthog-provider';
 import { GoogleAnalyticsProvider } from '@/shared/providers/google-analytics-provider';
 import { Toaster } from '@/shared/components/ui';
@@ -52,6 +53,7 @@ export default function RootLayout({
         <ReduxProvider>
           <ErrorBoundary>
             <AuthProvider>
+              <PaddleProvider />
               <GoogleAnalyticsProvider>
                 <PostHogProvider>
                   <AppNetworkGate>

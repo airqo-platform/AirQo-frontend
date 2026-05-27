@@ -186,7 +186,7 @@ export default function DevicesPage() {
   useEffect(() => {
     if (groupLoading || !activeGroup) return
 
-    Promise.all([fetchDeviceCounts(), fetchDevices()])
+    fetchDeviceCounts()
 
     // Delay showing the map to avoid React reconciliation issues
     const timer = setTimeout(() => {

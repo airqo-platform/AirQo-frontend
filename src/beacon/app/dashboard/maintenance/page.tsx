@@ -423,268 +423,266 @@ export default function MaintenancePage() {
                     {/* Separator */}
                     <div className="hidden sm:block w-px h-6 bg-gray-200" />
 
-                    {/* Uptime Filter */}
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-700">Uptime:</span>
-                        <select
-                            value={uptimeFilter}
-                            onChange={(e) => { setUptimeFilter(e.target.value as typeof uptimeFilter); clearRoute() }}
-                            className="px-3 py-1.5 rounded-md border border-gray-200 bg-white text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                            {UPTIME_OPTIONS.map(opt => (
-                                <option key={opt.value} value={opt.value}>{opt.label}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Separator */}
-                    <div className="hidden sm:block w-px h-6 bg-gray-200" />
-
-                    {/* Error Margin Filter */}
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-700">Error Margin:</span>
-                        <select
-                            value={errorMarginFilter}
-                            onChange={(e) => { setErrorMarginFilter(e.target.value as typeof errorMarginFilter); clearRoute() }}
-                            className="px-3 py-1.5 rounded-md border border-gray-200 bg-white text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                            {ERROR_MARGIN_OPTIONS.map(opt => (
-                                <option key={opt.value} value={opt.value}>{opt.label}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Separator */}
-                    <div className="hidden sm:block w-px h-6 bg-gray-200" />
-
-                    {/* Grid Dropdown with Search */}
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-700">Grid:</span>
-                        <div className="relative" ref={gridDropdownRef}>
-                            <button
-                                onClick={() => setGridDropdownOpen(!gridDropdownOpen)}
-                                className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-200 bg-white text-sm text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[180px]"
+                    {/* Uptime + Error Margin Filters */}
+                    <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-gray-700">Device Uptime:</span>
+                            <select
+                                value={uptimeFilter}
+                                onChange={(e) => { setUptimeFilter(e.target.value as typeof uptimeFilter); clearRoute() }}
+                                className="px-3 py-1.5 rounded-md border border-gray-200 bg-white text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             >
-                                <span className="truncate flex-1 text-left">
-                                    {selectedGridLabel}
-                                </span>
-                                {selectedGrid === 'all' ? (
-                                    <ChevronDown className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                                ) : (
-                                    <X
-                                        className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600 flex-shrink-0"
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            setSelectedGrid('all')
-                                            clearRoute()
-                                        }}
-                                    />
-                                )}
-                            </button>
+                                {UPTIME_OPTIONS.map(opt => (
+                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                ))}
+                            </select>
+                        </div>
 
-                            {gridDropdownOpen && (
-                                <div className="absolute top-full left-0 mt-1 w-[280px] bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
-                                    {/* Search Input */}
-                                    <div className="p-2 border-b border-gray-100">
-                                        <div className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-gray-50 border border-gray-200">
-                                            <Search className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                                            <input
-                                                type="text"
-                                                placeholder="Search grids..."
-                                                value={gridSearch}
-                                                onChange={(e) => setGridSearch(e.target.value)}
-                                                className="bg-transparent text-sm text-gray-700 placeholder-gray-400 outline-none w-full"
-                                                autoFocus
-                                            />
-                                            {gridSearch && (
-                                                <button onClick={() => setGridSearch('')}>
-                                                    <X className="w-3 h-3 text-gray-400 hover:text-gray-600" />
-                                                </button>
-                                            )}
-                                        </div>
-
-                                        <div className="mt-2 flex items-center gap-2">
-                                            <span className="text-[11px] text-gray-500">Admin level:</span>
-                                            <select
-                                                value={gridAdminLevelFilter}
-                                                onChange={(e) => setGridAdminLevelFilter(e.target.value as 'all' | GridAdminLevel)}
-                                                className="flex-1 px-2 py-1 rounded-md border border-gray-200 bg-white text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            >
-                                                <option value="all">All levels</option>
-                                                {GRID_ADMIN_LEVEL_OPTIONS.map(opt => (
-                                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    {/* Options List */}
-                                    <div className="max-h-[240px] overflow-y-auto">
-                                        <button
-                                            onClick={() => {
-                                                setSelectedGrid('all')
-                                                clearRoute()
-                                                setGridDropdownOpen(false)
-                                                setGridSearch('')
-                                            }}
-                                            className={`w-full text-left px-3 py-2 text-sm transition-colors hover:bg-gray-50 flex items-center justify-between ${selectedGrid === 'all' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700'
-                                                }`}
-                                        >
-                                            All Grids
-                                            {selectedGrid === 'all' && (
-                                                <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
-                                            )}
-                                        </button>
-
-                                        {loadingGrids && (
-                                            <div className="p-3 space-y-2">
-                                                {[1, 2, 3].map(i => <div key={i} className="h-8 bg-gray-100 rounded animate-pulse" />)}
-                                            </div>
-                                        )}
-
-                                        {loadingGrids === false && filteredGrids.length === 0 && (
-                                            <div className="p-3 text-xs text-gray-400 text-center">No grids found</div>
-                                        )}
-
-                                        {loadingGrids === false && filteredGrids.length > 0 && (
-                                            filteredGrids.map((grid: SyncedGrid) => (
-                                                <button
-                                                    key={grid.grid_id || grid.name}
-                                                    onClick={() => {
-                                                        setSelectedGrid(grid.name)
-                                                        clearRoute()
-                                                        setGridDropdownOpen(false)
-                                                        setGridSearch('')
-                                                    }}
-                                                    className={`w-full text-left px-3 py-2 text-sm transition-colors hover:bg-gray-50 flex items-center justify-between gap-2 ${selectedGrid === grid.name ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
-                                                        }`}
-                                                >
-                                                    <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-                                                        <span className={`truncate ${selectedGrid === grid.name ? 'font-medium' : ''}`}>{getGridLabel(grid)}</span>
-                                                        <div className="flex items-center gap-2 text-[10px] text-gray-400">
-                                                            {grid.admin_level && <span>{grid.admin_level}</span>}
-                                                            {typeof grid.number_of_sites === 'number' && <span>{grid.number_of_sites} sites</span>}
-                                                        </div>
-                                                    </div>
-                                                    {selectedGrid === grid.name && (
-                                                        <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
-                                                    )}
-                                                </button>
-                                            ))
-                                        )}
-                                    </div>
-                                </div>
-                            )}
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-gray-700">Error Margin:</span>
+                            <select
+                                value={errorMarginFilter}
+                                onChange={(e) => { setErrorMarginFilter(e.target.value as typeof errorMarginFilter); clearRoute() }}
+                                className="px-3 py-1.5 rounded-md border border-gray-200 bg-white text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            >
+                                {ERROR_MARGIN_OPTIONS.map(opt => (
+                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                ))}
+                            </select>
                         </div>
                     </div>
 
                     {/* Separator */}
                     <div className="hidden sm:block w-px h-6 bg-gray-200" />
 
-                    {/* Cohort Dropdown with Search */}
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-700">Cohort:</span>
-                        <div className="relative" ref={cohortDropdownRef}>
-                            <button
-                                onClick={() => setCohortDropdownOpen(!cohortDropdownOpen)}
-                                className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-200 bg-white text-sm text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[180px]"
-                            >
-                                <span className="truncate flex-1 text-left">
-                                    {selectedAirQloud === 'all' ? 'All Cohorts' : selectedAirQloud}
-                                </span>
-                                {selectedAirQloud === 'all' ? (
-                                    <ChevronDown className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                                ) : (
-                                    <X
-                                        className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600 flex-shrink-0"
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            setSelectedAirQloud('all')
-                                            clearRoute()
-                                        }}
-                                    />
-                                )}
-                            </button>
+                    {/* Grid + Cohort Dropdowns */}
+                    <div className="flex flex-col gap-2">
+                        {/* Grid Dropdown with Search */}
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-gray-700">Grid:</span>
+                            <div className="relative" ref={gridDropdownRef}>
+                                <button
+                                    onClick={() => setGridDropdownOpen(!gridDropdownOpen)}
+                                    className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-200 bg-white text-sm text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[180px]"
+                                >
+                                    <span className="truncate flex-1 text-left">
+                                        {selectedGridLabel}
+                                    </span>
+                                    {selectedGrid === 'all' ? (
+                                        <ChevronDown className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                                    ) : (
+                                        <X
+                                            className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600 flex-shrink-0"
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                setSelectedGrid('all')
+                                                clearRoute()
+                                            }}
+                                        />
+                                    )}
+                                </button>
 
-                            {cohortDropdownOpen && (
-                                <div className="absolute top-full left-0 mt-1 w-[280px] bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
-                                    {/* Search Input */}
-                                    <div className="p-2 border-b border-gray-100">
-                                        <div className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-gray-50 border border-gray-200">
-                                            <Search className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                                            <input
-                                                type="text"
-                                                placeholder="Search cohorts..."
-                                                value={cohortSearch}
-                                                onChange={(e) => setCohortSearch(e.target.value)}
-                                                className="bg-transparent text-sm text-gray-700 placeholder-gray-400 outline-none w-full"
-                                                autoFocus
-                                            />
-                                            {cohortSearch && (
-                                                <button onClick={() => setCohortSearch('')}>
-                                                    <X className="w-3 h-3 text-gray-400 hover:text-gray-600" />
-                                                </button>
+                                {gridDropdownOpen && (
+                                    <div className="absolute top-full left-0 mt-1 w-[280px] bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
+                                        {/* Search Input */}
+                                        <div className="p-2 border-b border-gray-100">
+                                            <div className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-gray-50 border border-gray-200">
+                                                <Search className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                                                <input
+                                                    type="text"
+                                                    placeholder="Search grids..."
+                                                    value={gridSearch}
+                                                    onChange={(e) => setGridSearch(e.target.value)}
+                                                    className="bg-transparent text-sm text-gray-700 placeholder-gray-400 outline-none w-full"
+                                                    autoFocus
+                                                />
+                                                {gridSearch && (
+                                                    <button onClick={() => setGridSearch('')}>
+                                                        <X className="w-3 h-3 text-gray-400 hover:text-gray-600" />
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            <div className="mt-2 flex items-center gap-2">
+                                                <span className="text-[11px] text-gray-500">Admin level:</span>
+                                                <select
+                                                    value={gridAdminLevelFilter}
+                                                    onChange={(e) => setGridAdminLevelFilter(e.target.value as 'all' | GridAdminLevel)}
+                                                    className="flex-1 px-2 py-1 rounded-md border border-gray-200 bg-white text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                >
+                                                    <option value="all">All levels</option>
+                                                    {GRID_ADMIN_LEVEL_OPTIONS.map(opt => (
+                                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        {/* Options List */}
+                                        <div className="max-h-[240px] overflow-y-auto">
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedGrid('all')
+                                                    clearRoute()
+                                                    setGridDropdownOpen(false)
+                                                    setGridSearch('')
+                                                }}
+                                                className={`w-full text-left px-3 py-2 text-sm transition-colors hover:bg-gray-50 flex items-center justify-between ${selectedGrid === 'all' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700'
+                                                    }`}
+                                            >
+                                                All Grids
+                                                {selectedGrid === 'all' && (
+                                                    <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
+                                                )}
+                                            </button>
+
+                                            {loadingGrids && (
+                                                <div className="p-3 space-y-2">
+                                                    {[1, 2, 3].map(i => <div key={i} className="h-8 bg-gray-100 rounded animate-pulse" />)}
+                                                </div>
+                                            )}
+
+                                            {loadingGrids === false && filteredGrids.length === 0 && (
+                                                <div className="p-3 text-xs text-gray-400 text-center">No grids found</div>
+                                            )}
+
+                                            {loadingGrids === false && filteredGrids.length > 0 && (
+                                                filteredGrids.map((grid: SyncedGrid) => (
+                                                    <button
+                                                        key={grid.grid_id || grid.name}
+                                                        onClick={() => {
+                                                            setSelectedGrid(grid.name)
+                                                            clearRoute()
+                                                            setGridDropdownOpen(false)
+                                                            setGridSearch('')
+                                                        }}
+                                                        className={`w-full text-left px-3 py-2 text-sm transition-colors hover:bg-gray-50 flex items-center justify-between gap-2 ${selectedGrid === grid.name ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                                                            }`}
+                                                    >
+                                                        <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                                                            <span className={`truncate ${selectedGrid === grid.name ? 'font-medium' : ''}`}>{getGridLabel(grid)}</span>
+                                                            <div className="flex items-center gap-2 text-[10px] text-gray-400">
+                                                                {grid.admin_level && <span>{grid.admin_level}</span>}
+                                                                {typeof grid.number_of_sites === 'number' && <span>{grid.number_of_sites} sites</span>}
+                                                            </div>
+                                                        </div>
+                                                        {selectedGrid === grid.name && (
+                                                            <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+                                                        )}
+                                                    </button>
+                                                ))
                                             )}
                                         </div>
                                     </div>
+                                )}
+                            </div>
+                        </div>
 
-                                    {/* Options List */}
-                                    <div className="max-h-[240px] overflow-y-auto">
-                                        {/* All Cohorts option */}
-                                        <button
-                                            onClick={() => {
+                        {/* Cohort Dropdown with Search */}
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-gray-700">Cohort:</span>
+                            <div className="relative" ref={cohortDropdownRef}>
+                                <button
+                                    onClick={() => setCohortDropdownOpen(!cohortDropdownOpen)}
+                                    className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-200 bg-white text-sm text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[180px]"
+                                >
+                                    <span className="truncate flex-1 text-left">
+                                        {selectedAirQloud === 'all' ? 'All Cohorts' : selectedAirQloud}
+                                    </span>
+                                    {selectedAirQloud === 'all' ? (
+                                        <ChevronDown className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                                    ) : (
+                                        <X
+                                            className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600 flex-shrink-0"
+                                            onClick={(e) => {
+                                                e.stopPropagation()
                                                 setSelectedAirQloud('all')
                                                 clearRoute()
-                                                setCohortDropdownOpen(false)
-                                                setCohortSearch('')
                                             }}
-                                            className={`w-full text-left px-3 py-2 text-sm transition-colors hover:bg-gray-50 flex items-center justify-between ${selectedAirQloud === 'all' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700'
-                                                }`}
-                                        >
-                                            All Cohorts
-                                            {selectedAirQloud === 'all' && (
-                                                <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
-                                            )}
-                                        </button>
+                                        />
+                                    )}
+                                </button>
 
-                                        {loadingAirQlouds && (
-                                            <div className="p-3 space-y-2">
-                                                {[1, 2, 3].map(i => <div key={i} className="h-8 bg-gray-100 rounded animate-pulse" />)}
+                                {cohortDropdownOpen && (
+                                    <div className="absolute top-full left-0 mt-1 w-[280px] bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
+                                        {/* Search Input */}
+                                        <div className="p-2 border-b border-gray-100">
+                                            <div className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-gray-50 border border-gray-200">
+                                                <Search className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                                                <input
+                                                    type="text"
+                                                    placeholder="Search cohorts..."
+                                                    value={cohortSearch}
+                                                    onChange={(e) => setCohortSearch(e.target.value)}
+                                                    className="bg-transparent text-sm text-gray-700 placeholder-gray-400 outline-none w-full"
+                                                    autoFocus
+                                                />
+                                                {cohortSearch && (
+                                                    <button onClick={() => setCohortSearch('')}>
+                                                        <X className="w-3 h-3 text-gray-400 hover:text-gray-600" />
+                                                    </button>
+                                                )}
                                             </div>
-                                        )}
+                                        </div>
 
-                                        {loadingAirQlouds === false && filteredCohorts.length === 0 && (
-                                            <div className="p-3 text-xs text-gray-400 text-center">No cohorts found</div>
-                                        )}
+                                        {/* Options List */}
+                                        <div className="max-h-[240px] overflow-y-auto">
+                                            {/* All Cohorts option */}
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedAirQloud('all')
+                                                    clearRoute()
+                                                    setCohortDropdownOpen(false)
+                                                    setCohortSearch('')
+                                                }}
+                                                className={`w-full text-left px-3 py-2 text-sm transition-colors hover:bg-gray-50 flex items-center justify-between ${selectedAirQloud === 'all' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700'
+                                                    }`}
+                                            >
+                                                All Cohorts
+                                                {selectedAirQloud === 'all' && (
+                                                    <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
+                                                )}
+                                            </button>
 
-                                        {loadingAirQlouds === false && filteredCohorts.length > 0 && (
-                                            filteredCohorts.map((aq: AirQloudBasic) => (
-                                                <button
-                                                    key={aq.id || aq.name}
-                                                    onClick={() => {
-                                                        setSelectedAirQloud(aq.name)
-                                                        clearRoute()
-                                                        setCohortDropdownOpen(false)
-                                                        setCohortSearch('')
-                                                    }}
-                                                    className={`w-full text-left px-3 py-2 text-sm transition-colors hover:bg-gray-50 flex items-center justify-between gap-2 ${selectedAirQloud === aq.name ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
-                                                        }`}
-                                                >
-                                                    <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-                                                        <span className={`truncate ${selectedAirQloud === aq.name ? 'font-medium' : ''}`}>{aq.name}</span>
-                                                        <div className="flex items-center gap-2 text-[10px] text-gray-400">
-                                                            <span>{aq.device_count} devices</span>
+                                            {loadingAirQlouds && (
+                                                <div className="p-3 space-y-2">
+                                                    {[1, 2, 3].map(i => <div key={i} className="h-8 bg-gray-100 rounded animate-pulse" />)}
+                                                </div>
+                                            )}
+
+                                            {loadingAirQlouds === false && filteredCohorts.length === 0 && (
+                                                <div className="p-3 text-xs text-gray-400 text-center">No cohorts found</div>
+                                            )}
+
+                                            {loadingAirQlouds === false && filteredCohorts.length > 0 && (
+                                                filteredCohorts.map((aq: AirQloudBasic) => (
+                                                    <button
+                                                        key={aq.id || aq.name}
+                                                        onClick={() => {
+                                                            setSelectedAirQloud(aq.name)
+                                                            clearRoute()
+                                                            setCohortDropdownOpen(false)
+                                                            setCohortSearch('')
+                                                        }}
+                                                        className={`w-full text-left px-3 py-2 text-sm transition-colors hover:bg-gray-50 flex items-center justify-between gap-2 ${selectedAirQloud === aq.name ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                                                            }`}
+                                                    >
+                                                        <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                                                            <span className={`truncate ${selectedAirQloud === aq.name ? 'font-medium' : ''}`}>{aq.name}</span>
+                                                            <div className="flex items-center gap-2 text-[10px] text-gray-400">
+                                                                <span>{aq.device_count} devices</span>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                    {selectedAirQloud === aq.name && (
-                                                        <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
-                                                    )}
-                                                </button>
-                                            ))
-                                        )}
+                                                        {selectedAirQloud === aq.name && (
+                                                            <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+                                                        )}
+                                                    </button>
+                                                ))
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>

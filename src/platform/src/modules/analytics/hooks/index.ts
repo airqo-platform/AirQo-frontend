@@ -3,10 +3,14 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useDownloadData } from '@/shared/hooks/useAnalytics';
-import { useUserPreferencesList } from '@/shared/hooks/usePreferences';
+import {
+  getLatestPreferenceForGroup,
+  useUserPreferencesList,
+} from '@/shared/hooks/usePreferences';
 import { useUser } from '@/shared/hooks/useUser';
 import { normalizeAirQualityData } from '@/shared/components/charts/utils';
-import { normalizeRecentReadingsToSiteData } from '../utils';
+import { generateTrend, getAirQualityLevel } from '../utils';
+import { getSiteDisplayName } from '@/shared/utils/siteUtils';
 import { useAnalytics } from './useAnalytics';
 import { analyticsService } from '@/shared/services/analyticsService';
 import type { SiteData, ChartData } from '../types';
@@ -14,7 +18,6 @@ import type {
   ChartDataPoint,
   DataDownloadRequest,
   Site,
-  RecentReading,
 } from '@/shared/types/api';
 import {
   buildDownloadFileContent,
@@ -31,18 +34,14 @@ const EMPTY_SELECTED_SITE_IDS: string[] = [];
 
 const ANALYTICS_QUERY_STALE_TIME_MS = 1000 * 60 * 5;
 const ANALYTICS_QUERY_GC_TIME_MS = 1000 * 60 * 60 * 12;
+const SITE_CARD_LOOKBACK_WINDOW_MS = 1000 * 60 * 60 * 24;
 
 const buildNoValueSiteCard = (
   selectedSite: Site,
   pollutant: string
 ): SiteData => ({
   _id: selectedSite._id,
-  name:
-    selectedSite.search_name ||
-    selectedSite.name ||
-    selectedSite.formatted_name ||
-    selectedSite.generated_name ||
-    'Unknown Site',
+  name: getSiteDisplayName(selectedSite),
   location: selectedSite.country || 'Unknown Country',
   value: 0,
   status: 'no-value',
@@ -51,6 +50,87 @@ const buildNoValueSiteCard = (
   trend: 'stable',
   percentageDifference: 0,
 });
+
+const buildSiteCardLocation = (selectedSite: Site) => {
+  return (
+    [selectedSite.city, selectedSite.region, selectedSite.country]
+      .filter(Boolean)
+      .join(', ') ||
+    selectedSite.country ||
+    'Unknown Country'
+  );
+};
+
+const createLatestSiteCardDateRange = () => {
+  const endDate = new Date();
+  const startDate = new Date(endDate.getTime() - SITE_CARD_LOOKBACK_WINDOW_MS);
+
+  return {
+    startDate: startDate.toISOString(),
+    endDate: endDate.toISOString(),
+  };
+};
+
+const buildSiteCardsFromChartPoints = (
+  chartPoints: ChartDataPoint[],
+  selectedSites: Site[],
+  pollutant: string
+): SiteData[] => {
+  if (!Array.isArray(chartPoints) || chartPoints.length === 0) {
+    return selectedSites.map(selectedSite =>
+      buildNoValueSiteCard(selectedSite, pollutant)
+    );
+  }
+
+  const pointsBySiteId = new Map<string, ChartDataPoint[]>();
+
+  chartPoints.forEach(point => {
+    if (!point?.site_id) {
+      return;
+    }
+
+    const sitePoints = pointsBySiteId.get(point.site_id) ?? [];
+    sitePoints.push(point);
+    pointsBySiteId.set(point.site_id, sitePoints);
+  });
+
+  return selectedSites.map(selectedSite => {
+    const sortedPoints = [...(pointsBySiteId.get(selectedSite._id) ?? [])].sort(
+      (left, right) =>
+        new Date(right.time).getTime() - new Date(left.time).getTime()
+    );
+    const latestPoint = sortedPoints[0];
+    const previousPoint = sortedPoints[1];
+    const latestValue = Number(latestPoint?.value);
+    const previousValue = Number(previousPoint?.value);
+
+    if (!latestPoint || !Number.isFinite(latestValue)) {
+      return buildNoValueSiteCard(selectedSite, pollutant);
+    }
+
+    const percentageDifference =
+      Number.isFinite(previousValue) && previousValue !== 0
+        ? ((latestValue - previousValue) / Math.abs(previousValue)) * 100
+        : undefined;
+    const displayName = getSiteDisplayName(selectedSite);
+
+    return {
+      _id: selectedSite._id,
+      name: displayName,
+      search_name: displayName,
+      location: buildSiteCardLocation(selectedSite),
+      country: selectedSite.country,
+      city: selectedSite.city,
+      region: selectedSite.region,
+      value: latestValue,
+      status: getAirQualityLevel(latestValue, pollutant),
+      pollutant,
+      unit: 'μg/m³',
+      trend: generateTrend(latestValue, previousValue),
+      percentageDifference,
+    };
+  });
+};
 
 interface AnalyticsPreferencesOptions {
   groupId?: string;
@@ -82,19 +162,11 @@ export const useAnalyticsPreferences = (
 
   // Get the most recent preference from the list
   const currentPreference = useMemo(() => {
-    if (
-      !preferencesData?.preferences ||
-      preferencesData.preferences.length === 0
-    ) {
-      return null;
-    }
-    // Sort by lastAccessed date (most recent first) and take the first one
-    return [...preferencesData.preferences].sort(
-      (a, b) =>
-        new Date(b.lastAccessed || b.updatedAt).getTime() -
-        new Date(a.lastAccessed || a.updatedAt).getTime()
-    )[0];
-  }, [preferencesData?.preferences]);
+    return getLatestPreferenceForGroup(
+      preferencesData?.preferences,
+      resolvedGroupId
+    );
+  }, [preferencesData?.preferences, resolvedGroupId]);
 
   // Extract selected sites IDs
   const selectedSiteIds = useMemo(() => {
@@ -120,8 +192,11 @@ export const useAnalyticsPreferences = (
   }, [currentPreference, preferencesLoading]);
 
   // Combined loading state - only show loading if we should fetch and are actually loading
+  const isWaitingForGroup = isEnabled && !resolvedGroupId;
   const isLoading =
-    userLoading || (shouldFetchPreferences && preferencesLoading);
+    userLoading ||
+    isWaitingForGroup ||
+    (shouldFetchPreferences && preferencesLoading);
 
   return {
     selectedSiteIds,
@@ -151,6 +226,8 @@ export const useAnalyticsChartData = (
   selectedSiteIds: string[] = EMPTY_SELECTED_SITE_IDS,
   enabled = true
 ) => {
+  const { user, activeGroup } = useUser();
+
   // Calculate date range based on filters
   const dateRange = useMemo(() => {
     return {
@@ -163,12 +240,15 @@ export const useAnalyticsChartData = (
     () => selectedSiteIds.join(','),
     [selectedSiteIds]
   );
+  const activeGroupKey = activeGroup?.id ?? 'no-active-group';
   const shouldFetch = enabled && selectedSiteIds.length > 0;
 
   const chartQueryKey = useMemo(
     () => [
       'analytics',
       'chart-data',
+      user?.id ?? 'anonymous',
+      activeGroupKey,
       chartType,
       selectedSiteIdsKey,
       dateRange.startDate,
@@ -180,6 +260,8 @@ export const useAnalyticsChartData = (
       chartType,
       dateRange.endDate,
       dateRange.startDate,
+      user?.id,
+      activeGroupKey,
       filters.frequency,
       filters.pollutant,
       selectedSiteIdsKey,
@@ -272,32 +354,50 @@ export const useAnalyticsSiteCards = ({
   enabled = true,
 }: AnalyticsSelections) => {
   const { filters } = useAnalytics();
-  const { user } = useUser();
+  const { user, activeGroup } = useUser();
   const selectedSiteIdsKey = useMemo(
     () => selectedSiteIds.join(','),
     [selectedSiteIds]
   );
+  const activeGroupKey = activeGroup?.id ?? 'no-active-group';
 
   const shouldFetch = enabled && selectedSiteIds.length > 0;
-
-  const query = useQuery<RecentReading[], Error>({
-    queryKey: [
+  const queryKey = useMemo(
+    () => [
       'analytics',
       'site-cards',
       user?.id ?? 'anonymous',
+      activeGroupKey,
       selectedSiteIdsKey,
       filters.pollutant,
     ],
+    [activeGroupKey, filters.pollutant, selectedSiteIdsKey, user?.id]
+  );
+  const currentRequestKey = useMemo(() => JSON.stringify(queryKey), [queryKey]);
+  const lastSettledRequestKeyRef = useRef(currentRequestKey);
+
+  const query = useQuery<SiteData[], Error>({
+    queryKey,
     queryFn: async ({ signal }) => {
-      const response = await analyticsService.getRecentReadings(
+      const latestDateRange = createLatestSiteCardDateRange();
+      const response = await analyticsService.getChartData(
         {
-          site_id: selectedSiteIdsKey,
-          user_id: user?.id,
+          sites: selectedSiteIds,
+          startDate: latestDateRange.startDate,
+          endDate: latestDateRange.endDate,
+          chartType: 'line',
+          frequency: 'hourly',
+          pollutant: filters.pollutant.toLowerCase().replace('.', '_'),
+          organisation_name: '',
         },
         signal
       );
 
-      return response?.measurements ?? [];
+      return buildSiteCardsFromChartPoints(
+        response?.data ?? [],
+        selectedSites,
+        filters.pollutant
+      );
     },
     enabled: shouldFetch,
     networkMode: 'online',
@@ -306,34 +406,37 @@ export const useAnalyticsSiteCards = ({
     refetchOnReconnect: false,
     staleTime: ANALYTICS_QUERY_STALE_TIME_MS,
     gcTime: ANALYTICS_QUERY_GC_TIME_MS,
-    placeholderData: previousData => previousData,
   });
 
-  const measurementsBySiteId = useMemo(() => {
-    return new Map<string, RecentReading>(
-      (query.data ?? []).map(measurement => [measurement.site_id, measurement])
-    );
-  }, [query.data]);
+  useEffect(() => {
+    if (!shouldFetch) {
+      lastSettledRequestKeyRef.current = currentRequestKey;
+      return;
+    }
+
+    if (!query.isFetching && (query.isSuccess || query.isError)) {
+      lastSettledRequestKeyRef.current = currentRequestKey;
+    }
+  }, [
+    currentRequestKey,
+    query.isError,
+    query.isFetching,
+    query.isSuccess,
+    shouldFetch,
+  ]);
+
+  const isTransitionLoading =
+    shouldFetch &&
+    query.isFetching &&
+    currentRequestKey !== lastSettledRequestKeyRef.current;
 
   const siteCards = useMemo(() => {
     if (!shouldFetch) {
       return [];
     }
 
-    return selectedSites.map(selectedSite => {
-      const measurement = measurementsBySiteId.get(selectedSite._id);
-
-      if (measurement) {
-        const normalized = normalizeRecentReadingsToSiteData(
-          [measurement],
-          filters.pollutant as 'pm2_5' | 'pm10'
-        );
-        return normalized[0];
-      }
-
-      return buildNoValueSiteCard(selectedSite, filters.pollutant);
-    });
-  }, [filters.pollutant, measurementsBySiteId, selectedSites, shouldFetch]);
+    return query.data ?? [];
+  }, [query.data, shouldFetch]);
 
   const refetchSiteCards = useCallback(async () => {
     if (!shouldFetch) {
@@ -345,8 +448,10 @@ export const useAnalyticsSiteCards = ({
 
   return {
     siteCards,
-    isLoading: shouldFetch ? query.isLoading : false,
-    isRefreshing: shouldFetch ? query.isFetching : false,
+    isLoading: shouldFetch ? query.isLoading || isTransitionLoading : false,
+    isRefreshing: shouldFetch
+      ? query.isFetching && !isTransitionLoading
+      : false,
     error: shouldFetch ? (query.error?.message ?? null) : null,
     refetch: refetchSiteCards,
   };

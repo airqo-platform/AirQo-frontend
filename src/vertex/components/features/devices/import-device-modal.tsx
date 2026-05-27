@@ -14,12 +14,14 @@ import { useGroupCohorts } from "@/core/hooks/useCohorts";
 import { useAppSelector } from "@/core/redux/hooks";
 import { usePathname } from "next/navigation";
 import logger from "@/lib/logger";
+import { useBanner } from "@/context/banner-context";
 import { NetworkRequestDialog } from "../networks/network-request-dialog";
 import { MultiSelectCombobox } from "@/components/ui/multi-select";
 import ReusableFileUpload from "@/components/shared/fileupload/ReusableFileUpload";
 import { DEFAULT_DEVICE_TAGS } from "@/core/constants/devices";
 import { Label } from "@/components/ui/label";
 import Papa from "papaparse";
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 
 const EXPECTED_FIELDS = [
   { key: 'long_name', label: 'Device Name', required: true },
@@ -30,6 +32,8 @@ const EXPECTED_FIELDS = [
   { key: 'description', label: 'Description', required: false },
   { key: 'device_number', label: 'Device Number', required: false },
 ];
+
+
 
 interface ImportDeviceModalProps {
   open: boolean;
@@ -66,6 +70,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
   const [mappingMode, setMappingMode] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
   const [transformedPreview, setTransformedPreview] = useState<any[]>([]);
+  const { showBanner } = useBanner();
   const importDevice = useImportDevice();
   const bulkImport = useBulkImportDevices();
   const { networks, isLoading: isLoadingNetworks } = useNetworks();
@@ -269,6 +274,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
 
     if (!userId) {
       logger.warn("User ID is missing");
+      showBanner({ severity: 'error', message: 'Unable to identify user. Please reload and try again.', scoped: true });
       return;
     }
 
@@ -278,7 +284,22 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         user_id: userId,
         ...(cohortId && { cohort_id: cohortId }),
       },
-      { onSuccess: () => onOpenChange(false) }
+      {
+        onSuccess: (data, variables) => {
+          onOpenChange(false);
+          setTimeout(() => {
+            showBanner({
+              severity: 'success',
+              title: 'Success',
+              message: `${variables.long_name.trim()} has been imported successfully.`,
+              scoped: false
+            });
+          }, 300);
+        },
+        onError: (error) => {
+          showBanner({ severity: 'error', message: `Import Failed: ${getApiErrorMessage(error)}`, scoped: true });
+        },
+      }
     );
   };
 

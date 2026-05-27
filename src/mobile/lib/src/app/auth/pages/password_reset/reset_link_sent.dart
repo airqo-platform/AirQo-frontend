@@ -42,6 +42,7 @@ class _ResetLinkSentPageState extends State<ResetLinkSentPage> {
     final screenWidth = mediaQuery.size.width;
     final isSmallScreen = screenWidth < 360;
     final isLargeScreen = screenWidth > 400;
+    const resetCodeLength = 6;
 
     return BlocListener<PasswordResetBloc, PasswordResetState>(
       listener: (context, state) {
@@ -132,12 +133,10 @@ class _ResetLinkSentPageState extends State<ResetLinkSentPage> {
                     LayoutBuilder(
                       builder: (context, constraints) {
                         final totalWidth = constraints.maxWidth;
-                        final horizontalPadding =
-                            32.0;
-                        final numberOfFields = 5;
-                        final totalAvailableWidth = totalWidth -
-                            horizontalPadding -
-                            4; 
+                        final horizontalPadding = 32.0;
+                        const numberOfFields = resetCodeLength;
+                        final totalAvailableWidth =
+                            totalWidth - horizontalPadding - 4;
                         final spacing = 4.0 * (numberOfFields - 1);
                         final fieldWidth =
                             (totalAvailableWidth - spacing) / numberOfFields;
@@ -184,7 +183,7 @@ class _ResetLinkSentPageState extends State<ResetLinkSentPage> {
                           ? null
                           : () {
                               final pin = _pinController.text.trim();
-                              if (pin.length == 5) {
+                              if (pin.length == resetCodeLength) {
                                 setState(() => isLoading = true);
                                 context
                                     .read<PasswordResetBloc>()
@@ -193,7 +192,7 @@ class _ResetLinkSentPageState extends State<ResetLinkSentPage> {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: const Text(
-                                        'Please enter a valid 5-digit code.'),
+                                        'Please enter a valid 6-digit code.'),
                                     backgroundColor: AppColors.primaryColor,
                                   ),
                                 );

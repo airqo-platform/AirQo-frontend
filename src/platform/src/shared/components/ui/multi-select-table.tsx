@@ -22,6 +22,7 @@ import {
 import { EmptyState } from '@/shared/components/ui/empty-state';
 import { ErrorState } from '@/shared/components/ui/error-state';
 import { LoadingState } from '@/shared/components/ui/loading-state';
+import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -105,6 +106,7 @@ interface MultiSelectTableProps<T = TableItem> {
   pageSizeOptions?: number[];
   searchableColumns?: string[] | null;
   loading?: boolean;
+  isRefreshing?: boolean;
   error?: string | null;
   loadingComponent?: React.ReactNode;
   errorComponent?: React.ReactNode;
@@ -514,6 +516,7 @@ const MultiSelectTable = <T extends TableItem>({
   pageSizeOptions = [5, 6, 10, 20, 50, 100],
   searchableColumns = null,
   loading = false,
+  isRefreshing = false,
   error = null,
   loadingComponent = null,
   errorComponent = null,
@@ -1094,132 +1097,60 @@ const MultiSelectTable = <T extends TableItem>({
         </div>
       )}
 
-      <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800">
-        <div className="min-w-full inline-block align-top">
-          {error ? (
-            (errorComponent ?? (
-              <ErrorState
-                title="Error loading data"
-                description={error}
-                className="rounded-none border-0 bg-transparent"
-                retryAction={
-                  onRefresh
-                    ? {
-                        label: 'Try Again',
-                        onClick: onRefresh,
-                      }
-                    : undefined
+      <div className="relative">
+        <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800">
+          <div className="min-w-full inline-block align-top">
+            {error ? (
+              (errorComponent ?? (
+                <ErrorState
+                  title="Error loading data"
+                  description={error}
+                  className="rounded-none border-0 bg-transparent"
+                  retryAction={
+                    onRefresh
+                      ? {
+                          label: 'Try Again',
+                          onClick: onRefresh,
+                        }
+                      : undefined
+                  }
+                />
+              ))
+            ) : loading ? (
+              (loadingComponent ?? (
+                <LoadingState
+                  text="Loading data..."
+                  className="w-full h-64 border border-border rounded-none bg-muted/50"
+                />
+              ))
+            ) : paginatedData.length === 0 ? (
+              <EmptyState
+                title={
+                  searchTerm || hasActiveFilters || hasActiveColumnFilters
+                    ? 'No matching results found'
+                    : 'No data available'
                 }
+                description={
+                  searchTerm || hasActiveFilters || hasActiveColumnFilters
+                    ? "Try adjusting your search or filters to find what you're looking for."
+                    : 'There is no data to display at the moment.'
+                }
+                className="min-h-[300px] border-0 bg-transparent"
               />
-            ))
-          ) : loading ? (
-            (loadingComponent ?? (
-              <LoadingState
-                text="Loading data..."
-                className="w-full h-64 border border-border rounded-none bg-muted/50"
-              />
-            ))
-          ) : paginatedData.length === 0 ? (
-            <EmptyState
-              title={
-                searchTerm || hasActiveFilters || hasActiveColumnFilters
-                  ? 'No matching results found'
-                  : 'No data available'
-              }
-              description={
-                searchTerm || hasActiveFilters || hasActiveColumnFilters
-                  ? "Try adjusting your search or filters to find what you're looking for."
-                  : 'There is no data to display at the moment.'
-              }
-              className="min-h-[300px] border-0 bg-transparent"
-            />
-          ) : (
-            <table className="w-full bg-card table-auto">
-              <thead className="border-b bg-muted border-border">
-                <tr>
-                  {displayColumns.map(column => (
-                    <th
-                      key={column.key}
-                      className={`py-2 sm:py-3 text-xs font-medium tracking-wider text-left uppercase text-muted-foreground ${
-                        column.key === 'checkbox'
-                          ? 'w-12 max-w-[3rem] px-2 sm:px-3'
-                          : compactRows
-                            ? 'px-2 sm:px-4 md:px-6 max-w-none'
-                            : 'px-2 sm:px-4 md:px-6 max-w-[300px]'
-                      } ${column.headerClassName || ''}`}
-                      style={
-                        column.key !== 'checkbox'
-                          ? {
-                              minWidth: column.minWidth || '120px',
-                              width: column.width,
-                              maxWidth: column.maxWidth,
-                            }
-                          : undefined
-                      }
-                    >
-                      <div className="flex items-center space-x-1 min-w-0">
-                        <span
-                          className={`truncate ${
-                            sortable && column.sortable !== false
-                              ? 'cursor-pointer hover:text-foreground transition-colors'
-                              : ''
-                          }`}
-                          onClick={() =>
-                            sortable &&
-                            column.sortable !== false &&
-                            handleSort(column.key)
-                          }
-                          title={
-                            typeof column.label === 'string' ? column.label : ''
-                          }
-                        >
-                          {column.label}
-                        </span>
-                        <div className="flex items-center gap-0.5 relative flex-shrink-0">
-                          {sortable &&
-                            column.sortable !== false &&
-                            getSortIcon(column.key)}
-                          {enableColumnFilters &&
-                            column.filterable !== false &&
-                            column.key !== 'checkbox' && (
-                              <ColumnHeaderFilter
-                                column={column}
-                                filterValue={
-                                  (columnFilterValues[column.key] as
-                                    | string
-                                    | number
-                                    | boolean
-                                    | (string | number | boolean)[]) ||
-                                  (column.filterMulti !== false ? [] : '')
-                                }
-                                onFilterChange={value =>
-                                  handleColumnFilterChange(column.key, value)
-                                }
-                                data={data}
-                              />
-                            )}
-                        </div>
-                      </div>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="bg-card divide-y divide-border">
-                {paginatedData.map((item, index) => (
-                  <tr
-                    key={item.id ?? index}
-                    className="transition-colors hover:bg-muted/50"
-                  >
+            ) : (
+              <table className="w-full bg-card table-auto">
+                <thead className="border-b bg-muted border-border">
+                  <tr>
                     {displayColumns.map(column => (
-                      <td
+                      <th
                         key={column.key}
-                        className={`py-2 sm:py-4 text-sm text-foreground align-top ${
+                        className={`py-2 sm:py-3 text-xs font-medium tracking-wider text-left uppercase text-muted-foreground ${
                           column.key === 'checkbox'
                             ? 'w-12 max-w-[3rem] px-2 sm:px-3'
                             : compactRows
                               ? 'px-2 sm:px-4 md:px-6 max-w-none'
                               : 'px-2 sm:px-4 md:px-6 max-w-[300px]'
-                        } ${column.cellClassName || ''}`}
+                        } ${column.headerClassName || ''}`}
                         style={
                           column.key !== 'checkbox'
                             ? {
@@ -1230,66 +1161,155 @@ const MultiSelectTable = <T extends TableItem>({
                             : undefined
                         }
                       >
-                        <div
-                          className={
-                            column.key === 'checkbox'
-                              ? ''
-                              : compactRows
-                                ? 'whitespace-nowrap max-w-none'
-                                : `${column.cellClassName || 'break-words whitespace-normal overflow-wrap-anywhere'} max-w-full`
-                          }
-                        >
-                          {renderCell(item, column)}
+                        <div className="flex items-center space-x-1 min-w-0">
+                          <span
+                            className={`truncate ${
+                              sortable && column.sortable !== false
+                                ? 'cursor-pointer hover:text-foreground transition-colors'
+                                : ''
+                            }`}
+                            onClick={() =>
+                              sortable &&
+                              column.sortable !== false &&
+                              handleSort(column.key)
+                            }
+                            title={
+                              typeof column.label === 'string'
+                                ? column.label
+                                : ''
+                            }
+                          >
+                            {column.label}
+                          </span>
+                          <div className="flex items-center gap-0.5 relative flex-shrink-0">
+                            {sortable &&
+                              column.sortable !== false &&
+                              getSortIcon(column.key)}
+                            {enableColumnFilters &&
+                              column.filterable !== false &&
+                              column.key !== 'checkbox' && (
+                                <ColumnHeaderFilter
+                                  column={column}
+                                  filterValue={
+                                    (columnFilterValues[column.key] as
+                                      | string
+                                      | number
+                                      | boolean
+                                      | (string | number | boolean)[]) ||
+                                    (column.filterMulti !== false ? [] : '')
+                                  }
+                                  onFilterChange={value =>
+                                    handleColumnFilterChange(column.key, value)
+                                  }
+                                  data={data}
+                                />
+                              )}
+                          </div>
                         </div>
-                      </td>
+                      </th>
                     ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </div>
-
-      {/* Pagination */}
-      {!loading && showPagination && sortedData.length > 0 && (
-        <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-t border-border bg-muted">
-          <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:space-x-4 order-2 sm:order-1">
-              <PageSizeSelector
-                pageSize={currentPageSize}
-                onPageSizeChange={handlePageSizeChange}
-                options={pageSizeOptions}
-              />
-              <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
-                Showing{' '}
-                {Math.min(
-                  (currentPage - 1) * currentPageSize + 1,
-                  sortedData.length
-                )}{' '}
-                to {Math.min(currentPage * currentPageSize, sortedData.length)}{' '}
-                of {sortedData.length} results
-              </div>
-            </div>
-            {totalPages > 1 && (
-              <div className="flex justify-center sm:justify-end order-1 sm:order-2">
-                <Pagination
-                  currentPage={currentPage}
-                  pageSize={currentPageSize}
-                  totalItems={sortedData.length}
-                  onPrevClick={() =>
-                    setCurrentPage(Math.max(1, currentPage - 1))
-                  }
-                  onNextClick={() =>
-                    setCurrentPage(Math.min(totalPages, currentPage + 1))
-                  }
-                  onPageChange={setCurrentPage}
-                />
-              </div>
+                </thead>
+                <tbody className="bg-card divide-y divide-border">
+                  {paginatedData.map((item, index) => (
+                    <tr
+                      key={item.id ?? index}
+                      className="transition-colors hover:bg-muted/50"
+                    >
+                      {displayColumns.map(column => (
+                        <td
+                          key={column.key}
+                          className={`py-2 sm:py-4 text-sm text-foreground align-top ${
+                            column.key === 'checkbox'
+                              ? 'w-12 max-w-[3rem] px-2 sm:px-3'
+                              : compactRows
+                                ? 'px-2 sm:px-4 md:px-6 max-w-none'
+                                : 'px-2 sm:px-4 md:px-6 max-w-[300px]'
+                          } ${column.cellClassName || ''}`}
+                          style={
+                            column.key !== 'checkbox'
+                              ? {
+                                  minWidth: column.minWidth || '120px',
+                                  width: column.width,
+                                  maxWidth: column.maxWidth,
+                                }
+                              : undefined
+                          }
+                        >
+                          <div
+                            className={
+                              column.key === 'checkbox'
+                                ? ''
+                                : compactRows
+                                  ? 'whitespace-nowrap max-w-none'
+                                  : `${column.cellClassName || 'break-words whitespace-normal overflow-wrap-anywhere'} max-w-full`
+                            }
+                          >
+                            {renderCell(item, column)}
+                          </div>
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             )}
           </div>
         </div>
-      )}
+
+        {/* Pagination */}
+        {!loading && showPagination && sortedData.length > 0 && (
+          <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-t border-border bg-muted">
+            <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:space-x-4 order-2 sm:order-1">
+                <PageSizeSelector
+                  pageSize={currentPageSize}
+                  onPageSizeChange={handlePageSizeChange}
+                  options={pageSizeOptions}
+                />
+                <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
+                  Showing{' '}
+                  {Math.min(
+                    (currentPage - 1) * currentPageSize + 1,
+                    sortedData.length
+                  )}{' '}
+                  to{' '}
+                  {Math.min(currentPage * currentPageSize, sortedData.length)}{' '}
+                  of {sortedData.length} results
+                </div>
+              </div>
+              {totalPages > 1 && (
+                <div className="flex justify-center sm:justify-end order-1 sm:order-2">
+                  <Pagination
+                    currentPage={currentPage}
+                    pageSize={currentPageSize}
+                    totalItems={sortedData.length}
+                    onPrevClick={() =>
+                      setCurrentPage(Math.max(1, currentPage - 1))
+                    }
+                    onNextClick={() =>
+                      setCurrentPage(Math.min(totalPages, currentPage + 1))
+                    }
+                    onPageChange={setCurrentPage}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {isRefreshing && !loading && (
+          <div
+            className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center rounded-b-md bg-background/80 backdrop-blur-sm"
+            aria-live="polite"
+          >
+            <div className="flex items-center gap-2 rounded-md border border-border bg-card px-3 py-2 text-sm text-muted-foreground shadow-sm">
+              <LoadingSpinner size={16} />
+              <span>Refreshing data...</span>
+            </div>
+          </div>
+        )}
+      </div>
     </Card>
   );
 };

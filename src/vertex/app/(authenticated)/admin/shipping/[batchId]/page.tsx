@@ -15,6 +15,7 @@ import ReusableToast from '@/components/shared/toast/ReusableToast';
 import ShippingLabelPrintModal from '@/components/features/shipping/ShippingLabelPrintModal';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState, useCallback } from 'react';
+import { usePageTitle } from '@/context/page-title-context';
 
 type BatchDevice = ShippingStatusDevice & {
     id: string | number;
@@ -30,6 +31,10 @@ const BatchDetailsPage = () => {
     const { data, isLoading, error } = useShippingBatchDetails(batchId);
     const { mutate: generateLabels, isPending: isGenerating, data: labelsData } = useGenerateShippingLabels();
     const [showLabelModal, setShowLabelModal] = useState(false);
+    usePageTitle({
+        title: data?.batch?.batch_name || "Shipping Batch",
+        section: "Shipping",
+    });
 
     const handleGenerateLabels = useCallback((ids: (string | number)[]) => {
         if (!ids || ids.length === 0) {

@@ -15,6 +15,7 @@ import { AqPlus } from "@airqo/icons-react";
 import { CreateCohortFromSelectionDialog } from "@/components/features/cohorts/create-cohort-from-cohorts";
 import { AssignCohortsToGroupDialog } from "@/components/features/cohorts/assign-cohorts-to-group";
 import { useServerSideTableState } from "@/core/hooks/useServerSideTableState";
+import { usePageTitle } from "@/context/page-title-context";
 
 import { DEFAULT_COHORT_TAGS } from "@/core/constants/devices";
 
@@ -28,6 +29,8 @@ type CohortRow = {
 }
 
 export default function CohortsPage() {
+  usePageTitle({ title: "Cohorts", section: "Administrative Panel" });
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();

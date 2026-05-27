@@ -14,6 +14,7 @@ import { PERMISSIONS } from "@/core/permissions/constants";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { UnassignCohortDevicesDialog } from "@/components/features/cohorts/unassign-cohort-devices";
 import CohortMeasurementsApiCard from "@/components/features/cohorts/cohort-measurements-api-card";
+import { usePageTitle } from "@/context/page-title-context";
 
 // Loading skeleton for content grid
 const ContentGridSkeleton = () => (
@@ -30,6 +31,7 @@ export default function CohortDetailsPage() {
   const cohortId = params?.id as string;
 
   const { data: cohort, isLoading, error } = useCohortDetails(cohortId);
+  usePageTitle({ title: cohort?.name || "Cohort Details", section: "Cohorts" });
   const canUpdateDevice = usePermission(PERMISSIONS.DEVICE.UPDATE);
   const [cohortDetails, setCohortDetails] = useState<{
     name: string;

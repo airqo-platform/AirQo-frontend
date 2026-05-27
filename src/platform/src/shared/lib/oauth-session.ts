@@ -3,11 +3,23 @@ import {
   buildServerApiUrl,
   resolveApiOrigin,
 } from '@/shared/lib/api-routing';
+import type { AuthMethods } from '@/shared/types/api';
 
 const OAUTH_SIGNED_OUT_FLAG = 'airqo:oauth-signed-out';
 const OAUTH_FRAGMENT_TOKEN_KEY = 'token';
 const OAUTH_SUCCESS_PROVIDER_KEY = 'success';
+const LAST_USED_OAUTH_PROVIDER_KEY = 'airqo:last-oauth-provider';
 const OAUTH_PROFILE_FETCH_TIMEOUT_MS = 10000;
+
+export const SUPPORTED_SOCIAL_AUTH_PROVIDERS = [
+  'google',
+  'github',
+  'linkedin',
+  'twitter',
+] as const;
+
+export type SupportedSocialAuthProvider =
+  (typeof SUPPORTED_SOCIAL_AUTH_PROVIDERS)[number];
 
 export interface BackendOAuthProfile {
   _id: string;
@@ -17,6 +29,7 @@ export interface BackendOAuthProfile {
   profilePicture?: string;
   verified?: boolean;
   accessToken?: string;
+  authMethods?: AuthMethods;
 }
 
 export interface BackendOAuthProfileResponse {
@@ -29,6 +42,7 @@ export interface BackendOAuthProfileResponse {
 export interface BackendOAuthSession {
   expires: string;
   accessToken?: string;
+  authMethods?: AuthMethods;
   user: {
     _id: string;
     email: string;
@@ -39,16 +53,86 @@ export interface BackendOAuthSession {
   };
 }
 
+export interface FetchEnhancedUserProfileOptions {
+  accessToken?: string;
+  signal?: AbortSignal;
+}
+
 export interface OAuthTokenHandoff {
   token: string;
   provider: string | null;
 }
+
+export const isSupportedSocialAuthProvider = (
+  value: string | null | undefined
+): value is SupportedSocialAuthProvider => {
+  if (!value) {
+    return false;
+  }
+
+  return (SUPPORTED_SOCIAL_AUTH_PROVIDERS as readonly string[]).includes(value);
+};
+
+const AUTH_METHOD_KEYS = [
+  'password',
+  'google',
+  'github',
+  'linkedin',
+  'microsoft',
+  'twitter',
+  'facebook',
+  'apple',
+] as const;
+
+const normalizeAuthMethods = (value: unknown): AuthMethods | undefined => {
+  if (!value || typeof value !== 'object') {
+    return undefined;
+  }
+
+  const candidate = value as Partial<
+    Record<(typeof AUTH_METHOD_KEYS)[number], unknown>
+  >;
+  const hasKnownKey = AUTH_METHOD_KEYS.some(key => key in candidate);
+
+  if (!hasKnownKey) {
+    return undefined;
+  }
+
+  return {
+    password: Boolean(candidate.password),
+    google: Boolean(candidate.google),
+    github: Boolean(candidate.github),
+    linkedin: Boolean(candidate.linkedin),
+    microsoft: Boolean(candidate.microsoft),
+    twitter: Boolean(candidate.twitter),
+    facebook: Boolean(candidate.facebook),
+    apple: Boolean(candidate.apple),
+  };
+};
 
 const safeDecodeURIComponent = (value: string): string => {
   try {
     return decodeURIComponent(value);
   } catch {
     return value;
+  }
+};
+
+export const resolveOAuthRedirectAfterUrl = (
+  targetPath = '/user/home'
+): string | null => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  const normalizedTargetPath = targetPath.startsWith('/')
+    ? targetPath
+    : `/${targetPath}`;
+
+  try {
+    return new URL(normalizedTargetPath, window.location.origin).toString();
+  } catch {
+    return null;
   }
 };
 
@@ -116,6 +200,12 @@ export const buildBackendApiUrl = (path: string): string => {
   }
 };
 
+export const buildOAuthCallbackUrl = (
+  provider: SupportedSocialAuthProvider
+): string => {
+  return buildBackendApiUrl(`/users/auth/callback/${provider}`);
+};
+
 export const shouldSkipBackendOAuthBootstrap = (): boolean => {
   if (typeof window === 'undefined') {
     return false;
@@ -140,15 +230,38 @@ export const setBackendOAuthSignedOutFlag = (): void => {
   localStorage.setItem(OAUTH_SIGNED_OUT_FLAG, 'true');
 };
 
+export const getLastUsedOAuthProvider =
+  (): SupportedSocialAuthProvider | null => {
+    if (typeof window === 'undefined') {
+      return null;
+    }
+
+    const provider = localStorage.getItem(LAST_USED_OAUTH_PROVIDER_KEY)?.trim();
+
+    return isSupportedSocialAuthProvider(provider) ? provider : null;
+  };
+
+export const setLastUsedOAuthProvider = (
+  provider: string | null | undefined
+): void => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  if (!isSupportedSocialAuthProvider(provider)) {
+    localStorage.removeItem(LAST_USED_OAUTH_PROVIDER_KEY);
+    return;
+  }
+
+  localStorage.setItem(LAST_USED_OAUTH_PROVIDER_KEY, provider);
+};
+
 export const buildOAuthInitiationUrl = (
-  provider = 'google',
+  provider: SupportedSocialAuthProvider = 'google',
   queryParams?: Record<string, string | undefined>
 ): string => {
   const path = `/users/auth/${encodeURIComponent(provider)}`;
-  const baseUrl =
-    typeof window === 'undefined'
-      ? buildBackendApiUrl(path)
-      : buildBrowserApiUrl(path);
+  const baseUrl = buildBackendApiUrl(path);
   const params = new URLSearchParams();
 
   if (queryParams) {
@@ -173,10 +286,12 @@ export const buildSessionFromProfile = (
   const normalizedAccessToken = profile.accessToken
     ? normalizeOAuthAccessToken(profile.accessToken) || undefined
     : undefined;
+  const authMethods = normalizeAuthMethods(profile.authMethods);
 
   return {
     expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
     accessToken: normalizedAccessToken,
+    authMethods,
     user: {
       _id: profile._id,
       email: profile.email,
@@ -188,54 +303,87 @@ export const buildSessionFromProfile = (
   };
 };
 
-export const verifyBackendOAuthSession =
-  async (): Promise<BackendOAuthProfile | null> => {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-      controller.abort();
-    }, OAUTH_PROFILE_FETCH_TIMEOUT_MS);
+const resolveEnhancedUserProfileUrl = (): string => {
+  return typeof window === 'undefined'
+    ? buildServerApiUrl('/users/profile/enhanced')
+    : buildBrowserApiUrl('/users/profile/enhanced');
+};
 
-    try {
-      const profileUrl =
-        typeof window === 'undefined'
-          ? buildServerApiUrl('/users/profile/enhanced')
-          : buildBrowserApiUrl('/users/profile/enhanced');
+const normalizeBackendOAuthProfile = (
+  payload: BackendOAuthProfileResponse
+): BackendOAuthProfile | null => {
+  if (!payload?.success || !payload.data?._id) {
+    return null;
+  }
 
-      const response = await fetch(profileUrl, {
-        method: 'GET',
-        signal: controller.signal,
-        credentials: 'include',
-        cache: 'no-store',
-        headers: {
-          Accept: 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        return null;
-      }
-
-      const payload = (await response.json()) as BackendOAuthProfileResponse;
-      if (!payload?.success || !payload.data?._id) {
-        return null;
-      }
-
-      return {
-        ...payload.data,
-        accessToken: payload.data.accessToken
-          ? normalizeOAuthAccessToken(payload.data.accessToken) || undefined
-          : payload.accessToken
-            ? normalizeOAuthAccessToken(payload.accessToken) || undefined
-            : undefined,
-      };
-    } catch (error) {
-      const errorName = (error as { name?: string })?.name;
-      if (errorName === 'AbortError') {
-        return null;
-      }
-
-      return null;
-    } finally {
-      clearTimeout(timeoutId);
-    }
+  return {
+    ...payload.data,
+    accessToken: payload.data.accessToken
+      ? normalizeOAuthAccessToken(payload.data.accessToken) || undefined
+      : payload.accessToken
+        ? normalizeOAuthAccessToken(payload.accessToken) || undefined
+        : undefined,
+    authMethods: normalizeAuthMethods(payload.data.authMethods),
   };
+};
+
+export const fetchEnhancedUserProfile = async (
+  options: FetchEnhancedUserProfileOptions = {}
+): Promise<BackendOAuthProfile | null> => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, OAUTH_PROFILE_FETCH_TIMEOUT_MS);
+  const normalizedAccessToken = normalizeOAuthAccessToken(
+    typeof options.accessToken === 'string' ? options.accessToken : ''
+  );
+  const handleExternalAbort = () => {
+    controller.abort();
+  };
+
+  if (options.signal?.aborted) {
+    controller.abort();
+  } else if (options.signal) {
+    options.signal.addEventListener('abort', handleExternalAbort, {
+      once: true,
+    });
+  }
+
+  try {
+    const response = await fetch(resolveEnhancedUserProfileUrl(), {
+      method: 'GET',
+      signal: controller.signal,
+      credentials: 'include',
+      cache: 'no-store',
+      headers: {
+        Accept: 'application/json',
+        ...(normalizedAccessToken
+          ? { Authorization: `JWT ${normalizedAccessToken}` }
+          : {}),
+      },
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = (await response.json()) as BackendOAuthProfileResponse;
+    return normalizeBackendOAuthProfile(payload);
+  } catch (error) {
+    const errorName = (error as { name?: string })?.name;
+    if (errorName === 'AbortError') {
+      return null;
+    }
+
+    return null;
+  } finally {
+    clearTimeout(timeoutId);
+    options.signal?.removeEventListener('abort', handleExternalAbort);
+  }
+};
+
+export const verifyBackendOAuthSession = async (
+  options: Omit<FetchEnhancedUserProfileOptions, 'accessToken'> = {}
+): Promise<BackendOAuthProfile | null> => {
+  return fetchEnhancedUserProfile(options);
+};

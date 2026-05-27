@@ -339,9 +339,9 @@ class AuthImpl extends AuthRepository implements SocialAuthRepository {
   }
 
   @override
-  Future<String> validatePinFormat(String pin, String email) async {
-    if (RegExp(r'^\d{5}$').hasMatch(pin)) return pin;
-    throw Exception('Invalid PIN. Please enter a 5-digit numeric PIN.');
+  Future<String> validateResetCodeFormat(String pin) async {
+    if (RegExp(r'^\d{6}$').hasMatch(pin)) return pin;
+    throw Exception('Invalid PIN. Please enter a 6-digit numeric PIN.');
   }
 
   @override

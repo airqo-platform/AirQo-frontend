@@ -47,6 +47,55 @@ type LegacyCohortDevicesResponse = {
   cache_generated_at?: string;
 } & LegacyCohortPagination;
 
+type ApiEnvelope = {
+  success?: boolean;
+  message?: string;
+  data?: unknown;
+};
+
+const extractEnvelopeData = <T>(payload: unknown): T | null => {
+  if (!payload || typeof payload !== 'object') {
+    return null;
+  }
+
+  const envelope = payload as ApiEnvelope;
+  const data = envelope.data === undefined ? payload : envelope.data;
+
+  return data as T;
+};
+
+const extractGroupCohortIds = (payload: unknown): string[] => {
+  const unwrapped = extractEnvelopeData<unknown>(payload);
+
+  if (Array.isArray(unwrapped)) {
+    return unwrapped.filter(
+      (cohortId): cohortId is string => typeof cohortId === 'string'
+    );
+  }
+
+  if (
+    unwrapped &&
+    typeof unwrapped === 'object' &&
+    Array.isArray((unwrapped as { data?: unknown }).data)
+  ) {
+    return (unwrapped as { data: unknown[] }).data.filter(
+      (cohortId): cohortId is string => typeof cohortId === 'string'
+    );
+  }
+
+  if (
+    payload &&
+    typeof payload === 'object' &&
+    Array.isArray((payload as { data?: unknown }).data)
+  ) {
+    return (payload as { data: unknown[] }).data.filter(
+      (cohortId): cohortId is string => typeof cohortId === 'string'
+    );
+  }
+
+  return [];
+};
+
 const isAbortLikeError = (error: unknown): boolean => {
   const candidate = error as {
     name?: string;
@@ -108,17 +157,36 @@ const normalizeLegacyMeta = (
 };
 
 const normalizeSitesResponse = (
-  response: CohortSitesResponse | LegacyCohortSitesResponse
+  response: CohortSitesResponse | LegacyCohortSitesResponse,
+  envelope?: ApiEnvelope
 ): CohortSitesResponse => {
   if ('meta' in response) {
-    return response;
+    return {
+      ...response,
+      success:
+        typeof envelope?.success === 'boolean'
+          ? envelope.success
+          : response.success,
+      message:
+        typeof envelope?.message === 'string' && envelope.message.trim()
+          ? envelope.message
+          : response.message,
+    };
   }
 
+  const sites = response.sites ?? [];
+
   return {
-    success: response.success,
-    message: response.message,
-    meta: normalizeLegacyMeta(response, response.sites?.length ?? 0),
-    sites: response.sites ?? [],
+    success:
+      typeof envelope?.success === 'boolean'
+        ? envelope.success
+        : response.success,
+    message:
+      typeof envelope?.message === 'string' && envelope.message.trim()
+        ? envelope.message
+        : response.message,
+    meta: normalizeLegacyMeta(response, sites.length),
+    sites,
     ...(response.cache_generated_at
       ? { cache_generated_at: response.cache_generated_at }
       : {}),
@@ -126,17 +194,36 @@ const normalizeSitesResponse = (
 };
 
 const normalizeDevicesResponse = (
-  response: CohortDevicesResponse | LegacyCohortDevicesResponse
+  response: CohortDevicesResponse | LegacyCohortDevicesResponse,
+  envelope?: ApiEnvelope
 ): CohortDevicesResponse => {
   if ('meta' in response) {
-    return response;
+    return {
+      ...response,
+      success:
+        typeof envelope?.success === 'boolean'
+          ? envelope.success
+          : response.success,
+      message:
+        typeof envelope?.message === 'string' && envelope.message.trim()
+          ? envelope.message
+          : response.message,
+    };
   }
 
+  const devices = response.devices ?? [];
+
   return {
-    success: response.success,
-    message: response.message,
-    meta: normalizeLegacyMeta(response, response.devices?.length ?? 0),
-    devices: response.devices ?? [],
+    success:
+      typeof envelope?.success === 'boolean'
+        ? envelope.success
+        : response.success,
+    message:
+      typeof envelope?.message === 'string' && envelope.message.trim()
+        ? envelope.message
+        : response.message,
+    meta: normalizeLegacyMeta(response, devices.length),
+    devices,
     ...(response.cache_generated_at
       ? { cache_generated_at: response.cache_generated_at }
       : {}),
@@ -223,15 +310,18 @@ export class DeviceService {
       signal,
       suppressErrorLogging: true,
     });
-    const data = response.data;
+    const responsePayload = response.data;
 
-    if ('success' in data && !data.success) {
-      throw new Error(data.message || 'Failed to get cohort sites');
+    if ('success' in responsePayload && !responsePayload.success) {
+      throw new Error(responsePayload.message || 'Failed to get cohort sites');
     }
 
-    return normalizeSitesResponse(
-      data as CohortSitesResponse | LegacyCohortSitesResponse
-    );
+    const unwrapped =
+      extractEnvelopeData<CohortSitesResponse | LegacyCohortSitesResponse>(
+        responsePayload
+      ) || (responsePayload as CohortSitesResponse | LegacyCohortSitesResponse);
+
+    return normalizeSitesResponse(unwrapped, responsePayload);
   }
 
   async getCohortSitesLegacy(
@@ -243,13 +333,17 @@ export class DeviceService {
     const response = await this.authenticatedClient.post<
       LegacyCohortSitesResponse | ApiErrorResponse
     >(`${DEVICE_COHORTS_PATH}/sites`, request, { params, signal });
-    const data = response.data;
+    const responsePayload = response.data;
 
-    if ('success' in data && !data.success) {
-      throw new Error(data.message || 'Failed to get cohort sites');
+    if ('success' in responsePayload && !responsePayload.success) {
+      throw new Error(responsePayload.message || 'Failed to get cohort sites');
     }
 
-    return normalizeSitesResponse(data as LegacyCohortSitesResponse);
+    const unwrapped =
+      extractEnvelopeData<LegacyCohortSitesResponse>(responsePayload) ||
+      (responsePayload as LegacyCohortSitesResponse);
+
+    return normalizeSitesResponse(unwrapped, responsePayload);
   }
 
   // Get devices using cohort - authenticated endpoint
@@ -282,15 +376,21 @@ export class DeviceService {
       signal,
       suppressErrorLogging: true,
     });
-    const data = response.data;
+    const responsePayload = response.data;
 
-    if ('success' in data && !data.success) {
-      throw new Error(data.message || 'Failed to get cohort devices');
+    if ('success' in responsePayload && !responsePayload.success) {
+      throw new Error(
+        responsePayload.message || 'Failed to get cohort devices'
+      );
     }
 
-    return normalizeDevicesResponse(
-      data as CohortDevicesResponse | LegacyCohortDevicesResponse
-    );
+    const unwrapped =
+      extractEnvelopeData<CohortDevicesResponse | LegacyCohortDevicesResponse>(
+        responsePayload
+      ) ||
+      (responsePayload as CohortDevicesResponse | LegacyCohortDevicesResponse);
+
+    return normalizeDevicesResponse(unwrapped, responsePayload);
   }
 
   async getCohortDevicesLegacy(
@@ -302,13 +402,19 @@ export class DeviceService {
     const response = await this.authenticatedClient.post<
       LegacyCohortDevicesResponse | ApiErrorResponse
     >(`${DEVICE_COHORTS_PATH}/devices`, request, { params, signal });
-    const data = response.data;
+    const responsePayload = response.data;
 
-    if ('success' in data && !data.success) {
-      throw new Error(data.message || 'Failed to get cohort devices');
+    if ('success' in responsePayload && !responsePayload.success) {
+      throw new Error(
+        responsePayload.message || 'Failed to get cohort devices'
+      );
     }
 
-    return normalizeDevicesResponse(data as LegacyCohortDevicesResponse);
+    const unwrapped =
+      extractEnvelopeData<LegacyCohortDevicesResponse>(responsePayload) ||
+      (responsePayload as LegacyCohortDevicesResponse);
+
+    return normalizeDevicesResponse(unwrapped, responsePayload);
   }
 
   // Get active groups cohort ids - authenticated endpoint
@@ -320,23 +426,28 @@ export class DeviceService {
     const response = await this.authenticatedClient.get<
       GroupCohortsResponse | ApiErrorResponse
     >(`/users/groups/${groupId}/cohorts`, { signal });
-    const data = response.data;
+    const responsePayload = response.data;
 
-    if ('success' in data && !data.success) {
-      throw new Error(data.message || 'Failed to get group cohorts');
+    if ('success' in responsePayload && !responsePayload.success) {
+      throw new Error(responsePayload.message || 'Failed to get group cohorts');
     }
 
-    const groupCohortsData = data as GroupCohortsResponse;
     const normalizedCohortIds = Array.from(
       new Set(
-        (Array.isArray(groupCohortsData.data) ? groupCohortsData.data : [])
+        extractGroupCohortIds(responsePayload)
           .map(cohortId => cohortId?.trim())
           .filter((cohortId): cohortId is string => Boolean(cohortId))
       )
     );
 
+    const envelope = responsePayload as ApiEnvelope;
+
     return {
-      ...groupCohortsData,
+      success: typeof envelope.success === 'boolean' ? envelope.success : true,
+      message:
+        typeof envelope.message === 'string' && envelope.message.trim()
+          ? envelope.message
+          : 'Group cohorts retrieved successfully',
       data: normalizedCohortIds,
     };
   }

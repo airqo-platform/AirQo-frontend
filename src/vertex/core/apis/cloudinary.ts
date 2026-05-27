@@ -17,6 +17,8 @@
  * DO NOT use a signed preset here as we are uploading directly from the client.
  */
 
+import { getCloudinaryName, getCloudinaryPreset } from '@/lib/envConstants';
+
 export interface CloudinaryUploadOptions {
   folder?: string;
   tags?: string[];
@@ -29,7 +31,7 @@ export interface CloudinaryUploadResult {
 }
 
 const VALID_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 
 const validateFile = (file: File) => {
   if (!file) throw new Error('No file provided');
@@ -37,21 +39,13 @@ const validateFile = (file: File) => {
     throw new Error('Invalid file type. Please upload an image (JPEG, PNG, GIF, WEBP).');
   }
   if (file.size > MAX_FILE_SIZE) {
-    throw new Error('File size too large. Maximum size is 10MB.');
+    throw new Error('File size too large. Maximum size is 2MB.');
   }
 };
 
 const getCloudinaryConfig = () => {
-  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_NAME;
-  const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_PRESET;
-
-  if (!cloudName) {
-    throw new Error('Configuration Error: NEXT_PUBLIC_CLOUDINARY_NAME is missing in environment variables.');
-  }
-
-  if (!uploadPreset) {
-    throw new Error('Configuration Error: NEXT_PUBLIC_CLOUDINARY_PRESET is missing in environment variables.');
-  }
+  const cloudName = getCloudinaryName();
+  const uploadPreset = getCloudinaryPreset();
 
   return {
     cloudinaryUrl: `https://api.cloudinary.com/v1_1/${cloudName}`,
@@ -64,11 +58,9 @@ export const uploadToCloudinary = async (
   options: CloudinaryUploadOptions = {}
 ): Promise<CloudinaryUploadResult> => {
   validateFile(file);
-  const { cloudinaryUrl, uploadPreset } = getCloudinaryConfig();
 
   const formData = new FormData();
   formData.append('file', file);
-  formData.append('upload_preset', uploadPreset);
 
   if (options.folder) {
     formData.append('folder', options.folder);
@@ -79,7 +71,7 @@ export const uploadToCloudinary = async (
   }
 
   try {
-    const response = await fetch(`${cloudinaryUrl}/image/upload`, {
+    const response = await fetch('/api/cloudinary/upload', {
       method: 'POST',
       body: formData,
     });
@@ -87,17 +79,18 @@ export const uploadToCloudinary = async (
     const result = await response.json();
 
     if (!response.ok) {
-        throw new Error(result.error?.message || 'Upload failed');
+      throw new Error(result.error || 'Upload failed');
     }
 
     return result as CloudinaryUploadResult;
-  } catch (error: any) {
-    throw new Error(error.message || 'Upload failed');
+  } catch (error: unknown) {
+    const errMsg = error instanceof Error ? error.message : 'Upload failed';
+    throw new Error(errMsg);
   }
 };
 
 // Maintain backward compatibility if needed, or deprecate
-export const cloudinaryImageUpload = async (formData: any) => {
+export const cloudinaryImageUpload = async (formData: FormData) => {
   const { cloudinaryUrl } = getCloudinaryConfig();
   return await fetch(`${cloudinaryUrl}/image/upload`, {
     method: 'POST',
