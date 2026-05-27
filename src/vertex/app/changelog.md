@@ -17,7 +17,7 @@ Introduced a comprehensive bulk upload and column mapping system for devices, en
 - **Interactive File Import**: Supports uploading `.csv` and `.json` files via the new `ReusableFileUpload` component integrated into the `ImportDeviceModal`.
 - **Intelligent Field Auto-Mapping**: Automatically detects and maps file columns to expected device fields (like Device Name, Serial Number, Latitude, Longitude, API Code/Connection URL, Description, and Device Number) based on header names, with manual overrides.
 - **Bulk Import Preview**: Displays a tabular preview of the first 5 parsed and transformed devices, allowing users to verify mapped values prior to final submission.
-- **Import Results & Downloadable Failure CSV**: Provides a summary of the upload success (imported, failed, and total count) with a breakdown table. Supports downloading a custom `failed_devices.csv` containing error reasons for any rejected rows.
+- **Import Results & Inline Banners**: Integrates with the context-aware `useBanner` system to show inline success, warning, or error alerts inside the modal. Provides a summary breakdown table and supports downloading a custom `failed_devices.csv` for any rejected rows.
 - **Global Settings Application**: Allows operators to set a single Sensor Manufacturer (Network), Category, and optional tags to apply across all imported devices in a batch.
 
 </details>
@@ -26,7 +26,7 @@ Introduced a comprehensive bulk upload and column mapping system for devices, en
 <summary><strong>Core Infrastructure & APIs (3)</strong></summary>
 
 - **Bulk Device Import API Calls**: Added `importBulkDevicesCSV` and `importBulkDevicesJSON` methods under `devices` api client to submit imports through the `/devices/soft/bulk` API endpoint.
-- **Bulk Import Hook**: Created `useBulkImportDevices` hook using `useMutation` to handle both file types, surface status alerts (`ReusableToast`) depending on success/partial-failure/failure states, and invalidate corresponding React Query lists.
+- **Bulk Import Hook**: Created `useBulkImportDevices` hook using `useMutation` to handle both CSV and JSON payloads, delegating feedback notifications to caller callbacks, and invalidating corresponding React Query lists.
 - **Types Definition**: Added TypeScript interfaces `BulkImportDeviceResult` and `BulkImportDeviceResponse` in `app/types/devices.ts`.
 
 </details>

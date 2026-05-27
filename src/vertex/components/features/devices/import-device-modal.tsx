@@ -70,7 +70,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
   const [mappingMode, setMappingMode] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
   const [transformedPreview, setTransformedPreview] = useState<any[]>([]);
-  const { showBanner } = useBanner();
+  const { showBanner, hideBanner } = useBanner();
   const importDevice = useImportDevice();
   const bulkImport = useBulkImportDevices();
   const { networks, isLoading: isLoadingNetworks } = useNetworks();
@@ -324,12 +324,48 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       { type: 'json', payload },
       {
         onSuccess: (data) => {
-          if (data.results) {
-            setBulkResults(data);
-            setPreviewMode(false);
-          } else {
+          if (data.failed === 0) {
             onOpenChange(false);
+            setTimeout(() => {
+              showBanner({
+                severity: 'success',
+                title: 'Success',
+                message: `${data.imported} device(s) imported successfully.`,
+                scoped: false,
+              });
+            }, 300);
+          } else {
+            if (data.imported === 0) {
+              showBanner({
+                severity: 'error',
+                title: 'Import Failed',
+                message: `Failed to import all ${data.failed} device(s).`,
+                scoped: true,
+              });
+            } else {
+              showBanner({
+                severity: 'warning',
+                title: 'Partial Import Success',
+                message: `${data.imported} device(s) imported successfully, but ${data.failed} failed.`,
+                scoped: true,
+              });
+            }
+
+            if (data.results) {
+              setBulkResults(data);
+              setPreviewMode(false);
+            } else {
+              onOpenChange(false);
+            }
           }
+        },
+        onError: (error) => {
+          showBanner({
+            severity: 'error',
+            title: 'Bulk Import Failed',
+            message: getApiErrorMessage(error),
+            scoped: true,
+          });
         }
       }
     );
@@ -379,6 +415,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       setMappingMode(false);
       setPreviewMode(false);
       setTransformedPreview([]);
+      hideBanner();
     }
   }, [open, prefilledNetwork]);
 

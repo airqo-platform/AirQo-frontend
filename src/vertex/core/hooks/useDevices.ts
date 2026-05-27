@@ -574,25 +574,6 @@ export const useBulkImportDevices = () => {
       return devices.importBulkDevicesJSON(variables.payload);
     },
     onSuccess: (data) => {
-      // The API returns HTTP 207, which is a success from Axios perspective
-      // Handle the success/partial success/failure messages
-      if (data.failed === 0) {
-        ReusableToast({
-          message: `${data.imported} device(s) imported successfully!`,
-          type: 'SUCCESS',
-        });
-      } else if (data.imported === 0) {
-        ReusableToast({
-          message: `Failed to import all ${data.failed} device(s)`,
-          type: 'ERROR',
-        });
-      } else {
-        ReusableToast({
-          message: `${data.imported} device(s) imported, ${data.failed} failed`,
-          type: 'WARNING',
-        });
-      }
-
       // Refresh based on active module
       if (isAdminModule) {
         queryClient.invalidateQueries({ queryKey: ['network-devices'] });
@@ -607,12 +588,6 @@ export const useBulkImportDevices = () => {
           queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
         }
       }
-    },
-    onError: error => {
-      ReusableToast({
-        message: `Bulk Import Failed: ${getApiErrorMessage(error)}`,
-        type: 'ERROR',
-      });
     },
   });
 };
