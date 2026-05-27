@@ -4,6 +4,38 @@
 
 ---
 
+## Version 1.23.49
+**Released:** May 26, 2026
+
+### Grid Management Banner Migration
+
+Migrated all toast-based notifications in the Grid Management module to the centralized `InfoBanner` system powered by `useBanner`. Since most grid actions occur inside dialogs, banner scoping was applied to keep errors inline in the active dialog while deferring success banners until the dialog has closed.
+
+<details>
+<summary><strong>Grid Management Banner Migration (4)</strong></summary>
+
+- **Dialog Error Feedback**: `create-grid.tsx`, `edit-grid-details-dialog.tsx`, and `admin-levels-modal.tsx` now use `scoped: true` so validation and action errors remain visible inside the active dialog without closing it.
+- **Post-Dialog Success Feedback**: `create-grid.tsx` and `edit-grid-details-dialog.tsx` now use `scoped: false` with a `setTimeout(100ms)` to allow the dialog to unmount before showing the global success banner.
+ - **Admin Level Error Feedback Migrated**: `create-admin-level.tsx` now routes existing error feedback through the centralized banner flow instead of the previous toast-based mechanism.
+- **Copy Feedback Hardened**: `grid-details-card.tsx` and `grid-measurements-api-card.tsx` now use `scoped: false` and handle async copy failures with a fallback error message.
+
+</details>
+
+<details>
+<summary><strong>Files Updated (7)</strong></summary>
+
+- `src/vertex/components/features/grids/create-grid.tsx` [MODIFIED]
+- `src/vertex/components/features/grids/edit-grid-details-dialog.tsx` [MODIFIED]
+- `src/vertex/components/features/grids/admin-levels-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/grids/create-admin-level.tsx` [MODIFIED]
+- `src/vertex/components/features/grids/grid-details-card.tsx` [MODIFIED]
+- `src/vertex/components/features/grids/grid-measurements-api-card.tsx` [MODIFIED]
+- `src/vertex/core/hooks/useGrids.ts` [MODIFIED]
+
+</details>
+
+---
+
 ## Version 1.23.48
 **Released:** May 23, 2026
 

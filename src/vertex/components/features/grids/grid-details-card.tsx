@@ -5,8 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { AqCopy01, AqEdit01 } from "@airqo/icons-react";
-import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { Grid } from "@/app/types/grids";
+import { useBanner } from "@/context/banner-context";
 
 interface GridDetailsCardProps {
     grid: Grid;
@@ -15,14 +15,19 @@ interface GridDetailsCardProps {
 }
 
 const GridDetailsCard: React.FC<GridDetailsCardProps> = ({ grid, onEdit, loading }) => {
+    const { showBanner } = useBanner();
+
     if (loading) {
         return <Card className="w-full rounded-lg flex flex-col justify-between items-center p-8"><Loader2 className="w-6 h-6 animate-spin" /></Card>;
     }
 
-    const handleCopy = (text: string) => {
-        if (text) {
-            navigator.clipboard.writeText(text);
-            ReusableToast({ message: "Copied to clipboard", type: "SUCCESS" });
+    const handleCopy = async (text: string) => {
+        if (!text) return;
+        try {
+            await navigator.clipboard.writeText(text);
+            showBanner({ message: "Copied to clipboard", severity: "success", scoped: false });
+        } catch {
+            showBanner({ message: "Failed to copy to clipboard", severity: "error", scoped: false });
         }
     };
 

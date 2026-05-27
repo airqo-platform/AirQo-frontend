@@ -13,6 +13,14 @@ interface ErrorWithData extends Error {
     data?: ApiErrorResponse | string;
 }
 
+const HTML_PATTERN = /<\/?[a-z][\s\S]*>/i;
+const GENERIC_ERROR = 'An unexpected error occurred. Please try again.';
+
+const fallbackIfHtml = (msg: string): string => {
+    const trimmed = msg.trim();
+    return !trimmed || HTML_PATTERN.test(trimmed) ? GENERIC_ERROR : trimmed;
+};
+
 const getMessageFromApiData = (data: ApiErrorResponse | string): string | null => {
     if (typeof data === 'string') {
         return data;
@@ -64,21 +72,21 @@ export const getApiErrorMessage = (error: unknown): string => {
 
         if (error.response?.data) {
             const message = getMessageFromApiData(error.response.data as ApiErrorResponse | string);
-            if (message) return message;
+            if (message) return fallbackIfHtml(message);
         }
     }
 
     // 5. Fetch/custom errors with preserved backend payload: Object.assign(new Error(...), { data })
     if (error instanceof Error && 'data' in error) {
         const message = getMessageFromApiData((error as ErrorWithData).data ?? {});
-        if (message) return message;
+        if (message) return fallbackIfHtml(message);
     }
 
     // 6. Fallback to standard Error message
     if (error instanceof Error) {
-        return error.message;
+        return fallbackIfHtml(error.message);
     }
 
     // 7. Generic fallback
-    return 'An unexpected error occurred. Please try again.';
+    return GENERIC_ERROR;
 };
