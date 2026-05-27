@@ -4,6 +4,41 @@
 
 ---
 
+## Version 1.23.51
+**Released:** May 27, 2026
+
+### Cohort Management Banner Migration
+
+Migrated all toast-based notifications in the Cohort Management module to the centralized `InfoBanner` system powered by `useBanner`. Errors inside dialogs use `scoped: true` to stay inline while the dialog remains open; post-dialog success feedback uses `scoped: false` via the shared `useDeferredBanner` hook to delay display until the dialog has fully unmounted.
+
+<details>
+<summary><strong>Cohort Management Banner Migration (5)</strong></summary>
+
+- **Hook-Level Callback Pattern**: All mutation hooks in `useCohorts.ts` now accept optional `onSuccess`/`onError` callbacks at initialization rather than per-call `mutate()` arguments, aligning with the reliable pattern established in the grid module.
+- **Dialog Error Feedback**: `create-cohort.tsx`, `edit-cohort-details-modal.tsx`, `device-name-parser.tsx`, and `assign/unassign-cohort-devices.tsx` use `scoped: true` so validation and mutation errors remain visible inside the active dialog without closing it.
+- **Post-Dialog Success Feedback**: `create-cohort.tsx`, `assign-cohort-devices.tsx`, and `unassign-cohort-devices.tsx` use the shared `useDeferredBanner` hook (`scoped: false`) to show global success banners only after the dialog has unmounted.
+- **Detail Card & API Card Feedback**: `cohort-detail-card.tsx` and `cohort-measurements-api-card.tsx` replace toast calls with `useBanner` for copy feedback and action outcomes, keeping feedback in context.
+- **Shared Utilities Adopted**: `useDeferredBanner` hook and `AFTER_DIALOG_CLOSE_MS` constant (merged from the grid branch) are now consumed across the cohort module, removing all local `bannerTimerRef + setTimeout` patterns.
+
+</details>
+
+<details>
+<summary><strong>Files Updated (9)</strong></summary>
+
+- `src/vertex/core/hooks/useCohorts.ts` [MODIFIED]
+- `src/vertex/components/features/cohorts/create-cohort.tsx` [MODIFIED]
+- `src/vertex/components/features/cohorts/edit-cohort-details-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/cohorts/cohort-detail-card.tsx` [MODIFIED]
+- `src/vertex/components/features/cohorts/cohort-measurements-api-card.tsx` [MODIFIED]
+- `src/vertex/components/features/cohorts/device-name-parser.tsx` [MODIFIED]
+- `src/vertex/components/features/cohorts/assign-cohort-devices.tsx` [MODIFIED]
+- `src/vertex/components/features/cohorts/unassign-cohort-devices.tsx` [MODIFIED]
+- `src/vertex/app/changelog.md` [MODIFIED]
+
+</details>
+
+---
+
 ## Version 1.23.50
 **Released:** May 27, 2026
 
