@@ -12,6 +12,10 @@ class AnalyticsService with UiLoggy {
     String eventName, {
     Map<String, Object>? properties,
   }) async {
+    if (!FeatureFlagService.instance.isAnalyticsEnabled) {
+      return;
+    }
+
     try {
       await Posthog().capture(
         eventName: eventName,
