@@ -188,8 +188,19 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         skipEmptyLines: true,
         complete: (results) => {
           const headers = results.meta.fields || [];
+          const rows = results.data as Record<string, string | number | undefined>[];
+
+          if (rows.length === 0) {
+            setFileHeaders(headers);
+            setParsedData([]);
+            setFieldMapping({});
+            setMappingMode(false);
+            setErrors({ general: "The uploaded CSV does not contain any devices." });
+            return;
+          }
+
           setFileHeaders(headers);
-          setParsedData(results.data as Record<string, string | number | undefined>[]);
+          setParsedData(rows);
           autoMapFields(headers);
           setMappingMode(true);
         },
