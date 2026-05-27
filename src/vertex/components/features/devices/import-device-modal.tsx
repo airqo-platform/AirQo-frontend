@@ -64,12 +64,12 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [bulkFile, setBulkFile] = useState<File | null>(null);
   const [bulkResults, setBulkResults] = useState<BulkImportDeviceResponse | null>(null);
-  const [parsedData, setParsedData] = useState<any[]>([]);
+  const [parsedData, setParsedData] = useState<Record<string, string | number | undefined>[]>([]);
   const [fileHeaders, setFileHeaders] = useState<string[]>([]);
   const [fieldMapping, setFieldMapping] = useState<Record<string, string>>({});
   const [mappingMode, setMappingMode] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
-  const [transformedPreview, setTransformedPreview] = useState<any[]>([]);
+  const [transformedPreview, setTransformedPreview] = useState<Record<string, string | string[] | number | undefined>[]>([]);
   const { showBanner, hideBanner } = useBanner();
   const importDevice = useImportDevice();
   const bulkImport = useBulkImportDevices();
@@ -185,11 +185,11 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         complete: (results) => {
           const headers = results.meta.fields || [];
           setFileHeaders(headers);
-          setParsedData(results.data);
+          setParsedData(results.data as Record<string, string | number | undefined>[]);
           autoMapFields(headers);
           setMappingMode(true);
         },
-        error: (err: any) => {
+        error: (err: { message: string }) => {
           setErrors({ general: `Failed to parse CSV: ${err.message}` });
         }
       });
@@ -204,10 +204,10 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         }
         const headers = Object.keys(devices[0] || {});
         setFileHeaders(headers);
-        setParsedData(devices);
+        setParsedData(devices as Record<string, string | number | undefined>[]);
         autoMapFields(headers);
         setMappingMode(true);
-      } catch (e) {
+      } catch {
         setErrors({ general: 'Invalid JSON file format' });
       }
     } else {
@@ -234,7 +234,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       }
 
       const transformedDevices = parsedData.map(row => {
-        const device: any = {};
+        const device: Record<string, string | string[] | number | undefined> = {};
         EXPECTED_FIELDS.forEach(field => {
           const mappedHeader = fieldMapping[field.key];
           if (mappedHeader && row[mappedHeader] !== undefined && row[mappedHeader] !== "") {
@@ -417,7 +417,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       setTransformedPreview([]);
       hideBanner();
     }
-  }, [open, prefilledNetwork]);
+  }, [open, prefilledNetwork, hideBanner]);
 
   return (
     <ReusableDialog
