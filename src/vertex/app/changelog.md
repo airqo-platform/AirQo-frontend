@@ -4,7 +4,7 @@
 
 ---
 
-## Version 1.23.51
+## Version 1.23.52
 **Released:** May 27, 2026
 
 ### Cohort Management Banner Migration
@@ -34,6 +34,40 @@ Migrated all toast-based notifications in the Cohort Management module to the ce
 - `src/vertex/components/features/cohorts/assign-cohort-devices.tsx` [MODIFIED]
 - `src/vertex/components/features/cohorts/unassign-cohort-devices.tsx` [MODIFIED]
 - `src/vertex/app/changelog.md` [MODIFIED]
+
+</details>
+
+---
+
+## Version 1.23.51
+**Released:** May 27, 2026
+
+### Page Satisfaction Banner Layout Refinement
+
+Refactored the page satisfaction banner into a floating, responsive card positioned at the bottom-right of the screen to eliminate overlaps with sidebars and improve desktop/mobile layout consistency.
+
+<details>
+<summary><strong>Banner Layout Migration (3)</strong></summary>
+
+- **Floating Card Design**: Repositioned the satisfaction banner from static page layout to a floating `Card` component anchored at the bottom-right corner, preventing overlap with dynamic sidebar states and ensuring consistent visibility across viewports.
+- **Responsive Sidebar Awareness**: Added `isSidebarCollapsed` prop to `PageSatisfactionBanner` to dynamically adjust the banner's left offset based on sidebar state (`lg:left-[88px]` for collapsed, `lg:left-[256px]` for expanded), maintaining proper spacing on desktop layouts.
+- **Content Bottom Padding Adjustment**: Increased main content area bottom padding to `pb-32` to prevent the floating banner from obscuring page content in scroll-to-bottom scenarios.
+
+</details>
+
+<details>
+<summary><strong>Code Quality & Formatting (2)</strong></summary>
+
+- **Prettier Formatting**: Applied consistent indentation and spacing standardization throughout the feedback banner component for improved code maintainability.
+- **Import Organization**: Reorganized component imports for clarity, adding the `Card` wrapper import to support the floating layout design.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (2)</strong></summary>
+
+- `src/vertex/components/features/feedback/page-satisfaction-banner.tsx` [MODIFIED]
+- `src/vertex/components/layout/layout.tsx` [MODIFIED]
 
 </details>
 
