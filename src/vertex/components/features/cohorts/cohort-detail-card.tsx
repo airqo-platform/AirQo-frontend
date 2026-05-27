@@ -5,6 +5,7 @@ import { AqCopy01, AqEdit01 } from "@airqo/icons-react";
 import { Switch } from "@/components/ui/switch";
 import { useBanner } from "@/context/banner-context";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
+import { useDeferredBanner } from "@/core/hooks/useDeferredBanner";
 import { useEffect, useState } from "react";
 import { useUpdateCohortDetails, useOriginalCohort } from "@/core/hooks/useCohorts";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
@@ -43,6 +44,7 @@ const CohortDetailsCard: React.FC<CohortDetailsCardProps> = ({
   );
 
   const { showBanner } = useBanner();
+  const { showDeferredBanner } = useDeferredBanner();
   const { mutateAsync: updateCohort, isPending } = useUpdateCohortDetails();
   const { data: originalData } = useOriginalCohort(id, { enabled: !!isDuplicate });
   const originalCohort = isDuplicate && originalData?.success ? originalData.original_cohort : null;
@@ -60,13 +62,11 @@ const CohortDetailsCard: React.FC<CohortDetailsCardProps> = ({
     try {
       await updateCohort({ cohortId: id, data: { visibility: targetVisibility } });
       setIsVisibilityDialogOpen(false);
-      setTimeout(() => {
-        showBanner({
-          severity: 'success',
-          message: `Cohort is now ${targetVisibility ? 'public' : 'private'}`,
-          scoped: false,
-        });
-      }, 100);
+      showDeferredBanner({
+        severity: 'success',
+        message: `Cohort is now ${targetVisibility ? 'public' : 'private'}`,
+        scoped: false,
+      });
     } catch (error) {
       showBanner({
         severity: 'error',
@@ -80,13 +80,11 @@ const CohortDetailsCard: React.FC<CohortDetailsCardProps> = ({
     try {
       await updateCohort({ cohortId: id, data: { cohort_tags: selectedTags } });
       setIsTagsDialogOpen(false);
-      setTimeout(() => {
-        showBanner({
-          severity: 'success',
-          message: 'Cohort tags updated successfully',
-          scoped: false,
-        });
-      }, 100);
+      showDeferredBanner({
+        severity: 'success',
+        message: 'Cohort tags updated successfully',
+        scoped: false,
+      });
     } catch (error) {
       showBanner({
         severity: 'error',

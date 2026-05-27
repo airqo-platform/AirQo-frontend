@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { useDeferredBanner } from "@/core/hooks/useDeferredBanner";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
@@ -45,6 +46,7 @@ const CohortDetailsModal: React.FC<CohortDetailsModalProps> = ({
         tags: [] as string[],
     });
     const { showBanner } = useBanner();
+    const { showDeferredBanner } = useDeferredBanner();
     const updateCohortName = useUpdateCohortName();
     const updateCohortDetails = useUpdateCohortDetails();
     const [showIgnoredTooltip, setShowIgnoredTooltip] = useState({
@@ -125,13 +127,11 @@ const CohortDetailsModal: React.FC<CohortDetailsModalProps> = ({
                 });
             }
             onClose();
-            setTimeout(() => {
-                showBanner({
-                    severity: 'success',
-                    message: 'Cohort details updated successfully',
-                    scoped: false,
-                });
-            }, 100);
+            showDeferredBanner({
+                severity: 'success',
+                message: 'Cohort details updated successfully',
+                scoped: false,
+            });
         } catch (error) {
             showBanner({
                 severity: 'error',
