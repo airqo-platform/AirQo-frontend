@@ -257,6 +257,27 @@ export interface DeviceCreationResponse {
   created_device: Device;
 }
 
+export interface BulkImportDeviceResult {
+  serial_number: string;
+  long_name: string;
+  success: boolean;
+  created_device?: {
+    _id: string;
+    name: string;
+    network: string;
+  };
+  error?: string;
+}
+
+export interface BulkImportDeviceResponse {
+  success: boolean;
+  message: string;
+  imported: number;
+  failed: number;
+  total: number;
+  results: BulkImportDeviceResult[];
+}
+
 export interface DeviceUpdateGroupResponse {
   success: boolean;
   message: string;

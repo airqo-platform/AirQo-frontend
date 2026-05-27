@@ -37,10 +37,7 @@ const _refreshAuthToken = async (): Promise<{
 }> => {
   const session = await getSession();
   const currentToken = normalizeOAuthAccessToken(
-    (session as { accessToken?: string; user?: { accessToken?: string } })
-      ?.accessToken ||
-      (session as { user?: { accessToken?: string } })?.user?.accessToken ||
-      ''
+    (session as { accessToken?: string })?.accessToken || ''
   );
 
   if (!currentToken) {

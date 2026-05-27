@@ -23,6 +23,8 @@ class FeatureFlagService with UiLoggy {
 
   bool isEnabled(AppFeatureFlag flag) => _flags[flag] ?? false;
 
+  bool get isAnalyticsEnabled => isEnabled(AppFeatureFlag.researchMode);
+
   Future<void> reloadFlags() async {
     try {
       await Posthog().reloadFeatureFlags();

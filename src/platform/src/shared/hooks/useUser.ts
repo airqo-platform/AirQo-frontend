@@ -5,6 +5,7 @@ import { userService } from '../services/userService';
 import type {
   UpdateUserDetailsRequest,
   UpdatePasswordRequest,
+  SetPasswordRequest,
   CreateOrganizationRequest,
   GetPendingInvitationsResponse,
 } from '../types/api';
@@ -47,6 +48,16 @@ export const useUpdatePassword = () => {
       { arg }: { arg: { userId: string; passwordData: UpdatePasswordRequest } }
     ) => {
       return await userService.updatePassword(arg.userId, arg.passwordData);
+    }
+  );
+};
+
+// Set password for OAuth-authenticated users
+export const useSetPassword = () => {
+  return useSWRMutation(
+    'user/set-password',
+    async (key, { arg }: { arg: SetPasswordRequest }) => {
+      return await userService.setPassword(arg);
     }
   );
 };

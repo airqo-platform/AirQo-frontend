@@ -88,7 +88,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
       await authRepository.loginWithEmailAndPassword(
           event.username, event.password);
 
-      await AnalyticsService().trackUserLoggedIn();
       final userId =
           await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
       if (userId != null) {
@@ -97,6 +96,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
           userProperties: {'email': event.username},
         );
       }
+      await AnalyticsService().trackUserLoggedIn();
       GlobalAuthManager.instance.resetSessionExpiredGuard();
       emit(AuthLoaded(AuthPurpose.login));
     } catch (e) {
@@ -119,7 +119,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
     emit(AuthLoading());
     try {
       await authRepository.registerWithEmailAndPassword(event.model);
-      await AnalyticsService().trackUserRegistered();
       final userId =
           await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
       if (userId != null) {
@@ -128,6 +127,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
           userProperties: {'email': event.model.email ?? ''},
         );
       }
+      await AnalyticsService().trackUserRegistered();
       GlobalAuthManager.instance.resetSessionExpiredGuard();
       emit(AuthLoaded(AuthPurpose.register));
     } catch (e) {
@@ -198,12 +198,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
     emit(AuthLoading());
     try {
       await socialAuthRepository.loginWithProvider(event.provider);
-      await AnalyticsService().trackUserLoggedIn(method: event.provider);
       final userId =
           await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
       if (userId != null) {
         await AnalyticsService().setUserIdentity(userId: userId);
       }
+      await AnalyticsService().trackUserLoggedIn(method: event.provider);
       GlobalAuthManager.instance.resetSessionExpiredGuard();
       loggy.info('OAuth login successful via ${event.provider}');
       emit(AuthLoaded(AuthPurpose.login));

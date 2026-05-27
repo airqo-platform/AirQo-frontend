@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState,useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -15,6 +15,9 @@ import ReusableButton from "@/components/shared/button/ReusableButton";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
 import { useNetworks } from "@/core/hooks/useNetworks";
 import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
+import { useBanner } from "@/context/banner-context";
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
+import { useDeferredBanner } from "@/core/hooks/useDeferredBanner";
 
 // Lazy load MiniMap to reduce initial bundle size
 const MiniMap = dynamic(() => import("@/components/features/mini-map/mini-map"), {
@@ -58,7 +61,9 @@ type GridFormValues = z.infer<typeof gridFormSchema>;
 export function CreateGridForm() {
   const [open, setOpen] = useState(false);
   const polygon = useAppSelector((state) => state.grids.polygon);
-  const { createGrid, isLoading } = useCreateGrid();
+  const { showBanner } = useBanner();
+  const { showDeferredBanner } = useDeferredBanner();
+
   const { networks, isLoading: isLoadingNetworks } = useNetworks();
 
   const form = useForm<GridFormValues>({
@@ -71,6 +76,25 @@ export function CreateGridForm() {
     },
   });
 
+  const handleClose = () => {
+    setOpen(false);
+    form.reset();
+  };
+
+  const { createGrid, isLoading } = useCreateGrid({
+    onSuccess: () => {
+      handleClose();
+      showDeferredBanner({ message: `New grid added!`, severity: "success", scoped: false });
+    },
+    onError: (error) => {
+      showBanner({
+        message: `Failed to create grid: ${getApiErrorMessage(error)}`,
+        severity: "error",
+        scoped: true,
+      });
+    }
+  });
+
   useEffect(() => {
     if (polygon) {
       form.setValue("shapefile", JSON.stringify(polygon), { shouldValidate: true });
@@ -78,11 +102,6 @@ export function CreateGridForm() {
       form.setValue("shapefile", '{"type":"","coordinates":[]}', { shouldValidate: true });
     }
   }, [polygon, form]);
-
-  const handleClose = () => {
-    setOpen(false);
-    form.reset();
-  };
 
   const onSubmit = (data: GridFormValues) => {
     const gridData = {
@@ -92,11 +111,7 @@ export function CreateGridForm() {
       network: data.network,
     };
 
-    createGrid(gridData, {
-      onSuccess: () => {
-        handleClose();
-      },
-    });
+    createGrid(gridData);
   };
 
   return (

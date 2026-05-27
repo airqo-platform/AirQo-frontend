@@ -1,8 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { authService } from '../services/authService';
-import { buildServerApiUrl } from '@/shared/lib/api-routing';
-import { normalizeOAuthAccessToken } from './oauth-session';
+import {
+  fetchEnhancedUserProfile,
+  normalizeOAuthAccessToken,
+  type BackendOAuthProfile,
+} from './oauth-session';
+import type { AuthMethods } from '@/shared/types/api';
 
 const isProduction = process.env.NODE_ENV === 'production';
 const sessionCookieName = isProduction
@@ -25,58 +29,10 @@ const isExpiredAt = (value: unknown): boolean => {
   return expiresAt <= Date.now();
 };
 
-interface OAuthProfilePayload {
-  _id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  profilePicture?: string;
-}
-
-interface OAuthProfileResponse {
-  success: boolean;
-  message?: string;
-  data?: OAuthProfilePayload;
-}
-
 const fetchOAuthProfile = async (
   accessToken: string
-): Promise<OAuthProfilePayload | null> => {
-  let profileUrl = '';
-
-  try {
-    profileUrl = buildServerApiUrl('/users/profile/enhanced');
-  } catch {
-    profileUrl = '';
-  }
-
-  if (!profileUrl) {
-    return null;
-  }
-
-  try {
-    const response = await fetch(profileUrl, {
-      method: 'GET',
-      cache: 'no-store',
-      headers: {
-        Accept: 'application/json',
-        Authorization: `JWT ${accessToken}`,
-      },
-    });
-
-    if (!response.ok) {
-      return null;
-    }
-
-    const payload = (await response.json()) as OAuthProfileResponse;
-    if (!payload?.success || !payload.data?._id) {
-      return null;
-    }
-
-    return payload.data;
-  } catch {
-    return null;
-  }
+): Promise<BackendOAuthProfile | null> => {
+  return fetchEnhancedUserProfile({ accessToken });
 };
 
 // Helper function to check token expiration and log
@@ -93,6 +49,43 @@ const isTokenInvalid = (
   }
 
   return isExpiredAt(expiresAt);
+};
+
+const AUTH_METHOD_KEYS = [
+  'password',
+  'google',
+  'github',
+  'linkedin',
+  'microsoft',
+  'twitter',
+  'facebook',
+  'apple',
+] as const;
+
+const normalizeAuthMethods = (value: unknown): AuthMethods | undefined => {
+  if (!value || typeof value !== 'object') {
+    return undefined;
+  }
+
+  const candidate = value as Partial<
+    Record<(typeof AUTH_METHOD_KEYS)[number], unknown>
+  >;
+  const hasKnownKey = AUTH_METHOD_KEYS.some(key => key in candidate);
+
+  if (!hasKnownKey) {
+    return undefined;
+  }
+
+  return {
+    password: Boolean(candidate.password),
+    google: Boolean(candidate.google),
+    github: Boolean(candidate.github),
+    linkedin: Boolean(candidate.linkedin),
+    microsoft: Boolean(candidate.microsoft),
+    twitter: Boolean(candidate.twitter),
+    facebook: Boolean(candidate.facebook),
+    apple: Boolean(candidate.apple),
+  };
 };
 
 export const authOptions: any = {
@@ -135,6 +128,7 @@ export const authOptions: any = {
             image: profile.profilePicture,
             _id: profile._id,
             accessToken: oauthToken,
+            authMethods: normalizeAuthMethods(profile.authMethods),
           };
         }
 
@@ -167,6 +161,7 @@ export const authOptions: any = {
             _id: loginData._id,
             accessToken: normalizeOAuthAccessToken(loginData.token),
             expiresAt: loginData.expiresAt,
+            authMethods: normalizeAuthMethods(loginData.authMethods),
           };
         } catch (error: any) {
           // Enhanced error handling to include status and full response data
@@ -214,6 +209,7 @@ export const authOptions: any = {
           typeof user.expiresAt === 'string' ? user.expiresAt : undefined;
         token.firstName = user.firstName;
         token.lastName = user.lastName;
+        token.authMethods = normalizeAuthMethods(user.authMethods);
       }
 
       if (trigger === 'update' && session) {
@@ -225,6 +221,10 @@ export const authOptions: any = {
         }
         if (typeof session.expiresAt === 'string') {
           token.expiresAt = session.expiresAt;
+        }
+        if (session.authMethods) {
+          token.authMethods =
+            normalizeAuthMethods(session.authMethods) || token.authMethods;
         }
       }
 
@@ -242,6 +242,7 @@ export const authOptions: any = {
         typeof (token as any)?.expiresAt === 'string'
           ? ((token as any).expiresAt as string)
           : undefined;
+      const authMethods = normalizeAuthMethods((token as any)?.authMethods);
       if (isTokenInvalid(accessToken, expiresAt)) {
         return { user: null };
       }
@@ -249,12 +250,11 @@ export const authOptions: any = {
       // Add access token and user ID to session
       (session as any).accessToken = accessToken;
       (session as any).expiresAt = expiresAt;
+      (session as any).authMethods = authMethods;
       if (session.user) {
         (session.user as any)._id = (token as any)._id;
         (session.user as any).firstName = (token as any).firstName;
         (session.user as any).lastName = (token as any).lastName;
-        (session.user as any).accessToken = accessToken;
-        (session.user as any).expiresAt = expiresAt;
       }
       return session;
     },

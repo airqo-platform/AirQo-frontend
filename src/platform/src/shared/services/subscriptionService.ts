@@ -83,6 +83,18 @@ interface MutationResponse {
   data?: Record<string, unknown>;
 }
 
+interface ChangeTierResponse {
+  success: boolean;
+  message: string;
+  comingSoon?: boolean;
+  data?: {
+    previousTier?: Extract<SubscriptionTier, 'Standard' | 'Premium'>;
+    newTier?: Extract<SubscriptionTier, 'Standard' | 'Premium'>;
+    effectiveFrom?: 'immediately' | 'next_billing_period';
+    apiLimits?: ApiRateLimitsPayload;
+  };
+}
+
 type BackendTransaction = {
   _id?: string;
   id?: string;
@@ -264,8 +276,12 @@ const normalizeStatus = (status?: string): NormalizedSubscriptionStatus => {
     return 'past_due';
   }
 
-  if (normalized === 'cancelled') {
+  if (normalized === 'cancelled' || normalized === 'canceled') {
     return 'cancelled';
+  }
+
+  if (normalized === 'paused') {
+    return 'paused';
   }
 
   return 'inactive';
@@ -991,6 +1007,63 @@ export class SubscriptionService {
           errorPayload,
           'Failed to create checkout session'
         ),
+        comingSoon: isPaymentProviderUnavailable(status, errorPayload),
+      };
+    }
+  }
+
+  async changeTier(
+    tier: Extract<SubscriptionTier, 'Standard' | 'Premium'>
+  ): Promise<ChangeTierResponse> {
+    await this.ensureAuthenticated();
+
+    try {
+      const response = await this.authenticatedClient.patch<unknown>(
+        '/users/transactions/change-tier',
+        { tier },
+        {
+          params: this.withTenant(),
+        }
+      );
+
+      const data = extractEnvelopeData<{
+        previousTier?: string;
+        newTier?: string;
+        effectiveFrom?: string;
+        apiLimits?: ApiRateLimitsPayload | null;
+      }>(response.data);
+
+      const previousTier = data?.previousTier
+        ? normalizeTier(data.previousTier)
+        : undefined;
+      const newTier = data?.newTier ? normalizeTier(data.newTier) : undefined;
+      const effectiveFrom =
+        data?.effectiveFrom === 'next_billing_period'
+          ? 'next_billing_period'
+          : data?.effectiveFrom === 'immediately'
+            ? 'immediately'
+            : undefined;
+
+      return {
+        success: true,
+        message: extractMessage(response.data, 'Subscription tier updated'),
+        data: {
+          previousTier: previousTier === 'Free' ? undefined : previousTier,
+          newTier: newTier === 'Free' ? undefined : newTier,
+          effectiveFrom,
+          apiLimits: data?.apiLimits || undefined,
+        },
+      };
+    } catch (error) {
+      const response = (
+        error as { response?: { status?: number; data?: unknown } }
+      ).response;
+      const status = response?.status || 500;
+      const errorPayload = response?.data;
+
+      return {
+        success: false,
+        message: extractMessage(errorPayload, 'Failed to change tier'),
         comingSoon: isPaymentProviderUnavailable(status, errorPayload),
       };
     }

@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { motion } from 'framer-motion';
 import { useDispatch } from 'react-redux';
+import { useSession } from 'next-auth/react';
 import { cn } from '@/shared/lib/utils';
 import { Card } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
@@ -21,11 +22,15 @@ import { AqMenu01 } from '@airqo/icons-react';
 export const Header: React.FC<HeaderProps> = ({
   className,
   hideOnScroll = false,
+  showAuthControlsOnlyWhenAuthenticated = false,
 }) => {
   const dispatch = useDispatch();
   const isVisible = useScrollVisibility(hideOnScroll);
   const pageTitle = usePageTitle();
   const isMobile = useMediaQuery({ maxWidth: 768 });
+  const { status } = useSession();
+  const shouldShowAuthControls =
+    !showAuthControlsOnlyWhenAuthenticated || status === 'authenticated';
 
   return (
     <motion.header
@@ -55,9 +60,9 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* App Dropdown and Profile Dropdown */}
           <div className="flex items-center space-x-2">
-            {!isMobile && <OrganizationSelector />}
+            {shouldShowAuthControls && !isMobile && <OrganizationSelector />}
             <AppDropdown />
-            <ProfileDropdown />
+            {shouldShowAuthControls && <ProfileDropdown />}
           </div>
         </div>
       </Card>

@@ -71,7 +71,7 @@ void main() async {
         final postHogConfig = PostHogConfig(postHogApiKey);
         postHogConfig.host = postHogHost;
         postHogConfig.debug = !kReleaseMode;
-        postHogConfig.captureApplicationLifecycleEvents = true;
+        postHogConfig.captureApplicationLifecycleEvents = false;
         postHogConfig.personProfiles = PostHogPersonProfiles.always;
         try {
           await Posthog().setup(postHogConfig);
