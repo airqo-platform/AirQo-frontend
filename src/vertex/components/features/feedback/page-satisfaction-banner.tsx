@@ -223,7 +223,7 @@ export const PageSatisfactionBanner: React.FC<PageSatisfactionBannerProps> = ({
   return (
     <>
       <div
-        className={`fixed bottom-0 right-0 z-50 px-3 pb-3 transition-all duration-300 ${
+        className={`fixed bottom-0 right-0 z-50 px-3 pb-3 transition-all duration-300 pointer-events-none ${
           isSidebarCollapsed ? 'lg:left-[88px]' : 'lg:left-[256px]'
         } left-0`}
       >
@@ -231,7 +231,7 @@ export const PageSatisfactionBanner: React.FC<PageSatisfactionBannerProps> = ({
           bordered
           padding="py-2 px-2"
           radius="rounded-xl"
-          className="max-w-7xl mx-auto"
+          className="ml-auto w-fit max-w-full pointer-events-auto"
         >
           <div className="flex flex-col sm:flex-row items-center justify-end gap-4">
             <div className="text-center sm:text-right">
