@@ -1,1059 +1,860 @@
 'use client';
 
-import React, { useState, useCallback, useEffect, Component, ReactNode } from 'react';
-import { CheckCircle2, Loader2, AlertCircle, Smartphone, FileSpreadsheet, Database, Plus } from 'lucide-react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useQueryClient } from '@tanstack/react-query';
+import { useSession } from 'next-auth/react';
 import ReusableDialog from '@/components/shared/dialog/ReusableDialog';
-import ReusableInputField from '@/components/shared/inputfield/ReusableInputField';
-import { Form, FormField } from '@/components/ui/form';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
 import { useAppSelector } from '@/core/redux/hooks';
 import { useRouter } from 'next/navigation';
-import { QRScanner } from '../devices/qr-scanner';
 import { useClaimDevice, useBulkClaimDevices } from '@/core/hooks/useDevices';
 import { useUserContext } from '@/core/hooks/useUserContext';
 import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
-import { useGroupCohorts, useVerifyCohort, useAssignCohortsToGroup, useAssignCohortsToUser } from '@/core/hooks/useCohorts';
+import {
+  useGroupCohorts,
+  useVerifyCohort,
+  useAssignCohortsToGroup,
+  useAssignCohortsToUser,
+} from '@/core/hooks/useCohorts';
 import { cohorts as cohortsApi } from '@/core/apis/cohorts';
-import logger from '@/lib/logger';
-import { FileUploadParser } from './FileUploadParser';
-import { DeviceEntryRow } from './DeviceEntryRow';
-import { BulkClaimResults } from './BulkClaimResults';
-import ReusableButton from '@/components/shared/button/ReusableButton';
+import { BulkClaimResults } from './steps/BulkClaimResults';
 import { Device } from '@/app/types/devices';
 
-interface QRScannerErrorBoundaryProps {
-    children: ReactNode;
-    onError?: () => void;
+import CohortImportStep from './steps/CohortImportStep';
+import ManualInputStep from './steps/ManualInputStep';
+import QRScanStep from './steps/QRScanStep';
+import SuccessStep from './steps/SuccessStep';
+import {
+  BulkConfirmationStep,
+  CohortConfirmStep,
+  ConfirmationStep,
+} from './steps/ConfirmationSteps';
+import MethodSelectStep from './steps/MethodSelectStep';
+import BulkInputStep from './steps/BulkInputStep';
+
+import { parseQRCode } from './utils';
+
+// Dialog action types
+type DialogPrimaryAction = NonNullable<React.ComponentProps<typeof ReusableDialog>['primaryAction']>;
+type DialogSecondaryAction = NonNullable<React.ComponentProps<typeof ReusableDialog>['secondaryAction']>;
+
+// ============================================================
+// TYPES
+// ============================================================
+
+export type FlowStep =
+  | 'method-select'
+  | 'manual-input'
+  | 'qr-scan'
+  | 'confirmation'
+  | 'claiming'
+  | 'success'
+  | 'bulk-input'
+  | 'bulk-confirmation'
+  | 'bulk-claiming'
+  | 'bulk-results'
+  | 'cohort-import'
+  | 'cohort-confirm'
+  | 'assigning-cohort';
+
+export interface ClaimedDeviceInfo {
+  deviceId: string;
+  deviceName: string;
+  cohortId: string;
 }
 
-interface QRScannerErrorBoundaryState {
-    hasError: boolean;
+export interface ClaimDeviceModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess?: (deviceInfo: ClaimedDeviceInfo) => void;
+  initialStep?: FlowStep;
 }
 
-class QRScannerErrorBoundary extends Component<QRScannerErrorBoundaryProps, QRScannerErrorBoundaryState> {
-    constructor(props: QRScannerErrorBoundaryProps) {
-        super(props);
-        this.state = { hasError: false };
-    }
+export interface BulkDevice {
+  device_name: string;
+  claim_token: string;
+}
 
-    static getDerivedStateFromError(): QRScannerErrorBoundaryState {
-        return { hasError: true };
-    }
-
-    componentDidCatch(error: Error) {
-        if (process.env.NODE_ENV === 'development') {
-            logger.warn('QR Scanner error caught by boundary:', error);
-        }
-
-        if (this.props.onError) {
-            this.props.onError();
-        }
-    }
-
-    render(): ReactNode {
-        if (this.state.hasError) {
-            return null;
-        }
-
-        return this.props.children;
-    }
+export interface VerifiedCohort {
+  id: string;
+  name: string;
 }
 
 // ============================================================
 // FORM SCHEMA
 // ============================================================
+
 const claimDeviceSchema = z.object({
-    device_id: z
-        .string()
-        .min(1, 'Device ID is required')
-        .min(3, 'Device ID must be at least 3 characters')
-        .regex(
-            /^[a-zA-Z0-9_-]+$/,
-            'Device ID can only contain letters, numbers, underscores, and hyphens'
-        ),
-    claim_token: z
-        .string()
-        .min(1, 'Claim token is required')
-        .min(4, 'Claim token must be at least 4 characters'),
+  device_id: z
+    .string()
+    .min(1, 'Device ID is required')
+    .min(3, 'Device ID must be at least 3 characters')
+    .regex(
+      /^[a-zA-Z0-9_-]+$/,
+      'Device ID can only contain letters, numbers, underscores, and hyphens'
+    ),
+  claim_token: z
+    .string()
+    .min(1, 'Claim token is required')
+    .min(4, 'Claim token must be at least 4 characters'),
 });
 
-type ClaimDeviceFormData = z.infer<typeof claimDeviceSchema>;
+export type ClaimDeviceFormData = z.infer<typeof claimDeviceSchema>;
 
-export type FlowStep = 'method-select' | 'manual-input' | 'qr-scan' | 'confirmation' | 'claiming' | 'success' | 'bulk-input' | 'bulk-confirmation' | 'bulk-claiming' | 'bulk-results' | 'cohort-import' | 'cohort-confirm' | 'assigning-cohort';
+// ============================================================
+// SHARED SUB-COMPONENTS
+// ============================================================
 
-export interface ClaimedDeviceInfo {
-    deviceId: string;
-    deviceName: string;
-    cohortId: string;
-}
+export const ErrorAlert = ({ message }: { message: string }) => (
+  <div className="flex items-center p-3 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 rounded-lg">
+    <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0" />
+    {message}
+  </div>
+);
 
-export interface ClaimDeviceModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    onSuccess?: (deviceInfo: ClaimedDeviceInfo) => void;
-    initialStep?: FlowStep;
-}
+const LoadingSpinner = ({
+  title,
+  subtitle,
+}: {
+  title: string;
+  subtitle?: string;
+}) => (
+  <div className="flex flex-col items-center justify-center py-8 space-y-4">
+    <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+    <div className="text-center">
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+        {title}
+      </h3>
+      {subtitle && (
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          {subtitle}
+        </p>
+      )}
+    </div>
+  </div>
+);
+
+// ============================================================
+// MAIN MODAL
+// ============================================================
 
 const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
-    isOpen,
-    onClose,
-    onSuccess,
-    initialStep = 'method-select',
+  isOpen,
+  onClose,
+  onSuccess,
+  initialStep = 'method-select',
 }) => {
-    const router = useRouter();
-    const user = useAppSelector(state => state.user.userDetails);
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const { data: session } = useSession();
+  const user = useAppSelector(state => state.user.userDetails);
 
-    const { isPersonalContext, isExternalOrg, activeGroup, userScope } = useUserContext();
+  const { isPersonalContext, isExternalOrg, activeGroup, userScope } =
+    useUserContext();
 
-    const { data: groupCohortIds } = useGroupCohorts(activeGroup?._id, {
-        enabled: !isPersonalContext && !!activeGroup?._id,
+  const userId = (session?.user as { id?: string })?.id || user?._id;
+
+  const { data: groupCohortIds } = useGroupCohorts(activeGroup?._id, {
+    enabled: !isPersonalContext && !!activeGroup?._id,
+  });
+
+  const defaultCohort = groupCohortIds?.[0] || null;
+
+  const {
+    mutate: claimDevice,
+    isPending,
+    isSuccess,
+    data: claimData,
+    error: claimError,
+  } = useClaimDevice();
+  const {
+    mutate: bulkClaimDevices,
+    isPending: isBulkPending,
+    isSuccess: isBulkSuccess,
+    data: bulkClaimData,
+    error: bulkClaimError,
+  } = useBulkClaimDevices();
+  const { mutateAsync: verifyCohort } = useVerifyCohort();
+  const { mutate: assignCohortsToGroup } = useAssignCohortsToGroup();
+  const { mutate: assignCohortsToUser } = useAssignCohortsToUser();
+
+  const [step, setStep] = useState<FlowStep>(initialStep);
+  const [error, setError] = useState<string | null>(null);
+  const [bulkDevices, setBulkDevices] = useState<BulkDevice[]>([]);
+  const [pendingSingleClaim, setPendingSingleClaim] = useState<{
+    deviceId: string;
+    claimToken: string;
+  } | null>(null);
+  const [cohortIdInput, setCohortIdInput] = useState('');
+  const [previousStep, setPreviousStep] = useState<FlowStep>('method-select');
+  const [isImportingCohort, setIsImportingCohort] = useState(false);
+  const [isCohortAssignmentSuccess, setIsCohortAssignmentSuccess] =
+    useState(false);
+  const [verifiedCohort, setVerifiedCohort] = useState<VerifiedCohort | null>(
+    null
+  );
+
+  const formMethods = useForm<ClaimDeviceFormData>({
+    resolver: zodResolver(claimDeviceSchema),
+    defaultValues: { device_id: '', claim_token: '' },
+  });
+
+  // ── Cache invalidation helpers ──────────────────────────────
+
+  const invalidatePersonalCaches = useCallback(() => {
+    // Invalidate personal cohorts so usePersonalUserCohorts refetches
+    queryClient.invalidateQueries({
+      queryKey: ['personalUserCohorts', userId],
     });
+    // Invalidate my-devices list
+    queryClient.invalidateQueries({ queryKey: ['myDevices'] });
+    // Invalidate device count for personal scope
+    queryClient.invalidateQueries({ queryKey: ['deviceCount', 'personal'] });
+  }, [queryClient, userId]);
 
-    const defaultCohort = groupCohortIds?.[0] || null;
-
-    const { mutate: claimDevice, isPending, isSuccess, data: claimData, error: claimError } = useClaimDevice();
-
-    const { mutate: bulkClaimDevices, isPending: isBulkPending, isSuccess: isBulkSuccess, data: bulkClaimData, error: bulkClaimError } = useBulkClaimDevices();
-
-    const [step, setStep] = useState<FlowStep>(initialStep);
-    const [error, setError] = useState<string | null>(null);
-
-    const [bulkDevices, setBulkDevices] = useState<Array<{ device_name: string; claim_token: string }>>([]);
-    const [pendingSingleClaim, setPendingSingleClaim] = useState<{ deviceId: string; claimToken: string } | null>(null);
-    const [cohortIdInput, setCohortIdInput] = useState('');
-    const [previousStep, setPreviousStep] = useState<FlowStep>('method-select');
-    const [isImportingCohort, setIsImportingCohort] = useState(false);
-    const [isCohortAssignmentSuccess, setIsCohortAssignmentSuccess] = useState(false);
-    const [verifiedCohort, setVerifiedCohort] = useState<{ id: string; name: string } | null>(null);
-
-    const { mutateAsync: verifyCohort } = useVerifyCohort();
-
-    const { mutate: assignCohortsToGroup } = useAssignCohortsToGroup();
-    const { mutate: assignCohortsToUser } = useAssignCohortsToUser();
-
-    const formMethods = useForm<ClaimDeviceFormData>({
-        resolver: zodResolver(claimDeviceSchema),
-        defaultValues: {
-            device_id: '',
-            claim_token: '',
-        },
+  const invalidateGroupCaches = useCallback(() => {
+    queryClient.invalidateQueries({
+      queryKey: ['groupCohorts', activeGroup?._id],
     });
+    queryClient.invalidateQueries({
+      queryKey: ['deviceCount', activeGroup?._id],
+    });
+    queryClient.invalidateQueries({ queryKey: ['devices'] });
+  }, [queryClient, activeGroup?._id]);
 
-    const resetState = useCallback(() => {
-        formMethods.reset();
-        setStep('method-select');
-        setError(null);
-        setBulkDevices([]);
-        setPendingSingleClaim(null);
-        setCohortIdInput('');
-        setPreviousStep('method-select');
-        setIsImportingCohort(false);
-        setIsCohortAssignmentSuccess(false);
-        setVerifiedCohort(null);
-    }, [formMethods]);
+  // ── Reset ───────────────────────────────────────────────────
 
-    const handleClose = useCallback(() => {
-        resetState();
-        onClose();
-    }, [resetState, onClose]);
+  const resetState = useCallback(() => {
+    formMethods.reset();
+    setStep('method-select');
+    setError(null);
+    setBulkDevices([]);
+    setPendingSingleClaim(null);
+    setCohortIdInput('');
+    setPreviousStep('method-select');
+    setIsImportingCohort(false);
+    setIsCohortAssignmentSuccess(false);
+    setVerifiedCohort(null);
+  }, [formMethods]);
 
-    useEffect(() => {
-        if (isSuccess && claimData) {
-            setStep('success');
+  const handleClose = useCallback(() => {
+    resetState();
+    onClose();
+  }, [resetState, onClose]);
 
-            if (onSuccess && claimData.device) {
-                onSuccess({
-                    deviceId: claimData.device.name,
-                    deviceName: claimData.device.long_name || claimData.device.name,
-                    cohortId: '',
-                });
-            }
-        }
-    }, [isSuccess, claimData, onSuccess]);
+  // ── Effects ─────────────────────────────────────────────────
 
-    useEffect(() => {
-        if (claimError) {
-            setError(claimError.message || 'Failed to claim device. Please try again.');
-            setStep('manual-input');
-        }
-    }, [claimError]);
+  useEffect(() => {
+    if (isOpen) {
+      setStep(initialStep);
+      setError(null);
+      formMethods.reset();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
-    useEffect(() => {
-        if (isPending && step !== 'claiming') {
-            setStep('claiming');
-        }
-    }, [isPending, step]);
-
-    // Bulk claim effects
-    useEffect(() => {
-        if (isBulkSuccess && bulkClaimData) {
-            setStep('bulk-results');
-        }
-    }, [isBulkSuccess, bulkClaimData]);
-
-    useEffect(() => {
-        if (bulkClaimError) {
-            setError(bulkClaimError.message || 'Failed to claim devices. Please try again.');
-            setStep('bulk-input');
-        }
-    }, [bulkClaimError]);
-
-    useEffect(() => {
-        if (isBulkPending && step !== 'bulk-claiming') {
-            setStep('bulk-claiming');
-        }
-    }, [isBulkPending, step]);
-
-    useEffect(() => {
-        if (isOpen) {
-            setStep(initialStep);
-            setError(null);
-            formMethods.reset();
-        }
-        // We only want to reset when the modal opens.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isOpen]);
-
-    const handleClaimDevice = (deviceId: string, claimToken: string) => {
-        if (!user?._id) {
-            setError('User session not available. Please try again.');
-            return;
-        }
-
-        if (!isPersonalContext && !defaultCohort) {
-            setError('No cohorts found. Please create a cohort first.');
-            return;
-        }
-
-        setError(null);
-        claimDevice({
-            device_name: deviceId,
-            user_id: user._id,
-            claim_token: claimToken,
-            ...(defaultCohort && { cohort_id: defaultCohort }),
+  useEffect(() => {
+    if (isSuccess && claimData) {
+      setStep('success');
+      if (isPersonalContext) invalidatePersonalCaches();
+      else invalidateGroupCaches();
+      if (onSuccess && claimData.device) {
+        onSuccess({
+          deviceId: claimData.device.name,
+          deviceName: claimData.device.long_name || claimData.device.name,
+          cohortId: '',
         });
-    };
+      }
+    }
+  }, [isSuccess, claimData]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const onManualSubmit = (data: ClaimDeviceFormData) => {
-        setPendingSingleClaim({ deviceId: data.device_id, claimToken: data.claim_token });
-        setPreviousStep('manual-input');
-        setStep('confirmation');
-    };
+  useEffect(() => {
+    if (claimError) {
+      setError(
+        claimError.message || 'Failed to claim device. Please try again.'
+      );
+      setStep('manual-input');
+    }
+  }, [claimError]);
 
-    const handleConfirmSingleClaim = () => {
-        if (isPending) return;
-        if (pendingSingleClaim) {
-            handleClaimDevice(pendingSingleClaim.deviceId, pendingSingleClaim.claimToken);
-        }
-    };
+  useEffect(() => {
+    if (isPending && step !== 'claiming') setStep('claiming');
+  }, [isPending, step]);
 
-    const handleBulkSubmit = () => {
-        if (!user?._id) {
-            setError('User session not available. Please try again.');
-            return;
-        }
+  useEffect(() => {
+    if (isBulkSuccess && bulkClaimData) {
+      setStep('bulk-results');
+      if (isPersonalContext) invalidatePersonalCaches();
+      else invalidateGroupCaches();
+    }
+  }, [isBulkSuccess, bulkClaimData]); // eslint-disable-line react-hooks/exhaustive-deps
 
-        const validDevices = bulkDevices.filter(d => d.device_name.trim() && d.claim_token.trim());
+  useEffect(() => {
+    if (bulkClaimError) {
+      setError(
+        bulkClaimError.message || 'Failed to claim devices. Please try again.'
+      );
+      setStep('bulk-input');
+    }
+  }, [bulkClaimError]);
 
-        if (validDevices.length === 0) {
-            setError('Please add at least one device with both name and token.');
-            return;
-        }
+  useEffect(() => {
+    if (isBulkPending && step !== 'bulk-claiming') setStep('bulk-claiming');
+  }, [isBulkPending, step]);
 
-        if (!isPersonalContext && !defaultCohort) {
-            setError('No cohorts found. Please create a cohort first.');
-            return;
-        }
+  // ── Handlers ────────────────────────────────────────────────
 
-        setError(null);
-        setStep('bulk-confirmation');
-    };
+  const handleClaimDevice = (deviceId: string, claimToken: string) => {
+    if (!user?._id) {
+      setError('User session not available. Please try again.');
+      return;
+    }
+    if (!isPersonalContext && !defaultCohort) {
+      setError('No cohorts found. Please create a cohort first.');
+      return;
+    }
+    setError(null);
+    claimDevice({
+      device_name: deviceId,
+      user_id: user._id,
+      claim_token: claimToken,
+      ...(defaultCohort && { cohort_id: defaultCohort }),
+    });
+  };
 
-    const handleConfirmBulkClaim = () => {
-        if (!user?._id) return;
+  const onManualSubmit = (data: ClaimDeviceFormData) => {
+    setPendingSingleClaim({
+      deviceId: data.device_id,
+      claimToken: data.claim_token,
+    });
+    setPreviousStep('manual-input');
+    setStep('confirmation');
+  };
 
-        const validDevices = bulkDevices.filter(d => d.device_name.trim() && d.claim_token.trim());
-
-        bulkClaimDevices({
-            user_id: user._id,
-            devices: validDevices,
-            ...(defaultCohort && { cohort_id: defaultCohort }),
-        });
-    };
-
-    const handleAddDevice = () => {
-        setBulkDevices([...bulkDevices, { device_name: '', claim_token: '' }]);
-    };
-
-    const handleRemoveDevice = (index: number) => {
-        setBulkDevices(bulkDevices.filter((_, i) => i !== index));
-    };
-
-    const handleDeviceChange = (index: number, field: 'device_name' | 'claim_token', value: string) => {
-        setBulkDevices(prev =>
-            prev.map((device, i) =>
-                i === index ? { ...device, [field]: value } : device
-            )
-        );
-    };
-
-    const handleFileImport = (devices: Array<{ device_name: string; claim_token: string }>) => {
-        setBulkDevices(devices);
-    };
-
-    const parseQRCode = (qrData: string): { deviceId: string; claimToken: string } | null => {
-        try {
-            const url = new URL(qrData);
-            const deviceId = url.searchParams.get('id');
-            const claimToken = url.searchParams.get('token');
-            if (deviceId && claimToken) return { deviceId, claimToken };
-        } catch {
-            // Not a URL
-        }
-
-        try {
-            const parsed = JSON.parse(qrData);
-            if (parsed.device_id && parsed.token) {
-                return { deviceId: parsed.device_id, claimToken: parsed.token };
-            }
-        } catch {
-            // Not JSON
-        }
-
-        return null;
-    };
-
-    const handleQRScan = async (result: string) => {
-        const parsed = parseQRCode(result);
-
-        if (parsed) {
-            setPendingSingleClaim({ deviceId: parsed.deviceId, claimToken: parsed.claimToken });
-            setPreviousStep('qr-scan');
-            setStep('confirmation');
-        } else {
-            setError('Invalid QR code format. Please try manual entry.');
-            setStep('manual-input');
-        }
-    };
-
-    const handleConfirmCohortImport = () => {
-        if (!verifiedCohort) {
-            setError('Session expired or cohort details are missing. Please verify the cohort again.');
-            setStep('cohort-import');
-            return;
-        }
-
-        if (isExternalOrg && activeGroup?._id) {
-            setStep('assigning-cohort');
-            assignCohortsToGroup(
-                { groupId: activeGroup._id, cohortIds: [verifiedCohort.id] },
-                {
-                    onSuccess: () => {
-                        setTimeout(() => {
-                            setIsCohortAssignmentSuccess(true);
-                            setStep('success');
-                        }, 3000);
-                    },
-                    onError: (err) => {
-                        setError(getApiErrorMessage(err));
-                        setStep('cohort-import');
-                    },
-                }
-            );
-            return;
-        }
-
-        if (isPersonalContext) {
-            if (!user?._id) {
-                setError('User session not available. Please try again.');
-                setStep('cohort-import');
-                return;
-            }
-            setStep('assigning-cohort');
-            assignCohortsToUser(
-                { userId: user._id, cohortIds: [verifiedCohort.id] },
-                {
-                    onSuccess: () => {
-                        setTimeout(() => {
-                            setIsCohortAssignmentSuccess(true);
-                            setStep('success');
-                        }, 3000);
-                    },
-                    onError: (err) => {
-                        setError(getApiErrorMessage(err));
-                        setStep('cohort-import');
-                    },
-                }
-            );
-            return;
-        }
-
-        // Fallback if context is indeterminate
-        setError('Unable to determine assignment context. Please try again.');
-        setStep('cohort-import');
-    };
-
-    const handleVerifyCohort = async () => {
-        const input = cohortIdInput.trim();
-        if (!input) {
-            setError('Please enter a valid Cohort ID');
-            return;
-        }
-
-        // Validate 24-char alphanumeric string
-        if (!/^[a-zA-Z0-9]{24}$/.test(input)) {
-            setError('Cohort ID must be a 24-character alphanumeric code.');
-            return;
-        }
-
-        setError(null);
-        setIsImportingCohort(true);
-
-        try {
-            const result = await verifyCohort(input);
-
-            if (result.success) {
-                const cohortName =
-                    (result as { data?: { name?: string } }).data?.name ||
-                    result?.cohort?.name ||
-                    '';
-                if (cohortName?.toLowerCase() === 'airqo') {
-                    setError('This cohort is not available.');
-                    setIsImportingCohort(false);
-                    return;
-                }
-
-                if (isExternalOrg) {
-                    if (!activeGroup?._id) {
-                        setError('No organization is selected. Please try again.');
-                        return;
-                    }
-                    setVerifiedCohort({ id: input, name: cohortName || input });
-                    setStep('cohort-confirm');
-                    return;
-                }
-
-                if (isPersonalContext) {
-                    if (!user?._id) {
-                        setError('User session not available. Please try again.');
-                        return;
-                    }
-                    setVerifiedCohort({ id: input, name: cohortName || input });
-                    setStep('cohort-confirm');
-                    return;
-                }
-
-                try {
-                    const cohortDetails = await cohortsApi.getCohortDetailsApi(input);
-                    const cohort = Array.isArray(cohortDetails?.cohorts) ? cohortDetails.cohorts[0] : null;
-
-                    if (cohort && Array.isArray(cohort.devices) && cohort.devices.length > 0) {
-                        const devices = cohort.devices.map((d: unknown) => {
-                            const device = d as Device;
-                            return {
-                                device_name: device.name || '',
-                                claim_token: ''
-                            };
-                        });
-                        setBulkDevices(devices);
-                        setStep('bulk-input');
-                    } else {
-                        setError('Cohort found but it has no devices assigned.');
-                    }
-                } catch (detailsErr: unknown) {
-                    const message = detailsErr instanceof Error ? detailsErr.message : 'Failed to fetch cohort devices';
-                    setError(message);
-                }
-            } else {
-                setError(result.message || 'Invalid Cohort ID');
-            }
-        } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : 'Failed to verify Cohort ID';
-            setError(message);
-        } finally {
-            setIsImportingCohort(false);
-        }
-    };
-
-    const getDialogConfig = () => {
-        const baseConfig = {
-            title: 'Claim AirQo Device',
-            showFooter: false,
-            showCloseButton: true,
-            preventBackdropClose: false,
-            primaryAction: undefined,
-            secondaryAction: undefined,
-        };
-
-        switch (step) {
-            case 'method-select':
-                return { ...baseConfig, showFooter: false };
-            case 'qr-scan':
-                return {
-                    ...baseConfig,
-                    title: 'Scan QR Code',
-                    showFooter: true,
-                    secondaryAction: { label: 'Back', onClick: () => setStep('method-select'), variant: 'outline' as const },
-                };
-            case 'cohort-import':
-                return {
-                    ...baseConfig,
-                    title: 'Import from Cohort',
-                    showFooter: true,
-                    primaryAction: { label: isImportingCohort ? 'Verifying...' : 'Import', onClick: handleVerifyCohort, disabled: isImportingCohort },
-                    secondaryAction: { label: 'Back', onClick: () => setStep('method-select'), variant: 'outline' as const },
-                };
-            case 'cohort-confirm':
-                return {
-                    ...baseConfig,
-                    title: 'Confirm Cohort Import',
-                    showFooter: true,
-                    primaryAction: { label: 'Confirm & Import', onClick: handleConfirmCohortImport },
-                    secondaryAction: { label: 'Cancel', onClick: () => setStep('cohort-import'), variant: 'outline' as const },
-                };
-            case 'assigning-cohort':
-                return { ...baseConfig, title: 'Assigning Cohort...', showCloseButton: false, preventBackdropClose: true, showFooter: false };
-            case 'manual-input':
-                return {
-                    ...baseConfig,
-                    showFooter: true,
-                    primaryAction: { label: isPending ? 'Claiming...' : 'Claim Device', onClick: formMethods.handleSubmit(onManualSubmit), disabled: isPending },
-                    secondaryAction: { label: 'Back', onClick: () => setStep('qr-scan'), variant: 'outline' as const },
-                };
-            case 'bulk-input':
-                return {
-                    ...baseConfig,
-                    title: 'Add Multiple Devices',
-                    showFooter: true,
-                    primaryAction: { label: 'Review & Claim', onClick: handleBulkSubmit },
-                    secondaryAction: { label: 'Back', onClick: () => setStep('method-select'), variant: 'outline' as const },
-                };
-            case 'confirmation':
-                return {
-                    ...baseConfig,
-                    title: 'Confirm Claim',
-                    showFooter: true,
-                    primaryAction: { label: isPending ? 'Claiming...' : 'Confirm & Claim', onClick: handleConfirmSingleClaim, disabled: isPending },
-                    secondaryAction: { label: 'Cancel', onClick: () => setStep(previousStep), variant: 'outline' as const },
-                };
-            case 'bulk-confirmation':
-                return {
-                    ...baseConfig,
-                    title: 'Confirm Bulk Claim',
-                    showFooter: true,
-                    primaryAction: { label: isBulkPending ? 'Claiming...' : 'Confirm & Claim', onClick: handleConfirmBulkClaim, disabled: isBulkPending },
-                    secondaryAction: { label: 'Cancel', onClick: () => setStep('bulk-input'), variant: 'outline' as const },
-                };
-            case 'claiming':
-                return { ...baseConfig, title: 'Claiming Device...', showCloseButton: false, preventBackdropClose: true, showFooter: false };
-            case 'bulk-claiming':
-                return { ...baseConfig, title: 'Claiming Devices...', showCloseButton: false, preventBackdropClose: true, showFooter: false };
-            case 'success':
-                return {
-                    ...baseConfig,
-                    title: 'Success!',
-                    showFooter: true,
-                    primaryAction: {
-                        label: 'Go to Devices',
-                        onClick: () => {
-                            handleClose();
-                            const redirectPath = userScope === 'personal' ? '/devices/my-devices' : '/devices/overview';
-                            router.push(redirectPath);
-                        }
-                    }
-                };
-            case 'bulk-results': {
-                const hasSuccessfulClaims = (bulkClaimData?.data?.successful_claims?.length ?? 0) > 0;
-                return {
-                    ...baseConfig,
-                    title: 'Bulk Claim Results',
-                    showFooter: true,
-                    primaryAction: {
-                        label: hasSuccessfulClaims ? 'Go to Devices' : 'Close',
-                        onClick: () => {
-                            handleClose();
-                            if (hasSuccessfulClaims) {
-                                const redirectPath = userScope === 'personal' ? '/devices/my-devices' : '/devices/overview';
-                                router.push(redirectPath);
-                            }
-                        }
-                    }
-                };
-            }
-            default:
-                return baseConfig;
-        }
-    };
-
-    const dialogConfig = getDialogConfig();
-
-    return (
-        <ReusableDialog
-            isOpen={isOpen}
-            onClose={handleClose}
-            title={dialogConfig.title}
-            showCloseButton={dialogConfig.showCloseButton}
-            preventBackdropClose={dialogConfig.preventBackdropClose}
-            showFooter={dialogConfig.showFooter}
-            primaryAction={dialogConfig.primaryAction}
-            secondaryAction={dialogConfig.secondaryAction}
-        >
-            <div className="space-y-6 py-2">
-                {step === 'method-select' && (
-                    <div className="space-y-6">
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Choose how you would like to add your device(s).</p>
-                        <div className="grid grid-cols-1 gap-4">
-                            {/* Card A: Add Single Device */}
-                            <button
-                                onClick={() => {
-                                    setStep('qr-scan');
-                                }}
-                                className="flex items-center p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-left w-full group"
-                            >
-                                <div className="p-2 bg-blue-100 dark:bg-blue-900/40 rounded-full group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors mr-4 shrink-0">
-                                    <Smartphone className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                                </div>
-                                <div>
-                                    <h4 className="font-semibold text-base text-gray-900 dark:text-white">Add Single Device</h4>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                                        Scan a QR code or manually enter a Device ID.
-                                    </p>
-                                </div>
-                            </button>
-
-                            {/* Card B: Add Multiple Devices */}
-                            <button
-                                onClick={() => {
-                                    setStep('bulk-input');
-                                }}
-                                className="flex items-center p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-green-500 dark:hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors text-left w-full group"
-                            >
-                                <div className="p-2 bg-green-100 dark:bg-green-900/40 rounded-full group-hover:bg-green-200 dark:group-hover:bg-green-800 transition-colors mr-4 shrink-0">
-                                    <FileSpreadsheet className="w-5 h-5 text-green-600 dark:text-green-400" />
-                                </div>
-                                <div>
-                                    <h4 className="font-semibold text-base text-gray-900 dark:text-white">Add Multiple Devices</h4>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                                        Upload a CSV file or enter a list of IDs for bulk setup.
-                                    </p>
-                                </div>
-                            </button>
-
-                            {/* Card C: Import from Cohort */}
-                            <button
-                                onClick={() => {
-                                    setStep('cohort-import');
-                                }}
-                                className="flex items-center p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-violet-500 dark:hover:border-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-colors text-left w-full group"
-                            >
-                                <div className="p-2 bg-violet-100 dark:bg-violet-900/40 rounded-full group-hover:bg-violet-200 dark:group-hover:bg-violet-800 transition-colors mr-4 shrink-0">
-                                    <Database className="w-5 h-5 text-violet-600 dark:text-violet-400" />
-                                </div>
-                                <div>
-                                    <h4 className="font-semibold text-base text-gray-900 dark:text-white">Import from Cohort</h4>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                                        Enter a Cohort ID to prefill devices.
-                                    </p>
-                                </div>
-                            </button>
-                        </div>
-                    </div>
-                )}
-
-
-
-                {step === 'qr-scan' && isOpen && (
-                    <QRScannerErrorBoundary
-                        onError={() => {
-                            setStep('manual-input');
-                            setError('QR scanner encountered an issue. Please enter details manually.');
-                        }}
-                    >
-                        <div className="space-y-4">
-                            {/* Cohort confirmation message */}
-                            {!isPersonalContext && defaultCohort && (
-                                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-3">
-                                    <p className="text-sm text-blue-800 dark:text-blue-200">
-                                        <strong>Device will be added to:</strong>
-                                        {isExternalOrg && activeGroup && ` ${activeGroup.grp_title}`}
-                                        {isPersonalContext && ` as your personal devices`}
-                                    </p>
-                                    <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
-                                        You can change ownership or share devices later.
-                                    </p>
-                                </div>
-                            )}
-                            <QRScanner onScan={handleQRScan} />
-                            <button onClick={() => setStep('manual-input')} className="w-full text-sm text-blue-600 dark:text-blue-400 hover:underline">
-                                Having trouble? Enter details manually
-                            </button>
-                        </div>
-                    </QRScannerErrorBoundary>
-                )}
-
-                {step === 'cohort-import' && (
-                    <div className="space-y-6">
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Enter the Cohort ID to automatically load its devices.
-                        </p>
-                        <div className="space-y-4">
-                            <ReusableInputField
-                                label="Cohort ID"
-                                placeholder="Enter Cohort ID"
-                                value={cohortIdInput}
-                                onChange={(e) => {
-                                    setCohortIdInput(e.target.value);
-                                    setError(null);
-                                }}
-                                error={error || undefined}
-                            />
-                        </div>
-                        {isImportingCohort && (
-                            <div className="flex items-center justify-center py-4">
-                                <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
-                                <span className="ml-2 text-sm text-gray-500">Verifying Cohort ID...</span>
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {step === 'cohort-confirm' && verifiedCohort && (
-                    <div className="space-y-4">
-                        <div className="rounded-lg border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20 p-4">
-                            <p className="text-sm text-blue-800 dark:text-blue-200">
-                                <strong>Cohort Name:</strong> {verifiedCohort.name}
-                            </p>
-                            <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
-                                This will add the devices from this cohort to your {isExternalOrg ? 'organization' : 'personal'} assets.
-                            </p>
-                        </div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Continue to import this cohort?
-                        </p>
-                    </div>
-                )}
-
-                {step === 'manual-input' && (
-                    <Form {...formMethods}>
-                        <div className="space-y-6">
-                            {/* Cohort confirmation message */}
-                            {!isPersonalContext && defaultCohort && (
-                                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-3">
-                                    <p className="text-sm text-blue-800 dark:text-blue-200">
-                                        <strong>Device will be added to:</strong>
-                                        {isExternalOrg && activeGroup && ` ${activeGroup.grp_title}`}
-                                        {isPersonalContext && ` as your personal devices`}
-                                    </p>
-                                    <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
-                                        You can change ownership or share devices later.
-                                    </p>
-                                </div>
-                            )}
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Enter the device details found on the shipping label.</p>
-                            <div className="space-y-4">
-                                <FormField
-                                    control={formMethods.control}
-                                    name="device_id"
-                                    render={({ field, fieldState }) => (
-                                        <ReusableInputField
-                                            label="Device Name"
-                                            placeholder="e.g. airqo_g5241"
-                                            error={fieldState.error?.message}
-                                            required
-                                            {...field}
-                                        />
-                                    )}
-                                />
-                                <FormField
-                                    control={formMethods.control}
-                                    name="claim_token"
-                                    render={({ field, fieldState }) => (
-                                        <ReusableInputField
-                                            label="Claim Token"
-                                            placeholder="Enter claim token (e.g. A1B2C3D4)"
-                                            error={fieldState.error?.message}
-                                            required
-                                            {...field}
-                                        />
-                                    )}
-                                />
-                            </div>
-                            {error && (
-                                <div className="flex items-center p-3 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 rounded-lg">
-                                    <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0" />
-                                    {error}
-                                </div>
-                            )}
-                        </div>
-                    </Form>
-                )}
-
-                {/* Confirmation Step */}
-                {step === 'confirmation' && pendingSingleClaim && (
-                    <div className="flex flex-col items-center justify-center py-6 px-4 space-y-4 text-center">
-                        <div className="p-3 bg-amber-100 dark:bg-amber-900/40 rounded-full">
-                            <AlertCircle className="w-8 h-8 text-amber-600 dark:text-amber-400" />
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                                Confirm Device Claim
-                            </h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-300 max-w-sm mx-auto">
-                                Are you sure you want to claim this device?
-                            </p>
-                            <p className="text-sm text-amber-700 dark:text-amber-400 mt-3 max-w-sm mx-auto bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg border border-amber-100 dark:border-amber-900/50">
-                                <TooltipProvider delayDuration={0}>
-                                    Warning: If this device is currently{' '}
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <button type="button" className="underline decoration-dashed decoration-amber-500/50 underline-offset-4 cursor-help font-medium">deployed</button>
-                                        </TooltipTrigger>
-                                        <TooltipContent side="top">
-                                            <p>Deployment triggers data transmission for a device</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                    , it will be automatically{' '}
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <button type="button" className="underline decoration-dashed decoration-amber-500/50 underline-offset-4 cursor-help font-medium">recalled</button>
-                                        </TooltipTrigger>
-                                        <TooltipContent side="top">
-                                            <p className="max-w-xs">Recalling removes a device from a Site (e.g., for repair) without deleting it from your inventory.</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                    .
-                                </TooltipProvider>
-                            </p>
-                        </div>
-                    </div>
-                )}
-
-                {/* Bulk Confirmation Step */}
-                {step === 'bulk-confirmation' && (
-                    <div className="flex flex-col items-center justify-center py-6 px-4 space-y-4 text-center">
-                        <div className="p-3 bg-amber-100 dark:bg-amber-900/40 rounded-full">
-                            <AlertCircle className="w-8 h-8 text-amber-600 dark:text-amber-400" />
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                                Confirm Bulk Claim
-                            </h3>
-                            <div className="text-sm text-gray-600 dark:text-gray-300 max-w-sm mx-auto">
-                                You are about to claim <span className="font-semibold text-gray-900 dark:text-white">{bulkDevices.filter(d => d.device_name.trim() && d.claim_token.trim()).length}</span> devices.
-                            </div>
-                            <p className="text-sm text-amber-700 dark:text-amber-400 mt-3 max-w-sm mx-auto bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg border border-amber-100 dark:border-amber-900/50">
-                                <TooltipProvider delayDuration={0}>
-                                    Warning: Any devices currently{' '}
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <button type="button" className="underline decoration-dashed decoration-amber-500/50 underline-offset-4 cursor-help font-medium">deployed</button>
-                                        </TooltipTrigger>
-                                        <TooltipContent side="top">
-                                            <p>Deployment triggers data transmission for a device</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                    {' '}will be automatically{' '}
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <button type="button" className="underline decoration-dashed decoration-amber-500/50 underline-offset-4 cursor-help font-medium">recalled</button>
-                                        </TooltipTrigger>
-                                        <TooltipContent side="top">
-                                            <p className="max-w-xs">Recalling removes a device from a Site (e.g., for repair) without deleting it from your inventory.</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                    {' '}and added to your inventory.
-                                </TooltipProvider>
-                            </p>
-                        </div>
-                    </div>
-                )}
-
-                {step === 'claiming' && (
-                    <div className="flex flex-col items-center justify-center py-8 space-y-4">
-                        <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
-                        <div className="text-center">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Claiming Your Device</h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Please wait while we set up your device...</p>
-                        </div>
-                    </div>
-                )}
-
-                {step === 'assigning-cohort' && (
-                    <div className="flex flex-col items-center justify-center py-8 space-y-4">
-                        <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
-                        <div className="text-center">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Assigning Cohort</h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Adding cohort devices to your {isExternalOrg ? 'organization' : 'personal'} assets...{' '}Please wait...</p>
-                        </div>
-                    </div>
-                )}
-
-                {step === 'success' && (claimData?.device || isCohortAssignmentSuccess) && (
-                    <div className="flex flex-col items-center justify-center py-8 space-y-4">
-                        <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-                            <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-400" />
-                        </div>
-                        <div className="text-center">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                {isCohortAssignmentSuccess ? 'Cohort Assigned Successfully!' : 'Device Claimed Successfully!'}
-                            </h3>
-                        </div>
-
-                        {claimData?.device && (
-                            <div className="w-full space-y-3 mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                                <div className="flex items-center justify-between text-sm">
-                                    <span className="text-gray-600 dark:text-gray-400">Device Name:</span>
-                                    <span className="font-medium text-gray-900 dark:text-white">{claimData.device.long_name || claimData.device.name}</span>
-                                </div>
-                                <div className="flex items-center justify-between text-sm">
-                                    <span className="text-gray-600 dark:text-gray-400">Device ID:</span>
-                                    <span className="font-mono text-xs text-gray-900 dark:text-white">{claimData.device.name}</span>
-                                </div>
-                                <div className="flex items-center justify-between text-sm">
-                                    <span className="text-gray-600 dark:text-gray-400">Status:</span>
-                                    <span className="inline-flex items-center gap-1 text-green-600 dark:text-green-400">
-                                        <CheckCircle2 className="w-3 h-3" />
-                                        Claimed
-                                    </span>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {/* Bulk Input Step */}
-                {step === 'bulk-input' && (
-                    <div className="space-y-6">
-                        {bulkDevices.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-4 space-y-6">
-
-
-                                <div className="w-full">
-                                    <FileUploadParser onFilesParsed={handleFileImport} variant="dropzone" />
-                                </div>
-
-                                <div className="relative w-full">
-                                    <div className="absolute inset-0 flex items-center">
-                                        <span className="w-full border-t border-gray-200 dark:border-gray-700" />
-                                    </div>
-                                    <div className="relative flex justify-center text-xs uppercase">
-                                        <span className="bg-white dark:bg-gray-800 px-2 text-gray-500">Or</span>
-                                    </div>
-                                </div>
-
-                                <button
-                                    onClick={handleAddDevice}
-                                    className="text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium"
-                                >
-                                    Enter device details manually
-                                </button>
-                            </div>
-                        ) : (
-                            <>
-                                {/* Cohort confirmation message */}
-                                {!isPersonalContext && defaultCohort && (
-                                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-3 mb-4">
-                                        <p className="text-sm text-blue-800 dark:text-blue-200">
-                                            <strong>Devices will be added to:</strong>
-                                            {isExternalOrg && activeGroup && ` ${activeGroup.grp_title}`}
-                                            {isPersonalContext && ` as your personal devices`}
-                                        </p>
-                                        <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
-                                            You can change ownership or share devices later.
-                                        </p>
-                                    </div>
-                                )}
-                                <div className="flex items-center justify-between">
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                                        Review your devices before claiming.
-                                    </p>
-                                    <button
-                                        onClick={() => setBulkDevices([])}
-                                        className="text-xs text-red-600 hover:text-red-700 dark:text-red-400"
-                                    >
-                                        Clear All
-                                    </button>
-                                </div>
-
-                                {/* Device Entry Rows */}
-                                <div className="space-y-3 max-h-96 overflow-y-auto">
-                                    {bulkDevices.map((device, index) => (
-                                        <DeviceEntryRow
-                                            key={index}
-                                            index={index}
-                                            deviceName={device.device_name}
-                                            claimToken={device.claim_token}
-                                            onDeviceNameChange={(value) =>
-                                                handleDeviceChange(index, 'device_name', value)
-                                            }
-                                            onClaimTokenChange={(value) =>
-                                                handleDeviceChange(index, 'claim_token', value)
-                                            }
-                                            onRemove={() => handleRemoveDevice(index)}
-                                            showRemove={true}
-                                        />
-                                    ))}
-                                </div>
-
-                                {/* Add Device Button */}
-                                <div className="flex gap-3">
-                                    <ReusableButton
-                                        Icon={Plus}
-                                        onClick={handleAddDevice}
-                                        variant="outlined"
-                                        className="flex-1"
-                                    >
-                                        Add Row
-                                    </ReusableButton>
-                                    <div className="flex-1">
-                                        <FileUploadParser onFilesParsed={(devices) => setBulkDevices([...bulkDevices, ...devices])} />
-                                    </div>
-                                </div>
-
-                                {error && (
-                                    <div className="flex items-center p-3 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 rounded-lg">
-                                        <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0" />
-                                        {error}
-                                    </div>
-                                )}
-
-                                <div className="text-sm text-gray-500 dark:text-gray-400">
-                                    <span className="font-medium">
-                                        {bulkDevices.filter((d) => d.device_name.trim() && d.claim_token.trim()).length}
-                                    </span>{' '}
-                                    device(s) ready to claim
-                                </div>
-                            </>
-                        )}
-                    </div>
-                )}
-
-                {/* Bulk Claiming Loading State */}
-                {step === 'bulk-claiming' && (
-                    <div className="flex flex-col items-center justify-center py-8 space-y-4">
-                        <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
-                        <div className="text-center">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                Claiming Devices
-                            </h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                Please wait while we process your devices...
-                            </p>
-                        </div>
-                    </div>
-                )}
-
-                {/* Bulk Results Step */}
-                {step === 'bulk-results' && bulkClaimData?.data && (
-                    <BulkClaimResults results={bulkClaimData.data} />
-                )}
-            </div>
-        </ReusableDialog>
+  const handleConfirmSingleClaim = () => {
+    if (isPending || !pendingSingleClaim) return;
+    handleClaimDevice(
+      pendingSingleClaim.deviceId,
+      pendingSingleClaim.claimToken
     );
+  };
+
+  const handleBulkSubmit = () => {
+    if (!user?._id) {
+      setError('User session not available. Please try again.');
+      return;
+    }
+    const valid = bulkDevices.filter(
+      d => d.device_name.trim() && d.claim_token.trim()
+    );
+    if (valid.length === 0) {
+      setError('Please add at least one device with both name and token.');
+      return;
+    }
+    if (!isPersonalContext && !defaultCohort) {
+      setError('No cohorts found. Please create a cohort first.');
+      return;
+    }
+    setError(null);
+    setStep('bulk-confirmation');
+  };
+
+  const handleConfirmBulkClaim = () => {
+    if (!user?._id) return;
+    const valid = bulkDevices.filter(
+      d => d.device_name.trim() && d.claim_token.trim()
+    );
+    bulkClaimDevices({
+      user_id: user._id,
+      devices: valid,
+      ...(defaultCohort && { cohort_id: defaultCohort }),
+    });
+  };
+
+  const handleQRScan = (result: string) => {
+    const parsed = parseQRCode(result);
+    if (parsed) {
+      setPendingSingleClaim({
+        deviceId: parsed.deviceId,
+        claimToken: parsed.claimToken,
+      });
+      setPreviousStep('qr-scan');
+      setStep('confirmation');
+    } else {
+      setError('Invalid QR code format. Please try manual entry.');
+      setStep('manual-input');
+    }
+  };
+
+  const handleVerifyCohort = async () => {
+    const input = cohortIdInput.trim();
+    if (!input) {
+      setError('Please enter a valid Cohort ID');
+      return;
+    }
+    if (!/^[a-zA-Z0-9]{24}$/.test(input)) {
+      setError('Cohort ID must be a 24-character alphanumeric code.');
+      return;
+    }
+
+    setError(null);
+    setIsImportingCohort(true);
+
+    try {
+      const result = await verifyCohort(input);
+
+      if (!result.success) {
+        setError(result.message || 'Invalid Cohort ID');
+        return;
+      }
+
+      const cohortName =
+        (result as { data?: { name?: string } }).data?.name ||
+        result?.cohort?.name ||
+        '';
+
+      if (cohortName?.toLowerCase() === 'airqo') {
+        setError('This cohort is not available.');
+        return;
+      }
+
+      // Personal or external org: go to confirm step
+      if (isPersonalContext || isExternalOrg) {
+        if (isExternalOrg && !activeGroup?._id) {
+          setError('No organization is selected. Please try again.');
+          return;
+        }
+        if (isPersonalContext && !userId) {
+          setError('User session not available. Please try again.');
+          return;
+        }
+        setVerifiedCohort({ id: input, name: cohortName || input });
+        setStep('cohort-confirm');
+        return;
+      }
+
+      // Fallback: load devices from cohort details
+      const cohortDetails = await cohortsApi.getCohortDetailsApi(input);
+      const cohort = Array.isArray(cohortDetails?.cohorts)
+        ? cohortDetails.cohorts[0]
+        : null;
+      if (
+        cohort &&
+        Array.isArray(cohort.devices) &&
+        cohort.devices.length > 0
+      ) {
+        setBulkDevices(
+          cohort.devices.map((d: unknown) => ({
+            device_name: (d as Device).name || '',
+            claim_token: '',
+          }))
+        );
+        setStep('bulk-input');
+      } else {
+        setError('Cohort found but it has no devices assigned.');
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'Failed to verify Cohort ID'
+      );
+    } finally {
+      setIsImportingCohort(false);
+    }
+  };
+
+  const handleConfirmCohortImport = () => {
+    if (!verifiedCohort) {
+      setError('Session expired. Please verify the cohort again.');
+      setStep('cohort-import');
+      return;
+    }
+
+    setStep('assigning-cohort');
+
+    if (isExternalOrg && activeGroup?._id) {
+      assignCohortsToGroup(
+        { groupId: activeGroup._id, cohortIds: [verifiedCohort.id] },
+        {
+          onSuccess: () => {
+            invalidateGroupCaches();
+            setTimeout(() => {
+              setIsCohortAssignmentSuccess(true);
+              setStep('success');
+            }, 3000);
+          },
+          onError: err => {
+            setError(getApiErrorMessage(err));
+            setStep('cohort-import');
+          },
+        }
+      );
+      return;
+    }
+
+    if (isPersonalContext && userId) {
+      assignCohortsToUser(
+        { userId, cohortIds: [verifiedCohort.id] },
+        {
+          onSuccess: () => {
+            // ✅ Invalidate personal caches so devices/cohorts update immediately
+            invalidatePersonalCaches();
+            setTimeout(() => {
+              setIsCohortAssignmentSuccess(true);
+              setStep('success');
+            }, 3000);
+          },
+          onError: err => {
+            setError(getApiErrorMessage(err));
+            setStep('cohort-import');
+          },
+        }
+      );
+      return;
+    }
+
+    setError('Unable to determine assignment context. Please try again.');
+    setStep('cohort-import');
+  };
+
+  const handleBulkAddDevice = () => {
+    setBulkDevices(prev => [
+      ...prev,
+      { device_name: '', claim_token: '' },
+    ]);
+  };
+
+  const handleBulkRemoveDevice = (index: number) => {
+    setBulkDevices(prev => prev.filter((_, idx) => idx !== index));
+  };
+
+  const handleBulkDeviceChange = (
+    index: number,
+    field: 'device_name' | 'claim_token',
+    value: string
+  ) => {
+    setBulkDevices(prev =>
+      prev.map((device, idx) =>
+        idx === index ? { ...device, [field]: value } : device
+      )
+    );
+  };
+
+  const handleBulkFileImport = (devices: BulkDevice[]) => {
+    setBulkDevices(prev => [...prev, ...devices]);
+  };
+
+  const handleBulkClear = () => {
+    setBulkDevices([]);
+  };
+
+  // ── Dialog config ────────────────────────────────────────────
+
+  const getDialogConfig = () => {
+    const base: {
+      title: string;
+      showFooter: boolean;
+      showCloseButton: boolean;
+      preventBackdropClose: boolean;
+      primaryAction?: DialogPrimaryAction;
+      secondaryAction?: DialogSecondaryAction;
+    } = {
+      title: 'Claim AirQo Device',
+      showFooter: false,
+      showCloseButton: true,
+      preventBackdropClose: false,
+      primaryAction: undefined,
+      secondaryAction: undefined,
+    };
+    const back = (to: FlowStep) => ({
+      label: 'Back',
+      onClick: () => setStep(to),
+      variant: 'outline' as const,
+    });
+
+    switch (step) {
+      case 'method-select':
+        return base;
+      case 'qr-scan':
+        return {
+          ...base,
+          title: 'Scan QR Code',
+          showFooter: true,
+          secondaryAction: back('method-select'),
+        };
+      case 'cohort-import':
+        return {
+          ...base,
+          title: 'Import from Cohort',
+          showFooter: true,
+          primaryAction: {
+            label: isImportingCohort ? 'Verifying...' : 'Import',
+            onClick: handleVerifyCohort,
+            disabled: isImportingCohort,
+          },
+          secondaryAction: back('method-select'),
+        };
+      case 'cohort-confirm':
+        return {
+          ...base,
+          title: 'Confirm Cohort Import',
+          showFooter: true,
+          primaryAction: {
+            label: 'Confirm & Import',
+            onClick: handleConfirmCohortImport,
+          },
+          secondaryAction: {
+            label: 'Cancel',
+            onClick: () => setStep('cohort-import'),
+            variant: 'outline' as const,
+          },
+        };
+      case 'assigning-cohort':
+        return {
+          ...base,
+          title: 'Assigning Cohort...',
+          showCloseButton: false,
+          preventBackdropClose: true,
+        };
+      case 'manual-input':
+        return {
+          ...base,
+          showFooter: true,
+          primaryAction: {
+            label: isPending ? 'Claiming...' : 'Claim Device',
+            onClick: formMethods.handleSubmit(onManualSubmit),
+            disabled: isPending,
+          },
+          secondaryAction: back('qr-scan'),
+        };
+      case 'bulk-input':
+        return {
+          ...base,
+          title: 'Add Multiple Devices',
+          showFooter: true,
+          primaryAction: { label: 'Review & Claim', onClick: handleBulkSubmit },
+          secondaryAction: back('method-select'),
+        };
+      case 'confirmation':
+        return {
+          ...base,
+          title: 'Confirm Claim',
+          showFooter: true,
+          primaryAction: {
+            label: isPending ? 'Claiming...' : 'Confirm & Claim',
+            onClick: handleConfirmSingleClaim,
+            disabled: isPending,
+          },
+          secondaryAction: {
+            label: 'Cancel',
+            onClick: () => setStep(previousStep),
+            variant: 'outline' as const,
+          },
+        };
+      case 'bulk-confirmation':
+        return {
+          ...base,
+          title: 'Confirm Bulk Claim',
+          showFooter: true,
+          primaryAction: {
+            label: isBulkPending ? 'Claiming...' : 'Confirm & Claim',
+            onClick: handleConfirmBulkClaim,
+            disabled: isBulkPending,
+          },
+          secondaryAction: {
+            label: 'Cancel',
+            onClick: () => setStep('bulk-input'),
+            variant: 'outline' as const,
+          },
+        };
+      case 'claiming':
+        return {
+          ...base,
+          title: 'Claiming Device...',
+          showCloseButton: false,
+          preventBackdropClose: true,
+        };
+      case 'bulk-claiming':
+        return {
+          ...base,
+          title: 'Claiming Devices...',
+          showCloseButton: false,
+          preventBackdropClose: true,
+        };
+      case 'success':
+        return {
+          ...base,
+          title: 'Success!',
+          showFooter: true,
+          primaryAction: {
+            label: 'Go to Devices',
+            onClick: () => {
+              handleClose();
+              router.push(
+                userScope === 'personal'
+                  ? '/devices/my-devices'
+                  : '/devices/overview'
+              );
+            },
+          },
+        };
+      case 'bulk-results': {
+        const hasSuccess =
+          (bulkClaimData?.data?.successful_claims?.length ?? 0) > 0;
+        return {
+          ...base,
+          title: 'Bulk Claim Results',
+          showFooter: true,
+          primaryAction: {
+            label: hasSuccess ? 'Go to Devices' : 'Close',
+            onClick: () => {
+              handleClose();
+              if (hasSuccess)
+                router.push(
+                  userScope === 'personal'
+                    ? '/devices/my-devices'
+                    : '/devices/overview'
+                );
+            },
+          },
+        };
+      }
+      default:
+        return base;
+    }
+  };
+
+  const dialogConfig = getDialogConfig();
+
+  // ── Render ───────────────────────────────────────────────────
+
+  return (
+    <ReusableDialog
+      isOpen={isOpen}
+      onClose={handleClose}
+      title={dialogConfig.title}
+      showCloseButton={dialogConfig.showCloseButton}
+      preventBackdropClose={dialogConfig.preventBackdropClose}
+      showFooter={dialogConfig.showFooter}
+      primaryAction={dialogConfig.primaryAction}
+      secondaryAction={dialogConfig.secondaryAction}
+    >
+      <div className="space-y-6 py-2">
+        {step === 'method-select' && <MethodSelectStep onSelect={setStep} />}
+
+        {step === 'bulk-input' && (
+          <BulkInputStep
+            bulkDevices={bulkDevices}
+            isPersonalContext={isPersonalContext}
+            isExternalOrg={isExternalOrg}
+            defaultCohort={defaultCohort}
+            error={error}
+            onAddDevice={handleBulkAddDevice}
+            onRemoveDevice={handleBulkRemoveDevice}
+            onDeviceChange={handleBulkDeviceChange}
+            onFileImport={handleBulkFileImport}
+            onClear={handleBulkClear}
+          />
+        )}
+
+        {step === 'qr-scan' && (
+          <QRScanStep
+            isOpen={isOpen}
+            isPersonalContext={isPersonalContext}
+            isExternalOrg={isExternalOrg}
+            defaultCohort={defaultCohort}
+            activeGroupTitle={activeGroup?.grp_title}
+            onScan={handleQRScan}
+            onManualEntry={() => setStep('manual-input')}
+            onError={() => {
+              setStep('manual-input');
+              setError(
+                'QR scanner encountered an issue. Please enter details manually.'
+              );
+            }}
+          />
+        )}
+
+        {step === 'manual-input' && (
+          <ManualInputStep
+            formMethods={formMethods}
+            isPersonalContext={isPersonalContext}
+            isExternalOrg={isExternalOrg}
+            defaultCohort={defaultCohort}
+            activeGroupTitle={activeGroup?.grp_title}
+            error={error}
+          />
+        )}
+
+        {step === 'cohort-import' && (
+          <CohortImportStep
+            cohortIdInput={cohortIdInput}
+            onChange={val => {
+              setCohortIdInput(val);
+              setError(null);
+            }}
+            error={error}
+            isImporting={isImportingCohort}
+          />
+        )}
+
+        {step === 'cohort-confirm' && verifiedCohort && (
+          <CohortConfirmStep
+            verifiedCohort={verifiedCohort}
+            isExternalOrg={isExternalOrg}
+          />
+        )}
+
+        {step === 'confirmation' && pendingSingleClaim && <ConfirmationStep />}
+
+        {step === 'bulk-confirmation' && (
+          <BulkConfirmationStep
+            count={
+              bulkDevices.filter(
+                d => d.device_name.trim() && d.claim_token.trim()
+              ).length
+            }
+          />
+        )}
+
+        {step === 'claiming' && (
+          <LoadingSpinner
+            title="Claiming Your Device"
+            subtitle="Please wait while we set up your device..."
+          />
+        )}
+
+        {step === 'bulk-claiming' && (
+          <LoadingSpinner
+            title="Claiming Devices"
+            subtitle="Please wait while we process your devices..."
+          />
+        )}
+
+        {step === 'assigning-cohort' && (
+          <LoadingSpinner
+            title="Assigning Cohort"
+            subtitle={`Adding cohort devices to your ${isExternalOrg ? 'organization' : 'personal'} assets... Please wait...`}
+          />
+        )}
+
+        {step === 'success' &&
+          (claimData?.device || isCohortAssignmentSuccess) && (
+            <SuccessStep
+              isCohortAssignmentSuccess={isCohortAssignmentSuccess}
+              claimData={claimData}
+            />
+          )}
+
+        {step === 'bulk-results' && bulkClaimData?.data && (
+          <BulkClaimResults results={bulkClaimData.data} />
+        )}
+      </div>
+    </ReusableDialog>
+  );
 };
 
 export default ClaimDeviceModal;
-
