@@ -107,7 +107,7 @@ const WelcomePage = () => {
 
   // 2. Loading state - show loading UI while data is being fetched
   const isLoading =
-    (userScope === 'personal' && isLoadingMyDevices) ||
+    (userScope === 'personal' && (isLoadingMyDevices)) ||
     (userScope === 'organisation' && isLoadingGroupDevices) || isLoadingUserContext;
 
   if (isLoading) {
@@ -194,7 +194,7 @@ const WelcomePage = () => {
       )}
 
       <div className="mb-3">
-        <Accordion type="multiple" defaultValue={['stats', 'visibility']} className="space-y-4">
+        <Accordion type="multiple" defaultValue={['stats', 'visibility', 'cohorts']} className="space-y-4">
           <AccordionItem value="stats" className="bg-white dark:bg-transparent border border-gray-200 dark:border-gray-600 rounded-lg px-6">
             <AccordionTrigger className="hover:no-underline py-4">
               <h2 className="text-xl">Device Health</h2>
