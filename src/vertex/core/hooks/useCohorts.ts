@@ -3,7 +3,6 @@ import {
   GetCohortsSummaryParams,
   cohorts as cohortsApi,
 } from '../apis/cohorts';
-import { useAppSelector } from '../redux/hooks';
 import { AxiosError } from 'axios';
 import {
   Cohort,
@@ -288,7 +287,6 @@ interface UseCreateCohortFromCohortsOptions {
 
 export const useCreateCohortFromCohorts = (options?: UseCreateCohortFromCohortsOptions) => {
   const queryClient = useQueryClient();
-  const activeNetwork = useAppSelector(state => state.user.activeNetwork);
 
   return useMutation({
     mutationFn: ({
@@ -312,9 +310,7 @@ export const useCreateCohortFromCohorts = (options?: UseCreateCohortFromCohortsO
         cohort_tags,
       }),
     onSuccess: (data) => {
-      queryClient.invalidateQueries({
-        queryKey: ['cohorts', activeNetwork?.net_name],
-      });
+      queryClient.invalidateQueries({ queryKey: ['cohorts'] });
       queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
       options?.onSuccess?.(data);
     },
@@ -403,7 +399,6 @@ interface UseAssignCohortsToGroupOptions {
 
 export const useAssignCohortsToGroup = (options?: UseAssignCohortsToGroupOptions) => {
   const queryClient = useQueryClient();
-  const activeNetwork = useAppSelector(state => state.user.activeNetwork);
 
   return useMutation({
     mutationFn: async ({
@@ -422,9 +417,7 @@ export const useAssignCohortsToGroup = (options?: UseAssignCohortsToGroupOptions
       return cohortsApi.assignCohortsToGroup(groupId, cohortIds);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['cohorts', activeNetwork?.net_name],
-      });
+      queryClient.invalidateQueries({ queryKey: ['cohorts'] });
       queryClient.invalidateQueries({ queryKey: ['groupCohorts'] });
       queryClient.invalidateQueries({ queryKey: ['deviceCount'] });
       queryClient.invalidateQueries({ queryKey: ['devices'] });
@@ -444,7 +437,6 @@ interface UseAssignCohortsToUserOptions {
 
 export const useAssignCohortsToUser = (options?: UseAssignCohortsToUserOptions) => {
   const queryClient = useQueryClient();
-  const activeNetwork = useAppSelector(state => state.user.activeNetwork);
 
   return useMutation({
     mutationFn: async ({
@@ -463,9 +455,7 @@ export const useAssignCohortsToUser = (options?: UseAssignCohortsToUserOptions) 
       return cohortsApi.assignCohortsToUser(userId, cohortIds);
     },
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ['cohorts', activeNetwork?.net_name],
-      });
+      queryClient.invalidateQueries({ queryKey: ['cohorts'] });
       queryClient.invalidateQueries({
         queryKey: ['userDetails', variables.userId],
       });
