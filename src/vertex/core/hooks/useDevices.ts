@@ -42,7 +42,6 @@ import type {
   ShippingBatchDetailsResponse,
 } from '@/app/types/devices';
 import { AxiosError } from 'axios';
-import { useDispatch } from 'react-redux';
 import ReusableToast from '@/components/shared/toast/ReusableToast';
 import { getApiErrorMessage } from '../utils/getApiErrorMessage';
 import logger from '@/lib/logger';
@@ -213,29 +212,42 @@ export const useMyDevices = (
 export const useDeviceCount = (options: { enabled?: boolean; cohortIds?: string[]; network?: string } = {}) => {
   const activeGroup = useAppSelector(state => state.user.activeGroup);
   const { enabled = true, cohortIds, network } = options;
-  const isAirQoGroup = activeGroup?.grp_title === 'airqo';
 
-  const shouldFetchGroupCohorts = !cohortIds && !isAirQoGroup && !!activeGroup?._id && enabled && !network;
+  // If cohortIds are explicitly passed (e.g. personal scope), bypass group logic entirely
+  const hasExplicitCohorts = !!cohortIds;
+
+  // Only treat as AirQo group if no explicit cohortIds were passed
+  const isAirQoGroup = !hasExplicitCohorts && activeGroup?.grp_title === 'airqo';
+
+  const shouldFetchGroupCohorts =
+    !hasExplicitCohorts &&
+    !isAirQoGroup &&
+    !!activeGroup?._id &&
+    enabled &&
+    !network;
 
   const { data: groupCohortIds, isLoading: isLoadingCohorts } = useGroupCohorts(
     activeGroup?._id,
-    {
-      enabled: shouldFetchGroupCohorts,
-    }
+    { enabled: shouldFetchGroupCohorts }
   );
 
-  const effectiveCohortIds = cohortIds || groupCohortIds;
+  // Explicit cohortIds take priority over group-derived ones
+  const effectiveCohortIds = hasExplicitCohorts ? cohortIds : groupCohortIds;
 
   const isQueryEnabled =
     enabled &&
-    (!!network || isAirQoGroup || (!!effectiveCohortIds && effectiveCohortIds.length > 0));
+    (
+      !!network ||
+      isAirQoGroup ||
+      (!!effectiveCohortIds && effectiveCohortIds.length > 0)
+    );
 
   const query = useQuery<DeviceCountResponse, AxiosError<ErrorResponse>>({
     queryKey: [
       'deviceCount',
-      activeGroup?._id,
+      hasExplicitCohorts ? 'personal' : activeGroup?._id,
       isAirQoGroup ? null : effectiveCohortIds,
-      network
+      network,
     ],
     queryFn: () => {
       if (network) {
@@ -249,10 +261,11 @@ export const useDeviceCount = (options: { enabled?: boolean; cohortIds?: string[
       if (!effectiveCohortIds || effectiveCohortIds.length === 0) {
         return Promise.reject(new Error('Cohort IDs must be provided.'));
       }
+
       return devices.getDeviceCountApi({ cohort_id: effectiveCohortIds });
     },
     enabled: isQueryEnabled,
-    staleTime: 300_000, // 5 minutes
+    staleTime: 300_000,
     refetchOnWindowFocus: false,
   });
 

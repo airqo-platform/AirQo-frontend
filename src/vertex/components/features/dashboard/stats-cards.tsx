@@ -24,7 +24,7 @@ export const DashboardStatsCards = () => {
   const isPersonalScope = userScope === 'personal';
   const userId = (session?.user as { id?: string })?.id || user?._id;
 
-  // Fetch personal user cohorts from the new API endpoint
+  // Fetch personal user cohorts
   const { data: personalCohortIds = [], isLoading: isLoadingPersonalCohorts } = usePersonalUserCohorts(
     userId,
     { enabled: !!userId && isPersonalScope }
@@ -33,7 +33,7 @@ export const DashboardStatsCards = () => {
   const shouldEnable = isPersonalScope ? personalCohortIds.length > 0 : true;
 
   // Use useDeviceCount for both scopes
-  // For personal scope, pass the user's cohort IDs from the new API
+  // For personal scope, pass the user's cohort IDs
   // If personal scope and no cohorts, the hook is disabled
   const deviceCountQuery = useDeviceCount({
     enabled: shouldEnable,

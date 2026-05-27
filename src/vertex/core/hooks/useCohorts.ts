@@ -10,7 +10,6 @@ import { AxiosError } from 'axios';
 import {
   CohortsSummaryResponse,
   GroupCohortsResponse,
-  PersonalUserCohortsResponse,
 } from '@/app/types/cohorts';
 
 interface ErrorResponse {
@@ -133,13 +132,27 @@ export const usePersonalUserCohorts = (
   const { enabled = true } = options;
   return useQuery({
     queryKey: ['personalUserCohorts', userId],
-    queryFn: ({ signal }: QueryFunctionContext) => {
+    queryFn: async ({ signal }: QueryFunctionContext) => {
       if (!userId) throw new Error('User ID is required');
-      return cohortsApi.getPersonalUserCohorts(userId, signal);
+      const resp = await cohortsApi.getPersonalUserCohorts(userId, signal);
+      const ids: string[] = resp?.cohorts ?? [];
+
+      if (!ids || ids.length === 0) return [];
+
+      const verifyResults = await Promise.all(
+        ids.map((id) => cohortsApi.verifyCohortIdApi(id))
+      );
+
+      const filteredIds = ids.filter((id, idx) => {
+        const result = verifyResults[idx];
+        const name = (result?.cohort?.name || '').toLowerCase();
+        return name !== 'airqo';
+      });
+
+      return filteredIds;
     },
     enabled: !!userId && enabled,
     staleTime: 60_000, // 1 minute - personal context refreshes faster
-    select: (data: PersonalUserCohortsResponse) => data.cohorts,
   });
 };
 
