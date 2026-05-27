@@ -56,9 +56,9 @@ const ReusableFileUpload: React.FC<ReusableFileUploadProps> = ({
           accept={accept}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           onChange={(e) => {
-            if (onChange) {
-              onChange(e.target.files?.[0] || null);
-            }
+            const nextFile = e.target.files?.[0] ?? null;
+            onChange?.(nextFile);
+            e.currentTarget.value = "";
           }}
           aria-invalid={!!error}
           aria-describedby={
