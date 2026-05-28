@@ -23,6 +23,14 @@ interface LoadingOverlayProps {
    * Delay (ms) before showing to reduce flicker on fast transitions
    */
   delayMs?: number;
+  /**
+   * Optional heading displayed below the loader
+   */
+  title?: string;
+  /**
+   * Optional supporting text displayed below the title
+   */
+  description?: string;
 }
 
 const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
@@ -30,8 +38,11 @@ const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
   className = '',
   opacity = 0.2,
   delayMs = 120,
+  title,
+  description,
 }) => {
   const [shouldRender, setShouldRender] = useState(isVisible && delayMs === 0);
+  const hasCopy = Boolean(title || description);
 
   useEffect(() => {
     if (!isVisible) {
@@ -60,7 +71,24 @@ const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
       role="status"
       aria-live="polite"
     >
-      <div className="SecondaryMainloader" aria-label="Loading"></div>
+      {hasCopy ? (
+        <div className="flex flex-col items-center gap-4 rounded-2xl border border-slate-200/70 bg-white/85 px-8 py-6 text-center shadow-sm">
+          <div
+            className="SecondaryMainloader"
+            aria-label={title || 'Loading'}
+          ></div>
+          <div className="max-w-sm space-y-1">
+            {title ? (
+              <p className="text-sm font-semibold text-slate-900">{title}</p>
+            ) : null}
+            {description ? (
+              <p className="text-xs leading-5 text-slate-600">{description}</p>
+            ) : null}
+          </div>
+        </div>
+      ) : (
+        <div className="SecondaryMainloader" aria-label="Loading"></div>
+      )}
     </div>
   );
 };

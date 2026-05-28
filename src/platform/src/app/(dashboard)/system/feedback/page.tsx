@@ -66,6 +66,13 @@ const STATUS_OPTIONS = [
   { value: 'archived', label: 'Archived' },
 ];
 
+const APP_OPTIONS = [
+  { value: 'all', label: 'All apps' },
+  { value: 'Analytics', label: 'Analytics' },
+  { value: 'beacon', label: 'beacon' },
+  { value: 'vertex', label: 'vertex' },
+];
+
 const formatDateTime = (value: string) =>
   new Date(value).toLocaleString('en-US', {
     year: 'numeric',
@@ -81,6 +88,7 @@ const FeedbackListContent: React.FC = () => {
   const router = useRouter();
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [appFilter, setAppFilter] = useState('all');
 
   const fetchAllFeedbacks = async (opts: {
     status?: string | null;
@@ -122,9 +130,10 @@ const FeedbackListContent: React.FC = () => {
         statusFilter === 'all' || feedback.status === statusFilter;
       const matchesCategory =
         categoryFilter === 'all' || feedback.category === categoryFilter;
-      return matchesStatus && matchesCategory;
+      const matchesApp = appFilter === 'all' || feedback.app === appFilter;
+      return matchesStatus && matchesCategory && matchesApp;
     });
-  }, [categoryFilter, feedbacks, statusFilter]);
+  }, [appFilter, categoryFilter, feedbacks, statusFilter]);
 
   const tableData = useMemo<FeedbackRow[]>(
     () =>
@@ -136,7 +145,7 @@ const FeedbackListContent: React.FC = () => {
   );
 
   const statusCounts = useMemo(() => {
-    return feedbacks.reduce(
+    return filteredFeedbacks.reduce(
       (counts, feedback) => {
         counts.total += 1;
         if (feedback.status === 'pending') counts.pending += 1;
@@ -147,7 +156,7 @@ const FeedbackListContent: React.FC = () => {
       },
       { total: 0, pending: 0, reviewed: 0, resolved: 0, archived: 0 }
     );
-  }, [feedbacks]);
+  }, [filteredFeedbacks]);
 
   const handleViewFeedback = useCallback(
     (feedbackId: string) => {
@@ -317,7 +326,7 @@ const FeedbackListContent: React.FC = () => {
         ))}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-3">
         <Select
           label="Status filter"
           value={statusFilter}
@@ -342,6 +351,19 @@ const FeedbackListContent: React.FC = () => {
           containerClassName="md:max-w-xs"
         >
           {CATEGORY_OPTIONS.map(option => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </Select>
+
+        <Select
+          label="App filter"
+          value={appFilter}
+          onChange={event => setAppFilter(String(event.target.value || 'all'))}
+          containerClassName="md:max-w-xs"
+        >
+          {APP_OPTIONS.map(option => (
             <option key={option.value} value={option.value}>
               {option.label}
             </option>
