@@ -192,6 +192,8 @@ const MyDevicesPage = () => {
           devices={filteredDevices}
           isLoading={isLoading}
           error={error}
+          multiSelect={true}
+          
         />
 
         {/* Modals */}

@@ -1,6 +1,6 @@
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { AqFilterLines } from "@airqo/icons-react";
-import { Check, X } from "lucide-react";
+import { Check, Plus, Trash2, X } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Device } from "@/app/types/devices";
 import { useRouter, useSearchParams } from "next/navigation";
-import ReusableTable from "@/components/shared/table/ReusableTable";
+import ReusableTable, { TableAction } from "@/components/shared/table/ReusableTable";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { useState, useMemo } from "react";
 import { AssignCohortDevicesDialog } from "@/components/features/cohorts/assign-cohort-devices";
@@ -101,11 +101,19 @@ export default function DevicesTable({
     setShowUnassignDialog(false);
   };
 
-  const handleAddCohortDeviceActionSubmit = () => {
+  const handleAddCohortDeviceActionSubmit = (
+    selectedIds: (string | number)[]
+  ) => {
+    if (selectedIds.length === 0) return;
+
     setShowAssignDialog(true);
   };
 
-  const handleUnassignActionSubmit = () => {
+  const handleUnassignActionSubmit = (
+    selectedIds: (string | number)[]
+  ) => {
+    if (selectedIds.length === 0) return;
+
     setShowUnassignDialog(true);
   };
 
@@ -135,6 +143,36 @@ export default function DevicesTable({
     { key: "category", title: "Category" },
   ], []);
 
+  const actions = useMemo(() => {
+    if (!multiSelect) return [];
+
+    const baseActions: TableAction[] = [
+      {
+        label: "Add to Cohort",
+        value: "assign_cohort",
+        handler: handleAddCohortDeviceActionSubmit,
+        icon: Plus,
+      },
+    ];
+
+    if (selectedDeviceObjects.length > 0 && !isExternalOrg) {
+      baseActions.push({
+        label: "Remove from Cohort",
+        value: "unassign_cohort",
+        handler: handleUnassignActionSubmit,
+        icon: Trash2,
+      });
+    }
+
+    return baseActions;
+  }, [
+    multiSelect,
+    selectedDeviceObjects.length,
+    isExternalOrg,
+    handleAddCohortDeviceActionSubmit,
+    handleUnassignActionSubmit,
+  ]);
+
   return (
     <div className={`space-y-4 ${className}`}>
       <ReusableTable
@@ -147,24 +185,7 @@ export default function DevicesTable({
         onRowClick={handleDeviceClick}
         multiSelect={multiSelect}
         onSelectedItemsChange={(items) => setSelectedDeviceObjects(items as TableDevice[])}
-        actions={
-          multiSelect
-            ? [
-              {
-                label: "Add to Cohort",
-                value: "assign_cohort",
-                handler: handleAddCohortDeviceActionSubmit,
-              },
-              ...(selectedDeviceObjects.length > 0 && !isExternalOrg
-                ? [{
-                  label: "Remove from Cohort",
-                  value: "unassign_cohort",
-                  handler: handleUnassignActionSubmit,
-                }]
-                : [])
-            ]
-            : []
-        }
+        actions={actions}
         emptyState={
           error ? (
             <div className="flex flex-col items-center gap-2">
