@@ -10,11 +10,44 @@ import { useUserContext } from "@/core/hooks/useUserContext";
 import { usePermissions } from "@/core/hooks/usePermissions";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { Skeleton } from "@/components/ui/skeleton";
-import HomeEmptyState from "@/components/features/home/HomeEmptyState";
 import { useDevices, useMyDevices } from "@/core/hooks/useDevices";
 import ContextHeader from "@/components/features/home/context-header";
 import NetworkVisibilityCard from "@/components/features/home/network-visibility-card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import OnboardingChecklist from "@/components/features/home/onboarding-checklist";
+
+// ─── Checklist localStorage helpers ──────────────────────────────────────────
+// Keyed per org/user so state is independent across workspace switches.
+
+function getChecklistKey(orgId: string) {
+  return `vertex_onboarding_${orgId}`;
+}
+
+function getChecklistState(orgId: string): {
+  completedSteps: string[];
+  dismissed: boolean;
+} {
+  if (typeof window === "undefined") return { completedSteps: [], dismissed: false };
+  try {
+    const raw = window.localStorage.getItem(getChecklistKey(orgId));
+    return raw ? JSON.parse(raw) : { completedSteps: [], dismissed: false };
+  } catch {
+    return { completedSteps: [], dismissed: false };
+  }
+}
+
+function saveChecklistState(
+  orgId: string,
+  state: { completedSteps: string[]; dismissed: boolean }
+) {
+  try {
+    window.localStorage.setItem(getChecklistKey(orgId), JSON.stringify(state));
+  } catch {
+    // localStorage unavailable — fail silently
+  }
+}
+
+// ─── Skeletons ────────────────────────────────────────────────────────────────
 
 const StatsSkeleton = () => (
   <div className="space-y-4">
@@ -39,13 +72,13 @@ const StatsSkeleton = () => (
   </div>
 );
 
-// Lazy load stats cards
+// ─── Lazy-loaded heavy components ─────────────────────────────────────────────
+
 const DashboardStatsCards = dynamic(
-  () => import("@/components/features/dashboard/stats-cards").then(mod => ({ default: mod.DashboardStatsCards })),
-  {
-    ssr: false,
-    loading: () => <StatsSkeleton />,
-  }
+  () => import("@/components/features/dashboard/stats-cards").then((mod) => ({
+    default: mod.DashboardStatsCards,
+  })),
+  { ssr: false, loading: () => <StatsSkeleton /> }
 );
 
 const ClaimDeviceModal = dynamic(
@@ -63,37 +96,69 @@ const LoginFeedbackToast = dynamic(
   { ssr: false }
 );
 
+// ─── Page component ───────────────────────────────────────────────────────────
+
 const WelcomePage = () => {
   const { data: session } = useSession();
-  const { userContext, userScope, hasError, error, isLoading: isLoadingUserContext } = useUserContext();
+  const {
+    userContext,
+    userScope,
+    hasError,
+    error,
+    isLoading: isLoadingUserContext,
+  } = useUserContext();
+
   const [isClaimModalOpen, setIsClaimModalOpen] = React.useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = React.useState(false);
 
   const user = useAppSelector((state) => state.user.userDetails);
-
-  const permissionsToCheck = [PERMISSIONS.DEVICE.UPDATE];
-  const permissionsMap = usePermissions(permissionsToCheck);
-
   const userId = (session?.user as { id?: string })?.id || user?._id;
 
+  // Stable key per workspace — personal users get their own key, org users get org key.
+  const orgId = userContext === "personal" ? `personal_${userId}` : userContext;
+
+  // ── Checklist state (frontend-only, localStorage-backed) ──────────────────
+  const [checklistState, setChecklistState] = React.useState(() =>
+    getChecklistState(orgId ?? "")
+  );
+
+  // Re-sync when the active workspace changes
+  React.useEffect(() => {
+    if (orgId) {
+      setChecklistState(getChecklistState(orgId));
+    }
+  }, [orgId]);
+
+  const updateChecklist = React.useCallback(
+    (patch: Partial<{ completedSteps: string[]; dismissed: boolean }>) => {
+      setChecklistState((prev) => {
+        const next = { ...prev, ...patch };
+        if (orgId) saveChecklistState(orgId, next);
+        return next;
+      });
+    },
+    [orgId]
+  );
+
+  // ── Permissions ────────────────────────────────────────────────────────────
+  const permissionsToCheck = [PERMISSIONS.DEVICE.UPDATE];
+  const permissionsMap = usePermissions(permissionsToCheck);
+  const canClaimDevice = permissionsMap[PERMISSIONS.DEVICE.UPDATE];
+
+  // ── Device data ────────────────────────────────────────────────────────────
   const { devices: groupDevices, isLoading: isLoadingGroupDevices } = useDevices({
     limit: 1,
-    enabled: userScope === 'organisation',
+    enabled: userScope === "organisation",
   });
 
   const { data: myDevicesData, isLoading: isLoadingMyDevices } = useMyDevices(
     userId || "",
     undefined,
-    {
-      enabled: !!userId && userScope === 'personal',
-    }
+    { enabled: !!userId && userScope === "personal" }
   );
 
-  // ============================================================
-  // EARLY RETURNS - All checks happen BEFORE any UI is rendered
-  // ============================================================
+  // ── Early returns ──────────────────────────────────────────────────────────
 
-  // 1. Error state - check first
   if (hasError) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
@@ -105,26 +170,23 @@ const WelcomePage = () => {
     );
   }
 
-  // 2. Loading state - show loading UI while data is being fetched
   const isLoading =
-    (userScope === 'personal' && (isLoadingMyDevices)) ||
-    (userScope === 'organisation' && isLoadingGroupDevices) || isLoadingUserContext;
+    (userScope === "personal" && isLoadingMyDevices) ||
+    (userScope === "organisation" && isLoadingGroupDevices) ||
+    isLoadingUserContext;
 
   if (isLoading) {
     return (
       <div>
-        {/* Context Header Skeleton */}
         <div className="mb-8 relative overflow-hidden md:px-16 md:py-10 rounded-lg mx-auto bg-white dark:bg-gray-800 border p-8">
           <div className="space-y-3">
             <Skeleton className="h-10 w-3/4" />
             <Skeleton className="h-6 w-1/2" />
           </div>
         </div>
-        {/* Stats Cards Skeleton */}
         <div className="mb-10">
           <StatsSkeleton />
         </div>
-        {/* Quick Access Skeleton */}
         <div className="mb-10">
           <Skeleton className="h-7 w-32 mb-4" />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-5">
@@ -137,33 +199,60 @@ const WelcomePage = () => {
     );
   }
 
-  // 3. Empty state - check AFTER loading is complete but BEFORE main UI
-  const hasNoDevices = userScope === 'personal'
-    ? (myDevicesData?.devices || []).length === 0
-    : groupDevices.length === 0;
+  // ── Derived state ──────────────────────────────────────────────────────────
 
-  if (hasNoDevices) {
-    return <HomeEmptyState />;
-  }
+  const hasNoDevices =
+    userScope === "personal"
+      ? (myDevicesData?.devices ?? []).length === 0
+      : groupDevices.length === 0;
 
-  // ============================================================
-  // MAIN UI - Only renders when we have data to show
-  // ============================================================
+  // Checklist is only relevant when the workspace has no devices yet.
+  // Once devices exist the user has completed step 1 — no need to show the guide.
+  const showChecklist = hasNoDevices && !checklistState.dismissed;
 
-  // Filter actions based on context
-  const canClaimDevice = permissionsMap[PERMISSIONS.DEVICE.UPDATE];
-
-  // Determine if action is visible in current context
   const showClaimDevice = (() => {
     switch (userContext) {
       case "personal":
-        return true;
       case "external-org":
-        return true;
       default:
         return true;
     }
   })();
+
+  // ── Empty state (no devices) ───────────────────────────────────────────────
+  // Checklist IS the empty state guidance — replaces the old HomeEmptyState.
+
+  if (hasNoDevices) {
+    return (
+      <div>
+        <ContextHeader />
+
+        {showChecklist && (
+          <OnboardingChecklist
+            completedSteps={checklistState.completedSteps}
+            onDismiss={() => updateChecklist({ dismissed: true })}
+            onClaimDevice={() => setIsClaimModalOpen(true)}
+            onImportDevice={() => setIsImportModalOpen(true)}
+            onGoToCohorts={() => {
+              window.location.href = "/cohorts";
+            }}
+          />
+        )}
+
+        <ClaimDeviceModal
+          isOpen={isClaimModalOpen}
+          onClose={() => setIsClaimModalOpen(false)}
+        />
+        <ImportDeviceModal
+          open={isImportModalOpen}
+          onOpenChange={(open) => setIsImportModalOpen(open)}
+        />
+      </div>
+    );
+  }
+
+  // ── Main dashboard (has devices) ───────────────────────────────────────────
+  // Checklist never renders here — showChecklist is false when hasNoDevices is false.
 
   return (
     <div>
@@ -194,8 +283,15 @@ const WelcomePage = () => {
       )}
 
       <div className="mb-3">
-        <Accordion type="multiple" defaultValue={['stats', 'visibility']} className="space-y-4">
-          <AccordionItem value="stats" className="bg-white dark:bg-transparent border border-gray-200 dark:border-gray-600 rounded-lg px-6">
+        <Accordion
+          type="multiple"
+          defaultValue={["stats", "visibility"]}
+          className="space-y-4"
+        >
+          <AccordionItem
+            value="stats"
+            className="bg-white dark:bg-transparent border border-gray-200 dark:border-gray-600 rounded-lg px-6"
+          >
             <AccordionTrigger className="hover:no-underline py-4">
               <h2 className="text-xl">Device Health</h2>
             </AccordionTrigger>
@@ -204,14 +300,17 @@ const WelcomePage = () => {
             </AccordionContent>
           </AccordionItem>
 
-          <AccordionItem value="visibility" className="bg-white dark:bg-transparent border border-gray-200 dark:border-gray-600 rounded-lg px-6">
-              <AccordionTrigger className="hover:no-underline py-4">
-                <h2 className="text-xl">Device Visibility</h2>
-              </AccordionTrigger>
-              <AccordionContent className="pt-2">
-                <NetworkVisibilityCard />
-              </AccordionContent>
-            </AccordionItem>
+          <AccordionItem
+            value="visibility"
+            className="bg-white dark:bg-transparent border border-gray-200 dark:border-gray-600 rounded-lg px-6"
+          >
+            <AccordionTrigger className="hover:no-underline py-4">
+              <h2 className="text-xl">Device Visibility</h2>
+            </AccordionTrigger>
+            <AccordionContent className="pt-2">
+              <NetworkVisibilityCard />
+            </AccordionContent>
+          </AccordionItem>
         </Accordion>
       </div>
 
@@ -221,10 +320,13 @@ const WelcomePage = () => {
       />
       <ImportDeviceModal
         open={isImportModalOpen}
-        onOpenChange={setIsImportModalOpen}
+        onOpenChange={(open) => setIsImportModalOpen(open)}
       />
       {userId && (user?.email || user?.userName) && (
-        <LoginFeedbackToast userId={userId} email={(user?.email || user?.userName) as string} />
+        <LoginFeedbackToast
+          userId={userId}
+          email={(user?.email || user?.userName) as string}
+        />
       )}
     </div>
   );
