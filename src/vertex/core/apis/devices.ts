@@ -551,8 +551,13 @@ export const devices = {
     updateData: Record<string, unknown>
   ): Promise<DeviceUpdateGroupResponse> => {
     try {
+      const sanitizedDeviceIds = deviceIds.map((id) => id.trim()).filter(Boolean);
+      if (sanitizedDeviceIds.length === 0) {
+        throw new Error("At least one device ID is required.");
+      }
+
       const requestBody = {
-        deviceIds,
+        deviceIds: sanitizedDeviceIds,
         updateData,
       };
 
