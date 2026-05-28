@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from "react";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
-import ReusableButton from "@/components/shared/button/ReusableButton";
 import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
 import { DEVICE_CATEGORIES } from "@/core/constants/devices";
@@ -62,19 +61,12 @@ export default function BulkEditDevicesModal({
   const handleSubmit = () => {
     if (!selectedField) return;
 
-    const updateData = {
-      [selectedField]: value,
-    };
+    const updateData = { [selectedField]: value };
 
     bulkUpdate.mutate(
+      { deviceIds, updateData },
       {
-        deviceIds,
-        updateData,
-      },
-      {
-        onSuccess: () => {
-          handleClose();
-        },
+        onSuccess: () => handleClose(),
       }
     );
   };
@@ -85,7 +77,7 @@ export default function BulkEditDevicesModal({
         return (
           <ReusableSelectInput
             label="Category"
-            value={value as string || ""}
+            value={(value as string) || ""}
             onChange={(e) => setValue(e.target.value)}
           >
             {DEVICE_CATEGORIES.map((c) => (
@@ -100,7 +92,7 @@ export default function BulkEditDevicesModal({
         return (
           <ReusableInputField
             label="Network"
-            value={value as string || ""}
+            value={(value as string) || ""}
             onChange={(e) => setValue(e.target.value)}
           />
         );
@@ -121,12 +113,12 @@ export default function BulkEditDevicesModal({
         return (
           <ReusableSelectInput
             label={selectedField === "visibility" ? "Visibility" : "Auth Required"}
-            value={String(value)}
+            value={String(value ?? "")}
             onChange={(e) => setValue(e.target.value === "true")}
-            >
-              <option value="true">True</option>
-              <option value="false">False</option>
-            </ReusableSelectInput>
+          >
+            <option value="true">True</option>
+            <option value="false">False</option>
+          </ReusableSelectInput>
         );
 
       default:
@@ -139,10 +131,28 @@ export default function BulkEditDevicesModal({
       isOpen={open}
       onClose={handleClose}
       title="Bulk Edit Devices"
-      className="w-[600px]"
+      size="lg"
+      // Primary & Secondary Actions
+      secondaryAction={
+        step === "choose_field"
+          ? {
+              label: "Cancel",
+              onClick: handleClose,
+            }
+          : {
+              label: "Back",
+              onClick: () => setStep("choose_field"),
+            }
+      }
+      primaryAction={{
+        label: step === "choose_field" ? "Continue" : "Confirm Update",
+        onClick: step === "choose_field" ? handleProceed : handleSubmit,
+        disabled: step === "choose_field" ? !selectedField : bulkUpdate.isPending,
+        className: step === "confirm" ? "min-w-[140px]" : undefined,
+      }}
     >
       {step === "choose_field" && (
-        <div className="space-y-4">
+        <div className="space-y-4 py-2">
           <ReusableSelectInput
             label="Select field to update"
             value={selectedField || ""}
@@ -161,53 +171,22 @@ export default function BulkEditDevicesModal({
           {selectedField && (
             <div className="pt-2">{renderFieldInput()}</div>
           )}
-
-          <div className="flex justify-end gap-2 pt-4">
-            <ReusableButton variant="outlined" onClick={handleClose}>
-              Cancel
-            </ReusableButton>
-
-            <ReusableButton
-              onClick={handleProceed}
-              disabled={!selectedField}
-            >
-              Continue
-            </ReusableButton>
-          </div>
         </div>
       )}
 
       {step === "confirm" && (
-        <div className="space-y-4">
-          <div className="p-3 border rounded-md bg-muted">
-            <p className="text-sm font-medium">
-              You are about to update:
-            </p>
-            <p className="text-sm">
+        <div className="space-y-4 py-2">
+          <div className="p-4 border rounded-md bg-muted">
+            <p className="text-sm font-medium">You are about to update:</p>
+            <p className="text-sm mt-1">
               <b>{selectedField}</b> →{" "}
-              <span className="text-blue-600">
+              <span className="text-blue-600 font-medium">
                 {JSON.stringify(value)}
               </span>
             </p>
-            <p className="text-xs text-muted-foreground mt-2">
-              This will affect {deviceIds.length} devices.
+            <p className="text-xs text-muted-foreground mt-3">
+              This will affect <strong>{deviceIds.length}</strong> devices.
             </p>
-          </div>
-
-          <div className="flex justify-end gap-2">
-            <ReusableButton
-              variant="outlined"
-              onClick={() => setStep("choose_field")}
-            >
-              Back
-            </ReusableButton>
-
-            <ReusableButton
-              onClick={handleSubmit}
-              loading={bulkUpdate.isPending}
-            >
-              Confirm Update
-            </ReusableButton>
           </div>
         </div>
       )}
