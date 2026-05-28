@@ -441,6 +441,44 @@ export const useDeviceStatusFeed = (deviceNumber?: number) => {
   });
 };
 
+export interface BulkDeviceUpdatePayload {
+  deviceIds: string[];
+  updateData: Record<string, unknown>;
+}
+
+export const useUpdateDeviceBulk = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    DeviceUpdateGroupResponse,
+    AxiosError<ErrorResponse>,
+    BulkDeviceUpdatePayload
+  >({
+    mutationFn: ({ deviceIds, updateData }) =>
+      devices.bulkUpdateDeviceDetails(deviceIds, updateData),
+
+    onSuccess: () => {
+      ReusableToast({
+        message: "Devices updated successfully.",
+        type: "SUCCESS",
+      });
+
+      // invalidate all relevant caches
+      queryClient.invalidateQueries({ queryKey: ["devices"] });
+      queryClient.invalidateQueries({ queryKey: ["myDevices"] });
+      queryClient.invalidateQueries({ queryKey: ["network-devices"] });
+      queryClient.invalidateQueries({ queryKey: ["deviceActivities"] });
+    },
+
+    onError: (error) => {
+      ReusableToast({
+        message: `Bulk Update Failed: ${getApiErrorMessage(error)}`,
+        type: "ERROR",
+      });
+    },
+  });
+};
+
 export const useUpdateDeviceGroup = () => {
   return useMutation<
     DeviceUpdateGroupResponse,
@@ -448,17 +486,24 @@ export const useUpdateDeviceGroup = () => {
     { deviceId: string; groupName: string }
   >({
     mutationFn: ({ deviceId, groupName }) =>
-      devices.updateDeviceGroup(deviceId, groupName),
+      devices.bulkUpdateDeviceDetails(
+        [deviceId],
+        {
+          groups: [groupName],
+        }
+      ),
+
     onSuccess: () => {
       ReusableToast({
-        message: 'Device has been successfully added to the group.',
-        type: 'SUCCESS',
+        message: "Device has been successfully added to the group.",
+        type: "SUCCESS",
       });
     },
-    onError: error => {
+
+    onError: (error) => {
       ReusableToast({
         message: `Group Update Failed: ${getApiErrorMessage(error)}`,
-        type: 'ERROR',
+        type: "ERROR",
       });
     },
   });
@@ -480,24 +525,34 @@ export const useCreateDevice = () => {
       tags?: string[];
     }
   >({
-    mutationFn: (variables) => {
+    mutationFn: async (variables) => {
       const { tags, ...rest } = variables;
+
       const payload = {
         ...rest,
         ...(tags && tags.length > 0 && { tags }),
       };
+
       return devices.createDevice(payload);
     },
-    onSuccess: (data) => {
-      if (data.created_device && activeGroup?.grp_title) {
-        updateDeviceGroup.mutate({
-          deviceId: data.created_device._id || '',
-          groupName: activeGroup.grp_title,
-        });
+
+    onSuccess: async (data) => {
+      try {
+        const createdDeviceId = data.created_device?._id;
+
+        if (createdDeviceId && activeGroup?.grp_title) {
+          await updateDeviceGroup.mutateAsync({
+            deviceId: createdDeviceId,
+            groupName: activeGroup.grp_title,
+          });
+        }
+      } catch (error) {
+        logger.error("Failed to assign device to group", getApiErrorMessage(error));
+      } finally {
+        queryClient.invalidateQueries({ queryKey: ["devices"] });
+        queryClient.invalidateQueries({ queryKey: ["network-devices"] });
+        queryClient.invalidateQueries({ queryKey: ["deviceActivities"] });
       }
-      queryClient.invalidateQueries({ queryKey: ['devices'] });
-      queryClient.invalidateQueries({ queryKey: ['network-devices'] });
-      queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
     },
   });
 };

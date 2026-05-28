@@ -20,7 +20,6 @@ import {
   AqFilterLines,
   AqXClose,
 } from "@airqo/icons-react";
-import SelectField from "@/components/ui/select-field";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { TableExportModal } from "./TableExportModal";
@@ -50,10 +49,16 @@ export type TableColumn<T, K extends keyof T = keyof T> = {
 
 export type SortingState = Array<{ id: string; desc: boolean }>;
 
-interface TableAction {
+type IconComponent = React.ComponentType<{ className?: string }>;
+
+type NoJSXIcon<T> =
+  T extends React.ReactElement ? never : T;
+
+export interface TableAction {
   label: string;
   value: string;
   handler: (selectedIds: (string | number)[]) => void;
+  icon?: NoJSXIcon<IconComponent>;
 }
 
 export type TableItem<T = unknown> = {
@@ -320,48 +325,41 @@ const TableHeader = <T extends TableItem>({
 // --- MultiSelectActionBar Component ---
 interface MultiSelectActionBarProps {
   actions: TableAction[];
-  selectedAction: string;
-  onActionChange: (action: string) => void;
-  onActionSubmit: () => void;
+  selectedIds: (string | number)[];
   onClearSelection: () => void;
 }
 
 const MultiSelectActionBar: React.FC<MultiSelectActionBarProps> = ({
   actions,
-  selectedAction,
-  onActionChange,
-  onActionSubmit,
+  selectedIds,
   onClearSelection,
 }) => {
   return (
-    <div className="px-6 py-3 bg-primary/10 dark:bg-primary/20 border-b border-primary/20 dark:border-primary/30 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div className="px-6 py-2 bg-primary/10 dark:bg-primary/20 border-b border-primary/20 dark:border-primary/30 flex items-center gap-3">
       <ReusableButton
         onClick={onClearSelection}
         className="text-sm font-medium"
         variant="text"
       >
-        Clear selection
+        Clear
       </ReusableButton>
-      {actions.length > 0 && (
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-          <SelectField
-            value={selectedAction}
-            onChange={(e) => onActionChange(String(e.target.value))}
-            placeholder="Select Action"
-            className="min-w-[12rem] text-sm"
+
+      <div className="w-px h-5 bg-primary/20 dark:bg-primary/30" />
+
+      <div className="flex items-center gap-1">
+        {actions.map((action) => (
+          <ReusableButton
+            key={action.value}
+            onClick={() => action.handler(selectedIds)}
+            variant="outlined"
+            className="text-sm px-2 py-1"
+            title={action.label}
+            Icon={action.icon}
           >
-            {actions.map((action) => (
-              <option key={action.value} value={action.value}>
-                {action.label}
-              </option>
-            ))}
-          </SelectField>
-          <ReusableButton onClick={onActionSubmit} disabled={!selectedAction} variant="filled" padding="px-3 py-1.5"
-            className="text-sm font-medium">
-            Apply
+            {action.label}
           </ReusableButton>
-        </div>
-      )}
+        ))}
+      </div>
     </div>
   );
 };
@@ -645,7 +643,6 @@ const ReusableTable = <T extends TableItem>({
   const stickyHeaderRef = useRef<HTMLDivElement>(null);
 
   const [selectedItems, setSelectedItems] = useState<T[]>([]);
-  const [selectedAction, setSelectedAction] = useState<string>("");
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   const headerCheckboxRef = useRef<HTMLInputElement>(null);
@@ -1232,20 +1229,6 @@ const ReusableTable = <T extends TableItem>({
 
   const isAnySelected = selectedItems.length > 0;
 
-  const handleActionChange = useCallback((action: string) => {
-    setSelectedAction(action);
-  }, []);
-
-  const handleActionSubmit = useCallback(() => {
-    if (selectedAction && actions.length > 0) {
-      const action = actions.find((a) => a.value === selectedAction);
-      if (action && typeof action.handler === "function") {
-        action.handler(selectedItems.map(item => item.id));
-      }
-    }
-    setSelectedAction("");
-  }, [selectedAction, actions, selectedItems]);
-
   const handleClearSelection = useCallback(() => {
     setSelectedItems([]);
     onSelectedItemsChange?.([]);
@@ -1345,9 +1328,7 @@ const ReusableTable = <T extends TableItem>({
         {multiSelect && isAnySelected && (
           <MultiSelectActionBar
             actions={actions}
-            selectedAction={selectedAction}
-            onActionChange={handleActionChange}
-            onActionSubmit={handleActionSubmit}
+            selectedIds={selectedItems.map(item => item.id)}
             onClearSelection={handleClearSelection}
           />
         )}
