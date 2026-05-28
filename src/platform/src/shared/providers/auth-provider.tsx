@@ -8,7 +8,7 @@ import {
 } from 'next-auth/react';
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { LoadingOverlay } from '@/shared/components/ui/loading-overlay';
 import { UserDataFetcher } from './UserDataFetcher';
 import {
@@ -43,6 +43,7 @@ import {
   verifyBackendOAuthSession,
 } from '@/shared/lib/oauth-session';
 import { useUserActions } from '@/shared/hooks';
+import { GroupSwitchOverlay } from '@/shared/components/ui/group-switch-overlay';
 
 // Component to guard and redirect based on active group for all pages
 function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
@@ -53,7 +54,6 @@ function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
   // Do NOT call `dispatch(setActiveGroup(...))` here directly because that
   // bypasses the cache invalidation implemented in `useUserActions.switchGroup`.
   const { switchGroup } = useUserActions();
-  const dispatch = useDispatch();
   const activeGroup = useSelector(selectActiveGroup);
   const groups = useSelector(selectGroups);
 
@@ -118,7 +118,6 @@ function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
     activeGroup,
     activeGroupSlug,
     airqoGroup,
-    dispatch,
     groupForCurrentOrgPath,
     isAirQoActiveGroup,
     isOrgPath,
@@ -293,7 +292,6 @@ function AuthScopedCacheProviders({ children }: { children: React.ReactNode }) {
 
 function AuthWrapper({ children }: { children: React.ReactNode }) {
   const { data: session, status, update } = useSession();
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const activeGroup = useSelector(selectActiveGroup);
@@ -619,7 +617,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     }
 
     redirectWithReload('/user/home');
-  }, [status, isPublicRoute, activeGroup, router, pathname, callbackUrl]);
+  }, [status, isPublicRoute, activeGroup, pathname, callbackUrl]);
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -661,6 +659,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
   return (
     <UserDataFetcher>
+      <GroupSwitchOverlay />
       <ActiveGroupGuard>{children}</ActiveGroupGuard>
       <SetPasswordPromptDialog />
     </UserDataFetcher>

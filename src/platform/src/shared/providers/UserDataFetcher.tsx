@@ -13,7 +13,6 @@ import {
   setError,
   clearUser,
 } from '@/shared/store/userSlice';
-import { normalizeUser, normalizeGroups } from '@/shared/utils/userUtils';
 import {
   selectActiveGroup,
   selectUser,
@@ -21,6 +20,7 @@ import {
 } from '@/shared/store/selectors';
 import { useLogout } from '@/shared/hooks/useLogout';
 import type { User } from '@/shared/types/api';
+import { normalizeUser, normalizeGroups } from '@/shared/utils/userUtils';
 
 /**
  * Component that automatically fetches and stores user data when authenticated
@@ -111,19 +111,17 @@ export function UserDataFetcher({ children }: { children: React.ReactNode }) {
 
     // Only process data when it actually changes and is valid
     if (data !== prevData && data?.users && data.users.length > 0) {
-      const user = data.users[0] as User;
-      const normalizedUser = normalizeUser(user);
-      const normalizedGroups = normalizeGroups(user.groups);
+      const fetchedUser = data.users[0] as User;
+      const normalizedUser = normalizeUser(fetchedUser);
+      const normalizedGroups = normalizeGroups(fetchedUser.groups);
 
       if (normalizedUser) {
-        // Batch dispatches to prevent multiple re-renders
         dispatch(setUser(normalizedUser));
         dispatch(setGroups(normalizedGroups));
         dispatch(setError(null));
       } else {
         // Avoid keeping stale user data when backend responds with an invalid shape
         dispatch(clearUser());
-        dispatch(setGroups([]));
         dispatch(setError('Invalid user data received from API'));
       }
     }

@@ -4,6 +4,8 @@ import type { RootState } from './index';
 export const selectUser = (state: RootState) => state.user.user;
 export const selectGroups = (state: RootState) => state.user.groups;
 export const selectActiveGroup = (state: RootState) => state.user.activeGroup;
+export const selectPendingGroupSwitch = (state: RootState) =>
+  state.user.pendingGroupSwitch;
 export const selectUserLoading = (state: RootState) => state.user.isLoading;
 export const selectLoggingOut = (state: RootState) => state.user.isLoggingOut;
 export const selectUserError = (state: RootState) => state.user.error;

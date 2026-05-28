@@ -3,7 +3,7 @@
   "version": "3.7.0",
   "private": true,
   "scripts": {
-    "clean:next": "node -e \"require('node:fs').rmSync('.next',{recursive:true,force:true})\"",
+    "clean:next": "node -e \"const fs=require('node:fs'); try { fs.rmSync('.next',{recursive:true,force:true,maxRetries:10,retryDelay:200}); } catch (error) { if (error && typeof error === 'object' && 'code' in error && (error.code === 'EPERM' || error.code === 'EBUSY')) { console.warn('[clean:next] Skipping .next cleanup because the directory is locked:', error.code); } else { throw error; } }\"",
     "dev": "next dev",
     "build": "next build",
     "prebuild": "yarn clean:next",

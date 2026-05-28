@@ -3,18 +3,21 @@
 import * as React from 'react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useDispatch } from 'react-redux';
 import { Avatar } from '@/shared/components/ui/avatar';
 import { SearchField } from '@/shared/components/ui/search-field';
 import Dialog from '@/shared/components/ui/dialog';
 import { useUser } from '@/shared/hooks/useUser';
 import { useUserActions } from '@/shared/hooks/useUserActions';
 import { isDefaultAirQoGroup } from '@/shared/utils/groupUtils';
+import { startPendingGroupSwitch } from '@/shared/store/userSlice';
 import { AqGrid01 } from '@airqo/icons-react';
 
 export function OrganizationSelector() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const router = useRouter();
+  const dispatch = useDispatch();
   const { groups, activeGroup } = useUser();
   const { switchGroup } = useUserActions();
   const safeGroups = React.useMemo(
@@ -28,24 +31,31 @@ export function OrganizationSelector() {
   const handleGroupSwitch = (groupId: string) => {
     const selectedGroup = safeGroups.find(g => g.id === groupId);
     if (!selectedGroup || selectedGroup.id === activeGroup?.id) return;
+    const destinationPath = isDefaultAirQoGroup(selectedGroup)
+      ? '/user/home'
+      : `/org/${selectedGroup.organizationSlug}/dashboard`;
 
     // Close dialog first
     handleClose();
+
+    dispatch(
+      startPendingGroupSwitch({
+        targetGroupId: selectedGroup.id,
+        targetGroupName:
+          selectedGroup.title ||
+          selectedGroup.organizationSlug ||
+          'organization',
+        destinationPath,
+        startedAt: new Date().toISOString(),
+      })
+    );
 
     // Switch group context (updates Redux + invalidates group-scoped SWR/RQ caches)
     // before navigating so that when the new page mounts, group context is already
     // correct and ActiveGroupGuard doesn't need to re-sync.
     switchGroup(selectedGroup);
 
-    // Navigate to the appropriate route for the selected group
-    if (isDefaultAirQoGroup(selectedGroup)) {
-      router.push('/user/home');
-    } else {
-      const orgSlug = selectedGroup.organizationSlug;
-      if (orgSlug) {
-        router.push(`/org/${orgSlug}/dashboard`);
-      }
-    }
+    router.push(destinationPath);
   };
 
   const filteredGroups = React.useMemo(() => {
