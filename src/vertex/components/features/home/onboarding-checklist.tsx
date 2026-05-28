@@ -4,9 +4,6 @@ import React from "react";
 import {
   CheckCircle2,
   Circle,
-  ChevronDown,
-  ChevronUp,
-  X,
   ArrowRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -240,11 +237,7 @@ export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
   completedSteps,
   onDismiss,
 }) => {
-  // H3: User control and freedom — collapsible, persisted across page loads
-  const [isCollapsed, setIsCollapsed] = useLocalStorage(
-    "vertex_onboarding_collapsed",
-    false,
-  );
+
 
   const completedCount = completedSteps.length;
   const allComplete = completedCount === STEPS.length;
@@ -294,62 +287,24 @@ export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
           {/* Progress always visible even when collapsed — H1 */}
           <ProgressBar completed={completedCount} total={STEPS.length} />
         </div>
-
-        <div className="flex items-center gap-1 shrink-0">
-          {/* Collapse toggle — H3: User control */}
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className={cn(
-              "p-1.5 rounded-md text-gray-400 dark:text-gray-500",
-              "hover:bg-gray-100 dark:hover:bg-gray-800",
-              "transition-colors duration-150",
-              "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
-            )}
-            aria-expanded={!isCollapsed}
-            aria-controls="checklist-steps"
-            aria-label={isCollapsed ? "Expand checklist" : "Collapse checklist"}
-          >
-            {isCollapsed ? (
-              <ChevronDown className="h-4 w-4" />
-            ) : (
-              <ChevronUp className="h-4 w-4" />
-            )}
-          </button>
-
-          {/* Dismiss — H3: Clearly marked emergency exit */}
-          <button
-            onClick={onDismiss}
-            className={cn(
-              "p-1.5 rounded-md text-gray-400 dark:text-gray-500",
-              "hover:bg-gray-100 dark:hover:bg-gray-800",
-              "hover:text-gray-600 dark:hover:text-gray-300",
-              "transition-colors duration-150",
-              "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
-            )}
-            aria-label="Dismiss setup checklist"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
       </div>
 
       {/* ── Steps — H6: Full journey visible at once, recognition over recall ── */}
-      {!isCollapsed && (
-        <div
-          id="checklist-steps"
-          className="px-4 pb-4 divide-y divide-gray-100 dark:divide-gray-800"
-        >
-          {STEPS.map((step, index) => (
-            <StepRow
-              key={step.id}
-              step={step}
-              isComplete={completedSteps.includes(step.id)}
-              isLocked={isStepLocked(index)}
-              onAction={stepActions[step.id]}
-            />
-          ))}
-        </div>
-      )}
+      <div
+        id="checklist-steps"
+        className="px-4 pb-4 divide-y divide-gray-100 dark:divide-gray-800"
+      >
+        {STEPS.map((step, index) => (
+          <StepRow
+            key={step.id}
+            step={step}
+            isComplete={completedSteps.includes(step.id)}
+            isLocked={isStepLocked(index)}
+            onAction={stepActions[step.id]}
+          />
+        ))}
+      </div>
+    
     </div>
   );
 };
