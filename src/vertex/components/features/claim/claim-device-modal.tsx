@@ -1,3 +1,4 @@
+// ClaimDeviceModal.tsx
 'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
@@ -20,9 +21,7 @@ import {
   useAssignCohortsToGroup,
   useAssignCohortsToUser,
 } from '@/core/hooks/useCohorts';
-import { cohorts as cohortsApi } from '@/core/apis/cohorts';
 import { BulkClaimResults } from './steps/BulkClaimResults';
-import { Device } from '@/app/types/devices';
 
 import CohortImportStep from './steps/CohortImportStep';
 import ManualInputStep from './steps/ManualInputStep';
@@ -38,13 +37,23 @@ import BulkInputStep from './steps/BulkInputStep';
 
 import { parseQRCode } from './utils';
 
-// Dialog action types
-type DialogPrimaryAction = NonNullable<React.ComponentProps<typeof ReusableDialog>['primaryAction']>;
-type DialogSecondaryAction = NonNullable<React.ComponentProps<typeof ReusableDialog>['secondaryAction']>;
+// ============================================================
+// MODES
+// ============================================================
+
+export type ClaimFlowMode = 'guided' | 'fast';
 
 // ============================================================
 // TYPES
 // ============================================================
+
+type DialogPrimaryAction = NonNullable<
+  React.ComponentProps<typeof ReusableDialog>['primaryAction']
+>;
+
+type DialogSecondaryAction = NonNullable<
+  React.ComponentProps<typeof ReusableDialog>['secondaryAction']
+>;
 
 export type FlowStep =
   | 'method-select'
@@ -72,6 +81,7 @@ export interface ClaimDeviceModalProps {
   onClose: () => void;
   onSuccess?: (deviceInfo: ClaimedDeviceInfo) => void;
   initialStep?: FlowStep;
+  mode?: ClaimFlowMode;
 }
 
 export interface BulkDevice {
@@ -95,7 +105,7 @@ const claimDeviceSchema = z.object({
     .min(3, 'Device ID must be at least 3 characters')
     .regex(
       /^[a-zA-Z0-9_-]+$/,
-      'Device ID can only contain letters, numbers, underscores, and hyphens'
+      'Device ID can only contain letters, numbers, underscores, and hyphens',
     ),
   claim_token: z
     .string()
@@ -106,7 +116,7 @@ const claimDeviceSchema = z.object({
 export type ClaimDeviceFormData = z.infer<typeof claimDeviceSchema>;
 
 // ============================================================
-// SHARED SUB-COMPONENTS
+// SHARED COMPONENTS
 // ============================================================
 
 export const ErrorAlert = ({ message }: { message: string }) => (
@@ -139,7 +149,7 @@ const LoadingSpinner = ({
 );
 
 // ============================================================
-// MAIN MODAL
+// MAIN COMPONENT
 // ============================================================
 
 const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
@@ -147,9 +157,13 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
   onClose,
   onSuccess,
   initialStep = 'method-select',
+  mode = 'fast',
 }) => {
+  const isGuidedMode = mode === 'guided';
+
   const router = useRouter();
   const queryClient = useQueryClient();
+
   const { data: session } = useSession();
   const user = useAppSelector(state => state.user.userDetails);
 
@@ -158,11 +172,19 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
 
   const userId = (session?.user as { id?: string })?.id || user?._id;
 
+  // ==========================================================
+  // Cohorts
+  // ==========================================================
+
   const { data: groupCohortIds } = useGroupCohorts(activeGroup?._id, {
-    enabled: !isPersonalContext && !!activeGroup?._id,
+    enabled: !isGuidedMode && !isPersonalContext && !!activeGroup?._id,
   });
 
   const defaultCohort = groupCohortIds?.[0] || null;
+
+  // ==========================================================
+  // Mutations
+  // ==========================================================
 
   const {
     mutate: claimDevice,
@@ -171,6 +193,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     data: claimData,
     error: claimError,
   } = useClaimDevice();
+
   const {
     mutate: bulkClaimDevices,
     isPending: isBulkPending,
@@ -178,9 +201,14 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     data: bulkClaimData,
     error: bulkClaimError,
   } = useBulkClaimDevices();
+
   const { mutateAsync: verifyCohort } = useVerifyCohort();
   const { mutate: assignCohortsToGroup } = useAssignCohortsToGroup();
   const { mutate: assignCohortsToUser } = useAssignCohortsToUser();
+
+  // ==========================================================
+  // State
+  // ==========================================================
 
   const [step, setStep] = useState<FlowStep>(initialStep);
   const [error, setError] = useState<string | null>(null);
@@ -190,29 +218,37 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     claimToken: string;
   } | null>(null);
   const [cohortIdInput, setCohortIdInput] = useState('');
+
+  // Tracks which step the user came from before confirmation,
+  // so the Cancel/Back button returns to the right place.
   const [previousStep, setPreviousStep] = useState<FlowStep>('method-select');
+
   const [isImportingCohort, setIsImportingCohort] = useState(false);
   const [isCohortAssignmentSuccess, setIsCohortAssignmentSuccess] =
     useState(false);
   const [verifiedCohort, setVerifiedCohort] = useState<VerifiedCohort | null>(
-    null
+    null,
   );
+
+  // ==========================================================
+  // Form
+  // ==========================================================
 
   const formMethods = useForm<ClaimDeviceFormData>({
     resolver: zodResolver(claimDeviceSchema),
-    defaultValues: { device_id: '', claim_token: '' },
+    defaultValues: {
+      device_id: '',
+      claim_token: '',
+    },
   });
 
-  // ── Cache invalidation helpers ──────────────────────────────
+  // ==========================================================
+  // Cache Helpers
+  // ==========================================================
 
   const invalidatePersonalCaches = useCallback(() => {
-    // Invalidate personal cohorts so usePersonalUserCohorts refetches
-    queryClient.invalidateQueries({
-      queryKey: ['personalUserCohorts', userId],
-    });
-    // Invalidate my-devices list
+    queryClient.invalidateQueries({ queryKey: ['personalUserCohorts', userId] });
     queryClient.invalidateQueries({ queryKey: ['myDevices'] });
-    // Invalidate device count for personal scope
     queryClient.invalidateQueries({ queryKey: ['deviceCount', 'personal'] });
   }, [queryClient, userId]);
 
@@ -226,7 +262,9 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     queryClient.invalidateQueries({ queryKey: ['devices'] });
   }, [queryClient, activeGroup?._id]);
 
-  // ── Reset ───────────────────────────────────────────────────
+  // ==========================================================
+  // Reset
+  // ==========================================================
 
   const resetState = useCallback(() => {
     formMethods.reset();
@@ -241,12 +279,15 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     setVerifiedCohort(null);
   }, [formMethods]);
 
+  // Always go through resetState so isCohortAssignmentSuccess etc. are cleared
   const handleClose = useCallback(() => {
     resetState();
     onClose();
   }, [resetState, onClose]);
 
-  // ── Effects ─────────────────────────────────────────────────
+  // ==========================================================
+  // Effects
+  // ==========================================================
 
   useEffect(() => {
     if (isOpen) {
@@ -254,69 +295,116 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
       setError(null);
       formMethods.reset();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]);
+  }, [isOpen, initialStep, formMethods]);
 
+  // Single claim: success
   useEffect(() => {
-    if (isSuccess && claimData) {
-      setStep('success');
-      if (isPersonalContext) invalidatePersonalCaches();
-      else invalidateGroupCaches();
-      if (onSuccess && claimData.device) {
-        onSuccess({
-          deviceId: claimData.device.name,
-          deviceName: claimData.device.long_name || claimData.device.name,
-          cohortId: '',
-        });
-      }
-    }
-  }, [isSuccess, claimData]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!isSuccess || !claimData) return;
 
+    if (isPersonalContext) {
+      invalidatePersonalCaches();
+    } else {
+      invalidateGroupCaches();
+    }
+
+    setStep('success');
+
+    if (onSuccess && claimData.device) {
+      onSuccess({
+        deviceId: claimData.device.name,
+        deviceName: claimData.device.long_name || claimData.device.name,
+        cohortId: '',
+      });
+    }
+  }, [
+    isSuccess,
+    claimData,
+    invalidatePersonalCaches,
+    invalidateGroupCaches,
+    isPersonalContext,
+    onSuccess,
+  ]);
+
+  // Single claim: error
   useEffect(() => {
     if (claimError) {
       setError(
-        claimError.message || 'Failed to claim device. Please try again.'
+        claimError.message || 'Failed to claim device. Please try again.',
       );
       setStep('manual-input');
     }
   }, [claimError]);
 
+  // Single claim: loading
   useEffect(() => {
-    if (isPending && step !== 'claiming') setStep('claiming');
+    if (isPending && step !== 'claiming') {
+      setStep('claiming');
+    }
   }, [isPending, step]);
 
+  // Bulk claim: success
   useEffect(() => {
     if (isBulkSuccess && bulkClaimData) {
       setStep('bulk-results');
-      if (isPersonalContext) invalidatePersonalCaches();
-      else invalidateGroupCaches();
-    }
-  }, [isBulkSuccess, bulkClaimData]); // eslint-disable-line react-hooks/exhaustive-deps
 
+      if (isPersonalContext) {
+        invalidatePersonalCaches();
+      } else {
+        invalidateGroupCaches();
+      }
+    }
+  }, [
+    isBulkSuccess,
+    bulkClaimData,
+    invalidatePersonalCaches,
+    invalidateGroupCaches,
+    isPersonalContext,
+  ]);
+
+  // Bulk claim: error
   useEffect(() => {
     if (bulkClaimError) {
       setError(
-        bulkClaimError.message || 'Failed to claim devices. Please try again.'
+        bulkClaimError.message || 'Failed to claim devices. Please try again.',
       );
       setStep('bulk-input');
     }
   }, [bulkClaimError]);
 
+  // Bulk claim: loading
   useEffect(() => {
-    if (isBulkPending && step !== 'bulk-claiming') setStep('bulk-claiming');
+    if (isBulkPending && step !== 'bulk-claiming') {
+      setStep('bulk-claiming');
+    }
   }, [isBulkPending, step]);
 
-  // ── Handlers ────────────────────────────────────────────────
+  // ==========================================================
+  // Single Claim Handlers
+  // ==========================================================
 
   const handleClaimDevice = (deviceId: string, claimToken: string) => {
     if (!user?._id) {
       setError('User session not available. Please try again.');
       return;
     }
+
+    // GUIDED MODE — claim only, no cohort assignment
+    if (isGuidedMode) {
+      setError(null);
+      claimDevice({
+        device_name: deviceId,
+        user_id: user._id,
+        claim_token: claimToken,
+      });
+      return;
+    }
+
+    // FAST MODE — claim + optional auto-cohort assignment
     if (!isPersonalContext && !defaultCohort) {
       setError('No cohorts found. Please create a cohort first.');
       return;
     }
+
     setError(null);
     claimDevice({
       device_name: deviceId,
@@ -339,8 +427,71 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     if (isPending || !pendingSingleClaim) return;
     handleClaimDevice(
       pendingSingleClaim.deviceId,
-      pendingSingleClaim.claimToken
+      pendingSingleClaim.claimToken,
     );
+  };
+
+  const handleQRScan = (result: string) => {
+    const parsed = parseQRCode(result);
+
+    if (!parsed) {
+      setError('Invalid QR code format. Please try manual entry.');
+      setStep('manual-input');
+      return;
+    }
+
+    setPendingSingleClaim({
+      deviceId: parsed.deviceId,
+      claimToken: parsed.claimToken,
+    });
+    setPreviousStep('qr-scan');
+    setStep('confirmation');
+  };
+
+  // ==========================================================
+  // Bulk Handlers (FAST MODE ONLY)
+  // ==========================================================
+
+  /** Add a blank device row so the user can type into it. */
+  const handleBulkAddDevice = () => {
+    setBulkDevices(prev => [...prev, { device_name: '', claim_token: '' }]);
+  };
+
+  /** Remove the device row at the given index. */
+  const handleBulkRemoveDevice = (index: number) => {
+    setBulkDevices(prev => prev.filter((_, i) => i !== index));
+  };
+
+  /**
+   * Update a single field on a specific device row.
+   * `field` is either 'device_name' or 'claim_token'.
+   */
+  const handleBulkDeviceChange = (
+    index: number,
+    field: keyof BulkDevice,
+    value: string,
+  ) => {
+    setBulkDevices(prev =>
+      prev.map((device, i) =>
+        i === index ? { ...device, [field]: value } : device,
+      ),
+    );
+  };
+
+  /**
+   * Replace the current device list with devices parsed from an
+   * imported file (CSV, JSON, etc.). The BulkInputStep is responsible
+   * for parsing; it hands us a ready-to-use BulkDevice array.
+   */
+  const handleBulkFileImport = (devices: BulkDevice[]) => {
+    setError(null);
+    setBulkDevices(devices);
+  };
+
+  /** Clear all device rows from the bulk list. */
+  const handleBulkClear = () => {
+    setBulkDevices([]);
+    setError(null);
   };
 
   const handleBulkSubmit = () => {
@@ -348,26 +499,27 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
       setError('User session not available. Please try again.');
       return;
     }
+
     const valid = bulkDevices.filter(
-      d => d.device_name.trim() && d.claim_token.trim()
+      d => d.device_name.trim() && d.claim_token.trim(),
     );
+
     if (valid.length === 0) {
       setError('Please add at least one device with both name and token.');
       return;
     }
-    if (!isPersonalContext && !defaultCohort) {
-      setError('No cohorts found. Please create a cohort first.');
-      return;
-    }
+
     setError(null);
     setStep('bulk-confirmation');
   };
 
   const handleConfirmBulkClaim = () => {
     if (!user?._id) return;
+
     const valid = bulkDevices.filter(
-      d => d.device_name.trim() && d.claim_token.trim()
+      d => d.device_name.trim() && d.claim_token.trim(),
     );
+
     bulkClaimDevices({
       user_id: user._id,
       devices: valid,
@@ -375,29 +527,17 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     });
   };
 
-  const handleQRScan = (result: string) => {
-    const parsed = parseQRCode(result);
-    if (parsed) {
-      setPendingSingleClaim({
-        deviceId: parsed.deviceId,
-        claimToken: parsed.claimToken,
-      });
-      setPreviousStep('qr-scan');
-      setStep('confirmation');
-    } else {
-      setError('Invalid QR code format. Please try manual entry.');
-      setStep('manual-input');
-    }
-  };
+  // ==========================================================
+  // Cohort Assignment (FAST MODE ONLY)
+  // ==========================================================
 
   const handleVerifyCohort = async () => {
+    if (isGuidedMode) return;
+
     const input = cohortIdInput.trim();
+
     if (!input) {
       setError('Please enter a valid Cohort ID');
-      return;
-    }
-    if (!/^[a-zA-Z0-9]{24}$/.test(input)) {
-      setError('Cohort ID must be a 24-character alphanumeric code.');
       return;
     }
 
@@ -417,49 +557,11 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
         result?.cohort?.name ||
         '';
 
-      if (cohortName?.toLowerCase() === 'airqo') {
-        setError('This cohort is not available.');
-        return;
-      }
-
-      // Personal or external org: go to confirm step
-      if (isPersonalContext || isExternalOrg) {
-        if (isExternalOrg && !activeGroup?._id) {
-          setError('No organization is selected. Please try again.');
-          return;
-        }
-        if (isPersonalContext && !userId) {
-          setError('User session not available. Please try again.');
-          return;
-        }
-        setVerifiedCohort({ id: input, name: cohortName || input });
-        setStep('cohort-confirm');
-        return;
-      }
-
-      // Fallback: load devices from cohort details
-      const cohortDetails = await cohortsApi.getCohortDetailsApi(input);
-      const cohort = Array.isArray(cohortDetails?.cohorts)
-        ? cohortDetails.cohorts[0]
-        : null;
-      if (
-        cohort &&
-        Array.isArray(cohort.devices) &&
-        cohort.devices.length > 0
-      ) {
-        setBulkDevices(
-          cohort.devices.map((d: unknown) => ({
-            device_name: (d as Device).name || '',
-            claim_token: '',
-          }))
-        );
-        setStep('bulk-input');
-      } else {
-        setError('Cohort found but it has no devices assigned.');
-      }
+      setVerifiedCohort({ id: input, name: cohortName || input });
+      setStep('cohort-confirm');
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : 'Failed to verify Cohort ID'
+        err instanceof Error ? err.message : 'Failed to verify Cohort ID',
       );
     } finally {
       setIsImportingCohort(false);
@@ -467,9 +569,10 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
   };
 
   const handleConfirmCohortImport = () => {
+    if (isGuidedMode) return;
+
     if (!verifiedCohort) {
       setError('Session expired. Please verify the cohort again.');
-      setStep('cohort-import');
       return;
     }
 
@@ -484,13 +587,13 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
             setTimeout(() => {
               setIsCohortAssignmentSuccess(true);
               setStep('success');
-            }, 3000);
+            }, 1500);
           },
           onError: err => {
             setError(getApiErrorMessage(err));
             setStep('cohort-import');
           },
-        }
+        },
       );
       return;
     }
@@ -500,84 +603,45 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
         { userId, cohortIds: [verifiedCohort.id] },
         {
           onSuccess: () => {
-            // ✅ Invalidate personal caches so devices/cohorts update immediately
             invalidatePersonalCaches();
             setTimeout(() => {
               setIsCohortAssignmentSuccess(true);
               setStep('success');
-            }, 3000);
+            }, 1500);
           },
           onError: err => {
             setError(getApiErrorMessage(err));
             setStep('cohort-import');
           },
-        }
+        },
       );
-      return;
     }
-
-    setError('Unable to determine assignment context. Please try again.');
-    setStep('cohort-import');
   };
 
-  const handleBulkAddDevice = () => {
-    setBulkDevices(prev => [
-      ...prev,
-      { device_name: '', claim_token: '' },
-    ]);
-  };
-
-  const handleBulkRemoveDevice = (index: number) => {
-    setBulkDevices(prev => prev.filter((_, idx) => idx !== index));
-  };
-
-  const handleBulkDeviceChange = (
-    index: number,
-    field: 'device_name' | 'claim_token',
-    value: string
-  ) => {
-    setBulkDevices(prev =>
-      prev.map((device, idx) =>
-        idx === index ? { ...device, [field]: value } : device
-      )
-    );
-  };
-
-  const handleBulkFileImport = (devices: BulkDevice[]) => {
-    setBulkDevices(prev => [...prev, ...devices]);
-  };
-
-  const handleBulkClear = () => {
-    setBulkDevices([]);
-  };
-
-  // ── Dialog config ────────────────────────────────────────────
+  // ==========================================================
+  // Dialog Config
+  // ==========================================================
 
   const getDialogConfig = () => {
-    const base: {
-      title: string;
-      showFooter: boolean;
-      showCloseButton: boolean;
-      preventBackdropClose: boolean;
-      primaryAction?: DialogPrimaryAction;
-      secondaryAction?: DialogSecondaryAction;
-    } = {
-      title: 'Claim AirQo Device',
+    const base = {
+      title: isGuidedMode ? 'Add Device' : 'Claim AirQo Device',
       showFooter: false,
       showCloseButton: true,
       preventBackdropClose: false,
-      primaryAction: undefined,
-      secondaryAction: undefined,
+      primaryAction: undefined as DialogPrimaryAction | undefined,
+      secondaryAction: undefined as DialogSecondaryAction | undefined,
     };
-    const back = (to: FlowStep) => ({
+
+    const back = (to: FlowStep): DialogSecondaryAction => ({
       label: 'Back',
       onClick: () => setStep(to),
-      variant: 'outline' as const,
+      variant: 'outline',
     });
 
     switch (step) {
       case 'method-select':
         return base;
+
       case 'qr-scan':
         return {
           ...base,
@@ -585,10 +649,79 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
           showFooter: true,
           secondaryAction: back('method-select'),
         };
+
+      case 'manual-input':
+        return {
+          ...base,
+          showFooter: true,
+          primaryAction: {
+            label: isPending ? 'Claiming...' : 'Claim Device',
+            onClick: formMethods.handleSubmit(onManualSubmit),
+            disabled: isPending,
+          },
+          // Back goes to QR scan in fast mode, or method-select in guided mode.
+          // If the user came from QR scan (previousStep), honour that; otherwise
+          // fall back to method-select.
+          secondaryAction: back(
+            !isGuidedMode && previousStep === 'qr-scan'
+              ? 'qr-scan'
+              : 'method-select',
+          ),
+        };
+
+      case 'confirmation':
+        return {
+          ...base,
+          title: 'Confirm Device',
+          showFooter: true,
+          primaryAction: {
+            label: isPending ? 'Claiming...' : 'Confirm & Continue',
+            onClick: handleConfirmSingleClaim,
+            disabled: isPending,
+          },
+          secondaryAction: {
+            label: 'Cancel',
+            onClick: () => setStep(previousStep),
+            variant: 'outline' as const,
+          },
+        };
+
+      case 'claiming':
+        return {
+          ...base,
+          title: 'Claiming Device...',
+          showCloseButton: false,
+          preventBackdropClose: true,
+        };
+
+      case 'success':
+        return {
+          ...base,
+          title: 'Success!',
+          showFooter: true,
+          primaryAction: {
+            label: isGuidedMode ? 'Continue Setup' : 'Go to Devices',
+            onClick: () => {
+              handleClose();
+              if (!isGuidedMode) {
+                router.push(
+                  userScope === 'personal'
+                    ? '/devices/my-devices'
+                    : '/devices/overview',
+                );
+              }
+            },
+          },
+        };
+
+      // ======================================================
+      // FAST MODE ONLY STEPS
+      // ======================================================
+
       case 'cohort-import':
         return {
           ...base,
-          title: 'Import from Cohort',
+          title: 'Import Cohort',
           showFooter: true,
           primaryAction: {
             label: isImportingCohort ? 'Verifying...' : 'Import',
@@ -597,10 +730,11 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
           },
           secondaryAction: back('method-select'),
         };
+
       case 'cohort-confirm':
         return {
           ...base,
-          title: 'Confirm Cohort Import',
+          title: 'Confirm Cohort',
           showFooter: true,
           primaryAction: {
             label: 'Confirm & Import',
@@ -612,6 +746,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
             variant: 'outline' as const,
           },
         };
+
       case 'assigning-cohort':
         return {
           ...base,
@@ -619,41 +754,19 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
           showCloseButton: false,
           preventBackdropClose: true,
         };
-      case 'manual-input':
-        return {
-          ...base,
-          showFooter: true,
-          primaryAction: {
-            label: isPending ? 'Claiming...' : 'Claim Device',
-            onClick: formMethods.handleSubmit(onManualSubmit),
-            disabled: isPending,
-          },
-          secondaryAction: back('qr-scan'),
-        };
+
       case 'bulk-input':
         return {
           ...base,
           title: 'Add Multiple Devices',
           showFooter: true,
-          primaryAction: { label: 'Review & Claim', onClick: handleBulkSubmit },
+          primaryAction: {
+            label: 'Review & Claim',
+            onClick: handleBulkSubmit,
+          },
           secondaryAction: back('method-select'),
         };
-      case 'confirmation':
-        return {
-          ...base,
-          title: 'Confirm Claim',
-          showFooter: true,
-          primaryAction: {
-            label: isPending ? 'Claiming...' : 'Confirm & Claim',
-            onClick: handleConfirmSingleClaim,
-            disabled: isPending,
-          },
-          secondaryAction: {
-            label: 'Cancel',
-            onClick: () => setStep(previousStep),
-            variant: 'outline' as const,
-          },
-        };
+
       case 'bulk-confirmation':
         return {
           ...base,
@@ -670,13 +783,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
             variant: 'outline' as const,
           },
         };
-      case 'claiming':
-        return {
-          ...base,
-          title: 'Claiming Device...',
-          showCloseButton: false,
-          preventBackdropClose: true,
-        };
+
       case 'bulk-claiming':
         return {
           ...base,
@@ -684,26 +791,11 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
           showCloseButton: false,
           preventBackdropClose: true,
         };
-      case 'success':
-        return {
-          ...base,
-          title: 'Success!',
-          showFooter: true,
-          primaryAction: {
-            label: 'Go to Devices',
-            onClick: () => {
-              handleClose();
-              router.push(
-                userScope === 'personal'
-                  ? '/devices/my-devices'
-                  : '/devices/overview'
-              );
-            },
-          },
-        };
+
       case 'bulk-results': {
         const hasSuccess =
           (bulkClaimData?.data?.successful_claims?.length ?? 0) > 0;
+
         return {
           ...base,
           title: 'Bulk Claim Results',
@@ -712,16 +804,18 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
             label: hasSuccess ? 'Go to Devices' : 'Close',
             onClick: () => {
               handleClose();
-              if (hasSuccess)
+              if (hasSuccess) {
                 router.push(
                   userScope === 'personal'
                     ? '/devices/my-devices'
-                    : '/devices/overview'
+                    : '/devices/overview',
                 );
+              }
             },
           },
         };
       }
+
       default:
         return base;
     }
@@ -729,7 +823,9 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
 
   const dialogConfig = getDialogConfig();
 
-  // ── Render ───────────────────────────────────────────────────
+  // ==========================================================
+  // Render
+  // ==========================================================
 
   return (
     <ReusableDialog
@@ -743,21 +839,10 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
       secondaryAction={dialogConfig.secondaryAction}
     >
       <div className="space-y-6 py-2">
-        {step === 'method-select' && <MethodSelectStep onSelect={setStep} />}
-
-        {step === 'bulk-input' && (
-          <BulkInputStep
-            bulkDevices={bulkDevices}
-            isPersonalContext={isPersonalContext}
-            isExternalOrg={isExternalOrg}
-            defaultCohort={defaultCohort}
-            error={error}
-            onAddDevice={handleBulkAddDevice}
-            onRemoveDevice={handleBulkRemoveDevice}
-            onDeviceChange={handleBulkDeviceChange}
-            onFileImport={handleBulkFileImport}
-            onClear={handleBulkClear}
-          />
+        {step === 'method-select' && (
+          // Pass mode so MethodSelectStep can hide bulk/cohort options
+          // in guided mode (only manual + QR should appear).
+          <MethodSelectStep onSelect={setStep} mode={mode} />
         )}
 
         {step === 'qr-scan' && (
@@ -768,11 +853,15 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
             defaultCohort={defaultCohort}
             activeGroupTitle={activeGroup?.grp_title}
             onScan={handleQRScan}
-            onManualEntry={() => setStep('manual-input')}
+            onManualEntry={() => {
+              setPreviousStep('qr-scan');
+              setStep('manual-input');
+            }}
             onError={() => {
+              setPreviousStep('qr-scan');
               setStep('manual-input');
               setError(
-                'QR scanner encountered an issue. Please enter details manually.'
+                'QR scanner encountered an issue. Please enter details manually.',
               );
             }}
           />
@@ -789,55 +878,12 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
           />
         )}
 
-        {step === 'cohort-import' && (
-          <CohortImportStep
-            cohortIdInput={cohortIdInput}
-            onChange={val => {
-              setCohortIdInput(val);
-              setError(null);
-            }}
-            error={error}
-            isImporting={isImportingCohort}
-          />
-        )}
-
-        {step === 'cohort-confirm' && verifiedCohort && (
-          <CohortConfirmStep
-            verifiedCohort={verifiedCohort}
-            isExternalOrg={isExternalOrg}
-          />
-        )}
-
         {step === 'confirmation' && pendingSingleClaim && <ConfirmationStep />}
-
-        {step === 'bulk-confirmation' && (
-          <BulkConfirmationStep
-            count={
-              bulkDevices.filter(
-                d => d.device_name.trim() && d.claim_token.trim()
-              ).length
-            }
-          />
-        )}
 
         {step === 'claiming' && (
           <LoadingSpinner
             title="Claiming Your Device"
             subtitle="Please wait while we set up your device..."
-          />
-        )}
-
-        {step === 'bulk-claiming' && (
-          <LoadingSpinner
-            title="Claiming Devices"
-            subtitle="Please wait while we process your devices..."
-          />
-        )}
-
-        {step === 'assigning-cohort' && (
-          <LoadingSpinner
-            title="Assigning Cohort"
-            subtitle={`Adding cohort devices to your ${isExternalOrg ? 'organization' : 'personal'} assets... Please wait...`}
           />
         )}
 
@@ -849,8 +895,74 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
             />
           )}
 
-        {step === 'bulk-results' && bulkClaimData?.data && (
-          <BulkClaimResults results={bulkClaimData.data} />
+        {/* ================================================== */}
+        {/* FAST MODE ONLY UI                                   */}
+        {/* ================================================== */}
+
+        {!isGuidedMode && (
+          <>
+            {step === 'bulk-input' && (
+              <BulkInputStep
+                bulkDevices={bulkDevices}
+                isPersonalContext={isPersonalContext}
+                isExternalOrg={isExternalOrg}
+                defaultCohort={defaultCohort}
+                error={error}
+                onAddDevice={handleBulkAddDevice}
+                onRemoveDevice={handleBulkRemoveDevice}
+                onDeviceChange={handleBulkDeviceChange}
+                onFileImport={handleBulkFileImport}
+                onClear={handleBulkClear}
+              />
+            )}
+
+            {step === 'cohort-import' && (
+              <CohortImportStep
+                cohortIdInput={cohortIdInput}
+                onChange={val => {
+                  setCohortIdInput(val);
+                  setError(null);
+                }}
+                error={error}
+                isImporting={isImportingCohort}
+              />
+            )}
+
+            {step === 'cohort-confirm' && verifiedCohort && (
+              <CohortConfirmStep
+                verifiedCohort={verifiedCohort}
+                isExternalOrg={isExternalOrg}
+              />
+            )}
+
+            {step === 'bulk-confirmation' && (
+              <BulkConfirmationStep
+                count={
+                  bulkDevices.filter(
+                    d => d.device_name.trim() && d.claim_token.trim(),
+                  ).length
+                }
+              />
+            )}
+
+            {step === 'bulk-claiming' && (
+              <LoadingSpinner
+                title="Claiming Devices"
+                subtitle="Please wait while we process your devices..."
+              />
+            )}
+
+            {step === 'assigning-cohort' && (
+              <LoadingSpinner
+                title="Assigning Cohort"
+                subtitle="Please wait while we configure cohort access..."
+              />
+            )}
+
+            {step === 'bulk-results' && bulkClaimData?.data && (
+              <BulkClaimResults results={bulkClaimData.data} />
+            )}
+          </>
         )}
       </div>
     </ReusableDialog>
