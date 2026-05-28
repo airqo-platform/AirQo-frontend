@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, memo } from "react"
-import { useParams, useSearchParams } from "next/navigation"
+import { useParams, usePathname, useSearchParams } from "next/navigation"
 import { ArrowLeft, Calendar, MapPin, Wifi, AlertTriangle } from "lucide-react"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -369,11 +369,14 @@ const CorrelationMiniGraph = memo(function CorrelationMiniGraph({ correlationHis
 
 export default function AirQloudDetailPage() {
   const params = useParams()
+  const pathname = usePathname()
   const searchParams = useSearchParams()
   const { activeGroup, loading: groupLoading } = useGroup()
   const airqloudId = params?.id as string
   const isGridMode = searchParams?.get("type") === "grid"
   const entityLabel = isGridMode ? "Grid" : "Cohort"
+  const queryString = searchParams?.toString()
+  const returnTo = queryString ? `${pathname}?${queryString}` : pathname
 
   const [data, setData] = useState<AirQloudDetailData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -822,7 +825,15 @@ export default function AirQloudDetailPage() {
                         <TableRow key={device.device_id}>
                           <TableCell className="font-medium">
                             <div>
-                              <div className="font-medium">{device.device_name}</div>
+                              <Link
+                                href={{
+                                  pathname: `/dashboard/devices/${device.device_id}`,
+                                  query: { returnTo },
+                                }}
+                                className="font-medium hover:underline"
+                              >
+                                {device.device_name}
+                              </Link>
                               <div className="text-xs text-muted-foreground font-mono">
                                 {device.device_id.length > 20
                                   ? `${device.device_id.slice(0, 10)}...${device.device_id.slice(-10)}`

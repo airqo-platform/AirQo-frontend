@@ -14,17 +14,22 @@ import {
 import {
   ArrowLeft,
   Activity,
-  BarChart3,
   Loader2,
   AlertTriangle,
   MonitorPlay,
   Server,
   MapPin,
   Globe,
-  Network
+  Network,
+  ListChecks,
 } from "lucide-react"
 
 import { fetchCollocationSiteDetails } from "@/lib/api"
+import {
+  BAM_STATUS_DEFINITIONS,
+  decodeBamStatusIssues,
+  type DecodedBamIssue,
+} from "@/lib/bam-status"
 import { formatCategoryLabel, REFERENCE_MONITOR_LABEL } from "@/lib/utils"
 
 import {
@@ -51,6 +56,8 @@ interface RawDataPoint {
   sensor2: number | null
   pm2_5: number | null
   pm10: number | null
+  status?: number | null
+  [key: string]: any
 }
 
 interface RawDevice {
@@ -75,6 +82,22 @@ interface SiteMeta {
   data_provider?: string
   description?: string
   number_of_devices?: number
+}
+
+interface BamIssueEvent {
+  deviceName: string
+  deviceId?: string
+  timestamp: string
+  statusCode: number
+  issues: DecodedBamIssue[]
+  isClean: boolean
+  isOff: boolean
+  isNoData: boolean
+}
+
+interface StatusFilterOption {
+  code: number
+  description: string
 }
 
 // --- Helper Functions ---
@@ -116,6 +139,20 @@ function getDailyUptimeHistory(deviceData: RawDataPoint[], numDays: number): His
   }
   
   return history
+}
+
+function getBamPm25Equivalent(point: RawDataPoint): number | null {
+  const statusCode = Number(point.status)
+  if (!(Number.isFinite(statusCode) && statusCode === 0)) {
+    return null
+  }
+
+  const concHrValue = Number(point["ConcHR(ug/m3)"])
+  if (Number.isFinite(concHrValue)) {
+    return concHrValue
+  }
+
+  return null
 }
 
 // Mini Graph Component copied/adjusted from parent page
@@ -238,6 +275,7 @@ export default function SiteDetailsPage() {
 
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [selectedStatuses, setSelectedStatuses] = useState<number[]>([])
   
   const [siteData, setSiteData] = useState<RawDevice[]>([])
   const [siteMeta, setSiteMeta] = useState<SiteMeta | null>(null)
@@ -284,9 +322,11 @@ export default function SiteDetailsPage() {
     let totalBam = 0
     let sumBamReading = 0
     let countBamReading = 0
+    let bamStatusSamples = 0
     
     // Per-device history cache
     const deviceHistories: { device: RawDevice, uptimeHostory: HistoryItem[], avgUptime: number }[] = []
+    const bamIssueEvents: BamIssueEvent[] = []
     
     // Build daily averages per device for chart
     const dailyAveragesPerDevice = new Map<string, Map<string, { sum: number, count: number }>>()
@@ -352,15 +392,65 @@ export default function SiteDetailsPage() {
             bamAverages.set(dateStr, { sum: 0, count: 0 })
           }
           const dayAgg = bamAverages.get(dateStr)!
-          if (pt.pm2_5 !== null && pt.pm2_5 !== undefined) {
-            dayAgg.sum += pt.pm2_5
+          const bamPm25Value = getBamPm25Equivalent(pt)
+          if (bamPm25Value !== null) {
+            dayAgg.sum += bamPm25Value
             dayAgg.count++
-            sumBamReading += pt.pm2_5
+            sumBamReading += bamPm25Value
             countBamReading++
+          }
+
+          const statusCode = Number(pt.status)
+          if (Number.isFinite(statusCode)) {
+            bamStatusSamples++
+          }
+          const issues = decodeBamStatusIssues(pt.status)
+          const concRt = Number(pt["ConcRT(ug/m3)"])
+          const concHr = Number(pt["ConcHR(ug/m3)"])
+          const concS = Number(pt["ConcS(ug/m3)"])
+          const hasAllBamConcValues =
+            Number.isFinite(concRt) && Number.isFinite(concHr) && Number.isFinite(concS)
+          const isAllBamConcZero = hasAllBamConcValues && concRt === 0 && concHr === 0 && concS === 0
+
+          if (!Number.isFinite(statusCode)) {
+            bamIssueEvents.push({
+              deviceName: device.device_name,
+              deviceId: device.device_id,
+              timestamp: d.toISOString(),
+              statusCode: -1,
+              issues: [],
+              isClean: false,
+              isOff: false,
+              isNoData: true,
+            })
+          } else if (statusCode === 0) {
+            bamIssueEvents.push({
+              deviceName: device.device_name,
+              deviceId: device.device_id,
+              timestamp: d.toISOString(),
+              statusCode,
+              issues: [],
+              isClean: !isAllBamConcZero,
+              isOff: isAllBamConcZero,
+              isNoData: false,
+            })
+          } else if (statusCode > 0 && issues.length > 0) {
+            bamIssueEvents.push({
+              deviceName: device.device_name,
+              deviceId: device.device_id,
+              timestamp: d.toISOString(),
+              statusCode,
+              issues,
+              isClean: false,
+              isOff: false,
+              isNoData: false,
+            })
           }
         })
       }
     })
+
+    bamIssueEvents.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
 
     const overallBamAvg = countBamReading > 0 ? (sumBamReading / countBamReading).toFixed(1) : "N/A"
     
@@ -434,9 +524,137 @@ export default function SiteDetailsPage() {
       siteErrorMarginHistory,
       deviceHistories,
       chartData,
-      deviceNames: deviceNamesGroup
+      deviceNames: deviceNamesGroup,
+      bamIssueEvents,
+      bamStatusSamples,
     }
   }, [siteData])
+
+  const availableStatuses = useMemo<StatusFilterOption[]>(
+    () => [
+      { code: 0, description: "Functional" },
+      { code: -1, description: "No Data" },
+      ...[...BAM_STATUS_DEFINITIONS].sort((a, b) => a.code - b.code),
+    ],
+    []
+  )
+
+  const filteredBamIssueEvents = useMemo(() => {
+    return summary.bamIssueEvents.filter((event) => {
+      if (selectedStatuses.length === 0) {
+        return true
+      }
+
+      const matchesFunctional = selectedStatuses.includes(0) && event.statusCode === 0 && event.isClean
+      const matchesNoData = selectedStatuses.includes(-1) && (event.isNoData || (event.statusCode === 0 && event.isOff))
+      const matchesIssueCodes = event.issues.some((issue) => selectedStatuses.includes(issue.code))
+
+      return matchesFunctional || matchesNoData || matchesIssueCodes
+    })
+  }, [summary.bamIssueEvents, selectedStatuses])
+
+  const toggleStatusFilter = useCallback((statusCode: number) => {
+    setSelectedStatuses((current) =>
+      current.includes(statusCode)
+        ? current.filter((status) => status !== statusCode)
+        : [...current, statusCode]
+    )
+  }, [])
+
+  const clearIssueFilters = useCallback(() => {
+    setSelectedStatuses([])
+  }, [])
+
+  const issueEventsContent = useMemo(() => {
+    if (summary.bamIssueEvents.length === 0) {
+      if (summary.bamStatusSamples === 0) {
+        return (
+          <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700">
+            No {REFERENCE_MONITOR_LABEL.toLowerCase()} status data in the selected time window.
+          </div>
+        )
+      }
+
+      return (
+        <div className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+          Looking good — no issues found for {REFERENCE_MONITOR_LABEL.toLowerCase()} in the selected time window.
+        </div>
+      )
+    }
+
+    if (filteredBamIssueEvents.length === 0) {
+      return (
+        <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700">
+          No {REFERENCE_MONITOR_LABEL.toLowerCase()} events match the selected status filters.
+        </div>
+      )
+    }
+
+    return filteredBamIssueEvents.map((event, index) => {
+      let containerClass = "border-red-100 bg-red-50/50"
+      let headingClass = "text-red-800"
+      let subTextClass = "text-red-700"
+
+      if (event.isNoData) {
+        containerClass = "border-gray-200 bg-gray-50"
+        headingClass = "text-gray-800"
+        subTextClass = "text-gray-700"
+      } else if (event.isOff) {
+        containerClass = "border-amber-100 bg-amber-50/50"
+        headingClass = "text-amber-800"
+        subTextClass = "text-amber-700"
+      } else if (event.isClean) {
+        containerClass = "border-green-100 bg-green-50/50"
+        headingClass = "text-green-800"
+        subTextClass = "text-green-700"
+      }
+
+      let eventContent = (
+        <ul className="mt-2 ml-4 list-disc space-y-1 text-xs text-red-700">
+          {event.issues.map((issue) => (
+            <li key={`${event.timestamp}-${event.deviceName}-${issue.code}`}>
+              <span className="font-medium">{issue.description}:</span> {issue.cause}
+            </li>
+          ))}
+        </ul>
+      )
+
+      if (event.isNoData) {
+        eventContent = <p className="mt-2 text-xs text-gray-700">No BAM status data reported at this time.</p>
+      } else if (event.isOff) {
+        eventContent = <p className="mt-2 text-xs text-amber-700">Device was off at this time.</p>
+      } else if (event.isClean) {
+        eventContent = <p className="mt-2 text-xs text-green-700">Device functional at this time.</p>
+      }
+
+      return (
+        <div
+          key={`${event.deviceId || event.deviceName}-${event.timestamp}-${index}`}
+          className={`rounded-md border p-3 ${containerClass}`}
+        >
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <p className={`text-sm font-semibold ${headingClass}`}>
+                {event.deviceName}
+              </p>
+              <p className={`text-xs ${subTextClass}`}>
+                {event.isNoData ? "Status No Data" : `Status ${event.statusCode}`}
+              </p>
+            </div>
+            <p className={`text-[11px] text-right whitespace-nowrap ${subTextClass}`}>
+              {new Date(event.timestamp).toLocaleString("en-US", {
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </p>
+          </div>
+          {eventContent}
+        </div>
+      )
+    })
+  }, [summary.bamIssueEvents, summary.bamStatusSamples, filteredBamIssueEvents])
 
 
   if (isLoading) {
@@ -570,24 +788,25 @@ export default function SiteDetailsPage() {
 
       </div>
 
-      {/* Devices List Table */}
-      <Card>
-        <CardHeader className="border-b bg-muted/20">
-          <CardTitle className="text-lg">Tracked Devices</CardTitle>
-          <CardDescription>Individual components reporting from this site.</CardDescription>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-muted/10 text-sm border-b">
-                  <th className="text-left font-medium p-4 text-muted-foreground">Device Name</th>
-                  <th className="text-left font-medium p-4 text-muted-foreground">Category</th>
-                  <th className="text-left font-medium p-4 text-muted-foreground">Daily Uptime</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                 {summary.deviceHistories.map((dh, i) => (
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        {/* Devices List Table */}
+        <Card>
+          <CardHeader className="border-b bg-muted/20">
+            <CardTitle className="text-lg">Tracked Devices</CardTitle>
+            <CardDescription>Individual components reporting from this site.</CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="max-h-[520px] overflow-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-muted/10 text-sm border-b sticky top-0 z-10">
+                    <th className="text-left font-medium p-4 text-muted-foreground">Device Name</th>
+                    <th className="text-left font-medium p-4 text-muted-foreground">Category</th>
+                    <th className="text-left font-medium p-4 text-muted-foreground">Daily Uptime</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {summary.deviceHistories.map((dh, i) => (
                     <tr key={i} className="hover:bg-muted/5 transition-colors">
                       <td className="p-4 font-medium">{dh.device.device_name}</td>
                       <td className="p-4">
@@ -599,17 +818,62 @@ export default function SiteDetailsPage() {
                         <UptimeMiniGraph uptimeHistory={dh.uptimeHostory} averageUptime={dh.avgUptime} />
                       </td>
                     </tr>
-                 ))}
-                 {summary.deviceHistories.length === 0 && (
-                   <tr>
-                     <td colSpan={3} className="p-6 text-center text-muted-foreground">No devices found.</td>
-                   </tr>
-                 )}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+                  ))}
+                  {summary.deviceHistories.length === 0 && (
+                    <tr>
+                      <td colSpan={3} className="p-6 text-center text-muted-foreground">No devices found.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="border-b bg-muted/20">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <ListChecks className="h-5 w-5 text-purple-500" />
+              {REFERENCE_MONITOR_LABEL} Issues
+            </CardTitle>
+            <CardDescription>Latest status-derived issues first.</CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="border-b p-4 space-y-3 bg-muted/10">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs font-medium text-muted-foreground">Filter by status(es)</p>
+                <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={clearIssueFilters}>
+                  Clear filters
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {availableStatuses.length === 0 ? (
+                  <span className="text-xs text-muted-foreground">No statuses available.</span>
+                ) : (
+                  availableStatuses.map((statusEntry) => {
+                    const selected = selectedStatuses.includes(statusEntry.code)
+                    return (
+                      <Button
+                        key={statusEntry.code}
+                        type="button"
+                        size="sm"
+                        variant={selected ? "default" : "outline"}
+                        className="h-7 px-2 text-xs"
+                        onClick={() => toggleStatusFilter(statusEntry.code)}
+                      >
+                        {statusEntry.code} · {statusEntry.description}
+                      </Button>
+                    )
+                  })
+                )}
+              </div>
+            </div>
+            <div className="max-h-[520px] overflow-y-auto p-4 space-y-3">
+              {issueEventsContent}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Averages Graph */}
       <Card>
