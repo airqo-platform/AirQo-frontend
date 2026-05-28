@@ -30,6 +30,7 @@ import {
 } from './blogUtils';
 
 const PAGE_SIZE = 6;
+const LEGACY_BLOGS_URL = 'https://blog.airqo.net/';
 
 const BlogCardSkeleton = () => (
   <Card className="overflow-hidden border-gray-200 shadow-sm animate-pulse">
@@ -180,6 +181,7 @@ const BlogsPage: React.FC = () => {
     ordering !== '-published_at';
   const isInitialLoading = isLoading && blogs.length === 0;
   const isEmpty = !isInitialLoading && !error && blogs.length === 0;
+  const showLegacyArchiveNotice = isEmpty && !hasActiveFilters;
 
   const resetFilters = () => {
     setSearchInput('');
@@ -338,28 +340,66 @@ const BlogsPage: React.FC = () => {
             </div>
           </div>
         ) : isEmpty ? (
-          <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-8 text-center shadow-sm">
-            <NoData
-              className="p-0"
-              message="No blog posts match the current filters. Try another category or search term."
-            />
-            <div className="mt-6 flex flex-wrap justify-center gap-3">
-              <Button
-                type="button"
-                onClick={resetFilters}
-                className="bg-blue-600 text-white hover:bg-blue-700"
-              >
-                Reset filters
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                className="border-gray-300 text-gray-700 hover:bg-gray-50"
-              >
-                <Link href="/contact">Contact AirQo</Link>
-              </Button>
+          <>
+            {showLegacyArchiveNotice && (
+              <Card className="mt-8 border-blue-100 bg-[#F6F9FF] shadow-sm">
+                <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="space-y-2 text-left">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">
+                      Explore more AirQo stories
+                    </p>
+                    <p className="max-w-2xl text-sm leading-7 text-gray-700 sm:text-base">
+                      Discover previous AirQo blog posts, updates, and insights
+                      from our work across African cities.
+                    </p>
+                  </div>
+
+                  <Button
+                    asChild
+                    className="bg-blue-600 text-white hover:bg-blue-700 sm:self-start"
+                  >
+                    <a
+                      href={LEGACY_BLOGS_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      View previous blogs
+                    </a>
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-8 text-center shadow-sm">
+              <NoData
+                className="p-0"
+                message={
+                  hasActiveFilters
+                    ? 'No blog posts match the current filters. Try another category or search term.'
+                    : 'We are publishing the latest AirQo blog stories here soon. Check back shortly for new posts.'
+                }
+              />
+
+              {hasActiveFilters && (
+                <div className="mt-6 flex flex-wrap justify-center gap-3">
+                  <Button
+                    type="button"
+                    onClick={resetFilters}
+                    className="bg-blue-600 text-white hover:bg-blue-700"
+                  >
+                    Reset filters
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                  >
+                    <Link href="/contact">Contact AirQo</Link>
+                  </Button>
+                </div>
+              )}
             </div>
-          </div>
+          </>
         ) : (
           <>
             <div className="mt-8 grid gap-6 lg:grid-cols-2">
