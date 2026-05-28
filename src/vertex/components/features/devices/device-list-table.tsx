@@ -40,7 +40,7 @@ export default function DevicesTable({
   const [showUnassignDialog, setShowUnassignDialog] = useState(false);
   const [showBulkEditModal, setShowBulkEditModal] = useState(false);
   const [bulkEditDeviceIds, setBulkEditDeviceIds] = useState<string[]>([]);
-  const { userContext, activeGroup, isExternalOrg } = useUserContext();
+  const { userContext, activeGroup } = useUserContext();
   const isInternalView = userContext === "personal" && activeGroup?.grp_title?.toLowerCase() === "airqo";
 
   const searchParams = useSearchParams();
@@ -172,23 +172,18 @@ export default function DevicesTable({
           setShowBulkEditModal(true);
         },
         icon: Edit,
-      }
-    ];
-
-    if (selectedDeviceObjects.length > 0 && !isExternalOrg) {
-      baseActions.push({
+      },
+      {
         label: "Remove from Cohort",
         value: "unassign_cohort",
         handler: handleUnassignActionSubmit,
         icon: Trash2,
-      });
-    }
+      }
+    ];
 
     return baseActions;
   }, [
     multiSelect,
-    selectedDeviceObjects.length,
-    isExternalOrg,
     handleAddCohortDeviceActionSubmit,
     handleUnassignActionSubmit,
   ]);
