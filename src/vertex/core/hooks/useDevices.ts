@@ -465,6 +465,7 @@ export const useUpdateDeviceBulk = () => {
 
       // invalidate all relevant caches
       queryClient.invalidateQueries({ queryKey: ["devices"] });
+      queryClient.invalidateQueries({ queryKey: ["myDevices"] });
       queryClient.invalidateQueries({ queryKey: ["network-devices"] });
       queryClient.invalidateQueries({ queryKey: ["deviceActivities"] });
     },
