@@ -365,7 +365,7 @@ export default function SiteDetailsPage() {
         device.data.forEach(pt => {
           if (!pt.time) return
           const d = new Date(pt.time)
-          if (isNaN(d.getTime())) return
+          if (Number.isNaN(d.getTime())) return
           const dateStr = d.toISOString().substring(0, 10)
           
           if (!deviceMap.has(dateStr)) {
@@ -385,7 +385,7 @@ export default function SiteDetailsPage() {
         device.data.forEach(pt => {
           if (!pt.time) return
           const d = new Date(pt.time)
-          if (isNaN(d.getTime())) return
+          if (Number.isNaN(d.getTime())) return
           const dateStr = d.toISOString().substring(0, 10)
 
           if (!bamAverages.has(dateStr)) {
