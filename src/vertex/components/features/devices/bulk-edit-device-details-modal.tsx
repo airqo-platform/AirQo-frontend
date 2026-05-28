@@ -35,12 +35,25 @@ export default function BulkEditDevicesModal({
     () => [
       { label: "Category", value: "category" },
       { label: "Network", value: "network" },
-      { label: "Visibility", value: "visibility" },
       { label: "Auth Required", value: "authRequired" },
-      { label: "Tags", value: "tags" },
     ],
     []
   );
+
+  const hasValidValue = useMemo(() => {
+    if (!selectedField) return false;
+    if (value === null) return false;
+
+    if (selectedField === "network") {
+      return typeof value === "string" && value.trim().length > 0;
+    }
+
+    if (selectedField === "tags") {
+      return Array.isArray(value);
+    }
+
+    return true;
+  }, [selectedField, value]);
 
   const reset = () => {
     setStep("choose_field");
@@ -54,12 +67,12 @@ export default function BulkEditDevicesModal({
   };
 
   const handleProceed = () => {
-    if (!selectedField) return;
+    if (!selectedField || !hasValidValue) return;
     setStep("confirm");
   };
 
   const handleSubmit = () => {
-    if (!selectedField || deviceIds.length === 0) return;
+    if (!selectedField || !hasValidValue || deviceIds.length === 0) return;
 
     const updateData = { [selectedField]: value };
 
@@ -97,22 +110,11 @@ export default function BulkEditDevicesModal({
           />
         );
 
-      case "tags":
-        return (
-          <ReusableInputField
-            label="Tags (comma separated)"
-            value={Array.isArray(value) ? value.join(", ") : ""}
-            onChange={(e) =>
-              setValue(e.target.value.split(",").map((t) => t.trim()))
-            }
-          />
-        );
-
-      case "visibility":
+      
       case "authRequired":
         return (
           <ReusableSelectInput
-            label={selectedField === "visibility" ? "Visibility" : "Auth Required"}
+            label={"Auth Required"}
             value={String(value ?? "")}
             onChange={(e) => setValue(e.target.value === "true")}
           >
@@ -132,22 +134,18 @@ export default function BulkEditDevicesModal({
       onClose={handleClose}
       title="Bulk Edit Devices"
       size="lg"
-      // Primary & Secondary Actions
       secondaryAction={
         step === "choose_field"
-          ? {
-              label: "Cancel",
-              onClick: handleClose,
-            }
-          : {
-              label: "Back",
-              onClick: () => setStep("choose_field"),
-            }
+          ? { label: "Cancel", onClick: handleClose }
+          : { label: "Back", onClick: () => setStep("choose_field") }
       }
       primaryAction={{
         label: step === "choose_field" ? "Continue" : "Confirm Update",
         onClick: step === "choose_field" ? handleProceed : handleSubmit,
-        disabled: step === "choose_field" ? !selectedField : bulkUpdate.isPending,
+        disabled:
+          step === "choose_field"
+            ? !selectedField || !hasValidValue
+            : bulkUpdate.isPending || !hasValidValue,
         className: step === "confirm" ? "min-w-[140px]" : undefined,
       }}
     >
@@ -156,9 +154,11 @@ export default function BulkEditDevicesModal({
           <ReusableSelectInput
             label="Select field to update"
             value={selectedField || ""}
-            onChange={(e) =>
-              setSelectedField(e.target.value as EditableDeviceField)
-            }
+            onChange={(e) => {
+              const newField = e.target.value as EditableDeviceField;
+              setSelectedField(newField);
+              setValue(null);
+            }}
           >
             <option value="">Choose field</option>
             {fieldOptions.map((f) => (
