@@ -251,14 +251,15 @@ const showToast = (options: ToastOptions) => {
     duration = DEFAULT_DURATION,
   } = options;
   const resolvedDuration = Math.max(duration, MIN_DURATION);
+  const isError = variant === 'error';
 
   const toastId = sonnerToast.custom(
     id => (
       <div
-        role="alert"
-        aria-live="polite"
+        role={isError ? 'alert' : 'status'}
+        aria-live={isError ? 'assertive' : 'polite'}
         aria-atomic="true"
-        className="w-full min-w-[340px] max-w-[560px]"
+        className="w-full max-w-[560px] sm:min-w-[340px]"
       >
         <ToastCard
           title={title}

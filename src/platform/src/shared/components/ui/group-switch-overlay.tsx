@@ -50,6 +50,7 @@ export function GroupSwitchOverlay() {
 
     const startedAt = Date.parse(pendingGroupSwitch.startedAt);
     if (!Number.isFinite(startedAt)) {
+      dispatch(clearPendingGroupSwitch());
       return;
     }
 
