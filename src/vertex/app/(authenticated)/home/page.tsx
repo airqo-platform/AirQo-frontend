@@ -256,8 +256,8 @@ const WelcomePage = () => {
             completedSteps={checklistState.completedSteps}
             onDismiss={() => updateChecklist({ dismissed: true })}
             onAddDevice={openAddDeviceChoice}
-            onClaimDevice={openClaimModal}
-            onImportDevice={openImportModal}
+            // onClaimDevice={openClaimModal}
+            // onImportDevice={openImportModal}
             onGoToCohorts={() => {
               window.location.href = '/cohorts';
             }}

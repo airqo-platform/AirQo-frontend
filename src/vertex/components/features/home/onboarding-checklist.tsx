@@ -23,8 +23,8 @@ type ChecklistStep = {
 
 type OnboardingChecklistProps = {
   onAddDevice: () => void;
-  onClaimDevice: () => void;
-  onImportDevice: () => void;
+  // onClaimDevice: () => void;
+  // onImportDevice: () => void;
   onGoToCohorts: () => void;
   completedSteps: string[];
   onDismiss: () => void;
@@ -234,8 +234,8 @@ const ProgressBar: React.FC<{ completed: number; total: number }> = ({
 
 export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
   onAddDevice,
-  onClaimDevice,
-  onImportDevice,
+  // onClaimDevice,
+  // onImportDevice,
   onGoToCohorts,
   completedSteps,
   onDismiss,
@@ -348,29 +348,6 @@ export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
               onAction={stepActions[step.id]}
             />
           ))}
-        </div>
-      )}
-
-      {/* ── Contextual help — H10: shown only on step 1, in context ── */}
-      {!isCollapsed && !completedSteps.includes("add-device") && (
-        <div className="px-5 pb-4 pt-1 border-t border-gray-100 dark:border-gray-800">
-          <p className="text-xs text-gray-400 dark:text-gray-500">
-            Not sure where to start?{" "}
-            <button
-              onClick={onClaimDevice}
-              className="text-blue-600 dark:text-blue-400 underline underline-offset-2 hover:text-blue-700 focus:outline-none"
-            >
-              Claim an AirQo device
-            </button>{" "}
-            or{" "}
-            <button
-              onClick={onImportDevice}
-              className="text-blue-600 dark:text-blue-400 underline underline-offset-2 hover:text-blue-700 focus:outline-none"
-            >
-              add one from a different manufacturer
-            </button>
-            .
-          </p>
         </div>
       )}
     </div>
