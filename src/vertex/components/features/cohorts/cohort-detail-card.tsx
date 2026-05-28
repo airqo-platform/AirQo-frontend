@@ -2,8 +2,10 @@ import { Card } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { AqCopy01, AqEdit01 } from "@airqo/icons-react";
-import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { Switch } from "@/components/ui/switch";
+import { useBanner } from "@/context/banner-context";
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
+import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
 import { useEffect, useState } from "react";
 import { useUpdateCohortDetails, useOriginalCohort } from "@/core/hooks/useCohorts";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
@@ -41,7 +43,9 @@ const CohortDetailsCard: React.FC<CohortDetailsCardProps> = ({
     (tag) => tag.toLowerCase() === "duplicate"
   );
 
-  const { mutate: updateCohort, isPending } = useUpdateCohortDetails();
+  const { showBanner } = useBanner();
+  const { showBannerWithDelay } = useBannerWithDelay();
+  const { mutateAsync: updateCohort, isPending } = useUpdateCohortDetails();
   const { data: originalData } = useOriginalCohort(id, { enabled: !!isDuplicate });
   const originalCohort = isDuplicate && originalData?.success ? originalData.original_cohort : null;
 
@@ -54,26 +58,40 @@ const CohortDetailsCard: React.FC<CohortDetailsCardProps> = ({
     setIsVisibilityDialogOpen(true);
   };
 
-  const handleConfirmVisibilityUpdate = () => {
-    updateCohort(
-      { cohortId: id, data: { visibility: targetVisibility } },
-      {
-        onSuccess: () => {
-          setIsVisibilityDialogOpen(false);
-        },
-      }
-    );
+  const handleConfirmVisibilityUpdate = async () => {
+    try {
+      await updateCohort({ cohortId: id, data: { visibility: targetVisibility } });
+      setIsVisibilityDialogOpen(false);
+      showBannerWithDelay({
+        severity: 'success',
+        message: `Cohort is now ${targetVisibility ? 'public' : 'private'}`,
+        scoped: false,
+      });
+    } catch (error) {
+      showBanner({
+        severity: 'error',
+        message: `Failed to update visibility: ${getApiErrorMessage(error)}`,
+        scoped: true,
+      });
+    }
   };
 
-  const handleConfirmTagsUpdate = () => {
-    updateCohort(
-      { cohortId: id, data: { cohort_tags: selectedTags } },
-      {
-        onSuccess: () => {
-          setIsTagsDialogOpen(false);
-        },
-      }
-    );
+  const handleConfirmTagsUpdate = async () => {
+    try {
+      await updateCohort({ cohortId: id, data: { cohort_tags: selectedTags } });
+      setIsTagsDialogOpen(false);
+      showBannerWithDelay({
+        severity: 'success',
+        message: 'Cohort tags updated successfully',
+        scoped: false,
+      });
+    } catch (error) {
+      showBanner({
+        severity: 'error',
+        message: `Failed to update tags: ${getApiErrorMessage(error)}`,
+        scoped: true,
+      });
+    }
   };
 
   if (loading) {
@@ -179,10 +197,13 @@ const CohortDetailsCard: React.FC<CohortDetailsCardProps> = ({
                 </div>
                 <ReusableButton
                   variant="text"
-                  onClick={() => {
-                    if (id) {
-                      navigator.clipboard.writeText(id);
-                      ReusableToast({ message: "Copied", type: "SUCCESS" });
+                  onClick={async () => {
+                    if (!id) return;
+                    try {
+                      await navigator.clipboard.writeText(id);
+                      showBanner({ severity: 'success', message: 'Cohort ID copied to clipboard', scoped: false });
+                    } catch {
+                      showBanner({ severity: 'error', message: 'Failed to copy to clipboard', scoped: false });
                     }
                   }}
                   className="p-1"

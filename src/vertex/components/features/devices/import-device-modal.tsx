@@ -15,6 +15,7 @@ import { useAppSelector } from "@/core/redux/hooks";
 import { usePathname } from "next/navigation";
 import logger from "@/lib/logger";
 import { useBanner } from "@/context/banner-context";
+import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
 import { NetworkRequestDialog } from "../networks/network-request-dialog";
 import { MultiSelectCombobox } from "@/components/ui/multi-select";
 import ReusableFileUpload from "@/components/shared/fileupload/ReusableFileUpload";
@@ -71,6 +72,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
   const [previewMode, setPreviewMode] = useState(false);
   const [transformedPreview, setTransformedPreview] = useState<Record<string, string | string[] | number | undefined>[]>([]);
   const { showBanner, hideBanner } = useBanner();
+  const { showBannerWithDelay } = useBannerWithDelay();
   const importDevice = useImportDevice();
   const bulkImport = useBulkImportDevices();
   const { networks, isLoading: isLoadingNetworks } = useNetworks();
@@ -311,13 +313,11 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       {
         onSuccess: (data, variables) => {
           onOpenChange(false);
-          setTimeout(() => {
-            showBanner({
-              severity: 'success',
-              title: 'Success',
-              message: `${variables.long_name.trim()} has been imported successfully.`,
-              scoped: false
-            });
+          showBannerWithDelay({
+            severity: 'success',
+            title: 'Success',
+            message: `${variables.long_name.trim()} has been imported successfully.`,
+            scoped: false
           }, 300);
         },
         onError: (error) => {
@@ -350,13 +350,11 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         onSuccess: (data) => {
           if (data.failed === 0) {
             onOpenChange(false);
-            setTimeout(() => {
-              showBanner({
-                severity: 'success',
-                title: 'Success',
-                message: `${data.imported} device(s) imported successfully.`,
-                scoped: false,
-              });
+            showBannerWithDelay({
+              severity: 'success',
+              title: 'Success',
+              message: `${data.imported} device(s) imported successfully.`,
+              scoped: false,
             }, 300);
           } else {
             if (data.imported === 0) {

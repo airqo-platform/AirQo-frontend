@@ -3,7 +3,7 @@
 import React, { useRef, useState } from 'react';
 import { FileSpreadsheet } from 'lucide-react';
 import ReusableButton from '@/components/shared/button/ReusableButton';
-import ReusableToast from '@/components/shared/toast/ReusableToast';
+import { useBanner } from '@/context/banner-context';
 import {
     Tooltip,
     TooltipContent,
@@ -152,6 +152,7 @@ export const DeviceNameParser: React.FC<DeviceNameCohortParserProps> = ({
     const [isImporting, setIsImporting] = useState(false);
     const [filePreview, setFilePreview] = useState<ParsedFileData | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const { showBanner } = useBanner();
 
     const handleLinkClick = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -173,16 +174,13 @@ export const DeviceNameParser: React.FC<DeviceNameCohortParserProps> = ({
 
         const fileExtension = file.name.split('.').pop()?.toLowerCase();
         if (!['csv', 'xlsx', 'xls'].includes(fileExtension || '')) {
-            ReusableToast({
-                message: 'Invalid file format. Please upload a CSV or Excel file.',
-                type: 'ERROR',
-            });
+            showBanner({ severity: 'error', message: 'Invalid file format. Please upload a CSV or Excel file.', scoped: true });
             e.target.value = '';
             return;
         }
 
         if (file.size > 5 * 1024 * 1024) {
-            ReusableToast({ message: 'File too large. Maximum size is 5MB.', type: 'ERROR' });
+            showBanner({ severity: 'error', message: 'File too large. Maximum size is 5MB.', scoped: true });
             e.target.value = '';
             return;
         }
@@ -206,18 +204,12 @@ export const DeviceNameParser: React.FC<DeviceNameCohortParserProps> = ({
                             });
                             setFilePreview({ headers, data: parsedData, fileName: file.name });
                         } else {
-                            ReusableToast({
-                                message: 'The file appears to be empty.',
-                                type: 'WARNING',
-                            });
+                            showBanner({ severity: 'warning', message: 'The file appears to be empty.', scoped: true });
                         }
                         setIsImporting(false);
                     },
                     error: (error) => {
-                        ReusableToast({
-                            message: `Error parsing CSV: ${error.message}`,
-                            type: 'ERROR',
-                        });
+                        showBanner({ severity: 'error', message: `Error parsing CSV: ${error.message}`, scoped: true });
                         setIsImporting(false);
                     },
                 });
@@ -237,24 +229,18 @@ export const DeviceNameParser: React.FC<DeviceNameCohortParserProps> = ({
                         });
                         setFilePreview({ headers, data: parsedData, fileName: file.name });
                     } else {
-                        ReusableToast({
-                            message: 'The file appears to be empty.',
-                            type: 'WARNING',
-                        });
+                        showBanner({ severity: 'warning', message: 'The file appears to be empty.', scoped: true });
                     }
                     setIsImporting(false);
                 };
                 reader.onerror = () => {
-                    ReusableToast({ message: 'Error reading Excel file', type: 'ERROR' });
+                    showBanner({ severity: 'error', message: 'Error reading Excel file.', scoped: true });
                     setIsImporting(false);
                 };
                 reader.readAsBinaryString(file);
             }
         } catch {
-            ReusableToast({
-                message: 'Error importing file. Please ensure papaparse and xlsx libraries are installed.',
-                type: 'ERROR',
-            });
+            showBanner({ severity: 'error', message: 'Error importing file. Please try again.', scoped: true });
             setIsImporting(false);
         }
 
@@ -275,10 +261,7 @@ export const DeviceNameParser: React.FC<DeviceNameCohortParserProps> = ({
             .filter((name) => name.length > 0);
 
         if (deviceNames.length === 0) {
-            ReusableToast({
-                message: 'No valid device names found in the selected column',
-                type: 'ERROR',
-            });
+            showBanner({ severity: 'error', message: 'No valid device names found in the selected column.', scoped: true });
             return;
         }
 

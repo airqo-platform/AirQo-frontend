@@ -4,6 +4,53 @@
 
 ---
 
+## Version 1.23.52
+**Released:** May 27, 2026
+
+### Cohort Management Banner Migration & Banner Delay Standardization
+
+Migrated toast-based cohort notifications and raw `setTimeout` banner patterns in device dialogs to the centralized `InfoBanner` system and the shared `useBannerWithDelay` hook. Errors inside dialogs use `scoped: true` to stay inline while the dialog remains open; post-dialog success feedback uses `scoped: false` so the delayed banner appears only after the dialog has fully unmounted.
+
+<details>
+<summary><strong>Banner Delay Standardization (7)</strong></summary>
+
+- **Shared Delay Hook Rename**: Renamed the former `useDeferredBanner` hook to `useBannerWithDelay` across cohort, grid, and device consumers to make the hook name reflect the delayed display behavior.
+- **Hook-Level Callback Pattern**: All mutation hooks in `useCohorts.ts` now accept optional `onSuccess`/`onError` callbacks at initialization rather than per-call `mutate()` arguments, aligning with the reliable pattern established in the grid module.
+- **Dialog Error Feedback**: `create-cohort.tsx`, `edit-cohort-details-modal.tsx`, `device-name-parser.tsx`, and `assign/unassign-cohort-devices.tsx` use `scoped: true` so validation and mutation errors remain visible inside the active dialog without closing it.
+- **Post-Dialog Success Feedback**: `create-cohort.tsx`, `assign-cohort-devices.tsx`, and `unassign-cohort-devices.tsx` use the shared `useBannerWithDelay` hook (`scoped: false`) to show global success banners only after the dialog has unmounted.
+- **Device Banner Refactor**: Device modals and dialogs now use `useBannerWithDelay` instead of raw `setTimeout` timer patterns to display delayed success feedback after unmounting.
+- **Detail Card & API Card Feedback**: `cohort-detail-card.tsx` and `cohort-measurements-api-card.tsx` replace toast calls with `useBanner` for copy feedback and action outcomes, keeping feedback in context.
+- **Shared Utilities Adopted**: `useBannerWithDelay` hook and `AFTER_DIALOG_CLOSE_MS` constant (merged from the grid branch) are now consumed across the cohort module, removing all local `bannerTimerRef + setTimeout` patterns.
+
+</details>
+
+<details>
+<summary><strong>Files Updated (19)</strong></summary>
+
+- `src/vertex/core/hooks/useCohorts.ts` [MODIFIED]
+- `src/vertex/components/features/cohorts/create-cohort.tsx` [MODIFIED]
+- `src/vertex/components/features/cohorts/edit-cohort-details-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/cohorts/cohort-detail-card.tsx` [MODIFIED]
+- `src/vertex/components/features/cohorts/cohort-measurements-api-card.tsx` [MODIFIED]
+- `src/vertex/components/features/cohorts/device-name-parser.tsx` [MODIFIED]
+- `src/vertex/components/features/cohorts/assign-cohort-devices.tsx` [MODIFIED]
+- `src/vertex/components/features/cohorts/unassign-cohort-devices.tsx` [MODIFIED]
+- `src/vertex/components/features/grids/create-admin-level.tsx` [MODIFIED]
+- `src/vertex/components/features/grids/create-grid.tsx` [MODIFIED]
+- `src/vertex/components/features/grids/edit-grid-details-dialog.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/add-maintenance-log-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/create-device-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/deploy-device-component.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/device-assignment-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/import-device-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/recall-device-dialog.tsx` [MODIFIED]
+- `src/vertex/core/hooks/useBannerWithDelay.ts` [ADDED]
+- `src/vertex/app/changelog.md` [MODIFIED]
+
+</details>
+
+---
+
 ## Version 1.23.51
 **Released:** May 27, 2026
 

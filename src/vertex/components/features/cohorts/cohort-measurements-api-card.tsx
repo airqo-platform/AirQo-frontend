@@ -4,13 +4,24 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Copy } from "lucide-react";
 import React from "react";
-import ReusableToast from "@/components/shared/toast/ReusableToast";
+import { useBanner } from "@/context/banner-context";
 
 interface CohortMeasurementsApiCardProps {
     cohortId: string;
 }
 
 const CohortMeasurementsApiCard: React.FC<CohortMeasurementsApiCardProps> = ({ cohortId }) => {
+    const { showBanner } = useBanner();
+
+    const handleCopy = async (text: string) => {
+        try {
+            await navigator.clipboard.writeText(text);
+            showBanner({ severity: 'success', message: 'API URL copied to clipboard', scoped: false });
+        } catch {
+            showBanner({ severity: 'error', message: 'Failed to copy to clipboard', scoped: false });
+        }
+    };
+
     return (
         <Card className="w-full rounded-lg flex flex-col gap-4 px-3 py-2">
             <h2 className="text-lg font-semibold mb-2">Cohort Measurements API</h2>
@@ -26,14 +37,7 @@ const CohortMeasurementsApiCard: React.FC<CohortMeasurementsApiCardProps> = ({ c
                         size="icon"
                         className="hover:bg-transparent"
                         aria-label="Copy recent cohort measurements API URL"
-                        onClick={async () => {
-                            try {
-                                await navigator.clipboard.writeText(`https://api.airqo.net/api/v2/devices/measurements/cohorts/${cohortId}/recent?token=YOUR_TOKEN`);
-                                ReusableToast({ message: "Copied", type: "SUCCESS" });
-                            } catch {
-                                ReusableToast({ message: "Copy failed", type: "ERROR" });
-                            }
-                        }}
+                        onClick={() => handleCopy(`https://api.airqo.net/api/v2/devices/measurements/cohorts/${cohortId}/recent?token=YOUR_TOKEN`)}
                     >
                         <Copy className="w-4 h-4" />
                     </Button>
@@ -51,14 +55,7 @@ const CohortMeasurementsApiCard: React.FC<CohortMeasurementsApiCardProps> = ({ c
                         size="icon"
                         className="hover:bg-transparent"
                         aria-label="Copy historical cohort measurements API URL"
-                        onClick={async () => {
-                            try {
-                                await navigator.clipboard.writeText(`https://api.airqo.net/api/v2/devices/measurements/cohorts/${cohortId}/historical?token=YOUR_TOKEN`);
-                                ReusableToast({ message: "Copied", type: "SUCCESS" });
-                            } catch {
-                                ReusableToast({ message: "Copy failed", type: "ERROR" });
-                            }
-                        }}
+                        onClick={() => handleCopy(`https://api.airqo.net/api/v2/devices/measurements/cohorts/${cohortId}/historical?token=YOUR_TOKEN`)}
                     >
                         <Copy className="w-4 h-4" />
                     </Button>

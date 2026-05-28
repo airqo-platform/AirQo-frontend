@@ -22,6 +22,9 @@ import { Cohort } from "@/app/types/cohorts";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import { Device } from "@/app/types/devices";
 import { useUserContext } from "@/core/hooks/useUserContext";
+import { useBanner } from "@/context/banner-context";
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
+import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
 
 interface AssignCohortDevicesDialogProps {
   open: boolean;
@@ -48,6 +51,8 @@ export function AssignCohortDevicesDialog({
   cohortId,
 }: AssignCohortDevicesDialogProps) {
   const { isExternalOrg, activeGroup } = useUserContext();
+  const { showBanner } = useBanner();
+  const { showBannerWithDelay } = useBannerWithDelay();
   const [cohortSearch, setCohortSearch] = useState("");
   const [debouncedCohortSearch, setDebouncedCohortSearch] = useState("");
   const [deviceSearch, setDeviceSearch] = useState("");
@@ -101,7 +106,22 @@ export function AssignCohortDevicesDialog({
     enabled: open,
     search: debouncedDeviceSearch,
   });
-  const { mutate: assignDevices, isPending: isAssigning } = useAssignDevicesToCohort();
+  const { mutate: assignDevices, isPending: isAssigning } = useAssignDevicesToCohort({
+    onSuccess: (variables) => {
+      showBannerWithDelay({
+        severity: 'success',
+        message: `${variables.deviceIds.length} device(s) assigned to cohort successfully`,
+        scoped: false,
+      });
+    },
+    onError: (error) => {
+      showBanner({
+        severity: 'error',
+        message: `Failed to assign devices: ${getApiErrorMessage(error)}`,
+        scoped: true,
+      });
+    },
+  });
 
   const [createCohortModalOpen, setCreateCohortModalOpen] = useState(false);
   const [preselectedForCreate, setPreselectedForCreate] = useState<PreselectedDevice[]>([]);

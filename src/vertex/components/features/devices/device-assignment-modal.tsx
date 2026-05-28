@@ -14,6 +14,7 @@ import { useAppSelector } from "@/core/redux/hooks";
 import { Device } from "@/app/types/devices";
 import { useAssignDeviceToOrganization } from "@/core/hooks/useDevices";
 import { useBanner } from "@/context/banner-context";
+import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import { Label } from "@/components/ui/label";
 import { ComboBox } from "@/components/ui/combobox";
@@ -48,6 +49,7 @@ const DeviceAssignmentModal: React.FC<DeviceAssignmentModalProps> = ({
 
   const assignDevice = useAssignDeviceToOrganization();
   const { showBanner } = useBanner();
+  const { showBannerWithDelay } = useBannerWithDelay();
 
   const handleAssign = async () => {
     if (!selectedOrganization || !selectedDevice || !userDetails?._id) return;
@@ -58,12 +60,10 @@ const DeviceAssignmentModal: React.FC<DeviceAssignmentModalProps> = ({
         organization_id: selectedOrganization,
         user_id: userDetails._id,
       });
-      setTimeout(() => {
-        showBanner({
-          severity: 'success',
-          title: 'Success',
-          message: `${data.device.name} has been assigned successfully.`,
-        });
+      showBannerWithDelay({
+        severity: 'success',
+        title: 'Success',
+        message: `${data.device.name} has been assigned successfully.`,
       }, 300);
       onSuccess();
     } catch (error) {
