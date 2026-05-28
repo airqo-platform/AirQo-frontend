@@ -52,6 +52,7 @@ const deviceUpdateSchema = z.object({
   createdAt: z.string().optional(),
   nextMaintenance: z.string().optional(),
   api_code: z.string().optional(),
+  authRequired: z.boolean().optional()
 });
 
 type DeviceUpdateFormData = z.infer<typeof deviceUpdateSchema>;
@@ -85,6 +86,7 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
       powerType: device?.powerType || undefined,
       claim_status: device?.claim_status || undefined,
       api_code: device?.api_code || "",
+      authRequired: device?.authRequired ?? true,
     },
   });
 
@@ -111,6 +113,7 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
         powerType: device.powerType || undefined,
         claim_status: device.claim_status || undefined,
         api_code: device.api_code || "",
+        authRequired: device?.authRequired ?? true,
       });
     }
   }, [device, form]);
@@ -431,6 +434,25 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
                       placeholder="https://device.iqair.com/..."
                       {...field}
                     />
+                  )}
+                />
+              </div>
+              <div className="lg:col-span-2">
+                <FormField
+                  control={form.control}
+                  name="authRequired"
+                  render={({ field, fieldState }) => (
+                    <ReusableSelectInput
+                      label="Authentication Required"
+                      placeholder="Select authentication requirement"
+                      value={String(field.value ?? true)}
+                      onChange={(e) => field.onChange(e.target.value === 'true')}
+                      disabled={isLoading || !isEditMode}
+                      error={fieldState.error?.message}
+                    >
+                      <option value="true">True</option>
+                      <option value="false">False</option>
+                    </ReusableSelectInput>
                   )}
                 />
               </div>
