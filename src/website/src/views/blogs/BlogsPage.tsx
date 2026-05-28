@@ -181,7 +181,6 @@ const BlogsPage: React.FC = () => {
     ordering !== '-published_at';
   const isInitialLoading = isLoading && blogs.length === 0;
   const isEmpty = !isInitialLoading && !error && blogs.length === 0;
-  const showLegacyArchiveNotice = isEmpty && !hasActiveFilters;
 
   const resetFilters = () => {
     setSearchInput('');
@@ -308,15 +307,42 @@ const BlogsPage: React.FC = () => {
           </p>
         </div>
 
+        <Card className="mt-8 border-blue-100 bg-[#F6F9FF] shadow-sm">
+          <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-2 text-left">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">
+                Explore more AirQo stories
+              </p>
+              <p className="max-w-2xl text-sm leading-7 text-gray-700 sm:text-base">
+                Discover previous AirQo blog posts, updates, and insights from
+                our work across African cities.
+              </p>
+            </div>
+
+            <Button
+              asChild
+              className="bg-blue-600 text-white hover:bg-blue-700 sm:self-start"
+            >
+              <a
+                href={LEGACY_BLOGS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                View previous blogs
+              </a>
+            </Button>
+          </CardContent>
+        </Card>
+
         {isInitialLoading ? (
-          <div className="mt-8 grid gap-6 md:grid-cols-2">
+          <div className="mt-6 grid gap-6 md:grid-cols-2">
             <BlogCardSkeleton />
             <BlogCardSkeleton />
             <BlogCardSkeleton />
             <BlogCardSkeleton />
           </div>
         ) : error && blogs.length === 0 ? (
-          <div className="mt-8 rounded-2xl border border-rose-200 bg-rose-50 p-8 text-center shadow-sm">
+          <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 p-8 text-center shadow-sm">
             <NoData
               className="p-0"
               message="We could not load the latest blog posts right now. Please try again later."
@@ -340,69 +366,38 @@ const BlogsPage: React.FC = () => {
             </div>
           </div>
         ) : isEmpty ? (
-          <>
-            {showLegacyArchiveNotice && (
-              <Card className="mt-8 border-blue-100 bg-[#F6F9FF] shadow-sm">
-                <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="space-y-2 text-left">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">
-                      Explore more AirQo stories
-                    </p>
-                    <p className="max-w-2xl text-sm leading-7 text-gray-700 sm:text-base">
-                      Discover previous AirQo blog posts, updates, and insights
-                      from our work across African cities.
-                    </p>
-                  </div>
+          <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-8 text-center shadow-sm">
+            <NoData
+              className="p-0"
+              message={
+                hasActiveFilters
+                  ? 'No blog posts match the current filters. Try another category or search term.'
+                  : 'We are publishing the latest AirQo blog stories here soon. Check back shortly for new posts.'
+              }
+            />
 
-                  <Button
-                    asChild
-                    className="bg-blue-600 text-white hover:bg-blue-700 sm:self-start"
-                  >
-                    <a
-                      href={LEGACY_BLOGS_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      View previous blogs
-                    </a>
-                  </Button>
-                </CardContent>
-              </Card>
+            {hasActiveFilters && (
+              <div className="mt-6 flex flex-wrap justify-center gap-3">
+                <Button
+                  type="button"
+                  onClick={resetFilters}
+                  className="bg-blue-600 text-white hover:bg-blue-700"
+                >
+                  Reset filters
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
+                  <Link href="/contact">Contact AirQo</Link>
+                </Button>
+              </div>
             )}
-
-            <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-8 text-center shadow-sm">
-              <NoData
-                className="p-0"
-                message={
-                  hasActiveFilters
-                    ? 'No blog posts match the current filters. Try another category or search term.'
-                    : 'We are publishing the latest AirQo blog stories here soon. Check back shortly for new posts.'
-                }
-              />
-
-              {hasActiveFilters && (
-                <div className="mt-6 flex flex-wrap justify-center gap-3">
-                  <Button
-                    type="button"
-                    onClick={resetFilters}
-                    className="bg-blue-600 text-white hover:bg-blue-700"
-                  >
-                    Reset filters
-                  </Button>
-                  <Button
-                    asChild
-                    variant="outline"
-                    className="border-gray-300 text-gray-700 hover:bg-gray-50"
-                  >
-                    <Link href="/contact">Contact AirQo</Link>
-                  </Button>
-                </div>
-              )}
-            </div>
-          </>
+          </div>
         ) : (
           <>
-            <div className="mt-8 grid gap-6 lg:grid-cols-2">
+            <div className="mt-6 grid gap-6 lg:grid-cols-2">
               {blogs.map((blog) => (
                 <BlogCard key={blog.public_identifier || blog.id} blog={blog} />
               ))}
