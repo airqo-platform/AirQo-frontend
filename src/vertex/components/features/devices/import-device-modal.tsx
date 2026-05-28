@@ -264,7 +264,9 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         return;
       }
 
-      const transformedDevices = parsedData.map(row => {
+      const invalidAuthRows: number[] = [];
+
+      const transformedDevices = parsedData.map((row, rowIndex) => {
         const device: Record<string, string | string[] | number | boolean | undefined> = {};
         EXPECTED_FIELDS.forEach(field => {
           const mappedHeader = fieldMapping[field.key];
@@ -279,16 +281,14 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
               } else if (FALSY_VALUES.includes(rawValue)) {
                 device.authRequired = false;
               } else {
-                // Unrecognized value — fall back to default (true) and flag it
-                device.authRequired = true;
-                console.warn(`Unrecognized authRequired value: "${rawValue}", defaulting to true`);
+                invalidAuthRows.push(rowIndex + 1);
               }
             } else {
               device[field.key] = row[mappedHeader];
             }
           }
         });
-        
+
         device.network = formData.network;
         device.category = formData.category;
         if (device.authRequired === undefined) {
@@ -300,6 +300,15 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
 
         return device;
       });
+
+      if (invalidAuthRows.length > 0) {
+        showBanner({
+          severity: 'error',
+          message: `Invalid Authentication Required value on row(s): ${invalidAuthRows.join(', ')}. Accepted values are: yes, no, true, false, 1, 0, y, n.`,
+          scoped: true,
+        });
+        return;
+      }
 
       setTransformedPreview(transformedDevices);
       setMappingMode(false);
