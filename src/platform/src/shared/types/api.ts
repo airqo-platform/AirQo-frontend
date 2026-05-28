@@ -400,6 +400,8 @@ export interface FeedbackSubmission {
   subject: string;
   message: string;
   rating: number;
+  app?: string;
+  screenshot_url?: string;
   metadata?: FeedbackSubmissionMetadata;
   tenant?: string;
   createdAt: string;

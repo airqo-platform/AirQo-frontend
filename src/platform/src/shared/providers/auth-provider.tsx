@@ -230,12 +230,18 @@ const isPermissionScopedUnauthorizedPath = (url?: string): boolean => {
 
 const waitForNextAuthSession = async (
   shouldContinue: () => boolean,
+  expectedAccessToken?: string | null,
   attempts = NEXTAUTH_SESSION_RETRY_ATTEMPTS,
   delayMs = NEXTAUTH_SESSION_RETRY_DELAY_MS
 ) => {
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     const session = await getSession();
-    if (session?.user) {
+    const sessionAccessToken = getSessionAccessTokenFromSession(session);
+    const hasExpectedSession =
+      session?.user &&
+      (!expectedAccessToken || sessionAccessToken === expectedAccessToken);
+
+    if (hasExpectedSession) {
       return session;
     }
 
@@ -684,10 +690,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const bootstrap = async () => {
       try {
         const oauthTokenHandoff = consumeOAuthTokenHandoffFromUrl();
+        const normalizedOAuthHandoffToken = oauthTokenHandoff?.token
+          ? normalizeOAuthAccessToken(oauthTokenHandoff.token)
+          : null;
+
         if (oauthTokenHandoff?.token) {
           // A fresh OAuth fragment indicates a new sign-in attempt, not an
           // intentional logout, so remove any stale marker before bootstrapping.
           clearBackendOAuthSignedOutFlag();
+          clearCachedSessionAccessToken();
 
           const signInResult = await signIn('credentials', {
             redirect: false,
@@ -707,7 +718,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         const nextAuthSession = oauthTokenHandoff?.token
-          ? await waitForNextAuthSession(() => isMounted)
+          ? await waitForNextAuthSession(
+              () => isMounted,
+              normalizedOAuthHandoffToken
+            )
           : await getSession();
         if (!isMounted) return;
 
