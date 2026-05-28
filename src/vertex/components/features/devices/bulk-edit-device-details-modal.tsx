@@ -59,7 +59,7 @@ export default function BulkEditDevicesModal({
   };
 
   const handleSubmit = () => {
-    if (!selectedField) return;
+    if (!selectedField || deviceIds.length === 0) return;
 
     const updateData = { [selectedField]: value };
 
