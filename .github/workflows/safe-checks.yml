@@ -1,0 +1,174 @@
+name: safe-checks
+
+# Uses pull_request (NOT pull_request_target) intentionally.
+# This runs in the context of the FORK with zero access to secrets.
+on:
+  pull_request:
+    branches:
+      - staging
+
+jobs:
+
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      website: ${{ steps.check.outputs.website }}
+      vertex: ${{ steps.check.outputs.vertex }}
+      platform: ${{ steps.check.outputs.platform }}
+      beacon: ${{ steps.check.outputs.beacon }}
+      calibrate: ${{ steps.check.outputs.calibrate }}
+      docs: ${{ steps.check.outputs.docs }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: detect changed services
+        id: check
+        run: |
+          git diff --name-only HEAD^ HEAD > files.txt
+
+          echo "website=false"  >> $GITHUB_OUTPUT
+          echo "vertex=false"   >> $GITHUB_OUTPUT
+          echo "platform=false" >> $GITHUB_OUTPUT
+          echo "beacon=false"   >> $GITHUB_OUTPUT
+          echo "calibrate=false" >> $GITHUB_OUTPUT
+          echo "docs=false"     >> $GITHUB_OUTPUT
+
+          while IFS= read -r file; do
+            [[ $file == src/website/* ]]      && echo "website=true"    >> $GITHUB_OUTPUT
+            [[ $file == src/vertex/* ]]       && echo "vertex=true"     >> $GITHUB_OUTPUT
+            [[ $file == src/platform/* ]]     && echo "platform=true"   >> $GITHUB_OUTPUT
+            [[ $file == src/beacon/* ]]       && echo "beacon=true"     >> $GITHUB_OUTPUT
+            [[ $file == src/calibrate/* ]]    && echo "calibrate=true"  >> $GITHUB_OUTPUT
+            [[ $file == src/docs-website/* ]] && echo "docs=true"       >> $GITHUB_OUTPUT
+          done < files.txt
+
+  #########################################
+  # WEBSITE — Node 20
+  #########################################
+
+  check-website:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.website == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: src/website/package-lock.json
+      - name: Install dependencies
+        run: cd src/website && npm ci
+      - name: Lint
+        # --if-present skips gracefully if the lint script isn't defined in package.json
+        run: cd src/website && npm run lint --if-present
+
+  #########################################
+  # VERTEX — Node 18
+  # Skip build, lint only.
+  #########################################
+
+  check-vertex:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.vertex == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: src/vertex/package-lock.json
+      - name: Install dependencies
+        run: cd src/vertex && npm ci
+      - name: Lint
+        run: cd src/vertex && npm run lint --if-present
+
+  #########################################
+  # ANALYTICS PLATFORM — Node 20
+  # Build needs secrets
+  # Skip build, lint only.
+  #########################################
+
+  check-platform:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.platform == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: src/platform/package-lock.json
+      - name: Install dependencies
+        run: cd src/platform && npm ci
+      - name: Lint
+        run: cd src/platform && npm run lint --if-present
+
+  #########################################
+  # BEACON — Node 20
+  #########################################
+
+  check-beacon:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.beacon == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: src/beacon/package-lock.json
+      - name: Install dependencies
+        run: cd src/beacon && npm ci
+      - name: Lint
+        run: cd src/beacon && npm run lint --if-present
+      - name: Build
+        run: cd src/beacon && npm run build --if-present
+
+  #########################################
+  # CALIBRATE — Node 22
+  #########################################
+
+  check-calibrate:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.calibrate == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: src/calibrate/package-lock.json
+      - name: Install dependencies
+        run: cd src/calibrate && npm ci
+      - name: Lint
+        run: cd src/calibrate && npm run lint --if-present
+      - name: Build
+        run: cd src/calibrate && npm run build --if-present
+
+  #########################################
+  # DOCS — Node 22
+  #########################################
+
+  check-docs:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.docs == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: src/docs-website/package-lock.json
+      - name: Install dependencies
+        run: cd src/docs-website && npm ci
+      - name: Lint
+        run: cd src/docs-website && npm run lint --if-present
+      - name: Build
+        run: cd src/docs-website && npm run build --if-present
