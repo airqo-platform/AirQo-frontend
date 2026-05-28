@@ -4,6 +4,40 @@
 
 ---
 
+## Version 1.23.55
+**Released:** May 28, 2026
+
+### Bulk Edit & Multi-Select Actions for Devices
+
+Added comprehensive bulk editing capabilities across device management tables, enabling users to efficiently update multiple devices at once. This includes multi-select functionality, a new bulk edit modal, and backend support for bulk updates.
+
+<details>
+<summary><strong>Changes (4)</strong></summary>
+
+- **Bulk Edit Modal**: Implemented `BulkEditDevicesModal` allowing users to update fields like Category, Network, Visibility, Auth Required, and Tags across multiple selected devices in a two-step flow (field selection → confirmation).
+- **Multi-Select Support**: Enhanced `ReusableTable`, `DevicesTable`, `ClientPaginatedDevicesTable`, and `NetworkDevicesTable` with multi-select functionality and bulk action handling.
+- **Bulk Update Hook & API**: Refactored device update logic and added `useUpdateDeviceBulk` hook to support efficient bulk operations in a single API call with proper success/error notifications.
+- **UI Integration**: Integrated bulk edit action into device list tables and improved action handling for better user experience.
+
+</details>
+
+<details>
+<summary><strong>Files Updated (8)</strong></summary>
+
+- `src/vertex/components/features/devices/bulk-edit-device-details-modal.tsx` [NEW]
+- `src/vertex/components/features/devices/device-list-table.tsx` [MODIFIED]
+- `src/vertex/core/hooks/useDevices.ts` [MODIFIED]
+- `src/vertex/core/apis/devices.ts` [MODIFIED]
+- `src/vertex/app/(authenticated)/devices/my-devices/page.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/client-paginated-devices-table.tsx` [MODIFIED]
+- `src/vertex/components/shared/table/ReusableTable.tsx` [MODIFIED]
+- `src/vertex/components/features/networks/network-device-list-table.tsx` [MODIFIED]
+
+</details>
+
+
+---
+
 ## Version 1.23.54
 **Released:** May 28, 2026
 
