@@ -1,14 +1,16 @@
 
 import { Device } from "@/app/types/devices";
 import { useRouter, useSearchParams } from "next/navigation";
-import ReusableTable from "@/components/shared/table/ReusableTable";
-import { useState, useMemo } from "react";
+import ReusableTable, { TableAction } from "@/components/shared/table/ReusableTable";
+import { useState, useMemo, useCallback } from "react";
 import { useNetworkDevices } from "@/core/hooks/useNetworks";
 import { getColumns, type TableDevice } from "@/components/features/devices/utils/table-columns";
 import { useServerSideTableState } from "@/core/hooks/useServerSideTableState";
 import { AssignCohortDevicesDialog } from "@/components/features/cohorts/assign-cohort-devices";
 import { UnassignCohortDevicesDialog } from "@/components/features/cohorts/unassign-cohort-devices";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { Edit, Plus, Trash2 } from "lucide-react";
+import BulkEditDevicesModal from "../devices/bulk-edit-device-details-modal";
 
 interface NetworkDevicesTableProps {
     networkName: string;
@@ -29,6 +31,8 @@ export default function NetworkDevicesTable({
     const [selectedDeviceObjects, setSelectedDeviceObjects] = useState<TableDevice[]>([]);
     const [showAssignDialog, setShowAssignDialog] = useState(false);
     const [showUnassignDialog, setShowUnassignDialog] = useState(false);
+    const [showBulkEditModal, setShowBulkEditModal] = useState(false);
+    const [bulkEditDeviceIds, setBulkEditDeviceIds] = useState<string[]>([]);
 
     const {
         pagination,
@@ -70,12 +74,25 @@ export default function NetworkDevicesTable({
         setShowUnassignDialog(false);
     };
 
-    const handleAddCohortDeviceActionSubmit = () => {
-        setShowAssignDialog(true);
-    };
+    const handleAddCohortDeviceActionSubmit = useCallback(
+        (selectedIds: (string | number)[]) => {
+            if (!selectedIds.length) return;
+            setShowAssignDialog(true);
+        },
+        []
+    );
 
-    const handleUnassignActionSubmit = () => {
-        setShowUnassignDialog(true);
+    const handleUnassignActionSubmit = useCallback(
+        (selectedIds: (string | number)[]) => {
+            if (!selectedIds.length) return;
+            setShowUnassignDialog(true);
+        },
+        []
+    );
+
+    const handleBulkEditClose = () => {
+        setShowBulkEditModal(false);
+        setBulkEditDeviceIds([]);
     };
 
     const devicesWithId: TableDevice[] = useMemo(() => {
@@ -92,6 +109,40 @@ export default function NetworkDevicesTable({
 
     const columns = useMemo(() => getColumns(false), []);
 
+    const actions = useMemo(() => {
+        const baseActions: TableAction[] = [
+        {
+            label: "Add to Cohort",
+            value: "assign_cohort",
+            handler: handleAddCohortDeviceActionSubmit,
+            icon: Plus,
+        },
+        {
+            label: "Bulk Edit Devices",
+            value: "bulk_edit",
+            handler: (ids) => {
+            if (!ids.length) return;
+
+            const safeIds = ids.map(String);
+            setBulkEditDeviceIds(safeIds);
+            setShowBulkEditModal(true);
+            },
+            icon: Edit,
+        },
+        {
+            label: "Remove from Cohort",
+            value: "unassign_cohort",
+            handler: handleUnassignActionSubmit,
+            icon: Trash2,
+        }
+        ];
+
+        return baseActions;
+    }, [
+        handleAddCohortDeviceActionSubmit,
+        handleUnassignActionSubmit,
+    ]);
+
     return (
         <div className={`space-y-4 ${className}`}>
             <ReusableTable
@@ -103,20 +154,7 @@ export default function NetworkDevicesTable({
                 onRowClick={handleDeviceClick}
                 multiSelect={true}
                 onSelectedItemsChange={(items) => setSelectedDeviceObjects(items as TableDevice[])}
-                actions={[
-                    {
-                        label: "Add to Cohort",
-                        value: "assign_cohort",
-                        handler: handleAddCohortDeviceActionSubmit,
-                    },
-                    ...(selectedDeviceObjects.length > 0
-                        ? [{
-                            label: "Remove from Cohort",
-                            value: "unassign_cohort",
-                            handler: handleUnassignActionSubmit,
-                        }]
-                        : [])
-                ]}
+                actions={actions}
                 emptyState={
                     error ? (
                         <div className="flex flex-col items-center gap-2">
@@ -155,6 +193,12 @@ export default function NetworkDevicesTable({
                 onOpenChange={setShowUnassignDialog}
                 selectedDevices={selectedDeviceObjects}
                 onSuccess={handleUnassignSuccess}
+            />
+
+            <BulkEditDevicesModal
+                open={showBulkEditModal}
+                onClose={handleBulkEditClose}
+                deviceIds={bulkEditDeviceIds}
             />
         </div>
     );

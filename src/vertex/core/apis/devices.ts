@@ -24,9 +24,8 @@ import type {
   ShippingBatchDetailsResponse,
 } from "@/app/types/devices";
 
-// Create secure API clients that use the proxy
 const jwtApiClient = createSecureApiClient();
-const tokenApiClient = createSecureApiClient();
+
 interface DeviceStatusSummary {
   _id: string;
   created_at: string;
@@ -547,22 +546,25 @@ export const devices = {
     }
   },
 
-  updateDeviceGroup: async (
-    deviceId: string,
-    groupName: string
+  bulkUpdateDeviceDetails: async (
+    deviceIds: string[],
+    updateData: Record<string, unknown>
   ): Promise<DeviceUpdateGroupResponse> => {
     try {
+      const sanitizedDeviceIds = deviceIds.map((id) => id.trim()).filter(Boolean);
+      if (sanitizedDeviceIds.length === 0) {
+        throw new Error("At least one device ID is required.");
+      }
+
       const requestBody = {
-        deviceIds: [deviceId],
-        updateData: {
-          groups: [groupName],
-        },
+        deviceIds: sanitizedDeviceIds,
+        updateData,
       };
-      const response = await jwtApiClient.put(
-        `/devices/bulk`,
-        requestBody,
-        { headers: { 'X-Auth-Type': 'JWT' } }
-      );
+
+      const response = await jwtApiClient.put(`/devices/bulk`, requestBody, {
+        headers: { "X-Auth-Type": "JWT" },
+      });
+
       return response.data;
     } catch (error) {
       throw error;
