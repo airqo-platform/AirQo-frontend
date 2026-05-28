@@ -27,6 +27,7 @@ import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 const EXPECTED_FIELDS = [
   { key: 'long_name', label: 'Device Name', required: true },
   { key: 'serial_number', label: 'Serial Number', required: true },
+  { key: 'authRequired', label: 'Authentication Required', required: true },
   { key: 'latitude', label: 'Latitude', required: false },
   { key: 'longitude', label: 'Longitude', required: false },
   { key: 'api_code', label: 'Device Connection URL', required: false },
@@ -57,6 +58,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
     writeKey: "",
     readKey: "",
     api_code: "",
+    authRequired: true,
     tags: [] as string[],
   });
 
@@ -70,7 +72,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
   const [fieldMapping, setFieldMapping] = useState<Record<string, string>>({});
   const [mappingMode, setMappingMode] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
-  const [transformedPreview, setTransformedPreview] = useState<Record<string, string | string[] | number | undefined>[]>([]);
+  const [transformedPreview, setTransformedPreview] = useState<Record<string, string | string[] | number | boolean | undefined>[]>([]);
   const { showBanner, hideBanner } = useBanner();
   const { showBannerWithDelay } = useBannerWithDelay();
   const importDevice = useImportDevice();
@@ -156,6 +158,9 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         matchIdx = normalizedHeaders.findIndex(h => aliases.includes(h));
       } else if (key === 'serialnumber') {
         const aliases = ['serialnumber', 'locationid', 'serial', 'id'];
+        matchIdx = normalizedHeaders.findIndex(h => aliases.includes(h));
+      } else if (key === 'authrequired') {
+        const aliases = ['authrequired', 'authenticationrequired', 'requiresauth', 'requiredauth', 'auth required'];
         matchIdx = normalizedHeaders.findIndex(h => aliases.includes(h));
       } else {
         matchIdx = normalizedHeaders.findIndex(h => h === key);
@@ -260,16 +265,24 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       }
 
       const transformedDevices = parsedData.map(row => {
-        const device: Record<string, string | string[] | number | undefined> = {};
+        const device: Record<string, string | string[] | number | boolean | undefined> = {};
         EXPECTED_FIELDS.forEach(field => {
           const mappedHeader = fieldMapping[field.key];
           if (mappedHeader && row[mappedHeader] !== undefined && row[mappedHeader] !== "") {
-            device[field.key] = row[mappedHeader];
+            if (field.key === 'authRequired') {
+              const rawValue = String(row[mappedHeader]).trim().toLowerCase();
+              device.authRequired = ['true', '1', 'yes', 'y'].includes(rawValue);
+            } else {
+              device[field.key] = row[mappedHeader];
+            }
           }
         });
         
         device.network = formData.network;
         device.category = formData.category;
+        if (device.authRequired === undefined) {
+          device.authRequired = true;
+        }
         if (formData.tags && formData.tags.length > 0) {
           device.tags = formData.tags;
         }
@@ -290,7 +303,13 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
     const deviceDataToSend = { ...formData };
 
     (Object.keys(deviceDataToSend) as Array<keyof typeof deviceDataToSend>).forEach((key) => {
-      if (!deviceDataToSend[key]) {
+      const value = deviceDataToSend[key];
+      if (
+        value === "" ||
+        value === undefined ||
+        value === null ||
+        (Array.isArray(value) && value.length === 0)
+      ) {
         delete deviceDataToSend[key];
       }
     });
@@ -393,7 +412,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
     );
   };
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | boolean) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -424,6 +443,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         writeKey: "",
         readKey: "",
         api_code: "",
+        authRequired: true,
         tags: [],
       });
       setErrors({});
@@ -756,6 +776,18 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
               {category.label}
             </option>
           ))}
+        </ReusableSelectInput>
+
+        <ReusableSelectInput
+          label="Authentication Required"
+          id="auth_required"
+          value={String(formData.authRequired)}
+          onChange={(e) => handleInputChange("authRequired", e.target.value === 'true')}
+          placeholder="Choose whether authentication is required"
+          required
+        >
+          <option value="true">Required</option>
+          <option value="false">Not Required</option>
         </ReusableSelectInput>
 
         <ReusableInputField
