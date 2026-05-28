@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useBanner, type ShowBannerOptions } from '@/context/banner-context';
 import { AFTER_DIALOG_CLOSE_MS } from '@/core/constants/ui';
 
-export const useDeferredBanner = () => {
+export const useBannerWithDelay = () => {
   const { showBanner } = useBanner();
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -12,12 +12,12 @@ export const useDeferredBanner = () => {
     };
   }, []);
 
-  const showDeferredBanner = (options: ShowBannerOptions) => {
+  const showBannerWithDelay = (options: ShowBannerOptions) => {
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
       showBanner(options);
     }, AFTER_DIALOG_CLOSE_MS);
   };
 
-  return { showDeferredBanner };
+  return { showBannerWithDelay };
 };

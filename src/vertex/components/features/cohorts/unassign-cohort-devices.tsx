@@ -20,7 +20,7 @@ import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import { Device } from "@/app/types/devices";
 import { useBanner } from "@/context/banner-context";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
-import { useDeferredBanner } from "@/core/hooks/useDeferredBanner";
+import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
 
 interface UnassignCohortDevicesDialogProps {
   open: boolean;
@@ -50,10 +50,10 @@ export function UnassignCohortDevicesDialog({
 }: UnassignCohortDevicesDialogProps) {
   const { cohorts } = useCohorts();
   const { showBanner } = useBanner();
-  const { showDeferredBanner } = useDeferredBanner();
+  const { showBannerWithDelay } = useBannerWithDelay();
   const { mutate: unassignDevices, isPending: isUnassigning } = useUnassignDevicesFromCohort({
     onSuccess: (variables) => {
-      showDeferredBanner({
+      showBannerWithDelay({
         severity: 'success',
         message: `${variables.device_ids.length} device(s) removed from cohort successfully`,
         scoped: false,

@@ -17,7 +17,7 @@ import { useNetworks } from "@/core/hooks/useNetworks";
 import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
 import { useBanner } from "@/context/banner-context";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
-import { useDeferredBanner } from "@/core/hooks/useDeferredBanner";
+import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
 
 // Lazy load MiniMap to reduce initial bundle size
 const MiniMap = dynamic(() => import("@/components/features/mini-map/mini-map"), {
@@ -62,7 +62,7 @@ export function CreateGridForm() {
   const [open, setOpen] = useState(false);
   const polygon = useAppSelector((state) => state.grids.polygon);
   const { showBanner } = useBanner();
-  const { showDeferredBanner } = useDeferredBanner();
+  const { showBannerWithDelay } = useBannerWithDelay();
 
   const { networks, isLoading: isLoadingNetworks } = useNetworks();
 
@@ -84,7 +84,7 @@ export function CreateGridForm() {
   const { createGrid, isLoading } = useCreateGrid({
     onSuccess: () => {
       handleClose();
-      showDeferredBanner({ message: `New grid added!`, severity: "success", scoped: false });
+      showBannerWithDelay({ message: `New grid added!`, severity: "success", scoped: false });
     },
     onError: (error) => {
       showBanner({
