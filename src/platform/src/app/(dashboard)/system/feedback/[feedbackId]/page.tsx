@@ -138,8 +138,14 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
         const normalizedValue = String(value).trim();
         return normalizedValue.length > 0;
       })
-      .map(([key, value]) => [formatKeyLabel(key), String(value)])
-      .sort(([leftLabel], [rightLabel]) => leftLabel.localeCompare(rightLabel));
+      .map(([key, value]) => ({
+        key,
+        label: formatKeyLabel(key),
+        value: String(value),
+      }))
+      .sort((leftEntry, rightEntry) =>
+        leftEntry.label.localeCompare(rightEntry.label)
+      );
   }, [feedback?.metadata]);
 
   const overviewItems = useMemo(
@@ -408,13 +414,13 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
 
             {metadataEntries.length > 0 ? (
               <div className="grid gap-3">
-                {metadataEntries.map(([label, value]) => (
+                {metadataEntries.map(entry => (
                   <DetailPanel
-                    key={label}
-                    label={label}
+                    key={entry.key}
+                    label={entry.label}
                     valueClassName="break-words font-medium"
                   >
-                    {value}
+                    {entry.value}
                   </DetailPanel>
                 ))}
               </div>
