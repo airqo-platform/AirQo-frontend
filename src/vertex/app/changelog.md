@@ -4,6 +4,30 @@
 
 ---
 
+## Version 1.23.54
+**Released:** May 28, 2026
+
+### Device Details Modal — authRequired Field & Reset Bug Fix
+
+Added `authRequired` as an editable field in the Device Details Modal and fixed a state reset bug where the field always reverted to `true` after a device data refresh.
+
+<details>
+<summary><strong>Changes (2)</strong></summary>
+
+- **authRequired Field Added**: Exposed `authRequired` as an editable `ReusableSelectInput` in the Basic Information section of the Device Details Modal, wired to the zod schema and form dirty-fields logic so it is only included in the update payload when changed.
+- **Reset Bug Fix**: Added `authRequired` to the `useEffect` form reset block that fires when the `device` prop changes. Previously the field was omitted from that reset, causing it to always revert to `true` after a successful update or device data refresh regardless of the stored value.
+
+</details>
+
+<details>
+<summary><strong>Files Updated (1)</strong></summary>
+
+- `src/vertex/components/features/devices/device-details-modal.tsx` [MODIFIED]
+
+</details>
+
+---
+
 ## Version 1.23.53
 **Released:** May 28, 2026
 
