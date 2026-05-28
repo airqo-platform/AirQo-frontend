@@ -202,7 +202,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
             setParsedData([]);
             setFieldMapping({});
             setMappingMode(false);
-            setErrors({ general: "The uploaded CSV does not contain any devices." });
+            showBanner({ severity: 'error', message: "The uploaded CSV does not contain any devices.", scoped: true });
             return;
           }
 
@@ -212,7 +212,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
           setMappingMode(true);
         },
         error: (err: { message: string }) => {
-          setErrors({ general: `Failed to parse CSV: ${err.message}` });
+          showBanner({ severity: 'error', message: `Failed to parse CSV: ${err.message}`, scoped: true });
         }
       });
     } else if (fileName.endsWith('.json')) {
@@ -221,7 +221,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         const json = JSON.parse(text);
         const devices = Array.isArray(json) ? json : (json.devices || []);
         if (!Array.isArray(devices) || devices.length === 0) {
-          setErrors({ general: 'JSON file must contain an array of devices' });
+          showBanner({ severity: 'error', message: 'JSON file must contain an array of devices', scoped: true });
           return;
         }
         const headers = Object.keys(devices[0] || {});
@@ -230,10 +230,10 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         autoMapFields(headers);
         setMappingMode(true);
       } catch {
-        setErrors({ general: 'Invalid JSON file format' });
+        showBanner({ severity: 'error', message: 'Invalid JSON file format', scoped: true });
       }
     } else {
-      setErrors({ general: 'Unsupported file type. Please upload a CSV or JSON file.' });
+      showBanner({ severity: 'error', message: 'Unsupported file type. Please upload a CSV or JSON file.', scoped: true });
     }
   };
 
@@ -241,17 +241,17 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
     setErrors({});
     if (mappingMode && parsedData.length > 0) {
       if (!formData.network) {
-        setErrors({ general: "Please select a Sensor Manufacturer for this import." });
+        showBanner({ severity: 'error', message: "Please select a Sensor Manufacturer.", scoped: true });
         return;
       }
       if (!formData.category) {
-        setErrors({ general: "Please select a Category for this import." });
+        showBanner({ severity: 'error', message: "Please select a Category for this import.", scoped: true });
         return;
       }
 
       const missingRequired = EXPECTED_FIELDS.filter(f => f.required && !fieldMapping[f.key]);
       if (missingRequired.length > 0) {
-        setErrors({ general: `Please map the required fields: ${missingRequired.map(f => f.label).join(', ')}` });
+        showBanner({ severity: 'error', message: `Please map the required fields: ${missingRequired.map(f => f.label).join(', ')}`, scoped: true });
         return;
       }
 
@@ -260,7 +260,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         (header, index) => mappedHeaders.indexOf(header) !== index
       );
       if (duplicateHeaders.length > 0) {
-        setErrors({ general: "Each file column can only be mapped once." });
+        showBanner({ severity: 'error', message: "Each file column can only be mapped once.", scoped: true });
         return;
       }
 
@@ -271,7 +271,18 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
           if (mappedHeader && row[mappedHeader] !== undefined && row[mappedHeader] !== "") {
             if (field.key === 'authRequired') {
               const rawValue = String(row[mappedHeader]).trim().toLowerCase();
-              device.authRequired = ['true', '1', 'yes', 'y'].includes(rawValue);
+              const TRUTHY_VALUES = ['true', '1', 'yes', 'y'];
+              const FALSY_VALUES = ['false', '0', 'no', 'n'];
+
+              if (TRUTHY_VALUES.includes(rawValue)) {
+                device.authRequired = true;
+              } else if (FALSY_VALUES.includes(rawValue)) {
+                device.authRequired = false;
+              } else {
+                // Unrecognized value — fall back to default (true) and flag it
+                device.authRequired = true;
+                console.warn(`Unrecognized authRequired value: "${rawValue}", defaulting to true`);
+              }
             } else {
               device[field.key] = row[mappedHeader];
             }
@@ -351,7 +362,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
     const userId = userDetails?._id;
     if (!userId) {
       logger.warn("User ID is missing");
-      setErrors({ general: "User ID is missing. Please log in again." });
+      showBanner({ severity: 'error', message: "User ID is missing. Please log in again.", scoped: true });
       return;
     }
     const cohortId = getCohortId();
@@ -572,6 +583,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
                     <th className="px-4 py-3 font-medium border-b">Serial Number</th>
                     <th className="px-4 py-3 font-medium border-b">Manufacturer</th>
                     <th className="px-4 py-3 font-medium border-b">Category</th>
+                    <th className="px-4 py-3 font-medium border-b">Authentication Required</th>
                     <th className="px-4 py-3 font-medium border-b">Latitude</th>
                     <th className="px-4 py-3 font-medium border-b">Longitude</th>
                   </tr>
@@ -583,6 +595,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
                       <td className="px-4 py-3 font-mono text-xs">{device.serial_number || '-'}</td>
                       <td className="px-4 py-3">{device.network || '-'}</td>
                       <td className="px-4 py-3">{device.category || '-'}</td>
+                      <td className="px-4 py-3">{device.authRequired === false ? 'No' : 'Yes'}</td>
                       <td className="px-4 py-3">{device.latitude || '-'}</td>
                       <td className="px-4 py-3">{device.longitude || '-'}</td>
                     </tr>
@@ -786,8 +799,8 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
           placeholder="Choose whether authentication is required"
           required
         >
-          <option value="true">Required</option>
-          <option value="false">Not Required</option>
+          <option value="true">True</option>
+          <option value="false">False</option>
         </ReusableSelectInput>
 
         <ReusableInputField
