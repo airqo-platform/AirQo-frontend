@@ -31,9 +31,11 @@ export function OrganizationSelector() {
   const handleGroupSwitch = (groupId: string) => {
     const selectedGroup = safeGroups.find(g => g.id === groupId);
     if (!selectedGroup || selectedGroup.id === activeGroup?.id) return;
-    const destinationPath = isDefaultAirQoGroup(selectedGroup)
-      ? '/user/home'
-      : `/org/${selectedGroup.organizationSlug}/dashboard`;
+    const organizationSlug = selectedGroup.organizationSlug?.trim();
+    const destinationPath =
+      isDefaultAirQoGroup(selectedGroup) || !organizationSlug
+        ? '/user/home'
+        : `/org/${encodeURIComponent(organizationSlug)}/dashboard`;
 
     // Close dialog first
     handleClose();
