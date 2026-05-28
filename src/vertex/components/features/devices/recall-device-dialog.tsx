@@ -6,6 +6,7 @@ import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput"
 import { useRecallDevice } from "@/core/hooks/useDevices";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { useBanner } from "@/context/banner-context";
+import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 
 interface RecallDeviceDialogProps {
@@ -30,6 +31,7 @@ export default function RecallDeviceDialog({
   const recallDevice = useRecallDevice();
   const { userDetails } = useUserContext();
   const { showBanner } = useBanner();
+  const { showBannerWithDelay } = useBannerWithDelay();
 
   const handleRecall = async () => {
     if (!recallType || !userDetails?._id) {
@@ -49,13 +51,11 @@ export default function RecallDeviceDialog({
           userName: userDetails.userName,
         },
       });
-      setTimeout(() => {
-        showBanner({
-          severity: 'success',
-          title: 'Success',
-          message: `${deviceDisplayName || deviceName} has been recalled successfully.`,
-          scoped: false
-        });
+      showBannerWithDelay({
+        severity: 'success',
+        title: 'Success',
+        message: `${deviceDisplayName || deviceName} has been recalled successfully.`,
+        scoped: false
       }, 300);
       setRecallType("");
       onOpenChange(false);

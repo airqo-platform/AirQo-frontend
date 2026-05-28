@@ -4,8 +4,8 @@ import { Card } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { AqCopy01 } from "@airqo/icons-react";
-import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { Grid } from "@/app/types/grids";
+import { useBanner } from "@/context/banner-context";
 
 interface GridMeasurementsApiCardProps {
     grid: Grid;
@@ -13,6 +13,8 @@ interface GridMeasurementsApiCardProps {
 }
 
 const GridMeasurementsApiCard: React.FC<GridMeasurementsApiCardProps> = ({ grid, loading }) => {
+    const { showBanner } = useBanner();
+
     if (loading) {
         return <Card className="w-full rounded-lg flex flex-col justify-between items-center p-8"><Loader2 className="w-6 h-6 animate-spin" /></Card>;
     }
@@ -20,21 +22,10 @@ const GridMeasurementsApiCard: React.FC<GridMeasurementsApiCardProps> = ({ grid,
     const handleCopy = async (text: string) => {
         if (!text) return;
         try {
-            if (navigator?.clipboard?.writeText) {
-                await navigator.clipboard.writeText(text);
-            } else {
-                const el = document.createElement("textarea");
-                el.value = text;
-                el.style.position = "fixed";
-                el.style.opacity = "0";
-                document.body.appendChild(el);
-                el.select();
-                document.execCommand("copy");
-                document.body.removeChild(el);
-            }
-            ReusableToast({ message: "API URL copied!", type: "SUCCESS" });
+            await navigator.clipboard.writeText(text);
+            showBanner({ message: "API URL copied!", severity: "success", scoped: false });
         } catch {
-            ReusableToast({ message: "Failed to copy to clipboard", type: "ERROR" });
+            showBanner({ message: "Failed to copy to clipboard", severity: "error", scoped: false });
         }
     };
 

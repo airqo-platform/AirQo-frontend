@@ -10,6 +10,7 @@ import { MultiSelectCombobox } from "@/components/ui/multi-select";
 import { Switch } from "@/components/ui/switch";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import { useBanner } from "@/context/banner-context";
+import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 
 interface AddMaintenanceLogModalProps {
@@ -53,6 +54,7 @@ const AddMaintenanceLogModal: React.FC<AddMaintenanceLogModalProps> = ({ open, o
 
   const { userDetails } = useUserContext();
   const { showBanner } = useBanner();
+  const { showBannerWithDelay } = useBannerWithDelay();
   const addMaintenanceLog = useAddMaintenanceLog();
 
   // Reset form when modal opens/closes
@@ -85,13 +87,11 @@ const AddMaintenanceLogModal: React.FC<AddMaintenanceLogModalProps> = ({ open, o
 
     try {
       await addMaintenanceLog.mutateAsync({ deviceName, logData });
-      setTimeout(() => {
-        showBanner({
-          severity: 'success',
-          title: 'Success',
-          message: `Maintenance log for ${deviceName} has been added successfully.`,
-          scoped: false
-        });
+      showBannerWithDelay({
+        severity: 'success',
+        title: 'Success',
+        message: `Maintenance log for ${deviceName} has been added successfully.`,
+        scoped: false
       }, 300);
       onOpenChange(false);
     } catch (error) {

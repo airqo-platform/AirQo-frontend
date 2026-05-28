@@ -27,6 +27,7 @@ import type {
   DeviceAssignmentResponse,
   Device,
   DeviceCreationResponse,
+  BulkImportDeviceResponse,
   DeviceUpdateGroupResponse,
   MaintenanceLogData,
   DecryptionRequest,
@@ -522,6 +523,7 @@ export const useImportDevice = () => {
       description?: string;
       serial_number: string;
       api_code?: string;
+      authRequired: boolean;
       cohort_id?: string;
       user_id: string;
       tags?: string[];
@@ -551,6 +553,43 @@ export const useImportDevice = () => {
         }
       }
     }
+  });
+};
+
+export const useBulkImportDevices = () => {
+  const queryClient = useQueryClient();
+  const pathname = usePathname();
+  const userContext = useAppSelector((state) => state.user.userContext);
+
+  const isAdminModule = pathname?.startsWith('/admin/');
+
+  return useMutation<
+    BulkImportDeviceResponse,
+    AxiosError<ErrorResponse>,
+    { type: 'csv'; payload: FormData } | { type: 'json'; payload: any }
+  >({
+    mutationFn: (variables) => {
+      if (variables.type === 'csv') {
+        return devices.importBulkDevicesCSV(variables.payload);
+      }
+      return devices.importBulkDevicesJSON(variables.payload);
+    },
+    onSuccess: (data) => {
+      // Refresh based on active module
+      if (isAdminModule) {
+        queryClient.invalidateQueries({ queryKey: ['network-devices'] });
+      } else {
+        if (userContext === 'external-org') {
+          queryClient.invalidateQueries({ queryKey: ['devices'] });
+          queryClient.invalidateQueries({ queryKey: ['deviceCount'] });
+          queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
+        } else {
+          queryClient.invalidateQueries({ queryKey: ['myDevices'] });
+          queryClient.invalidateQueries({ queryKey: ['deviceCount'] });
+          queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
+        }
+      }
+    },
   });
 };
 

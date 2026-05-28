@@ -5,6 +5,12 @@ interface UserState {
   user: NormalizedUser | null;
   groups: NormalizedGroup[];
   activeGroup: NormalizedGroup | null;
+  pendingGroupSwitch: {
+    targetGroupId: string;
+    targetGroupName: string;
+    destinationPath: string;
+    startedAt: string;
+  } | null;
   isLoading: boolean;
   isLoggingOut: boolean;
   error: string | null;
@@ -14,6 +20,7 @@ const initialState: UserState = {
   user: null,
   groups: [],
   activeGroup: null,
+  pendingGroupSwitch: null,
   isLoading: false,
   isLoggingOut: false,
   error: null,
@@ -48,6 +55,8 @@ const userSlice = createSlice({
 
       if (defaultGroup) {
         state.activeGroup = defaultGroup;
+      } else {
+        state.activeGroup = null;
       }
     },
     setActiveGroup: (state, action: PayloadAction<NormalizedGroup>) => {
@@ -69,10 +78,25 @@ const userSlice = createSlice({
     setLoggingOut: (state, action: PayloadAction<boolean>) => {
       state.isLoggingOut = action.payload;
     },
+    startPendingGroupSwitch: (
+      state,
+      action: PayloadAction<{
+        targetGroupId: string;
+        targetGroupName: string;
+        destinationPath: string;
+        startedAt: string;
+      }>
+    ) => {
+      state.pendingGroupSwitch = action.payload;
+    },
+    clearPendingGroupSwitch: state => {
+      state.pendingGroupSwitch = null;
+    },
     clearUser: state => {
       state.user = null;
       state.groups = [];
       state.activeGroup = null;
+      state.pendingGroupSwitch = null;
       state.error = null;
       // Don't reset isLoggingOut here - it should be managed separately
     },
@@ -87,6 +111,8 @@ export const {
   setLoading,
   setError,
   setLoggingOut,
+  startPendingGroupSwitch,
+  clearPendingGroupSwitch,
   clearUser,
 } = userSlice.actions;
 

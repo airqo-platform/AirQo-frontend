@@ -11,6 +11,7 @@ import { MultiSelectCombobox } from "@/components/ui/multi-select";
 import { DEFAULT_DEVICE_TAGS } from "@/core/constants/devices";
 import { Label } from "@/components/ui/label";
 import { useBanner } from "@/context/banner-context";
+import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 
 interface CreateDeviceModalProps {
@@ -33,6 +34,7 @@ const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { showBanner } = useBanner();
+  const { showBannerWithDelay } = useBannerWithDelay();
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
   const createDevice = useCreateDevice();
 
@@ -72,13 +74,11 @@ const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
         tags: formData.tags,
       }, {
         onSuccess: (data, variables) => {
-          setTimeout(() => {
-            showBanner({
-              severity: 'success',
-              title: 'Success',
-              message: `${variables.long_name.trim()} has been created successfully.`,
-              scoped: false
-            });
+          showBannerWithDelay({
+            severity: 'success',
+            title: 'Success',
+            message: `${variables.long_name.trim()} has been created successfully.`,
+            scoped: false
           }, 300);
           setFormData({ long_name: "", category: "", description: "", tags: [] });
           setErrors({});

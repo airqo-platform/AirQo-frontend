@@ -15,7 +15,7 @@ interface BannerState {
   isScoped: boolean;
 }
 
-type ShowBannerOptions = BannerDisplayProps & { scoped?: boolean };
+export type ShowBannerOptions = BannerDisplayProps & { scoped?: boolean };
 
 interface BannerContextValue {
   state: BannerState;

@@ -4,6 +4,197 @@
 
 ---
 
+## Version 1.23.53
+**Released:** May 28, 2026
+
+### Import Device Modal — authRequired Field & Error Handling Refactor
+
+Introduced `authRequired` as a first-class field in the bulk device import flow and migrated inline `setErrors` validation patterns to the centralized `showBanner` system inside `ImportDeviceModal`.
+
+<details>
+<summary><strong>Changes (2)</strong></summary>
+
+- **authRequired Field Added**: Added `authRequired` to `EXPECTED_FIELDS` with auto-detection of CSV header aliases (`auth required`, `authrequired`, `requiresauth`, etc.) and intelligent string-to-boolean mapping for values like `yes/no`, `true/false`, `1/0`, `y/n`. Defaults to `true` when the field is unmapped. The field is also exposed as a UI select input in the single-device import form.
+- **Error Handling Migration**: Replaced `setErrors({ general: ... })` patterns in mapping validation (missing required fields, duplicate column mappings, unsupported file types, empty CSV) with `showBanner({ severity: 'error', ..., scoped: true })` to keep error feedback consistent with the rest of the dialog system.
+
+</details>
+
+<details>
+<summary><strong>Files Updated (2)</strong></summary>
+
+- `src/vertex/components/features/devices/import-device-modal.tsx` [MODIFIED]
+- `src/vertex/core/hooks/useDevices.ts` [MODIFIED]
+
+</details>
+
+---
+
+## Version 1.23.52
+**Released:** May 27, 2026
+
+### Cohort Management Banner Migration & Banner Delay Standardization
+
+Migrated toast-based cohort notifications and raw `setTimeout` banner patterns in device dialogs to the centralized `InfoBanner` system and the shared `useBannerWithDelay` hook. Errors inside dialogs use `scoped: true` to stay inline while the dialog remains open; post-dialog success feedback uses `scoped: false` so the delayed banner appears only after the dialog has fully unmounted.
+
+<details>
+<summary><strong>Banner Delay Standardization (7)</strong></summary>
+
+- **Shared Delay Hook Rename**: Renamed the former `useDeferredBanner` hook to `useBannerWithDelay` across cohort, grid, and device consumers to make the hook name reflect the delayed display behavior.
+- **Hook-Level Callback Pattern**: All mutation hooks in `useCohorts.ts` now accept optional `onSuccess`/`onError` callbacks at initialization rather than per-call `mutate()` arguments, aligning with the reliable pattern established in the grid module.
+- **Dialog Error Feedback**: `create-cohort.tsx`, `edit-cohort-details-modal.tsx`, `device-name-parser.tsx`, and `assign/unassign-cohort-devices.tsx` use `scoped: true` so validation and mutation errors remain visible inside the active dialog without closing it.
+- **Post-Dialog Success Feedback**: `create-cohort.tsx`, `assign-cohort-devices.tsx`, and `unassign-cohort-devices.tsx` use the shared `useBannerWithDelay` hook (`scoped: false`) to show global success banners only after the dialog has unmounted.
+- **Device Banner Refactor**: Device modals and dialogs now use `useBannerWithDelay` instead of raw `setTimeout` timer patterns to display delayed success feedback after unmounting.
+- **Detail Card & API Card Feedback**: `cohort-detail-card.tsx` and `cohort-measurements-api-card.tsx` replace toast calls with `useBanner` for copy feedback and action outcomes, keeping feedback in context.
+- **Shared Utilities Adopted**: `useBannerWithDelay` hook and `AFTER_DIALOG_CLOSE_MS` constant (merged from the grid branch) are now consumed across the cohort module, removing all local `bannerTimerRef + setTimeout` patterns.
+
+</details>
+
+<details>
+<summary><strong>Files Updated (19)</strong></summary>
+
+- `src/vertex/core/hooks/useCohorts.ts` [MODIFIED]
+- `src/vertex/components/features/cohorts/create-cohort.tsx` [MODIFIED]
+- `src/vertex/components/features/cohorts/edit-cohort-details-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/cohorts/cohort-detail-card.tsx` [MODIFIED]
+- `src/vertex/components/features/cohorts/cohort-measurements-api-card.tsx` [MODIFIED]
+- `src/vertex/components/features/cohorts/device-name-parser.tsx` [MODIFIED]
+- `src/vertex/components/features/cohorts/assign-cohort-devices.tsx` [MODIFIED]
+- `src/vertex/components/features/cohorts/unassign-cohort-devices.tsx` [MODIFIED]
+- `src/vertex/components/features/grids/create-admin-level.tsx` [MODIFIED]
+- `src/vertex/components/features/grids/create-grid.tsx` [MODIFIED]
+- `src/vertex/components/features/grids/edit-grid-details-dialog.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/add-maintenance-log-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/create-device-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/deploy-device-component.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/device-assignment-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/import-device-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/recall-device-dialog.tsx` [MODIFIED]
+- `src/vertex/core/hooks/useBannerWithDelay.ts` [ADDED]
+- `src/vertex/app/changelog.md` [MODIFIED]
+
+</details>
+
+---
+
+## Version 1.23.51
+**Released:** May 27, 2026
+
+### Page Satisfaction Banner Layout Refinement
+
+Refactored the page satisfaction banner into a floating, responsive card positioned at the bottom-right of the screen to eliminate overlaps with sidebars and improve desktop/mobile layout consistency.
+
+<details>
+<summary><strong>Banner Layout Migration (3)</strong></summary>
+
+- **Floating Card Design**: Repositioned the satisfaction banner from static page layout to a floating `Card` component anchored at the bottom-right corner, preventing overlap with dynamic sidebar states and ensuring consistent visibility across viewports.
+- **Responsive Sidebar Awareness**: Added `isSidebarCollapsed` prop to `PageSatisfactionBanner` to dynamically adjust the banner's left offset based on sidebar state (`lg:left-[88px]` for collapsed, `lg:left-[256px]` for expanded), maintaining proper spacing on desktop layouts.
+- **Content Bottom Padding Adjustment**: Increased main content area bottom padding to `pb-32` to prevent the floating banner from obscuring page content in scroll-to-bottom scenarios.
+
+</details>
+
+<details>
+<summary><strong>Code Quality & Formatting (2)</strong></summary>
+
+- **Prettier Formatting**: Applied consistent indentation and spacing standardization throughout the feedback banner component for improved code maintainability.
+- **Import Organization**: Reorganized component imports for clarity, adding the `Card` wrapper import to support the floating layout design.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (2)</strong></summary>
+
+- `src/vertex/components/features/feedback/page-satisfaction-banner.tsx` [MODIFIED]
+- `src/vertex/components/layout/layout.tsx` [MODIFIED]
+
+</details>
+
+---
+
+## Version 1.23.50
+**Released:** May 27, 2026
+
+### Device Bulk Upload Feature
+
+Introduced a comprehensive bulk upload and column mapping system for devices, enabling operators to import multiple devices simultaneously via CSV or JSON files. The feature features interactive column matching, live preview, data validation, and custom failure reports.
+
+<details>
+<summary><strong>Bulk Device Upload Flow (5)</strong></summary>
+
+- **Interactive File Import**: Supports uploading `.csv` and `.json` files via the new `ReusableFileUpload` component integrated into the `ImportDeviceModal`.
+- **Intelligent Field Auto-Mapping**: Automatically detects and maps file columns to expected device fields (like Device Name, Serial Number, Latitude, Longitude, API Code/Connection URL, Description, and Device Number) based on header names, with manual overrides.
+- **Bulk Import Preview**: Displays a tabular preview of the first 5 parsed and transformed devices, allowing users to verify mapped values prior to final submission.
+- **Import Results & Inline Banners**: Integrates with the context-aware `useBanner` system to show inline success, warning, or error alerts inside the modal. Provides a summary breakdown table and supports downloading a custom `failed_devices.csv` for any rejected rows.
+- **Global Settings Application**: Allows operators to set a single Sensor Manufacturer (Network), Category, and optional tags to apply across all imported devices in a batch.
+
+</details>
+
+<details>
+<summary><strong>Core Infrastructure & APIs (3)</strong></summary>
+
+- **Bulk Device Import API Calls**: Added `importBulkDevicesCSV` and `importBulkDevicesJSON` methods under `devices` api client to submit imports through the `/devices/soft/bulk` API endpoint.
+- **Bulk Import Hook**: Created `useBulkImportDevices` hook using `useMutation` to handle both CSV and JSON payloads, delegating feedback notifications to caller callbacks, and invalidating corresponding React Query lists.
+- **Types Definition**: Added TypeScript interfaces `BulkImportDeviceResult` and `BulkImportDeviceResponse` in `app/types/devices.ts`.
+
+</details>
+
+<details>
+<summary><strong>Shared Component Additions & Fixes (3)</strong></summary>
+
+- **ReusableFileUpload Component**: Introduced `ReusableFileUpload.tsx` to provide a drag/click upload interface with validation states and styling.
+- **Form Asterisk Standardization**: Standardized styling of required fields (`*`) to use `text-red-500` in `ReusableInputField` and `ReusableSelectInput` for visual alignment.
+- **TypeScript Dependencies**: Updated `@types/papaparse` to version `^5.5.2` in `package.json` for stable parsing typing.
+
+</details>
+
+<details>
+<summary><strong>Files Created/Modified (9)</strong></summary>
+
+- `src/vertex/app/types/devices.ts` [MODIFIED]
+- `src/vertex/components/features/devices/import-device-modal.tsx` [MODIFIED]
+- `src/vertex/components/shared/fileupload/ReusableFileUpload.tsx` [ADDED]
+- `src/vertex/components/shared/inputfield/ReusableInputField.tsx` [MODIFIED]
+- `src/vertex/components/shared/select/ReusableSelectInput.tsx` [MODIFIED]
+- `src/vertex/core/apis/devices.ts` [MODIFIED]
+- `src/vertex/core/hooks/useDevices.ts` [MODIFIED]
+- `src/vertex/package.json` [MODIFIED]
+- `src/vertex/app/changelog.md` [MODIFIED]
+
+</details>
+
+---
+
+## Version 1.23.49
+**Released:** May 26, 2026
+
+### Grid Management Banner Migration
+
+Migrated all toast-based notifications in the Grid Management module to the centralized `InfoBanner` system powered by `useBanner`. Since most grid actions occur inside dialogs, banner scoping was applied to keep errors inline in the active dialog while deferring success banners until the dialog has closed.
+
+<details>
+<summary><strong>Grid Management Banner Migration (4)</strong></summary>
+
+- **Dialog Error Feedback**: `create-grid.tsx`, `edit-grid-details-dialog.tsx`, and `admin-levels-modal.tsx` now use `scoped: true` so validation and action errors remain visible inside the active dialog without closing it.
+- **Post-Dialog Success Feedback**: `create-grid.tsx` and `edit-grid-details-dialog.tsx` now use `scoped: false` with a `setTimeout(100ms)` to allow the dialog to unmount before showing the global success banner.
+ - **Admin Level Error Feedback Migrated**: `create-admin-level.tsx` now routes existing error feedback through the centralized banner flow instead of the previous toast-based mechanism.
+- **Copy Feedback Hardened**: `grid-details-card.tsx` and `grid-measurements-api-card.tsx` now use `scoped: false` and handle async copy failures with a fallback error message.
+
+</details>
+
+<details>
+<summary><strong>Files Updated (7)</strong></summary>
+
+- `src/vertex/components/features/grids/create-grid.tsx` [MODIFIED]
+- `src/vertex/components/features/grids/edit-grid-details-dialog.tsx` [MODIFIED]
+- `src/vertex/components/features/grids/admin-levels-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/grids/create-admin-level.tsx` [MODIFIED]
+- `src/vertex/components/features/grids/grid-details-card.tsx` [MODIFIED]
+- `src/vertex/components/features/grids/grid-measurements-api-card.tsx` [MODIFIED]
+- `src/vertex/core/hooks/useGrids.ts` [MODIFIED]
+
+</details>
+
+---
+
 ## Version 1.23.48
 **Released:** May 23, 2026
 

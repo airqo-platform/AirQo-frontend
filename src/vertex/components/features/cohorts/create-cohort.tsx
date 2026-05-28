@@ -11,8 +11,9 @@ import { useCreateCohortWithDevices } from "@/core/hooks/useCohorts";
 import { useNetworks } from "@/core/hooks/useNetworks";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
 import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
-import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { DeviceNameParser } from "./device-name-parser";
+import { useBanner } from "@/context/banner-context";
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import {
   Form,
   FormControl,
@@ -75,6 +76,8 @@ export function CreateCohortDialog({
   onError,
   preselectedDevices = EMPTY_PRESELECTED_DEVICES,
 }: CreateCohortDialogProps) {
+  const { showBanner } = useBanner();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -154,7 +157,26 @@ export function CreateCohortDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, preselectedDevices]);
 
-  const { mutate: createCohort, isPending } = useCreateCohortWithDevices();
+  const { mutate: createCohort, isPending } = useCreateCohortWithDevices({
+    onSuccess: (response) => {
+      if (response?.cohort) {
+        setCreatedCohort(response.cohort);
+        setStep("success");
+        onSuccess?.(response);
+      } else {
+        onSuccess?.(response);
+        onOpenChange(false);
+      }
+    },
+    onError: (error) => {
+      showBanner({
+        severity: 'error',
+        message: `Failed to create cohort: ${getApiErrorMessage(error)}`,
+        scoped: true,
+      });
+      onError?.(error);
+    },
+  });
 
   const handleCancel = () => {
     if (step === 'form') {
@@ -191,9 +213,10 @@ export function CreateCohortDialog({
       .filter(Boolean) as string[];
 
     if (matchedIds.length === 0) {
-      ReusableToast({
+      showBanner({
+        severity: 'warning',
         message: 'No matching devices found. Please ensure the devices exist in the selected network.',
-        type: 'WARNING',
+        scoped: true,
       });
       return;
     }
@@ -207,9 +230,10 @@ export function CreateCohortDialog({
     const notFoundCount = deviceNames.length - importedCount;
 
     if (notFoundCount > 0) {
-      ReusableToast({
+      showBanner({
+        severity: 'warning',
         message: `Imported ${importedCount} device${importedCount !== 1 ? 's' : ''}. ${notFoundCount} not found.`,
-        type: 'WARNING',
+        scoped: true,
       });
     }
   };
@@ -226,25 +250,7 @@ export function CreateCohortDialog({
     const derivedName = isOrganizational
       ? buildCohortName(values.city || "", values.projectName || "", values.funder)
       : (values.name || "").trim();
-    createCohort(
-      { name: derivedName, network: values.network, deviceIds: values.devices, cohort_tags: values.cohort_tags },
-      {
-        onSuccess: (response) => {
-          if (response?.cohort) {
-            setCreatedCohort(response.cohort);
-            setStep("success");
-            onSuccess?.(response);
-          } else {
-            // Fallback if response structure is unexpected
-            onSuccess?.(response);
-            onOpenChange(false);
-          }
-        },
-        onError: (error) => {
-          onError?.(error);
-        },
-      },
-    );
+    createCohort({ name: derivedName, network: values.network, deviceIds: values.devices, cohort_tags: values.cohort_tags });
   };
 
   const getDialogConfig = () => {
