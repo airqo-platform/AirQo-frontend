@@ -441,6 +441,43 @@ export const useDeviceStatusFeed = (deviceNumber?: number) => {
   });
 };
 
+export interface BulkDeviceUpdatePayload {
+  deviceIds: string[];
+  updateData: Record<string, unknown>;
+}
+
+export const useUpdateDeviceBulk = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    DeviceUpdateGroupResponse,
+    AxiosError<ErrorResponse>,
+    BulkDeviceUpdatePayload
+  >({
+    mutationFn: ({ deviceIds, updateData }) =>
+      devices.bulkUpdateDeviceDetails(deviceIds, updateData),
+
+    onSuccess: () => {
+      ReusableToast({
+        message: "Devices updated successfully.",
+        type: "SUCCESS",
+      });
+
+      // invalidate all relevant caches
+      queryClient.invalidateQueries({ queryKey: ["devices"] });
+      queryClient.invalidateQueries({ queryKey: ["network-devices"] });
+      queryClient.invalidateQueries({ queryKey: ["deviceActivities"] });
+    },
+
+    onError: (error) => {
+      ReusableToast({
+        message: `Bulk Update Failed: ${getApiErrorMessage(error)}`,
+        type: "ERROR",
+      });
+    },
+  });
+};
+
 export const useUpdateDeviceGroup = () => {
   return useMutation<
     DeviceUpdateGroupResponse,

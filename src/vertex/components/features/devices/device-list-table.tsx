@@ -1,6 +1,6 @@
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { AqFilterLines } from "@airqo/icons-react";
-import { Check, Plus, Trash2, X } from "lucide-react";
+import { Check, Edit, Plus, Trash2, X } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,13 +12,14 @@ import { Device } from "@/app/types/devices";
 import { useRouter, useSearchParams } from "next/navigation";
 import ReusableTable, { TableAction } from "@/components/shared/table/ReusableTable";
 import ReusableButton from "@/components/shared/button/ReusableButton";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { AssignCohortDevicesDialog } from "@/components/features/cohorts/assign-cohort-devices";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { UnassignCohortDevicesDialog } from "../cohorts/unassign-cohort-devices";
 import { useDevices, DeviceListingOptions } from "@/core/hooks/useDevices";
 import { getColumns, type TableDevice } from "./utils/table-columns";
 import { useServerSideTableState } from "@/core/hooks/useServerSideTableState";
+import BulkEditDevicesModal from "./bulk-edit-device-details-modal";
 
 interface DevicesTableProps {
   itemsPerPage?: number;
@@ -37,6 +38,8 @@ export default function DevicesTable({
   const [selectedDeviceObjects, setSelectedDeviceObjects] = useState<TableDevice[]>([]);
   const [showAssignDialog, setShowAssignDialog] = useState(false);
   const [showUnassignDialog, setShowUnassignDialog] = useState(false);
+  const [showBulkEditModal, setShowBulkEditModal] = useState(false);
+  const [bulkEditDeviceIds, setBulkEditDeviceIds] = useState<string[]>([]);
   const { userContext, activeGroup, isExternalOrg } = useUserContext();
   const isInternalView = userContext === "personal" && activeGroup?.grp_title?.toLowerCase() === "airqo";
 
@@ -101,20 +104,25 @@ export default function DevicesTable({
     setShowUnassignDialog(false);
   };
 
-  const handleAddCohortDeviceActionSubmit = (
-    selectedIds: (string | number)[]
-  ) => {
-    if (selectedIds.length === 0) return;
+  const handleAddCohortDeviceActionSubmit = useCallback(
+    (selectedIds: (string | number)[]) => {
+      if (!selectedIds.length) return;
+      setShowAssignDialog(true);
+    },
+    []
+  );
 
-    setShowAssignDialog(true);
-  };
+  const handleUnassignActionSubmit = useCallback(
+    (selectedIds: (string | number)[]) => {
+      if (!selectedIds.length) return;
+      setShowUnassignDialog(true);
+    },
+    []
+  );
 
-  const handleUnassignActionSubmit = (
-    selectedIds: (string | number)[]
-  ) => {
-    if (selectedIds.length === 0) return;
-
-    setShowUnassignDialog(true);
+  const handleBulkEditClose = () => {
+    setShowBulkEditModal(false);
+    setBulkEditDeviceIds([]);
   };
 
   const devicesWithId: TableDevice[] = useMemo(() => {
@@ -153,6 +161,18 @@ export default function DevicesTable({
         handler: handleAddCohortDeviceActionSubmit,
         icon: Plus,
       },
+      {
+        label: "Bulk Edit Devices",
+        value: "bulk_edit",
+        handler: (ids) => {
+          if (!ids.length) return;
+
+          const safeIds = ids.map(String);
+          setBulkEditDeviceIds(safeIds);
+          setShowBulkEditModal(true);
+        },
+        icon: Edit,
+      }
     ];
 
     if (selectedDeviceObjects.length > 0 && !isExternalOrg) {
@@ -298,6 +318,12 @@ export default function DevicesTable({
         onOpenChange={setShowUnassignDialog}
         selectedDevices={selectedDeviceObjects}
         onSuccess={handleUnassignSuccess}
+      />
+
+      <BulkEditDevicesModal
+        open={showBulkEditModal}
+        onClose={handleBulkEditClose}
+        deviceIds={bulkEditDeviceIds}
       />
     </div>
   );
