@@ -22,6 +22,7 @@ type ChecklistStep = {
 };
 
 type OnboardingChecklistProps = {
+  onAddDevice: () => void;
   onClaimDevice: () => void;
   onImportDevice: () => void;
   onGoToCohorts: () => void;
@@ -232,6 +233,7 @@ const ProgressBar: React.FC<{ completed: number; total: number }> = ({
 // ─── OnboardingChecklist ──────────────────────────────────────────────────────
 
 export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
+  onAddDevice,
   onClaimDevice,
   onImportDevice,
   onGoToCohorts,
@@ -249,7 +251,7 @@ export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
 
   // Map each step ID to its action handler
   const stepActions: Record<string, () => void> = {
-    "add-device": onClaimDevice,
+    "add-device": onAddDevice,
     "assign-cohort": onGoToCohorts,
     "set-visibility": onGoToCohorts,
   };

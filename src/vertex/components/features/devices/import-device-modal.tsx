@@ -39,12 +39,14 @@ interface ImportDeviceModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   prefilledNetwork?: string;
+  onSuccess?: () => void;
 }
 
 const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
   open,
   onOpenChange,
   prefilledNetwork,
+  onSuccess,
 }) => {
   const [formData, setFormData] = useState({
     long_name: "",
@@ -311,6 +313,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       {
         onSuccess: (data, variables) => {
           onOpenChange(false);
+          onSuccess?.();
           setTimeout(() => {
             showBanner({
               severity: 'success',
@@ -350,6 +353,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         onSuccess: (data) => {
           if (data.failed === 0) {
             onOpenChange(false);
+            onSuccess?.();
             setTimeout(() => {
               showBanner({
                 severity: 'success',
@@ -367,6 +371,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
                 scoped: true,
               });
             } else {
+              onSuccess?.();
               showBanner({
                 severity: 'warning',
                 title: 'Partial Import Success',
