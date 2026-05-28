@@ -436,7 +436,9 @@ export interface SubmitFeedbackRequest {
   message: string;
   rating: number;
   category: string;
+  app?: string;
   platform: string;
+  screenshot_url?: string;
   metadata?: FeedbackSubmissionMetadata;
 }
 
