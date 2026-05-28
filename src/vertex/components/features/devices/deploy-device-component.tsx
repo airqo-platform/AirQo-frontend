@@ -27,6 +27,7 @@ import { useDeviceDetails, useDevices, useDeployDevice } from "@/core/hooks/useD
 import { ComboBox } from "@/components/ui/combobox";
 import { Device, type DevicePreviousSite } from "@/app/types/devices";
 import { useBanner } from "@/context/banner-context";
+import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import LocationAutocomplete from "@/components/features/location-autocomplete/LocationAutocomplete";
 import { useNetworks } from "@/core/hooks/useNetworks";
@@ -429,6 +430,7 @@ const DeployDeviceComponent = ({
 }: DeployDeviceComponentProps) => {
   const queryClient = useQueryClient();
   const { showBanner } = useBanner();
+  const { showBannerWithDelay } = useBannerWithDelay();
   const { userScope, userDetails } = useUserContext();
   const { devices: allDevices } = useDevices({ enabled: userScope !== 'personal' });
   const [currentStep, setCurrentStep] = React.useState<number>(0);
@@ -679,13 +681,11 @@ const DeployDeviceComponent = ({
             queryClient.invalidateQueries({ queryKey: ["device-details", prefilledDevice._id] });
           }
 
-          setTimeout(() => {
-            showBanner({
-              severity: 'success',
-              title: 'Success',
-              message: `${deviceData.deviceName} has been deployed successfully.`,
-              scoped: false
-            });
+          showBannerWithDelay({
+            severity: 'success',
+            title: 'Success',
+            message: `${deviceData.deviceName} has been deployed successfully.`,
+            scoped: false
           }, 300);
 
           setDeviceData({

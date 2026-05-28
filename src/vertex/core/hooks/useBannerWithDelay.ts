@@ -12,11 +12,11 @@ export const useBannerWithDelay = () => {
     };
   }, []);
 
-  const showBannerWithDelay = (options: ShowBannerOptions) => {
+  const showBannerWithDelay = (options: ShowBannerOptions, delay: number = AFTER_DIALOG_CLOSE_MS) => {
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
       showBanner(options);
-    }, AFTER_DIALOG_CLOSE_MS);
+    }, delay);
   };
 
   return { showBannerWithDelay };
