@@ -4,6 +4,31 @@
 
 ---
 
+## Version 1.23.53
+**Released:** May 28, 2026
+
+### Import Device Modal — authRequired Field & Error Handling Refactor
+
+Introduced `authRequired` as a first-class field in the bulk device import flow and migrated inline `setErrors` validation patterns to the centralized `showBanner` system inside `ImportDeviceModal`.
+
+<details>
+<summary><strong>Changes (2)</strong></summary>
+
+- **authRequired Field Added**: Added `authRequired` to `EXPECTED_FIELDS` with auto-detection of CSV header aliases (`auth required`, `authrequired`, `requiresauth`, etc.) and intelligent string-to-boolean mapping for values like `yes/no`, `true/false`, `1/0`, `y/n`. Defaults to `true` when the field is unmapped. The field is also exposed as a UI select input in the single-device import form.
+- **Error Handling Migration**: Replaced `setErrors({ general: ... })` patterns in mapping validation (missing required fields, duplicate column mappings, unsupported file types, empty CSV) with `showBanner({ severity: 'error', ..., scoped: true })` to keep error feedback consistent with the rest of the dialog system.
+
+</details>
+
+<details>
+<summary><strong>Files Updated (2)</strong></summary>
+
+- `src/vertex/components/features/devices/import-device-modal.tsx` [MODIFIED]
+- `src/vertex/core/hooks/useDevices.ts` [MODIFIED]
+
+</details>
+
+---
+
 ## Version 1.23.52
 **Released:** May 27, 2026
 

@@ -523,6 +523,7 @@ export const useImportDevice = () => {
       description?: string;
       serial_number: string;
       api_code?: string;
+      authRequired: boolean;
       cohort_id?: string;
       user_id: string;
       tags?: string[];
