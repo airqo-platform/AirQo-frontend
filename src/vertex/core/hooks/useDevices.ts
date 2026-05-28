@@ -538,19 +538,20 @@ export const useCreateDevice = () => {
 
     onSuccess: async (data) => {
       try {
-        if (data.created_device && activeGroup?.grp_title) {
+        const createdDeviceId = data.created_device?._id;
+
+        if (createdDeviceId && activeGroup?.grp_title) {
           await updateDeviceGroup.mutateAsync({
-            deviceId: data.created_device._id || "",
+            deviceId: createdDeviceId,
             groupName: activeGroup.grp_title,
           });
         }
-
+      } catch (error) {
+        logger.error("Failed to assign device to group", getApiErrorMessage(error));
+      } finally {
         queryClient.invalidateQueries({ queryKey: ["devices"] });
         queryClient.invalidateQueries({ queryKey: ["network-devices"] });
         queryClient.invalidateQueries({ queryKey: ["deviceActivities"] });
-      } catch (error) {
-        // optional: toast or log
-        console.error("Failed to assign device to group", error);
       }
     },
   });
