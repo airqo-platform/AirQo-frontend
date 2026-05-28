@@ -143,7 +143,7 @@ const ToastCard: React.FC<ToastBodyProps> = ({
   } as React.CSSProperties;
 
   return (
-    <div className="group relative w-full overflow-hidden rounded-xl border border-border/90 bg-card shadow-[0_18px_40px_-24px_rgba(15,23,42,0.28)] ring-1 ring-black/5 dark:shadow-[0_18px_44px_-28px_rgba(0,0,0,0.55)]">
+    <div className="group relative w-full overflow-hidden rounded-md border border-border/90 bg-card shadow-[0_18px_40px_-24px_rgba(15,23,42,0.28)] ring-1 ring-black/5 dark:shadow-[0_18px_44px_-28px_rgba(0,0,0,0.55)]">
       <div className="flex items-start justify-between gap-4 px-4 py-3.5 sm:px-5">
         <div className="flex items-start flex-1 min-w-0 gap-3">
           <div
