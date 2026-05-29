@@ -6,10 +6,12 @@ export const PAGE_TITLES: Record<string, string> = {
   '/user/profile': 'Profile',
   '/user/favorites': 'Favorites',
   '/user/data-export': 'Visualization & Data Export',
+  '/user/data-visualizer': 'Air Quality Explorer',
 
   // Organization routes (dynamic with slug)
   '/org/dashboard': 'Dashboard',
   '/org/data-export': 'Visualization & Data Export',
+  '/org/data-visualizer': 'Air Quality Explorer',
   '/org/favorites': 'Favorites',
   '/org/members': 'Members',
   '/org/profile': 'Profile',
