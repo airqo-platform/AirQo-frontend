@@ -26,6 +26,11 @@ import type {
 } from '../types';
 import { buildChartModel } from '../utils/chartTransforms';
 import {
+  formatColumnLabel,
+  formatMeasurementLabel,
+  formatSelectOptionLabel,
+} from '../utils/measurementLabels';
+import {
   Button,
   Card,
   CardContent,
@@ -61,6 +66,11 @@ const STANDARDS_LABELS = {
   NEMA_UGANDA: 'NEMA Uganda',
   NEMA_KENYA: 'NEMA Kenya',
 } as const;
+
+const EXPORT_TEXT_COLOR = '#1c1d20';
+const EXPORT_MUTED_COLOR = '#64748b';
+const EXPORT_BORDER_COLOR = '#e2e8f0';
+const EXPORT_BACKGROUND_COLOR = '#ffffff';
 
 const sanitizeFilename = (value: string) =>
   value
@@ -100,6 +110,209 @@ const getColorInputValue = (
   index: number
 ) =>
   colors[key] || COLOR_PICKER_FALLBACKS[index % COLOR_PICKER_FALLBACKS.length];
+
+const isTransparentColor = (value: string) =>
+  !value ||
+  value === 'transparent' ||
+  value === 'rgba(0, 0, 0, 0)' ||
+  value === 'rgb(0 0 0 / 0)';
+
+const parseColorComponent = (value: string) => {
+  const normalized = value.trim();
+
+  if (normalized.endsWith('%')) {
+    return (Number(normalized.slice(0, -1)) / 100) * 255;
+  }
+
+  const numericValue = Number(normalized);
+  return numericValue <= 1 ? numericValue * 255 : numericValue;
+};
+
+const normalizeCssColor = (value: string, fallback: string) => {
+  const color = value.trim();
+
+  if (!color || color === 'currentColor') {
+    return fallback;
+  }
+
+  if (color === 'transparent' || color === 'none') {
+    return color;
+  }
+
+  const rgbMatch = color.match(/^rgba?\((.+)\)$/i);
+  if (rgbMatch) {
+    const [channelsPart, alphaPart] = rgbMatch[1].split('/');
+    const channels = channelsPart
+      .trim()
+      .split(/[\s,]+/)
+      .filter(Boolean)
+      .slice(0, 3)
+      .map(parseColorComponent);
+    const alpha = alphaPart ? Number(alphaPart.trim()) : undefined;
+
+    if (channels.length === 3 && channels.every(Number.isFinite)) {
+      const [red, green, blue] = channels.map(channel =>
+        Math.max(0, Math.min(255, Math.round(channel)))
+      );
+
+      return Number.isFinite(alpha)
+        ? `rgba(${red}, ${green}, ${blue}, ${alpha})`
+        : `rgb(${red}, ${green}, ${blue})`;
+    }
+  }
+
+  const srgbMatch = color.match(/^color\(\s*srgb\s+(.+)\)$/i);
+  if (srgbMatch) {
+    const [channelsPart, alphaPart] = srgbMatch[1].split('/');
+    const channels = channelsPart
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 3)
+      .map(parseColorComponent);
+    const alpha = alphaPart ? Number(alphaPart.trim()) : undefined;
+
+    if (channels.length === 3 && channels.every(Number.isFinite)) {
+      const [red, green, blue] = channels.map(channel =>
+        Math.max(0, Math.min(255, Math.round(channel)))
+      );
+
+      return Number.isFinite(alpha)
+        ? `rgba(${red}, ${green}, ${blue}, ${alpha})`
+        : `rgb(${red}, ${green}, ${blue})`;
+    }
+  }
+
+  if (typeof document !== 'undefined') {
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+
+    if (context) {
+      context.fillStyle = '#010203';
+      context.fillStyle = color;
+
+      if (context.fillStyle !== '#010203') {
+        return context.fillStyle;
+      }
+    }
+  }
+
+  return fallback;
+};
+
+const applyExportCloneStyles = (
+  documentClone: Document,
+  chartId: string,
+  originalRoot: HTMLElement
+) => {
+  const clonedRoot = documentClone.querySelector(
+    `[data-chart-export-id="${chartId}"]`
+  );
+  const cloneView = documentClone.defaultView;
+
+  if (!cloneView || !(clonedRoot instanceof cloneView.HTMLElement)) {
+    return;
+  }
+
+  const originalElements = [
+    originalRoot,
+    ...Array.from(originalRoot.querySelectorAll('*')),
+  ];
+  const clonedElements = [
+    clonedRoot,
+    ...Array.from(clonedRoot.querySelectorAll('*')),
+  ];
+  const SVGElementCtor = cloneView.SVGElement;
+
+  clonedRoot.style.boxShadow = 'none';
+  clonedRoot.style.overflow = 'visible';
+  clonedRoot.style.paddingTop = '24px';
+  clonedRoot.style.paddingBottom = '24px';
+  clonedRoot.style.backgroundColor = EXPORT_BACKGROUND_COLOR;
+  clonedRoot.style.color = EXPORT_TEXT_COLOR;
+
+  clonedElements.forEach((clonedElement, index) => {
+    const originalElement = originalElements[index];
+
+    if (!originalElement) {
+      return;
+    }
+
+    const computedStyles = window.getComputedStyle(originalElement);
+    const clonedStyle = (clonedElement as HTMLElement | SVGElement).style;
+
+    if (clonedStyle) {
+      clonedStyle.color = normalizeCssColor(
+        computedStyles.color,
+        EXPORT_TEXT_COLOR
+      );
+      clonedStyle.borderColor = normalizeCssColor(
+        computedStyles.borderTopColor,
+        EXPORT_BORDER_COLOR
+      );
+
+      if (!isTransparentColor(computedStyles.backgroundColor)) {
+        clonedStyle.backgroundColor = normalizeCssColor(
+          computedStyles.backgroundColor,
+          EXPORT_BACKGROUND_COLOR
+        );
+      }
+    }
+
+    const isSvgElement = SVGElementCtor
+      ? clonedElement instanceof SVGElementCtor
+      : clonedElement.namespaceURI === 'http://www.w3.org/2000/svg';
+
+    if (!isSvgElement) {
+      return;
+    }
+
+    const originalSvgElement = originalElement as SVGElement;
+    const clonedSvgElement = clonedElement as SVGElement;
+    const fillAttribute = originalSvgElement.getAttribute('fill');
+    const strokeAttribute = originalSvgElement.getAttribute('stroke');
+
+    if (fillAttribute && fillAttribute !== 'none') {
+      clonedSvgElement.setAttribute(
+        'fill',
+        normalizeCssColor(computedStyles.fill, EXPORT_TEXT_COLOR)
+      );
+    }
+
+    if (strokeAttribute && strokeAttribute !== 'none') {
+      clonedSvgElement.setAttribute(
+        'stroke',
+        normalizeCssColor(computedStyles.stroke, EXPORT_BORDER_COLOR)
+      );
+    }
+  });
+
+  documentClone.querySelectorAll('.recharts-legend-wrapper').forEach(element => {
+    if (element instanceof cloneView.HTMLElement) {
+      element.style.color = EXPORT_TEXT_COLOR;
+      element.style.backgroundColor = 'transparent';
+    }
+  });
+
+  documentClone
+    .querySelectorAll('.recharts-legend-item-text, .recharts-text')
+    .forEach(element => {
+      const style = (element as HTMLElement | SVGElement).style;
+      style.color = EXPORT_MUTED_COLOR;
+      style.fill = EXPORT_MUTED_COLOR;
+    });
+
+  const clonedTitle = documentClone.querySelector(
+    `[data-chart-export-title="${chartId}"]`
+  );
+
+  if (clonedTitle instanceof cloneView.HTMLElement) {
+    clonedTitle.style.whiteSpace = 'normal';
+    clonedTitle.style.overflow = 'visible';
+    clonedTitle.style.textOverflow = 'clip';
+    clonedTitle.style.color = EXPORT_TEXT_COLOR;
+  }
+};
 
 export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
   datasets,
@@ -225,12 +438,15 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
       const exportElement = captureRef.current;
       const exportRect = exportElement.getBoundingClientRect();
       const canvas = await html2canvas(exportElement, {
-        backgroundColor: '#ffffff',
+        backgroundColor: EXPORT_BACKGROUND_COLOR,
         scale: Math.min(3, window.devicePixelRatio || 2),
         useCORS: true,
+        allowTaint: true,
         logging: false,
         width: Math.ceil(exportRect.width),
         height: Math.ceil(exportRect.height),
+        scrollX: 0,
+        scrollY: -window.scrollY,
         windowWidth: Math.max(
           document.documentElement.scrollWidth,
           Math.ceil(exportRect.width)
@@ -239,27 +455,16 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
           document.documentElement.scrollHeight,
           Math.ceil(exportRect.height)
         ),
+        ignoreElements: element => {
+          const htmlElement = element as HTMLElement;
+          return (
+            element.hasAttribute('data-html2canvas-ignore') ||
+            htmlElement.style?.display === 'none' ||
+            htmlElement.style?.visibility === 'hidden'
+          );
+        },
         onclone: documentClone => {
-          const clonedNode = documentClone.querySelector(
-            `[data-chart-export-id="${chart.id}"]`
-          );
-
-          if (clonedNode instanceof HTMLElement) {
-            clonedNode.style.boxShadow = 'none';
-            clonedNode.style.overflow = 'visible';
-            clonedNode.style.paddingTop = '24px';
-            clonedNode.style.paddingBottom = '24px';
-          }
-
-          const clonedTitle = documentClone.querySelector(
-            `[data-chart-export-title="${chart.id}"]`
-          );
-
-          if (clonedTitle instanceof HTMLElement) {
-            clonedTitle.style.whiteSpace = 'normal';
-            clonedTitle.style.overflow = 'visible';
-            clonedTitle.style.textOverflow = 'clip';
-          }
+          applyExportCloneStyles(documentClone, chart.id, exportElement);
         },
       });
       const filename = sanitizeFilename(title);
@@ -328,8 +533,12 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
       dataset_count: nextIds.size,
     });
   };
-  const xAxisLabel = chart.xColumn || 'Record order';
-  const compareLabel = chart.compareColumn || 'No series grouping';
+  const xAxisLabel = chart.xAxisLabel || formatColumnLabel(chart.xColumn);
+  const yAxisLabel =
+    chart.yAxisLabel || formatMeasurementLabel(chart.metricColumn);
+  const compareLabel = chart.compareColumn
+    ? formatColumnLabel(chart.compareColumn)
+    : 'No series grouping';
   const selectedDatasetCount = chart.datasetIds.length;
 
   return (
@@ -418,7 +627,7 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
               data-html2canvas-ignore="true"
             >
               <span className="rounded-full border border-border bg-background px-2 py-1 text-muted-foreground">
-                Y: {chart.metricColumn || 'Not selected'}
+                Y: {yAxisLabel || 'Not selected'}
               </span>
               <span className="rounded-full border border-border bg-background px-2 py-1 text-muted-foreground">
                 X: {xAxisLabel}
@@ -562,14 +771,17 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
                 value={chart.metricColumn}
                 onChange={event => {
                   const nextMetricColumn = String(event.target.value);
+                  const nextMetricLabel =
+                    formatMeasurementLabel(nextMetricColumn);
                   const shouldSyncYAxisLabel =
                     !chart.yAxisLabel ||
-                    chart.yAxisLabel === chart.metricColumn;
+                    chart.yAxisLabel === chart.metricColumn ||
+                    chart.yAxisLabel === formatMeasurementLabel(chart.metricColumn);
 
                   updateChart({
                     metricColumn: nextMetricColumn,
                     yAxisLabel: shouldSyncYAxisLabel
-                      ? nextMetricColumn
+                      ? nextMetricLabel
                       : chart.yAxisLabel,
                     showReferenceLines:
                       chart.showReferenceLines ||
@@ -580,13 +792,13 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
               >
                 {profile.numericColumns.map(column => (
                   <option key={column} value={column}>
-                    {column}
+                    {formatSelectOptionLabel(column)}
                   </option>
                 ))}
               </Select>
               <Input
                 label="Y-axis label"
-                value={chart.yAxisLabel ?? chart.metricColumn}
+                value={chart.yAxisLabel ?? formatMeasurementLabel(chart.metricColumn)}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                   updateChart({
                     yAxisLabel: event.target.value || undefined,
@@ -597,25 +809,46 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
               <Select
                 label="X axis time or category"
                 value={chart.xColumn || ''}
-                onChange={event =>
+                onChange={event => {
+                  const nextXColumn = String(event.target.value) || undefined;
+                  const nextXLabel = formatColumnLabel(nextXColumn);
+                  const currentXLabel = formatColumnLabel(chart.xColumn);
+                  const shouldSyncXAxisLabel =
+                    !chart.xAxisLabel ||
+                    chart.xAxisLabel === currentXLabel ||
+                    chart.xAxisLabel === chart.xColumn;
+
                   updateChart({
-                    xColumn: String(event.target.value) || undefined,
-                  })
-                }
+                    xColumn: nextXColumn,
+                    xAxisLabel: shouldSyncXAxisLabel
+                      ? nextXLabel
+                      : chart.xAxisLabel,
+                  });
+                }}
                 containerClassName="mb-0"
               >
                 <option value="">Record order</option>
                 {profile.timeColumns.map(column => (
                   <option key={column} value={column}>
-                    {column}
+                    {formatSelectOptionLabel(column)}
                   </option>
                 ))}
                 {profile.dimensionColumns.map(column => (
                   <option key={column} value={column}>
-                    {column}
+                    {formatSelectOptionLabel(column)}
                   </option>
                 ))}
               </Select>
+              <Input
+                label="X-axis label"
+                value={chart.xAxisLabel ?? formatColumnLabel(chart.xColumn)}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                  updateChart({
+                    xAxisLabel: event.target.value || undefined,
+                  })
+                }
+                containerClassName="mb-0"
+              />
               <Select
                 label="Series / compare by"
                 value={chart.compareColumn || ''}
@@ -629,7 +862,7 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
                 <option value="">No grouping</option>
                 {profile.dimensionColumns.map(column => (
                   <option key={column} value={column}>
-                    {column}
+                    {formatSelectOptionLabel(column)}
                   </option>
                 ))}
               </Select>
@@ -649,7 +882,7 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
                   .filter(column => column !== chart.metricColumn)
                   .map(column => (
                     <option key={column} value={column}>
-                      {column}
+                      {formatSelectOptionLabel(column)}
                     </option>
                   ))}
               </Select>
@@ -762,6 +995,15 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
                   }
                 />
                 Legend
+              </label>
+              <label className="flex items-center gap-2 text-sm text-foreground">
+                <Checkbox
+                  checked={chart.showXAxisLabel !== false}
+                  onCheckedChange={checked =>
+                    updateChart({ showXAxisLabel: checked })
+                  }
+                />
+                X-axis label
               </label>
               <label className="flex items-center gap-2 text-sm text-foreground">
                 <Checkbox

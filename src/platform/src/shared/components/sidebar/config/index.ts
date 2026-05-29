@@ -76,7 +76,7 @@ const userSidebarConfig: NavGroup[] = [
       },
       {
         id: 'data-visualizer',
-        label: 'Air Quality Explorer',
+        label: 'Dataset Visualizer',
         href: '/user/data-visualizer',
         icon: AqPresentationChart02,
       },
@@ -124,7 +124,7 @@ const orgSidebarConfig: NavGroup[] = [
       },
       {
         id: 'data-visualizer',
-        label: 'Air Quality Explorer',
+        label: 'Dataset Visualizer',
         href: '/org/data-visualizer',
         icon: AqPresentationChart02,
       },
@@ -363,7 +363,7 @@ export const bottomNavItems: Record<'user' | 'organization', NavItem[]> = {
     },
     {
       id: 'data-visualizer',
-      label: 'Air Quality Explorer',
+      label: 'Dataset Visualizer',
       href: '/user/data-visualizer',
       icon: AqPresentationChart02,
     },
@@ -390,7 +390,7 @@ export const bottomNavItems: Record<'user' | 'organization', NavItem[]> = {
     },
     {
       id: 'data-visualizer',
-      label: 'Air Quality Explorer',
+      label: 'Dataset Visualizer',
       href: '/org/data-visualizer', // Will be replaced with slug
       icon: AqPresentationChart02,
     },

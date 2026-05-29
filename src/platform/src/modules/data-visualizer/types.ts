@@ -80,6 +80,8 @@ export interface VisualizerChartConfig {
   maxGroups: number;
   showGrid: boolean;
   showLegend: boolean;
+  showXAxisLabel: boolean;
+  xAxisLabel?: string;
   showYAxisLabel: boolean;
   yAxisLabel?: string;
   showReferenceLines: boolean;

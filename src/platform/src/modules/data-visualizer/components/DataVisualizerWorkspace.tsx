@@ -45,6 +45,7 @@ import {
   parseUploadedFile,
   parseUploadedFiles,
 } from '../utils/parseFiles';
+import { formatColumnLabel, formatMeasurementLabel } from '../utils/measurementLabels';
 import {
   buildWorkspaceProfile,
   getDatasetRowsForChart,
@@ -114,6 +115,8 @@ const createChartConfig = (
       : profile.defaultCompareColumn || profile.dimensionColumns[0];
 
   const isDatasetComparison = datasetIds.length > 1;
+  const metricLabel = formatMeasurementLabel(metricColumn);
+  const compareLabel = formatColumnLabel(compareColumn);
 
   return {
     id: createChartId(),
@@ -121,7 +124,7 @@ const createChartConfig = (
       ? `${CHART_TYPE_LABELS[type]} comparison ${index}`
       : `${CHART_TYPE_LABELS[type]} ${index}`,
     subtitle: isDatasetComparison
-      ? `${metricColumn || 'Measurement'} by ${compareColumn}`
+      ? `${metricLabel} by ${compareLabel}`
       : CHART_TYPE_HELP[type],
     type,
     datasetIds,
@@ -144,8 +147,14 @@ const createChartConfig = (
     maxGroups: 8,
     showGrid: true,
     showLegend: true,
+    showXAxisLabel: true,
+    xAxisLabel: formatColumnLabel(
+      type === 'bar' || type === 'pie' || type === 'radar'
+        ? compareColumn
+        : profile.defaultTimeColumn
+    ),
     showYAxisLabel: true,
-    yAxisLabel: metricColumn || 'Measurement',
+    yAxisLabel: formatMeasurementLabel(metricColumn),
     showReferenceLines: /pm/i.test(metricColumn),
     referenceColor: '#DC2626',
     standards: 'WHO',
@@ -188,14 +197,16 @@ const normalizeChartConfig = (
   chart: VisualizerChartConfig
 ): VisualizerChartConfig => ({
   ...chart,
+  showXAxisLabel: chart.showXAxisLabel !== false,
+  xAxisLabel: chart.xAxisLabel || formatColumnLabel(chart.xColumn),
   showYAxisLabel: chart.showYAxisLabel !== false,
-  yAxisLabel: chart.yAxisLabel || chart.metricColumn || 'Measurement',
+  yAxisLabel: chart.yAxisLabel || formatMeasurementLabel(chart.metricColumn),
 });
 
 export const DataVisualizerWorkspace: React.FC<
   DataVisualizerWorkspaceProps
 > = ({
-  title = 'Air Quality Explorer',
+  title = 'Upload & Visualize Air Quality Data',
   subtitle = 'Upload air quality files, compare sources, and create export-ready charts.',
 }) => {
   const posthog = usePostHog();
@@ -814,7 +825,7 @@ export const DataVisualizerWorkspace: React.FC<
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <CardTitle className="flex items-center gap-2 text-base text-foreground">
                 <AqUploadCloud01 className="h-4 w-4 text-primary" />
-                Upload data files
+                Upload Dataset
               </CardTitle>
               <p className="text-xs text-muted-foreground">
                 CSV and XLSX, up to{' '}
@@ -1053,7 +1064,8 @@ export const DataVisualizerWorkspace: React.FC<
                       {chart.title}
                     </div>
                     <div className="mt-1 truncate text-xs text-muted-foreground">
-                      {CHART_TYPE_LABELS[chart.type]} - {chart.metricColumn}
+                      {CHART_TYPE_LABELS[chart.type]} -{' '}
+                      {formatMeasurementLabel(chart.metricColumn)}
                     </div>
                   </button>
                 ))}

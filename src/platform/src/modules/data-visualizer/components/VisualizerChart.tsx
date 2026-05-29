@@ -29,7 +29,8 @@ import {
 } from 'recharts';
 import type { LegendPayload } from 'recharts';
 import type { ChartSeriesModel, VisualizerChartConfig } from '../types';
-import { getPieSegmentColor, getSeriesColor } from '../utils/chartTransforms';
+import { AIR_QUALITY_CATEGORY_COLORS } from '../constants';
+import { formatColumnLabel, formatMeasurementLabel } from '../utils/measurementLabels';
 import { cn } from '@/shared/lib/utils';
 import { REFERENCE_LINES } from '@/shared/utils/airQuality';
 
@@ -55,6 +56,101 @@ interface ReferenceLineDescriptor {
   label: string;
   color: string;
 }
+
+type RgbColor = [number, number, number];
+
+const DEFAULT_PRIMARY_RGB: RgbColor = [20, 95, 255];
+const WHITE_RGB: RgbColor = [255, 255, 255];
+const BLACK_RGB: RgbColor = [0, 0, 0];
+const ORANGE_RGB: RgbColor = [249, 115, 22];
+const PURPLE_RGB: RgbColor = [124, 58, 237];
+const TEAL_RGB: RgbColor = [15, 118, 110];
+const CHART_AXIS_COLOR = '#64748b';
+const CHART_GRID_COLOR = '#e2e8f0';
+
+const clampColorChannel = (value: number) =>
+  Math.max(0, Math.min(255, Math.round(value)));
+
+const parseRgbTriplet = (value: string | null | undefined): RgbColor | null => {
+  if (!value) {
+    return null;
+  }
+
+  const parts = value.match(/\d+(\.\d+)?/g);
+
+  if (!parts || parts.length < 3) {
+    return null;
+  }
+
+  const channels = parts.slice(0, 3).map(part => Number(part));
+
+  if (channels.some(channel => !Number.isFinite(channel))) {
+    return null;
+  }
+
+  return [
+    clampColorChannel(channels[0]),
+    clampColorChannel(channels[1]),
+    clampColorChannel(channels[2]),
+  ];
+};
+
+const mixRgb = (source: RgbColor, target: RgbColor, amount: number): RgbColor => [
+  clampColorChannel(source[0] + (target[0] - source[0]) * amount),
+  clampColorChannel(source[1] + (target[1] - source[1]) * amount),
+  clampColorChannel(source[2] + (target[2] - source[2]) * amount),
+];
+
+const rgbToString = ([red, green, blue]: RgbColor) =>
+  `rgb(${red}, ${green}, ${blue})`;
+
+const buildPrimaryPalette = (primary: RgbColor) => [
+  rgbToString(primary),
+  rgbToString(mixRgb(primary, BLACK_RGB, 0.3)),
+  rgbToString(mixRgb(primary, BLACK_RGB, 0.5)),
+  rgbToString(mixRgb(primary, BLACK_RGB, 0.7)),
+  rgbToString(mixRgb(primary, WHITE_RGB, 0.22)),
+  rgbToString(mixRgb(primary, WHITE_RGB, 0.42)),
+  rgbToString(mixRgb(primary, WHITE_RGB, 0.62)),
+  rgbToString(mixRgb(primary, ORANGE_RGB, 0.22)),
+  rgbToString(mixRgb(primary, PURPLE_RGB, 0.22)),
+  rgbToString(mixRgb(primary, TEAL_RGB, 0.18)),
+];
+
+const getCurrentPrimaryRgb = (): RgbColor => {
+  if (typeof window === 'undefined') {
+    return DEFAULT_PRIMARY_RGB;
+  }
+
+  const rootStyles = window.getComputedStyle(document.documentElement);
+  return (
+    parseRgbTriplet(rootStyles.getPropertyValue('--primary')) ??
+    DEFAULT_PRIMARY_RGB
+  );
+};
+
+const usePrimaryChartPalette = () => {
+  const [palette, setPalette] = React.useState(() =>
+    buildPrimaryPalette(DEFAULT_PRIMARY_RGB)
+  );
+
+  React.useEffect(() => {
+    const refreshPalette = () =>
+      setPalette(buildPrimaryPalette(getCurrentPrimaryRgb()));
+
+    refreshPalette();
+
+    const observer = new MutationObserver(refreshPalette);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class', 'style'],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  return palette;
+};
 
 const formatAxisTick = (value: string | number) => {
   const text = String(value ?? '');
@@ -264,6 +360,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
   config,
   className,
 }) => {
+  const primaryPalette = usePrimaryChartPalette();
   const [hiddenSeries, setHiddenSeries] = React.useState<Set<string>>(
     () => new Set()
   );
@@ -297,8 +394,16 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
     );
   }
 
+  const getChartSeriesColor = (key: string, index: number) =>
+    config.seriesColors[key] || primaryPalette[index % primaryPalette.length];
+  const getChartPieColor = (label: string, index: number) =>
+    config.seriesColors[label] ||
+    AIR_QUALITY_CATEGORY_COLORS[
+      label as keyof typeof AIR_QUALITY_CATEGORY_COLORS
+    ] ||
+    primaryPalette[index % primaryPalette.length];
   const grid = config.showGrid ? (
-    <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--border))" />
+    <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_COLOR} />
   ) : null;
   const tooltip = <Tooltip content={<ChartTooltip />} />;
   const handleLegendClick = (entry: LegendPayload) => {
@@ -351,16 +456,29 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
   ) : null;
   const referenceLines = getReferenceLines(config);
   const yAxisDomain = getYAxisDomain(model, referenceLines);
+  const showXAxisLabel = config.showXAxisLabel !== false;
   const showYAxisLabel = config.showYAxisLabel !== false;
+  const xAxisLabel =
+    (config.xAxisLabel || formatColumnLabel(config.xColumn)).trim().slice(0, 80) ||
+    'Record order';
   const yAxisLabel =
-    (config.yAxisLabel || model.yLabel || config.metricColumn || 'Value')
+    (
+      config.yAxisLabel ||
+      formatMeasurementLabel(model.yLabel || config.metricColumn)
+    )
       .trim()
       .slice(0, 80) || 'Value';
   const cartesianMargin = {
     top: 34,
     right: 28,
-    bottom: config.showLegend ? 24 : 16,
-    left: showYAxisLabel ? 54 : 12,
+    bottom: showXAxisLabel
+      ? config.showLegend
+        ? 42
+        : 30
+      : config.showLegend
+        ? 24
+        : 16,
+    left: showYAxisLabel ? 10 : 6,
   };
   const renderReferenceLines = () =>
     referenceLines.map((line, index) => (
@@ -383,7 +501,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
 
   const renderLineSeries = () =>
     model.seriesKeys.map((key, index) => {
-      const color = getSeriesColor(key, index, config.seriesColors);
+      const color = getChartSeriesColor(key, index);
 
       return (
         <Line
@@ -402,7 +520,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
 
   const renderAreaSeries = () =>
     model.seriesKeys.map((key, index) => {
-      const color = getSeriesColor(key, index, config.seriesColors);
+      const color = getChartSeriesColor(key, index);
 
       return (
         <Area
@@ -427,7 +545,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
         key={key}
         dataKey={key}
         name={model.seriesLabels[key] ?? key}
-        fill={getSeriesColor(key, index, config.seriesColors)}
+        fill={getChartSeriesColor(key, index)}
         maxBarSize={72}
         hide={hiddenSeries.has(key)}
       />
@@ -438,16 +556,33 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
       <XAxis
         dataKey={model.xKey}
         type={isScatter ? 'number' : 'category'}
-        tick={{ fontSize: 12, fill: 'rgb(var(--muted-foreground))' }}
-        tickLine={{ stroke: 'rgb(var(--border))' }}
-        axisLine={{ stroke: 'rgb(var(--border))' }}
+        height={showXAxisLabel ? 52 : 38}
+        tick={{ fontSize: 12, fill: CHART_AXIS_COLOR }}
+        tickLine={{ stroke: CHART_GRID_COLOR }}
+        axisLine={{ stroke: CHART_GRID_COLOR }}
         tickFormatter={formatAxisTick}
         interval={isScatter ? undefined : 'preserveStartEnd'}
+        label={
+          showXAxisLabel
+            ? {
+                value: xAxisLabel,
+                position: 'insideBottom',
+                offset: -8,
+                style: {
+                  textAnchor: 'middle',
+                  fill: CHART_AXIS_COLOR,
+                  fontSize: 12,
+                  fontWeight: 500,
+                },
+              }
+            : undefined
+        }
       />
       <YAxis
-        tick={{ fontSize: 12, fill: 'rgb(var(--muted-foreground))' }}
-        tickLine={{ stroke: 'rgb(var(--border))' }}
-        axisLine={{ stroke: 'rgb(var(--border))' }}
+        width={showYAxisLabel ? 54 : 42}
+        tick={{ fontSize: 12, fill: CHART_AXIS_COLOR }}
+        tickLine={{ stroke: CHART_GRID_COLOR }}
+        axisLine={{ stroke: CHART_GRID_COLOR }}
         domain={yAxisDomain}
         label={
           showYAxisLabel
@@ -455,10 +590,10 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
                 value: yAxisLabel,
                 angle: -90,
                 position: 'insideLeft',
-                offset: -36,
+                offset: 6,
                 style: {
                   textAnchor: 'middle',
-                  fill: 'rgb(var(--muted-foreground))',
+                  fill: CHART_AXIS_COLOR,
                   fontSize: 12,
                   fontWeight: 500,
                 },
@@ -493,7 +628,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
               return (
                 <Cell
                   key={label}
-                  fill={getPieSegmentColor(label, index, config.seriesColors)}
+                  fill={getChartPieColor(label, index)}
                 />
               );
             })}
@@ -508,18 +643,18 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
           data={model.data}
           margin={{ top: 20, right: 40, bottom: 20, left: 40 }}
         >
-          <PolarGrid stroke="rgb(var(--border))" />
+          <PolarGrid stroke={CHART_GRID_COLOR} />
           <PolarAngleAxis
             dataKey={model.xKey}
-            tick={{ fontSize: 12, fill: 'rgb(var(--muted-foreground))' }}
+            tick={{ fontSize: 12, fill: CHART_AXIS_COLOR }}
           />
           <PolarRadiusAxis
-            tick={{ fontSize: 11, fill: 'rgb(var(--muted-foreground))' }}
+            tick={{ fontSize: 11, fill: CHART_AXIS_COLOR }}
           />
           {tooltip}
           {legend}
           {model.seriesKeys.map((key, index) => {
-            const color = getSeriesColor(key, index, config.seriesColors);
+            const color = getChartSeriesColor(key, index);
 
             return (
               <Radar
@@ -554,7 +689,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
               data={model.data.filter(point => point[key] !== null)}
               dataKey={key}
               name={model.seriesLabels[key] ?? key}
-              fill={getSeriesColor(key, index, config.seriesColors)}
+              fill={getChartSeriesColor(key, index)}
               hide={hiddenSeries.has(key)}
             />
           ))}
@@ -606,7 +741,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
           {legend}
           {renderReferenceLines()}
           {model.seriesKeys.map((key, index) => {
-            const color = getSeriesColor(key, index, config.seriesColors);
+            const color = getChartSeriesColor(key, index);
             const name = model.seriesLabels[key] ?? key;
 
             if (index === 0) {
