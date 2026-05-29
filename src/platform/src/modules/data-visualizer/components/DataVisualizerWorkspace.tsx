@@ -265,7 +265,8 @@ export const DataVisualizerWorkspace: React.FC<
     null
   );
   const [lastSavedAt, setLastSavedAt] = React.useState<string | null>(null);
-  const [appliedDateRange, setAppliedDateRange] = React.useState<DateRange | null>(null);
+  const [appliedDateRange, setAppliedDateRange] =
+    React.useState<DateRange | null>(null);
 
   // Cycle through friendly status messages while parsing
   React.useEffect(() => {
@@ -844,9 +845,19 @@ export const DataVisualizerWorkspace: React.FC<
       if (!appliedDateRange?.from && !appliedDateRange?.to) return rows;
       const timeCol = workspaceProfile.defaultTimeColumn;
       if (!timeCol) return rows;
-      const from = appliedDateRange.from ? appliedDateRange.from.getTime() : -Infinity;
+      const from = appliedDateRange.from
+        ? appliedDateRange.from.getTime()
+        : -Infinity;
       const to = appliedDateRange.to
-        ? new Date(appliedDateRange.to.getFullYear(), appliedDateRange.to.getMonth(), appliedDateRange.to.getDate(), 23, 59, 59, 999).getTime()
+        ? new Date(
+            appliedDateRange.to.getFullYear(),
+            appliedDateRange.to.getMonth(),
+            appliedDateRange.to.getDate(),
+            23,
+            59,
+            59,
+            999
+          ).getTime()
         : Infinity;
       return rows.filter(row => {
         const rawVal = row[timeCol];

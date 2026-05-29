@@ -30,7 +30,10 @@ import {
 import type { LegendPayload } from 'recharts';
 import type { ChartSeriesModel, VisualizerChartConfig } from '../types';
 import { AIR_QUALITY_CATEGORY_COLORS } from '../constants';
-import { formatColumnLabel, formatMeasurementLabel } from '../utils/measurementLabels';
+import {
+  formatColumnLabel,
+  formatMeasurementLabel,
+} from '../utils/measurementLabels';
 import { cn } from '@/shared/lib/utils';
 import { REFERENCE_LINES } from '@/shared/utils/airQuality';
 
@@ -95,7 +98,11 @@ const parseRgbTriplet = (value: string | null | undefined): RgbColor | null => {
   ];
 };
 
-const mixRgb = (source: RgbColor, target: RgbColor, amount: number): RgbColor => [
+const mixRgb = (
+  source: RgbColor,
+  target: RgbColor,
+  amount: number
+): RgbColor => [
   clampColorChannel(source[0] + (target[0] - source[0]) * amount),
   clampColorChannel(source[1] + (target[1] - source[1]) * amount),
   clampColorChannel(source[2] + (target[2] - source[2]) * amount),
@@ -459,8 +466,9 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
   const showXAxisLabel = config.showXAxisLabel !== false;
   const showYAxisLabel = config.showYAxisLabel !== false;
   const xAxisLabel =
-    (config.xAxisLabel || formatColumnLabel(config.xColumn)).trim().slice(0, 80) ||
-    'Record order';
+    (config.xAxisLabel || formatColumnLabel(config.xColumn))
+      .trim()
+      .slice(0, 80) || 'Record order';
   const yAxisLabel =
     (
       config.yAxisLabel ||
@@ -625,12 +633,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
             {model.data.map((entry, index) => {
               const label = String(entry[model.xKey] ?? `Segment ${index + 1}`);
 
-              return (
-                <Cell
-                  key={label}
-                  fill={getChartPieColor(label, index)}
-                />
-              );
+              return <Cell key={label} fill={getChartPieColor(label, index)} />;
             })}
           </Pie>
         </PieChart>
@@ -674,10 +677,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
 
     if (config.type === 'scatter') {
       return (
-        <ScatterChart
-          data={model.data}
-          margin={cartesianMargin}
-        >
+        <ScatterChart data={model.data} margin={cartesianMargin}>
           {grid}
           {renderCartesianAxes(true)}
           {tooltip}
@@ -699,10 +699,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
 
     if (config.type === 'area') {
       return (
-        <AreaChart
-          data={model.data}
-          margin={cartesianMargin}
-        >
+        <AreaChart data={model.data} margin={cartesianMargin}>
           {grid}
           {renderCartesianAxes()}
           {tooltip}
@@ -715,10 +712,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
 
     if (config.type === 'bar' || config.type === 'histogram') {
       return (
-        <BarChart
-          data={model.data}
-          margin={cartesianMargin}
-        >
+        <BarChart data={model.data} margin={cartesianMargin}>
           {grid}
           {renderCartesianAxes()}
           {tooltip}
@@ -731,10 +725,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
 
     if (config.type === 'composed') {
       return (
-        <ComposedChart
-          data={model.data}
-          margin={cartesianMargin}
-        >
+        <ComposedChart data={model.data} margin={cartesianMargin}>
           {grid}
           {renderCartesianAxes()}
           {tooltip}
