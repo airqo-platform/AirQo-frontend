@@ -346,7 +346,7 @@ const ReferenceLineLabel = ({
         y={labelY + 12.5}
         textAnchor="middle"
         fill="#ffffff"
-        fontSize={10}
+        fontSize="10"
         fontWeight={600}
       >
         {value}
@@ -447,7 +447,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
       wrapperStyle={{
         paddingTop: 18,
         paddingBottom: 8,
-        fontSize: 12,
+        fontSize: '12px',
         cursor: 'pointer',
       }}
       formatter={formatLegendLabel}
@@ -557,7 +557,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
         dataKey={model.xKey}
         type={isScatter ? 'number' : 'category'}
         height={showXAxisLabel ? 52 : 38}
-        tick={{ fontSize: 12, fill: CHART_AXIS_COLOR }}
+        tick={{ fontSize: '12px', fill: CHART_AXIS_COLOR }}
         tickLine={{ stroke: CHART_GRID_COLOR }}
         axisLine={{ stroke: CHART_GRID_COLOR }}
         tickFormatter={formatAxisTick}
@@ -571,7 +571,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
                 style: {
                   textAnchor: 'middle',
                   fill: CHART_AXIS_COLOR,
-                  fontSize: 12,
+                  fontSize: '12px',
                   fontWeight: 500,
                 },
               }
@@ -580,7 +580,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
       />
       <YAxis
         width={showYAxisLabel ? 54 : 42}
-        tick={{ fontSize: 12, fill: CHART_AXIS_COLOR }}
+        tick={{ fontSize: '12px', fill: CHART_AXIS_COLOR }}
         tickLine={{ stroke: CHART_GRID_COLOR }}
         axisLine={{ stroke: CHART_GRID_COLOR }}
         domain={yAxisDomain}
@@ -594,7 +594,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
                 style: {
                   textAnchor: 'middle',
                   fill: CHART_AXIS_COLOR,
-                  fontSize: 12,
+                  fontSize: '12px',
                   fontWeight: 500,
                 },
               }
@@ -646,10 +646,10 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
           <PolarGrid stroke={CHART_GRID_COLOR} />
           <PolarAngleAxis
             dataKey={model.xKey}
-            tick={{ fontSize: 12, fill: CHART_AXIS_COLOR }}
+            tick={{ fontSize: '12px', fill: CHART_AXIS_COLOR }}
           />
           <PolarRadiusAxis
-            tick={{ fontSize: 11, fill: CHART_AXIS_COLOR }}
+            tick={{ fontSize: '11px', fill: CHART_AXIS_COLOR }}
           />
           {tooltip}
           {legend}
@@ -789,7 +789,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
 
   return (
     <div className={cn('min-w-0', className)} style={{ height: config.height }}>
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         {renderChart()}
       </ResponsiveContainer>
     </div>

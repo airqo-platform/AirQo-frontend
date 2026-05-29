@@ -4,9 +4,10 @@ export {
   getPrimaryColors,
 } from '@/shared/components/charts/constants';
 
-export const MAX_UPLOAD_FILE_SIZE_BYTES = 25 * 1024 * 1024;
-export const MAX_VISUALIZER_ROWS = 20000;
+export const MAX_UPLOAD_FILE_SIZE_BYTES = 100 * 1024 * 1024;
+export const MAX_VISUALIZER_ROWS = 50000;
 export const MAX_CHART_RENDER_ROWS = 5000;
+export const UPLOAD_CANCEL_WARN_MS = 8000;
 
 export const CHART_TYPE_LABELS: Record<VisualizerChartType, string> = {
   line: 'Line',
@@ -17,6 +18,7 @@ export const CHART_TYPE_LABELS: Record<VisualizerChartType, string> = {
   histogram: 'Histogram',
   pie: 'Category share',
   radar: 'Radar',
+  map: 'Map',
 };
 
 export const CHART_TYPE_HELP: Record<VisualizerChartType, string> = {
@@ -28,6 +30,7 @@ export const CHART_TYPE_HELP: Record<VisualizerChartType, string> = {
   histogram: 'Distribution of concentration values.',
   pie: 'Share by air quality band or selected group.',
   radar: 'Profile top groups across one or two measures.',
+  map: 'Spatial distribution from latitude and longitude fields.',
 };
 
 export const AGGREGATION_LABELS: Record<AggregationMethod, string> = {

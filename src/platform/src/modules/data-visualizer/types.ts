@@ -52,6 +52,10 @@ export interface DatasetProfile {
   defaultMetricColumn?: string;
   defaultSecondaryMetricColumn?: string;
   defaultCompareColumn?: string;
+  /** Earliest date found across all time columns, or undefined if none. */
+  minDate?: Date;
+  /** Latest date found across all time columns, or undefined if none. */
+  maxDate?: Date;
 }
 
 export type VisualizerChartType =
@@ -62,7 +66,8 @@ export type VisualizerChartType =
   | 'scatter'
   | 'histogram'
   | 'pie'
-  | 'radar';
+  | 'radar'
+  | 'map';
 
 export type AggregationMethod = 'average' | 'sum' | 'min' | 'max' | 'count';
 
@@ -76,6 +81,9 @@ export interface VisualizerChartConfig {
   xColumn?: string;
   compareColumn?: string;
   secondaryMetricColumn?: string;
+  latitudeColumn?: string;
+  longitudeColumn?: string;
+  mapLayer?: 'points' | 'heatmap' | 'grid';
   aggregation: AggregationMethod;
   maxGroups: number;
   showGrid: boolean;

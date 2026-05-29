@@ -116,7 +116,10 @@ const getColumnValue = (row: UploadedDataRow, column: string) => row[column];
 const getColumnPriority = (column: string, pattern: RegExp) =>
   pattern.test(column) ? 0 : 1;
 
-export const profileDataset = (rows: UploadedDataRow[]): DatasetProfile => {
+export const profileDataset = (
+  rows: UploadedDataRow[],
+  options?: { includeDateRange?: boolean }
+): DatasetProfile => {
   const columns = Object.keys(rows[0] ?? {});
   const profiles: ColumnProfile[] = columns.map(column => {
     const values = rows.map(row => getColumnValue(row, column));
@@ -202,6 +205,20 @@ export const profileDataset = (rows: UploadedDataRow[]): DatasetProfile => {
     )
     .map(profile => profile.name);
 
+  // Compute date range — only when explicitly requested (expensive: O(rows × timeColumns))
+  let minDate: Date | undefined;
+  let maxDate: Date | undefined;
+  if (options?.includeDateRange) {
+    timeColumns.forEach(column => {
+      rows.forEach(row => {
+        const d = parseDateValue(row[column]);
+        if (!d) return;
+        if (!minDate || d < minDate) minDate = d;
+        if (!maxDate || d > maxDate) maxDate = d;
+      });
+    });
+  }
+
   return {
     columns: profiles,
     numericColumns,
@@ -211,5 +228,7 @@ export const profileDataset = (rows: UploadedDataRow[]): DatasetProfile => {
     defaultMetricColumn: numericColumns[0],
     defaultSecondaryMetricColumn: numericColumns[1],
     defaultCompareColumn: dimensionColumns[0],
+    minDate,
+    maxDate,
   };
 };

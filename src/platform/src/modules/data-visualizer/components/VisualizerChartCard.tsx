@@ -46,6 +46,7 @@ import {
 } from '@/shared/components/ui';
 import { cn } from '@/shared/lib/utils';
 import { VisualizerChart } from './VisualizerChart';
+import { VisualizerMapChart } from './VisualizerMapChart';
 
 interface VisualizerChartCardProps {
   datasets: UploadedDataset[];
@@ -66,6 +67,12 @@ const STANDARDS_LABELS = {
   NEMA_UGANDA: 'NEMA Uganda',
   NEMA_KENYA: 'NEMA Kenya',
 } as const;
+
+const MAP_LAYER_LABELS: Record<NonNullable<VisualizerChartConfig['mapLayer']>, string> = {
+  points: 'Points',
+  heatmap: 'Heatmap',
+  grid: 'Grid choropleth',
+};
 
 const EXPORT_TEXT_COLOR = '#1c1d20';
 const EXPORT_MUTED_COLOR = '#64748b';
@@ -750,6 +757,27 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
                   </option>
                 ))}
               </Select>
+              {chart.type === 'map' && (
+                <Select
+                  label="Map layer"
+                  value={chart.mapLayer ?? 'points'}
+                  onChange={event =>
+                    updateChart({
+                      mapLayer: event.target
+                        .value as NonNullable<
+                        VisualizerChartConfig['mapLayer']
+                      >,
+                    })
+                  }
+                  containerClassName="mb-0"
+                >
+                  {Object.entries(MAP_LAYER_LABELS).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </Select>
+              )}
               <Input
                 label="Height"
                 type="number"
@@ -806,6 +834,46 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
                 }
                 containerClassName="mb-0"
               />
+              {chart.type === 'map' && (
+                <>
+                  <Select
+                    label="Latitude"
+                    value={chart.latitudeColumn || ''}
+                    onChange={event =>
+                      updateChart({
+                        latitudeColumn:
+                          String(event.target.value) || undefined,
+                      })
+                    }
+                    containerClassName="mb-0"
+                  >
+                    <option value="">Select latitude</option>
+                    {profile.numericColumns.map(column => (
+                      <option key={column} value={column}>
+                        {formatSelectOptionLabel(column)}
+                      </option>
+                    ))}
+                  </Select>
+                  <Select
+                    label="Longitude"
+                    value={chart.longitudeColumn || ''}
+                    onChange={event =>
+                      updateChart({
+                        longitudeColumn:
+                          String(event.target.value) || undefined,
+                      })
+                    }
+                    containerClassName="mb-0"
+                  >
+                    <option value="">Select longitude</option>
+                    {profile.numericColumns.map(column => (
+                      <option key={column} value={column}>
+                        {formatSelectOptionLabel(column)}
+                      </option>
+                    ))}
+                  </Select>
+                </>
+              )}
               <Select
                 label="X axis time or category"
                 value={chart.xColumn || ''}
@@ -1084,7 +1152,11 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
           </div>
         )}
 
-        <VisualizerChart model={model} config={chart} />
+        {chart.type === 'map' ? (
+          <VisualizerMapChart rows={rows} config={chart} />
+        ) : (
+          <VisualizerChart model={model} config={chart} />
+        )}
       </div>
 
       <CardContent className="border-t border-border px-4 py-2 text-xs text-muted-foreground sm:px-5">

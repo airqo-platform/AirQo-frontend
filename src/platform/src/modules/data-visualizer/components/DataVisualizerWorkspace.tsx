@@ -17,12 +17,14 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  DatePicker,
   InfoBanner,
   Input,
   LoadingSpinner,
   Select,
   WarningBanner,
   toast,
+  type DateRange,
 } from '@/shared/components/ui';
 import { cn } from '@/shared/lib/utils';
 import {
@@ -30,6 +32,7 @@ import {
   CHART_TYPE_LABELS,
   MAX_UPLOAD_FILE_SIZE_BYTES,
   SOURCE_COLUMN_KEYS,
+  UPLOAD_CANCEL_WARN_MS,
 } from '../constants';
 import type {
   DatasetProfile,
@@ -45,7 +48,15 @@ import {
   parseUploadedFile,
   parseUploadedFiles,
 } from '../utils/parseFiles';
-import { formatColumnLabel, formatMeasurementLabel } from '../utils/measurementLabels';
+import {
+  formatColumnLabel,
+  formatMeasurementLabel,
+} from '../utils/measurementLabels';
+import {
+  detectCoordinateColumns,
+  hasCoordinateColumns,
+  type CoordinateColumns,
+} from '../utils/geospatial';
 import {
   buildWorkspaceProfile,
   getDatasetRowsForChart,
@@ -65,6 +76,16 @@ interface DataVisualizerWorkspaceProps {
   subtitle?: string;
 }
 
+const PARSE_MESSAGES = [
+  'Reading your file…',
+  'Scanning columns and headers…',
+  'Detecting date and time fields…',
+  'Identifying measurement columns…',
+  'Parsing rows — large files take a moment…',
+  'Almost there, profiling your data…',
+  'Finalising dataset…',
+] as const;
+
 const DEFAULT_CHART_ORDER: VisualizerChartType[] = [
   'line',
   'bar',
@@ -74,6 +95,7 @@ const DEFAULT_CHART_ORDER: VisualizerChartType[] = [
   'histogram',
   'pie',
   'radar',
+  'map',
 ];
 
 const createChartId = () => {
@@ -102,7 +124,8 @@ const createChartConfig = (
   type: VisualizerChartType,
   profile: DatasetProfile,
   datasetIds: string[],
-  index: number
+  index: number,
+  coordinateColumns: CoordinateColumns = {}
 ): VisualizerChartConfig => {
   const metricColumn =
     profile.defaultMetricColumn || profile.numericColumns[0] || '';
@@ -117,6 +140,7 @@ const createChartConfig = (
   const isDatasetComparison = datasetIds.length > 1;
   const metricLabel = formatMeasurementLabel(metricColumn);
   const compareLabel = formatColumnLabel(compareColumn);
+  const isMap = type === 'map';
 
   return {
     id: createChartId(),
@@ -125,7 +149,9 @@ const createChartConfig = (
       : `${CHART_TYPE_LABELS[type]} ${index}`,
     subtitle: isDatasetComparison
       ? `${metricLabel} by ${compareLabel}`
-      : CHART_TYPE_HELP[type],
+      : isMap
+        ? 'Spatial distribution from detected coordinates.'
+        : CHART_TYPE_HELP[type],
     type,
     datasetIds,
     metricColumn,
@@ -143,6 +169,9 @@ const createChartConfig = (
         : type === 'bar' || type === 'pie' || type === 'radar'
           ? compareColumn
           : compareColumn,
+    latitudeColumn: isMap ? coordinateColumns.latitudeColumn : undefined,
+    longitudeColumn: isMap ? coordinateColumns.longitudeColumn : undefined,
+    mapLayer: isMap ? 'points' : undefined,
     aggregation: 'average',
     maxGroups: 8,
     showGrid: true,
@@ -163,17 +192,22 @@ const createChartConfig = (
   };
 };
 
-const buildInitialCharts = (profile: DatasetProfile, datasetIds: string[]) => {
+const buildInitialCharts = (
+  profile: DatasetProfile,
+  datasetIds: string[],
+  coordinateColumns: CoordinateColumns = {}
+) => {
   if (profile.numericColumns.length === 0) {
     return [];
   }
 
-  const initialTypes: VisualizerChartType[] = profile.defaultTimeColumn
-    ? ['line', 'bar']
-    : ['bar', 'histogram'];
+  const initialTypes: VisualizerChartType[] = [
+    ...(profile.defaultTimeColumn ? ['line', 'bar'] : ['bar', 'histogram']),
+    ...(hasCoordinateColumns(coordinateColumns) ? ['map'] : []),
+  ] as VisualizerChartType[];
 
   return initialTypes.map((type, index) =>
-    createChartConfig(type, profile, datasetIds, index + 1)
+    createChartConfig(type, profile, datasetIds, index + 1, coordinateColumns)
   );
 };
 
@@ -213,12 +247,17 @@ export const DataVisualizerWorkspace: React.FC<
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
   const sourceFilesRef = React.useRef(new Map<string, File>());
   const hasTrackedViewRef = React.useRef(false);
+  const parseAbortRef = React.useRef<AbortController | null>(null);
   const [datasets, setDatasets] = React.useState<UploadedDataset[]>([]);
   const [charts, setCharts] = React.useState<VisualizerChartConfig[]>([]);
   const [activeChartId, setActiveChartId] = React.useState<
     string | undefined
   >();
   const [isParsing, setIsParsing] = React.useState(false);
+  const [parseMessage, setParseMessage] = React.useState<string>(
+    PARSE_MESSAGES[0]
+  );
+  const [showCancelHint, setShowCancelHint] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [isDragActive, setIsDragActive] = React.useState(false);
   const [uploadOpen, setUploadOpen] = React.useState(true);
@@ -226,6 +265,31 @@ export const DataVisualizerWorkspace: React.FC<
     null
   );
   const [lastSavedAt, setLastSavedAt] = React.useState<string | null>(null);
+  const [appliedDateRange, setAppliedDateRange] = React.useState<DateRange | null>(null);
+
+  // Cycle through friendly status messages while parsing
+  React.useEffect(() => {
+    if (!isParsing) {
+      setParseMessage(PARSE_MESSAGES[0]);
+      setShowCancelHint(false);
+      return;
+    }
+
+    let msgIdx = 0;
+    const msgInterval = window.setInterval(() => {
+      msgIdx = (msgIdx + 1) % PARSE_MESSAGES.length;
+      setParseMessage(PARSE_MESSAGES[msgIdx]);
+    }, 2200);
+
+    const cancelHintTimer = window.setTimeout(() => {
+      setShowCancelHint(true);
+    }, UPLOAD_CANCEL_WARN_MS);
+
+    return () => {
+      window.clearInterval(msgInterval);
+      window.clearTimeout(cancelHintTimer);
+    };
+  }, [isParsing]);
 
   const trackVisualizerEvent = React.useCallback(
     (eventName: string, properties: Record<string, unknown> = {}) => {
@@ -301,13 +365,34 @@ export const DataVisualizerWorkspace: React.FC<
     [allDatasetIds, datasets]
   );
   const workspaceProfile = React.useMemo(
-    () => profileDataset(workspaceRows),
+    () => profileDataset(workspaceRows, { includeDateRange: true }),
     [workspaceRows]
+  );
+  const workspaceCoordinateColumns = React.useMemo(
+    () =>
+      detectCoordinateColumns(workspaceRows, workspaceProfile.numericColumns),
+    [workspaceProfile.numericColumns, workspaceRows]
   );
   const workspaceSummary = React.useMemo(
     () => getDatasetSummary(datasets, allDatasetIds),
     [allDatasetIds, datasets]
   );
+
+  const datasetDateRange = React.useMemo(() => {
+    if (!workspaceProfile.minDate || !workspaceProfile.maxDate) return null;
+    return {
+      min: workspaceProfile.minDate,
+      max: workspaceProfile.maxDate,
+    };
+  }, [workspaceProfile.minDate, workspaceProfile.maxDate]);
+
+  // When a new dataset is loaded, pre-fill date range to the full dataset period (only if not already set)
+  React.useEffect(() => {
+    if (!datasetDateRange) return;
+    setAppliedDateRange(prev =>
+      prev ? prev : { from: datasetDateRange.min, to: datasetDateRange.max }
+    );
+  }, [datasetDateRange]);
 
   React.useEffect(() => {
     if (hasTrackedViewRef.current) {
@@ -374,6 +459,11 @@ export const DataVisualizerWorkspace: React.FC<
         const nextDatasets = [...current, ...newDatasets];
         const datasetIds = nextDatasets.map(dataset => dataset.id);
         const profile = buildWorkspaceProfile(nextDatasets, datasetIds);
+        const rows = getDatasetRowsForChart(nextDatasets, datasetIds);
+        const coordinateColumns = detectCoordinateColumns(
+          rows,
+          profile.numericColumns
+        );
 
         setCharts(currentCharts => {
           if (currentCharts.length > 0) {
@@ -385,7 +475,11 @@ export const DataVisualizerWorkspace: React.FC<
             }));
           }
 
-          const initialCharts = buildInitialCharts(profile, datasetIds);
+          const initialCharts = buildInitialCharts(
+            profile,
+            datasetIds,
+            coordinateColumns
+          );
           setActiveChartId(initialCharts[0]?.id);
           return initialCharts;
         });
@@ -416,6 +510,16 @@ export const DataVisualizerWorkspace: React.FC<
     [trackVisualizerEvent]
   );
 
+  const cancelParsing = React.useCallback(() => {
+    parseAbortRef.current?.abort();
+    setIsParsing(false);
+    setShowCancelHint(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    toast.warning('Upload cancelled', 'File reading was stopped.');
+  }, []);
+
   const handleFiles = React.useCallback(
     async (fileList: FileList | File[]) => {
       const files = Array.from(fileList);
@@ -423,12 +527,19 @@ export const DataVisualizerWorkspace: React.FC<
         return;
       }
 
+      const abortController = new AbortController();
+      parseAbortRef.current = abortController;
+
       setIsParsing(true);
       setError(null);
 
       try {
         const { datasets: parsedDatasets, errors } =
           await parseUploadedFiles(files);
+
+        if (abortController.signal.aborted) {
+          return;
+        }
 
         files.forEach(file => {
           const matchingDatasets = parsedDatasets.filter(
@@ -454,7 +565,9 @@ export const DataVisualizerWorkspace: React.FC<
           });
         }
       } finally {
-        setIsParsing(false);
+        if (!abortController.signal.aborted) {
+          setIsParsing(false);
+        }
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
         }
@@ -472,6 +585,7 @@ export const DataVisualizerWorkspace: React.FC<
     setActiveChartId(undefined);
     setError(null);
     setUploadOpen(true);
+    setAppliedDateRange(null);
     sourceFilesRef.current.clear();
     await deleteWorkspaceDraft().catch(() => undefined);
     setDraft(null);
@@ -512,11 +626,20 @@ export const DataVisualizerWorkspace: React.FC<
       return;
     }
 
+    if (type === 'map' && !hasCoordinateColumns(workspaceCoordinateColumns)) {
+      toast.warning(
+        'Coordinates needed',
+        'Add latitude and longitude fields to create a map view.'
+      );
+      return;
+    }
+
     const nextChart = createChartConfig(
       type,
       workspaceProfile,
       allDatasetIds,
-      charts.length + 1
+      charts.length + 1,
+      workspaceCoordinateColumns
     );
     setCharts(current => [...current, nextChart]);
     setActiveChartId(nextChart.id);
@@ -716,6 +839,26 @@ export const DataVisualizerWorkspace: React.FC<
 
   const showUploadPanel = datasets.length === 0 || uploadOpen;
 
+  const filterRowsByDate = React.useCallback(
+    (rows: import('../types').UploadedDataRow[]) => {
+      if (!appliedDateRange?.from && !appliedDateRange?.to) return rows;
+      const timeCol = workspaceProfile.defaultTimeColumn;
+      if (!timeCol) return rows;
+      const from = appliedDateRange.from ? appliedDateRange.from.getTime() : -Infinity;
+      const to = appliedDateRange.to
+        ? new Date(appliedDateRange.to.getFullYear(), appliedDateRange.to.getMonth(), appliedDateRange.to.getDate(), 23, 59, 59, 999).getTime()
+        : Infinity;
+      return rows.filter(row => {
+        const rawVal = row[timeCol];
+        if (rawVal == null) return true;
+        const d = rawVal instanceof Date ? rawVal : new Date(String(rawVal));
+        if (Number.isNaN(d.getTime())) return true;
+        return d.getTime() >= from && d.getTime() <= to;
+      });
+    },
+    [appliedDateRange, workspaceProfile.defaultTimeColumn]
+  );
+
   return (
     <div className="flex flex-col gap-4">
       <div>
@@ -861,11 +1004,27 @@ export const DataVisualizerWorkspace: React.FC<
               />
 
               {isParsing ? (
-                <div className="flex flex-col items-center gap-2">
+                <div className="flex flex-col items-center gap-3">
                   <LoadingSpinner />
-                  <span className="text-sm text-muted-foreground">
-                    Reading files...
+                  <span className="text-sm text-muted-foreground transition-all duration-500">
+                    {parseMessage}
                   </span>
+                  {showCancelHint && (
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="text-xs text-muted-foreground">
+                        Large files may take a while. You can cancel and try a
+                        smaller file.
+                      </span>
+                      <Button
+                        size="sm"
+                        variant="outlined"
+                        onClick={cancelParsing}
+                        className="mt-1"
+                      >
+                        Cancel upload
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <>
@@ -1010,6 +1169,58 @@ export const DataVisualizerWorkspace: React.FC<
         </div>
       )}
 
+      {datasets.length > 0 && datasetDateRange && (
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-4">
+              <div className="flex-1">
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                  Date range
+                </label>
+                <DatePicker
+                  mode="range"
+                  value={appliedDateRange ?? undefined}
+                  onChange={value => {
+                    if (
+                      value &&
+                      typeof value === 'object' &&
+                      'from' in value &&
+                      !(value instanceof Date)
+                    ) {
+                      setAppliedDateRange(value as DateRange);
+                    }
+                  }}
+                  showPresets={false}
+                  placeholder="Select date range"
+                  className="w-full max-w-none"
+                />
+              </div>
+              <Button
+                size="sm"
+                variant="outlined"
+                onClick={() =>
+                  setAppliedDateRange({
+                    from: datasetDateRange.min,
+                    to: datasetDateRange.max,
+                  })
+                }
+              >
+                Reset range
+              </Button>
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Dataset period:{' '}
+              <span className="font-medium">
+                {datasetDateRange.min.toLocaleDateString()} –{' '}
+                {datasetDateRange.max.toLocaleDateString()}
+              </span>
+              . Click the date range picker above and press{' '}
+              <span className="font-medium">Apply</span> to filter charts.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       {datasets.length > 0 && (
         <Card>
           <CardContent className="p-4">
@@ -1025,7 +1236,11 @@ export const DataVisualizerWorkspace: React.FC<
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
-                {DEFAULT_CHART_ORDER.map(type => (
+                {DEFAULT_CHART_ORDER.filter(
+                  type =>
+                    type !== 'map' ||
+                    hasCoordinateColumns(workspaceCoordinateColumns)
+                ).map(type => (
                   <Button
                     key={type}
                     size="sm"
@@ -1085,7 +1300,8 @@ export const DataVisualizerWorkspace: React.FC<
       {charts.length > 0 && (
         <div className="grid grid-cols-1 gap-4">
           {charts.map((chart, index) => {
-            const rows = getDatasetRowsForChart(datasets, chart.datasetIds);
+            const rawRows = getDatasetRowsForChart(datasets, chart.datasetIds);
+            const rows = filterRowsByDate(rawRows);
             const profile = profileDataset(rows);
 
             return (

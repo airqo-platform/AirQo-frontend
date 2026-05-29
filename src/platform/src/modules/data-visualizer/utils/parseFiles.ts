@@ -1,9 +1,5 @@
 import Papa from 'papaparse';
-import readExcelFile, {
-  readSheet,
-  type Sheet,
-  type SheetData,
-} from 'read-excel-file/browser';
+import readExcelFile, { readSheet, type Sheet } from 'read-excel-file/browser';
 import { MAX_UPLOAD_FILE_SIZE_BYTES, MAX_VISUALIZER_ROWS } from '../constants';
 import type {
   SheetOption,
@@ -13,17 +9,20 @@ import type {
 } from '../types';
 import { makeUniqueHeaders, normalizeHeader } from './dataProfiling';
 
-type ParsedCsvRow = Record<string, unknown>;
-
 interface ParseUploadedFileOptions {
   sheetName?: string;
   knownSheets?: SheetOption[];
   label?: string;
 }
 
+type TabularRow = readonly unknown[];
+type TabularData = readonly TabularRow[];
+
 const CSV_EXTENSIONS = ['.csv'];
 const XLSX_EXTENSIONS = ['.xlsx'];
 const LEGACY_EXCEL_EXTENSIONS = ['.xls', '.xlsm', '.xlsb'];
+const CSV_HEADER_SCAN_ROWS = 25;
+const CSV_RETAINED_ROW_LIMIT = MAX_VISUALIZER_ROWS + CSV_HEADER_SCAN_ROWS + 1;
 
 const getFileExtension = (fileName: string) => {
   const match = fileName.toLowerCase().match(/\.[^.]+$/);
@@ -82,7 +81,7 @@ const isEmptyCell = (value: unknown) => normalizeCellValue(value) === null;
 const countFilledCells = (row: readonly unknown[]) =>
   row.reduce<number>((count, cell) => count + (isEmptyCell(cell) ? 0 : 1), 0);
 
-const findHeaderRowIndex = (rows: SheetData) => {
+const findHeaderRowIndex = (rows: TabularData) => {
   const inspectedRows = rows.slice(0, 25);
   let bestIndex = 0;
   let bestScore = 0;
@@ -103,8 +102,9 @@ const findHeaderRowIndex = (rows: SheetData) => {
 };
 
 const rowsFromSheetData = (
-  sheetData: SheetData,
-  maxRows: number
+  sheetData: TabularData,
+  maxRows: number,
+  sourceRowCountOverride?: number
 ): {
   rows: UploadedDataRow[];
   columns: string[];
@@ -146,51 +146,77 @@ const rowsFromSheetData = (
   return {
     rows,
     columns,
-    sourceRowCount: dataRows.length,
-    truncated: dataRows.length > maxRows,
+    sourceRowCount: sourceRowCountOverride ?? dataRows.length,
+    truncated: (sourceRowCountOverride ?? dataRows.length) > maxRows,
   };
 };
 
 const getExcelSheetName = (sheet: Sheet): string => sheet.sheet || 'Sheet';
 
-const parseCsvFile = (
+const parseCsvFileWithWorker = (
   file: File,
-  options: ParseUploadedFileOptions
+  options: ParseUploadedFileOptions,
+  useWorker: boolean
 ): Promise<UploadedDataset> =>
   new Promise((resolve, reject) => {
-    Papa.parse<ParsedCsvRow>(file, {
-      header: true,
+    const retainedRows: TabularRow[] = [];
+    let nonEmptyRowCount = 0;
+    const warnings: string[] = [];
+
+    Papa.parse<unknown[]>(file, {
+      header: false,
       skipEmptyLines: 'greedy',
       dynamicTyping: false,
-      worker:
-        typeof Papa.WORKERS_SUPPORTED === 'boolean' &&
-        Papa.WORKERS_SUPPORTED &&
-        file.size > 1024 * 1024,
-      transformHeader: (header, index) => normalizeHeader(header, index),
-      complete: results => {
-        const warnings = results.errors.slice(0, 5).map(error => {
+      worker: useWorker,
+      // Use `step` (not `chunk`) — step is the reliable row-by-row streaming
+      // API for worker:false. The `chunk` callback has known issues in Next.js
+      // where it causes `complete` to receive undefined, breaking the parse.
+      step: results => {
+        if (!results) return;
+
+        (results.errors ?? []).slice(0, 5 - warnings.length).forEach(error => {
           const row =
             typeof error.row === 'number' ? `row ${error.row + 1}` : 'file';
-          return `${row}: ${error.message}`;
+          warnings.push(`${row}: ${error.message}`);
         });
-        const fields = makeUniqueHeaders(results.meta.fields ?? []);
-        const allRows = results.data.filter(Boolean);
-        const limitedRows = allRows.slice(0, MAX_VISUALIZER_ROWS);
-        const rows = limitedRows
-          .map(rawRow => {
-            const record: UploadedDataRow = {};
 
-            fields.forEach(field => {
-              record[field] = normalizeCellValue(rawRow[field]);
-            });
+        // With step + header:false, results.data is the current row (unknown[])
+        const row = results.data as readonly unknown[];
 
-            return record;
-          })
-          .filter(row =>
-            Object.values(row).some(value => normalizeCellValue(value) !== null)
-          );
+        if (!Array.isArray(row) || countFilledCells(row) === 0) {
+          return;
+        }
 
-        if (allRows.length > MAX_VISUALIZER_ROWS) {
+        nonEmptyRowCount += 1;
+
+        if (retainedRows.length < CSV_RETAINED_ROW_LIMIT) {
+          retainedRows.push(row);
+        }
+      },
+      complete: results => {
+        if (!results) {
+          reject(new Error('CSV parsing failed. Try re-uploading the file.'));
+          return;
+        }
+        (results.errors ?? []).slice(0, 5 - warnings.length).forEach(error => {
+          const row =
+            typeof error.row === 'number' ? `row ${error.row + 1}` : 'file';
+          warnings.push(`${row}: ${error.message}`);
+        });
+
+        const headerRowIndex =
+          retainedRows.length > 0 ? findHeaderRowIndex(retainedRows) : 0;
+        const sourceRowCount = Math.max(
+          0,
+          nonEmptyRowCount - headerRowIndex - 1
+        );
+        const parsedCsv = rowsFromSheetData(
+          retainedRows,
+          MAX_VISUALIZER_ROWS,
+          sourceRowCount
+        );
+
+        if (parsedCsv.truncated) {
           warnings.push(
             `Only the first ${MAX_VISUALIZER_ROWS.toLocaleString()} rows were loaded to keep charts responsive.`
           );
@@ -202,10 +228,10 @@ const parseCsvFile = (
           fileName: file.name,
           fileType: 'csv',
           sheetOptions: [],
-          rows,
-          columns: fields,
-          rowCount: rows.length,
-          sourceRowCount: allRows.length,
+          rows: parsedCsv.rows,
+          columns: parsedCsv.columns,
+          rowCount: parsedCsv.rows.length,
+          sourceRowCount: parsedCsv.sourceRowCount,
           warnings,
           uploadedAt: new Date().toISOString(),
         });
@@ -214,11 +240,22 @@ const parseCsvFile = (
     });
   });
 
+const parseCsvFile = async (
+  file: File,
+  options: ParseUploadedFileOptions
+): Promise<UploadedDataset> => {
+  // PapaParse workers are incompatible with Next.js/webpack module bundling.
+  // The worker URL cannot be resolved at runtime, causing the complete/chunk
+  // callbacks to receive undefined and the Promise to never settle (infinite load).
+  // Always parse on the main thread — chunk streaming keeps peak memory bounded.
+  return parseCsvFileWithWorker(file, options, false);
+};
+
 const buildExcelDataset = (
   file: File,
   sheetName: string,
   sheetOptions: SheetOption[],
-  sheetData: SheetData,
+  sheetData: TabularData,
   label?: string
 ): UploadedDataset => {
   const parsedSheet = rowsFromSheetData(sheetData, MAX_VISUALIZER_ROWS);
