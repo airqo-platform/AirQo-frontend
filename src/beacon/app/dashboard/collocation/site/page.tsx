@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import {
@@ -31,6 +30,7 @@ import {
 import { useRouter } from "next/navigation"
 
 import { fetchCollocationSites } from "@/lib/api"
+import { decodeBamStatusIssues, type DecodedBamIssue } from "@/lib/bam-status"
 import { isMockMode } from "@/lib/mock-data"
 import { syncSites } from "@/services/device-api.service"
 import { useToast } from "@/components/ui/use-toast"
@@ -41,6 +41,29 @@ import { REFERENCE_MONITOR_LABEL } from "@/lib/utils"
 interface HistoryItem {
   value: number
   timestamp: string
+}
+
+interface BamIssueDetail {
+  id: string
+  description: string
+  cause: string
+}
+
+interface BamStatusIssue {
+  deviceName: string
+  deviceId: string | undefined
+  statusCode: number | null
+  issues: BamIssueDetail[]
+  isOffline: boolean
+  lastActive: string | null
+}
+
+interface BamStatusSummary {
+  deviceCount: number
+  problemDevices: number
+  problemCount: number
+  offlineDevices: number
+  issues: BamStatusIssue[]
 }
 
 interface SiteCollocationEntry {
@@ -59,6 +82,7 @@ interface SiteCollocationEntry {
     bam: number
     bamOnline: number
   }
+  bamStatus?: BamStatusSummary
 }
 
 // --- Mock data generators ---
@@ -117,6 +141,34 @@ const mockSites: SiteCollocationEntry[] = [
   { id: "7", name: "Jinja Road Station", location: "Jinja, Uganda", category: "lowcost", uptime: 90.5, errorMargin: 4.6, uptimeHistory: generateUptimeHistory(90.5), errorMarginHistory: generateErrorMarginHistory(4.6), devices: { total: 3, lowcost: 3, lowcostOnline: 2, bam: 0, bamOnline: 0 } },
   { id: "8", name: "Entebbe Airport", location: "Entebbe, Uganda", category: "bam", uptime: 97.8, errorMargin: 1.5, uptimeHistory: generateUptimeHistory(97.8), errorMarginHistory: generateErrorMarginHistory(1.5), devices: { total: 5, lowcost: 2, lowcostOnline: 1, bam: 3, bamOnline: 3 } },
 ]
+
+const BAM_OFFLINE_WINDOW_HOURS = 24
+
+function getLastActiveTimestamp(rawLastActive: unknown): number | null {
+  if (!rawLastActive) return null
+
+  if (
+    typeof rawLastActive !== "string" &&
+    typeof rawLastActive !== "number" &&
+    !(rawLastActive instanceof Date)
+  ) {
+    return null
+  }
+
+  const parsed = new Date(rawLastActive).getTime()
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+function formatElapsedTime(milliseconds: number): string {
+  const totalMinutes = Math.max(1, Math.floor(milliseconds / (1000 * 60)))
+  const days = Math.floor(totalMinutes / (60 * 24))
+  const hours = Math.floor((totalMinutes % (60 * 24)) / 60)
+  const minutes = totalMinutes % 60
+
+  if (days > 0) return `${days}d ${hours}h`
+  if (hours > 0) return `${hours}h ${minutes}m`
+  return `${minutes}m`
+}
 
 // --- Mini Bar Graph Components ---
 
@@ -245,6 +297,7 @@ export default function SiteCollocationPage() {
   const [error, setError] = useState<string | null>(null)
   const [showEmptySites, setShowEmptySites] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
+  const [expandedBamStatusRows, setExpandedBamStatusRows] = useState<Record<string, boolean>>({})
   const { toast } = useToast()
 
   const handleSyncSites = async () => {
@@ -307,6 +360,62 @@ export default function SiteCollocationPage() {
           // denominator is always the total number of devices.
           const devicesArr: any[] = Array.isArray(site.devices) ? site.devices : []
           const numberOfDevices = site.numberOfDevices || devicesArr.length || 0
+          const bamDevices = devicesArr.filter((d: any) => d.category === "bam")
+          const nowTs = Date.now()
+          const offlineThresholdMs = BAM_OFFLINE_WINDOW_HOURS * 60 * 60 * 1000
+
+          const bamIssues: BamStatusIssue[] = bamDevices
+            .map((device: any) => {
+              const parsedStatusCode = Number(device?.status)
+              const statusCode = Number.isFinite(parsedStatusCode) ? parsedStatusCode : null
+              const decodedIssues: DecodedBamIssue[] = decodeBamStatusIssues(device?.status)
+
+              const lastActive = (device?.last_active || device?.lastActive || null) as string | null
+              const lastActiveTs = getLastActiveTimestamp(lastActive)
+              const isOffline = lastActiveTs === null || (nowTs - lastActiveTs) > offlineThresholdMs
+
+              const issueDetails: BamIssueDetail[] = decodedIssues.map((issue) => ({
+                id: `status-${issue.code}`,
+                description: issue.description,
+                cause: issue.cause,
+              }))
+
+              if (isOffline) {
+                const staleCause = lastActiveTs === null
+                  ? "Hasn't posted yet (no last_active reported)."
+                  : `Hasn't posted in ${formatElapsedTime(nowTs - lastActiveTs)}.`
+
+                issueDetails.unshift({
+                  id: "offline",
+                  description: "Device Offline",
+                  cause: staleCause,
+                })
+              }
+
+              const hasProblems = issueDetails.length > 0
+
+              if (!hasProblems) {
+                return null
+              }
+
+              return {
+                deviceName: device?.device_name || device?.deviceName || "Unknown BAM",
+                deviceId: device?.device_id || device?.deviceId,
+                statusCode,
+                issues: issueDetails,
+                isOffline,
+                lastActive,
+              }
+            })
+            .filter((item): item is BamStatusIssue => item !== null)
+
+          const bamStatus: BamStatusSummary = {
+            deviceCount: bamDevices.length,
+            problemDevices: bamIssues.length,
+            problemCount: bamIssues.reduce((acc, issue) => acc + issue.issues.length, 0),
+            offlineDevices: bamIssues.filter((issue) => issue.isOffline).length,
+            issues: bamIssues,
+          }
 
           const normalizeUptime = (u: any): number => {
             const n = Number(u)
@@ -351,7 +460,8 @@ export default function SiteCollocationPage() {
               lowcostOnline: devicesArr.filter((d: any) => d.category === "lowcost" && (d.uptime ?? 0) > 0).length,
               bam: devicesArr.filter((d: any) => d.category === "bam").length,
               bamOnline: devicesArr.filter((d: any) => d.category === "bam" && (d.uptime ?? 0) > 0).length,
-            }
+            },
+            bamStatus,
           }
         })
         setSites(mappedSites)
@@ -535,17 +645,17 @@ export default function SiteCollocationPage() {
               <thead>
                 <tr className="bg-gray-50">
                   <th className="text-left py-3 px-4 font-medium text-gray-600">Name</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-600">Site</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">Devices</th>
 
                   <th className="text-left py-3 px-4 font-medium text-gray-600">Uptime</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">Error Margin</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-600">{REFERENCE_MONITOR_LABEL} Status</th>
                 </tr>
               </thead>
               <tbody>
                 {isLoading ? (
                   <tr>
-                    <td colSpan={5} className="py-12">
+                    <td colSpan={6} className="py-12">
                       <div className="flex flex-col items-center justify-center text-muted-foreground">
                         <Loader2 className="h-8 w-8 animate-spin mb-2" />
                         <p>Loading sites data...</p>
@@ -554,7 +664,7 @@ export default function SiteCollocationPage() {
                   </tr>
                 ) : error ? (
                   <tr>
-                    <td colSpan={5} className="py-12">
+                    <td colSpan={6} className="py-12">
                       <div className="flex flex-col items-center justify-center text-red-500">
                         <AlertTriangle className="h-8 w-8 mb-2" />
                         <p className="font-medium">Failed to load data</p>
@@ -567,7 +677,7 @@ export default function SiteCollocationPage() {
                   </tr>
                 ) : filteredSites.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-8 text-center text-gray-500">
+                    <td colSpan={6} className="py-8 text-center text-gray-500">
                       {searchTerm ? "No sites found matching your search." : "No sites available."}
                     </td>
                   </tr>
@@ -580,9 +690,6 @@ export default function SiteCollocationPage() {
                     >
                       <td className="py-3 px-4">
                         <span className="font-medium">{site.name}</span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className="text-sm text-gray-600">{site.location}</span>
                       </td>
                       <td className="py-3 px-4">
                         <HoverCard openDelay={100} closeDelay={100}>
@@ -626,6 +733,78 @@ export default function SiteCollocationPage() {
                           averageMargin={site.errorMargin}
                         />
                       </td>
+                      <td className="py-3 px-4 align-top">
+                        {(() => {
+                          const bamStatus = site.bamStatus || {
+                            deviceCount: site.devices.bam,
+                            problemDevices: 0,
+                            problemCount: 0,
+                            offlineDevices: 0,
+                            issues: [],
+                          }
+                          const hasProblems = bamStatus.problemCount > 0
+                          const isExpanded = Boolean(expandedBamStatusRows[site.id])
+
+                          if (bamStatus.deviceCount <= 0) {
+                            return <span className="text-xs text-muted-foreground">No {REFERENCE_MONITOR_LABEL}</span>
+                          }
+
+                          return (
+                            <div className="space-y-2">
+                              <button
+                                className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold transition-colors ${
+                                  hasProblems
+                                    ? "border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
+                                    : "border-green-200 bg-green-50 text-green-700 hover:bg-green-100"
+                                }`}
+                                onClick={(event) => {
+                                  event.stopPropagation()
+                                  setExpandedBamStatusRows((prev) => ({
+                                    ...prev,
+                                    [site.id]: !prev[site.id],
+                                  }))
+                                }}
+                              >
+                                {hasProblems
+                                  ? `${bamStatus.problemCount} problem${bamStatus.problemCount === 1 ? "" : "s"}`
+                                  : "No problems"}
+                              </button>
+                              <p className="text-[11px] text-muted-foreground">
+                                {bamStatus.problemDevices}/{bamStatus.deviceCount} {REFERENCE_MONITOR_LABEL.toLowerCase()} with issues
+                              </p>
+                              {bamStatus.offlineDevices > 0 && (
+                                <p className="text-[11px] text-red-600">
+                                  {bamStatus.offlineDevices} offline (no post in {BAM_OFFLINE_WINDOW_HOURS}h)
+                                </p>
+                              )}
+                              {hasProblems && isExpanded && (
+                                <div
+                                  className="max-h-40 overflow-y-auto rounded-md border border-red-100 bg-red-50/40 p-2 text-xs"
+                                >
+                                  <ul className="space-y-2">
+                                    {bamStatus.issues.map((issue) => (
+                                      <li key={`${issue.deviceId || issue.deviceName}-${issue.statusCode ?? "none"}`}>
+                                        <p className="font-medium text-red-800">
+                                          {issue.deviceName}
+                                          {issue.statusCode === null ? "" : ` (status ${issue.statusCode})`}
+                                          {issue.isOffline ? " • offline" : ""}
+                                        </p>
+                                        <ul className="ml-3 mt-1 list-disc text-red-700">
+                                          {issue.issues.map((problem) => (
+                                            <li key={`${issue.deviceName}-${problem.id}`}>
+                                              <span className="font-medium">{problem.description}:</span> {problem.cause}
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })()}
+                      </td>
                     </tr>
                   ))
                 )}
@@ -663,6 +842,7 @@ export default function SiteCollocationPage() {
                         <th className="text-left py-3 px-4 font-medium text-gray-600">Devices</th>
                         <th className="text-left py-3 px-4 font-medium text-gray-600">Uptime</th>
                         <th className="text-left py-3 px-4 font-medium text-gray-600">Error Margin</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600">{REFERENCE_MONITOR_LABEL} Status</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -706,6 +886,9 @@ export default function SiteCollocationPage() {
                                 </div>
                               </HoverCardContent>
                             </HoverCard>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="text-muted-foreground text-sm">No data</span>
                           </td>
                           <td className="py-3 px-4">
                             <span className="text-muted-foreground text-sm">No data</span>

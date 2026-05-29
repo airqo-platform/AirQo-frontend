@@ -440,9 +440,7 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
             const fallbackResponse = await fetchCohortsByTags([fallbackTag])
             if ((fallbackResponse.airqlouds?.length ?? 0) > 0) {
               response = fallbackResponse
-              effectiveTags = [fallbackTag]
               lastSuccessfulCohortTagRef.current = fallbackTag
-              setCohortTags([fallbackTag])
               break
             }
           }

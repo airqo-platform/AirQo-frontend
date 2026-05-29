@@ -184,6 +184,11 @@ export interface ApiResponseMeta {
   detailLevel?: string
   usedCache?: boolean
   nextPage?: string
+  totalDevices?: number
+  devicesInAtLeastOneCohort?: number
+  deployedDevices?: number
+  onlineDevices?: number
+  offlineDevices?: number
 }
 
 // Paginated Device Response
@@ -397,6 +402,7 @@ export interface UIDevice {
 export interface PaginatedUIDeviceResponse {
   devices: UIDevice[]
   pagination: PaginationMetadata
+  meta?: ApiResponseMeta
 }
 
 // Transform functions types

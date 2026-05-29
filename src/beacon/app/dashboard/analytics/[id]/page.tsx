@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, memo } from "react"
-import { useParams, useSearchParams } from "next/navigation"
+import { useParams, usePathname, useSearchParams } from "next/navigation"
 import { ArrowLeft, Calendar, MapPin, Wifi, AlertTriangle } from "lucide-react"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -155,13 +155,26 @@ const processDevicePerformance = (
     ? allErrorMargins.reduce((s, v) => s + v, 0) / allErrorMargins.length
     : (device.sensor_error_margin ?? 0)
 
+  // Derive last_active from the most recent datetime in device.data; fall
+  // back to the API-provided lastRawData / lastActive fields only when the
+  // data array is empty or all entries lack a parseable datetime.
+  let lastActiveFromData: string | null = null
+  deviceData.forEach((d: any) => {
+    if (!d.datetime) return
+    const t = new Date(d.datetime)
+    if (Number.isNaN(t.getTime())) return
+    if (!lastActiveFromData || t > new Date(lastActiveFromData)) {
+      lastActiveFromData = d.datetime
+    }
+  })
+
   return {
     device_id: device._id || device.name,
     device_name: device.long_name || device.name,
     daily_uptime_percentage: computedAvgUptime,
     average_error_margin: computedAvgErrorMargin,
     data_points: deviceData.length,
-    last_active: device.lastRawData || device.lastActive || null,
+    last_active: lastActiveFromData || device.lastRawData || device.lastActive || null,
     uptime_history: uptimeHistory,
     error_margin_history: errorMarginHistory,
     hourly_data: Object.values(hourlyData).map(h => ({
@@ -369,11 +382,14 @@ const CorrelationMiniGraph = memo(function CorrelationMiniGraph({ correlationHis
 
 export default function AirQloudDetailPage() {
   const params = useParams()
+  const pathname = usePathname()
   const searchParams = useSearchParams()
   const { activeGroup, loading: groupLoading } = useGroup()
   const airqloudId = params?.id as string
   const isGridMode = searchParams?.get("type") === "grid"
   const entityLabel = isGridMode ? "Grid" : "Cohort"
+  const queryString = searchParams?.toString()
+  const returnTo = queryString ? `${pathname}?${queryString}` : pathname
 
   const [data, setData] = useState<AirQloudDetailData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -492,6 +508,13 @@ export default function AirQloudDetailPage() {
   }
 
   const processedDevices = data.devices ? data.devices.map(d => processDevicePerformance(d, daysOfData)) : []
+
+  // Devices with uptime = 0 on the most-recent window day (yesterday) are
+  // considered offline.
+  const offlineCount = processedDevices.filter(d => {
+    const yesterdayEntry = d.uptime_history.at(-1)
+    return !yesterdayEntry || yesterdayEntry.value === 0
+  }).length
 
   // Cohort average uptime = average of each device's per-window daily uptime,
   // where each device's per-window value already counts missing days as 0.
@@ -654,6 +677,11 @@ export default function AirQloudDetailPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{data.device_count}</div>
+                {offlineCount > 0 && (
+                  <div className="text-xs text-red-500 mt-1">
+                    {offlineCount} offline
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -822,7 +850,15 @@ export default function AirQloudDetailPage() {
                         <TableRow key={device.device_id}>
                           <TableCell className="font-medium">
                             <div>
-                              <div className="font-medium">{device.device_name}</div>
+                              <Link
+                                href={{
+                                  pathname: `/dashboard/devices/${device.device_id}`,
+                                  query: { returnTo },
+                                }}
+                                className="font-medium hover:underline"
+                              >
+                                {device.device_name}
+                              </Link>
                               <div className="text-xs text-muted-foreground font-mono">
                                 {device.device_id.length > 20
                                   ? `${device.device_id.slice(0, 10)}...${device.device_id.slice(-10)}`

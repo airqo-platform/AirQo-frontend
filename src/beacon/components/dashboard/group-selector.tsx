@@ -126,24 +126,16 @@ export default function GroupSelector() {
                         : "hover:bg-gray-50 border border-transparent"
                     }`}
                   >
-                    {/* Group avatar / profile picture */}
-                    {group.grp_profile_picture ? (
-                      <img
-                        src={group.grp_profile_picture}
-                        alt={group.grp_title}
-                        className="h-9 w-9 rounded-lg object-cover flex-shrink-0"
-                      />
-                    ) : (
-                      <div
-                        className={`h-9 w-9 rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0 ${
-                          isActive
-                            ? "bg-blue-600 text-white"
-                            : "bg-gray-200 text-gray-600"
-                        }`}
-                      >
-                        {getGroupInitial(group.grp_title)}
-                      </div>
-                    )}
+                    {/* Group avatar */}
+                    <div
+                      className={`h-9 w-9 rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0 ${
+                        isActive
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-200 text-gray-600"
+                      }`}
+                    >
+                      {getGroupInitial(group.grp_title)}
+                    </div>
 
                     {/* Group info */}
                     <div className="flex-1 min-w-0">

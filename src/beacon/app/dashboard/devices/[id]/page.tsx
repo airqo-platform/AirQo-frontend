@@ -116,11 +116,14 @@ export default function DeviceDetailPage() {
   const params = useParams()
   const router = useRouter()
   const searchParams = useSearchParams()
+  const requestedReturnTo = searchParams.get("returnTo")
+  const returnTo = requestedReturnTo?.startsWith("/")
+    ? requestedReturnTo
+    : "/dashboard/devices"
   const { toast } = useToast()
   const [device, setDevice] = useState<DeviceDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [isRefreshing, setIsRefreshing] = useState(false)
   const [copiedKey, setCopiedKey] = useState<string | null>(null)
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false)
 
@@ -146,7 +149,6 @@ export default function DeviceDetailPage() {
   // Fetch device data from API
   const fetchDeviceData = async () => {
     try {
-      setIsRefreshing(true)
       setError(null)
 
       if (!params?.id) return
@@ -224,7 +226,6 @@ export default function DeviceDetailPage() {
         await new Promise(resolve => setTimeout(resolve, 500))
         setDevice(mockDevice)
         setLoading(false)
-        setIsRefreshing(false)
         return
       }
 
@@ -261,7 +262,6 @@ export default function DeviceDetailPage() {
       setError(err.message)
     } finally {
       setLoading(false)
-      setIsRefreshing(false)
     }
   }
 
@@ -294,7 +294,7 @@ export default function DeviceDetailPage() {
   if (error || !device) {
     return (
       <div className="space-y-4">
-        <Button variant="outline" onClick={() => router.back()} className="flex items-center">
+        <Button variant="outline" onClick={() => router.push(returnTo)} className="flex items-center">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Devices
         </Button>
@@ -306,7 +306,7 @@ export default function DeviceDetailPage() {
             <p className="text-muted-foreground mb-4">
               {error || "The device you're looking for doesn't exist or has been removed."}
             </p>
-            <Button onClick={() => router.push("/dashboard/devices")}>View All Devices</Button>
+            <Button onClick={() => router.push(returnTo)}>View All Devices</Button>
           </CardContent>
         </Card>
       </div>
@@ -318,7 +318,7 @@ export default function DeviceDetailPage() {
       <Button
         variant="ghost"
         className="mb-2 pl-0 -ml-3"
-        onClick={() => router.push('/dashboard/devices')}
+        onClick={() => router.push(returnTo)}
       >
         <ChevronLeft className="h-4 w-4 mr-1" /> Back to devices
       </Button>
