@@ -68,7 +68,10 @@ const STANDARDS_LABELS = {
   NEMA_KENYA: 'NEMA Kenya',
 } as const;
 
-const MAP_LAYER_LABELS: Record<NonNullable<VisualizerChartConfig['mapLayer']>, string> = {
+const MAP_LAYER_LABELS: Record<
+  NonNullable<VisualizerChartConfig['mapLayer']>,
+  string
+> = {
   points: 'Points',
   heatmap: 'Heatmap',
   grid: 'Grid choropleth',
@@ -294,12 +297,14 @@ const applyExportCloneStyles = (
     }
   });
 
-  documentClone.querySelectorAll('.recharts-legend-wrapper').forEach(element => {
-    if (element instanceof cloneView.HTMLElement) {
-      element.style.color = EXPORT_TEXT_COLOR;
-      element.style.backgroundColor = 'transparent';
-    }
-  });
+  documentClone
+    .querySelectorAll('.recharts-legend-wrapper')
+    .forEach(element => {
+      if (element instanceof cloneView.HTMLElement) {
+        element.style.color = EXPORT_TEXT_COLOR;
+        element.style.backgroundColor = 'transparent';
+      }
+    });
 
   documentClone
     .querySelectorAll('.recharts-legend-item-text, .recharts-text')
@@ -763,8 +768,7 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
                   value={chart.mapLayer ?? 'points'}
                   onChange={event =>
                     updateChart({
-                      mapLayer: event.target
-                        .value as NonNullable<
+                      mapLayer: event.target.value as NonNullable<
                         VisualizerChartConfig['mapLayer']
                       >,
                     })
@@ -804,7 +808,8 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
                   const shouldSyncYAxisLabel =
                     !chart.yAxisLabel ||
                     chart.yAxisLabel === chart.metricColumn ||
-                    chart.yAxisLabel === formatMeasurementLabel(chart.metricColumn);
+                    chart.yAxisLabel ===
+                      formatMeasurementLabel(chart.metricColumn);
 
                   updateChart({
                     metricColumn: nextMetricColumn,
@@ -812,8 +817,7 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
                       ? nextMetricLabel
                       : chart.yAxisLabel,
                     showReferenceLines:
-                      chart.showReferenceLines ||
-                      /pm/i.test(nextMetricColumn),
+                      chart.showReferenceLines || /pm/i.test(nextMetricColumn),
                   });
                 }}
                 containerClassName="mb-0"
@@ -826,7 +830,9 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
               </Select>
               <Input
                 label="Y-axis label"
-                value={chart.yAxisLabel ?? formatMeasurementLabel(chart.metricColumn)}
+                value={
+                  chart.yAxisLabel ?? formatMeasurementLabel(chart.metricColumn)
+                }
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                   updateChart({
                     yAxisLabel: event.target.value || undefined,
@@ -841,8 +847,7 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
                     value={chart.latitudeColumn || ''}
                     onChange={event =>
                       updateChart({
-                        latitudeColumn:
-                          String(event.target.value) || undefined,
+                        latitudeColumn: String(event.target.value) || undefined,
                       })
                     }
                     containerClassName="mb-0"

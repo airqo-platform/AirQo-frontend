@@ -237,7 +237,7 @@ const LEGACY_SOURCE_COLUMN_KEY_MAP: Record<string, string> = {
 const SOURCE_COLUMN_NAME_SET = new Set(Object.values(SOURCE_COLUMN_KEYS));
 
 const normalizeSourceColumnKey = (column?: string) =>
-  column ? LEGACY_SOURCE_COLUMN_KEY_MAP[column] ?? column : column;
+  column ? (LEGACY_SOURCE_COLUMN_KEY_MAP[column] ?? column) : column;
 const formatDetectedFieldName = (column: string) =>
   SOURCE_COLUMN_NAME_SET.has(
     column as (typeof SOURCE_COLUMN_KEYS)[keyof typeof SOURCE_COLUMN_KEYS]
@@ -557,8 +557,10 @@ export const DataVisualizerWorkspace: React.FC<
       setError(null);
 
       try {
-        const { datasets: parsedDatasets, errors } =
-          await parseUploadedFiles(files, abortController.signal);
+        const { datasets: parsedDatasets, errors } = await parseUploadedFiles(
+          files,
+          abortController.signal
+        );
 
         if (abortController.signal.aborted) {
           return;

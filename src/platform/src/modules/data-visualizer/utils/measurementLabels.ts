@@ -7,7 +7,10 @@ type PollutantLabelDefinition = {
 };
 
 const UNIT_PATTERNS: Array<[RegExp, string]> = [
-  [/(?:micrograms?|ug|µg)\s*(?:per|\/)?\s*(?:m3|m\^3|m³|cubic_meter)/i, 'µg/m³'],
+  [
+    /(?:micrograms?|ug|µg)\s*(?:per|\/)?\s*(?:m3|m\^3|m³|cubic_meter)/i,
+    'µg/m³',
+  ],
   [/(?:milligrams?|mg)\s*(?:per|\/)?\s*(?:m3|m\^3|m³|cubic_meter)/i, 'mg/m³'],
   [/(?:nanograms?|ng)\s*(?:per|\/)?\s*(?:m3|m\^3|m³|cubic_meter)/i, 'ng/m³'],
   [/(?:parts?_?per_?million|ppm)\b/i, 'ppm'],
@@ -31,8 +34,7 @@ const POLLUTANT_LABELS: PollutantLabelDefinition[] = [
     symbol: 'PM₁₀',
     defaultUnit: 'µg/m³',
     match: key =>
-      /(^|_)pm_?10($|_)/.test(key) ||
-      /coarse_?particulate/.test(key),
+      /(^|_)pm_?10($|_)/.test(key) || /coarse_?particulate/.test(key),
   },
   {
     symbol: 'PM₁',
@@ -102,7 +104,8 @@ const POLLUTANT_LABELS: PollutantLabelDefinition[] = [
   {
     symbol: 'H₂S',
     defaultUnit: 'µg/m³',
-    match: key => /(^|_)(h2s|hydrogen_?sulfide|hydrogen_?sulphide)($|_)/.test(key),
+    match: key =>
+      /(^|_)(h2s|hydrogen_?sulfide|hydrogen_?sulphide)($|_)/.test(key),
   },
   {
     symbol: 'CH₄',
@@ -112,7 +115,8 @@ const POLLUTANT_LABELS: PollutantLabelDefinition[] = [
   {
     symbol: 'VOCs',
     defaultUnit: 'ppb',
-    match: key => /(^|_)(voc|vocs|tvoc|volatile_?organic_?compounds?)($|_)/.test(key),
+    match: key =>
+      /(^|_)(voc|vocs|tvoc|volatile_?organic_?compounds?)($|_)/.test(key),
   },
   {
     symbol: 'AQI',
@@ -174,9 +178,7 @@ const getSourceColumnLabel = (column: string | undefined) => {
     return undefined;
   }
 
-  return SOURCE_COLUMN_LABELS[
-    column as keyof typeof SOURCE_COLUMN_LABELS
-  ];
+  return SOURCE_COLUMN_LABELS[column as keyof typeof SOURCE_COLUMN_LABELS];
 };
 
 export const formatMeasurementLabel = (column: string | undefined) => {

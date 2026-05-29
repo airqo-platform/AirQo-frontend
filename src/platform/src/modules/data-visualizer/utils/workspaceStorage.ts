@@ -64,9 +64,7 @@ const runDraftTransaction = async <T>(
       result = request.result;
     };
     request.onerror = () =>
-      rejectOnce(
-        request.error || new Error('Draft storage operation failed.')
-      );
+      rejectOnce(request.error || new Error('Draft storage operation failed.'));
     transaction.oncomplete = () => resolveOnce(result);
     transaction.onerror = () =>
       rejectOnce(
