@@ -30,7 +30,7 @@ import { Pagination } from "@/components/ui/pagination"
 import { useToast } from "@/components/ui/use-toast"
 import dynamic from "next/dynamic"
 import { getDeviceSummary, getDevicesForUIPaginated, syncDevices, syncDevicePerformance } from "@/services/device-api.service"
-import type { DeviceSummaryResponse, UIDevice } from "@/types/api.types"
+import type { ApiResponseMeta, DeviceSummaryResponse, UIDevice } from "@/types/api.types"
 import UpdateDeviceDialog from "@/components/dashboard/update-device-dialog"
 import { formatCategoryLabel } from "@/lib/utils"
 import { useGroup } from "@/lib/group-context"
@@ -79,6 +79,7 @@ export default function DevicesPage() {
 
   // State for device data
   const [devices, setDevices] = useState<UIDevice[]>([])
+  const [devicesMeta, setDevicesMeta] = useState<ApiResponseMeta | null>(null)
   const [totalDevices, setTotalDevices] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
   const [hasNext, setHasNext] = useState(false)
@@ -126,6 +127,7 @@ export default function DevicesPage() {
   const fetchDevices = async () => {
     if (!activeGroup) {
       setDevices([])
+      setDevicesMeta(null)
       setTotalDevices(0)
       setTotalPages(0)
       setHasNext(false)
@@ -167,6 +169,7 @@ export default function DevicesPage() {
       const data = await getDevicesForUIPaginated(params)
 
       setDevices(data.devices)
+      setDevicesMeta(data.meta ?? null)
       setTotalDevices(data.pagination.total)
       setTotalPages(data.pagination.pages)
       setHasNext(data.pagination.has_next)
@@ -249,10 +252,16 @@ export default function DevicesPage() {
       : 0
   }, [])
 
-  const trackedPercentage = calculatePercentage(deviceCounts.tracked_devices, deviceCounts.total_devices)
-  const onlinePercentage = calculatePercentage(deviceCounts.tracked_online, deviceCounts.tracked_devices)
-  const offlinePercentage = calculatePercentage(deviceCounts.tracked_offline, deviceCounts.tracked_devices)
-  const deployedPercentage = calculatePercentage(deviceCounts.deployed_devices, deviceCounts.total_devices)
+  const totalDevicesCount = devicesMeta?.totalDevices ?? devicesMeta?.total ?? deviceCounts.total_devices
+  const trackedDevicesCount = devicesMeta?.devicesInAtLeastOneCohort ?? deviceCounts.tracked_devices
+  const deployedDevicesCount = devicesMeta?.deployedDevices ?? deviceCounts.deployed_devices
+  const onlineDevicesCount = devicesMeta?.onlineDevices ?? deviceCounts.tracked_online
+  const offlineDevicesCount = devicesMeta?.offlineDevices ?? deviceCounts.tracked_offline
+
+  const trackedPercentage = calculatePercentage(trackedDevicesCount, totalDevicesCount)
+  const onlinePercentage = calculatePercentage(onlineDevicesCount, trackedDevicesCount)
+  const offlinePercentage = calculatePercentage(offlineDevicesCount, trackedDevicesCount)
+  const deployedPercentage = calculatePercentage(deployedDevicesCount, totalDevicesCount)
 
   // Get unique networks for filter
   const uniqueNetworks = useMemo(() => {
@@ -261,19 +270,25 @@ export default function DevicesPage() {
   }, [devices])
 
   // No client-side filtering needed - backend handles search
-  // Sort devices - online devices first, then by name
+  const getDeviceLastSeenTimestamp = useCallback((device: UIDevice) => {
+    return device.reading_timestamp || device.last_updated || null
+  }, [])
+
   // Helper to check if device is online based on "previous day" logic
   const isDeviceOnline = useCallback((device: UIDevice) => {
-    if (!device.last_updated) return false
+    const lastSeenTimestamp = getDeviceLastSeenTimestamp(device)
+    if (!lastSeenTimestamp) return false
 
     // Check if timestamp is from yesterday or today (or later)
-    const updatedDate = new Date(device.last_updated)
+    const updatedDate = new Date(lastSeenTimestamp)
+    if (Number.isNaN(updatedDate.getTime())) return false
+
     const cutoffDate = new Date()
     cutoffDate.setDate(cutoffDate.getDate() - 1) // Subtract 1 day
     cutoffDate.setHours(0, 0, 0, 0) // Start of that day
 
     return updatedDate >= cutoffDate
-  }, [])
+  }, [getDeviceLastSeenTimestamp])
 
   // Sort devices - online devices first, then by name
   const sortedDevices = useMemo(() => {
@@ -286,7 +301,7 @@ export default function DevicesPage() {
       return (a.device_name || "").localeCompare(b.device_name || "");
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [devices, isDeviceOnline]);
+  }, [devices]);
 
   // Memoize map device data to avoid re-filtering/mapping on every render
   const mapDevices = useMemo(() => {
@@ -466,13 +481,13 @@ export default function DevicesPage() {
             <div className="flex justify-between items-end">
               <div>
                 <div className="text-3xl font-bold">
-                  {loading ? '...' : deviceCounts.total_devices}
+                  {loading ? '...' : totalDevicesCount}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">Registered devices</p>
               </div>
               <div className="text-right">
                 <div className="text-xl font-bold text-primary">
-                  {loading ? '...' : deviceCounts.tracked_devices}
+                  {loading ? '...' : trackedDevicesCount}
                 </div>
                 <p className="text-xs text-muted-foreground">Tracked ({trackedPercentage}%)</p>
               </div>
@@ -495,7 +510,7 @@ export default function DevicesPage() {
           </CardHeader>
           <CardContent className="pt-4">
             <div className="text-3xl font-bold">
-              {loading ? '...' : deviceCounts.deployed_devices}
+              {loading ? '...' : deployedDevicesCount}
             </div>
             <div className="flex items-center mt-1">
               <div className="h-2 bg-blue-500 rounded-full" style={{ width: `${deployedPercentage}%` }}></div>
@@ -514,7 +529,7 @@ export default function DevicesPage() {
           </CardHeader>
           <CardContent className="pt-4">
             <div className="text-3xl font-bold">
-              {loading ? '...' : deviceCounts.tracked_online}
+              {loading ? '...' : onlineDevicesCount}
             </div>
             <div className="flex items-center mt-1">
               <div className="h-2 bg-green-500 rounded-full" style={{ width: `${onlinePercentage}%` }}></div>
@@ -533,7 +548,7 @@ export default function DevicesPage() {
           </CardHeader>
           <CardContent className="pt-4">
             <div className="text-3xl font-bold">
-              {loading ? '...' : deviceCounts.tracked_offline}
+              {loading ? '...' : offlineDevicesCount}
             </div>
             <div className="flex items-center mt-1">
               <div className="h-2 bg-red-500 rounded-full" style={{ width: `${offlinePercentage}%` }}></div>
@@ -700,6 +715,7 @@ export default function DevicesPage() {
                         const statusInfo = getStatusBadge(device)
                         const deploymentInfo = getDeploymentBadge(device.status)
                         const StatusIcon = statusInfo.icon
+                        const lastSeenTimestamp = getDeviceLastSeenTimestamp(device)
                         const firmwareInfo = getFirmwareBadge(
                           device.current_firmware,
                           device.target_firmware,
@@ -731,7 +747,7 @@ export default function DevicesPage() {
                                       />
                                     </TooltipTrigger>
                                     <TooltipContent className={isDeviceOnline(device) ? "bg-green-600 text-white border-green-600" : "bg-gray-600 text-white border-gray-600"}>
-                                      <p>Last updated: {device.last_updated ? new Date(device.last_updated).toLocaleDateString() : 'Never'}</p>
+                                      <p>Last updated: {lastSeenTimestamp ? new Date(lastSeenTimestamp).toLocaleString() : 'Never'}</p>
                                     </TooltipContent>
                                   </Tooltip>
                                 </TooltipProvider>
