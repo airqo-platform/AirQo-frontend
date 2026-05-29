@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
@@ -8,7 +9,8 @@ import { Label } from "@/components/ui/label";
 
 import { useUpdateCohortDetails, useUpdateCohortName } from "@/core/hooks/useCohorts";
 import { PERMISSIONS } from "@/core/permissions/constants";
-import logger from "@/lib/logger";
+import { useBanner } from "@/context/banner-context";
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import { buildCohortName, sanitizeCohortInput, splitCohortName } from "@/core/utils/cohortName";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { MultiSelectCombobox } from "@/components/ui/multi-select";
@@ -43,6 +45,8 @@ const CohortDetailsModal: React.FC<CohortDetailsModalProps> = ({
         updateReason: "",
         tags: [] as string[],
     });
+    const { showBanner } = useBanner();
+    const { showBannerWithDelay } = useBannerWithDelay();
     const updateCohortName = useUpdateCohortName();
     const updateCohortDetails = useUpdateCohortDetails();
     const [showIgnoredTooltip, setShowIgnoredTooltip] = useState({
@@ -123,8 +127,17 @@ const CohortDetailsModal: React.FC<CohortDetailsModalProps> = ({
                 });
             }
             onClose();
-        } catch {
-            logger.info("Something went wrong")
+            showBannerWithDelay({
+                severity: 'success',
+                message: 'Cohort details updated successfully',
+                scoped: false,
+            });
+        } catch (error) {
+            showBanner({
+                severity: 'error',
+                message: `Failed to update cohort: ${getApiErrorMessage(error)}`,
+                scoped: true,
+            });
         }
     };
 

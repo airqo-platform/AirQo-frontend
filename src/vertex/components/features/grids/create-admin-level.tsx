@@ -19,7 +19,7 @@ import {
 import { AdminLevelsModal } from "./admin-levels-modal";
 import { useBanner } from "@/context/banner-context";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
-import { useDeferredBanner } from "@/core/hooks/useDeferredBanner";
+import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
 
 const adminLevelFormSchema = z.object({
   name: z.string().min(2, {
@@ -33,7 +33,7 @@ export function CreateAdminLevel() {
   const [open, setOpen] = useState(false);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const { showBanner } = useBanner();
-  const { showDeferredBanner } = useDeferredBanner();
+  const { showBannerWithDelay } = useBannerWithDelay();
 
   const form = useForm<AdminLevelFormValues>({
     resolver: zodResolver(adminLevelFormSchema),
@@ -50,7 +50,7 @@ export function CreateAdminLevel() {
   const { createAdminLevel, isLoading } = useCreateAdminLevel({
     onSuccess: () => {
       handleClose();
-      showDeferredBanner({ message: "Admin level created successfully", severity: "success", scoped: false });
+      showBannerWithDelay({ message: "Admin level created successfully", severity: "success", scoped: false });
     },
     onError: (error) => {
       showBanner({

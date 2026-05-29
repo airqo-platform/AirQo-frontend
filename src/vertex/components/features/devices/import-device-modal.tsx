@@ -15,6 +15,7 @@ import { useAppSelector } from "@/core/redux/hooks";
 import { usePathname } from "next/navigation";
 import logger from "@/lib/logger";
 import { useBanner } from "@/context/banner-context";
+import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
 import { NetworkRequestDialog } from "../networks/network-request-dialog";
 import { MultiSelectCombobox } from "@/components/ui/multi-select";
 import ReusableFileUpload from "@/components/shared/fileupload/ReusableFileUpload";
@@ -26,6 +27,7 @@ import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 const EXPECTED_FIELDS = [
   { key: 'long_name', label: 'Device Name', required: true },
   { key: 'serial_number', label: 'Serial Number', required: true },
+  { key: 'authRequired', label: 'Authentication Required', required: true },
   { key: 'latitude', label: 'Latitude', required: false },
   { key: 'longitude', label: 'Longitude', required: false },
   { key: 'api_code', label: 'Device Connection URL', required: false },
@@ -58,6 +60,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
     writeKey: "",
     readKey: "",
     api_code: "",
+    authRequired: true,
     tags: [] as string[],
   });
 
@@ -71,8 +74,9 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
   const [fieldMapping, setFieldMapping] = useState<Record<string, string>>({});
   const [mappingMode, setMappingMode] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
-  const [transformedPreview, setTransformedPreview] = useState<Record<string, string | string[] | number | undefined>[]>([]);
+  const [transformedPreview, setTransformedPreview] = useState<Record<string, string | string[] | number | boolean | undefined>[]>([]);
   const { showBanner, hideBanner } = useBanner();
+  const { showBannerWithDelay } = useBannerWithDelay();
   const importDevice = useImportDevice();
   const bulkImport = useBulkImportDevices();
   const { networks, isLoading: isLoadingNetworks } = useNetworks();
@@ -157,6 +161,9 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       } else if (key === 'serialnumber') {
         const aliases = ['serialnumber', 'locationid', 'serial', 'id'];
         matchIdx = normalizedHeaders.findIndex(h => aliases.includes(h));
+      } else if (key === 'authrequired') {
+        const aliases = ['authrequired', 'authenticationrequired', 'requiresauth', 'requiredauth', 'auth required'];
+        matchIdx = normalizedHeaders.findIndex(h => aliases.includes(h));
       } else {
         matchIdx = normalizedHeaders.findIndex(h => h === key);
       }
@@ -197,7 +204,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
             setParsedData([]);
             setFieldMapping({});
             setMappingMode(false);
-            setErrors({ general: "The uploaded CSV does not contain any devices." });
+            showBanner({ severity: 'error', message: "The uploaded CSV does not contain any devices.", scoped: true });
             return;
           }
 
@@ -207,7 +214,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
           setMappingMode(true);
         },
         error: (err: { message: string }) => {
-          setErrors({ general: `Failed to parse CSV: ${err.message}` });
+          showBanner({ severity: 'error', message: `Failed to parse CSV: ${err.message}`, scoped: true });
         }
       });
     } else if (fileName.endsWith('.json')) {
@@ -216,7 +223,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         const json = JSON.parse(text);
         const devices = Array.isArray(json) ? json : (json.devices || []);
         if (!Array.isArray(devices) || devices.length === 0) {
-          setErrors({ general: 'JSON file must contain an array of devices' });
+          showBanner({ severity: 'error', message: 'JSON file must contain an array of devices', scoped: true });
           return;
         }
         const headers = Object.keys(devices[0] || {});
@@ -225,10 +232,10 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         autoMapFields(headers);
         setMappingMode(true);
       } catch {
-        setErrors({ general: 'Invalid JSON file format' });
+        showBanner({ severity: 'error', message: 'Invalid JSON file format', scoped: true });
       }
     } else {
-      setErrors({ general: 'Unsupported file type. Please upload a CSV or JSON file.' });
+      showBanner({ severity: 'error', message: 'Unsupported file type. Please upload a CSV or JSON file.', scoped: true });
     }
   };
 
@@ -236,17 +243,17 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
     setErrors({});
     if (mappingMode && parsedData.length > 0) {
       if (!formData.network) {
-        setErrors({ general: "Please select a Sensor Manufacturer for this import." });
+        showBanner({ severity: 'error', message: "Please select a Sensor Manufacturer.", scoped: true });
         return;
       }
       if (!formData.category) {
-        setErrors({ general: "Please select a Category for this import." });
+        showBanner({ severity: 'error', message: "Please select a Category for this import.", scoped: true });
         return;
       }
 
       const missingRequired = EXPECTED_FIELDS.filter(f => f.required && !fieldMapping[f.key]);
       if (missingRequired.length > 0) {
-        setErrors({ general: `Please map the required fields: ${missingRequired.map(f => f.label).join(', ')}` });
+        showBanner({ severity: 'error', message: `Please map the required fields: ${missingRequired.map(f => f.label).join(', ')}`, scoped: true });
         return;
       }
 
@@ -255,27 +262,55 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         (header, index) => mappedHeaders.indexOf(header) !== index
       );
       if (duplicateHeaders.length > 0) {
-        setErrors({ general: "Each file column can only be mapped once." });
+        showBanner({ severity: 'error', message: "Each file column can only be mapped once.", scoped: true });
         return;
       }
 
-      const transformedDevices = parsedData.map(row => {
-        const device: Record<string, string | string[] | number | undefined> = {};
+      const invalidAuthRows: number[] = [];
+
+      const transformedDevices = parsedData.map((row, rowIndex) => {
+        const device: Record<string, string | string[] | number | boolean | undefined> = {};
         EXPECTED_FIELDS.forEach(field => {
           const mappedHeader = fieldMapping[field.key];
           if (mappedHeader && row[mappedHeader] !== undefined && row[mappedHeader] !== "") {
-            device[field.key] = row[mappedHeader];
+            if (field.key === 'authRequired') {
+              const rawValue = String(row[mappedHeader]).trim().toLowerCase();
+              const TRUTHY_VALUES = ['true', '1', 'yes', 'y'];
+              const FALSY_VALUES = ['false', '0', 'no', 'n'];
+
+              if (TRUTHY_VALUES.includes(rawValue)) {
+                device.authRequired = true;
+              } else if (FALSY_VALUES.includes(rawValue)) {
+                device.authRequired = false;
+              } else {
+                invalidAuthRows.push(rowIndex + 1);
+              }
+            } else {
+              device[field.key] = row[mappedHeader];
+            }
           }
         });
-        
+
         device.network = formData.network;
         device.category = formData.category;
+        if (device.authRequired === undefined) {
+          device.authRequired = true;
+        }
         if (formData.tags && formData.tags.length > 0) {
           device.tags = formData.tags;
         }
 
         return device;
       });
+
+      if (invalidAuthRows.length > 0) {
+        showBanner({
+          severity: 'error',
+          message: `Invalid Authentication Required value on row(s): ${invalidAuthRows.join(', ')}. Accepted values are: yes, no, true, false, 1, 0, y, n.`,
+          scoped: true,
+        });
+        return;
+      }
 
       setTransformedPreview(transformedDevices);
       setMappingMode(false);
@@ -290,7 +325,13 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
     const deviceDataToSend = { ...formData };
 
     (Object.keys(deviceDataToSend) as Array<keyof typeof deviceDataToSend>).forEach((key) => {
-      if (!deviceDataToSend[key]) {
+      const value = deviceDataToSend[key];
+      if (
+        value === "" ||
+        value === undefined ||
+        value === null ||
+        (Array.isArray(value) && value.length === 0)
+      ) {
         delete deviceDataToSend[key];
       }
     });
@@ -313,14 +354,11 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       {
         onSuccess: (data, variables) => {
           onOpenChange(false);
-          onSuccess?.();
-          setTimeout(() => {
-            showBanner({
-              severity: 'success',
-              title: 'Success',
-              message: `${variables.long_name.trim()} has been imported successfully.`,
-              scoped: false
-            });
+          showBannerWithDelay({
+            severity: 'success',
+            title: 'Success',
+            message: `${variables.long_name.trim()} has been imported successfully.`,
+            scoped: false
           }, 300);
         },
         onError: (error) => {
@@ -335,7 +373,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
     const userId = userDetails?._id;
     if (!userId) {
       logger.warn("User ID is missing");
-      setErrors({ general: "User ID is missing. Please log in again." });
+      showBanner({ severity: 'error', message: "User ID is missing. Please log in again.", scoped: true });
       return;
     }
     const cohortId = getCohortId();
@@ -353,14 +391,11 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         onSuccess: (data) => {
           if (data.failed === 0) {
             onOpenChange(false);
-            onSuccess?.();
-            setTimeout(() => {
-              showBanner({
-                severity: 'success',
-                title: 'Success',
-                message: `${data.imported} device(s) imported successfully.`,
-                scoped: false,
-              });
+            showBannerWithDelay({
+              severity: 'success',
+              title: 'Success',
+              message: `${data.imported} device(s) imported successfully.`,
+              scoped: false,
             }, 300);
           } else {
             if (data.imported === 0) {
@@ -400,7 +435,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
     );
   };
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | boolean) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -431,6 +466,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         writeKey: "",
         readKey: "",
         api_code: "",
+        authRequired: true,
         tags: [],
       });
       setErrors({});
@@ -559,6 +595,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
                     <th className="px-4 py-3 font-medium border-b">Serial Number</th>
                     <th className="px-4 py-3 font-medium border-b">Manufacturer</th>
                     <th className="px-4 py-3 font-medium border-b">Category</th>
+                    <th className="px-4 py-3 font-medium border-b">Authentication Required</th>
                     <th className="px-4 py-3 font-medium border-b">Latitude</th>
                     <th className="px-4 py-3 font-medium border-b">Longitude</th>
                   </tr>
@@ -570,6 +607,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
                       <td className="px-4 py-3 font-mono text-xs">{device.serial_number || '-'}</td>
                       <td className="px-4 py-3">{device.network || '-'}</td>
                       <td className="px-4 py-3">{device.category || '-'}</td>
+                      <td className="px-4 py-3">{device.authRequired === false ? 'No' : 'Yes'}</td>
                       <td className="px-4 py-3">{device.latitude || '-'}</td>
                       <td className="px-4 py-3">{device.longitude || '-'}</td>
                     </tr>
@@ -763,6 +801,18 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
               {category.label}
             </option>
           ))}
+        </ReusableSelectInput>
+
+        <ReusableSelectInput
+          label="Authentication Required"
+          id="auth_required"
+          value={String(formData.authRequired)}
+          onChange={(e) => handleInputChange("authRequired", e.target.value === 'true')}
+          placeholder="Choose whether authentication is required"
+          required
+        >
+          <option value="true">True</option>
+          <option value="false">False</option>
         </ReusableSelectInput>
 
         <ReusableInputField

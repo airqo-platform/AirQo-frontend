@@ -55,36 +55,38 @@ const PartnerLogosSection: React.FC<{
       <h3 className="text-lg font-semibold text-gray-500">
         AIRQO IS SUPPORTED BY
       </h3>
-      <div className="grid grid-cols-2 border-l border-t border-gray-300 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="flex flex-wrap justify-center">
         {isLoading || partners.length === 0
           ? Array.from({ length: 6 }, (_, index) => (
               <div
                 key={`partner-skeleton-${index}`}
-                className="h-[100px] border-b border-r border-gray-300 p-4"
+                className="flex h-[100px] w-full max-w-[220px] items-center justify-center border border-gray-300 p-4 sm:w-[220px]"
               >
-                <div className="h-full w-full animate-pulse rounded-lg bg-white/70" />
+                <div className="h-12 w-full max-w-[150px] animate-pulse rounded-lg bg-white/70" />
               </div>
             ))
           : partners.map((partner, index) => (
               <div
                 key={partner.id || index}
-                className="relative h-[100px] overflow-hidden border-b border-r border-gray-300 p-4"
+                className="flex h-[100px] w-full max-w-[220px] items-center justify-center overflow-hidden border border-gray-300 p-4 sm:w-[220px]"
               >
-                <Image
-                  src={
-                    partner.partner_logo_url ||
-                    partner.logo ||
-                    '/assets/images/placeholder.webp'
-                  }
-                  alt={
-                    partner.partner_name ||
-                    partner.name ||
-                    `Partner ${index + 1}`
-                  }
-                  fill
-                  className="object-contain p-3 mix-blend-multiply transition-transform duration-500 ease-in-out transform hover:scale-110 cursor-pointer"
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
-                />
+                <div className="relative h-full w-full">
+                  <Image
+                    src={
+                      partner.partner_logo_url ||
+                      partner.logo ||
+                      '/assets/images/placeholder.webp'
+                    }
+                    alt={
+                      partner.partner_name ||
+                      partner.name ||
+                      `Partner ${index + 1}`
+                    }
+                    fill
+                    className="cursor-pointer object-contain p-3 transition-transform duration-500 ease-in-out hover:scale-110"
+                    sizes="(max-width: 640px) 220px, 220px"
+                  />
+                </div>
               </div>
             ))}
       </div>

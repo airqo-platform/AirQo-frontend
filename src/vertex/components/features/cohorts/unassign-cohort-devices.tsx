@@ -18,6 +18,9 @@ import { MultiSelectCombobox, Option } from "@/components/ui/multi-select";
 import { Cohort } from "@/app/types/cohorts";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import { Device } from "@/app/types/devices";
+import { useBanner } from "@/context/banner-context";
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
+import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
 
 interface UnassignCohortDevicesDialogProps {
   open: boolean;
@@ -46,7 +49,24 @@ export function UnassignCohortDevicesDialog({
   cohortDevices = [],
 }: UnassignCohortDevicesDialogProps) {
   const { cohorts } = useCohorts();
-  const { mutate: unassignDevices, isPending: isUnassigning } = useUnassignDevicesFromCohort();
+  const { showBanner } = useBanner();
+  const { showBannerWithDelay } = useBannerWithDelay();
+  const { mutate: unassignDevices, isPending: isUnassigning } = useUnassignDevicesFromCohort({
+    onSuccess: (variables) => {
+      showBannerWithDelay({
+        severity: 'success',
+        message: `${variables.device_ids.length} device(s) removed from cohort successfully`,
+        scoped: false,
+      });
+    },
+    onError: (error) => {
+      showBanner({
+        severity: 'error',
+        message: `Failed to remove devices: ${getApiErrorMessage(error)}`,
+        scoped: true,
+      });
+    },
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

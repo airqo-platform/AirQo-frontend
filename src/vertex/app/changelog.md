@@ -4,6 +4,136 @@
 
 ---
 
+## Version 1.23.55
+**Released:** May 28, 2026
+
+### Bulk Edit & Multi-Select Actions for Devices
+
+Added comprehensive bulk editing capabilities across device management tables, enabling users to efficiently update multiple devices at once. This includes multi-select functionality, a new bulk edit modal, and backend support for bulk updates.
+
+<details>
+<summary><strong>Changes (4)</strong></summary>
+
+- **Bulk Edit Modal**: Implemented `BulkEditDevicesModal` allowing users to update fields like Category, Network, Visibility, Auth Required, and Tags across multiple selected devices in a two-step flow (field selection → confirmation).
+- **Multi-Select Support**: Enhanced `ReusableTable`, `DevicesTable`, `ClientPaginatedDevicesTable`, and `NetworkDevicesTable` with multi-select functionality and bulk action handling.
+- **Bulk Update Hook & API**: Refactored device update logic and added `useUpdateDeviceBulk` hook to support efficient bulk operations in a single API call with proper success/error notifications.
+- **UI Integration**: Integrated bulk edit action into device list tables and improved action handling for better user experience.
+
+</details>
+
+<details>
+<summary><strong>Files Updated (8)</strong></summary>
+
+- `src/vertex/components/features/devices/bulk-edit-device-details-modal.tsx` [NEW]
+- `src/vertex/components/features/devices/device-list-table.tsx` [MODIFIED]
+- `src/vertex/core/hooks/useDevices.ts` [MODIFIED]
+- `src/vertex/core/apis/devices.ts` [MODIFIED]
+- `src/vertex/app/(authenticated)/devices/my-devices/page.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/client-paginated-devices-table.tsx` [MODIFIED]
+- `src/vertex/components/shared/table/ReusableTable.tsx` [MODIFIED]
+- `src/vertex/components/features/networks/network-device-list-table.tsx` [MODIFIED]
+
+</details>
+
+
+---
+
+## Version 1.23.54
+**Released:** May 28, 2026
+
+### Device Details Modal — authRequired Field & Reset Bug Fix
+
+Added `authRequired` as an editable field in the Device Details Modal and fixed a state reset bug where the field always reverted to `true` after a device data refresh.
+
+<details>
+<summary><strong>Changes (2)</strong></summary>
+
+- **authRequired Field Added**: Exposed `authRequired` as an editable `ReusableSelectInput` in the Basic Information section of the Device Details Modal, wired to the zod schema and form dirty-fields logic so it is only included in the update payload when changed.
+- **Reset Bug Fix**: Added `authRequired` to the `useEffect` form reset block that fires when the `device` prop changes. Previously the field was omitted from that reset, causing it to always revert to `true` after a successful update or device data refresh regardless of the stored value.
+
+</details>
+
+<details>
+<summary><strong>Files Updated (1)</strong></summary>
+
+- `src/vertex/components/features/devices/device-details-modal.tsx` [MODIFIED]
+
+</details>
+
+---
+
+## Version 1.23.53
+**Released:** May 28, 2026
+
+### Import Device Modal — authRequired Field & Error Handling Refactor
+
+Introduced `authRequired` as a first-class field in the bulk device import flow and migrated inline `setErrors` validation patterns to the centralized `showBanner` system inside `ImportDeviceModal`.
+
+<details>
+<summary><strong>Changes (2)</strong></summary>
+
+- **authRequired Field Added**: Added `authRequired` to `EXPECTED_FIELDS` with auto-detection of CSV header aliases (`auth required`, `authrequired`, `requiresauth`, etc.) and intelligent string-to-boolean mapping for values like `yes/no`, `true/false`, `1/0`, `y/n`. Defaults to `true` when the field is unmapped. The field is also exposed as a UI select input in the single-device import form.
+- **Error Handling Migration**: Replaced `setErrors({ general: ... })` patterns in mapping validation (missing required fields, duplicate column mappings, unsupported file types, empty CSV) with `showBanner({ severity: 'error', ..., scoped: true })` to keep error feedback consistent with the rest of the dialog system.
+
+</details>
+
+<details>
+<summary><strong>Files Updated (2)</strong></summary>
+
+- `src/vertex/components/features/devices/import-device-modal.tsx` [MODIFIED]
+- `src/vertex/core/hooks/useDevices.ts` [MODIFIED]
+
+</details>
+
+---
+
+## Version 1.23.52
+**Released:** May 27, 2026
+
+### Cohort Management Banner Migration & Banner Delay Standardization
+
+Migrated toast-based cohort notifications and raw `setTimeout` banner patterns in device dialogs to the centralized `InfoBanner` system and the shared `useBannerWithDelay` hook. Errors inside dialogs use `scoped: true` to stay inline while the dialog remains open; post-dialog success feedback uses `scoped: false` so the delayed banner appears only after the dialog has fully unmounted.
+
+<details>
+<summary><strong>Banner Delay Standardization (7)</strong></summary>
+
+- **Shared Delay Hook Rename**: Renamed the former `useDeferredBanner` hook to `useBannerWithDelay` across cohort, grid, and device consumers to make the hook name reflect the delayed display behavior.
+- **Hook-Level Callback Pattern**: All mutation hooks in `useCohorts.ts` now accept optional `onSuccess`/`onError` callbacks at initialization rather than per-call `mutate()` arguments, aligning with the reliable pattern established in the grid module.
+- **Dialog Error Feedback**: `create-cohort.tsx`, `edit-cohort-details-modal.tsx`, `device-name-parser.tsx`, and `assign/unassign-cohort-devices.tsx` use `scoped: true` so validation and mutation errors remain visible inside the active dialog without closing it.
+- **Post-Dialog Success Feedback**: `create-cohort.tsx`, `assign-cohort-devices.tsx`, and `unassign-cohort-devices.tsx` use the shared `useBannerWithDelay` hook (`scoped: false`) to show global success banners only after the dialog has unmounted.
+- **Device Banner Refactor**: Device modals and dialogs now use `useBannerWithDelay` instead of raw `setTimeout` timer patterns to display delayed success feedback after unmounting.
+- **Detail Card & API Card Feedback**: `cohort-detail-card.tsx` and `cohort-measurements-api-card.tsx` replace toast calls with `useBanner` for copy feedback and action outcomes, keeping feedback in context.
+- **Shared Utilities Adopted**: `useBannerWithDelay` hook and `AFTER_DIALOG_CLOSE_MS` constant (merged from the grid branch) are now consumed across the cohort module, removing all local `bannerTimerRef + setTimeout` patterns.
+
+</details>
+
+<details>
+<summary><strong>Files Updated (19)</strong></summary>
+
+- `src/vertex/core/hooks/useCohorts.ts` [MODIFIED]
+- `src/vertex/components/features/cohorts/create-cohort.tsx` [MODIFIED]
+- `src/vertex/components/features/cohorts/edit-cohort-details-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/cohorts/cohort-detail-card.tsx` [MODIFIED]
+- `src/vertex/components/features/cohorts/cohort-measurements-api-card.tsx` [MODIFIED]
+- `src/vertex/components/features/cohorts/device-name-parser.tsx` [MODIFIED]
+- `src/vertex/components/features/cohorts/assign-cohort-devices.tsx` [MODIFIED]
+- `src/vertex/components/features/cohorts/unassign-cohort-devices.tsx` [MODIFIED]
+- `src/vertex/components/features/grids/create-admin-level.tsx` [MODIFIED]
+- `src/vertex/components/features/grids/create-grid.tsx` [MODIFIED]
+- `src/vertex/components/features/grids/edit-grid-details-dialog.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/add-maintenance-log-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/create-device-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/deploy-device-component.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/device-assignment-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/import-device-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/recall-device-dialog.tsx` [MODIFIED]
+- `src/vertex/core/hooks/useBannerWithDelay.ts` [ADDED]
+- `src/vertex/app/changelog.md` [MODIFIED]
+
+</details>
+
+---
+
 ## Version 1.23.51
 **Released:** May 27, 2026
 

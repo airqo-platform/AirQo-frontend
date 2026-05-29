@@ -8,7 +8,7 @@ import { PERMISSIONS } from "@/core/permissions/constants";
 import { Grid } from "@/app/types/grids";
 import { useBanner } from "@/context/banner-context";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
-import { useDeferredBanner } from "@/core/hooks/useDeferredBanner";
+import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
 
 interface EditGridDetailsDialogProps {
     open: boolean;
@@ -23,12 +23,12 @@ const EditGridDetailsDialog: React.FC<EditGridDetailsDialogProps> = ({
 }) => {
     const [form, setForm] = useState({ name: "", visibility: false, admin_level: "" });
     const { showBanner } = useBanner();
-    const { showDeferredBanner } = useDeferredBanner();
+    const { showBannerWithDelay } = useBannerWithDelay();
 
     const { updateGridDetails, isLoading } = useUpdateGridDetails(grid._id, {
         onSuccess: () => {
             onClose();
-            showDeferredBanner({ message: "Grid details updated successfully", severity: "success", scoped: false });
+            showBannerWithDelay({ message: "Grid details updated successfully", severity: "success", scoped: false });
         },
         onError: (error) => {
             showBanner({
