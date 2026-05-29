@@ -44,7 +44,9 @@ import type {
 } from '../types';
 import { profileDataset } from '../utils/dataProfiling';
 import {
+  buildSourceFileKey,
   getReadableFileSize,
+  isAbortError,
   parseUploadedFile,
   parseUploadedFiles,
 } from '../utils/parseFiles';
@@ -227,10 +229,28 @@ const getColumnKindClass = (kind: string) => {
 const formatDraftSavedAt = (savedAt: string) =>
   formatWithPattern(savedAt, DATE_FORMATS.READABLE_DATETIME);
 
+const LEGACY_SOURCE_COLUMN_KEY_MAP: Record<string, string> = {
+  Dataset: SOURCE_COLUMN_KEYS.dataset,
+  'Source file': SOURCE_COLUMN_KEYS.file,
+  'Workbook sheet': SOURCE_COLUMN_KEYS.sheet,
+};
+const SOURCE_COLUMN_NAME_SET = new Set(Object.values(SOURCE_COLUMN_KEYS));
+
+const normalizeSourceColumnKey = (column?: string) =>
+  column ? LEGACY_SOURCE_COLUMN_KEY_MAP[column] ?? column : column;
+const formatDetectedFieldName = (column: string) =>
+  SOURCE_COLUMN_NAME_SET.has(
+    column as (typeof SOURCE_COLUMN_KEYS)[keyof typeof SOURCE_COLUMN_KEYS]
+  )
+    ? formatColumnLabel(column)
+    : column;
+
 const normalizeChartConfig = (
   chart: VisualizerChartConfig
 ): VisualizerChartConfig => ({
   ...chart,
+  xColumn: normalizeSourceColumnKey(chart.xColumn),
+  compareColumn: normalizeSourceColumnKey(chart.compareColumn),
   showXAxisLabel: chart.showXAxisLabel !== false,
   xAxisLabel: chart.xAxisLabel || formatColumnLabel(chart.xColumn),
   showYAxisLabel: chart.showYAxisLabel !== false,
@@ -528,6 +548,8 @@ export const DataVisualizerWorkspace: React.FC<
         return;
       }
 
+      parseAbortRef.current?.abort();
+
       const abortController = new AbortController();
       parseAbortRef.current = abortController;
 
@@ -536,19 +558,24 @@ export const DataVisualizerWorkspace: React.FC<
 
       try {
         const { datasets: parsedDatasets, errors } =
-          await parseUploadedFiles(files);
+          await parseUploadedFiles(files, abortController.signal);
 
         if (abortController.signal.aborted) {
           return;
         }
 
-        files.forEach(file => {
-          const matchingDatasets = parsedDatasets.filter(
-            dataset => dataset.fileName === file.name
-          );
-          matchingDatasets.forEach(dataset =>
-            sourceFilesRef.current.set(dataset.id, file)
-          );
+        const filesBySourceKey = new Map(
+          files.map(file => [buildSourceFileKey(file), file])
+        );
+
+        parsedDatasets.forEach(dataset => {
+          const file = dataset.sourceFileKey
+            ? filesBySourceKey.get(dataset.sourceFileKey)
+            : undefined;
+
+          if (file) {
+            sourceFilesRef.current.set(dataset.id, file);
+          }
         });
 
         applyNewDatasets(parsedDatasets);
@@ -565,10 +592,25 @@ export const DataVisualizerWorkspace: React.FC<
             imported_dataset_count: parsedDatasets.length,
           });
         }
-      } finally {
-        if (!abortController.signal.aborted) {
-          setIsParsing(false);
+      } catch (error) {
+        if (!isAbortError(error)) {
+          const message =
+            error instanceof Error
+              ? error.message
+              : 'The selected files could not be read.';
+
+          setError(message);
+          toast.error('Upload failed', message);
         }
+      } finally {
+        if (parseAbortRef.current === abortController) {
+          parseAbortRef.current = null;
+
+          if (!abortController.signal.aborted) {
+            setIsParsing(false);
+          }
+        }
+
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
         }
@@ -841,9 +883,9 @@ export const DataVisualizerWorkspace: React.FC<
   const showUploadPanel = datasets.length === 0 || uploadOpen;
 
   const filterRowsByDate = React.useCallback(
-    (rows: import('../types').UploadedDataRow[]) => {
+    (rows: import('../types').UploadedDataRow[], timeColumn?: string) => {
       if (!appliedDateRange?.from && !appliedDateRange?.to) return rows;
-      const timeCol = workspaceProfile.defaultTimeColumn;
+      const timeCol = timeColumn;
       if (!timeCol) return rows;
       const from = appliedDateRange.from
         ? appliedDateRange.from.getTime()
@@ -867,7 +909,7 @@ export const DataVisualizerWorkspace: React.FC<
         return d.getTime() >= from && d.getTime() <= to;
       });
     },
-    [appliedDateRange, workspaceProfile.defaultTimeColumn]
+    [appliedDateRange]
   );
 
   return (
@@ -1158,7 +1200,7 @@ export const DataVisualizerWorkspace: React.FC<
                         className="truncate text-sm font-medium text-foreground"
                         title={column.name}
                       >
-                        {column.name}
+                        {formatDetectedFieldName(column.name)}
                       </div>
                       <div className="text-xs text-muted-foreground">
                         {column.nonEmptyCount.toLocaleString()} values
@@ -1312,7 +1354,12 @@ export const DataVisualizerWorkspace: React.FC<
         <div className="grid grid-cols-1 gap-4">
           {charts.map((chart, index) => {
             const rawRows = getDatasetRowsForChart(datasets, chart.datasetIds);
-            const rows = filterRowsByDate(rawRows);
+            const rawProfile = profileDataset(rawRows);
+            const timeColumn =
+              chart.xColumn && rawProfile.timeColumns.includes(chart.xColumn)
+                ? chart.xColumn
+                : rawProfile.defaultTimeColumn;
+            const rows = filterRowsByDate(rawRows, timeColumn);
             const profile = profileDataset(rows);
 
             return (

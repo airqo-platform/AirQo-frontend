@@ -11,6 +11,7 @@ export interface UploadedDataset {
   id: string;
   label: string;
   fileName: string;
+  sourceFileKey?: string;
   fileType: 'csv' | 'xlsx';
   sheetName?: string;
   sheetOptions: SheetOption[];

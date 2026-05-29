@@ -709,7 +709,7 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
                       className="text-destructive focus:text-destructive"
                     >
                       <AqTrash01 className="mr-2 h-4 w-4" />
-                      Remove chart
+                      {chart.type === 'map' ? 'Remove map' : 'Remove chart'}
                     </DropdownMenuItem>
                   </>
                 )}

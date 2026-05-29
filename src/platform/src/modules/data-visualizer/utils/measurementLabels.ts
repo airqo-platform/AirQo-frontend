@@ -1,3 +1,5 @@
+import { SOURCE_COLUMN_LABELS } from '../constants';
+
 type PollutantLabelDefinition = {
   symbol: string;
   defaultUnit?: string;
@@ -10,7 +12,7 @@ const UNIT_PATTERNS: Array<[RegExp, string]> = [
   [/(?:nanograms?|ng)\s*(?:per|\/)?\s*(?:m3|m\^3|m³|cubic_meter)/i, 'ng/m³'],
   [/(?:parts?_?per_?million|ppm)\b/i, 'ppm'],
   [/(?:parts?_?per_?billion|ppb)\b/i, 'ppb'],
-  [/(?:percent|percentage|pct|%)\b/i, '%'],
+  [/(?:percent|percentage|pct|%)(?!\w)/i, '%'],
   [/(?:degrees?_?c|deg_?c|celsius|°c)\b/i, '°C'],
   [/(?:degrees?_?f|deg_?f|fahrenheit|°f)\b/i, '°F'],
   [/(?:kelvin|\bk)\b/i, 'K'],
@@ -167,6 +169,16 @@ const getPollutantDefinition = (column: string) => {
   );
 };
 
+const getSourceColumnLabel = (column: string | undefined) => {
+  if (!column) {
+    return undefined;
+  }
+
+  return SOURCE_COLUMN_LABELS[
+    column as keyof typeof SOURCE_COLUMN_LABELS
+  ];
+};
+
 export const formatMeasurementLabel = (column: string | undefined) => {
   if (!column) {
     return 'Measurement';
@@ -188,10 +200,20 @@ export const formatColumnLabel = (column: string | undefined) => {
     return 'Record order';
   }
 
+  const sourceLabel = getSourceColumnLabel(column);
+  if (sourceLabel) {
+    return sourceLabel;
+  }
+
   return formatMeasurementLabel(column);
 };
 
 export const formatSelectOptionLabel = (column: string) => {
+  const sourceLabel = getSourceColumnLabel(column);
+  if (sourceLabel) {
+    return sourceLabel;
+  }
+
   const formatted = formatColumnLabel(column);
   return formatted === column ? column : `${formatted} - ${column}`;
 };

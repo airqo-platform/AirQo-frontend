@@ -289,15 +289,20 @@ const buildBarLikeModel = (
     return point;
   });
 
+  const hasNumericValues = data.some(point =>
+    registry.seriesKeys.some(key => typeof point[key] === 'number')
+  );
+  const chartData = hasNumericValues ? data : [];
+
   return {
-    data,
+    data: chartData,
     seriesKeys: registry.seriesKeys,
     seriesLabels: registry.seriesLabels,
     xKey: X_KEY,
     yLabel: metricLabels.join(', '),
     pollutant: getPollutantFromMetric(config.metricColumn),
     emptyReason:
-      data.length === 0
+      chartData.length === 0
         ? 'No groups could be built from this data.'
         : undefined,
   };

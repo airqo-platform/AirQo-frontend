@@ -13,6 +13,7 @@ interface ParseUploadedFileOptions {
   sheetName?: string;
   knownSheets?: SheetOption[];
   label?: string;
+  signal?: AbortSignal;
 }
 
 type TabularRow = readonly unknown[];
@@ -51,6 +52,29 @@ const createDatasetId = () => {
 const createDatasetLabel = (file: File, sheetName?: string) => {
   const baseName = file.name.replace(/\.[^.]+$/, '');
   return sheetName ? `${baseName} - ${sheetName}` : baseName;
+};
+
+export const buildSourceFileKey = (
+  file: Pick<File, 'name' | 'size' | 'lastModified'>
+) => `${file.name}:${file.size}:${file.lastModified}`;
+
+const createAbortError = (signal?: AbortSignal) => {
+  if (signal?.reason instanceof Error) {
+    return signal.reason;
+  }
+
+  const error = new Error('Upload cancelled');
+  error.name = 'AbortError';
+  return error;
+};
+
+export const isAbortError = (error: unknown): error is Error =>
+  error instanceof Error && error.name === 'AbortError';
+
+const throwIfAborted = (signal?: AbortSignal) => {
+  if (signal?.aborted) {
+    throw createAbortError(signal);
+  }
 };
 
 const normalizeCellValue = (value: unknown): UploadedCellValue => {
@@ -159,9 +183,19 @@ const parseCsvFileWithWorker = (
   useWorker: boolean
 ): Promise<UploadedDataset> =>
   new Promise((resolve, reject) => {
+    const { signal } = options;
     const retainedRows: TabularRow[] = [];
     let nonEmptyRowCount = 0;
     const warnings: string[] = [];
+    let activeParser: Papa.Parser | null = null;
+
+    throwIfAborted(signal);
+
+    const handleAbort = () => {
+      activeParser?.abort();
+    };
+
+    signal?.addEventListener('abort', handleAbort, { once: true });
 
     Papa.parse<unknown[]>(file, {
       header: false,
@@ -171,7 +205,14 @@ const parseCsvFileWithWorker = (
       // Use `step` (not `chunk`) — step is the reliable row-by-row streaming
       // API for worker:false. The `chunk` callback has known issues in Next.js
       // where it causes `complete` to receive undefined, breaking the parse.
-      step: results => {
+      step: (results, parser) => {
+        activeParser = parser;
+
+        if (signal?.aborted) {
+          parser.abort();
+          return;
+        }
+
         if (!results) return;
 
         (results.errors ?? []).slice(0, 5 - warnings.length).forEach(error => {
@@ -194,6 +235,13 @@ const parseCsvFileWithWorker = (
         }
       },
       complete: results => {
+        signal?.removeEventListener('abort', handleAbort);
+
+        if (signal?.aborted) {
+          reject(createAbortError(signal));
+          return;
+        }
+
         if (!results) {
           reject(new Error('CSV parsing failed. Try re-uploading the file.'));
           return;
@@ -226,6 +274,7 @@ const parseCsvFileWithWorker = (
           id: createDatasetId(),
           label: options.label || createDatasetLabel(file),
           fileName: file.name,
+          sourceFileKey: buildSourceFileKey(file),
           fileType: 'csv',
           sheetOptions: [],
           rows: parsedCsv.rows,
@@ -236,7 +285,10 @@ const parseCsvFileWithWorker = (
           uploadedAt: new Date().toISOString(),
         });
       },
-      error: error => reject(error),
+      error: error => {
+        signal?.removeEventListener('abort', handleAbort);
+        reject(signal?.aborted ? createAbortError(signal) : error);
+      },
     });
   });
 
@@ -271,6 +323,7 @@ const buildExcelDataset = (
     id: createDatasetId(),
     label: label || createDatasetLabel(file, sheetName),
     fileName: file.name,
+    sourceFileKey: buildSourceFileKey(file),
     fileType: 'xlsx',
     sheetName,
     sheetOptions,
@@ -287,8 +340,12 @@ const parseExcelFile = async (
   file: File,
   options: ParseUploadedFileOptions
 ): Promise<UploadedDataset> => {
+  throwIfAborted(options.signal);
+
   if (options.sheetName && options.knownSheets?.length) {
     const sheetData = await readSheet(file, options.sheetName);
+
+    throwIfAborted(options.signal);
 
     return buildExcelDataset(
       file,
@@ -300,6 +357,9 @@ const parseExcelFile = async (
   }
 
   const sheets = await readExcelFile(file);
+
+  throwIfAborted(options.signal);
+
   const sheetOptions = sheets.map(sheet => ({
     name: getExcelSheetName(sheet),
     rowCount: Math.max(0, sheet.data.length - 1),
@@ -325,6 +385,8 @@ export const parseUploadedFile = async (
   file: File,
   options: ParseUploadedFileOptions = {}
 ): Promise<UploadedDataset> => {
+  throwIfAborted(options.signal);
+
   if (file.size > MAX_UPLOAD_FILE_SIZE_BYTES) {
     throw new Error(
       `This file is ${getReadableFileSize(file.size)}. Please upload a file under ${getReadableFileSize(MAX_UPLOAD_FILE_SIZE_BYTES)}.`
@@ -350,14 +412,23 @@ export const parseUploadedFile = async (
   throw new Error('Upload a CSV or XLSX file.');
 };
 
-export const parseUploadedFiles = async (files: File[]) => {
+export const parseUploadedFiles = async (
+  files: File[],
+  signal?: AbortSignal
+) => {
   const datasets: UploadedDataset[] = [];
   const errors: Array<{ fileName: string; message: string }> = [];
 
   for (const file of files) {
+    throwIfAborted(signal);
+
     try {
-      datasets.push(await parseUploadedFile(file));
+      datasets.push(await parseUploadedFile(file, { signal }));
     } catch (error) {
+      if (isAbortError(error)) {
+        throw error;
+      }
+
       errors.push({
         fileName: file.name,
         message:
@@ -365,6 +436,8 @@ export const parseUploadedFiles = async (files: File[]) => {
       });
     }
   }
+
+  throwIfAborted(signal);
 
   return { datasets, errors };
 };

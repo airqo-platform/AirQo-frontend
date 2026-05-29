@@ -81,12 +81,14 @@ export const parseDateValue = (
   }
 
   if (typeof value === 'number') {
-    if (value > 100000000000) {
+    const absoluteValue = Math.abs(value);
+
+    if (absoluteValue > 100000000000) {
       const date = new Date(value);
       return Number.isNaN(date.getTime()) ? null : date;
     }
 
-    if (value > 1000000000) {
+    if (absoluteValue > 100000000) {
       const date = new Date(value * 1000);
       return Number.isNaN(date.getTime()) ? null : date;
     }

@@ -57,10 +57,19 @@ export const COLOR_PICKER_FALLBACKS = [
 ];
 
 export const SOURCE_COLUMN_KEYS = {
-  dataset: 'Dataset',
-  file: 'Source file',
-  sheet: 'Workbook sheet',
+  dataset: '__source_dataset',
+  file: '__source_file',
+  sheet: '__source_sheet',
 } as const;
+
+export const SOURCE_COLUMN_LABELS: Record<
+  (typeof SOURCE_COLUMN_KEYS)[keyof typeof SOURCE_COLUMN_KEYS],
+  string
+> = {
+  [SOURCE_COLUMN_KEYS.dataset]: 'Dataset',
+  [SOURCE_COLUMN_KEYS.file]: 'Source file',
+  [SOURCE_COLUMN_KEYS.sheet]: 'Workbook sheet',
+};
 
 export const AIR_QUALITY_CATEGORY_COLORS = {
   Good: '#22c55e',

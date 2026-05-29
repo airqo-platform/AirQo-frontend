@@ -37,17 +37,45 @@ const runDraftTransaction = async <T>(
     const transaction = db.transaction(DRAFT_STORE, mode);
     const store = transaction.objectStore(DRAFT_STORE);
     const request = operation(store);
+    let result: T;
+    let settled = false;
 
-    request.onsuccess = () => resolve(request.result);
+    const closeDb = () => db.close();
+    const resolveOnce = (value: T) => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      closeDb();
+      resolve(value);
+    };
+    const rejectOnce = (error: Error) => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      closeDb();
+      reject(error);
+    };
+
+    request.onsuccess = () => {
+      result = request.result;
+    };
     request.onerror = () =>
-      reject(request.error || new Error('Draft storage operation failed.'));
-    transaction.oncomplete = () => db.close();
-    transaction.onerror = () => {
-      db.close();
-      reject(
+      rejectOnce(
+        request.error || new Error('Draft storage operation failed.')
+      );
+    transaction.oncomplete = () => resolveOnce(result);
+    transaction.onerror = () =>
+      rejectOnce(
         transaction.error || new Error('Draft storage transaction failed.')
       );
-    };
+    transaction.onabort = () =>
+      rejectOnce(
+        transaction.error || new Error('Draft storage transaction aborted.')
+      );
   });
 };
 
@@ -57,7 +85,7 @@ export const saveWorkspaceDraft = async (
   const record: VisualizerWorkspaceDraft = {
     ...draft,
     id: DEFAULT_DRAFT_ID,
-    version: 2,
+    version: 3,
     savedAt: new Date().toISOString(),
   };
 
