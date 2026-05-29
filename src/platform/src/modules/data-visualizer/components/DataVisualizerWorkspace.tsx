@@ -136,7 +136,7 @@ const createChartConfig = (
     profile.numericColumns.find(column => column !== metricColumn);
   const compareColumn =
     datasetIds.length > 1
-      ? SOURCE_COLUMN_KEYS.dataset
+      ? SOURCE_COLUMN_KEYS.INTERNAL.dataset
       : profile.defaultCompareColumn || profile.dimensionColumns[0];
 
   const isDatasetComparison = datasetIds.length > 1;
@@ -230,18 +230,20 @@ const formatDraftSavedAt = (savedAt: string) =>
   formatWithPattern(savedAt, DATE_FORMATS.READABLE_DATETIME);
 
 const LEGACY_SOURCE_COLUMN_KEY_MAP: Record<string, string> = {
-  Dataset: SOURCE_COLUMN_KEYS.dataset,
-  'Source file': SOURCE_COLUMN_KEYS.file,
-  'Workbook sheet': SOURCE_COLUMN_KEYS.sheet,
+  Dataset: SOURCE_COLUMN_KEYS.INTERNAL.dataset,
+  'Source file': SOURCE_COLUMN_KEYS.INTERNAL.file,
+  'Workbook sheet': SOURCE_COLUMN_KEYS.INTERNAL.sheet,
 };
-const SOURCE_COLUMN_NAME_SET = new Set(Object.values(SOURCE_COLUMN_KEYS));
+const SOURCE_COLUMN_NAME_SET = new Set(
+  Object.values(SOURCE_COLUMN_KEYS.INTERNAL)
+);
+type InternalSourceColumnKey =
+  (typeof SOURCE_COLUMN_KEYS.INTERNAL)[keyof typeof SOURCE_COLUMN_KEYS.INTERNAL];
 
 const normalizeSourceColumnKey = (column?: string) =>
   column ? (LEGACY_SOURCE_COLUMN_KEY_MAP[column] ?? column) : column;
 const formatDetectedFieldName = (column: string) =>
-  SOURCE_COLUMN_NAME_SET.has(
-    column as (typeof SOURCE_COLUMN_KEYS)[keyof typeof SOURCE_COLUMN_KEYS]
-  )
+  SOURCE_COLUMN_NAME_SET.has(column as InternalSourceColumnKey)
     ? formatColumnLabel(column)
     : column;
 

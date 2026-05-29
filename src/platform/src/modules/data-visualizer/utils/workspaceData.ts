@@ -19,9 +19,9 @@ export const getDatasetRowsForChart = (
   return selectedDatasets.flatMap(dataset =>
     dataset.rows.map(row => ({
       ...row,
-      [SOURCE_COLUMN_KEYS.dataset]: dataset.label,
-      [SOURCE_COLUMN_KEYS.file]: dataset.fileName,
-      [SOURCE_COLUMN_KEYS.sheet]: dataset.sheetName || '',
+      [SOURCE_COLUMN_KEYS.INTERNAL.dataset]: dataset.label,
+      [SOURCE_COLUMN_KEYS.INTERNAL.file]: dataset.fileName,
+      [SOURCE_COLUMN_KEYS.INTERNAL.sheet]: dataset.sheetName || '',
     }))
   );
 };
