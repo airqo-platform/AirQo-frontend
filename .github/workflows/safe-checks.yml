@@ -1,7 +1,8 @@
 name: safe-checks
 
-# Uses pull_request (NOT pull_request_target) intentionally.
-# This runs in the context of the FORK with zero access to secrets.
+permissions:
+  contents: read
+
 on:
   pull_request:
     branches:
@@ -19,20 +20,22 @@ jobs:
       calibrate: ${{ steps.check.outputs.calibrate }}
       docs: ${{ steps.check.outputs.docs }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: detect changed services
         id: check
         run: |
-          git diff --name-only HEAD^ HEAD > files.txt
+          git diff --name-only origin/${{ github.base_ref }}...HEAD > files.txt
+          cat files.txt
 
-          echo "website=false"  >> $GITHUB_OUTPUT
-          echo "vertex=false"   >> $GITHUB_OUTPUT
-          echo "platform=false" >> $GITHUB_OUTPUT
-          echo "beacon=false"   >> $GITHUB_OUTPUT
+          echo "website=false"   >> $GITHUB_OUTPUT
+          echo "vertex=false"    >> $GITHUB_OUTPUT
+          echo "platform=false"  >> $GITHUB_OUTPUT
+          echo "beacon=false"    >> $GITHUB_OUTPUT
           echo "calibrate=false" >> $GITHUB_OUTPUT
-          echo "docs=false"     >> $GITHUB_OUTPUT
+          echo "docs=false"      >> $GITHUB_OUTPUT
 
           while IFS= read -r file; do
             [[ $file == src/website/* ]]      && echo "website=true"    >> $GITHUB_OUTPUT
@@ -43,17 +46,15 @@ jobs:
             [[ $file == src/docs-website/* ]] && echo "docs=true"       >> $GITHUB_OUTPUT
           done < files.txt
 
-  #########################################
-  # WEBSITE — Node 20
-  #########################################
-
   check-website:
     needs: detect-changes
     if: needs.detect-changes.outputs.website == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
         with:
           node-version: '20'
           cache: 'npm'
@@ -61,21 +62,17 @@ jobs:
       - name: Install dependencies
         run: cd src/website && npm ci
       - name: Lint
-        # --if-present skips gracefully if the lint script isn't defined in package.json
         run: cd src/website && npm run lint --if-present
-
-  #########################################
-  # VERTEX — Node 18
-  # Skip build, lint only.
-  #########################################
 
   check-vertex:
     needs: detect-changes
     if: needs.detect-changes.outputs.vertex == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
         with:
           node-version: '18'
           cache: 'npm'
@@ -85,19 +82,15 @@ jobs:
       - name: Lint
         run: cd src/vertex && npm run lint --if-present
 
-  #########################################
-  # ANALYTICS PLATFORM — Node 20
-  # Build needs secrets
-  # Skip build, lint only.
-  #########################################
-
   check-platform:
     needs: detect-changes
     if: needs.detect-changes.outputs.platform == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
         with:
           node-version: '20'
           cache: 'npm'
@@ -107,17 +100,15 @@ jobs:
       - name: Lint
         run: cd src/platform && npm run lint --if-present
 
-  #########################################
-  # BEACON — Node 20
-  #########################################
-
   check-beacon:
     needs: detect-changes
     if: needs.detect-changes.outputs.beacon == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
         with:
           node-version: '20'
           cache: 'npm'
@@ -129,17 +120,15 @@ jobs:
       - name: Build
         run: cd src/beacon && npm run build --if-present
 
-  #########################################
-  # CALIBRATE — Node 22
-  #########################################
-
   check-calibrate:
     needs: detect-changes
     if: needs.detect-changes.outputs.calibrate == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
         with:
           node-version: '22'
           cache: 'npm'
@@ -151,17 +140,15 @@ jobs:
       - name: Build
         run: cd src/calibrate && npm run build --if-present
 
-  #########################################
-  # DOCS — Node 22
-  #########################################
-
   check-docs:
     needs: detect-changes
     if: needs.detect-changes.outputs.docs == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
         with:
           node-version: '22'
           cache: 'npm'
