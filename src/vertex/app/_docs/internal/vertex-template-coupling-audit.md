@@ -130,7 +130,7 @@ The main component-level exceptions found are:
 
 ## Contributor Guidance
 
-This audit is documentation only. Follow-up implementation issues should avoid broad file ownership conflicts:
+This audit is documentation only. Follow-up implementation tasks should avoid broad file ownership conflicts:
 
 - Core maintainers should own config, adapter contracts, auth, and hook refactors.
 - Open-source contributors can safely work on branding copy, measurement cards, docs, fixture data, and feature-flagged UI after the config contract lands.
