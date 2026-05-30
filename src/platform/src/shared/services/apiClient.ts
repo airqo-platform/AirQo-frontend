@@ -15,6 +15,7 @@ const UNAUTHORIZED_EVENT_NAME = 'auth:unauthorized';
 const UNAUTHORIZED_EVENT_COOLDOWN_MS = 1500;
 const API_FAILURE_NOTIFY_COOLDOWN_MS = 10 * 60 * 1000;
 const DEFAULT_REQUEST_TIMEOUT_MS = 30000;
+const JWT_REFRESH_SKEW_MS = 2 * 60 * 1000;
 
 const apiFailureNotificationCache = new Map<string, number>();
 
@@ -66,6 +67,71 @@ const _refreshAuthToken = async (): Promise<{
         ? response.data.expiresIn
         : undefined,
   };
+};
+
+const decodeBase64Url = (value: string): string | null => {
+  try {
+    const base64 = value.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
+
+    if (typeof window !== 'undefined' && typeof window.atob === 'function') {
+      return window.atob(padded);
+    }
+
+    return Buffer.from(padded, 'base64').toString('utf8');
+  } catch {
+    return null;
+  }
+};
+
+const getJwtExpiryMs = (token: string): number | null => {
+  const [, payload] = token.split('.');
+  if (!payload) {
+    return null;
+  }
+
+  try {
+    const decodedPayload = decodeBase64Url(payload);
+    if (!decodedPayload) {
+      return null;
+    }
+
+    const parsedPayload = JSON.parse(decodedPayload) as { exp?: unknown };
+    return typeof parsedPayload.exp === 'number'
+      ? parsedPayload.exp * 1000
+      : null;
+  } catch {
+    return null;
+  }
+};
+
+const isJwtExpiring = (token: string): boolean => {
+  const expiryMs = getJwtExpiryMs(token);
+  return expiryMs !== null && expiryMs <= Date.now() + JWT_REFRESH_SKEW_MS;
+};
+
+const readAuthorizationToken = (
+  headers: AxiosHeaders | InternalAxiosRequestConfig['headers']
+): string => {
+  const normalizedHeaders = AxiosHeaders.from(headers);
+  const authorizationHeader = normalizedHeaders.get('Authorization');
+  if (typeof authorizationHeader !== 'string') {
+    return '';
+  }
+
+  return normalizeOAuthAccessToken(authorizationHeader);
+};
+
+const dispatchTokenRefreshedEvent = (token: string, expiresIn?: number) => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.dispatchEvent(
+    new CustomEvent('auth:token-refreshed', {
+      detail: { token, expiresIn },
+    })
+  );
 };
 
 // Extended type for config with metadata
@@ -218,6 +284,37 @@ export class ApiClient {
     return `${cleanBaseUrl}/api/v2`;
   }
 
+  private isRefreshRequest(config?: InternalAxiosRequestConfig): boolean {
+    const url = config?.url;
+    return typeof url === 'string' && url.includes('/users/token/refresh');
+  }
+
+  private async refreshAuthHeader(): Promise<string> {
+    if (_isRefreshing) {
+      return new Promise<string>((resolve, reject) => {
+        _pendingQueue.push({ resolve, reject });
+      });
+    }
+
+    _isRefreshing = true;
+
+    try {
+      const { token, expiresIn } = await _refreshAuthToken();
+      const authHeader = `JWT ${token}`;
+
+      this.setAuthToken(token);
+      flushPendingQueue(authHeader);
+      dispatchTokenRefreshedEvent(token, expiresIn);
+
+      return authHeader;
+    } catch (refreshError) {
+      flushPendingQueue(null, refreshError);
+      throw refreshError;
+    } finally {
+      _isRefreshing = false;
+    }
+  }
+
   private setupInterceptors() {
     // Request interceptor to add auth headers
     this.client.interceptors.request.use(
@@ -232,8 +329,35 @@ export class ApiClient {
         // API request logging removed to reduce console noise
 
         if (this.authType === AuthType.JWT) {
-          // JWT tokens are set via setAuthToken() method
-          // The Authorization header should already be set on the client defaults
+          const headers = AxiosHeaders.from(config.headers);
+          let token = readAuthorizationToken(headers);
+
+          if (!token) {
+            const session = await getSession();
+            token = normalizeOAuthAccessToken(
+              (session as { accessToken?: string })?.accessToken || ''
+            );
+
+            if (token) {
+              headers.set('Authorization', `JWT ${token}`);
+            }
+          }
+
+          if (token && isJwtExpiring(token) && !this.isRefreshRequest(config)) {
+            try {
+              const authHeader = await this.refreshAuthHeader();
+              headers.set('Authorization', authHeader);
+            } catch (refreshError) {
+              dispatchUnauthorizedEvent({
+                status: 401,
+                message: 'Session refresh failed',
+                url: config.url,
+              });
+              return Promise.reject(refreshError);
+            }
+          }
+
+          config.headers = headers;
         } else if (this.authType === AuthType.API_TOKEN) {
           // API token endpoints must never receive Authorization headers.
           const headers = AxiosHeaders.from(config.headers);
@@ -326,28 +450,25 @@ export class ApiClient {
         }
 
         if (error.response?.status === 401) {
-          // 401 Unauthorized - attempt silent refresh for JWT auth
-          // Log at warn level for debugging purposes only
-          logger.warn('Unauthorized API access', {
-            ...errorContext,
-            message: 'Session may have expired or insufficient permissions',
-          });
-
           if (this.authType !== AuthType.JWT) {
+            logger.warn('Unauthorized API access', {
+              ...errorContext,
+              message: 'Session may have expired or insufficient permissions',
+            });
             return Promise.reject(error);
           }
 
           const originalRequest = error.config as InternalAxiosRequestConfig & {
             _retry?: boolean;
           };
-          const isRefreshCall =
-            typeof originalRequest?.url === 'string' &&
-            originalRequest.url.includes('/users/token/refresh');
+          const isRefreshCall = this.isRefreshRequest(originalRequest);
 
           if (originalRequest?._retry || isRefreshCall) {
-            logger.warn(
-              'Token refresh failed — dispatching unauthorized event'
-            );
+            logger.warn('Unauthorized API access', {
+              ...errorContext,
+              message:
+                'Session refresh failed or user lacks required permissions',
+            });
             dispatchUnauthorizedEvent({
               status: error.response.status,
               message: error.response.statusText || 'unauthorized',
@@ -356,60 +477,27 @@ export class ApiClient {
             return Promise.reject(error);
           }
 
-          if (_isRefreshing) {
-            return new Promise<string>((resolve, reject) => {
-              _pendingQueue.push({ resolve, reject });
-            })
-              .then(authHeader => {
-                const headers = AxiosHeaders.from(originalRequest.headers);
-                headers.set('Authorization', authHeader);
-                originalRequest.headers = headers;
-                originalRequest._retry = true;
-                return this.client(originalRequest);
-              })
-              .catch(() => Promise.reject(error));
-          }
-
           originalRequest._retry = true;
-          _isRefreshing = true;
 
           try {
-            const { token, expiresIn } = await _refreshAuthToken();
-            const authHeader = `JWT ${token}`;
-
-            // Update the in-memory axios default so subsequent requests use it
-            this.setAuthToken(token);
-
-            // Flush queued requests with the new token
-            flushPendingQueue(authHeader);
-
-            if (typeof window !== 'undefined') {
-              window.dispatchEvent(
-                new CustomEvent('auth:token-refreshed', {
-                  detail: { token, expiresIn },
-                })
-              );
-            }
-
+            const authHeader = await this.refreshAuthHeader();
             const headers = AxiosHeaders.from(originalRequest.headers);
             headers.set('Authorization', authHeader);
             originalRequest.headers = headers;
 
             // Retry the original request with the new token
             return this.client(originalRequest);
-          } catch (refreshError) {
-            flushPendingQueue(null, refreshError);
-            logger.warn(
-              'Silent token refresh failed — dispatching unauthorized event'
-            );
+          } catch {
+            logger.warn('Unauthorized API access', {
+              ...errorContext,
+              message: 'Silent token refresh failed',
+            });
             dispatchUnauthorizedEvent({
               status: error.response?.status ?? 401,
               message: error.response?.statusText || 'unauthorized',
               url: error.config?.url,
             });
             return Promise.reject(error);
-          } finally {
-            _isRefreshing = false;
           }
         } else if (error.response?.status === 403) {
           // 403 Forbidden - permission issue, log but don't spam Slack
