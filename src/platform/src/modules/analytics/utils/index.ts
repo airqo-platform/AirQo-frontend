@@ -259,6 +259,13 @@ export const normalizeRecentReadingsToSiteData = (
   return measurements.map(measurement => {
     const { siteDetails, averages, pm2_5, pm10 } = measurement;
     const displayName = getSiteDisplayName(siteDetails);
+    const location =
+      [siteDetails?.city, siteDetails?.region, siteDetails?.country]
+        .filter(Boolean)
+        .join(', ') ||
+      siteDetails?.location_name ||
+      siteDetails?.country ||
+      'Unknown Country';
 
     // Get value based on active pollutant
     const pollutantValue =
@@ -282,9 +289,14 @@ export const normalizeRecentReadingsToSiteData = (
     return {
       _id: siteDetails?._id || measurement.site_id,
       name: displayName,
-      location: siteDetails?.country || 'Unknown Country',
+      search_name: siteDetails?.search_name || displayName,
+      location,
+      country: siteDetails?.country,
+      city: siteDetails?.city,
+      region: siteDetails?.region,
       value,
       status,
+      aqi_category: measurement.aqi_category,
       pollutant: activePollutant,
       unit: 'μg/m³',
       trend,

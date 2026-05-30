@@ -138,7 +138,9 @@ export default function OrgLoginPage() {
       } else {
         toast.success('Welcome back!', 'You have successfully signed in.');
         redirectWithReload(
-          res?.url ?? callbackUrl ?? `/org/${orgSlug}/dashboard`
+          normalizeCallbackUrl(res?.url) ??
+            callbackUrl ??
+            `/org/${orgSlug}/dashboard`
         );
       }
     } catch (error) {
