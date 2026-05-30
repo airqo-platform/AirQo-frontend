@@ -41,6 +41,7 @@ npm run dev
 Use `src/vertex/.env.example` as the base. Common variables include:
 
 - `NEXT_PUBLIC_API_URL`: Backend API base URL.
+- `NEXT_PUBLIC_API_BASE_URL`: Public API origin used for measurement URL examples.
 - `NEXT_PUBLIC_ANALYTICS_URL`: Analytics platform URL.
 - `NEXT_PUBLIC_VERTEX_DESKTOP_WINDOWS_DOWNLOAD_URL`: Optional Windows installer URL for Vertex Desktop downloads.
 - `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN`: Mapbox token for map features.
@@ -52,6 +53,19 @@ Use `src/vertex/.env.example` as the base. Common variables include:
 - `NEXT_PUBLIC_HCAPTCHA_SITE_KEY`: HCaptcha site key needed for the new login flow.
 - `SLACK_WEBHOOK_URL`: Slack webhook for server-side notifications.
 - `NEXT_PUBLIC_SLACK_BOT_TOKEN`, `NEXT_PUBLIC_SLACK_CHANNEL`: Slack client configuration.
+
+## Vertex configuration
+
+Vertex has a typed app configuration surface in `vertex.config.ts`. This is the file that the future `create-vertex-app` CLI will generate or update for each scaffolded instance.
+
+V1 supports two data adapters:
+
+- `mock`: runs locally without API credentials and is the default for generated templates.
+- `airqo`: uses the existing AirQo API, auth, and proxy behavior.
+
+Generic REST backends are intentionally out of scope for v1.
+
+Use `vertex.config.example.ts` as the template-facing reference. Keep validation and shared types in `core/config/vertex-config.ts` so contributors can add config-driven behavior without inventing new config shapes.
 
 ## Authentication and SSO
 
