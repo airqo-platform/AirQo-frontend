@@ -191,6 +191,14 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
     return { left: 0, right: 0 };
   }, [chartType]);
 
+  const xAxisInterval = useMemo(() => {
+    if (chartData.length <= 6) {
+      return 0;
+    }
+
+    return Math.max(Math.ceil(chartData.length / 6) - 1, 0);
+  }, [chartData.length]);
+
   // Common props for all charts
   const commonProps = {
     data: chartData as unknown as NormalizedChartData[],
@@ -214,7 +222,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
     <XAxis
       dataKey={config.xAxisKey || 'time'}
       padding={xAxisPadding}
-      interval="preserveStartEnd"
+      interval={xAxisInterval}
       tick={AXIS_CONFIG.tick}
       tickLine={AXIS_CONFIG.tickLine}
       axisLine={AXIS_CONFIG.axisLine}
@@ -226,6 +234,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
 
   const renderYAxis = () => (
     <YAxis
+      interval={0}
       tick={AXIS_CONFIG.tick}
       tickLine={AXIS_CONFIG.tickLine}
       axisLine={AXIS_CONFIG.axisLine}
