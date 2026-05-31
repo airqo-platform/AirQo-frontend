@@ -15,11 +15,13 @@ import ReusableButton from "@/components/shared/button/ReusableButton";
 import { UnassignCohortDevicesDialog } from "@/components/features/cohorts/unassign-cohort-devices";
 import CohortMeasurementsApiCard from "@/components/features/cohorts/cohort-measurements-api-card";
 import { usePageTitle } from "@/context/page-title-context";
+import { useGroups } from "@/core/hooks/useGroups";
+import { CohortOrganizationsCard } from "@/components/features/cohorts/cohort-organizations-card";
 
 // Loading skeleton for content grid
 const ContentGridSkeleton = () => (
-  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 items-start">
-    {[...Array(4)].map((_, i) => (
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6 items-start">
+    {[...Array(3)].map((_, i) => (
       <div key={i} className="h-48 bg-gray-200 rounded-lg animate-pulse" />
     ))}
   </div>
@@ -31,7 +33,10 @@ export default function CohortDetailsPage() {
   const cohortId = params?.id as string;
 
   const { data: cohort, isLoading, error } = useCohortDetails(cohortId);
+  const { groups: allGroups } = useGroups();
+
   usePageTitle({ title: cohort?.name || "Cohort Details", section: "Cohorts" });
+
   const canUpdateDevice = usePermission(PERMISSIONS.DEVICE.UPDATE);
   const [cohortDetails, setCohortDetails] = useState<{
     name: string;
@@ -61,6 +66,11 @@ export default function CohortDetailsPage() {
       });
     }
   }, [cohort]);
+
+  const assignedOrganizations = useMemo(() => {
+    if (!cohort?.groups || !allGroups) return [];
+    return allGroups.filter((group) => cohort.groups.includes(group._id));
+  }, [cohort?.groups, allGroups]);
 
   const devices = useMemo(() => cohort?.devices || [], [cohort]);
 
@@ -103,9 +113,9 @@ export default function CohortDetailsPage() {
             {String((error as Error)?.message || "Unknown error")}
           </div>
         ) : (
-          <div className="flex flex-col gap-6">
-            {/* Cohort basic info card */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 items-start">
+          <div className="flex flex-col">
+            {/* Cards section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 my-6 items-start">
               <CohortDetailsCard
                 name={cohort?.name || ""}
                 id={cohort?._id || ""}
@@ -115,6 +125,15 @@ export default function CohortDetailsPage() {
                 cohort_tags={cohort?.cohort_tags}
               />
               <CohortMeasurementsApiCard cohortId={cohortId} />
+              <CohortOrganizationsCard
+                organizations={assignedOrganizations}
+                cohortId={cohortId}
+                cohortName={cohort?.name || ""}
+                loading={isLoading}
+                onUnassignSuccess={() => {
+                  // Refetch cohort details to update the list
+                }}
+              />
             </div>
 
             {/* Devices list */}

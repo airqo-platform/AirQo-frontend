@@ -101,6 +101,23 @@ export const cohorts = {
       throw error;
     }
   },
+  unassignCohortsFromGroup: async (groupId: string, cohortIds: string[]) => {
+    try {
+      const response = await createSecureApiClient().delete(
+        `/users/groups/${groupId}/cohorts/unassign`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "X-Auth-Type": "JWT",
+          },
+          data: { cohort_ids: cohortIds },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
   assignCohortsToUser: async (userId: string, cohortIds: string[]) => {
     try {
       const response = await createSecureApiClient().post(

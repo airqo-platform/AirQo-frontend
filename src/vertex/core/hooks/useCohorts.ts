@@ -461,6 +461,42 @@ export const useAssignCohortsToGroup = (options?: UseAssignCohortsToGroupOptions
   });
 };
 
+interface UseUnassignCohortsFromGroupOptions {
+  onSuccess?: () => void;
+  onError?: (error: AxiosError) => void;
+}
+
+export const useUnassignCohortsFromGroup = (options?: UseUnassignCohortsFromGroupOptions) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      groupId,
+      cohortIds,
+    }: {
+      groupId: string;
+      cohortIds: string[];
+    }) => {
+      if (!groupId) {
+        throw new Error('Group ID is required');
+      }
+      if (!cohortIds?.length) {
+        throw new Error('At least one cohort ID is required');
+      }
+      return cohortsApi.unassignCohortsFromGroup(groupId, cohortIds);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cohorts'] });
+      queryClient.invalidateQueries({ queryKey: ['groupCohorts'] });
+      queryClient.invalidateQueries({ queryKey: ['cohort-details'] });
+      options?.onSuccess?.();
+    },
+    onError: (error: AxiosError) => {
+      options?.onError?.(error);
+    },
+  });
+};
+
 interface UseAssignCohortsToUserOptions {
   onSuccess?: (variables: { userId: string; cohortIds: string[] }) => void;
   onError?: (error: AxiosError) => void;
