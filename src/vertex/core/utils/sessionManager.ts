@@ -17,7 +17,8 @@ export const clearSessionData = () => {
       key === 'vertex_remembered_accounts_v1' ||
       key.startsWith('lastActiveModule') ||
       key.startsWith('lastActiveGroupId') ||
-      key.startsWith('vertex_login_feedback')
+      key.startsWith('vertex_login_feedback') ||
+      key.startsWith('vertex_onboarding')
     ) {
       continue;
     }
@@ -31,4 +32,4 @@ export const clearSessionData = () => {
 
   // Clear sessionStorage as well
   sessionStorage.clear();
-};
+};
