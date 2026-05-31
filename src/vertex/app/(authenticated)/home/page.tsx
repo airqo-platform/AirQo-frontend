@@ -168,16 +168,17 @@ const WelcomePage = () => {
 
   // Scroll to and highlight the Device Visibility accordion section
   const handleGoToVisibility = React.useCallback(() => {
-    // Ensure the visibility accordion is open
     setAccordionItems(prev =>
       prev.includes("visibility") ? prev : [...prev, "visibility"]
     );
-    // Give the accordion a tick to expand before scrolling
-    setTimeout(() => {
-      visibilityRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      setHighlightVisibility(true);
-      setTimeout(() => setHighlightVisibility(false), 2000);
-    }, 120);
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        visibilityRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        setHighlightVisibility(true);
+        setTimeout(() => setHighlightVisibility(false), 4000); // longer — matches coach mark
+      });
+    });
   }, []);
 
   const openClaimModal = React.useCallback(() => {
@@ -511,6 +512,7 @@ const WelcomePage = () => {
             </AccordionTrigger>
             <AccordionContent className="pt-2">
               <NetworkVisibilityCard
+                showCoachMark={highlightVisibility}
                 onVisibilityChanged={() =>
                   updateChecklist({
                     completedSteps: Array.from(

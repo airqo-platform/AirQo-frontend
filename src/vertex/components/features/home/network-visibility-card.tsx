@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Globe, Lock, Shield } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import {
@@ -22,9 +22,10 @@ import { Cohort } from '@/app/types/cohorts';
 
 interface NetworkVisibilityCardProps {
   onVisibilityChanged?: () => void;
+  showCoachMark?: boolean;
 }
 
-const NetworkVisibilityCard = ({ onVisibilityChanged }: NetworkVisibilityCardProps) => {
+const NetworkVisibilityCard = ({ onVisibilityChanged, showCoachMark }: NetworkVisibilityCardProps) => {
   const queryClient = useQueryClient();
   const router = useRouter();
   const { data: session } = useSession();
@@ -34,6 +35,7 @@ const NetworkVisibilityCard = ({ onVisibilityChanged }: NetworkVisibilityCardPro
   const [targetVisibility, setTargetVisibility] = useState<boolean>(false);
   const [pendingCohort, setPendingCohort] = useState<Cohort | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isCoachMarkVisible, setIsCoachMarkVisible] = useState(false);
 
   const { activeGroup, isExternalOrg, userScope } = useUserContext();
 
@@ -75,6 +77,14 @@ const NetworkVisibilityCard = ({ onVisibilityChanged }: NetworkVisibilityCardPro
   const hasDeviceUpdatePermission = usePermissions([PERMISSIONS.DEVICE.UPDATE])[
     PERMISSIONS.DEVICE.UPDATE
   ];
+
+  useEffect(() => {
+    if (showCoachMark) {
+      setIsCoachMarkVisible(true);
+      const t = setTimeout(() => setIsCoachMarkVisible(false), 5000);
+      return () => clearTimeout(t);
+    }
+  }, [showCoachMark]);
 
   if (!hasDeviceUpdatePermission) return null;
   if (!isLoading && (!cohorts || cohorts.length === 0)) return null;
@@ -119,6 +129,7 @@ const NetworkVisibilityCard = ({ onVisibilityChanged }: NetworkVisibilityCardPro
       setPendingCohort(null);
     }
   };
+
 
   return (
     <>
@@ -167,20 +178,25 @@ const NetworkVisibilityCard = ({ onVisibilityChanged }: NetworkVisibilityCardPro
             Manage Cohorts Visibility
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {cohorts.map(cohort => (
+            {cohorts.map((cohort, index) => (
               <div
                 key={cohort._id}
                 className="flex items-center justify-between p-4 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/30 dark:bg-gray-800/20 hover:border-gray-200 dark:hover:border-gray-700 transition-all duration-200 group"
               >
                 <div className="flex items-center gap-3">
-                  <div
-                    className={cn(
-                      'w-2 h-2 rounded-full transition-all duration-300',
+                  {/* Status dot with spinning border when private */}
+                  <div className={cn(
+                    "shrink-0",
+                    !cohort.visibility && "rainbow-spin-border p-[2px]"
+                  )}>
+                    <div className={cn(
+                      "w-2 h-2 rounded-full transition-all duration-300 rainbow-spin-border-inner",
                       cohort.visibility
-                        ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]'
-                        : 'bg-gray-300'
-                    )}
-                  />
+                        ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]"
+                        : "bg-gray-300 dark:bg-gray-600"
+                    )} />
+                  </div>
+
                   <span
                     id={`cohort-visibility-${cohort._id}`}
                     className="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-white transition-colors"
@@ -188,42 +204,43 @@ const NetworkVisibilityCard = ({ onVisibilityChanged }: NetworkVisibilityCardPro
                     {cohort.name}
                   </span>
                 </div>
+
                 <div className="flex items-center gap-3">
-                  <span
-                    className={cn(
-                      'text-[10px] font-bold uppercase tracking-wider transition-colors',
-                      cohort.visibility
-                        ? 'text-green-600 dark:text-green-400'
-                        : 'text-gray-400'
-                    )}
-                  >
+                  <span className={cn(
+                    'text-[10px] font-bold uppercase tracking-wider transition-colors',
+                    cohort.visibility
+                      ? 'text-green-600 dark:text-green-400'
+                      : 'text-gray-400'
+                  )}>
                     {cohort.visibility ? 'Public' : 'Private'}
                   </span>
-                  {/* Status dot with spinning border */}
-                  <div className={cn(
-                    "w-2 h-2 rounded-full transition-all duration-300",
-                    !cohort.visibility
-                      ? "rainbow-spin-border p-[2px]"
-                      : "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]"
-                  )}>
-                    
-                  </div>
 
-                  {/* Switch with spinning border */}
-                  <div className={cn(
-                    !cohort.visibility && "rainbow-spin-border p-[2px]"
-                  )}>
-                    <div className={cn(!cohort.visibility && "rainbow-spin-border-inner")}>
-                      <Switch
-                        aria-labelledby={`cohort-visibility-${cohort._id}`}
-                        checked={cohort.visibility}
-                        onCheckedChange={checked => {
-                          setPendingCohort(cohort);
-                          setTargetVisibility(checked);
-                          setIsDialogOpen(true);
-                        }}
-                        className="data-[state=checked]:bg-green-500"
-                      />
+                  {/* Switch + coach mark tooltip */}
+                  <div className="relative">
+                    {/* Coach mark — only on first private cohort, auto-dismisses */}
+                    {isCoachMarkVisible && !cohort.visibility && index === cohorts.findIndex(c => !c.visibility) && (
+                      <div className="coach-mark absolute -top-10 right-0 z-10 whitespace-nowrap">
+                        <div className="relative bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs font-medium px-3 py-1.5 rounded-lg shadow-lg">
+                          Toggle to make public
+                          {/* Arrow pointing down */}
+                          <div className="absolute -bottom-1.5 right-4 w-3 h-3 bg-gray-900 dark:bg-gray-100 rotate-45 rounded-sm" />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className={cn(!cohort.visibility && "rainbow-spin-border p-[2px]")}>
+                      <div className={cn(!cohort.visibility && "rainbow-spin-border-inner bg-white dark:bg-gray-900")}>
+                        <Switch
+                          aria-labelledby={`cohort-visibility-${cohort._id}`}
+                          checked={cohort.visibility}
+                          onCheckedChange={checked => {
+                            setPendingCohort(cohort);
+                            setTargetVisibility(checked);
+                            setIsDialogOpen(true);
+                          }}
+                          className="data-[state=checked]:bg-green-500"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
