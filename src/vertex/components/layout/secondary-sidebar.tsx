@@ -98,7 +98,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
           overflow
           overflowType="auto"
           contentClassName={`flex flex-col h-full overflow-x-hidden scrollbar-thin ${styles.scrollbar}`}
-          footer={!isCollapsed && !isElectron && platform === 'win' && (
+          footer={!isCollapsed && activeModule !== 'admin' && !isElectron && platform === 'win' && (
             <div className="px-1 pb-2">
               <Link
                 href={ROUTE_LINKS.DOWNLOAD}
