@@ -186,7 +186,29 @@ class ApiService {
 
   // Transform device list to UI format
   transformDeviceListToUI(devices: Device[]): UIDevice[] {
-    return devices.map(device => ({
+    return devices.map(device => {
+      const rawDevice = device as unknown as {
+        beacon_data?: {
+          network_id?: string
+          current_firmware?: string | null
+          firmware_download_state?: string | null
+          device_number?: number
+        }
+        last_reading?: {
+          timestamp?: string
+          channel_id?: string | number
+        } | null
+      }
+
+      const beaconData = rawDevice.beacon_data
+      const lastReading = rawDevice.last_reading
+      const lastReadingTimestamp = lastReading?.timestamp || ''
+      const lastSeenAt = device.lastRawData || device.lastActive || lastReadingTimestamp || ''
+      const rawChannelId = lastReading?.channel_id ?? beaconData?.device_number ?? device.device_number ?? 0
+      const parsedChannelId = Number(rawChannelId)
+      const channelId = Number.isFinite(parsedChannelId) ? parsedChannelId : 0
+
+      return {
       // Flat properties for backward compatibility
       device_id: device._id || device.device_id || '', // Fallback to old field if present
       device_name: device.name || device.long_name || device.device_name || 'Unnamed Device',
@@ -201,19 +223,19 @@ class ApiService {
       height: device.height || 0,
       next_maintenance: device.nextMaintenance || '',
       first_seen: device.createdAt || '',
-      last_updated: device.lastRawData || device.lastActive || '',
+      last_updated: lastSeenAt,
 
       // New firmware and network fields - NOT present in new Device interface as top level, maybe in beacon_data?
       // usage in new Device format seems limited, preserving structure for UI
-      channel_id: device.device_number || 0, // Using device_number as channel_id proxy?
-      network_id: '', // Not clear in new format, logic needed?
-      current_firmware: '', // Not in data.json top level
+      channel_id: channelId,
+      network_id: beaconData?.network_id || device.network || '',
+      current_firmware: beaconData?.current_firmware || '',
       target_firmware: '',
-      firmware_download_state: '',
+      firmware_download_state: beaconData?.firmware_download_state || '',
 
       // Location data
-      latitude: device.latitude || device.site?.approximate_latitude || 0,
-      longitude: device.longitude || device.site?.approximate_longitude || 0,
+      latitude: device.latitude ?? device.site?.approximate_latitude ?? 0,
+      longitude: device.longitude ?? device.site?.approximate_longitude ?? 0,
       location_name: device.site?.location_name || device.site?.name || '',
       city: device.site?.city || '',
       district: '', // Not in data.json site
@@ -225,7 +247,7 @@ class ApiService {
       pm10: null,
       temperature: null,
       humidity: null,
-      reading_timestamp: device.lastRawData,
+      reading_timestamp: lastReadingTimestamp || device.lastRawData,
 
       // Nested structure for new code
       device: {
@@ -246,7 +268,8 @@ class ApiService {
       },
       maintenance_history: [],
       readings_history: []
-    }))
+    }
+    })
   }
 
   // Device Stats API
@@ -390,7 +413,8 @@ class ApiService {
 
     return {
       devices: this.transformDeviceListToUI(paginatedResponse.devices),
-      pagination
+      pagination,
+      meta: paginatedResponse.meta
     }
   }
 

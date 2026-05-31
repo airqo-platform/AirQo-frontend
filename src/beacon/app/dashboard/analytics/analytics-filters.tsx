@@ -191,9 +191,7 @@ export default function AnalyticsFilters({
               const fallbackAirqlouds = normalizeAirqlouds(fallbackResponse)
               if (fallbackAirqlouds.length > 0) {
                 resolvedAirqlouds = fallbackAirqlouds
-                effectiveTags = [fallbackTag]
                 lastSuccessfulCohortTagRef.current = fallbackTag
-                setCohortTags([fallbackTag])
                 break
               }
             }
