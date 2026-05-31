@@ -63,11 +63,11 @@ const SEVERITY_CONFIG: Record<
     iconColor: 'text-amber-700 dark:text-amber-300',
   },
   info: {
-    bgColor: 'bg-blue-100 dark:bg-blue-900/40',
-    borderColor: 'border-blue-400 dark:border-blue-600',
-    textColor: 'text-blue-900 dark:text-blue-100',
+    bgColor: 'bg-blue-100 dark:bg-blue-950/20',
+    borderColor: 'border-blue-200 dark:border-blue-800',
+    textColor: 'text-blue-800 dark:text-blue-200',
     icon: <AqAnnotationInfo className="h-5 w-5" />,
-    iconColor: 'text-blue-700 dark:text-blue-300',
+    iconColor: 'text-blue-600 dark:text-blue-400',
   },
 };
 
@@ -95,7 +95,7 @@ export const Banner: React.FC<BannerProps> = ({
   return (
     <div
       className={cn(
-        'flex items-start gap-3 rounded-md border shadow-sm',
+        'flex items-start gap-3 rounded-lg border shadow-sm',
         paddingClass,
         config.bgColor,
         config.borderColor,
