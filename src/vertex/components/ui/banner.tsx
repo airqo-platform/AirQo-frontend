@@ -95,7 +95,7 @@ export const Banner: React.FC<BannerProps> = ({
   return (
     <div
       className={cn(
-        'flex items-start gap-3 rounded-lg border shadow-sm',
+        'flex items-start gap-3 rounded-lg border shadow-sm text-left',
         paddingClass,
         config.bgColor,
         config.borderColor,
