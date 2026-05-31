@@ -10,6 +10,7 @@ import logger from '@/lib/logger';
 const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
+  variable: '--font-inter',
 });
 
 export const metadata: Metadata = {
@@ -73,7 +74,7 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="en" className={inter.className}>
+    <html lang="en" className={inter.variable}>
       <head>
         <link rel="preconnect" href="https://api.mapbox.com" />
         <link rel="preconnect" href="https://events.mapbox.com" />
