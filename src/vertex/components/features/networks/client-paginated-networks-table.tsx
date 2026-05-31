@@ -26,7 +26,7 @@ export default function ClientPaginatedNetworksTable({
   onNetworkClick,
 }: NetworksTableProps) {
   const router = useRouter();
-  const {showBanner} = useBanner();
+  const { showBanner } = useBanner();
 
   const handleNetworkClick = (item: unknown) => {
     const network = item as Network;
@@ -39,9 +39,9 @@ export default function ClientPaginatedNetworksTable({
     if (text) {
       try {
         await navigator.clipboard.writeText(text);
-        showBanner({ message: "Sensor Manufacturer ID copied", severity:"success",scoped: false });
+        showBanner({ message: "Sensor Manufacturer ID copied", severity: "success", scoped: false });
       } catch {
-        showBanner({ message: "Failed to copy ID", severity: "error", scoped:false });        
+        showBanner({ message: "Failed to copy ID", severity: "error", scoped: false });
       }
     }
   };

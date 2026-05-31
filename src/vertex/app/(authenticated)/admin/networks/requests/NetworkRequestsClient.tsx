@@ -24,7 +24,7 @@ export default function NetworkRequestsClient({ initialRequests }: NetworkReques
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabStatus>("pending");
   const [isUpdating, setIsUpdating] = useState(false);
-  const {showBanner} = useBanner();
+  const { showBanner } = useBanner();
   // Action management
   const [selectedRequest, setSelectedRequest] = useState<NetworkCreationRequest | null>(null);
   const [actionType, setActionType] = useState<'approve' | 'deny' | 'review' | null>(null);
