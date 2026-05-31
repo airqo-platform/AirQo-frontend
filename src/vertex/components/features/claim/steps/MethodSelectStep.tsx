@@ -42,7 +42,7 @@ const ALL_METHODS = [
       'hover:border-violet-500 dark:hover:border-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20',
     title: 'Import from Cohort',
     desc: 'Enter a Cohort ID to prefill devices.',
-    modes: ['fast'] as ClaimFlowMode[],
+    modes: ['guided', 'fast'] as ClaimFlowMode[],
   },
 ];
 

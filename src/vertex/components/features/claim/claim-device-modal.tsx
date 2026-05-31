@@ -79,7 +79,7 @@ export interface ClaimedDeviceInfo {
 export interface ClaimDeviceModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess?: (deviceInfo: ClaimedDeviceInfo) => void;
+  onSuccess?: (deviceInfo: ClaimedDeviceInfo & { isCohortImport?: boolean }) => void;
   initialStep?: FlowStep;
   mode?: ClaimFlowMode;
 }
@@ -532,8 +532,6 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
   // ==========================================================
 
   const handleVerifyCohort = async () => {
-    if (isGuidedMode) return;
-
     const input = cohortIdInput.trim();
 
     if (!input) {
@@ -569,8 +567,6 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
   };
 
   const handleConfirmCohortImport = () => {
-    if (isGuidedMode) return;
-
     if (!verifiedCohort) {
       setError('Session expired. Please verify the cohort again.');
       return;
@@ -584,6 +580,14 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
         {
           onSuccess: () => {
             invalidateGroupCaches();
+            if (onSuccess) {
+              onSuccess({
+                deviceId: '',
+                deviceName: '',
+                cohortId: verifiedCohort.id,
+                isCohortImport: true,
+              });
+            }
             setTimeout(() => {
               setIsCohortAssignmentSuccess(true);
               setStep('success');
@@ -604,6 +608,14 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
         {
           onSuccess: () => {
             invalidatePersonalCaches();
+            if (onSuccess) {
+              onSuccess({
+                deviceId: '',
+                deviceName: '',
+                cohortId: verifiedCohort.id,
+                isCohortImport: true,
+              });
+            }
             setTimeout(() => {
               setIsCohortAssignmentSuccess(true);
               setStep('success');

@@ -12,6 +12,7 @@ import ReusableButton from "@/components/shared/button/ReusableButton";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDevices, useMyDevices } from "@/core/hooks/useDevices";
+import { useGroupCohorts, usePersonalUserCohorts } from "@/core/hooks/useCohorts";
 import ContextHeader from "@/components/features/home/context-header";
 import NetworkVisibilityCard from "@/components/features/home/network-visibility-card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -92,6 +93,11 @@ const ImportDeviceModal = dynamic(
   { ssr: false }
 );
 
+const AssignCohortDevicesDialog = dynamic(
+  () => import("@/components/features/cohorts/assign-cohort-devices").then(mod => ({ default: mod.AssignCohortDevicesDialog })),
+  { ssr: false }
+);
+
 const LoginFeedbackToast = dynamic(
   () => import("@/components/features/feedback/login-feedback-toast"),
   { ssr: false }
@@ -112,12 +118,20 @@ const WelcomePage = () => {
   const [isClaimModalOpen, setIsClaimModalOpen] = React.useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = React.useState(false);
   const [isAddDeviceChoiceOpen, setIsAddDeviceChoiceOpen] = React.useState(false);
+  const [isAssignCohortModalOpen, setIsAssignCohortModalOpen] = React.useState(false);
+  const [newlyClaimedDevice, setNewlyClaimedDevice] = React.useState<any[] | undefined>();
 
   const user = useAppSelector((state) => state.user.userDetails);
   const userId = (session?.user as { id?: string })?.id || user?._id;
 
-  // Stable key per workspace — personal users get their own key, org users get org key.
-  const orgId = userContext === "personal" ? `personal_${userId}` : userContext;
+  // Stable key per workspace — personal users get their own key, org users get their
+  // actual group ID so switching Kampala ↔ Wakiso gives independent checklist state.
+  const activeGroup = useAppSelector((state) => state.user.activeGroup);
+  const orgId = userContext === "personal"
+    ? `personal_${userId}`
+    : activeGroup?._id
+    ? `org_${activeGroup._id}`
+    : null;
 
   // ── Checklist state (frontend-only, localStorage-backed) ──────────────────
   const [checklistState, setChecklistState] = React.useState(() =>
@@ -156,10 +170,32 @@ const WelcomePage = () => {
     setIsImportModalOpen(true);
   }, []);
 
-  const handleDeviceAdded = React.useCallback(() => {
+  const handleDeviceAdded = React.useCallback(
+    (deviceInfo?: { deviceId: string; deviceName: string; cohortId: string; isCohortImport?: boolean }) => {
+      if (deviceInfo?.isCohortImport) {
+        updateChecklist({
+          completedSteps: Array.from(
+            new Set([...(checklistState.completedSteps || []), "add-device", "assign-cohort"]),
+          ),
+        });
+      } else {
+        if (deviceInfo?.deviceId) {
+          setNewlyClaimedDevice([{ _id: deviceInfo.deviceId, name: deviceInfo.deviceName, long_name: deviceInfo.deviceName }]);
+        }
+        updateChecklist({
+          completedSteps: Array.from(
+            new Set([...(checklistState.completedSteps || []), "add-device"]),
+          ),
+        });
+      }
+    },
+    [checklistState.completedSteps, updateChecklist]
+  );
+
+  const handleCohortAssigned = React.useCallback(() => {
     updateChecklist({
       completedSteps: Array.from(
-        new Set([...(checklistState.completedSteps || []), "add-device"]),
+        new Set([...(checklistState.completedSteps || []), "assign-cohort"]),
       ),
     });
   }, [checklistState.completedSteps, updateChecklist]);
@@ -180,6 +216,46 @@ const WelcomePage = () => {
     undefined,
     { enabled: !!userId && userScope === "personal" }
   );
+
+  // Cohort data — used to auto-detect step 2 completion
+  const { data: groupCohortIds } = useGroupCohorts(activeGroup?._id, {
+    enabled: userScope === "organisation" && !!activeGroup?._id,
+  });
+  const { data: personalCohortIds } = usePersonalUserCohorts(userId, {
+    enabled: !!userId && userScope === "personal",
+  });
+
+  // ── Auto-sync step completion from real data ─────────────────────────────
+  // This ensures that if an org already has devices/cohorts when a user first
+  // logs in, steps 1 and 2 are immediately shown as complete.
+  React.useEffect(() => {
+    if (!orgId) return;
+
+    const hasDevices =
+      userScope === "personal"
+        ? (myDevicesData?.devices ?? []).length > 0
+        : groupDevices.length > 0;
+
+    const hasCohorts =
+      userScope === "personal"
+        ? (personalCohortIds ?? []).length > 0
+        : (groupCohortIds ?? []).length > 0;
+
+    const autoSteps: string[] = [];
+    if (hasDevices) autoSteps.push("add-device");
+    if (hasCohorts) autoSteps.push("assign-cohort");
+
+    if (autoSteps.length === 0) return;
+
+    setChecklistState((prev) => {
+      const merged = Array.from(new Set([...(prev.completedSteps || []), ...autoSteps]));
+      // Only save/re-render if something actually changed
+      if (merged.length === (prev.completedSteps || []).length) return prev;
+      const next = { ...prev, completedSteps: merged };
+      saveChecklistState(orgId, next);
+      return next;
+    });
+  }, [orgId, userScope, myDevicesData, groupDevices, personalCohortIds, groupCohortIds]);
 
   // ── Early returns ──────────────────────────────────────────────────────────
 
@@ -230,9 +306,13 @@ const WelcomePage = () => {
       ? (myDevicesData?.devices ?? []).length === 0
       : groupDevices.length === 0;
 
-  // Checklist is only relevant when the workspace has no devices yet.
-  // Once devices exist the user has completed step 1 — no need to show the guide.
-  const showChecklist = hasNoDevices && !checklistState.dismissed;
+  const TOTAL_STEPS = 3; // add-device, assign-cohort, set-visibility
+
+  // The checklist stays visible as long as:
+  //   1. Not all steps are complete, AND
+  //   2. The user hasn't explicitly dismissed it
+  const allStepsComplete = checklistState.completedSteps.length >= TOTAL_STEPS;
+  const showChecklist = !allStepsComplete && !checklistState.dismissed;
 
   const showClaimDevice = (() => {
     switch (userContext) {
@@ -243,8 +323,77 @@ const WelcomePage = () => {
     }
   })();
 
+  const sharedModals = (
+    <>
+      {showChecklist && (
+        <AssignCohortDevicesDialog
+          open={isAssignCohortModalOpen}
+          onOpenChange={setIsAssignCohortModalOpen}
+          selectedDevices={newlyClaimedDevice}
+          onSuccess={handleCohortAssigned}
+          title="Group your devices"
+        />
+      )}
+
+      <ClaimDeviceModal
+        isOpen={isClaimModalOpen}
+        onClose={() => setIsClaimModalOpen(false)}
+        onSuccess={handleDeviceAdded}
+        mode="guided"
+      />
+      <ImportDeviceModal
+        open={isImportModalOpen}
+        onOpenChange={open => setIsImportModalOpen(open)}
+        onSuccess={handleDeviceAdded}
+      />
+      <ReusableDialog
+        isOpen={isAddDeviceChoiceOpen}
+        onClose={() => setIsAddDeviceChoiceOpen(false)}
+        title="Add a device"
+        showFooter={false}
+        size="xl"
+      >
+        <div className="flex flex-col gap-4 py-4">
+          <button
+            onClick={openClaimModal}
+            className="flex items-center gap-4 p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-left"
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600">
+              <Plus className="h-5 w-5" />
+            </div>
+            <div>
+              <span className="text-lg font-medium text-gray-900 dark:text-white">
+                Claim AirQo Device
+              </span>
+              <span className="block text-sm text-gray-500 dark:text-gray-400">
+                Claim an existing AirQo device by entering its unique code.
+              </span>
+            </div>
+          </button>
+
+          <button
+            onClick={openImportModal}
+            className="flex items-center gap-4 p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-left"
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600">
+              <Upload className="h-5 w-5" />
+            </div>
+            <div>
+              <span className="text-lg font-medium text-gray-900 dark:text-white">
+                Import Different Sensor Manufacturer
+              </span>
+              <span className="block text-sm text-gray-500 dark:text-gray-400">
+                Import a device from a different manufacturer using a CSV
+                template.
+              </span>
+            </div>
+          </button>
+        </div>
+      </ReusableDialog>
+    </>
+  );
+
   // ── Empty state (no devices) ───────────────────────────────────────────────
-  // Checklist IS the empty state guidance — replaces the old HomeEmptyState.
 
   if (hasNoDevices) {
     return (
@@ -256,78 +405,30 @@ const WelcomePage = () => {
             completedSteps={checklistState.completedSteps}
             onDismiss={() => updateChecklist({ dismissed: true })}
             onAddDevice={openAddDeviceChoice}
-            // onClaimDevice={openClaimModal}
-            // onImportDevice={openImportModal}
-            onGoToCohorts={() => {
-              window.location.href = '/cohorts';
-            }}
+            onGoToCohorts={() => setIsAssignCohortModalOpen(true)}
+            onMarkAsDone={() => updateChecklist({ dismissed: true })}
           />
         )}
 
-        <ClaimDeviceModal
-          isOpen={isClaimModalOpen}
-          onClose={() => setIsClaimModalOpen(false)}
-          onSuccess={handleDeviceAdded}
-        />
-        <ImportDeviceModal
-          open={isImportModalOpen}
-          onOpenChange={open => setIsImportModalOpen(open)}
-          onSuccess={handleDeviceAdded}
-        />
-        <ReusableDialog
-          isOpen={isAddDeviceChoiceOpen}
-          onClose={() => setIsAddDeviceChoiceOpen(false)}
-          title="Add a device"
-          showFooter={false}
-          size="xl"
-        >
-          <div className="flex flex-col gap-4 py-4">
-            <button
-              onClick={openClaimModal}
-              className="flex items-center gap-4 p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-left"
-            >
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600">
-                <Plus className="h-5 w-5" />
-              </div>
-              <div>
-                <span className="text-lg font-medium text-gray-900 dark:text-white">
-                  Claim AirQo Device
-                </span>
-                <span className="block text-sm text-gray-500 dark:text-gray-400">
-                  Claim an existing AirQo device by entering its unique code.
-                </span>
-              </div>
-            </button>
-
-            <button
-              onClick={openImportModal}
-              className="flex items-center gap-4 p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-left"
-            >
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600">
-                <Upload className="h-5 w-5" />
-              </div>
-              <div>
-                <span className="text-lg font-medium text-gray-900 dark:text-white">
-                  Import Different Sensor Manufacturer
-                </span>
-                <span className="block text-sm text-gray-500 dark:text-gray-400">
-                  Import a device from a different manufacturer using a CSV
-                  template.
-                </span>
-              </div>
-            </button>
-          </div>
-        </ReusableDialog>
+        {sharedModals}
       </div>
     );
   }
 
   // ── Main dashboard (has devices) ───────────────────────────────────────────
-  // Checklist never renders here — showChecklist is false when hasNoDevices is false.
 
   return (
     <div>
       <ContextHeader />
+
+      {showChecklist && (
+        <OnboardingChecklist
+          completedSteps={checklistState.completedSteps}
+          onDismiss={() => updateChecklist({ dismissed: true })}
+          onAddDevice={openAddDeviceChoice}
+          onGoToCohorts={() => setIsAssignCohortModalOpen(true)}
+        />
+      )}
 
       {showClaimDevice && (
         <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
@@ -385,14 +486,8 @@ const WelcomePage = () => {
         </Accordion>
       </div>
 
-      <ClaimDeviceModal
-        isOpen={isClaimModalOpen}
-        onClose={() => setIsClaimModalOpen(false)}
-      />
-      <ImportDeviceModal
-        open={isImportModalOpen}
-        onOpenChange={(open) => setIsImportModalOpen(open)}
-      />
+      {sharedModals}
+
       {userId && (user?.email || user?.userName) && (
         <LoginFeedbackToast
           userId={userId}

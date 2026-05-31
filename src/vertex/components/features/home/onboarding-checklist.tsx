@@ -20,11 +20,10 @@ type ChecklistStep = {
 
 type OnboardingChecklistProps = {
   onAddDevice: () => void;
-  // onClaimDevice: () => void;
-  // onImportDevice: () => void;
   onGoToCohorts: () => void;
   completedSteps: string[];
   onDismiss: () => void;
+  onMarkAsDone?: () => void;
 };
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -231,13 +230,11 @@ const ProgressBar: React.FC<{ completed: number; total: number }> = ({
 
 export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
   onAddDevice,
-  // onClaimDevice,
-  // onImportDevice,
   onGoToCohorts,
   completedSteps,
   onDismiss,
+  onMarkAsDone,
 }) => {
-
 
   const completedCount = completedSteps.length;
   const allComplete = completedCount === STEPS.length;
@@ -292,7 +289,7 @@ export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
       {/* ── Steps — H6: Full journey visible at once, recognition over recall ── */}
       <div
         id="checklist-steps"
-        className="px-4 pb-4 divide-y divide-gray-100 dark:divide-gray-800"
+        className="px-4 pb-2 divide-y divide-gray-100 dark:divide-gray-800"
       >
         {STEPS.map((step, index) => (
           <StepRow
@@ -304,7 +301,28 @@ export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
           />
         ))}
       </div>
-    
+
+      {/* ── Mark as done — available once steps 1 & 2 are complete ── */}
+      {onMarkAsDone && completedSteps.includes("add-device") && completedSteps.includes("assign-cohort") && (
+        <>
+          <hr className="border-gray-100 dark:border-gray-800 mx-4" />
+          <div className="px-4 py-3 flex justify-end">
+            <button
+              onClick={onMarkAsDone}
+              className={cn(
+                "text-sm font-medium px-3 py-1.5 rounded-md transition-colors duration-150",
+                "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200",
+                "border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600",
+                "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+              )}
+              aria-label="Dismiss setup checklist"
+            >
+              Mark as done
+            </button>
+          </div>
+        </>
+      )}
+
     </div>
   );
 };

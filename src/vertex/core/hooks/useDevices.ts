@@ -13,7 +13,7 @@ import {
   DeviceCountResponse,
   type DeviceActivitiesResponse,
 } from '../apis/devices';
-import { useGroupCohorts } from './useCohorts';
+import { useGroupCohorts, usePersonalUserCohorts } from './useCohorts';
 import { useAppSelector } from '../redux/hooks';
 import { useMemo } from 'react';
 import type {
@@ -188,14 +188,16 @@ export const useMyDevices = (
     grp_title?: string;
   };
 
+  const { data: personalCohortIds, isLoading: isPersonalCohortsLoading } = usePersonalUserCohorts(userId, { enabled: !!userId && enabled });
+
   const groupIds = userDetails?.groups
     ? (userDetails.groups as UserGroup[])
         .filter((g) => g.grp_title?.toLowerCase() !== "airqo")
         .map((g) => g._id)
     : userDetails?.group_ids || [];
-  const cohortIds = userDetails?.cohort_ids || [];
+  const cohortIds = personalCohortIds && personalCohortIds.length > 0 ? personalCohortIds : (userDetails?.cohort_ids || []);
 
-  return useQuery<MyDevicesResponse, AxiosError<ErrorResponse>>({
+  const query = useQuery<MyDevicesResponse, AxiosError<ErrorResponse>>({
     queryKey: [
       "myDevices",
       userId,
@@ -204,9 +206,14 @@ export const useMyDevices = (
       cohortIds,
     ],
     queryFn: () => devices.getMyDevices(userId, groupIds, cohortIds),
-    enabled: !!userId && enabled && !!userDetails,
+    enabled: !!userId && enabled && !!userDetails && !isPersonalCohortsLoading,
     staleTime: 60_000, // 1 minute
   });
+
+  return {
+    ...query,
+    isLoading: query.isLoading || isPersonalCohortsLoading,
+  };
 };
 
 export const useDeviceCount = (options: { enabled?: boolean; cohortIds?: string[]; network?: string } = {}) => {
