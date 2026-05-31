@@ -712,9 +712,16 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
           title: 'Success!',
           showFooter: true,
           primaryAction: {
-            label: isGuidedMode ? 'Continue Setup' : 'Go to Devices',
+            label: isGuidedMode ? 'Continue Setup' : 'See devices',
             onClick: () => {
               handleClose();
+              if (!isGuidedMode) {
+                router.push(
+                  userScope === 'personal'
+                    ? '/devices/my-devices'
+                    : '/devices/overview',
+                );
+              }
             },
           },
         };

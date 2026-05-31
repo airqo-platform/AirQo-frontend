@@ -371,12 +371,13 @@ const WelcomePage = () => {
         isOpen={isClaimModalOpen}
         onClose={() => setIsClaimModalOpen(false)}
         onSuccess={handleDeviceAdded}
-        mode="guided"
+        mode={showChecklist ? "guided" : "fast"}
       />
       <ImportDeviceModal
         open={isImportModalOpen}
         onOpenChange={open => setIsImportModalOpen(open)}
         onSuccess={handleDeviceAdded}
+        mode={showChecklist ? "guided" : "fast"}
       />
       <ReusableDialog
         isOpen={isAddDeviceChoiceOpen}
@@ -425,11 +426,28 @@ const WelcomePage = () => {
     </>
   );
 
-  // ── Empty state (no devices) ───────────────────────────────────────────────
+  const renderMainContent = () => {
+    if (hasNoDevices) {
+      return (
+        <div className="flex-1">
+          <ContextHeader />
+          {showChecklist && (
+            <OnboardingChecklist
+              completedSteps={checklistState.completedSteps}
+              onDismiss={() => updateChecklist({ dismissed: true })}
+              onAddDevice={openAddDeviceChoice}
+              onGoToCohorts={() => setIsAssignCohortModalOpen(true)}
+              onGoToVisibility={handleGoToVisibility}
+              onMarkAsDone={() => {}}
+              organizationName={formatTitle(activeGroup?.grp_title || "")}
+            />
+          )}
+        </div>
+      );
+    }
 
-  if (hasNoDevices) {
     return (
-      <div>
+      <div className="mb-6 flex-1">
         <ContextHeader />
 
         {showChecklist && (
@@ -444,110 +462,93 @@ const WelcomePage = () => {
           />
         )}
 
-        {sharedModals}
+        {showClaimDevice && (
+          <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+            <h1 className="text-2xl">Home</h1>
+            <div className="flex gap-3">
+              <ReusableButton
+                variant="filled"
+                disabled={!canClaimDevice}
+                permission={PERMISSIONS.DEVICE.UPDATE}
+                onClick={() => setIsClaimModalOpen(true)}
+                Icon={Plus}
+              >
+                Claim AirQo Device
+              </ReusableButton>
+              <ReusableButton
+                variant="outlined"
+                onClick={() => setIsImportModalOpen(true)}
+                Icon={Upload}
+              >
+                Import External Device
+              </ReusableButton>
+            </div>
+          </div>
+        )}
+
+        <div className="pb-6">
+          <Accordion
+            type="multiple"
+            value={accordionItems}
+            onValueChange={setAccordionItems}
+            className="flex flex-col gap-6"
+          >
+            <AccordionItem
+              value="stats"
+              className="bg-white dark:bg-transparent border border-gray-200 dark:border-gray-600 rounded-lg px-6 overflow-visible"
+            >
+              <AccordionTrigger className="hover:no-underline py-4">
+                <h2 className="text-xl">Device Health</h2>
+              </AccordionTrigger>
+              <AccordionContent className="pt-2 pb-6 border-t border-gray-100 dark:border-gray-700 mt-2">
+                <DashboardStatsCards />
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem
+              value="visibility"
+              ref={visibilityRef}
+              className={cn(
+                "bg-white dark:bg-transparent border border-gray-200 dark:border-gray-600 rounded-lg px-6 overflow-visible",
+                highlightVisibility
+                  ? "border-blue-400 dark:border-blue-500 ring-2 ring-blue-300 dark:ring-blue-600 ring-offset-2"
+                  : "border-gray-200 dark:border-gray-600"
+              )}
+            >
+              <AccordionTrigger className="hover:no-underline py-4">
+                <h2 className="text-xl">Device Visibility</h2>
+              </AccordionTrigger>
+              <AccordionContent className="pt-2 pb-6 border-t border-gray-100 dark:border-gray-700 mt-2">
+                <NetworkVisibilityCard
+                  showCoachMark={highlightVisibility}
+                  onVisibilityChanged={() =>
+                    updateChecklist({
+                      completedSteps: Array.from(
+                        new Set([...(checklistState.completedSteps || []), "set-visibility"])
+                      ),
+                    })
+                  }
+                />
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
+
+        {userId && (user?.email || user?.userName) && (
+          <LoginFeedbackToast
+            userId={userId}
+            email={(user?.email || user?.userName) as string}
+          />
+        )}
       </div>
     );
-  }
-
-  // ── Main dashboard (has devices) ───────────────────────────────────────────
+  };
 
   return (
-    <div className="mb-6">
-      <ContextHeader />
-
-      {showChecklist && (
-        <OnboardingChecklist
-          completedSteps={checklistState.completedSteps}
-          onDismiss={() => updateChecklist({ dismissed: true })}
-          onAddDevice={openAddDeviceChoice}
-          onGoToCohorts={() => setIsAssignCohortModalOpen(true)}
-          onGoToVisibility={handleGoToVisibility}
-          onMarkAsDone={() => {}}
-          organizationName={formatTitle(activeGroup?.grp_title || "")}
-        />
-      )}
-
-      {showClaimDevice && (
-        <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-          <h1 className="text-2xl">Home</h1>
-          <div className="flex gap-3">
-            <ReusableButton
-              variant="filled"
-              disabled={!canClaimDevice}
-              permission={PERMISSIONS.DEVICE.UPDATE}
-              onClick={() => setIsClaimModalOpen(true)}
-              Icon={Plus}
-            >
-              Claim AirQo Device
-            </ReusableButton>
-            <ReusableButton
-              variant="outlined"
-              onClick={() => setIsImportModalOpen(true)}
-              Icon={Upload}
-            >
-              Import External Device
-            </ReusableButton>
-          </div>
-        </div>
-      )}
-
-      <div className="pb-6">
-        <Accordion
-          type="multiple"
-          value={accordionItems}
-          onValueChange={setAccordionItems}
-          className="flex flex-col gap-6"
-        >
-          <AccordionItem
-            value="stats"
-            className="bg-white dark:bg-transparent border border-gray-200 dark:border-gray-600 rounded-lg px-6 overflow-visible"
-          >
-            <AccordionTrigger className="hover:no-underline py-4">
-              <h2 className="text-xl">Device Health</h2>
-            </AccordionTrigger>
-            <AccordionContent className="pt-2 pb-6 border-t border-gray-100 dark:border-gray-700 mt-2">
-              <DashboardStatsCards />
-            </AccordionContent>
-          </AccordionItem>
-
-          <AccordionItem
-            value="visibility"
-            ref={visibilityRef}
-            className={cn(
-              "bg-white dark:bg-transparent border border-gray-200 dark:border-gray-600 rounded-lg px-6 overflow-visible",
-              highlightVisibility
-                ? "border-blue-400 dark:border-blue-500 ring-2 ring-blue-300 dark:ring-blue-600 ring-offset-2"
-                : "border-gray-200 dark:border-gray-600"
-            )}
-          >
-            <AccordionTrigger className="hover:no-underline py-4">
-              <h2 className="text-xl">Device Visibility</h2>
-            </AccordionTrigger>
-            <AccordionContent className="pt-2 pb-6 border-t border-gray-100 dark:border-gray-700 mt-2">
-              <NetworkVisibilityCard
-                showCoachMark={highlightVisibility}
-                onVisibilityChanged={() =>
-                  updateChecklist({
-                    completedSteps: Array.from(
-                      new Set([...(checklistState.completedSteps || []), "set-visibility"])
-                    ),
-                  })
-                }
-              />
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-      </div>
-
+    <>
+      {renderMainContent()}
       {sharedModals}
-
-      {userId && (user?.email || user?.userName) && (
-        <LoginFeedbackToast
-          userId={userId}
-          email={(user?.email || user?.userName) as string}
-        />
-      )}
-    </div>
+    </>
   );
 };
 
