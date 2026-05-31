@@ -10,7 +10,6 @@ import SecondarySidebar from './secondary-sidebar';
 import SessionLoadingState from './loading/session-loading';
 import ErrorBoundary from '../shared/ErrorBoundary';
 import Footer from './Footer';
-import { OrganizationSetupBanner } from './organization-setup-banner';
 import { FeedbackLauncher } from '../features/feedback/feedback-launcher';
 import { PageSatisfactionBanner } from '../features/feedback/page-satisfaction-banner';
 import { GlobalBannerContainer } from '@/context/banner-context';
@@ -120,7 +119,6 @@ export default function Layout({ children }: LayoutProps) {
               </div>
             </div>
           )}
-          <OrganizationSetupBanner />
           <Topbar onMenuClick={() => setIsPrimarySidebarOpen(true)} />
           <PrimarySidebar
             isOpen={isPrimarySidebarOpen}
