@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, LayoutGrid, ShieldCheck, ChevronDown, ChevronRight, Clock } from 'lucide-react';
+import { X, ShieldCheck, ChevronDown, ChevronRight, Clock } from 'lucide-react';
+import { AqHomeSmile } from '@airqo/icons-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
@@ -158,12 +159,12 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
         </div>
 
         <nav className="flex flex-col gap-2">
-          {/* Device Management - visible to ALL users */}
+          {/* Home - visible to ALL users */}
           <NavItem
             item={{
               href: ROUTE_LINKS.HOME,
-              icon: LayoutGrid,
-              label: 'Device Management',
+              icon: AqHomeSmile,
+              label: 'Home',
               activeOverride: activeModule === 'devices',
             }}
             onClick={() => {
