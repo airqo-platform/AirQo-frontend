@@ -17,7 +17,6 @@ import { UserContext } from "@/core/redux/slices/userSlice";
 import { AqGrid01 } from "@airqo/icons-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter, usePathname } from "next/navigation";
-import { useBanner } from "@/context/banner-context";
 import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
 
 const formatTitle = (title: string) => {
@@ -33,7 +32,6 @@ const OrganizationPicker: React.FC = () => {
   const userGroups = useAppSelector((state) => state.user.userGroups);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { isLoading } = useUserContext();
-  const { showBanner } = useBanner();
   const { showBannerWithDelay } = useBannerWithDelay();
   const { isSwitching } = useAppSelector((state) => state.user.organizationSwitching);
   const pathname = usePathname();
@@ -56,16 +54,8 @@ const OrganizationPicker: React.FC = () => {
   }, [userGroups]);
 
   const handleOrganizationChange = async (group: Group) => {
-    // 1. Instant UI Feedback
     setIsModalOpen(false);
-    // Clear any stale forbidden state from previous context before switching.
     dispatch(clearForbiddenState());
-
-    // 2. Start Background Transition
-    dispatch(setOrganizationSwitching({
-      isSwitching: true,
-      switchingTo: group.grp_title
-    }));
 
     const newContext: UserContext =
       group.grp_title.toLowerCase() === "airqo"
@@ -73,8 +63,7 @@ const OrganizationPicker: React.FC = () => {
         : "external-org";
 
     try {
-      // 3. Optimized Background Cleanup (Non-blocking)
-      // We don't await these to prevent UI blocking
+      // Optimized Background Cleanup (Non-blocking)
       const orgScopedQueryKeys = [
         ["devices"],
         ["myDevices"],
@@ -96,13 +85,13 @@ const OrganizationPicker: React.FC = () => {
         queryClient.removeQueries({ queryKey });
       });
 
-      // 4. Update Redux State
+      // Start shimmer just before navigation fires
+      dispatch(setOrganizationSwitching({ isSwitching: true, switchingTo: group.grp_title }));
+
       dispatch(setActiveGroup(group));
       dispatch(setUserContext(newContext));
-      
-      // 5. Trigger Navigation
+
       if (pathname === "/home") {
-        // If already on home, we must clear immediately as pathname won't change
         dispatch(setOrganizationSwitching({ isSwitching: false, switchingTo: "" }));
         router.refresh();
       } else {
@@ -114,12 +103,11 @@ const OrganizationPicker: React.FC = () => {
         scoped: false,
       });
     } catch {
-      showBanner({
+      showBannerWithDelay({
         severity: 'error',
         message: 'Failed to switch organization. Please try again.',
         scoped: false,
       });
-      dispatch(setOrganizationSwitching({ isSwitching: false, switchingTo: "" }));
     }
   };
 
