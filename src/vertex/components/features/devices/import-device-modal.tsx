@@ -109,6 +109,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
   const [transformedPreview, setTransformedPreview] = useState<Record<string, string | string[] | number | boolean | undefined>[]>([]);
   
   const [selectedCohortId, setSelectedCohortId] = useState<string>("");
+  const [selectedCohortName, setSelectedCohortName] = useState<string>("");
 
   const { showBanner } = useBanner();
   const { showBannerWithDelay } = useBannerWithDelay();
@@ -148,6 +149,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
     setFieldMapping({});
     setTransformedPreview([]);
     setSelectedCohortId("");
+    setSelectedCohortName("");
     setErrors({});
   };
 
@@ -358,6 +360,10 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       } else if (currentStep === 2) {
         setCurrentStep(3);
       } else if (currentStep === 3) {
+        if (!isAdminPage && !selectedCohortId) {
+          showBanner({ severity: 'error', message: "Please assign the devices to a group.", scoped: true });
+          return;
+        }
         setCurrentStep(4);
       }
     } else {
@@ -367,6 +373,10 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
           setCurrentStep(1);
         }
       } else if (currentStep === 1) {
+        if (!isAdminPage && !selectedCohortId) {
+          showBanner({ severity: 'error', message: "Please assign the device to a group.", scoped: true });
+          return;
+        }
         setCurrentStep(2);
       }
     }
@@ -584,8 +594,9 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
           content: (
             <CohortSelectionStep 
               selectedCohortId={selectedCohortId} 
-              onCohortSelect={setSelectedCohortId} 
+              onCohortSelect={(id, name) => { setSelectedCohortId(id); setSelectedCohortName(name); }} 
               open={open && currentStep === 3}
+              isAdminPage={isAdminPage}
             />
           ),
           footer: (
@@ -601,7 +612,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
             <div className="space-y-4">
               <p className="text-sm">You are about to import {transformedPreview.length} devices.</p>
               {selectedCohortId ? (
-                <p className="text-sm">They will be assigned to the selected group.</p>
+                <p className="text-sm">They will be assigned to the selected group: <strong>{selectedCohortName}</strong>.</p>
               ) : (
                 <p className="text-sm">They will <strong>not</strong> be assigned to any group.</p>
               )}
@@ -653,8 +664,9 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
           content: (
             <CohortSelectionStep 
               selectedCohortId={selectedCohortId} 
-              onCohortSelect={setSelectedCohortId} 
+              onCohortSelect={(id, name) => { setSelectedCohortId(id); setSelectedCohortName(name); }} 
               open={open && currentStep === 1}
+              isAdminPage={isAdminPage}
             />
           ),
           footer: (
@@ -666,7 +678,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         },
         {
           title: "Confirmation",
-          content: <ConfirmationStep formData={formData} selectedCohortId={selectedCohortId} />,
+          content: <ConfirmationStep formData={formData} selectedCohortId={selectedCohortId} selectedCohortName={selectedCohortName} />,
           footer: (
             <>
               <ReusableButton variant="outlined" onClick={handleBack} className="w-32 mr-3" disabled={importDevice.isPending}>Back</ReusableButton>

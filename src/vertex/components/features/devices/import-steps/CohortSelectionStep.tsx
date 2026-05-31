@@ -2,23 +2,27 @@ import React, { useMemo, useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { ComboBox } from "@/components/ui/combobox";
 import { AqPlus } from "@airqo/icons-react";
-import { useCohorts, useGroupCohorts } from "@/core/hooks/useCohorts";
+import { useCohorts, useGroupCohorts, usePersonalUserCohorts } from "@/core/hooks/useCohorts";
 import { Cohort } from "@/app/types/cohorts";
 import { useUserContext } from "@/core/hooks/useUserContext";
+import { useAppSelector } from "@/core/redux/hooks";
 import { CreateCohortDialog } from "../../cohorts/create-cohort";
 
 interface CohortSelectionStepProps {
   selectedCohortId: string;
-  onCohortSelect: (cohortId: string) => void;
+  onCohortSelect: (id: string, name: string) => void;
   open: boolean;
+  isAdminPage: boolean;
 }
 
 export const CohortSelectionStep: React.FC<CohortSelectionStepProps> = ({
   selectedCohortId,
   onCohortSelect,
-  open
+  open,
+  isAdminPage,
 }) => {
   const { isExternalOrg, activeGroup } = useUserContext();
+  const userDetails = useAppSelector((state) => state.user.userDetails);
   const [cohortSearch, setCohortSearch] = useState("");
   const [debouncedCohortSearch, setDebouncedCohortSearch] = useState("");
   const [createCohortModalOpen, setCreateCohortModalOpen] = useState(false);
@@ -30,9 +34,15 @@ export const CohortSelectionStep: React.FC<CohortSelectionStepProps> = ({
     return () => clearTimeout(timer);
   }, [cohortSearch]);
 
+  const { data: personalCohortIds, isFetching: isFetchingPersonalCohortIds } = usePersonalUserCohorts(
+    userDetails?._id,
+    { enabled: open && !isExternalOrg && !!userDetails?._id }
+  );
+
   const { cohorts: allCohorts, isFetching: isFetchingAllCohorts } = useCohorts({
-    enabled: open && !isExternalOrg,
+    enabled: open && !isExternalOrg && !!personalCohortIds && personalCohortIds.length > 0,
     search: debouncedCohortSearch,
+    cohort_id: personalCohortIds,
     limit: 100
   });
 
@@ -56,12 +66,12 @@ export const CohortSelectionStep: React.FC<CohortSelectionStepProps> = ({
   }, [isExternalOrg, searchedCohorts, groupCohortIds]);
 
   const cohorts = isExternalOrg ? filteredGroupCohorts : allCohorts;
-  const isFetchingCohorts = isExternalOrg ? (isFetchingGroupCohorts || isFetchingCohortIds) : isFetchingAllCohorts;
+  const isFetchingCohorts = isExternalOrg ? (isFetchingGroupCohorts || isFetchingCohortIds) : (isFetchingAllCohorts || isFetchingPersonalCohortIds);
 
   const handleCreateCohortSuccess = (cohortData?: { cohort: { _id: string; name: string } }) => {
     setCreateCohortModalOpen(false);
     if (cohortData && cohortData.cohort && cohortData.cohort._id) {
-      onCohortSelect(cohortData.cohort._id);
+      onCohortSelect(cohortData.cohort._id, cohortData.cohort.name);
     }
   };
 
@@ -69,17 +79,24 @@ export const CohortSelectionStep: React.FC<CohortSelectionStepProps> = ({
     setCreateCohortModalOpen(true);
   };
 
+  const handleCohortSelect = (id: string) => {
+    const cohort = cohorts?.find((c: Cohort) => c._id === id);
+    onCohortSelect(id, cohort?.name || "");
+  };
+
   return (
     <div className="space-y-4">
       <div className="grid gap-2">
-        <Label>Select a cohort</Label>
+        <Label>
+          Group Devices {isAdminPage ? '(Optional)' : <span className="text-red-500">*</span>}
+        </Label>
         <ComboBox
           options={cohorts?.map((cohort: Cohort) => ({
             value: cohort._id,
             label: cohort.name,
           })) || []}
           value={selectedCohortId}
-          onValueChange={onCohortSelect}
+          onValueChange={handleCohortSelect}
           placeholder="Select a cohort"
           searchPlaceholder="Search cohorts..."
           emptyMessage="No cohorts found"
@@ -92,7 +109,9 @@ export const CohortSelectionStep: React.FC<CohortSelectionStepProps> = ({
           isLoading={isFetchingCohorts}
         />
         <p className="text-xs text-muted-foreground">
-          Group the imported device(s) under a cohort to easily manage them.
+          {isAdminPage
+            ? "You can optionally assign the imported device(s) to a group to easily manage them."
+            : "You must assign the imported device(s) to a group."}
         </p>
       </div>
 

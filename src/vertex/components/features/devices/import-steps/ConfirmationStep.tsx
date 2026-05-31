@@ -1,22 +1,17 @@
 import React from "react";
 import type { ImportDeviceFormData } from "./types";
-import { useCohorts } from "@/core/hooks/useCohorts";
 
 interface ConfirmationStepProps {
   formData: ImportDeviceFormData;
   selectedCohortId: string;
+  selectedCohortName?: string;
 }
 
 export const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
   formData,
-  selectedCohortId
+  selectedCohortId,
+  selectedCohortName,
 }) => {
-  const { cohorts } = useCohorts({
-    enabled: !!selectedCohortId,
-  });
-  
-  const selectedCohort = cohorts?.find((c: any) => c._id === selectedCohortId);
-
   return (
     <div className="space-y-4">
       <div className="bg-slate-50 dark:bg-gray-800 p-4 rounded-md border border-gray-200 dark:border-gray-700">
@@ -48,8 +43,8 @@ export const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
             <dd className="font-medium truncate" title={formData.api_code}>{formData.api_code || '-'}</dd>
           </div>
           <div className="sm:col-span-2">
-            <dt className="text-gray-500 dark:text-gray-400">Assigned Cohort</dt>
-            <dd className="font-medium">{selectedCohort ? selectedCohort.name : 'None (Will not be assigned to any cohort)'}</dd>
+            <dt className="text-gray-500 dark:text-gray-400">Assigned Group</dt>
+            <dd className="font-medium">{selectedCohortId ? selectedCohortName || 'Loading group...' : 'None (Will not be grouped)'}</dd>
           </div>
         </dl>
       </div>
