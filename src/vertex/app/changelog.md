@@ -3,6 +3,34 @@
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
 ---
+## Version 1.23.56
+**Released:** May 29, 2026
+
+### Banner Notifications for Network Management
+
+Migrated user feedback in the network management feature from toast notifications to the banner system. This standardizes notifications across the networks admin area for a consistent feedback experience.
+
+<details>
+<summary><strong>Changes (5)</strong></summary>
+
+- **Network Requests Actions**: Replaced toast notifications with page-level banners (`scoped: false`) for approve, deny, and review status updates in `NetworkRequestsClient`.
+- **Copy ID Feedback**: Updated the "copy Sensor Manufacturer ID" action in the networks table to show success/error banners (`scoped: false`) instead of toasts.
+- **Create Network Form**: Success feedback now uses `showBannerWithDelay` so the banner appears after the dialog closes (`scoped: false`); error feedback uses an in-dialog banner (`scoped: true`).
+- **Network Request Dialog**: Submission success and errors both use `scoped: true` to render feedback inline inside the dialog via `BannerSlot`; success additionally uses `showBannerWithDelay` to time the display correctly.
+- **Banner Text Alignment Fix**: Added `text-left` to the `Banner` component's root div so banner text is always left-aligned regardless of any ancestor container that sets `text-center` (e.g. shadcn `DialogHeader`).
+
+</details>
+
+<details>
+<summary><strong>Files Updated (5)</strong></summary>
+
+- `src/vertex/app/(authenticated)/admin/networks/requests/NetworkRequestsClient.tsx` [MODIFIED]
+- `src/vertex/components/features/networks/client-paginated-networks-table.tsx` [MODIFIED]
+- `src/vertex/components/features/networks/create-network-form.tsx` [MODIFIED]
+- `src/vertex/components/features/networks/network-request-dialog.tsx` [MODIFIED]
+- `src/vertex/components/ui/banner.tsx` [MODIFIED]
+
+</details>
 
 ## Version 1.23.55
 **Released:** May 28, 2026
