@@ -138,7 +138,19 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
               width={40}
               height={40}
             />
-            <span className="font-bold text-lg">Vertex</span>
+            <div className="flex flex-col justify-center gap-0.5">
+              <span className="font-bold text-lg leading-tight">Vertex</span>
+              {activeGroup?.grp_title && (
+                <div className="flex">
+                  <span 
+                    className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-primary/10 text-primary dark:bg-primary/20 max-w-[140px] truncate" 
+                    title={activeGroup.grp_title.replace(/[_-]/g, " ").toUpperCase()}
+                  >
+                    {activeGroup.grp_title.replace(/[_-]/g, " ")}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="h-5 w-5" />
