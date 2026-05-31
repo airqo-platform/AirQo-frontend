@@ -505,3 +505,30 @@ html {
   }
 }
 
+@keyframes spin-border {
+  0%   { --border-angle: 0deg; }
+  100% { --border-angle: 360deg; }
+}
+
+@property --border-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.rainbow-spin-border {
+  border-radius: 9999px;
+  padding: 2px; /* controls border thickness */
+  background: conic-gradient(
+    from var(--border-angle),
+    #ef4444, #eab308, #22c55e, #6366f1, #ef4444
+  );
+  animation: spin-border 2s linear infinite;
+}
+
+.rainbow-spin-border-inner {
+  border-radius: 9999px;
+  background: white; /* or match your card bg */
+  width: 100%;
+  height: 100%;
+}

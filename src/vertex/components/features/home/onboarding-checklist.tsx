@@ -7,6 +7,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import ReusableButton from "@/components/shared/button/ReusableButton";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -21,6 +22,7 @@ type ChecklistStep = {
 type OnboardingChecklistProps = {
   onAddDevice: () => void;
   onGoToCohorts: () => void;
+  onGoToVisibility?: () => void;
   completedSteps: string[];
   onDismiss: () => void;
   onMarkAsDone?: () => void;
@@ -54,35 +56,6 @@ const STEPS: ChecklistStep[] = [
     heuristic: "Step 3",
   },
 ];
-
-// ─── useLocalStorage hook ─────────────────────────────────────────────────────
-
-function useLocalStorage<T>(key: string, initialValue: T) {
-  const [storedValue, setStoredValue] = React.useState<T>(() => {
-    if (typeof window === "undefined") return initialValue;
-    try {
-      const item = window.localStorage.getItem(key);
-      return item ? (JSON.parse(item) as T) : initialValue;
-    } catch {
-      return initialValue;
-    }
-  });
-
-  const setValue = (value: T | ((val: T) => T)) => {
-    try {
-      const valueToStore =
-        value instanceof Function ? value(storedValue) : value;
-      setStoredValue(valueToStore);
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem(key, JSON.stringify(valueToStore));
-      }
-    } catch (error) {
-      console.warn("localStorage write failed:", error);
-    }
-  };
-
-  return [storedValue, setValue] as const;
-}
 
 // ─── StepRow ──────────────────────────────────────────────────────────────────
 
@@ -231,6 +204,7 @@ const ProgressBar: React.FC<{ completed: number; total: number }> = ({
 export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
   onAddDevice,
   onGoToCohorts,
+  onGoToVisibility,
   completedSteps,
   onDismiss,
   onMarkAsDone,
@@ -243,7 +217,7 @@ export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
   const stepActions: Record<string, () => void> = {
     "add-device": onAddDevice,
     "assign-cohort": onGoToCohorts,
-    "set-visibility": onGoToCohorts,
+    "set-visibility": onGoToVisibility ?? (() => {}),
   };
 
   // A step is locked (upcoming) only if the previous step isn't done yet.
@@ -268,7 +242,7 @@ export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
         "mb-6 rounded-lg border bg-white dark:bg-gray-900",
         "border-gray-200 dark:border-gray-700",
         // Blue left accent = active / in progress (H1: Visibility of system status)
-        "border-l-4 border-l-blue-600 dark:border-l-blue-400",
+        "border-l border-blue-600 dark:border-blue-400",
       )}
       role="region"
       aria-label="Workspace setup checklist"
@@ -302,23 +276,25 @@ export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
         ))}
       </div>
 
-      {/* ── Mark as done — available once steps 1 & 2 are complete ── */}
-      {onMarkAsDone && completedSteps.includes("add-device") && completedSteps.includes("assign-cohort") && (
+      {/* ── Mark as done — visible always, enabled once steps 1 & 2 are complete ── */}
+      {onMarkAsDone && (       
         <>
           <hr className="border-gray-100 dark:border-gray-800 mx-4" />
           <div className="px-4 py-3 flex justify-end">
-            <button
+            <ReusableButton
+              variant="outlined"
               onClick={onMarkAsDone}
-              className={cn(
-                "text-sm font-medium px-3 py-1.5 rounded-md transition-colors duration-150",
-                "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200",
-                "border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600",
-                "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
-              )}
+              disabled={!completedSteps.includes("add-device") || !completedSteps.includes("assign-cohort")}
+              className={"text-sm font-medium px-2 py-1 rounded-md transition-colors duration-150"}
               aria-label="Dismiss setup checklist"
+              title={
+                !completedSteps.includes("add-device") || !completedSteps.includes("assign-cohort")
+                  ? "Complete steps 1 and 2 first"
+                  : "Dismiss the setup checklist"
+              }
             >
               Mark as done
-            </button>
+            </ReusableButton>
           </div>
         </>
       )}

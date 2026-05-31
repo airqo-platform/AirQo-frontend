@@ -20,7 +20,11 @@ import { useSession } from 'next-auth/react';
 import { useAppSelector } from '@/core/redux/hooks';
 import { Cohort } from '@/app/types/cohorts';
 
-const NetworkVisibilityCard = () => {
+interface NetworkVisibilityCardProps {
+  onVisibilityChanged?: () => void;
+}
+
+const NetworkVisibilityCard = ({ onVisibilityChanged }: NetworkVisibilityCardProps) => {
   const queryClient = useQueryClient();
   const router = useRouter();
   const { data: session } = useSession();
@@ -94,6 +98,7 @@ const NetworkVisibilityCard = () => {
         message: `Successfully set ${pendingCohort.name} to ${targetVisibility ? 'Public' : 'Private'}`,
         type: 'SUCCESS',
       });
+      onVisibilityChanged?.();
 
       queryClient.invalidateQueries({ queryKey: ['cohorts'] });
       // Also invalidate personal cohorts cache if in personal scope
@@ -194,16 +199,33 @@ const NetworkVisibilityCard = () => {
                   >
                     {cohort.visibility ? 'Public' : 'Private'}
                   </span>
-                  <Switch
-                    aria-labelledby={`cohort-visibility-${cohort._id}`}
-                    checked={cohort.visibility}
-                    onCheckedChange={checked => {
-                      setPendingCohort(cohort);
-                      setTargetVisibility(checked);
-                      setIsDialogOpen(true);
-                    }}
-                    className="data-[state=checked]:bg-green-500"
-                  />
+                  {/* Status dot with spinning border */}
+                  <div className={cn(
+                    "w-2 h-2 rounded-full transition-all duration-300",
+                    !cohort.visibility
+                      ? "rainbow-spin-border p-[2px]"
+                      : "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]"
+                  )}>
+                    
+                  </div>
+
+                  {/* Switch with spinning border */}
+                  <div className={cn(
+                    !cohort.visibility && "rainbow-spin-border p-[2px]"
+                  )}>
+                    <div className={cn(!cohort.visibility && "rainbow-spin-border-inner")}>
+                      <Switch
+                        aria-labelledby={`cohort-visibility-${cohort._id}`}
+                        checked={cohort.visibility}
+                        onCheckedChange={checked => {
+                          setPendingCohort(cohort);
+                          setTargetVisibility(checked);
+                          setIsDialogOpen(true);
+                        }}
+                        className="data-[state=checked]:bg-green-500"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}

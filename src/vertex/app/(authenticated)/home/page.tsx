@@ -17,6 +17,8 @@ import ContextHeader from "@/components/features/home/context-header";
 import NetworkVisibilityCard from "@/components/features/home/network-visibility-card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import OnboardingChecklist from "@/components/features/home/onboarding-checklist";
+import { cn } from "@/lib/utils";
+import { Device } from "@/app/types/devices";
 
 // ─── Checklist localStorage helpers ──────────────────────────────────────────
 // Keyed per org/user so state is independent across workspace switches.
@@ -119,7 +121,11 @@ const WelcomePage = () => {
   const [isImportModalOpen, setIsImportModalOpen] = React.useState(false);
   const [isAddDeviceChoiceOpen, setIsAddDeviceChoiceOpen] = React.useState(false);
   const [isAssignCohortModalOpen, setIsAssignCohortModalOpen] = React.useState(false);
-  const [newlyClaimedDevice, setNewlyClaimedDevice] = React.useState<any[] | undefined>();
+  const [newlyClaimedDevice, setNewlyClaimedDevice] = React.useState<Pick<Device, "_id" | "name" | "long_name">[] | undefined
+  >();
+  const [accordionItems, setAccordionItems] = React.useState<string[]>(["stats", "visibility"]);
+  const [highlightVisibility, setHighlightVisibility] = React.useState(false);
+  const visibilityRef = React.useRef<HTMLDivElement>(null);
 
   const user = useAppSelector((state) => state.user.userDetails);
   const userId = (session?.user as { id?: string })?.id || user?._id;
@@ -158,6 +164,20 @@ const WelcomePage = () => {
 
   const openAddDeviceChoice = React.useCallback(() => {
     setIsAddDeviceChoiceOpen(true);
+  }, []);
+
+  // Scroll to and highlight the Device Visibility accordion section
+  const handleGoToVisibility = React.useCallback(() => {
+    // Ensure the visibility accordion is open
+    setAccordionItems(prev =>
+      prev.includes("visibility") ? prev : [...prev, "visibility"]
+    );
+    // Give the accordion a tick to expand before scrolling
+    setTimeout(() => {
+      visibilityRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      setHighlightVisibility(true);
+      setTimeout(() => setHighlightVisibility(false), 2000);
+    }, 120);
   }, []);
 
   const openClaimModal = React.useCallback(() => {
@@ -329,7 +349,7 @@ const WelcomePage = () => {
         <AssignCohortDevicesDialog
           open={isAssignCohortModalOpen}
           onOpenChange={setIsAssignCohortModalOpen}
-          selectedDevices={newlyClaimedDevice}
+          selectedDevices={newlyClaimedDevice as Device[]}
           onSuccess={handleCohortAssigned}
           title="Group your devices"
         />
@@ -406,6 +426,7 @@ const WelcomePage = () => {
             onDismiss={() => updateChecklist({ dismissed: true })}
             onAddDevice={openAddDeviceChoice}
             onGoToCohorts={() => setIsAssignCohortModalOpen(true)}
+            onGoToVisibility={handleGoToVisibility}
             onMarkAsDone={() => updateChecklist({ dismissed: true })}
           />
         )}
@@ -427,6 +448,8 @@ const WelcomePage = () => {
           onDismiss={() => updateChecklist({ dismissed: true })}
           onAddDevice={openAddDeviceChoice}
           onGoToCohorts={() => setIsAssignCohortModalOpen(true)}
+          onGoToVisibility={handleGoToVisibility}
+          onMarkAsDone={() => updateChecklist({ dismissed: true })}
         />
       )}
 
@@ -457,7 +480,8 @@ const WelcomePage = () => {
       <div className="mb-3">
         <Accordion
           type="multiple"
-          defaultValue={["stats", "visibility"]}
+          value={accordionItems}
+          onValueChange={setAccordionItems}
           className="space-y-4"
         >
           <AccordionItem
@@ -474,13 +498,27 @@ const WelcomePage = () => {
 
           <AccordionItem
             value="visibility"
-            className="bg-white dark:bg-transparent border border-gray-200 dark:border-gray-600 rounded-lg px-6"
+            ref={visibilityRef}
+            className={cn(
+              "bg-white dark:bg-transparent border rounded-lg px-6 transition-all duration-700",
+              highlightVisibility
+                ? "border-blue-400 dark:border-blue-500 ring-2 ring-blue-300 dark:ring-blue-600 ring-offset-2"
+                : "border-gray-200 dark:border-gray-600"
+            )}
           >
             <AccordionTrigger className="hover:no-underline py-4">
               <h2 className="text-xl">Device Visibility</h2>
             </AccordionTrigger>
             <AccordionContent className="pt-2">
-              <NetworkVisibilityCard />
+              <NetworkVisibilityCard
+                onVisibilityChanged={() =>
+                  updateChecklist({
+                    completedSteps: Array.from(
+                      new Set([...(checklistState.completedSteps || []), "set-visibility"])
+                    ),
+                  })
+                }
+              />
             </AccordionContent>
           </AccordionItem>
         </Accordion>
