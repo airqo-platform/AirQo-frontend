@@ -99,7 +99,7 @@ const OrganizationPicker: React.FC = () => {
       // 4. Update Redux State
       dispatch(setActiveGroup(group));
       dispatch(setUserContext(newContext));
-
+      
       // 5. Trigger Navigation
       if (pathname === "/home") {
         // If already on home, we must clear immediately as pathname won't change
