@@ -264,6 +264,7 @@ export const useCreateCohort = (options?: UseCreateCohortOptions) => {
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ['cohorts'] });
             queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
+            queryClient.invalidateQueries({ queryKey: ['personalUserCohorts'] });
             options?.onSuccess?.(data);
         },
         onError: (error: AxiosError) => {
@@ -286,11 +287,15 @@ export const useCreateCohortWithDevices = (options?: UseCreateCohortWithDevicesO
       network,
       deviceIds,
       cohort_tags,
+      groupId,
+      userId,
     }: {
       name: string;
       network: string;
       deviceIds: string[];
       cohort_tags?: string[];
+      groupId?: string;
+      userId?: string;
     }) => {
       const createResp = await cohortsApi.createCohort({ name, network, cohort_tags });
       const cohortId = createResp?.cohort?._id;
@@ -298,11 +303,20 @@ export const useCreateCohortWithDevices = (options?: UseCreateCohortWithDevicesO
       if (Array.isArray(deviceIds) && deviceIds.length > 0) {
         await cohortsApi.assignDevicesToCohort(cohortId, deviceIds);
       }
+      
+      if (groupId) {
+        await cohortsApi.assignCohortsToGroup(groupId, [cohortId]);
+      } else if (userId) {
+        await cohortsApi.assignCohortsToUser(userId, [cohortId]);
+      }
+      
       return createResp;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['cohorts'] });
       queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
+      queryClient.invalidateQueries({ queryKey: ['personalUserCohorts'] });
+      queryClient.invalidateQueries({ queryKey: ['groupCohorts'] });
       options?.onSuccess?.(data);
     },
     onError: (error: AxiosError) => {
@@ -343,6 +357,7 @@ export const useCreateCohortFromCohorts = (options?: UseCreateCohortFromCohortsO
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['cohorts'] });
       queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
+      queryClient.invalidateQueries({ queryKey: ['personalUserCohorts'] });
       options?.onSuccess?.(data);
     },
     onError: (error: AxiosError) => {

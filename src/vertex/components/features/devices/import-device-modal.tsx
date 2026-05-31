@@ -32,6 +32,7 @@ import { CohortSelectionStep } from "./import-steps/CohortSelectionStep";
 import { ConfirmationStep } from "./import-steps/ConfirmationStep";
 import { BulkResultsStep } from "./import-steps/BulkResultsStep";
 import { ImportSuccessStep } from "./import-steps/ImportSuccessStep";
+import { ImportMethodSelectStep } from "./import-steps/ImportMethodSelectStep";
 
 interface StepCardProps {
   title: string;
@@ -143,9 +144,9 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       tags: [],
     });
     setBulkFile(null);
-    setBulkResults(null);
-    setParsedData([]);
     setFileHeaders([]);
+    setParsedData([]);
+    setImportFlow(null);
     setFieldMapping({});
     setTransformedPreview([]);
     setSelectedCohortId("");
@@ -366,8 +367,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         }
         setCurrentStep(4);
       }
-    } else {
-      setImportFlow('single');
+    } else if (importFlow === 'single') {
       if (currentStep === 0) {
         if (validateSingleForm()) {
           setCurrentStep(1);
@@ -559,7 +559,12 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
               setIsRequestDialogOpen={setIsRequestDialogOpen}
             />
           ),
-          footer: <ReusableButton onClick={handleNext} className="w-32">Next</ReusableButton>
+          footer: (
+            <>
+              <ReusableButton variant="outlined" onClick={() => setImportFlow(null)} className="w-32 mr-3">Back</ReusableButton>
+              <ReusableButton onClick={handleNext} className="w-32">Next</ReusableButton>
+            </>
+          )
         },
         {
           title: "Map Fields",
@@ -631,33 +636,24 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         {
           title: "Device Details",
           content: (
-            <>
-              {!importFlow && (
-                <ReusableFileUpload
-                  label="Import multiple devices at once."
-                  id="bulk_file"
-                  accept=".csv,.json"
-                  file={bulkFile}
-                  onChange={handleFileUpload}
-                  placeholder="Upload bulk import file"
-                  description="Supported file types are CSV and JSON."
-                  containerClassName="pb-4 border-b mb-4"
-                />
-              )}
-              <SingleImportForm
-                formData={formData}
-                errors={errors}
-                handleInputChange={handleInputChange}
-                showMore={showMore}
-                setShowMore={setShowMore}
-                networks={networks}
-                isLoadingNetworks={isLoadingNetworks}
-                isAdminPage={isAdminPage}
-                setIsRequestDialogOpen={setIsRequestDialogOpen}
-              />
-            </>
+            <SingleImportForm
+              formData={formData}
+              errors={errors}
+              handleInputChange={handleInputChange}
+              showMore={showMore}
+              setShowMore={setShowMore}
+              networks={networks}
+              isLoadingNetworks={isLoadingNetworks}
+              isAdminPage={isAdminPage}
+              setIsRequestDialogOpen={setIsRequestDialogOpen}
+            />
           ),
-          footer: <ReusableButton onClick={handleNext} className="w-32">Next</ReusableButton>
+          footer: (
+            <>
+              <ReusableButton variant="outlined" onClick={() => setImportFlow(null)} className="w-32 mr-3">Back</ReusableButton>
+              <ReusableButton onClick={handleNext} className="w-32">Next</ReusableButton>
+            </>
+          )
         },
         {
           title: "Group Devices",
@@ -697,7 +693,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       isOpen={open}
       onClose={() => onOpenChange(false)}
       title="Import External Device"
-      subtitle={isSuccess ? undefined : "Import a device not directly supported by AirQo"}
+      subtitle={isSuccess ? undefined : "Add a device from a different sensor manufacturer"}
       size="3xl"
       maxHeight="max-h-[55vh]"
     >
@@ -708,6 +704,16 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
           ) : (
             <ImportSuccessStep deviceName={importedDeviceName} />
           )
+        ) : !importFlow ? (
+          <div className="p-2">
+            <ImportMethodSelectStep 
+              onSelect={(method) => {
+                setImportFlow(method);
+                setCurrentStep(0);
+                setErrors({});
+              }} 
+            />
+          </div>
         ) : (
           <div className="space-y-4">
             {steps.map((step, idx) => (

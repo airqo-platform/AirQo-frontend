@@ -1,12 +1,12 @@
-import React, { useMemo, useState, useEffect } from "react";
-import { Label } from "@/components/ui/label";
+import React, { useState, useEffect, useMemo } from "react";
 import { ComboBox } from "@/components/ui/combobox";
+import { Label } from "@/components/ui/label";
 import { AqPlus } from "@airqo/icons-react";
 import { useCohorts, useGroupCohorts, usePersonalUserCohorts } from "@/core/hooks/useCohorts";
-import { Cohort } from "@/app/types/cohorts";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { useAppSelector } from "@/core/redux/hooks";
 import { CreateCohortDialog } from "../../cohorts/create-cohort";
+import type { Cohort } from "@/app/types/cohorts";
 
 interface CohortSelectionStepProps {
   selectedCohortId: string;
@@ -26,6 +26,7 @@ export const CohortSelectionStep: React.FC<CohortSelectionStepProps> = ({
   const [cohortSearch, setCohortSearch] = useState("");
   const [debouncedCohortSearch, setDebouncedCohortSearch] = useState("");
   const [createCohortModalOpen, setCreateCohortModalOpen] = useState(false);
+  const [optimisticCohort, setOptimisticCohort] = useState<{_id: string, name: string} | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -71,6 +72,7 @@ export const CohortSelectionStep: React.FC<CohortSelectionStepProps> = ({
   const handleCreateCohortSuccess = (cohortData?: { cohort: { _id: string; name: string } }) => {
     setCreateCohortModalOpen(false);
     if (cohortData && cohortData.cohort && cohortData.cohort._id) {
+      setOptimisticCohort(cohortData.cohort);
       onCohortSelect(cohortData.cohort._id, cohortData.cohort.name);
     }
   };
@@ -84,6 +86,16 @@ export const CohortSelectionStep: React.FC<CohortSelectionStepProps> = ({
     onCohortSelect(id, cohort?.name || "");
   };
 
+  const baseOptions = cohorts?.map((cohort: Cohort) => ({
+    value: cohort._id,
+    label: cohort.name,
+  })) || [];
+
+  const finalOptions = [...baseOptions];
+  if (optimisticCohort && !finalOptions.find(o => o.value === optimisticCohort._id)) {
+    finalOptions.push({ value: optimisticCohort._id, label: optimisticCohort.name });
+  }
+
   return (
     <div className="space-y-4">
       <div className="grid gap-2">
@@ -91,18 +103,15 @@ export const CohortSelectionStep: React.FC<CohortSelectionStepProps> = ({
           Group Devices {isAdminPage ? '(Optional)' : <span className="text-red-500">*</span>}
         </Label>
         <ComboBox
-          options={cohorts?.map((cohort: Cohort) => ({
-            value: cohort._id,
-            label: cohort.name,
-          })) || []}
+          options={finalOptions}
           value={selectedCohortId}
           onValueChange={handleCohortSelect}
-          placeholder="Select a cohort"
-          searchPlaceholder="Search cohorts..."
-          emptyMessage="No cohorts found"
+          placeholder="Select a group"
+          searchPlaceholder="Search groups..."
+          emptyMessage="No groups found"
           className="w-full"
           allowCustomInput={false}
-          customActionLabel="Create New Cohort"
+          customActionLabel="Create New Group"
           customActionIcon={AqPlus}
           onCustomAction={handleCreateCohortAction}
           onSearchChange={setCohortSearch}
@@ -115,13 +124,16 @@ export const CohortSelectionStep: React.FC<CohortSelectionStepProps> = ({
         </p>
       </div>
 
-      <CreateCohortDialog
-        open={createCohortModalOpen}
-        onOpenChange={setCreateCohortModalOpen}
-        onSuccess={handleCreateCohortSuccess}
-        preselectedDevices={[]}
-        andNavigate={false}
-      />
+      {createCohortModalOpen && (
+        <CreateCohortDialog
+          open={createCohortModalOpen}
+          onOpenChange={setCreateCohortModalOpen}
+          onSuccess={handleCreateCohortSuccess}
+          hideDeviceSelection={true}
+          preselectedDevices={[]}
+          andNavigate={false}
+        />
+      )}
     </div>
   );
 };

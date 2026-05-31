@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -13,6 +13,8 @@ import ReusableInputField from "@/components/shared/inputfield/ReusableInputFiel
 import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
 import { DeviceNameParser } from "./device-name-parser";
 import { useBanner } from "@/context/banner-context";
+import { useUserContext } from "@/core/hooks/useUserContext";
+import { useAppSelector } from "@/core/redux/hooks";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import {
   Form,
@@ -37,6 +39,7 @@ interface CreateCohortDialogProps {
   onError?: (error: unknown) => void;
   andNavigate?: boolean;
   preselectedDevices?: PreselectedDevice[];
+  hideDeviceSelection?: boolean;
 }
 
 const formSchema = z.object({
@@ -47,9 +50,7 @@ const formSchema = z.object({
   network: z.string().min(1, {
     message: "Please select a Sensor Manufacturer.",
   }),
-  devices: z.array(z.string()).min(1, {
-    message: "Please select at least one device.",
-  }),
+  devices: z.array(z.string()).optional(),
   cohort_tags: z.array(z.string()).min(1, {
     message: "Please select at least one tag.",
   }),
@@ -75,8 +76,13 @@ export function CreateCohortDialog({
   onSuccess,
   onError,
   preselectedDevices = EMPTY_PRESELECTED_DEVICES,
+  hideDeviceSelection = false,
 }: CreateCohortDialogProps) {
   const { showBanner } = useBanner();
+  const pathname = usePathname();
+  const isAdminPage = pathname?.includes('/admin/');
+  const { isExternalOrg, activeGroup } = useUserContext();
+  const userDetails = useAppSelector((state) => state.user.userDetails);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -222,7 +228,7 @@ export function CreateCohortDialog({
     }
 
     // Merge with existing selections
-    const currentDevices = form.getValues('devices');
+    const currentDevices = form.getValues('devices') || [];
     const uniqueDevices = Array.from(new Set([...currentDevices, ...matchedIds]));
     form.setValue('devices', uniqueDevices);
 
@@ -250,7 +256,15 @@ export function CreateCohortDialog({
     const derivedName = isOrganizational
       ? buildCohortName(values.city || "", values.projectName || "", values.funder)
       : (values.name || "").trim();
-    createCohort({ name: derivedName, network: values.network, deviceIds: values.devices, cohort_tags: values.cohort_tags });
+      
+    createCohort({ 
+      name: derivedName, 
+      network: values.network, 
+      deviceIds: values.devices || [], 
+      cohort_tags: values.cohort_tags,
+      groupId: isExternalOrg ? activeGroup?._id : undefined,
+      userId: !isExternalOrg && !isAdminPage ? userDetails?._id : undefined,
+    });
   };
 
   const getDialogConfig = () => {
@@ -455,45 +469,47 @@ export function CreateCohortDialog({
                 </ReusableSelectInput>
               )}
             />
-            <FormField
-              control={form.control}
-              name="devices"
-              render={({ field }) => (
-                <FormItem className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                      Select Device(s) <span className="text-red-500">*</span>
-                    </label>
-                    <DeviceNameParser
-                      onDevicesParsed={handleDeviceImport}
-                      shouldBlock={!selectedNetwork}
-                      tooltipMessage="Please select a network first"
-                    />
-                  </div>
-                  <FormControl>
-                    <MultiSelectCombobox
-                      options={deviceOptions}
-                      placeholder="Select or add devices..."
-                      onValueChange={field.onChange}
-                      value={field.value || []}
-                      allowCreate={false}
-                      onSearchChange={setDeviceSearch}
-                      searchValue={deviceSearch}
-                      emptyMessage={
-                        selectedNetwork
-                          ? "No devices found for this Sensor Manufacturer."
-                          : "Please select a Sensor Manufacturer first."
-                      }
-                    />
-                  </FormControl>
-                  {isLoading && <p className="text-xs text-muted-foreground">Loading devices…</p>}
-                  {error && (
-                    <p className="text-xs text-destructive">Failed to load devices. Please try again.</p>
-                  )}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {!hideDeviceSelection && (
+              <FormField
+                control={form.control}
+                name="devices"
+                render={({ field }) => (
+                  <FormItem className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                        Select Device(s)
+                      </label>
+                      <DeviceNameParser
+                        onDevicesParsed={handleDeviceImport}
+                        shouldBlock={!selectedNetwork}
+                        tooltipMessage="Please select a network first"
+                      />
+                    </div>
+                    <FormControl>
+                      <MultiSelectCombobox
+                        options={deviceOptions}
+                        placeholder="Select or add devices..."
+                        onValueChange={field.onChange}
+                        value={field.value || []}
+                        allowCreate={false}
+                        onSearchChange={setDeviceSearch}
+                        searchValue={deviceSearch}
+                        emptyMessage={
+                          selectedNetwork
+                            ? "No devices found for this Sensor Manufacturer."
+                            : "Please select a Sensor Manufacturer first."
+                        }
+                      />
+                    </FormControl>
+                    {isLoading && <p className="text-xs text-muted-foreground">Loading devices…</p>}
+                    {error && (
+                      <p className="text-xs text-destructive">Failed to load devices. Please try again.</p>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
           </form>
         </Form>
       )}
@@ -508,16 +524,18 @@ export function CreateCohortDialog({
               Review Cohort Details
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-300 max-w-sm mx-auto">
-              You are about to create a cohort named <span className="font-semibold text-gray-900 dark:text-white">{derivedName}</span> in the <span className="font-semibold text-gray-900 dark:text-white">{formValues.network}</span> network.
+              You are about to create a group named <span className="font-semibold text-gray-900 dark:text-white">{derivedName}</span> in the <span className="font-semibold text-gray-900 dark:text-white">{formValues.network}</span> network.
             </p>
-            <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700">
-              <p className="text-sm text-gray-900 dark:text-white font-medium">
-                Devices to be added:
-              </p>
-              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">
-                {formValues.devices.length}
-              </p>
-            </div>
+            {!hideDeviceSelection && (
+              <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700">
+                <p className="text-sm text-gray-900 dark:text-white font-medium">
+                  Devices to be added:
+                </p>
+                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">
+                  {formValues.devices?.length || 0}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -529,10 +547,10 @@ export function CreateCohortDialog({
           </div>
           <div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Cohort Created Successfully!
+              Group Created Successfully!
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 max-w-sm mx-auto">
-              Cohort <span className="font-medium text-gray-900 dark:text-white">{createdCohort.name}</span> has been created with {formValues.devices.length} devices.
+              Group <span className="font-medium text-gray-900 dark:text-white">{createdCohort.name}</span> has been created{hideDeviceSelection ? '.' : ` with ${formValues.devices?.length || 0} devices.`}
             </p>
           </div>
         </div>
