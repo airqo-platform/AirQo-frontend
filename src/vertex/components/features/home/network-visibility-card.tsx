@@ -162,7 +162,7 @@ const NetworkVisibilityCard = ({ onVisibilityChanged, showCoachMark }: NetworkVi
                     ? `${isPersonalScope ? 'Your' : 'Organization'} devices are Private`
                     : 'Custom Visibility Settings'}
               </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-xl">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 {allPublic
                   ? `${isPersonalScope ? 'Your' : "Your organization's"} devices are visible to anyone on the AirQo Map. You are contributing to open data.`
                   : allPrivate

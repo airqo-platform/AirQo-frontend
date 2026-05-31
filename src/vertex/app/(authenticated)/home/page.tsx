@@ -440,7 +440,7 @@ const WelcomePage = () => {
   // ── Main dashboard (has devices) ───────────────────────────────────────────
 
   return (
-    <div>
+    <div className="mb-6">
       <ContextHeader />
 
       {showChecklist && (
@@ -478,21 +478,21 @@ const WelcomePage = () => {
         </div>
       )}
 
-      <div className="mb-3">
+      <div className="pb-6">
         <Accordion
           type="multiple"
           value={accordionItems}
           onValueChange={setAccordionItems}
-          className="space-y-4"
+          className="flex flex-col gap-6"
         >
           <AccordionItem
             value="stats"
-            className="bg-white dark:bg-transparent border border-gray-200 dark:border-gray-600 rounded-lg px-6"
+            className="bg-white dark:bg-transparent border border-gray-200 dark:border-gray-600 rounded-lg px-6 overflow-visible"
           >
             <AccordionTrigger className="hover:no-underline py-4">
               <h2 className="text-xl">Device Health</h2>
             </AccordionTrigger>
-            <AccordionContent className="pb-6 pt-2">
+            <AccordionContent className="pt-2 pb-6 border-t border-gray-100 dark:border-gray-700 mt-2">
               <DashboardStatsCards />
             </AccordionContent>
           </AccordionItem>
@@ -501,7 +501,7 @@ const WelcomePage = () => {
             value="visibility"
             ref={visibilityRef}
             className={cn(
-              "bg-white dark:bg-transparent border rounded-lg px-6 transition-all duration-700",
+              "bg-white dark:bg-transparent border border-gray-200 dark:border-gray-600 rounded-lg px-6 overflow-visible",
               highlightVisibility
                 ? "border-blue-400 dark:border-blue-500 ring-2 ring-blue-300 dark:ring-blue-600 ring-offset-2"
                 : "border-gray-200 dark:border-gray-600"
@@ -510,7 +510,7 @@ const WelcomePage = () => {
             <AccordionTrigger className="hover:no-underline py-4">
               <h2 className="text-xl">Device Visibility</h2>
             </AccordionTrigger>
-            <AccordionContent className="pt-2">
+            <AccordionContent className="pt-2 pb-6 border-t border-gray-100 dark:border-gray-700 mt-2">
               <NetworkVisibilityCard
                 showCoachMark={highlightVisibility}
                 onVisibilityChanged={() =>
