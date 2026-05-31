@@ -46,6 +46,25 @@ const normalizeRecentReadingsResponse = (
   };
 };
 
+const isAbortError = (error: unknown): boolean => {
+  const candidate = error as {
+    name?: string;
+    code?: string;
+    message?: string;
+  } | null;
+
+  if (!candidate) {
+    return false;
+  }
+
+  return (
+    candidate.name === 'AbortError' ||
+    candidate.name === 'CanceledError' ||
+    candidate.code === 'ERR_CANCELED' ||
+    candidate.message === 'canceled'
+  );
+};
+
 export class AnalyticsService {
   private authenticatedClient: ApiClient;
   private serverClient: ApiClient;
@@ -128,6 +147,16 @@ export class AnalyticsService {
         );
       })
     );
+
+    const abortedResponse = responses.find(
+      (response): response is PromiseRejectedResult =>
+        response.status === 'rejected' &&
+        (signal?.aborted || isAbortError(response.reason))
+    );
+
+    if (abortedResponse) {
+      throw abortedResponse.reason;
+    }
 
     const successfulResponses = responses
       .filter(

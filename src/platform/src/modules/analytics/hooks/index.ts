@@ -148,13 +148,14 @@ const buildSiteCardsFromRecentReadings = (
       return buildNoValueSiteCard(selectedSite, pollutant);
     }
 
-    const displayName = getSiteDisplayName(selectedSite);
+    const fallbackDisplayName = getSiteDisplayName(selectedSite);
+    const apiDisplayName = getSiteDisplayName(siteCard);
 
     return {
       ...siteCard,
       _id: selectedSite._id,
-      name: displayName,
-      search_name: displayName,
+      name: apiDisplayName || fallbackDisplayName,
+      search_name: siteCard.search_name || apiDisplayName || fallbackDisplayName,
       location: siteCard.location || buildSiteCardLocation(selectedSite),
       country: siteCard.country ?? selectedSite.country,
       city: siteCard.city ?? selectedSite.city,
@@ -233,6 +234,15 @@ const buildSiteCardsFromChartPoints = (
       percentageDifference,
     };
   });
+};
+
+const isRecentReadingsCompatibilityFallbackError = (
+  error: unknown
+): boolean => {
+  const status = (error as { response?: { status?: number } } | null)?.response
+    ?.status;
+
+  return status === 404 || status === 405;
 };
 
 interface AnalyticsPreferencesOptions {
@@ -484,7 +494,15 @@ export const useAnalyticsSiteCards = ({
   const selectedSitesKey = useMemo(
     () =>
       selectedSites
-        .map(site => `${site._id}:${getSiteDisplayName(site)}`)
+        .map(site =>
+          [
+            site._id,
+            getSiteDisplayName(site),
+            site.city ?? '',
+            site.region ?? '',
+            site.country ?? '',
+          ].join(':')
+        )
         .join('|'),
     [selectedSites]
   );
@@ -536,7 +554,10 @@ export const useAnalyticsSiteCards = ({
           activePollutant
         );
       } catch (error) {
-        if (signal.aborted) {
+        if (
+          signal.aborted ||
+          !isRecentReadingsCompatibilityFallbackError(error)
+        ) {
           throw error;
         }
 
