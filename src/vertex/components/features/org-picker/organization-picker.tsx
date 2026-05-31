@@ -19,7 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter, usePathname } from "next/navigation";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 
-const formatTitle = (title: string) => {
+export const formatTitle = (title: string) => {
   if (!title) return "";
   return title.replace(/[_-]/g, " ").toUpperCase();
 };

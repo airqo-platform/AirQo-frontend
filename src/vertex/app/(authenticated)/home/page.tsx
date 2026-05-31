@@ -19,6 +19,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import OnboardingChecklist from "@/components/features/home/onboarding-checklist";
 import { cn } from "@/lib/utils";
 import { Device } from "@/app/types/devices";
+import { formatTitle } from "@/components/features/org-picker/organization-picker";
 
 // ─── Checklist localStorage helpers ──────────────────────────────────────────
 // Keyed per org/user so state is independent across workspace switches.
@@ -438,7 +439,8 @@ const WelcomePage = () => {
             onAddDevice={openAddDeviceChoice}
             onGoToCohorts={() => setIsAssignCohortModalOpen(true)}
             onGoToVisibility={handleGoToVisibility}
-            onMarkAsDone={() => updateChecklist({ dismissed: true })}
+            onMarkAsDone={() => {}}
+            organizationName={formatTitle(activeGroup?.grp_title || "")}
           />
         )}
 
@@ -460,7 +462,8 @@ const WelcomePage = () => {
           onAddDevice={openAddDeviceChoice}
           onGoToCohorts={() => setIsAssignCohortModalOpen(true)}
           onGoToVisibility={handleGoToVisibility}
-          onMarkAsDone={() => updateChecklist({ dismissed: true })}
+          onMarkAsDone={() => {}}
+          organizationName={formatTitle(activeGroup?.grp_title || "")}
         />
       )}
 

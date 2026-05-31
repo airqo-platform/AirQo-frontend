@@ -26,6 +26,7 @@ type OnboardingChecklistProps = {
   completedSteps: string[];
   onDismiss: () => void;
   onMarkAsDone?: () => void;
+  organizationName?: string;
 };
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -208,7 +209,10 @@ export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
   completedSteps,
   onDismiss,
   onMarkAsDone,
+  organizationName,
 }) => {
+
+  const [showingSuccess, setShowingSuccess] = React.useState(false);
 
   const completedCount = completedSteps.length;
   const allComplete = completedCount === STEPS.length;
@@ -228,13 +232,16 @@ export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
     return !completedSteps.includes(STEPS[index - 1].id);
   };
 
-  // Auto-dismiss after all steps complete — give user 2 s to see the success state
+  // Auto-dismiss after all steps complete OR after showing success state
   React.useEffect(() => {
-    if (allComplete) {
-      const timer = setTimeout(onDismiss, 2000);
+    if (allComplete || showingSuccess) {
+      const timer = setTimeout(() => {
+        onDismiss();
+        onMarkAsDone?.();
+      }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [allComplete, onDismiss]);
+  }, [allComplete, showingSuccess, onDismiss, onMarkAsDone]);
 
   return (
     <div
@@ -251,39 +258,44 @@ export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
       <div className="flex items-center justify-between px-5 py-4">
         <div className="flex-1 min-w-0 pr-4">
           <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">
-            {allComplete
+            {allComplete || showingSuccess
               ? "You're all set! 🎉"
-              : "Complete your workspace setup"}
+              : `Finish setting up your ${organizationName || "Personal"} workspace`}
           </h2>
           {/* Progress always visible even when collapsed — H1 */}
-          <ProgressBar completed={completedCount} total={STEPS.length} />
+          {!showingSuccess && <ProgressBar completed={completedCount} total={STEPS.length} />}
         </div>
       </div>
 
       {/* ── Steps — H6: Full journey visible at once, recognition over recall ── */}
-      <div
-        id="checklist-steps"
-        className="px-4 pb-2 divide-y divide-gray-100 dark:divide-gray-800"
-      >
-        {STEPS.map((step, index) => (
-          <StepRow
-            key={step.id}
-            step={step}
-            isComplete={completedSteps.includes(step.id)}
-            isLocked={isStepLocked(index)}
-            onAction={stepActions[step.id]}
-          />
-        ))}
-      </div>
+      {!showingSuccess && (
+        <div
+          id="checklist-steps"
+          className="px-4 pb-2 divide-y divide-gray-100 dark:divide-gray-800"
+        >
+          {STEPS.map((step, index) => (
+            <StepRow
+              key={step.id}
+              step={step}
+              isComplete={completedSteps.includes(step.id)}
+              isLocked={isStepLocked(index)}
+              onAction={stepActions[step.id]}
+            />
+          ))}
+        </div>
+      )}
 
       {/* ── Mark as done — visible always, enabled once steps 1 & 2 are complete ── */}
-      {onMarkAsDone && (       
+      {!showingSuccess && onMarkAsDone && (       
         <>
           <hr className="border-gray-100 dark:border-gray-800 mx-4" />
           <div className="px-4 py-3 flex justify-end">
             <ReusableButton
               variant="outlined"
-              onClick={onMarkAsDone}
+              onClick={() => {
+                setShowingSuccess(true);
+                onMarkAsDone?.();
+              }}
               disabled={!completedSteps.includes("add-device") || !completedSteps.includes("assign-cohort")}
               className={"text-sm font-medium px-2 py-1 rounded-md transition-colors duration-150"}
               aria-label="Dismiss setup checklist"
