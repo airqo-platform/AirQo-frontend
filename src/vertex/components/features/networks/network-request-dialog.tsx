@@ -21,8 +21,8 @@ interface NetworkRequestDialogProps {
 export function NetworkRequestDialog({ open, onOpenChange }: NetworkRequestDialogProps) {
     const userDetails = useAppSelector((state) => state.user.userDetails);
     const queryClient = useQueryClient();
-    const {showBanner} = useBanner();
-    const {showBannerWithDelay} = useBannerWithDelay();
+    const { showBanner } = useBanner();
+    const { showBannerWithDelay } = useBannerWithDelay();
 
     const { mutate: submitRequest, isPending } = useMutation({
         mutationFn: async (data: NetworkRequestValues) => {
@@ -42,10 +42,10 @@ export function NetworkRequestDialog({ open, onOpenChange }: NetworkRequestDialo
         },
         onSuccess: (resp) => {            
             queryClient.invalidateQueries({ queryKey: ["network-requests"] });
-            showBannerWithDelay({severity:'success',message:resp.message || "Your request for a new Sensor Manufacturer has been submitted successfully!",scoped:true});
+            showBannerWithDelay({ severity: 'success', message: resp.message || "Your request for a new Sensor Manufacturer has been submitted successfully!", scoped: true });
         },
         onError: (error) => {            
-            showBanner({severity:'error',message:getApiErrorMessage(error),scoped:true});
+            showBanner({ severity: 'error', message: getApiErrorMessage(error), scoped: true });
         },
     });
 

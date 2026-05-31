@@ -20,8 +20,8 @@ export function CreateNetworkForm() {
     const [open, setOpen] = useState(false);
     const [isPending, setIsPending] = useState(false);
     const queryClient = useQueryClient();
-    const {showBanner} = useBanner();
-    const {showBannerWithDelay} = useBannerWithDelay();
+    const { showBanner } = useBanner();
+    const { showBannerWithDelay } = useBannerWithDelay();
     const form = useForm<NetworkFormValues>({
         resolver: zodResolver(networkFormSchema),
         defaultValues: {
@@ -52,15 +52,15 @@ export function CreateNetworkForm() {
                 });                         
                 queryClient.invalidateQueries({ queryKey: ["networks"] });
                 handleClose();
-                showBannerWithDelay({severity:'success',message:'Sensor Manufacturer created successfully!',scoped:false});
+                showBannerWithDelay({ severity: 'success', message: 'Sensor Manufacturer created successfully!', scoped: false });
             } catch (error: unknown) {
                 const errorMessage = getApiErrorMessage(error);                
-                showBanner({severity:'error',message:errorMessage,scoped:true})
+                showBanner({ severity: 'error', message: errorMessage, scoped: true });
             } finally {
                 setIsPending(false);
             }
         },
-        [handleClose,queryClient,showBanner,showBannerWithDelay]
+        [handleClose, queryClient, showBanner, showBannerWithDelay]
     );
 
     return (

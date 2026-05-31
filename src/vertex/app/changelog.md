@@ -16,7 +16,7 @@ Migrated user feedback in the network management feature from toast notification
 - **Network Requests Actions**: Replaced toast notifications with page-level banners (`scoped: false`) for approve, deny, and review status updates in `NetworkRequestsClient`.
 - **Copy ID Feedback**: Updated the "copy Sensor Manufacturer ID" action in the networks table to show success/error banners (`scoped: false`) instead of toasts.
 - **Create Network Form**: Success feedback now uses `showBannerWithDelay` so the banner appears after the dialog closes (`scoped: false`); error feedback uses an in-dialog banner (`scoped: true`).
-- **Network Request Dialog**: Submission success uses `showBannerWithDelay` (`scoped: true`) and errors use `showBanner` (`scoped: true`), replacing the previous toast calls.
+- **Network Request Dialog**: Submission success and errors both use `scoped: true` to render feedback inline inside the dialog via `BannerSlot`; success additionally uses `showBannerWithDelay` to time the display correctly.
 - **Banner Text Alignment Fix**: Added `text-left` to the `Banner` component's root div so banner text is always left-aligned regardless of any ancestor container that sets `text-center` (e.g. shadcn `DialogHeader`).
 
 </details>
