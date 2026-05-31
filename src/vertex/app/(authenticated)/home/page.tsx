@@ -119,6 +119,7 @@ const WelcomePage = () => {
 
   const [isClaimModalOpen, setIsClaimModalOpen] = React.useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = React.useState(false);
+  const [justCompletedClaim, setJustCompletedClaim] = React.useState(false);
   const [isAddDeviceChoiceOpen, setIsAddDeviceChoiceOpen] = React.useState(false);
   const [isAssignCohortModalOpen, setIsAssignCohortModalOpen] = React.useState(false);
   const [newlyClaimedDevice, setNewlyClaimedDevice] = React.useState<Pick<Device, "_id" | "name" | "long_name">[] | undefined
@@ -182,9 +183,10 @@ const WelcomePage = () => {
   }, []);
 
   const openClaimModal = React.useCallback(() => {
+    if (justCompletedClaim) return;
     setIsAddDeviceChoiceOpen(false);
     setIsClaimModalOpen(true);
-  }, []);
+  }, [justCompletedClaim]);
 
   const openImportModal = React.useCallback(() => {
     setIsAddDeviceChoiceOpen(false);
@@ -193,7 +195,11 @@ const WelcomePage = () => {
 
   const handleDeviceAdded = React.useCallback(
     (deviceInfo?: { deviceId: string; deviceName: string; cohortId: string; isCohortImport?: boolean }) => {
+      setJustCompletedClaim(true);
+      setTimeout(() => setJustCompletedClaim(false), 1000);
+
       if (deviceInfo?.isCohortImport) {
+        setNewlyClaimedDevice(undefined);
         updateChecklist({
           completedSteps: Array.from(
             new Set([...(checklistState.completedSteps || []), "add-device", "assign-cohort"]),
@@ -219,6 +225,7 @@ const WelcomePage = () => {
         new Set([...(checklistState.completedSteps || []), "assign-cohort"]),
       ),
     });
+    setNewlyClaimedDevice(undefined);
   }, [checklistState.completedSteps, updateChecklist]);
 
   // ── Permissions ────────────────────────────────────────────────────────────
@@ -349,7 +356,10 @@ const WelcomePage = () => {
       {showChecklist && (
         <AssignCohortDevicesDialog
           open={isAssignCohortModalOpen}
-          onOpenChange={setIsAssignCohortModalOpen}
+          onOpenChange={(open) => {
+            setIsAssignCohortModalOpen(open);
+            if (!open) setNewlyClaimedDevice(undefined);
+          }}
           selectedDevices={newlyClaimedDevice as Device[]}
           onSuccess={handleCohortAssigned}
           title="Group your devices"

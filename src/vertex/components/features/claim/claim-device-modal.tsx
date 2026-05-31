@@ -715,13 +715,6 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
             label: isGuidedMode ? 'Continue Setup' : 'Go to Devices',
             onClick: () => {
               handleClose();
-              if (!isGuidedMode) {
-                router.push(
-                  userScope === 'personal'
-                    ? '/devices/my-devices'
-                    : '/devices/overview',
-                );
-              }
             },
           },
         };
@@ -906,76 +899,71 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
               claimData={claimData}
             />
           )}
+       
+        <>
+          {step === 'bulk-input' && (
+            <BulkInputStep
+              bulkDevices={bulkDevices}
+              isPersonalContext={isPersonalContext}
+              isExternalOrg={isExternalOrg}
+              defaultCohort={defaultCohort}
+              error={error}
+              onAddDevice={handleBulkAddDevice}
+              onRemoveDevice={handleBulkRemoveDevice}
+              onDeviceChange={handleBulkDeviceChange}
+              onFileImport={handleBulkFileImport}
+              onClear={handleBulkClear}
+            />
+          )}
 
-        {/* ================================================== */}
-        {/* FAST MODE ONLY UI                                   */}
-        {/* ================================================== */}
+          {step === 'cohort-import' && (
+            <CohortImportStep
+              cohortIdInput={cohortIdInput}
+              onChange={val => {
+                setCohortIdInput(val);
+                setError(null);
+              }}
+              error={error}
+              isImporting={isImportingCohort}
+            />
+          )}
 
-        {!isGuidedMode && (
-          <>
-            {step === 'bulk-input' && (
-              <BulkInputStep
-                bulkDevices={bulkDevices}
-                isPersonalContext={isPersonalContext}
-                isExternalOrg={isExternalOrg}
-                defaultCohort={defaultCohort}
-                error={error}
-                onAddDevice={handleBulkAddDevice}
-                onRemoveDevice={handleBulkRemoveDevice}
-                onDeviceChange={handleBulkDeviceChange}
-                onFileImport={handleBulkFileImport}
-                onClear={handleBulkClear}
-              />
-            )}
+          {step === 'cohort-confirm' && verifiedCohort && (
+            <CohortConfirmStep
+              verifiedCohort={verifiedCohort}
+              isExternalOrg={isExternalOrg}
+            />
+          )}
 
-            {step === 'cohort-import' && (
-              <CohortImportStep
-                cohortIdInput={cohortIdInput}
-                onChange={val => {
-                  setCohortIdInput(val);
-                  setError(null);
-                }}
-                error={error}
-                isImporting={isImportingCohort}
-              />
-            )}
+          {step === 'bulk-confirmation' && (
+            <BulkConfirmationStep
+              count={
+                bulkDevices.filter(
+                  d => d.device_name.trim() && d.claim_token.trim(),
+                ).length
+              }
+            />
+          )}
 
-            {step === 'cohort-confirm' && verifiedCohort && (
-              <CohortConfirmStep
-                verifiedCohort={verifiedCohort}
-                isExternalOrg={isExternalOrg}
-              />
-            )}
+          {step === 'bulk-claiming' && (
+            <LoadingSpinner
+              title="Claiming Devices"
+              subtitle="Please wait while we process your devices..."
+            />
+          )}
 
-            {step === 'bulk-confirmation' && (
-              <BulkConfirmationStep
-                count={
-                  bulkDevices.filter(
-                    d => d.device_name.trim() && d.claim_token.trim(),
-                  ).length
-                }
-              />
-            )}
+          {step === 'assigning-cohort' && (
+            <LoadingSpinner
+              title="Assigning Cohort"
+              subtitle="Please wait while we configure cohort access..."
+            />
+          )}
 
-            {step === 'bulk-claiming' && (
-              <LoadingSpinner
-                title="Claiming Devices"
-                subtitle="Please wait while we process your devices..."
-              />
-            )}
-
-            {step === 'assigning-cohort' && (
-              <LoadingSpinner
-                title="Assigning Cohort"
-                subtitle="Please wait while we configure cohort access..."
-              />
-            )}
-
-            {step === 'bulk-results' && bulkClaimData?.data && (
-              <BulkClaimResults results={bulkClaimData.data} />
-            )}
-          </>
-        )}
+          {step === 'bulk-results' && bulkClaimData?.data && (
+            <BulkClaimResults results={bulkClaimData.data} />
+          )}
+        </>
+       
       </div>
     </ReusableDialog>
   );

@@ -29,7 +29,7 @@ const ALL_METHODS = [
       'hover:border-green-500 dark:hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-900/20',
     title: 'Add Multiple Devices',
     desc: 'Upload a CSV file or enter a list of IDs for bulk setup.',
-    modes: ['fast'] as ClaimFlowMode[],
+    modes: ['guided', 'fast'] as ClaimFlowMode[],
   },
   {
     step: 'cohort-import' as FlowStep,
