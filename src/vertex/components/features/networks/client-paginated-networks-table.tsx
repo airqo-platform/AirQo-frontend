@@ -41,8 +41,7 @@ export default function ClientPaginatedNetworksTable({
         await navigator.clipboard.writeText(text);
         showBanner({ message: "Sensor Manufacturer ID copied", severity:"success",scoped: false });
       } catch {
-        showBanner({ message: "Failed to copy ID", severity: "error", scoped:false });
-        
+        showBanner({ message: "Failed to copy ID", severity: "error", scoped:false });        
       }
     }
   };

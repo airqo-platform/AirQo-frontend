@@ -20,8 +20,8 @@ export function CreateNetworkForm() {
     const [open, setOpen] = useState(false);
     const [isPending, setIsPending] = useState(false);
     const queryClient = useQueryClient();
-    const {showBanner}=useBanner();
-    const {showBannerWithDelay}=useBannerWithDelay();
+    const {showBanner} = useBanner();
+    const {showBannerWithDelay} = useBannerWithDelay();
     const form = useForm<NetworkFormValues>({
         resolver: zodResolver(networkFormSchema),
         defaultValues: {
