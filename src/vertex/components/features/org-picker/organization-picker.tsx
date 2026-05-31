@@ -17,7 +17,8 @@ import { UserContext } from "@/core/redux/slices/userSlice";
 import { AqGrid01 } from "@airqo/icons-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter, usePathname } from "next/navigation";
-import ReusableToast from "@/components/shared/toast/ReusableToast";
+import { useBanner } from "@/context/banner-context";
+import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
 
 const formatTitle = (title: string) => {
   if (!title) return "";
@@ -32,6 +33,8 @@ const OrganizationPicker: React.FC = () => {
   const userGroups = useAppSelector((state) => state.user.userGroups);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { isLoading } = useUserContext();
+  const { showBanner } = useBanner();
+  const { showBannerWithDelay } = useBannerWithDelay();
   const { isSwitching } = useAppSelector((state) => state.user.organizationSwitching);
   const pathname = usePathname();
   const lastPathname = useRef(pathname);
@@ -105,8 +108,17 @@ const OrganizationPicker: React.FC = () => {
       } else {
         router.push("/home");
       }
+      showBannerWithDelay({
+        severity: 'success',
+        message: `Switched to ${formatTitle(group.grp_title)}`,
+        scoped: false,
+      });
     } catch {
-      ReusableToast({ message: "Failed to switch organization", type: "ERROR" });
+      showBanner({
+        severity: 'error',
+        message: 'Failed to switch organization. Please try again.',
+        scoped: false,
+      });
       dispatch(setOrganizationSwitching({ isSwitching: false, switchingTo: "" }));
     }
   };
