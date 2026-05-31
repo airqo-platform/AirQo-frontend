@@ -114,6 +114,9 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
               className={`flex items-center justify-center text-gray-800`}
             />
             <span className="font-medium text-lg tracking-tight">Vertex</span>
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/10 text-primary dark:bg-primary/20">
+              Administrator
+            </span>
           </div>
 
           <div className="flex items-center gap-x-1 ml-auto">
