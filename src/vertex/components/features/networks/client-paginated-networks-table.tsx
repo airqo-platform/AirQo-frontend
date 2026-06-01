@@ -6,7 +6,7 @@ import ReusableTable, {
 import { useRouter } from "next/navigation";
 import { Network } from "@/core/apis/networks";
 import { AqCopy01, AqLinkExternal01 } from "@airqo/icons-react";
-import ReusableToast from "@/components/shared/toast/ReusableToast";
+import { useBanner } from "@/context/banner-context";
 
 interface NetworksTableProps {
   networks: Network[];
@@ -26,6 +26,7 @@ export default function ClientPaginatedNetworksTable({
   onNetworkClick,
 }: NetworksTableProps) {
   const router = useRouter();
+  const { showBanner } = useBanner();
 
   const handleNetworkClick = (item: unknown) => {
     const network = item as Network;
@@ -38,9 +39,9 @@ export default function ClientPaginatedNetworksTable({
     if (text) {
       try {
         await navigator.clipboard.writeText(text);
-        ReusableToast({ message: "Sensor Manufacturer ID copied", type: "SUCCESS" });
+        showBanner({ message: "Sensor Manufacturer ID copied", severity: "success", scoped: false });
       } catch {
-        ReusableToast({ message: "Failed to copy ID", type: "ERROR" });
+        showBanner({ message: "Failed to copy ID", severity: "error", scoped: false });
       }
     }
   };

@@ -13,10 +13,9 @@ env:
   KEYVAULT: airqo-kv-staging
 
 jobs:
-
-#########################################
-# FORMAT BRANCH NAME
-#########################################
+  #########################################
+  # FORMAT BRANCH NAME
+  #########################################
 
   branch-name:
     runs-on: ubuntu-latest
@@ -29,9 +28,9 @@ jobs:
         with:
           string: ${{ github.head_ref || github.ref_name }}
 
-#########################################
-# DETECT CHANGED SERVICES
-#########################################
+  #########################################
+  # DETECT CHANGED SERVICES
+  #########################################
 
   check:
     runs-on: ubuntu-latest
@@ -46,16 +45,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
 
       - name: check modified frontends
         id: check_files
         run: |
           echo "=============== list modified files ==============="
-          git diff --name-only HEAD^ HEAD
+          git fetch origin ${{ github.base_ref }}
+          git diff --name-only \
+            origin/${{ github.base_ref }} \
+            ${{ github.event.pull_request.head.sha }}
 
           echo "========== check paths of modified files =========="
-          git diff --name-only HEAD^ HEAD > files.txt
+          git diff --name-only \
+            origin/${{ github.base_ref }} \
+            ${{ github.event.pull_request.head.sha }} > files.txt
 
           echo "run_calibrate_app=false" >>$GITHUB_OUTPUT
           echo "run_analytics_platform=false" >>$GITHUB_OUTPUT
@@ -70,32 +76,26 @@ jobs:
             if [[ $file == src/calibrate/* ]]; then
               echo "run_calibrate_app=true" >>$GITHUB_OUTPUT
             fi
-
             if [[ $file == src/platform/* ]]; then
               echo "run_analytics_platform=true" >>$GITHUB_OUTPUT
             fi
-
             if [[ $file == src/website/* ]]; then
               echo "run_website=true" >>$GITHUB_OUTPUT
             fi
-
             if [[ $file == src/vertex/* ]]; then
               echo "run_vertex=true" >>$GITHUB_OUTPUT
             fi
-
             if [[ $file == src/beacon/* ]]; then
               echo "run_beacon=true" >>$GITHUB_OUTPUT
             fi
-
             if [[ $file == src/docs-website/* ]]; then
               echo "run_docs=true" >>$GITHUB_OUTPUT
             fi
-
           done < files.txt
 
-#########################################
-# WEBSITE PREVIEW
-#########################################
+  #########################################
+  # WEBSITE PREVIEW
+  #########################################
 
   website:
     needs: [check, branch-name]
@@ -106,6 +106,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
 
       - name: Azure Login
         uses: azure/login@v2
@@ -146,7 +149,7 @@ jobs:
       - id: preview
         run: |
           BRANCH="${{ needs.branch-name.outputs.lowercase }}"
-          APP="${BRANCH:0:12}-website-preview" 
+          APP="${BRANCH:0:12}-website-preview"
 
           URL=$(az containerapp show \
             --name $APP \
@@ -170,9 +173,9 @@ jobs:
               body: 'New azure website changes available for preview [here](${{ needs.website.outputs.url }})'
             })
 
-#########################################
-# BEACON PREVIEW
-#########################################
+  #########################################
+  # BEACON PREVIEW
+  #########################################
 
   beacon:
     name: build-push-deploy-beacon-preview
@@ -185,6 +188,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
 
       - name: Azure Login
         uses: azure/login@v2
@@ -249,9 +255,9 @@ jobs:
               body: 'New azure beacon changes available for preview [here](${{ needs.beacon.outputs.url }})'
             })
 
-#########################################
-# CALIBRATE APP PREVIEW
-#########################################
+  #########################################
+  # CALIBRATE APP PREVIEW
+  #########################################
 
   calibrate_app:
     name: build-push-deploy-calibrate-app-preview
@@ -264,6 +270,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
 
       - uses: azure/login@v2
         with:
@@ -327,9 +336,9 @@ jobs:
               body: 'New azure calibrate_app changes available for preview [here](${{ needs.calibrate_app.outputs.url }})'
             })
 
-#########################################
-# ANALYTICS PLATFORM PREVIEW
-#########################################
+  #########################################
+  # ANALYTICS PLATFORM PREVIEW
+  #########################################
 
   analytics_platform:
     name: build-push-deploy-analytics-platform-preview
@@ -342,6 +351,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
 
       - uses: azure/login@v2
         with:
@@ -365,7 +377,7 @@ jobs:
             --vault-name ${{ env.KEYVAULT }} \
             --name sta-env-next-platform \
             --query value -o tsv > secrets.json
-        
+
           # Write .env into the build context for Next.js build time, excluding
           # staging auth origins that are wrong for per-PR preview hostnames.
           jq -r 'to_entries | .[] | select(.key != "NEXTAUTH_URL" and .key != "NEXTAUTH_URL_INTERNAL" and .key != "NEXTAUTH_COOKIE_DOMAIN" and .key != "AUTH_URL" and .key != "AUTH_TRUST_HOST") | "\(.key)=\(.value|tojson)"' secrets.json > src/platform/.env
@@ -458,9 +470,9 @@ jobs:
               body: 'New azure analytics_platform changes available for preview [here](${{ needs.analytics_platform.outputs.url }})'
             })
 
-#########################################
-# VERTEX PREVIEW
-#########################################
+  #########################################
+  # VERTEX PREVIEW
+  #########################################
 
   vertex:
     name: build-push-deploy-vertex-preview
@@ -473,6 +485,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
 
       - uses: azure/login@v2
         with:
@@ -497,8 +512,6 @@ jobs:
             --name sta-env-vertex \
             --query value -o tsv > secrets.json
 
-          # Write .env into the build context for Next.js build time, excluding static auth values
-          # that are wrong for per-PR Azure preview hostnames.
           jq -r 'to_entries | .[] | select(.key != "NEXTAUTH_URL" and .key != "NEXTAUTH_URL_INTERNAL" and .key != "NEXTAUTH_COOKIE_DOMAIN") | "\(.key)=\(.value|tojson)"' secrets.json > src/vertex/.env
           {
             echo "NEXTAUTH_URL=$NEXTAUTH_URL"
@@ -516,15 +529,11 @@ jobs:
           BRANCH="${{ needs.branch-name.outputs.lowercase }}"
           APP="${BRANCH:0:12}-vertex-preview"
 
-          # Build env vars as an array so each KEY=VALUE is passed to Azure CLI as its own argument.
-          # The shared staging secret contains static auth values that are wrong for per-PR
-          # preview hostnames. Drop them and inject the Container Apps preview URL below.
           mapfile -t ENV_VARS < <(jq -r 'to_entries[] | select(.key != "NEXTAUTH_URL" and .key != "NEXTAUTH_URL_INTERNAL" and .key != "NEXTAUTH_COOKIE_DOMAIN") | "\(.key)=\(.value|tostring)"' secrets.json)
           ENV_VARS+=("NEXTAUTH_URL=$NEXTAUTH_URL")
           ENV_VARS+=("NEXTAUTH_URL_INTERNAL=$NEXTAUTH_URL")
           ENV_VARS+=("AUTH_TRUST_HOST=true")
 
-          # Fail fast if the secret is missing (NextAuth requires this in production).
           jq -e '((.NEXTAUTH_SECRET // .AUTH_SECRET) | length > 0)' secrets.json >/dev/null
 
           az containerapp up \
@@ -595,9 +604,9 @@ jobs:
               body: 'New azure vertex changes available for preview [here](${{ needs.vertex.outputs.url }})'
             })
 
-#########################################
-# DOCS PREVIEW
-#########################################
+  #########################################
+  # DOCS PREVIEW
+  #########################################
 
   docs:
     name: build-push-deploy-docs-preview
@@ -610,6 +619,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
 
       - uses: azure/login@v2
         with:
