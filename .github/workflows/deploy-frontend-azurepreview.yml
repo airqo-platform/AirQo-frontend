@@ -48,6 +48,16 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Debug checkout        # ← add this temporarily
+        run: |
+          echo "event=${{ github.event_name }}"
+          echo "base_ref=${{ github.base_ref }}"
+          echo "head_ref=${{ github.head_ref }}"
+          echo "head_sha=${{ github.event.pull_request.head.sha }}"
+          git status
+          git branch -a
+          git rev-parse HEAD          
+
       - name: check modified frontends
         id: check_files
         run: |
