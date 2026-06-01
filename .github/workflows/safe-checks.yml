@@ -24,10 +24,15 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
       - name: detect changed services
         id: check
         run: |
-          git diff --name-only "origin/${{ github.base_ref }}"...HEAD > files.txt
+          git fetch origin ${{ github.base_ref }}
+          git diff --name-only \
+            origin/${{ github.base_ref }} \
+            ${{ github.event.pull_request.head.sha }} > files.txt
           cat files.txt
 
           echo "website=false"   >> $GITHUB_OUTPUT
@@ -58,6 +63,7 @@ jobs:
               echo "docs=true" >> $GITHUB_OUTPUT
             fi
           done < files.txt
+
   check-website:
     needs: detect-changes
     if: needs.detect-changes.outputs.website == 'true'
@@ -95,22 +101,22 @@ jobs:
         run: cd src/vertex && npm run lint --if-present
 
   check-platform:
-      needs: detect-changes
-      if: needs.detect-changes.outputs.platform == 'true'
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-          with:
-            persist-credentials: false
-        - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
-          with:
-            node-version: '20'
-            cache: 'yarn'
-            cache-dependency-path: src/platform/yarn.lock
-        - name: Install dependencies
-          run: cd src/platform && yarn install --frozen-lockfile
-        - name: Lint
-          run: cd src/platform && yarn lint
+    needs: detect-changes
+    if: needs.detect-changes.outputs.platform == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
+        with:
+          node-version: '20'
+          cache: 'yarn'
+          cache-dependency-path: src/platform/yarn.lock
+      - name: Install dependencies
+        run: cd src/platform && yarn install --frozen-lockfile
+      - name: Lint
+        run: cd src/platform && yarn lint
 
   check-beacon:
     needs: detect-changes
