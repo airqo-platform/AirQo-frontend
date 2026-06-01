@@ -95,22 +95,22 @@ jobs:
         run: cd src/vertex && npm run lint --if-present
 
   check-platform:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.platform == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: src/platform/package-lock.json
-      - name: Install dependencies
-        run: cd src/platform && npm ci
-      - name: Lint
-        run: cd src/platform && npm run lint --if-present
+      needs: detect-changes
+      if: needs.detect-changes.outputs.platform == 'true'
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+          with:
+            persist-credentials: false
+        - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
+          with:
+            node-version: '20'
+            cache: 'yarn'
+            cache-dependency-path: src/platform/yarn.lock
+        - name: Install dependencies
+          run: cd src/platform && yarn install --frozen-lockfile
+        - name: Lint
+          run: cd src/platform && yarn lint --if-present
 
   check-beacon:
     needs: detect-changes
