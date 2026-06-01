@@ -37,15 +37,27 @@ jobs:
           echo "calibrate=false" >> $GITHUB_OUTPUT
           echo "docs=false"      >> $GITHUB_OUTPUT
 
-          while IFS= read -r file; do
-            [[ $file == src/website/* ]]      && echo "website=true"    >> $GITHUB_OUTPUT
-            [[ $file == src/vertex/* ]]       && echo "vertex=true"     >> $GITHUB_OUTPUT
-            [[ $file == src/platform/* ]]     && echo "platform=true"   >> $GITHUB_OUTPUT
-            [[ $file == src/beacon/* ]]       && echo "beacon=true"     >> $GITHUB_OUTPUT
-            [[ $file == src/calibrate/* ]]    && echo "calibrate=true"  >> $GITHUB_OUTPUT
-            [[ $file == src/docs-website/* ]] && echo "docs=true"       >> $GITHUB_OUTPUT
+          while IFS= read -r file
+          do
+            if [[ $file == src/website/* ]]; then
+              echo "website=true" >> $GITHUB_OUTPUT
+            fi
+            if [[ $file == src/vertex/* ]]; then
+              echo "vertex=true" >> $GITHUB_OUTPUT
+            fi
+            if [[ $file == src/platform/* ]]; then
+              echo "platform=true" >> $GITHUB_OUTPUT
+            fi
+            if [[ $file == src/beacon/* ]]; then
+              echo "beacon=true" >> $GITHUB_OUTPUT
+            fi
+            if [[ $file == src/calibrate/* ]]; then
+              echo "calibrate=true" >> $GITHUB_OUTPUT
+            fi
+            if [[ $file == src/docs-website/* ]]; then
+              echo "docs=true" >> $GITHUB_OUTPUT
+            fi
           done < files.txt
-
   check-website:
     needs: detect-changes
     if: needs.detect-changes.outputs.website == 'true'
