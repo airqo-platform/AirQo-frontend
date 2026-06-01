@@ -27,7 +27,7 @@ jobs:
       - name: detect changed services
         id: check
         run: |
-          git diff --name-only origin/${{ github.base_ref }}...HEAD > files.txt
+          git diff --name-only "origin/${{ github.base_ref }}"...HEAD > files.txt
           cat files.txt
 
           echo "website=false"   >> $GITHUB_OUTPUT
