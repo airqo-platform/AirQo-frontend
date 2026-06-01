@@ -46,16 +46,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
 
       - name: check modified frontends
         id: check_files
         run: |
           echo "=============== list modified files ==============="
-          git diff --name-only "origin/${{ github.base_ref }}"...HEAD
+          git fetch origin ${{ github.base_ref }}
+          git diff --name-only \
+            origin/${{ github.base_ref }} \
+            ${{ github.event.pull_request.head.sha }}
 
           echo "========== check paths of modified files =========="
-          git diff --name-only "origin/${{ github.base_ref }}"...HEAD > files.txt
+          git diff --name-only \
+            origin/${{ github.base_ref }} \
+            ${{ github.event.pull_request.head.sha }} > files.txt
 
           echo "run_calibrate_app=false" >>$GITHUB_OUTPUT
           echo "run_analytics_platform=false" >>$GITHUB_OUTPUT
@@ -70,27 +77,21 @@ jobs:
             if [[ $file == src/calibrate/* ]]; then
               echo "run_calibrate_app=true" >>$GITHUB_OUTPUT
             fi
-
             if [[ $file == src/platform/* ]]; then
               echo "run_analytics_platform=true" >>$GITHUB_OUTPUT
             fi
-
             if [[ $file == src/website/* ]]; then
               echo "run_website=true" >>$GITHUB_OUTPUT
             fi
-
             if [[ $file == src/vertex/* ]]; then
               echo "run_vertex=true" >>$GITHUB_OUTPUT
             fi
-
             if [[ $file == src/beacon/* ]]; then
               echo "run_beacon=true" >>$GITHUB_OUTPUT
             fi
-
             if [[ $file == src/docs-website/* ]]; then
               echo "run_docs=true" >>$GITHUB_OUTPUT
             fi
-
           done < files.txt
 
 #########################################
@@ -106,6 +107,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
 
       - name: Azure Login
         uses: azure/login@v2
@@ -146,7 +150,7 @@ jobs:
       - id: preview
         run: |
           BRANCH="${{ needs.branch-name.outputs.lowercase }}"
-          APP="${BRANCH:0:12}-website-preview" 
+          APP="${BRANCH:0:12}-website-preview"
 
           URL=$(az containerapp show \
             --name $APP \
@@ -185,6 +189,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
 
       - name: Azure Login
         uses: azure/login@v2
@@ -264,6 +271,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
 
       - uses: azure/login@v2
         with:
@@ -342,6 +352,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
 
       - uses: azure/login@v2
         with:
@@ -355,9 +368,9 @@ jobs:
             --vault-name ${{ env.KEYVAULT }} \
             --name sta-env-next-platform \
             --query value -o tsv > secrets.json
-        
-            # Write .env into the build context for Next.js build time 
-          jq -r 'to_entries | .[] | "\(.key)=\(.value|tojson)"' secrets.json > src/platform/.env         
+
+          # Write .env into the build context for Next.js build time
+          jq -r 'to_entries | .[] | "\(.key)=\(.value|tojson)"' secrets.json > src/platform/.env
 
       - name: Build image
         run: |
@@ -423,6 +436,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
 
       - uses: azure/login@v2
         with:
@@ -447,8 +463,6 @@ jobs:
             --name sta-env-vertex \
             --query value -o tsv > secrets.json
 
-          # Write .env into the build context for Next.js build time, excluding static auth values
-          # that are wrong for per-PR Azure preview hostnames.
           jq -r 'to_entries | .[] | select(.key != "NEXTAUTH_URL" and .key != "NEXTAUTH_URL_INTERNAL" and .key != "NEXTAUTH_COOKIE_DOMAIN") | "\(.key)=\(.value|tojson)"' secrets.json > src/vertex/.env
           {
             echo "NEXTAUTH_URL=$NEXTAUTH_URL"
@@ -466,15 +480,11 @@ jobs:
           BRANCH="${{ needs.branch-name.outputs.lowercase }}"
           APP="${BRANCH:0:12}-vertex-preview"
 
-          # Build env vars as an array so each KEY=VALUE is passed to Azure CLI as its own argument.
-          # The shared staging secret contains static auth values that are wrong for per-PR
-          # preview hostnames. Drop them and inject the Container Apps preview URL below.
           mapfile -t ENV_VARS < <(jq -r 'to_entries[] | select(.key != "NEXTAUTH_URL" and .key != "NEXTAUTH_URL_INTERNAL" and .key != "NEXTAUTH_COOKIE_DOMAIN") | "\(.key)=\(.value|tostring)"' secrets.json)
           ENV_VARS+=("NEXTAUTH_URL=$NEXTAUTH_URL")
           ENV_VARS+=("NEXTAUTH_URL_INTERNAL=$NEXTAUTH_URL")
           ENV_VARS+=("AUTH_TRUST_HOST=true")
 
-          # Fail fast if the secret is missing (NextAuth requires this in production).
           jq -e '((.NEXTAUTH_SECRET // .AUTH_SECRET) | length > 0)' secrets.json >/dev/null
 
           az containerapp up \
@@ -560,6 +570,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
 
       - uses: azure/login@v2
         with:
