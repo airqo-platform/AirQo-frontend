@@ -110,7 +110,7 @@ jobs:
         - name: Install dependencies
           run: cd src/platform && yarn install --frozen-lockfile
         - name: Lint
-          run: cd src/platform && yarn lint --if-present
+          run: cd src/platform && yarn lint
 
   check-beacon:
     needs: detect-changes
