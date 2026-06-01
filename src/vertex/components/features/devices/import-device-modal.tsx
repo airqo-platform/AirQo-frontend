@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { useImportDevice, useBulkImportDevices } from "@/core/hooks/useDevices";
@@ -78,6 +78,8 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
   mode = 'fast',
 }) => {
   const isGuidedMode = mode === 'guided';
+
+
   
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [importFlow, setImportFlow] = useState<'single' | 'bulk' | null>(null);
@@ -602,6 +604,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
               onCohortSelect={(id, name) => { setSelectedCohortId(id); setSelectedCohortName(name); }} 
               open={open && currentStep === 3}
               isAdminPage={isAdminPage}
+              preselectedNetwork={formData.network}
             />
           ),
           footer: (
@@ -663,6 +666,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
               onCohortSelect={(id, name) => { setSelectedCohortId(id); setSelectedCohortName(name); }} 
               open={open && currentStep === 1}
               isAdminPage={isAdminPage}
+              preselectedNetwork={formData.network}
             />
           ),
           footer: (
@@ -696,6 +700,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       subtitle={isSuccess ? undefined : "Add a device from a different sensor manufacturer"}
       size="3xl"
       maxHeight="max-h-[55vh]"
+      preventBackdropClose={true}
     >
       <div className="py-2">
         {isSuccess ? (

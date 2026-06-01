@@ -13,6 +13,7 @@ interface CohortSelectionStepProps {
   onCohortSelect: (id: string, name: string) => void;
   open: boolean;
   isAdminPage: boolean;
+  preselectedNetwork?: string;
 }
 
 export const CohortSelectionStep: React.FC<CohortSelectionStepProps> = ({
@@ -20,6 +21,7 @@ export const CohortSelectionStep: React.FC<CohortSelectionStepProps> = ({
   onCohortSelect,
   open,
   isAdminPage,
+  preselectedNetwork,
 }) => {
   const { isExternalOrg, activeGroup } = useUserContext();
   const userDetails = useAppSelector((state) => state.user.userDetails);
@@ -124,16 +126,15 @@ export const CohortSelectionStep: React.FC<CohortSelectionStepProps> = ({
         </p>
       </div>
 
-      {createCohortModalOpen && (
-        <CreateCohortDialog
-          open={createCohortModalOpen}
-          onOpenChange={setCreateCohortModalOpen}
-          onSuccess={handleCreateCohortSuccess}
-          hideDeviceSelection={true}
-          preselectedDevices={[]}
-          andNavigate={false}
-        />
-      )}
+      <CreateCohortDialog
+        open={createCohortModalOpen}
+        onOpenChange={setCreateCohortModalOpen}
+        onSuccess={handleCreateCohortSuccess}
+        hideDeviceSelection={true}
+        preselectedDevices={[]}
+        andNavigate={false}
+        preselectedNetwork={preselectedNetwork}
+      />
     </div>
   );
 };

@@ -354,18 +354,17 @@ const WelcomePage = () => {
 
   const sharedModals = (
     <>
-      {showChecklist && (
-        <AssignCohortDevicesDialog
-          open={isAssignCohortModalOpen}
-          onOpenChange={(open) => {
-            setIsAssignCohortModalOpen(open);
-            if (!open) setNewlyClaimedDevice(undefined);
-          }}
-          selectedDevices={newlyClaimedDevice as Device[]}
-          onSuccess={handleCohortAssigned}
-          title="Group your devices"
-        />
-      )}
+      {/* Always rendered — controlled by open prop so sibling positions stay stable */}
+      <AssignCohortDevicesDialog
+        open={isAssignCohortModalOpen && showChecklist}
+        onOpenChange={(open) => {
+          setIsAssignCohortModalOpen(open);
+          if (!open) setNewlyClaimedDevice(undefined);
+        }}
+        selectedDevices={newlyClaimedDevice as Device[]}
+        onSuccess={handleCohortAssigned}
+        title="Group your devices"
+      />
 
       <ClaimDeviceModal
         isOpen={isClaimModalOpen}

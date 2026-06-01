@@ -40,6 +40,7 @@ interface CreateCohortDialogProps {
   andNavigate?: boolean;
   preselectedDevices?: PreselectedDevice[];
   hideDeviceSelection?: boolean;
+  preselectedNetwork?: string;
 }
 
 const formSchema = z.object({
@@ -51,9 +52,7 @@ const formSchema = z.object({
     message: "Please select a Sensor Manufacturer.",
   }),
   devices: z.array(z.string()).optional(),
-  cohort_tags: z.array(z.string()).min(1, {
-    message: "Please select at least one tag.",
-  }),
+  cohort_tags: z.array(z.string()).optional(),
 }).superRefine((values, ctx) => {
   const isOrganizational = values.cohort_tags?.includes("organizational");
   if (isOrganizational) {
@@ -77,6 +76,8 @@ export function CreateCohortDialog({
   onError,
   preselectedDevices = EMPTY_PRESELECTED_DEVICES,
   hideDeviceSelection = false,
+  preselectedNetwork,
+  andNavigate = true,
 }: CreateCohortDialogProps) {
   const { showBanner } = useBanner();
   const pathname = usePathname();
@@ -91,7 +92,7 @@ export function CreateCohortDialog({
       city: "",
       projectName: "",
       funder: "",
-      network: "",
+      network: preselectedNetwork || "",
       devices: preselectedDevices.map((d) => d.value),
       cohort_tags: [],
     },
@@ -151,7 +152,7 @@ export function CreateCohortDialog({
         city: "",
         projectName: "",
         funder: "",
-        network: "",
+        network: preselectedNetwork || "",
         devices: preselectedDevices.map((d) => d.value),
         cohort_tags: [],
       });
@@ -163,9 +164,18 @@ export function CreateCohortDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, preselectedDevices]);
 
+  // When embedded in another modal (andNavigate=false + hideDeviceSelection=true),
+  // skip the success step and close immediately so query invalidations don't
+  // trigger a re-render cascade in the parent modal.
+  const isEmbeddedMode = !andNavigate && hideDeviceSelection;
+
   const { mutate: createCohort, isPending } = useCreateCohortWithDevices({
     onSuccess: (response) => {
-      if (response?.cohort) {
+      if (isEmbeddedMode) {
+        // Immediately call success callback then close — no success step.
+        onSuccess?.(response);
+        onOpenChange(false);
+      } else if (response?.cohort) {
         setCreatedCohort(response.cohort);
         setStep("success");
         onSuccess?.(response);
@@ -257,14 +267,27 @@ export function CreateCohortDialog({
       ? buildCohortName(values.city || "", values.projectName || "", values.funder)
       : (values.name || "").trim();
       
-    createCohort({ 
+    const payload: Parameters<typeof createCohort>[0] = { 
       name: derivedName, 
       network: values.network, 
-      deviceIds: values.devices || [], 
-      cohort_tags: values.cohort_tags,
-      groupId: isExternalOrg ? activeGroup?._id : undefined,
-      userId: !isExternalOrg && !isAdminPage ? userDetails?._id : undefined,
-    });
+      deviceIds: [],
+    };
+
+    if (values.devices && values.devices.length > 0) {
+      payload.deviceIds = values.devices;
+    }
+
+    if (values.cohort_tags && values.cohort_tags.length > 0) {
+      payload.cohort_tags = values.cohort_tags;
+    }
+
+    if (isExternalOrg && activeGroup?._id) {
+      payload.groupId = activeGroup._id;
+    } else if (!isExternalOrg && !isAdminPage && userDetails?._id) {
+      payload.userId = userDetails._id;
+    }
+
+    createCohort(payload);
   };
 
   const getDialogConfig = () => {
@@ -281,9 +304,9 @@ export function CreateCohortDialog({
       case 'success':
         return {
           title: 'Success!',
-          primaryLabel: 'Go to Cohort Details',
+          primaryLabel: andNavigate ? 'Go to Cohort Details' : 'Close',
           primaryAction: () => {
-            if (createdCohort?._id) {
+            if (andNavigate && createdCohort?._id) {
               router.push(`/admin/cohorts/${createdCohort._id}`);
             } else {
               onOpenChange(false);
@@ -321,7 +344,7 @@ export function CreateCohortDialog({
       primaryAction={{
         label: config.primaryLabel,
         onClick: config.primaryAction,
-        disabled: isPending || (step === 'form' && !selectedNetwork),
+        disabled: isPending,
       }}
       secondaryAction={{
         label: config.secondaryLabel,
@@ -334,23 +357,25 @@ export function CreateCohortDialog({
       {step === 'form' && (
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onFormReview)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="cohort_tags"
-              render={({ field }) => (
-                <FormItem>
-                  <Label>Tags *</Label>
-                  <MultiSelectCombobox
-                    options={DEFAULT_COHORT_TAGS}
-                    placeholder="Select or create tags..."
-                    onValueChange={field.onChange}
-                    value={field.value || []}
-                    allowCreate={false}
-                  />
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {!hideDeviceSelection && (
+              <FormField
+                control={form.control}
+                name="cohort_tags"
+                render={({ field }) => (
+                  <FormItem>
+                    <Label>Tags</Label>
+                    <MultiSelectCombobox
+                      options={DEFAULT_COHORT_TAGS}
+                      placeholder="Select or create tags..."
+                      onValueChange={field.onChange}
+                      value={field.value || []}
+                      allowCreate={false}
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             {isOrganizational ? (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -443,32 +468,34 @@ export function CreateCohortDialog({
                 )}
               />
             )}
-            <FormField
-              control={form.control}
-              name="network"
-              render={({ field }) => (
-                <ReusableSelectInput
-                  label="Sensor Manufacturer"
-                  id="network"
-                  value={field.value}
-                  onChange={(e) => {
-                    field.onChange(e.target.value);
-                    form.setValue("devices", []);
-                    setDeviceSearch("");
-                  }}
-                  error={form.formState.errors.network?.message}
-                  required
-                  placeholder={isLoadingNetworks ? "Loading networks..." : "Select a network"}
-                  disabled={isLoadingNetworks}
-                >
-                  {networks.map((network) => (
-                    <option key={network.net_name} value={network.net_name}>
-                      {network.net_name}
-                    </option>
-                  ))}
-                </ReusableSelectInput>
-              )}
-            />
+            {!hideDeviceSelection && (
+              <FormField
+                control={form.control}
+                name="network"
+                render={({ field }) => (
+                  <ReusableSelectInput
+                    label="Sensor Manufacturer"
+                    id="network"
+                    value={field.value}
+                    onChange={(e) => {
+                      field.onChange(e.target.value);
+                      form.setValue("devices", []);
+                      setDeviceSearch("");
+                    }}
+                    error={form.formState.errors.network?.message}
+                    required
+                    placeholder={isLoadingNetworks ? "Loading networks..." : "Select a network"}
+                    disabled={isLoadingNetworks}
+                  >
+                    {networks.map((network) => (
+                      <option key={network.net_name} value={network.net_name}>
+                        {network.net_name}
+                      </option>
+                    ))}
+                  </ReusableSelectInput>
+                )}
+              />
+            )}
             {!hideDeviceSelection && (
               <FormField
                 control={form.control}
@@ -524,7 +551,7 @@ export function CreateCohortDialog({
               Review Cohort Details
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-300 max-w-sm mx-auto">
-              You are about to create a group named <span className="font-semibold text-gray-900 dark:text-white">{derivedName}</span> in the <span className="font-semibold text-gray-900 dark:text-white">{formValues.network}</span> network.
+              You are about to create a cohort named <span className="font-semibold text-gray-900 dark:text-white">{derivedName}</span> in the <span className="font-semibold text-gray-900 dark:text-white">{formValues.network}</span> network.
             </p>
             {!hideDeviceSelection && (
               <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700">
@@ -547,10 +574,10 @@ export function CreateCohortDialog({
           </div>
           <div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Group Created Successfully!
+              Cohort Created Successfully!
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 max-w-sm mx-auto">
-              Group <span className="font-medium text-gray-900 dark:text-white">{createdCohort.name}</span> has been created{hideDeviceSelection ? '.' : ` with ${formValues.devices?.length || 0} devices.`}
+              Cohort <span className="font-medium text-gray-900 dark:text-white">{createdCohort.name}</span> has been created{hideDeviceSelection ? '.' : ` with ${formValues.devices?.length || 0} devices.`}
             </p>
           </div>
         </div>

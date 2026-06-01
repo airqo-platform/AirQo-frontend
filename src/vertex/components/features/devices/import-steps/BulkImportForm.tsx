@@ -49,7 +49,7 @@ export const BulkImportForm: React.FC<BulkImportFormProps> = ({
         containerClassName="pb-4 border-b"
       />
 
-      <div className={bulkFile ? "opacity-50 pointer-events-none space-y-4 pt-2" : "space-y-4 pt-2"}>
+      <div className="space-y-4 pt-2">
         <h4 className="font-medium text-sm text-gray-700 dark:text-gray-200">Apply to all imported devices:</h4>
         
         <div>
