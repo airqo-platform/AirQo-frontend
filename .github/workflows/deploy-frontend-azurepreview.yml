@@ -19,23 +19,24 @@ jobs:
 #########################################
 
   branch-name:
-    runs-on: ubuntu-latest
-    outputs:
-      lowercase: ${{ steps.string.outputs.lowercase }}
-      sanitized: ${{ steps.sanitize.outputs.sanitized }}
+      runs-on: ubuntu-latest
+      outputs:
+        lowercase: ${{ steps.string.outputs.lowercase }}
+        sanitized: ${{ steps.sanitize.outputs.sanitized }}
 
-    steps:
-      - id: string
-        uses: ASzc/change-string-case-action@v5
-        with:
-          string: ${{ github.head_ref || github.ref_name }}
+      steps:
+        - id: string
+          uses: ASzc/change-string-case-action@v5
+          with:
+            string: ${{ github.head_ref || github.ref_name }}
 
-      - name: sanitize branch name
-        id: sanitize
-        run: |
-          RAW="${{ steps.string.outputs.lowercase }}"
-          CLEAN=$(echo "${RAW:0:12}" | sed 's/-*$//')
-          echo "sanitized=$CLEAN" >> $GITHUB_OUTPUT
+        - name: sanitize branch name
+          id: sanitize
+          env:
+            RAW: ${{ steps.string.outputs.lowercase }}
+          run: |
+            CLEAN=$(printf '%s' "${RAW:0:12}" | sed 's/-*$//')
+            echo "sanitized=$CLEAN" >> $GITHUB_OUTPUT
 
 #########################################
 # DETECT CHANGED SERVICES
