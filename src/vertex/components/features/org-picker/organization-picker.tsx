@@ -97,11 +97,6 @@ const OrganizationPicker: React.FC = () => {
       } else {
         router.push("/home");
       }
-      showBannerWithDelay({
-        severity: 'success',
-        message: `Switched to ${formatTitle(group.grp_title)}`,
-        scoped: false,
-      });
     } catch {
       showBannerWithDelay({
         severity: 'error',
