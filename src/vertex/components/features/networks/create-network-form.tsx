@@ -9,18 +9,19 @@ import { Form, FormField } from "@/components/ui/form";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
 import ReusableButton from "@/components/shared/button/ReusableButton";
-import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { AqPlus } from "@airqo/icons-react";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
-
+import { useBanner } from "@/context/banner-context";
+import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
 import { networkFormSchema, NetworkFormValues } from "./schema";
 
 export function CreateNetworkForm() {
     const [open, setOpen] = useState(false);
     const [isPending, setIsPending] = useState(false);
     const queryClient = useQueryClient();
-
+    const { showBanner } = useBanner();
+    const { showBannerWithDelay } = useBannerWithDelay();
     const form = useForm<NetworkFormValues>({
         resolver: zodResolver(networkFormSchema),
         defaultValues: {
@@ -48,19 +49,18 @@ export function CreateNetworkForm() {
             try {
                 await axios.post('/api/network', values, {
                     headers: { 'Content-Type': 'application/json' },
-                });
-
-                ReusableToast({ message: 'Sensor Manufacturer created successfully!', type: 'SUCCESS' });
+                });                         
                 queryClient.invalidateQueries({ queryKey: ["networks"] });
                 handleClose();
+                showBannerWithDelay({ severity: 'success', message: 'Sensor Manufacturer created successfully!', scoped: false });
             } catch (error: unknown) {
-                const errorMessage = getApiErrorMessage(error);
-                ReusableToast({ message: errorMessage, type: 'ERROR' });
+                const errorMessage = getApiErrorMessage(error);                
+                showBanner({ severity: 'error', message: errorMessage, scoped: true });
             } finally {
                 setIsPending(false);
             }
         },
-        [handleClose, queryClient]
+        [handleClose, queryClient, showBanner, showBannerWithDelay]
     );
 
     return (

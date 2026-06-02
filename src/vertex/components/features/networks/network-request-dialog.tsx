@@ -9,8 +9,9 @@ import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
 import { networkRequestSchema, NetworkRequestValues } from "./schema";
 import { useAppSelector } from "@/core/redux/hooks";
-import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
+import { useBanner } from "@/context/banner-context";
+import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
 
 interface NetworkRequestDialogProps {
     open: boolean;
@@ -20,6 +21,8 @@ interface NetworkRequestDialogProps {
 export function NetworkRequestDialog({ open, onOpenChange }: NetworkRequestDialogProps) {
     const userDetails = useAppSelector((state) => state.user.userDetails);
     const queryClient = useQueryClient();
+    const { showBanner } = useBanner();
+    const { showBannerWithDelay } = useBannerWithDelay();
 
     const { mutate: submitRequest, isPending } = useMutation({
         mutationFn: async (data: NetworkRequestValues) => {
@@ -37,15 +40,12 @@ export function NetworkRequestDialog({ open, onOpenChange }: NetworkRequestDialo
             }
             return response.json();
         },
-        onSuccess: (resp) => {
-            ReusableToast({
-                message: resp.message || "Your request for a new Sensor Manufacturer has been submitted successfully!",
-                type: "SUCCESS",
-            });
+        onSuccess: (resp) => {            
             queryClient.invalidateQueries({ queryKey: ["network-requests"] });
+            showBannerWithDelay({ severity: 'success', message: resp.message || "Your request for a new Sensor Manufacturer has been submitted successfully!", scoped: true });
         },
-        onError: (error) => {
-            ReusableToast({ message: getApiErrorMessage(error), type: "ERROR" });
+        onError: (error) => {            
+            showBanner({ severity: 'error', message: getApiErrorMessage(error), scoped: true });
         },
     });
 

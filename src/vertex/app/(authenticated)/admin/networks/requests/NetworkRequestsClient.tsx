@@ -11,8 +11,8 @@ import { NetworkCreationRequest } from "@/core/apis/networks";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
 import ReusableButton from "@/components/shared/button/ReusableButton";
-import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
+import { useBanner } from "@/context/banner-context";
 
 type TabStatus = "all" | "pending" | "under_review" | "approved" | "denied";
 
@@ -24,7 +24,7 @@ export default function NetworkRequestsClient({ initialRequests }: NetworkReques
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabStatus>("pending");
   const [isUpdating, setIsUpdating] = useState(false);
-  
+  const { showBanner } = useBanner();
   // Action management
   const [selectedRequest, setSelectedRequest] = useState<NetworkCreationRequest | null>(null);
   const [actionType, setActionType] = useState<'approve' | 'deny' | 'review' | null>(null);
@@ -67,18 +67,20 @@ export default function NetworkRequestsClient({ initialRequests }: NetworkReques
         reviewer_notes: notes
       });
 
-      ReusableToast({ 
+      showBanner({ 
         message: response.data.message || 'Status updated successfully', 
-        type: 'SUCCESS' 
+        severity: 'success',
+        scoped: false 
       });
 
       setSelectedRequest(null);
       setActionType(null);
       router.refresh(); // Invalidate server data
     } catch (error: unknown) {
-      ReusableToast({ 
+      showBanner({ 
         message: `Action failed: ${getApiErrorMessage(error)}`, 
-        type: 'ERROR' 
+        severity: 'error',
+        scoped: false  
       });
     } finally {
       setIsUpdating(false);
