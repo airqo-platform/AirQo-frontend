@@ -34,7 +34,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <motion.header
-      className={cn('sticky top-0 z-50 w-full', className)}
+      className={cn('relative z-50 w-full shrink-0', className)}
       initial={{ y: 0 }}
       animate={{ y: isVisible ? 0 : -100 }}
       transition={{ duration: 0.3, ease: 'easeInOut' }}

@@ -2,7 +2,6 @@ import './globals.css';
 import '@smastrom/react-rating/style.css';
 import type { Metadata } from 'next';
 import Script from 'next/script';
-import { Inter } from 'next/font/google';
 import NextTopLoader from 'nextjs-toploader';
 import { ReduxProvider } from '@/shared/providers/redux-provider';
 import { AuthProvider } from '@/shared/providers/auth-provider';
@@ -15,11 +14,6 @@ import { getThemeScript } from '@/modules/themes/utils/themeUtils';
 import baseMetadata from '@/shared/lib/metadata';
 import ErrorBoundary from '@/shared/components/ErrorBoundary';
 import AppNetworkGate from '@/shared/components/AppNetworkGate';
-
-const inter = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-});
 
 export const metadata: Metadata = baseMetadata;
 
@@ -37,7 +31,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: getThemeScript() }}
         />
       </head>
-      <body className={`antialiased ${inter.className}`}>
+      <body className="font-sans antialiased">
         <NextTopLoader
           color="rgb(var(--primary))"
           height={3}

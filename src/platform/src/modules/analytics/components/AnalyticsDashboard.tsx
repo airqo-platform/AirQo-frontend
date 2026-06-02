@@ -289,7 +289,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       _id: siteData._id,
       name: displayName,
       search_name: displayName,
-      country: siteData.location,
+      country: siteData.country || siteData.location,
     };
 
     dispatch(openMoreInsights({ sites: [selectedSite] }));
