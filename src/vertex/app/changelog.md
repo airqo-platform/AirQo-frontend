@@ -3,6 +3,31 @@
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
 ---
+
+## Version 1.23.57
+**Released:** June 02, 2026
+
+### Organization Picker Banner Migration
+
+Replaced the `ReusableToast` error call in `OrganizationPicker` with the centralized `useBannerWithDelay` hook. The shimmer progress bar dispatch (`setOrganizationSwitching`) was also moved to just before navigation fires so it only appears when the switch is actually proceeding — errors that occur before navigation never trigger the shimmer.
+
+<details>
+<summary><strong>Changes (2)</strong></summary>
+
+- **Error Feedback**: Replaced `ReusableToast` with `showBannerWithDelay` (`scoped: false`) for org switch failures. Using the delayed variant ensures the banner is not cleared by `ReusableDialog`'s `hideBanner` cleanup effect that fires when the modal closes.
+- **Shimmer Timing Fix**: Moved `setOrganizationSwitching({ isSwitching: true })` inside the try block just before navigation so the progress bar only appears when switching is guaranteed to proceed. The catch block no longer needs to reset it.
+
+</details>
+
+<details>
+<summary><strong>Files Updated (1)</strong></summary>
+
+- `src/vertex/components/features/org-picker/organization-picker.tsx` [MODIFIED]
+
+</details>
+
+---
+
 ## Version 1.23.56
 **Released:** May 29, 2026
 
