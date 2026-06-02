@@ -19,15 +19,24 @@ jobs:
 #########################################
 
   branch-name:
-    runs-on: ubuntu-latest
-    outputs:
-      lowercase: ${{ steps.string.outputs.lowercase }}
+      runs-on: ubuntu-latest
+      outputs:
+        lowercase: ${{ steps.string.outputs.lowercase }}
+        sanitized: ${{ steps.sanitize.outputs.sanitized }}
 
-    steps:
-      - id: string
-        uses: ASzc/change-string-case-action@v5
-        with:
-          string: ${{ github.head_ref || github.ref_name }}
+      steps:
+        - id: string
+          uses: ASzc/change-string-case-action@v5
+          with:
+            string: ${{ github.head_ref || github.ref_name }}
+
+        - name: sanitize branch name
+          id: sanitize
+          env:
+            RAW: ${{ steps.string.outputs.lowercase }}
+          run: |
+            CLEAN=$(printf '%s' "${RAW:0:12}" | sed 's/-*$//')
+            echo "sanitized=$CLEAN" >> $GITHUB_OUTPUT
 
 #########################################
 # DETECT CHANGED SERVICES
@@ -132,8 +141,8 @@ jobs:
 
       - name: Deploy Container App
         run: |
-          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
-          APP="${BRANCH:0:12}-website-preview"
+          BRANCH="${{ needs.branch-name.outputs.sanitized }}"
+          APP="${BRANCH}-website-preview"
           ENV_VARS="SECRET=${{ secrets.WEBSITE_SECRET }} API_URL=${{ secrets.WEBSITE_STAGE_API_URL }} OPENCAGE_API_KEY=${{ secrets.WEBSITE_STAGE_OPENCAGE_API_KEY }} API_TOKEN=${{ secrets.WEBSITE_STAGE_API_TOKEN }} SLACK_WEBHOOK_URL=${{ secrets.WEBSITE_STAGE_SLACK_WEBHOOK_URL }} SLACK_CHANNEL=${{ secrets.WEBSITE_STAGE_SLACK_CHANNEL }} NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }} NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }} GOOGLE_SITE_VERIFICATION=${{ secrets.WEBSITE_STAGE_GOOGLE_SITE_VERIFICATION }} NEXT_PUBLIC_SITE_URL=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_SITE_URL }}"
           az containerapp up \
             --name $APP \
@@ -149,8 +158,8 @@ jobs:
 
       - id: preview
         run: |
-          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
-          APP="${BRANCH:0:12}-website-preview"
+          BRANCH="${{ needs.branch-name.outputs.sanitized }}"
+          APP="${BRANCH}-website-preview"
 
           URL=$(az containerapp show \
             --name $APP \
@@ -214,8 +223,8 @@ jobs:
 
       - name: Deploy Container App
         run: |
-          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
-          APP="${BRANCH:0:12}-beacon-preview"
+          BRANCH="${{ needs.branch-name.outputs.sanitized }}"
+          APP="${BRANCH}-beacon-preview"
 
           az containerapp up \
             --name $APP \
@@ -231,8 +240,8 @@ jobs:
 
       - id: preview
         run: |
-          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
-          APP="${BRANCH:0:12}-beacon-preview"
+          BRANCH="${{ needs.branch-name.outputs.sanitized }}"
+          APP="${BRANCH}-beacon-preview"
 
           URL=$(az containerapp show \
             --name $APP \
@@ -295,8 +304,8 @@ jobs:
 
       - name: Deploy Container App
         run: |
-          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
-          APP="${BRANCH:0:12}-calibrate-app-preview"
+          BRANCH="${{ needs.branch-name.outputs.sanitized }}"
+          APP="${BRANCH}-calibrate-app-preview"
 
           az containerapp up \
             --name $APP \
@@ -312,8 +321,8 @@ jobs:
 
       - id: preview
         run: |
-          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
-          APP="${BRANCH:0:12}-calibrate-app-preview"
+          BRANCH="${{ needs.branch-name.outputs.sanitized }}"
+          APP="${BRANCH}-calibrate-app-preview"
 
           URL=$(az containerapp show \
             --name $APP \
@@ -379,8 +388,8 @@ jobs:
 
       - name: Deploy Container App
         run: |
-          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
-          APP="${BRANCH:0:12}-analytics-p-preview"
+          BRANCH="${{ needs.branch-name.outputs.sanitized }}"
+          APP="${BRANCH}-analytics-p-preview"
 
           az containerapp up \
             --name $APP \
@@ -396,8 +405,8 @@ jobs:
 
       - id: preview
         run: |
-          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
-          APP="${BRANCH:0:12}-analytics-p-preview"
+          BRANCH="${{ needs.branch-name.outputs.sanitized }}"
+          APP="${BRANCH}-analytics-p-preview"
 
           URL=$(az containerapp show \
             --name $APP \
@@ -448,8 +457,8 @@ jobs:
 
       - name: Pull secrets from Key Vault
         run: |
-          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
-          APP="${BRANCH:0:12}-vertex-preview"
+          BRANCH="${{ needs.branch-name.outputs.sanitized }}"
+          APP="${BRANCH}-vertex-preview"
 
           DEFAULT_DOMAIN=$(az containerapp env show \
             --name ${{ env.PR_PREVIEW_ENV }} \
@@ -477,8 +486,8 @@ jobs:
 
       - name: Deploy Container App
         run: |
-          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
-          APP="${BRANCH:0:12}-vertex-preview"
+          BRANCH="${{ needs.branch-name.outputs.sanitized }}"
+          APP="${BRANCH}-vertex-preview"
 
           mapfile -t ENV_VARS < <(jq -r 'to_entries[] | select(.key != "NEXTAUTH_URL" and .key != "NEXTAUTH_URL_INTERNAL" and .key != "NEXTAUTH_COOKIE_DOMAIN") | "\(.key)=\(.value|tostring)"' secrets.json)
           ENV_VARS+=("NEXTAUTH_URL=$NEXTAUTH_URL")
@@ -530,8 +539,8 @@ jobs:
 
       - id: preview
         run: |
-          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
-          APP="${BRANCH:0:12}-vertex-preview"
+          BRANCH="${{ needs.branch-name.outputs.sanitized }}"
+          APP="${BRANCH}-vertex-preview"
 
           URL=$(az containerapp show \
             --name $APP \
@@ -594,8 +603,8 @@ jobs:
 
       - name: Deploy Container App
         run: |
-          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
-          APP="${BRANCH:0:12}-docs-preview"
+          BRANCH="${{ needs.branch-name.outputs.sanitized }}"
+          APP="${BRANCH}-docs-preview"
 
           az containerapp up \
             --name $APP \
@@ -611,8 +620,8 @@ jobs:
 
       - id: preview
         run: |
-          BRANCH="${{ needs.branch-name.outputs.lowercase }}"
-          APP="${BRANCH:0:12}-docs-preview"
+          BRANCH="${{ needs.branch-name.outputs.sanitized }}"
+          APP="${BRANCH}-docs-preview"
 
           URL=$(az containerapp show \
             --name $APP \
