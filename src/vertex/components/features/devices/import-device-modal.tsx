@@ -390,7 +390,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
     setCurrentStep((prev) => Math.max(prev - 1, 0));
   };
 
-  const executeAssignment = (deviceIds: string[], cohortId: string) => {
+  const executeAssignment = (deviceIds: string[], cohortId: string, onAssigned?: () => void) => {
     assignDevicesToCohort.mutate({
       cohortId,
       deviceIds,
@@ -401,6 +401,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
           message: `${deviceIds.length} device(s) assigned to cohort successfully`,
           scoped: false,
         }, 600);
+        onAssigned?.();
       },
       onError: (err) => {
         showBanner({ severity: 'error', message: `Device imported, but cohort assignment failed: ${getApiErrorMessage(err)}`, scoped: false });
@@ -431,12 +432,6 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
           if (isGuidedMode) {
             setImportedDeviceName(variables.long_name.trim());
             setIsSuccess(true);
-            onSuccess?.({
-              deviceId: data.created_device.name || '',
-              deviceName: variables.long_name.trim(),
-              cohortId: selectedCohortId,
-              isCohortImport: !!selectedCohortId,
-            });
           } else {
             onOpenChange(false);
             showBannerWithDelay({
@@ -448,7 +443,21 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
           }
           
           if (selectedCohortId && data.created_device?._id) {
-            executeAssignment([data.created_device._id], selectedCohortId);
+            executeAssignment([data.created_device._id], selectedCohortId, () => {
+              onSuccess?.({
+                deviceId: data.created_device.name || '',
+                deviceName: variables.long_name.trim(),
+                cohortId: selectedCohortId,
+                isCohortImport: true,
+              });
+            });
+          } else {
+            onSuccess?.({
+              deviceId: data.created_device.name || '',
+              deviceName: variables.long_name.trim(),
+              cohortId: selectedCohortId,
+              isCohortImport: false,
+            });
           }
         },
         onError: (error) => {
@@ -473,14 +482,17 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       { type: 'json', payload },
       {
         onSuccess: (data) => {
+          const notifyHomeImportSuccess = () => {
+            onSuccess?.({
+              cohortId: selectedCohortId,
+              isCohortImport: !!selectedCohortId,
+            });
+          };
+
           if (data.failed === 0) {
             if (isGuidedMode) {
               setImportedDeviceName(`${data.imported} device(s)`);
               setIsSuccess(true);
-              onSuccess?.({
-                cohortId: selectedCohortId,
-                isCohortImport: !!selectedCohortId,
-              });
             } else {
               onOpenChange(false);
               showBannerWithDelay({
@@ -499,10 +511,6 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
                 scoped: true,
               });
             } else {
-              onSuccess?.({
-                cohortId: selectedCohortId,
-                isCohortImport: !!selectedCohortId,
-              });
               showBanner({
                 severity: 'warning',
                 title: 'Partial Import Success',
@@ -519,8 +527,12 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
           if (selectedCohortId && data.results) {
             const successfulDeviceIds = data.results.filter((r: any) => r.success && r.device_id).map((r: any) => r.device_id);
             if (successfulDeviceIds.length > 0) {
-              executeAssignment(successfulDeviceIds, selectedCohortId);
+              executeAssignment(successfulDeviceIds, selectedCohortId, notifyHomeImportSuccess);
+            } else if (data.imported > 0) {
+              notifyHomeImportSuccess();
             }
+          } else if (data.imported > 0) {
+            notifyHomeImportSuccess();
           }
         },
         onError: (error) => {
