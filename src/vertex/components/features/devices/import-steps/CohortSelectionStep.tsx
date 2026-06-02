@@ -102,18 +102,18 @@ export const CohortSelectionStep: React.FC<CohortSelectionStepProps> = ({
     <div className="space-y-4">
       <div className="grid gap-2">
         <Label>
-          Group Devices {isAdminPage ? '(Optional)' : <span className="text-red-500">*</span>}
+          Choose cohort {isAdminPage ? '(Optional)' : <span className="text-red-500">*</span>}
         </Label>
         <ComboBox
           options={finalOptions}
           value={selectedCohortId}
           onValueChange={handleCohortSelect}
-          placeholder="Select a group"
-          searchPlaceholder="Search groups..."
-          emptyMessage="No groups found"
+          placeholder="Select a cohort"
+          searchPlaceholder="Search cohorts..."
+          emptyMessage="No cohorts found"
           className="w-full"
           allowCustomInput={false}
-          customActionLabel="Create New Group"
+          customActionLabel="Create New Cohort"
           customActionIcon={AqPlus}
           onCustomAction={handleCreateCohortAction}
           onSearchChange={setCohortSearch}
@@ -121,8 +121,8 @@ export const CohortSelectionStep: React.FC<CohortSelectionStepProps> = ({
         />
         <p className="text-xs text-muted-foreground">
           {isAdminPage
-            ? "You can optionally assign the imported device(s) to a group to easily manage them."
-            : "You must assign the imported device(s) to a group."}
+            ? "You can optionally assign the imported device(s) to a cohort to easily manage them."
+            : "You must assign the imported device(s) to a cohort."}
         </p>
       </div>
 

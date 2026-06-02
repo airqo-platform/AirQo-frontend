@@ -20,6 +20,7 @@ import OnboardingChecklist from "@/components/features/home/onboarding-checklist
 import { cn } from "@/lib/utils";
 import { Device } from "@/app/types/devices";
 import { formatTitle } from "@/components/features/org-picker/organization-picker";
+import ReusableToast from "@/components/shared/toast/ReusableToast";
 
 // ─── Checklist localStorage helpers ──────────────────────────────────────────
 // Keyed per org/user so state is independent across workspace switches.
@@ -195,11 +196,11 @@ const WelcomePage = () => {
   }, []);
 
   const handleDeviceAdded = React.useCallback(
-    (deviceInfo?: { deviceId: string; deviceName: string; cohortId: string; isCohortImport?: boolean }) => {
+    (deviceInfo?: { deviceId?: string; deviceName?: string; cohortId?: string; isCohortImport?: boolean }) => {
       setJustCompletedClaim(true);
       setTimeout(() => setJustCompletedClaim(false), 1000);
 
-      if (deviceInfo?.isCohortImport) {
+      if (deviceInfo?.isCohortImport || deviceInfo?.cohortId) {
         setNewlyClaimedDevice(undefined);
         updateChecklist({
           completedSteps: Array.from(
@@ -520,13 +521,25 @@ const WelcomePage = () => {
               <AccordionContent className="pt-2 pb-6 border-t border-gray-100 dark:border-gray-700 mt-2">
                 <NetworkVisibilityCard
                   showCoachMark={highlightVisibility}
-                  onVisibilityChanged={() =>
+                  onVisibilityChanged={() => {
+                    const nextCompletedSteps = Array.from(
+                      new Set([...(checklistState.completedSteps || []), "set-visibility"])
+                    );
+                    const justCompletedSetup =
+                      !checklistState.completedSteps.includes("set-visibility") &&
+                      nextCompletedSteps.length >= TOTAL_STEPS;
+
                     updateChecklist({
-                      completedSteps: Array.from(
-                        new Set([...(checklistState.completedSteps || []), "set-visibility"])
-                      ),
-                    })
-                  }
+                      completedSteps: nextCompletedSteps,
+                    });
+
+                    if (justCompletedSetup) {
+                      ReusableToast({
+                        message: "Workspace setup complete. You're ready to monitor and manage your devices.",
+                        type: "SUCCESS",
+                      });
+                    }
+                  }}
                 />
               </AccordionContent>
             </AccordionItem>

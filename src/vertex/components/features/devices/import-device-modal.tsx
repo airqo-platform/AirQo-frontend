@@ -63,7 +63,7 @@ interface ImportDeviceModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   prefilledNetwork?: string;
-  onSuccess?: (deviceInfo?: { deviceId: string; deviceName: string; cohortId: string }) => void;
+  onSuccess?: (deviceInfo?: { deviceId?: string; deviceName?: string; cohortId?: string; isCohortImport?: boolean }) => void;
   mode?: 'guided' | 'fast';
 }
 
@@ -366,7 +366,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         setCurrentStep(3);
       } else if (currentStep === 3) {
         if (!isAdminPage && !selectedCohortId) {
-          showBanner({ severity: 'error', message: "Please assign the devices to a group.", scoped: true });
+          showBanner({ severity: 'error', message: "Please assign the devices to a cohort.", scoped: true });
           return;
         }
         setCurrentStep(4);
@@ -378,7 +378,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         }
       } else if (currentStep === 1) {
         if (!isAdminPage && !selectedCohortId) {
-          showBanner({ severity: 'error', message: "Please assign the device to a group.", scoped: true });
+          showBanner({ severity: 'error', message: "Please assign the device to a cohort.", scoped: true });
           return;
         }
         setCurrentStep(2);
@@ -435,6 +435,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
               deviceId: data.created_device.name || '',
               deviceName: variables.long_name.trim(),
               cohortId: selectedCohortId,
+              isCohortImport: !!selectedCohortId,
             });
           } else {
             onOpenChange(false);
@@ -476,7 +477,10 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
             if (isGuidedMode) {
               setImportedDeviceName(`${data.imported} device(s)`);
               setIsSuccess(true);
-              onSuccess?.();
+              onSuccess?.({
+                cohortId: selectedCohortId,
+                isCohortImport: !!selectedCohortId,
+              });
             } else {
               onOpenChange(false);
               showBannerWithDelay({
@@ -495,7 +499,10 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
                 scoped: true,
               });
             } else {
-              onSuccess?.();
+              onSuccess?.({
+                cohortId: selectedCohortId,
+                isCohortImport: !!selectedCohortId,
+              });
               showBanner({
                 severity: 'warning',
                 title: 'Partial Import Success',
@@ -622,9 +629,9 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
             <div className="space-y-4">
               <p className="text-sm">You are about to import {transformedPreview.length} devices.</p>
               {selectedCohortId ? (
-                <p className="text-sm">They will be assigned to the selected group: <strong>{selectedCohortName}</strong>.</p>
+                <p className="text-sm">They will be assigned to the selected cohort: <strong>{selectedCohortName}</strong>.</p>
               ) : (
-                <p className="text-sm">They will <strong>not</strong> be assigned to any group.</p>
+                <p className="text-sm">They will <strong>not</strong> be assigned to any cohort.</p>
               )}
             </div>
           ),

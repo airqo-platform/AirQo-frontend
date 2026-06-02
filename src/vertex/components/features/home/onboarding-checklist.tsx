@@ -44,8 +44,8 @@ const STEPS: ChecklistStep[] = [
     id: "assign-cohort",
     title: "Group your devices",
     description:
-      "Organise your devices into groups so you can manage them together.",
-    cta: "Create a group",
+      "Organise your devices into groups so you can manage them together. Imports complete this step when devices are assigned to a group.",
+    cta: "Group devices",
     heuristic: "Step 2",
   },
   {
