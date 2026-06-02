@@ -626,6 +626,9 @@ export const useImportDevice = () => {
           queryClient.invalidateQueries({ queryKey: ['deviceCount'] });
           queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
         }
+        queryClient.invalidateQueries({ queryKey: ['cohorts'] });
+        queryClient.invalidateQueries({ queryKey: ['groupCohorts'] });
+        queryClient.invalidateQueries({ queryKey: ['personalUserCohorts'] });
       }
     }
   });
@@ -663,6 +666,9 @@ export const useBulkImportDevices = () => {
           queryClient.invalidateQueries({ queryKey: ['deviceCount'] });
           queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
         }
+        queryClient.invalidateQueries({ queryKey: ['cohorts'] });
+        queryClient.invalidateQueries({ queryKey: ['groupCohorts'] });
+        queryClient.invalidateQueries({ queryKey: ['personalUserCohorts'] });
       }
     },
   });

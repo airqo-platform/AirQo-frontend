@@ -36,6 +36,10 @@ const NetworkVisibilityCard = ({ onVisibilityChanged, showCoachMark }: NetworkVi
   const [pendingCohort, setPendingCohort] = useState<Cohort | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isCoachMarkVisible, setIsCoachMarkVisible] = useState(false);
+  const [successTooltip, setSuccessTooltip] = useState<{
+    cohortId: string;
+    message: string;
+  } | null>(null);
 
   const { activeGroup, isExternalOrg, userScope } = useUserContext();
 
@@ -86,6 +90,13 @@ const NetworkVisibilityCard = ({ onVisibilityChanged, showCoachMark }: NetworkVi
     }
   }, [showCoachMark]);
 
+  useEffect(() => {
+    if (!successTooltip) return;
+
+    const t = setTimeout(() => setSuccessTooltip(null), 4000);
+    return () => clearTimeout(t);
+  }, [successTooltip]);
+
   if (!hasDeviceUpdatePermission) return null;
   if (!isLoading && (!cohorts || cohorts.length === 0)) return null;
   if (isLoading) return null;
@@ -104,9 +115,9 @@ const NetworkVisibilityCard = ({ onVisibilityChanged, showCoachMark }: NetworkVi
         visibility: targetVisibility,
       });
 
-      ReusableToast({
-        message: `Successfully set ${pendingCohort.name} to ${targetVisibility ? 'Public' : 'Private'}`,
-        type: 'SUCCESS',
+      setSuccessTooltip({
+        cohortId: pendingCohort._id,
+        message: `${pendingCohort.name} is now ${targetVisibility ? 'public' : 'private'}`,
       });
       onVisibilityChanged?.();
 
@@ -218,7 +229,14 @@ const NetworkVisibilityCard = ({ onVisibilityChanged, showCoachMark }: NetworkVi
                   {/* Switch + coach mark tooltip */}
                   <div className="relative">
                     {/* Coach mark — only on first private cohort, auto-dismisses */}
-                    {isCoachMarkVisible && !cohort.visibility && index === cohorts.findIndex(c => !c.visibility) && (
+                    {successTooltip?.cohortId === cohort._id ? (
+                      <div className="coach-mark absolute -top-10 right-0 z-10 whitespace-nowrap">
+                        <div className="relative bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs font-medium px-3 py-1.5 rounded-lg shadow-lg">
+                          {successTooltip.message}
+                          <div className="absolute -bottom-1.5 right-4 w-3 h-3 bg-gray-900 dark:bg-gray-100 rotate-45 rounded-sm" />
+                        </div>
+                      </div>
+                    ) : isCoachMarkVisible && !cohort.visibility && index === cohorts.findIndex(c => !c.visibility) && (
                       <div className="coach-mark absolute -top-10 right-0 z-10 whitespace-nowrap">
                         <div className="relative bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs font-medium px-3 py-1.5 rounded-lg shadow-lg">
                           Toggle to make public

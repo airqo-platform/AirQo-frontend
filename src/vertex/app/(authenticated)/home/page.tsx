@@ -13,6 +13,7 @@ import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDevices, useMyDevices } from "@/core/hooks/useDevices";
 import { useGroupCohorts, usePersonalUserCohorts } from "@/core/hooks/useCohorts";
+import { useQueryClient } from "@tanstack/react-query";
 import ContextHeader from "@/components/features/home/context-header";
 import NetworkVisibilityCard from "@/components/features/home/network-visibility-card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -129,6 +130,7 @@ const WelcomePage = () => {
   const [accordionItems, setAccordionItems] = React.useState<string[]>(["stats", "visibility"]);
   const [highlightVisibility, setHighlightVisibility] = React.useState(false);
   const visibilityRef = React.useRef<HTMLDivElement>(null);
+  const queryClient = useQueryClient();
 
   const user = useAppSelector((state) => state.user.userDetails);
   const userId = (session?.user as { id?: string })?.id || user?._id;
@@ -195,10 +197,20 @@ const WelcomePage = () => {
     setIsImportModalOpen(true);
   }, []);
 
+  const refreshHomeData = React.useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ["devices"] });
+    queryClient.invalidateQueries({ queryKey: ["myDevices"] });
+    queryClient.invalidateQueries({ queryKey: ["groupCohorts"] });
+    queryClient.invalidateQueries({ queryKey: ["personalUserCohorts"] });
+    queryClient.invalidateQueries({ queryKey: ["cohorts"] });
+    queryClient.invalidateQueries({ queryKey: ["deviceCount"] });
+  }, [queryClient]);
+
   const handleDeviceAdded = React.useCallback(
     (deviceInfo?: { deviceId?: string; deviceName?: string; cohortId?: string; isCohortImport?: boolean }) => {
       setJustCompletedClaim(true);
       setTimeout(() => setJustCompletedClaim(false), 1000);
+      refreshHomeData();
 
       if (deviceInfo?.isCohortImport || deviceInfo?.cohortId) {
         setNewlyClaimedDevice(undefined);
@@ -218,7 +230,7 @@ const WelcomePage = () => {
         });
       }
     },
-    [checklistState.completedSteps, updateChecklist]
+    [checklistState.completedSteps, refreshHomeData, updateChecklist]
   );
 
   const handleCohortAssigned = React.useCallback(() => {
