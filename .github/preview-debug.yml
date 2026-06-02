@@ -1,0 +1,89 @@
+name: preview-secret-debug
+
+on:
+  workflow_dispatch:
+
+jobs:
+  beacon:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Pull beacon secret
+        run: |
+          az keyvault secret show \
+            --vault-name airqo-kv-staging \
+            --name sta-env-beacon \
+            --query value -o tsv > beacon.json
+
+      - name: Inspect beacon secret
+        run: |
+          echo "===== BEACON KEYS ====="
+          jq -r 'keys[]' beacon.json | sort
+
+          echo
+          echo "===== BEACON MULTILINE VALUES ====="
+          jq -r '
+            to_entries[]
+            | select((.value|tostring)|test("\n"))
+            | .key
+          ' beacon.json
+
+          echo
+          echo "===== BEACON ARRAYS/OBJECTS ====="
+          jq -r '
+            to_entries[]
+            | select((.value|type) == "array" or (.value|type) == "object")
+            | "\(.key) => \(.value|type)"
+          ' beacon.json
+
+          echo
+          echo "===== BEACON GENERATED ENV VARS ====="
+          jq -r 'to_entries[] | "\(.key)=\(.value|tostring)"' beacon.json
+
+  analytics:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Pull analytics secret
+        run: |
+          az keyvault secret show \
+            --vault-name airqo-kv-staging \
+            --name sta-env-next-platform \
+            --query value -o tsv > analytics.json
+
+      - name: Inspect analytics secret
+        run: |
+          echo "===== ANALYTICS KEYS ====="
+          jq -r 'keys[]' analytics.json | sort
+
+          echo
+          echo "===== ANALYTICS MULTILINE VALUES ====="
+          jq -r '
+            to_entries[]
+            | select((.value|tostring)|test("\n"))
+            | .key
+          ' analytics.json
+
+          echo
+          echo "===== ANALYTICS ARRAYS/OBJECTS ====="
+          jq -r '
+            to_entries[]
+            | select((.value|type) == "array" or (.value|type) == "object")
+            | "\(.key) => \(.value|type)"
+          ' analytics.json
+
+          echo
+          echo "===== ANALYTICS GENERATED ENV VARS ====="
+          jq -r 'to_entries[] | "\(.key)=\(.value|tostring)"' analytics.json
