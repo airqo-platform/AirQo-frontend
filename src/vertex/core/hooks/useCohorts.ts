@@ -276,6 +276,7 @@ export const useCreateCohort = (options?: UseCreateCohortOptions) => {
 interface UseCreateCohortWithDevicesOptions {
   onSuccess?: (data: { success: boolean; message: string; cohort: Cohort }) => void;
   onError?: (error: AxiosError) => void;
+  invalidateOnSuccess?: boolean;
 }
 
 export const useCreateCohortWithDevices = (options?: UseCreateCohortWithDevicesOptions) => {
@@ -313,11 +314,13 @@ export const useCreateCohortWithDevices = (options?: UseCreateCohortWithDevicesO
       return createResp;
     },
     onSuccess: (data) => {
+      options?.onSuccess?.(data);
+      if (options?.invalidateOnSuccess === false) return;
+
       queryClient.invalidateQueries({ queryKey: ['cohorts'] });
       queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
       queryClient.invalidateQueries({ queryKey: ['personalUserCohorts'] });
       queryClient.invalidateQueries({ queryKey: ['groupCohorts'] });
-      options?.onSuccess?.(data);
     },
     onError: (error: AxiosError) => {
       options?.onError?.(error);

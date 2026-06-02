@@ -162,7 +162,7 @@ export function CreateCohortDialog({
 
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, preselectedDevices]);
+  }, [open]);
 
   // When embedded in another modal (andNavigate=false + hideDeviceSelection=true),
   // skip the success step and close immediately so query invalidations don't
@@ -170,9 +170,9 @@ export function CreateCohortDialog({
   const isEmbeddedMode = !andNavigate && hideDeviceSelection;
 
   const { mutate: createCohort, isPending } = useCreateCohortWithDevices({
+    invalidateOnSuccess: !isEmbeddedMode,
     onSuccess: (response) => {
       if (isEmbeddedMode) {
-        // Immediately call success callback then close — no success step.
         onSuccess?.(response);
         onOpenChange(false);
       } else if (response?.cohort) {

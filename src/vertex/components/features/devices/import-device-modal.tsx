@@ -1,17 +1,15 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { useImportDevice, useBulkImportDevices } from "@/core/hooks/useDevices";
 import type { BulkImportDeviceResponse } from "@/app/types/devices";
 import { DEVICE_CATEGORIES } from "@/core/constants/devices";
 import { useNetworks } from "@/core/hooks/useNetworks";
-import { useUserContext } from "@/core/hooks/useUserContext";
-import { useGroupCohorts, useAssignDevicesToCohort } from "@/core/hooks/useCohorts";
+import { useAssignDevicesToCohort } from "@/core/hooks/useCohorts";
 import { useAppSelector } from "@/core/redux/hooks";
 import { usePathname } from "next/navigation";
-import logger from "@/lib/logger";
 import { useBanner } from "@/context/banner-context";
 import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
 import { NetworkRequestDialog } from "../networks/network-request-dialog";
@@ -20,7 +18,6 @@ import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { AqChevronDown, AqChevronUp } from "@airqo/icons-react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import ReusableFileUpload from "@/components/shared/fileupload/ReusableFileUpload";
 
 import { EXPECTED_FIELDS } from "./import-steps/types";
 import type { ImportDeviceFormData } from "./import-steps/types";
@@ -120,8 +117,6 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
   const bulkImport = useBulkImportDevices();
   const assignDevicesToCohort = useAssignDevicesToCohort();
   const { networks, isLoading: isLoadingNetworks } = useNetworks();
-
-  const { userContext, activeGroup } = useUserContext();
   const userDetails = useAppSelector((state) => state.user.userDetails);
 
   const pathname = usePathname();
@@ -157,9 +152,16 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
   };
 
   useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
     if (!open) {
-      resetState();
+      // Delay reset to allow exit animations and prevent reset if open flickers false -> true
+      timer = setTimeout(() => {
+        resetState();
+      }, 300);
     }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, [open]);
 
   const handleInputChange = (field: string, value: string | boolean | string[]) => {
@@ -693,55 +695,56 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
   const steps = getSteps();
 
   return (
-    <ReusableDialog
-      isOpen={open}
-      onClose={() => onOpenChange(false)}
-      title="Import External Device"
-      subtitle={isSuccess ? undefined : "Add a device from a different sensor manufacturer"}
-      size="3xl"
-      maxHeight="max-h-[55vh]"
-      preventBackdropClose={true}
-    >
-      <div className="py-2">
-        {isSuccess ? (
-          bulkResults ? (
-            <BulkResultsStep bulkResults={bulkResults} />
+    <>
+      <ReusableDialog
+        isOpen={open}
+        onClose={() => onOpenChange(false)}
+        title="Import External Device"
+        subtitle={isSuccess ? undefined : "Add a device from a different sensor manufacturer"}
+        size="3xl"
+        maxHeight="max-h-[55vh]"
+        preventBackdropClose={true}
+      >
+        <div className="py-2">
+          {isSuccess ? (
+            bulkResults ? (
+              <BulkResultsStep bulkResults={bulkResults} />
+            ) : (
+              <ImportSuccessStep deviceName={importedDeviceName} />
+            )
+          ) : !importFlow ? (
+            <div className="p-2">
+              <ImportMethodSelectStep 
+                onSelect={(method) => {
+                  setImportFlow(method);
+                  setCurrentStep(0);
+                  setErrors({});
+                }} 
+              />
+            </div>
           ) : (
-            <ImportSuccessStep deviceName={importedDeviceName} />
-          )
-        ) : !importFlow ? (
-          <div className="p-2">
-            <ImportMethodSelectStep 
-              onSelect={(method) => {
-                setImportFlow(method);
-                setCurrentStep(0);
-                setErrors({});
-              }} 
-            />
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {steps.map((step, idx) => (
-              <StepCard
-                key={idx}
-                title={step.title}
-                stepIndex={idx}
-                currentStep={currentStep}
-                onHeaderClick={handleHeaderClick}
-                footer={step.footer}
-              >
-                {step.content}
-              </StepCard>
-            ))}
-          </div>
-        )}
-      </div>
-
+            <div className="space-y-4">
+              {steps.map((step, idx) => (
+                <StepCard
+                  key={idx}
+                  title={step.title}
+                  stepIndex={idx}
+                  currentStep={currentStep}
+                  onHeaderClick={handleHeaderClick}
+                  footer={step.footer}
+                >
+                  {step.content}
+                </StepCard>
+              ))}
+            </div>
+          )}
+        </div>
+      </ReusableDialog>
       <NetworkRequestDialog 
         open={isRequestDialogOpen} 
         onOpenChange={setIsRequestDialogOpen} 
       />
-    </ReusableDialog>
+    </>
   );
 };
 
