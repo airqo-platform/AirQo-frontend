@@ -319,25 +319,28 @@ const WelcomePage = () => {
 
   if (isLoading) {
     return (
-      <div>
-        <div className="mb-8 relative overflow-hidden md:px-16 md:py-10 rounded-lg mx-auto bg-white dark:bg-gray-800 border p-8">
-          <div className="space-y-3">
-            <Skeleton className="h-10 w-3/4" />
-            <Skeleton className="h-6 w-1/2" />
+      <>
+        <div>
+          <div className="mb-8 relative overflow-hidden md:px-16 md:py-10 rounded-lg mx-auto bg-white dark:bg-gray-800 border p-8">
+            <div className="space-y-3">
+              <Skeleton className="h-10 w-3/4" />
+              <Skeleton className="h-6 w-1/2" />
+            </div>
+          </div>
+          <div className="mb-10">
+            <StatsSkeleton />
+          </div>
+          <div className="mb-10">
+            <Skeleton className="h-7 w-32 mb-4" />
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-5">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
+            </div>
           </div>
         </div>
-        <div className="mb-10">
-          <StatsSkeleton />
-        </div>
-        <div className="mb-10">
-          <Skeleton className="h-7 w-32 mb-4" />
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-5">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-12 w-full" />
-            ))}
-          </div>
-        </div>
-      </div>
+        {sharedModals}
+      </>
     );
   }
 

@@ -491,7 +491,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
             });
           };
 
-          if (data.failed === 0) {
+          if (data.failed === 0 && data.imported > 0) {
             if (isGuidedMode) {
               setImportedDeviceName(`${data.imported} device(s)`);
               setIsSuccess(true);
