@@ -32,7 +32,23 @@ Introduced comprehensive enhancements to personal device claiming workflows, onb
 </details>
 
 <details>
-<summary><strong>Files Added & Modified (34)</strong></summary>
+<summary><strong>Claim Page Migration & UI Polish (6)</strong></summary>
+
+- **Modal-Based Claim Flow**: Deleted the standalone `/devices/claim` route and completely migrated the device claiming workflow to the `ClaimDeviceModal`.
+- **Global Modal Wiring**: Updated actions across My Devices, Organization Overview, Device Assignment, and the Deploy Device Wizard to trigger the claim modal dynamically in-place instead of navigating.
+- **Routing & Navigation Cleanup**: Removed defunct `/devices/claim` references from context-aware routing, recent visits tracking, and the secondary sidebar configuration.
+- **Read-Only Visibility UI**: Updated the Network Visibility card to render for users lacking edit permissions, keeping the current sharing state visible in read-only workspaces.
+- **Dynamic Environment Links**: Updated fallback analytics links (e.g. Sign Up) to dynamically resolve to `staging-analytics` or production based on the environment.
+- **Dynamic Import Loading Polish**: Optimized modal loading states by replacing large skeleton loaders with a refined spinner to reduce layout thrashing.
+
+</details>
+
+<details>
+<summary><strong>Files Added & Modified (44)</strong></summary>
+
+**Files Deleted:**
+- `src/vertex/app/(authenticated)/devices/claim/page.tsx` [DELETED]
+
 
 **Files Added:**
 - `src/vertex/components/features/claim/steps/BulkInputStep.tsx` [ADDED]
@@ -64,13 +80,20 @@ Introduced comprehensive enhancements to personal device claiming workflows, onb
 - `src/vertex/components/features/claim/claim-device-modal.tsx` [MODIFIED]
 - `src/vertex/components/features/cohorts/assign-cohort-devices.tsx` [MODIFIED]
 - `src/vertex/components/features/cohorts/create-cohort.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/deploy-device-component.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/device-assignment-modal.tsx` [MODIFIED]
 - `src/vertex/components/features/devices/import-device-modal.tsx` [MODIFIED]
 - `src/vertex/components/features/home/network-visibility-card.tsx` [MODIFIED]
 - `src/vertex/components/features/org-picker/organization-picker.tsx` [MODIFIED]
 - `src/vertex/components/layout/primary-sidebar.tsx` [MODIFIED]
+- `src/vertex/components/layout/secondary-sidebar.tsx` [MODIFIED]
 - `src/vertex/components/layout/topbar.tsx` [MODIFIED]
 - `src/vertex/core/apis/cohorts.ts` [MODIFIED]
 - `src/vertex/core/hooks/useCohorts.ts` [MODIFIED]
+- `src/vertex/core/hooks/useContextAwareRouting.ts` [MODIFIED]
+- `src/vertex/core/hooks/useRecentlyVisited.ts` [MODIFIED]
+- `src/vertex/core/routes.ts` [MODIFIED]
+- `src/vertex/core/urls.tsx` [MODIFIED]
 
 </details>
 
