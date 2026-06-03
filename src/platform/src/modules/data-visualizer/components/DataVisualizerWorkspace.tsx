@@ -43,6 +43,7 @@ import {
 } from '../constants';
 import type {
   DatasetProfile,
+  UploadedDataRow,
   UploadedDataset,
   VisualizerDraftSourceFile,
   VisualizerChartConfig,
@@ -132,6 +133,131 @@ const createSourceFileId = () => {
 
   return `source-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 };
+
+const filterChartRowsByDate = (
+  rows: UploadedDataRow[],
+  appliedDateRange: DateRange | null,
+  timeColumn?: string
+) => {
+  if (!appliedDateRange?.from && !appliedDateRange?.to) {
+    return rows;
+  }
+
+  if (!timeColumn) {
+    return rows;
+  }
+
+  const from = appliedDateRange.from
+    ? appliedDateRange.from.getTime()
+    : -Infinity;
+  const to = appliedDateRange.to
+    ? new Date(
+        appliedDateRange.to.getFullYear(),
+        appliedDateRange.to.getMonth(),
+        appliedDateRange.to.getDate(),
+        23,
+        59,
+        59,
+        999
+      ).getTime()
+    : Infinity;
+
+  return rows.filter(row => {
+    const rawValue = row[timeColumn];
+
+    if (rawValue == null) {
+      return true;
+    }
+
+    const dateValue =
+      rawValue instanceof Date ? rawValue : new Date(String(rawValue));
+
+    if (Number.isNaN(dateValue.getTime())) {
+      return true;
+    }
+
+    return dateValue.getTime() >= from && dateValue.getTime() <= to;
+  });
+};
+
+interface VisualizerChartCardContainerProps {
+  datasets: UploadedDataset[];
+  chart: VisualizerChartConfig;
+  chartNumber: number;
+  active?: boolean;
+  canRemove: boolean;
+  appliedDateRange: DateRange | null;
+  onActivateChart?: (chartId: string) => void;
+  onUpdateChart: (chartId: string, nextChart: VisualizerChartConfig) => void;
+  onRemoveChart: (chartId: string) => void;
+  onTrack?: (eventName: string, properties?: Record<string, unknown>) => void;
+}
+
+const VisualizerChartCardContainer = React.memo(
+  function VisualizerChartCardContainer({
+    datasets,
+    chart,
+    chartNumber,
+    active = false,
+    canRemove,
+    appliedDateRange,
+    onActivateChart,
+    onUpdateChart,
+    onRemoveChart,
+    onTrack,
+  }: VisualizerChartCardContainerProps) {
+    const rawRows = React.useMemo(
+      () => getDatasetRowsForChart(datasets, chart.datasetIds),
+      [chart.datasetIds, datasets]
+    );
+    const rawProfile = React.useMemo(() => profileDataset(rawRows), [rawRows]);
+    const timeColumn = React.useMemo(
+      () =>
+        chart.xColumn && rawProfile.timeColumns.includes(chart.xColumn)
+          ? chart.xColumn
+          : rawProfile.defaultTimeColumn,
+      [chart.xColumn, rawProfile.defaultTimeColumn, rawProfile.timeColumns]
+    );
+    const rows = React.useMemo(
+      () => filterChartRowsByDate(rawRows, appliedDateRange, timeColumn),
+      [appliedDateRange, rawRows, timeColumn]
+    );
+    const profile = React.useMemo(
+      () => (rows === rawRows ? rawProfile : profileDataset(rows)),
+      [rawProfile, rawRows, rows]
+    );
+    const handleActivate = React.useCallback(() => {
+      onActivateChart?.(chart.id);
+    }, [chart.id, onActivateChart]);
+    const handleChange = React.useCallback(
+      (nextChart: VisualizerChartConfig) => {
+        onUpdateChart(chart.id, nextChart);
+      },
+      [chart.id, onUpdateChart]
+    );
+    const handleRemove = React.useCallback(() => {
+      onRemoveChart(chart.id);
+    }, [chart.id, onRemoveChart]);
+
+    return (
+      <VisualizerChartCard
+        datasets={datasets}
+        profile={profile}
+        rows={rows}
+        chart={chart}
+        chartNumber={chartNumber}
+        active={active}
+        canRemove={canRemove}
+        onActivate={onActivateChart ? handleActivate : undefined}
+        onChange={handleChange}
+        onRemove={handleRemove}
+        onTrack={onTrack}
+      />
+    );
+  }
+);
+
+VisualizerChartCardContainer.displayName = 'VisualizerChartCardContainer';
 
 const createChartConfig = (
   type: VisualizerChartType,
@@ -948,31 +1074,41 @@ export const DataVisualizerWorkspace: React.FC<
     }, 50);
   };
 
-  const updateChart = (chartId: string, nextChart: VisualizerChartConfig) => {
-    setCharts(current =>
-      current.map(chart =>
-        chart.id === chartId
-          ? normalizeChartConfigForDatasets(nextChart, datasets)
-          : chart
-      )
-    );
-  };
+  const updateChart = React.useCallback(
+    (chartId: string, nextChart: VisualizerChartConfig) => {
+      setCharts(current =>
+        current.map(chart =>
+          chart.id === chartId
+            ? normalizeChartConfigForDatasets(nextChart, datasets)
+            : chart
+        )
+      );
+    },
+    [datasets]
+  );
 
-  const removeChart = (chartId: string) => {
-    const chartToRemove = charts.find(chart => chart.id === chartId);
+  const removeChart = React.useCallback(
+    (chartId: string) => {
+      const chartToRemove = charts.find(chart => chart.id === chartId);
 
-    setCharts(current => {
-      const nextCharts = current.filter(chart => chart.id !== chartId);
-      if (activeChartId === chartId) {
-        setActiveChartId(nextCharts[0]?.id);
-      }
-      return nextCharts;
-    });
-    trackVisualizerEvent('air_quality_explorer_chart_removed', {
-      chart_type: chartToRemove?.type,
-      remaining_chart_count: Math.max(0, charts.length - 1),
-    });
-  };
+      setCharts(current => {
+        const nextCharts = current.filter(chart => chart.id !== chartId);
+        if (activeChartId === chartId) {
+          setActiveChartId(nextCharts[0]?.id);
+        }
+        return nextCharts;
+      });
+      trackVisualizerEvent('air_quality_explorer_chart_removed', {
+        chart_type: chartToRemove?.type,
+        remaining_chart_count: Math.max(0, charts.length - 1),
+      });
+    },
+    [activeChartId, charts, trackVisualizerEvent]
+  );
+
+  const activateChart = React.useCallback((chartId: string) => {
+    setActiveChartId(chartId);
+  }, []);
 
   const updateDataset = (
     datasetId: string,
@@ -1148,35 +1284,6 @@ export const DataVisualizerWorkspace: React.FC<
 
   const showUploadPanel = datasets.length === 0 || uploadOpen;
 
-  const filterRowsByDate = React.useCallback(
-    (rows: import('../types').UploadedDataRow[], timeColumn?: string) => {
-      if (!appliedDateRange?.from && !appliedDateRange?.to) return rows;
-      const timeCol = timeColumn;
-      if (!timeCol) return rows;
-      const from = appliedDateRange.from
-        ? appliedDateRange.from.getTime()
-        : -Infinity;
-      const to = appliedDateRange.to
-        ? new Date(
-            appliedDateRange.to.getFullYear(),
-            appliedDateRange.to.getMonth(),
-            appliedDateRange.to.getDate(),
-            23,
-            59,
-            59,
-            999
-          ).getTime()
-        : Infinity;
-      return rows.filter(row => {
-        const rawVal = row[timeCol];
-        if (rawVal == null) return true;
-        const d = rawVal instanceof Date ? rawVal : new Date(String(rawVal));
-        if (Number.isNaN(d.getTime())) return true;
-        return d.getTime() >= from && d.getTime() <= to;
-      });
-    },
-    [appliedDateRange]
-  );
   const availableChartTypes = React.useMemo(
     () =>
       DEFAULT_CHART_ORDER.filter(
@@ -1184,80 +1291,67 @@ export const DataVisualizerWorkspace: React.FC<
       ),
     [workspaceCoordinateColumns]
   );
-  const chartContexts = React.useMemo(
+  const chartItems = React.useMemo(
     () =>
-      charts.map((chart, index) => {
-        const rawRows = getDatasetRowsForChart(datasets, chart.datasetIds);
-        const rawProfile = profileDataset(rawRows);
-        const timeColumn =
-          chart.xColumn && rawProfile.timeColumns.includes(chart.xColumn)
-            ? chart.xColumn
-            : rawProfile.defaultTimeColumn;
-        const rows = filterRowsByDate(rawRows, timeColumn);
-        const profile = profileDataset(rows);
-
-        return {
-          chart,
-          rows,
-          profile,
-          chartNumber: index + 1,
-        };
-      }),
-    [charts, datasets, filterRowsByDate]
+      charts.map((chart, index) => ({
+        chart,
+        chartNumber: index + 1,
+      })),
+    [charts]
   );
-  const activeChartContext = React.useMemo(
+  const activeChartItem = React.useMemo(
     () =>
-      chartContexts.find(context => context.chart.id === activeChartId) ??
-      chartContexts[0] ??
+      chartItems.find(item => item.chart.id === activeChartId) ??
+      chartItems[0] ??
       null,
-    [activeChartId, chartContexts]
+    [activeChartId, chartItems]
   );
-  const mapChartContexts = React.useMemo(
-    () => chartContexts.filter(context => context.chart.type === 'map'),
-    [chartContexts]
+  const mapChartItems = React.useMemo(
+    () => chartItems.filter(item => item.chart.type === 'map'),
+    [chartItems]
   );
-  const nonMapChartContexts = React.useMemo(
-    () => chartContexts.filter(context => context.chart.type !== 'map'),
-    [chartContexts]
+  const nonMapChartItems = React.useMemo(
+    () => chartItems.filter(item => item.chart.type !== 'map'),
+    [chartItems]
   );
-  const visibleChartContexts = React.useMemo(() => {
+  const visibleChartItems = React.useMemo(() => {
     switch (displayMode) {
       case 'charts':
-        return nonMapChartContexts;
+        return nonMapChartItems;
       case 'maps':
-        return mapChartContexts;
+        return mapChartItems;
       case 'all':
-        return chartContexts;
+        return chartItems;
       default:
-        return activeChartContext ? [activeChartContext] : [];
+        return activeChartItem ? [activeChartItem] : [];
     }
   }, [
-    activeChartContext,
-    chartContexts,
+    activeChartItem,
+    chartItems,
     displayMode,
-    mapChartContexts,
-    nonMapChartContexts,
+    mapChartItems,
+    nonMapChartItems,
   ]);
 
   React.useEffect(() => {
-    if (displayMode === 'maps' && mapChartContexts.length === 0) {
+    if (displayMode === 'maps' && mapChartItems.length === 0) {
       setDisplayMode('focused');
       return;
     }
 
-    if (displayMode === 'charts' && nonMapChartContexts.length === 0) {
+    if (displayMode === 'charts' && nonMapChartItems.length === 0) {
       setDisplayMode('focused');
       return;
     }
 
-    if (displayMode === 'all' && chartContexts.length < 2) {
+    if (displayMode === 'all' && chartItems.length < 2) {
       setDisplayMode('focused');
     }
   }, [
-    chartContexts.length,
+    chartItems.length,
     displayMode,
-    mapChartContexts.length,
-    nonMapChartContexts.length,
+    mapChartItems.length,
+    nonMapChartItems.length,
   ]);
 
   return (
@@ -1441,12 +1535,12 @@ export const DataVisualizerWorkspace: React.FC<
             {toolbarCollapsed && (
               <div className="rounded-xl border border-border/70 bg-background/80 px-3 py-2 text-xs text-muted-foreground">
                 {displayMode === 'focused'
-                  ? `Showing ${activeChartContext?.chart.title ?? 'selected view'}.`
+                  ? `Showing ${activeChartItem?.chart.title ?? 'selected view'}.`
                   : displayMode === 'charts'
-                    ? `Showing ${nonMapChartContexts.length} chart view${nonMapChartContexts.length === 1 ? '' : 's'}.`
+                    ? `Showing ${nonMapChartItems.length} chart view${nonMapChartItems.length === 1 ? '' : 's'}.`
                     : displayMode === 'maps'
-                      ? `Showing ${mapChartContexts.length} map view${mapChartContexts.length === 1 ? '' : 's'}.`
-                      : `Comparing ${visibleChartContexts.length} views.`}
+                      ? `Showing ${mapChartItems.length} map view${mapChartItems.length === 1 ? '' : 's'}.`
+                      : `Comparing ${visibleChartItems.length} views.`}
               </div>
             )}
 
@@ -1485,7 +1579,7 @@ export const DataVisualizerWorkspace: React.FC<
                           ? 'border-primary bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary'
                           : 'border-border/70 bg-background text-foreground hover:bg-muted/40 hover:text-foreground'
                       )}
-                      disabled={nonMapChartContexts.length === 0}
+                      disabled={nonMapChartItems.length === 0}
                       onClick={() => setDisplayMode('charts')}
                     >
                       Charts only
@@ -1499,7 +1593,7 @@ export const DataVisualizerWorkspace: React.FC<
                           ? 'border-primary bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary'
                           : 'border-border/70 bg-background text-foreground hover:bg-muted/40 hover:text-foreground'
                       )}
-                      disabled={mapChartContexts.length === 0}
+                      disabled={mapChartItems.length === 0}
                       onClick={() => setDisplayMode('maps')}
                     >
                       Maps only
@@ -1513,7 +1607,7 @@ export const DataVisualizerWorkspace: React.FC<
                           ? 'border-primary bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary'
                           : 'border-border/70 bg-background text-foreground hover:bg-muted/40 hover:text-foreground'
                       )}
-                      disabled={chartContexts.length < 2}
+                      disabled={chartItems.length < 2}
                       onClick={() => setDisplayMode('all')}
                     >
                       Compare all
@@ -1575,14 +1669,14 @@ export const DataVisualizerWorkspace: React.FC<
                     key={chart.id}
                     size="sm"
                     variant={
-                      activeChartContext?.chart.id === chart.id
+                      activeChartItem?.chart.id === chart.id
                         ? 'outlined'
                         : 'ghost'
                     }
                     onClick={() => setActiveChartId(chart.id)}
                     className={cn(
                       'min-w-[220px] h-auto flex-col items-start justify-start rounded-xl border px-4 py-3 text-left shadow-none',
-                      activeChartContext?.chart.id === chart.id
+                      activeChartItem?.chart.id === chart.id
                         ? 'border-primary bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary'
                         : 'border-border/70 bg-background text-foreground hover:bg-muted/40 hover:text-foreground'
                     )}
@@ -2159,63 +2253,29 @@ export const DataVisualizerWorkspace: React.FC<
         </Card>
       )}
 
-      {visibleChartContexts.length > 0 && (
+      {visibleChartItems.length > 0 && (
         <div
           className={cn(
             'grid gap-4',
             displayMode === 'focused' ? 'grid-cols-1' : 'grid-cols-1 xl:grid-cols-2'
           )}
         >
-          {visibleChartContexts.map(context => (
-            <div id={`visualizer-chart-${context.chart.id}`} key={context.chart.id}>
-              <VisualizerChartCard
+          {visibleChartItems.map(item => (
+            <div id={`visualizer-chart-${item.chart.id}`} key={item.chart.id}>
+              <VisualizerChartCardContainer
                 datasets={datasets}
-                profile={context.profile}
-                rows={context.rows}
-                chart={context.chart}
-                chartNumber={context.chartNumber}
-                active={activeChartContext?.chart.id === context.chart.id}
+                chart={item.chart}
+                chartNumber={item.chartNumber}
+                active={activeChartItem?.chart.id === item.chart.id}
                 canRemove={charts.length > 1}
-                onActivate={() => setActiveChartId(context.chart.id)}
-                onChange={nextChart => updateChart(context.chart.id, nextChart)}
-                onRemove={() => removeChart(context.chart.id)}
+                appliedDateRange={appliedDateRange}
+                onActivateChart={activateChart}
+                onUpdateChart={updateChart}
+                onRemoveChart={removeChart}
                 onTrack={trackVisualizerEvent}
               />
             </div>
           ))}
-        </div>
-      )}
-
-      {false && charts.length > 0 && (
-        <div className="grid grid-cols-1 gap-4">
-          {charts.map((chart, index) => {
-            const rawRows = getDatasetRowsForChart(datasets, chart.datasetIds);
-            const rawProfile = profileDataset(rawRows);
-            const timeColumn =
-              chart.xColumn && rawProfile.timeColumns.includes(chart.xColumn)
-                ? chart.xColumn
-                : rawProfile.defaultTimeColumn;
-            const rows = filterRowsByDate(rawRows, timeColumn);
-            const profile = profileDataset(rows);
-
-            return (
-              <div id={`visualizer-chart-${chart.id}`} key={chart.id}>
-                <VisualizerChartCard
-                  datasets={datasets}
-                  profile={profile}
-                  rows={rows}
-                  chart={chart}
-                  chartNumber={index + 1}
-                  active={chart.id === activeChartId}
-                  canRemove={charts.length > 1}
-                  onActivate={() => setActiveChartId(chart.id)}
-                  onChange={nextChart => updateChart(chart.id, nextChart)}
-                  onRemove={() => removeChart(chart.id)}
-                  onTrack={trackVisualizerEvent}
-                />
-              </div>
-            );
-          })}
         </div>
       )}
 

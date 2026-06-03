@@ -18,6 +18,7 @@ import {
 } from '../constants';
 import type {
   AggregationMethod,
+  ChartSeriesModel,
   DatasetProfile,
   UploadedDataset,
   UploadedDataRow,
@@ -81,6 +82,13 @@ const EXPORT_TEXT_COLOR = '#1c1d20';
 const EXPORT_MUTED_COLOR = '#64748b';
 const EXPORT_BORDER_COLOR = '#e2e8f0';
 const EXPORT_BACKGROUND_COLOR = '#ffffff';
+const EMPTY_MAP_MODEL: ChartSeriesModel = {
+  data: [],
+  seriesKeys: [],
+  seriesLabels: {},
+  xKey: 'x',
+  yLabel: '',
+};
 
 const sanitizeFilename = (value: string) =>
   value
@@ -349,10 +357,13 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
   const [draftSubtitle, setDraftSubtitle] = React.useState(
     chart.subtitle || ''
   );
-  const model = React.useMemo(
-    () => buildChartModel(rows, chart),
-    [chart, rows]
-  );
+  const model = React.useMemo(() => {
+    if (chart.type === 'map') {
+      return EMPTY_MAP_MODEL;
+    }
+
+    return buildChartModel(rows, chart);
+  }, [chart, rows]);
   const title = chart.title || `Chart ${chartNumber}`;
   const selectedDatasetIds = new Set(chart.datasetIds);
   const isMap = chart.type === 'map';

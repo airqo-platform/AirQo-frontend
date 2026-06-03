@@ -30,18 +30,18 @@ const openWorkspaceDb = (): Promise<IDBDatabase> =>
 const runDraftTransaction = async <T>(
   mode: IDBTransactionMode,
   operation: (store: IDBObjectStore) => IDBRequest<T>
-): Promise<T> => {
+): Promise<T | undefined> => {
   const db = await openWorkspaceDb();
 
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(DRAFT_STORE, mode);
     const store = transaction.objectStore(DRAFT_STORE);
     const request = operation(store);
-    let result: T;
+    let result: T | undefined;
     let settled = false;
 
     const closeDb = () => db.close();
-    const resolveOnce = (value: T) => {
+    const resolveOnce = (value: T | undefined) => {
       if (settled) {
         return;
       }
