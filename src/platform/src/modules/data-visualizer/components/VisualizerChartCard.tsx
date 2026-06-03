@@ -355,6 +355,7 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
   );
   const title = chart.title || `Chart ${chartNumber}`;
   const selectedDatasetIds = new Set(chart.datasetIds);
+  const isMap = chart.type === 'map';
 
   React.useEffect(() => {
     if (editingField !== 'title') {
@@ -367,6 +368,10 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
   }, [chart.subtitle, chart.title, editingField]);
 
   const colorTargets = React.useMemo(() => {
+    if (isMap) {
+      return [];
+    }
+
     if (chart.type === 'pie') {
       return model.data.map((entry, index) => {
         const label = String(entry[model.xKey] ?? `Segment ${index + 1}`);
@@ -379,7 +384,7 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
       label: model.seriesLabels[key] ?? key,
       index,
     }));
-  }, [chart.type, model]);
+  }, [chart.type, isMap, model]);
 
   const updateChart = (partial: Partial<VisualizerChartConfig>) => {
     onChange({
@@ -551,6 +556,28 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
   const compareLabel = chart.compareColumn
     ? formatColumnLabel(chart.compareColumn)
     : 'No series grouping';
+  const mapCoordinateLabel =
+    chart.latitudeColumn && chart.longitudeColumn
+      ? `${formatColumnLabel(chart.latitudeColumn)} / ${formatColumnLabel(chart.longitudeColumn)}`
+      : 'Coordinates not selected';
+  const mapLabelField = chart.compareColumn
+    ? formatColumnLabel(chart.compareColumn)
+    : 'Automatic label';
+  const mapLabelColumns = React.useMemo(
+    () =>
+      Array.from(
+        new Set([...profile.dimensionColumns, ...profile.timeColumns])
+      ).filter(
+        column =>
+          column !== chart.latitudeColumn && column !== chart.longitudeColumn
+      ),
+    [
+      chart.latitudeColumn,
+      chart.longitudeColumn,
+      profile.dimensionColumns,
+      profile.timeColumns,
+    ]
+  );
   const selectedDatasetCount = chart.datasetIds.length;
 
   return (
@@ -636,15 +663,31 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
               className="mt-3 flex flex-wrap gap-2 text-xs"
               data-html2canvas-ignore="true"
             >
-              <span className="rounded-full border border-border bg-background px-2 py-1 text-muted-foreground">
-                Y: {yAxisLabel || 'Not selected'}
-              </span>
-              <span className="rounded-full border border-border bg-background px-2 py-1 text-muted-foreground">
-                X: {xAxisLabel}
-              </span>
-              <span className="rounded-full border border-border bg-background px-2 py-1 text-muted-foreground">
-                Series: {compareLabel}
-              </span>
+              {isMap ? (
+                <>
+                  <span className="rounded-full border border-border bg-background px-2 py-1 text-muted-foreground">
+                    Value: {formatMeasurementLabel(chart.metricColumn)}
+                  </span>
+                  <span className="rounded-full border border-border bg-background px-2 py-1 text-muted-foreground">
+                    Coordinates: {mapCoordinateLabel}
+                  </span>
+                  <span className="rounded-full border border-border bg-background px-2 py-1 text-muted-foreground">
+                    Label: {mapLabelField}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="rounded-full border border-border bg-background px-2 py-1 text-muted-foreground">
+                    Y: {yAxisLabel || 'Not selected'}
+                  </span>
+                  <span className="rounded-full border border-border bg-background px-2 py-1 text-muted-foreground">
+                    X: {xAxisLabel}
+                  </span>
+                  <span className="rounded-full border border-border bg-background px-2 py-1 text-muted-foreground">
+                    Series: {compareLabel}
+                  </span>
+                </>
+              )}
               <span className="rounded-full border border-primary/25 bg-primary/5 px-2 py-1 text-primary">
                 {selectedDatasetCount} dataset
                 {selectedDatasetCount === 1 ? '' : 's'}
@@ -727,121 +770,98 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
             onClick={event => event.stopPropagation()}
             data-html2canvas-ignore="true"
           >
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-3 xl:grid-cols-6">
-              <Input
-                label="Title"
-                value={chart.title}
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  updateChart({ title: event.target.value })
-                }
-                containerClassName="mb-0 md:col-span-2"
-              />
-              <Input
-                label="Subtitle"
-                value={chart.subtitle || ''}
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  updateChart({ subtitle: event.target.value })
-                }
-                containerClassName="mb-0 md:col-span-2"
-              />
-              <Select
-                label="Type"
-                value={chart.type}
-                onChange={event =>
-                  updateChart({
-                    type: event.target.value as VisualizerChartType,
-                  })
-                }
-                containerClassName="mb-0"
-              >
-                {Object.entries(CHART_TYPE_LABELS).map(([type, label]) => (
-                  <option key={type} value={type}>
-                    {label}
-                  </option>
-                ))}
-              </Select>
-              {chart.type === 'map' && (
-                <Select
-                  label="Map layer"
-                  value={chart.mapLayer ?? 'points'}
-                  onChange={event =>
-                    updateChart({
-                      mapLayer: event.target.value as NonNullable<
-                        VisualizerChartConfig['mapLayer']
-                      >,
-                    })
-                  }
-                  containerClassName="mb-0"
-                >
-                  {Object.entries(MAP_LAYER_LABELS).map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </Select>
-              )}
-              <Input
-                label="Height"
-                type="number"
-                min={240}
-                max={760}
-                value={chart.height}
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  updateChart({
-                    height: Math.min(
-                      760,
-                      Math.max(240, Number(event.target.value) || 340)
-                    ),
-                  })
-                }
-                containerClassName="mb-0"
-              />
-              <Select
-                label="Y axis measurement"
-                value={chart.metricColumn}
-                onChange={event => {
-                  const nextMetricColumn = String(event.target.value);
-                  const nextMetricLabel =
-                    formatMeasurementLabel(nextMetricColumn);
-                  const shouldSyncYAxisLabel =
-                    !chart.yAxisLabel ||
-                    chart.yAxisLabel === chart.metricColumn ||
-                    chart.yAxisLabel ===
-                      formatMeasurementLabel(chart.metricColumn);
+            {isMap ? (
+              <>
+                <div className="rounded-md border border-border/70 bg-card/60 p-3 text-sm text-muted-foreground">
+                  Map views use coordinates and popup labels instead of X and Y
+                  axes.
+                </div>
 
-                  updateChart({
-                    metricColumn: nextMetricColumn,
-                    yAxisLabel: shouldSyncYAxisLabel
-                      ? nextMetricLabel
-                      : chart.yAxisLabel,
-                    showReferenceLines:
-                      chart.showReferenceLines || /pm/i.test(nextMetricColumn),
-                  });
-                }}
-                containerClassName="mb-0"
-              >
-                {profile.numericColumns.map(column => (
-                  <option key={column} value={column}>
-                    {formatSelectOptionLabel(column)}
-                  </option>
-                ))}
-              </Select>
-              <Input
-                label="Y-axis label"
-                value={
-                  chart.yAxisLabel ?? formatMeasurementLabel(chart.metricColumn)
-                }
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  updateChart({
-                    yAxisLabel: event.target.value || undefined,
-                  })
-                }
-                containerClassName="mb-0"
-              />
-              {chart.type === 'map' && (
-                <>
+                <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-6">
+                  <Input
+                    label="Title"
+                    value={chart.title}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                      updateChart({ title: event.target.value })
+                    }
+                    containerClassName="mb-0 md:col-span-2"
+                  />
+                  <Input
+                    label="Subtitle"
+                    value={chart.subtitle || ''}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                      updateChart({ subtitle: event.target.value })
+                    }
+                    containerClassName="mb-0 md:col-span-2"
+                  />
                   <Select
-                    label="Latitude"
+                    label="Type"
+                    value={chart.type}
+                    onChange={event =>
+                      updateChart({
+                        type: event.target.value as VisualizerChartType,
+                      })
+                    }
+                    containerClassName="mb-0"
+                  >
+                    {Object.entries(CHART_TYPE_LABELS).map(([type, label]) => (
+                      <option key={type} value={type}>
+                        {label}
+                      </option>
+                    ))}
+                  </Select>
+                  <Select
+                    label="Map layer"
+                    value={chart.mapLayer ?? 'points'}
+                    onChange={event =>
+                      updateChart({
+                        mapLayer: event.target.value as NonNullable<
+                          VisualizerChartConfig['mapLayer']
+                        >,
+                      })
+                    }
+                    containerClassName="mb-0"
+                  >
+                    {Object.entries(MAP_LAYER_LABELS).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </Select>
+                  <Input
+                    label="Height"
+                    type="number"
+                    min={240}
+                    max={760}
+                    value={chart.height}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                      updateChart({
+                        height: Math.min(
+                          760,
+                          Math.max(240, Number(event.target.value) || 340)
+                        ),
+                      })
+                    }
+                    containerClassName="mb-0"
+                  />
+                  <Select
+                    label="Map value"
+                    value={chart.metricColumn}
+                    onChange={event =>
+                      updateChart({
+                        metricColumn: String(event.target.value),
+                      })
+                    }
+                    containerClassName="mb-0"
+                  >
+                    {profile.numericColumns.map(column => (
+                      <option key={column} value={column}>
+                        {formatSelectOptionLabel(column)}
+                      </option>
+                    ))}
+                  </Select>
+                  <Select
+                    label="Latitude field"
                     value={chart.latitudeColumn || ''}
                     onChange={event =>
                       updateChart({
@@ -858,7 +878,7 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
                     ))}
                   </Select>
                   <Select
-                    label="Longitude"
+                    label="Longitude field"
                     value={chart.longitudeColumn || ''}
                     onChange={event =>
                       updateChart({
@@ -875,226 +895,342 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
                       </option>
                     ))}
                   </Select>
-                </>
-              )}
-              <Select
-                label="X axis time or category"
-                value={chart.xColumn || ''}
-                onChange={event => {
-                  const nextXColumn = String(event.target.value) || undefined;
-                  const nextXLabel = formatColumnLabel(nextXColumn);
-                  const currentXLabel = formatColumnLabel(chart.xColumn);
-                  const shouldSyncXAxisLabel =
-                    !chart.xAxisLabel ||
-                    chart.xAxisLabel === currentXLabel ||
-                    chart.xAxisLabel === chart.xColumn;
+                  <Select
+                    label="Popup label"
+                    value={chart.compareColumn || ''}
+                    onChange={event =>
+                      updateChart({
+                        compareColumn: String(event.target.value) || undefined,
+                      })
+                    }
+                    containerClassName="mb-0 md:col-span-2"
+                  >
+                    <option value="">Automatic label</option>
+                    {mapLabelColumns.map(column => (
+                      <option key={column} value={column}>
+                        {formatSelectOptionLabel(column)}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-3 xl:grid-cols-6">
+                  <Input
+                    label="Title"
+                    value={chart.title}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                      updateChart({ title: event.target.value })
+                    }
+                    containerClassName="mb-0 md:col-span-2"
+                  />
+                  <Input
+                    label="Subtitle"
+                    value={chart.subtitle || ''}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                      updateChart({ subtitle: event.target.value })
+                    }
+                    containerClassName="mb-0 md:col-span-2"
+                  />
+                  <Select
+                    label="Type"
+                    value={chart.type}
+                    onChange={event =>
+                      updateChart({
+                        type: event.target.value as VisualizerChartType,
+                      })
+                    }
+                    containerClassName="mb-0"
+                  >
+                    {Object.entries(CHART_TYPE_LABELS).map(([type, label]) => (
+                      <option key={type} value={type}>
+                        {label}
+                      </option>
+                    ))}
+                  </Select>
+                  <Input
+                    label="Height"
+                    type="number"
+                    min={240}
+                    max={760}
+                    value={chart.height}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                      updateChart({
+                        height: Math.min(
+                          760,
+                          Math.max(240, Number(event.target.value) || 340)
+                        ),
+                      })
+                    }
+                    containerClassName="mb-0"
+                  />
+                  <Select
+                    label="Y axis measurement"
+                    value={chart.metricColumn}
+                    onChange={event => {
+                      const nextMetricColumn = String(event.target.value);
+                      const nextMetricLabel =
+                        formatMeasurementLabel(nextMetricColumn);
+                      const shouldSyncYAxisLabel =
+                        !chart.yAxisLabel ||
+                        chart.yAxisLabel === chart.metricColumn ||
+                        chart.yAxisLabel ===
+                          formatMeasurementLabel(chart.metricColumn);
 
-                  updateChart({
-                    xColumn: nextXColumn,
-                    xAxisLabel: shouldSyncXAxisLabel
-                      ? nextXLabel
-                      : chart.xAxisLabel,
-                  });
-                }}
-                containerClassName="mb-0"
-              >
-                <option value="">Record order</option>
-                {profile.timeColumns.map(column => (
-                  <option key={column} value={column}>
-                    {formatSelectOptionLabel(column)}
-                  </option>
-                ))}
-                {profile.dimensionColumns.map(column => (
-                  <option key={column} value={column}>
-                    {formatSelectOptionLabel(column)}
-                  </option>
-                ))}
-              </Select>
-              <Input
-                label="X-axis label"
-                value={chart.xAxisLabel ?? formatColumnLabel(chart.xColumn)}
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  updateChart({
-                    xAxisLabel: event.target.value || undefined,
-                  })
-                }
-                containerClassName="mb-0"
-              />
-              <Select
-                label="Series / compare by"
-                value={chart.compareColumn || ''}
-                onChange={event =>
-                  updateChart({
-                    compareColumn: String(event.target.value) || undefined,
-                  })
-                }
-                containerClassName="mb-0"
-              >
-                <option value="">No grouping</option>
-                {profile.dimensionColumns.map(column => (
-                  <option key={column} value={column}>
-                    {formatSelectOptionLabel(column)}
-                  </option>
-                ))}
-              </Select>
-              <Select
-                label="Second metric"
-                value={chart.secondaryMetricColumn || ''}
-                onChange={event =>
-                  updateChart({
-                    secondaryMetricColumn:
-                      String(event.target.value) || undefined,
-                  })
-                }
-                containerClassName="mb-0"
-              >
-                <option value="">None</option>
-                {profile.numericColumns
-                  .filter(column => column !== chart.metricColumn)
-                  .map(column => (
-                    <option key={column} value={column}>
-                      {formatSelectOptionLabel(column)}
-                    </option>
-                  ))}
-              </Select>
-              <Select
-                label="Aggregation"
-                value={chart.aggregation}
-                onChange={event =>
-                  updateChart({
-                    aggregation: event.target.value as AggregationMethod,
-                  })
-                }
-                containerClassName="mb-0"
-              >
-                {Object.entries(AGGREGATION_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </Select>
-              <Select
-                label="Standards"
-                value={chart.standards}
-                onChange={event =>
-                  updateChart({
-                    standards: event.target
-                      .value as VisualizerChartConfig['standards'],
-                  })
-                }
-                containerClassName="mb-0"
-              >
-                {Object.entries(STANDARDS_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </Select>
-              <Input
-                label="Max groups"
-                type="number"
-                min={1}
-                max={20}
-                value={chart.maxGroups}
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  updateChart({
-                    maxGroups: Math.min(
-                      20,
-                      Math.max(1, Number(event.target.value) || 1)
-                    ),
-                  })
-                }
-                containerClassName="mb-0"
-              />
-              <Input
-                label="Reference value"
-                type="number"
-                value={chart.referenceValue ?? ''}
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                  const value = Number(event.target.value);
-                  updateChart({
-                    referenceValue:
-                      event.target.value === '' || !Number.isFinite(value)
-                        ? undefined
-                        : value,
-                    showReferenceLines:
-                      chart.showReferenceLines || event.target.value !== '',
-                  });
-                }}
-                containerClassName="mb-0"
-              />
-              <Input
-                label="Reference label"
-                value={chart.referenceLabel || ''}
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  updateChart({
-                    referenceLabel: event.target.value || undefined,
-                  })
-                }
-                containerClassName="mb-0"
-              />
-              <label className="mb-0 flex flex-col gap-1.5 text-sm">
-                <span className="font-medium text-foreground">
-                  Reference color
-                </span>
-                <input
-                  type="color"
-                  value={chart.referenceColor || '#DC2626'}
-                  onChange={event =>
-                    updateChart({ referenceColor: event.target.value })
-                  }
-                  className="h-10 w-full cursor-pointer rounded-md border border-border bg-background p-1"
-                />
-              </label>
-            </div>
+                      updateChart({
+                        metricColumn: nextMetricColumn,
+                        yAxisLabel: shouldSyncYAxisLabel
+                          ? nextMetricLabel
+                          : chart.yAxisLabel,
+                        showReferenceLines:
+                          chart.showReferenceLines ||
+                          /pm/i.test(nextMetricColumn),
+                      });
+                    }}
+                    containerClassName="mb-0"
+                  >
+                    {profile.numericColumns.map(column => (
+                      <option key={column} value={column}>
+                        {formatSelectOptionLabel(column)}
+                      </option>
+                    ))}
+                  </Select>
+                  <Input
+                    label="Y-axis label"
+                    value={
+                      chart.yAxisLabel ??
+                      formatMeasurementLabel(chart.metricColumn)
+                    }
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                      updateChart({
+                        yAxisLabel: event.target.value || undefined,
+                      })
+                    }
+                    containerClassName="mb-0"
+                  />
+                  <Select
+                    label="X axis time or category"
+                    value={chart.xColumn || ''}
+                    onChange={event => {
+                      const nextXColumn = String(event.target.value) || undefined;
+                      const nextXLabel = formatColumnLabel(nextXColumn);
+                      const currentXLabel = formatColumnLabel(chart.xColumn);
+                      const shouldSyncXAxisLabel =
+                        !chart.xAxisLabel ||
+                        chart.xAxisLabel === currentXLabel ||
+                        chart.xAxisLabel === chart.xColumn;
 
-            <div className="mt-3 flex flex-wrap items-center gap-4">
-              <label className="flex items-center gap-2 text-sm text-foreground">
-                <Checkbox
-                  checked={chart.showGrid}
-                  onCheckedChange={checked =>
-                    updateChart({ showGrid: checked })
-                  }
-                />
-                Grid
-              </label>
-              <label className="flex items-center gap-2 text-sm text-foreground">
-                <Checkbox
-                  checked={chart.showLegend}
-                  onCheckedChange={checked =>
-                    updateChart({ showLegend: checked })
-                  }
-                />
-                Legend
-              </label>
-              <label className="flex items-center gap-2 text-sm text-foreground">
-                <Checkbox
-                  checked={chart.showXAxisLabel !== false}
-                  onCheckedChange={checked =>
-                    updateChart({ showXAxisLabel: checked })
-                  }
-                />
-                X-axis label
-              </label>
-              <label className="flex items-center gap-2 text-sm text-foreground">
-                <Checkbox
-                  checked={chart.showYAxisLabel !== false}
-                  onCheckedChange={checked =>
-                    updateChart({ showYAxisLabel: checked })
-                  }
-                />
-                Y-axis label
-              </label>
-              <label className="flex items-center gap-2 text-sm text-foreground">
-                <Checkbox
-                  checked={chart.showReferenceLines}
-                  onCheckedChange={checked =>
-                    updateChart({ showReferenceLines: checked })
-                  }
-                />
-                Reference lines
-              </label>
-            </div>
+                      updateChart({
+                        xColumn: nextXColumn,
+                        xAxisLabel: shouldSyncXAxisLabel
+                          ? nextXLabel
+                          : chart.xAxisLabel,
+                      });
+                    }}
+                    containerClassName="mb-0"
+                  >
+                    <option value="">Record order</option>
+                    {profile.timeColumns.map(column => (
+                      <option key={column} value={column}>
+                        {formatSelectOptionLabel(column)}
+                      </option>
+                    ))}
+                    {profile.dimensionColumns.map(column => (
+                      <option key={column} value={column}>
+                        {formatSelectOptionLabel(column)}
+                      </option>
+                    ))}
+                  </Select>
+                  <Input
+                    label="X-axis label"
+                    value={chart.xAxisLabel ?? formatColumnLabel(chart.xColumn)}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                      updateChart({
+                        xAxisLabel: event.target.value || undefined,
+                      })
+                    }
+                    containerClassName="mb-0"
+                  />
+                  <Select
+                    label="Series / compare by"
+                    value={chart.compareColumn || ''}
+                    onChange={event =>
+                      updateChart({
+                        compareColumn: String(event.target.value) || undefined,
+                      })
+                    }
+                    containerClassName="mb-0"
+                  >
+                    <option value="">No grouping</option>
+                    {profile.dimensionColumns.map(column => (
+                      <option key={column} value={column}>
+                        {formatSelectOptionLabel(column)}
+                      </option>
+                    ))}
+                  </Select>
+                  <Select
+                    label="Second metric"
+                    value={chart.secondaryMetricColumn || ''}
+                    onChange={event =>
+                      updateChart({
+                        secondaryMetricColumn:
+                          String(event.target.value) || undefined,
+                      })
+                    }
+                    containerClassName="mb-0"
+                  >
+                    <option value="">None</option>
+                    {profile.numericColumns
+                      .filter(column => column !== chart.metricColumn)
+                      .map(column => (
+                        <option key={column} value={column}>
+                          {formatSelectOptionLabel(column)}
+                        </option>
+                      ))}
+                  </Select>
+                  <Select
+                    label="Aggregation"
+                    value={chart.aggregation}
+                    onChange={event =>
+                      updateChart({
+                        aggregation: event.target.value as AggregationMethod,
+                      })
+                    }
+                    containerClassName="mb-0"
+                  >
+                    {Object.entries(AGGREGATION_LABELS).map(
+                      ([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      )
+                    )}
+                  </Select>
+                  <Select
+                    label="Standards"
+                    value={chart.standards}
+                    onChange={event =>
+                      updateChart({
+                        standards: event.target
+                          .value as VisualizerChartConfig['standards'],
+                      })
+                    }
+                    containerClassName="mb-0"
+                  >
+                    {Object.entries(STANDARDS_LABELS).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </Select>
+                  <Input
+                    label="Max groups"
+                    type="number"
+                    min={1}
+                    max={20}
+                    value={chart.maxGroups}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                      updateChart({
+                        maxGroups: Math.min(
+                          20,
+                          Math.max(1, Number(event.target.value) || 1)
+                        ),
+                      })
+                    }
+                    containerClassName="mb-0"
+                  />
+                  <Input
+                    label="Reference value"
+                    type="number"
+                    value={chart.referenceValue ?? ''}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                      const value = Number(event.target.value);
+                      updateChart({
+                        referenceValue:
+                          event.target.value === '' || !Number.isFinite(value)
+                            ? undefined
+                            : value,
+                        showReferenceLines:
+                          chart.showReferenceLines || event.target.value !== '',
+                      });
+                    }}
+                    containerClassName="mb-0"
+                  />
+                  <Input
+                    label="Reference label"
+                    value={chart.referenceLabel || ''}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                      updateChart({
+                        referenceLabel: event.target.value || undefined,
+                      })
+                    }
+                    containerClassName="mb-0"
+                  />
+                  <label className="mb-0 flex flex-col gap-1.5 text-sm">
+                    <span className="font-medium text-foreground">
+                      Reference color
+                    </span>
+                    <input
+                      type="color"
+                      value={chart.referenceColor || '#DC2626'}
+                      onChange={event =>
+                        updateChart({ referenceColor: event.target.value })
+                      }
+                      className="h-10 w-full cursor-pointer rounded-md border border-border bg-background p-1"
+                    />
+                  </label>
+                </div>
+
+                <div className="mt-3 flex flex-wrap items-center gap-4">
+                  <label className="flex items-center gap-2 text-sm text-foreground">
+                    <Checkbox
+                      checked={chart.showGrid}
+                      onCheckedChange={checked =>
+                        updateChart({ showGrid: checked })
+                      }
+                    />
+                    Grid
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-foreground">
+                    <Checkbox
+                      checked={chart.showLegend}
+                      onCheckedChange={checked =>
+                        updateChart({ showLegend: checked })
+                      }
+                    />
+                    Legend
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-foreground">
+                    <Checkbox
+                      checked={chart.showXAxisLabel !== false}
+                      onCheckedChange={checked =>
+                        updateChart({ showXAxisLabel: checked })
+                      }
+                    />
+                    X-axis label
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-foreground">
+                    <Checkbox
+                      checked={chart.showYAxisLabel !== false}
+                      onCheckedChange={checked =>
+                        updateChart({ showYAxisLabel: checked })
+                      }
+                    />
+                    Y-axis label
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-foreground">
+                    <Checkbox
+                      checked={chart.showReferenceLines}
+                      onCheckedChange={checked =>
+                        updateChart({ showReferenceLines: checked })
+                      }
+                    />
+                    Reference lines
+                  </label>
+                </div>
+              </>
+            )}
 
             <div className="mt-3 rounded-md border border-border bg-card p-3">
               <div className="mb-2 text-xs font-medium uppercase text-muted-foreground">
