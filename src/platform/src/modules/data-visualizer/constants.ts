@@ -9,7 +9,8 @@ export const MAX_VISUALIZER_ROWS = 50000;
 export const MAX_CHART_RENDER_ROWS = 5000;
 export const UPLOAD_CANCEL_WARN_MS = 8000;
 // Set this to the published MP4 walkthrough URL when the tutorial is ready.
-export const DATA_VISUALIZER_TUTORIAL_VIDEO_URL = '';
+export const DATA_VISUALIZER_TUTORIAL_VIDEO_URL =
+  'https://res.cloudinary.com/dbibjvyhm/video/upload/v1780516435/Analytics/videos/Recording_2026-06-03_224332_2_xw5qxd.mp4';
 
 export const CHART_TYPE_LABELS: Record<VisualizerChartType, string> = {
   line: 'Line',
