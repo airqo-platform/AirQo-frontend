@@ -450,7 +450,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
           if (selectedCohortId && data.created_device?._id) {
             executeAssignment([data.created_device._id], selectedCohortId, () => {
               onSuccess?.({
-                deviceId: data.created_device.name || '',
+                deviceId: data.created_device._id || '',
                 deviceName: variables.long_name.trim(),
                 cohortId: selectedCohortId,
                 isCohortImport: true,
@@ -458,7 +458,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
             });
           } else {
             onSuccess?.({
-              deviceId: data.created_device.name || '',
+              deviceId: data.created_device._id || '',
               deviceName: variables.long_name.trim(),
               cohortId: selectedCohortId,
               isCohortImport: false,
