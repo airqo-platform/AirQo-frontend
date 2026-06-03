@@ -1,6 +1,8 @@
 import { stripTrailingSlash } from "@/lib/utils";
 
-const isProduction = process.env.NEXT_PUBLIC_ENV === "production";
+const isProduction =
+  process.env.NEXT_PUBLIC_ENV === "production" ||
+  process.env.NODE_ENV === "production";
 const DEFAULT_ANALYTICS_BASE_URL = isProduction 
   ? "https://analytics.airqo.net" 
   : "https://staging-analytics.airqo.net";
