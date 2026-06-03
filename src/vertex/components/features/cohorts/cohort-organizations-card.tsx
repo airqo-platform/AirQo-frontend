@@ -150,7 +150,7 @@ export function CohortOrganizationsCard({
                         variant="outlined"
                         onClick={() => handleUnassignClick(org)}
                         disabled={!canUnassign}
-                        className="text-xs px-2 py-1 text-red-600 border-red-200 hover:bg-red-50 dark:hover:bg-red-950/30 dark:border-red-900"
+                        className="text-xs px-2 py-1 text-red-600 border-red-200 hover:bg-red-500 dark:hover:bg-red-950 dark:border-red-900"
                       >
                         Unassign
                       </ReusableButton>
