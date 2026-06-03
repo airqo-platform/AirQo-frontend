@@ -8,12 +8,14 @@ export interface ImportDeviceFormData {
   writeKey: string;
   readKey: string;
   api_code: string;
+  latitude?: string;
+  longitude?: string;
   authRequired: boolean;
   tags: string[];
 }
 
 export interface ExpectedField {
-  key: string;
+  key: keyof ImportDeviceFormData;
   label: string;
   required: boolean;
 }
