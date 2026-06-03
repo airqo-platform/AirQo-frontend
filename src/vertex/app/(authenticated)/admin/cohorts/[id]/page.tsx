@@ -69,7 +69,7 @@ export default function CohortDetailsPage() {
 
   const assignedOrganizations = useMemo(() => {
     if (!cohort?.groups || !allGroups) return [];
-    return allGroups.filter((group: any) => cohort.groups.includes(group._id));
+    return allGroups.filter((group: { _id: string }) => cohort.groups.includes(group._id));
   }, [cohort?.groups, allGroups]);
 
   const devices = useMemo(() => cohort?.devices || [], [cohort]);

@@ -162,7 +162,7 @@ export function AssignCohortDevicesDialog({
       setDeviceSearch("");
       setDebouncedDeviceSearch("");
     }
-  }, [open, form, cohortId]);
+  }, [open, form, cohortId, selectedDevices]);
 
   const handleCreateCohortSuccess = () => {
     setCreateCohortModalOpen(false);

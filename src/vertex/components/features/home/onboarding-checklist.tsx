@@ -27,6 +27,7 @@ type OnboardingChecklistProps = {
   onDismiss: () => void;
   onMarkAsDone?: () => void;
   organizationName?: string;
+  isReadOnly?: boolean;
 };
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -64,6 +65,7 @@ type StepRowProps = {
   step: ChecklistStep;
   isComplete: boolean;
   isLocked: boolean;
+  isReadOnly?: boolean;
   onAction: () => void;
 };
 
@@ -71,6 +73,7 @@ const StepRow: React.FC<StepRowProps> = ({
   step,
   isComplete,
   isLocked,
+  isReadOnly,
   onAction,
 }) => {
   // Active = current actionable step (not done, not locked)
@@ -153,17 +156,16 @@ const StepRow: React.FC<StepRowProps> = ({
       {isActive && (
         <button
           onClick={onAction}
+          disabled={isReadOnly}
           className={cn(
-            "shrink-0 flex items-center gap-1.5 text-sm font-medium mt-0.5",
-            "text-blue-600 dark:text-blue-400",
-            "hover:text-blue-700 dark:hover:text-blue-300",
+            "shrink-0 flex items-center gap-1.5 text-sm font-medium mt-0.5 rounded",
+            isReadOnly ? "text-gray-400 dark:text-gray-600 cursor-not-allowed" : "text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
             "transition-colors duration-150",
-            "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded",
           )}
           aria-label={`${step.cta} — ${step.title}`}
         >
           {step.cta}
-          <ArrowRight className="h-3.5 w-3.5" />
+          {!isReadOnly && <ArrowRight className="h-3.5 w-3.5" />}
         </button>
       )}
     </div>
@@ -210,6 +212,7 @@ export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
   onDismiss,
   onMarkAsDone,
   organizationName,
+  isReadOnly,
 }) => {
 
   const [showingSuccess, setShowingSuccess] = React.useState(false);
@@ -267,6 +270,12 @@ export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
         </div>
       </div>
 
+      {isReadOnly && !allComplete && !showingSuccess && (
+        <div className="mx-4 mb-2 p-3 text-sm text-amber-800 bg-amber-50 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800 rounded-md">
+          <strong>View-Only Mode:</strong> You need Admin permissions to complete these steps. Please contact your workspace administrator to finish setup.
+        </div>
+      )}
+
       {/* ── Steps — H6: Full journey visible at once, recognition over recall ── */}
       {!showingSuccess && (
         <div
@@ -279,6 +288,7 @@ export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
               step={step}
               isComplete={completedSteps.includes(step.id)}
               isLocked={isStepLocked(index)}
+              isReadOnly={isReadOnly}
               onAction={stepActions[step.id]}
             />
           ))}

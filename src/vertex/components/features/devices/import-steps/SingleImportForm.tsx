@@ -6,6 +6,7 @@ import { MultiSelectCombobox } from "@/components/ui/multi-select";
 import { Label } from "@/components/ui/label";
 import { DEVICE_CATEGORIES, DEFAULT_DEVICE_TAGS } from "@/core/constants/devices";
 import type { ImportDeviceFormData } from "./types";
+import type { Network } from "@/core/apis/networks";
 
 interface SingleImportFormProps {
   formData: ImportDeviceFormData;
@@ -13,7 +14,7 @@ interface SingleImportFormProps {
   handleInputChange: (field: string, value: string | boolean | string[]) => void;
   showMore: boolean;
   setShowMore: (show: boolean) => void;
-  networks: any[];
+  networks: Network[];
   isLoadingNetworks: boolean;
   isAdminPage: boolean;
   setIsRequestDialogOpen: (open: boolean) => void;

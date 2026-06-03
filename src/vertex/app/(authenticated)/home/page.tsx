@@ -221,7 +221,7 @@ const WelcomePage = () => {
         });
       } else {
         if (deviceInfo?.deviceId) {
-          setNewlyClaimedDevice([{ _id: deviceInfo.deviceId, name: deviceInfo.deviceName, long_name: deviceInfo.deviceName }]);
+          setNewlyClaimedDevice([{ _id: deviceInfo.deviceId, name: deviceInfo.deviceName || "", long_name: deviceInfo.deviceName || "" }]);
         }
         updateChecklist({
           completedSteps: Array.from(
@@ -284,8 +284,11 @@ const WelcomePage = () => {
         : (groupCohortIds ?? []).length > 0;
 
     const autoSteps: string[] = [];
-    if (hasDevices) autoSteps.push("add-device");
-    if (hasCohorts) autoSteps.push("assign-cohort");
+    if (hasDevices) {
+      autoSteps.push("add-device", "assign-cohort", "set-visibility");
+    } else if (hasCohorts) {
+      autoSteps.push("assign-cohort");
+    }
 
     if (autoSteps.length === 0) return;
 
@@ -309,38 +312,6 @@ const WelcomePage = () => {
           {error || "Failed to load dashboard context."}
         </span>
       </div>
-    );
-  }
-
-  const isLoading =
-    (userScope === "personal" && isLoadingMyDevices) ||
-    (userScope === "organisation" && isLoadingGroupDevices) ||
-    isLoadingUserContext;
-
-  if (isLoading) {
-    return (
-      <>
-        <div>
-          <div className="mb-8 relative overflow-hidden md:px-16 md:py-10 rounded-lg mx-auto bg-white dark:bg-gray-800 border p-8">
-            <div className="space-y-3">
-              <Skeleton className="h-10 w-3/4" />
-              <Skeleton className="h-6 w-1/2" />
-            </div>
-          </div>
-          <div className="mb-10">
-            <StatsSkeleton />
-          </div>
-          <div className="mb-10">
-            <Skeleton className="h-7 w-32 mb-4" />
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-5">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-12 w-full" />
-              ))}
-            </div>
-          </div>
-        </div>
-        {sharedModals}
-      </>
     );
   }
 
@@ -368,7 +339,7 @@ const WelcomePage = () => {
     }
   })();
 
-  const sharedModals = (
+  const renderSharedModals = () => (
     <>
       {/* Always rendered — controlled by open prop so sibling positions stay stable */}
       <AssignCohortDevicesDialog
@@ -441,6 +412,40 @@ const WelcomePage = () => {
     </>
   );
 
+  const isLoading =
+    (userScope === "personal" && isLoadingMyDevices) ||
+    (userScope === "organisation" && isLoadingGroupDevices) ||
+    isLoadingUserContext;
+
+  if (isLoading) {
+    return (
+      <>
+        <div>
+          <div className="mb-8 relative overflow-hidden md:px-16 md:py-10 rounded-lg mx-auto bg-white dark:bg-gray-800 border p-8">
+            <div className="space-y-3">
+              <Skeleton className="h-10 w-3/4" />
+              <Skeleton className="h-6 w-1/2" />
+            </div>
+          </div>
+          <div className="mb-10">
+            <StatsSkeleton />
+          </div>
+          <div className="mb-10">
+            <Skeleton className="h-7 w-32 mb-4" />
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-5">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
+            </div>
+          </div>
+        </div>
+        {renderSharedModals()}
+      </>
+    );
+  }
+
+
+
   const renderMainContent = () => {
     if (hasNoDevices) {
       return (
@@ -455,6 +460,7 @@ const WelcomePage = () => {
               onGoToVisibility={handleGoToVisibility}
               onMarkAsDone={() => {}}
               organizationName={formatTitle(activeGroup?.grp_title || "")}
+              isReadOnly={!canClaimDevice}
             />
           )}
         </div>
@@ -474,6 +480,7 @@ const WelcomePage = () => {
             onGoToVisibility={handleGoToVisibility}
             onMarkAsDone={() => {}}
             organizationName={formatTitle(activeGroup?.grp_title || "")}
+            isReadOnly={!canClaimDevice}
           />
         )}
 
@@ -574,7 +581,7 @@ const WelcomePage = () => {
   return (
     <>
       {renderMainContent()}
-      {sharedModals}
+      {renderSharedModals()}
     </>
   );
 };

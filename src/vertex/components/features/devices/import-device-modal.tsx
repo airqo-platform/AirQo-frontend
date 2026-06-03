@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { useImportDevice, useBulkImportDevices } from "@/core/hooks/useDevices";
@@ -122,7 +122,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
   const pathname = usePathname();
   const isAdminPage = pathname?.startsWith('/admin/');
 
-  const resetState = () => {
+  const resetState = useCallback(() => {
     setCurrentStep(0);
     setImportFlow(null);
     setIsSuccess(false);
@@ -149,7 +149,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
     setSelectedCohortId("");
     setSelectedCohortName("");
     setErrors({});
-  };
+  }, [prefilledNetwork]);
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
@@ -162,7 +162,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
     return () => {
       if (timer) clearTimeout(timer);
     };
-  }, [open]);
+  }, [open, resetState]);
 
   const handleInputChange = (field: string, value: string | boolean | string[]) => {
     setFormData((prev: ImportDeviceFormData) => ({
@@ -180,7 +180,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       value.toLowerCase().trim().replace(/[^a-z0-9]/g, "");
     const normalizedHeaders = headers.map(normalizeHeader);
     
-    EXPECTED_FIELDS.forEach((field: any) => {
+    EXPECTED_FIELDS.forEach((field: { key: string; label: string; required?: boolean }) => {
       let matchIdx = -1;
       const key = normalizeHeader(field.key);
       
@@ -294,9 +294,9 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
   };
 
   const transformBulkData = () => {
-    const missingRequired = EXPECTED_FIELDS.filter((f: any) => f.required && !fieldMapping[f.key]);
+    const missingRequired = EXPECTED_FIELDS.filter((f: { key: string; label: string; required?: boolean }) => f.required && !fieldMapping[f.key]);
     if (missingRequired.length > 0) {
-      showBanner({ severity: 'error', message: `Please map the required fields: ${missingRequired.map((f: any) => f.label).join(', ')}`, scoped: true });
+      showBanner({ severity: 'error', message: `Please map the required fields: ${missingRequired.map((f: { key: string; label: string; required?: boolean }) => f.label).join(', ')}`, scoped: true });
       return false;
     }
 
@@ -312,7 +312,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
     const invalidAuthRows: number[] = [];
     const transformedDevices = parsedData.map((row, rowIndex) => {
       const device: Record<string, string | string[] | number | boolean | undefined> = {};
-      EXPECTED_FIELDS.forEach((field: any) => {
+      EXPECTED_FIELDS.forEach((field: { key: string; label: string; required?: boolean }) => {
         const mappedHeader = fieldMapping[field.key];
         if (mappedHeader && row[mappedHeader] !== undefined && row[mappedHeader] !== "") {
           if (field.key === 'authRequired') {
@@ -527,7 +527,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
           }
 
           if (selectedCohortId && data.results) {
-            const successfulDeviceIds = data.results.filter((r: any) => r.success && r.device_id).map((r: any) => r.device_id);
+            const successfulDeviceIds = data.results.filter(r => r.success && r.created_device?._id).map(r => r.created_device!._id);
             if (successfulDeviceIds.length > 0) {
               executeAssignment(successfulDeviceIds, selectedCohortId, notifyHomeImportSuccess);
             } else if (data.imported > 0) {

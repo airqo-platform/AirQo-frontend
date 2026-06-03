@@ -24,7 +24,7 @@ export const BulkResultsStep: React.FC<BulkResultsStepProps> = ({ bulkResults })
             </tr>
           </thead>
           <tbody className="divide-y">
-            {bulkResults.results?.map((result: any, idx: number) => (
+            {bulkResults.results?.map((result: { success: boolean, long_name?: string, serial_number?: string, error?: string }, idx: number) => (
               <tr key={idx} className={!result.success ? "bg-red-50/50" : ""}>
                 <td className="px-4 py-2">{result.long_name || '-'}</td>
                 <td className="px-4 py-2 font-mono text-xs">{result.serial_number || '-'}</td>

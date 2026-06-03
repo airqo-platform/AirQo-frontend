@@ -6,6 +6,7 @@ import ReusableButton from "@/components/shared/button/ReusableButton";
 import { MultiSelectCombobox } from "@/components/ui/multi-select";
 import { DEVICE_CATEGORIES, DEFAULT_DEVICE_TAGS } from "@/core/constants/devices";
 import type { ImportDeviceFormData } from "./types";
+import type { Network } from "@/core/apis/networks";
 
 interface BulkImportFormProps {
   bulkFile: File | null;
@@ -13,7 +14,7 @@ interface BulkImportFormProps {
   errors: Record<string, string>;
   formData: ImportDeviceFormData;
   handleInputChange: (field: string, value: string | boolean | string[]) => void;
-  networks: any[];
+  networks: Network[];
   isLoadingNetworks: boolean;
   isAdminPage: boolean;
   setIsRequestDialogOpen: (open: boolean) => void;

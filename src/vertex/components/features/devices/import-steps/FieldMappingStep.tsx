@@ -37,7 +37,7 @@ export const FieldMappingStep: React.FC<FieldMappingStepProps> = ({
             </tr>
           </thead>
           <tbody className="divide-y">
-            {EXPECTED_FIELDS.map((field: any) => (
+            {EXPECTED_FIELDS.map((field: { key: string, label: string, required?: boolean }) => (
               <tr key={field.key} className={field.required && !fieldMapping[field.key] ? "bg-red-50/30" : ""}>
                 <td className="px-4 py-3 align-middle">
                   <div className="flex items-center">
