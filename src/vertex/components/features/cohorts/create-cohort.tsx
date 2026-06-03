@@ -468,7 +468,7 @@ export function CreateCohortDialog({
                 )}
               />
             )}
-            {!hideDeviceSelection && (
+            {(!hideDeviceSelection || !preselectedNetwork) && (
               <FormField
                 control={form.control}
                 name="network"
