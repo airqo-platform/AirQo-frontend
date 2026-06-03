@@ -39,11 +39,11 @@ export const CohortSelectionStep: React.FC<CohortSelectionStepProps> = ({
 
   const { data: personalCohortIds, isFetching: isFetchingPersonalCohortIds } = usePersonalUserCohorts(
     userDetails?._id,
-    { enabled: open && !isExternalOrg && !!userDetails?._id }
+    { enabled: open && !isAdminPage && !isExternalOrg && !!userDetails?._id }
   );
 
-  const { cohorts: allCohorts, isFetching: isFetchingAllCohorts } = useCohorts({
-    enabled: open && !isExternalOrg && !!personalCohortIds && personalCohortIds.length > 0,
+  const { cohorts: personalCohorts, isFetching: isFetchingPersonalCohorts } = useCohorts({
+    enabled: open && !isAdminPage && !isExternalOrg && !!personalCohortIds && personalCohortIds.length > 0,
     search: debouncedCohortSearch,
     cohort_id: personalCohortIds,
     limit: 100
@@ -51,25 +51,33 @@ export const CohortSelectionStep: React.FC<CohortSelectionStepProps> = ({
 
   const { data: groupCohortIds, isFetching: isFetchingCohortIds } = useGroupCohorts(
     activeGroup?._id,
-    { enabled: open && isExternalOrg && !!activeGroup?._id }
+    { enabled: open && !isAdminPage && isExternalOrg && !!activeGroup?._id }
   );
 
-  const { cohorts: searchedCohorts, isFetching: isFetchingGroupCohorts } = useCohorts({
-    enabled: open && isExternalOrg && !!activeGroup?._id,
+  const { cohorts: groupCohorts, isFetching: isFetchingGroupCohorts } = useCohorts({
+    enabled: open && !isAdminPage && isExternalOrg && !!activeGroup?._id && !!groupCohortIds && groupCohortIds.length > 0,
+    search: debouncedCohortSearch,
+    cohort_id: groupCohortIds,
+    limit: 100
+  });
+
+  const { cohorts: allCohorts, isFetching: isFetchingAllCohorts } = useCohorts({
+    enabled: open && isAdminPage,
     search: debouncedCohortSearch,
     limit: 100
   });
 
-  const filteredGroupCohorts = useMemo(() => {
-    if (!isExternalOrg || !groupCohortIds || groupCohortIds.length === 0) {
-      return searchedCohorts;
-    }
-    const cohortIdSet = new Set(groupCohortIds);
-    return searchedCohorts.filter(cohort => cohortIdSet.has(cohort._id));
-  }, [isExternalOrg, searchedCohorts, groupCohortIds]);
+  const cohorts = isAdminPage 
+    ? allCohorts 
+    : isExternalOrg 
+      ? groupCohorts 
+      : personalCohorts;
 
-  const cohorts = isExternalOrg ? filteredGroupCohorts : allCohorts;
-  const isFetchingCohorts = isExternalOrg ? (isFetchingGroupCohorts || isFetchingCohortIds) : (isFetchingAllCohorts || isFetchingPersonalCohortIds);
+  const isFetchingCohorts = isAdminPage
+    ? isFetchingAllCohorts
+    : isExternalOrg 
+      ? (isFetchingGroupCohorts || isFetchingCohortIds) 
+      : (isFetchingPersonalCohorts || isFetchingPersonalCohortIds);
 
   const handleCreateCohortSuccess = (cohortData?: { cohort: { _id: string; name: string } }) => {
     setCreateCohortModalOpen(false);
