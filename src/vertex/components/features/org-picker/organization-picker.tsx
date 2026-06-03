@@ -47,9 +47,9 @@ const OrganizationPicker: React.FC = () => {
   const validUserGroups = useMemo(() => {
     if (!Array.isArray(userGroups)) return [];
 
-    return userGroups.filter(
-      (group): group is Group => !!(group && group._id && group.grp_title)
-    );
+    return userGroups
+      .filter((group): group is Group => !!(group && group._id && group.grp_title))
+      .sort((a, b) => a.grp_title.localeCompare(b.grp_title));
   }, [userGroups]);
 
   const handleOrganizationChange = async (group: Group) => {
