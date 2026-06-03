@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Plus, Upload } from "lucide-react";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
@@ -8,11 +7,17 @@ import { PERMISSIONS } from "@/core/permissions/constants";
 import { usePermission } from "@/core/hooks/usePermissions";
 import ImportDeviceModal from "@/components/features/devices/import-device-modal";
 import DevicesTable from "@/components/features/devices/device-list-table";
+import dynamic from "next/dynamic";
+
+const ClaimDeviceModal = dynamic(
+  () => import("@/components/features/claim/claim-device-modal"),
+  { ssr: false }
+);
 import ReusableButton from "@/components/shared/button/ReusableButton";
 
 export default function DevicesPage() {
-  const router = useRouter();
   const [isImportDeviceOpen, setImportDeviceOpen] = useState(false);
+  const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
 
   // Permission checks
   const canUpdateDevice = usePermission(PERMISSIONS.DEVICE.UPDATE);
@@ -31,7 +36,7 @@ export default function DevicesPage() {
           <div className="flex gap-2">
             <ReusableButton
               disabled={!canUpdateDevice}
-              onClick={() => router.push("/devices/claim")}
+              onClick={() => setIsClaimModalOpen(true)}
               Icon={Plus}
               permission={PERMISSIONS.DEVICE.CLAIM}
             >
@@ -54,6 +59,10 @@ export default function DevicesPage() {
         <ImportDeviceModal
           open={isImportDeviceOpen}
           onOpenChange={setImportDeviceOpen}
+        />
+        <ClaimDeviceModal
+          isOpen={isClaimModalOpen}
+          onClose={() => setIsClaimModalOpen(false)}
         />
 
         <DevicesTable multiSelect={true} />

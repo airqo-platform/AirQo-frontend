@@ -31,7 +31,13 @@ import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import LocationAutocomplete from "@/components/features/location-autocomplete/LocationAutocomplete";
 import { useNetworks } from "@/core/hooks/useNetworks";
+import dynamic from "next/dynamic";
+
 const MiniMap = React.lazy(() => import("../mini-map/mini-map"));
+const ClaimDeviceModal = dynamic(
+  () => import("@/components/features/claim/claim-device-modal"),
+  { ssr: false }
+);
 
 interface MountTypeOption {
   value: string;
@@ -436,6 +442,7 @@ const DeployDeviceComponent = ({
   const [currentStep, setCurrentStep] = React.useState<number>(0);
   const [inputMode, setInputMode] = React.useState<'siteName' | 'coordinates'>('siteName');
   const [siteSource, setSiteSource] = React.useState<'new' | 'previous'>('new');
+  const [isClaimModalOpen, setIsClaimModalOpen] = React.useState(false);
 
   const [deviceData, setDeviceData] = React.useState<DeviceData>({
     deviceName: prefilledDevice?.name ?? "",
@@ -587,11 +594,7 @@ const DeployDeviceComponent = ({
   };
 
   const handleClaimDevice = () => {
-    // In modal context, we might want to handle this differently
-    if (onClose) {
-      onClose();
-    }
-    window.location.href = '/devices/claim';
+    setIsClaimModalOpen(true);
   };
 
   const handleCheckboxChange = (checked: boolean): void => {
@@ -845,6 +848,11 @@ const DeployDeviceComponent = ({
           </StepCard>
         ))}
       </div>
+
+      <ClaimDeviceModal
+        isOpen={isClaimModalOpen}
+        onClose={() => setIsClaimModalOpen(false)}
+      />
     </div>
   );
 };

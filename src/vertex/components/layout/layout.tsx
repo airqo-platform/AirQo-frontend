@@ -63,7 +63,6 @@ export default function Layout({ children }: LayoutProps) {
     const routesToPrefetch = [
       '/home',
       '/devices/my-devices',
-      '/devices/claim',
       '/cohorts',
       '/admin/networks',
       '/admin/networks/requests',
