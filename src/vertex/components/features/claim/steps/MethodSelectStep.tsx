@@ -8,6 +8,19 @@ interface MethodSelectStepProps {
 
 const ALL_METHODS = [
   {
+    step: 'cohort-import' as FlowStep,
+    icon: (
+      <Database className="w-5 h-5 text-violet-600 dark:text-violet-400" />
+    ),
+    iconBg:
+      'bg-violet-100 dark:bg-violet-900/40 group-hover:bg-violet-200 dark:group-hover:bg-violet-800',
+    border:
+      'hover:border-violet-500 dark:hover:border-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20',
+    title: 'Import from Cohort',
+    desc: 'Enter a Cohort ID to prefill devices.',
+    modes: ['guided', 'fast'] as ClaimFlowMode[],
+  },
+  {
     step: 'qr-scan' as FlowStep,
     icon: <Smartphone className="w-5 h-5 text-blue-600 dark:text-blue-400" />,
     iconBg:
@@ -29,19 +42,6 @@ const ALL_METHODS = [
       'hover:border-green-500 dark:hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-900/20',
     title: 'Add Multiple Devices',
     desc: 'Upload a CSV file or enter a list of IDs for bulk setup.',
-    modes: ['guided', 'fast'] as ClaimFlowMode[],
-  },
-  {
-    step: 'cohort-import' as FlowStep,
-    icon: (
-      <Database className="w-5 h-5 text-violet-600 dark:text-violet-400" />
-    ),
-    iconBg:
-      'bg-violet-100 dark:bg-violet-900/40 group-hover:bg-violet-200 dark:group-hover:bg-violet-800',
-    border:
-      'hover:border-violet-500 dark:hover:border-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20',
-    title: 'Import from Cohort',
-    desc: 'Enter a Cohort ID to prefill devices.',
     modes: ['guided', 'fast'] as ClaimFlowMode[],
   },
 ];
