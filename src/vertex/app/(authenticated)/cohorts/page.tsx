@@ -84,8 +84,11 @@ export default function CohortsPage() {
     const pageCount = meta?.totalPages ?? 0;
 
     const tableLoading = isResolvingIds || (hasIdsToFetch && isFetchingCohorts);
-    const showEmptyState = !tableLoading && (!hasIdsToFetch || (cohorts && cohorts.length === 0));
     const displayError = (!hasIdsToFetch && !tableLoading) ? null : error;
+    const showEmptyState =
+        !tableLoading &&
+        !displayError &&
+        (!hasIdsToFetch || (cohorts && cohorts.length === 0));
 
     const rows: CohortRow[] = useMemo(() => (cohorts || []).map((c: Cohort) => ({
         ...c,
