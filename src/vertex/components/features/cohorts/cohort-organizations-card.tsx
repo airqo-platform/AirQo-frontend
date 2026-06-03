@@ -7,7 +7,7 @@ import { useGroupsByCohort } from "@/core/hooks/useGroups";
 import { UnassignCohortFromGroupDialog } from "./unassign-cohort-from-group";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
-import ReusableTable, { TableColumn } from "@/components/shared/table/ReusableTable";
+import ReusableTable, { TableColumn, TableItem } from "@/components/shared/table/ReusableTable";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { AqCopy01 } from "@airqo/icons-react";
 
@@ -184,8 +184,8 @@ export function CohortOrganizationsCard({
       >
         <div className="py-4">
           <ReusableTable
-            data={tableData}
-            columns={tableColumns}
+            data={tableData as unknown as TableItem[]}
+            columns={tableColumns as unknown as TableColumn<TableItem>[]}
             searchable={true}
             searchableColumns={["grp_title", "grp_country", "_id"]}
             filterable={false}
