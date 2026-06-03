@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { format, parseISO, isValid } from "date-fns";
 import { AqCopy01, AqChevronDown, AqChevronUp, AqMonitor } from "@airqo/icons-react";
 import { DeviceActivity } from "@/core/apis/devices";
-import ReusableToast from "@/components/shared/toast/ReusableToast";
 import ReusableButton from "@/components/shared/button/ReusableButton";
+import { useBanner } from "@/context/banner-context";
 
 interface DeviceActivityItemProps {
     activity: DeviceActivity;
@@ -28,6 +28,7 @@ const DeviceActivityItem: React.FC<DeviceActivityItemProps> = ({
         (typeof activity.description === "string" && /recalled/i.test(activity.description));
 
     const [isPreviousSiteOpen, setIsPreviousSiteOpen] = useState(false);
+    const { showBanner } = useBanner();
 
     return (
         <div className="relative pl-14 pb-2">
@@ -110,9 +111,9 @@ const DeviceActivityItem: React.FC<DeviceActivityItemProps> = ({
                                             onClick={async () => {
                                                 try {
                                                     await navigator.clipboard.writeText(previousSiteId);
-                                                    ReusableToast({ message: "Copied", type: "SUCCESS" });
+                                                    showBanner({ severity: 'success', message: 'Copied', scoped: false });
                                                 } catch {
-                                                    ReusableToast({ message: "Failed to copy", type: "ERROR" });
+                                                    showBanner({ severity: 'error', message: 'Failed to copy', scoped: false });
                                                 }
                                             }}
                                             className="p-1"
