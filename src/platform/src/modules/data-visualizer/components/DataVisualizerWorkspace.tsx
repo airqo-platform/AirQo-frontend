@@ -6,6 +6,7 @@ import {
   AqBarChartSquareUp,
   AqFileCheck03,
   AqPlus,
+  AqPlayCircle,
   AqRefreshCcw01,
   AqTable,
   AqTrash01,
@@ -30,6 +31,7 @@ import { cn } from '@/shared/lib/utils';
 import {
   CHART_TYPE_HELP,
   CHART_TYPE_LABELS,
+  DATA_VISUALIZER_TUTORIAL_VIDEO_URL,
   MAX_UPLOAD_FILE_SIZE_BYTES,
   SOURCE_COLUMN_KEYS,
   UPLOAD_CANCEL_WARN_MS,
@@ -64,11 +66,13 @@ import {
   getDatasetRowsForChart,
   getDatasetSummary,
 } from '../utils/workspaceData';
+import { normalizeChartConfigForDatasets } from '../utils/chartConfig';
 import {
   deleteWorkspaceDraft,
   loadWorkspaceDraft,
   saveWorkspaceDraft,
 } from '../utils/workspaceStorage';
+import { DataVisualizerTutorialDialog } from './DataVisualizerTutorialDialog';
 import { VisualizerChartCard } from './VisualizerChartCard';
 import { DATE_FORMATS, formatWithPattern } from '@/shared/utils';
 import { trackEvent } from '@/shared/utils/analytics';
@@ -289,6 +293,8 @@ export const DataVisualizerWorkspace: React.FC<
   const [lastSavedAt, setLastSavedAt] = React.useState<string | null>(null);
   const [appliedDateRange, setAppliedDateRange] =
     React.useState<DateRange | null>(null);
+  const [isTutorialDialogOpen, setIsTutorialDialogOpen] =
+    React.useState(false);
 
   // Cycle through friendly status messages while parsing
   React.useEffect(() => {
@@ -353,6 +359,17 @@ export const DataVisualizerWorkspace: React.FC<
 
     return { sourceFiles, datasetFileMap };
   }, []);
+
+  const normalizeChartsForDatasets = React.useCallback(
+    (
+      currentCharts: VisualizerChartConfig[],
+      nextDatasets: UploadedDataset[]
+    ) =>
+      currentCharts.map(chart =>
+        normalizeChartConfigForDatasets(chart, nextDatasets)
+      ),
+    []
+  );
 
   const restoreDraftFileSources = React.useCallback(
     (workspaceDraft: VisualizerWorkspaceDraft) => {
@@ -490,12 +507,17 @@ export const DataVisualizerWorkspace: React.FC<
 
         setCharts(currentCharts => {
           if (currentCharts.length > 0) {
-            return currentCharts.map(chart => ({
-              ...chart,
-              datasetIds: Array.from(
-                new Set([...chart.datasetIds, ...newDatasets.map(d => d.id)])
-              ),
-            }));
+            return currentCharts.map(chart =>
+              normalizeChartConfigForDatasets(
+                {
+                  ...chart,
+                  datasetIds: Array.from(
+                    new Set([...chart.datasetIds, ...newDatasets.map(d => d.id)])
+                  ),
+                },
+                nextDatasets
+              )
+            );
           }
 
           const initialCharts = buildInitialCharts(
@@ -648,7 +670,10 @@ export const DataVisualizerWorkspace: React.FC<
       return;
     }
 
-    const restoredCharts = draft.charts.map(normalizeChartConfig);
+    const restoredCharts = normalizeChartsForDatasets(
+      draft.charts.map(normalizeChartConfig),
+      draft.datasets
+    );
 
     setDatasets(draft.datasets);
     setCharts(restoredCharts);
@@ -681,12 +706,15 @@ export const DataVisualizerWorkspace: React.FC<
       return;
     }
 
-    const nextChart = createChartConfig(
-      type,
-      workspaceProfile,
-      allDatasetIds,
-      charts.length + 1,
-      workspaceCoordinateColumns
+    const nextChart = normalizeChartConfigForDatasets(
+      createChartConfig(
+        type,
+        workspaceProfile,
+        allDatasetIds,
+        charts.length + 1,
+        workspaceCoordinateColumns
+      ),
+      datasets
     );
     setCharts(current => [...current, nextChart]);
     setActiveChartId(nextChart.id);
@@ -705,7 +733,11 @@ export const DataVisualizerWorkspace: React.FC<
 
   const updateChart = (chartId: string, nextChart: VisualizerChartConfig) => {
     setCharts(current =>
-      current.map(chart => (chart.id === chartId ? nextChart : chart))
+      current.map(chart =>
+        chart.id === chartId
+          ? normalizeChartConfigForDatasets(nextChart, datasets)
+          : chart
+      )
     );
   };
 
@@ -742,20 +774,24 @@ export const DataVisualizerWorkspace: React.FC<
       return;
     }
 
+    const remainingDatasets = datasets.filter(dataset => dataset.id !== datasetId);
     const remainingDatasetIds = datasets
       .filter(dataset => dataset.id !== datasetId)
       .map(dataset => dataset.id);
 
     setDatasets(current => current.filter(dataset => dataset.id !== datasetId));
     setCharts(current =>
-      current.map(chart => {
-        const nextDatasetIds = chart.datasetIds.filter(id => id !== datasetId);
-        return {
-          ...chart,
-          datasetIds:
-            nextDatasetIds.length > 0 ? nextDatasetIds : remainingDatasetIds,
-        };
-      })
+      normalizeChartsForDatasets(
+        current.map(chart => {
+          const nextDatasetIds = chart.datasetIds.filter(id => id !== datasetId);
+          return {
+            ...chart,
+            datasetIds:
+              nextDatasetIds.length > 0 ? nextDatasetIds : remainingDatasetIds,
+          };
+        }),
+        remainingDatasets
+      )
     );
     sourceFilesRef.current.delete(datasetId);
     trackVisualizerEvent('air_quality_explorer_dataset_removed', {
@@ -786,9 +822,18 @@ export const DataVisualizerWorkspace: React.FC<
         label: `${file.name.replace(/\.[^.]+$/, '')} - ${sheetName}`,
       });
 
-      updateDataset(dataset.id, {
-        ...parsedDataset,
-        id: dataset.id,
+      setDatasets(current => {
+        const nextDatasets = current.map(currentDataset =>
+          currentDataset.id === dataset.id
+            ? { ...parsedDataset, id: dataset.id }
+            : currentDataset
+        );
+
+        setCharts(currentCharts =>
+          normalizeChartsForDatasets(currentCharts, nextDatasets)
+        );
+
+        return nextDatasets;
       });
       trackVisualizerEvent('air_quality_explorer_sheet_changed', {
         sheet_count: dataset.sheetOptions.length,
@@ -918,9 +963,20 @@ export const DataVisualizerWorkspace: React.FC<
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="text-2xl font-semibold text-foreground">{title}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-foreground">{title}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
+        </div>
+        <Button
+          size="sm"
+          variant="outlined"
+          Icon={AqPlayCircle}
+          onClick={() => setIsTutorialDialogOpen(true)}
+          showTextOnMobile
+        >
+          Watch tutorial
+        </Button>
       </div>
 
       <WarningBanner
@@ -1408,6 +1464,12 @@ export const DataVisualizerWorkspace: React.FC<
           </CardContent>
         </Card>
       )}
+
+      <DataVisualizerTutorialDialog
+        isOpen={isTutorialDialogOpen}
+        onClose={() => setIsTutorialDialogOpen(false)}
+        videoUrl={DATA_VISUALIZER_TUTORIAL_VIDEO_URL}
+      />
     </div>
   );
 };

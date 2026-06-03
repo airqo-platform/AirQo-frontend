@@ -122,7 +122,12 @@ export const profileDataset = (
   rows: UploadedDataRow[],
   options?: { includeDateRange?: boolean }
 ): DatasetProfile => {
-  const columns = Object.keys(rows[0] ?? {});
+  // Multiple uploaded datasets can contribute different schemas. Profile the
+  // union of columns so later files are not ignored just because they were not
+  // present on the first row we inspected.
+  const columns = Array.from(
+    new Set(rows.flatMap(row => Object.keys(row ?? {})))
+  );
   const profiles: ColumnProfile[] = columns.map(column => {
     const values = rows.map(row => getColumnValue(row, column));
     const nonEmptyValues = values.filter(value => {
