@@ -23,16 +23,22 @@ import {
 } from '@/core/hooks/useCohorts';
 import dynamic from 'next/dynamic';
 
-const BulkClaimResults = dynamic(() => import('./steps/BulkClaimResults').then(mod => mod.BulkClaimResults));
-const CohortImportStep = dynamic(() => import('./steps/CohortImportStep'));
-const ManualInputStep = dynamic(() => import('./steps/ManualInputStep'));
-const QRScanStep = dynamic(() => import('./steps/QRScanStep'));
-const SuccessStep = dynamic(() => import('./steps/SuccessStep'));
-const BulkConfirmationStep = dynamic(() => import('./steps/ConfirmationSteps').then(mod => mod.BulkConfirmationStep));
-const CohortConfirmStep = dynamic(() => import('./steps/ConfirmationSteps').then(mod => mod.CohortConfirmStep));
-const ConfirmationStep = dynamic(() => import('./steps/ConfirmationSteps').then(mod => mod.ConfirmationStep));
-const MethodSelectStep = dynamic(() => import('./steps/MethodSelectStep'));
-const BulkInputStep = dynamic(() => import('./steps/BulkInputStep'));
+const StepLoader = () => (
+  <div className="flex justify-center items-center py-12">
+    <div className="w-5 h-5 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+  </div>
+);
+
+const BulkClaimResults = dynamic(() => import('./steps/BulkClaimResults').then(mod => mod.BulkClaimResults), { loading: StepLoader });
+const CohortImportStep = dynamic(() => import('./steps/CohortImportStep'), { loading: StepLoader });
+const ManualInputStep = dynamic(() => import('./steps/ManualInputStep'), { loading: StepLoader });
+const QRScanStep = dynamic(() => import('./steps/QRScanStep'), { loading: StepLoader });
+const SuccessStep = dynamic(() => import('./steps/SuccessStep'), { loading: StepLoader });
+const BulkConfirmationStep = dynamic(() => import('./steps/ConfirmationSteps').then(mod => mod.BulkConfirmationStep), { loading: StepLoader });
+const CohortConfirmStep = dynamic(() => import('./steps/ConfirmationSteps').then(mod => mod.CohortConfirmStep), { loading: StepLoader });
+const ConfirmationStep = dynamic(() => import('./steps/ConfirmationSteps').then(mod => mod.ConfirmationStep), { loading: StepLoader });
+const MethodSelectStep = dynamic(() => import('./steps/MethodSelectStep'), { loading: StepLoader });
+const BulkInputStep = dynamic(() => import('./steps/BulkInputStep'), { loading: StepLoader });
 
 import { parseQRCode } from './utils';
 

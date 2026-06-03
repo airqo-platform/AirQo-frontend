@@ -23,15 +23,21 @@ import { EXPECTED_FIELDS } from "./import-steps/types";
 import type { ImportDeviceFormData } from "./import-steps/types";
 import dynamic from "next/dynamic";
 
-const SingleImportForm = dynamic(() => import("./import-steps/SingleImportForm").then(mod => mod.SingleImportForm));
-const BulkImportForm = dynamic(() => import("./import-steps/BulkImportForm").then(mod => mod.BulkImportForm));
-const FieldMappingStep = dynamic(() => import("./import-steps/FieldMappingStep").then(mod => mod.FieldMappingStep));
-const ImportPreviewStep = dynamic(() => import("./import-steps/ImportPreviewStep").then(mod => mod.ImportPreviewStep));
-const CohortSelectionStep = dynamic(() => import("./import-steps/CohortSelectionStep").then(mod => mod.CohortSelectionStep));
-const ConfirmationStep = dynamic(() => import("./import-steps/ConfirmationStep").then(mod => mod.ConfirmationStep));
-const BulkResultsStep = dynamic(() => import("./import-steps/BulkResultsStep").then(mod => mod.BulkResultsStep));
-const ImportSuccessStep = dynamic(() => import("./import-steps/ImportSuccessStep").then(mod => mod.ImportSuccessStep));
-const ImportMethodSelectStep = dynamic(() => import("./import-steps/ImportMethodSelectStep").then(mod => mod.ImportMethodSelectStep));
+const StepLoader = () => (
+  <div className="flex justify-center items-center py-12">
+    <div className="w-5 h-5 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+  </div>
+);
+
+const SingleImportForm = dynamic(() => import("./import-steps/SingleImportForm").then(mod => mod.SingleImportForm), { loading: StepLoader });
+const BulkImportForm = dynamic(() => import("./import-steps/BulkImportForm").then(mod => mod.BulkImportForm), { loading: StepLoader });
+const FieldMappingStep = dynamic(() => import("./import-steps/FieldMappingStep").then(mod => mod.FieldMappingStep), { loading: StepLoader });
+const ImportPreviewStep = dynamic(() => import("./import-steps/ImportPreviewStep").then(mod => mod.ImportPreviewStep), { loading: StepLoader });
+const CohortSelectionStep = dynamic(() => import("./import-steps/CohortSelectionStep").then(mod => mod.CohortSelectionStep), { loading: StepLoader });
+const ConfirmationStep = dynamic(() => import("./import-steps/ConfirmationStep").then(mod => mod.ConfirmationStep), { loading: StepLoader });
+const BulkResultsStep = dynamic(() => import("./import-steps/BulkResultsStep").then(mod => mod.BulkResultsStep), { loading: StepLoader });
+const ImportSuccessStep = dynamic(() => import("./import-steps/ImportSuccessStep").then(mod => mod.ImportSuccessStep), { loading: StepLoader });
+const ImportMethodSelectStep = dynamic(() => import("./import-steps/ImportMethodSelectStep").then(mod => mod.ImportMethodSelectStep), { loading: StepLoader });
 
 interface StepCardProps {
   title: string;
