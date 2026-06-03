@@ -143,6 +143,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       tags: [],
     });
     setBulkFile(null);
+    setBulkResults(null);
     setFileHeaders([]);
     setParsedData([]);
     setImportFlow(null);
