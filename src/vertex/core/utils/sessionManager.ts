@@ -18,7 +18,8 @@ export const clearSessionData = () => {
       key.startsWith('lastActiveModule') ||
       key.startsWith('lastActiveGroupId') ||
       key.startsWith('vertex_login_feedback') ||
-      key.startsWith('vertex_onboarding')
+      key.startsWith('vertex_onboarding') ||
+      key === 'vertex_cookies_accepted'
     ) {
       continue;
     }

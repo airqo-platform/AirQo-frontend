@@ -9,14 +9,14 @@ export function CookieInfoBanner() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const cookiesAccepted = localStorage.getItem('cookiesAccepted');
+    const cookiesAccepted = localStorage.getItem('vertex_cookies_accepted');
     if (!cookiesAccepted) {
       setIsVisible(true);
     }
   }, []);
 
   const handleDismiss = () => {
-    localStorage.setItem('cookiesAccepted', 'true');
+    localStorage.setItem('vertex_cookies_accepted', 'true');
     setIsVisible(false);
   };
 

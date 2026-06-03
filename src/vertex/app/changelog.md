@@ -44,14 +44,15 @@ Introduced comprehensive enhancements to personal device claiming workflows, onb
 </details>
 
 <details>
-<summary><strong>Session Management (1)</strong></summary>
+<summary><strong>Session Management & Onboarding (2)</strong></summary>
 
 - **Idle Session Timeout**: Increased the inactivity auto-logout threshold from 30 minutes to 6 hours (`INACTIVITY_LIMIT`) in the frontend `authProvider` to accommodate longer-running operations and reduce login friction during daily use.
+- **Cookie Banner Persistence**: Whitelisted the cookie consent flag (`vertex_cookies_accepted`) in the secure session manager so that the cookie banner preference survives user logouts, preventing it from repeatedly nagging users on the login screen.
 
 </details>
 
 <details>
-<summary><strong>Files Added & Modified (45)</strong></summary>
+<summary><strong>Files Added & Modified (47)</strong></summary>
 
 **Files Deleted:**
 - `src/vertex/app/(authenticated)/devices/claim/page.tsx` [DELETED]
@@ -84,6 +85,7 @@ Introduced comprehensive enhancements to personal device claiming workflows, onb
 **Files Modified:**
 - `src/vertex/app/(authenticated)/admin/cohorts/[id]/page.tsx` [MODIFIED]
 - `src/vertex/app/(authenticated)/home/page.tsx` [MODIFIED]
+- `src/vertex/components/features/auth/cookie-info-banner.tsx` [MODIFIED]
 - `src/vertex/components/features/claim/claim-device-modal.tsx` [MODIFIED]
 - `src/vertex/components/features/cohorts/assign-cohort-devices.tsx` [MODIFIED]
 - `src/vertex/components/features/cohorts/create-cohort.tsx` [MODIFIED]
@@ -102,6 +104,7 @@ Introduced comprehensive enhancements to personal device claiming workflows, onb
 - `src/vertex/core/hooks/useRecentlyVisited.ts` [MODIFIED]
 - `src/vertex/core/routes.ts` [MODIFIED]
 - `src/vertex/core/urls.tsx` [MODIFIED]
+- `src/vertex/core/utils/sessionManager.ts` [MODIFIED]
 
 </details>
 
