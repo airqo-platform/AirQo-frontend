@@ -1,5 +1,5 @@
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Save, RefreshCw } from "lucide-react";
+import { Loader2, Save } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -233,6 +233,15 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
     );
   };
 
+  const onSubmit = async (data: DeviceUpdateFormData) => {
+    const isAirqoManufacturer = device?.network?.toLowerCase() === 'airqo';
+    if (isAirqoManufacturer) {
+      await onSubmitLocal(data);
+    } else {
+      await onSubmitGlobal(data);
+    }
+  };
+
   const handleCopy = async (valueToCopy: string | number) => {
     if (valueToCopy !== undefined && valueToCopy !== null) {
       try {
@@ -292,24 +301,13 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
               </ReusableButton>
 
               <ReusableButton
-                variant="outlined"
-                onClick={form.handleSubmit(onSubmitGlobal)}
+                onClick={form.handleSubmit(onSubmit)}
                 disabled={isLoading}
-                Icon={updateGlobal.isPending ? Loader2 : RefreshCw}
-                loading={updateGlobal.isPending}
+                Icon={isLoading ? Loader2 : Save}
+                loading={isLoading}
                 permission={PERMISSIONS.DEVICE.UPDATE}
               >
-                Sync Global
-              </ReusableButton>
-
-              <ReusableButton
-                onClick={form.handleSubmit(onSubmitLocal)}
-                disabled={isLoading}
-                Icon={updateLocal.isPending ? Loader2 : Save}
-                loading={updateLocal.isPending}
-                permission={PERMISSIONS.DEVICE.UPDATE}
-              >
-                Save Local
+                Save
               </ReusableButton>
             </>
           ) : (

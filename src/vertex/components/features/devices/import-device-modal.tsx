@@ -1,54 +1,97 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
-import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
-import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { useImportDevice, useBulkImportDevices } from "@/core/hooks/useDevices";
 import type { BulkImportDeviceResponse } from "@/app/types/devices";
 import { DEVICE_CATEGORIES } from "@/core/constants/devices";
 import { useNetworks } from "@/core/hooks/useNetworks";
-import { useUserContext } from "@/core/hooks/useUserContext";
-import { useGroupCohorts } from "@/core/hooks/useCohorts";
+import { useAssignDevicesToCohort } from "@/core/hooks/useCohorts";
 import { useAppSelector } from "@/core/redux/hooks";
 import { usePathname } from "next/navigation";
-import logger from "@/lib/logger";
 import { useBanner } from "@/context/banner-context";
 import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
 import { NetworkRequestDialog } from "../networks/network-request-dialog";
-import { MultiSelectCombobox } from "@/components/ui/multi-select";
-import ReusableFileUpload from "@/components/shared/fileupload/ReusableFileUpload";
-import { DEFAULT_DEVICE_TAGS } from "@/core/constants/devices";
-import { Label } from "@/components/ui/label";
 import Papa from "papaparse";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
+import { AqChevronDown, AqChevronUp } from "@airqo/icons-react";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 
-const EXPECTED_FIELDS = [
-  { key: 'long_name', label: 'Device Name', required: true },
-  { key: 'serial_number', label: 'Serial Number', required: true },
-  { key: 'authRequired', label: 'Authentication Required', required: true },
-  { key: 'latitude', label: 'Latitude', required: false },
-  { key: 'longitude', label: 'Longitude', required: false },
-  { key: 'api_code', label: 'Device Connection URL', required: false },
-  { key: 'description', label: 'Description', required: false },
-  { key: 'device_number', label: 'Device Number', required: false },
-];
+import { EXPECTED_FIELDS } from "./import-steps/types";
+import type { ImportDeviceFormData } from "./import-steps/types";
+import dynamic from "next/dynamic";
 
+const StepLoader = () => (
+  <div className="flex justify-center items-center py-12">
+    <div className="w-5 h-5 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+  </div>
+);
 
+const SingleImportForm = dynamic(() => import("./import-steps/SingleImportForm").then(mod => mod.SingleImportForm), { loading: StepLoader });
+const BulkImportForm = dynamic(() => import("./import-steps/BulkImportForm").then(mod => mod.BulkImportForm), { loading: StepLoader });
+const FieldMappingStep = dynamic(() => import("./import-steps/FieldMappingStep").then(mod => mod.FieldMappingStep), { loading: StepLoader });
+const ImportPreviewStep = dynamic(() => import("./import-steps/ImportPreviewStep").then(mod => mod.ImportPreviewStep), { loading: StepLoader });
+const CohortSelectionStep = dynamic(() => import("./import-steps/CohortSelectionStep").then(mod => mod.CohortSelectionStep), { loading: StepLoader });
+const ConfirmationStep = dynamic(() => import("./import-steps/ConfirmationStep").then(mod => mod.ConfirmationStep), { loading: StepLoader });
+const BulkResultsStep = dynamic(() => import("./import-steps/BulkResultsStep").then(mod => mod.BulkResultsStep), { loading: StepLoader });
+const ImportSuccessStep = dynamic(() => import("./import-steps/ImportSuccessStep").then(mod => mod.ImportSuccessStep), { loading: StepLoader });
+const ImportMethodSelectStep = dynamic(() => import("./import-steps/ImportMethodSelectStep").then(mod => mod.ImportMethodSelectStep), { loading: StepLoader });
+
+interface StepCardProps {
+  title: string;
+  stepIndex: number;
+  currentStep: number;
+  onHeaderClick: (stepIndex: number) => void;
+  footer?: React.ReactNode;
+  children: React.ReactNode;
+}
+
+const StepCard: React.FC<StepCardProps> = ({ title, stepIndex, currentStep, onHeaderClick, children, footer }) => (
+  <Card className="mb-4 p-3 shadow-none border border-gray-100 dark:border-gray-800">
+    <Collapsible open={currentStep === stepIndex}>
+      <CollapsibleTrigger asChild>
+        <CardHeader className="cursor-pointer select-none py-0 px-2" onClick={() => onHeaderClick(stepIndex)}>
+          <CardTitle className="text-lg font-semibold flex items-center justify-between">
+            {title}
+            <span className="ml-2 text-base">{currentStep === stepIndex ? <AqChevronUp /> : <AqChevronDown />}</span>
+          </CardTitle>
+        </CardHeader>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="overflow-hidden">
+        <CardContent className="py-2 px-2 pt-4">{children}</CardContent>
+        {footer && <CardFooter className="py-2 px-2 pt-2 border-t mt-2">{footer}</CardFooter>}
+      </CollapsibleContent>
+    </Collapsible>
+  </Card>
+);
 
 interface ImportDeviceModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   prefilledNetwork?: string;
+  onSuccess?: (deviceInfo?: { deviceId?: string; deviceName?: string; cohortId?: string; isCohortImport?: boolean }) => void;
+  mode?: 'guided' | 'fast';
 }
 
 const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
   open,
   onOpenChange,
   prefilledNetwork,
+  onSuccess,
+  mode = 'fast',
 }) => {
-  const [formData, setFormData] = useState({
+  const isGuidedMode = mode === 'guided';
+
+
+  
+  const [currentStep, setCurrentStep] = useState<number>(0);
+  const [importFlow, setImportFlow] = useState<'single' | 'bulk' | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [importedDeviceName, setImportedDeviceName] = useState("");
+  
+  const [formData, setFormData] = useState<ImportDeviceFormData>({
     long_name: "",
     network: prefilledNetwork || "",
     category: DEVICE_CATEGORIES[0].value,
@@ -65,82 +108,79 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
   const [showMore, setShowMore] = useState(false);
   const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  
   const [bulkFile, setBulkFile] = useState<File | null>(null);
   const [bulkResults, setBulkResults] = useState<BulkImportDeviceResponse | null>(null);
   const [parsedData, setParsedData] = useState<Record<string, string | number | undefined>[]>([]);
   const [fileHeaders, setFileHeaders] = useState<string[]>([]);
   const [fieldMapping, setFieldMapping] = useState<Record<string, string>>({});
-  const [mappingMode, setMappingMode] = useState(false);
-  const [previewMode, setPreviewMode] = useState(false);
   const [transformedPreview, setTransformedPreview] = useState<Record<string, string | string[] | number | boolean | undefined>[]>([]);
-  const { showBanner, hideBanner } = useBanner();
+  
+  const [selectedCohortId, setSelectedCohortId] = useState<string>("");
+  const [selectedCohortName, setSelectedCohortName] = useState<string>("");
+
+  const { showBanner } = useBanner();
   const { showBannerWithDelay } = useBannerWithDelay();
   const importDevice = useImportDevice();
   const bulkImport = useBulkImportDevices();
+  const assignDevicesToCohort = useAssignDevicesToCohort();
   const { networks, isLoading: isLoadingNetworks } = useNetworks();
-
-  const { userContext, activeGroup } = useUserContext();
   const userDetails = useAppSelector((state) => state.user.userDetails);
-
-  const shouldFetchGroupCohorts = userContext === 'external-org' && !!activeGroup?._id;
-
-  const { data: groupCohorts } = useGroupCohorts(activeGroup?._id, {
-    enabled: shouldFetchGroupCohorts,
-  });
 
   const pathname = usePathname();
   const isAdminPage = pathname?.startsWith('/admin/');
 
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
+  const resetState = useCallback(() => {
+    setCurrentStep(0);
+    setImportFlow(null);
+    setIsSuccess(false);
+    setImportedDeviceName("");
+    setFormData({
+      long_name: "",
+      network: prefilledNetwork || "",
+      category: DEVICE_CATEGORIES[0].value,
+      serial_number: "",
+      description: "",
+      device_number: "",
+      writeKey: "",
+      readKey: "",
+      api_code: "",
+      authRequired: true,
+      tags: [],
+    });
+    setBulkFile(null);
+    setBulkResults(null);
+    setFileHeaders([]);
+    setParsedData([]);
+    setImportFlow(null);
+    setFieldMapping({});
+    setTransformedPreview([]);
+    setSelectedCohortId("");
+    setSelectedCohortName("");
+    setErrors({});
+  }, [prefilledNetwork]);
 
-    if (!formData.long_name.trim()) {
-      newErrors.long_name = "Device name is required";
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    if (!open) {
+      // Delay reset to allow exit animations and prevent reset if open flickers false -> true
+      timer = setTimeout(() => {
+        resetState();
+      }, 300);
     }
-    if (!formData.network) {
-      newErrors.network = "Sensor Manufacturer is required";
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [open, resetState]);
+
+  const handleInputChange = (field: string, value: string | boolean | string[]) => {
+    setFormData((prev: ImportDeviceFormData) => ({
+      ...prev,
+      [field]: value,
+    }));
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
-
-    if (!formData.serial_number.trim()) {
-      newErrors.serial_number = "Serial number is required";
-    }
-
-    if (!formData.api_code?.trim()) {
-      newErrors.api_code = "Device Connection URL is required";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const getCohortId = (): string | undefined => {
-    if (userContext === 'external-org' && groupCohorts && groupCohorts.length > 0) {
-      return groupCohorts[0];
-    }
-
-    return undefined;
-  };
-
-  const downloadFailedRows = () => {
-    if (!bulkResults || !bulkResults.results) return;
-    const failedRows = bulkResults.results.filter(r => !r.success);
-    if (failedRows.length === 0) return;
-
-    const headers = ['serial_number', 'long_name', 'error'];
-    const csvContent = [
-      headers.join(','),
-      ...failedRows.map(r => `"${r.serial_number || ''}","${r.long_name || ''}","${(r.error || '').replace(/"/g, '""')}"`)
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'failed_devices.csv');
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   };
 
   const autoMapFields = (headers: string[]) => {
@@ -149,7 +189,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       value.toLowerCase().trim().replace(/[^a-z0-9]/g, "");
     const normalizedHeaders = headers.map(normalizeHeader);
     
-    EXPECTED_FIELDS.forEach(field => {
+    EXPECTED_FIELDS.forEach((field: { key: string; label: string; required?: boolean }) => {
       let matchIdx = -1;
       const key = normalizeHeader(field.key);
       
@@ -178,15 +218,17 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
     setBulkFile(file);
     setErrors({});
     if (!file) {
-      setMappingMode(false);
       setParsedData([]);
       setFileHeaders([]);
       setFieldMapping({});
-      setPreviewMode(false);
       setTransformedPreview([]);
+      if (currentStep === 0) {
+        setImportFlow('single');
+      }
       return;
     }
 
+    setImportFlow('bulk');
     const fileName = file.name.toLowerCase();
     
     if (fileName.endsWith('.csv')) {
@@ -201,7 +243,6 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
             setFileHeaders(headers);
             setParsedData([]);
             setFieldMapping({});
-            setMappingMode(false);
             showBanner({ severity: 'error', message: "The uploaded CSV does not contain any devices.", scoped: true });
             return;
           }
@@ -209,7 +250,6 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
           setFileHeaders(headers);
           setParsedData(rows);
           autoMapFields(headers);
-          setMappingMode(true);
         },
         error: (err: { message: string }) => {
           showBanner({ severity: 'error', message: `Failed to parse CSV: ${err.message}`, scoped: true });
@@ -228,7 +268,6 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         setFileHeaders(headers);
         setParsedData(devices as Record<string, string | number | undefined>[]);
         autoMapFields(headers);
-        setMappingMode(true);
       } catch {
         showBanner({ severity: 'error', message: 'Invalid JSON file format', scoped: true });
       }
@@ -237,127 +276,200 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
     }
   };
 
-  const handleSubmit = async () => {
-    setErrors({});
-    if (mappingMode && parsedData.length > 0) {
-      if (!formData.network) {
-        showBanner({ severity: 'error', message: "Please select a Sensor Manufacturer.", scoped: true });
-        return;
-      }
-      if (!formData.category) {
-        showBanner({ severity: 'error', message: "Please select a Category for this import.", scoped: true });
-        return;
-      }
+  const validateSingleForm = () => {
+    const newErrors: Record<string, string> = {};
+    if (!formData.long_name.trim()) newErrors.long_name = "Device name is required";
+    if (!formData.network) newErrors.network = "Sensor Manufacturer is required";
+    if (!formData.serial_number.trim()) newErrors.serial_number = "Serial number is required";
+    if (!formData.api_code?.trim()) newErrors.api_code = "Device Connection URL is required";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
-      const missingRequired = EXPECTED_FIELDS.filter(f => f.required && !fieldMapping[f.key]);
-      if (missingRequired.length > 0) {
-        showBanner({ severity: 'error', message: `Please map the required fields: ${missingRequired.map(f => f.label).join(', ')}`, scoped: true });
-        return;
-      }
+  const validateBulkForm = () => {
+    if (!bulkFile) {
+      showBanner({ severity: 'error', message: "Please upload a file.", scoped: true });
+      return false;
+    }
+    if (!formData.network) {
+      showBanner({ severity: 'error', message: "Please select a Sensor Manufacturer.", scoped: true });
+      return false;
+    }
+    if (!formData.category) {
+      showBanner({ severity: 'error', message: "Please select a Category.", scoped: true });
+      return false;
+    }
+    return true;
+  };
 
-      const mappedHeaders = Object.values(fieldMapping).filter(Boolean);
-      const duplicateHeaders = mappedHeaders.filter(
-        (header, index) => mappedHeaders.indexOf(header) !== index
-      );
-      if (duplicateHeaders.length > 0) {
-        showBanner({ severity: 'error', message: "Each file column can only be mapped once.", scoped: true });
-        return;
-      }
+  const transformBulkData = () => {
+    const missingRequired = EXPECTED_FIELDS.filter((f: { key: string; label: string; required?: boolean }) => f.required && !fieldMapping[f.key]);
+    if (missingRequired.length > 0) {
+      showBanner({ severity: 'error', message: `Please map the required fields: ${missingRequired.map((f: { key: string; label: string; required?: boolean }) => f.label).join(', ')}`, scoped: true });
+      return false;
+    }
 
-      const invalidAuthRows: number[] = [];
+    const mappedHeaders = Object.values(fieldMapping).filter(Boolean);
+    const duplicateHeaders = mappedHeaders.filter(
+      (header, index) => mappedHeaders.indexOf(header) !== index
+    );
+    if (duplicateHeaders.length > 0) {
+      showBanner({ severity: 'error', message: "Each file column can only be mapped once.", scoped: true });
+      return false;
+    }
 
-      const transformedDevices = parsedData.map((row, rowIndex) => {
-        const device: Record<string, string | string[] | number | boolean | undefined> = {};
-        EXPECTED_FIELDS.forEach(field => {
-          const mappedHeader = fieldMapping[field.key];
-          if (mappedHeader && row[mappedHeader] !== undefined && row[mappedHeader] !== "") {
-            if (field.key === 'authRequired') {
-              const rawValue = String(row[mappedHeader]).trim().toLowerCase();
-              const TRUTHY_VALUES = ['true', '1', 'yes', 'y'];
-              const FALSY_VALUES = ['false', '0', 'no', 'n'];
+    const invalidAuthRows: number[] = [];
+    const transformedDevices = parsedData.map((row, rowIndex) => {
+      const device: Record<string, string | string[] | number | boolean | undefined> = {};
+      EXPECTED_FIELDS.forEach((field: { key: string; label: string; required?: boolean }) => {
+        const mappedHeader = fieldMapping[field.key];
+        if (mappedHeader && row[mappedHeader] !== undefined && row[mappedHeader] !== "") {
+          if (field.key === 'authRequired') {
+            const rawValue = String(row[mappedHeader]).trim().toLowerCase();
+            const TRUTHY_VALUES = ['true', '1', 'yes', 'y'];
+            const FALSY_VALUES = ['false', '0', 'no', 'n'];
 
-              if (TRUTHY_VALUES.includes(rawValue)) {
-                device.authRequired = true;
-              } else if (FALSY_VALUES.includes(rawValue)) {
-                device.authRequired = false;
-              } else {
-                invalidAuthRows.push(rowIndex + 1);
-              }
+            if (TRUTHY_VALUES.includes(rawValue)) {
+              device.authRequired = true;
+            } else if (FALSY_VALUES.includes(rawValue)) {
+              device.authRequired = false;
             } else {
-              device[field.key] = row[mappedHeader];
+              invalidAuthRows.push(rowIndex + 1);
             }
+          } else {
+            device[field.key] = row[mappedHeader];
           }
-        });
-
-        device.network = formData.network;
-        device.category = formData.category;
-        if (device.authRequired === undefined) {
-          device.authRequired = true;
         }
-        if (formData.tags && formData.tags.length > 0) {
-          device.tags = formData.tags;
-        }
-
-        return device;
       });
 
-      if (invalidAuthRows.length > 0) {
-        showBanner({
-          severity: 'error',
-          message: `Invalid Authentication Required value on row(s): ${invalidAuthRows.join(', ')}. Accepted values are: yes, no, true, false, 1, 0, y, n.`,
-          scoped: true,
-        });
-        return;
+      device.network = formData.network;
+      device.category = formData.category;
+      if (device.authRequired === undefined) device.authRequired = true;
+      if (formData.tags && formData.tags.length > 0) device.tags = formData.tags;
+
+      return device;
+    });
+
+    if (invalidAuthRows.length > 0) {
+      showBanner({
+        severity: 'error',
+        message: `Invalid Authentication Required value on row(s): ${invalidAuthRows.join(', ')}. Accepted values are: yes, no, true, false, 1, 0, y, n.`,
+        scoped: true,
+      });
+      return false;
+    }
+
+    setTransformedPreview(transformedDevices);
+    return true;
+  };
+
+  const handleNext = () => {
+    if (importFlow === 'bulk') {
+      if (currentStep === 0) {
+        if (validateBulkForm() && parsedData.length > 0) {
+          setCurrentStep(1);
+        }
+      } else if (currentStep === 1) {
+        if (transformBulkData()) {
+          setCurrentStep(2);
+        }
+      } else if (currentStep === 2) {
+        setCurrentStep(3);
+      } else if (currentStep === 3) {
+        if (!isAdminPage && !selectedCohortId) {
+          showBanner({ severity: 'error', message: "Please assign the devices to a cohort.", scoped: true });
+          return;
+        }
+        setCurrentStep(4);
       }
-
-      setTransformedPreview(transformedDevices);
-      setMappingMode(false);
-      setPreviewMode(true);
-      return;
+    } else if (importFlow === 'single') {
+      if (currentStep === 0) {
+        if (validateSingleForm()) {
+          setCurrentStep(1);
+        }
+      } else if (currentStep === 1) {
+        if (!isAdminPage && !selectedCohortId) {
+          showBanner({ severity: 'error', message: "Please assign the device to a cohort.", scoped: true });
+          return;
+        }
+        setCurrentStep(2);
+      }
     }
+  };
 
-    if (!validateForm()) {
-      return;
-    }
+  const handleBack = () => {
+    setCurrentStep((prev) => Math.max(prev - 1, 0));
+  };
+
+  const executeAssignment = (deviceIds: string[], cohortId: string, onAssigned?: () => void) => {
+    assignDevicesToCohort.mutate({
+      cohortId,
+      deviceIds,
+    }, {
+      onSuccess: () => {
+        showBannerWithDelay({
+          severity: 'success',
+          message: `${deviceIds.length} device(s) assigned to cohort successfully`,
+          scoped: false,
+        }, 600);
+        onAssigned?.();
+      },
+      onError: (err) => {
+        showBanner({ severity: 'error', message: `Device imported, but cohort assignment failed: ${getApiErrorMessage(err)}`, scoped: false });
+      }
+    });
+  };
+
+  const handleCompleteSingle = () => {
+    const userId = userDetails?._id;
+    if (!userId) return;
 
     const deviceDataToSend = { ...formData };
-
     (Object.keys(deviceDataToSend) as Array<keyof typeof deviceDataToSend>).forEach((key) => {
       const value = deviceDataToSend[key];
-      if (
-        value === "" ||
-        value === undefined ||
-        value === null ||
-        (Array.isArray(value) && value.length === 0)
-      ) {
+      if (value === "" || value === undefined || value === null || (Array.isArray(value) && value.length === 0)) {
         delete deviceDataToSend[key];
       }
     });
-
-    const cohortId = getCohortId();
-    const userId = userDetails?._id;
-
-    if (!userId) {
-      logger.warn("User ID is missing");
-      showBanner({ severity: 'error', message: 'Unable to identify user. Please reload and try again.', scoped: true });
-      return;
-    }
 
     importDevice.mutate(
       {
         ...deviceDataToSend,
         user_id: userId,
-        ...(cohortId && { cohort_id: cohortId }),
+        ...(selectedCohortId && { cohort_id: selectedCohortId }),
       },
       {
         onSuccess: (data, variables) => {
-          onOpenChange(false);
-          showBannerWithDelay({
-            severity: 'success',
-            title: 'Success',
-            message: `${variables.long_name.trim()} has been imported successfully.`,
-            scoped: false
-          }, 300);
+          if (isGuidedMode) {
+            setImportedDeviceName(variables.long_name.trim());
+            setIsSuccess(true);
+          } else {
+            onOpenChange(false);
+            showBannerWithDelay({
+              severity: 'success',
+              title: 'Success',
+              message: `${variables.long_name.trim()} has been imported successfully.`,
+              scoped: false
+            }, 300);
+          }
+          
+          if (selectedCohortId && data.created_device?._id) {
+            executeAssignment([data.created_device._id], selectedCohortId, () => {
+              onSuccess?.({
+                deviceId: data.created_device._id || '',
+                deviceName: variables.long_name.trim(),
+                cohortId: selectedCohortId,
+                isCohortImport: true,
+              });
+            });
+          } else {
+            onSuccess?.({
+              deviceId: data.created_device._id || '',
+              deviceName: variables.long_name.trim(),
+              cohortId: selectedCohortId,
+              isCohortImport: false,
+            });
+          }
         },
         onError: (error) => {
           showBanner({ severity: 'error', message: `Import Failed: ${getApiErrorMessage(error)}`, scoped: true });
@@ -366,19 +478,13 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
     );
   };
 
-  const handleConfirmImport = () => {
-    setErrors({});
+  const handleCompleteBulk = () => {
     const userId = userDetails?._id;
-    if (!userId) {
-      logger.warn("User ID is missing");
-      showBanner({ severity: 'error', message: "User ID is missing. Please log in again.", scoped: true });
-      return;
-    }
-    const cohortId = getCohortId();
+    if (!userId) return;
 
     const payload = {
       user_id: userId,
-      ...(cohortId && { cohort_id: cohortId }),
+      ...(selectedCohortId && { cohort_id: selectedCohortId }),
       ...(formData.network && { network_override: formData.network }),
       devices: transformedPreview
     };
@@ -387,14 +493,26 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       { type: 'json', payload },
       {
         onSuccess: (data) => {
-          if (data.failed === 0) {
-            onOpenChange(false);
-            showBannerWithDelay({
-              severity: 'success',
-              title: 'Success',
-              message: `${data.imported} device(s) imported successfully.`,
-              scoped: false,
-            }, 300);
+          const notifyHomeImportSuccess = () => {
+            onSuccess?.({
+              cohortId: selectedCohortId,
+              isCohortImport: !!selectedCohortId,
+            });
+          };
+
+          if (data.failed === 0 && data.imported > 0) {
+            if (isGuidedMode) {
+              setImportedDeviceName(`${data.imported} device(s)`);
+              setIsSuccess(true);
+            } else {
+              onOpenChange(false);
+              showBannerWithDelay({
+                severity: 'success',
+                title: 'Success',
+                message: `${data.imported} device(s) imported successfully.`,
+                scoped: false,
+              }, 300);
+            }
           } else {
             if (data.imported === 0) {
               showBanner({
@@ -411,13 +529,21 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
                 scoped: true,
               });
             }
-
             if (data.results) {
               setBulkResults(data);
-              setPreviewMode(false);
-            } else {
-              onOpenChange(false);
+              setIsSuccess(true); // show results
             }
+          }
+
+          if (selectedCohortId && data.results) {
+            const successfulDeviceIds = data.results.filter(r => r.success && r.created_device?._id).map(r => r.created_device!._id);
+            if (successfulDeviceIds.length > 0) {
+              executeAssignment(successfulDeviceIds, selectedCohortId, notifyHomeImportSuccess);
+            } else if (data.imported > 0) {
+              notifyHomeImportSuccess();
+            }
+          } else if (data.imported > 0) {
+            notifyHomeImportSuccess();
           }
         },
         onError: (error) => {
@@ -432,467 +558,223 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
     );
   };
 
-  const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors((prev) => ({
-        ...prev,
-        [field]: "",
-      }));
+  const handleComplete = () => {
+    if (importFlow === 'bulk') {
+      handleCompleteBulk();
+    } else {
+      handleCompleteSingle();
     }
   };
 
-  const handleClose = () => {
-    onOpenChange(false);
+  const handleHeaderClick = (stepIndex: number) => {
+    if (stepIndex > currentStep) {
+      handleNext();
+    } else {
+      setCurrentStep(stepIndex);
+    }
   };
 
-  React.useEffect(() => {
-    if (!open) {
-      setFormData({
-        long_name: "",
-        network: prefilledNetwork || "",
-        category: DEVICE_CATEGORIES[0].value,
-        serial_number: "",
-        description: "",
-        device_number: "",
-        writeKey: "",
-        readKey: "",
-        api_code: "",
-        authRequired: true,
-        tags: [],
-      });
-      setErrors({});
-      setShowMore(false);
-      setIsRequestDialogOpen(false);
-      setBulkFile(null);
-      setBulkResults(null);
-      setParsedData([]);
-      setFileHeaders([]);
-      setFieldMapping({});
-      setMappingMode(false);
-      setPreviewMode(false);
-      setTransformedPreview([]);
-      hideBanner();
+  // Build the steps based on the mode
+  const getSteps = () => {
+    if (importFlow === 'bulk') {
+      return [
+        {
+          title: "File Upload & Settings",
+          content: (
+            <BulkImportForm 
+              bulkFile={bulkFile}
+              handleFileUpload={handleFileUpload}
+              errors={errors}
+              formData={formData}
+              handleInputChange={handleInputChange}
+              networks={networks}
+              isLoadingNetworks={isLoadingNetworks}
+              isAdminPage={isAdminPage}
+              setIsRequestDialogOpen={setIsRequestDialogOpen}
+            />
+          ),
+          footer: (
+            <>
+              <ReusableButton variant="outlined" onClick={() => setImportFlow(null)} className="w-32 mr-3">Back</ReusableButton>
+              <ReusableButton onClick={handleNext} className="w-32">Next</ReusableButton>
+            </>
+          )
+        },
+        {
+          title: "Map Fields",
+          content: (
+            <FieldMappingStep 
+              parsedData={parsedData}
+              fileHeaders={fileHeaders}
+              fieldMapping={fieldMapping}
+              setFieldMapping={setFieldMapping}
+              errors={errors}
+            />
+          ),
+          footer: (
+            <>
+              <ReusableButton variant="outlined" onClick={handleBack} className="w-32 mr-3">Back</ReusableButton>
+              <ReusableButton onClick={handleNext} className="w-32">Next</ReusableButton>
+            </>
+          )
+        },
+        {
+          title: "Preview Data",
+          content: <ImportPreviewStep transformedPreview={transformedPreview} errors={errors} />,
+          footer: (
+            <>
+              <ReusableButton variant="outlined" onClick={handleBack} className="w-32 mr-3">Back</ReusableButton>
+              <ReusableButton onClick={handleNext} className="w-32">Next</ReusableButton>
+            </>
+          )
+        },
+        {
+          title: "Group Devices",
+          content: (
+            <CohortSelectionStep 
+              selectedCohortId={selectedCohortId} 
+              onCohortSelect={(id, name) => { setSelectedCohortId(id); setSelectedCohortName(name); }} 
+              open={open && currentStep === 3}
+              isAdminPage={isAdminPage}
+              preselectedNetwork={formData.network}
+            />
+          ),
+          footer: (
+            <>
+              <ReusableButton variant="outlined" onClick={handleBack} className="w-32 mr-3">Back</ReusableButton>
+              <ReusableButton onClick={handleNext} className="w-32">Next</ReusableButton>
+            </>
+          )
+        },
+        {
+          title: "Confirmation",
+          content: (
+            <div className="space-y-4">
+              <p className="text-sm">You are about to import {transformedPreview.length} devices.</p>
+              {selectedCohortId ? (
+                <p className="text-sm">They will be assigned to the selected cohort: <strong>{selectedCohortName}</strong>.</p>
+              ) : (
+                <p className="text-sm">They will <strong>not</strong> be assigned to any cohort.</p>
+              )}
+            </div>
+          ),
+          footer: (
+            <>
+              <ReusableButton variant="outlined" onClick={handleBack} className="w-32 mr-3" disabled={bulkImport.isPending}>Back</ReusableButton>
+              <ReusableButton onClick={handleComplete} className="w-32" loading={bulkImport.isPending}>Complete</ReusableButton>
+            </>
+          )
+        }
+      ];
+    } else {
+      return [
+        {
+          title: "Device Details",
+          content: (
+            <SingleImportForm
+              formData={formData}
+              errors={errors}
+              handleInputChange={handleInputChange}
+              showMore={showMore}
+              setShowMore={setShowMore}
+              networks={networks}
+              isLoadingNetworks={isLoadingNetworks}
+              isAdminPage={isAdminPage}
+              setIsRequestDialogOpen={setIsRequestDialogOpen}
+            />
+          ),
+          footer: (
+            <>
+              <ReusableButton variant="outlined" onClick={() => setImportFlow(null)} className="w-32 mr-3">Back</ReusableButton>
+              <ReusableButton onClick={handleNext} className="w-32">Next</ReusableButton>
+            </>
+          )
+        },
+        {
+          title: "Group Devices",
+          content: (
+            <CohortSelectionStep 
+              selectedCohortId={selectedCohortId} 
+              onCohortSelect={(id, name) => { setSelectedCohortId(id); setSelectedCohortName(name); }} 
+              open={open && currentStep === 1}
+              isAdminPage={isAdminPage}
+              preselectedNetwork={formData.network}
+            />
+          ),
+          footer: (
+            <>
+              <ReusableButton variant="outlined" onClick={handleBack} className="w-32 mr-3">Back</ReusableButton>
+              <ReusableButton onClick={handleNext} className="w-32">Next</ReusableButton>
+            </>
+          )
+        },
+        {
+          title: "Confirmation",
+          content: <ConfirmationStep formData={formData} selectedCohortId={selectedCohortId} selectedCohortName={selectedCohortName} />,
+          footer: (
+            <>
+              <ReusableButton variant="outlined" onClick={handleBack} className="w-32 mr-3" disabled={importDevice.isPending}>Back</ReusableButton>
+              <ReusableButton onClick={handleComplete} className="w-32" loading={importDevice.isPending}>Complete</ReusableButton>
+            </>
+          )
+        }
+      ];
     }
-  }, [open, prefilledNetwork, hideBanner]);
+  };
+
+  const steps = getSteps();
 
   return (
-    <ReusableDialog
-      isOpen={open}
-      onClose={handleClose}
-      title="Import External Device"
-      size="md"
-      primaryAction={bulkResults ? {
-        label: "Done",
-        onClick: handleClose,
-        className: "min-w-[100px]",
-      } : previewMode ? {
-        label: importDevice.isPending || bulkImport.isPending ? "Importing..." : "Confirm Import",
-        onClick: handleConfirmImport,
-        disabled: importDevice.isPending || bulkImport.isPending,
-        className: "min-w-[100px]",
-      } : {
-        label: importDevice.isPending || bulkImport.isPending ? "Importing..." : (mappingMode ? "Preview Import" : "Import External Device"),
-        onClick: handleSubmit,
-        disabled: importDevice.isPending || bulkImport.isPending,
-        className: "min-w-[100px]",
-      }}
-      secondaryAction={
-        bulkResults && bulkResults.failed > 0
-          ? {
-              label: "Download Failed CSV",
-              onClick: downloadFailedRows,
-              variant: "outline",
-            }
-          : bulkResults
-          ? undefined
-          : previewMode
-          ? {
-              label: "Back to Mapping",
-              onClick: () => {
-                setPreviewMode(false);
-                setMappingMode(true);
-              },
-              disabled: importDevice.isPending || bulkImport.isPending,
-              variant: "outline",
-            }
-          : mappingMode
-          ? {
-              label: "Cancel Mapping",
-              onClick: () => handleFileUpload(null),
-              disabled: importDevice.isPending || bulkImport.isPending,
-              variant: "outline",
-            }
-          : {
-              label: "Cancel",
-              onClick: handleClose,
-              disabled: importDevice.isPending || bulkImport.isPending,
-              variant: "outline",
-            }
-      }
-    >
-      <div className="space-y-2">
-        {bulkResults ? (
-          <div className="space-y-4">
-            <div className={`p-4 rounded-md ${bulkResults.failed === 0 ? 'bg-green-50 text-green-700' : bulkResults.imported === 0 ? 'bg-red-50 text-red-700' : 'bg-yellow-50 text-yellow-800'}`}>
-              <h3 className="font-medium mb-1">
-                {bulkResults.imported} of {bulkResults.total} devices imported. {bulkResults.failed} failed.
-              </h3>
+    <>
+      <ReusableDialog
+        isOpen={open}
+        onClose={() => onOpenChange(false)}
+        title="Import External Device"
+        subtitle={isSuccess ? undefined : "Add a device from a different sensor manufacturer"}
+        size="3xl"
+        maxHeight="max-h-[55vh]"
+        preventBackdropClose={true}
+      >
+        <div className="py-2">
+          {isSuccess ? (
+            bulkResults ? (
+              <BulkResultsStep bulkResults={bulkResults} />
+            ) : (
+              <ImportSuccessStep deviceName={importedDeviceName} />
+            )
+          ) : !importFlow ? (
+            <div className="p-2">
+              <ImportMethodSelectStep 
+                onSelect={(method) => {
+                  setImportFlow(method);
+                  setCurrentStep(0);
+                  setErrors({});
+                }} 
+              />
             </div>
-            
-            <div className="border rounded-md max-h-[300px] overflow-y-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="text-xs uppercase bg-slate-50 sticky top-0">
-                  <tr>
-                    <th className="px-4 py-2 font-medium">Device Name</th>
-                    <th className="px-4 py-2 font-medium">Serial Number</th>
-                    <th className="px-4 py-2 font-medium">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {bulkResults.results.map((result, idx) => (
-                    <tr key={idx} className={!result.success ? "bg-red-50/50" : ""}>
-                      <td className="px-4 py-2">{result.long_name || '-'}</td>
-                      <td className="px-4 py-2 font-mono text-xs">{result.serial_number || '-'}</td>
-                      <td className="px-4 py-2">
-                        {result.success ? (
-                          <span className="text-green-600 font-medium">Success</span>
-                        ) : (
-                          <span className="text-red-600 font-medium text-xs break-words">{result.error || 'Failed'}</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        ) : previewMode ? (
-          <div className="space-y-4">
-            <div className="bg-blue-50 text-blue-800 p-3 rounded-md text-sm">
-              <p>Previewing the first {Math.min(5, transformedPreview.length)} of {transformedPreview.length} devices. Please verify the data looks correct before importing.</p>
-            </div>
-            
-            {errors.general && (
-              <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
-                {errors.general}
-              </div>
-            )}
-
-            <div className="border rounded-md max-h-[400px] overflow-auto">
-              <table className="w-full text-sm text-left whitespace-nowrap">
-                <thead className="text-xs uppercase bg-slate-50 sticky top-0 z-10">
-                  <tr>
-                    <th className="px-4 py-3 font-medium border-b">Device Name</th>
-                    <th className="px-4 py-3 font-medium border-b">Serial Number</th>
-                    <th className="px-4 py-3 font-medium border-b">Manufacturer</th>
-                    <th className="px-4 py-3 font-medium border-b">Category</th>
-                    <th className="px-4 py-3 font-medium border-b">Authentication Required</th>
-                    <th className="px-4 py-3 font-medium border-b">Latitude</th>
-                    <th className="px-4 py-3 font-medium border-b">Longitude</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {transformedPreview.slice(0, 5).map((device, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50">
-                      <td className="px-4 py-3">{device.long_name || '-'}</td>
-                      <td className="px-4 py-3 font-mono text-xs">{device.serial_number || '-'}</td>
-                      <td className="px-4 py-3">{device.network || '-'}</td>
-                      <td className="px-4 py-3">{device.category || '-'}</td>
-                      <td className="px-4 py-3">{device.authRequired === false ? 'No' : 'Yes'}</td>
-                      <td className="px-4 py-3">{device.latitude || '-'}</td>
-                      <td className="px-4 py-3">{device.longitude || '-'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        ) : mappingMode ? (
-          <div className="space-y-4">
-            <div className="bg-blue-50 text-blue-800 p-3 rounded-md text-sm">
-              <p>We found {parsedData.length} devices in your file. Please map the columns from your file to the expected device fields.</p>
-            </div>
-            
-            {errors.general && (
-              <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
-                {errors.general}
-              </div>
-            )}
-
-            <div className="border rounded-md max-h-[400px] overflow-y-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="text-xs uppercase bg-slate-50 sticky top-0 z-10">
-                  <tr>
-                    <th className="px-4 py-3 font-medium border-b w-1/2">Expected Field</th>
-                    <th className="px-4 py-3 font-medium border-b w-1/2">Your File Column</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {EXPECTED_FIELDS.map((field) => (
-                    <tr key={field.key} className={field.required && !fieldMapping[field.key] ? "bg-red-50/30" : ""}>
-                      <td className="px-4 py-3 align-middle">
-                        <div className="flex items-center">
-                          <span className="font-medium">{field.label}</span>
-                          {field.required && <span className="ml-1 text-red-500">*</span>}
-                        </div>
-                      </td>
-                      <td className="px-4 py-2">
-                        <select
-                          className="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600 p-2"
-                          value={fieldMapping[field.key] || ""}
-                          onChange={(e) => setFieldMapping(prev => ({ ...prev, [field.key]: e.target.value }))}
-                        >
-                          <option value="">-- Ignore this field --</option>
-                          {fileHeaders.map(header => (
-                            <option key={header} value={header}>{header}</option>
-                          ))}
-                        </select>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="space-y-4 pt-4 mt-4 border-t">
-              <h4 className="font-medium text-sm text-gray-700 dark:text-gray-200">Apply to all imported devices:</h4>
-              
-              <div>
-                <ReusableSelectInput
-                  label="Sensor Manufacturer"
-                  id="network_bulk"
-                  value={formData.network}
-                  onChange={(e) => handleInputChange("network", e.target.value)}
-                  error={errors.network}
-                  required
-                  placeholder={isLoadingNetworks ? "Loading Sensor Manufacturer..." : "Select a Sensor Manufacturer"}
-                  disabled={isLoadingNetworks}
+          ) : (
+            <div className="space-y-4">
+              {steps.map((step, idx) => (
+                <StepCard
+                  key={idx}
+                  title={step.title}
+                  stepIndex={idx}
+                  currentStep={currentStep}
+                  onHeaderClick={handleHeaderClick}
+                  footer={step.footer}
                 >
-                  {networks
-                    .filter((network) => network.net_name.toLowerCase() !== 'airqo')
-                    .map((network) => (
-                      <option key={network.net_name} value={network.net_name}>
-                        {network.net_name}
-                      </option>
-                    ))}
-                </ReusableSelectInput>
-                {!isAdminPage && (
-                  <div className="flex justify-end">
-                    <ReusableButton
-                      onClick={() => setIsRequestDialogOpen(true)}
-                      variant="text"
-                      className="text-xs p-0 px-1 mt-1 h-auto"
-                    >
-                      Can&apos;t find your Sensor Manufacturer?
-                    </ReusableButton>
-                  </div>
-                )}
-              </div>
-
-              <ReusableSelectInput
-                label="Category"
-                id="category_bulk"
-                value={formData.category}
-                onChange={(e) => handleInputChange("category", e.target.value)}
-                error={errors.category}
-                required
-              >
-                {DEVICE_CATEGORIES.map((category) => (
-                  <option key={category.value} value={category.value}>
-                    {category.label}
-                  </option>
-                ))}
-              </ReusableSelectInput>
-
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Tags (Optional)</Label>
-                <MultiSelectCombobox
-                  options={DEFAULT_DEVICE_TAGS}
-                  placeholder="Select or create tags..."
-                  value={formData.tags}
-                  onValueChange={(tags) => setFormData((prev) => ({ ...prev, tags }))}
-                  allowCreate={true}
-                />
-              </div>
-            </div>
-          </div>
-        ) : (
-          <>
-            {errors.general && (
-              <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
-                {errors.general}
-              </div>
-            )}
-
-            <ReusableFileUpload
-              label="Import multiple devices at once."
-              id="bulk_file"
-              accept=".csv,.json"
-              file={bulkFile}
-              onChange={handleFileUpload}
-              placeholder="Upload bulk import file"
-              description="Supported file types are CSV and JSON."
-              containerClassName="pb-4 border-b"
-            />
-
-            <div className={bulkFile ? "opacity-50 pointer-events-none space-y-2" : "space-y-2"}>
-              <ReusableInputField
-          label="Device Name"
-          id="long_name"
-          value={formData.long_name}
-          onChange={(e) => handleInputChange("long_name", e.target.value)}
-          placeholder="Enter device name"
-          error={errors.long_name}
-          required
-        />
-
-        <div>
-          <ReusableSelectInput
-            label="Sensor Manufacturer"
-            id="network"
-            value={formData.network}
-            onChange={(e) => handleInputChange("network", e.target.value)}
-            error={errors.network}
-            required
-            placeholder={isLoadingNetworks ? "Loading Sensor Manufacturer..." : "Select a Sensor Manufacturer"}
-            disabled={isLoadingNetworks}
-          >
-            {networks
-              .filter((network) => network.net_name.toLowerCase() !== 'airqo')
-              .map((network) => (
-                <option key={network.net_name} value={network.net_name}>
-                  {network.net_name}
-                </option>
+                  {step.content}
+                </StepCard>
               ))}
-          </ReusableSelectInput>
-
-          {!isAdminPage && (
-            <div className="flex justify-end">
-              <ReusableButton
-                onClick={() => setIsRequestDialogOpen(true)}
-                variant="text"
-                className="text-xs p-0 px-1 mt-1 h-auto"
-              >
-                Can&apos;t find your Sensor Manufacturer?
-              </ReusableButton>
             </div>
           )}
         </div>
-
-        <ReusableSelectInput
-          label="Category"
-          id="category"
-          value={formData.category}
-          onChange={(e) => handleInputChange("category", e.target.value)}
-          error={errors.category}
-          required
-        >
-          {DEVICE_CATEGORIES.map((category) => (
-            <option key={category.value} value={category.value}>
-              {category.label}
-            </option>
-          ))}
-        </ReusableSelectInput>
-
-        <ReusableSelectInput
-          label="Authentication Required"
-          id="auth_required"
-          value={String(formData.authRequired)}
-          onChange={(e) => handleInputChange("authRequired", e.target.value === 'true')}
-          placeholder="Choose whether authentication is required"
-          required
-        >
-          <option value="true">True</option>
-          <option value="false">False</option>
-        </ReusableSelectInput>
-
-        <ReusableInputField
-          label="Serial Number"
-          id="serial_number"
-          value={formData.serial_number}
-          onChange={(e) => handleInputChange("serial_number", e.target.value)}
-          placeholder="Enter serial number"
-          error={errors.serial_number}
-          required
-        />
-
-        <ReusableInputField
-          label="Device Connection URL"
-          id="api_code"
-          value={formData.api_code}
-          onChange={(e) => handleInputChange("api_code", e.target.value)}
-          placeholder="https://api.mair.com/v1/12345"
-          error={errors.api_code}
-          required
-        />
-
-        <ReusableInputField
-          as="textarea"
-          label="Description (Optional)"
-          id="description"
-          value={formData.description}
-          onChange={(e) => handleInputChange("description", e.target.value)}
-          placeholder="Enter device description"
-          rows={3}
-        />
-        <div className="space-y-2">
-          <Label className="text-sm font-medium">Tags (Optional)</Label>
-          <MultiSelectCombobox
-            options={DEFAULT_DEVICE_TAGS}
-            placeholder="Select or create tags..."
-            value={formData.tags}
-            onValueChange={(tags) => setFormData((prev) => ({ ...prev, tags }))}
-            allowCreate={true}
-          />
-        </div>
-
-        {showMore && (
-          <div className="space-y-4 pt-2 border-t">
-            <ReusableInputField
-              label="Device Number (Optional)"
-              id="device_number"
-              value={formData.device_number}
-              onChange={(e) => handleInputChange("device_number", e.target.value)}
-              placeholder="Enter device number"
-            />
-
-            <ReusableInputField
-              label="Write Key (Optional)"
-              id="writeKey"
-              value={formData.writeKey}
-              onChange={(e) => handleInputChange("writeKey", e.target.value)}
-              placeholder="Enter write key"
-            />
-
-            <ReusableInputField
-              label="Read Key (Optional)"
-              id="readKey"
-              value={formData.readKey}
-              onChange={(e) => handleInputChange("readKey", e.target.value)}
-              placeholder="Enter read key"
-            />
-          </div>
-        )}
-
-              <ReusableButton variant="text" onClick={() => setShowMore(!showMore)} className="p-0 h-auto">
-                {showMore ? "Show Less" : "Show More Options"}
-              </ReusableButton>
-            </div>
-          </>
-        )}
-      </div>
-
+      </ReusableDialog>
       <NetworkRequestDialog 
         open={isRequestDialogOpen} 
         onOpenChange={setIsRequestDialogOpen} 
       />
-    </ReusableDialog>
+    </>
   );
 };
 

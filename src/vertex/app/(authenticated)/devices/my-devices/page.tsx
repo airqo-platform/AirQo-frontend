@@ -1,10 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { AqCollocation, AqPlus } from "@airqo/icons-react";
 import { Upload } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useMyDevices, useDevices } from "@/core/hooks/useDevices";
 import { useAppSelector } from "@/core/redux/hooks";
@@ -13,16 +12,22 @@ import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { DeviceAssignmentModal } from "@/components/features/devices/device-assignment-modal";
 import ImportDeviceModal from "@/components/features/devices/import-device-modal";
 import { PERMISSIONS } from "@/core/permissions/constants";
+import dynamic from "next/dynamic";
+
+const ClaimDeviceModal = dynamic(
+  () => import("@/components/features/claim/claim-device-modal"),
+  { ssr: false }
+);
 import ClientPaginatedDevicesTable from "@/components/features/devices/client-paginated-devices-table";
 
 import { OrphanedDevicesAlert } from "@/components/features/devices/orphaned-devices-alert";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 
 const MyDevicesPage = () => {
-  const router = useRouter();
   const { userDetails, activeGroup } = useAppSelector((state) => state.user);
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
   const [isImportDeviceOpen, setImportDeviceOpen] = useState(false);
+  const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
 
   const { userScope } = useUserContext();
 
@@ -98,10 +103,13 @@ const MyDevicesPage = () => {
               </p>
             </div>
             <div className="flex gap-2">
-              <Button onClick={() => router.push("/devices/claim")}>
-                <AqPlus className="mr-2 h-4 w-4" />
-                Claim Device
-              </Button>
+              <ReusableButton 
+                onClick={() => setIsClaimModalOpen(true)}
+                Icon={AqPlus}
+                permission={PERMISSIONS.DEVICE.CLAIM}
+              >
+                Add AirQo Device
+              </ReusableButton>
               <ReusableButton
                 variant="outlined"
                 onClick={() => setImportDeviceOpen(true)}
@@ -157,11 +165,12 @@ const MyDevicesPage = () => {
           </div>
           <div className="flex gap-2 items-center">
             <ReusableButton
-              onClick={() => router.push("/devices/claim")}
+              onClick={() => setIsClaimModalOpen(true)}
               disabled={isLoading}
               Icon={AqPlus}
+              permission={PERMISSIONS.DEVICE.CLAIM}
             >
-              Claim AirQo Device
+              Add AirQo Device
             </ReusableButton>
             <ReusableButton
               variant="outlined"
@@ -199,6 +208,10 @@ const MyDevicesPage = () => {
         <ImportDeviceModal
           open={isImportDeviceOpen}
           onOpenChange={setImportDeviceOpen}
+        />
+        <ClaimDeviceModal
+          isOpen={isClaimModalOpen}
+          onClose={() => setIsClaimModalOpen(false)}
         />
         <DeviceAssignmentModal
           devices={devices}

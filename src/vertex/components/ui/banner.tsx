@@ -42,25 +42,25 @@ const SEVERITY_CONFIG: Record<
   }
 > = {
   success: {
-    bgColor: 'bg-emerald-100 dark:bg-emerald-950/20',
-    borderColor: 'border-emerald-200 dark:border-emerald-800',
-    textColor: 'text-emerald-800 dark:text-emerald-200',
+    bgColor: 'bg-emerald-100 dark:bg-emerald-900/40',
+    borderColor: 'border-emerald-400 dark:border-emerald-600',
+    textColor: 'text-emerald-900 dark:text-emerald-100',
     icon: <AqMessageCheckCircle className="h-5 w-5" />,
-    iconColor: 'text-emerald-600 dark:text-emerald-400',
+    iconColor: 'text-emerald-700 dark:text-emerald-300',
   },
   error: {
-    bgColor: 'bg-destructive/20',
-    borderColor: 'border-destructive/30',
-    textColor: 'text-destructive',
+    bgColor: 'bg-red-100 dark:bg-red-900/40',
+    borderColor: 'border-red-400 dark:border-red-600',
+    textColor: 'text-red-900 dark:text-red-100',
     icon: <AqMessageXCircle className="h-5 w-5" />,
-    iconColor: 'text-destructive',
+    iconColor: 'text-red-700 dark:text-red-300',
   },
   warning: {
-    bgColor: 'bg-amber-100 dark:bg-amber-950/20',
-    borderColor: 'border-amber-200 dark:border-amber-800',
-    textColor: 'text-amber-800 dark:text-amber-200',
+    bgColor: 'bg-amber-100 dark:bg-amber-900/40',
+    borderColor: 'border-amber-400 dark:border-amber-600',
+    textColor: 'text-amber-900 dark:text-amber-100',
     icon: <AqAlertTriangle className="h-5 w-5" />,
-    iconColor: 'text-amber-600 dark:text-amber-400',
+    iconColor: 'text-amber-700 dark:text-amber-300',
   },
   info: {
     bgColor: 'bg-blue-100 dark:bg-blue-950/20',
@@ -95,7 +95,7 @@ export const Banner: React.FC<BannerProps> = ({
   return (
     <div
       className={cn(
-        'flex items-start gap-3 rounded-md border shadow-sm text-left',
+        'flex items-start gap-3 rounded-lg border shadow-sm text-left',
         paddingClass,
         config.bgColor,
         config.borderColor,
@@ -113,7 +113,7 @@ export const Banner: React.FC<BannerProps> = ({
 
       {/* Content */}
       <div className="flex-1 min-w-0">
-        {title && <h4 className={cn('text-sm', config.textColor)}>{title}</h4>}
+        {title && <h4 className={cn('text-sm text-bold', config.textColor)}>{title}</h4>}
         {message && (
           <div className={cn('text-sm', config.textColor)}>{message}</div>
         )}

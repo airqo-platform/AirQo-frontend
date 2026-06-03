@@ -12,18 +12,21 @@ function Accordion({
   return <AccordionPrimitive.Root data-slot="accordion" {...props} />
 }
 
-function AccordionItem({
-  className,
-  ...props
-}: React.ComponentProps<typeof AccordionPrimitive.Item>) {
+const AccordionItem = React.forwardRef<
+  React.ElementRef<typeof AccordionPrimitive.Item>,
+  React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Item>
+>(function AccordionItem({ className, ...props }, ref) {
   return (
     <AccordionPrimitive.Item
+      ref={ref}
       data-slot="accordion-item"
       className={cn("border-b last:border-b-0", className)}
       {...props}
     />
-  )
-}
+  );
+});
+
+AccordionItem.displayName = "AccordionItem";
 
 function AccordionTrigger({
   className,

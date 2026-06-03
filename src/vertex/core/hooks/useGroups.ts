@@ -28,3 +28,18 @@ export const useGroups = () => {
   };
 };
 
+export const useGroupsByCohort = (cohortId: string) => {
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["groups", "cohort", cohortId],
+    queryFn: () => groupsApi.getGroupsByCohortApi(cohortId),
+    enabled: !!cohortId,
+  });
+
+  return {
+    groups: data?.groups ?? [],
+    isLoading,
+    error,
+    refetch,
+  };
+};
+
