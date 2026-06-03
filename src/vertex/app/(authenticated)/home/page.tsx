@@ -382,7 +382,7 @@ const WelcomePage = () => {
             </div>
             <div>
               <span className="text-lg font-medium text-gray-900 dark:text-white">
-                Claim AirQo Device
+                Add AirQo Device
               </span>
               <span className="block text-sm text-gray-500 dark:text-gray-400">
                 Claim an existing AirQo device by entering its unique code.
@@ -495,7 +495,7 @@ const WelcomePage = () => {
                 onClick={() => setIsClaimModalOpen(true)}
                 Icon={Plus}
               >
-                Claim AirQo Device
+                Add AirQo Device
               </ReusableButton>
               <ReusableButton
                 variant="outlined"

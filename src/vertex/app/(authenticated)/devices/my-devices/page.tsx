@@ -161,7 +161,7 @@ const MyDevicesPage = () => {
               disabled={isLoading}
               Icon={AqPlus}
             >
-              Claim AirQo Device
+              Add AirQo Device
             </ReusableButton>
             <ReusableButton
               variant="outlined"

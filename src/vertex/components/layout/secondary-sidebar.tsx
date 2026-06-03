@@ -143,15 +143,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                     isCollapsed={isCollapsed}
                     onClick={onNavigate}
                   />
-                  <NavItem
-                    item={{
-                      href: ROUTE_LINKS.ORG_REGISTER_DEVICE,
-                      icon: AqPackagePlus,
-                      label: 'Claim Device',
-                    }}
-                    isCollapsed={isCollapsed}
-                    onClick={onNavigate}
-                  />
+
                   <SidebarSectionHeading isCollapsed={isCollapsed}>
                     Data Access & Visibility
                   </SidebarSectionHeading>
@@ -202,15 +194,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                     isCollapsed={isCollapsed}
                     onClick={onNavigate}
                   />
-                  <NavItem
-                    item={{
-                      href: ROUTE_LINKS.ORG_REGISTER_DEVICE,
-                      icon: AqPackagePlus,
-                      label: 'Claim Device',
-                    }}
-                    isCollapsed={isCollapsed}
-                    onClick={onNavigate}
-                  />
+
                   <SidebarSectionHeading isCollapsed={isCollapsed}>
                     Data Access & Visibility
                   </SidebarSectionHeading>

@@ -2314,11 +2314,11 @@ Overhauled the Home dashboard to improve usability and implemented strict logic 
 <summary><strong>Feature Updates (3)</strong></summary>
 
 - **Dashboard Redesign**: 
-    - Moved primary actions ("Claim AirQo Device", "Import Device") to a dedicated header bar for visibility.
+    - Moved primary actions ("Add AirQo Device", "Import Device") to a dedicated header bar for visibility.
     - Added a **"Device Health"** accordion containing Refactored Stats Cards.
     - Added a dismissable "Welcome" context header to save screen space.
     - Removed the bottom "Quick Access" section.
-- **Global Claim Modal**: The "Claim AirQo Device" button now opens the claim modal directly on the dashboard instead of redirecting to a separate page.
+- **Global Claim Modal**: The "Add AirQo Device" button now opens the claim modal directly on the dashboard instead of redirecting to a separate page.
 - **Network Visibility**: Dedicated **Visibility Card** (External Orgs) with clear "Public" vs "Private" toggle states and safety confirmation.
 
 </details>
