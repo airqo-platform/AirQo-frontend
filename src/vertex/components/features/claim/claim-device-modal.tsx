@@ -383,7 +383,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
   // ==========================================================
 
   const handleClaimDevice = (deviceId: string, claimToken: string) => {
-    if (!user?._id) {
+    if (!userId) {
       setError('User session not available. Please try again.');
       return;
     }
@@ -393,7 +393,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
       setError(null);
       claimDevice({
         device_name: deviceId,
-        user_id: user._id,
+        user_id: userId,
         claim_token: claimToken,
       });
       return;
@@ -408,7 +408,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     setError(null);
     claimDevice({
       device_name: deviceId,
-      user_id: user._id,
+      user_id: userId,
       claim_token: claimToken,
       ...(defaultCohort && { cohort_id: defaultCohort }),
     });
@@ -495,7 +495,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
   };
 
   const handleBulkSubmit = () => {
-    if (!user?._id) {
+    if (!userId) {
       setError('User session not available. Please try again.');
       return;
     }
@@ -514,14 +514,14 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
   };
 
   const handleConfirmBulkClaim = () => {
-    if (!user?._id) return;
+    if (!userId) return;
 
     const valid = bulkDevices.filter(
       d => d.device_name.trim() && d.claim_token.trim(),
     );
 
     bulkClaimDevices({
-      user_id: user._id,
+      user_id: userId,
       devices: valid,
       ...(defaultCohort && { cohort_id: defaultCohort }),
     });
