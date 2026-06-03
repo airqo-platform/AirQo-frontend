@@ -555,10 +555,8 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
 
   return (
     <Card
-      className={cn(
-        'overflow-visible border border-border/90 shadow-sm',
-        active && 'ring-1 ring-primary/40'
-      )}
+      className="overflow-visible border border-border/90 shadow-sm"
+      data-active={active ? 'true' : 'false'}
       onClick={onActivate}
     >
       <div

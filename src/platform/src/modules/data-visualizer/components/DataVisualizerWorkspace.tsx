@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { usePostHog } from 'posthog-js/react';
+import { HiChevronDown, HiChevronUp } from 'react-icons/hi';
 import {
   AqBarChartSquareUp,
   AqFileCheck03,
@@ -19,6 +20,10 @@ import {
   CardHeader,
   CardTitle,
   DatePicker,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
   InfoBanner,
   Input,
   LoadingSpinner,
@@ -81,6 +86,8 @@ interface DataVisualizerWorkspaceProps {
   title?: string;
   subtitle?: string;
 }
+
+type VisualizerDisplayMode = 'focused' | 'charts' | 'maps' | 'all';
 
 const PARSE_MESSAGES = [
   'Reading your file…',
@@ -263,6 +270,146 @@ const normalizeChartConfig = (
   yAxisLabel: chart.yAxisLabel || formatMeasurementLabel(chart.metricColumn),
 });
 
+type DatasetReadiness = 'ready' | 'partial' | 'limited';
+
+interface DatasetWorkspaceInsight {
+  datasetId: string;
+  profile: DatasetProfile;
+  readiness: DatasetReadiness;
+  readinessLabel: string;
+  sparseColumnCount: number;
+  hasCoordinates: boolean;
+  hasTimeColumn: boolean;
+  hasNumericColumn: boolean;
+  notes: string[];
+}
+
+const SPARSE_COLUMN_RATIO = 0.65;
+
+const getDatasetWorkspaceInsight = (
+  dataset: UploadedDataset
+): DatasetWorkspaceInsight => {
+  const profile = profileDataset(dataset.rows);
+  const coordinateColumns = detectCoordinateColumns(
+    dataset.rows,
+    profile.numericColumns
+  );
+  const sparseColumnCount = profile.columns.filter(column => {
+    if (dataset.rowCount === 0 || column.nonEmptyCount === 0) {
+      return false;
+    }
+
+    return column.nonEmptyCount / dataset.rowCount < SPARSE_COLUMN_RATIO;
+  }).length;
+  const notes: string[] = [];
+  const hasNumericColumn = profile.numericColumns.length > 0;
+  const hasTimeColumn = profile.timeColumns.length > 0;
+  const hasCoordinates = hasCoordinateColumns(coordinateColumns);
+
+  if (dataset.rowCount === 0) {
+    notes.push('No usable rows were found after import.');
+  }
+
+  if (!hasNumericColumn) {
+    notes.push('No numeric measurement field was detected for charting.');
+  }
+
+  if (!hasTimeColumn) {
+    notes.push('Trend charts may be limited because no date field was detected.');
+  }
+
+  if (!hasCoordinates) {
+    notes.push('Map view needs latitude and longitude fields.');
+  }
+
+  if (sparseColumnCount > 0) {
+    notes.push(
+      `${sparseColumnCount} field${sparseColumnCount === 1 ? '' : 's'} contain many blank values. Blank cells will be skipped automatically.`
+    );
+  }
+
+  dataset.warnings.forEach(warning => {
+    notes.push(warning);
+  });
+
+  const readiness: DatasetReadiness =
+    dataset.rowCount === 0 || !hasNumericColumn
+      ? 'limited'
+      : notes.length > 0
+        ? 'partial'
+        : 'ready';
+
+  return {
+    datasetId: dataset.id,
+    profile,
+    readiness,
+    readinessLabel:
+      readiness === 'ready'
+        ? 'Ready for charts'
+        : readiness === 'partial'
+          ? 'Partial data'
+          : 'Limited data',
+    sparseColumnCount,
+    hasCoordinates,
+    hasTimeColumn,
+    hasNumericColumn,
+    notes,
+  };
+};
+
+const summarizeDatasetQuality = (insights: DatasetWorkspaceInsight[]) => {
+  if (insights.length === 0) {
+    return null;
+  }
+
+  const withoutMetrics = insights.filter(insight => !insight.hasNumericColumn);
+  const withoutTime = insights.filter(insight => !insight.hasTimeColumn);
+  const withoutCoordinates = insights.filter(
+    insight => !insight.hasCoordinates
+  );
+  const sparseDatasets = insights.filter(insight => insight.sparseColumnCount > 0);
+  const emptyDatasets = insights.filter(
+    insight => insight.readiness === 'limited' && insight.profile.columns.length === 0
+  );
+  const parts = ['Blank cells are skipped automatically so incomplete files can still be explored.'];
+
+  if (withoutMetrics.length > 0) {
+    parts.push(
+      `${withoutMetrics.length} dataset${withoutMetrics.length === 1 ? '' : 's'} do not contain a numeric measurement column yet.`
+    );
+  }
+
+  if (withoutTime.length > 0) {
+    parts.push(
+      `${withoutTime.length} dataset${withoutTime.length === 1 ? '' : 's'} do not contain a date field, so time-trend charts may be limited.`
+    );
+  }
+
+  if (withoutCoordinates.length > 0) {
+    parts.push(
+      `${withoutCoordinates.length} dataset${withoutCoordinates.length === 1 ? '' : 's'} do not contain both latitude and longitude fields, so map view may be unavailable.`
+    );
+  }
+
+  if (sparseDatasets.length > 0) {
+    parts.push(
+      `${sparseDatasets.length} dataset${sparseDatasets.length === 1 ? '' : 's'} include sparse columns that may leave gaps in charts.`
+    );
+  }
+
+  if (emptyDatasets.length > 0) {
+    parts.push(
+      `${emptyDatasets.length} dataset${emptyDatasets.length === 1 ? '' : 's'} did not yield usable rows after import.`
+    );
+  }
+
+  return {
+    severity:
+      withoutMetrics.length > 0 || emptyDatasets.length > 0 ? 'warning' : 'info',
+    message: parts.join(' '),
+  };
+};
+
 export const DataVisualizerWorkspace: React.FC<
   DataVisualizerWorkspaceProps
 > = ({
@@ -295,6 +442,14 @@ export const DataVisualizerWorkspace: React.FC<
     React.useState<DateRange | null>(null);
   const [isTutorialDialogOpen, setIsTutorialDialogOpen] =
     React.useState(false);
+  const [showDataInspector, setShowDataInspector] = React.useState(false);
+  const [showFieldGuide, setShowFieldGuide] = React.useState(false);
+  const [displayMode, setDisplayMode] =
+    React.useState<VisualizerDisplayMode>('focused');
+  const [toolbarCollapsed, setToolbarCollapsed] = React.useState(false);
+  const [toolbarStickyEnabled, setToolbarStickyEnabled] =
+    React.useState(false);
+  const [isToolbarFloating, setIsToolbarFloating] = React.useState(false);
 
   // Cycle through friendly status messages while parsing
   React.useEffect(() => {
@@ -319,6 +474,33 @@ export const DataVisualizerWorkspace: React.FC<
       window.clearTimeout(cancelHintTimer);
     };
   }, [isParsing]);
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    if (window.innerWidth < 1024) {
+      setToolbarStickyEnabled(false);
+      setToolbarCollapsed(true);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    if (!toolbarStickyEnabled || typeof window === 'undefined') {
+      setIsToolbarFloating(false);
+      return;
+    }
+
+    const handleScroll = () => {
+      setIsToolbarFloating(window.scrollY > 48);
+    };
+
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [toolbarStickyEnabled]);
 
   const trackVisualizerEvent = React.useCallback(
     (eventName: string, properties: Record<string, unknown> = {}) => {
@@ -417,6 +599,18 @@ export const DataVisualizerWorkspace: React.FC<
     () => getDatasetSummary(datasets, allDatasetIds),
     [allDatasetIds, datasets]
   );
+  const datasetInsights = React.useMemo(
+    () =>
+      datasets.map(dataset => ({
+        dataset,
+        insight: getDatasetWorkspaceInsight(dataset),
+      })),
+    [datasets]
+  );
+  const datasetQualitySummary = React.useMemo(
+    () => summarizeDatasetQuality(datasetInsights.map(entry => entry.insight)),
+    [datasetInsights]
+  );
 
   const datasetDateRange = React.useMemo(() => {
     if (!workspaceProfile.minDate || !workspaceProfile.maxDate) return null;
@@ -489,6 +683,19 @@ export const DataVisualizerWorkspace: React.FC<
     return () => window.clearTimeout(timeout);
   }, [activeChartId, buildDraftFileState, charts, datasets]);
 
+  React.useEffect(() => {
+    if (charts.length === 0) {
+      if (activeChartId) {
+        setActiveChartId(undefined);
+      }
+      return;
+    }
+
+    if (!activeChartId || !charts.some(chart => chart.id === activeChartId)) {
+      setActiveChartId(charts[0].id);
+    }
+  }, [activeChartId, charts]);
+
   const applyNewDatasets = React.useCallback(
     (newDatasets: UploadedDataset[], source: 'upload' | 'sheet' = 'upload') => {
       if (newDatasets.length === 0) {
@@ -533,6 +740,9 @@ export const DataVisualizerWorkspace: React.FC<
       });
 
       setUploadOpen(false);
+      if (newDatasets.some(dataset => dataset.warnings.length > 0)) {
+        setShowDataInspector(true);
+      }
       toast.success(
         'Datasets ready',
         `${newDatasets.length} file${newDatasets.length === 1 ? '' : 's'} loaded for comparison.`
@@ -655,6 +865,9 @@ export const DataVisualizerWorkspace: React.FC<
     setError(null);
     setUploadOpen(true);
     setAppliedDateRange(null);
+    setShowDataInspector(false);
+    setShowFieldGuide(false);
+    setDisplayMode('focused');
     sourceFilesRef.current.clear();
     await deleteWorkspaceDraft().catch(() => undefined);
     setDraft(null);
@@ -680,6 +893,10 @@ export const DataVisualizerWorkspace: React.FC<
     setActiveChartId(draft.activeChartId || restoredCharts[0]?.id);
     restoreDraftFileSources(draft);
     setUploadOpen(false);
+    setShowDataInspector(
+      draft.datasets.some(dataset => dataset.warnings.length > 0)
+    );
+    setDisplayMode('focused');
     setLastSavedAt(draft.savedAt);
     toast.success('Draft restored', 'Your previous work is ready to continue.');
     trackVisualizerEvent('air_quality_explorer_draft_restored', {
@@ -884,7 +1101,7 @@ export const DataVisualizerWorkspace: React.FC<
     }
   };
 
-  const handleDrop = (event: React.DragEvent<HTMLLabelElement>) => {
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setIsDragActive(false);
     void handleFiles(event.dataTransfer.files);
@@ -960,9 +1177,104 @@ export const DataVisualizerWorkspace: React.FC<
     },
     [appliedDateRange]
   );
+  const availableChartTypes = React.useMemo(
+    () =>
+      DEFAULT_CHART_ORDER.filter(
+        type => type !== 'map' || hasCoordinateColumns(workspaceCoordinateColumns)
+      ),
+    [workspaceCoordinateColumns]
+  );
+  const chartContexts = React.useMemo(
+    () =>
+      charts.map((chart, index) => {
+        const rawRows = getDatasetRowsForChart(datasets, chart.datasetIds);
+        const rawProfile = profileDataset(rawRows);
+        const timeColumn =
+          chart.xColumn && rawProfile.timeColumns.includes(chart.xColumn)
+            ? chart.xColumn
+            : rawProfile.defaultTimeColumn;
+        const rows = filterRowsByDate(rawRows, timeColumn);
+        const profile = profileDataset(rows);
+
+        return {
+          chart,
+          rows,
+          profile,
+          chartNumber: index + 1,
+        };
+      }),
+    [charts, datasets, filterRowsByDate]
+  );
+  const activeChartContext = React.useMemo(
+    () =>
+      chartContexts.find(context => context.chart.id === activeChartId) ??
+      chartContexts[0] ??
+      null,
+    [activeChartId, chartContexts]
+  );
+  const mapChartContexts = React.useMemo(
+    () => chartContexts.filter(context => context.chart.type === 'map'),
+    [chartContexts]
+  );
+  const nonMapChartContexts = React.useMemo(
+    () => chartContexts.filter(context => context.chart.type !== 'map'),
+    [chartContexts]
+  );
+  const visibleChartContexts = React.useMemo(() => {
+    switch (displayMode) {
+      case 'charts':
+        return nonMapChartContexts;
+      case 'maps':
+        return mapChartContexts;
+      case 'all':
+        return chartContexts;
+      default:
+        return activeChartContext ? [activeChartContext] : [];
+    }
+  }, [
+    activeChartContext,
+    chartContexts,
+    displayMode,
+    mapChartContexts,
+    nonMapChartContexts,
+  ]);
+
+  React.useEffect(() => {
+    if (displayMode === 'maps' && mapChartContexts.length === 0) {
+      setDisplayMode('focused');
+      return;
+    }
+
+    if (displayMode === 'charts' && nonMapChartContexts.length === 0) {
+      setDisplayMode('focused');
+      return;
+    }
+
+    if (displayMode === 'all' && chartContexts.length < 2) {
+      setDisplayMode('focused');
+    }
+  }, [
+    chartContexts.length,
+    displayMode,
+    mapChartContexts.length,
+    nonMapChartContexts.length,
+  ]);
 
   return (
     <div className="flex flex-col gap-4">
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        className="sr-only"
+        onChange={event => {
+          if (event.target.files) {
+            void handleFiles(event.target.files);
+          }
+        }}
+      />
+
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-foreground">{title}</h1>
@@ -985,83 +1297,6 @@ export const DataVisualizerWorkspace: React.FC<
         dense
       />
 
-      {datasets.length > 0 && (
-        <Card>
-          <CardContent className="flex flex-col gap-3 p-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
-              <div>
-                <div className="text-xs text-muted-foreground">Datasets</div>
-                <div className="font-medium text-foreground">
-                  {workspaceSummary.datasetCount}
-                </div>
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground">Rows</div>
-                <div className="font-medium text-foreground">
-                  {workspaceSummary.rowCount.toLocaleString()}
-                </div>
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground">Columns</div>
-                <div className="font-medium text-foreground">
-                  {workspaceSummary.columnCount.toLocaleString()}
-                </div>
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground">Last saved</div>
-                <div className="font-medium text-foreground">
-                  {lastSavedAt ? formatDraftSavedAt(lastSavedAt) : 'Pending'}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                className="sr-only"
-                onChange={event => {
-                  if (event.target.files) {
-                    void handleFiles(event.target.files);
-                  }
-                }}
-              />
-              <Button
-                size="sm"
-                Icon={AqUploadCloud01}
-                onClick={() => fileInputRef.current?.click()}
-                showTextOnMobile
-              >
-                Add files
-              </Button>
-              <Button
-                size="sm"
-                variant="outlined"
-                onClick={() => setUploadOpen(open => !open)}
-              >
-                {uploadOpen ? 'Hide drop zone' : 'Show drop zone'}
-              </Button>
-              <Button
-                size="sm"
-                variant="outlined"
-                onClick={() => void saveNow()}
-              >
-                Save draft
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => void resetWorkspace()}
-              >
-                Clear
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {draft && datasets.length === 0 && (
         <InfoBanner
           title="Previous draft available"
@@ -1075,22 +1310,327 @@ export const DataVisualizerWorkspace: React.FC<
         />
       )}
 
+      {datasets.length > 0 &&
+        datasetQualitySummary &&
+        datasetQualitySummary.severity === 'warning' && (
+          <WarningBanner
+            title="Imported data needs review"
+            message={datasetQualitySummary.message}
+            dense
+          />
+        )}
+
+      {datasets.length > 0 && (
+        <Card
+          className={cn(
+            'z-20 border border-border shadow-sm transition-colors',
+            toolbarStickyEnabled ? 'sticky top-4' : 'relative',
+            toolbarStickyEnabled && isToolbarFloating
+              ? 'bg-background/75 supports-[backdrop-filter]:bg-background/65 backdrop-blur-sm'
+              : 'bg-card'
+          )}
+        >
+          <CardContent className="space-y-4 p-4">
+            <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <div className="rounded-full bg-muted px-3 py-1.5 text-foreground">
+                  {workspaceSummary.datasetCount} dataset
+                  {workspaceSummary.datasetCount === 1 ? '' : 's'}
+                </div>
+                <div className="rounded-full bg-muted px-3 py-1.5 text-foreground">
+                  {workspaceSummary.rowCount.toLocaleString()} rows
+                </div>
+                <div className="rounded-full bg-muted px-3 py-1.5 text-foreground">
+                  {charts.length} view{charts.length === 1 ? '' : 's'}
+                </div>
+                <div className="rounded-full bg-muted px-3 py-1.5 text-muted-foreground">
+                  Saved {lastSavedAt ? formatDraftSavedAt(lastSavedAt) : 'pending'}
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outlined"
+                  Icon={AqUploadCloud01}
+                  onClick={() => {
+                    setUploadOpen(true);
+                    fileInputRef.current?.click();
+                  }}
+                  showTextOnMobile
+                >
+                  Add files
+                </Button>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="outlined"
+                      className="hover:bg-primary/10 hover:text-primary"
+                    >
+                      <span className="inline-flex items-center gap-2">
+                        <AqPlus className="h-4 w-4" />
+                        <span>Add chart</span>
+                        <HiChevronDown className="h-4 w-4" />
+                      </span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    {availableChartTypes.map(type => (
+                      <DropdownMenuItem key={type} onClick={() => addChart(type)}>
+                        {CHART_TYPE_LABELS[type]}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <Button
+                  size="sm"
+                  variant={showDataInspector ? 'outlined' : 'ghost'}
+                  className={
+                    showDataInspector
+                      ? 'border-primary bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary'
+                      : 'border border-border/70 bg-background text-foreground hover:bg-muted/40 hover:text-foreground'
+                  }
+                  onClick={() => setShowDataInspector(open => !open)}
+                >
+                  {showDataInspector ? 'Hide data review' : 'Review data'}
+                </Button>
+
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="border border-transparent hover:border-border/70 hover:bg-muted/40 hover:text-foreground"
+                  onClick={() => void saveNow()}
+                >
+                  Save draft
+                </Button>
+
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="border border-transparent hover:border-border/70 hover:bg-muted/40 hover:text-foreground"
+                  onClick={() => void resetWorkspace()}
+                >
+                  Clear
+                </Button>
+
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="border border-border/70 bg-background text-foreground hover:bg-muted/40 hover:text-foreground"
+                  onClick={() => setToolbarStickyEnabled(value => !value)}
+                >
+                  {toolbarStickyEnabled ? 'Unpin header' : 'Pin header'}
+                </Button>
+
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="border border-border/70 bg-background text-foreground hover:bg-muted/40 hover:text-foreground"
+                  Icon={toolbarCollapsed ? HiChevronDown : HiChevronUp}
+                  iconPosition="end"
+                  onClick={() => setToolbarCollapsed(value => !value)}
+                >
+                  {toolbarCollapsed ? 'Expand header' : 'Collapse header'}
+                </Button>
+              </div>
+            </div>
+
+            {toolbarCollapsed && (
+              <div className="rounded-xl border border-border/70 bg-background/80 px-3 py-2 text-xs text-muted-foreground">
+                {displayMode === 'focused'
+                  ? `Showing ${activeChartContext?.chart.title ?? 'selected view'}.`
+                  : displayMode === 'charts'
+                    ? `Showing ${nonMapChartContexts.length} chart view${nonMapChartContexts.length === 1 ? '' : 's'}.`
+                    : displayMode === 'maps'
+                      ? `Showing ${mapChartContexts.length} map view${mapChartContexts.length === 1 ? '' : 's'}.`
+                      : `Comparing ${visibleChartContexts.length} views.`}
+              </div>
+            )}
+
+            {!toolbarCollapsed && charts.length > 0 && (
+              <div className="flex flex-col gap-3 rounded-xl border border-border bg-background p-3">
+                <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
+                  <div>
+                    <div className="text-sm font-medium text-foreground">
+                      View layout
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Keep one selected view open, compare charts together, or
+                      isolate maps on their own.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      size="sm"
+                      variant={displayMode === 'focused' ? 'outlined' : 'ghost'}
+                      className={cn(
+                        'border',
+                        displayMode === 'focused'
+                          ? 'border-primary bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary'
+                          : 'border-border/70 bg-background text-foreground hover:bg-muted/40 hover:text-foreground'
+                      )}
+                      onClick={() => setDisplayMode('focused')}
+                    >
+                      Selected view
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={displayMode === 'charts' ? 'outlined' : 'ghost'}
+                      className={cn(
+                        'border',
+                        displayMode === 'charts'
+                          ? 'border-primary bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary'
+                          : 'border-border/70 bg-background text-foreground hover:bg-muted/40 hover:text-foreground'
+                      )}
+                      disabled={nonMapChartContexts.length === 0}
+                      onClick={() => setDisplayMode('charts')}
+                    >
+                      Charts only
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={displayMode === 'maps' ? 'outlined' : 'ghost'}
+                      className={cn(
+                        'border',
+                        displayMode === 'maps'
+                          ? 'border-primary bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary'
+                          : 'border-border/70 bg-background text-foreground hover:bg-muted/40 hover:text-foreground'
+                      )}
+                      disabled={mapChartContexts.length === 0}
+                      onClick={() => setDisplayMode('maps')}
+                    >
+                      Maps only
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={displayMode === 'all' ? 'outlined' : 'ghost'}
+                      className={cn(
+                        'border',
+                        displayMode === 'all'
+                          ? 'border-primary bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary'
+                          : 'border-border/70 bg-background text-foreground hover:bg-muted/40 hover:text-foreground'
+                      )}
+                      disabled={chartContexts.length < 2}
+                      onClick={() => setDisplayMode('all')}
+                    >
+                      Compare all
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {!toolbarCollapsed && datasetDateRange && (
+              <div className="flex flex-col gap-3 rounded-md bg-muted/40 p-3 lg:flex-row lg:items-end">
+                <div className="flex-1">
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                    Filter by date
+                  </label>
+                  <DatePicker
+                    mode="range"
+                    value={appliedDateRange ?? undefined}
+                    onChange={value => {
+                      if (
+                        value &&
+                        typeof value === 'object' &&
+                        'from' in value &&
+                        !(value instanceof Date)
+                      ) {
+                        setAppliedDateRange(value as DateRange);
+                      }
+                    }}
+                    showPresets={false}
+                    placeholder="Select date range"
+                    className="w-full max-w-none"
+                  />
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outlined"
+                    onClick={() =>
+                      setAppliedDateRange({
+                        from: datasetDateRange!.min,
+                        to: datasetDateRange!.max,
+                      })
+                    }
+                  >
+                    Reset range
+                  </Button>
+                  <div className="text-xs text-muted-foreground">
+                    {datasetDateRange!.min.toLocaleDateString()} to{' '}
+                    {datasetDateRange!.max.toLocaleDateString()}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {!toolbarCollapsed && charts.length > 0 && (
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {charts.map(chart => (
+                  <Button
+                    key={chart.id}
+                    size="sm"
+                    variant={
+                      activeChartContext?.chart.id === chart.id
+                        ? 'outlined'
+                        : 'ghost'
+                    }
+                    onClick={() => setActiveChartId(chart.id)}
+                    className={cn(
+                      'min-w-[220px] h-auto flex-col items-start justify-start rounded-xl border px-4 py-3 text-left shadow-none',
+                      activeChartContext?.chart.id === chart.id
+                        ? 'border-primary bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary'
+                        : 'border-border/70 bg-background text-foreground hover:bg-muted/40 hover:text-foreground'
+                    )}
+                  >
+                    <span className="block w-full text-left">
+                      <span className="block truncate text-sm font-medium text-current">
+                        {chart.title}
+                      </span>
+                      <span className="mt-1 block truncate text-xs text-muted-foreground">
+                        {CHART_TYPE_LABELS[chart.type]} /{' '}
+                        {formatMeasurementLabel(chart.metricColumn)}
+                      </span>
+                    </span>
+                  </Button>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {showUploadPanel && (
         <Card>
           <CardHeader className="p-4 pb-2">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <CardTitle className="flex items-center gap-2 text-base text-foreground">
                 <AqUploadCloud01 className="h-4 w-4 text-primary" />
-                Upload Dataset
+                {datasets.length === 0 ? 'Upload dataset' : 'Add more data'}
               </CardTitle>
-              <p className="text-xs text-muted-foreground">
-                CSV and XLSX, up to{' '}
-                {getReadableFileSize(MAX_UPLOAD_FILE_SIZE_BYTES)} each.
-              </p>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>
+                  CSV and XLSX, up to{' '}
+                  {getReadableFileSize(MAX_UPLOAD_FILE_SIZE_BYTES)} each.
+                </span>
+                {datasets.length > 0 && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setUploadOpen(false)}
+                  >
+                    Hide
+                  </Button>
+                )}
+              </div>
             </div>
           </CardHeader>
           <CardContent className="p-4 pt-2">
-            <label
+            <div
               onDragOver={event => {
                 event.preventDefault();
                 setIsDragActive(true);
@@ -1098,24 +1638,12 @@ export const DataVisualizerWorkspace: React.FC<
               onDragLeave={() => setIsDragActive(false)}
               onDrop={handleDrop}
               className={cn(
-                'flex min-h-[120px] cursor-pointer flex-col items-center justify-center rounded-md border border-dashed px-4 py-5 text-center transition-colors',
+                'flex min-h-[148px] flex-col items-center justify-center rounded-xl border border-dashed px-4 py-6 text-center transition-colors',
                 isDragActive
                   ? 'border-primary bg-primary/5'
                   : 'border-border bg-background hover:border-primary/50 hover:bg-muted/40'
               )}
             >
-              <input
-                type="file"
-                multiple
-                accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                className="sr-only"
-                onChange={event => {
-                  if (event.target.files) {
-                    void handleFiles(event.target.files);
-                  }
-                }}
-              />
-
               {isParsing ? (
                 <div className="flex flex-col items-center gap-3">
                   <LoadingSpinner />
@@ -1142,16 +1670,24 @@ export const DataVisualizerWorkspace: React.FC<
               ) : (
                 <>
                   <AqUploadCloud01 className="mb-2 h-6 w-6 text-primary" />
-                  <span className="text-sm font-medium text-foreground">
-                    Choose one or more files, or drop them here
-                  </span>
-                  <span className="mt-1 text-xs text-muted-foreground">
-                    Use multiple datasets to compare sites, devices, agencies,
-                    sheets, or field campaigns.
-                  </span>
+                  <div className="text-sm font-medium text-foreground">
+                    Choose files or drop them here
+                  </div>
+                  <p className="mt-1 max-w-2xl text-xs text-muted-foreground">
+                    The workspace combines matching fields across files, skips
+                    blank cells safely, and keeps charts aligned when you
+                    compare multiple datasets.
+                  </p>
+                  <Button
+                    className="mt-4"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    Choose files
+                  </Button>
                 </>
               )}
-            </label>
+            </div>
 
             {error && (
               <div className="mt-3">
@@ -1162,7 +1698,194 @@ export const DataVisualizerWorkspace: React.FC<
         </Card>
       )}
 
-      {datasets.length > 0 && (
+      {datasets.length > 0 && showDataInspector && (
+        <Card>
+          <CardHeader className="p-4 pb-2">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-base text-foreground">
+                  <AqFileCheck03 className="h-4 w-4 text-primary" />
+                  Review imported data
+                </CardTitle>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Each dataset is checked for measurements, dates, coordinates,
+                  and missing values before charts are drawn.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  size="sm"
+                  variant={showFieldGuide ? 'outlined' : 'ghost'}
+                  onClick={() => setShowFieldGuide(open => !open)}
+                >
+                  {showFieldGuide ? 'Hide fields' : 'Show fields'}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setShowDataInspector(false)}
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4 p-4 pt-2">
+            <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+              {datasets.map(dataset => {
+                const insight = datasetInsights.find(
+                  item => item.dataset.id === dataset.id
+                )?.insight;
+
+                return (
+                  <div
+                    key={dataset.id}
+                    className="rounded-xl border border-border bg-background p-3"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <Input
+                          label="Label"
+                          value={dataset.label}
+                          onChange={(
+                            event: React.ChangeEvent<HTMLInputElement>
+                          ) =>
+                            updateDataset(dataset.id, {
+                              label: event.target.value,
+                            })
+                          }
+                          containerClassName="mb-2"
+                          className="h-9"
+                        />
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                          <span>{dataset.fileName}</span>
+                          <span>{dataset.rowCount.toLocaleString()} rows</span>
+                          {insight && (
+                            <span
+                              className={cn(
+                                'rounded-full px-2 py-0.5 text-[11px] font-medium',
+                                insight.readiness === 'ready'
+                                  ? 'bg-emerald-50 text-emerald-700'
+                                  : insight.readiness === 'partial'
+                                    ? 'bg-amber-50 text-amber-700'
+                                    : 'bg-rose-50 text-rose-700'
+                              )}
+                            >
+                              {insight.readinessLabel}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        Icon={AqTrash01}
+                        onClick={() => removeDataset(dataset.id)}
+                        className="text-destructive hover:bg-destructive/10"
+                      />
+                    </div>
+
+                    {dataset.sheetOptions.length > 1 && (
+                      <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+                        <Select
+                          label="Sheet"
+                          value={dataset.sheetName || ''}
+                          onChange={event =>
+                            void changeDatasetSheet(
+                              dataset,
+                              String(event.target.value)
+                            )
+                          }
+                          containerClassName="mb-0"
+                          disabled={isParsing}
+                        >
+                          {dataset.sheetOptions.map(sheet => (
+                            <option key={sheet.name} value={sheet.name}>
+                              {sheet.name} ({sheet.rowCount.toLocaleString()})
+                            </option>
+                          ))}
+                        </Select>
+                        <Button
+                          size="sm"
+                          variant="outlined"
+                          onClick={() => void addSheetAsDataset(dataset)}
+                          className="self-end"
+                        >
+                          Add sheet
+                        </Button>
+                      </div>
+                    )}
+
+                    {insight && insight.notes.length > 0 && (
+                      <div className="mt-3 rounded-lg bg-muted/50 p-3">
+                        <div className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                          Import notes
+                        </div>
+                        <div className="space-y-1 text-xs text-muted-foreground">
+                          {insight.notes.map(note => (
+                            <p key={`${dataset.id}-${note}`}>{note}</p>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {showFieldGuide && (
+              <div className="rounded-xl border border-border bg-muted/30 p-4">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                      <AqTable className="h-4 w-4 text-primary" />
+                      Detected fields
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      These are the fields the visualizer can use across the
+                      uploaded datasets.
+                    </p>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {workspaceProfile.columns.length} fields
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+                  {workspaceProfile.columns.map(column => (
+                    <div
+                      key={column.name}
+                      className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background px-3 py-2"
+                    >
+                      <div className="min-w-0">
+                        <div
+                          className="truncate text-sm font-medium text-foreground"
+                          title={column.name}
+                        >
+                          {formatDetectedFieldName(column.name)}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {column.nonEmptyCount.toLocaleString()} values
+                        </div>
+                      </div>
+                      <span
+                        className={cn(
+                          'shrink-0 rounded-full px-2 py-0.5 text-xs ring-1',
+                          getColumnKindClass(column.kind)
+                        )}
+                      >
+                        {column.kind}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {false && datasets.length > 0 && (
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
           <Card>
             <CardHeader className="p-4 pb-2">
@@ -1282,7 +2005,7 @@ export const DataVisualizerWorkspace: React.FC<
         </div>
       )}
 
-      {datasets.length > 0 && datasetDateRange && (
+      {false && datasets.length > 0 && datasetDateRange && (
         <Card>
           <CardContent className="p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-4">
@@ -1313,8 +2036,8 @@ export const DataVisualizerWorkspace: React.FC<
                 variant="outlined"
                 onClick={() =>
                   setAppliedDateRange({
-                    from: datasetDateRange.min,
-                    to: datasetDateRange.max,
+                    from: datasetDateRange!.min,
+                    to: datasetDateRange!.max,
                   })
                 }
               >
@@ -1324,8 +2047,8 @@ export const DataVisualizerWorkspace: React.FC<
             <p className="mt-2 text-xs text-muted-foreground">
               Dataset period:{' '}
               <span className="font-medium">
-                {datasetDateRange.min.toLocaleDateString()} –{' '}
-                {datasetDateRange.max.toLocaleDateString()}
+                {datasetDateRange!.min.toLocaleDateString()} –{' '}
+                {datasetDateRange!.max.toLocaleDateString()}
               </span>
               . Click the date range picker above and press{' '}
               <span className="font-medium">Apply</span> to filter charts.
@@ -1334,7 +2057,7 @@ export const DataVisualizerWorkspace: React.FC<
         </Card>
       )}
 
-      {datasets.length > 0 && (
+      {false && datasets.length > 0 && (
         <Card>
           <CardContent className="p-4">
             <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
@@ -1410,7 +2133,60 @@ export const DataVisualizerWorkspace: React.FC<
         />
       )}
 
-      {charts.length > 0 && (
+      {datasets.length > 0 && charts.length === 0 && (
+        <Card>
+          <CardContent className="flex min-h-[180px] flex-col items-center justify-center p-4 text-center">
+            <AqRefreshCcw01 className="mb-3 h-7 w-7 text-muted-foreground" />
+            <div className="text-sm font-medium text-foreground">
+              No charts yet
+            </div>
+            <p className="mt-1 max-w-md text-xs text-muted-foreground">
+              Start with a simple trend or comparison chart. The visualizer will
+              choose matching fields automatically from the selected datasets.
+            </p>
+            <Button
+              className="mt-3"
+              size="sm"
+              Icon={AqPlus}
+              onClick={() =>
+                addChart(workspaceProfile.defaultTimeColumn ? 'line' : 'bar')
+              }
+              showTextOnMobile
+            >
+              Add chart
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {visibleChartContexts.length > 0 && (
+        <div
+          className={cn(
+            'grid gap-4',
+            displayMode === 'focused' ? 'grid-cols-1' : 'grid-cols-1 xl:grid-cols-2'
+          )}
+        >
+          {visibleChartContexts.map(context => (
+            <div id={`visualizer-chart-${context.chart.id}`} key={context.chart.id}>
+              <VisualizerChartCard
+                datasets={datasets}
+                profile={context.profile}
+                rows={context.rows}
+                chart={context.chart}
+                chartNumber={context.chartNumber}
+                active={activeChartContext?.chart.id === context.chart.id}
+                canRemove={charts.length > 1}
+                onActivate={() => setActiveChartId(context.chart.id)}
+                onChange={nextChart => updateChart(context.chart.id, nextChart)}
+                onRemove={() => removeChart(context.chart.id)}
+                onTrack={trackVisualizerEvent}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {false && charts.length > 0 && (
         <div className="grid grid-cols-1 gap-4">
           {charts.map((chart, index) => {
             const rawRows = getDatasetRowsForChart(datasets, chart.datasetIds);
@@ -1443,7 +2219,7 @@ export const DataVisualizerWorkspace: React.FC<
         </div>
       )}
 
-      {datasets.length > 0 && charts.length === 0 && (
+      {false && datasets.length > 0 && charts.length === 0 && (
         <Card>
           <CardContent className="flex min-h-[150px] flex-col items-center justify-center p-4 text-center">
             <AqRefreshCcw01 className="mb-3 h-7 w-7 text-muted-foreground" />
