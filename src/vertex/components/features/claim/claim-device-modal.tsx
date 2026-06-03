@@ -636,7 +636,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
 
   const getDialogConfig = () => {
     const base = {
-      title: isGuidedMode ? 'Add Device' : 'Claim AirQo Device',
+      title: 'Add AirQo Device',
       showFooter: false,
       showCloseButton: true,
       preventBackdropClose: false,
