@@ -180,10 +180,11 @@ export function CohortOrganizationsCard({
         isOpen={showAllDialog}
         onClose={() => setShowAllDialog(false)}
         title={`All Assigned Organizations (${organizations.length})`}
-        size="lg"
+        size="3xl"
       >
         <div className="py-4">
           <ReusableTable
+            title="Organizations"
             data={tableData as unknown as TableItem[]}
             columns={tableColumns as unknown as TableColumn<TableItem>[]}
             searchable={true}

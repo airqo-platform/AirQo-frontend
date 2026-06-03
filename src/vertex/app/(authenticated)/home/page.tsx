@@ -385,7 +385,7 @@ const WelcomePage = () => {
                 Add AirQo Device
               </span>
               <span className="block text-sm text-gray-500 dark:text-gray-400">
-                Claim an existing AirQo device by entering its unique code.
+                Have an AirQo sensor? Easily add it to your workspace
               </span>
             </div>
           </button>
