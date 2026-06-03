@@ -43,7 +43,7 @@ export const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
             <dd className="font-medium truncate" title={formData.api_code}>{formData.api_code || '-'}</dd>
           </div>
           <div className="sm:col-span-2">
-            <dt className="text-gray-500 dark:text-gray-400">Assigned Group</dt>
+            <dt className="text-gray-500 dark:text-gray-400">Assigned Cohort</dt>
             <dd className="font-medium">{selectedCohortId ? selectedCohortName || 'Loading group...' : 'None (Will not be grouped)'}</dd>
           </div>
         </dl>
