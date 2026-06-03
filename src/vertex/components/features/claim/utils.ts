@@ -12,8 +12,17 @@ export function parseQRCode(
 
   try {
     const parsed = JSON.parse(qrData);
-    if (parsed.device_id && parsed.token)
-      return { deviceId: parsed.device_id, claimToken: parsed.token };
+    if (
+      typeof parsed?.device_id === "string" &&
+      parsed.device_id.trim() &&
+      typeof parsed?.token === "string" &&
+      parsed.token.trim()
+    ) {
+      return {
+        deviceId: parsed.device_id,
+        claimToken: parsed.token,
+      };
+    }
   } catch {
     /* not JSON */
   }
