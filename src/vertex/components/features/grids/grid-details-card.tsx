@@ -6,7 +6,7 @@ import { Loader2 } from "lucide-react";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { AqCopy01, AqEdit01 } from "@airqo/icons-react";
 import { Grid } from "@/app/types/grids";
-import { useBanner } from "@/context/banner-context";
+import { useClipboard } from "@/core/hooks/useClipboard";
 
 interface GridDetailsCardProps {
     grid: Grid;
@@ -15,21 +15,11 @@ interface GridDetailsCardProps {
 }
 
 const GridDetailsCard: React.FC<GridDetailsCardProps> = ({ grid, onEdit, loading }) => {
-    const { showBanner } = useBanner();
-
     if (loading) {
         return <Card className="w-full rounded-lg flex flex-col justify-between items-center p-8"><Loader2 className="w-6 h-6 animate-spin" /></Card>;
     }
 
-    const handleCopy = async (text: string) => {
-        if (!text) return;
-        try {
-            await navigator.clipboard.writeText(text);
-            showBanner({ message: "Copied to clipboard", severity: "success", scoped: false });
-        } catch {
-            showBanner({ message: "Failed to copy to clipboard", severity: "error", scoped: false });
-        }
-    };
+    const { handleCopy } = useClipboard({ successMessage: 'Copied to clipboard', errorMessage: 'Failed to copy to clipboard' });
 
     return (
         <Card className="w-full rounded-lg flex flex-col justify-between">
