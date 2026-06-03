@@ -2,6 +2,71 @@ import { getApiBaseUrl } from "@/lib/envConstants";
 
 const OAUTH_FRAGMENT_TOKEN_KEY = 'token';
 const OAUTH_SUCCESS_PROVIDER_KEY = 'success';
+const LAST_USED_OAUTH_PROVIDER_KEY = 'vertex:last-oauth-provider';
+
+export const SUPPORTED_SOCIAL_AUTH_PROVIDERS = [
+  'google',
+  'github',
+  'linkedin',
+  'twitter',
+] as const;
+
+export type SupportedSocialAuthProvider =
+  (typeof SUPPORTED_SOCIAL_AUTH_PROVIDERS)[number];
+
+export const isSupportedSocialAuthProvider = (
+  value: string | null | undefined
+): value is SupportedSocialAuthProvider => {
+  if (!value) {
+    return false;
+  }
+
+  return (SUPPORTED_SOCIAL_AUTH_PROVIDERS as readonly string[]).includes(value);
+};
+
+export const resolveOAuthRedirectAfterUrl = (
+  targetPath = '/home'
+): string | null => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  const normalizedTargetPath = targetPath.startsWith('/')
+    ? targetPath
+    : `/${targetPath}`;
+
+  try {
+    return new URL(normalizedTargetPath, window.location.origin).toString();
+  } catch {
+    return null;
+  }
+};
+
+export const getLastUsedOAuthProvider =
+  (): SupportedSocialAuthProvider | null => {
+    if (typeof window === 'undefined') {
+      return null;
+    }
+
+    const provider = localStorage.getItem(LAST_USED_OAUTH_PROVIDER_KEY)?.trim();
+
+    return isSupportedSocialAuthProvider(provider) ? provider : null;
+  };
+
+export const setLastUsedOAuthProvider = (
+  provider: string | null | undefined
+): void => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  if (!isSupportedSocialAuthProvider(provider)) {
+    localStorage.removeItem(LAST_USED_OAUTH_PROVIDER_KEY);
+    return;
+  }
+
+  localStorage.setItem(LAST_USED_OAUTH_PROVIDER_KEY, provider);
+};
 
 export interface OAuthTokenHandoff {
   token: string;

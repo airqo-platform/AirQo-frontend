@@ -18,6 +18,16 @@ const nextConfig = {
     return [];
   },
 
+  async redirects() {
+    return [
+      {
+        source: '/user/login',
+        destination: '/login',
+        permanent: false,
+      },
+    ];
+  },
+
   async headers() {
     return [
       {

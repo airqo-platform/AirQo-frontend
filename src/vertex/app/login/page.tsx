@@ -24,6 +24,7 @@ import {
 import { getLastActiveModule } from "@/core/utils/userPreferences";
 import { ROUTE_LINKS } from "@/core/routes";
 // import GoogleAuthSection from "@/components/features/auth/google-auth-section";
+import SocialAuthSection from "@/components/features/auth/social-auth-section";
 import { motion, AnimatePresence } from "framer-motion";
 
 
@@ -104,10 +105,21 @@ export default function LoginPage() {
       setPlatform('other');
     }
 
+    const authError = searchParams.get('error');
+    if (authError === 'oauth_failed') {
+      showBanner({
+        severity: 'error',
+        message: 'Social sign-in failed or was cancelled. Please try again.',
+        scoped: true,
+      });
+      // Clean up the URL to prevent showing the error on refresh
+      window.history.replaceState({}, '', '/login');
+    }
+
     return () => {
       isMounted.current = false;
     };
-  }, [dispatch]);
+  }, [dispatch, searchParams, showBanner]);
 
 
   const onSubmit = useCallback(async (values: z.infer<typeof loginSchema>) => {
@@ -244,13 +256,14 @@ export default function LoginPage() {
             </div>
 
             <div className="flex flex-col">
-              {/* {step === 'email' && (
-                <GoogleAuthSection
+              {step === 'email' && (
+                <SocialAuthSection
+                  mode="login"
                   disabled={isLoading}
                   className="mb-6"
                   callbackUrl={callbackUrl}
                 />
-              )} */}
+              )}
 
               <Form {...form}>
                 <form
