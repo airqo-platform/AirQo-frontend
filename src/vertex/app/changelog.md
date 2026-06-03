@@ -3,6 +3,78 @@
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
 ---
+## Version 1.23.57
+**Released:** June 03, 2026
+
+### Personal Devices Claiming & Cohort Management Enhancements
+
+Introduced comprehensive enhancements to personal device claiming workflows, onboarding experiences, and cohort management. This includes guided device claiming, bulk imports for cohorts, personal user cohorts, and UI refinements to improve the onboarding experience for personal users.
+
+<details>
+<summary><strong>Personal Device Claiming & Onboarding (5)</strong></summary>
+
+- **Guided Claiming Modes**: Introduced guided and fast claim modes, refactoring the claim device modal into clear step-by-step processes for better usability.
+- **Onboarding Checklist**: Added an interactive onboarding checklist to the Home page to guide new users, preserving completion statuses across sessions.
+- **Device Choice Dialog**: Added a device choice dialog during onboarding to simplify the initial device setup and integration.
+- **Read-Only Onboarding UI**: Polished the onboarding interface with read-only views where appropriate to prevent accidental edits during the setup phase.
+- **UI Refinements**: Redesigned the organization picker with alphabetical sorting, added an Administrator pill tag to the topbar logo, removed obsolete organization setup banners, and removed the deprecated "Download for Windows" button from the admin sidebar.
+
+</details>
+
+<details>
+<summary><strong>Cohort & Bulk Import Improvements (3)</strong></summary>
+
+- **Personal User Cohorts**: Added dedicated APIs, hooks, and UI support for personal cohorts to isolate and manage user-specific device groupings effectively.
+- **Cohort Imports**: Enabled importing capabilities directly for cohorts, setting cohort import as a primary option, and implemented robust validation to handle cohort verification errors gracefully.
+- **Bulk Import Enhancements**: Fixed bulk import bugs and enhanced the bulk import flow to reliably display import results, providing detailed previews and success summaries.
+
+</details>
+
+<details>
+<summary><strong>Files Added & Modified (34)</strong></summary>
+
+**Files Added:**
+- `src/vertex/components/features/claim/steps/BulkInputStep.tsx` [ADDED]
+- `src/vertex/components/features/claim/steps/CohortAssignmentBanner.tsx` [ADDED]
+- `src/vertex/components/features/claim/steps/CohortImportStep.tsx` [ADDED]
+- `src/vertex/components/features/claim/steps/ConfirmationSteps.tsx` [ADDED]
+- `src/vertex/components/features/claim/steps/ManualInputStep.tsx` [ADDED]
+- `src/vertex/components/features/claim/steps/MethodSelectStep.tsx` [ADDED]
+- `src/vertex/components/features/claim/steps/QRScanStep.tsx` [ADDED]
+- `src/vertex/components/features/claim/steps/SuccessStep.tsx` [ADDED]
+- `src/vertex/components/features/claim/utils.ts` [ADDED]
+- `src/vertex/components/features/cohorts/cohort-organizations-card.tsx` [ADDED]
+- `src/vertex/components/features/cohorts/unassign-cohort-from-group.tsx` [ADDED]
+- `src/vertex/components/features/devices/import-steps/BulkImportForm.tsx` [ADDED]
+- `src/vertex/components/features/devices/import-steps/BulkResultsStep.tsx` [ADDED]
+- `src/vertex/components/features/devices/import-steps/CohortSelectionStep.tsx` [ADDED]
+- `src/vertex/components/features/devices/import-steps/ConfirmationStep.tsx` [ADDED]
+- `src/vertex/components/features/devices/import-steps/FieldMappingStep.tsx` [ADDED]
+- `src/vertex/components/features/devices/import-steps/ImportMethodSelectStep.tsx` [ADDED]
+- `src/vertex/components/features/devices/import-steps/ImportPreviewStep.tsx` [ADDED]
+- `src/vertex/components/features/devices/import-steps/ImportSuccessStep.tsx` [ADDED]
+- `src/vertex/components/features/devices/import-steps/SingleImportForm.tsx` [ADDED]
+- `src/vertex/components/features/devices/import-steps/types.ts` [ADDED]
+- `src/vertex/components/features/home/onboarding-checklist.tsx` [ADDED]
+
+**Files Modified:**
+- `src/vertex/app/(authenticated)/admin/cohorts/[id]/page.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/home/page.tsx` [MODIFIED]
+- `src/vertex/components/features/claim/claim-device-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/cohorts/assign-cohort-devices.tsx` [MODIFIED]
+- `src/vertex/components/features/cohorts/create-cohort.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/import-device-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/home/network-visibility-card.tsx` [MODIFIED]
+- `src/vertex/components/features/org-picker/organization-picker.tsx` [MODIFIED]
+- `src/vertex/components/layout/primary-sidebar.tsx` [MODIFIED]
+- `src/vertex/components/layout/topbar.tsx` [MODIFIED]
+- `src/vertex/core/apis/cohorts.ts` [MODIFIED]
+- `src/vertex/core/hooks/useCohorts.ts` [MODIFIED]
+
+</details>
+
+---
+
 ## Version 1.23.56
 **Released:** May 29, 2026
 
