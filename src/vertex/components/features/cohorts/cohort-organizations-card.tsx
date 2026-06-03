@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Group } from "@/app/types/groups";
 import { useGroupsByCohort } from "@/core/hooks/useGroups";
 import { UnassignCohortFromGroupDialog } from "./unassign-cohort-from-group";
@@ -10,6 +11,7 @@ import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import ReusableTable, { TableColumn, TableItem } from "@/components/shared/table/ReusableTable";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { AqCopy01 } from "@airqo/icons-react";
+import { formatTitle } from "../org-picker/organization-picker";
 
 interface CohortOrganizationsCardProps {
   cohortId: string;
@@ -51,13 +53,13 @@ export function CohortOrganizationsCard({
   const tableColumns: TableColumn<Group & { id: string }>[] = [
     {
       key: "grp_title",
-      title: "Organization Name",
-      render: (value, item) => <span className="font-medium">{item.grp_title}</span>,
+      label: "Name",
+      render: (value, item) => <span className="font-medium uppercase">{formatTitle(item.grp_title)}</span>,
       sortable: true,
     },
     {
       key: "_id",
-      title: "Group ID",
+      label: "Org ID",
       render: (value, item) => (
         <div className="flex items-center gap-2">
           <span className="font-mono text-sm text-muted-foreground">{item._id}</span>
@@ -76,21 +78,35 @@ export function CohortOrganizationsCard({
     },
     {
       key: "grp_country",
-      title: "Country",
+      label: "Country",
       render: (value, item) => item.grp_country || "-",
       sortable: true,
     },
     {
       key: "actions" as keyof (Group & { id: string }),
-      title: "Unassign",
+      label: "Action",
       render: (value, item) => (
-        <Switch
-          checked={true}
-          onCheckedChange={() => handleUnassignClick(item)}
-          disabled={!canUnassign}
-          className="data-[state=checked]:bg-red-600"
-          aria-label="Unassign from cohort"
-        />
+        <TooltipProvider delayDuration={100}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="inline-block">
+                <Switch
+                  checked={true}
+                  onCheckedChange={() => handleUnassignClick(item)}
+                  disabled={!canUnassign}
+                  className="data-[state=checked]:bg-red-600"
+                  aria-label="Unassign from cohort"
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent
+              side="top"
+              className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs font-medium px-3 py-1.5 rounded-lg shadow-lg border-none"
+            >
+              Remove cohort assignment
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       ),
     },
   ];
