@@ -1787,6 +1787,15 @@ Restricted cohort imports ('airqo') and improved UI accessibility and validation
 </details>
 
 <details>
+<summary><strong>Device Management Enhancements (3)</strong></summary>
+
+- **Add Device Flow**: Refactored the monolithic Add Device modal into distinct, modular steps (guided vs. fast mode), simplifying the overall onboarding experience for new hardware setups.
+- **Smart Device Updating**: Consolidated device update actions into a single smart "Save" button in the device details modal that automatically routes to local or global (ThingSpeak) saving based on the device's sensor manufacturer.
+- **Improved Validation**: Strengthened form validation and error handling across device creation and editing workflows.
+
+</details>
+
+<details>
 <summary><strong>UI/UX Enhancements (2)</strong></summary>
 
 - **Static Device Icons**: Fixed an issue where "Static Devices" were incorrectly displaying a car icon. The logic now prioritizes the explicit deployment category ("static") to ensure the correct Map Pin icon is shown.
