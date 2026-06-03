@@ -285,7 +285,7 @@ const WelcomePage = () => {
 
     const autoSteps: string[] = [];
     if (hasDevices) {
-      autoSteps.push("add-device", "assign-cohort", "set-visibility");
+      autoSteps.push("add-device", "assign-cohort");
     } else if (hasCohorts) {
       autoSteps.push("assign-cohort");
     }
