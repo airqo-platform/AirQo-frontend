@@ -15,7 +15,6 @@ import ReusableButton from "@/components/shared/button/ReusableButton";
 import { UnassignCohortDevicesDialog } from "@/components/features/cohorts/unassign-cohort-devices";
 import CohortMeasurementsApiCard from "@/components/features/cohorts/cohort-measurements-api-card";
 import { usePageTitle } from "@/context/page-title-context";
-import { useGroups } from "@/core/hooks/useGroups";
 import { CohortOrganizationsCard } from "@/components/features/cohorts/cohort-organizations-card";
 
 // Loading skeleton for content grid
@@ -33,7 +32,6 @@ export default function CohortDetailsPage() {
   const cohortId = params?.id as string;
 
   const { data: cohort, isLoading, error } = useCohortDetails(cohortId);
-  const { groups: allGroups } = useGroups();
 
   usePageTitle({ title: cohort?.name || "Cohort Details", section: "Cohorts" });
 

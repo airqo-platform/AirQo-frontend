@@ -77,7 +77,7 @@ export function CohortOrganizationsCard({
       sortable: true,
     },
     {
-      key: "actions" as any,
+      key: "actions" as keyof Group,
       title: "Unassign",
       render: (value, item) => (
         <Switch
@@ -114,7 +114,7 @@ export function CohortOrganizationsCard({
             </div>
           ) : (
             <div className="flex flex-col">
-              {displayOrganizations.map((org, index) => (
+              {displayOrganizations.map((org) => (
                 <div key={org._id} className="relative py-3 border-b border-gray-100 dark:border-gray-800 last:border-0">
                   <div className="flex justify-between items-start">
                     <div className="flex-1 space-y-2">
