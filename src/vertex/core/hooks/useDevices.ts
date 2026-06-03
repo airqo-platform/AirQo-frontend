@@ -482,6 +482,7 @@ interface UseUpdateDeviceGroupOptions {
 }
 
 export const useUpdateDeviceGroup = (options?: UseUpdateDeviceGroupOptions) => {
+  const queryClient = useQueryClient();
   return useMutation<
     DeviceUpdateGroupResponse,
     AxiosError<ErrorResponse>,
@@ -491,7 +492,12 @@ export const useUpdateDeviceGroup = (options?: UseUpdateDeviceGroupOptions) => {
       devices.bulkUpdateDeviceDetails([deviceId], { groups: [groupName] }),
 
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["devices"] });
+      queryClient.invalidateQueries({ queryKey: ["myDevices"] });
+      queryClient.invalidateQueries({ queryKey: ["network-devices"] });
+      queryClient.invalidateQueries({ queryKey: ["deviceActivities"] });
       options?.onSuccess?.();
+     
     },
 
     onError: (error) => {
