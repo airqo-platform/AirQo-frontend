@@ -10,7 +10,6 @@ export const ROUTE_LINKS = {
   MY_DEVICES: '/devices/my-devices',
   ORG_OVERVIEW: '/home',
   ORG_ASSETS: '/devices/overview',
-  ORG_REGISTER_DEVICE: '/devices/claim',
   DEVICE_COHORTS: '/cohorts',
   ORG_SITES: '/sites/overview',
   SITE_DETAILS: '/sites',

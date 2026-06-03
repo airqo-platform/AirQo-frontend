@@ -13,7 +13,7 @@ import {
   DeviceCountResponse,
   type DeviceActivitiesResponse,
 } from '../apis/devices';
-import { useGroupCohorts } from './useCohorts';
+import { useGroupCohorts, usePersonalUserCohorts } from './useCohorts';
 import { useAppSelector } from '../redux/hooks';
 import { useMemo } from 'react';
 import type {
@@ -188,14 +188,16 @@ export const useMyDevices = (
     grp_title?: string;
   };
 
+  const { data: personalCohortIds, isLoading: isPersonalCohortsLoading } = usePersonalUserCohorts(userId, { enabled: !!userId && enabled });
+
   const groupIds = userDetails?.groups
     ? (userDetails.groups as UserGroup[])
         .filter((g) => g.grp_title?.toLowerCase() !== "airqo")
         .map((g) => g._id)
     : userDetails?.group_ids || [];
-  const cohortIds = userDetails?.cohort_ids || [];
+  const cohortIds = personalCohortIds && personalCohortIds.length > 0 ? personalCohortIds : (userDetails?.cohort_ids || []);
 
-  return useQuery<MyDevicesResponse, AxiosError<ErrorResponse>>({
+  const query = useQuery<MyDevicesResponse, AxiosError<ErrorResponse>>({
     queryKey: [
       "myDevices",
       userId,
@@ -204,37 +206,55 @@ export const useMyDevices = (
       cohortIds,
     ],
     queryFn: () => devices.getMyDevices(userId, groupIds, cohortIds),
-    enabled: !!userId && enabled && !!userDetails,
+    enabled: !!userId && enabled && !!userDetails && !isPersonalCohortsLoading,
     staleTime: 60_000, // 1 minute
   });
+
+  return {
+    ...query,
+    isLoading: query.isLoading || isPersonalCohortsLoading,
+  };
 };
 
 export const useDeviceCount = (options: { enabled?: boolean; cohortIds?: string[]; network?: string } = {}) => {
   const activeGroup = useAppSelector(state => state.user.activeGroup);
   const { enabled = true, cohortIds, network } = options;
-  const isAirQoGroup = activeGroup?.grp_title === 'airqo';
 
-  const shouldFetchGroupCohorts = !cohortIds && !isAirQoGroup && !!activeGroup?._id && enabled && !network;
+  // If cohortIds are explicitly passed (e.g. personal scope), bypass group logic entirely
+  const hasExplicitCohorts = !!cohortIds;
+
+  // Only treat as AirQo group if no explicit cohortIds were passed
+  const isAirQoGroup = !hasExplicitCohorts && activeGroup?.grp_title === 'airqo';
+
+  const shouldFetchGroupCohorts =
+    !hasExplicitCohorts &&
+    !isAirQoGroup &&
+    !!activeGroup?._id &&
+    enabled &&
+    !network;
 
   const { data: groupCohortIds, isLoading: isLoadingCohorts } = useGroupCohorts(
     activeGroup?._id,
-    {
-      enabled: shouldFetchGroupCohorts,
-    }
+    { enabled: shouldFetchGroupCohorts }
   );
 
-  const effectiveCohortIds = cohortIds || groupCohortIds;
+  // Explicit cohortIds take priority over group-derived ones
+  const effectiveCohortIds = hasExplicitCohorts ? cohortIds : groupCohortIds;
 
   const isQueryEnabled =
     enabled &&
-    (!!network || isAirQoGroup || (!!effectiveCohortIds && effectiveCohortIds.length > 0));
+    (
+      !!network ||
+      isAirQoGroup ||
+      (!!effectiveCohortIds && effectiveCohortIds.length > 0)
+    );
 
   const query = useQuery<DeviceCountResponse, AxiosError<ErrorResponse>>({
     queryKey: [
       'deviceCount',
-      activeGroup?._id,
+      hasExplicitCohorts ? 'personal' : activeGroup?._id,
       isAirQoGroup ? null : effectiveCohortIds,
-      network
+      network,
     ],
     queryFn: () => {
       if (network) {
@@ -248,10 +268,11 @@ export const useDeviceCount = (options: { enabled?: boolean; cohortIds?: string[
       if (!effectiveCohortIds || effectiveCohortIds.length === 0) {
         return Promise.reject(new Error('Cohort IDs must be provided.'));
       }
+
       return devices.getDeviceCountApi({ cohort_id: effectiveCohortIds });
     },
     enabled: isQueryEnabled,
-    staleTime: 300_000, // 5 minutes
+    staleTime: 300_000,
     refetchOnWindowFocus: false,
   });
 
@@ -576,6 +597,9 @@ export const useImportDevice = () => {
           queryClient.invalidateQueries({ queryKey: ['deviceCount'] });
           queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
         }
+        queryClient.invalidateQueries({ queryKey: ['cohorts'] });
+        queryClient.invalidateQueries({ queryKey: ['groupCohorts'] });
+        queryClient.invalidateQueries({ queryKey: ['personalUserCohorts'] });
       }
     }
   });
@@ -613,6 +637,9 @@ export const useBulkImportDevices = () => {
           queryClient.invalidateQueries({ queryKey: ['deviceCount'] });
           queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
         }
+        queryClient.invalidateQueries({ queryKey: ['cohorts'] });
+        queryClient.invalidateQueries({ queryKey: ['groupCohorts'] });
+        queryClient.invalidateQueries({ queryKey: ['personalUserCohorts'] });
       }
     },
   });

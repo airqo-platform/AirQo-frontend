@@ -400,7 +400,7 @@ class PermissionService {
       [PERMISSIONS.DEVICE.MAINTAIN]: "Perform device maintenance",
       [PERMISSIONS.DEVICE.UPDATE]: "Update device configuration",
       [PERMISSIONS.DEVICE.DELETE]: "Delete device records",
-      [PERMISSIONS.DEVICE.CLAIM]: "Claim device",
+      [PERMISSIONS.DEVICE.CLAIM]: "Add AirQo device",
 
       [PERMISSIONS.SITE.VIEW]: "View site information",
       [PERMISSIONS.SITE.CREATE]: "Create new sites",

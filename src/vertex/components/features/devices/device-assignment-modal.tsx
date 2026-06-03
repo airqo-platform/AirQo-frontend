@@ -18,7 +18,6 @@ import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import { Label } from "@/components/ui/label";
 import { ComboBox } from "@/components/ui/combobox";
-import { useRouter } from "next/navigation";
 import {
   Select,
   SelectContent,
@@ -26,6 +25,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import dynamic from "next/dynamic";
+
+const ClaimDeviceModal = dynamic(
+  () => import("@/components/features/claim/claim-device-modal"),
+  { ssr: false }
+);
 
 interface DeviceAssignmentModalProps {
   devices: Device[];
@@ -42,10 +47,10 @@ const DeviceAssignmentModal: React.FC<DeviceAssignmentModalProps> = ({
   onSuccess,
   isLoadingDevices,
 }) => {
-  const router = useRouter();
   const { userDetails, userGroups } = useAppSelector((state) => state.user);
   const [selectedOrganization, setSelectedOrganization] = useState<string | null>(null);
   const [selectedDevice, setSelectedDevice] = useState("");
+  const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
 
   const assignDevice = useAssignDeviceToOrganization();
   const { showBanner } = useBanner();
@@ -78,7 +83,7 @@ const DeviceAssignmentModal: React.FC<DeviceAssignmentModalProps> = ({
   };
 
   const handleClaimDevice = () => {
-    router.push("/devices/claim");
+    setIsClaimModalOpen(true);
   };
 
   const handleSelectChange = (value: string) => {
@@ -158,6 +163,10 @@ const DeviceAssignmentModal: React.FC<DeviceAssignmentModalProps> = ({
           </Button>
         </DialogFooter>
       </DialogContent>
+      <ClaimDeviceModal
+        isOpen={isClaimModalOpen}
+        onClose={() => setIsClaimModalOpen(false)}
+      />
     </Dialog>
   );
 };

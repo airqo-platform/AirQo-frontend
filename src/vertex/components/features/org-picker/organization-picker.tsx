@@ -19,7 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter, usePathname } from "next/navigation";
 import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
 
-const formatTitle = (title: string) => {
+export const formatTitle = (title: string) => {
   if (!title) return "";
   return title.replace(/[_-]/g, " ").toUpperCase();
 };
@@ -48,9 +48,9 @@ const OrganizationPicker: React.FC = () => {
   const validUserGroups = useMemo(() => {
     if (!Array.isArray(userGroups)) return [];
 
-    return userGroups.filter(
-      (group): group is Group => !!(group && group._id && group.grp_title)
-    );
+    return userGroups
+      .filter((group): group is Group => !!(group && group._id && group.grp_title))
+      .sort((a, b) => a.grp_title.localeCompare(b.grp_title));
   }, [userGroups]);
 
   const handleOrganizationChange = async (group: Group) => {

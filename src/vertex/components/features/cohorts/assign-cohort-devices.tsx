@@ -32,6 +32,7 @@ interface AssignCohortDevicesDialogProps {
   selectedDevices?: Device[];
   onSuccess?: () => void;
   cohortId?: string;
+  title?: string;
 }
 
 const formSchema = z.object({
@@ -49,6 +50,7 @@ export function AssignCohortDevicesDialog({
   selectedDevices,
   onSuccess,
   cohortId,
+  title = "Add devices to cohort",
 }: AssignCohortDevicesDialogProps) {
   const { isExternalOrg, activeGroup } = useUserContext();
   const { showBanner } = useBanner();
@@ -160,7 +162,7 @@ export function AssignCohortDevicesDialog({
       setDeviceSearch("");
       setDebouncedDeviceSearch("");
     }
-  }, [open, selectedDevices, form, cohortId]);
+  }, [open, form, cohortId, selectedDevices]);
 
   const handleCreateCohortSuccess = () => {
     setCreateCohortModalOpen(false);
@@ -214,7 +216,7 @@ export function AssignCohortDevicesDialog({
       <ReusableDialog
         isOpen={open}
         onClose={() => handleOpenChange(false)}
-        title="Add devices to cohort"
+        title={title}
         subtitle={`${form.watch("devices")?.length || 0} device(s) selected`}
         size="lg"
         maxHeight="max-h-[70vh]"
