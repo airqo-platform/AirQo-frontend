@@ -44,7 +44,14 @@ Introduced comprehensive enhancements to personal device claiming workflows, onb
 </details>
 
 <details>
-<summary><strong>Files Added & Modified (44)</strong></summary>
+<summary><strong>Session Management (1)</strong></summary>
+
+- **Idle Session Timeout**: Increased the inactivity auto-logout threshold from 30 minutes to 6 hours (`INACTIVITY_LIMIT`) in the frontend `authProvider` to accommodate longer-running operations and reduce login friction during daily use.
+
+</details>
+
+<details>
+<summary><strong>Files Added & Modified (45)</strong></summary>
 
 **Files Deleted:**
 - `src/vertex/app/(authenticated)/devices/claim/page.tsx` [DELETED]
@@ -89,6 +96,7 @@ Introduced comprehensive enhancements to personal device claiming workflows, onb
 - `src/vertex/components/layout/secondary-sidebar.tsx` [MODIFIED]
 - `src/vertex/components/layout/topbar.tsx` [MODIFIED]
 - `src/vertex/core/apis/cohorts.ts` [MODIFIED]
+- `src/vertex/core/auth/authProvider.tsx` [MODIFIED]
 - `src/vertex/core/hooks/useCohorts.ts` [MODIFIED]
 - `src/vertex/core/hooks/useContextAwareRouting.ts` [MODIFIED]
 - `src/vertex/core/hooks/useRecentlyVisited.ts` [MODIFIED]
