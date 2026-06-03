@@ -23,9 +23,9 @@ Introduced comprehensive enhancements to personal device claiming workflows, onb
 </details>
 
 <details>
-<summary><strong>Cohort & Bulk Import Improvements (3)</strong></summary>
+<summary><strong>Cohort & Bulk Import Improvements (4)</strong></summary>
 
-- **Personal User Cohorts**: Added dedicated APIs, hooks, and UI support for personal cohorts to isolate and manage user-specific device groupings effectively.
+- **Personal User Cohorts & Refactor**: Added dedicated APIs, hooks, and UI support for personal cohorts to isolate and manage user-specific device groupings effectively. Refactored the `CohortOrganizationsCard` to use a cleaner layout, displaying a compact view of up to 3 organizations with a full searchable modal table for extended lists.
 - **Cohort Imports**: Enabled importing capabilities directly for cohorts, setting cohort import as a primary option, and implemented robust validation to handle cohort verification errors gracefully.
 - **Bulk Import Enhancements**: Fixed bulk import bugs and enhanced the bulk import flow to reliably display import results, providing detailed previews and success summaries.
 

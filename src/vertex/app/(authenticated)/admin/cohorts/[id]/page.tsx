@@ -67,11 +67,6 @@ export default function CohortDetailsPage() {
     }
   }, [cohort]);
 
-  const assignedOrganizations = useMemo(() => {
-    if (!cohort?.groups || !allGroups) return [];
-    return allGroups.filter((group: { _id: string }) => cohort.groups.includes(group._id));
-  }, [cohort?.groups, allGroups]);
-
   const devices = useMemo(() => cohort?.devices || [], [cohort]);
 
   const handleAssignSuccess = () => {
@@ -126,14 +121,9 @@ export default function CohortDetailsPage() {
               />
               <CohortMeasurementsApiCard cohortId={cohortId} />
               <CohortOrganizationsCard
-                organizations={assignedOrganizations}
                 cohortId={cohortId}
                 cohortName={cohort?.name || ""}
-                loading={isLoading}
                 canUnassign={canUpdateDevice}
-                onUnassignSuccess={() => {
-                  // Refetch cohort details to update the list
-                }}
               />
             </div>
 
