@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
@@ -44,7 +44,11 @@ export function CohortOrganizationsCard({
     ReusableToast({ message: "Group ID copied to clipboard!", type: "SUCCESS" });
   };
 
-  const tableColumns: TableColumn<Group>[] = [
+  const tableData = useMemo(() => {
+    return organizations.map((org) => ({ ...org, id: org._id }));
+  }, [organizations]);
+
+  const tableColumns: TableColumn<Group & { id: string }>[] = [
     {
       key: "grp_title",
       title: "Organization Name",
@@ -77,7 +81,7 @@ export function CohortOrganizationsCard({
       sortable: true,
     },
     {
-      key: "actions" as keyof Group,
+      key: "actions" as keyof (Group & { id: string }),
       title: "Unassign",
       render: (value, item) => (
         <Switch
@@ -180,7 +184,7 @@ export function CohortOrganizationsCard({
       >
         <div className="py-4">
           <ReusableTable
-            data={organizations}
+            data={tableData}
             columns={tableColumns}
             searchable={true}
             searchableColumns={["grp_title", "grp_country", "_id"]}
