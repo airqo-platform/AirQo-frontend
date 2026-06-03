@@ -50,7 +50,6 @@ const getFallbackTitle = (pathname: string | null): PageTitleValue => {
   const exactRouteTitles: Record<string, PageTitleValue> = {
     "/home": { title: "Home" },
     "/devices/my-devices": { title: "My Devices", section: "Devices" },
-    "/devices/claim": { title: "Claim Device", section: "Devices" },
     "/devices/overview": { title: "Devices" },
     "/sites/overview": { title: "Sites" },
     "/cohorts": { title: "Cohorts" },

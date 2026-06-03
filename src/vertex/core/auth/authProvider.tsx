@@ -533,7 +533,7 @@ function AutoLogoutHandler() {
   const { data: session } = useSession();
   const logout = useLogout();
   const lastActivityRef = useRef(Date.now());
-  const INACTIVITY_LIMIT = 30 * 60 * 1000; // 30 minutes
+  const INACTIVITY_LIMIT = 6 * 60 * 60 * 1000; // 6 hours
 
   const updateActivity = useCallback(() => {
     lastActivityRef.current = Date.now();
@@ -562,7 +562,7 @@ function AutoLogoutHandler() {
     const intervalId = setInterval(() => {
       const timeSinceLastActivity = Date.now() - lastActivityRef.current;
       if (timeSinceLastActivity >= INACTIVITY_LIMIT) {
-        logger.debug('[AutoLogoutHandler] User inactive for 30 minutes, logging out');
+        logger.debug('[AutoLogoutHandler] User inactive for 6 hours, logging out');
         logout();
       }
     }, 60 * 1000); // Check every minute

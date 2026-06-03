@@ -71,7 +71,7 @@
 
 | **Feature/Screen**         | **Permission**                | **Disable for**                | **Hide for**                        |
 |----------------------------|-------------------------------|--------------------------------|--------------------------------------|
-| Claim Device               | DEVICE.UPDATE                 | All except permitted roles     | Guest/No Org                        |
+| Claim Device               | DEVICE.CLAIM                 | All except permitted roles     | Guest/No Org                        |
 | Deploy Device              | DEVICE.DEPLOY                 | All except permitted roles     | Guest/No Org                        |
 | Device Assignment/Share    | DEVICE.ASSIGN                 | All except permitted roles     | Guest/No Org, Viewer                |
 | Delete Device              | DEVICE.DELETE                 | All except Super/Org Admin     | Guest/No Org, Technician, Analyst    |

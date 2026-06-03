@@ -14,4 +14,12 @@ export interface Group {
   numberOfGroupUsers: number
   grp_users: UserDetails[]
   grp_manager: UserDetails
+  cohorts?: string[]
+  organization_slug?: string
+}
+
+export interface CohortGroupsResponse {
+  success: boolean;
+  message: string;
+  groups: Group[];
 }

@@ -1,4 +1,4 @@
-import { Cohort, CohortsSummaryResponse, GroupCohortsResponse, OriginalCohortResponse } from "@/app/types/cohorts";
+import { Cohort, CohortsSummaryResponse, GroupCohortsResponse, OriginalCohortResponse, PersonalUserCohortsResponse } from "@/app/types/cohorts";
 import createSecureApiClient from "../utils/secureApiProxyClient";
 
 export interface GetCohortsSummaryParams {
@@ -95,6 +95,23 @@ export const cohorts = {
         `/users/groups/${groupId}/cohorts/assign`,
         { cohort_ids: cohortIds },
         { headers: { 'X-Auth-Type': 'JWT' } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  unassignCohortsFromGroup: async (groupId: string, cohortIds: string[]) => {
+    try {
+      const response = await createSecureApiClient().delete(
+        `/users/groups/${groupId}/cohorts/unassign`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "X-Auth-Type": "JWT",
+          },
+          data: { cohort_ids: cohortIds },
+        }
       );
       return response.data;
     } catch (error) {
@@ -231,6 +248,20 @@ export const cohorts = {
       const response = await createSecureApiClient().get(
         `/devices/cohorts/${cohortId}/original`,
         { headers: { 'X-Auth-Type': 'JWT' } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  getPersonalUserCohorts: async (userId: string, signal?: AbortSignal): Promise<PersonalUserCohortsResponse> => {
+    try {
+      if (!userId?.trim()) {
+        throw new Error('User ID is required');
+      }
+      const response = await createSecureApiClient().get<PersonalUserCohortsResponse>(
+        `/users/${userId}/cohorts`,
+        { headers: { 'X-Auth-Type': 'JWT' }, signal }
       );
       return response.data;
     } catch (error) {

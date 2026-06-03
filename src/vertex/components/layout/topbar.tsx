@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAppSelector } from '@/core/redux/hooks';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import OrganizationPicker from '../features/org-picker/organization-picker';
 import Image from 'next/image';
 import Card from '../shared/card/CardWrapper';
@@ -38,7 +38,10 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
   const currentUser = useAppSelector(state => state.user.userDetails);
   const logout = useLogout();
   const router = useRouter();
+  const pathname = usePathname();
   const { data: session } = useSession();
+  
+  const isAdminMode = pathname?.startsWith('/admin');
 
   const user = currentUser || (session?.user as unknown as Partial<UserDetails> & { image?: string | null });
 
@@ -114,6 +117,11 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
               className={`flex items-center justify-center text-gray-800`}
             />
             <span className="font-medium text-lg tracking-tight">Vertex</span>
+            {isAdminMode && (
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/10 text-primary dark:bg-primary/20">
+                Administrator
+              </span>
+            )}
           </div>
 
           <div className="flex items-center gap-x-1 ml-auto">

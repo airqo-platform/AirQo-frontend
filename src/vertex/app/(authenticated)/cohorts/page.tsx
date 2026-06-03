@@ -2,15 +2,17 @@
 
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { format } from 'date-fns';
 import { Badge } from "@/components/ui/badge";
 import ReusableTable, { TableColumn } from "@/components/shared/table/ReusableTable";
-import { useCohorts, useGroupCohorts } from "@/core/hooks/useCohorts";
+import { useCohorts, useGroupCohorts, usePersonalUserCohorts } from "@/core/hooks/useCohorts";
 import { Cohort } from "@/app/types/cohorts";
 import { useServerSideTableState } from "@/core/hooks/useServerSideTableState";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { useUserContext } from "@/core/hooks/useUserContext";
+import { useAppSelector } from "@/core/redux/hooks";
 import CohortsEmptyState from "@/components/features/cohorts/cohorts-empty-state";
 
 type CohortRow = {
@@ -23,33 +25,49 @@ type CohortRow = {
 
 export default function CohortsPage() {
     const router = useRouter();
-    
+    const { data: session } = useSession();
+    const user = useAppSelector((state) => state.user.userDetails);
+
     const {
         pagination, setPagination,
         searchTerm, setSearchTerm,
         sorting, setSorting
     } = useServerSideTableState({ initialPageSize: 25 });
 
-    const { userDetails: user, isExternalOrg, activeGroup } = useUserContext();
+    const { isExternalOrg, activeGroup, userScope } = useUserContext();
 
-    // 1. Fetch group cohort IDs if external org
-    const { data: groupCohortIds, isLoading: isLoadingGroupCohorts } = useGroupCohorts(
-        activeGroup?._id,
-        { enabled: isExternalOrg && !!activeGroup?._id }
-    );
+    const isPersonalScope = userScope === 'personal';
+    const userId = (session?.user as { id?: string })?.id || user?._id;
 
-    // 2. Determine target IDs based on scope
+    // --- Personal scope: use personal user cohorts API ---
+    const {
+        data: personalCohortIds = [],
+        isLoading: isLoadingPersonalCohorts,
+    } = usePersonalUserCohorts(userId, {
+        enabled: isPersonalScope && !!userId,
+    });
+
+    // --- Org scope: use group cohorts ---
+    const {
+        data: groupCohortIds,
+        isLoading: isLoadingGroupCohorts,
+    } = useGroupCohorts(activeGroup?._id, {
+        enabled: isExternalOrg && !!activeGroup?._id && !isPersonalScope,
+    });
+
+    // Resolve effective cohort IDs based on scope
     const targetCohortIds = useMemo(() => {
-        if (isExternalOrg) {
-            return groupCohortIds || [];
-        }
-        // Personal scope
-        return user?.cohort_ids || [];
-    }, [isExternalOrg, groupCohortIds, user?.cohort_ids]);
+        if (isPersonalScope) return personalCohortIds;
+        if (isExternalOrg) return groupCohortIds || [];
+        return [];
+    }, [isPersonalScope, personalCohortIds, isExternalOrg, groupCohortIds]);
 
-    // 3. Conditional Fetching
-    const hasIdsToFetch = targetCohortIds && targetCohortIds.length > 0;
-    const shouldFetchCohorts = hasIdsToFetch && !(isExternalOrg && isLoadingGroupCohorts);
+    const isResolvingIds =
+        (isPersonalScope && isLoadingPersonalCohorts) ||
+        (isExternalOrg && !isPersonalScope && isLoadingGroupCohorts);
+
+    const hasIdsToFetch = targetCohortIds.length > 0;
+    const shouldFetchCohorts = hasIdsToFetch && !isResolvingIds;
 
     const { cohorts, meta, isFetching: isFetchingCohorts, error } = useCohorts(
         {
@@ -65,13 +83,12 @@ export default function CohortsPage() {
 
     const pageCount = meta?.totalPages ?? 0;
 
-    const isDeterminingIds = isExternalOrg && isLoadingGroupCohorts;
-    const isLoading = isExternalOrg ? (isLoadingGroupCohorts || isFetchingCohorts) : isFetchingCohorts;
-    const showEmptyState = !isLoading && (!hasIdsToFetch || (cohorts && cohorts.length === 0));
-
-    const tableLoading = isDeterminingIds || (hasIdsToFetch && isFetchingCohorts);
-
+    const tableLoading = isResolvingIds || (hasIdsToFetch && isFetchingCohorts);
     const displayError = (!hasIdsToFetch && !tableLoading) ? null : error;
+    const showEmptyState =
+        !tableLoading &&
+        !displayError &&
+        (!hasIdsToFetch || (cohorts && cohorts.length === 0));
 
     const rows: CohortRow[] = useMemo(() => (cohorts || []).map((c: Cohort) => ({
         ...c,
@@ -118,7 +135,7 @@ export default function CohortsPage() {
             <RouteGuard permission={PERMISSIONS.DEVICE.VIEW}>
                 <CohortsEmptyState />
             </RouteGuard>
-        )
+        );
     }
 
     return (
@@ -133,13 +150,13 @@ export default function CohortsPage() {
 
                 <div>
                     <ReusableTable
-                        title="Your Cohorts"
+                        title={isPersonalScope ? "My Cohorts" : "Your Cohorts"}
                         data={rows}
                         columns={columns}
                         loading={tableLoading}
                         onRowClick={(item: unknown) => {
                             const row = item as CohortRow;
-                            if (row?.id) router.push(`/cohorts/${row.id}`)
+                            if (row?.id) router.push(`/cohorts/${row.id}`);
                         }}
                         emptyState={displayError ? (displayError.message || "Unable to load cohorts") : "No cohorts available"}
                         serverSidePagination
