@@ -17,6 +17,25 @@ export const DataVisualizerTutorialDialog: React.FC<
   const [videoError, setVideoError] = React.useState(false);
   const hasVideoUrl = Boolean(videoUrl?.trim());
 
+  const attemptPlayback = React.useCallback(async (video: HTMLVideoElement) => {
+    try {
+      video.muted = false;
+      await video.play();
+      return;
+    } catch (primaryError) {
+      try {
+        video.muted = true;
+        await video.play();
+      } catch (fallbackError) {
+        console.error('Tutorial video playback failed.', {
+          primaryError,
+          fallbackError,
+        });
+        setVideoError(true);
+      }
+    }
+  }, []);
+
   React.useEffect(() => {
     if (!isOpen) {
       return;
@@ -33,18 +52,8 @@ export const DataVisualizerTutorialDialog: React.FC<
     const video = videoRef.current;
     video.currentTime = 0;
 
-    const playVideo = async () => {
-      try {
-        video.muted = false;
-        await video.play();
-      } catch {
-        video.muted = true;
-        await video.play().catch(() => undefined);
-      }
-    };
-
-    void playVideo();
-  }, [hasVideoUrl, isOpen]);
+    void attemptPlayback(video);
+  }, [attemptPlayback, hasVideoUrl, isOpen]);
 
   const handleClose = () => {
     if (videoRef.current) {
@@ -58,7 +67,13 @@ export const DataVisualizerTutorialDialog: React.FC<
   const retryVideo = () => {
     setVideoError(false);
     if (videoRef.current) {
-      videoRef.current.load();
+      const video = videoRef.current;
+      const handleCanPlay = () => {
+        void attemptPlayback(video);
+      };
+
+      video.addEventListener('canplay', handleCanPlay, { once: true });
+      video.load();
     }
   };
 

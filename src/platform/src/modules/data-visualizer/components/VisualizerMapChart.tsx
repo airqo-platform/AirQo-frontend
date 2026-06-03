@@ -49,10 +49,6 @@ type FeatureCollection = {
 };
 
 const DEFAULT_MAPBOX_STYLE = 'mapbox://styles/mapbox/streets-v12';
-const AFRICA_BOUNDS: [[number, number], [number, number]] = [
-  [-35, -45],
-  [60, 45],
-];
 const DEFAULT_VIEW = { longitude: 15, latitude: 2, zoom: 1.8 };
 const COLOR_SCALE = [
   '#145fff',
@@ -429,7 +425,6 @@ export const VisualizerMapChart: React.FC<VisualizerMapChartProps> = ({
         mapStyle={currentMapStyle || DEFAULT_MAPBOX_STYLE}
         style={{ width: '100%', height: '100%' }}
         attributionControl={false}
-        maxBounds={AFRICA_BOUNDS}
         minZoom={0.5}
         maxZoom={18}
         interactiveLayerIds={
