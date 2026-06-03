@@ -21,19 +21,18 @@ import {
   useAssignCohortsToGroup,
   useAssignCohortsToUser,
 } from '@/core/hooks/useCohorts';
-import { BulkClaimResults } from './steps/BulkClaimResults';
+import dynamic from 'next/dynamic';
 
-import CohortImportStep from './steps/CohortImportStep';
-import ManualInputStep from './steps/ManualInputStep';
-import QRScanStep from './steps/QRScanStep';
-import SuccessStep from './steps/SuccessStep';
-import {
-  BulkConfirmationStep,
-  CohortConfirmStep,
-  ConfirmationStep,
-} from './steps/ConfirmationSteps';
-import MethodSelectStep from './steps/MethodSelectStep';
-import BulkInputStep from './steps/BulkInputStep';
+const BulkClaimResults = dynamic(() => import('./steps/BulkClaimResults').then(mod => mod.BulkClaimResults));
+const CohortImportStep = dynamic(() => import('./steps/CohortImportStep'));
+const ManualInputStep = dynamic(() => import('./steps/ManualInputStep'));
+const QRScanStep = dynamic(() => import('./steps/QRScanStep'));
+const SuccessStep = dynamic(() => import('./steps/SuccessStep'));
+const BulkConfirmationStep = dynamic(() => import('./steps/ConfirmationSteps').then(mod => mod.BulkConfirmationStep));
+const CohortConfirmStep = dynamic(() => import('./steps/ConfirmationSteps').then(mod => mod.CohortConfirmStep));
+const ConfirmationStep = dynamic(() => import('./steps/ConfirmationSteps').then(mod => mod.ConfirmationStep));
+const MethodSelectStep = dynamic(() => import('./steps/MethodSelectStep'));
+const BulkInputStep = dynamic(() => import('./steps/BulkInputStep'));
 
 import { parseQRCode } from './utils';
 

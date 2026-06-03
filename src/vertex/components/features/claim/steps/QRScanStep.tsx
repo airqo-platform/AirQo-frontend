@@ -9,6 +9,8 @@ import logger from "@/lib/logger";
 
 interface QRScannerErrorBoundaryProps {
   children: ReactNode;
+  isOpen?: boolean;
+  fallback?: ReactNode;
   onError?: () => void;
 }
 
@@ -20,6 +22,12 @@ class QRScannerErrorBoundary extends Component<QRScannerErrorBoundaryProps, QRSc
   constructor(props: QRScannerErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
+  }
+
+  componentDidUpdate(prevProps: QRScannerErrorBoundaryProps) {
+    if (!prevProps.isOpen && this.props.isOpen && this.state.hasError) {
+      this.setState({ hasError: false });
+    }
   }
 
   static getDerivedStateFromError(): QRScannerErrorBoundaryState {
@@ -34,7 +42,7 @@ class QRScannerErrorBoundary extends Component<QRScannerErrorBoundaryProps, QRSc
   }
 
   render(): ReactNode {
-    if (this.state.hasError) return null;
+    if (this.state.hasError) return this.props.fallback || null;
     return this.props.children;
   }
 }
@@ -58,21 +66,33 @@ const QRScanStep = ({
   onManualEntry: () => void;
   onError: () => void;
 }) => (
-  <QRScannerErrorBoundary onError={onError}>
-    <div className="space-y-4">
-      {!isPersonalContext && defaultCohort && (
-        <CohortAssignmentBanner
-          isExternalOrg={isExternalOrg}
-          isPersonalContext={isPersonalContext}
-          activeGroupTitle={activeGroupTitle}
-        />
-      )}
+  <div className="space-y-4">
+    {!isPersonalContext && defaultCohort && (
+      <CohortAssignmentBanner
+        isExternalOrg={isExternalOrg}
+        isPersonalContext={isPersonalContext}
+        activeGroupTitle={activeGroupTitle}
+      />
+    )}
+    <QRScannerErrorBoundary
+      isOpen={isOpen}
+      onError={onError}
+      fallback={
+        <button
+          type="button"
+          onClick={onManualEntry}
+          className="w-full text-sm text-blue-600 dark:text-blue-400 hover:underline"
+        >
+          Scanner unavailable. Enter details manually
+        </button>
+      }
+    >
       {isOpen && <QRScanner onScan={onScan} />}
-      <button onClick={onManualEntry} className="w-full text-sm text-blue-600 dark:text-blue-400 hover:underline">
-        Having trouble? Enter details manually
-      </button>
-    </div>
-  </QRScannerErrorBoundary>
+    </QRScannerErrorBoundary>
+    <button type="button" onClick={onManualEntry} className="w-full text-sm text-blue-600 dark:text-blue-400 hover:underline">
+      Having trouble? Enter details manually
+    </button>
+  </div>
 );
 
 export default QRScanStep;
