@@ -9,7 +9,11 @@ import {
 } from '@/shared/hooks/usePreferences';
 import { useUser } from '@/shared/hooks/useUser';
 import { normalizeAirQualityData } from '@/shared/components/charts/utils';
-import { generateTrend, getAirQualityLevel } from '../utils';
+import {
+  generateTrend,
+  getAirQualityLevel,
+  normalizeRecentReadingsToSiteData,
+} from '../utils';
 import { getSiteDisplayName } from '@/shared/utils/siteUtils';
 import { useAnalytics } from './useAnalytics';
 import { analyticsService } from '@/shared/services/analyticsService';
@@ -30,26 +34,68 @@ interface AnalyticsSelections {
   enabled?: boolean;
 }
 
+type PreferenceSite = Partial<Site> & {
+  id?: string;
+  site_id?: string;
+};
+
 const EMPTY_SELECTED_SITE_IDS: string[] = [];
 
 const ANALYTICS_QUERY_STALE_TIME_MS = 1000 * 60 * 5;
 const ANALYTICS_QUERY_GC_TIME_MS = 1000 * 60 * 60 * 12;
 const SITE_CARD_LOOKBACK_WINDOW_MS = 1000 * 60 * 60 * 24;
 
-const buildNoValueSiteCard = (
-  selectedSite: Site,
-  pollutant: string
-): SiteData => ({
-  _id: selectedSite._id,
-  name: getSiteDisplayName(selectedSite),
-  location: selectedSite.country || 'Unknown Country',
-  value: 0,
-  status: 'no-value',
-  pollutant,
-  unit: 'μg/m³',
-  trend: 'stable',
-  percentageDifference: 0,
-});
+const resolvePreferenceSiteId = (site?: PreferenceSite | null): string => {
+  const candidateIds = [site?._id, site?.id, site?.site_id];
+
+  return (
+    candidateIds
+      .map(candidateId =>
+        typeof candidateId === 'string' ? candidateId.trim() : ''
+      )
+      .find(Boolean) || ''
+  );
+};
+
+const normalizePreferenceSelectedSites = (
+  selectedSiteIds: string[],
+  selectedSites: PreferenceSite[]
+): Site[] => {
+  const normalizedSitesById = new Map<string, Site>();
+
+  selectedSites.forEach(selectedSite => {
+    const siteId = resolvePreferenceSiteId(selectedSite);
+
+    if (!siteId) {
+      return;
+    }
+
+    normalizedSitesById.set(siteId, {
+      search_name:
+        selectedSite.search_name ||
+        selectedSite.formatted_name ||
+        selectedSite.generated_name ||
+        selectedSite.name ||
+        siteId,
+      ...selectedSite,
+      _id: siteId,
+    });
+  });
+
+  return selectedSiteIds.map(siteId => {
+    const existingSite = normalizedSitesById.get(siteId);
+
+    if (existingSite) {
+      return existingSite;
+    }
+
+    return {
+      _id: siteId,
+      search_name: siteId,
+      name: siteId,
+    };
+  });
+};
 
 const buildSiteCardLocation = (selectedSite: Site) => {
   return (
@@ -59,6 +105,64 @@ const buildSiteCardLocation = (selectedSite: Site) => {
     selectedSite.country ||
     'Unknown Country'
   );
+};
+
+const buildNoValueSiteCard = (
+  selectedSite: Site,
+  pollutant: string
+): SiteData => ({
+  _id: selectedSite._id,
+  name: getSiteDisplayName(selectedSite),
+  search_name: getSiteDisplayName(selectedSite),
+  location: buildSiteCardLocation(selectedSite),
+  country: selectedSite.country,
+  city: selectedSite.city,
+  region: selectedSite.region,
+  value: 0,
+  status: 'no-value',
+  pollutant,
+  unit: 'μg/m³',
+  trend: 'stable',
+  percentageDifference: 0,
+});
+
+const buildSiteCardsFromRecentReadings = (
+  siteCards: SiteData[],
+  selectedSites: Site[],
+  pollutant: 'pm2_5' | 'pm10'
+): SiteData[] => {
+  if (!Array.isArray(siteCards) || siteCards.length === 0) {
+    return selectedSites.map(selectedSite =>
+      buildNoValueSiteCard(selectedSite, pollutant)
+    );
+  }
+
+  const siteCardsById = new Map(
+    siteCards.map(siteCard => [siteCard._id, siteCard] as const)
+  );
+
+  return selectedSites.map(selectedSite => {
+    const siteCard = siteCardsById.get(selectedSite._id);
+
+    if (!siteCard) {
+      return buildNoValueSiteCard(selectedSite, pollutant);
+    }
+
+    const fallbackDisplayName = getSiteDisplayName(selectedSite);
+    const apiDisplayName = getSiteDisplayName(siteCard);
+
+    return {
+      ...siteCard,
+      _id: selectedSite._id,
+      name: apiDisplayName || fallbackDisplayName,
+      search_name: siteCard.search_name || apiDisplayName || fallbackDisplayName,
+      location: siteCard.location || buildSiteCardLocation(selectedSite),
+      country: siteCard.country ?? selectedSite.country,
+      city: siteCard.city ?? selectedSite.city,
+      region: siteCard.region ?? selectedSite.region,
+      pollutant,
+    };
+  });
 };
 
 const createLatestSiteCardDateRange = () => {
@@ -74,7 +178,7 @@ const createLatestSiteCardDateRange = () => {
 const buildSiteCardsFromChartPoints = (
   chartPoints: ChartDataPoint[],
   selectedSites: Site[],
-  pollutant: string
+  pollutant: 'pm2_5' | 'pm10'
 ): SiteData[] => {
   if (!Array.isArray(chartPoints) || chartPoints.length === 0) {
     return selectedSites.map(selectedSite =>
@@ -132,6 +236,15 @@ const buildSiteCardsFromChartPoints = (
   });
 };
 
+const isRecentReadingsCompatibilityFallbackError = (
+  error: unknown
+): boolean => {
+  const status = (error as { response?: { status?: number } } | null)?.response
+    ?.status;
+
+  return status === 404 || status === 405;
+};
+
 interface AnalyticsPreferencesOptions {
   groupId?: string;
   userId?: string;
@@ -175,10 +288,26 @@ export const useAnalyticsPreferences = (
       return [];
     }
 
-    if (!currentPreference?.selected_sites) {
+    const canonicalSiteIds = Array.isArray(currentPreference.site_ids)
+      ? currentPreference.site_ids
+      : [];
+    const fallbackSiteIds = Array.isArray(currentPreference.selected_sites)
+      ? currentPreference.selected_sites.map(resolvePreferenceSiteId)
+      : [];
+
+    const normalizedSiteIds = Array.from(
+      new Set(
+        [...canonicalSiteIds, ...fallbackSiteIds]
+          .map(siteId => (typeof siteId === 'string' ? siteId.trim() : ''))
+          .filter(Boolean)
+      )
+    );
+
+    if (normalizedSiteIds.length === 0) {
       return [];
     }
-    return currentPreference.selected_sites.map((site: Site) => site._id);
+
+    return normalizedSiteIds;
   }, [currentPreference, preferencesLoading]);
 
   // Get full selected sites data
@@ -188,8 +317,11 @@ export const useAnalyticsPreferences = (
       return [];
     }
 
-    return currentPreference?.selected_sites || [];
-  }, [currentPreference, preferencesLoading]);
+    return normalizePreferenceSelectedSites(
+      selectedSiteIds,
+      currentPreference?.selected_sites || []
+    );
+  }, [currentPreference, preferencesLoading, selectedSiteIds]);
 
   // Combined loading state - only show loading if we should fetch and are actually loading
   const isWaitingForGroup = isEnabled && !resolvedGroupId;
@@ -359,9 +491,25 @@ export const useAnalyticsSiteCards = ({
     () => selectedSiteIds.join(','),
     [selectedSiteIds]
   );
+  const selectedSitesKey = useMemo(
+    () =>
+      selectedSites
+        .map(site =>
+          [
+            site._id,
+            getSiteDisplayName(site),
+            site.city ?? '',
+            site.region ?? '',
+            site.country ?? '',
+          ].join(':')
+        )
+        .join('|'),
+    [selectedSites]
+  );
   const activeGroupKey = activeGroup?.id ?? 'no-active-group';
 
-  const shouldFetch = enabled && selectedSiteIds.length > 0;
+  const shouldFetch =
+    enabled && selectedSiteIds.length > 0 && selectedSites.length > 0;
   const queryKey = useMemo(
     () => [
       'analytics',
@@ -369,9 +517,16 @@ export const useAnalyticsSiteCards = ({
       user?.id ?? 'anonymous',
       activeGroupKey,
       selectedSiteIdsKey,
+      selectedSitesKey,
       filters.pollutant,
     ],
-    [activeGroupKey, filters.pollutant, selectedSiteIdsKey, user?.id]
+    [
+      activeGroupKey,
+      filters.pollutant,
+      selectedSiteIdsKey,
+      selectedSitesKey,
+      user?.id,
+    ]
   );
   const currentRequestKey = useMemo(() => JSON.stringify(queryKey), [queryKey]);
   const lastSettledRequestKeyRef = useRef(currentRequestKey);
@@ -379,25 +534,53 @@ export const useAnalyticsSiteCards = ({
   const query = useQuery<SiteData[], Error>({
     queryKey,
     queryFn: async ({ signal }) => {
-      const latestDateRange = createLatestSiteCardDateRange();
-      const response = await analyticsService.getChartData(
-        {
-          sites: selectedSiteIds,
-          startDate: latestDateRange.startDate,
-          endDate: latestDateRange.endDate,
-          chartType: 'line',
-          frequency: 'hourly',
-          pollutant: filters.pollutant.toLowerCase().replace('.', '_'),
-          organisation_name: '',
-        },
-        signal
-      );
+      const activePollutant: 'pm2_5' | 'pm10' =
+        filters.pollutant === 'pm10' ? 'pm10' : 'pm2_5';
 
-      return buildSiteCardsFromChartPoints(
-        response?.data ?? [],
-        selectedSites,
-        filters.pollutant
-      );
+      try {
+        const response = await analyticsService.getRecentReadings(
+          {
+            site_id: selectedSiteIds.join(','),
+          },
+          signal
+        );
+
+        return buildSiteCardsFromRecentReadings(
+          normalizeRecentReadingsToSiteData(
+            response?.measurements ?? [],
+            activePollutant
+          ),
+          selectedSites,
+          activePollutant
+        );
+      } catch (error) {
+        if (
+          signal.aborted ||
+          !isRecentReadingsCompatibilityFallbackError(error)
+        ) {
+          throw error;
+        }
+
+        const latestDateRange = createLatestSiteCardDateRange();
+        const fallbackResponse = await analyticsService.getChartData(
+          {
+            sites: selectedSiteIds,
+            startDate: latestDateRange.startDate,
+            endDate: latestDateRange.endDate,
+            chartType: 'line',
+            frequency: 'hourly',
+            pollutant: activePollutant,
+            organisation_name: '',
+          },
+          signal
+        );
+
+        return buildSiteCardsFromChartPoints(
+          fallbackResponse?.data ?? [],
+          selectedSites,
+          activePollutant
+        );
+      }
     },
     enabled: shouldFetch,
     networkMode: 'online',

@@ -13,34 +13,33 @@ env:
   KEYVAULT: airqo-kv-staging
 
 jobs:
-
-#########################################
-# FORMAT BRANCH NAME
-#########################################
+  #########################################
+  # FORMAT BRANCH NAME
+  #########################################
 
   branch-name:
-      runs-on: ubuntu-latest
-      outputs:
-        lowercase: ${{ steps.string.outputs.lowercase }}
-        sanitized: ${{ steps.sanitize.outputs.sanitized }}
+    runs-on: ubuntu-latest
+    outputs:
+      lowercase: ${{ steps.string.outputs.lowercase }}
+      sanitized: ${{ steps.sanitize.outputs.sanitized }}
 
-      steps:
-        - id: string
-          uses: ASzc/change-string-case-action@v5
-          with:
-            string: ${{ github.head_ref || github.ref_name }}
+    steps:
+      - id: string
+        uses: ASzc/change-string-case-action@v5
+        with:
+          string: ${{ github.head_ref || github.ref_name }}
 
-        - name: sanitize branch name
-          id: sanitize
-          env:
-            RAW: ${{ steps.string.outputs.lowercase }}
-          run: |
-            CLEAN=$(printf '%s' "${RAW:0:12}" | sed 's/-*$//')
-            echo "sanitized=$CLEAN" >> $GITHUB_OUTPUT
+      - name: sanitize branch name
+        id: sanitize
+        env:
+          RAW: ${{ steps.string.outputs.lowercase }}
+        run: |
+          CLEAN=$(printf '%s' "${RAW:0:12}" | sed 's/-*$//')
+          echo "sanitized=$CLEAN" >> $GITHUB_OUTPUT
 
-#########################################
-# DETECT CHANGED SERVICES
-#########################################
+  #########################################
+  # DETECT CHANGED SERVICES
+  #########################################
 
   check:
     runs-on: ubuntu-latest
@@ -103,9 +102,9 @@ jobs:
             fi
           done < files.txt
 
-#########################################
-# WEBSITE PREVIEW
-#########################################
+  #########################################
+  # WEBSITE PREVIEW
+  #########################################
 
   website:
     needs: [check, branch-name]
@@ -183,9 +182,9 @@ jobs:
               body: 'New azure website changes available for preview [here](${{ needs.website.outputs.url }})'
             })
 
-#########################################
-# BEACON PREVIEW
-#########################################
+  #########################################
+  # BEACON PREVIEW
+  #########################################
 
   beacon:
     name: build-push-deploy-beacon-preview
@@ -226,6 +225,8 @@ jobs:
           BRANCH="${{ needs.branch-name.outputs.sanitized }}"
           APP="${BRANCH}-beacon-preview"
 
+          mapfile -t ENV_VARS < <(jq -r 'to_entries[] | "\(.key)=\(.value|tostring)"' secrets.json)
+
           az containerapp up \
             --name $APP \
             --resource-group ${{ env.RG }} \
@@ -236,7 +237,7 @@ jobs:
             --registry-server ${{ env.REGISTRY_URL }} \
             --registry-username airqoacr \
             --registry-password ${{ secrets.ACR_PASSWORD }} \
-            --env-vars "$(jq -r 'to_entries | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json)"
+            --env-vars "${ENV_VARS[@]}"
 
       - id: preview
         run: |
@@ -265,9 +266,9 @@ jobs:
               body: 'New azure beacon changes available for preview [here](${{ needs.beacon.outputs.url }})'
             })
 
-#########################################
-# CALIBRATE APP PREVIEW
-#########################################
+  #########################################
+  # CALIBRATE APP PREVIEW
+  #########################################
 
   calibrate_app:
     name: build-push-deploy-calibrate-app-preview
@@ -307,6 +308,8 @@ jobs:
           BRANCH="${{ needs.branch-name.outputs.sanitized }}"
           APP="${BRANCH}-calibrate-app-preview"
 
+          mapfile -t ENV_VARS < <(jq -r 'to_entries[] | "\(.key)=\(.value|tostring)"' secrets.json)
+
           az containerapp up \
             --name $APP \
             --resource-group ${{ env.RG }} \
@@ -317,7 +320,7 @@ jobs:
             --registry-server ${{ env.REGISTRY_URL }} \
             --registry-username airqoacr \
             --registry-password ${{ secrets.ACR_PASSWORD }} \
-            --env-vars "$(jq -r 'to_entries | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json)"
+            --env-vars "${ENV_VARS[@]}"
 
       - id: preview
         run: |
@@ -346,9 +349,9 @@ jobs:
               body: 'New azure calibrate_app changes available for preview [here](${{ needs.calibrate_app.outputs.url }})'
             })
 
-#########################################
-# ANALYTICS PLATFORM PREVIEW
-#########################################
+  #########################################
+  # ANALYTICS PLATFORM PREVIEW
+  #########################################
 
   analytics_platform:
     name: build-push-deploy-analytics-platform-preview
@@ -373,13 +376,27 @@ jobs:
 
       - name: Pull secrets from Key Vault
         run: |
+          BRANCH="${{ needs.branch-name.outputs.sanitized }}"
+          APP="${BRANCH}-analytics-p-preview"
+
+          DEFAULT_DOMAIN=$(az containerapp env show \
+            --name ${{ env.PR_PREVIEW_ENV }} \
+            --resource-group ${{ env.RG }} \
+            --query properties.defaultDomain -o tsv)
+
+          NEXTAUTH_URL="https://$APP.$DEFAULT_DOMAIN"
+
           az keyvault secret show \
             --vault-name ${{ env.KEYVAULT }} \
             --name sta-env-next-platform \
             --query value -o tsv > secrets.json
 
-          # Write .env into the build context for Next.js build time
-          jq -r 'to_entries | .[] | "\(.key)=\(.value|tojson)"' secrets.json > src/platform/.env
+          jq -r 'to_entries | .[] | select(.key != "NEXTAUTH_URL" and .key != "NEXTAUTH_URL_INTERNAL" and .key != "NEXTAUTH_COOKIE_DOMAIN" and .key != "AUTH_URL" and .key != "AUTH_TRUST_HOST") | "\(.key)=\(.value|tojson)"' secrets.json > src/platform/.env
+          {
+            echo "NEXTAUTH_URL=$NEXTAUTH_URL"
+            echo "NEXTAUTH_URL_INTERNAL=$NEXTAUTH_URL"
+            echo "AUTH_TRUST_HOST=true"
+          } >> src/platform/.env
 
       - name: Build image
         run: |
@@ -391,6 +408,20 @@ jobs:
           BRANCH="${{ needs.branch-name.outputs.sanitized }}"
           APP="${BRANCH}-analytics-p-preview"
 
+          DEFAULT_DOMAIN=$(az containerapp env show \
+            --name ${{ env.PR_PREVIEW_ENV }} \
+            --resource-group ${{ env.RG }} \
+            --query properties.defaultDomain -o tsv)
+
+          NEXTAUTH_URL="https://$APP.$DEFAULT_DOMAIN"
+
+          mapfile -t ENV_VARS < <(jq -r 'to_entries[] | select(.key != "NEXTAUTH_URL" and .key != "NEXTAUTH_URL_INTERNAL" and .key != "NEXTAUTH_COOKIE_DOMAIN" and .key != "AUTH_URL" and .key != "AUTH_TRUST_HOST") | "\(.key)=\(.value|tostring)"' secrets.json)
+          ENV_VARS+=("NEXTAUTH_URL=$NEXTAUTH_URL")
+          ENV_VARS+=("NEXTAUTH_URL_INTERNAL=$NEXTAUTH_URL")
+          ENV_VARS+=("AUTH_TRUST_HOST=true")
+
+          jq -e '((.NEXTAUTH_SECRET // .AUTH_SECRET) | length > 0)' secrets.json >/dev/null
+
           az containerapp up \
             --name $APP \
             --resource-group ${{ env.RG }} \
@@ -401,7 +432,23 @@ jobs:
             --registry-server ${{ env.REGISTRY_URL }} \
             --registry-username airqoacr \
             --registry-password ${{ secrets.ACR_PASSWORD }} \
-            --env-vars "$(jq -r 'to_entries | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json)"
+            --env-vars "${ENV_VARS[@]}"
+
+          az containerapp update \
+            --name $APP \
+            --resource-group ${{ env.RG }} \
+            --replace-env-vars "${ENV_VARS[@]}"
+
+          AUTH_STATUS=$(curl -sS -o /tmp/nextauth-providers.json -w "%{http_code}" "$NEXTAUTH_URL/api/auth/providers")
+          if [ "$AUTH_STATUS" != "200" ]; then
+            echo "NextAuth providers endpoint returned HTTP $AUTH_STATUS"
+            cat /tmp/nextauth-providers.json || true
+            az containerapp logs show \
+              --name $APP \
+              --resource-group ${{ env.RG }} \
+              --tail 80 || true
+            exit 1
+          fi
 
       - id: preview
         run: |
@@ -430,9 +477,9 @@ jobs:
               body: 'New azure analytics_platform changes available for preview [here](${{ needs.analytics_platform.outputs.url }})'
             })
 
-#########################################
-# VERTEX PREVIEW
-#########################################
+  #########################################
+  # VERTEX PREVIEW
+  #########################################
 
   vertex:
     name: build-push-deploy-vertex-preview
@@ -489,6 +536,13 @@ jobs:
           BRANCH="${{ needs.branch-name.outputs.sanitized }}"
           APP="${BRANCH}-vertex-preview"
 
+          DEFAULT_DOMAIN=$(az containerapp env show \
+            --name ${{ env.PR_PREVIEW_ENV }} \
+            --resource-group ${{ env.RG }} \
+            --query properties.defaultDomain -o tsv)
+
+          NEXTAUTH_URL="https://$APP.$DEFAULT_DOMAIN"
+
           mapfile -t ENV_VARS < <(jq -r 'to_entries[] | select(.key != "NEXTAUTH_URL" and .key != "NEXTAUTH_URL_INTERNAL" and .key != "NEXTAUTH_COOKIE_DOMAIN") | "\(.key)=\(.value|tostring)"' secrets.json)
           ENV_VARS+=("NEXTAUTH_URL=$NEXTAUTH_URL")
           ENV_VARS+=("NEXTAUTH_URL_INTERNAL=$NEXTAUTH_URL")
@@ -518,13 +572,6 @@ jobs:
             --resource-group ${{ env.RG }} \
             --query "properties.template.containers[0].env[].name" \
             -o tsv | sort
-
-          DEFAULT_DOMAIN=$(az containerapp env show \
-            --name ${{ env.PR_PREVIEW_ENV }} \
-            --resource-group ${{ env.RG }} \
-            --query properties.defaultDomain -o tsv)
-
-          NEXTAUTH_URL="https://$APP.$DEFAULT_DOMAIN"
 
           AUTH_STATUS=$(curl -sS -o /tmp/nextauth-providers.json -w "%{http_code}" "$NEXTAUTH_URL/api/auth/providers")
           if [ "$AUTH_STATUS" != "200" ]; then
@@ -564,9 +611,9 @@ jobs:
               body: 'New azure vertex changes available for preview [here](${{ needs.vertex.outputs.url }})'
             })
 
-#########################################
-# DOCS PREVIEW
-#########################################
+  #########################################
+  # DOCS PREVIEW
+  #########################################
 
   docs:
     name: build-push-deploy-docs-preview
@@ -606,6 +653,8 @@ jobs:
           BRANCH="${{ needs.branch-name.outputs.sanitized }}"
           APP="${BRANCH}-docs-preview"
 
+          mapfile -t ENV_VARS < <(jq -r 'to_entries[] | "\(.key)=\(.value|tostring)"' secrets.json)
+
           az containerapp up \
             --name $APP \
             --resource-group ${{ env.RG }} \
@@ -616,7 +665,7 @@ jobs:
             --registry-server ${{ env.REGISTRY_URL }} \
             --registry-username airqoacr \
             --registry-password ${{ secrets.ACR_PASSWORD }} \
-            --env-vars "$(jq -r 'to_entries | map("\(.key)=\(.value|tostring)") | join(" ")' secrets.json)"
+            --env-vars "${ENV_VARS[@]}"
 
       - id: preview
         run: |

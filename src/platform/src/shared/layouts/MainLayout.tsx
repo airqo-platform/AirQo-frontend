@@ -79,7 +79,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
                 <main
                   className={cn(
-                    'flex-1 overflow-y-auto overflow-x-hidden flex flex-col pb-16 md:pb-0',
+                    'flex-1 overflow-y-auto overflow-x-hidden flex flex-col',
                     className
                   )}
                 >
