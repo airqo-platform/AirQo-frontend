@@ -21,15 +21,17 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 
 import { EXPECTED_FIELDS } from "./import-steps/types";
 import type { ImportDeviceFormData } from "./import-steps/types";
-import { SingleImportForm } from "./import-steps/SingleImportForm";
-import { BulkImportForm } from "./import-steps/BulkImportForm";
-import { FieldMappingStep } from "./import-steps/FieldMappingStep";
-import { ImportPreviewStep } from "./import-steps/ImportPreviewStep";
-import { CohortSelectionStep } from "./import-steps/CohortSelectionStep";
-import { ConfirmationStep } from "./import-steps/ConfirmationStep";
-import { BulkResultsStep } from "./import-steps/BulkResultsStep";
-import { ImportSuccessStep } from "./import-steps/ImportSuccessStep";
-import { ImportMethodSelectStep } from "./import-steps/ImportMethodSelectStep";
+import dynamic from "next/dynamic";
+
+const SingleImportForm = dynamic(() => import("./import-steps/SingleImportForm").then(mod => mod.SingleImportForm));
+const BulkImportForm = dynamic(() => import("./import-steps/BulkImportForm").then(mod => mod.BulkImportForm));
+const FieldMappingStep = dynamic(() => import("./import-steps/FieldMappingStep").then(mod => mod.FieldMappingStep));
+const ImportPreviewStep = dynamic(() => import("./import-steps/ImportPreviewStep").then(mod => mod.ImportPreviewStep));
+const CohortSelectionStep = dynamic(() => import("./import-steps/CohortSelectionStep").then(mod => mod.CohortSelectionStep));
+const ConfirmationStep = dynamic(() => import("./import-steps/ConfirmationStep").then(mod => mod.ConfirmationStep));
+const BulkResultsStep = dynamic(() => import("./import-steps/BulkResultsStep").then(mod => mod.BulkResultsStep));
+const ImportSuccessStep = dynamic(() => import("./import-steps/ImportSuccessStep").then(mod => mod.ImportSuccessStep));
+const ImportMethodSelectStep = dynamic(() => import("./import-steps/ImportMethodSelectStep").then(mod => mod.ImportMethodSelectStep));
 
 interface StepCardProps {
   title: string;
