@@ -1,4 +1,4 @@
-import { MAX_CHART_RENDER_ROWS } from '../constants';
+import { MAX_CHART_RENDER_ROWS, SOURCE_COLUMN_KEYS } from '../constants';
 import type { UploadedDataRow, VisualizerChartConfig } from '../types';
 import { formatCellValue, parseNumberValue } from './dataProfiling';
 
@@ -168,7 +168,9 @@ export const buildMapPoints = (
     const compareLabel = config.compareColumn
       ? formatCellValue(row[config.compareColumn]).trim()
       : '';
-    const datasetLabel = formatCellValue(row.Dataset).trim();
+    const datasetLabel = formatCellValue(
+      row[SOURCE_COLUMN_KEYS.INTERNAL.dataset] ?? row.Dataset
+    ).trim();
 
     points.push({
       id: `point-${points.length}`,
