@@ -334,7 +334,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
   useEffect(() => {
     if (claimError) {
       setError(
-        claimError.message || 'Failed to claim device. Please try again.',
+        claimError.message || 'Failed to add airqo device. Please try again.',
       );
       setStep('manual-input');
     }
@@ -370,7 +370,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
   useEffect(() => {
     if (bulkClaimError) {
       setError(
-        bulkClaimError.message || 'Failed to claim devices. Please try again.',
+        bulkClaimError.message || 'Failed to add airqo devices. Please try again.',
       );
       setStep('bulk-input');
     }
@@ -672,7 +672,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
           ...base,
           showFooter: true,
           primaryAction: {
-            label: isPending ? 'Claiming...' : 'Claim Device',
+            label: isPending ? 'Adding...' : 'Add AirQo Device',
             onClick: formMethods.handleSubmit(onManualSubmit),
             disabled: isPending,
           },

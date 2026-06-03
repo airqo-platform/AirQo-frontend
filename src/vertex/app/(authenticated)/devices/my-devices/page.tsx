@@ -108,7 +108,7 @@ const MyDevicesPage = () => {
                 Icon={AqPlus}
                 permission={PERMISSIONS.DEVICE.CLAIM}
               >
-                Claim Device
+                Add AirQo Device
               </ReusableButton>
               <ReusableButton
                 variant="outlined"

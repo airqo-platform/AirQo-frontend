@@ -98,7 +98,7 @@ export default function DownloadHero() {
                     Deployment checks
                   </p>
                   <div className="mt-4 space-y-3">
-                    {['Claim devices', 'Verify metadata', 'Share data'].map(
+                    {['Add devices', 'Verify metadata', 'Share data'].map(
                       step => (
                         <div key={step} className="flex items-center gap-2">
                           <ShieldCheck className="h-4 w-4 text-emerald-600" />
