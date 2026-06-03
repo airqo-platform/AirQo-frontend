@@ -4,9 +4,11 @@ import React, { useState, useRef } from 'react';
 import { usePrepareBulkDevicesForShipping } from '@/core/hooks/useDevices';
 import ReusableInputField from '@/components/shared/inputfield/ReusableInputField';
 import ReusableButton from '@/components/shared/button/ReusableButton';
-import ReusableToast from '@/components/shared/toast/ReusableToast';
 import { AqPlus, AqXClose, AqUploadCloud02 } from '@airqo/icons-react';
 import ReusableDialog from '@/components/shared/dialog/ReusableDialog';
+import { useBanner } from '@/context/banner-context';
+import { useBannerWithDelay } from '@/core/hooks/useBannerWithDelay';
+import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
 
 interface PrepareShippingModalProps {
     isOpen: boolean;
@@ -22,13 +24,22 @@ export const PrepareShippingModal: React.FC<PrepareShippingModalProps> = ({ isOp
     const [filePreview, setFilePreview] = useState<{ headers: string[], data: unknown[][], fileName: string } | null>(null);
     const [selectedColumn, setSelectedColumn] = useState<number>(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const { mutate: prepareBulk, isPending } = usePrepareBulkDevicesForShipping();
+    const { showBanner } = useBanner();
+    const { showBannerWithDelay } = useBannerWithDelay();
+    const { mutate: prepareBulk, isPending } = usePrepareBulkDevicesForShipping({
+        onSuccess: (data) => {
+            showBannerWithDelay({ severity: 'success', message: data.message, scoped: false });
+        },
+        onError: (error) => {
+            showBanner({ severity: 'error', message: `Bulk Preparation Failed: ${getApiErrorMessage(error)}`, scoped: true });
+        },
+    });
 
     const handleAddDevice = () => {
         const trimmedInput = currentInput.trim();
         if (!trimmedInput) return;
         if (devices.includes(trimmedInput)) {
-            ReusableToast({ message: 'Device already added', type: 'ERROR' });
+            showBanner({ severity: 'error', message: 'Device already added', scoped: true });
             return;
         }
         setDevices([...devices, trimmedInput]);
@@ -56,13 +67,13 @@ export const PrepareShippingModal: React.FC<PrepareShippingModalProps> = ({ isOp
 
         const fileExtension = file.name.split('.').pop()?.toLowerCase();
         if (!['csv', 'xlsx', 'xls'].includes(fileExtension || '')) {
-            ReusableToast({ message: 'Invalid file format. Please upload a CSV or Excel file.', type: 'ERROR' });
+            showBanner({ severity: 'error', message: 'Invalid file format. Please upload a CSV or Excel file.', scoped: true });
             e.target.value = '';
             return;
         }
 
         if (file.size > 5 * 1024 * 1024) {
-            ReusableToast({ message: 'File too large. Maximum size is 5MB.', type: 'ERROR' });
+            showBanner({ severity: 'error', message: 'File too large. Maximum size is 5MB.', scoped: true });
             e.target.value = '';
             return;
         }
@@ -90,7 +101,7 @@ export const PrepareShippingModal: React.FC<PrepareShippingModalProps> = ({ isOp
                         setIsImporting(false);
                     },
                     error: (error) => {
-                        ReusableToast({ message: `Error parsing CSV: ${error.message}`, type: 'ERROR' });
+                        showBanner({ severity: 'error', message: `Error parsing CSV: ${error.message}`, scoped: true });
                         setIsImporting(false);
                     },
                 });
@@ -114,13 +125,13 @@ export const PrepareShippingModal: React.FC<PrepareShippingModalProps> = ({ isOp
                     setIsImporting(false);
                 };
                 reader.onerror = () => {
-                    ReusableToast({ message: 'Error reading Excel file', type: 'ERROR' });
+                    showBanner({ severity: 'error', message: 'Error reading Excel file', scoped: true });
                     setIsImporting(false);
                 };
                 reader.readAsBinaryString(file);
             }
         } catch {
-            ReusableToast({ message: 'Error importing file. Please ensure papaparse and xlsx libraries are installed.', type: 'ERROR' });
+            showBanner({ severity: 'error', message: 'Error importing file. Please ensure papaparse and xlsx libraries are installed.', scoped: true });
             setIsImporting(false);
         }
 
@@ -146,7 +157,7 @@ export const PrepareShippingModal: React.FC<PrepareShippingModalProps> = ({ isOp
 
     const processImportedDevices = (importedDevices: string[]) => {
         if (importedDevices.length === 0) {
-            ReusableToast({ message: 'No valid device names found in the selected column', type: 'ERROR' });
+            showBanner({ severity: 'error', message: 'No valid device names found in the selected column', scoped: true });
             return;
         }
 
@@ -159,16 +170,16 @@ export const PrepareShippingModal: React.FC<PrepareShippingModalProps> = ({ isOp
             if (duplicateCount > 0) {
                 message += ` (${duplicateCount} duplicate${duplicateCount !== 1 ? 's' : ''} skipped)`;
             }
-            ReusableToast({ message, type: 'SUCCESS' });
+            showBanner({ severity: 'success', message, scoped: true });
         } else if (duplicateCount > 0) {
-            ReusableToast({ message: 'All devices in the file are already added', type: 'INFO' });
+            showBanner({ severity: 'info', message: 'All devices in the file are already added', scoped: true });
         }
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (devices.length === 0) {
-            ReusableToast({ message: 'Please add at least one device', type: 'ERROR' });
+            showBanner({ severity: 'error', message: 'Please add at least one device', scoped: true });
             return;
         }
         prepareBulk(
