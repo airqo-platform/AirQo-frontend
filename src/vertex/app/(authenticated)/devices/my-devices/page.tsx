@@ -104,10 +104,13 @@ const MyDevicesPage = () => {
               </p>
             </div>
             <div className="flex gap-2">
-              <Button onClick={() => setIsClaimModalOpen(true)}>
-                <AqPlus className="mr-2 h-4 w-4" />
+              <ReusableButton 
+                onClick={() => setIsClaimModalOpen(true)}
+                Icon={AqPlus}
+                permission={PERMISSIONS.DEVICE.CLAIM}
+              >
                 Claim Device
-              </Button>
+              </ReusableButton>
               <ReusableButton
                 variant="outlined"
                 onClick={() => setImportDeviceOpen(true)}
@@ -166,6 +169,7 @@ const MyDevicesPage = () => {
               onClick={() => setIsClaimModalOpen(true)}
               disabled={isLoading}
               Icon={AqPlus}
+              permission={PERMISSIONS.DEVICE.CLAIM}
             >
               Add AirQo Device
             </ReusableButton>
