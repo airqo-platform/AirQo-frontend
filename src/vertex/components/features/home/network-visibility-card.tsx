@@ -97,7 +97,6 @@ const NetworkVisibilityCard = ({ onVisibilityChanged, showCoachMark }: NetworkVi
     return () => clearTimeout(t);
   }, [successTooltip]);
 
-  if (!hasDeviceUpdatePermission) return null;
   if (!isLoading && (!cohorts || cohorts.length === 0)) return null;
   if (isLoading) return null;
 
@@ -256,6 +255,7 @@ const NetworkVisibilityCard = ({ onVisibilityChanged, showCoachMark }: NetworkVi
                             setTargetVisibility(checked);
                             setIsDialogOpen(true);
                           }}
+                          disabled={!hasDeviceUpdatePermission}
                           className="data-[state=checked]:bg-green-500"
                         />
                       </div>
