@@ -51,7 +51,7 @@ const StepCard: React.FC<StepCardProps> = ({ title, stepIndex, currentStep, onHe
           </CardTitle>
         </CardHeader>
       </CollapsibleTrigger>
-      <CollapsibleContent>
+      <CollapsibleContent className="overflow-hidden">
         <CardContent className="py-2 px-2 pt-4">{children}</CardContent>
         {footer && <CardFooter className="py-2 px-2 pt-2 border-t mt-2">{footer}</CardFooter>}
       </CollapsibleContent>
@@ -213,7 +213,9 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       setFileHeaders([]);
       setFieldMapping({});
       setTransformedPreview([]);
-      setImportFlow('single');
+      if (currentStep === 0) {
+        setImportFlow('single');
+      }
       return;
     }
 
