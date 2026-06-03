@@ -138,11 +138,12 @@ export const usePersonalUserCohorts = (
       if (!ids || ids.length === 0) return [];
 
       const verifyResults = await Promise.all(
-        ids.map((id) => cohortsApi.verifyCohortIdApi(id))
+        ids.map((id) => cohortsApi.verifyCohortIdApi(id).catch(() => null))
       );
 
       const filteredIds = ids.filter((id, idx) => {
         const result = verifyResults[idx];
+        if (!result) return false;
         const name = (result?.cohort?.name || '').toLowerCase();
         return name !== 'airqo';
       });
