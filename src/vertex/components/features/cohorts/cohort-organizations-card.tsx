@@ -12,6 +12,7 @@ interface CohortOrganizationsCardProps {
   cohortId: string;
   cohortName: string;
   loading?: boolean;
+  canUnassign?: boolean;
   onUnassignSuccess: () => void;
 }
 
@@ -20,6 +21,7 @@ export function CohortOrganizationsCard({
   cohortId,
   cohortName,
   loading = false,
+  canUnassign = false,
   onUnassignSuccess,
 }: CohortOrganizationsCardProps) {
   const [selectedOrg, setSelectedOrg] = useState<Group | null>(null);
@@ -68,6 +70,7 @@ export function CohortOrganizationsCard({
                     <Switch
                       checked={true}
                       onCheckedChange={() => handleUnassignClick(org)}
+                      disabled={!canUnassign}
                       className="data-[state=checked]:bg-red-600"
                     />
                   </div>

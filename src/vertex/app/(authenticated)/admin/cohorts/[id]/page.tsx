@@ -130,6 +130,7 @@ export default function CohortDetailsPage() {
                 cohortId={cohortId}
                 cohortName={cohort?.name || ""}
                 loading={isLoading}
+                canUnassign={canUpdateDevice}
                 onUnassignSuccess={() => {
                   // Refetch cohort details to update the list
                 }}
