@@ -493,12 +493,6 @@ const DeployDeviceComponent = ({
     return availableDevices;
   }, [prefilledDevice, availableDevices]);
 
-  // When returning from claim page, refresh device list (only for personal scope)
-  React.useEffect(() => {
-    if (userScope === 'personal') {
-      refetchDevices();
-    }
-  }, [userScope, refetchDevices]);
 
   const selectedDeviceId = React.useMemo(() => {
     if (prefilledDevice?._id) return prefilledDevice._id;
@@ -851,7 +845,14 @@ const DeployDeviceComponent = ({
 
       <ClaimDeviceModal
         isOpen={isClaimModalOpen}
-        onClose={() => setIsClaimModalOpen(false)}
+        onClose={() => {
+          setIsClaimModalOpen(false);
+          if (userScope === 'personal') {
+            refetchDevices();
+          } else {
+            queryClient.invalidateQueries({ queryKey: ['devices'] });
+          }
+        }}
       />
     </div>
   );

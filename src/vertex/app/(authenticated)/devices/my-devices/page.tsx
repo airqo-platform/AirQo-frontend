@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AqCollocation, AqPlus } from "@airqo/icons-react";
 import { Upload } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useMyDevices, useDevices } from "@/core/hooks/useDevices";
 import { useAppSelector } from "@/core/redux/hooks";
