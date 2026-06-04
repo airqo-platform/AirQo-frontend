@@ -4,7 +4,6 @@ import 'package:airqo/src/app/dashboard/models/forecast_response.dart';
 import 'package:airqo/src/app/shared/repository/base_repository.dart';
 import 'package:airqo/src/meta/utils/api_utils.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:http/http.dart';
 import 'package:loggy/loggy.dart';
 import 'package:airqo/src/app/shared/services/cache_manager.dart';
 import 'package:http/http.dart' as http;
@@ -21,6 +20,9 @@ class ForecastException implements Exception {
 
 abstract class ForecastRepository extends BaseRepository {
   Future<ForecastResponse> loadForecasts(String siteId,
+      {bool forceRefresh = false});
+
+  Future<HourlyForecastResponse> loadHourlyForecasts(String siteId,
       {bool forceRefresh = false});
 
   Future<void> clearCache(String siteId);
@@ -40,9 +42,7 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
     CacheManager? cacheManager,
     http.Client? httpClient,
   })  : _cacheManager = cacheManager ?? CacheManager(),
-        _httpClient = httpClient ?? http.Client() {
-    loggy.debug('Initialized ForecastImpl with httpClient: $_httpClient');
-  }
+        _httpClient = httpClient ?? http.Client();
 
   factory ForecastImpl({
     CacheManager? cacheManager,
@@ -54,7 +54,6 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
         httpClient: httpClient,
       );
     }
-
     return _instance ??= ForecastImpl._internal();
   }
 
@@ -65,16 +64,29 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
   final Map<String, StreamController<ForecastResponse>> _forecastControllers =
       {};
 
-  String _getForecastCacheKey(String siteId) => 'forecast_$siteId';
+  String _getDailyCacheKey(String siteId) => 'daily_forecast_$siteId';
+  String _getHourlyCacheKey(String siteId) => 'hourly_forecast_$siteId';
 
+  static const Map<String, String> _headers = {
+    'Content-Type': 'application/json',
+  };
+
+  Map<String, String> _baseParams(String siteId) => {
+        'token': dotenv.env['AIRQO_API_TOKEN'] ?? '',
+        'site_id': siteId,
+      };
+
+  Map<String, String> _hourlyQueryParams(String siteId) => {
+        ..._baseParams(siteId),
+        'limit': '240',
+      };
 
   @override
   Future<ForecastResponse> loadForecasts(String siteId,
       {bool forceRefresh = false}) async {
-    loggy.info(
-        'Loading forecasts for site $siteId (forceRefresh: $forceRefresh)');
+    loggy.info('Loading daily forecasts for site $siteId');
 
-    final cacheKey = _getForecastCacheKey(siteId);
+    final cacheKey = _getDailyCacheKey(siteId);
 
     final cachedData = await _cacheManager.get<ForecastResponse>(
       boxName: CacheBoxName.forecast,
@@ -91,156 +103,181 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
     );
 
     if (cachedData != null && !shouldRefresh) {
-      loggy.info(
-          'Using cached forecast data for site $siteId (${cachedData.timestamp})');
-
-      if (_cacheManager.isConnected) {
-        _refreshInBackground(siteId);
-      }
-
+      if (_cacheManager.isConnected) _refreshDailyInBackground(siteId);
       return cachedData.data;
     }
 
     if (_cacheManager.isConnected) {
       try {
-        final apiUrl = '${ApiUtils.baseUrl}${ApiUtils.fetchForecasts}';
-        final fullUrl = Uri.parse(apiUrl).replace(
-            queryParameters: {
-              "token": dotenv.env['AIRQO_API_TOKEN']!,
-              "site_id": siteId
-            });
-        
-        loggy.info('Fetching fresh forecast data for site $siteId from network');
+        final url = Uri.parse(
+            '${ApiUtils.baseUrl}${ApiUtils.fetchDailyForecasts}').replace(
+          queryParameters: _baseParams(siteId),
+        );
 
-        Response forecastResponse = await _httpClient.get(
-          fullUrl,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        ).timeout(const Duration(seconds: 15), onTimeout: () {
-          loggy.error('🌐 Request timed out after 15 seconds to: $fullUrl');
-          throw ForecastException(
-              'Request timed out. Server might be slow or unreachable.',
-              isNetworkError: true);
+        loggy.info('Fetching daily forecast: $url');
+        final response = await _httpClient
+            .get(url, headers: _headers)
+            .timeout(const Duration(seconds: 15), onTimeout: () {
+          throw ForecastException('Request timed out.', isNetworkError: true);
         });
 
-        if (forecastResponse.statusCode != 200) {
-          if (cachedData != null && forecastResponse.statusCode >= 500) {
-            loggy.warning(
-                'Server error ${forecastResponse.statusCode}, using cached data');
+        loggy.info('Daily forecast response: ${response.statusCode} — ${response.body.length > 200 ? response.body.substring(0, 200) : response.body}');
+
+        if (response.statusCode != 200) {
+          if (cachedData != null && response.statusCode >= 500) {
             return cachedData.data;
           }
-
-          if (forecastResponse.statusCode == 404) {
-            throw ForecastException(
-                'Forecast data not found for this location');
-          } else if (forecastResponse.statusCode == 401 ||
-              forecastResponse.statusCode == 403) {
-            throw ForecastException(
-                'Authentication error. Please try again later.');
-          } else {
-            throw ForecastException(
-                'Server error (${forecastResponse.statusCode}). Please try again later.');
-          }
+          _throwHttpError(response.statusCode);
         }
 
-        final responseBody = forecastResponse.body;
-        final ForecastResponse response =
-            ForecastResponse.fromJson(json.decode(responseBody));
+        final decoded = json.decode(response.body) as Map<String, dynamic>;
+        if (decoded['success'] == false) {
+          loggy.warning('API returned success=false: ${decoded['message']}');
+          if (cachedData != null) return cachedData.data;
+          throw ForecastException(
+              decoded['message'] ?? 'Forecast unavailable for this site.');
+        }
 
-        String? etag = forecastResponse.headers['etag'];
+        final parsed = ForecastResponse.fromJson(decoded);
 
         await _cacheManager.put<ForecastResponse>(
           boxName: CacheBoxName.forecast,
           key: cacheKey,
-          data: response,
-          toJson: (data) => response.toJson(),
-          etag: etag,
+          data: parsed,
+          toJson: (d) => parsed.toJson(),
+          etag: response.headers['etag'],
         );
 
-        _notifyListeners(siteId, response);
-
-        loggy.info(
-            '✅ Successfully fetched and cached forecast data for site $siteId');
-        return response;
+        _notifyListeners(siteId, parsed);
+        return parsed;
       } catch (e) {
-        loggy.error('Error fetching forecast data: $e');
-
-        bool isNetworkError = e.toString().toLowerCase().contains('socket') ||
-            e.toString().toLowerCase().contains('network') ||
-            e.toString().toLowerCase().contains('connection') ||
-            e.toString().toLowerCase().contains('handshake') ||
-            e.toString().toLowerCase().contains('dns') ||
-            e.toString().toLowerCase().contains('host') ||
-            (e is ForecastException && e.isNetworkError);
-
-        if (cachedData != null) {
-          loggy.info('Using stale cached data due to error');
-          return cachedData.data;
-        }
-
-        if (e is ForecastException) {
-          rethrow;
-        }
-        throw ForecastException('Failed to load forecast data: ${e.toString()}',
-            isNetworkError: isNetworkError);
+        loggy.error('Error fetching daily forecast: $e');
+        if (cachedData != null) return cachedData.data;
+        if (e is ForecastException) rethrow;
+        throw ForecastException('Failed to load forecast: ${e.toString()}',
+            isNetworkError: _isNetworkError(e));
       }
     } else {
-      if (cachedData != null) {
-        loggy.info('Using cached forecast data in offline mode');
-        return cachedData.data;
-      }
-
+      if (cachedData != null) return cachedData.data;
       throw ForecastException(
-          'Unable to load forecast data. Please check your connection and try again.',
+          'No connection. Please check your network.',
           isNetworkError: true);
     }
   }
 
-  Future<void> _refreshInBackground(String siteId) async {
-    try {
-      loggy.info(
-          'Starting background refresh of forecast data for site $siteId');
+  @override
+  Future<HourlyForecastResponse> loadHourlyForecasts(String siteId,
+      {bool forceRefresh = false}) async {
+    loggy.info('Loading hourly forecasts for site $siteId');
 
-      Response forecastResponse = await _httpClient.get(
-        Uri.parse('${ApiUtils.baseUrl}${ApiUtils.fetchForecasts}').replace(
-            queryParameters: {
-              "token": dotenv.env['AIRQO_API_TOKEN']!,
-              "site_id": siteId
-            }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      );
+    final cacheKey = _getHourlyCacheKey(siteId);
 
-      if (forecastResponse.statusCode == 200) {
-        final responseBody = forecastResponse.body;
-        final ForecastResponse response =
-            ForecastResponse.fromJson(json.decode(responseBody));
+    final cachedData = await _cacheManager.get<HourlyForecastResponse>(
+      boxName: CacheBoxName.forecast,
+      key: cacheKey,
+      fromJson: (json) => HourlyForecastResponse.fromJson(json),
+    );
 
-        String? etag = forecastResponse.headers['etag'];
+    final shouldRefresh = _cacheManager.shouldRefresh(
+      boxName: CacheBoxName.forecast,
+      key: cacheKey,
+      policy: RefreshPolicy.forecast,
+      cachedData: cachedData,
+      forceRefresh: forceRefresh,
+    );
 
-        final cacheKey = _getForecastCacheKey(siteId);
+    if (cachedData != null && !shouldRefresh) return cachedData.data;
 
-        await _cacheManager.put<ForecastResponse>(
-          boxName: CacheBoxName.forecast,
-          key: cacheKey,
-          data: response,
-          toJson: (data) => response.toJson(),
-          etag: etag,
+    if (_cacheManager.isConnected) {
+      try {
+        final url = Uri.parse(
+            '${ApiUtils.baseUrl}${ApiUtils.fetchHourlyForecasts}').replace(
+          queryParameters: _hourlyQueryParams(siteId),
         );
 
-        _notifyListeners(siteId, response);
+        final response = await _httpClient
+            .get(url, headers: _headers)
+            .timeout(const Duration(seconds: 15), onTimeout: () {
+          throw ForecastException('Request timed out.', isNetworkError: true);
+        });
 
-        loggy
-            .info('Background refresh of forecast data completed successfully');
-      } else {
-        loggy.warning(
-            'Background refresh API error: ${forecastResponse.statusCode}');
+        if (response.statusCode != 200) {
+          if (cachedData != null && response.statusCode >= 500) {
+            return cachedData.data;
+          }
+          _throwHttpError(response.statusCode);
+        }
+
+        final parsed =
+            HourlyForecastResponse.fromJson(json.decode(response.body));
+
+        await _cacheManager.put<HourlyForecastResponse>(
+          boxName: CacheBoxName.forecast,
+          key: cacheKey,
+          data: parsed,
+          toJson: (d) => parsed.toJson(),
+          etag: response.headers['etag'],
+        );
+
+        return parsed;
+      } catch (e) {
+        loggy.error('Error fetching hourly forecast: $e');
+        if (cachedData != null) return cachedData.data;
+        if (e is ForecastException) rethrow;
+        throw ForecastException('Failed to load hourly forecast: ${e.toString()}',
+            isNetworkError: _isNetworkError(e));
+      }
+    } else {
+      if (cachedData != null) return cachedData.data;
+      throw ForecastException('No connection.', isNetworkError: true);
+    }
+  }
+
+  Future<void> _refreshDailyInBackground(String siteId) async {
+    try {
+      final url = Uri.parse(
+          '${ApiUtils.baseUrl}${ApiUtils.fetchDailyForecasts}').replace(
+        queryParameters: _baseParams(siteId),
+      );
+
+      final response = await _httpClient.get(url, headers: _headers);
+
+      if (response.statusCode == 200) {
+        final parsed =
+            ForecastResponse.fromJson(json.decode(response.body));
+        await _cacheManager.put<ForecastResponse>(
+          boxName: CacheBoxName.forecast,
+          key: _getDailyCacheKey(siteId),
+          data: parsed,
+          toJson: (d) => parsed.toJson(),
+          etag: response.headers['etag'],
+        );
+        _notifyListeners(siteId, parsed);
       }
     } catch (e) {
-      loggy.error('Error in background refresh: $e');
+      loggy.warning('Background refresh failed: $e');
     }
+  }
+
+  void _throwHttpError(int statusCode) {
+    if (statusCode == 404) {
+      throw ForecastException('Forecast not found for this location.');
+    } else if (statusCode == 401 || statusCode == 403) {
+      throw ForecastException('Authentication error.');
+    } else {
+      throw ForecastException('Server error ($statusCode). Try again later.');
+    }
+  }
+
+  bool _isNetworkError(Object e) {
+    final msg = e.toString().toLowerCase();
+    return msg.contains('socket') ||
+        msg.contains('network') ||
+        msg.contains('connection') ||
+        msg.contains('handshake') ||
+        msg.contains('dns') ||
+        msg.contains('host') ||
+        (e is ForecastException && e.isNetworkError);
   }
 
   void _notifyListeners(String siteId, ForecastResponse forecast) {
@@ -263,12 +300,10 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
   @override
   Future<void> clearCache(String siteId) async {
     try {
-      final cacheKey = _getForecastCacheKey(siteId);
       await _cacheManager.delete(
-        boxName: CacheBoxName.forecast,
-        key: cacheKey,
-      );
-      loggy.info('Forecast cache cleared for site $siteId');
+          boxName: CacheBoxName.forecast, key: _getDailyCacheKey(siteId));
+      await _cacheManager.delete(
+          boxName: CacheBoxName.forecast, key: _getHourlyCacheKey(siteId));
     } catch (e) {
       loggy.warning('Failed to clear forecast cache: $e');
     }
@@ -278,7 +313,6 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
   Future<void> clearAllCaches() async {
     try {
       await _cacheManager.clearBox(CacheBoxName.forecast);
-      loggy.info('All forecast caches cleared');
     } catch (e) {
       loggy.warning('Failed to clear all forecast caches: $e');
     }
@@ -286,9 +320,7 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
 
   void dispose() {
     for (final controller in _forecastControllers.values) {
-      if (!controller.isClosed) {
-        controller.close();
-      }
+      if (!controller.isClosed) controller.close();
     }
     _forecastControllers.clear();
     _httpClient.close();
