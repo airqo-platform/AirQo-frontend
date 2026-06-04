@@ -143,7 +143,7 @@ export default function LoginPage() {
         toast.error(errorTitle, errorMessage);
       } else {
         toast.success('Welcome back!', 'You have successfully signed in.');
-        redirectWithReload(res?.url ?? callbackUrl);
+        redirectWithReload(normalizeCallbackUrl(res?.url) || callbackUrl);
       }
     } catch (error) {
       console.error('Unexpected login error:', error);

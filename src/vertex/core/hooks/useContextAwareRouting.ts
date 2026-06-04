@@ -12,7 +12,6 @@ const routeToSidebarConfig: Record<string, keyof SidebarConfig> = {
   '/access-control': 'showAccessControl',
   [ROUTE_LINKS.MY_DEVICES]: 'showMyDevices',
   [ROUTE_LINKS.ORG_ASSETS]: 'showDeviceOverview',
-  '/devices/claim': 'showClaimDevice',
   [ROUTE_LINKS.GRIDS]: 'showGrids',
   [ROUTE_LINKS.COHORTS]: 'showCohorts',
   [ROUTE_LINKS.ADMIN_NETWORKS]: 'showNetworks',
@@ -52,8 +51,6 @@ export const useContextAwareRouting = () => {
       return true;
     };
 
-    const contextChanged =
-      initializedRef.current && previousContextRef.current !== userContext;
     initializedRef.current = true;
     previousContextRef.current = userContext;
 

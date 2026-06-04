@@ -467,16 +467,39 @@ export class DeviceService {
     }
 
     await this.ensureAuthenticated();
-    const response = await this.authenticatedClient.get<
-      CohortResponse | ApiErrorResponse
-    >(`${DEVICE_COHORTS_PATH}/${resolvedCohortId}`, { signal });
-    const data = response.data;
 
-    if ('success' in data && !data.success) {
-      throw new Error(data.message || 'Failed to get cohort details');
+    try {
+      const response = await this.authenticatedClient.get<
+        CohortResponse | ApiErrorResponse
+      >(`${DEVICE_COHORTS_PATH}/${resolvedCohortId}`, {
+        signal,
+        suppressErrorLogging: true,
+      });
+      const data = response.data;
+
+      if ('success' in data && !data.success) {
+        throw new Error(data.message || 'Failed to get cohort details');
+      }
+
+      return data as CohortResponse;
+    } catch (error) {
+      if (!shouldFallbackToLegacyCohortEndpoint(error)) {
+        throw error;
+      }
+
+      return {
+        success: true,
+        message: 'Cohort details endpoint unavailable; continuing without details',
+        meta: {
+          total: 0,
+          limit: 0,
+          skip: 0,
+          page: 1,
+          totalPages: 1,
+        },
+        cohorts: [],
+      };
     }
-
-    return data as CohortResponse;
   }
 
   // Get grids summary - authenticated endpoint
@@ -570,15 +593,11 @@ export class DeviceService {
   // Get map readings - API token endpoint
   async getMapReadingsWithToken(
     cohort_id?: string,
-    signal?: AbortSignal,
-    user_id?: string
+    signal?: AbortSignal
   ): Promise<MapReadingsResponse> {
     const params: Record<string, string> = {};
     if (cohort_id) {
       params.cohort_id = cohort_id;
-    }
-    if (user_id) {
-      params.user_id = user_id;
     }
 
     const response = await this.serverClient.get<

@@ -242,6 +242,18 @@ export const calculateAverageAirQuality = (
   };
 };
 
+const getRecentReadingSiteName = (
+  siteDetails: RecentReading['siteDetails'] | undefined
+): string => {
+  return (
+    siteDetails?.search_name?.trim() ||
+    siteDetails?.name?.trim() ||
+    siteDetails?.location_name?.trim() ||
+    siteDetails?.formatted_name?.trim() ||
+    'Unknown Location'
+  );
+};
+
 /**
  * Normalize recent readings data to SiteData format for analytics cards
  * @param measurements - Array of recent readings from API
@@ -258,15 +270,18 @@ export const normalizeRecentReadingsToSiteData = (
 
   return measurements.map(measurement => {
     const { siteDetails, averages, pm2_5, pm10 } = measurement;
-    const displayName = getSiteDisplayName(siteDetails);
+    const displayName = getRecentReadingSiteName(siteDetails);
+    const country = siteDetails?.country?.trim() || undefined;
 
     // Get value based on active pollutant
     const pollutantValue =
       activePollutant === 'pm2_5' ? pm2_5?.value : pm10?.value;
     const value =
-      pollutantValue !== null && pollutantValue !== undefined
+      typeof pollutantValue === 'number' && Number.isFinite(pollutantValue)
         ? pollutantValue
         : 0;
+    const hasPollutantValue =
+      typeof pollutantValue === 'number' && Number.isFinite(pollutantValue);
 
     // Determine trend based on percentage difference
     let trend: 'up' | 'down' | 'stable' = 'stable';
@@ -277,14 +292,21 @@ export const normalizeRecentReadingsToSiteData = (
     }
 
     // Get air quality level
-    const status = getAirQualityLevel(value, activePollutant);
+    const status = hasPollutantValue
+      ? getAirQualityLevel(value, activePollutant)
+      : 'no-value';
 
     return {
       _id: siteDetails?._id || measurement.site_id,
       name: displayName,
-      location: siteDetails?.country || 'Unknown Country',
+      search_name: displayName,
+      location: country || 'Unknown Country',
+      country,
+      city: siteDetails?.city,
+      region: siteDetails?.region,
       value,
       status,
+      aqi_category: measurement.aqi_category,
       pollutant: activePollutant,
       unit: 'μg/m³',
       trend,

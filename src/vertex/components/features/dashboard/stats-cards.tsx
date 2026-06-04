@@ -1,7 +1,9 @@
 "use client";
 
 import { useDeviceCount } from "@/core/hooks/useDevices";
+import { usePersonalUserCohorts } from "@/core/hooks/useCohorts";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import {
   AqMonitor,
   AqCollocation,
@@ -10,15 +12,24 @@ import {
 } from "@airqo/icons-react";
 import { useMemo } from "react";
 import { useUserContext } from "@/core/hooks/useUserContext";
+import { useAppSelector } from "@/core/redux/hooks";
 import { getStatusExplanation } from "@/core/utils/status";
 import { StatCard } from "./stat-card";
 
 export const DashboardStatsCards = () => {
-  const { userScope, userDetails } = useUserContext();
+  const { data: session } = useSession();
+  const { userScope } = useUserContext();
+  const user = useAppSelector((state) => state.user.userDetails);
 
   const isPersonalScope = userScope === 'personal';
+  const userId = (session?.user as { id?: string })?.id || user?._id;
 
-  const personalCohortIds = userDetails?.cohort_ids || [];
+  // Fetch personal user cohorts
+  const { data: personalCohortIds = [], isLoading: isLoadingPersonalCohorts } = usePersonalUserCohorts(
+    userId,
+    { enabled: !!userId && isPersonalScope }
+  );
+
   const shouldEnable = isPersonalScope ? personalCohortIds.length > 0 : true;
 
   // Use useDeviceCount for both scopes
@@ -29,7 +40,7 @@ export const DashboardStatsCards = () => {
     cohortIds: isPersonalScope ? personalCohortIds : undefined,
   });
 
-  const isLoading = shouldEnable ? deviceCountQuery.isLoading : false;
+  const isLoading = (isPersonalScope && isLoadingPersonalCohorts) || (shouldEnable && deviceCountQuery.isLoading);
 
   const metrics = useMemo(() => {
     const summary = deviceCountQuery.data?.summary;
