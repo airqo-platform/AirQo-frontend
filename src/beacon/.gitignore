@@ -126,6 +126,7 @@ temp/
 /metrics/
 *.tar
 *.tar.gz
+*.code-workspace
 
 # Lock files (choose one)
 # package-lock.json  # uncomment if using yarn
