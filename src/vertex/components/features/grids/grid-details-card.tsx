@@ -15,11 +15,11 @@ interface GridDetailsCardProps {
 }
 
 const GridDetailsCard: React.FC<GridDetailsCardProps> = ({ grid, onEdit, loading }) => {
+    const { handleCopy } = useClipboard({ successMessage: 'Copied to clipboard', errorMessage: 'Failed to copy to clipboard' });
+
     if (loading) {
         return <Card className="w-full rounded-lg flex flex-col justify-between items-center p-8"><Loader2 className="w-6 h-6 animate-spin" /></Card>;
     }
-
-    const { handleCopy } = useClipboard({ successMessage: 'Copied to clipboard', errorMessage: 'Failed to copy to clipboard' });
 
     return (
         <Card className="w-full rounded-lg flex flex-col justify-between">

@@ -13,11 +13,11 @@ interface GridMeasurementsApiCardProps {
 }
 
 const GridMeasurementsApiCard: React.FC<GridMeasurementsApiCardProps> = ({ grid, loading }) => {
+    const { handleCopy } = useClipboard({ successMessage: 'API URL copied!', errorMessage: 'Failed to copy to clipboard' });
+
     if (loading) {
         return <Card className="w-full rounded-lg flex flex-col justify-between items-center p-8"><Loader2 className="w-6 h-6 animate-spin" /></Card>;
     }
-
-    const { handleCopy } = useClipboard({ successMessage: 'API URL copied!', errorMessage: 'Failed to copy to clipboard' });
 
     const apiBase = (process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.airqo.net").replace(/\/$/, "");
     const recentApiUrl = `${apiBase}/api/v2/devices/measurements/${grid._id}`;
