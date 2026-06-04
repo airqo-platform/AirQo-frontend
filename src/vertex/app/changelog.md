@@ -30,17 +30,18 @@ Introduced comprehensive multi-provider social authentication, updated API proxy
 </details>
 
 <details>
-<summary><strong>Files Modified (9)</strong></summary>
+<summary><strong>Files Modified (10)</strong></summary>
 
-- `src/vertex/.env.example` [MODIFIED]
-- `src/vertex/app/login/page.tsx` [MODIFIED]
-- `src/vertex/components/features/auth/social-auth-section.tsx` [ADDED]
-- `src/vertex/components/features/auth/google-auth-section.tsx` [DELETED]
-- `src/vertex/core/auth/oauth-session.ts` [MODIFIED]
-- `src/vertex/core/permissions/constants.ts` [MODIFIED]
-- `src/vertex/lib/envConstants.ts` [MODIFIED]
-- `src/vertex/middleware.ts` [MODIFIED]
-- `src/vertex/next.config.mjs` (and `.js`) [MODIFIED]
+- `.env.example` [MODIFIED]
+- `app/login/page.tsx` [MODIFIED]
+- `components/features/auth/social-auth-section.tsx` [ADDED]
+- `components/features/auth/google-auth-section.tsx` [DELETED]
+- `core/auth/oauth-session.ts` [MODIFIED]
+- `core/permissions/constants.ts` [MODIFIED]
+- `lib/envConstants.ts` [MODIFIED]
+- `middleware.ts` [MODIFIED]
+- `next.config.mjs` [MODIFIED]
+- `next.config.js` [MODIFIED]
 
 </details>
 
