@@ -124,7 +124,7 @@ export const getEnvironment = (): string => {
 export const isHCaptchaEnabled = (): boolean => {
   const env = getEnvironment().toLowerCase();
   const hasSiteKey = Boolean(getHCaptchaSiteKey());
-  return (env === 'staging' || env === 'production') && hasSiteKey;
+  return (env === 'development' || env === 'staging' || env === 'production') && hasSiteKey;
 };
 
 /**
