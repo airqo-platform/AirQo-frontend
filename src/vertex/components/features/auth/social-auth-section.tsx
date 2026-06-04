@@ -12,6 +12,7 @@ import {
 } from '@/core/auth/oauth-session';
 import { cn } from '@/lib/utils';
 import { useBanner } from '@/context/banner-context';
+import { getLastActiveModule } from '@/core/utils/userPreferences';
 
 interface SocialAuthSectionProps {
   mode: 'login' | 'register';
@@ -59,7 +60,9 @@ export default function SocialAuthSection({
 }: SocialAuthSectionProps) {
   const { showBanner } = useBanner();
   const actionLabel = mode === 'register' ? 'Continue with' : 'Sign in with';
-  const redirectPath = callbackUrl || '/home';
+  const lastModule = getLastActiveModule();
+  const fallbackUrl = lastModule === 'admin' ? '/admin/networks' : '/home';
+  const redirectPath = callbackUrl || fallbackUrl;
   const [lastUsedProvider, setLastUsedProvider] =
     useState<SupportedSocialAuthProvider | null>(null);
 
