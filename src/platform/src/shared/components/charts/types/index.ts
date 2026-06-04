@@ -58,6 +58,7 @@ export interface ChartConfig {
   showTooltip?: boolean;
   height?: number;
   width?: number | string;
+  seriesColors?: Record<string, string>;
   pollutant?: PollutantType;
   standards?: StandardsType;
   margin?: {
