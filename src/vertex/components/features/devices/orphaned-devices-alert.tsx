@@ -4,7 +4,7 @@ import { AlertTriangle } from 'lucide-react';
 import ReusableButton from '@/components/shared/button/ReusableButton';
 import { useAssignDevicesToCohort } from '@/core/hooks/useCohorts';
 import { useQueryClient } from '@tanstack/react-query';
-import ReusableToast from '@/components/shared/toast/ReusableToast';
+import { useBanner } from '@/context/banner-context';
 import { useAppSelector } from '@/core/redux/hooks';
 import { useOrphanedDevices } from '@/core/hooks/useDevices';
 
@@ -17,6 +17,7 @@ export const OrphanedDevicesAlert: React.FC<OrphanedDevicesAlertProps> = ({ user
     const { userDetails } = useAppSelector((state) => state.user);
     const { mutate: assignDevices, isPending: isAssigning } = useAssignDevicesToCohort();
     const queryClient = useQueryClient();
+    const { showBanner } = useBanner();
 
     if (isLoading || !data || !data.devices || data.devices.length === 0) {
         return null;
@@ -26,10 +27,7 @@ export const OrphanedDevicesAlert: React.FC<OrphanedDevicesAlertProps> = ({ user
         const cohortId = userDetails?.cohort_ids?.[0];
 
         if (!cohortId) {
-            ReusableToast({
-                message: "An issue occurred while setting up your device. Contact support.",
-                type: "ERROR"
-            });
+            showBanner({ severity: 'error', message: 'An issue occurred while setting up your device. Contact support.', scoped: false });
             return;
         }
 
