@@ -1,4 +1,5 @@
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+import 'package:airqo/src/app/dashboard/pages/forecast_overview_page.dart';
 import 'package:airqo/src/app/dashboard/widgets/expanded_analytics_card.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_forecast_widget.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
@@ -144,6 +145,31 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
                         color: nameColor,
                       ),
                     ),
+                    if (widget.measurement.siteDetails?.id != null)
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ForecastOverviewPage(
+                                siteId: widget.measurement.siteDetails!.id!,
+                                siteName: widget.measurement.siteDetails
+                                        ?.searchName ??
+                                    widget.measurement.siteDetails?.name ??
+                                    widget.fallbackLocationName ??
+                                    '',
+                              ),
+                            ),
+                          );
+                        },
+                        child: TranslatedText(
+                          'Full forecast',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppColors.primaryColor,
+                          ),
+                        ),
+                      ),
                   ],
                 ),
                 const SizedBox(height: 16),

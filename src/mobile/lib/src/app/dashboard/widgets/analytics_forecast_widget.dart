@@ -151,10 +151,10 @@ class _AnalyticsForecastWidgetState extends State<AnalyticsForecastWidget> with 
                           final isCurrentDay = forecastDate == currentDateFormatted;
                           
                           return ForeCastChip(
-                            active: isCurrentDay, // Set active based on current date
+                            active: isCurrentDay,
                             day: DateFormat.E().format(e.time)[0],
-                            imagePath: getForecastAirQualityIcon(
-                                e.pm25, state.response.aqiRanges),
+                            imagePath:
+                                getForecastAirQualityIcon(e.aqiCategory),
                             height: _getResponsiveHeight(context),
                             iconSize: _getResponsiveIconSize(context),
                             margin: _getResponsiveMargin(context),
