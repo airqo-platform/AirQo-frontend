@@ -7,6 +7,7 @@ import ReusableButton from "@/components/shared/button/ReusableButton";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
 import { Copy, Edit2, Check, X } from "lucide-react";
 import { useBanner } from "@/context/banner-context";
+import { useClipboard } from "@/core/hooks/useClipboard";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 
 interface AdminLevelsModalProps {
@@ -40,22 +41,7 @@ export function AdminLevelsModal({ isOpen, onClose }: AdminLevelsModalProps) {
     }
   });
 
-  const handleCopyId = async (id: string) => {
-    try {
-      await navigator.clipboard.writeText(id);
-      showBanner({
-        message: "ID copied to clipboard",
-        severity: "success",
-        scoped: true,
-      });
-    } catch {
-      showBanner({
-        message: "Failed to copy ID",
-        severity: "error",
-        scoped: true,
-      });
-    }
-  };
+  const { handleCopy: handleCopyId } = useClipboard({ successMessage: 'ID copied to clipboard', errorMessage: 'Failed to copy ID', scoped: true });
 
   const startEditing = (id: string, name: string) => {
     setEditingId(id);

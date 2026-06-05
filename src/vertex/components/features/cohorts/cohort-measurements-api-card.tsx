@@ -4,23 +4,14 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Copy } from "lucide-react";
 import React from "react";
-import { useBanner } from "@/context/banner-context";
+import { useClipboard } from "@/core/hooks/useClipboard";
 
 interface CohortMeasurementsApiCardProps {
     cohortId: string;
 }
 
 const CohortMeasurementsApiCard: React.FC<CohortMeasurementsApiCardProps> = ({ cohortId }) => {
-    const { showBanner } = useBanner();
-
-    const handleCopy = async (text: string) => {
-        try {
-            await navigator.clipboard.writeText(text);
-            showBanner({ severity: 'success', message: 'API URL copied to clipboard', scoped: false });
-        } catch {
-            showBanner({ severity: 'error', message: 'Failed to copy to clipboard', scoped: false });
-        }
-    };
+    const { handleCopy } = useClipboard({ successMessage: 'API URL copied to clipboard', errorMessage: 'Failed to copy to clipboard' });
 
     return (
         <Card className="w-full rounded-lg flex flex-col gap-4 px-3 py-2">

@@ -4,6 +4,44 @@
 
 ---
 
+## Version 1.23.59
+**Released:** June 04, 2026
+
+### Decouple useDevices Mutations from ReusableToast
+
+Removed all hardcoded `ReusableToast` calls from mutation hooks in `useDevices.ts` and delegated notification responsibility to the calling UI layer via optional `onSuccess`/`onError` callback interfaces. Also migrated remaining device-related components still using `ReusableToast` directly, and extracted a shared `useClipboard` hook to eliminate the repeated clipboard copy pattern across the codebase.
+
+<details>
+<summary><strong>Changes (5)</strong></summary>
+
+- **Hooks Decoupled**: Removed `ReusableToast` from 8 mutation hooks — `useClaimDevice`, `useBulkClaimDevices`, `useUnassignDeviceFromOrganization`, `useUpdateDeviceBulk`, `useUpdateDeviceGroup`, `usePrepareDeviceForShipping`, `usePrepareBulkDevicesForShipping`, `useGenerateShippingLabels` — and added optional `onSuccess`/`onError` callback interfaces so the UI layer controls notification scope.
+- **Bulk Edit Modal**: Wired `useUpdateDeviceBulk` hook-level callbacks; error uses `scoped: true` inline in the dialog, success uses `showBannerWithDelay` (`scoped: false`) after the dialog closes.
+- **Prepare Shipping Modal**: Replaced all 8 `ReusableToast` calls with `useBanner`; file/import validation errors use `scoped: true`, bulk preparation success uses `showBannerWithDelay` (`scoped: false`).
+- **Remaining Device Components**: Migrated `device-measurements-api-card.tsx`, `device-activity-item.tsx`, and `orphaned-devices-alert.tsx` from `ReusableToast` to `useBanner`. Migrated `shipping/[batchId]/page.tsx` with hook-level callbacks and `showBanner` (`scoped: false`).
+- **Shared `useClipboard` Hook**: Extracted a `useClipboard` hook (accepts optional `successMessage`, `errorMessage`, `scoped`) to replace the repeated `navigator.clipboard.writeText` + banner pattern duplicated across `cohort-measurements-api-card`, `grid-measurements-api-card`, `grid-details-card`, `admin-levels-modal`, and `device-activity-item`.
+
+</details>
+
+<details>
+<summary><strong>Files Updated (12)</strong></summary>
+
+- `src/vertex/core/hooks/useDevices.ts` [MODIFIED]
+- `src/vertex/core/hooks/useClipboard.ts` [NEW]
+- `src/vertex/components/features/devices/bulk-edit-device-details-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/device-measurements-api-card.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/device-activity-item.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/orphaned-devices-alert.tsx` [MODIFIED]
+- `src/vertex/components/features/shipping/PrepareShippingModal.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/admin/shipping/[batchId]/page.tsx` [MODIFIED]
+- `src/vertex/components/features/cohorts/cohort-measurements-api-card.tsx` [MODIFIED]
+- `src/vertex/components/features/grids/grid-measurements-api-card.tsx` [MODIFIED]
+- `src/vertex/components/features/grids/grid-details-card.tsx` [MODIFIED]
+- `src/vertex/components/features/grids/admin-levels-modal.tsx` [MODIFIED]
+
+</details>
+
+---
+
 ## Version 1.23.58
 **Released:** June 03, 2026
 

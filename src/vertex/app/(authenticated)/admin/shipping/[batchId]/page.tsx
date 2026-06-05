@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useShippingBatchDetails } from '@/core/hooks/useDevices';
+import { useShippingBatchDetails, useGenerateShippingLabels } from '@/core/hooks/useDevices';
 import { format } from 'date-fns';
 import { ArrowLeft } from 'lucide-react';
 import ReusableTable, { TableColumn } from '@/components/shared/table/ReusableTable';
@@ -10,8 +10,8 @@ import { ShippingStatusDevice } from '@/app/types/devices';
 import { Skeleton } from "@/components/ui/skeleton";
 import ReusableButton from '@/components/shared/button/ReusableButton';
 import { AqArrowLeft } from '@airqo/icons-react';
-import { useGenerateShippingLabels } from '@/core/hooks/useDevices';
-import ReusableToast from '@/components/shared/toast/ReusableToast';
+import { useBanner } from '@/context/banner-context';
+import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
 import ShippingLabelPrintModal from '@/components/features/shipping/ShippingLabelPrintModal';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState, useCallback } from 'react';
@@ -29,7 +29,18 @@ const BatchDetailsPage = () => {
     const queryClient = useQueryClient();
     const batchId = params.batchId as string;
     const { data, isLoading, error } = useShippingBatchDetails(batchId);
-    const { mutate: generateLabels, isPending: isGenerating, data: labelsData } = useGenerateShippingLabels();
+    const { showBanner } = useBanner();
+    const { mutate: generateLabels, isPending: isGenerating, data: labelsData } = useGenerateShippingLabels({
+        onSuccess: (data) => {
+            if (data.success) {
+                showBanner({ severity: 'success', message: `Successfully generated ${data.shipping_labels.labels.length} shipping label(s)`, scoped: false });
+                setShowLabelModal(true);
+            }
+        },
+        onError: (error) => {
+            showBanner({ severity: 'error', message: `Label Generation Failed: ${getApiErrorMessage(error)}`, scoped: false });
+        },
+    });
     const [showLabelModal, setShowLabelModal] = useState(false);
     usePageTitle({
         title: data?.batch?.batch_name || "Shipping Batch",
@@ -38,10 +49,7 @@ const BatchDetailsPage = () => {
 
     const handleGenerateLabels = useCallback((ids: (string | number)[]) => {
         if (!ids || ids.length === 0) {
-            ReusableToast({
-                message: 'Please select at least one device',
-                type: 'ERROR',
-            });
+            showBanner({ severity: 'error', message: 'Please select at least one device', scoped: false });
             return;
         }
 
@@ -51,26 +59,12 @@ const BatchDetailsPage = () => {
             .filter(name => name && name.trim().length > 0);
 
         if (selectedDeviceNames.length === 0) {
-            ReusableToast({
-                message: 'Selected devices have no valid names',
-                type: 'ERROR',
-            });
+            showBanner({ severity: 'error', message: 'Selected devices have no valid names', scoped: false });
             return;
         }
 
-        generateLabels(selectedDeviceNames, {
-            onSuccess: (data) => {
-                if (data.success) {
-                    ReusableToast({
-                        message: `Successfully generated ${data.shipping_labels.labels.length} shipping label(s)`,
-                        type: 'SUCCESS',
-                    });
-
-                    setShowLabelModal(true);
-                }
-            }
-        });
-    }, [generateLabels, data?.batch?.devices]);
+        generateLabels(selectedDeviceNames);
+    }, [generateLabels, data?.batch?.devices, showBanner]);
 
     const handleGenerateAllLabels = useCallback(() => {
         const allDeviceNames = (data?.batch?.devices || [])
@@ -79,26 +73,12 @@ const BatchDetailsPage = () => {
             .filter(name => name && name.trim().length > 0);
 
         if (allDeviceNames.length === 0) {
-            ReusableToast({
-                message: 'No unclaimed devices found with valid names in this batch',
-                type: 'ERROR',
-            });
+            showBanner({ severity: 'error', message: 'No unclaimed devices found with valid names in this batch', scoped: false });
             return;
         }
 
-        generateLabels(allDeviceNames, {
-            onSuccess: (data) => {
-                if (data.success) {
-                    ReusableToast({
-                        message: `Successfully generated ${data.shipping_labels.labels.length} shipping label(s)`,
-                        type: 'SUCCESS',
-                    });
-
-                    setShowLabelModal(true);
-                }
-            }
-        });
-    }, [generateLabels, data?.batch?.devices]);
+        generateLabels(allDeviceNames);
+    }, [generateLabels, data?.batch?.devices, showBanner]);
 
     const handleCloseModal = useCallback(() => {
         setShowLabelModal(false);

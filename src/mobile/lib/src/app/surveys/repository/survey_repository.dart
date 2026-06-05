@@ -201,10 +201,7 @@ class SurveyRepository extends BaseRepository with UiLoggy {
               .toList();
 
           responses = _mergeResponses(cachedResponses, apiResponses);
-
-          for (final response in apiResponses) {
-            await _cacheSurveyResponse(response);
-          }
+          await _cacheSurveyResponsesBatch(responses);
         }
       } catch (e) {
         loggy.warning('Could not sync with API, using cached responses: $e');
@@ -347,20 +344,27 @@ class SurveyRepository extends BaseRepository with UiLoggy {
     }
   }
 
+  Future<void> _cacheSurveyResponsesBatch(
+      List<SurveyResponse> responses) async {
+    try {
+      await HiveRepository.saveData(_surveyResponsesBoxName, 'responses',
+          json.encode(responses.map((r) => r.toJson()).toList()));
+    } catch (e) {
+      loggy.error('Error caching survey responses: $e');
+    }
+  }
+
   Future<void> _cacheSurveyResponse(SurveyResponse response) async {
     try {
       final responses = await _getCachedSurveyResponses();
-
       final existingIndex = responses.indexWhere((r) => r.id == response.id);
       if (existingIndex >= 0) {
         responses[existingIndex] = response;
       } else {
         responses.add(response);
       }
-
-      final responsesJson = responses.map((r) => r.toJson()).toList();
-      await HiveRepository.saveData(
-          _surveyResponsesBoxName, 'responses', json.encode(responsesJson));
+      await HiveRepository.saveData(_surveyResponsesBoxName, 'responses',
+          json.encode(responses.map((r) => r.toJson()).toList()));
     } catch (e) {
       loggy.error('Error caching survey response: $e');
     }

@@ -5,7 +5,7 @@ import { Loader2 } from "lucide-react";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { AqCopy01 } from "@airqo/icons-react";
 import { Grid } from "@/app/types/grids";
-import { useBanner } from "@/context/banner-context";
+import { useClipboard } from "@/core/hooks/useClipboard";
 
 interface GridMeasurementsApiCardProps {
     grid: Grid;
@@ -13,21 +13,11 @@ interface GridMeasurementsApiCardProps {
 }
 
 const GridMeasurementsApiCard: React.FC<GridMeasurementsApiCardProps> = ({ grid, loading }) => {
-    const { showBanner } = useBanner();
+    const { handleCopy } = useClipboard({ successMessage: 'API URL copied!', errorMessage: 'Failed to copy to clipboard' });
 
     if (loading) {
         return <Card className="w-full rounded-lg flex flex-col justify-between items-center p-8"><Loader2 className="w-6 h-6 animate-spin" /></Card>;
     }
-
-    const handleCopy = async (text: string) => {
-        if (!text) return;
-        try {
-            await navigator.clipboard.writeText(text);
-            showBanner({ message: "API URL copied!", severity: "success", scoped: false });
-        } catch {
-            showBanner({ message: "Failed to copy to clipboard", severity: "error", scoped: false });
-        }
-    };
 
     const apiBase = (process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.airqo.net").replace(/\/$/, "");
     const recentApiUrl = `${apiBase}/api/v2/devices/measurements/${grid._id}`;
