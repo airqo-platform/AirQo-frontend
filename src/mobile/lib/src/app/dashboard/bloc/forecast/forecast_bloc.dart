@@ -11,6 +11,7 @@ class ForecastBloc extends Bloc<ForecastEvent, ForecastState> with UiLoggy {
   final ForecastRepository forecastRepository;
 
   final Map<String, ForecastResponse> _cachedResponses = {};
+  final Map<String, HourlyForecastResponse> _cachedHourlyResponses = {};
 
   ForecastBloc(this.forecastRepository) : super(ForecastInitial()) {
     on<LoadForecast>(_onLoadForecast);
@@ -37,7 +38,9 @@ class ForecastBloc extends Bloc<ForecastEvent, ForecastState> with UiLoggy {
     try {
       final response = await forecastRepository.loadForecasts(siteId);
       _cachedResponses[siteId] = response;
-      emit(ForecastLoaded(response, siteId: siteId));
+      emit(ForecastLoaded(response,
+          siteId: siteId,
+          hourlyResponse: _cachedHourlyResponses[siteId]));
     } catch (e) {
       loggy.error('Error loading daily forecast for $siteId: $e');
       if (e is ForecastException && e.isNetworkError) {
@@ -56,6 +59,7 @@ class ForecastBloc extends Bloc<ForecastEvent, ForecastState> with UiLoggy {
       try {
         await forecastRepository.clearCache(event.siteId);
         _cachedResponses.remove(event.siteId);
+        _cachedHourlyResponses.remove(event.siteId);
       } catch (e) {
         loggy.warning('Failed to clear cache: $e');
       }
@@ -67,7 +71,6 @@ class ForecastBloc extends Bloc<ForecastEvent, ForecastState> with UiLoggy {
       LoadHourlyForecast event, Emitter<ForecastState> emit) async {
     final siteId = event.siteId;
 
-    // Only load hourly when we already have daily data loaded
     final currentState = state;
     ForecastResponse? dailyResponse;
     if (currentState is ForecastLoaded && currentState.siteId == siteId) {
@@ -87,6 +90,8 @@ class ForecastBloc extends Bloc<ForecastEvent, ForecastState> with UiLoggy {
       final daily = dailyResponse ?? _cachedResponses[siteId];
       if (daily != null) {
         emit(ForecastLoaded(daily, siteId: siteId, hourlyResponse: hourly));
+      } else {
+        _cachedHourlyResponses[siteId] = hourly;
       }
     } catch (e) {
       loggy.error('Error loading hourly forecast for $siteId: $e');

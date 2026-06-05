@@ -158,6 +158,7 @@ class ForecastConfidenceBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final clamped = confidence.clamp(0.0, 100.0);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -170,7 +171,7 @@ class ForecastConfidenceBar extends StatelessWidget {
                   fontSize: 11, color: AppColors.boldHeadlineColor),
             ),
             Text(
-              '${confidence.round()}%',
+              '${clamped.round()}%',
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
@@ -183,7 +184,7 @@ class ForecastConfidenceBar extends StatelessWidget {
         ClipRRect(
           borderRadius: BorderRadius.circular(4),
           child: LinearProgressIndicator(
-            value: confidence / 100,
+            value: clamped / 100,
             minHeight: 6,
             backgroundColor: AppColors.dividerColorlight,
             valueColor:

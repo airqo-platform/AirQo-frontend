@@ -85,7 +85,8 @@ class Forecast {
       pm25: (forecast['pm2_5_mean'] ?? 0.0).toDouble(),
       pm25Low: forecast['pm2_5_low']?.toDouble(),
       pm25High: forecast['pm2_5_high']?.toDouble(),
-      time: DateTime.parse(json['date'] as String),
+      time: DateTime.tryParse(json['date'] as String? ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0),
       forecastConfidence: forecast['forecast_confidence']?.toDouble(),
       met: json['met'] != null
           ? ForecastMet.fromJson(json['met'] as Map<String, dynamic>)
@@ -174,7 +175,8 @@ class HourlyForecastEntry {
     final aqi = json['aqi'] as Map<String, dynamic>? ?? {};
     final forecast = json['forecast'] as Map<String, dynamic>? ?? {};
     return HourlyForecastEntry(
-      time: DateTime.parse(json['timestamp'] as String),
+      time: DateTime.tryParse(json['timestamp'] as String? ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0),
       pm25Mean: (forecast['pm2_5_mean'] ?? 0.0).toDouble(),
       pm25Q10: forecast['pm2_5_q10']?.toDouble(),
       pm25Q90: forecast['pm2_5_q90']?.toDouble(),

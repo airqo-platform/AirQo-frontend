@@ -162,7 +162,7 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
                             ),
                           );
                         },
-                        child: Text(
+                        child: TranslatedText(
                           'Full forecast',
                           style: TextStyle(
                             fontSize: 13,

@@ -118,10 +118,11 @@ class _HourlyList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final selectedDateStr = DateFormat('yyyy-MM-dd').format(selectedDate);
+    final selectedDateStr =
+        DateFormat('yyyy-MM-dd').format(selectedDate.toLocal());
     final dayEntries = hourlyResponse.forecasts
         .where((e) =>
-            DateFormat('yyyy-MM-dd').format(e.time) == selectedDateStr)
+            DateFormat('yyyy-MM-dd').format(e.time.toLocal()) == selectedDateStr)
         .toList();
 
     if (dayEntries.isEmpty) {
@@ -146,7 +147,8 @@ class _HourlyList extends StatelessWidget {
       );
     }
 
-    final nowStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    final now = DateTime.now();
+    final nowStr = DateFormat('yyyy-MM-dd').format(now);
     return SizedBox(
       height: 100,
       child: ListView.builder(
@@ -154,7 +156,7 @@ class _HourlyList extends StatelessWidget {
         itemCount: dayEntries.length,
         itemBuilder: (context, i) {
           final entry = dayEntries[i];
-          final isNow = entry.time.hour == DateTime.now().hour &&
+          final isNow = entry.time.toLocal().hour == now.hour &&
               selectedDateStr == nowStr;
           return _HourlyChip(entry: entry, isNow: isNow, isDark: isDark);
         },
@@ -196,7 +198,7 @@ class _HourlyChip extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            DateFormat('ha').format(entry.time),
+            DateFormat('ha').format(entry.time.toLocal()),
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
