@@ -151,7 +151,7 @@ class FirmwareService {
         }
       }
 
-      const endpoint = this.getEndpoint('/firmware/upload/');
+      const endpoint = this.getEndpoint('/firmware/upload');
       const response = await axios.post(
         `${this.baseUrl}${endpoint}`,
         formData,
