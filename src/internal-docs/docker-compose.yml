@@ -32,8 +32,6 @@ services:
     image: mariadb:10.6
     container_name: bookstack_db
     environment:
-      - PUID=1000
-      - PGID=1000
       - TZ=UTC
       - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD:-root_secure_password}
       - MYSQL_DATABASE=${DB_DATABASE:-bookstackapp}
