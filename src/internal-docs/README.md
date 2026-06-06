@@ -33,6 +33,7 @@ To spin up the documentation platform locally for testing or local development:
    ```
 
 3. **Access the Application**
+   Wait approximately 20 seconds for database migrations to complete.
    Open your browser and navigate to `http://localhost:6875`.
    *(Default credentials on first run: `admin@admin.com` / `password`)*
 
