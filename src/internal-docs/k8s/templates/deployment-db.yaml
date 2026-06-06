@@ -33,6 +33,26 @@ spec:
           volumeMounts:
             - name: mariadb-config
               mountPath: /var/lib/mysql
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - mysqladmin ping -h localhost
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - mysql -h localhost -e 'SELECT 1'
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 2
           resources:
             {{- toYaml .Values.dbResources | nindent 12 }}
       volumes:
