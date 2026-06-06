@@ -95,4 +95,4 @@ We encourage all engineers to actively contribute to Mariana Deep. If you see so
 
 - **Public Access**: Explicitly disabled (`APP_PUBLIC=false`). Unauthenticated users cannot view any pages and will be immediately redirected to the login screen.
 - **User Management**: Open registration is disabled. Administrators manually provision access.
-- **Data Persistence**: In Kubernetes, Persistent Volume Claims (PVCs) ensure uploaded images and database state survive pod restarts. Locally, data is stored in the git-ignored `./config` and `./db_data` folders.
+- **Data Persistence**: In Kubernetes, Persistent Volume Claims (PVCs) ensure uploaded images and database state survive pod restarts. Locally, BookStack configuration and uploads are stored in the bind-mounted `./config` directory, while database data persists in the Docker-managed `bookstack_db_data` volume.
