@@ -1,0 +1,74 @@
+replicaCount: 2
+image:
+  repository: lscr.io/linuxserver/bookstack
+  tag: latest
+  pullPolicy: IfNotPresent
+dbImage:
+  repository: lscr.io/linuxserver/mariadb
+  tag: latest
+  pullPolicy: IfNotPresent
+imagePullSecrets: []
+nameOverride: ''
+fullnameOverride: ''
+
+service:
+  type: NodePort
+  port: 6875
+  targetPort: 80
+  nodePort: 31197 # Unique NodePort for production
+
+dbService:
+  type: ClusterIP
+  port: 3306
+  targetPort: 3306
+
+ingress:
+  enabled: false
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 1Gi
+  requests:
+    cpu: 100m
+    memory: 512Mi
+
+dbResources:
+  limits:
+    cpu: 500m
+    memory: 1Gi
+  requests:
+    cpu: 100m
+    memory: 512Mi
+
+autoscaling:
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector:
+  role: high-mem
+
+tolerations: []
+
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - preference:
+          matchExpressions:
+            - key: role
+              operator: In
+              values:
+                - high-mem
+        weight: 1
+
+app:
+  name: airqo-prod-internal-docs
+  label: prod-internal-docs
+  namespace: production
+  configmap: env-internal-docs-prod
+  url: "https://platform.airqo.net/mariana"
+
+dbApp:
+  name: airqo-prod-internal-docs-db
+  label: prod-internal-docs-db

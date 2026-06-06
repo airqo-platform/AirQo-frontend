@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.dbApp.name }}
+  namespace: {{ .Values.app.namespace }}
+  labels:
+    {{- include "internal-docs.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.dbApp.label }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.dbApp.label }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Values.dbApp.label }}
+          image: "{{ .Values.dbImage.repository }}:{{ .Values.dbImage.tag }}"
+          imagePullPolicy: {{ .Values.dbImage.pullPolicy }}
+          ports:
+            - name: mysql
+              containerPort: {{ .Values.dbService.targetPort }}
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ .Values.app.configmap }}
+          volumeMounts:
+            - name: mariadb-config
+              mountPath: /config
+          resources:
+            {{- toYaml .Values.dbResources | nindent 12 }}
+      volumes:
+        - name: mariadb-config
+          persistentVolumeClaim:
+            claimName: {{ .Values.dbApp.name }}-pvc
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -1,0 +1,74 @@
+replicaCount: 1
+image:
+  repository: lscr.io/linuxserver/bookstack
+  tag: latest
+  pullPolicy: IfNotPresent
+dbImage:
+  repository: lscr.io/linuxserver/mariadb
+  tag: latest
+  pullPolicy: IfNotPresent
+imagePullSecrets: []
+nameOverride: ''
+fullnameOverride: ''
+
+service:
+  type: NodePort
+  port: 6875
+  targetPort: 80
+  nodePort: 31196 # Unique NodePort for staging
+
+dbService:
+  type: ClusterIP
+  port: 3306
+  targetPort: 3306
+
+ingress:
+  enabled: false
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 512Mi
+  requests:
+    cpu: 50m
+    memory: 256Mi
+
+dbResources:
+  limits:
+    cpu: 200m
+    memory: 512Mi
+  requests:
+    cpu: 50m
+    memory: 256Mi
+
+autoscaling:
+  minReplicas: 1
+  maxReplicas: 2
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector:
+  role: high-mem
+
+tolerations: []
+
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - preference:
+          matchExpressions:
+            - key: role
+              operator: In
+              values:
+                - high-mem
+        weight: 1
+
+app:
+  name: airqo-stage-internal-docs
+  label: sta-internal-docs
+  namespace: staging
+  configmap: env-internal-docs-staging
+  url: "https://staging-platform.airqo.net/mariana"
+
+dbApp:
+  name: airqo-stage-internal-docs-db
+  label: sta-internal-docs-db
