@@ -1,7 +1,7 @@
 replicaCount: 2
 image:
   repository: lscr.io/linuxserver/bookstack
-  tag: latest
+  tag: 24.05.2
   pullPolicy: IfNotPresent
 dbImage:
   repository: mariadb
