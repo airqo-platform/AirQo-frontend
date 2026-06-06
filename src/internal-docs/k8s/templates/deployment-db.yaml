@@ -30,6 +30,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ .Values.app.configmap }}
+            - secretRef:
+                name: {{ .Values.app.configmap }}-secret
           volumeMounts:
             - name: mariadb-config
               mountPath: /var/lib/mysql
@@ -38,7 +40,7 @@ spec:
               command:
                 - sh
                 - -c
-                - mysqladmin ping -h localhost
+                - mysqladmin ping -h 127.0.0.1 -uroot -p"$MYSQL_ROOT_PASSWORD"
             initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
@@ -48,7 +50,7 @@ spec:
               command:
                 - sh
                 - -c
-                - mysql -h localhost -e 'SELECT 1'
+                - mysql -h 127.0.0.1 -uroot -p"$MYSQL_ROOT_PASSWORD" -e 'SELECT 1'
             initialDelaySeconds: 10
             periodSeconds: 5
             timeoutSeconds: 3

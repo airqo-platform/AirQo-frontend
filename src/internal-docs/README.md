@@ -29,7 +29,7 @@ To spin up the documentation platform locally for testing or local development:
 2. **Start the Containers**
    Use Docker Compose to build and start the environment in the background:
    ```bash
-   docker-compose up -d
+   docker compose up -d
    ```
 
 3. **Access the Application**

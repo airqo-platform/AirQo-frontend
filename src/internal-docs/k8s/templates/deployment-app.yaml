@@ -35,6 +35,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ .Values.app.configmap }}
+            - secretRef:
+                name: {{ .Values.app.configmap }}-secret
           volumeMounts:
             - name: bookstack-config
               mountPath: /config
