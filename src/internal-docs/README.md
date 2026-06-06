@@ -38,19 +38,13 @@ To spin up the documentation platform locally for testing or local development:
 
 ## Kubernetes Deployment
 
-The project uses Helm charts located in the `k8s/` directory to deploy to our staging and production clusters.
+The project uses Helm charts located in the `k8s/` directory to deploy to our production cluster.
 
 ### Environments
-- **Staging**: Accessible at `https://staging-platform.airqo.net/mariana`
 - **Production**: Accessible at `https://platform.airqo.net/mariana`
 
 ### Deployment Commands
 To deploy or upgrade the cluster, run the following Helm commands from the root of this project:
-
-**Staging:**
-```bash
-helm upgrade --install airqo-internal-docs k8s/ -f k8s/values-stage.yaml -n staging
-```
 
 **Production:**
 ```bash
