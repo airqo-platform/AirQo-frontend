@@ -8,7 +8,7 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=UTC
-      - APP_NAME=${APP_NAME:-"The Mariana"}
+      - APP_NAME=${APP_NAME:-"Mariana Deep"}
       - APP_URL=${APP_URL:-http://localhost:6875}
       - APP_KEY=${APP_KEY:-}
       - DB_HOST=bookstack_db
@@ -31,7 +31,7 @@ services:
       - internal-docs-network
 
   bookstack_db:
-    image: lscr.io/linuxserver/mariadb:latest
+    image: mariadb:10.6
     container_name: bookstack_db
     environment:
       - PUID=1000
@@ -42,7 +42,7 @@ services:
       - MYSQL_USER=${DB_USER:-bookstack}
       - MYSQL_PASSWORD=${DB_PASSWORD:-bookstack_secure_password}
     volumes:
-      - ./db_data:/config
+      - bookstack_db_data:/var/lib/mysql
     restart: unless-stopped
     networks:
       - internal-docs-network
@@ -51,3 +51,6 @@ networks:
   internal-docs-network:
     name: internal-docs-network
     driver: bridge
+
+volumes:
+  bookstack_db_data:

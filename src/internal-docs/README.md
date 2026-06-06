@@ -1,6 +1,6 @@
-# The Mariana - Internal Documentation
+# Mariana Deep - Internal Documentation
 
-This repository contains the containerized environment and Kubernetes Helm charts for **The Mariana**, AirQo's internal documentation platform powered by [BookStack](https://www.bookstackapp.com/).
+This repository contains the containerized environment and Kubernetes Helm charts for **Mariana Deep**, AirQo's internal documentation platform powered by [BookStack](https://www.bookstackapp.com/).
 
 ## Table of Contents
 - [Local Setup & Testing](#local-setup--testing)
@@ -91,7 +91,7 @@ We organize all of our documentation using a **Product-focused approach**. Wheth
 
 ## Contributing Guidelines
 
-We encourage all engineers to actively contribute to The Mariana. If you see something wrong, fix it!
+We encourage all engineers to actively contribute to Mariana Deep. If you see something wrong, fix it!
 
 - **Typos and Minor Fixes**: Fix them immediately using the BookStack web interface. No review needed.
 - **Major Architectural Documentation**: Draft the documentation in a Page and request a review (via Slack or email link) from the Lead Engineer of that specific product before finalizing.

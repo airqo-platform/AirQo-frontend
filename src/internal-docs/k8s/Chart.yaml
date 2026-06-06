@@ -1,6 +1,6 @@
 apiVersion: v2
 appVersion: "1.0.0"
-description: AirQo Internal Docs (The Mariana) Helm Chart
+description: AirQo Internal Docs (Mariana Deep) Helm Chart
 name: airqo-internal-docs
 home: https://airqo.net
 version: 0.1.0

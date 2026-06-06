@@ -32,7 +32,7 @@ spec:
                 name: {{ .Values.app.configmap }}
           volumeMounts:
             - name: mariadb-config
-              mountPath: /config
+              mountPath: /var/lib/mysql
           resources:
             {{- toYaml .Values.dbResources | nindent 12 }}
       volumes:

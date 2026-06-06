@@ -6,3 +6,4 @@ config/
 
 # Ignore Docker volumes for MariaDB database files
 db_data/
+db_data_v2/

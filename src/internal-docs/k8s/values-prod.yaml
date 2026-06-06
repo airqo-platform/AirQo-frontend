@@ -4,8 +4,8 @@ image:
   tag: latest
   pullPolicy: IfNotPresent
 dbImage:
-  repository: lscr.io/linuxserver/mariadb
-  tag: latest
+  repository: mariadb
+  tag: 10.6
   pullPolicy: IfNotPresent
 imagePullSecrets: []
 nameOverride: ''
