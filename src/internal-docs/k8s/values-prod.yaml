@@ -73,6 +73,14 @@ dbApp:
   name: airqo-prod-internal-docs-db
   label: prod-internal-docs-db
 
+persistence:
+  size: 5Gi
+  storageClass: "fast-ssd"
+
+dbPersistence:
+  size: 20Gi
+  storageClass: "fast-ssd"
+
 env:
   APP_NAME: "Mariana Deep"
   APP_KEY: "" # Must be securely injected via CI/CD or secrets management

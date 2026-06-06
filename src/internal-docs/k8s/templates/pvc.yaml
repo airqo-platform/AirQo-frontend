@@ -6,9 +6,12 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
+  {{- if .Values.persistence.storageClass }}
+  storageClassName: {{ .Values.persistence.storageClass }}
+  {{- end }}
   resources:
     requests:
-      storage: 5Gi
+      storage: {{ .Values.persistence.size }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -18,6 +21,9 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
+  {{- if .Values.dbPersistence.storageClass }}
+  storageClassName: {{ .Values.dbPersistence.storageClass }}
+  {{- end }}
   resources:
     requests:
-      storage: 5Gi
+      storage: {{ .Values.dbPersistence.size }}
