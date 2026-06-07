@@ -41,13 +41,15 @@ If a device belongs to an organisation's private Cohort, it will **not** appear 
 | Historical measurements | `POST /api/v3/public/analytics/data-download` |
 | Spatial heatmap (city) | `GET /api/v2/spatial/heatmaps/{GRID_ID}?token={SECRET_TOKEN}` |
 | All available heatmaps | `GET /api/v2/spatial/heatmaps?token={SECRET_TOKEN}` |
+| Daily forecasts | `GET /api/v2/predict/daily-forecasting/?grid_id={GRID_ID}&token={SECRET_TOKEN}` |
+| Hourly forecasts | `GET /api/v2/predict/hourly-forecasting/?grid_id={GRID_ID}&token={SECRET_TOKEN}` |
 
 ---
 
 ## Finding your Grid ID
 
-- **Browse the metadata endpoints** at [docs.airqo.net/airqo-rest-api-documentation/api-endpoints/metadata](https://docs.airqo.net/airqo-rest-api-documentation/api-endpoints/metadata)
-- **Filter by location** using the `admin_level` query parameter (country, province, or city)
+- **Browse the [Metadata API](../reference/metadata.md#grid-summary-with-site-details):** call `GET /api/v2/devices/grids/summary?admin_level=city` to list all city-level grids with their site details
+- **Filter by location** using the `admin_level` query parameter (`country`, `province`, `city`, `district`)
 - **Example:** The Grid ID for Nairobi is `64b7ac8fd7249f0029feca80`
 
 ---
@@ -60,7 +62,7 @@ If a device belongs to an organisation's private Cohort, it will **not** appear 
 | Spatial heatmaps | ✅ Free | Base64 PNG with boundary coordinates |
 | Historical calibrated data | ✅ Standard+ | Via Analytics API |
 | Raw sensor readings | ✅ Standard+ | Via Analytics API |
-| Air quality forecasts | ✅ Premium | Via site or device ID from your Grid |
+| Air quality forecasts | ✅ Premium | Via `grid_id` or per-site `site_id` — see [Forecast API](../forecasts/overview.md) |
 
 ---
 
@@ -79,4 +81,5 @@ City authorities already using Grid ID access:
 - [Fetch recent measurements →](./recent-measurements.md)
 - [Access historical data →](./historical-data.md)
 - [Generate spatial heatmaps →](./spatial-heatmaps.md)
+- [Get air quality forecasts →](../forecasts/overview.md)
 - [Set up your account →](../getting-started/authentication.md)

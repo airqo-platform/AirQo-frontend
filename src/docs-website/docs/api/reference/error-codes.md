@@ -19,7 +19,7 @@ All AirQo API endpoints return consistent error responses so you can handle fail
 }
 ```
 
-For forecast endpoints, the shape uses `success: false`:
+For forecast endpoints (`/api/v2/predict/daily-forecasting/`, `/api/v2/predict/hourly-forecasting/`), the shape uses `success: false`:
 
 ```json
 {
@@ -54,6 +54,24 @@ For forecast endpoints, the shape uses `success: false`:
 **Most likely cause:** Your server's public IP is not whitelisted.
 
 **Solution:** Log in to [analytics.airqo.net](https://analytics.airqo.net) → Account Settings → IP Whitelist. Add the public IP your server uses to make API requests.
+
+---
+
+### 400 Bad Request — conflicting forecast parameters
+
+```json
+{
+  "success": false,
+  "message": "Please specify only one of site_id, grid_id, or cohort_id.",
+  "data": {
+    "forecasts": []
+  }
+}
+```
+
+**Cause:** More than one of `site_id`, `grid_id`, or `cohort_id` was provided in a single forecast request.
+
+**Solution:** Provide exactly one identifier per request.
 
 ---
 
