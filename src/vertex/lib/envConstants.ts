@@ -5,17 +5,22 @@
 import { stripTrailingSlash } from './utils';
 
 /**
+ * Gets the default API URL fallback based on the current environment
+ * @returns {string} The default API URL
+ */
+export const getDefaultApiUrl = (): string => {
+  const env = getEnvironment().toLowerCase();
+  if (env === 'production') return 'https://vertex.airqo.net/api/v2';
+  if (env === 'staging') return 'https://staging-vertex.airqo.net/api/v2';
+  return 'http://localhost:3000';
+};
+
+/**
  * Gets the API base URL from environment variables
  * @returns {string} The API base URL
- * @throws {Error} If API_URL is not defined
  */
 export const getApiBaseUrl = (): string => {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  
-  if (!apiUrl) {
-    throw new Error('NEXT_PUBLIC_API_URL environment variable is not defined');
-  }
-  
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || getDefaultApiUrl();
   return stripTrailingSlash(apiUrl);
 };
 
