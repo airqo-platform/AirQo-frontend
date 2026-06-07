@@ -1,6 +1,7 @@
 import {
   defaultVertexConfig,
   validateVertexConfig,
+  type VertexConfigInput,
 } from "./core/config/vertex-config";
 import { getDefaultApiUrl } from "./lib/envConstants";
 
