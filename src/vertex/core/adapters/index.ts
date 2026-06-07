@@ -1,17 +1,17 @@
 import { vertexConfig } from "@/vertex.config";
 import type { VertexApiAdapter } from "@/core/config/vertex-config";
 import type { VertexAdapter } from "./types";
-import { createAirQoAdapter } from "./airqo";
-import { createMockAdapter } from "./mock";
+import { airqoAdapter } from "./airqo";
+import { mockAdapter } from "./mock";
 
 export function createAdapter(
   adapterName: VertexApiAdapter = vertexConfig.api.adapter,
 ): VertexAdapter {
   switch (adapterName) {
     case "mock":
-      return createMockAdapter();
+      return mockAdapter;
     case "airqo":
-      return createAirQoAdapter();
+      return airqoAdapter;
     default: {
       const exhaustiveCheck: never = adapterName;
       throw new Error(`Unsupported Vertex adapter: ${exhaustiveCheck}`);

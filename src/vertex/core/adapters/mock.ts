@@ -117,8 +117,8 @@ function readingIsInRange(reading: Reading, range: DateRange) {
   return readingTime >= startTime && readingTime <= endTime;
 }
 
-export function createMockAdapter(): VertexAdapter {
-  return {
+export const mockAdapter: VertexAdapter = (() => {
+  const coreMocks: Partial<VertexAdapter> = {
     async getCurrentUser() {
       return {
         success: true,
@@ -355,4 +355,16 @@ export function createMockAdapter(): VertexAdapter {
       return clone(mockNetworks);
     },
   };
-}
+
+  return new Proxy(coreMocks as VertexAdapter, {
+    get(target, prop, receiver) {
+      if (prop in target) {
+        return Reflect.get(target, prop, receiver);
+      }
+      return async (...args: any[]) => {
+        console.warn(`[Mock Adapter] Method '${String(prop)}' is not implemented.`);
+        return { success: true, message: `Mocked call to ${String(prop)}` };
+      };
+    }
+  });
+})();

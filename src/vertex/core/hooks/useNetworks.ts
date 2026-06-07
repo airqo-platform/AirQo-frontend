@@ -5,7 +5,7 @@ import {
   networks as networksApi,
 } from "@/core/apis/networks";
 import { DeviceListingOptions } from "./useDevices";
-import { devices } from "../apis/devices";
+import { adapter } from "../adapters";
 import { AxiosError } from "axios";
 import type { DevicesSummaryResponse } from "@/app/types/devices";
 
@@ -22,7 +22,7 @@ export const useNetworks = () => {
     error,
   } = useQuery<Network[], AxiosError<ErrorResponse>>({
     queryKey: ["networks"],
-    queryFn: networksApi.getNetworksApi,
+    queryFn: adapter.getNetworks,
     staleTime: 300_000, // 5 minutes
     refetchOnWindowFocus: false,
   });
@@ -65,7 +65,7 @@ export const useNetworkDevices = (options: DeviceListingOptions = {}) => {
 
       // Hybrid Strategy: If filterStatus is provided, use the status endpoint
       if (filterStatus) {
-        return devices.getDevicesByStatusApi({
+        return adapter.getDevicesByStatus({
           status: filterStatus,
           limit: safeLimit,
           skip,
@@ -76,7 +76,7 @@ export const useNetworkDevices = (options: DeviceListingOptions = {}) => {
         });
       }
 
-      return devices.getDevicesSummaryApi({
+      return adapter.getDevices({
         limit: safeLimit,
         skip,
         ...(search && { search }),

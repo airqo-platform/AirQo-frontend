@@ -6,6 +6,8 @@ import { AxiosError } from "axios";
 import { Role } from "@/app/types/roles";
 import React from "react";
 
+import { adapter } from '../adapters';
+
 interface ErrorResponse {
   message: string;
 }
@@ -19,7 +21,7 @@ export const useRoles = () => {
 
   const { data, isLoading, error } = useQuery<RolesResponse, AxiosError<ErrorResponse>>({
     queryKey: ["roles"],
-    queryFn: () => roles.getRolesApi(),
+    queryFn: () => adapter.getRolesApi(),
     onSuccess: (data: RolesResponse) => {
       dispatch(setRoles(data.roles));
     },
@@ -40,7 +42,7 @@ export const useGroupRoles = (groupId: string) => {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["grouproles", groupId],
-    queryFn: () => roles.getOrgRolesApi(groupId || ""),
+    queryFn: () => adapter.getOrgRolesApi(groupId || ""),
   });
 
   React.useEffect(() => {

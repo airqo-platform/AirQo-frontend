@@ -11,6 +11,8 @@ import { useDispatch } from "react-redux";
 import React from "react";
 
 
+import { adapter } from '../adapters';
+
 interface ErrorResponse {
   message: string;
   errors?:
@@ -47,7 +49,7 @@ export const useGrids = (options: GridListingOptions = {}) => {
         ...(sortBy && { sortBy }),
         ...(order && { order }),
       };
-      return grids.getGridsApi(params);
+      return adapter.getGridsApi(params);
     },
     enabled: true,
     staleTime: 300_000,
@@ -77,7 +79,7 @@ export const useGridDetails = (gridId: string) => {
   const dispatch = useDispatch();
   const { data, isLoading, error } = useQuery<GridsSummaryResponse, AxiosError<ErrorResponse>>({
     queryKey: ["gridDetails", gridId],
-    queryFn: () => grids.getGridDetailsApi(gridId),
+    queryFn: () => adapter.getGridDetailsApi(gridId),
     enabled: !!gridId,
   });
 
@@ -108,7 +110,7 @@ export const useUpdateGridDetails = (gridId: string, options?: UseUpdateGridDeta
     error,
   } = useMutation<Grid, AxiosError<ErrorResponse>, { name?: string; visibility?: boolean; admin_level?: string }>({
     mutationFn: (updatedFields: { name?: string; visibility?: boolean; admin_level?: string }) =>
-      grids.updateGridDetailsApi(gridId, updatedFields),
+      adapter.updateGridDetailsApi(gridId, updatedFields),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["gridDetails", gridId] });
       queryClient.invalidateQueries({ queryKey: ["grids"] });
@@ -132,7 +134,7 @@ export const useCreateGrid = (options?: UseCreateGridOptions) => {
   const queryClient = useQueryClient();
   const { mutate: createGrid, isPending: isLoading, error } = useMutation<Grid, AxiosError<ErrorResponse>, CreateGrid>({
     mutationFn: async (newGrid: CreateGrid) =>
-      await grids.createGridApi(newGrid),
+      await adapter.createGridApi(newGrid),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["grids"] });
       options?.onSuccess?.(data);
@@ -153,7 +155,7 @@ interface UseCreateAdminLevelOptions {
 export const useCreateAdminLevel = (options?: UseCreateAdminLevelOptions) => {
   const queryClient = useQueryClient();
   const { mutate: createAdminLevel, isPending: isLoading, error } = useMutation<AdminLevelResponse, AxiosError<ErrorResponse>, { name: string }>({
-    mutationFn: (data: { name: string }) => grids.createAdminLevelApi(data),
+    mutationFn: (data: { name: string }) => adapter.createAdminLevelApi(data),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["admin-levels"] });
       options?.onSuccess?.(data);
@@ -170,7 +172,7 @@ export const useCreateAdminLevel = (options?: UseCreateAdminLevelOptions) => {
 export const useAdminLevels = () => {
   const { data, isLoading, error } = useQuery<AdminLevelsListResponse, AxiosError<ErrorResponse>>({
     queryKey: ["admin-levels"],
-    queryFn: () => grids.getAdminLevelsApi(),
+    queryFn: () => adapter.getAdminLevelsApi(),
     staleTime: 300_000,
   });
 
@@ -189,7 +191,7 @@ interface UseUpdateAdminLevelOptions {
 export const useUpdateAdminLevel = (options?: UseUpdateAdminLevelOptions) => {
   const queryClient = useQueryClient();
   const { mutate: updateAdminLevel, isPending: isLoading, error } = useMutation<AdminLevelResponse, AxiosError<ErrorResponse>, { levelId: string; data: { name: string } }>({
-    mutationFn: ({ levelId, data }) => grids.updateAdminLevelApi(levelId, data),
+    mutationFn: ({ levelId, data }) => adapter.updateAdminLevelApi(levelId, data),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["admin-levels"] });
       options?.onSuccess?.(data);

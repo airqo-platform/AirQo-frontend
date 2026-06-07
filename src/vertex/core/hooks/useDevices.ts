@@ -13,6 +13,7 @@ import {
   DeviceCountResponse,
   type DeviceActivitiesResponse,
 } from '../apis/devices';
+import { adapter } from '../adapters';
 import { useGroupCohorts, usePersonalUserCohorts } from './useCohorts';
 import { useAppSelector } from '../redux/hooks';
 import { useMemo } from 'react';
@@ -112,13 +113,13 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
 
         if (isAirQoGroup) {
           // Admin view: status across all (or filtered network)
-          return devices.getDevicesByStatusApi(commonParams);
+          return adapter.getDevicesByStatus(commonParams);
         } else {
           // Org view: status scoped by organization cohorts
           if (!groupCohortIds || groupCohortIds.length === 0) {
             throw new Error('Cohort IDs are not available for this organization.');
           }
-          return devices.getDevicesByStatusApi({
+          return adapter.getDevicesByStatus({
             ...commonParams,
             cohort_id: groupCohortIds,
           });
@@ -135,7 +136,7 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
           ...(network && { network }),
           ...rest,
         };
-        return devices.getDevicesSummaryApi(params, signal);
+        return adapter.getDevices(params, signal);
       }
 
       if (!groupCohortIds) {
@@ -143,7 +144,7 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
         throw new Error('Cohort IDs are not available yet.');
       }
 
-      return devices.getDevicesByCohorts({
+      return adapter.getDevicesByCohorts({
         cohort_ids: groupCohortIds,
         limit: safeLimit,
         skip,
@@ -205,7 +206,7 @@ export const useMyDevices = (
       groupIds,
       cohortIds,
     ],
-    queryFn: () => devices.getMyDevices(userId, groupIds, cohortIds),
+    queryFn: () => adapter.getMyDevices(userId, groupIds, cohortIds),
     enabled: !!userId && enabled && !!userDetails && !isPersonalCohortsLoading,
     staleTime: 60_000, // 1 minute
   });
@@ -258,18 +259,18 @@ export const useDeviceCount = (options: { enabled?: boolean; cohortIds?: string[
     ],
     queryFn: () => {
       if (network) {
-        return devices.getDeviceCountApi({ network });
+        return adapter.getDeviceCount({ network });
       }
 
       if (isAirQoGroup) {
-        return devices.getDeviceCountApi({});
+        return adapter.getDeviceCount({});
       }
 
       if (!effectiveCohortIds || effectiveCohortIds.length === 0) {
         return Promise.reject(new Error('Cohort IDs must be provided.'));
       }
 
-      return devices.getDeviceCountApi({ cohort_id: effectiveCohortIds });
+      return adapter.getDeviceCount({ cohort_id: effectiveCohortIds });
     },
     enabled: isQueryEnabled,
     staleTime: 300_000,
@@ -286,7 +287,7 @@ export const useDeviceCount = (options: { enabled?: boolean; cohortIds?: string[
 export const useDeviceAvailability = (deviceName: string) => {
   return useQuery<DeviceAvailabilityResponse, AxiosError<ErrorResponse>>({
     queryKey: ['deviceAvailability', deviceName],
-    queryFn: () => devices.checkDeviceAvailability(deviceName),
+    queryFn: () => adapter.checkDeviceAvailability(deviceName),
     enabled: !!deviceName && deviceName.length > 0,
     staleTime: 30000,
   });
@@ -305,7 +306,7 @@ export const useClaimDevice = (options?: UseClaimDeviceOptions) => {
     AxiosError<ErrorResponse>,
     DeviceClaimRequest
   >({
-    mutationFn: devices.claimDevice,
+    mutationFn: adapter.claimDevice,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myDevices'] });
       queryClient.invalidateQueries({ queryKey: ['devices'] });
@@ -330,7 +331,7 @@ export const useBulkClaimDevices = (options?: UseBulkClaimDevicesOptions) => {
     AxiosError<ErrorResponse>,
     BulkDeviceClaimRequest
   >({
-    mutationFn: devices.claimDevicesBulk,
+    mutationFn: adapter.claimDevicesBulk,
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['myDevices'] });
       queryClient.invalidateQueries({ queryKey: ['devices'] });
@@ -350,7 +351,7 @@ export const useAssignDeviceToOrganization = () => {
     AxiosError<ErrorResponse>,
     DeviceAssignmentRequest
   >({
-    mutationFn: devices.assignDeviceToOrganization,
+    mutationFn: adapter.assignDeviceToOrganization,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myDevices'] });
       queryClient.invalidateQueries({ queryKey: ['devices'] });
@@ -372,7 +373,7 @@ export const useUnassignDeviceFromOrganization = (options?: UseUnassignDeviceFro
     { deviceName: string; userId: string }
   >({
     mutationFn: ({ deviceName, userId }) =>
-      devices.unassignDeviceFromOrganization(deviceName, userId),
+      adapter.unassignDeviceFromOrganization(deviceName, userId),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['myDevices'] });
       queryClient.invalidateQueries({ queryKey: ['devices'] });
@@ -387,7 +388,7 @@ export const useUnassignDeviceFromOrganization = (options?: UseUnassignDeviceFro
 export const useDeviceDetails = (deviceId: string) => {
   return useQuery<DeviceDetailsResponse, AxiosError<ErrorResponse>>({
     queryKey: ['device-details', deviceId],
-    queryFn: () => devices.getDeviceDetails(deviceId),
+    queryFn: () => adapter.getDevice(deviceId),
     enabled: !!deviceId,
   });
 };
@@ -402,7 +403,7 @@ export const useUpdateDeviceLocal = () => {
     }: {
       deviceId: string;
       deviceData: Partial<Device>;
-    }) => devices.updateDeviceLocal(deviceId, deviceData),
+    }) => adapter.updateDevice(deviceId, deviceData),
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({
         queryKey: ['device-details', variables.deviceId],
@@ -422,7 +423,7 @@ export const useUpdateDeviceGlobal = () => {
     }: {
       deviceId: string;
       deviceData: Partial<Device>;
-    }) => devices.updateDeviceGlobal(deviceId, deviceData),
+    }) => adapter.updateDeviceGlobal(deviceId, deviceData),
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({
         queryKey: ['device-details', variables.deviceId],
@@ -435,7 +436,7 @@ export const useUpdateDeviceGlobal = () => {
 export const useDeviceStatusFeed = (deviceNumber?: number) => {
   return useQuery({
     queryKey: ['deviceStatusFeed', deviceNumber],
-    queryFn: () => devices.getDeviceStatusFeed(deviceNumber!),
+    queryFn: () => adapter.getDeviceStatusFeed(deviceNumber!),
     enabled: !!deviceNumber,
     refetchOnWindowFocus: false,
   });
@@ -460,7 +461,7 @@ export const useUpdateDeviceBulk = (options?: UseUpdateDeviceBulkOptions) => {
     BulkDeviceUpdatePayload
   >({
     mutationFn: ({ deviceIds, updateData }) =>
-      devices.bulkUpdateDeviceDetails(deviceIds, updateData),
+      adapter.bulkUpdateDeviceDetails(deviceIds, updateData),
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["devices"] });
@@ -489,7 +490,7 @@ export const useUpdateDeviceGroup = (options?: UseUpdateDeviceGroupOptions) => {
     { deviceId: string; groupName: string }
   >({
     mutationFn: ({ deviceId, groupName }) =>
-      devices.bulkUpdateDeviceDetails([deviceId], { groups: [groupName] }),
+      adapter.bulkUpdateDeviceDetails([deviceId], { groups: [groupName] }),
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["devices"] });
@@ -530,7 +531,7 @@ export const useCreateDevice = () => {
         ...(tags && tags.length > 0 && { tags }),
       };
 
-      return devices.createDevice(payload);
+      return adapter.createDevice(payload);
     },
 
     onSuccess: async (data) => {
@@ -587,7 +588,7 @@ export const useImportDevice = () => {
         ...rest,
         ...(tags && tags.length > 0 && { tags }),
       };
-      return devices.importDevice(payload);
+      return adapter.importDevice(payload);
     },
     onSuccess: () => {
       // Refresh based on active module
@@ -625,9 +626,9 @@ export const useBulkImportDevices = () => {
   >({
     mutationFn: (variables) => {
       if (variables.type === 'csv') {
-        return devices.importBulkDevicesCSV(variables.payload);
+        return adapter.importBulkDevicesCSV(variables.payload);
       }
-      return devices.importBulkDevicesJSON(variables.payload);
+      return adapter.importBulkDevicesJSON(variables.payload);
     },
     onSuccess: (data) => {
       // Refresh based on active module
@@ -672,7 +673,7 @@ export const useDeployDevice = () => {
       lastName?: string;
       email?: string;
       userName?: string;
-    }) => devices.deployDevice(deviceData),
+    }) => adapter.deployDevice(deviceData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['devices'] });
       queryClient.invalidateQueries({ queryKey: ['claimedDevices'] });
@@ -700,7 +701,7 @@ export const useRecallDevice = () => {
         email?: string;
         userName?: string;
       };
-    }) => devices.recallDevice(deviceName, recallData),
+    }) => adapter.recallDevice(deviceName, recallData),
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['devices'] });
       queryClient.invalidateQueries({ queryKey: ['device-details'] });
@@ -720,7 +721,7 @@ export const useAddMaintenanceLog = () => {
     }: {
       deviceName: string;
       logData: MaintenanceLogData;
-    }) => devices.addMaintenanceLog(deviceName, logData),
+    }) => adapter.addMaintenanceLog(deviceName, logData),
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['devices'] });
       queryClient.invalidateQueries({ queryKey: ['device-details'] });
@@ -736,7 +737,7 @@ export const useDecryptDeviceKeys = () => {
     AxiosError<ErrorResponse>,
     DecryptionRequest[]
   >({
-    mutationFn: devices.decryptDeviceKeys,
+    mutationFn: adapter.decryptDeviceKeys,
     onSuccess: () => {
       logger.info('Keys decrypted successfully!');
     },
@@ -757,7 +758,7 @@ export const usePrepareDeviceForShipping = (options?: UsePrepareDeviceForShippin
     { deviceName: string; tokenType?: 'hex' | 'readable' }
   >({
     mutationFn: ({ deviceName, tokenType }) =>
-      devices.prepareDeviceForShipping(deviceName, tokenType),
+      adapter.prepareDeviceForShipping(deviceName, tokenType),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['shippingStatus'] });
       options?.onSuccess?.(data);
@@ -782,7 +783,7 @@ export const usePrepareBulkDevicesForShipping = (options?: UsePrepareBulkDevices
     { deviceNames: string[]; tokenType?: 'hex' | 'readable'; batchName?: string }
   >({
     mutationFn: ({ deviceNames, tokenType, batchName }) =>
-      devices.prepareBulkDevicesForShipping(deviceNames, tokenType, batchName),
+      adapter.prepareBulkDevicesForShipping(deviceNames, tokenType, batchName),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['shippingBatches'] });
       options?.onSuccess?.(data);
@@ -804,7 +805,7 @@ export const useGenerateShippingLabels = (options?: UseGenerateShippingLabelsOpt
     AxiosError<ErrorResponse>,
     string[]
   >({
-    mutationFn: (deviceNames) => devices.generateShippingLabels(deviceNames),
+    mutationFn: (deviceNames) => adapter.generateShippingLabels(deviceNames),
     onSuccess: (data) => {
       options?.onSuccess?.(data);
     },
@@ -817,7 +818,7 @@ export const useGenerateShippingLabels = (options?: UseGenerateShippingLabelsOpt
 export const useShippingStatus = (deviceNames?: string[]) => {
   return useQuery<ShippingStatusResponse, AxiosError<ErrorResponse>>({
     queryKey: ['shippingStatus', deviceNames],
-    queryFn: () => devices.getShippingStatus(deviceNames),
+    queryFn: () => adapter.getShippingStatus(deviceNames),
     staleTime: 60000,
   });
 };
@@ -825,7 +826,7 @@ export const useShippingStatus = (deviceNames?: string[]) => {
 export const useOrphanedDevices = (userId: string) => {
   return useQuery<OrphanedDevicesResponse, AxiosError>({
     queryKey: ['orphanedDevices', userId],
-    queryFn: () => devices.getOrphanedDevices(userId),
+    queryFn: () => adapter.getOrphanedDevices(userId),
     enabled: !!userId,
     staleTime: 300_000, // 5 minutes
   });
@@ -834,7 +835,7 @@ export const useOrphanedDevices = (userId: string) => {
 export const useShippingBatches = (params: { limit?: number; skip?: number } = {}) => {
   return useQuery<ShippingBatchesResponse, AxiosError<ErrorResponse>>({
     queryKey: ['shippingBatches', params],
-    queryFn: () => devices.getShippingBatches(params),
+    queryFn: () => adapter.getShippingBatches(params),
     staleTime: 60_000,
   });
 };
@@ -842,7 +843,7 @@ export const useShippingBatches = (params: { limit?: number; skip?: number } = {
 export const useShippingBatchDetails = (batchId: string) => {
   return useQuery<ShippingBatchDetailsResponse, AxiosError<ErrorResponse>>({
     queryKey: ['shippingBatchDetails', batchId],
-    queryFn: () => devices.getShippingBatchDetails(batchId),
+    queryFn: () => adapter.getShippingBatchDetails(batchId),
     enabled: !!batchId,
     staleTime: 60_000,
   });
@@ -852,7 +853,7 @@ export const useDeviceActivities = (deviceName: string) => {
   return useInfiniteQuery<DeviceActivitiesResponse, AxiosError<ErrorResponse>>({
     queryKey: ['deviceActivities', deviceName],
     queryFn: ({ pageParam = 1 }) =>
-      devices.getDeviceActivities(deviceName, { page: pageParam as number, limit: 10 }),
+      adapter.getDeviceActivities(deviceName, { page: pageParam as number, limit: 10 }),
     getNextPageParam: (lastPage: DeviceActivitiesResponse, allPages: DeviceActivitiesResponse[]) => {
         if (!lastPage.meta) {
             if (!lastPage.site_activities || lastPage.site_activities.length < 10) return undefined;

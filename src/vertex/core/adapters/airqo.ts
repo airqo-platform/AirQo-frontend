@@ -1,35 +1,42 @@
-import type { VertexAdapter } from "./types";
+import { VertexAdapter } from "./types";
 import { devices } from "../apis/devices";
 import { sites } from "../apis/sites";
-import { users } from "../apis/users";
+import { cohorts } from "../apis/cohorts";
 import { networks } from "../apis/networks";
+import { users } from "../apis/users";
+import { grids } from "../apis/grids";
+import { groupsApi } from "../apis/organizations";
+import { permissions } from "../apis/permissions";
+import { roles } from "../apis/roles";
+import { feedbackService } from "../apis/feedback";
 
-export function createAirQoAdapter(): VertexAdapter {
-  return {
-    getCurrentUser: async (userId?: string) => {
-      if (!userId) {
-        throw new Error("userId is required for AirQo adapter getCurrentUser");
-      }
-      return users.getUserDetails(userId);
-    },
-    login: users.loginWithDetails,
+export const airqoAdapter: VertexAdapter = {
+  // Spread all core API implementations
+  ...devices,
+  ...sites,
+  ...cohorts,
+  ...networks,
+  ...users,
+  ...grids,
+  ...groupsApi,
+  ...permissions,
+  ...roles,
 
-    getDevices: devices.getDevicesSummaryApi,
-    getDevicesByStatus: devices.getDevicesByStatusApi,
-    getDeviceCount: devices.getDeviceCountApi,
-    getDevice: devices.getDeviceDetails,
-    createDevice: devices.createDevice,
-    updateDevice: devices.updateDeviceLocal,
-    deployDevice: devices.deployDevice,
-    recallDevice: devices.recallDevice,
-    addMaintenanceLog: devices.addMaintenanceLog,
-    getDeviceActivities: devices.getDeviceActivities,
+  // Feedback class methods (they don't spread)
+  submitFeedback: feedbackService.submitFeedback.bind(feedbackService),
+  submitSatisfactionFeedback: feedbackService.submitSatisfactionFeedback.bind(feedbackService),
+  submitLoginFeedback: feedbackService.submitLoginFeedback.bind(feedbackService),
 
-    getSites: sites.getSitesSummary,
-    getSitesByStatus: sites.getSitesByStatusApi,
-    getSite: sites.getSiteDetails,
-    getSiteActivities: sites.getSiteActivities,
-
-    getNetworks: networks.getNetworksApi,
-  };
-}
+  // Generic overrides
+  getDevices: devices.getDevicesSummaryApi,
+  getDevicesByStatus: devices.getDevicesByStatusApi,
+  getDeviceCount: devices.getDeviceCountApi,
+  getDevice: devices.getDeviceDetails,
+  updateDevice: devices.updateDeviceLocal,
+  getSites: sites.getSitesSummary,
+  getSite: sites.getSiteDetails,
+  getSitesByStatus: sites.getSitesByStatusApi,
+  getNetworks: networks.getNetworksApi,
+  getCurrentUser: users.getUserDetails,
+  login: users.loginWithDetails,
+};

@@ -7,6 +7,7 @@ import {
   CreateSiteResponse,
   SiteRefreshResponse,
 } from "../apis/sites";
+import { adapter } from '../adapters';
 import { DeviceActivitiesResponse } from "../apis/devices";
 
 import { useGroupCohorts } from "./useCohorts";
@@ -37,7 +38,7 @@ export interface SiteListingOptions {
 export const useSiteActivitiesInfinite = (siteId: string) => {
   return useInfiniteQuery<DeviceActivitiesResponse, AxiosError<ErrorResponse>>({
       queryKey: ["siteActivities", siteId],
-      queryFn: ({ pageParam = 1 }) => sites.getSiteActivities(siteId, { page: pageParam as number, limit: 10 }),
+      queryFn: ({ pageParam = 1 }) => adapter.getSiteActivities(siteId, { page: pageParam as number, limit: 10 }),
       getNextPageParam: (lastPage, allPages) => {
           if (!lastPage.meta) {
             if (!lastPage.site_activities || lastPage.site_activities.length < 10) return undefined;
@@ -84,19 +85,19 @@ export const useSites = (options: SiteListingOptions = {}) => {
         };
 
         if (options.status) {
-            return sites.getSitesByStatusApi({
+            return adapter.getSitesByStatus({
                 status: options.status,
                 ...params
             });
         }
-        return sites.getSitesSummary(params, signal);
+        return adapter.getSites(params, signal);
       }
 
       if (!groupCohortIds) {
         throw new Error("Cohort IDs are not available yet.");
       }
 
-      return sites.getSitesByCohorts({
+      return adapter.getSitesByCohorts({
         cohort_ids: groupCohortIds,
         limit: safeLimit,
         skip,
@@ -126,7 +127,7 @@ export const useSiteStatistics = (network?: string) => {
 
     const query = useQuery({
         queryKey: ["sites-count-summary", network, activeGroup?.grp_title],
-        queryFn: () => sites.getSitesSummaryCount({ network: network || "" }),
+        queryFn: () => adapter.getSitesSummaryCount({ network: network || "" }),
         enabled: !!activeGroup?.grp_title,
         staleTime: 300_000, 
     });
@@ -150,7 +151,7 @@ export const useApproximateCoordinates = () => {
     { latitude: string; longitude: string }
   >({
     mutationFn: ({ latitude, longitude }) =>
-      sites.getApproximateCoordinates(latitude, longitude),
+      adapter.getApproximateCoordinates(latitude, longitude),
     onError: (error) => {
       ReusableToast({
         message: `Unable to get approximate coordinates: ${getApiErrorMessage(error)}`,
@@ -180,7 +181,7 @@ export const useSiteDetails = (
   return useQuery({
     queryKey: ["site-details", siteId],
     queryFn: async () => {
-      const response = await sites.getSiteDetails(siteId);
+      const response = await adapter.getSite(siteId);
       return response.data;
     },
     enabled: !!siteId && enabled,
@@ -200,7 +201,7 @@ export const useUpdateSiteDetails = () => {
         Object.entries(data).filter(([, value]) => value !== undefined)
       );
 
-      return sites.updateSiteDetails(siteId, cleanedData);
+      return adapter.updateSiteDetails(siteId, cleanedData);
     },
     onSuccess: (data, { siteId }) => {
       ReusableToast({
@@ -233,11 +234,11 @@ export const useCreateSite = () => {
 
   return useMutation<CreateSiteResponse, AxiosError<ErrorResponse>, CreateSiteRequest>({
     mutationFn: async (data: CreateSiteRequest) => {
-      const createdSite = await sites.createSite(data);
+      const createdSite = await adapter.createSite(data);
       const siteId = createdSite?.site?._id;
 
       if (siteId && activeGroup?.grp_title) {
-        await sites.bulkUpdate({
+        await adapter.bulkUpdate({
           siteIds: [siteId],
           updateData: {
             groups: [activeGroup.grp_title],
@@ -269,7 +270,7 @@ export const useRefreshSiteMetadata = () => {
   const queryClient = useQueryClient();
 
   return useMutation<SiteRefreshResponse, AxiosError<ErrorResponse>, string>({
-    mutationFn: (siteId: string) => sites.refreshSiteMetadata(siteId),
+    mutationFn: (siteId: string) => adapter.refreshSiteMetadata(siteId),
     onSuccess: (data, siteId) => {
       // Update the cache with the newly enriched site data
       queryClient.setQueryData(["site-details", siteId], data.site);

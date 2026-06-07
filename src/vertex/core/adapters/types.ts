@@ -1,37 +1,40 @@
-import type {
-  Device,
-  DeviceAvailabilityResponse,
-  DeviceClaimRequest,
-  DeviceClaimResponse,
-  DeviceCreationResponse,
-  DevicesSummaryResponse,
-  DeviceUpdateGroupResponse,
-  MaintenanceLogData,
-  MyDevicesResponse,
-} from "@/app/types/devices";
-import type {
-  Cohort,
-  CohortsSummaryResponse,
-  GroupCohortsResponse,
-  OriginalCohortResponse,
-} from "@/app/types/cohorts";
-import type { Site } from "@/app/types/sites";
-import type { UserDetailsResponse, LoginCredentials } from "@/app/types/users";
-import type { Network } from "@/core/apis/networks";
-import type {
-  DeviceActivitiesResponse,
-  DeviceCountResponse,
-  DeviceDetailsResponse,
-  GetDevicesSummaryParams,
-} from "@/core/apis/devices";
-import type {
-  CreateSiteResponse,
-  GetSitesSummaryParams,
-  SitesSummaryCountResponse,
-  SitesSummaryResponse,
-} from "@/core/apis/sites";
-import type { GetCohortsSummaryParams } from "@/core/apis/cohorts";
+import { devices } from "../apis/devices";
+import { sites } from "../apis/sites";
+import { cohorts } from "../apis/cohorts";
+import { networks } from "../apis/networks";
+import { users } from "../apis/users";
+import { grids } from "../apis/grids";
+import { groupsApi } from "../apis/organizations";
+import { permissions } from "../apis/permissions";
+import { roles } from "../apis/roles";
+import { feedbackService } from "../apis/feedback";
 
+type BaseApis = typeof devices &
+  typeof sites &
+  typeof cohorts &
+  typeof networks &
+  typeof users &
+  typeof grids &
+  typeof groupsApi &
+  typeof permissions &
+  typeof roles &
+  typeof feedbackService;
+
+export interface VertexAdapter extends BaseApis {
+  // We keep the generic overrides we defined previously so that
+  // components using adapter.getDevices (instead of adapter.getDevicesSummaryApi) still work
+  getDevices: typeof devices.getDevicesSummaryApi;
+  getDevicesByStatus: typeof devices.getDevicesByStatusApi;
+  getDeviceCount: typeof devices.getDeviceCountApi;
+  getDevice: typeof devices.getDeviceDetails;
+  updateDevice: typeof devices.updateDeviceLocal;
+  getSites: typeof sites.getSitesSummary;
+  getSite: typeof sites.getSiteDetails;
+  getSitesByStatus: typeof sites.getSitesByStatusApi;
+  getNetworks: typeof networks.getNetworksApi;
+  getCurrentUser: typeof users.getUserDetails;
+  login: typeof users.loginWithDetails;
+}
 export interface DateRange {
   startDate: string;
   endDate: string;
@@ -92,65 +95,3 @@ export interface CreateSiteInput {
   longitude: string;
   network: string;
 }
-
-export interface VertexAdapter {
-  getCurrentUser(userId?: string): Promise<UserDetailsResponse>;
-  login?(credentials: LoginCredentials): Promise<any>;
-
-  getDevices(
-    params?: GetDevicesSummaryParams,
-    signal?: AbortSignal,
-  ): Promise<DevicesSummaryResponse>;
-  getDevicesByStatus(params: {
-    status: string;
-    limit?: number;
-    skip?: number;
-    search?: string;
-    sortBy?: string;
-    order?: "asc" | "desc";
-    network?: string;
-  }): Promise<DevicesSummaryResponse>;
-  getDeviceCount(params?: { network?: string }): Promise<DeviceCountResponse>;
-  getDevice(id: string): Promise<DeviceDetailsResponse>;
-  createDevice(data: CreateDeviceInput): Promise<DeviceCreationResponse>;
-  updateDevice(
-    deviceId: string,
-    deviceData: Partial<Device>,
-  ): Promise<{ success: boolean; message: string; updated_device: Device }>;
-  deployDevice(data: DeviceDeployInput): Promise<{ success: boolean; message: string }>;
-  recallDevice(
-    deviceName: string,
-    recallData: DeviceRecallInput,
-  ): Promise<{ success: boolean; message: string }>;
-  addMaintenanceLog(
-    deviceName: string,
-    logData: MaintenanceLogData,
-  ): Promise<{ success: boolean; message: string; data: MaintenanceLogData }>;
-  getDeviceActivities(
-    deviceName: string,
-    params?: { page?: number; limit?: number },
-  ): Promise<DeviceActivitiesResponse>;
-
-  getSites(
-    params: GetSitesSummaryParams,
-    signal?: AbortSignal,
-  ): Promise<SitesSummaryResponse>;
-  getSitesByStatus(params: {
-    status: string;
-    limit?: number;
-    skip?: number;
-    search?: string;
-    sortBy?: string;
-    order?: "asc" | "desc";
-    network?: string;
-    group?: string;
-  }): Promise<SitesSummaryResponse>;
-  getSite(id: string): Promise<{ message: string; data: Site }>;
-  getSiteActivities(
-    siteId: string,
-    params?: { page?: number; limit?: number },
-  ): Promise<DeviceActivitiesResponse>;
-
-  getNetworks(): Promise<Network[]>;
-}
-
