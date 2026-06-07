@@ -4,6 +4,34 @@
 
 ---
 
+## Version 1.23.61
+**Released:** June 07, 2026
+
+### Centralized Onboarding State & API Abstraction
+
+Migrated the onboarding checklist state from local storage to a centralized backend API for the Organization context, solving cross-device synchronization issues for enterprise users. (Note: Personal context continues to use local storage pending backend API rollout).
+
+<details>
+<summary><strong>Onboarding API Integration (4)</strong></summary>
+
+- **Backend Synchronization:** Deprecated `localStorage` as the single source of truth for the organization-level onboarding checklist (`add-device`, `assign-cohort`, `set-visibility`). State is now inherently bound to the `Group` document.
+- **Dynamic State Resolution:** The frontend now relies on the API to dynamically evaluate resource availability (e.g., existing devices or cohorts) and pre-populate completed steps during `GET /users/groups/:groupId` requests.
+- **JIT Patching & Race Condition Fix:** Implemented serialized `PATCH /api/v1/users/groups/:groupId/onboarding` requests for missing manual steps to prevent NextAuth session race conditions and unexpected lockouts.
+- **API Hook Abstraction:** Refactored direct API proxy invocations into strongly-typed custom React Query hooks (`useGroupDetails` and `useUpdateGroupOnboarding`) to centralize query management and reduce Axios instantiation overhead.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (3)</strong></summary>
+
+- `app/(authenticated)/home/page.tsx` [MODIFIED]
+- `core/apis/organizations.ts` [MODIFIED]
+- `core/hooks/useGroups.ts` [MODIFIED]
+
+</details>
+
+---
+
 ## Version 1.23.60
 **Released:** June 04, 2026
 
