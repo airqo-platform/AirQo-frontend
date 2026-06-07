@@ -109,7 +109,7 @@ export const TableExportModal: React.FC<TableExportModalProps> = ({
                         </label>
                         <button
                             onClick={handleSelectAll}
-                            className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                            className="text-xs text-primary dark:text-primary hover:underline"
                         >
                             {selectedColumns.length === allColumns.length ? 'Deselect All' : 'Select All'}
                         </button>
@@ -122,7 +122,7 @@ export const TableExportModal: React.FC<TableExportModalProps> = ({
                                     type="checkbox"
                                     checked={selectedColumns.includes(col.key)}
                                     onChange={() => handleColumnToggle(col.key)}
-                                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    className="rounded border-gray-300 text-primary focus:ring-primary"
                                 />
                                 <span className="text-sm text-gray-700 dark:text-gray-300 truncate" title={col.title}>
                                     {col.title}
@@ -142,7 +142,7 @@ export const TableExportModal: React.FC<TableExportModalProps> = ({
                                     type="checkbox"
                                     checked={selectedColumns.includes(col.key)}
                                     onChange={() => handleColumnToggle(col.key)}
-                                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    className="rounded border-gray-300 text-primary focus:ring-primary"
                                 />
                                 <span className="text-sm text-gray-700 dark:text-gray-300 truncate" title={col.title}>
                                     {col.title}

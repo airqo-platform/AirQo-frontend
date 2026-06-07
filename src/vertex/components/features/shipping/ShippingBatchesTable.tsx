@@ -28,7 +28,7 @@ const ShippingBatchesTable: React.FC = () => {
             key: 'device_count',
             label: 'Device Count',
             render: (value) => (
-                <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300">
+                <span className="bg-primary/10 text-primary text-xs font-medium px-2.5 py-0.5 rounded dark:bg-primary/20 dark:text-primary">
                     {value as number} devices
                 </span>
             )
@@ -47,7 +47,7 @@ const ShippingBatchesTable: React.FC = () => {
             label: 'Actions',
             render: (_, item) => (
                 <button
-                    className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                    className="text-primary hover:text-primary/80 font-medium"
                     onClick={(e) => {
                         e.stopPropagation();
                         router.push(`/admin/shipping/${item._id}`);

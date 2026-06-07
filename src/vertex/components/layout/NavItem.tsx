@@ -36,10 +36,10 @@ export const NavItem = React.memo<NavItemProps>(
       'focus-visible:outline-none'
     );
 
-    const textClass = isActive ? 'text-blue-700 dark:text-blue-500' : 'text-foreground dark:text-gray-300';
-    const iconColor = isActive ? 'text-blue-700 dark:text-blue-500' : 'text-gray-500 dark:text-gray-400';
+    const textClass = isActive ? 'text-primary dark:text-primary' : 'text-foreground dark:text-gray-300';
+    const iconColor = isActive ? 'text-primary dark:text-primary' : 'text-gray-500 dark:text-gray-400';
     const bgClass = isActive
-      ? 'bg-blue-50 dark:bg-blue-900/20'
+      ? 'bg-primary/10 dark:bg-primary/20'
       : 'hover:bg-muted dark:hover:bg-zinc-800 dark:text-gray-300 dark:hover:text-white';
 
     // Handle disabled state
@@ -75,7 +75,7 @@ export const NavItem = React.memo<NavItemProps>(
         {isActive && (
           <div className="absolute top-0 bottom-0 flex items-center -left-2">
             <span
-              className="w-1 bg-blue-600 rounded-md h-1/2"
+              className="w-1 bg-primary rounded-md h-1/2"
               aria-hidden="true"
             />
           </div>

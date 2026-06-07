@@ -202,14 +202,14 @@ export default function CohortsPage() {
                   handleTagClick("organizational");
                 }}
                 className={`flex items-center gap-1 px-4 py-2 rounded-md text-sm font-medium transition-colors border ${view === 'organization'
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "bg-transparent text-blue-600 border-blue-600 hover:bg-blue-50"
+                  ? "bg-primary text-white border-primary"
+                  : "bg-transparent text-primary border-primary hover:bg-primary/10"
                   }`}
               >
                 Managed Cohorts
                 <span className="ml-1">
                   ({isFetchingOrgCount && orgCountMeta?.total === undefined ? (
-                    <Skeleton className={`inline-block h-3 w-6 rounded-full ${view === 'organization' ? "bg-white/20" : "bg-blue-100"}`} />
+                    <Skeleton className={`inline-block h-3 w-6 rounded-full ${view === 'organization' ? "bg-white/20" : "bg-primary/20"}`} />
                   ) : (
                     orgCountMeta?.total ?? 0
                   )})
@@ -223,14 +223,14 @@ export default function CohortsPage() {
                   handleTagClick("All");
                 }}
                 className={`flex items-center gap-1 px-4 py-2 rounded-md text-sm font-medium transition-colors border ${view === 'user'
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "bg-transparent text-blue-600 border-blue-600 hover:bg-blue-50"
+                  ? "bg-primary text-white border-primary"
+                  : "bg-transparent text-primary border-primary hover:bg-primary/10"
                   }`}
               >
                 User Cohorts
                 <span className="ml-1">
                   ({isFetchingUserCount && userCountMeta?.total === undefined ? (
-                    <Skeleton className={`inline-block h-3 w-6 rounded-full ${view === 'user' ? "bg-white/20" : "bg-blue-100"}`} />
+                    <Skeleton className={`inline-block h-3 w-6 rounded-full ${view === 'user' ? "bg-white/20" : "bg-primary/20"}`} />
                   ) : (
                     userCountMeta?.total ?? 0
                   )})
@@ -245,7 +245,7 @@ export default function CohortsPage() {
                     key={tag}
                     onClick={() => handleTagClick(tag)}
                     className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${selectedTag === tag
-                      ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 ring-1 ring-blue-600/20"
+                      ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary ring-1 ring-primary/20"
                       : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
                       }`}
                   >

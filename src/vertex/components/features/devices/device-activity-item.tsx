@@ -68,12 +68,12 @@ const DeviceActivityItem: React.FC<DeviceActivityItemProps> = ({
 
                     {/* Extra details (Placeholders for now, based on image "Added a file" etc) */}
                     {activity.deployment_type && activity.activityType === "deployment" && (
-                        <div className="text-sm text-blue-600 mt-1">
+                        <div className="text-sm text-primary mt-1">
                             Deployment Type: {activity.deployment_type}
                         </div>
                     )}
                     {showDeviceName && activity.device && (
-                        <div className="text-sm text-blue-600 mt-1">
+                        <div className="text-sm text-primary mt-1">
                             Device: {activity.device}
                         </div>
                     )}
@@ -85,15 +85,15 @@ const DeviceActivityItem: React.FC<DeviceActivityItemProps> = ({
                             <div className="inline-flex items-center gap-1">
                                 <button
                                     type="button"
-                                    className="text-sm text-blue-600 hover:underline font-medium"
+                                    className="text-sm text-primary hover:underline font-medium"
                                     onClick={() => setIsPreviousSiteOpen((v) => !v)}
                                 >
                                     {previousSiteName}
                                 </button>
                                 {isPreviousSiteOpen ? (
-                                    <AqChevronUp className="w-4 h-4 text-blue-600" aria-hidden="true" />
+                                    <AqChevronUp className="w-4 h-4 text-primary" aria-hidden="true" />
                                 ) : (
-                                    <AqChevronDown className="w-4 h-4 text-blue-600" aria-hidden="true" />
+                                    <AqChevronDown className="w-4 h-4 text-primary" aria-hidden="true" />
                                 )}
                             </div>
 
