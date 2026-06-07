@@ -338,6 +338,16 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
       await onRefreshData();
       toast.success('Map refreshed');
     } catch (e) {
+      // Cancellation/abort errors are expected (e.g. on unmount or cohort
+      // switch) — don't surface them as failures per coding guidelines.
+      const isAbort =
+        (e instanceof Error && e.name === 'AbortError') ||
+        (typeof DOMException !== 'undefined' &&
+          e instanceof DOMException &&
+          e.name === 'AbortError');
+      if (isAbort) {
+        return;
+      }
       console.error('Map refresh error:', e);
       toast.error('Failed to refresh map');
     } finally {
