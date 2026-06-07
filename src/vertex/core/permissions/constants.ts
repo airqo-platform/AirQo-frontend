@@ -132,6 +132,7 @@ export const ROLES = {
       ...Object.values(PERMISSIONS.SITE),
       ...Object.values(PERMISSIONS.ANALYTICS),
       ...Object.values(PERMISSIONS.SETTINGS),
+      PERMISSIONS.NETWORK.VIEW,
     ],
     canOverrideOrganization: false,
     systemWide: true,

@@ -207,6 +207,17 @@ const userSlice = createSlice({
       state.userContext = context;
       state.canSwitchContext = canSwitchContext;
     },
+    updateActiveGroupOnboarding(state, action: PayloadAction<Group['onboarding_checklist']>) {
+      if (state.activeGroup) {
+        state.activeGroup.onboarding_checklist = action.payload;
+      }
+      if (state.activeGroup?._id) {
+        const groupIndex = state.userGroups.findIndex(g => g._id === state.activeGroup?._id);
+        if (groupIndex !== -1) {
+          state.userGroups[groupIndex].onboarding_checklist = action.payload;
+        }
+      }
+    },
     setUserGroups(state, action: PayloadAction<Group[]>) {
       const groups = action.payload || [];
       state.userGroups = groups;
@@ -305,6 +316,7 @@ export const {
   setAvailableNetworks,
   setInitialized,
   setActiveGroup,
+  updateActiveGroupOnboarding,
   setUserGroups,
   setUserContext,
   setForbiddenState,

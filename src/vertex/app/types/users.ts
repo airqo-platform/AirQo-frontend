@@ -39,6 +39,10 @@ export interface Group {
   status: string;
   role: Role;
   userType: string;
+  onboarding_checklist?: {
+    is_dismissed: boolean;
+    completed_steps: string[];
+  };
 }
 
 export interface UserDetails {
