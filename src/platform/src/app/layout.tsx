@@ -1,6 +1,7 @@
 import './globals.css';
 import '@smastrom/react-rating/style.css';
 import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
 import Script from 'next/script';
 import NextTopLoader from 'nextjs-toploader';
 import { ReduxProvider } from '@/shared/providers/redux-provider';
@@ -15,6 +16,12 @@ import baseMetadata from '@/shared/lib/metadata';
 import ErrorBoundary from '@/shared/components/ErrorBoundary';
 import AppNetworkGate from '@/shared/components/AppNetworkGate';
 
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+});
+
 export const metadata: Metadata = baseMetadata;
 
 export default function RootLayout({
@@ -23,7 +30,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={inter.variable}>
       <head>
         <Script
           id="theme-script"
@@ -31,7 +38,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: getThemeScript() }}
         />
       </head>
-      <body className="font-sans antialiased">
+      <body className={`${inter.className} font-sans antialiased`}>
         <NextTopLoader
           color="rgb(var(--primary))"
           height={3}

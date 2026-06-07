@@ -30,10 +30,6 @@ import type { PollutantType } from '@/shared/utils/airQuality';
 const MAP_MARKER_Z_INDEX = 20;
 const CLUSTER_ZOOM_THRESHOLD = 14;
 const NODE_DETAIL_ZOOM = 14.5;
-const AFRICA_BOUNDS: [[number, number], [number, number]] = [
-  [-35, -45],
-  [60, 45],
-];
 /** Debounce delay for clustering recalculation (ms) */
 const CLUSTER_DEBOUNCE_MS = 250;
 
@@ -94,7 +90,11 @@ interface EnhancedMapProps {
 
 export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   className,
-  initialViewState = { longitude: 15, latitude: 2, zoom: 0.7 },
+  initialViewState = {
+    longitude: 17.61872846571009,
+    latitude: 5.468074924059209,
+    zoom: 2.6680390382433803,
+  },
   airQualityData = [],
   onNodeClick,
   onClusterClick,
@@ -468,7 +468,6 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
         mapboxAccessToken={mapboxAccessToken}
         style={{ width: '100%', height: '100%' }}
         mapStyle={currentMapStyle}
-        maxBounds={AFRICA_BOUNDS}
         minZoom={0.5}
         maxZoom={18}
         attributionControl={false}

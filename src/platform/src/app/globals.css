@@ -92,7 +92,7 @@ body,
 html {
   color: rgb(var(--foreground));
   background: rgb(var(--background));
-  font-family: 'Inter', Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), 'Inter', Arial, Helvetica, sans-serif;
 }
 
 .dark body,
