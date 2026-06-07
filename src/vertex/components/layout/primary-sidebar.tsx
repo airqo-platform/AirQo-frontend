@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils';
 import { ROUTE_LINKS } from '@/core/routes';
 import { PERMISSIONS } from '@/core/permissions/constants';
 import PermissionTooltip from '@/components/ui/permission-tooltip';
+import { vertexConfig } from '@/vertex.config';
 
 interface PrimarySidebarProps {
   isOpen: boolean;
@@ -134,13 +135,13 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
             <Image
-              src="/images/airqo_logo.svg"
-              alt="Logo"
+              src={vertexConfig.org.logo}
+              alt={`${vertexConfig.org.name} Logo`}
               width={40}
               height={40}
             />
             <div className="flex flex-col justify-center gap-0.5">
-              <span className="font-bold text-lg leading-tight">Vertex</span>
+              <span className="font-bold text-lg leading-tight">{vertexConfig.org.name}</span>
               {activeGroup?.grp_title && (
                 <div className="flex">
                   <span 
@@ -237,20 +238,22 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                   isActive={pathname === ROUTE_LINKS.ADMIN_NETWORKS}
                 />
 
-                <AdminDropdownItem
-                  permission={!!permissions.canViewNetworks}
-                  permissionCode={PERMISSIONS.NETWORK.VIEW}
-                  tooltipMessage="This action requires network view permission"
-                   onClick={() => {
-                    navigateWithShimmer(ROUTE_LINKS.ADMIN_NETWORK_REQUESTS, () => {
-                      handleModuleChange('admin', ROUTE_LINKS.ADMIN_NETWORK_REQUESTS);
-                      setIsDropdownOpen(false);
-                    });
-                  }}
-                  label="Manufacturer Requests"
-                  subLabel="Review new sensor requests"
-                  isActive={pathname === ROUTE_LINKS.ADMIN_NETWORK_REQUESTS}
-                />
+                {vertexConfig.features.networkRequests && (
+                  <AdminDropdownItem
+                    permission={!!permissions.canViewNetworks}
+                    permissionCode={PERMISSIONS.NETWORK.VIEW}
+                    tooltipMessage="This action requires network view permission"
+                     onClick={() => {
+                      navigateWithShimmer(ROUTE_LINKS.ADMIN_NETWORK_REQUESTS, () => {
+                        handleModuleChange('admin', ROUTE_LINKS.ADMIN_NETWORK_REQUESTS);
+                        setIsDropdownOpen(false);
+                      });
+                    }}
+                    label="Manufacturer Requests"
+                    subLabel="Review new sensor requests"
+                    isActive={pathname === ROUTE_LINKS.ADMIN_NETWORK_REQUESTS}
+                  />
+                )}
 
                 <AdminDropdownItem
                   permission={!!permissions.canViewDevices}
@@ -267,50 +270,56 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                   isActive={pathname.startsWith(ROUTE_LINKS.COHORTS)}
                 />
 
-                <AdminDropdownItem
-                  permission={!!permissions.canViewSites}
-                  permissionCode={PERMISSIONS.SITE.VIEW}
-                  tooltipMessage="This action requires site view permission"
-                   onClick={() => {
-                    navigateWithShimmer(ROUTE_LINKS.SITES, () => {
-                      handleModuleChange('admin', ROUTE_LINKS.SITES);
-                      setIsDropdownOpen(false);
-                    });
-                  }}
-                  label="Sites"
-                  subLabel="Manage location deployments"
-                  isActive={pathname.startsWith(ROUTE_LINKS.SITES)}
-                />
+                {vertexConfig.features.siteManagement && (
+                  <AdminDropdownItem
+                    permission={!!permissions.canViewSites}
+                    permissionCode={PERMISSIONS.SITE.VIEW}
+                    tooltipMessage="This action requires site view permission"
+                     onClick={() => {
+                      navigateWithShimmer(ROUTE_LINKS.SITES, () => {
+                        handleModuleChange('admin', ROUTE_LINKS.SITES);
+                        setIsDropdownOpen(false);
+                      });
+                    }}
+                    label="Sites"
+                    subLabel="Manage location deployments"
+                    isActive={pathname.startsWith(ROUTE_LINKS.SITES)}
+                  />
+                )}
 
-                <AdminDropdownItem
-                  permission={!!permissions.canViewSites}
-                  permissionCode={PERMISSIONS.SITE.VIEW}
-                  tooltipMessage="This action requires site view permission"
-                   onClick={() => {
-                    navigateWithShimmer(ROUTE_LINKS.GRIDS, () => {
-                      handleModuleChange('admin', ROUTE_LINKS.GRIDS);
-                      setIsDropdownOpen(false);
-                    });
-                  }}
-                  label="Grids"
-                  subLabel="Configure spatial grids"
-                  isActive={pathname.startsWith(ROUTE_LINKS.GRIDS)}
-                />
+                {vertexConfig.features.siteManagement && (
+                  <AdminDropdownItem
+                    permission={!!permissions.canViewSites}
+                    permissionCode={PERMISSIONS.SITE.VIEW}
+                    tooltipMessage="This action requires site view permission"
+                     onClick={() => {
+                      navigateWithShimmer(ROUTE_LINKS.GRIDS, () => {
+                        handleModuleChange('admin', ROUTE_LINKS.GRIDS);
+                        setIsDropdownOpen(false);
+                      });
+                    }}
+                    label="Grids"
+                    subLabel="Configure spatial grids"
+                    isActive={pathname.startsWith(ROUTE_LINKS.GRIDS)}
+                  />
+                )}
 
-                <AdminDropdownItem
-                  permission={!!permissions.canViewShipping || !!permissions.canViewNetworks}
-                  permissionCode={PERMISSIONS.SHIPPING.VIEW}
-                  tooltipMessage="This action requires shipping or network view permission"
-                   onClick={() => {
-                    navigateWithShimmer(ROUTE_LINKS.ADMIN_SHIPPING, () => {
-                      handleModuleChange('admin', ROUTE_LINKS.ADMIN_SHIPPING);
-                      setIsDropdownOpen(false);
-                    });
-                  }}
-                  label="Shipping"
-                  subLabel="Track device logistics"
-                  isActive={pathname.startsWith(ROUTE_LINKS.ADMIN_SHIPPING)}
-                />
+                {vertexConfig.features.shipping && (
+                  <AdminDropdownItem
+                    permission={!!permissions.canViewShipping || !!permissions.canViewNetworks}
+                    permissionCode={PERMISSIONS.SHIPPING.VIEW}
+                    tooltipMessage="This action requires shipping or network view permission"
+                     onClick={() => {
+                      navigateWithShimmer(ROUTE_LINKS.ADMIN_SHIPPING, () => {
+                        handleModuleChange('admin', ROUTE_LINKS.ADMIN_SHIPPING);
+                        setIsDropdownOpen(false);
+                      });
+                    }}
+                    label="Shipping"
+                    subLabel="Track device logistics"
+                    isActive={pathname.startsWith(ROUTE_LINKS.ADMIN_SHIPPING)}
+                  />
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           )}

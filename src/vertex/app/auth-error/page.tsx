@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { AlertCircle, ArrowLeft, ShieldAlert, Settings, Mail, UserPlus, Link as LinkIcon } from 'lucide-react'
 import ReusableButton from "@/components/shared/button/ReusableButton"
+import { vertexConfig } from "@/vertex.config";
 
 type ErrorType = {
   title: string;
@@ -87,8 +88,8 @@ function AuthErrorContent() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 text-foreground">
       <div className="absolute top-8 left-8">
         <Image
-          src="/images/airqo_logo.svg"
-          alt="AirQo Logo"
+          src={vertexConfig.org.logo}
+          alt={`${vertexConfig.org.name} Logo`}
           width={32}
           height={32}
           className="h-8 w-auto"
@@ -125,7 +126,7 @@ function AuthErrorContent() {
             Back to Login
           </ReusableButton>
           <Link 
-            href="mailto:support@airqo.net" 
+            href={`mailto:${vertexConfig.org.supportEmail}`}
             className="text-center text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
           >
             Contact Support
@@ -134,7 +135,7 @@ function AuthErrorContent() {
       </div>
       
       <div className="absolute bottom-8 text-xs text-muted-foreground">
-        &copy; {new Date().getFullYear()} AirQo. All rights reserved.
+        &copy; {new Date().getFullYear()} {vertexConfig.org.name}. All rights reserved.
       </div>
     </div>
   )

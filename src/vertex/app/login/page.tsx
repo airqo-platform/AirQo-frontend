@@ -23,9 +23,9 @@ import {
 } from "@/core/redux/slices/userSlice";
 import { getLastActiveModule } from "@/core/utils/userPreferences";
 import { ROUTE_LINKS } from "@/core/routes";
-// import GoogleAuthSection from "@/components/features/auth/google-auth-section";
 import SocialAuthSection from "@/components/features/auth/social-auth-section";
 import { motion, AnimatePresence } from "framer-motion";
+import { vertexConfig } from "@/vertex.config";
 
 
 const loginSchema = z.object({
@@ -217,8 +217,8 @@ export default function LoginPage() {
         <div className="flex h-12 items-center justify-between px-6 md:px-8">
           <div className="flex items-center">
             <Image
-              src="/images/airqo_logo.svg"
-              alt="AirQo Logo"
+              src={vertexConfig.org.logo}
+              alt={`${vertexConfig.org.name} Logo`}
               width={28}
               height={28}
               className="h-7 w-auto"
@@ -254,7 +254,7 @@ export default function LoginPage() {
                 <span className="block">Share your data</span>
               </h1>
               <p className="mt-4 text-base text-muted-foreground leading-relaxed max-w-sm mx-auto">
-                Add your devices and stream live air quality data through AirQo&apos;s open data channels.
+                Add your devices and stream live air quality data through {vertexConfig.org.name}&apos;s open data channels.
               </p>
             </div>
 

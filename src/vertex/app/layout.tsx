@@ -6,6 +6,7 @@ import { Inter } from 'next/font/google';
 import { getServerSession } from "next-auth/next";
 import { options } from "@/app/api/auth/[...nextauth]/options";
 import logger from '@/lib/logger';
+import { vertexConfig } from '@/vertex.config';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -15,50 +16,54 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | AirQo Vertex',
-    default: 'AirQo Vertex',
+    template: `%s | ${vertexConfig.org.name}`,
+    default: vertexConfig.org.name,
   },
-  description:
-    "AirQo is Africa's leading air quality monitoring, research and analytics network. We use low cost technologies and AI to close the gaps in air quality data across the continent.",
+  description: vertexConfig.org.name + " is a leading air quality monitoring platform.",
   keywords: [
     'air quality',
     'monitoring',
-    'Africa',
     'analytics',
-    'pollution',
     'environment',
     'data',
     'management',
     'device',
   ],
-  authors: [{ name: 'Vertex Team' }],
-  creator: 'Vertex',
-  publisher: 'Vertex',
+  authors: [{ name: `${vertexConfig.org.shortName} Team` }],
+  creator: vertexConfig.org.name,
+  publisher: vertexConfig.org.name,
   openGraph: {
-    title: 'AirQo Vertex',
-    description:
-      "Africa's leading air quality monitoring network using low-cost technologies and AI.",
+    title: vertexConfig.org.name,
+    description: "Leading air quality device management platform",
     type: 'website',
-    url: 'https://vertex.airqo.net',
+    url: vertexConfig.org.websiteUrl,
     images: [
       {
-        url: '/images/airqo-logo.svg',
+        url: vertexConfig.org.logo,
         width: 1200,
         height: 630,
-        alt: 'Vertex',
+        alt: vertexConfig.org.name,
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'AirQo Vertex',
-    description: "Africa's leading air quality device management platform",
+    title: vertexConfig.org.name,
+    description: "Leading air quality device management platform",
     images: ['/favicon.ico'],
   },
   icons: {
     icon: '/favicon.ico',
     apple: '/favicon.ico',
   },
+};
+
+const hexToRgbValues = (hex: string) => {
+  const normalizedHex = hex.replace('#', '');
+  const r = parseInt(normalizedHex.slice(0, 2), 16);
+  const g = parseInt(normalizedHex.slice(2, 4), 16);
+  const b = parseInt(normalizedHex.slice(4, 6), 16);
+  return `${r} ${g} ${b}`;
 };
 
 export default async function RootLayout({
@@ -73,8 +78,10 @@ export default async function RootLayout({
     logger.error("Failed to fetch session:", { error });
   }
 
+  const primaryRgb = hexToRgbValues(vertexConfig.org.primaryColor);
+
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang="en" className={inter.variable} style={{ '--primary': primaryRgb } as React.CSSProperties}>
       <head>
         <link rel="preconnect" href="https://api.mapbox.com" />
         <link rel="preconnect" href="https://events.mapbox.com" />

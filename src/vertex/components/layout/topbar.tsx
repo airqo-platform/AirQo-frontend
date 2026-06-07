@@ -25,12 +25,13 @@ import { openFeedbackDialog } from '../features/feedback/feedback-dialog';
 import { useSession } from 'next-auth/react';
 import type { UserDetails } from '@/app/types/users';
 import { useTheme } from "next-themes";
+import { vertexConfig } from '@/vertex.config';
 
 interface TopbarProps {
   onMenuClick: () => void;
 }
 
-const AirqoLogoRaw = '/images/airqo_logo.svg';
+const LogoRaw = vertexConfig.org.logo;
 
 const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
   const { setTheme, resolvedTheme } = useTheme();
@@ -66,8 +67,8 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
         {...buttonProps}
       >
         <Image
-          src={AirqoLogoRaw}
-          alt="AirQo logo"
+          src={LogoRaw}
+          alt={`${vertexConfig.org.name} logo`}
           width={120}
           height={32}
           className="w-auto h-6"
@@ -116,7 +117,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
             <LogoComponent
               className={`flex items-center justify-center text-gray-800`}
             />
-            <span className="font-medium text-lg tracking-tight">Vertex</span>
+            <span className="font-medium text-lg tracking-tight">{vertexConfig.org.name}</span>
             {isAdminMode && (
               <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/10 text-primary dark:bg-primary/20">
                 Administrator
@@ -144,8 +145,8 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
                 <Button
                   variant="ghost"
                   className="flex items-center cursor-pointer hover:bg-transparent p-0 m-0"
-                  title={`AirQo Account\n${getUserName()}`}
-                  aria-label="AirQo Account"
+                  title={`${vertexConfig.org.name} Account\n${getUserName()}`}
+                  aria-label={`${vertexConfig.org.name} Account`}
                 >
                   <Avatar className="h-10 w-10">
                     <AvatarImage
