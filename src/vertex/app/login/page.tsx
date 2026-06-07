@@ -112,8 +112,11 @@ export default function LoginPage() {
         message: 'Social sign-in failed or was cancelled. Please try again.',
         scoped: true,
       });
-      // Clean up the URL to prevent showing the error on refresh
-      window.history.replaceState({}, '', '/login');
+      // Remove only the error flag while preserving callbackUrl and other safe params
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete('error');
+      const nextUrl = params.toString() ? `/login?${params.toString()}` : '/login';
+      window.history.replaceState({}, '', nextUrl);
     }
 
     return () => {
