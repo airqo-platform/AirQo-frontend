@@ -16,6 +16,10 @@ export interface Group {
   grp_manager: UserDetails
   cohorts?: string[]
   organization_slug?: string
+  onboarding_checklist?: {
+    is_dismissed: boolean;
+    completed_steps: string[];
+  }
 }
 
 export interface CohortGroupsResponse {

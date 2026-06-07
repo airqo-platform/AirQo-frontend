@@ -4,6 +4,81 @@
 
 ---
 
+## Version 1.23.61
+**Released:** June 07, 2026
+
+### Centralized Onboarding State & API Abstraction
+
+Migrated the onboarding checklist state from local storage to a centralized backend API for the Organization context, solving cross-device synchronization issues for enterprise users. (Note: Personal context continues to use local storage pending backend API rollout).
+
+<details>
+<summary><strong>Onboarding API Integration (4)</strong></summary>
+
+- **Backend Synchronization:** Deprecated `localStorage` as the single source of truth for the organization-level onboarding checklist (`add-device`, `assign-cohort`, `set-visibility`). State is now inherently bound to the `Group` document.
+- **Dynamic State Resolution:** The frontend now relies on the API to dynamically evaluate resource availability (e.g., existing devices or cohorts) and pre-populate completed steps during `GET /users/groups/:groupId` requests.
+- **JIT Patching & Race Condition Fix:** Implemented serialized `PATCH /api/v1/users/groups/:groupId/onboarding` requests for missing manual steps to prevent NextAuth session race conditions and unexpected lockouts.
+- **API Hook Abstraction:** Refactored direct API proxy invocations into strongly-typed custom React Query hooks (`useGroupDetails` and `useUpdateGroupOnboarding`) to centralize query management and reduce Axios instantiation overhead.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (3)</strong></summary>
+
+- `app/(authenticated)/home/page.tsx` [MODIFIED]
+- `core/apis/organizations.ts` [MODIFIED]
+- `core/hooks/useGroups.ts` [MODIFIED]
+
+</details>
+
+---
+
+## Version 1.23.60
+**Released:** June 04, 2026
+
+### Multi-Provider Social Auth, API Proxy & Role Permissions
+
+Introduced comprehensive multi-provider social authentication, updated API proxy routing, enhanced hCaptcha environment support, and fixed missing network view permissions for system administrators.
+
+<details>
+<summary><strong>Social Authentication & Routing (4)</strong></summary>
+
+- **Multi-Provider Social Auth**: Replaced the standalone Google auth component with a unified `SocialAuthSection` that supports sign-ins via Google, GitHub, LinkedIn, and X (Twitter).
+- **OAuth Session Management**: Extended `oauth-session` utilities to track the user's last-used provider via localStorage and intelligently resolve post-login redirect paths using `getLastActiveModule()`.
+- **OAuth Handoff Improvements**: Refactored `TokenHandoffHandler` in `authProvider.tsx` to prevent login UI flashing during OAuth redirects, optimized the redirect logic to eliminate duplicate page reloads when the user is already on the destination route, and configured `middleware.ts` to intelligently bypass server-side routing for seamless token consumption.
+- **API Proxy Routing**: Updated the Next.js API proxy destination from `staging-analytics.airqo.net` to `staging-vertex.airqo.net` across both `next.config.js` and `next.config.mjs`.
+- **Legacy Route Redirects**: Added Next.js config redirects to automatically route legacy `/user/home` to `/home` and `/user/login` to `/login`. Updated `middleware.ts` to simplify the `authorized` callback.
+
+</details>
+
+<details>
+<summary><strong>Security & Permissions (2)</strong></summary>
+
+- **Admin Role Permissions Fix**: Restored access to the Sensor Manufacturers admin panel by explicitly including the `PERMISSIONS.NETWORK.VIEW` right in the static `AIRQO_ADMIN` role definition.
+- **Dynamic hCaptcha Environments**: Upgraded `isHCaptchaEnabled` to conditionally support hCaptcha on production, staging, and local development environments solely based on the presence of a valid site key.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (11)</strong></summary>
+
+- `.env.example` [MODIFIED]
+- `app/login/page.tsx` [MODIFIED]
+- `components/features/auth/social-auth-section.tsx` [ADDED]
+- `components/features/auth/google-auth-section.tsx` [DELETED]
+- `core/auth/authProvider.tsx` [MODIFIED]
+- `core/auth/oauth-session.ts` [MODIFIED]
+- `core/permissions/constants.ts` [MODIFIED]
+- `lib/envConstants.ts` [MODIFIED]
+- `middleware.ts` [MODIFIED]
+- `next.config.mjs` [MODIFIED]
+- `next.config.js` [MODIFIED]
+
+</details>
+
+---
+
+
+
 ## Version 1.23.59
 **Released:** June 04, 2026
 
