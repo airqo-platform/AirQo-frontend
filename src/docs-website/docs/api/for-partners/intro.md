@@ -33,12 +33,14 @@ At this time, Cohorts are created and configured by the AirQo team on behalf of 
 
 ## Your Cohort ID endpoint structure
 
-Once you have your Cohort ID, two endpoints cover your primary data needs:
+Once you have your Cohort ID, these endpoints cover your primary data needs:
 
 | Data | Endpoint |
 |------|----------|
 | Recent measurements (last 7 days) | `GET /api/v2/devices/measurements/cohorts/{COHORT_ID}?token={SECRET_TOKEN}` |
 | Historical measurements | `POST /api/v3/public/analytics/data-download` |
+| Daily forecasts | `GET /api/v2/predict/daily-forecasting/?cohort_id={COHORT_ID}&token={SECRET_TOKEN}` |
+| Hourly forecasts | `GET /api/v2/predict/hourly-forecasting/?cohort_id={COHORT_ID}&token={SECRET_TOKEN}` |
 
 ---
 
@@ -52,7 +54,7 @@ To change the privacy setting of your Cohort, contact [support@airqo.net](mailto
 
 ## Getting your Cohort ID
 
-- **Public Cohorts:** Browse the metadata endpoints at [docs.airqo.net/airqo-rest-api-documentation/api-endpoints/metadata](https://docs.airqo.net/airqo-rest-api-documentation/api-endpoints/metadata)
+- **Public Cohorts:** Use the [Metadata API](../reference/metadata.md#list-all-public-cohorts) — call `GET /api/v2/devices/metadata/cohorts` to list all publicly visible cohorts
 - **Private Cohorts:** Contact [support@airqo.net](mailto:support@airqo.net) — your Cohort ID will be shared securely
 
 ---
@@ -64,7 +66,7 @@ To change the privacy setting of your Cohort, contact [support@airqo.net](mailto
 | Recent hourly measurements | ✅ Free | Last 7 days |
 | Historical calibrated data | ✅ Standard+ | Via Analytics API |
 | Raw sensor readings | ✅ Standard+ | Via Analytics API |
-| Air quality forecasts | ❌ | Not currently available per Cohort ID |
+| Air quality forecasts | ✅ Premium | Via `cohort_id` on the [Forecast API](../forecasts/overview.md) |
 | Spatial heatmaps | ❌ | Heatmaps use Grid ID |
 
 ---
@@ -73,4 +75,5 @@ To change the privacy setting of your Cohort, contact [support@airqo.net](mailto
 
 - [Fetch recent measurements →](./recent-measurements.md)
 - [Access historical data →](./historical-data.md)
+- [Get air quality forecasts →](../forecasts/overview.md)
 - [Set up your account →](../getting-started/authentication.md)
