@@ -1,0 +1,43 @@
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+import { differenceInSeconds } from "date-fns";
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+export const stripTrailingSlash = (url: string) => {
+  return url.replace(/\/+$/, "");
+};
+
+export const getElapsedDurationMapper = (
+  dateTimeStr: string
+): [number, { [key: string]: number }] => {
+  const now = new Date();
+  const inputDate = new Date(dateTimeStr);
+
+  const seconds = Math.abs(differenceInSeconds(now, inputDate));
+  let delta = seconds;
+
+  const result: { [key: string]: number } = {};
+
+  const structure = {
+    year: 31536000,
+    month: 2592000,
+    week: 604800,
+    day: 86400,
+    hour: 3600,
+    minute: 60,
+    second: 1,
+  } as const;
+
+  type StructureKey = keyof typeof structure;
+
+  Object.keys(structure).forEach((key) => {
+    const typedKey = key as StructureKey;
+    result[typedKey] = Math.floor(delta / structure[typedKey]);
+    delta -= result[typedKey] * structure[typedKey];
+  });
+
+  return [seconds, result];
+};
