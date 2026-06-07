@@ -8,6 +8,7 @@ import {
   buildOAuthInitiationUrl,
   getLastUsedOAuthProvider,
   resolveOAuthRedirectAfterUrl,
+  setLastUsedOAuthProvider,
   type SupportedSocialAuthProvider,
 } from '@/core/auth/oauth-session';
 import { cn } from '@/lib/utils';
@@ -94,6 +95,7 @@ export default function SocialAuthSection({
 
 
       try {
+        setLastUsedOAuthProvider(provider);
         window.location.replace(buildOAuthInitiationUrl(provider, queryParams));
       } catch (error) {
         showBanner({
