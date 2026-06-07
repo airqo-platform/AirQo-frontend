@@ -584,6 +584,10 @@ function AutoLogoutHandler() {
  * It detects the token, triggers signIn, and handles the redirection.
  */
 function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
+  // Use a ref to capture the initial hash state so we don't rely on the mutable URL hash during re-renders
+  const isHandlingOAuthRef = useRef(
+    typeof window !== 'undefined' && window.location.hash.includes('token=')
+  );
   const [isBootstrapping, setIsBootstrapping] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
@@ -609,6 +613,7 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    let shouldUnblock = true;
     const bootstrap = async () => {
       try {
         const handoff = consumeOAuthTokenHandoffFromUrl();
@@ -632,6 +637,7 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
             const redirectUrl = handoff.callbackUrl || fallbackUrl;
             
             logger.info(`[TokenHandoffHandler] OAuth sign-in successful, redirecting to ${redirectUrl}`);
+            shouldUnblock = false; // Prevent unblocking the UI while the browser redirects
             window.location.replace(redirectUrl);
             return; // window.location.replace will handle the rest
           } else {
@@ -642,14 +648,17 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
       } catch (error) {
         logger.error('[TokenHandoffHandler] Error during bootstrap', { error });
       } finally {
-        setIsBootstrapping(false);
+        if (shouldUnblock) {
+          setIsBootstrapping(false);
+          isHandlingOAuthRef.current = false;
+        }
       }
     };
 
     bootstrap();
-  }, [router, pathname]);
+  }, [router, pathname, waitForSession]);
 
-  if (isBootstrapping && typeof window !== 'undefined' && window.location.hash.includes('token=')) {
+  if (isBootstrapping && isHandlingOAuthRef.current) {
     return <SessionLoadingState />;
   }
 

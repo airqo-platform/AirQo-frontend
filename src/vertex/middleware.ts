@@ -14,7 +14,14 @@ export default withAuth(
   },
   {
     callbacks: {
-      authorized: ({ token }) => Boolean(token),
+      authorized: ({ req, token }) => {
+        // Bypass server-side protection for OAuth callbacks so the client can process the token hash.
+        // Client-side AuthWrapper will still enforce protection if the token is invalid.
+        if (req.nextUrl.searchParams.has('success')) {
+          return true;
+        }
+        return Boolean(token);
+      },
     },
     pages: {
       signIn: "/login",
