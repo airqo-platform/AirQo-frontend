@@ -46,7 +46,7 @@ For other cities, use the [Metadata API](./metadata.md) to browse all available 
 A Site ID identifies a specific physical monitoring location.
 
 **How to find Site IDs:**
-- Call [GET /api/v2/devices/grids/{GRID_ID}/generate](./metadata.md#get-all-site-and-device-ids-for-a-grid) to list every site (and its devices) within a grid
+- Call the [grid generate endpoint](./metadata.md#get-all-site-and-device-ids-for-a-grid) (`GET /api/v2/devices/grids/{GRID_ID}/generate`) to list every site (and its devices) within a grid
 - Call the [Metadata API — List all sites](./metadata.md#list-all-public-sites) to browse all public monitoring sites
 - Or call the [recent measurements endpoint](../for-cities/recent-measurements.md) for your Grid and collect the `site_id` field from each measurement record
 
