@@ -137,6 +137,14 @@ const WelcomePage = () => {
   const visibilityRef = React.useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
   const dispatch = useAppDispatch();
+  const isMounted = React.useRef(true);
+
+  React.useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   const user = useAppSelector((state) => state.user.userDetails);
   const userId = (session?.user as { id?: string })?.id || user?._id;
@@ -653,7 +661,9 @@ const WelcomePage = () => {
                         type: "SUCCESS",
                       });
                       setTimeout(() => {
-                        updateChecklist({ action: 'dismiss_checklist', dismissed: true });
+                        if (isMounted.current) {
+                          updateChecklist({ action: 'dismiss_checklist', dismissed: true });
+                        }
                       }, 2000);
                     }
                   }}
