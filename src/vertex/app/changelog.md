@@ -4,7 +4,7 @@
 
 ---
 
-## Version 1.23.59
+## Version 1.23.60
 **Released:** June 04, 2026
 
 ### Multi-Provider Social Auth, API Proxy & Role Permissions
