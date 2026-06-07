@@ -170,9 +170,8 @@ jobs:
           az keyvault secret show \
             --vault-name ${{ env.KEYVAULT }} \
             --name prod-env-next-platform \
-            --query value -o tsv > secrets.json
-
-          jq -r 'to_entries | .[] | "\(.key)=\(.value|tojson)"' secrets.json > src/platform/.env        
+            --query value -o tsv | \
+          jq -r 'to_entries | .[] | "\(.key)=\(.value|tojson)"' > src/platform/.env        
 
       - name: Build and Push Docker Image
         run: |
@@ -216,9 +215,8 @@ jobs:
           az keyvault secret show \
             --vault-name ${{ env.KEYVAULT }} \
             --name prod-env-vertex \
-            --query value -o tsv > secrets.json
-
-          jq -r 'to_entries | .[] | "\(.key)=\(.value|tojson)"' secrets.json > src/vertex/.env        
+            --query value -o tsv | \
+          jq -r 'to_entries | .[] | "\(.key)=\(.value|tojson)"' > src/vertex/.env        
 
       - name: Build and Push Docker Image
         run: |
