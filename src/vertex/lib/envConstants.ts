@@ -158,7 +158,6 @@ export const getEnvConfig = () => {
  */
 export const validateEnvironment = (): boolean => {
   const required = [
-    'NEXT_PUBLIC_API_URL',
     'NEXT_PUBLIC_API_TOKEN',
     'NEXT_PUBLIC_CLOUDINARY_NAME',
     'NEXT_PUBLIC_CLOUDINARY_PRESET',
