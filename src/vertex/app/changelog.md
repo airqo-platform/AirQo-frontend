@@ -7,6 +7,50 @@
 ## Version 1.23.59
 **Released:** June 04, 2026
 
+### Multi-Provider Social Auth, API Proxy & Role Permissions
+
+Introduced comprehensive multi-provider social authentication, updated API proxy routing, enhanced hCaptcha environment support, and fixed missing network view permissions for system administrators.
+
+<details>
+<summary><strong>Social Authentication & Routing (4)</strong></summary>
+
+- **Multi-Provider Social Auth**: Replaced the standalone Google auth component with a unified `SocialAuthSection` that supports sign-ins via Google, GitHub, LinkedIn, and X (Twitter).
+- **OAuth Session Management**: Extended `oauth-session` utilities to track the user's last-used provider via localStorage and intelligently resolve post-login redirect paths using `getLastActiveModule()`.
+- **API Proxy Routing**: Updated the Next.js API proxy destination from `staging-analytics.airqo.net` to `staging-vertex.airqo.net` across both `next.config.js` and `next.config.mjs`.
+- **Legacy Route Redirects**: Added Next.js config redirects to automatically route legacy `/user/home` to `/home` and `/user/login` to `/login`. Updated `middleware.ts` to simplify the `authorized` callback.
+
+</details>
+
+<details>
+<summary><strong>Security & Permissions (2)</strong></summary>
+
+- **Admin Role Permissions Fix**: Restored access to the Sensor Manufacturers admin panel by explicitly including the `PERMISSIONS.NETWORK.VIEW` right in the static `AIRQO_ADMIN` role definition.
+- **Dynamic hCaptcha Environments**: Upgraded `isHCaptchaEnabled` to conditionally support hCaptcha on production, staging, and local development environments solely based on the presence of a valid site key.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (9)</strong></summary>
+
+- `src/vertex/.env.example` [MODIFIED]
+- `src/vertex/app/login/page.tsx` [MODIFIED]
+- `src/vertex/components/features/auth/social-auth-section.tsx` [ADDED]
+- `src/vertex/components/features/auth/google-auth-section.tsx` [DELETED]
+- `src/vertex/core/auth/oauth-session.ts` [MODIFIED]
+- `src/vertex/core/permissions/constants.ts` [MODIFIED]
+- `src/vertex/lib/envConstants.ts` [MODIFIED]
+- `src/vertex/middleware.ts` [MODIFIED]
+- `src/vertex/next.config.mjs` (and `.js`) [MODIFIED]
+
+</details>
+
+---
+
+
+
+## Version 1.23.59
+**Released:** June 04, 2026
+
 ### Decouple useDevices Mutations from ReusableToast
 
 Removed all hardcoded `ReusableToast` calls from mutation hooks in `useDevices.ts` and delegated notification responsibility to the calling UI layer via optional `onSuccess`/`onError` callback interfaces. Also migrated remaining device-related components still using `ReusableToast` directly, and extracted a shared `useClipboard` hook to eliminate the repeated clipboard copy pattern across the codebase.
