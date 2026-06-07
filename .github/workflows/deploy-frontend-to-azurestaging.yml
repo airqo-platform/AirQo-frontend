@@ -280,6 +280,15 @@ jobs:
       - name: ACR Login
         run: az acr login --name ${{ env.ACR_NAME }}
 
+      - name: Pull secrets from Key Vault
+        run: |
+          az keyvault secret show \
+            --vault-name ${{ env.KEYVAULT }} \
+            --name sta-env-vertex \
+            --query value -o tsv > secrets.json
+
+          jq -r 'to_entries | .[] | "\(.key)=\(.value|tojson)"' secrets.json > src/vertex/.env        
+
       - name: Build and Push Docker Image
         run: |
           cd src/vertex/
