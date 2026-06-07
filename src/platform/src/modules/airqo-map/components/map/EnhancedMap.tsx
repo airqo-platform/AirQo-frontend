@@ -115,6 +115,7 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   airQualityData = [],
   onNodeClick,
   onClusterClick,
+  isLoading = false,
   onRefreshData,
   flyToLocation,
   selectedPollutant = 'pm2_5',
@@ -635,8 +636,12 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
       />
 
       <MapLoadingOverlay
-        isVisible={isRefreshing}
-        message="Refreshing air quality data…"
+        isVisible={isLoading || isRefreshing}
+        message={
+          isLoading
+            ? 'Loading air quality data…'
+            : 'Refreshing air quality data…'
+        }
       />
     </div>
   );
