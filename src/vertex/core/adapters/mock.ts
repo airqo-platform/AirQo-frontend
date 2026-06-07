@@ -126,6 +126,14 @@ export function createMockAdapter(): VertexAdapter {
         users: [clone(mockUser)],
       };
     },
+    async login(credentials) {
+      return {
+        success: true,
+        message: "Mock login successful",
+        token: "mock-jwt-token",
+        user: clone(mockUser),
+      };
+    },
 
     async getDevices(params = {}, signal) {
       assertNotAborted(signal);
@@ -136,23 +144,6 @@ export function createMockAdapter(): VertexAdapter {
       return {
         success: true,
         message: "Mock devices loaded successfully",
-        devices: clone(paginate(devices, limit, skip)),
-        meta: createMeta(devices.length, limit, skip),
-        cache_generated_at: new Date().toISOString(),
-      };
-    },
-
-    async getDevicesByCohorts(params, signal) {
-      assertNotAborted(signal);
-      const devices = filterDevices(params).filter((device) =>
-        params.cohort_ids.some((cohortId) => device.cohorts.includes(cohortId)),
-      );
-      const limit = params.limit ?? 100;
-      const skip = params.skip ?? 0;
-
-      return {
-        success: true,
-        message: "Mock cohort devices loaded successfully",
         devices: clone(paginate(devices, limit, skip)),
         meta: createMeta(devices.length, limit, skip),
         cache_generated_at: new Date().toISOString(),
@@ -173,6 +164,22 @@ export function createMockAdapter(): VertexAdapter {
       };
     },
 
+    async getDeviceCount(params = {}) {
+      const devices = filterDevices({ network: params.network });
+
+      return {
+        success: true,
+        message: "Mock device count loaded successfully",
+        summary: {
+          total_monitors: devices.length,
+          operational: devices.filter((device) => device.isActive).length,
+          transmitting: devices.filter((device) => device.isOnline).length,
+          not_transmitting: devices.filter((device) => !device.isOnline).length,
+          data_available: devices.filter((device) => device.lastActive).length,
+        },
+      };
+    },
+
     async getDevice(id) {
       const device = mockDevices.find(
         (item) => item._id === id || item.id === id || item.name === id,
@@ -185,97 +192,6 @@ export function createMockAdapter(): VertexAdapter {
       return {
         message: "Mock device loaded successfully",
         data: clone(device),
-      };
-    },
-
-    async getMyDevices(userId, groupIds = [], cohortIds = []) {
-      const devices = mockDevices.filter((device) => {
-        const groupMatch =
-          groupIds.length === 0 ||
-          groupIds.some((groupId) => device.groups?.includes(groupId));
-        const cohortMatch =
-          cohortIds.length === 0 ||
-          cohortIds.some((cohortId) => device.cohorts.includes(cohortId));
-        return groupMatch || cohortMatch || userId === mockUser._id;
-      });
-
-      return {
-        success: true,
-        message: "Mock personal devices loaded successfully",
-        devices: clone(devices),
-        total_devices: devices.length,
-        deployed_devices: devices.filter((device) => device.status === "deployed")
-          .length,
-      };
-    },
-
-    async getDeviceCount(params = {}) {
-      const devices = filterDevices({ network: params.network });
-      const scopedDevices = params.cohort_id?.length
-        ? devices.filter((device) =>
-            params.cohort_id?.some((cohortId) =>
-              device.cohorts.includes(cohortId),
-            ),
-          )
-        : devices;
-
-      return {
-        success: true,
-        message: "Mock device count loaded successfully",
-        summary: {
-          total_monitors: scopedDevices.length,
-          operational: scopedDevices.filter((device) => device.isActive).length,
-          transmitting: scopedDevices.filter((device) => device.isOnline).length,
-          not_transmitting: scopedDevices.filter((device) => !device.isOnline)
-            .length,
-          data_available: scopedDevices.filter((device) => device.lastActive)
-            .length,
-        },
-      };
-    },
-
-    async checkDeviceAvailability(deviceName) {
-      const existingDevice = mockDevices.find(
-        (device) => device.name.toLowerCase() === deviceName.toLowerCase(),
-      );
-
-      return {
-        success: true,
-        message: existingDevice
-          ? "Mock device already exists"
-          : "Mock device is available",
-        data: {
-          available: !existingDevice,
-          status: existingDevice?.claim_status || "unclaimed",
-        },
-      };
-    },
-
-    async claimDevice(data: DeviceClaimRequest) {
-      return {
-        success: true,
-        message: "Mock device claimed successfully",
-        device: {
-          name: data.device_name,
-          long_name: data.device_name,
-          status: "claimed",
-          claim_status: "claimed",
-          claimed_at: new Date().toISOString(),
-        },
-      };
-    },
-
-    async deployDevice(data: DeviceDeployInput) {
-      return {
-        success: true,
-        message: `[mock] ${data.deviceName} deployed successfully`,
-      };
-    },
-
-    async recallDevice(deviceName: string, recallData: DeviceRecallInput) {
-      return {
-        success: true,
-        message: `[mock] ${deviceName} recalled using ${recallData.recallType}`,
       };
     },
 
@@ -324,23 +240,25 @@ export function createMockAdapter(): VertexAdapter {
       };
     },
 
+    async deployDevice(data: DeviceDeployInput) {
+      return {
+        success: true,
+        message: `[mock] ${data.deviceName} deployed successfully`,
+      };
+    },
+
+    async recallDevice(deviceName: string, recallData: DeviceRecallInput) {
+      return {
+        success: true,
+        message: `[mock] ${deviceName} recalled using ${recallData.recallType}`,
+      };
+    },
+
     async addMaintenanceLog(deviceName, logData: MaintenanceLogData) {
       return {
         success: true,
         message: `[mock] Maintenance log added for ${deviceName}`,
         data: clone(logData),
-      };
-    },
-
-    async updateDeviceGroup(deviceId, groupName) {
-      const device = mockDevices.find(
-        (item) => item._id === deviceId || item.id === deviceId,
-      );
-
-      return {
-        success: true,
-        message: `[mock] Device group updated to ${groupName}`,
-        updated_device: device ? clone(device) : undefined,
       };
     },
 
@@ -381,25 +299,6 @@ export function createMockAdapter(): VertexAdapter {
       };
     },
 
-    async getSitesByCohorts(params, signal) {
-      assertNotAborted(signal);
-      const devicesInCohorts = mockDevices.filter((device) =>
-        params.cohort_ids.some((cohortId) => device.cohorts.includes(cohortId)),
-      );
-      const siteIds = new Set(devicesInCohorts.map((device) => device.site_id));
-      const sites = mockSites.filter((site) => site._id && siteIds.has(site._id));
-      const limit = params.limit ?? 100;
-      const skip = params.skip ?? 0;
-
-      return {
-        success: true,
-        message: "Mock cohort sites loaded successfully",
-        sites: clone(paginate(sites, limit, skip)),
-        meta: createMeta(sites.length, limit, skip),
-        cache_generated_at: new Date().toISOString(),
-      };
-    },
-
     async getSitesByStatus(params) {
       const sites = filterSites(params).filter((site) => {
         if (params.status === "online") return site.isOnline;
@@ -430,41 +329,6 @@ export function createMockAdapter(): VertexAdapter {
       };
     },
 
-    async createSite(data: CreateSiteInput) {
-      return {
-        success: true,
-        message: "Mock site created successfully",
-        site: {
-          _id: `mock-site-${Date.now()}`,
-          name: data.name,
-          formatted_name: data.name,
-          location_name: data.name,
-          search_name: data.name,
-          latitude: Number(data.latitude),
-          longitude: Number(data.longitude),
-          network: data.network,
-          groups: ["system"],
-          isOnline: false,
-          createdAt: new Date().toISOString(),
-        },
-      };
-    },
-
-    async getSitesSummaryCount(params = {}) {
-      const sites = filterSites({ network: params.network || "" });
-
-      return {
-        message: "Mock site count loaded successfully",
-        summary: {
-          total_sites: sites.length,
-          operational: sites.length,
-          transmitting: sites.filter((site) => site.isOnline).length,
-          not_transmitting: sites.filter((site) => !site.isOnline).length,
-          data_available: sites.filter((site) => site.lastActive).length,
-        },
-      };
-    },
-
     async getSiteActivities(siteId, params = {}) {
       const activities = mockDeviceActivities.filter(
         (activity) => activity.site_id === siteId,
@@ -487,82 +351,8 @@ export function createMockAdapter(): VertexAdapter {
       };
     },
 
-    async getCohorts(params = {}, signal) {
-      assertNotAborted(signal);
-      const cohorts = filterCohorts(params);
-      const limit = params.limit ?? 100;
-      const skip = params.skip ?? 0;
-
-      return {
-        success: true,
-        message: "Mock cohorts loaded successfully",
-        cohorts: clone(paginate(cohorts, limit, skip)),
-        meta: {
-          total: cohorts.length,
-          limit,
-          skip,
-          page: pageFromSkip(skip, limit),
-          totalPages: Math.max(1, Math.ceil(cohorts.length / limit)),
-        },
-      };
-    },
-
-    async getCohort(id) {
-      const cohort = mockCohorts.find((item) => item._id === id || item.name === id);
-
-      if (!cohort) {
-        throw new Error(`Mock cohort not found: ${id}`);
-      }
-
-      return {
-        success: true,
-        message: "Mock cohort loaded successfully",
-        cohort: clone(cohort),
-      };
-    },
-
-    async getGroupCohorts() {
-      return {
-        success: true,
-        message: "Mock group cohorts loaded successfully",
-        data: mockCohorts.map((cohort) => cohort._id),
-      };
-    },
-
-    async getOriginalCohort(cohortId) {
-      const cohort =
-        mockCohorts.find((item) => item._id === cohortId) || mockCohorts[0];
-
-      return {
-        success: true,
-        message: "Mock original cohort loaded successfully",
-        original_cohort: clone(cohort),
-      };
-    },
-
     async getNetworks() {
       return clone(mockNetworks);
-    },
-
-    async getLatestReadings(deviceIds) {
-      const requestedIds = new Set(deviceIds);
-      return clone(
-        mockReadings.filter(
-          (reading) =>
-            requestedIds.has(reading.device_id) ||
-            requestedIds.has(reading.device_name),
-        ),
-      );
-    },
-
-    async getReadingHistory(deviceId, range) {
-      return clone(
-        mockReadings.filter(
-          (reading) =>
-            (reading.device_id === deviceId || reading.device_name === deviceId) &&
-            readingIsInRange(reading, range),
-        ),
-      );
     },
   };
 }

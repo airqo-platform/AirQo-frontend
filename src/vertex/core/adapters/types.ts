@@ -16,7 +16,7 @@ import type {
   OriginalCohortResponse,
 } from "@/app/types/cohorts";
 import type { Site } from "@/app/types/sites";
-import type { UserDetailsResponse } from "@/app/types/users";
+import type { UserDetailsResponse, LoginCredentials } from "@/app/types/users";
 import type { Network } from "@/core/apis/networks";
 import type {
   DeviceActivitiesResponse,
@@ -95,25 +95,14 @@ export interface CreateSiteInput {
 
 export interface VertexAdapter {
   getCurrentUser(userId?: string): Promise<UserDetailsResponse>;
+  login?(credentials: LoginCredentials): Promise<any>;
 
   getDevices(
     params?: GetDevicesSummaryParams,
     signal?: AbortSignal,
   ): Promise<DevicesSummaryResponse>;
-  getDevicesByCohorts(
-    params: Partial<Device> & {
-      cohort_ids: string[];
-      limit?: number;
-      skip?: number;
-      search?: string;
-      sortBy?: string;
-      order?: "asc" | "desc";
-    },
-    signal?: AbortSignal,
-  ): Promise<DevicesSummaryResponse>;
   getDevicesByStatus(params: {
     status: string;
-    cohort_id?: string[];
     limit?: number;
     skip?: number;
     search?: string;
@@ -121,38 +110,22 @@ export interface VertexAdapter {
     order?: "asc" | "desc";
     network?: string;
   }): Promise<DevicesSummaryResponse>;
+  getDeviceCount(params?: { network?: string }): Promise<DeviceCountResponse>;
   getDevice(id: string): Promise<DeviceDetailsResponse>;
-  getMyDevices(
-    userId: string,
-    groupIds?: string[],
-    cohortIds?: string[],
-  ): Promise<MyDevicesResponse>;
-  getDeviceCount(params?: {
-    cohort_id?: string[];
-    network?: string;
-  }): Promise<DeviceCountResponse>;
-  checkDeviceAvailability(
-    deviceName: string,
-  ): Promise<DeviceAvailabilityResponse>;
-  claimDevice(data: DeviceClaimRequest): Promise<DeviceClaimResponse>;
-  deployDevice(data: DeviceDeployInput): Promise<{ success: boolean; message: string }>;
-  recallDevice(
-    deviceName: string,
-    recallData: DeviceRecallInput,
-  ): Promise<{ success: boolean; message: string }>;
   createDevice(data: CreateDeviceInput): Promise<DeviceCreationResponse>;
   updateDevice(
     deviceId: string,
     deviceData: Partial<Device>,
   ): Promise<{ success: boolean; message: string; updated_device: Device }>;
+  deployDevice(data: DeviceDeployInput): Promise<{ success: boolean; message: string }>;
+  recallDevice(
+    deviceName: string,
+    recallData: DeviceRecallInput,
+  ): Promise<{ success: boolean; message: string }>;
   addMaintenanceLog(
     deviceName: string,
     logData: MaintenanceLogData,
   ): Promise<{ success: boolean; message: string; data: MaintenanceLogData }>;
-  updateDeviceGroup(
-    deviceId: string,
-    groupName: string,
-  ): Promise<DeviceUpdateGroupResponse>;
   getDeviceActivities(
     deviceName: string,
     params?: { page?: number; limit?: number },
@@ -160,18 +133,6 @@ export interface VertexAdapter {
 
   getSites(
     params: GetSitesSummaryParams,
-    signal?: AbortSignal,
-  ): Promise<SitesSummaryResponse>;
-  getSitesByCohorts(
-    params: {
-      cohort_ids: string[];
-      limit?: number;
-      skip?: number;
-      search?: string;
-      sortBy?: string;
-      order?: "asc" | "desc";
-      network?: string;
-    },
     signal?: AbortSignal,
   ): Promise<SitesSummaryResponse>;
   getSitesByStatus(params: {
@@ -185,24 +146,11 @@ export interface VertexAdapter {
     group?: string;
   }): Promise<SitesSummaryResponse>;
   getSite(id: string): Promise<{ message: string; data: Site }>;
-  createSite(data: CreateSiteInput): Promise<CreateSiteResponse>;
-  getSitesSummaryCount(params?: {
-    network?: string;
-  }): Promise<SitesSummaryCountResponse>;
   getSiteActivities(
     siteId: string,
     params?: { page?: number; limit?: number },
   ): Promise<DeviceActivitiesResponse>;
 
-  getCohorts(
-    params?: GetCohortsSummaryParams,
-    signal?: AbortSignal,
-  ): Promise<CohortsSummaryResponse>;
-  getCohort(id: string): Promise<{ success: boolean; message: string; cohort: Cohort }>;
-  getGroupCohorts(groupId: string): Promise<GroupCohortsResponse>;
-  getOriginalCohort(cohortId: string): Promise<OriginalCohortResponse>;
-
   getNetworks(): Promise<Network[]>;
-  getLatestReadings(deviceIds: string[]): Promise<Reading[]>;
-  getReadingHistory(deviceId: string, range: DateRange): Promise<Reading[]>;
 }
+
