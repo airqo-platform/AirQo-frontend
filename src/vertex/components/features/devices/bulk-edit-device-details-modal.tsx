@@ -4,6 +4,9 @@ import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput"
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
 import { DEVICE_CATEGORIES } from "@/core/constants/devices";
 import { useUpdateDeviceBulk } from "@/core/hooks/useDevices";
+import { useBanner } from "@/context/banner-context";
+import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 
 type EditableDeviceField =
   | "category"
@@ -25,7 +28,16 @@ export default function BulkEditDevicesModal({
   onClose,
   deviceIds,
 }: BulkEditDevicesModalProps) {
-  const bulkUpdate = useUpdateDeviceBulk();
+  const { showBanner } = useBanner();
+  const { showBannerWithDelay } = useBannerWithDelay();
+  const bulkUpdate = useUpdateDeviceBulk({
+    onSuccess: () => {
+      showBannerWithDelay({ severity: 'success', message: 'Devices updated successfully.', scoped: false });
+    },
+    onError: (error) => {
+      showBanner({ severity: 'error', message: `Bulk update failed: ${getApiErrorMessage(error)}`, scoped: true });
+    },
+  });
 
   const [step, setStep] = useState<"choose_field" | "confirm">("choose_field");
   const [selectedField, setSelectedField] = useState<EditableDeviceField | null>(null);
@@ -76,12 +88,7 @@ export default function BulkEditDevicesModal({
 
     const updateData = { [selectedField]: value };
 
-    bulkUpdate.mutate(
-      { deviceIds, updateData },
-      {
-        onSuccess: () => handleClose(),
-      }
-    );
+    bulkUpdate.mutate({ deviceIds, updateData }, { onSuccess: () => handleClose() });
   };
 
   const renderFieldInput = () => {

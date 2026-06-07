@@ -1,0 +1,10 @@
+apiVersion: v2
+appVersion: "24.05.2"
+description: AirQo Internal Docs (Mariana Deep) Helm Chart
+name: airqo-internal-docs
+home: https://airqo.net
+version: 0.1.0
+maintainers:
+  - name: AirQo
+    email: support@airqo.net
+    url: https://airqo.net

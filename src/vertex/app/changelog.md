@@ -7,41 +7,36 @@
 ## Version 1.23.59
 **Released:** June 04, 2026
 
-### Multi-Provider Social Auth, API Proxy & Role Permissions
+### Decouple useDevices Mutations from ReusableToast
 
-Introduced comprehensive multi-provider social authentication, updated API proxy routing, enhanced hCaptcha environment support, and fixed missing network view permissions for system administrators.
+Removed all hardcoded `ReusableToast` calls from mutation hooks in `useDevices.ts` and delegated notification responsibility to the calling UI layer via optional `onSuccess`/`onError` callback interfaces. Also migrated remaining device-related components still using `ReusableToast` directly, and extracted a shared `useClipboard` hook to eliminate the repeated clipboard copy pattern across the codebase.
 
 <details>
-<summary><strong>Social Authentication & Routing (4)</strong></summary>
+<summary><strong>Changes (5)</strong></summary>
 
-- **Multi-Provider Social Auth**: Replaced the standalone Google auth component with a unified `SocialAuthSection` that supports sign-ins via Google, GitHub, LinkedIn, and X (Twitter).
-- **OAuth Session Management**: Extended `oauth-session` utilities to track the user's last-used provider via localStorage and intelligently resolve post-login redirect paths using `getLastActiveModule()`.
-- **API Proxy Routing**: Updated the Next.js API proxy destination from `staging-analytics.airqo.net` to `staging-vertex.airqo.net` across both `next.config.js` and `next.config.mjs`.
-- **Legacy Route Redirects**: Added Next.js config redirects to automatically route legacy `/user/home` to `/home` and `/user/login` to `/login`. Updated `middleware.ts` to simplify the `authorized` callback.
+- **Hooks Decoupled**: Removed `ReusableToast` from 8 mutation hooks — `useClaimDevice`, `useBulkClaimDevices`, `useUnassignDeviceFromOrganization`, `useUpdateDeviceBulk`, `useUpdateDeviceGroup`, `usePrepareDeviceForShipping`, `usePrepareBulkDevicesForShipping`, `useGenerateShippingLabels` — and added optional `onSuccess`/`onError` callback interfaces so the UI layer controls notification scope.
+- **Bulk Edit Modal**: Wired `useUpdateDeviceBulk` hook-level callbacks; error uses `scoped: true` inline in the dialog, success uses `showBannerWithDelay` (`scoped: false`) after the dialog closes.
+- **Prepare Shipping Modal**: Replaced all 8 `ReusableToast` calls with `useBanner`; file/import validation errors use `scoped: true`, bulk preparation success uses `showBannerWithDelay` (`scoped: false`).
+- **Remaining Device Components**: Migrated `device-measurements-api-card.tsx`, `device-activity-item.tsx`, and `orphaned-devices-alert.tsx` from `ReusableToast` to `useBanner`. Migrated `shipping/[batchId]/page.tsx` with hook-level callbacks and `showBanner` (`scoped: false`).
+- **Shared `useClipboard` Hook**: Extracted a `useClipboard` hook (accepts optional `successMessage`, `errorMessage`, `scoped`) to replace the repeated `navigator.clipboard.writeText` + banner pattern duplicated across `cohort-measurements-api-card`, `grid-measurements-api-card`, `grid-details-card`, `admin-levels-modal`, and `device-activity-item`.
 
 </details>
 
 <details>
-<summary><strong>Security & Permissions (2)</strong></summary>
+<summary><strong>Files Updated (12)</strong></summary>
 
-- **Admin Role Permissions Fix**: Restored access to the Sensor Manufacturers admin panel by explicitly including the `PERMISSIONS.NETWORK.VIEW` right in the static `AIRQO_ADMIN` role definition.
-- **Dynamic hCaptcha Environments**: Upgraded `isHCaptchaEnabled` to conditionally support hCaptcha on production, staging, and local development environments solely based on the presence of a valid site key.
-
-</details>
-
-<details>
-<summary><strong>Files Modified (10)</strong></summary>
-
-- `.env.example` [MODIFIED]
-- `app/login/page.tsx` [MODIFIED]
-- `components/features/auth/social-auth-section.tsx` [ADDED]
-- `components/features/auth/google-auth-section.tsx` [DELETED]
-- `core/auth/oauth-session.ts` [MODIFIED]
-- `core/permissions/constants.ts` [MODIFIED]
-- `lib/envConstants.ts` [MODIFIED]
-- `middleware.ts` [MODIFIED]
-- `next.config.mjs` [MODIFIED]
-- `next.config.js` [MODIFIED]
+- `src/vertex/core/hooks/useDevices.ts` [MODIFIED]
+- `src/vertex/core/hooks/useClipboard.ts` [NEW]
+- `src/vertex/components/features/devices/bulk-edit-device-details-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/device-measurements-api-card.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/device-activity-item.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/orphaned-devices-alert.tsx` [MODIFIED]
+- `src/vertex/components/features/shipping/PrepareShippingModal.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/admin/shipping/[batchId]/page.tsx` [MODIFIED]
+- `src/vertex/components/features/cohorts/cohort-measurements-api-card.tsx` [MODIFIED]
+- `src/vertex/components/features/grids/grid-measurements-api-card.tsx` [MODIFIED]
+- `src/vertex/components/features/grids/grid-details-card.tsx` [MODIFIED]
+- `src/vertex/components/features/grids/admin-levels-modal.tsx` [MODIFIED]
 
 </details>
 

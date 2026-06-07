@@ -42,7 +42,7 @@ import type {
   ShippingBatchDetailsResponse,
 } from '@/app/types/devices';
 import { AxiosError } from 'axios';
-import ReusableToast from '@/components/shared/toast/ReusableToast';
+import { useDispatch } from 'react-redux';
 import { getApiErrorMessage } from '../utils/getApiErrorMessage';
 import logger from '@/lib/logger';
 
@@ -292,7 +292,12 @@ export const useDeviceAvailability = (deviceName: string) => {
   });
 };
 
-export const useClaimDevice = () => {
+interface UseClaimDeviceOptions {
+  onSuccess?: () => void;
+  onError?: (error: AxiosError) => void;
+}
+
+export const useClaimDevice = (options?: UseClaimDeviceOptions) => {
   const queryClient = useQueryClient();
 
   return useMutation<
@@ -302,23 +307,22 @@ export const useClaimDevice = () => {
   >({
     mutationFn: devices.claimDevice,
     onSuccess: () => {
-      ReusableToast({
-        message: 'Device Claimed Successfully!',
-        type: 'SUCCESS',
-      });
       queryClient.invalidateQueries({ queryKey: ['myDevices'] });
       queryClient.invalidateQueries({ queryKey: ['devices'] });
+      options?.onSuccess?.();
     },
-    onError: error => {
-      ReusableToast({
-        message: `Claim Failed: ${getApiErrorMessage(error)}`,
-        type: 'ERROR',
-      });
+    onError: (error) => {
+      options?.onError?.(error);
     },
   });
 };
 
-export const useBulkClaimDevices = () => {
+interface UseBulkClaimDevicesOptions {
+  onSuccess?: (data: BulkDeviceClaimResponse) => void;
+  onError?: (error: AxiosError) => void;
+}
+
+export const useBulkClaimDevices = (options?: UseBulkClaimDevicesOptions) => {
   const queryClient = useQueryClient();
 
   return useMutation<
@@ -327,36 +331,13 @@ export const useBulkClaimDevices = () => {
     BulkDeviceClaimRequest
   >({
     mutationFn: devices.claimDevicesBulk,
-    onSuccess: (response) => {
-      const { successful_claims, failed_claims } = response.data;
-      const successful_count = successful_claims.length;
-      const failed_count = failed_claims.length;
-      
-      if (failed_count === 0) {
-        ReusableToast({
-          message: `All ${successful_count} device${successful_count !== 1 ? 's' : ''} claimed successfully!`,
-          type: 'SUCCESS',
-        });
-      } else if (successful_count === 0) {
-        ReusableToast({
-          message: `Failed to claim all ${failed_count} device${failed_count !== 1 ? 's' : ''}`,
-          type: 'ERROR',
-        });
-      } else {
-        ReusableToast({
-          message: `${successful_count} device${successful_count !== 1 ? 's' : ''} claimed, ${failed_count} failed`,
-          type: 'WARNING',
-        });
-      }
-      
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['myDevices'] });
       queryClient.invalidateQueries({ queryKey: ['devices'] });
+      options?.onSuccess?.(data);
     },
-    onError: error => {
-      ReusableToast({
-        message: `Bulk Claim Failed: ${getApiErrorMessage(error)}`,
-        type: 'ERROR',
-      });
+    onError: (error) => {
+      options?.onError?.(error);
     },
   });
 };
@@ -377,7 +358,12 @@ export const useAssignDeviceToOrganization = () => {
   });
 };
 
-export const useUnassignDeviceFromOrganization = () => {
+interface UseUnassignDeviceFromOrganizationOptions {
+  onSuccess?: (data: DeviceAssignmentResponse) => void;
+  onError?: (error: AxiosError) => void;
+}
+
+export const useUnassignDeviceFromOrganization = (options?: UseUnassignDeviceFromOrganizationOptions) => {
   const queryClient = useQueryClient();
 
   return useMutation<
@@ -387,19 +373,13 @@ export const useUnassignDeviceFromOrganization = () => {
   >({
     mutationFn: ({ deviceName, userId }) =>
       devices.unassignDeviceFromOrganization(deviceName, userId),
-    onSuccess: data => {
-      ReusableToast({
-        message: `${data.device.name} is now personal only.`,
-        type: 'SUCCESS',
-      });
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['myDevices'] });
       queryClient.invalidateQueries({ queryKey: ['devices'] });
+      options?.onSuccess?.(data);
     },
-    onError: error => {
-      ReusableToast({
-        message: `Unassignment Failed: ${getApiErrorMessage(error)}`,
-        type: 'ERROR',
-      });
+    onError: (error) => {
+      options?.onError?.(error);
     },
   });
 };
@@ -466,7 +446,12 @@ export interface BulkDeviceUpdatePayload {
   updateData: Record<string, unknown>;
 }
 
-export const useUpdateDeviceBulk = () => {
+interface UseUpdateDeviceBulkOptions {
+  onSuccess?: () => void;
+  onError?: (error: AxiosError) => void;
+}
+
+export const useUpdateDeviceBulk = (options?: UseUpdateDeviceBulkOptions) => {
   const queryClient = useQueryClient();
 
   return useMutation<
@@ -478,53 +463,45 @@ export const useUpdateDeviceBulk = () => {
       devices.bulkUpdateDeviceDetails(deviceIds, updateData),
 
     onSuccess: () => {
-      ReusableToast({
-        message: "Devices updated successfully.",
-        type: "SUCCESS",
-      });
-
-      // invalidate all relevant caches
       queryClient.invalidateQueries({ queryKey: ["devices"] });
       queryClient.invalidateQueries({ queryKey: ["myDevices"] });
       queryClient.invalidateQueries({ queryKey: ["network-devices"] });
       queryClient.invalidateQueries({ queryKey: ["deviceActivities"] });
+      options?.onSuccess?.();
     },
 
     onError: (error) => {
-      ReusableToast({
-        message: `Bulk Update Failed: ${getApiErrorMessage(error)}`,
-        type: "ERROR",
-      });
+      options?.onError?.(error);
     },
   });
 };
 
-export const useUpdateDeviceGroup = () => {
+interface UseUpdateDeviceGroupOptions {
+  onSuccess?: () => void;
+  onError?: (error: AxiosError) => void;
+}
+
+export const useUpdateDeviceGroup = (options?: UseUpdateDeviceGroupOptions) => {
+  const queryClient = useQueryClient();
   return useMutation<
     DeviceUpdateGroupResponse,
     AxiosError<ErrorResponse>,
     { deviceId: string; groupName: string }
   >({
     mutationFn: ({ deviceId, groupName }) =>
-      devices.bulkUpdateDeviceDetails(
-        [deviceId],
-        {
-          groups: [groupName],
-        }
-      ),
+      devices.bulkUpdateDeviceDetails([deviceId], { groups: [groupName] }),
 
     onSuccess: () => {
-      ReusableToast({
-        message: "Device has been successfully added to the group.",
-        type: "SUCCESS",
-      });
+      queryClient.invalidateQueries({ queryKey: ["devices"] });
+      queryClient.invalidateQueries({ queryKey: ["myDevices"] });
+      queryClient.invalidateQueries({ queryKey: ["network-devices"] });
+      queryClient.invalidateQueries({ queryKey: ["deviceActivities"] });
+      options?.onSuccess?.();
+     
     },
 
     onError: (error) => {
-      ReusableToast({
-        message: `Group Update Failed: ${getApiErrorMessage(error)}`,
-        type: "ERROR",
-      });
+      options?.onError?.(error);
     },
   });
 };
@@ -766,7 +743,12 @@ export const useDecryptDeviceKeys = () => {
   });
 };
 
-export const usePrepareDeviceForShipping = () => {
+interface UsePrepareDeviceForShippingOptions {
+  onSuccess?: (data: PrepareDeviceResponse) => void;
+  onError?: (error: AxiosError) => void;
+}
+
+export const usePrepareDeviceForShipping = (options?: UsePrepareDeviceForShippingOptions) => {
   const queryClient = useQueryClient();
 
   return useMutation<
@@ -777,22 +759,21 @@ export const usePrepareDeviceForShipping = () => {
     mutationFn: ({ deviceName, tokenType }) =>
       devices.prepareDeviceForShipping(deviceName, tokenType),
     onSuccess: (data) => {
-      ReusableToast({
-        message: data.message,
-        type: 'SUCCESS',
-      });
       queryClient.invalidateQueries({ queryKey: ['shippingStatus'] });
+      options?.onSuccess?.(data);
     },
     onError: (error) => {
-      ReusableToast({
-        message: `Preparation Failed: ${getApiErrorMessage(error)}`,
-        type: 'ERROR',
-      });
+      options?.onError?.(error);
     },
   });
 };
 
-export const usePrepareBulkDevicesForShipping = () => {
+interface UsePrepareBulkDevicesForShippingOptions {
+  onSuccess?: (data: BulkPrepareResponse) => void;
+  onError?: (error: AxiosError) => void;
+}
+
+export const usePrepareBulkDevicesForShipping = (options?: UsePrepareBulkDevicesForShippingOptions) => {
   const queryClient = useQueryClient();
 
   return useMutation<
@@ -803,34 +784,32 @@ export const usePrepareBulkDevicesForShipping = () => {
     mutationFn: ({ deviceNames, tokenType, batchName }) =>
       devices.prepareBulkDevicesForShipping(deviceNames, tokenType, batchName),
     onSuccess: (data) => {
-      ReusableToast({
-        message: data.message,
-        type: 'SUCCESS',
-      });
-      // queryClient.invalidateQueries({ queryKey: ['shippingStatus'] });
       queryClient.invalidateQueries({ queryKey: ['shippingBatches'] });
+      options?.onSuccess?.(data);
     },
     onError: (error) => {
-      ReusableToast({
-        message: `Bulk Preparation Failed: ${getApiErrorMessage(error)}`,
-        type: 'ERROR',
-      });
+      options?.onError?.(error);
     },
   });
 };
 
-export const useGenerateShippingLabels = () => {
+interface UseGenerateShippingLabelsOptions {
+  onSuccess?: (data: GenerateLabelsResponse) => void;
+  onError?: (error: AxiosError) => void;
+}
+
+export const useGenerateShippingLabels = (options?: UseGenerateShippingLabelsOptions) => {
   return useMutation<
     GenerateLabelsResponse,
     AxiosError<ErrorResponse>,
     string[]
   >({
     mutationFn: (deviceNames) => devices.generateShippingLabels(deviceNames),
+    onSuccess: (data) => {
+      options?.onSuccess?.(data);
+    },
     onError: (error) => {
-      ReusableToast({
-        message: `Label Generation Failed: ${getApiErrorMessage(error)}`,
-        type: 'ERROR',
-      });
+      options?.onError?.(error);
     },
   });
 };
