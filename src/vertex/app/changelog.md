@@ -16,7 +16,7 @@ Introduced comprehensive multi-provider social authentication, updated API proxy
 
 - **Multi-Provider Social Auth**: Replaced the standalone Google auth component with a unified `SocialAuthSection` that supports sign-ins via Google, GitHub, LinkedIn, and X (Twitter).
 - **OAuth Session Management**: Extended `oauth-session` utilities to track the user's last-used provider via localStorage and intelligently resolve post-login redirect paths using `getLastActiveModule()`.
-- **OAuth Handoff Improvements**: Refactored `TokenHandoffHandler` in `authProvider.tsx` to prevent login UI flashing during OAuth redirects, and configured `middleware.ts` to intelligently bypass server-side routing for seamless token consumption.
+- **OAuth Handoff Improvements**: Refactored `TokenHandoffHandler` in `authProvider.tsx` to prevent login UI flashing during OAuth redirects, optimized the redirect logic to eliminate duplicate page reloads when the user is already on the destination route, and configured `middleware.ts` to intelligently bypass server-side routing for seamless token consumption.
 - **API Proxy Routing**: Updated the Next.js API proxy destination from `staging-analytics.airqo.net` to `staging-vertex.airqo.net` across both `next.config.js` and `next.config.mjs`.
 - **Legacy Route Redirects**: Added Next.js config redirects to automatically route legacy `/user/home` to `/home` and `/user/login` to `/login`. Updated `middleware.ts` to simplify the `authorized` callback.
 

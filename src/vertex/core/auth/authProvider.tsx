@@ -637,9 +637,22 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
             const redirectUrl = handoff.callbackUrl || fallbackUrl;
             
             logger.info(`[TokenHandoffHandler] OAuth sign-in successful, redirecting to ${redirectUrl}`);
-            shouldUnblock = false; // Prevent unblocking the UI while the browser redirects
-            window.location.replace(redirectUrl);
-            return; // window.location.replace will handle the rest
+            
+            const redirectPathname = redirectUrl.split('?')[0];
+            const isSamePath = pathname === redirectPathname;
+
+            if (isSamePath) {
+              // We are already on the destination page (e.g., /home?success=google).
+              // Use client-side routing to silently clean up the URL without a full page reload.
+              router.replace(redirectUrl);
+              // Allow the UI to unblock since we aren't unloading the document
+            } else {
+              // We are on a different page (e.g., /login).
+              // Do a hard replace and keep the UI blocked until the page unloads to prevent flashing.
+              shouldUnblock = false; // Prevent unblocking the UI while the browser redirects
+              window.location.replace(redirectUrl);
+              return; // window.location.replace will handle the rest
+            }
           } else {
             logger.error('[TokenHandoffHandler] OAuth sign-in failed', { error: result?.error });
             router.push(`/auth-error?error=${encodeURIComponent(result?.error || 'OAuthSignin')}`);
