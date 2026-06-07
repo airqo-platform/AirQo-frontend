@@ -24,14 +24,28 @@ import type { AirQualityReading, ClusterData } from './MapNodes';
 import { setMapSettings } from '@/shared/store/mapSettingsSlice';
 import { selectMapStyle, selectNodeType } from '@/shared/store/selectors';
 import type { PollutantType } from '@/shared/utils/airQuality';
+import { toast } from '@/shared/components/ui';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const MAP_MARKER_Z_INDEX = 20;
-const CLUSTER_ZOOM_THRESHOLD = 14;
+/**
+ * At or above this zoom, no clusters are formed — every reading renders as
+ * its own node. Below it, getClusterParams() decides how aggressively
+ * nearby readings are grouped. Chosen so clusters break up naturally
+ * before the user is close enough to want to click individual stations.
+ */
+const CLUSTER_ZOOM_THRESHOLD = 12;
 const NODE_DETAIL_ZOOM = 14.5;
 /** Debounce delay for clustering recalculation (ms) */
 const CLUSTER_DEBOUNCE_MS = 250;
+const INITIAL_VIEW_STATE: Partial<ViewState> = {
+  longitude: 17.61872846571009,
+  latitude: 5.468074924059209,
+  zoom: 2.6680390382433803,
+};
+const RESET_FLY_TO_DURATION_MS = 1000;
+const REFRESH_TIMEOUT_MS = 10000;
 
 // ─── Module-level pure helpers ────────────────────────────────────────────────
 
@@ -59,15 +73,22 @@ const buildSpatialIndex = (
  * Returns clustering parameters that shrink as zoom increases.
  * Using integer breakpoints keeps parameter changes discrete, which prevents
  * continuous re-clustering during smooth zoom animations.
+ *
+ * distanceKm shrinks aggressively with zoom so clusters naturally fragment
+ * as the user zooms in. gridSize is always comfortably larger than
+ * distanceKm/111 so the spatial index never splits a potential cluster
+ * across two cells. minSize stays at 2 so any two readings within range
+ * always cluster (avoids the "two lonely markers overlapping" look).
  */
 const getClusterParams = (zoom: number) => {
   const z = Math.floor(zoom);
-  if (z < 4) return { gridSize: 4.0, distanceKm: 15.0, minSize: 2 };
-  if (z < 6) return { gridSize: 2.0, distanceKm: 8.0, minSize: 2 };
-  if (z < 8) return { gridSize: 1.0, distanceKm: 5.0, minSize: 2 };
-  if (z < 10) return { gridSize: 0.5, distanceKm: 3.0, minSize: 3 };
-  if (z < 12) return { gridSize: 0.2, distanceKm: 1.5, minSize: 3 };
-  return { gridSize: 0.1, distanceKm: 0.8, minSize: 4 };
+  if (z < 3) return { gridSize: 4.0, distanceKm: 30.0, minSize: 2 };
+  if (z < 5) return { gridSize: 3.0, distanceKm: 18.0, minSize: 2 };
+  if (z < 7) return { gridSize: 2.0, distanceKm: 9.0, minSize: 2 };
+  if (z < 9) return { gridSize: 1.0, distanceKm: 4.5, minSize: 2 };
+  if (z < 10) return { gridSize: 0.5, distanceKm: 2.0, minSize: 2 };
+  if (z < 11) return { gridSize: 0.2, distanceKm: 1.0, minSize: 2 };
+  return { gridSize: 0.1, distanceKm: 0.4, minSize: 2 }; // zoom 11 → <12 (threshold)
 };
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -90,15 +111,10 @@ interface EnhancedMapProps {
 
 export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   className,
-  initialViewState = {
-    longitude: 17.61872846571009,
-    latitude: 5.468074924059209,
-    zoom: 2.6680390382433803,
-  },
+  initialViewState = INITIAL_VIEW_STATE,
   airQualityData = [],
   onNodeClick,
   onClusterClick,
-  isLoading = false,
   onRefreshData,
   flyToLocation,
   selectedPollutant = 'pm2_5',
@@ -121,6 +137,7 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   const [pinnedTooltipId, setPinnedTooltipId] = useState<string | null>(null);
   const [isStyleDialogOpen, setIsStyleDialogOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const isRefreshingRef = useRef(false);
 
   /**
    * clusterZoom — debounced and floor-quantised zoom for clustering.
@@ -195,14 +212,22 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
         clusterMemberIds: new Set<string>(),
       };
     }
-    if (clusterZoom >= CLUSTER_ZOOM_THRESHOLD) {
+    // Use the higher of the debounced clusterZoom and the live viewState.zoom
+    // to ensure clusters break up immediately when the user zooms past the
+    // threshold, even if the debounce hasn't fired yet. This prevents the
+    // "cluster didn't break up after clicking" issue.
+    const effectiveZoom = Math.max(
+      clusterZoom,
+      Math.floor(viewState.zoom ?? 3)
+    );
+    if (effectiveZoom >= CLUSTER_ZOOM_THRESHOLD) {
       return {
         clusters: [] as ClusterData[],
         clusterMemberIds: new Set<string>(),
       };
     }
 
-    const { gridSize, distanceKm, minSize } = getClusterParams(clusterZoom);
+    const { gridSize, distanceKm, minSize } = getClusterParams(effectiveZoom);
     const index = buildSpatialIndex(airQualityData, gridSize);
 
     const result: ClusterData[] = [];
@@ -261,7 +286,7 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
     }
 
     return { clusters: result, clusterMemberIds: memberIds };
-  }, [airQualityData, clusterZoom, selectedPollutant]);
+  }, [airQualityData, clusterZoom, viewState.zoom, selectedPollutant]);
 
   const soloReadings = useMemo(
     () => airQualityData.filter(r => !clusterMemberIds.has(r.id)),
@@ -293,16 +318,44 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   }, []);
 
   const handleRefreshMap = useCallback(async () => {
-    if (!onRefreshData) return;
+    if (!onRefreshData) {
+      toast.error('Refresh not available');
+      return;
+    }
+    if (isRefreshingRef.current) return;
+
+    isRefreshingRef.current = true;
     setIsRefreshing(true);
+
+    // GUARANTEED fallback: force-close the overlay after timeout
+    const fallbackTimer = setTimeout(() => {
+      console.warn('Refresh fallback timer triggered - forcing overlay close');
+      isRefreshingRef.current = false;
+      setIsRefreshing(false);
+    }, REFRESH_TIMEOUT_MS);
+
     try {
       await onRefreshData();
+      toast.success('Map refreshed');
     } catch (e) {
       console.error('Map refresh error:', e);
+      toast.error('Failed to refresh map');
     } finally {
-      if (isMountedRef.current) setIsRefreshing(false);
+      clearTimeout(fallbackTimer);
+      // Force state update even if component might be unmounting
+      isRefreshingRef.current = false;
+      setIsRefreshing(false);
     }
   }, [onRefreshData]);
+
+  const handleResetView = useCallback(() => {
+    mapRef.current?.flyTo({
+      center: [INITIAL_VIEW_STATE.longitude!, INITIAL_VIEW_STATE.latitude!],
+      zoom: INITIAL_VIEW_STATE.zoom,
+      duration: RESET_FLY_TO_DURATION_MS,
+      easing: t => t * (2 - t),
+    });
+  }, []);
 
   const handleMapStyleToggle = useCallback(
     () => setIsStyleDialogOpen(true),
@@ -377,12 +430,21 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
       );
 
       const currentZoom = viewState.zoom ?? 3;
+      // Always fly to at least CLUSTER_ZOOM_THRESHOLD + 1 so the cluster
+      // actually breaks apart into individual nodes on arrival. Tighter
+      // clusters zoom in further so their members are comfortably separated
+      // and clickable. max() against currentZoom + delta keeps the user from
+      // being yanked in from very low zoom levels.
       let targetZoom: number;
-      if (maxSpan < 0.001) targetZoom = Math.max(16, currentZoom + 3);
-      else if (maxSpan < 0.01) targetZoom = Math.max(14, currentZoom + 2.5);
-      else if (maxSpan < 0.1) targetZoom = Math.max(12, currentZoom + 2);
-      else targetZoom = Math.max(10, currentZoom + 1.5);
-      targetZoom = Math.min(17, targetZoom);
+      if (maxSpan < 0.001) targetZoom = 16;
+      else if (maxSpan < 0.01) targetZoom = 15;
+      else if (maxSpan < 0.05) targetZoom = 14;
+      else
+        targetZoom = Math.max(
+          CLUSTER_ZOOM_THRESHOLD + 1,
+          currentZoom + 2.5
+        );
+      targetZoom = Math.min(18, targetZoom);
 
       const centerLon = lons.reduce((a, b) => a + b, 0) / lons.length;
       const centerLat = lats.reduce((a, b) => a + b, 0) / lats.length;
@@ -471,6 +533,7 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
         minZoom={0.5}
         maxZoom={18}
         attributionControl={false}
+        preserveDrawingBuffer={true}
         /**
          * interactiveLayerIds stays empty — all interaction is handled
          * via React Marker event handlers, not Mapbox layer events.
@@ -538,6 +601,7 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
         onRefreshMap={handleRefreshMap}
         onMapStyleToggle={handleMapStyleToggle}
         isRefreshing={isRefreshing}
+        onResetView={handleResetView}
       />
 
       <div className="hidden md:block">
@@ -561,12 +625,8 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
       />
 
       <MapLoadingOverlay
-        isVisible={isLoading || isRefreshing}
-        message={
-          isLoading
-            ? 'Loading air quality data…'
-            : 'Refreshing air quality data…'
-        }
+        isVisible={isRefreshing}
+        message="Refreshing air quality data…"
       />
     </div>
   );
