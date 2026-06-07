@@ -20,10 +20,14 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import OnboardingChecklist from "@/components/features/home/onboarding-checklist";
 import { cn } from "@/lib/utils";
 import { Device } from "@/app/types/devices";
-import { updateGroupOnboardingApi, getGroupDetailsApi } from "@/core/apis/organizations";
+import { groupsApi } from "@/core/apis/organizations";
+
+const { updateGroupOnboardingApi, getGroupDetailsApi } = groupsApi;
 import { updateActiveGroupOnboarding } from "@/core/redux/slices/userSlice";
 import { formatTitle } from "@/components/features/org-picker/organization-picker";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
+import logger from "@/lib/logger";
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 
 // ─── Checklist localStorage helpers ──────────────────────────────────────────
 // Keyed per org/user so state is independent across workspace switches.
@@ -178,6 +182,75 @@ const WelcomePage = () => {
     return localChecklistState;
   }, [userScope, activeGroup?.onboarding_checklist, groupDetails?.onboarding_checklist, localChecklistState]);
 
+  // ── Permissions ────────────────────────────────────────────────────────────
+  const permissionsToCheck = [PERMISSIONS.DEVICE.UPDATE];
+  const permissionsMap = usePermissions(permissionsToCheck);
+  const canClaimDevice = permissionsMap[PERMISSIONS.DEVICE.UPDATE];
+
+  // ── Device data ────────────────────────────────────────────────────────────
+  const { devices: groupDevices, isLoading: isLoadingGroupDevices } = useDevices({
+    limit: 1,
+    enabled: userScope === "organisation",
+  });
+
+  const { data: myDevicesData, isLoading: isLoadingMyDevices } = useMyDevices(
+    userId || "",
+    undefined,
+    { enabled: !!userId && userScope === "personal" }
+  );
+
+  // Cohort data — used to auto-detect step 2 completion
+  const { data: groupCohortIds } = useGroupCohorts(activeGroup?._id, {
+    enabled: userScope === "organisation" && !!activeGroup?._id,
+  });
+  const { data: personalCohortIds } = usePersonalUserCohorts(userId, {
+    enabled: !!userId && userScope === "personal",
+  });
+
+  // ── Auto-sync step completion from real data ─────────────────────────────
+  // This ensures that if an org already has devices/cohorts when a user first
+  // logs in, steps 1 and 2 are immediately shown as complete.
+  const autoSteps = React.useMemo(() => {
+    if (!orgId) return [];
+    
+    const hasDevices =
+      userScope === "personal"
+        ? (myDevicesData?.devices ?? []).length > 0
+        : groupDevices.length > 0;
+
+    const hasCohorts =
+      userScope === "personal"
+        ? (personalCohortIds ?? []).length > 0
+        : (groupCohortIds ?? []).length > 0;
+
+    const steps: string[] = [];
+    if (hasDevices) {
+      steps.push("add-device", "assign-cohort");
+    } else if (hasCohorts) {
+      steps.push("assign-cohort");
+    }
+    return steps;
+  }, [orgId, userScope, myDevicesData?.devices, groupDevices.length, personalCohortIds, groupCohortIds]);
+
+  const visuallyCompletedSteps = React.useMemo(() => {
+    return Array.from(new Set([...(activeChecklistState.completedSteps || []), ...autoSteps]));
+  }, [activeChecklistState.completedSteps, autoSteps]);
+
+  React.useEffect(() => {
+    if (autoSteps.length === 0) return;
+
+    if (userScope === "personal") {
+      setLocalChecklistState((prev) => {
+        const merged = Array.from(new Set([...(prev.completedSteps || []), ...autoSteps]));
+        // Only save/re-render if something actually changed
+        if (merged.length === (prev.completedSteps || []).length) return prev;
+        const next = { ...prev, completedSteps: merged };
+        saveChecklistState(orgId as string, next);
+        return next;
+      });
+    }
+  }, [orgId, userScope, autoSteps]);
+
   const updateChecklist = React.useCallback(
     async (patch: { action?: 'mark_step_complete' | 'dismiss_checklist', step_id?: string, completedSteps?: string[], dismissed?: boolean }) => {
       if (userScope === "personal") {
@@ -212,34 +285,38 @@ const WelcomePage = () => {
             );
             
             if (missingAutoSteps.length > 0) {
-              await Promise.allSettled(
-                missingAutoSteps.map(step => 
-                  updateGroupOnboardingApi(activeGroup._id, { action: 'mark_step_complete', step_id: step })
-                )
-              );
+              for (const step of missingAutoSteps) {
+                try {
+                  await updateGroupOnboardingApi(activeGroup._id, { action: 'mark_step_complete', step_id: step });
+                } catch (e) {
+                  logger.error("Failed to sync auto-step:", { error: getApiErrorMessage(e) });
+                }
+              }
             }
 
             const res = await updateGroupOnboardingApi(activeGroup._id, { action: patch.action, step_id: patch.step_id });
-            if (res.success && res.data?.onboarding_checklist) {
-              dispatch(updateActiveGroupOnboarding(res.data.onboarding_checklist));
+            const updatedChecklist = res.data?.onboarding_checklist || res.group?.onboarding_checklist;
+            
+            if (res.success && updatedChecklist) {
+              dispatch(updateActiveGroupOnboarding(updatedChecklist));
               queryClient.setQueryData(['groupDetails', activeGroup._id], (old: any) => {
                 if (!old || !old.group) return old;
                 return {
                   ...old,
                   group: {
                     ...old.group,
-                    onboarding_checklist: res.data.onboarding_checklist,
+                    onboarding_checklist: updatedChecklist,
                   }
                 };
               });
             }
           } catch (error) {
-            console.error("Failed to update onboarding checklist:", error);
+            logger.error("Failed to update onboarding checklist:", { error: getApiErrorMessage(error) });
           }
         }
       }
     },
-    [orgId, userScope, activeGroup?._id, dispatch]
+    [orgId, userScope, activeGroup?._id, dispatch, activeChecklistState.completedSteps, autoSteps, queryClient]
   );
 
   const openAddDeviceChoice = React.useCallback(() => {
@@ -316,73 +393,8 @@ const WelcomePage = () => {
     setNewlyClaimedDevice(undefined);
   }, [activeChecklistState.completedSteps, updateChecklist]);
 
-  // ── Permissions ────────────────────────────────────────────────────────────
-  const permissionsToCheck = [PERMISSIONS.DEVICE.UPDATE];
-  const permissionsMap = usePermissions(permissionsToCheck);
-  const canClaimDevice = permissionsMap[PERMISSIONS.DEVICE.UPDATE];
 
-  // ── Device data ────────────────────────────────────────────────────────────
-  const { devices: groupDevices, isLoading: isLoadingGroupDevices } = useDevices({
-    limit: 1,
-    enabled: userScope === "organisation",
-  });
 
-  const { data: myDevicesData, isLoading: isLoadingMyDevices } = useMyDevices(
-    userId || "",
-    undefined,
-    { enabled: !!userId && userScope === "personal" }
-  );
-
-  const { data: groupCohortIds } = useGroupCohorts(activeGroup?._id, {
-    enabled: userScope === "organisation" && !!activeGroup?._id,
-  });
-  const { data: personalCohortIds } = usePersonalUserCohorts(userId, {
-    enabled: !!userId && userScope === "personal",
-  });
-
-  // ── Auto-sync step completion from real data ─────────────────────────────
-  // This ensures that if an org already has devices/cohorts when a user first
-  // logs in, steps 1 and 2 are immediately shown as complete.
-  const autoSteps = React.useMemo(() => {
-    if (!orgId) return [];
-    
-    const hasDevices =
-      userScope === "personal"
-        ? (myDevicesData?.devices ?? []).length > 0
-        : groupDevices.length > 0;
-
-    const hasCohorts =
-      userScope === "personal"
-        ? (personalCohortIds ?? []).length > 0
-        : (groupCohortIds ?? []).length > 0;
-
-    const steps: string[] = [];
-    if (hasDevices) {
-      steps.push("add-device", "assign-cohort");
-    } else if (hasCohorts) {
-      steps.push("assign-cohort");
-    }
-    return steps;
-  }, [orgId, userScope, myDevicesData?.devices, groupDevices.length, personalCohortIds, groupCohortIds]);
-
-  const visuallyCompletedSteps = React.useMemo(() => {
-    return Array.from(new Set([...(activeChecklistState.completedSteps || []), ...autoSteps]));
-  }, [activeChecklistState.completedSteps, autoSteps]);
-
-  React.useEffect(() => {
-    if (autoSteps.length === 0) return;
-
-    if (userScope === "personal") {
-      setLocalChecklistState((prev) => {
-        const merged = Array.from(new Set([...(prev.completedSteps || []), ...autoSteps]));
-        // Only save/re-render if something actually changed
-        if (merged.length === (prev.completedSteps || []).length) return prev;
-        const next = { ...prev, completedSteps: merged };
-        saveChecklistState(orgId as string, next);
-        return next;
-      });
-    }
-  }, [orgId, userScope, autoSteps]);
 
   // ── Early returns ──────────────────────────────────────────────────────────
 
@@ -642,6 +654,9 @@ const WelcomePage = () => {
                         message: "Workspace setup complete. You're ready to monitor and manage your devices.",
                         type: "SUCCESS",
                       });
+                      setTimeout(() => {
+                        updateChecklist({ action: 'dismiss_checklist', dismissed: true });
+                      }, 2000);
                     }
                   }}
                 />
