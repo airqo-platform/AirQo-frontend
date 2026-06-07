@@ -13,16 +13,15 @@ import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDevices, useMyDevices } from "@/core/hooks/useDevices";
 import { useGroupCohorts, usePersonalUserCohorts } from "@/core/hooks/useCohorts";
-import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import ContextHeader from "@/components/features/home/context-header";
 import NetworkVisibilityCard from "@/components/features/home/network-visibility-card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import OnboardingChecklist from "@/components/features/home/onboarding-checklist";
 import { cn } from "@/lib/utils";
 import { Device } from "@/app/types/devices";
-import { groupsApi } from "@/core/apis/organizations";
-
-const { updateGroupOnboardingApi, getGroupDetailsApi } = groupsApi;
+import { Group } from "@/app/types/groups";
+import { useGroupDetails, useUpdateGroupOnboarding } from "@/core/hooks/useGroups";
 import { updateActiveGroupOnboarding } from "@/core/redux/slices/userSlice";
 import { formatTitle } from "@/components/features/org-picker/organization-picker";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
@@ -151,10 +150,7 @@ const WelcomePage = () => {
     ? `org_${activeGroup._id}`
     : null;
 
-  // Fetch up-to-date group details to ensure onboarding checklist is populated
-  const { data: groupDetailsData, isLoading: isLoadingGroupDetails } = useQuery({
-    queryKey: ['groupDetails', activeGroup?._id],
-    queryFn: () => getGroupDetailsApi(activeGroup?._id as string),
+  const { data: groupDetailsData, isLoading: isLoadingGroupDetails } = useGroupDetails(activeGroup?._id as string, {
     enabled: userScope === "organisation" && !!activeGroup?._id,
     staleTime: 5 * 60 * 1000,
   });
@@ -251,6 +247,8 @@ const WelcomePage = () => {
     }
   }, [orgId, userScope, autoSteps]);
 
+  const { mutateAsync: updateGroupOnboarding } = useUpdateGroupOnboarding();
+
   const updateChecklist = React.useCallback(
     async (patch: { action?: 'mark_step_complete' | 'dismiss_checklist', step_id?: string, completedSteps?: string[], dismissed?: boolean }) => {
       if (userScope === "personal") {
@@ -287,19 +285,19 @@ const WelcomePage = () => {
             if (missingAutoSteps.length > 0) {
               for (const step of missingAutoSteps) {
                 try {
-                  await updateGroupOnboardingApi(activeGroup._id, { action: 'mark_step_complete', step_id: step });
+                  await updateGroupOnboarding({ groupId: activeGroup._id, payload: { action: 'mark_step_complete', step_id: step } });
                 } catch (e) {
                   logger.error("Failed to sync auto-step:", { error: getApiErrorMessage(e) });
                 }
               }
             }
 
-            const res = await updateGroupOnboardingApi(activeGroup._id, { action: patch.action, step_id: patch.step_id });
+            const res = await updateGroupOnboarding({ groupId: activeGroup._id, payload: { action: patch.action, step_id: patch.step_id } });
             const updatedChecklist = res.data?.onboarding_checklist || res.group?.onboarding_checklist;
             
             if (res.success && updatedChecklist) {
               dispatch(updateActiveGroupOnboarding(updatedChecklist));
-              queryClient.setQueryData(['groupDetails', activeGroup._id], (old: any) => {
+              queryClient.setQueryData(['groupDetails', activeGroup._id], (old: { group?: Group } | undefined) => {
                 if (!old || !old.group) return old;
                 return {
                   ...old,
@@ -316,7 +314,7 @@ const WelcomePage = () => {
         }
       }
     },
-    [orgId, userScope, activeGroup?._id, dispatch, activeChecklistState.completedSteps, autoSteps, queryClient]
+    [orgId, userScope, activeGroup?._id, dispatch, activeChecklistState.completedSteps, autoSteps, queryClient, updateGroupOnboarding]
   );
 
   const openAddDeviceChoice = React.useCallback(() => {

@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { groupsApi } from "../apis/organizations";
 import { setError, setGroups } from "../redux/slices/groupsSlice";
 import { useDispatch } from "react-redux";
@@ -41,5 +41,21 @@ export const useGroupsByCohort = (cohortId: string) => {
     error,
     refetch,
   };
+};
+
+export const useGroupDetails = (groupId: string, options?: any) => {
+  return useQuery<any>({
+    queryKey: ["groupDetails", groupId],
+    queryFn: () => groupsApi.getGroupDetailsApi(groupId),
+    enabled: !!groupId,
+    ...options,
+  });
+};
+
+export const useUpdateGroupOnboarding = () => {
+  return useMutation({
+    mutationFn: ({ groupId, payload }: { groupId: string, payload: { action: 'mark_step_complete' | 'dismiss_checklist'; step_id?: string } }) =>
+      groupsApi.updateGroupOnboardingApi(groupId, payload),
+  });
 };
 
