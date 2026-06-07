@@ -77,8 +77,6 @@ A Device ID uniquely identifies a sensor unit. Device names follow the pattern `
 
 ---
 
----
-
 ## Browsing via the Metadata API
 
 The [Metadata API](./metadata.md) provides dedicated endpoints for discovering every public resource:

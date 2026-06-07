@@ -15,7 +15,7 @@ Forecasts require a **Premium Tier** subscription.
 
 ## Daily Forecasting Endpoint
 
-```
+```http
 GET /api/v2/predict/daily-forecasting/
 ```
 
@@ -50,13 +50,13 @@ Only one of `site_id`, `grid_id`, or `cohort_id` may be provided per request.
       "precipitation_amount": "mm",
       "cloud_area_fraction": "%",
       "wind_speed": "m/s",
-      "wind_from_direction": "degrees",
+      "wind_from_direction": "compass",
       "forecast_confidence": "%"
     },
     "forecasts": [
       {
         "site_details": {
-          "site_id": "site-123",
+          "site_id": "64f7b3e8c9d25a0013f2d456",
           "site_name": "Kampala Central",
           "site_latitude": 0.3476,
           "site_longitude": 32.5825
@@ -98,7 +98,7 @@ Only one of `site_id`, `grid_id`, or `cohort_id` may be provided per request.
 
 ## Hourly Forecasting Endpoint
 
-```
+```http
 GET /api/v2/predict/hourly-forecasting/
 ```
 
@@ -145,13 +145,13 @@ Only one of `site_id`, `grid_id`, or `cohort_id` may be provided per request.
       "precipitation_amount": "mm",
       "cloud_area_fraction": "%",
       "wind_speed": "m/s",
-      "wind_from_direction": "degrees",
+      "wind_from_direction": "compass",
       "forecast_confidence": "%"
     },
     "forecasts": [
       {
         "site_details": {
-          "site_id": "site-123",
+          "site_id": "64f7b3e8c9d25a0013f2d456",
           "site_name": "Kampala Central",
           "site_latitude": 0.3476,
           "site_longitude": 32.5825
@@ -193,7 +193,7 @@ Only one of `site_id`, `grid_id`, or `cohort_id` may be provided per request.
 
 When grid-based or cohort-based forecasting is requested, the API supports aggregated forecast retrieval through:
 
-```
+```http
 GET /api/v2/predict/hourly-forecasting/<scope_id>
 GET /api/v2/predict/daily-forecasting/<scope_id>
 ```
@@ -202,12 +202,14 @@ The `<scope_id>` path parameter accepts a grid ID or cohort ID. Use the optional
 
 ### Scope Metadata Returned
 
+The fields below are returned inside the top-level `data` object (`{ "success": true, "data": { ... } }`).
+
 ```json
 {
   "scope": {
     "type": "grid",
-    "id": "grid-123",
-    "grid_id": "grid-123"
+    "id": "64b7ac8fd7249f0029feca80",
+    "grid_id": "64b7ac8fd7249f0029feca80"
   },
   "sites_count": 3,
   "sites_with_forecasts_count": 2,

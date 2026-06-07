@@ -17,7 +17,7 @@ Grids are geographically-defined groupings of monitoring sites, typically aligne
 
 ### List all grids
 
-```
+```http
 GET /api/v2/devices/metadata/grids?token={SECRET_TOKEN}
 ```
 
@@ -61,7 +61,7 @@ Returns all publicly visible grids.
 
 ### Grid summary with site details
 
-```
+```http
 GET /api/v2/devices/grids/summary?token={SECRET_TOKEN}
 ```
 
@@ -115,7 +115,7 @@ curl "https://api.airqo.net/api/v2/devices/grids/summary?admin_level=city&token=
 
 ### Get a single grid
 
-```
+```http
 GET /api/v2/devices/metadata/grids/{GRID_ID}?token={SECRET_TOKEN}
 ```
 
@@ -125,7 +125,7 @@ Returns full details for one grid.
 
 ### Get all site and device IDs for a grid
 
-```
+```http
 GET /api/v2/devices/grids/{GRID_ID}/generate?token={SECRET_TOKEN}
 ```
 
@@ -155,7 +155,7 @@ Returns every site and device ID belonging to the grid. Use this to build a list
 
 ### List countries
 
-```
+```http
 GET /api/v2/devices/grids/countries?token={SECRET_TOKEN}
 ```
 
@@ -169,7 +169,7 @@ Cohorts are organisationally-defined groups of devices, managed by the AirQo tea
 
 ### List all public cohorts
 
-```
+```http
 GET /api/v2/devices/metadata/cohorts?token={SECRET_TOKEN}
 ```
 
@@ -216,7 +216,7 @@ Private cohorts do not appear in this list. If your organisation has a private C
 
 ### Get a single cohort
 
-```
+```http
 GET /api/v2/devices/metadata/cohorts/{COHORT_ID}?token={SECRET_TOKEN}
 ```
 
@@ -226,7 +226,7 @@ Returns full details for one cohort.
 
 ### Get all site and device IDs for a cohort
 
-```
+```http
 GET /api/v2/devices/cohorts/{COHORT_ID}/generate?token={SECRET_TOKEN}
 ```
 
@@ -260,7 +260,7 @@ Sites are fixed physical locations where sensors are deployed.
 
 ### List all public sites
 
-```
+```http
 GET /api/v2/devices/metadata/sites?token={SECRET_TOKEN}
 ```
 
@@ -306,7 +306,7 @@ Returns all publicly visible monitoring sites.
 
 ### Get a single site
 
-```
+```http
 GET /api/v2/devices/metadata/sites/{SITE_ID}?token={SECRET_TOKEN}
 ```
 
@@ -320,7 +320,7 @@ Devices are individual sensor units. Each device is deployed at a site.
 
 ### List all public devices
 
-```
+```http
 GET /api/v2/devices/metadata/devices?token={SECRET_TOKEN}
 ```
 
@@ -373,7 +373,7 @@ Returns all publicly visible devices.
 
 ### Get a single device
 
-```
+```http
 GET /api/v2/devices/metadata/devices/{DEVICE_ID}?token={SECRET_TOKEN}
 ```
 
@@ -387,7 +387,7 @@ The locations endpoint lets you browse administrative boundaries at different ge
 
 ### List locations
 
-```
+```http
 GET /api/v2/devices/locations?token={SECRET_TOKEN}
 ```
 

@@ -207,7 +207,7 @@ See [Forecast API →](../forecasts/overview.md) for the full response schema, f
     "units": { "pm2_5": "ug/m3", "forecast_confidence": "%" },
     "forecasts": [
       {
-        "site_details": { "site_id": "site-123", "site_name": "Kampala Central" },
+        "site_details": { "site_id": "64f7b3e8c9d25a0013f2d456", "site_name": "Kampala Central" },
         "forecasts": [
           {
             "date": "2026-06-03",
