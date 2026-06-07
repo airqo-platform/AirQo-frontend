@@ -21,6 +21,7 @@ import {
 import { useLogout } from '@/shared/hooks/useLogout';
 import type { User } from '@/shared/types/api';
 import { normalizeUser, normalizeGroups } from '@/shared/utils/userUtils';
+import { LoadingOverlay } from '@/shared/components/ui/loading-overlay';
 
 /**
  * Component that automatically fetches and stores user data when authenticated
@@ -34,7 +35,7 @@ export function UserDataFetcher({ children }: { children: React.ReactNode }) {
   const user = useSelector(selectUser);
   const logout = useLogout();
   const isLoggingOut = useSelector(selectLoggingOut);
-  useActiveGroupCohorts();
+  const hasLoggedOutForNoGroupRef = useRef(false);
 
   // Memoize userId to prevent unnecessary re-calculations
   const userId = useMemo(() => {
@@ -42,9 +43,34 @@ export function UserDataFetcher({ children }: { children: React.ReactNode }) {
       ? (session.user as { _id: string })._id
       : null;
   }, [session?.user]);
+  const persistedUserId = user?.id ?? null;
+  const hasStalePersistedUser =
+    status === 'authenticated' &&
+    !!userId &&
+    !!persistedUserId &&
+    persistedUserId !== userId;
 
   // Fetch user details only when userId is available and stable
   const { data, error, isLoading } = useUserDetails(userId);
+  const fetchedUser = data?.users?.[0] as User | undefined;
+  const fetchedGroups = useMemo(
+    () => normalizeGroups(fetchedUser?.groups),
+    [fetchedUser?.groups]
+  );
+  const activeGroupMissingFromFreshGroups =
+    !!fetchedUser &&
+    !!activeGroup?.id &&
+    !fetchedGroups.some(group => group.id === activeGroup.id);
+  const canUseUserScopedState =
+    status === 'authenticated' &&
+    !!userId &&
+    !!persistedUserId &&
+    persistedUserId === userId &&
+    !isLoading &&
+    !error &&
+    !activeGroupMissingFromFreshGroups;
+
+  useActiveGroupCohorts(canUseUserScopedState && !!activeGroup?.id);
 
   // Clear user data when userId changes (different user logged in)
   const prevUserIdRef = useRef(userId);
@@ -52,18 +78,17 @@ export function UserDataFetcher({ children }: { children: React.ReactNode }) {
     const prevUserId = prevUserIdRef.current;
     prevUserIdRef.current = userId;
 
-    if (userId !== prevUserId && userId) {
+    if (userId && (userId !== prevUserId || hasStalePersistedUser)) {
       dispatch(clearUser());
       hasLoggedOutForNoGroupRef.current = false; // Reset for new user
     }
-  }, [userId, dispatch]);
+  }, [userId, hasStalePersistedUser, dispatch]);
 
   // Use refs to track previous values and prevent unnecessary dispatches
   const prevStatusRef = useRef(status);
   const prevDataRef = useRef(data);
   const prevErrorRef = useRef(error);
   const prevIsLoadingRef = useRef(isLoading);
-  const hasLoggedOutForNoGroupRef = useRef(false);
 
   // Handle authentication status changes
   useEffect(() => {
@@ -110,10 +135,9 @@ export function UserDataFetcher({ children }: { children: React.ReactNode }) {
     prevDataRef.current = data;
 
     // Only process data when it actually changes and is valid
-    if (data !== prevData && data?.users && data.users.length > 0) {
-      const fetchedUser = data.users[0] as User;
+    if (data !== prevData && fetchedUser) {
       const normalizedUser = normalizeUser(fetchedUser);
-      const normalizedGroups = normalizeGroups(fetchedUser.groups);
+      const normalizedGroups = fetchedGroups;
 
       if (normalizedUser) {
         dispatch(setUser(normalizedUser));
@@ -125,7 +149,7 @@ export function UserDataFetcher({ children }: { children: React.ReactNode }) {
         dispatch(setError('Invalid user data received from API'));
       }
     }
-  }, [data, dispatch]);
+  }, [data, dispatch, fetchedGroups, fetchedUser]);
 
   // Check if user has no active group after data is loaded and logout if necessary
   useEffect(() => {
@@ -143,6 +167,14 @@ export function UserDataFetcher({ children }: { children: React.ReactNode }) {
 
   // Note: Preferences are managed entirely by SWR in individual components to prevent loops
   // The Redux preferences store is used for cross-component state sharing, not data fetching
+
+  if (
+    hasStalePersistedUser ||
+    (status === 'authenticated' && !!userId && isLoading && !data) ||
+    activeGroupMissingFromFreshGroups
+  ) {
+    return <LoadingOverlay delayMs={0} />;
+  }
 
   return <>{children}</>;
 }

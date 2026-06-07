@@ -3,12 +3,9 @@
   "version": "3.7.0",
   "private": true,
   "scripts": {
-    "clean:next": "node -e \"const fs=require('node:fs'); try { fs.rmSync('.next',{recursive:true,force:true,maxRetries:10,retryDelay:200}); } catch (error) { if (error && typeof error === 'object' && 'code' in error && (error.code === 'EPERM' || error.code === 'EBUSY')) { console.warn('[clean:next] Skipping .next cleanup because the directory is locked:', error.code); } else { throw error; } }\"",
     "dev": "next dev",
     "build": "next build",
-    "prebuild": "yarn clean:next",
-    "postbuild": "node -e \"const fs=require('node:fs'); const path=require('node:path'); const projectRoot=process.cwd(); const standaloneRoot=path.join(projectRoot,'.next','standalone'); const publicSource=path.join(projectRoot,'public'); const publicTarget=path.join(standaloneRoot,'public'); const staticSource=path.join(projectRoot,'.next','static'); const staticTarget=path.join(standaloneRoot,'.next','static'); const copyDirectory=(source,target)=>{ if(!fs.existsSync(source)) return false; fs.mkdirSync(path.dirname(target),{recursive:true}); fs.rmSync(target,{recursive:true,force:true}); fs.cpSync(source,target,{recursive:true}); return true; }; if(!fs.existsSync(standaloneRoot)){ throw new Error(`Standalone output not found at ${standaloneRoot}. Run 'yarn build' first.`); } copyDirectory(publicSource, publicTarget); copyDirectory(staticSource, staticTarget);\"",
-    "start": "node -e \"const { loadEnvConfig } = require('@next/env'); loadEnvConfig(process.cwd()); process.env.HOSTNAME='localhost'; require('./.next/standalone/server.js')\"",
+    "start": "next start",
     "lint": "next lint",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
@@ -39,6 +36,7 @@
     "next": "14.2.35",
     "next-auth": "4.24.14",
     "nextjs-toploader": "^3.9.17",
+    "papaparse": "^5.5.3",
     "posthog-js": "1.369.0",
     "prettier": "3.8.3",
     "react": "^18",
@@ -53,6 +51,7 @@
     "react-popper": "^2.3.0",
     "react-redux": "^9.2.0",
     "react-responsive": "^10.0.1",
+    "read-excel-file": "^9.0.10",
     "recharts": "3.8.1",
     "redux": "^5.0.1",
     "redux-persist": "^6.0.0",
@@ -65,6 +64,7 @@
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.19",
     "@types/node": "20.19.37",
+    "@types/papaparse": "^5.5.2",
     "@types/react": "^18.3.28",
     "@types/react-dom": "^18.3.7",
     "@types/react-responsive": "^9.0.0",

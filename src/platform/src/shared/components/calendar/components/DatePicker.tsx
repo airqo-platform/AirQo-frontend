@@ -32,6 +32,17 @@ export function DatePicker({
 }: DatePickerProps & { showPresets?: boolean }) {
   const [open, setOpen] = useState(false);
 
+  const normalizeRangeValue = useCallback((range: DateRange): DateRange => {
+    if (!range.from) {
+      return range;
+    }
+
+    return {
+      from: range.from,
+      to: range.to ?? range.from,
+    };
+  }, []);
+
   // Use responsive hook for automatic mobile detection
   const isMobile = useMediaQuery({ maxWidth: 768 });
 
@@ -87,15 +98,11 @@ export function DatePicker({
       typeof displayValue === 'object' &&
       'from' in displayValue
     ) {
-      const range = displayValue as DateRange;
+      const range = normalizeRangeValue(displayValue as DateRange);
       if (!range.from) return placeholder;
 
-      if (!range.to) {
-        return format(range.from, 'MMM d');
-      }
-
       const fromStr = format(range.from, 'MMM d');
-      const toStr = format(range.to, 'MMM d, yyyy');
+      const toStr = format(range.to ?? range.from, 'MMM d, yyyy');
 
       return `${fromStr} - ${toStr}`;
     }
@@ -119,20 +126,22 @@ export function DatePicker({
         onChange?.(date);
       }
     } else {
-      setInternalValue(selected);
+      const normalizedRange = normalizeRangeValue(selected);
+
+      setInternalValue(normalizedRange);
 
       // Handle different return formats for range
       if (returnFormat === 'backend-datetime') {
         try {
           const { startDateTime, endDateTime } =
-            DateUtils.formatRangeForBackend(selected);
+            DateUtils.formatRangeForBackend(normalizedRange);
           onChange?.({ from: startDateTime, to: endDateTime });
         } catch (error) {
           console.error('Error formatting date range for backend:', error);
-          onChange?.(selected);
+          onChange?.(normalizedRange);
         }
       } else {
-        onChange?.(selected);
+        onChange?.(normalizedRange);
       }
     }
     setOpen(false);

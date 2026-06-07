@@ -4,7 +4,7 @@ import React from 'react';
 import { useMediaQuery } from 'react-responsive';
 import { usePostHog } from 'posthog-js/react';
 import { MapSidebar, EnhancedMap } from '@/modules/airqo-map';
-import { useSitesByCountry, useMapReadings } from './hooks';
+import { useMapReadings } from './hooks';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   setSelectedLocation,
@@ -163,10 +163,6 @@ const MapPage: React.FC<MapPageProps> = ({
   }, [posthog]);
 
   // ── Data ───────────────────────────────────────────────────────────────────
-  const { setCountry } = useSitesByCountry({
-    country: selectedCountry,
-    cohort_id: cohortId,
-  });
   const mapCohortFilter = isOrganizationFlow
     ? primaryCohortId || null
     : undefined;
@@ -266,7 +262,6 @@ const MapPage: React.FC<MapPageProps> = ({
 
   const handleCountrySelect = (countryCode: string) => {
     setSelectedCountry(countryCode);
-    setCountry(countryCode === 'all' ? undefined : countryCode);
   };
 
   const handlePollutantChange = (pollutant: 'pm2_5' | 'pm10') => {

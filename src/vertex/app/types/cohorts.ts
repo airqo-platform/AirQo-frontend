@@ -30,6 +30,12 @@ export interface GroupCohortsResponse {
   data: string[];
 }
 
+export interface PersonalUserCohortsResponse {
+  success: boolean;
+  message: string;
+  cohorts: string[];
+}
+
 export interface OriginalCohortResponse {
   success: boolean;
   message: string;

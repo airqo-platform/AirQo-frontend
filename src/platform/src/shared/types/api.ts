@@ -1234,7 +1234,6 @@ export interface DataDownloadResponse {
 // Recent readings types
 export interface RecentReadingRequest {
   site_id: string; // comma-separated site IDs
-  user_id?: string;
 }
 
 export interface AQIRanges {

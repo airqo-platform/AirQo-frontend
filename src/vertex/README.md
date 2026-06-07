@@ -1,4 +1,4 @@
-# Vertex (Web App)
+# Vertex (Web App).
 
 `vertex` is the AirQo web application for Device and Network management.
 

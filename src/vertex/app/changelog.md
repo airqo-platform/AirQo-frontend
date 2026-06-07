@@ -4,6 +4,203 @@
 
 ---
 
+## Version 1.23.59
+**Released:** June 04, 2026
+
+### Decouple useDevices Mutations from ReusableToast
+
+Removed all hardcoded `ReusableToast` calls from mutation hooks in `useDevices.ts` and delegated notification responsibility to the calling UI layer via optional `onSuccess`/`onError` callback interfaces. Also migrated remaining device-related components still using `ReusableToast` directly, and extracted a shared `useClipboard` hook to eliminate the repeated clipboard copy pattern across the codebase.
+
+<details>
+<summary><strong>Changes (5)</strong></summary>
+
+- **Hooks Decoupled**: Removed `ReusableToast` from 8 mutation hooks — `useClaimDevice`, `useBulkClaimDevices`, `useUnassignDeviceFromOrganization`, `useUpdateDeviceBulk`, `useUpdateDeviceGroup`, `usePrepareDeviceForShipping`, `usePrepareBulkDevicesForShipping`, `useGenerateShippingLabels` — and added optional `onSuccess`/`onError` callback interfaces so the UI layer controls notification scope.
+- **Bulk Edit Modal**: Wired `useUpdateDeviceBulk` hook-level callbacks; error uses `scoped: true` inline in the dialog, success uses `showBannerWithDelay` (`scoped: false`) after the dialog closes.
+- **Prepare Shipping Modal**: Replaced all 8 `ReusableToast` calls with `useBanner`; file/import validation errors use `scoped: true`, bulk preparation success uses `showBannerWithDelay` (`scoped: false`).
+- **Remaining Device Components**: Migrated `device-measurements-api-card.tsx`, `device-activity-item.tsx`, and `orphaned-devices-alert.tsx` from `ReusableToast` to `useBanner`. Migrated `shipping/[batchId]/page.tsx` with hook-level callbacks and `showBanner` (`scoped: false`).
+- **Shared `useClipboard` Hook**: Extracted a `useClipboard` hook (accepts optional `successMessage`, `errorMessage`, `scoped`) to replace the repeated `navigator.clipboard.writeText` + banner pattern duplicated across `cohort-measurements-api-card`, `grid-measurements-api-card`, `grid-details-card`, `admin-levels-modal`, and `device-activity-item`.
+
+</details>
+
+<details>
+<summary><strong>Files Updated (12)</strong></summary>
+
+- `src/vertex/core/hooks/useDevices.ts` [MODIFIED]
+- `src/vertex/core/hooks/useClipboard.ts` [NEW]
+- `src/vertex/components/features/devices/bulk-edit-device-details-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/device-measurements-api-card.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/device-activity-item.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/orphaned-devices-alert.tsx` [MODIFIED]
+- `src/vertex/components/features/shipping/PrepareShippingModal.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/admin/shipping/[batchId]/page.tsx` [MODIFIED]
+- `src/vertex/components/features/cohorts/cohort-measurements-api-card.tsx` [MODIFIED]
+- `src/vertex/components/features/grids/grid-measurements-api-card.tsx` [MODIFIED]
+- `src/vertex/components/features/grids/grid-details-card.tsx` [MODIFIED]
+- `src/vertex/components/features/grids/admin-levels-modal.tsx` [MODIFIED]
+
+</details>
+
+---
+
+## Version 1.23.58
+**Released:** June 03, 2026
+
+### Personal Devices Claiming & Cohort Management Enhancements
+
+Introduced comprehensive enhancements to personal device claiming workflows, onboarding experiences, and cohort management. This includes guided device claiming, bulk imports for cohorts, personal user cohorts, and UI refinements to improve the onboarding experience for personal users.
+
+<details>
+<summary><strong>Personal Device Claiming & Onboarding (5)</strong></summary>
+
+- **Guided Claiming Modes**: Introduced guided and fast claim modes, refactoring the claim device modal into clear step-by-step processes for better usability.
+- **Onboarding Checklist**: Added an interactive onboarding checklist to the Home page to guide new users, preserving completion statuses across sessions.
+- **Device Choice Dialog**: Added a device choice dialog during onboarding to simplify the initial device setup and integration.
+- **Read-Only Onboarding UI**: Polished the onboarding interface with read-only views where appropriate to prevent accidental edits during the setup phase.
+- **UI Refinements**: Redesigned the organization picker with alphabetical sorting, added an Administrator pill tag to the topbar logo, removed obsolete organization setup banners, and removed the deprecated "Download for Windows" button from the admin sidebar.
+
+</details>
+
+<details>
+<summary><strong>Cohort & Bulk Import Improvements (4)</strong></summary>
+
+- **Personal User Cohorts & Refactor**: Added dedicated APIs, hooks, and UI support for personal cohorts to isolate and manage user-specific device groupings effectively. Refactored the `CohortOrganizationsCard` to use a cleaner layout, displaying a compact view of up to 3 organizations with a full searchable modal table for extended lists.
+- **Cohort Imports**: Enabled importing capabilities directly for cohorts, setting cohort import as a primary option, and implemented robust validation to handle cohort verification errors gracefully.
+- **Bulk Import Enhancements**: Fixed bulk import bugs and enhanced the bulk import flow to reliably display import results, providing detailed previews and success summaries.
+
+</details>
+
+<details>
+<summary><strong>Claim Page Migration & UI Polish (6)</strong></summary>
+
+- **Modal-Based Claim Flow**: Deleted the standalone `/devices/claim` route and completely migrated the device claiming workflow to the `ClaimDeviceModal`.
+- **Global Modal Wiring**: Updated actions across My Devices, Organization Overview, Device Assignment, and the Deploy Device Wizard to trigger the claim modal dynamically in-place instead of navigating.
+- **Routing & Navigation Cleanup**: Removed defunct `/devices/claim` references from context-aware routing, recent visits tracking, and the secondary sidebar configuration.
+- **Read-Only Visibility UI**: Updated the Network Visibility card to render for users lacking edit permissions, keeping the current sharing state visible in read-only workspaces.
+- **Dynamic Environment Links**: Updated fallback analytics links (e.g. Sign Up) to dynamically resolve to `staging-analytics` or production based on the environment.
+- **Dynamic Import Loading Polish**: Optimized modal loading states by replacing large skeleton loaders with a refined spinner to reduce layout thrashing.
+
+</details>
+
+<details>
+<summary><strong>Session Management & Onboarding (2)</strong></summary>
+
+- **Idle Session Timeout**: Increased the inactivity auto-logout threshold from 30 minutes to 6 hours (`INACTIVITY_LIMIT`) in the frontend `authProvider` to accommodate longer-running operations and reduce login friction during daily use.
+- **Cookie Banner Persistence**: Whitelisted the cookie consent flag (`vertex_cookies_accepted`) in the secure session manager so that the cookie banner preference survives user logouts, preventing it from repeatedly nagging users on the login screen.
+
+</details>
+
+<details>
+<summary><strong>Files Added & Modified (47)</strong></summary>
+
+**Files Deleted:**
+- `src/vertex/app/(authenticated)/devices/claim/page.tsx` [DELETED]
+
+
+**Files Added:**
+- `src/vertex/components/features/claim/steps/BulkInputStep.tsx` [ADDED]
+- `src/vertex/components/features/claim/steps/CohortAssignmentBanner.tsx` [ADDED]
+- `src/vertex/components/features/claim/steps/CohortImportStep.tsx` [ADDED]
+- `src/vertex/components/features/claim/steps/ConfirmationSteps.tsx` [ADDED]
+- `src/vertex/components/features/claim/steps/ManualInputStep.tsx` [ADDED]
+- `src/vertex/components/features/claim/steps/MethodSelectStep.tsx` [ADDED]
+- `src/vertex/components/features/claim/steps/QRScanStep.tsx` [ADDED]
+- `src/vertex/components/features/claim/steps/SuccessStep.tsx` [ADDED]
+- `src/vertex/components/features/claim/utils.ts` [ADDED]
+- `src/vertex/components/features/cohorts/cohort-organizations-card.tsx` [ADDED]
+- `src/vertex/components/features/cohorts/unassign-cohort-from-group.tsx` [ADDED]
+- `src/vertex/components/features/devices/import-steps/BulkImportForm.tsx` [ADDED]
+- `src/vertex/components/features/devices/import-steps/BulkResultsStep.tsx` [ADDED]
+- `src/vertex/components/features/devices/import-steps/CohortSelectionStep.tsx` [ADDED]
+- `src/vertex/components/features/devices/import-steps/ConfirmationStep.tsx` [ADDED]
+- `src/vertex/components/features/devices/import-steps/FieldMappingStep.tsx` [ADDED]
+- `src/vertex/components/features/devices/import-steps/ImportMethodSelectStep.tsx` [ADDED]
+- `src/vertex/components/features/devices/import-steps/ImportPreviewStep.tsx` [ADDED]
+- `src/vertex/components/features/devices/import-steps/ImportSuccessStep.tsx` [ADDED]
+- `src/vertex/components/features/devices/import-steps/SingleImportForm.tsx` [ADDED]
+- `src/vertex/components/features/devices/import-steps/types.ts` [ADDED]
+- `src/vertex/components/features/home/onboarding-checklist.tsx` [ADDED]
+
+**Files Modified:**
+- `src/vertex/app/(authenticated)/admin/cohorts/[id]/page.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/home/page.tsx` [MODIFIED]
+- `src/vertex/components/features/auth/cookie-info-banner.tsx` [MODIFIED]
+- `src/vertex/components/features/claim/claim-device-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/cohorts/assign-cohort-devices.tsx` [MODIFIED]
+- `src/vertex/components/features/cohorts/create-cohort.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/deploy-device-component.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/device-assignment-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/devices/import-device-modal.tsx` [MODIFIED]
+- `src/vertex/components/features/home/network-visibility-card.tsx` [MODIFIED]
+- `src/vertex/components/features/org-picker/organization-picker.tsx` [MODIFIED]
+- `src/vertex/components/layout/primary-sidebar.tsx` [MODIFIED]
+- `src/vertex/components/layout/secondary-sidebar.tsx` [MODIFIED]
+- `src/vertex/components/layout/topbar.tsx` [MODIFIED]
+- `src/vertex/core/apis/cohorts.ts` [MODIFIED]
+- `src/vertex/core/auth/authProvider.tsx` [MODIFIED]
+- `src/vertex/core/hooks/useCohorts.ts` [MODIFIED]
+- `src/vertex/core/hooks/useContextAwareRouting.ts` [MODIFIED]
+- `src/vertex/core/hooks/useRecentlyVisited.ts` [MODIFIED]
+- `src/vertex/core/routes.ts` [MODIFIED]
+- `src/vertex/core/urls.tsx` [MODIFIED]
+- `src/vertex/core/utils/sessionManager.ts` [MODIFIED]
+
+</details>
+
+---
+
+## Version 1.23.57
+**Released:** June 02, 2026
+
+### Organization Picker Banner Migration
+
+Replaced the `ReusableToast` error call in `OrganizationPicker` with the centralized `useBannerWithDelay` hook. The shimmer progress bar dispatch (`setOrganizationSwitching`) was also moved to just before navigation fires so it only appears when the switch is actually proceeding — errors that occur before navigation never trigger the shimmer.
+
+<details>
+<summary><strong>Changes (2)</strong></summary>
+
+- **Error Feedback**: Replaced `ReusableToast` with `showBannerWithDelay` (`scoped: false`) for org switch failures. Using the delayed variant ensures the banner is not cleared by `ReusableDialog`'s `hideBanner` cleanup effect that fires when the modal closes.
+- **Shimmer Timing Fix**: Moved `setOrganizationSwitching({ isSwitching: true })` inside the try block just before navigation so the progress bar only appears when switching is guaranteed to proceed. The catch block no longer needs to reset it.
+
+</details>
+
+<details>
+<summary><strong>Files Updated (1)</strong></summary>
+
+- `src/vertex/components/features/org-picker/organization-picker.tsx` [MODIFIED]
+
+</details>
+
+---
+
+## Version 1.23.56
+**Released:** May 29, 2026
+
+### Banner Notifications for Network Management
+
+Migrated user feedback in the network management feature from toast notifications to the banner system. This standardizes notifications across the networks admin area for a consistent feedback experience.
+
+<details>
+<summary><strong>Changes (5)</strong></summary>
+
+- **Network Requests Actions**: Replaced toast notifications with page-level banners (`scoped: false`) for approve, deny, and review status updates in `NetworkRequestsClient`.
+- **Copy ID Feedback**: Updated the "copy Sensor Manufacturer ID" action in the networks table to show success/error banners (`scoped: false`) instead of toasts.
+- **Create Network Form**: Success feedback now uses `showBannerWithDelay` so the banner appears after the dialog closes (`scoped: false`); error feedback uses an in-dialog banner (`scoped: true`).
+- **Network Request Dialog**: Submission success and errors both use `scoped: true` to render feedback inline inside the dialog via `BannerSlot`; success additionally uses `showBannerWithDelay` to time the display correctly.
+- **Banner Text Alignment Fix**: Added `text-left` to the `Banner` component's root div so banner text is always left-aligned regardless of any ancestor container that sets `text-center` (e.g. shadcn `DialogHeader`).
+
+</details>
+
+<details>
+<summary><strong>Files Updated (5)</strong></summary>
+
+- `src/vertex/app/(authenticated)/admin/networks/requests/NetworkRequestsClient.tsx` [MODIFIED]
+- `src/vertex/components/features/networks/client-paginated-networks-table.tsx` [MODIFIED]
+- `src/vertex/components/features/networks/create-network-form.tsx` [MODIFIED]
+- `src/vertex/components/features/networks/network-request-dialog.tsx` [MODIFIED]
+- `src/vertex/components/ui/banner.tsx` [MODIFIED]
+
+</details>
+
 ## Version 1.23.55
 **Released:** May 28, 2026
 
@@ -1628,6 +1825,15 @@ Restricted cohort imports ('airqo') and improved UI accessibility and validation
 </details>
 
 <details>
+<summary><strong>Device Management Enhancements (3)</strong></summary>
+
+- **Add Device Flow**: Refactored the monolithic Add Device modal into distinct, modular steps (guided vs. fast mode), simplifying the overall onboarding experience for new hardware setups.
+- **Smart Device Updating**: Consolidated device update actions into a single smart "Save" button in the device details modal that automatically routes to local or global (ThingSpeak) saving based on the device's sensor manufacturer.
+- **Improved Validation**: Strengthened form validation and error handling across device creation and editing workflows.
+
+</details>
+
+<details>
 <summary><strong>UI/UX Enhancements (2)</strong></summary>
 
 - **Static Device Icons**: Fixed an issue where "Static Devices" were incorrectly displaying a car icon. The logic now prioritizes the explicit deployment category ("static") to ensure the correct Map Pin icon is shown.
@@ -2189,11 +2395,11 @@ Overhauled the Home dashboard to improve usability and implemented strict logic 
 <summary><strong>Feature Updates (3)</strong></summary>
 
 - **Dashboard Redesign**: 
-    - Moved primary actions ("Claim AirQo Device", "Import Device") to a dedicated header bar for visibility.
+    - Moved primary actions ("Add AirQo Device", "Import Device") to a dedicated header bar for visibility.
     - Added a **"Device Health"** accordion containing Refactored Stats Cards.
     - Added a dismissable "Welcome" context header to save screen space.
     - Removed the bottom "Quick Access" section.
-- **Global Claim Modal**: The "Claim AirQo Device" button now opens the claim modal directly on the dashboard instead of redirecting to a separate page.
+- **Global Claim Modal**: The "Add AirQo Device" button now opens the claim modal directly on the dashboard instead of redirecting to a separate page.
 - **Network Visibility**: Dedicated **Visibility Card** (External Orgs) with clear "Public" vs "Private" toggle states and safety confirmation.
 
 </details>

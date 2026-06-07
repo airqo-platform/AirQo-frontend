@@ -123,6 +123,38 @@ export const useGroupCohorts = (
   });
 };
 
+export const usePersonalUserCohorts = (
+  userId?: string,
+  options: { enabled?: boolean } = {}
+) => {
+  const { enabled = true } = options;
+  return useQuery({
+    queryKey: ['personalUserCohorts', userId],
+    queryFn: async ({ signal }: QueryFunctionContext) => {
+      if (!userId) throw new Error('User ID is required');
+      const resp = await cohortsApi.getPersonalUserCohorts(userId, signal);
+      const ids: string[] = resp?.cohorts ?? [];
+
+      if (!ids || ids.length === 0) return [];
+
+      const verifyResults = await Promise.all(
+        ids.map((id) => cohortsApi.verifyCohortIdApi(id).catch(() => null))
+      );
+
+      const filteredIds = ids.filter((id, idx) => {
+        const result = verifyResults[idx];
+        if (!result) return false;
+        const name = (result?.cohort?.name || '').toLowerCase();
+        return name !== 'airqo';
+      });
+
+      return filteredIds;
+    },
+    enabled: !!userId && enabled,
+    staleTime: 60_000, // 1 minute - personal context refreshes faster
+  });
+};
+
 type UseCohortDetailsOptions = { enabled?: boolean };
 
 export const useCohortDetails = (
@@ -233,6 +265,7 @@ export const useCreateCohort = (options?: UseCreateCohortOptions) => {
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ['cohorts'] });
             queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
+            queryClient.invalidateQueries({ queryKey: ['personalUserCohorts'] });
             options?.onSuccess?.(data);
         },
         onError: (error: AxiosError) => {
@@ -244,6 +277,7 @@ export const useCreateCohort = (options?: UseCreateCohortOptions) => {
 interface UseCreateCohortWithDevicesOptions {
   onSuccess?: (data: { success: boolean; message: string; cohort: Cohort }) => void;
   onError?: (error: AxiosError) => void;
+  invalidateOnSuccess?: boolean;
 }
 
 export const useCreateCohortWithDevices = (options?: UseCreateCohortWithDevicesOptions) => {
@@ -255,11 +289,15 @@ export const useCreateCohortWithDevices = (options?: UseCreateCohortWithDevicesO
       network,
       deviceIds,
       cohort_tags,
+      groupId,
+      userId,
     }: {
       name: string;
       network: string;
       deviceIds: string[];
       cohort_tags?: string[];
+      groupId?: string;
+      userId?: string;
     }) => {
       const createResp = await cohortsApi.createCohort({ name, network, cohort_tags });
       const cohortId = createResp?.cohort?._id;
@@ -267,12 +305,23 @@ export const useCreateCohortWithDevices = (options?: UseCreateCohortWithDevicesO
       if (Array.isArray(deviceIds) && deviceIds.length > 0) {
         await cohortsApi.assignDevicesToCohort(cohortId, deviceIds);
       }
+      
+      if (groupId) {
+        await cohortsApi.assignCohortsToGroup(groupId, [cohortId]);
+      } else if (userId) {
+        await cohortsApi.assignCohortsToUser(userId, [cohortId]);
+      }
+      
       return createResp;
     },
     onSuccess: (data) => {
+      options?.onSuccess?.(data);
+      if (options?.invalidateOnSuccess === false) return;
+
       queryClient.invalidateQueries({ queryKey: ['cohorts'] });
       queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
-      options?.onSuccess?.(data);
+      queryClient.invalidateQueries({ queryKey: ['personalUserCohorts'] });
+      queryClient.invalidateQueries({ queryKey: ['groupCohorts'] });
     },
     onError: (error: AxiosError) => {
       options?.onError?.(error);
@@ -312,6 +361,7 @@ export const useCreateCohortFromCohorts = (options?: UseCreateCohortFromCohortsO
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['cohorts'] });
       queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
+      queryClient.invalidateQueries({ queryKey: ['personalUserCohorts'] });
       options?.onSuccess?.(data);
     },
     onError: (error: AxiosError) => {
@@ -422,6 +472,42 @@ export const useAssignCohortsToGroup = (options?: UseAssignCohortsToGroupOptions
       queryClient.invalidateQueries({ queryKey: ['deviceCount'] });
       queryClient.invalidateQueries({ queryKey: ['devices'] });
       queryClient.invalidateQueries({ queryKey: ['myDevices'] });
+      options?.onSuccess?.();
+    },
+    onError: (error: AxiosError) => {
+      options?.onError?.(error);
+    },
+  });
+};
+
+interface UseUnassignCohortsFromGroupOptions {
+  onSuccess?: () => void;
+  onError?: (error: AxiosError) => void;
+}
+
+export const useUnassignCohortsFromGroup = (options?: UseUnassignCohortsFromGroupOptions) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      groupId,
+      cohortIds,
+    }: {
+      groupId: string;
+      cohortIds: string[];
+    }) => {
+      if (!groupId) {
+        throw new Error('Group ID is required');
+      }
+      if (!cohortIds?.length) {
+        throw new Error('At least one cohort ID is required');
+      }
+      return cohortsApi.unassignCohortsFromGroup(groupId, cohortIds);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cohorts'] });
+      queryClient.invalidateQueries({ queryKey: ['groupCohorts'] });
+      queryClient.invalidateQueries({ queryKey: ['cohort-details'] });
       options?.onSuccess?.();
     },
     onError: (error: AxiosError) => {

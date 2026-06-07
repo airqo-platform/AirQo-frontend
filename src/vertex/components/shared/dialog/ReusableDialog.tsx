@@ -96,6 +96,8 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
   const previousActiveElement = useRef<Element | null>(null)
   const { hideBanner } = useBanner()
 
+
+
   // Focus management
   useEffect(() => {
     if (isOpen) {

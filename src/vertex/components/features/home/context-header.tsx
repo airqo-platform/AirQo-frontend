@@ -27,7 +27,7 @@ const ContextHeader = () => {
     const getContextDescription = () => {
         switch (userContext) {
             case "personal":
-                return "Manage and monitor your personal devices.";
+                return "Devices and data here are owned by you.";
             case "external-org":
                 return `View and manage all devices linked to the organization.`;
             default:
@@ -43,7 +43,7 @@ const ContextHeader = () => {
 
             <InfoBanner
                 message={
-                    <span className="font-medium">
+                    <span className="font-bold">
                         You&apos;re in <span className="capitalize">{getContextTitle()}.</span>{" "}
                         {getContextDescription()}
                     </span>

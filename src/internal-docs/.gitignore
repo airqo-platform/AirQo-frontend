@@ -1,0 +1,9 @@
+# Ignore environment variables file
+.env
+
+# Ignore Docker volumes for BookStack application state (uploads, themes, etc.)
+config/
+
+# Ignore Docker volumes for MariaDB database files
+db_data/
+db_data_v2/

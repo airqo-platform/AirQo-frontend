@@ -191,6 +191,14 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
     return { left: 0, right: 0 };
   }, [chartType]);
 
+  const xAxisInterval = useMemo(() => {
+    if (chartData.length <= 6) {
+      return 0;
+    }
+
+    return Math.max(Math.ceil(chartData.length / 6) - 1, 0);
+  }, [chartData.length]);
+
   // Common props for all charts
   const commonProps = {
     data: chartData as unknown as NormalizedChartData[],
@@ -214,7 +222,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
     <XAxis
       dataKey={config.xAxisKey || 'time'}
       padding={xAxisPadding}
-      interval="preserveStartEnd"
+      interval={xAxisInterval}
       tick={AXIS_CONFIG.tick}
       tickLine={AXIS_CONFIG.tickLine}
       axisLine={AXIS_CONFIG.axisLine}
@@ -226,6 +234,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
 
   const renderYAxis = () => (
     <YAxis
+      interval={0}
       tick={AXIS_CONFIG.tick}
       tickLine={AXIS_CONFIG.tickLine}
       axisLine={AXIS_CONFIG.axisLine}
@@ -295,7 +304,8 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
   const renderLineSeries = (Component: typeof Line | typeof Area) => {
     return seriesKeys.map((key, index) => {
       const isHidden = hiddenSeries.has(key);
-      const color = config.color || getPrimaryColor(index);
+      const color =
+        config.seriesColors?.[key] || config.color || getPrimaryColor(index);
 
       return (
         <Component
@@ -320,7 +330,8 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
   const renderBarSeries = () => {
     return seriesKeys.map((key, index) => {
       const isHidden = hiddenSeries.has(key);
-      const color = config.color || getPrimaryColor(index);
+      const color =
+        config.seriesColors?.[key] || config.color || getPrimaryColor(index);
 
       return <Bar key={key} dataKey={key} fill={color} hide={isHidden} />;
     });
@@ -384,7 +395,10 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
             {renderLegend()}
             {seriesKeys.map((key, index) => {
               const isHidden = hiddenSeries.has(key);
-              const color = config.color || getPrimaryColor(index);
+              const color =
+                config.seriesColors?.[key] ||
+                config.color ||
+                getPrimaryColor(index);
 
               return (
                 <Scatter key={key} dataKey={key} fill={color} hide={isHidden} />
@@ -409,7 +423,10 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
             {renderLegend()}
             {seriesKeys.map((key, index) => {
               const isHidden = hiddenSeries.has(key);
-              const color = config.color || getPrimaryColor(index);
+              const color =
+                config.seriesColors?.[key] ||
+                config.color ||
+                getPrimaryColor(index);
 
               return (
                 <Radar
@@ -445,7 +462,13 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
               label={({ name, value }) => `${name}: ${value}`}
             >
               {chartData.map((_, index) => (
-                <Cell key={`cell-${index}`} fill={getPrimaryColor(index)} />
+                <Cell
+                  key={`cell-${index}`}
+                  fill={
+                    config.seriesColors?.[`cell-${index}`] ||
+                    getPrimaryColor(index)
+                  }
+                />
               ))}
             </Pie>
           </PieChart>

@@ -2,7 +2,7 @@ part of 'forecast_bloc.dart';
 
 sealed class ForecastState extends Equatable {
   final String? siteId;
-  
+
   const ForecastState({this.siteId});
 
   @override
@@ -18,43 +18,61 @@ class ForecastLoading extends ForecastState {
 class ForecastLoaded extends ForecastState {
   final ForecastResponse response;
   final DateTime loadTime;
+  final HourlyForecastResponse? hourlyResponse;
 
-  ForecastLoaded(this.response, {required String siteId})
+  ForecastLoaded(this.response, {required String siteId, this.hourlyResponse})
       : loadTime = DateTime.now(),
         super(siteId: siteId);
-        
+
+  bool get isStale =>
+      DateTime.now().difference(loadTime) > const Duration(hours: 2);
+
+  ForecastLoaded copyWith({HourlyForecastResponse? hourlyResponse}) =>
+      ForecastLoaded(
+        response,
+        siteId: siteId!,
+        hourlyResponse: hourlyResponse ?? this.hourlyResponse,
+      );
+
   @override
-  List<Object?> get props => [response, siteId];
-  
-  // Check if data is stale (older than 2 hours)
-  bool get isStale {
-    final now = DateTime.now();
-    return now.difference(loadTime) > const Duration(hours: 2);
-  }
+  List<Object?> get props => [response, siteId, hourlyResponse];
 }
 
-// General error state
 class ForecastLoadingError extends ForecastState {
   final String message;
 
-  const ForecastLoadingError({
-    required this.message,
-    super.siteId,
-  });
-  
+  const ForecastLoadingError({required this.message, super.siteId});
+
   @override
   List<Object?> get props => [message, siteId];
 }
 
-// Specific network error state for better UX
 class ForecastNetworkError extends ForecastState {
   final String message;
 
-  const ForecastNetworkError({
-    required this.message,
-    super.siteId,
-  });
-  
+  const ForecastNetworkError({required this.message, super.siteId});
+
   @override
   List<Object?> get props => [message, siteId];
+}
+
+class HourlyForecastLoading extends ForecastState {
+  final ForecastResponse dailyResponse;
+
+  const HourlyForecastLoading(
+      {required this.dailyResponse, super.siteId});
+
+  @override
+  List<Object?> get props => [dailyResponse, siteId];
+}
+
+class HourlyForecastError extends ForecastState {
+  final String message;
+  final ForecastResponse dailyResponse;
+
+  const HourlyForecastError(
+      {required this.message, required this.dailyResponse, super.siteId});
+
+  @override
+  List<Object?> get props => [message, dailyResponse, siteId];
 }
