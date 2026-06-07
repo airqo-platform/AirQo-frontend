@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
+import { vertexConfig } from '@/vertex.config';
 
 /**
  * DesktopTitleBar
@@ -120,7 +121,7 @@ export default function DesktopTitleBar() {
   const text = isDark ? '#f8fafc' : '#111827';
   const mutedText = isDark ? '#94a3b8' : '#6b7280';
   const hoverBg = isDark ? '#334155' : '#e5e7eb';
-  const logoSrc = brandingIcon || '/images/airqo_logo.svg';
+  const logoSrc = brandingIcon || vertexConfig.org.logo;
 
   const titlebarStyle: AppRegionStyle = {
     position: 'fixed',
@@ -202,14 +203,14 @@ export default function DesktopTitleBar() {
       >
         <Image
           src={logoSrc}
-          alt="AirQo"
+          alt={vertexConfig.org.shortName}
           width={47}
           height={32}
           unoptimized
           style={{ height: 16, width: 'auto', display: 'block' }}
         />
         <span style={{ fontSize: 12, fontWeight: 600, color: text, letterSpacing: '0.01em', transition: 'color 0.3s' }}>
-          AirQo Vertex
+          {vertexConfig.org.name}
         </span>
       </div>
 
