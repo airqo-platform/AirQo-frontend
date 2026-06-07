@@ -11,11 +11,26 @@ const nextConfig = {
       return [
         {
           source: '/api/v2/:path*',
-          destination: 'https://staging-analytics.airqo.net/api/v2/:path*',
+          destination: 'https://staging-vertex.airqo.net/api/v2/:path*',
         },
       ];
     }
     return [];
+  },
+
+  async redirects() {
+    return [
+      {
+        source: '/user/login',
+        destination: '/login',
+        permanent: false,
+      },
+      {
+        source: '/user/home',
+        destination: '/home',
+        permanent: false,
+      },
+    ];
   },
 
   async headers() {

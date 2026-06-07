@@ -119,10 +119,12 @@ export const getEnvironment = (): string => {
 /**
  * Whether hCaptcha should be enabled for this deployment.
  *
- * Requirement: only available on staging (never production).
+ * Requirement: available on staging and production as long as the hCaptcha site key is set.
  */
 export const isHCaptchaEnabled = (): boolean => {
-  return getEnvironment().toLowerCase() === 'staging';
+  const env = getEnvironment().toLowerCase();
+  const hasSiteKey = Boolean(getHCaptchaSiteKey());
+  return (env === 'development' || env === 'staging' || env === 'production') && hasSiteKey;
 };
 
 /**
