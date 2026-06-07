@@ -288,8 +288,8 @@ export const options: NextAuthOptions = {
   cookies: {
     sessionToken: {
       name: isProduction
-        ? '__Secure-next-auth.session-token'
-        : 'next-auth.session-token',
+        ? '__Secure-next-auth.session-token-v2'
+        : 'next-auth.session-token-v2',
       options: cookieOptions,
     },
   },
