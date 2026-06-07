@@ -4,6 +4,47 @@
 
 ---
 
+## Version 2.0.0
+**Released:** June 07, 2026
+
+### Vertex Platform Architecture Upgrade (Major Release)
+
+This release transforms the application into a highly customizable, white-label device management platform. It abstracts away hardcoded backend dependencies, centralizes configuration, enables dynamic theming, and introduces a clean boilerplate template for bootstrapping new tenant applications.
+
+<details>
+<summary><strong>API Abstraction & Adapter Pattern (2)</strong></summary>
+
+- **Unified API Adapter**: Abstracted all direct API calls behind a generic `VertexAdapter` interface, allowing the frontend to dynamically resolve its backend data source.
+- **Mock & Production Adapters**: Implemented specific `airqo` (production) and `mock` (development/template) adapters. Refactored all data hooks (`useDevices`, `useCohorts`, `useSites`, etc.) to use the configured adapter seamlessly.
+
+</details>
+
+<details>
+<summary><strong>Centralized Configuration & Feature Toggling (2)</strong></summary>
+
+- **Vertex Config**: Introduced a robust, Zod-validated configuration system (`vertex.config.ts`) serving as the single source of truth for organization metadata and auth providers.
+- **Feature Flags**: Added granular toggles to enable or disable major application features (`siteManagement`, `shipping`, `deviceMap`, etc.) based on tenant requirements.
+
+</details>
+
+<details>
+<summary><strong>Dynamic Theming & Branding (2)</strong></summary>
+
+- **Dynamic CSS Variables**: Replaced hardcoded color tokens across the entire application with a dynamic `--primary` CSS variable system driven by the active Vertex config.
+- **Global Branding Alignment**: Organization logos, typography headers, and active UI states (tabs, buttons, checkboxes, nav items) now automatically inherit the configured brand identity.
+
+</details>
+
+<details>
+<summary><strong>Vertex Template Extraction (2)</strong></summary>
+
+- **Standalone Boilerplate**: Extracted a pristine `vertex-template` directory, completely scrubbed of legacy code, unneeded desktop configurations, and heavy documentation.
+- **Ready to Clone**: Pre-configured with the `mock` adapter and an initialized v1.0.0 changelog, providing a safe, generic foundation for new applications.
+
+</details>
+
+---
+
 ## Version 1.23.61
 **Released:** June 07, 2026
 

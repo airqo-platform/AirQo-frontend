@@ -5,11 +5,15 @@ sidebar_label: Error Codes
 
 # Error Codes
 
-All AirQo API endpoints return consistent error responses so you can handle failures programmatically.
+AirQo API endpoints use two different error response formats depending on the API family. Match your error handling to the endpoint you are calling.
 
 ---
 
-## Error response format
+## Error response formats
+
+### Devices and Analytics API
+
+Used by: measurement endpoints (`/api/v2/devices/...`), Analytics API (`/api/v3/public/analytics/...`), and metadata endpoints (`/api/v2/devices/metadata/...`).
 
 ```json
 {
@@ -19,7 +23,15 @@ All AirQo API endpoints return consistent error responses so you can handle fail
 }
 ```
 
-For forecast endpoints, the shape uses `success: false`:
+| Field | Type | Description |
+|-------|------|-------------|
+| `status` | string | `"error"` on failure |
+| `message` | string | Human-readable description |
+| `code` | string | Machine-readable error code (e.g. `"NOT_FOUND"`, `"UNAUTHORIZED"`) |
+
+### Forecast API
+
+Used by: `/api/v2/predict/daily-forecasting/` and `/api/v2/predict/hourly-forecasting/`.
 
 ```json
 {
@@ -28,6 +40,12 @@ For forecast endpoints, the shape uses `success: false`:
   "error": "Unauthorized"
 }
 ```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `success` | boolean | Always `false` on error |
+| `message` | string | Human-readable description |
+| `error` | string | HTTP status phrase (e.g. `"Unauthorized"`, `"Forbidden"`) |
 
 ---
 
@@ -54,6 +72,24 @@ For forecast endpoints, the shape uses `success: false`:
 **Most likely cause:** Your server's public IP is not whitelisted.
 
 **Solution:** Log in to [analytics.airqo.net](https://analytics.airqo.net) → Account Settings → IP Whitelist. Add the public IP your server uses to make API requests.
+
+---
+
+### 400 Bad Request — conflicting forecast parameters
+
+```json
+{
+  "success": false,
+  "message": "Please specify only one of site_id, grid_id, or cohort_id.",
+  "data": {
+    "forecasts": []
+  }
+}
+```
+
+**Cause:** More than one of `site_id`, `grid_id`, or `cohort_id` was provided in a single forecast request.
+
+**Solution:** Provide exactly one identifier per request.
 
 ---
 
