@@ -12,6 +12,21 @@ const nextConfig = {
     return [];
   },
 
+  async redirects() {
+    return [
+      {
+        source: '/user/login',
+        destination: '/login',
+        permanent: false,
+      },
+      {
+        source: '/user/home',
+        destination: '/home',
+        permanent: false,
+      },
+    ];
+  },
+
   async headers() {
     return [
       {
