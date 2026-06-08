@@ -314,9 +314,9 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ userId }) => {
           <div className="flex-1">
             <h3 className="text-lg font-medium ">Profile Picture</h3>
             <p className="text-sm text-gray-600 mt-1">
-              Upload a new profile picture (PNG, JPG, WebP, or AVIF, max 5MB)
-              or click the X button to remove it. Click &quot;Save Changes&quot;
-              to apply your updates.
+              Upload a new profile picture (PNG, JPG, WebP, or AVIF, max 5MB) or
+              click the X button to remove it. Click &quot;Save Changes&quot; to
+              apply your updates.
             </p>
           </div>
         </div>

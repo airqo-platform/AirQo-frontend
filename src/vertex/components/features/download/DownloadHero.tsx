@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 
 import ReusableButton from '@/components/shared/button/ReusableButton';
 import { VERTEX_DESKTOP_DOWNLOADS } from '@/core/constants/app-downloads';
+import { vertexConfig } from '@/vertex.config';
 
 const WindowsIcon = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="currentColor">
@@ -27,15 +28,15 @@ export default function DownloadHero() {
         <div className="max-w-3xl">
           <div className="mb-7 flex items-center gap-2 sm:mb-8">
             <Image
-              src="/images/airqo_logo.svg"
-              alt="AirQo logo"
+              src={vertexConfig.org.logo}
+              alt={`${vertexConfig.org.name} logo`}
               width={120}
               height={32}
               className="h-6 w-auto"
               priority
             />
             <span className="text-lg font-medium tracking-tight text-foreground">
-              Vertex
+              {vertexConfig.org.name}
             </span>
           </div>
 
@@ -43,7 +44,7 @@ export default function DownloadHero() {
             Deploy Devices. Share Air Data
           </h1>
           <p className="mt-5 max-w-2xl text-sm leading-6 text-muted-foreground sm:mt-6 sm:text-lg sm:leading-7">
-            Install Vertex Desktop for a focused workspace built around field
+            Install {vertexConfig.org.name} Desktop for a focused workspace built around field
             deployment, device visibility, and trusted air quality data
             workflows.
           </p>
@@ -76,7 +77,7 @@ export default function DownloadHero() {
                 <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
               </div>
               <span className="text-xs font-medium text-muted-foreground">
-                Vertex Desktop
+                {vertexConfig.org.name} Desktop
               </span>
             </div>
             <div className="grid gap-4 p-4 sm:p-6">

@@ -25,16 +25,14 @@ export interface BaseNotificationBannerProps {
   layout?: 'default' | 'github-style';
 }
 
-export interface CustomNotificationBannerProps
-  extends BaseNotificationBannerProps {
+export interface CustomNotificationBannerProps extends BaseNotificationBannerProps {
   type: 'custom';
   title: string;
   message: string;
   action?: NotificationAction;
 }
 
-export interface PendingInvitesNotificationBannerProps
-  extends BaseNotificationBannerProps {
+export interface PendingInvitesNotificationBannerProps extends BaseNotificationBannerProps {
   type: 'pending-invites';
 }
 

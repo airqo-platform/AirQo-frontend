@@ -263,18 +263,21 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
         }
 
         if (state is DashboardLoadingError && !state.hasCache) {
+          final isOffline = state.isOffline;
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
-                  Icons.cloud_off,
+                  isOffline ? Icons.cloud_off : Icons.error_outline,
                   size: 64,
                   color: Colors.grey,
                 ),
                 SizedBox(height: 16),
                 TranslatedText(
-                  "Couldn't connect to the internet",
+                  isOffline
+                      ? "Couldn't connect to the internet"
+                      : "Couldn't load air quality data",
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -283,7 +286,9 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
                 ),
                 SizedBox(height: 8),
                 TranslatedText(
-                  "Please check your connection and try again",
+                  isOffline
+                      ? "Please check your connection and try again"
+                      : "Something went wrong. Please try again later",
                   style: TextStyle(
                     fontSize: 16,
                     color: Theme.of(context).textTheme.bodyMedium?.color,

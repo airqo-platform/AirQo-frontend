@@ -182,6 +182,16 @@ const pageMetadata: Record<string, Partial<Metadata>> = {
       description: 'Manage API clients for platform integrations.',
     },
   },
+  '/system/security': {
+    title: 'Security',
+    description:
+      'Review blocked IP ranges and investigate flagged tokens across the platform.',
+    openGraph: {
+      title: 'Security | AirQo Analytics',
+      description:
+        'Review blocked IP ranges and investigate flagged tokens across the platform.',
+    },
+  },
   '/system/org-requests': {
     title: 'Organization Requests',
     description: 'Review and manage organization onboarding requests.',

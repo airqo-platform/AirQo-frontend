@@ -3,8 +3,8 @@ import { NextResponse } from "next/server";
 
 const isProduction = process.env.NODE_ENV === "production";
 const sessionCookieName = isProduction
-  ? "__Secure-next-auth.session-token"
-  : "next-auth.session-token";
+  ? "__Secure-next-auth.session-token-v2"
+  : "next-auth.session-token-v2";
 
 export default withAuth(
   function middleware(req) {

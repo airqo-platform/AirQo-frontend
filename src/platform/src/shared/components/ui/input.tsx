@@ -2,8 +2,10 @@
 import * as React from 'react';
 import { AqEye, AqEyeOff, AqAlertCircle } from '@airqo/icons-react';
 
-interface InputProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
+interface InputProps extends Omit<
+  React.InputHTMLAttributes<HTMLInputElement>,
+  'onChange'
+> {
   label?: string;
   error?: string;
   type?: string;

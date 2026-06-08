@@ -1,7 +1,7 @@
 replicaCount: 2
 image:
   repository: airqoacr.azurecr.io/airqo-stage-vertex
-  tag: stage-d3209b04-1780831845
+  tag: stage-b98de37b-1780853334
   pullPolicy: IfNotPresent
 imagePullSecrets: []
 nameOverride: ''

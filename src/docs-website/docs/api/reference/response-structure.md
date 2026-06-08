@@ -190,28 +190,36 @@ Used by: `/api/v2/spatial/heatmaps` endpoints.
 
 ## Forecast response
 
-Used by: `/api/v2/predict/hourly-forecast` and `/api/v2/predict/daily-forecast`.
+Used by: `/api/v2/predict/daily-forecasting/` and `/api/v2/predict/hourly-forecasting/`.
+
+See [Forecast API →](../forecasts/overview.md) for the full response schema, field reference, and scope-based variants.
+
+**Daily forecasting — abbreviated example:**
 
 ```json
 {
   "success": true,
-  "message": "Forecasts retrieved successfully",
-  "forecasts": [
-    {
-      "time": "2025-09-29T14:00:00+00:00",
-      "pm2_5": 24.5,
-      "health_tips": ["Air quality is acceptable for most people"]
-    }
-  ],
-  "forecast_metadata": {
-    "model_version": "v2.3",
-    "generated_at": "2025-09-29T12:00:00+00:00",
-    "location": {
-      "site_id": "64f7b3e8c9d25a0013f2d456",
-      "latitude": 0.3476,
-      "longitude": 32.5825
-    },
-    "forecast_horizon_hours": 168
+  "data": {
+    "start_date": "2026-06-03",
+    "end_date": "2026-06-09",
+    "days": 7,
+    "total": 1,
+    "units": { "pm2_5": "ug/m3", "forecast_confidence": "%" },
+    "forecasts": [
+      {
+        "site_details": { "site_id": "64f7b3e8c9d25a0013f2d456", "site_name": "Kampala Central" },
+        "forecasts": [
+          {
+            "date": "2026-06-03",
+            "forecast": { "pm2_5_mean": 28.4, "forecast_confidence": 84.5 },
+            "aqi": { "category": "Moderate", "label": "Air quality is acceptable for most people." },
+            "met": { "air_temperature": 24.7, "relative_humidity": 72.1 }
+          }
+        ]
+      }
+    ]
   }
 }
 ```
+
+**Hourly forecasting** uses the same envelope but with `start_timestamp`, `end_timestamp`, `hours`, and pagination fields (`page`, `pages`). Individual forecast items use `timestamp` instead of `date` and include `pm2_5_q10` / `pm2_5_q90` uncertainty bounds instead of `pm2_5_low` / `pm2_5_high`.

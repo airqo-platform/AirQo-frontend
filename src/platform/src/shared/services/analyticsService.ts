@@ -174,8 +174,7 @@ export class AnalyticsService {
       );
 
       throw (
-        failedResponse?.reason ||
-        new Error('Failed to fetch recent readings')
+        failedResponse?.reason || new Error('Failed to fetch recent readings')
       );
     }
 

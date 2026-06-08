@@ -1024,7 +1024,8 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
                     label="X axis time or category"
                     value={chart.xColumn || ''}
                     onChange={event => {
-                      const nextXColumn = String(event.target.value) || undefined;
+                      const nextXColumn =
+                        String(event.target.value) || undefined;
                       const nextXLabel = formatColumnLabel(nextXColumn);
                       const currentXLabel = formatColumnLabel(chart.xColumn);
                       const shouldSyncXAxisLabel =

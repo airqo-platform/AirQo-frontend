@@ -1,0 +1,205 @@
+
+import { Device } from "@/app/types/devices";
+import { useRouter, useSearchParams } from "next/navigation";
+import ReusableTable, { TableAction } from "@/components/shared/table/ReusableTable";
+import { useState, useMemo, useCallback } from "react";
+import { useNetworkDevices } from "@/core/hooks/useNetworks";
+import { getColumns, type TableDevice } from "@/components/features/devices/utils/table-columns";
+import { useServerSideTableState } from "@/core/hooks/useServerSideTableState";
+import { AssignCohortDevicesDialog } from "@/components/features/cohorts/assign-cohort-devices";
+import { UnassignCohortDevicesDialog } from "@/components/features/cohorts/unassign-cohort-devices";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { Edit, Plus, Trash2 } from "lucide-react";
+import BulkEditDevicesModal from "../devices/bulk-edit-device-details-modal";
+
+interface NetworkDevicesTableProps {
+    networkName: string;
+    networkId: string;
+    itemsPerPage?: number;
+    onDeviceClick?: (device: Device) => void;
+    className?: string;
+}
+
+export default function NetworkDevicesTable({
+    networkName,
+    networkId,
+    itemsPerPage = 25,
+    onDeviceClick,
+    className,
+}: NetworkDevicesTableProps) {
+    const router = useRouter();
+    const [selectedDeviceObjects, setSelectedDeviceObjects] = useState<TableDevice[]>([]);
+    const [showAssignDialog, setShowAssignDialog] = useState(false);
+    const [showUnassignDialog, setShowUnassignDialog] = useState(false);
+    const [showBulkEditModal, setShowBulkEditModal] = useState(false);
+    const [bulkEditDeviceIds, setBulkEditDeviceIds] = useState<string[]>([]);
+
+    const {
+        pagination,
+        setPagination,
+        searchTerm,
+        setSearchTerm,
+        sorting,
+        setSorting,
+    } = useServerSideTableState({ initialPageSize: itemsPerPage });
+
+    const searchParams = useSearchParams();
+    const status = searchParams.get("status");
+
+    const { devices, meta, isFetching, isLoading, error } = useNetworkDevices({
+        page: pagination.pageIndex + 1,
+        limit: pagination.pageSize,
+        search: searchTerm,
+        sortBy: sorting[0]?.id,
+        order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined,
+        network: networkName,
+        filterStatus: status || undefined,
+    });
+
+    const pageCount = meta?.totalPages ?? 0;
+
+    const handleDeviceClick = (item: unknown) => {
+        const device = item as Device;
+        if (onDeviceClick) onDeviceClick(device);
+        else router.push(`/admin/networks/${networkId}/devices/${device._id}`);
+    };
+
+    const handleAssignSuccess = () => {
+        setSelectedDeviceObjects([]);
+        setShowAssignDialog(false);
+    };
+
+    const handleUnassignSuccess = () => {
+        setSelectedDeviceObjects([]);
+        setShowUnassignDialog(false);
+    };
+
+    const handleAddCohortDeviceActionSubmit = useCallback(
+        (selectedIds: (string | number)[]) => {
+            if (!selectedIds.length) return;
+            setShowAssignDialog(true);
+        },
+        []
+    );
+
+    const handleUnassignActionSubmit = useCallback(
+        (selectedIds: (string | number)[]) => {
+            if (!selectedIds.length) return;
+            setShowUnassignDialog(true);
+        },
+        []
+    );
+
+    const handleBulkEditClose = () => {
+        setShowBulkEditModal(false);
+        setBulkEditDeviceIds([]);
+    };
+
+    const devicesWithId: TableDevice[] = useMemo(() => {
+        return devices
+            .filter(
+                (device: Device): device is Device & { _id: string } =>
+                    typeof device._id === "string" && device._id.trim() !== ""
+            )
+            .map((device) => ({
+                ...device,
+                id: device._id,
+            }));
+    }, [devices]);
+
+    const columns = useMemo(() => getColumns(false), []);
+
+    const actions = useMemo(() => {
+        const baseActions: TableAction[] = [
+        {
+            label: "Add to Cohort",
+            value: "assign_cohort",
+            handler: handleAddCohortDeviceActionSubmit,
+            icon: Plus,
+        },
+        {
+            label: "Bulk Edit Devices",
+            value: "bulk_edit",
+            handler: (ids) => {
+            if (!ids.length) return;
+
+            const safeIds = ids.map(String);
+            setBulkEditDeviceIds(safeIds);
+            setShowBulkEditModal(true);
+            },
+            icon: Edit,
+        },
+        {
+            label: "Remove from Cohort",
+            value: "unassign_cohort",
+            handler: handleUnassignActionSubmit,
+            icon: Trash2,
+        }
+        ];
+
+        return baseActions;
+    }, [
+        handleAddCohortDeviceActionSubmit,
+        handleUnassignActionSubmit,
+    ]);
+
+    return (
+        <div className={`space-y-4 ${className}`}>
+            <ReusableTable
+                title="Sensor Manufacturer Devices"
+                data={devicesWithId}
+                columns={columns}
+                loading={isFetching || isLoading}
+                pageSize={itemsPerPage}
+                onRowClick={handleDeviceClick}
+                multiSelect={true}
+                onSelectedItemsChange={(items) => setSelectedDeviceObjects(items as TableDevice[])}
+                actions={actions}
+                emptyState={
+                    error ? (
+                        <div className="flex flex-col items-center gap-2">
+                            <ExclamationTriangleIcon className="h-8 w-8 text-muted-foreground" />
+                            <p className="text-muted-foreground">Unable to load devices</p>
+                            <p className="text-sm text-muted-foreground">
+                                {error.message || "An unknown error occurred"}
+                            </p>
+                        </div>
+                    ) : (
+                        "No devices available for this network"
+                    )
+                }
+                serverSidePagination
+                pageCount={pageCount}
+                pagination={pagination}
+                onPaginationChange={setPagination}
+                onSearchChange={setSearchTerm}
+                searchTerm={searchTerm}
+                sorting={sorting}
+                onSortingChange={setSorting}
+                searchable
+            />
+
+            {/* Assign to Cohort Dialog */}
+            <AssignCohortDevicesDialog
+                open={showAssignDialog}
+                onOpenChange={setShowAssignDialog}
+                selectedDevices={selectedDeviceObjects}
+                onSuccess={handleAssignSuccess}
+            />
+
+            {/* Unassign from Cohort Dialog */}
+            <UnassignCohortDevicesDialog
+                open={showUnassignDialog}
+                onOpenChange={setShowUnassignDialog}
+                selectedDevices={selectedDeviceObjects}
+                onSuccess={handleUnassignSuccess}
+            />
+
+            <BulkEditDevicesModal
+                open={showBulkEditModal}
+                onClose={handleBulkEditClose}
+                deviceIds={bulkEditDeviceIds}
+            />
+        </div>
+    );
+}

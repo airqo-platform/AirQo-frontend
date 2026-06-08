@@ -15,7 +15,12 @@ SWR provides powerful caching, revalidation, and synchronization capabilities fo
 ### Authentication Mutations
 
 ```typescript
-import { useLogin, useRegister, useForgotPassword, useResetPassword } from '@/shared/hooks/useAuth';
+import {
+  useLogin,
+  useRegister,
+  useForgotPassword,
+  useResetPassword,
+} from '@/shared/hooks/useAuth';
 
 // Login
 const { trigger: login, isMutating: isLoggingIn } = useLogin();
@@ -28,7 +33,7 @@ await register({
   lastName: 'Doe',
   email: 'john@example.com',
   password: 'password',
-  category: 'individual'
+  category: 'individual',
 });
 
 // Forgot Password

@@ -7,7 +7,7 @@ import { AqLoading02 } from '@airqo/icons-react';
 import { useRouter } from 'next/navigation';
 
 interface ButtonProps {
-  variant?: 'filled' | 'outlined' | 'text' | 'ghost' | 'disabled';
+  variant?: 'filled' | 'outlined' | 'text' | 'ghost' | 'disabled' | 'danger';
   size?: 'sm' | 'md' | 'lg';
   fullWidth?: boolean;
   loading?: boolean;
@@ -109,6 +109,13 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           );
         case 'disabled':
           return 'bg-muted text-muted-foreground cursor-not-allowed border-muted opacity-50';
+        case 'danger':
+          return clsx(
+            'border border-red-200 text-red-600 bg-transparent',
+            'hover:bg-red-50 hover:text-red-700 hover:border-red-300',
+            'focus:ring-red-500 focus:border-red-500',
+            'disabled:border-red-100 disabled:text-red-300 disabled:bg-transparent disabled:hover:bg-transparent'
+          );
         default: // filled
           return clsx(
             'bg-primary text-white border-primary',
