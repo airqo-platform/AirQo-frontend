@@ -357,6 +357,7 @@ const ApiClientPage: React.FC = () => {
                   Icon={AqShield02}
                   onClick={() => handleOpenTokenSecurity(item)}
                   fullWidth
+                  className="whitespace-nowrap"
                 >
                   Manage Security
                 </Button>
