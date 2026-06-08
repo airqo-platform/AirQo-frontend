@@ -12,4 +12,5 @@ export { preferencesService } from './preferencesService';
 export { analyticsService } from './analyticsService';
 export { maintenanceService } from './maintenanceService';
 export { adminService } from './adminService';
+export { surveyService } from './surveyService';
 export { subscriptionService } from './subscriptionService';

@@ -447,6 +447,112 @@ export interface UpdateFeedbackStatusResponse {
   feedback: FeedbackSubmission;
 }
 
+export interface SurveyQuestion {
+  id: string;
+  question: string;
+  type: string;
+  options: string[];
+  isRequired: boolean;
+  minValue?: number;
+  maxValue?: number;
+}
+
+export interface Survey {
+  _id: string;
+  timeToComplete: number;
+  isActive: boolean;
+  title: string;
+  description: string;
+  questions: SurveyQuestion[];
+  trigger?: Record<string, unknown> | null;
+  expiresAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  questionCount?: number;
+  requiredQuestionCount?: number;
+  isExpired?: boolean;
+  surveyStatus?: string;
+}
+
+export interface UpdateSurveyRequest {
+  title?: string;
+  description?: string;
+  isActive?: boolean;
+  questions?: SurveyQuestion[];
+  timeToComplete?: number;
+}
+
+export interface SurveyAnswer {
+  questionId: string;
+  answer: string | number | boolean | string[] | number[] | null;
+  answeredAt: string;
+}
+
+export interface SurveyResponseUser {
+  _id: string;
+  consent?: {
+    analytics?: boolean;
+  };
+  preferredTokenStrategy?: string;
+  subscriptionStatus?: string;
+  automaticRenewal?: boolean;
+  interests?: string[];
+  cohorts?: string[];
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  theme?: {
+    primaryColor?: string;
+    mode?: string;
+    interfaceStyle?: string;
+    contentLayout?: string;
+  };
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface SurveyResponseSummary {
+  _id: string;
+  timeToComplete?: number;
+  isActive?: boolean;
+  title?: string;
+  description?: string;
+  expiresAt?: string | null;
+  createdAt?: string;
+}
+
+export interface SurveyResponseItem {
+  _id: string;
+  isGuest?: boolean;
+  status?: string;
+  surveyId: string;
+  userId?: string;
+  deviceId?: string;
+  answers: SurveyAnswer[];
+  startedAt?: string;
+  completedAt?: string | null;
+  timeToComplete?: number;
+  updatedAt: string;
+  createdAt: string;
+  survey?: SurveyResponseSummary;
+  user?: SurveyResponseUser;
+  answerCount?: number;
+  completionEfficiency?: number;
+  submissionDate?: string;
+  hasLocationData?: boolean;
+  hasDeviceTracking?: boolean;
+}
+
+export interface SurveyStats {
+  surveyId: string;
+  totalResponses: number;
+  completedResponses: number;
+  skippedResponses: number;
+  averageCompletionTime: number;
+  completionRate: number;
+  answerDistribution: Record<string, Record<string, number>>;
+}
+
 export interface Group {
   grp_title: string;
   organization_slug: string;

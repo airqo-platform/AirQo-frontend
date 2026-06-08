@@ -26,6 +26,7 @@ export const PAGE_TITLES: Record<string, string> = {
   '/system/org-requests': 'Organization Requests',
   '/system/user-statistics': 'User Statistics',
   '/system/feedback': 'Feedback',
+  '/system/surveys': 'Survey Management',
 
   // Admin routes (organization-specific admin features)
   '/admin/members': 'Members',
@@ -75,6 +76,10 @@ export const getPageTitle = (pathname: string): string => {
   if (pathname.startsWith('/system/')) {
     if (pathname.startsWith('/system/feedback/')) {
       return 'Feedback Details';
+    }
+
+    if (pathname.startsWith('/system/surveys/')) {
+      return 'Survey Details';
     }
 
     if (pathname.startsWith('/system/user-statistics/')) {

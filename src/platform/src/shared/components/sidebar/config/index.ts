@@ -249,6 +249,12 @@ const systemSidebarConfig: NavGroup[] = [
         icon: AqMessageCheckCircle,
       },
       {
+        id: 'system-surveys',
+        label: 'Surveys',
+        href: '/system/surveys',
+        icon: AqFileQuestion02,
+      },
+      {
         id: 'system-user-statistics',
         label: 'User Statistics',
         href: '/system/user-statistics',
@@ -298,6 +304,12 @@ const globalSidebarConfig: NavGroup[] = [
             label: 'Feedback',
             href: '/system/feedback',
             description: 'Review user feedback and reported issues',
+          },
+          {
+            id: 'system-surveys',
+            label: 'Surveys',
+            href: '/system/surveys',
+            description: 'Review active surveys, responses, and completion stats',
           },
           {
             id: 'system-user-statistics',

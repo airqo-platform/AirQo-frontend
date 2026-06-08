@@ -85,7 +85,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
         .map(group => ({
           ...group,
           items: group.items.filter(item => {
-            if (item.id === 'system-feedback') {
+            if (['system-feedback', 'system-surveys'].includes(item.id)) {
               return (
                 hasAnyPermission(['SYSTEM_ADMIN', 'SUPER_ADMIN']) ||
                 isAirQoSuperAdminWithEmail()
