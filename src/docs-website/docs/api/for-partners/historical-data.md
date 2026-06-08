@@ -12,7 +12,7 @@ Historical data access requires a **Standard Tier** subscription or above.
 :::
 
 :::caution Cohort ID direct filtering — coming soon
-The Analytics API does not yet accept `cohort_id` as a request parameter. You must supply individual **device names** (`device_names`) or **Site IDs** (`sites`) in the request body instead.
+The Analytics API does not yet accept `cohort_id` as a request parameter. You must supply individual **device names** (`device_names`) in the request body instead.
 
 **Workaround:** Call the [Metadata API](../reference/metadata.md#get-all-site-and-device-ids-for-a-cohort) (`GET /api/v2/devices/cohorts/{COHORT_ID}/generate`) to retrieve all device identifiers for your Cohort, then include those in your Analytics API request.
 
@@ -172,7 +172,7 @@ base_payload = {
     "datatype": "calibrated",
     "downloadType": "json",
     "startDateTime": "2025-01-01T00:00:00Z",
-    "endDateTime": "2025-03-31T23:59:59Z",
+    "endDateTime": "2025-02-28T23:59:59Z",
     "device_names": ["airqo_bx2847"],
     "pollutants": ["pm2_5", "pm10"],
     "frequency": "hourly"
