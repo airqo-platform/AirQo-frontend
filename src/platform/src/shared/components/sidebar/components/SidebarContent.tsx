@@ -85,11 +85,15 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
         .map(group => ({
           ...group,
           items: group.items.filter(item => {
-            if (['system-feedback', 'system-surveys'].includes(item.id)) {
+            if (item.id === 'system-feedback') {
               return (
                 hasAnyPermission(['SYSTEM_ADMIN', 'SUPER_ADMIN']) ||
                 isAirQoSuperAdminWithEmail()
               );
+            }
+
+            if (item.id === 'system-surveys') {
+              return isAirQoSuperAdminWithEmail();
             }
 
             // Hide system-clients, system-security, system-org-requests, and system-user-statistics if user doesn't have AIRQO_SUPER_ADMIN role

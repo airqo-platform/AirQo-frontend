@@ -453,8 +453,30 @@ export interface SurveyQuestion {
   type: string;
   options: string[];
   isRequired: boolean;
+  placeholder?: string;
   minValue?: number;
   maxValue?: number;
+}
+
+export interface SurveyQuestionInput {
+  id?: string;
+  question: string;
+  type: string;
+  options?: string[];
+  isRequired: boolean;
+  placeholder?: string;
+  minValue?: number;
+  maxValue?: number;
+}
+
+export interface SurveyTriggerConditions extends Record<string, unknown> {
+  threshold?: number;
+  duration?: number;
+}
+
+export interface SurveyTrigger {
+  type: string;
+  conditions?: SurveyTriggerConditions;
 }
 
 export interface Survey {
@@ -464,7 +486,7 @@ export interface Survey {
   title: string;
   description: string;
   questions: SurveyQuestion[];
-  trigger?: Record<string, unknown> | null;
+  trigger?: SurveyTrigger | null;
   expiresAt?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -474,12 +496,24 @@ export interface Survey {
   surveyStatus?: string;
 }
 
+export interface CreateSurveyRequest {
+  title: string;
+  description?: string;
+  questions: SurveyQuestionInput[];
+  trigger?: SurveyTrigger;
+  timeToComplete?: number;
+  isActive?: boolean;
+  expiresAt?: string;
+}
+
 export interface UpdateSurveyRequest {
   title?: string;
   description?: string;
   isActive?: boolean;
-  questions?: SurveyQuestion[];
+  questions?: SurveyQuestionInput[];
   timeToComplete?: number;
+  trigger?: SurveyTrigger;
+  expiresAt?: string;
 }
 
 export interface SurveyAnswer {

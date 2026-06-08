@@ -250,7 +250,7 @@ const systemSidebarConfig: NavGroup[] = [
       },
       {
         id: 'system-surveys',
-        label: 'Surveys',
+        label: 'Survey Management',
         href: '/system/surveys',
         icon: AqFileQuestion02,
       },
@@ -307,7 +307,7 @@ const globalSidebarConfig: NavGroup[] = [
           },
           {
             id: 'system-surveys',
-            label: 'Surveys',
+            label: 'Survey Management',
             href: '/system/surveys',
             description: 'Review active surveys, responses, and completion stats',
           },

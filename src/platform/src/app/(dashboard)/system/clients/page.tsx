@@ -23,6 +23,7 @@ import EditClientDialog from '@/modules/api-client/components/EditClientDialog';
 import { PermissionGuard } from '@/shared/components/PermissionGuard';
 import { useRBAC, useUser } from '@/shared/hooks';
 import type { Client } from '@/shared/types/api';
+import { refreshWithToast } from '@/shared/utils/refreshWithToast';
 
 type TableClient = Client & { id: string };
 
@@ -221,7 +222,12 @@ const ClientsAdminPage: React.FC = () => {
   };
 
   const handleRefresh = useCallback(async () => {
-    await mutate();
+    try {
+      await refreshWithToast(() => mutate(), 'Clients refreshed successfully');
+    } catch (error) {
+      toast.error(getUserFriendlyErrorMessage(error));
+      console.error('Refresh clients error:', error);
+    }
   }, [mutate]);
 
   const renderStatus = useCallback((value: unknown, item: TableClient) => {

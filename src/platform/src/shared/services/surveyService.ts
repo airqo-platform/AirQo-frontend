@@ -5,6 +5,7 @@ import type {
   Survey,
   SurveyResponseItem,
   SurveyStats,
+  CreateSurveyRequest,
   UpdateSurveyRequest,
 } from '../types/api';
 
@@ -108,6 +109,22 @@ export class SurveyService {
     const data = extractResponseData(
       response.data,
       'Failed to load survey details'
+    );
+
+    return normalizeSurvey(data);
+  }
+
+  async createSurvey(payload: CreateSurveyRequest): Promise<Survey> {
+    await this.ensureAuthenticated();
+
+    const response = await this.authenticatedClient.post<any>(
+      '/users/surveys',
+      payload
+    );
+
+    const data = extractResponseData(
+      response.data,
+      'Failed to create survey'
     );
 
     return normalizeSurvey(data);

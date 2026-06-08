@@ -1,9 +1,20 @@
-import type { SurveyQuestion } from '@/shared/types/api';
+import type {
+  SurveyQuestion,
+  SurveyTrigger,
+} from '@/shared/types/api';
 
 export const SURVEY_QUESTION_TYPES = [
   { value: 'text', label: 'Text' },
   { value: 'multipleChoice', label: 'Multiple choice' },
   { value: 'rating', label: 'Rating' },
+  { value: 'yesNo', label: 'Yes / No' },
+  { value: 'scale', label: 'Scale' },
+] as const;
+
+export const SURVEY_TRIGGER_TYPES = [
+  { value: 'manual', label: 'Manual' },
+  { value: 'postExposure', label: 'Post-exposure' },
+  { value: 'scheduled', label: 'Scheduled' },
 ] as const;
 
 export type SurveyQuestionDraft = {
@@ -11,9 +22,16 @@ export type SurveyQuestionDraft = {
   question: string;
   type: string;
   optionsText: string;
+  placeholder: string;
   isRequired: boolean;
   minValue: string;
   maxValue: string;
+};
+
+export type SurveyTriggerDraft = {
+  type: string;
+  threshold: string;
+  duration: string;
 };
 
 export const createQuestionDraft = (
@@ -25,28 +43,47 @@ export const createQuestionDraft = (
   question: question?.question || '',
   type: question?.type || 'text',
   optionsText: (question?.options || []).join('\n'),
+  placeholder: question?.placeholder || '',
   isRequired: question?.isRequired ?? true,
   minValue: question?.minValue != null ? String(question.minValue) : '',
   maxValue: question?.maxValue != null ? String(question.maxValue) : '',
 });
 
+export const createTriggerDraft = (
+  trigger?: SurveyTrigger | null
+): SurveyTriggerDraft => ({
+  type: trigger?.type || 'manual',
+  threshold:
+    typeof trigger?.conditions?.threshold === 'number'
+      ? String(trigger.conditions.threshold)
+      : '',
+  duration:
+    typeof trigger?.conditions?.duration === 'number'
+      ? String(trigger.conditions.duration)
+      : '',
+});
+
 export const serializeQuestionDraft = (
   draft: SurveyQuestionDraft
 ): SurveyQuestion => {
-  const options =
+  const typedOptions =
     draft.type === 'multipleChoice'
       ? draft.optionsText
           .split(/\r?\n/)
           .map(option => option.trim())
           .filter(Boolean)
-      : [];
+      : draft.type === 'yesNo'
+        ? ['Yes', 'No']
+        : [];
 
   const minValue =
-    draft.type === 'rating' && draft.minValue.trim() !== ''
+    (draft.type === 'rating' || draft.type === 'scale') &&
+    draft.minValue.trim() !== ''
       ? Number(draft.minValue)
       : undefined;
   const maxValue =
-    draft.type === 'rating' && draft.maxValue.trim() !== ''
+    (draft.type === 'rating' || draft.type === 'scale') &&
+    draft.maxValue.trim() !== ''
       ? Number(draft.maxValue)
       : undefined;
 
@@ -54,10 +91,33 @@ export const serializeQuestionDraft = (
     id: draft.id.trim() || `question_${Date.now()}`,
     question: draft.question.trim(),
     type: draft.type.trim() || 'text',
-    options,
+    options: typedOptions,
     isRequired: draft.isRequired,
+    placeholder: draft.placeholder.trim() || undefined,
     ...(Number.isFinite(minValue) ? { minValue } : {}),
     ...(Number.isFinite(maxValue) ? { maxValue } : {}),
+  };
+};
+
+export const serializeTriggerDraft = (
+  draft: SurveyTriggerDraft
+): SurveyTrigger => {
+  const threshold =
+    draft.threshold.trim() !== '' ? Number(draft.threshold) : undefined;
+  const duration =
+    draft.duration.trim() !== '' ? Number(draft.duration) : undefined;
+
+  const conditions: Record<string, number> = {};
+  if (Number.isFinite(threshold)) {
+    conditions.threshold = Number(threshold);
+  }
+  if (Number.isFinite(duration)) {
+    conditions.duration = Number(duration);
+  }
+
+  return {
+    type: draft.type.trim() || 'manual',
+    ...(Object.keys(conditions).length > 0 ? { conditions } : {}),
   };
 };
 
@@ -115,6 +175,10 @@ export const formatQuestionTypeLabel = (type: string): string => {
       return 'Multiple choice';
     case 'rating':
       return 'Rating';
+    case 'yesNo':
+      return 'Yes / No';
+    case 'scale':
+      return 'Scale';
     default:
       return type
         .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
@@ -210,16 +274,22 @@ export const getQuestionDistribution = (
 };
 
 export const getSurveyTriggerLabel = (
-  trigger?: Record<string, unknown> | null
+  trigger?: SurveyTrigger | null
 ): string => {
-  if (!trigger || typeof trigger !== 'object') {
+  if (!trigger) {
     return 'Manual trigger';
   }
 
-  const triggerType = (trigger as { type?: unknown }).type;
+  const triggerType = trigger.type;
   if (!triggerType) {
     return 'Manual trigger';
   }
 
-  return formatQuestionTypeLabel(String(triggerType));
+  const label = getSurveyTriggerTypeLabel(String(triggerType));
+  return label === 'Manual' ? 'Manual trigger' : label;
+};
+
+export const getSurveyTriggerTypeLabel = (type: string): string => {
+  const match = SURVEY_TRIGGER_TYPES.find(option => option.value === type);
+  return match?.label || formatQuestionTypeLabel(type);
 };

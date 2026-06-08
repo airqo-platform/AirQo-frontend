@@ -28,6 +28,7 @@ import {
   isValidAsn,
   isValidCidrNotation,
 } from '@/shared/lib/validators';
+import { refreshWithToast } from '@/shared/utils/refreshWithToast';
 import type {
   BlockedAsn,
   CreateBlockedAsnRequest,
@@ -571,6 +572,28 @@ const SecurityPageContent: React.FC = () => {
     await mutateFlagged();
   }, [mutateFlagged]);
 
+  const handleRefreshBlocked = useCallback(async () => {
+    try {
+      await refreshWithToast(
+        () => mutateBlocked(),
+        'Blocked ASN rules refreshed successfully'
+      );
+    } catch (error) {
+      toast.error(getUserFriendlyErrorMessage(error));
+    }
+  }, [mutateBlocked]);
+
+  const handleRefreshFlagged = useCallback(async () => {
+    try {
+      await refreshWithToast(
+        () => mutateFlagged(),
+        'Flagged tokens refreshed successfully'
+      );
+    } catch (error) {
+      toast.error(getUserFriendlyErrorMessage(error));
+    }
+  }, [mutateFlagged]);
+
   const handleDeleteBlockedAsnConfirm = async () => {
     if (!deleteDialogEntry) {
       return;
@@ -904,7 +927,7 @@ const SecurityPageContent: React.FC = () => {
               size="sm"
               variant="outlined"
               Icon={AqRefreshCw05}
-              onClick={() => mutateBlocked()}
+              onClick={handleRefreshBlocked}
               className="ml-auto"
             >
               Refresh
@@ -921,7 +944,7 @@ const SecurityPageContent: React.FC = () => {
                 ? getUserFriendlyErrorMessage(blockedError)
                 : null
             }
-            onRefresh={() => mutateBlocked()}
+            onRefresh={handleRefreshBlocked}
             showClientPagination={true}
             pageSize={10}
           />
@@ -954,7 +977,7 @@ const SecurityPageContent: React.FC = () => {
               size="sm"
               variant="outlined"
               Icon={AqRefreshCw05}
-              onClick={() => mutateFlagged()}
+              onClick={handleRefreshFlagged}
               className="ml-auto"
             >
               Refresh
@@ -971,7 +994,7 @@ const SecurityPageContent: React.FC = () => {
                 ? getUserFriendlyErrorMessage(flaggedError)
                 : null
             }
-            onRefresh={() => mutateFlagged()}
+            onRefresh={handleRefreshFlagged}
             showClientPagination={true}
             pageSize={10}
           />

@@ -10,10 +10,12 @@ import {
   EmptyState,
   LoadingState,
   PageHeading,
+  toast,
 } from '@/shared/components/ui';
-import { AqEye, AqRefreshCw05 } from '@airqo/icons-react';
+import { AqEye, AqPlus, AqRefreshCw05 } from '@airqo/icons-react';
 import { surveyService } from '@/shared/services';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import { refreshWithToast } from '@/shared/utils/refreshWithToast';
 import type { Survey } from '@/shared/types/api';
 import {
   formatDateTime,
@@ -71,6 +73,21 @@ const SurveyListPage: React.FC = () => {
     },
     [router]
   );
+
+  const handleCreateSurvey = useCallback(() => {
+    router.push('/system/surveys/new');
+  }, [router]);
+
+  const handleRefresh = useCallback(async () => {
+    try {
+      await refreshWithToast(
+        () => mutate(),
+        'Survey list refreshed successfully'
+      );
+    } catch (error) {
+      toast.error(getUserFriendlyErrorMessage(error));
+    }
+  }, [mutate]);
 
   const renderSurveyCard = useCallback(
     (survey: Survey) => {
@@ -174,23 +191,28 @@ const SurveyListPage: React.FC = () => {
 
   return (
     <PermissionGuard
-      requiredPermissions={['SYSTEM_ADMIN', 'SUPER_ADMIN']}
+      requireAirQoSuperAdmin={true}
       accessDeniedTitle="Access Restricted"
-      accessDeniedMessage="You need system administration permissions to manage surveys."
+      accessDeniedMessage="You need the AIRQO_SUPER_ADMIN role with an @airqo.net email to manage surveys."
     >
       <div className="space-y-6">
         <PageHeading
           title="Survey Management"
           subtitle="Review active surveys, inspect question sets, and open a survey to analyze responses and update its configuration."
           action={
-            <Button
-              variant="outlined"
-              Icon={AqRefreshCw05}
-              onClick={() => mutate()}
-              loading={isLoading || isValidating}
-            >
-              Refresh
-            </Button>
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <Button
+                variant="outlined"
+                Icon={AqRefreshCw05}
+                onClick={handleRefresh}
+                loading={isLoading || isValidating}
+              >
+                Refresh
+              </Button>
+              <Button Icon={AqPlus} onClick={handleCreateSurvey}>
+                Create survey
+              </Button>
+            </div>
           }
         />
 
@@ -254,9 +276,9 @@ const SurveyListPage: React.FC = () => {
             title="No active surveys"
             description="There are no active surveys to review right now."
             action={{
-              label: 'Refresh',
-              onClick: () => mutate(),
-              variant: 'outlined',
+              label: 'Create survey',
+              onClick: handleCreateSurvey,
+              variant: 'filled',
             }}
           />
         ) : (

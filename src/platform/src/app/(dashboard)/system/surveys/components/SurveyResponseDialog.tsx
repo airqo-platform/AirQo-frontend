@@ -42,15 +42,39 @@ const SurveyResponseDialog: React.FC<SurveyResponseDialogProps> = ({
   }, [survey?.questions]);
 
   const statusLabel = response?.status ? formatQuestionTypeLabel(response.status) : 'Unknown';
+  const rawPayload = useMemo(() => {
+    if (!response) {
+      return '';
+    }
+
+    return JSON.stringify(
+      {
+        responseId: response._id,
+        surveyId: response.surveyId,
+        userId: response.userId || null,
+        deviceId: response.deviceId || null,
+        status: response.status || null,
+        isGuest: response.isGuest ?? false,
+        startedAt: response.startedAt || null,
+        completedAt: response.completedAt || null,
+        timeToComplete: response.timeToComplete ?? null,
+        hasLocationData: response.hasLocationData ?? false,
+        hasDeviceTracking: response.hasDeviceTracking ?? false,
+        answers: response.answers,
+      },
+      null,
+      2
+    );
+  }, [response]);
 
   return (
     <Dialog
       isOpen={isOpen}
       onClose={onClose}
-      title="Survey response"
+      title="Raw response details"
       subtitle={
         response
-          ? `${response.isGuest ? 'Guest respondent' : 'Registered respondent'}`
+          ? `${response.isGuest ? 'Guest respondent' : 'Registered respondent'} · ${statusLabel}`
           : undefined
       }
       size="xl"
@@ -115,6 +139,22 @@ const SurveyResponseDialog: React.FC<SurveyResponseDialogProps> = ({
                 value={response.hasDeviceTracking ? 'Available' : 'Unavailable'}
               />
             </div>
+          </Card>
+
+          <Card className="p-5">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h3 className="text-base font-semibold text-foreground">
+                  Raw payload
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Unformatted response data as received from the API.
+                </p>
+              </div>
+            </div>
+            <pre className="mt-4 max-h-80 overflow-auto rounded-xl border border-border bg-muted/20 p-4 text-xs leading-6 text-foreground">
+              {rawPayload}
+            </pre>
           </Card>
 
           <div className="space-y-3">

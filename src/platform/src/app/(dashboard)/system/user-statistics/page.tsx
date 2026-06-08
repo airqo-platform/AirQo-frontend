@@ -13,6 +13,8 @@ import { Card } from '@/shared/components/ui/card';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import type { UserStatisticsUser } from '@/shared/types/api';
+import { toast } from '@/shared/components/ui/toast';
+import { refreshWithToast } from '@/shared/utils/refreshWithToast';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -309,9 +311,20 @@ const UserStatisticsPage: React.FC = () => {
     );
   };
 
-  const handleRefresh = () => {
-    mutate();
-  };
+  const handleRefresh = useCallback(async () => {
+    try {
+      await refreshWithToast(
+        () => mutate(),
+        'User statistics refreshed successfully'
+      );
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : 'Unable to refresh user statistics'
+      );
+    }
+  }, [mutate]);
 
   if (isLoading) {
     return (

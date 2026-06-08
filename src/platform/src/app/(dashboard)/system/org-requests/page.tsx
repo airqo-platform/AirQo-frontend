@@ -10,6 +10,7 @@ import PageHeading from '@/shared/components/ui/page-heading';
 import { TextInput } from '@/shared/components/ui/text-input';
 import { formatWithPattern } from '@/shared/utils/dateUtils';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import { refreshWithToast } from '@/shared/utils/refreshWithToast';
 import {
   useOrganizationRequests,
   useApproveOrganizationRequest,
@@ -151,9 +152,17 @@ const OrganizationRequestsPage = () => {
       : null;
   }, [confirmDialog, requests]);
 
-  const handleRefresh = () => {
-    mutate();
-  };
+  const handleRefresh = useCallback(async () => {
+    try {
+      await refreshWithToast(
+        () => mutate(),
+        'Organization requests refreshed successfully'
+      );
+    } catch (error) {
+      toast.error(getUserFriendlyErrorMessage(error));
+      console.error('Refresh organization requests error:', error);
+    }
+  }, [mutate]);
 
   const handleApprove = useCallback((requestId: string) => {
     setConfirmDialog({ type: 'approve', id: requestId });
