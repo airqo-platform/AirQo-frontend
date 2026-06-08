@@ -92,10 +92,11 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
               );
             }
 
-            // Hide system-clients, system-org-requests, and system-user-statistics if user doesn't have AIRQO_SUPER_ADMIN role
+            // Hide the super-admin-only system items if the user doesn't have AIRQO_SUPER_ADMIN role
             if (
               [
                 'system-clients',
+                'system-email-configs',
                 'system-org-requests',
                 'system-user-statistics',
               ].includes(item.id)

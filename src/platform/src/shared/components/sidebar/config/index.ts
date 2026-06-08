@@ -15,6 +15,7 @@ import {
   AqUpload01,
   AqFileQuestion02,
   AqMessageCheckCircle,
+  AqMail04,
 } from '@airqo/icons-react';
 
 export interface NavItem {
@@ -231,6 +232,12 @@ const systemSidebarConfig: NavGroup[] = [
         icon: AqKey01,
       },
       {
+        id: 'system-email-configs',
+        label: 'Email Config',
+        href: '/system/email-configs',
+        icon: AqMail04,
+      },
+      {
         id: 'system-org-requests',
         label: 'Organization Requests',
         href: '/system/org-requests',
@@ -274,6 +281,13 @@ const globalSidebarConfig: NavGroup[] = [
             label: 'API Clients',
             href: '/system/clients',
             description: 'Manage API clients across the platform',
+          },
+          {
+            id: 'system-email-configs',
+            label: 'Email Config',
+            href: '/system/email-configs',
+            description:
+              'Maintain admin CC and application email configuration',
           },
           {
             id: 'system-org-requests',

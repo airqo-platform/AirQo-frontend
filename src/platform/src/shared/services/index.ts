@@ -13,3 +13,4 @@ export { analyticsService } from './analyticsService';
 export { maintenanceService } from './maintenanceService';
 export { adminService } from './adminService';
 export { subscriptionService } from './subscriptionService';
+export { applicationEmailConfigService } from './applicationEmailConfigService';
