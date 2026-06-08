@@ -30,6 +30,7 @@ import { applicationEmailConfigService } from '@/shared/services';
 import type { ApplicationEmailConfiguration } from '@/shared/types/api';
 import { formatDate } from '@/shared/utils';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import { sanitizeErrorForLogging } from '@/shared/utils/sanitizeErrorForLogging';
 
 type EmailConfigMode = 'replace' | 'add' | 'remove';
 
@@ -307,7 +308,10 @@ const EmailConfigContent: React.FC = () => {
           await mutate();
         } catch (submitError) {
           toast.error(getUserFriendlyErrorMessage(submitError));
-          console.error('Create email configuration error:', submitError);
+          console.error(
+            'Create email configuration error:',
+            sanitizeErrorForLogging(submitError)
+          );
         } finally {
           setIsSubmitting(false);
         }
@@ -340,7 +344,10 @@ const EmailConfigContent: React.FC = () => {
         await mutate();
       } catch (submitError) {
         toast.error(getUserFriendlyErrorMessage(submitError));
-        console.error('Update email configuration error:', submitError);
+        console.error(
+          'Update email configuration error:',
+          sanitizeErrorForLogging(submitError)
+        );
       } finally {
         setIsSubmitting(false);
       }
@@ -364,7 +371,10 @@ const EmailConfigContent: React.FC = () => {
       await mutate();
     } catch (deleteError) {
       toast.error(getUserFriendlyErrorMessage(deleteError));
-      console.error('Delete email configuration error:', deleteError);
+      console.error(
+        'Delete email configuration error:',
+        sanitizeErrorForLogging(deleteError)
+      );
     } finally {
       setIsDeleting(false);
     }
