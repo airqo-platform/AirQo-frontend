@@ -70,7 +70,7 @@ class _SelectLanguagePageState extends State<SelectLanguagePage> {
       if (needsMlKitDownload) {
         await MlKitTranslationService()
             .prepareModel(language.code)
-            .timeout(const Duration(seconds: 30));
+            .timeout(const Duration(minutes: 3));
         await MlKitTranslationService()
             .prepareCriticalStrings(language.code)
             .timeout(const Duration(seconds: 30));
@@ -88,10 +88,12 @@ class _SelectLanguagePageState extends State<SelectLanguagePage> {
       debugPrint('Language preparation failed: $e\n$stackTrace');
       if (!mounted) return;
       setState(() => _preparingCode = null);
-      final isNetworkError = e is SocketException || e is TimeoutException;
+      final isNetworkError = e is SocketException;
       final message = isNetworkError
           ? 'No internet connection. Please check your network and try again.'
-          : 'Failed to prepare language. Please try again.';
+          : e is TimeoutException
+              ? 'Download is taking too long. Please check your connection and try again.'
+              : 'Failed to prepare language. Please try again.';
       messenger.showSnackBar(
         SnackBar(
           content: Text(message),

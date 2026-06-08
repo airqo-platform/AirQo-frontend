@@ -198,7 +198,11 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.cloud_off, size: 64, color: Colors.grey),
+                      Icon(
+                        state.isOffline ? Icons.cloud_off : Icons.error_outline,
+                        size: 64,
+                        color: Colors.grey,
+                      ),
                       const SizedBox(height: 16),
                       TranslatedText(
                         "Unable to load content",
@@ -212,7 +216,9 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 32.0),
                         child: TranslatedText(
-                          "Please check your connection and try again",
+                          state.isOffline
+                              ? "Please check your connection and try again"
+                              : "Something went wrong. Please try again later",
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 16,

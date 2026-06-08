@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 
 class MapErrorView extends StatelessWidget {
   final VoidCallback onRetry;
+  final bool isOffline;
 
-  const MapErrorView({super.key, required this.onRetry});
+  const MapErrorView({super.key, required this.onRetry, this.isOffline = false});
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +14,7 @@ class MapErrorView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.map_outlined, size: 64, color: Colors.grey),
+          Icon(isOffline ? Icons.cloud_off : Icons.map_outlined, size: 64, color: Colors.grey),
           const SizedBox(height: 16),
           TranslatedText(
             "Unable to load map data",
@@ -24,7 +25,9 @@ class MapErrorView extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           TranslatedText(
-            "Please check your connection and try again",
+            isOffline
+                ? "Please check your connection and try again"
+                : "Something went wrong. Please try again later",
             style: TextStyle(
                 fontSize: 16,
                 color: Theme.of(context).textTheme.bodyMedium?.color),
