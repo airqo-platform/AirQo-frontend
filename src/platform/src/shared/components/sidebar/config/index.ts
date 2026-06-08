@@ -16,6 +16,7 @@ import {
   AqFileQuestion02,
   AqMessageCheckCircle,
   AqMail04,
+  AqClipboardCheck,
 } from '@airqo/icons-react';
 
 export interface NavItem {
@@ -222,8 +223,8 @@ const adminSidebarConfig: NavGroup[] = [
 
 const systemSidebarConfig: NavGroup[] = [
   {
-    id: 'system',
-    label: 'System Management',
+    id: 'system-access',
+    label: 'Access & Security',
     items: [
       {
         id: 'system-clients',
@@ -237,6 +238,12 @@ const systemSidebarConfig: NavGroup[] = [
         href: '/system/security',
         icon: AqShield02,
       },
+    ],
+  },
+  {
+    id: 'system-platform',
+    label: 'Platform',
+    items: [
       {
         id: 'system-email-configs',
         label: 'Email Configuration',
@@ -247,14 +254,14 @@ const systemSidebarConfig: NavGroup[] = [
         id: 'system-org-requests',
         label: 'Organization Requests',
         href: '/system/org-requests',
-        icon: AqFileQuestion02,
+        icon: AqClipboardCheck,
       },
-      {
-        id: 'system-feedback',
-        label: 'Feedback',
-        href: '/system/feedback',
-        icon: AqMessageCheckCircle,
-      },
+    ],
+  },
+  {
+    id: 'system-insights',
+    label: 'Insights',
+    items: [
       {
         id: 'system-surveys',
         label: 'Survey Management',
@@ -266,6 +273,12 @@ const systemSidebarConfig: NavGroup[] = [
         label: 'User Statistics',
         href: '/system/user-statistics',
         icon: AqPresentationChart02,
+      },
+      {
+        id: 'system-feedback',
+        label: 'Feedback',
+        href: '/system/feedback',
+        icon: AqMessageCheckCircle,
       },
     ],
   },
