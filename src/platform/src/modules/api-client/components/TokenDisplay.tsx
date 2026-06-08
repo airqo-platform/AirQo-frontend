@@ -1,23 +1,30 @@
 'use client';
 
 import React from 'react';
-import { Button } from '@/shared/components/ui';
+import { Button, WarningBanner } from '@/shared/components/ui';
 import { toast } from '@/shared/components/ui';
 import { AqCopy06 } from '@airqo/icons-react';
 import { formatDate, parseDate } from '@/shared/utils';
+import type { TokenRequestPattern } from '@/shared/types/api';
 
 interface TokenDisplayProps {
   token: string;
   expiresAt?: string | null;
   tokenStatus?: 'active' | 'expired';
+  requestPattern?: TokenRequestPattern;
   showStatusBadge?: boolean;
+  onReinstate?: () => void;
+  reinstateLoading?: boolean;
 }
 
 const TokenDisplay: React.FC<TokenDisplayProps> = ({
   token,
   expiresAt,
   tokenStatus,
+  requestPattern,
   showStatusBadge = true,
+  onReinstate,
+  reinstateLoading = false,
 }) => {
   const copyToClipboard = async () => {
     try {
@@ -66,9 +73,48 @@ const TokenDisplay: React.FC<TokenDisplayProps> = ({
       ? 'font-mono text-sm truncate min-w-0 bg-yellow-50 text-yellow-800 px-2 py-1 rounded border border-yellow-200'
       : 'font-mono text-sm truncate min-w-0 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded border';
 
+  const isAutoSuspended = Boolean(requestPattern?.auto_suspended);
+  const suspendedAt = requestPattern?.suspended_at
+    ? parseDate(requestPattern.suspended_at)
+    : null;
+  const suspensionReason = requestPattern?.suspension_reason;
+
   return (
     <div className="max-w-full min-w-0">
       <div className="flex flex-col items-start gap-1 min-w-0">
+        {isAutoSuspended && (
+          <WarningBanner
+            dense
+            title="Token automatically suspended"
+            message={
+              <div className="space-y-1">
+                <p>
+                  This token has been suspended due to suspicious activity.
+                </p>
+                {suspensionReason && (
+                  <p>
+                    <span className="font-medium">Reason:</span>{' '}
+                    {suspensionReason}
+                  </p>
+                )}
+                {suspendedAt && (
+                  <p>
+                    <span className="font-medium">Suspended at:</span>{' '}
+                    {formatDate(suspendedAt, {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </p>
+                )}
+              </div>
+            }
+            className="w-full"
+          />
+        )}
+
         <div className="flex items-center gap-2 min-w-0 w-full">
           <code className={`${containerCodeClass} truncate`}>
             {maskedToken}
@@ -80,11 +126,11 @@ const TokenDisplay: React.FC<TokenDisplayProps> = ({
               onClick={copyToClipboard}
               className="p-1 h-6 w-6 flex-shrink-0"
               aria-label="Copy token"
-            >
-              <AqCopy06 className="w-4 h-4" />
-            </Button>
+              >
+                <AqCopy06 className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
-        </div>
 
         <div className="flex items-center gap-2 min-w-0">
           {showStatusBadge &&
@@ -111,6 +157,20 @@ const TokenDisplay: React.FC<TokenDisplayProps> = ({
               : '—'}
           </p>
         </div>
+
+        {isAutoSuspended && onReinstate && (
+          <div className="flex flex-wrap gap-2 pt-1">
+            <Button
+              size="sm"
+              variant="filled"
+              onClick={onReinstate}
+              loading={reinstateLoading}
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+            >
+              Reinstate
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

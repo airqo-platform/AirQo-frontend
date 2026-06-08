@@ -231,6 +231,12 @@ const systemSidebarConfig: NavGroup[] = [
         icon: AqKey01,
       },
       {
+        id: 'system-security',
+        label: 'Security',
+        href: '/system/security',
+        icon: AqShield02,
+      },
+      {
         id: 'system-org-requests',
         label: 'Organization Requests',
         href: '/system/org-requests',
@@ -274,6 +280,12 @@ const globalSidebarConfig: NavGroup[] = [
             label: 'API Clients',
             href: '/system/clients',
             description: 'Manage API clients across the platform',
+          },
+          {
+            id: 'system-security',
+            label: 'Security',
+            href: '/system/security',
+            description: 'Review blocked ranges and flagged tokens',
           },
           {
             id: 'system-org-requests',

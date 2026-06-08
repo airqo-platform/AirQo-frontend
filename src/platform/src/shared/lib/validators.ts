@@ -164,3 +164,35 @@ export const isValidIpAddress = (ip: string): boolean => {
     return num >= 0 && num <= 255;
   });
 };
+
+export const isValidCidrNotation = (cidr: string): boolean => {
+  const trimmed = cidr.trim();
+  const cidrRegex =
+    /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}\/(?:[0-9]|[1-2][0-9]|3[0-2])$/;
+  if (!cidrRegex.test(trimmed)) return false;
+
+  const [ipPart, maskPart] = trimmed.split('/');
+  if (!ipPart || !maskPart) return false;
+
+  if (!isValidIpAddress(ipPart)) return false;
+
+  const mask = Number(maskPart);
+  return Number.isInteger(mask) && mask >= 0 && mask <= 32;
+};
+
+export const isValidAsn = (asn: string): boolean => {
+  const trimmed = asn.trim().toUpperCase();
+  return /^AS\d{1,10}$/.test(trimmed);
+};
+
+export const isValidOriginUrl = (value: string): boolean => {
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+
+  try {
+    const parsed = new URL(trimmed);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};

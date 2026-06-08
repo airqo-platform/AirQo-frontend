@@ -20,6 +20,8 @@ import type {
   DeleteClientResponse,
   RefreshClientSecretResponse,
   GetClientByIdResponse,
+  UpdateTokenSecurityRequest,
+  UpdateTokenSecurityResponse,
   ApiErrorResponse,
 } from '../types/api';
 
@@ -101,6 +103,31 @@ export class ClientService {
     }
 
     return data as UpdateClientResponse;
+  }
+
+  async updateTokenSecurity(
+    token: string,
+    payload: UpdateTokenSecurityRequest
+  ): Promise<UpdateTokenSecurityResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.patch<
+      UpdateTokenSecurityResponse | ApiErrorResponse
+    >(`/users/tokens/${encodeURIComponent(token)}`, payload);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to update token security');
+    }
+
+    return data as UpdateTokenSecurityResponse;
+  }
+
+  async reinstateToken(token: string): Promise<UpdateTokenSecurityResponse> {
+    return this.updateTokenSecurity(token, {
+      request_pattern: {
+        auto_suspended: false,
+      },
+    });
   }
 
   // Activate or deactivate a client

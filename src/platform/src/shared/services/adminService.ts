@@ -19,6 +19,13 @@ import type {
   AssignUsersToRoleResponse,
   UnassignUsersFromRoleRequest,
   UnassignUsersFromRoleResponse,
+  GetBlockedAsnsResponse,
+  CreateBlockedAsnRequest,
+  CreateBlockedAsnResponse,
+  DeleteBlockedAsnResponse,
+  GetFlaggedTokensResponse,
+  ResolveFlaggedTokenRequest,
+  ResolveFlaggedTokenResponse,
 } from '../types/api';
 
 export class AdminService {
@@ -171,6 +178,92 @@ export class AdminService {
         `/users/roles/${roleId}/users`,
         { data: userData }
       );
+    return response.data;
+  }
+
+  // Get blocked ASN/CIDR entries
+  async getBlockedASNs(params?: {
+    active?: boolean;
+    skip?: number;
+    limit?: number;
+  }): Promise<GetBlockedAsnsResponse> {
+    await this.ensureAuthenticated();
+    const query = new URLSearchParams();
+    if (typeof params?.active === 'boolean') {
+      query.set('active', String(params.active));
+    }
+    if (typeof params?.skip === 'number') {
+      query.set('skip', String(params.skip));
+    }
+    if (typeof params?.limit === 'number') {
+      query.set('limit', String(params.limit));
+    }
+
+    const url = query.toString()
+      ? `/tokens/blocked-asns?${query.toString()}`
+      : '/tokens/blocked-asns';
+
+    const response = await this.authenticatedClient.get<GetBlockedAsnsResponse>(
+      url
+    );
+    return response.data;
+  }
+
+  async createBlockedASN(
+    payload: CreateBlockedAsnRequest
+  ): Promise<CreateBlockedAsnResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.post<CreateBlockedAsnResponse>(
+      '/tokens/blocked-asns',
+      payload
+    );
+    return response.data;
+  }
+
+  async deleteBlockedASN(id: string): Promise<DeleteBlockedAsnResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.delete<DeleteBlockedAsnResponse>(
+      `/tokens/blocked-asns/${encodeURIComponent(id)}`
+    );
+    return response.data;
+  }
+
+  async getFlaggedTokens(params?: {
+    resolved?: boolean;
+    skip?: number;
+    limit?: number;
+  }): Promise<GetFlaggedTokensResponse> {
+    await this.ensureAuthenticated();
+    const query = new URLSearchParams();
+    if (typeof params?.resolved === 'boolean') {
+      query.set('resolved', String(params.resolved));
+    }
+    if (typeof params?.skip === 'number') {
+      query.set('skip', String(params.skip));
+    }
+    if (typeof params?.limit === 'number') {
+      query.set('limit', String(params.limit));
+    }
+
+    const url = query.toString()
+      ? `/tokens/flagged-tokens?${query.toString()}`
+      : '/tokens/flagged-tokens';
+
+    const response = await this.authenticatedClient.get<GetFlaggedTokensResponse>(
+      url
+    );
+    return response.data;
+  }
+
+  async resolveFlaggedToken(
+    id: string,
+    payload: ResolveFlaggedTokenRequest = {}
+  ): Promise<ResolveFlaggedTokenResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.put<ResolveFlaggedTokenResponse>(
+      `/tokens/flagged-tokens/${encodeURIComponent(id)}/resolve`,
+      payload
+    );
     return response.data;
   }
 }
