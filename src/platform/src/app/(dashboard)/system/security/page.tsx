@@ -22,6 +22,7 @@ import {
 } from '@airqo/icons-react';
 import { adminService } from '@/shared/services/adminService';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import { sanitizeErrorForLogging } from '@/shared/utils/sanitizeErrorForLogging';
 import { formatDate } from '@/shared/utils';
 import {
   isValidAsn,
@@ -263,7 +264,10 @@ const BlockedAsnDialog: React.FC<BlockedAsnDialogProps> = ({
       onSuccess();
     } catch (error) {
       toast.error(getUserFriendlyErrorMessage(error));
-      console.error('Blocked ASN save error:', error);
+      console.error(
+        'Blocked ASN save error:',
+        sanitizeErrorForLogging(error)
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -399,7 +403,10 @@ const ResolveFlaggedTokenDialog: React.FC<ResolveFlaggedTokenDialogProps> = ({
       onSuccess();
     } catch (error) {
       toast.error(getUserFriendlyErrorMessage(error));
-      console.error('Resolve flagged token error:', error);
+      console.error(
+        'Resolve flagged token error:',
+        sanitizeErrorForLogging(error)
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -577,7 +584,10 @@ const SecurityPageContent: React.FC = () => {
       await mutateBlocked();
     } catch (error) {
       toast.error(getUserFriendlyErrorMessage(error));
-      console.error('Delete blocked ASN error:', error);
+      console.error(
+        'Delete blocked ASN error:',
+        sanitizeErrorForLogging(error)
+      );
     }
   };
 
@@ -601,8 +611,9 @@ const SecurityPageContent: React.FC = () => {
         label: 'CIDR ranges',
         minWidth: '260px',
         render: (_value: unknown, item: BlockedAsnRow) => {
-          const visible = item.cidr_ranges.slice(0, 2);
-          const more = item.cidr_ranges.length - visible.length;
+          const cidrRanges = item.cidr_ranges ?? [];
+          const visible = cidrRanges.slice(0, 2);
+          const more = Math.max(0, cidrRanges.length - visible.length);
           return (
             <div className="flex flex-wrap gap-2">
               {visible.map(range => (

@@ -110,16 +110,49 @@ export class ClientService {
     payload: UpdateTokenSecurityRequest
   ): Promise<UpdateTokenSecurityResponse> {
     await this.ensureAuthenticated();
-    const response = await this.authenticatedClient.patch<
-      UpdateTokenSecurityResponse | ApiErrorResponse
-    >(`/users/tokens/${encodeURIComponent(token)}`, payload);
-    const data = response.data;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, 30000);
+    const authorization = this.authenticatedClient.getAuthToken();
 
-    if ('success' in data && !data.success) {
-      throw new Error(data.message || 'Failed to update token security');
+    try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      if (authorization) {
+        headers.Authorization = authorization;
+      }
+
+      const response = await fetch('/api/users/tokens/security', {
+        method: 'PATCH',
+        cache: 'no-store',
+        credentials: 'same-origin',
+        headers,
+        body: JSON.stringify({
+          token,
+          ...payload,
+        }),
+        signal: controller.signal,
+      });
+
+      const data = (await response.json()) as
+        | UpdateTokenSecurityResponse
+        | ApiErrorResponse;
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to update token security');
+      }
+
+      if ('success' in data && !data.success) {
+        throw new Error(data.message || 'Failed to update token security');
+      }
+
+      return data as UpdateTokenSecurityResponse;
+    } finally {
+      clearTimeout(timeoutId);
     }
-
-    return data as UpdateTokenSecurityResponse;
   }
 
   async reinstateToken(token: string): Promise<UpdateTokenSecurityResponse> {

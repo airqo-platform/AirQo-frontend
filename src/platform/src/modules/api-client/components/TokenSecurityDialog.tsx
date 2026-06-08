@@ -5,6 +5,7 @@ import { Button, Checkbox, Dialog, Input, WarningBanner } from '@/shared/compone
 import { toast } from '@/shared/components/ui';
 import { clientService } from '@/shared/services/clientService';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import { sanitizeErrorForLogging } from '@/shared/utils/sanitizeErrorForLogging';
 import { formatDate } from '@/shared/utils';
 import {
   isValidOriginUrl,
@@ -154,7 +155,10 @@ const TokenSecurityDialog: React.FC<TokenSecurityDialogProps> = ({
       onSuccess?.();
     } catch (error) {
       toast.error(getUserFriendlyErrorMessage(error));
-      console.error('Reinstate token error:', error);
+      console.error(
+        'Reinstate token error:',
+        sanitizeErrorForLogging(error)
+      );
     } finally {
       setIsReinstating(false);
     }
@@ -209,7 +213,10 @@ const TokenSecurityDialog: React.FC<TokenSecurityDialogProps> = ({
       onSuccess?.();
     } catch (error) {
       toast.error(getUserFriendlyErrorMessage(error));
-      console.error('Token security update error:', error);
+      console.error(
+        'Token security update error:',
+        sanitizeErrorForLogging(error)
+      );
     } finally {
       setIsSubmitting(false);
     }

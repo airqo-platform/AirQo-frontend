@@ -9,6 +9,7 @@ import { toast } from '@/shared/components/ui';
 import { WarningBanner } from '@/shared/components/ui/banner';
 import { formatDate, parseDate } from '@/shared/utils';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import { sanitizeErrorForLogging } from '@/shared/utils/sanitizeErrorForLogging';
 import {
   AqArrowLeft,
   AqEdit05,
@@ -215,7 +216,10 @@ const ClientDetailsPage: React.FC = () => {
       mutate();
     } catch (error) {
       toast.error(getUserFriendlyErrorMessage(error));
-      console.error('Reinstate token error:', error);
+      console.error(
+        'Reinstate token error:',
+        sanitizeErrorForLogging(error)
+      );
     } finally {
       setIsReinstatingToken(false);
     }
@@ -752,19 +756,25 @@ const ClientDetailsPage: React.FC = () => {
                         <p>
                           Days: {describeAllowedDays(token.access_schedule.allowed_days)}
                         </p>
-                        <p>
-                          Hours UTC:{' '}
-                          {String(token.access_schedule.allowed_hours_utc.start).padStart(
-                            2,
-                            '0'
-                          )}
-                          :00 to{' '}
-                          {String(token.access_schedule.allowed_hours_utc.end).padStart(
-                            2,
-                            '0'
-                          )}
-                          :00
-                        </p>
+                        {token.access_schedule.allowed_hours_utc &&
+                        typeof token.access_schedule.allowed_hours_utc.start ===
+                          'number' &&
+                        typeof token.access_schedule.allowed_hours_utc.end ===
+                          'number' ? (
+                          <p>
+                            Hours UTC:{' '}
+                            {String(
+                              token.access_schedule.allowed_hours_utc.start
+                            ).padStart(2, '0')}
+                            :00 to{' '}
+                            {String(
+                              token.access_schedule.allowed_hours_utc.end
+                            ).padStart(2, '0')}
+                            :00
+                          </p>
+                        ) : (
+                          <p>Hours UTC: All day</p>
+                        )}
                       </>
                     ) : (
                       <p>Disabled</p>

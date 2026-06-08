@@ -182,7 +182,11 @@ export const isValidCidrNotation = (cidr: string): boolean => {
 
 export const isValidAsn = (asn: string): boolean => {
   const trimmed = asn.trim().toUpperCase();
-  return /^AS\d{1,10}$/.test(trimmed);
+  const match = trimmed.match(/^AS(\d{1,10})$/);
+  if (!match) return false;
+
+  const value = Number(match[1]);
+  return Number.isInteger(value) && value >= 1 && value <= 4294967295;
 };
 
 export const isValidOriginUrl = (value: string): boolean => {
@@ -191,7 +195,15 @@ export const isValidOriginUrl = (value: string): boolean => {
 
   try {
     const parsed = new URL(trimmed);
-    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    return (
+      (parsed.protocol === 'http:' || parsed.protocol === 'https:') &&
+      parsed.hostname.length > 0 &&
+      parsed.username === '' &&
+      parsed.password === '' &&
+      parsed.pathname === '/' &&
+      parsed.search === '' &&
+      parsed.hash === ''
+    );
   } catch {
     return false;
   }

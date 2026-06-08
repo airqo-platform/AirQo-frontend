@@ -8,6 +8,7 @@ import { Tooltip } from 'flowbite-react';
 import { toast } from '@/shared/components/ui';
 import { formatDate, parseDate } from '@/shared/utils';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import { sanitizeErrorForLogging } from '@/shared/utils/sanitizeErrorForLogging';
 import { AqPlus, AqEdit05, AqShield02 } from '@airqo/icons-react';
 import { useClientsByUserId, useGenerateToken } from '@/shared/hooks/useClient';
 import InactiveClientDialog from './components/InactiveClientDialog';
@@ -152,7 +153,10 @@ const ApiClientPage: React.FC = () => {
         await mutate();
       } catch (error) {
         toast.error(getUserFriendlyErrorMessage(error));
-        console.error('Reinstate token error:', error);
+        console.error(
+          'Reinstate token error:',
+          sanitizeErrorForLogging(error)
+        );
       } finally {
         setReinstateTokenClientId(null);
       }

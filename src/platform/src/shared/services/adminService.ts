@@ -28,6 +28,17 @@ import type {
   ResolveFlaggedTokenResponse,
 } from '../types/api';
 
+const extractSuccessData = <T extends { success?: boolean; message?: string }>(
+  data: T,
+  fallbackMessage: string
+): T => {
+  if (data?.success === false) {
+    throw new Error(data.message || fallbackMessage);
+  }
+
+  return data;
+};
+
 export class AdminService {
   private authenticatedClient: ApiClient;
 
@@ -206,7 +217,10 @@ export class AdminService {
     const response = await this.authenticatedClient.get<GetBlockedAsnsResponse>(
       url
     );
-    return response.data;
+    return extractSuccessData(
+      response.data,
+      'Failed to get blocked ASN entries'
+    );
   }
 
   async createBlockedASN(
@@ -217,7 +231,10 @@ export class AdminService {
       '/tokens/blocked-asns',
       payload
     );
-    return response.data;
+    return extractSuccessData(
+      response.data,
+      'Failed to create blocked ASN entry'
+    );
   }
 
   async deleteBlockedASN(id: string): Promise<DeleteBlockedAsnResponse> {
@@ -225,7 +242,10 @@ export class AdminService {
     const response = await this.authenticatedClient.delete<DeleteBlockedAsnResponse>(
       `/tokens/blocked-asns/${encodeURIComponent(id)}`
     );
-    return response.data;
+    return extractSuccessData(
+      response.data,
+      'Failed to delete blocked ASN entry'
+    );
   }
 
   async getFlaggedTokens(params?: {
@@ -252,7 +272,10 @@ export class AdminService {
     const response = await this.authenticatedClient.get<GetFlaggedTokensResponse>(
       url
     );
-    return response.data;
+    return extractSuccessData(
+      response.data,
+      'Failed to get flagged tokens'
+    );
   }
 
   async resolveFlaggedToken(
@@ -264,7 +287,10 @@ export class AdminService {
       `/tokens/flagged-tokens/${encodeURIComponent(id)}/resolve`,
       payload
     );
-    return response.data;
+    return extractSuccessData(
+      response.data,
+      'Failed to resolve flagged token'
+    );
   }
 }
 
