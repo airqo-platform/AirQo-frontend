@@ -1,15 +1,19 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Button, Checkbox, Dialog, Input, WarningBanner } from '@/shared/components/ui';
+import {
+  Button,
+  Checkbox,
+  Dialog,
+  Input,
+  WarningBanner,
+} from '@/shared/components/ui';
 import { toast } from '@/shared/components/ui';
 import { clientService } from '@/shared/services/clientService';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { sanitizeErrorForLogging } from '@/shared/utils/sanitizeErrorForLogging';
 import { formatDate } from '@/shared/utils';
-import {
-  isValidOriginUrl,
-} from '@/shared/lib/validators';
+import { isValidOriginUrl } from '@/shared/lib/validators';
 import type {
   ClientAccessToken,
   UpdateTokenSecurityRequest,
@@ -39,13 +43,7 @@ interface TokenSecurityDialogProps {
 }
 
 const normalizeValues = (values: string[]) =>
-  Array.from(
-    new Set(
-      values
-        .map(value => value.trim())
-        .filter(Boolean)
-    )
-  );
+  Array.from(new Set(values.map(value => value.trim()).filter(Boolean)));
 
 const TokenSecurityDialog: React.FC<TokenSecurityDialogProps> = ({
   isOpen,
@@ -58,8 +56,12 @@ const TokenSecurityDialog: React.FC<TokenSecurityDialogProps> = ({
   const [allowedCohorts, setAllowedCohorts] = useState<string[]>(['']);
   const [allowedOrigins, setAllowedOrigins] = useState<string[]>(['']);
   const [allowedGridErrors, setAllowedGridErrors] = useState<string[]>(['']);
-  const [allowedCohortErrors, setAllowedCohortErrors] = useState<string[]>(['']);
-  const [allowedOriginErrors, setAllowedOriginErrors] = useState<string[]>(['']);
+  const [allowedCohortErrors, setAllowedCohortErrors] = useState<string[]>([
+    '',
+  ]);
+  const [allowedOriginErrors, setAllowedOriginErrors] = useState<string[]>([
+    '',
+  ]);
   const [scheduleEnabled, setScheduleEnabled] = useState(false);
   const [allowedDays, setAllowedDays] = useState<number[]>([]);
   const [startHour, setStartHour] = useState(0);
@@ -155,10 +157,7 @@ const TokenSecurityDialog: React.FC<TokenSecurityDialogProps> = ({
       onSuccess?.();
     } catch (error) {
       toast.error(getUserFriendlyErrorMessage(error));
-      console.error(
-        'Reinstate token error:',
-        sanitizeErrorForLogging(error)
-      );
+      console.error('Reinstate token error:', sanitizeErrorForLogging(error));
     } finally {
       setIsReinstating(false);
     }
@@ -174,12 +173,8 @@ const TokenSecurityDialog: React.FC<TokenSecurityDialogProps> = ({
     const normalizedCohorts = normalizeValues(allowedCohorts);
     const normalizedOrigins = normalizeValues(allowedOrigins);
 
-    const gridErrors = allowedGrids.map(value =>
-      value.trim() ? '' : ''
-    );
-    const cohortErrors = allowedCohorts.map(value =>
-      value.trim() ? '' : ''
-    );
+    const gridErrors = allowedGrids.map(value => (value.trim() ? '' : ''));
+    const cohortErrors = allowedCohorts.map(value => (value.trim() ? '' : ''));
     setAllowedGridErrors(gridErrors);
     setAllowedCohortErrors(cohortErrors);
 
@@ -318,7 +313,10 @@ const TokenSecurityDialog: React.FC<TokenSecurityDialogProps> = ({
             title="Token automatically suspended"
             message={
               <div className="space-y-1">
-                <p>This token has been suspended because suspicious activity was detected.</p>
+                <p>
+                  This token has been suspended because suspicious activity was
+                  detected.
+                </p>
                 {token.request_pattern.suspension_reason && (
                   <p>
                     <span className="font-medium">Reason:</span>{' '}

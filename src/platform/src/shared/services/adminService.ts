@@ -214,9 +214,8 @@ export class AdminService {
       ? `/tokens/blocked-asns?${query.toString()}`
       : '/tokens/blocked-asns';
 
-    const response = await this.authenticatedClient.get<GetBlockedAsnsResponse>(
-      url
-    );
+    const response =
+      await this.authenticatedClient.get<GetBlockedAsnsResponse>(url);
     return extractSuccessData(
       response.data,
       'Failed to get blocked ASN entries'
@@ -227,10 +226,11 @@ export class AdminService {
     payload: CreateBlockedAsnRequest
   ): Promise<CreateBlockedAsnResponse> {
     await this.ensureAuthenticated();
-    const response = await this.authenticatedClient.post<CreateBlockedAsnResponse>(
-      '/tokens/blocked-asns',
-      payload
-    );
+    const response =
+      await this.authenticatedClient.post<CreateBlockedAsnResponse>(
+        '/tokens/blocked-asns',
+        payload
+      );
     return extractSuccessData(
       response.data,
       'Failed to create blocked ASN entry'
@@ -239,9 +239,10 @@ export class AdminService {
 
   async deleteBlockedASN(id: string): Promise<DeleteBlockedAsnResponse> {
     await this.ensureAuthenticated();
-    const response = await this.authenticatedClient.delete<DeleteBlockedAsnResponse>(
-      `/tokens/blocked-asns/${encodeURIComponent(id)}`
-    );
+    const response =
+      await this.authenticatedClient.delete<DeleteBlockedAsnResponse>(
+        `/tokens/blocked-asns/${encodeURIComponent(id)}`
+      );
     return extractSuccessData(
       response.data,
       'Failed to delete blocked ASN entry'
@@ -269,13 +270,9 @@ export class AdminService {
       ? `/tokens/flagged-tokens?${query.toString()}`
       : '/tokens/flagged-tokens';
 
-    const response = await this.authenticatedClient.get<GetFlaggedTokensResponse>(
-      url
-    );
-    return extractSuccessData(
-      response.data,
-      'Failed to get flagged tokens'
-    );
+    const response =
+      await this.authenticatedClient.get<GetFlaggedTokensResponse>(url);
+    return extractSuccessData(response.data, 'Failed to get flagged tokens');
   }
 
   async resolveFlaggedToken(
@@ -283,14 +280,12 @@ export class AdminService {
     payload: ResolveFlaggedTokenRequest = {}
   ): Promise<ResolveFlaggedTokenResponse> {
     await this.ensureAuthenticated();
-    const response = await this.authenticatedClient.put<ResolveFlaggedTokenResponse>(
-      `/tokens/flagged-tokens/${encodeURIComponent(id)}/resolve`,
-      payload
-    );
-    return extractSuccessData(
-      response.data,
-      'Failed to resolve flagged token'
-    );
+    const response =
+      await this.authenticatedClient.put<ResolveFlaggedTokenResponse>(
+        `/tokens/flagged-tokens/${encodeURIComponent(id)}/resolve`,
+        payload
+      );
+    return extractSuccessData(response.data, 'Failed to resolve flagged token');
   }
 }
 

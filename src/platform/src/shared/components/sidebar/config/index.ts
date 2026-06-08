@@ -16,6 +16,7 @@ import {
   AqFileQuestion02,
   AqMessageCheckCircle,
   AqMail04,
+  AqClipboardCheck,
 } from '@airqo/icons-react';
 
 export interface NavItem {
@@ -54,8 +55,8 @@ export interface SidebarConfig {
 // User flow sidebar configuration
 const userSidebarConfig: NavGroup[] = [
   {
-    id: 'main',
-    label: 'Main',
+    id: 'explore',
+    label: 'Explore',
     items: [
       {
         id: 'home',
@@ -64,11 +65,24 @@ const userSidebarConfig: NavGroup[] = [
         icon: AqHomeSmile,
       },
       {
+        id: 'map',
+        label: 'Map',
+        href: '/user/map',
+        icon: AqGlobe05,
+        disabled: false,
+      },
+      {
         id: 'favorites',
         label: 'My Favorites',
         href: '/user/favorites',
         icon: AqStar06,
       },
+    ],
+  },
+  {
+    id: 'data',
+    label: 'Data & Analysis',
+    items: [
       {
         id: 'bulk-export',
         label: 'Visualization & Data Export',
@@ -80,13 +94,6 @@ const userSidebarConfig: NavGroup[] = [
         label: 'Dataset Visualizer',
         href: '/user/data-visualizer',
         icon: AqPresentationChart02,
-      },
-      {
-        id: 'map',
-        label: 'Map',
-        href: '/user/map',
-        icon: AqGlobe05,
-        disabled: false,
       },
     ],
   },
@@ -222,8 +229,8 @@ const adminSidebarConfig: NavGroup[] = [
 
 const systemSidebarConfig: NavGroup[] = [
   {
-    id: 'system',
-    label: 'System Management',
+    id: 'system-access',
+    label: 'Access & Security',
     items: [
       {
         id: 'system-clients',
@@ -237,6 +244,12 @@ const systemSidebarConfig: NavGroup[] = [
         href: '/system/security',
         icon: AqShield02,
       },
+    ],
+  },
+  {
+    id: 'system-platform',
+    label: 'Platform',
+    items: [
       {
         id: 'system-email-configs',
         label: 'Email Configuration',
@@ -247,19 +260,31 @@ const systemSidebarConfig: NavGroup[] = [
         id: 'system-org-requests',
         label: 'Organization Requests',
         href: '/system/org-requests',
-        icon: AqFileQuestion02,
+        icon: AqClipboardCheck,
       },
+    ],
+  },
+  {
+    id: 'system-insights',
+    label: 'Insights',
+    items: [
       {
-        id: 'system-feedback',
-        label: 'Feedback',
-        href: '/system/feedback',
-        icon: AqMessageCheckCircle,
+        id: 'system-surveys',
+        label: 'Survey Management',
+        href: '/system/surveys',
+        icon: AqFileQuestion02,
       },
       {
         id: 'system-user-statistics',
         label: 'User Statistics',
         href: '/system/user-statistics',
         icon: AqPresentationChart02,
+      },
+      {
+        id: 'system-feedback',
+        label: 'Feedback',
+        href: '/system/feedback',
+        icon: AqMessageCheckCircle,
       },
     ],
   },
@@ -312,6 +337,13 @@ const globalSidebarConfig: NavGroup[] = [
             label: 'Feedback',
             href: '/system/feedback',
             description: 'Review user feedback and reported issues',
+          },
+          {
+            id: 'system-surveys',
+            label: 'Survey Management',
+            href: '/system/surveys',
+            description:
+              'Review active surveys, responses, and completion stats',
           },
           {
             id: 'system-user-statistics',
@@ -375,12 +407,17 @@ export const bottomNavItems: Record<'user' | 'organization', NavItem[]> = {
       icon: AqHomeSmile,
     },
     {
+      id: 'map',
+      label: 'Map',
+      href: '/user/map',
+      icon: AqGlobe05,
+    },
+    {
       id: 'favorites',
       label: 'Favorites',
       href: '/user/favorites',
       icon: AqStar06,
     },
-
     {
       id: 'bulk-export',
       label: 'Export',
@@ -389,15 +426,9 @@ export const bottomNavItems: Record<'user' | 'organization', NavItem[]> = {
     },
     {
       id: 'data-visualizer',
-      label: 'Dataset Visualizer',
+      label: 'Visualizer',
       href: '/user/data-visualizer',
       icon: AqPresentationChart02,
-    },
-    {
-      id: 'map',
-      label: 'Map',
-      href: '/user/map',
-      icon: AqGlobe05,
     },
   ],
   organization: [

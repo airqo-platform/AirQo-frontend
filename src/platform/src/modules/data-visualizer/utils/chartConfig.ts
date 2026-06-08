@@ -7,10 +7,7 @@ import type {
 } from '../types';
 import { profileDataset } from './dataProfiling';
 import { detectCoordinateColumns } from './geospatial';
-import {
-  formatColumnLabel,
-  formatMeasurementLabel,
-} from './measurementLabels';
+import { formatColumnLabel, formatMeasurementLabel } from './measurementLabels';
 import { getDatasetRowsForChart } from './workspaceData';
 
 const CATEGORY_CHART_TYPES = new Set<VisualizerChartType>([
@@ -37,7 +34,9 @@ const getSelectedDatasets = (
   }
 
   const selectedIds = new Set(datasetIds);
-  const selectedDatasets = datasets.filter(dataset => selectedIds.has(dataset.id));
+  const selectedDatasets = datasets.filter(dataset =>
+    selectedIds.has(dataset.id)
+  );
 
   return selectedDatasets.length > 0 ? selectedDatasets : datasets;
 };
@@ -141,16 +140,21 @@ export const normalizeChartConfigForDatasets = (
     formatMeasurementLabel(chart.metricColumn) || 'Measurement';
   const nextMetricColumn = keepOrFallback(
     chart.metricColumn,
-    hasMultipleDatasets ? sharedNumericColumns : workspaceProfile.numericColumns,
+    hasMultipleDatasets
+      ? sharedNumericColumns
+      : workspaceProfile.numericColumns,
     workspaceProfile.numericColumns
   );
   const nextSecondaryMetricColumn = SECONDARY_METRIC_CHART_TYPES.has(chart.type)
     ? keepOrFallback(
         chart.secondaryMetricColumn,
-        (hasMultipleDatasets ? sharedNumericColumns : workspaceProfile.numericColumns).filter(
+        (hasMultipleDatasets
+          ? sharedNumericColumns
+          : workspaceProfile.numericColumns
+        ).filter(column => column !== nextMetricColumn),
+        workspaceProfile.numericColumns.filter(
           column => column !== nextMetricColumn
-        ),
-        workspaceProfile.numericColumns.filter(column => column !== nextMetricColumn)
+        )
       )
     : undefined;
   const nextCompareColumn =
@@ -202,7 +206,9 @@ export const normalizeChartConfigForDatasets = (
     chart.type === 'map'
       ? keepOrFallback(
           chart.latitudeColumn,
-          coordinateColumns.latitudeColumn ? [coordinateColumns.latitudeColumn] : [],
+          coordinateColumns.latitudeColumn
+            ? [coordinateColumns.latitudeColumn]
+            : [],
           workspaceProfile.numericColumns,
           coordinateColumns.latitudeColumn
         )
@@ -211,14 +217,17 @@ export const normalizeChartConfigForDatasets = (
     chart.type === 'map'
       ? keepOrFallback(
           chart.longitudeColumn,
-          coordinateColumns.longitudeColumn ? [coordinateColumns.longitudeColumn] : [],
+          coordinateColumns.longitudeColumn
+            ? [coordinateColumns.longitudeColumn]
+            : [],
           workspaceProfile.numericColumns,
           coordinateColumns.longitudeColumn
         )
       : undefined;
-  const nextXAxisDefault = chart.type === 'scatter'
-    ? formatMeasurementLabel(nextSecondaryMetricColumn)
-    : formatColumnLabel(nextXColumn);
+  const nextXAxisDefault =
+    chart.type === 'scatter'
+      ? formatMeasurementLabel(nextSecondaryMetricColumn)
+      : formatColumnLabel(nextXColumn);
   const nextYAxisDefault = formatMeasurementLabel(nextMetricColumn);
 
   return {

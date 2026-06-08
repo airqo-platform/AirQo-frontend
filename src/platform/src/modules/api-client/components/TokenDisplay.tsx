@@ -88,9 +88,7 @@ const TokenDisplay: React.FC<TokenDisplayProps> = ({
             title="Token automatically suspended"
             message={
               <div className="space-y-1">
-                <p>
-                  This token has been suspended due to suspicious activity.
-                </p>
+                <p>This token has been suspended due to suspicious activity.</p>
                 {suspensionReason && (
                   <p>
                     <span className="font-medium">Reason:</span>{' '}
@@ -126,11 +124,11 @@ const TokenDisplay: React.FC<TokenDisplayProps> = ({
               onClick={copyToClipboard}
               className="p-1 h-6 w-6 flex-shrink-0"
               aria-label="Copy token"
-              >
-                <AqCopy06 className="w-4 h-4" />
-              </Button>
-            </div>
+            >
+              <AqCopy06 className="w-4 h-4" />
+            </Button>
           </div>
+        </div>
 
         <div className="flex items-center gap-2 min-w-0">
           {showStatusBadge &&

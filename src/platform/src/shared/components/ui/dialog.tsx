@@ -13,7 +13,7 @@ interface ActionButton {
   disabled?: boolean;
   className?: string;
   padding?: string;
-  variant?: 'filled' | 'outlined' | 'text' | 'ghost' | 'disabled';
+  variant?: 'filled' | 'outlined' | 'text' | 'ghost' | 'disabled' | 'danger';
 }
 
 interface CardProps {
@@ -101,7 +101,7 @@ interface ActionButton {
   loading?: boolean;
   className?: string;
   padding?: string;
-  variant?: 'filled' | 'outlined' | 'text' | 'ghost' | 'disabled';
+  variant?: 'filled' | 'outlined' | 'text' | 'ghost' | 'disabled' | 'danger';
 }
 
 interface ReusableDialogProps {
@@ -300,12 +300,10 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
               <div>
                 <Button
                   onClick={primaryAction.onClick}
+                  variant={primaryAction.variant || 'filled'}
                   disabled={primaryAction.disabled}
                   loading={primaryAction.loading}
-                  className={
-                    primaryAction.className ||
-                    'text-sm bg-primary hover:bg-primary/90 focus:ring-primary text-white disabled:opacity-50'
-                  }
+                  className={primaryAction.className || 'text-sm'}
                   paddingStyles={primaryAction.padding || 'px-4 py-2'}
                 >
                   {primaryAction.label}
@@ -315,12 +313,10 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
           ) : (
             <Button
               onClick={primaryAction.onClick}
+              variant={primaryAction.variant || 'filled'}
               disabled={primaryAction.disabled}
               loading={primaryAction.loading}
-              className={
-                primaryAction.className ||
-                'text-sm bg-primary hover:bg-primary/90 focus:ring-primary text-white disabled:opacity-50'
-              }
+              className={primaryAction.className || 'text-sm'}
               paddingStyles={primaryAction.padding || 'px-4 py-2'}
             >
               {primaryAction.label}
@@ -382,8 +378,7 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
                     >
                       <div
                         className={
-                          contentAreaClassName ||
-                          'px-4 py-4 sm:px-6 sm:py-5'
+                          contentAreaClassName || 'px-4 py-4 sm:px-6 sm:py-5'
                         }
                       >
                         {children}

@@ -5,10 +5,7 @@ import { usePostHog } from 'posthog-js/react';
 import { Button, Input, Dialog, Checkbox } from '@/shared/components/ui';
 import { toast } from '@/shared/components/ui';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
-import {
-  isValidIpAddress,
-  isValidOriginUrl,
-} from '@/shared/lib/validators';
+import { isValidIpAddress, isValidOriginUrl } from '@/shared/lib/validators';
 import { clientService } from '@/shared/services/clientService';
 import { trackEvent } from '@/shared/utils/analytics';
 import { trackApiClientAction } from '@/shared/utils/enhancedAnalytics';
@@ -89,7 +86,9 @@ const CreateClientDialog: React.FC<CreateClientDialogProps> = ({
     setIsSubmitting(true);
     try {
       const filteredIpAddresses = ipAddresses.filter(ip => ip.trim() !== '');
-      const filteredOrigins = originAddresses.filter(origin => origin.trim() !== '');
+      const filteredOrigins = originAddresses.filter(
+        origin => origin.trim() !== ''
+      );
 
       // Validate IP addresses
       const newIpErrors = [...ipErrors];

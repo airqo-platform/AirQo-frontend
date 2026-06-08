@@ -5,10 +5,7 @@ import { usePostHog } from 'posthog-js/react';
 import { Button, Input, Dialog, Checkbox } from '@/shared/components/ui';
 import { toast } from '@/shared/components/ui';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
-import {
-  isValidIpAddress,
-  isValidOriginUrl,
-} from '@/shared/lib/validators';
+import { isValidIpAddress, isValidOriginUrl } from '@/shared/lib/validators';
 import { clientService } from '@/shared/services/clientService';
 import type { Client } from '@/shared/types/api';
 import { trackEvent } from '@/shared/utils/analytics';

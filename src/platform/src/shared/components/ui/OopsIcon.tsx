@@ -16,9 +16,7 @@ const OopsIcon: React.FC<OopsIconProps> = ({
   className = '',
   ...props
 }) => {
-  const svgProps = size
-    ? { width: size, height: size }
-    : {};
+  const svgProps = size ? { width: size, height: size } : {};
 
   return (
     <svg

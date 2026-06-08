@@ -441,7 +441,9 @@ const getDatasetWorkspaceInsight = (
   }
 
   if (!hasTimeColumn) {
-    notes.push('Trend charts may be limited because no date field was detected.');
+    notes.push(
+      'Trend charts may be limited because no date field was detected.'
+    );
   }
 
   if (!hasCoordinates) {
@@ -493,11 +495,16 @@ const summarizeDatasetQuality = (insights: DatasetWorkspaceInsight[]) => {
   const withoutCoordinates = insights.filter(
     insight => !insight.hasCoordinates
   );
-  const sparseDatasets = insights.filter(insight => insight.sparseColumnCount > 0);
-  const emptyDatasets = insights.filter(
-    insight => insight.readiness === 'limited' && insight.profile.columns.length === 0
+  const sparseDatasets = insights.filter(
+    insight => insight.sparseColumnCount > 0
   );
-  const parts = ['Blank cells are skipped automatically so incomplete files can still be explored.'];
+  const emptyDatasets = insights.filter(
+    insight =>
+      insight.readiness === 'limited' && insight.profile.columns.length === 0
+  );
+  const parts = [
+    'Blank cells are skipped automatically so incomplete files can still be explored.',
+  ];
 
   if (withoutMetrics.length > 0) {
     parts.push(
@@ -531,7 +538,9 @@ const summarizeDatasetQuality = (insights: DatasetWorkspaceInsight[]) => {
 
   return {
     severity:
-      withoutMetrics.length > 0 || emptyDatasets.length > 0 ? 'warning' : 'info',
+      withoutMetrics.length > 0 || emptyDatasets.length > 0
+        ? 'warning'
+        : 'info',
     message: parts.join(' '),
   };
 };
@@ -566,15 +575,13 @@ export const DataVisualizerWorkspace: React.FC<
   const [lastSavedAt, setLastSavedAt] = React.useState<string | null>(null);
   const [appliedDateRange, setAppliedDateRange] =
     React.useState<DateRange | null>(null);
-  const [isTutorialDialogOpen, setIsTutorialDialogOpen] =
-    React.useState(false);
+  const [isTutorialDialogOpen, setIsTutorialDialogOpen] = React.useState(false);
   const [showDataInspector, setShowDataInspector] = React.useState(false);
   const [showFieldGuide, setShowFieldGuide] = React.useState(false);
   const [displayMode, setDisplayMode] =
     React.useState<VisualizerDisplayMode>('focused');
   const [toolbarCollapsed, setToolbarCollapsed] = React.useState(false);
-  const [toolbarStickyEnabled, setToolbarStickyEnabled] =
-    React.useState(false);
+  const [toolbarStickyEnabled, setToolbarStickyEnabled] = React.useState(false);
   const [isToolbarFloating, setIsToolbarFloating] = React.useState(false);
 
   // Cycle through friendly status messages while parsing
@@ -669,10 +676,7 @@ export const DataVisualizerWorkspace: React.FC<
   }, []);
 
   const normalizeChartsForDatasets = React.useCallback(
-    (
-      currentCharts: VisualizerChartConfig[],
-      nextDatasets: UploadedDataset[]
-    ) =>
+    (currentCharts: VisualizerChartConfig[], nextDatasets: UploadedDataset[]) =>
       currentCharts.map(chart =>
         normalizeChartConfigForDatasets(chart, nextDatasets)
       ),
@@ -845,7 +849,10 @@ export const DataVisualizerWorkspace: React.FC<
                 {
                   ...chart,
                   datasetIds: Array.from(
-                    new Set([...chart.datasetIds, ...newDatasets.map(d => d.id)])
+                    new Set([
+                      ...chart.datasetIds,
+                      ...newDatasets.map(d => d.id),
+                    ])
                   ),
                 },
                 nextDatasets
@@ -1127,7 +1134,9 @@ export const DataVisualizerWorkspace: React.FC<
       return;
     }
 
-    const remainingDatasets = datasets.filter(dataset => dataset.id !== datasetId);
+    const remainingDatasets = datasets.filter(
+      dataset => dataset.id !== datasetId
+    );
     const remainingDatasetIds = datasets
       .filter(dataset => dataset.id !== datasetId)
       .map(dataset => dataset.id);
@@ -1136,7 +1145,9 @@ export const DataVisualizerWorkspace: React.FC<
     setCharts(current =>
       normalizeChartsForDatasets(
         current.map(chart => {
-          const nextDatasetIds = chart.datasetIds.filter(id => id !== datasetId);
+          const nextDatasetIds = chart.datasetIds.filter(
+            id => id !== datasetId
+          );
           return {
             ...chart,
             datasetIds:
@@ -1287,7 +1298,8 @@ export const DataVisualizerWorkspace: React.FC<
   const availableChartTypes = React.useMemo(
     () =>
       DEFAULT_CHART_ORDER.filter(
-        type => type !== 'map' || hasCoordinateColumns(workspaceCoordinateColumns)
+        type =>
+          type !== 'map' || hasCoordinateColumns(workspaceCoordinateColumns)
       ),
     [workspaceCoordinateColumns]
   );
@@ -1438,7 +1450,8 @@ export const DataVisualizerWorkspace: React.FC<
                   {charts.length} view{charts.length === 1 ? '' : 's'}
                 </div>
                 <div className="rounded-full bg-muted px-3 py-1.5 text-muted-foreground">
-                  Saved {lastSavedAt ? formatDraftSavedAt(lastSavedAt) : 'pending'}
+                  Saved{' '}
+                  {lastSavedAt ? formatDraftSavedAt(lastSavedAt) : 'pending'}
                 </div>
               </div>
 
@@ -1472,7 +1485,10 @@ export const DataVisualizerWorkspace: React.FC<
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
                     {availableChartTypes.map(type => (
-                      <DropdownMenuItem key={type} onClick={() => addChart(type)}>
+                      <DropdownMenuItem
+                        key={type}
+                        onClick={() => addChart(type)}
+                      >
                         {CHART_TYPE_LABELS[type]}
                       </DropdownMenuItem>
                     ))}
@@ -2257,7 +2273,9 @@ export const DataVisualizerWorkspace: React.FC<
         <div
           className={cn(
             'grid gap-4',
-            displayMode === 'focused' ? 'grid-cols-1' : 'grid-cols-1 xl:grid-cols-2'
+            displayMode === 'focused'
+              ? 'grid-cols-1'
+              : 'grid-cols-1 xl:grid-cols-2'
           )}
         >
           {visibleChartItems.map(item => (

@@ -489,7 +489,8 @@ export class DeviceService {
 
       return {
         success: true,
-        message: 'Cohort details endpoint unavailable; continuing without details',
+        message:
+          'Cohort details endpoint unavailable; continuing without details',
         meta: {
           total: 0,
           limit: 0,
