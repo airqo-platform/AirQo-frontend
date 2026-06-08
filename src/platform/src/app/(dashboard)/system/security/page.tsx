@@ -20,7 +20,6 @@ import {
   AqRefreshCw05,
   AqPlus,
 } from '@airqo/icons-react';
-import { useUser } from '@/shared/hooks';
 import { adminService } from '@/shared/services/adminService';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { formatDate } from '@/shared/utils';
@@ -1019,14 +1018,11 @@ const SecurityPageContent: React.FC = () => {
 };
 
 const SystemSecurityPage: React.FC = () => {
-  const { user } = useUser();
-
   return (
     <PermissionGuard
-      requiredRoles={['AIRQO_SUPER_ADMIN']}
-      customCheck={() => !!user?.email?.toLowerCase().endsWith('@airqo.net')}
+      requireAirQoSuperAdmin={true}
       accessDeniedTitle="Access Restricted"
-      accessDeniedMessage="You need system administration permissions to manage security controls."
+      accessDeniedMessage="You need the AIRQO_SUPER_ADMIN role with an @airqo.net email to manage security controls."
     >
       <SecurityPageContent />
     </PermissionGuard>
