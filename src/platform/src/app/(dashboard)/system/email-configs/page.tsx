@@ -530,7 +530,7 @@ const EmailConfigContent: React.FC = () => {
         iconPosition="start"
         onClick={openCreateDialog}
       >
-        Create config
+        Create configuration
       </Button>
     </div>
   );
@@ -545,7 +545,7 @@ const EmailConfigContent: React.FC = () => {
     >
       <div className="space-y-6">
         <PageHeading
-          title="Email Config"
+          title="Email Configuration"
           subtitle="Maintain the application-account emails that trigger admin CCs on automated notifications."
           action={pageAction}
         />
@@ -601,7 +601,7 @@ const EmailConfigContent: React.FC = () => {
                 description="Create the first configuration to define the admin CC recipients and application emails for automated notifications."
                 icon={<AqMail04 className="h-12 w-12" />}
                 action={{
-                  label: 'Create config',
+                  label: 'Create configuration',
                   onClick: openCreateDialog,
                   variant: 'filled',
                 }}
@@ -624,8 +624,8 @@ const EmailConfigContent: React.FC = () => {
           onClose={closeDialog}
           title={
             dialogState?.mode === 'create'
-              ? 'Create Email Config'
-              : 'Edit Email Config'
+              ? 'Create Email Configuration'
+              : 'Edit Email Configuration'
           }
           size="lg"
         >
@@ -705,7 +705,7 @@ const EmailConfigContent: React.FC = () => {
               </Button>
               <Button type="submit" loading={isSubmitting}>
                 {dialogState?.mode === 'create'
-                  ? 'Create config'
+                  ? 'Create configuration'
                   : 'Save changes'}
               </Button>
             </div>
@@ -715,7 +715,7 @@ const EmailConfigContent: React.FC = () => {
         <Dialog
           isOpen={!!deleteConfig}
           onClose={closeDeleteDialog}
-          title="Delete Email Config"
+          title="Delete Email Configuration"
           size="md"
         >
           <div className="space-y-4">
@@ -764,7 +764,7 @@ const EmailConfigContent: React.FC = () => {
                 loading={isDeleting}
                 className="bg-red-600 hover:bg-red-700 text-white"
               >
-                Delete config
+                Delete configuration
               </Button>
             </div>
           </div>

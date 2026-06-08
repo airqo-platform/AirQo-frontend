@@ -233,7 +233,7 @@ const systemSidebarConfig: NavGroup[] = [
       },
       {
         id: 'system-email-configs',
-        label: 'Email Config',
+        label: 'Email Configuration',
         href: '/system/email-configs',
         icon: AqMail04,
       },
@@ -284,7 +284,7 @@ const globalSidebarConfig: NavGroup[] = [
           },
           {
             id: 'system-email-configs',
-            label: 'Email Config',
+            label: 'Email Configuration',
             href: '/system/email-configs',
             description:
               'Maintain admin CC and application email configuration',
