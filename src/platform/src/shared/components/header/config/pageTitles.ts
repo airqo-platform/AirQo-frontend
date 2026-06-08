@@ -22,6 +22,7 @@ export const PAGE_TITLES: Record<string, string> = {
 
   // System routes (platform-wide admin features)
   '/system/clients': 'API Clients',
+  '/system/email-configs': 'Email Configuration',
   '/system/security': 'Security',
   '/system/org-requests': 'Organization Requests',
   '/system/user-statistics': 'User Statistics',
