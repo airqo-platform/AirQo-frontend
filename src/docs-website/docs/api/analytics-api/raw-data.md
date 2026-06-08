@@ -13,6 +13,10 @@ Requires a **Standard Tier** subscription or above.
 
 ---
 
+:::caution Grid and Cohort ID filtering — coming soon
+This endpoint does not yet accept `grid_id` or `cohort_id` as parameters. Filter by `device_names` (array of device names) instead. Use the [Metadata API](../reference/metadata.md) to discover device identifiers for your Grid or Cohort.
+:::
+
 ## Endpoint
 
 ```http

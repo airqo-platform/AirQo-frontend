@@ -3,12 +3,20 @@ sidebar_position: 3
 sidebar_label: Historical Data
 ---
 
-# Historical Data — Grid ID
+# Historical Data — Cities
 
-Access up to one year of calibrated air quality measurements for all sites within your city's Grid. Historical data is retrieved through the Analytics API using a `POST` request.
+Access the full history of calibrated air quality measurements for all sites within your city's Grid. Historical data is retrieved through the Analytics API using a `POST` request. Each individual request is capped at approximately **2 months of data** — use batched requests with pagination to retrieve longer periods.
 
 :::info Tier requirement
 Historical data access requires a **Standard Tier** subscription or above.
+:::
+
+:::caution Grid ID direct filtering — coming soon
+The Analytics API does not yet accept `grid_id` as a request parameter. You must supply individual **Site IDs** (`sites`) or **device names** (`device_names`) in the request body instead.
+
+**Workaround:** Call the [Metadata API](../reference/metadata.md#get-all-site-and-device-ids-for-a-grid) (`GET /api/v2/devices/grids/{GRID_ID}/generate`) to retrieve all site and device identifiers for your Grid, then include those in your Analytics API request.
+
+Direct Grid ID filtering will be added to the Analytics API in a future release.
 :::
 
 ---
@@ -193,6 +201,6 @@ async function fetchAllCityHistory(siteIds, token) {
 
 ## Best practices
 
-- **Break large date ranges into months** — this avoids query timeouts and keeps responses manageable.
+- **Break large date ranges into ~2-month batches** — each request is capped at approximately 2 months of data. Query in sequential batches and combine the results to cover longer periods.
 - **Filter to only the sites you need** — specifying `sites` reduces the data returned.
 - **Cache your results** — historical data does not change, so you can store it locally and avoid re-querying.
