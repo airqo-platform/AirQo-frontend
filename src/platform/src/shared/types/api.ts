@@ -353,6 +353,8 @@ export interface Client {
   ip_addresses: string[];
   name: string;
   requireClientSecret: boolean;
+  enforce_origin?: boolean;
+  allowed_origins?: string[];
   client_secret: string;
   user: {
     firstName: string;
@@ -368,20 +370,7 @@ export interface Client {
       contentLayout: string;
     };
   };
-  access_token?: {
-    _id: string;
-    permissions: string[];
-    scopes: string[];
-    expiredEmailSent: boolean;
-    token: string;
-    client_id: string;
-    name: string;
-    expires: string;
-    createdAt: string;
-    updatedAt: string;
-    token_status?: 'active' | 'expired';
-    __v: number;
-  };
+  access_token?: ClientAccessToken;
 }
 
 export interface FeedbackSubmissionMetadata extends Record<string, unknown> {
@@ -933,6 +922,8 @@ export interface Client {
   ip_addresses: string[];
   name: string;
   requireClientSecret: boolean;
+  enforce_origin?: boolean;
+  allowed_origins?: string[];
   client_secret: string;
   user: {
     firstName: string;
@@ -948,20 +939,7 @@ export interface Client {
       contentLayout: string;
     };
   };
-  access_token?: {
-    _id: string;
-    permissions: string[];
-    scopes: string[];
-    expiredEmailSent: boolean;
-    token: string;
-    client_id: string;
-    name: string;
-    expires: string;
-    createdAt: string;
-    updatedAt: string;
-    token_status?: 'active' | 'expired';
-    __v: number;
-  };
+  access_token?: ClientAccessToken;
 }
 
 export interface GetClientsResponse {
@@ -974,6 +952,8 @@ export interface CreateClientRequest {
   name: string;
   user_id?: string;
   ip_addresses?: string[];
+  enforce_origin?: boolean;
+  allowed_origins?: string[];
 }
 
 export interface CreateClientResponse {
@@ -986,6 +966,8 @@ export interface UpdateClientRequest {
   name?: string;
   ip_addresses?: string[];
   require_secret?: boolean;
+  enforce_origin?: boolean;
+  allowed_origins?: string[];
 }
 
 export interface UpdateClientResponse {
@@ -1017,20 +999,7 @@ export interface GenerateTokenRequest {
 export interface GenerateTokenResponse {
   success: boolean;
   message: string;
-  token: {
-    _id: string;
-    permissions: string[];
-    scopes: string[];
-    expiredEmailSent: boolean;
-    token: string;
-    client_id: string;
-    name: string;
-    expires: string;
-    createdAt: string;
-    updatedAt: string;
-    token_status?: 'active' | 'expired';
-    __v: number;
-  };
+  token: ClientAccessToken;
 }
 
 export interface DeleteClientResponse {
@@ -1048,6 +1017,140 @@ export interface GetClientByIdResponse {
   success: boolean;
   message: string;
   clients: Client[];
+}
+
+export interface TokenAccessSchedule {
+  enabled: boolean;
+  allowed_days: number[];
+  allowed_hours_utc: {
+    start: number;
+    end: number;
+  };
+}
+
+export interface TokenRequestPattern {
+  auto_suspended?: boolean;
+  suspension_reason?: string | null;
+  suspended_at?: string | null;
+}
+
+export interface ClientAccessToken {
+  _id: string;
+  permissions: string[];
+  scopes: string[];
+  expiredEmailSent: boolean;
+  token: string;
+  client_id: string;
+  name: string;
+  expires: string;
+  createdAt: string;
+  updatedAt: string;
+  token_status?: 'active' | 'expired';
+  allowed_grids?: string[];
+  allowed_cohorts?: string[];
+  allowed_origins?: string[];
+  access_schedule?: TokenAccessSchedule;
+  request_pattern?: TokenRequestPattern;
+  __v: number;
+}
+
+export interface UpdateTokenSecurityRequest {
+  allowed_grids?: string[];
+  allowed_cohorts?: string[];
+  allowed_origins?: string[];
+  access_schedule?: {
+    enabled?: boolean;
+    allowed_days?: number[];
+    allowed_hours_utc?: {
+      start?: number;
+      end?: number;
+    };
+  };
+  request_pattern?: {
+    auto_suspended?: boolean;
+  };
+}
+
+export interface UpdateTokenSecurityResponse {
+  success?: boolean;
+  message: string;
+  updated_token: ClientAccessToken;
+}
+
+export interface BlockedAsn {
+  _id: string;
+  provider: string;
+  asn?: string | null;
+  cidr_ranges: string[];
+  reason?: string | null;
+  active: boolean;
+  blockedAt: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface GetBlockedAsnsResponse {
+  success?: boolean;
+  message: string;
+  blocked_asns: BlockedAsn[];
+}
+
+export interface CreateBlockedAsnRequest {
+  provider: string;
+  asn?: string;
+  cidr_ranges?: string[];
+  reason?: string;
+  active?: boolean;
+}
+
+export interface CreateBlockedAsnResponse {
+  success?: boolean;
+  message: string;
+  blocked_asn: BlockedAsn;
+}
+
+export interface DeleteBlockedAsnResponse {
+  success?: boolean;
+  message: string;
+  deleted_asn: {
+    _id: string;
+    provider: string;
+  };
+}
+
+export interface FlaggedToken {
+  _id: string;
+  token_suffix: string;
+  ip: string;
+  user_agent: string;
+  honeypot_path: string;
+  service: string;
+  action_taken: string;
+  flagged_at: string;
+  resolved: boolean;
+  resolved_at: string | null;
+  resolution_note: string | null;
+}
+
+export interface GetFlaggedTokensResponse {
+  success?: boolean;
+  message: string;
+  flagged_tokens: FlaggedToken[];
+}
+
+export interface ResolveFlaggedTokenRequest {
+  note?: string;
+}
+
+export interface ResolveFlaggedTokenResponse {
+  success?: boolean;
+  message: string;
+  flagged_token: {
+    _id: string;
+    resolved: boolean;
+    resolved_at: string | null;
+    resolution_note: string | null;
+  };
 }
 
 // Preferences types
