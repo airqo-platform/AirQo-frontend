@@ -153,10 +153,7 @@ const ApiClientPage: React.FC = () => {
         await mutate();
       } catch (error) {
         toast.error(getUserFriendlyErrorMessage(error));
-        console.error(
-          'Reinstate token error:',
-          sanitizeErrorForLogging(error)
-        );
+        console.error('Reinstate token error:', sanitizeErrorForLogging(error));
       } finally {
         setReinstateTokenClientId(null);
       }

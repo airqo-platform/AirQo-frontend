@@ -378,8 +378,7 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
                     >
                       <div
                         className={
-                          contentAreaClassName ||
-                          'px-4 py-4 sm:px-6 sm:py-5'
+                          contentAreaClassName || 'px-4 py-4 sm:px-6 sm:py-5'
                         }
                       >
                         {children}

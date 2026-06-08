@@ -61,7 +61,9 @@ const INITIAL_FORM: FormData = {
 
 const RequestOrganizationPage = () => {
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM);
-  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>(
+    {}
+  );
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
   const { trigger: createRequest, isMutating: isCreating } =

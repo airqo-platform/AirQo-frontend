@@ -5,9 +5,7 @@ import { buildServerApiUrl } from '@/shared/lib/api-routing';
 import { normalizeOAuthAccessToken } from '@/shared/lib/oauth-session';
 import { sanitizeErrorForLogging } from '@/shared/utils/sanitizeErrorForLogging';
 import type { Session } from 'next-auth';
-import type {
-  UpdateTokenSecurityRequest,
-} from '@/shared/types/api';
+import type { UpdateTokenSecurityRequest } from '@/shared/types/api';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -39,10 +37,7 @@ export async function PATCH(request: NextRequest) {
     const authorizationHeader = resolveAuthorizationHeader(request, session);
 
     if (!authorizationHeader) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     let body: TokenSecurityProxyRequest;
@@ -57,10 +52,7 @@ export async function PATCH(request: NextRequest) {
 
     const token = typeof body.token === 'string' ? body.token.trim() : '';
     if (!token) {
-      return NextResponse.json(
-        { error: 'Missing token' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing token' }, { status: 400 });
     }
 
     const payload = { ...body };
@@ -110,7 +102,10 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    console.error('Token security proxy error:', sanitizeErrorForLogging(error));
+    console.error(
+      'Token security proxy error:',
+      sanitizeErrorForLogging(error)
+    );
     return NextResponse.json(
       { error: 'Failed to update token security' },
       { status: 500 }

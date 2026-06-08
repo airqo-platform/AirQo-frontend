@@ -14,20 +14,12 @@ import {
   Input,
 } from '@/shared/components/ui';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
-import {
-  AqEdit05,
-  AqTrash01,
-  AqRefreshCw05,
-  AqPlus,
-} from '@airqo/icons-react';
+import { AqEdit05, AqTrash01, AqRefreshCw05, AqPlus } from '@airqo/icons-react';
 import { adminService } from '@/shared/services/adminService';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { sanitizeErrorForLogging } from '@/shared/utils/sanitizeErrorForLogging';
 import { formatDate } from '@/shared/utils';
-import {
-  isValidAsn,
-  isValidCidrNotation,
-} from '@/shared/lib/validators';
+import { isValidAsn, isValidCidrNotation } from '@/shared/lib/validators';
 import { refreshWithToast } from '@/shared/utils/refreshWithToast';
 import type {
   BlockedAsn,
@@ -260,15 +252,14 @@ const BlockedAsnDialog: React.FC<BlockedAsnDialogProps> = ({
 
       await adminService.createBlockedASN(payload);
       toast.success(
-        entry ? 'Blocked range updated successfully' : 'Blocked range created successfully'
+        entry
+          ? 'Blocked range updated successfully'
+          : 'Blocked range created successfully'
       );
       onSuccess();
     } catch (error) {
       toast.error(getUserFriendlyErrorMessage(error));
-      console.error(
-        'Blocked ASN save error:',
-        sanitizeErrorForLogging(error)
-      );
+      console.error('Blocked ASN save error:', sanitizeErrorForLogging(error));
     } finally {
       setIsSubmitting(false);
     }
@@ -418,7 +409,9 @@ const ResolveFlaggedTokenDialog: React.FC<ResolveFlaggedTokenDialogProps> = ({
       isOpen={isOpen}
       onClose={handleClose}
       title="Resolve flagged token"
-      subtitle={item ? `${item.token_suffix} · ${item.honeypot_path}` : undefined}
+      subtitle={
+        item ? `${item.token_suffix} · ${item.honeypot_path}` : undefined
+      }
       size="lg"
       maxHeight="max-h-[75vh]"
       contentClassName="pr-2"
@@ -471,13 +464,21 @@ const ResolveFlaggedTokenDialog: React.FC<ResolveFlaggedTokenDialogProps> = ({
 
 const SecurityPageContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState<SecurityTab>('blocked-asns');
-  const [blockedFilter, setBlockedFilter] = useState<'all' | 'active' | 'inactive'>('all');
-  const [flaggedFilter, setFlaggedFilter] = useState<'all' | 'open' | 'resolved'>('open');
-  const [blockedDialogEntry, setBlockedDialogEntry] = useState<BlockedAsn | null>(null);
+  const [blockedFilter, setBlockedFilter] = useState<
+    'all' | 'active' | 'inactive'
+  >('all');
+  const [flaggedFilter, setFlaggedFilter] = useState<
+    'all' | 'open' | 'resolved'
+  >('open');
+  const [blockedDialogEntry, setBlockedDialogEntry] =
+    useState<BlockedAsn | null>(null);
   const [blockedDialogOpen, setBlockedDialogOpen] = useState(false);
-  const [resolveDialogEntry, setResolveDialogEntry] = useState<FlaggedToken | null>(null);
+  const [resolveDialogEntry, setResolveDialogEntry] =
+    useState<FlaggedToken | null>(null);
   const [resolveDialogOpen, setResolveDialogOpen] = useState(false);
-  const [deleteDialogEntry, setDeleteDialogEntry] = useState<BlockedAsn | null>(null);
+  const [deleteDialogEntry, setDeleteDialogEntry] = useState<BlockedAsn | null>(
+    null
+  );
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const {
@@ -661,7 +662,10 @@ const SecurityPageContent: React.FC = () => {
         label: 'Reason',
         minWidth: '240px',
         render: (value: unknown) => (
-          <span className="block max-w-[320px] truncate text-sm text-muted-foreground" title={String(value || '')}>
+          <span
+            className="block max-w-[320px] truncate text-sm text-muted-foreground"
+            title={String(value || '')}
+          >
             {String(value || '—')}
           </span>
         ),
@@ -772,7 +776,9 @@ const SecurityPageContent: React.FC = () => {
         label: 'Service',
         minWidth: '140px',
         render: (value: unknown) => (
-          <span className="text-sm text-foreground">{String(value || '—')}</span>
+          <span className="text-sm text-foreground">
+            {String(value || '—')}
+          </span>
         ),
       },
       {
@@ -855,11 +861,7 @@ const SecurityPageContent: React.FC = () => {
         subtitle="Manage blocked ASN/CIDR rules and review flagged tokens that hit honeypot routes."
         action={
           activeTab === 'blocked-asns' ? (
-            <Button
-              Icon={AqPlus}
-              size="sm"
-              onClick={handleCreateBlockedAsn}
-            >
+            <Button Icon={AqPlus} size="sm" onClick={handleCreateBlockedAsn}>
               Add Blocked ASN
             </Button>
           ) : undefined
@@ -940,9 +942,7 @@ const SecurityPageContent: React.FC = () => {
             columns={blockedColumns}
             loading={blockedLoading}
             error={
-              blockedError
-                ? getUserFriendlyErrorMessage(blockedError)
-                : null
+              blockedError ? getUserFriendlyErrorMessage(blockedError) : null
             }
             onRefresh={handleRefreshBlocked}
             showClientPagination={true}
@@ -990,9 +990,7 @@ const SecurityPageContent: React.FC = () => {
             columns={flaggedColumns}
             loading={flaggedLoading}
             error={
-              flaggedError
-                ? getUserFriendlyErrorMessage(flaggedError)
-                : null
+              flaggedError ? getUserFriendlyErrorMessage(flaggedError) : null
             }
             onRefresh={handleRefreshFlagged}
             showClientPagination={true}
@@ -1024,9 +1022,7 @@ const SecurityPageContent: React.FC = () => {
         <div className="space-y-4">
           <p className="text-gray-700 dark:text-gray-300">
             Are you sure you want to delete the block for{' '}
-            <span className="font-semibold">
-              {deleteDialogEntry?.provider}
-            </span>
+            <span className="font-semibold">{deleteDialogEntry?.provider}</span>
             ? This will immediately remove the rule after the backend cache
             expires.
           </p>

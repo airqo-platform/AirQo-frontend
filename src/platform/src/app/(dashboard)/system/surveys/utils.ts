@@ -1,7 +1,4 @@
-import type {
-  SurveyQuestion,
-  SurveyTrigger,
-} from '@/shared/types/api';
+import type { SurveyQuestion, SurveyTrigger } from '@/shared/types/api';
 
 export const SURVEY_QUESTION_TYPES = [
   { value: 'text', label: 'Text' },
@@ -162,9 +159,7 @@ export const formatDuration = (seconds?: number | null): string => {
   const hours = Math.floor(minutes / 60);
   const remainingMinutes = minutes % 60;
 
-  return remainingMinutes > 0
-    ? `${hours}h ${remainingMinutes}m`
-    : `${hours}h`;
+  return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
 };
 
 export const formatQuestionTypeLabel = (type: string): string => {
@@ -237,24 +232,21 @@ export const formatSurveyStatus = (
   if (isExpired) {
     return {
       label: 'Expired',
-      tone:
-        'bg-slate-100 text-slate-700 dark:bg-slate-950/40 dark:text-slate-300',
+      tone: 'bg-slate-100 text-slate-700 dark:bg-slate-950/40 dark:text-slate-300',
     };
   }
 
   if (isActive === false) {
     return {
       label: surveyStatus ? formatQuestionTypeLabel(surveyStatus) : 'Inactive',
-      tone:
-        'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300',
+      tone: 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300',
     };
   }
 
   if (surveyStatus) {
     return {
       label: formatQuestionTypeLabel(surveyStatus),
-      tone:
-        'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300',
+      tone: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300',
     };
   }
 

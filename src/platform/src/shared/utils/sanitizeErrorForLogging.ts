@@ -7,9 +7,7 @@ type SanitizedErrorLog = {
   statusText?: string;
 };
 
-export const sanitizeErrorForLogging = (
-  error: unknown
-): SanitizedErrorLog => {
+export const sanitizeErrorForLogging = (error: unknown): SanitizedErrorLog => {
   if (!error || typeof error !== 'object') {
     return {
       message: String(error),
@@ -43,9 +41,7 @@ export const sanitizeErrorForLogging = (
         ? candidate.code
         : undefined,
     message:
-      typeof candidate.message === 'string'
-        ? candidate.message
-        : undefined,
+      typeof candidate.message === 'string' ? candidate.message : undefined,
     method:
       typeof candidate.config?.method === 'string'
         ? candidate.config.method.toUpperCase()

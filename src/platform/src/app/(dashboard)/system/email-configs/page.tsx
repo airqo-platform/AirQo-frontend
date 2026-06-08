@@ -93,9 +93,7 @@ const shortenId = (value: string): string => {
 
 const renderEmailChips = (emails: string[], emptyLabel: string) => {
   if (!emails.length) {
-    return (
-      <span className="text-sm text-muted-foreground">{emptyLabel}</span>
-    );
+    return <span className="text-sm text-muted-foreground">{emptyLabel}</span>;
   }
 
   const visibleEmails = emails.slice(0, 3);
@@ -189,17 +187,20 @@ const EmailConfigContent: React.FC = () => {
     });
   }, []);
 
-  const openEditDialog = useCallback((config: ApplicationEmailConfiguration) => {
-    setFormState({
-      adminCCEmails: config.adminCCEmails || '',
-      applicationEmails: formatEmailTextarea(config.applicationEmails || []),
-      mode: 'replace',
-    });
-    setDialogState({
-      mode: 'edit',
-      config,
-    });
-  }, []);
+  const openEditDialog = useCallback(
+    (config: ApplicationEmailConfiguration) => {
+      setFormState({
+        adminCCEmails: config.adminCCEmails || '',
+        applicationEmails: formatEmailTextarea(config.applicationEmails || []),
+        mode: 'replace',
+      });
+      setDialogState({
+        mode: 'edit',
+        config,
+      });
+    },
+    []
+  );
 
   const closeDialog = useCallback(() => {
     setDialogState(null);
@@ -257,10 +258,7 @@ const EmailConfigContent: React.FC = () => {
         parsedApplicationEmails
       );
 
-      if (
-        rawApplicationEmails &&
-        invalidApplicationEmails.length > 0
-      ) {
+      if (rawApplicationEmails && invalidApplicationEmails.length > 0) {
         toast.error(
           `Invalid application email${invalidApplicationEmails.length > 1 ? 's' : ''}: ${invalidApplicationEmails.join(', ')}`
         );
@@ -297,7 +295,9 @@ const EmailConfigContent: React.FC = () => {
           const result =
             await applicationEmailConfigService.createApplicationEmailConfiguration(
               {
-                adminCCEmails: payload.adminCCEmails || formatEmailInput(parsedAdminCCEmails),
+                adminCCEmails:
+                  payload.adminCCEmails ||
+                  formatEmailInput(parsedAdminCCEmails),
                 applicationEmails: payload.applicationEmails,
               }
             );
@@ -661,7 +661,9 @@ const EmailConfigContent: React.FC = () => {
                 onChange={event =>
                   setFormState(prev => ({
                     ...prev,
-                    mode: String(event.target.value || 'replace') as EmailConfigMode,
+                    mode: String(
+                      event.target.value || 'replace'
+                    ) as EmailConfigMode,
                   }))
                 }
                 description="Choose whether to replace the list or add/remove specific emails."

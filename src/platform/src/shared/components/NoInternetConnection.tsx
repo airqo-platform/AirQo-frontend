@@ -37,11 +37,7 @@ const NoInternetConnection = ({ onRetry }: NoInternetConnectionProps) => {
               automatically once internet is restored.
             </p>
           </div>
-          <Button
-            variant="outlined"
-            onClick={handleRetry}
-            className="mt-2"
-          >
+          <Button variant="outlined" onClick={handleRetry} className="mt-2">
             Retry
           </Button>
           {retryMessage && (

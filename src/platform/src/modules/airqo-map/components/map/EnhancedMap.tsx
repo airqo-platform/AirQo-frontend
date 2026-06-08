@@ -450,11 +450,7 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
       if (maxSpan < 0.001) targetZoom = 16;
       else if (maxSpan < 0.01) targetZoom = 15;
       else if (maxSpan < 0.05) targetZoom = 14;
-      else
-        targetZoom = Math.max(
-          CLUSTER_ZOOM_THRESHOLD + 1,
-          currentZoom + 2.5
-        );
+      else targetZoom = Math.max(CLUSTER_ZOOM_THRESHOLD + 1, currentZoom + 2.5);
       targetZoom = Math.min(18, targetZoom);
 
       const centerLon = lons.reduce((a, b) => a + b, 0) / lons.length;

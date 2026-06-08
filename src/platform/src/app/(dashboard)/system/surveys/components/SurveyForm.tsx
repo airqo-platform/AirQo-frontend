@@ -102,9 +102,8 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
   const [isActive, setIsActive] = useState(true);
   const [timeToComplete, setTimeToComplete] = useState('');
   const [expiresAt, setExpiresAt] = useState('');
-  const [triggerDraft, setTriggerDraft] = useState<SurveyTriggerDraft>(
-    createTriggerDraft()
-  );
+  const [triggerDraft, setTriggerDraft] =
+    useState<SurveyTriggerDraft>(createTriggerDraft());
   const [questions, setQuestions] = useState<SurveyQuestionDraft[]>([
     createQuestionDraft(),
   ]);
@@ -121,7 +120,9 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
       setTriggerDraft(createTriggerDraft(initialSurvey.trigger || undefined));
       setQuestions(
         initialSurvey.questions.length > 0
-          ? initialSurvey.questions.map(question => createQuestionDraft(question))
+          ? initialSurvey.questions.map(question =>
+              createQuestionDraft(question)
+            )
           : [createQuestionDraft()]
       );
       return;
@@ -188,7 +189,10 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
       nextErrors.title = ['Survey title is required'];
     }
 
-    if (!Number.isFinite(normalizedTimeToComplete) || normalizedTimeToComplete < 0) {
+    if (
+      !Number.isFinite(normalizedTimeToComplete) ||
+      normalizedTimeToComplete < 0
+    ) {
       nextErrors.timeToComplete = ['Enter a valid completion time in seconds'];
     }
 
@@ -245,7 +249,9 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
 
       const savedSurvey = await onSubmit(payload);
       toast.success(
-        mode === 'edit' ? 'Survey updated successfully' : 'Survey created successfully'
+        mode === 'edit'
+          ? 'Survey updated successfully'
+          : 'Survey created successfully'
       );
       await onSuccess(savedSurvey);
     } catch (error) {
@@ -497,8 +503,7 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
                   const isRating = question.type === 'rating';
                   const isScale = question.type === 'scale';
                   const isYesNo = question.type === 'yesNo';
-                  const questionErrors =
-                    fieldErrors[`question-${index}`] || [];
+                  const questionErrors = fieldErrors[`question-${index}`] || [];
 
                   return (
                     <div
@@ -580,7 +585,8 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
                                 Required response
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                Required questions block completion until answered.
+                                Required questions block completion until
+                                answered.
                               </p>
                             </div>
                           </div>
@@ -660,7 +666,8 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
 
                         {isYesNo && (
                           <div className="lg:col-span-2 rounded-xl border border-border bg-muted/10 p-4 text-sm text-muted-foreground">
-                            This question will render as a fixed Yes / No choice.
+                            This question will render as a fixed Yes / No
+                            choice.
                           </div>
                         )}
                       </div>
@@ -683,10 +690,18 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
 
           <Card className="p-6">
             <div className="flex flex-wrap items-center justify-end gap-3">
-              <Button variant="outlined" onClick={onCancel} disabled={isSubmitting}>
+              <Button
+                variant="outlined"
+                onClick={onCancel}
+                disabled={isSubmitting}
+              >
                 Cancel
               </Button>
-              <Button onClick={handleSubmit} disabled={isSubmitting} loading={isSubmitting}>
+              <Button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                loading={isSubmitting}
+              >
                 {mode === 'edit' ? 'Save changes' : 'Create survey'}
               </Button>
             </div>
@@ -747,7 +762,9 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
                     Expires
                   </p>
                   <p className="mt-2 text-lg font-semibold text-foreground">
-                    {expiresAt ? formatDateTime(new Date(expiresAt).toISOString()) : 'Not set'}
+                    {expiresAt
+                      ? formatDateTime(new Date(expiresAt).toISOString())
+                      : 'Not set'}
                   </p>
                 </div>
               </div>

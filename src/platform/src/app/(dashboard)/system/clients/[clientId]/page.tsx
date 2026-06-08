@@ -216,10 +216,7 @@ const ClientDetailsPage: React.FC = () => {
       mutate();
     } catch (error) {
       toast.error(getUserFriendlyErrorMessage(error));
-      console.error(
-        'Reinstate token error:',
-        sanitizeErrorForLogging(error)
-      );
+      console.error('Reinstate token error:', sanitizeErrorForLogging(error));
     } finally {
       setIsReinstatingToken(false);
     }
@@ -642,8 +639,8 @@ const ClientDetailsPage: React.FC = () => {
                   message={
                     <div className="space-y-1">
                       <p>
-                        This token was suspended because suspicious activity
-                        was detected.
+                        This token was suspended because suspicious activity was
+                        detected.
                       </p>
                       {token.request_pattern.suspension_reason && (
                         <p>
@@ -707,7 +704,8 @@ const ClientDetailsPage: React.FC = () => {
                     Cohort restrictions
                   </p>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {token.allowed_cohorts && token.allowed_cohorts.length > 0 ? (
+                    {token.allowed_cohorts &&
+                    token.allowed_cohorts.length > 0 ? (
                       token.allowed_cohorts.map(cohort => (
                         <span
                           key={cohort}
@@ -729,7 +727,8 @@ const ClientDetailsPage: React.FC = () => {
                     Allowed origins
                   </p>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {token.allowed_origins && token.allowed_origins.length > 0 ? (
+                    {token.allowed_origins &&
+                    token.allowed_origins.length > 0 ? (
                       token.allowed_origins.map(origin => (
                         <span
                           key={origin}
@@ -754,7 +753,10 @@ const ClientDetailsPage: React.FC = () => {
                     {token.access_schedule?.enabled ? (
                       <>
                         <p>
-                          Days: {describeAllowedDays(token.access_schedule.allowed_days)}
+                          Days:{' '}
+                          {describeAllowedDays(
+                            token.access_schedule.allowed_days
+                          )}
                         </p>
                         {token.access_schedule.allowed_hours_utc &&
                         typeof token.access_schedule.allowed_hours_utc.start ===

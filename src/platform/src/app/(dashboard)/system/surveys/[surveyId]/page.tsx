@@ -54,8 +54,7 @@ const RESPONSE_STATUS_TONES: Record<string, string> = {
     'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300',
   skipped:
     'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300',
-  partial:
-    'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300',
+  partial: 'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300',
 };
 
 const getResponseStatusTone = (value?: string) => {
@@ -81,19 +80,22 @@ const getRespondentLabel = (response: SurveyResponseItem) => {
 type SurveyResponseExportRow = {
   respondent: string;
   status: string;
-  answers: string;
+  answersSummary: string;
   timeSpent: string;
   submittedAt: string;
   responseId: string;
   surveyId: string;
   userId: string;
   deviceId: string;
+  [questionKey: string]: string;
 };
 
 const escapeCsvValue = (value: string): string => {
   const normalized = String(value ?? '');
   const firstNonWhitespace = normalized.trimStart().charAt(0);
-  const startsWithFormulaChar = ['=', '+', '-', '@'].includes(firstNonWhitespace);
+  const startsWithFormulaChar = ['=', '+', '-', '@'].includes(
+    firstNonWhitespace
+  );
   const startsWithTabOrCarriageReturn =
     normalized.charAt(0) === '\t' || normalized.charAt(0) === '\r';
 
@@ -105,43 +107,33 @@ const escapeCsvValue = (value: string): string => {
   return prefixed.replace(/"/g, '""');
 };
 
-const getResponseAnswerSummary = (
-  response: SurveyResponseItem,
-  survey: Survey | null | undefined,
-  limit = 2
-): string => {
-  if (!response.answers.length) {
-    return 'No answers captured';
-  }
-
-  const responseSummary = response.answers.slice(0, limit).map(answer => {
-    const question = survey?.questions.find(item => item.id === answer.questionId);
-    const questionLabel = question?.question || answer.questionId;
-    return `${questionLabel}: ${formatResponseValue(answer.answer)}`;
-  });
-
-  const remainingAnswers = response.answers.length - responseSummary.length;
-
-  return remainingAnswers > 0
-    ? `${responseSummary.join(' | ')} (+${remainingAnswers} more)`
-    : responseSummary.join(' | ');
-};
-
 const buildSurveyResponseExportRows = (
   survey: Survey | null | undefined,
   responses: SurveyResponseItem[]
 ): SurveyResponseExportRow[] => {
-  return responses.map(response => ({
-    respondent: getRespondentLabel(response),
-    status: formatQuestionTypeLabel(response.status || 'unknown'),
-    answers: getResponseAnswerSummary(response, survey, 3),
-    timeSpent: formatDuration(response.timeToComplete),
-    submittedAt: formatDateTime(response.completedAt || response.createdAt),
-    responseId: response._id,
-    surveyId: response.surveyId,
-    userId: response.userId || 'Not tracked',
-    deviceId: response.deviceId || 'Not tracked',
-  }));
+  return responses.map(response => {
+    const base: SurveyResponseExportRow = {
+      respondent: getRespondentLabel(response),
+      status: formatQuestionTypeLabel(response.status || 'unknown'),
+      answersSummary: `${response.answerCount ?? response.answers.length} of ${survey?.questions?.length ?? '?'} answered`,
+      timeSpent: formatDuration(response.timeToComplete),
+      submittedAt: formatDateTime(response.completedAt || response.createdAt),
+      responseId: response._id,
+      surveyId: response.surveyId,
+      userId: response.userId || 'Not tracked',
+      deviceId: response.deviceId || 'Not tracked',
+    };
+
+    response.answers.forEach(answer => {
+      const question = survey?.questions.find(
+        item => item.id === answer.questionId
+      );
+      const label = question?.question || answer.questionId;
+      base[`Q: ${label}`] = formatResponseValue(answer.answer);
+    });
+
+    return base;
+  });
 };
 
 const exportSurveyResponsesAsCsv = (
@@ -149,38 +141,48 @@ const exportSurveyResponsesAsCsv = (
   responses: SurveyResponseItem[]
 ) => {
   const rows = buildSurveyResponseExportRows(survey, responses);
+  const questionColumns = survey?.questions?.map(q => `Q: ${q.question}`) || [];
   const headers = [
     'Respondent',
     'Status',
-    'Answers',
+    'Answers summary',
     'Time spent',
     'Submitted at',
     'Response ID',
     'Survey ID',
     'User ID',
     'Device ID',
+    ...questionColumns,
   ];
 
-  const csvBody = rows.map(row => [
-    row.respondent,
-    row.status,
-    row.answers,
-    row.timeSpent,
-    row.submittedAt,
-    row.responseId,
-    row.surveyId,
-    row.userId,
-    row.deviceId,
-  ]);
+  const csvBody = rows.map(row => {
+    const base = [
+      row.respondent,
+      row.status,
+      row.answersSummary,
+      row.timeSpent,
+      row.submittedAt,
+      row.responseId,
+      row.surveyId,
+      row.userId,
+      row.deviceId,
+    ];
+    questionColumns.forEach(col => {
+      base.push(String(row[col] || ''));
+    });
+    return base;
+  });
 
   const csv = [headers, ...csvBody]
     .map(row => row.map(value => `"${escapeCsvValue(value)}"`).join(','))
     .join('\n');
 
-  const fileName = `survey-responses-${survey?.title
-    ?.toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '') || 'export'}.csv`;
+  const fileName = `survey-responses-${
+    survey?.title
+      ?.toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'export'
+  }.csv`;
 
   const blob = new Blob(['\uFEFF' + csv], {
     type: 'text/csv;charset=utf-8;',
@@ -223,15 +225,17 @@ const exportSurveyResponsesAsPdf = (
         'Time spent',
         'Submitted at',
         'Response ID',
+        'Device ID',
       ],
     ],
     body: rows.map(row => [
       row.respondent,
       row.status,
-      row.answers,
+      row.answersSummary,
       row.timeSpent,
       row.submittedAt,
       row.responseId,
+      row.deviceId,
     ]),
     startY: 130,
     styles: {
@@ -255,13 +259,19 @@ const exportSurveyResponsesAsPdf = (
   for (let index = 1; index <= pageCount; index += 1) {
     doc.setPage(index);
     doc.setFontSize(9);
-    doc.text(`Page ${index} of ${pageCount}`, 40, doc.internal.pageSize.height - 30);
+    doc.text(
+      `Page ${index} of ${pageCount}`,
+      40,
+      doc.internal.pageSize.height - 30
+    );
   }
 
-  const fileName = `survey-responses-${survey?.title
-    ?.toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '') || 'export'}.pdf`;
+  const fileName = `survey-responses-${
+    survey?.title
+      ?.toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'export'
+  }.pdf`;
 
   doc.save(fileName);
 };
@@ -310,10 +320,14 @@ const SurveyDetailsPage: React.FC = () => {
     error: responsesError,
     isLoading: responsesLoading,
     mutate: mutateResponses,
-  } = useSWR('system/surveys/responses', () => surveyService.getSurveyResponses(), {
-    revalidateOnFocus: false,
-    shouldRetryOnError: false,
-  });
+  } = useSWR(
+    'system/surveys/responses',
+    () => surveyService.getSurveyResponses(),
+    {
+      revalidateOnFocus: false,
+      shouldRetryOnError: false,
+    }
+  );
 
   useEffect(() => {
     if (!surveyId) {
@@ -329,7 +343,9 @@ const SurveyDetailsPage: React.FC = () => {
       .slice()
       .sort((left, right) => {
         const leftTime = new Date(left.completedAt || left.createdAt).getTime();
-        const rightTime = new Date(right.completedAt || right.createdAt).getTime();
+        const rightTime = new Date(
+          right.completedAt || right.createdAt
+        ).getTime();
         return rightTime - leftTime;
       });
   }, [responses, surveyId]);
@@ -357,7 +373,8 @@ const SurveyDetailsPage: React.FC = () => {
         label: 'Required questions',
         value:
           currentSurvey.requiredQuestionCount ??
-          currentSurvey.questions.filter(question => question.isRequired).length,
+          currentSurvey.questions.filter(question => question.isRequired)
+            .length,
       },
       {
         label: 'Estimated time',
@@ -452,7 +469,7 @@ const SurveyDetailsPage: React.FC = () => {
       {
         key: 'respondent',
         label: 'Respondent',
-        minWidth: '220px',
+        minWidth: '200px',
         render: (_value: unknown, item: SurveyResponseRow) => (
           <div className="space-y-1">
             <p className="font-medium text-foreground">
@@ -471,7 +488,7 @@ const SurveyDetailsPage: React.FC = () => {
       {
         key: 'status',
         label: 'Status',
-        minWidth: '130px',
+        minWidth: '110px',
         render: (value: unknown) => (
           <span
             className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium capitalize ${getResponseStatusTone(
@@ -485,27 +502,35 @@ const SurveyDetailsPage: React.FC = () => {
       {
         key: 'answers',
         label: 'Answers',
-        minWidth: '260px',
+        minWidth: '140px',
         render: (_value: unknown, item: SurveyResponseRow) => {
           const answerCount = item.answerCount ?? item.answers.length;
-          const summary = getResponseAnswerSummary(item, currentSurvey, 2);
+          const totalQuestions = currentSurvey?.questions?.length ?? '?';
 
           return (
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-foreground">
-                {answerCount} answer{answerCount === 1 ? '' : 's'}
-              </p>
-              <p className="line-clamp-2 text-xs leading-5 text-muted-foreground">
-                {summary}
-              </p>
-            </div>
+            <p className="text-sm font-medium text-foreground">
+              {answerCount} of {totalQuestions} answered
+            </p>
           );
         },
       },
       {
+        key: 'deviceId',
+        label: 'Device',
+        minWidth: '140px',
+        render: (value: unknown) => (
+          <span
+            className="max-w-[140px] truncate text-xs text-muted-foreground"
+            title={String(value || 'Not tracked')}
+          >
+            {String(value || 'Not tracked')}
+          </span>
+        ),
+      },
+      {
         key: 'timeToComplete',
         label: 'Time spent',
-        minWidth: '120px',
+        minWidth: '100px',
         render: (value: unknown) => (
           <span className="text-sm text-muted-foreground">
             {formatDuration(value as number | null | undefined)}
@@ -515,7 +540,7 @@ const SurveyDetailsPage: React.FC = () => {
       {
         key: 'submitted',
         label: 'Submitted',
-        minWidth: '180px',
+        minWidth: '160px',
         render: (_value: unknown, item: SurveyResponseRow) => (
           <span className="text-sm text-muted-foreground">
             {formatDateTime(item.completedAt || item.createdAt)}
@@ -524,8 +549,8 @@ const SurveyDetailsPage: React.FC = () => {
       },
       {
         key: 'actions',
-        label: 'Raw',
-        minWidth: '110px',
+        label: '',
+        minWidth: '80px',
         render: (_value: unknown, item: SurveyResponseRow) => (
           <Button
             variant="outlined"
@@ -534,7 +559,7 @@ const SurveyDetailsPage: React.FC = () => {
             iconPosition="start"
             onClick={() => setSelectedResponse(item)}
           >
-            Raw
+            View
           </Button>
         ),
       },
@@ -613,7 +638,11 @@ const SurveyDetailsPage: React.FC = () => {
               >
                 Refresh
               </Button>
-              <Button variant="outlined" Icon={AqEdit05} onClick={handleEditClick}>
+              <Button
+                variant="outlined"
+                Icon={AqEdit05}
+                onClick={handleEditClick}
+              >
                 Edit survey
               </Button>
               <Button
@@ -645,7 +674,7 @@ const SurveyDetailsPage: React.FC = () => {
           </div>
         </PageHeading>
 
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
+        <div className="grid items-stretch gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
           <div className="space-y-6">
             <Card className="p-6">
               <div className="flex flex-wrap items-start justify-between gap-4">
@@ -713,7 +742,7 @@ const SurveyDetailsPage: React.FC = () => {
                 </span>
               </div>
 
-              <div className="mt-5 space-y-4">
+              <div className="mt-5 max-h-[600px] space-y-4 overflow-y-auto pr-2">
                 {currentSurvey.questions.length > 0 ? (
                   currentSurvey.questions.map((question, index) => {
                     const distribution = getQuestionDistribution(
@@ -729,129 +758,125 @@ const SurveyDetailsPage: React.FC = () => {
                         key={question.id}
                         className="rounded-2xl border border-border bg-background p-4 shadow-sm"
                       >
-                        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                          <div className="space-y-2">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
-                                Question {index + 1}
-                              </span>
-                              <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-foreground">
-                                {formatQuestionTypeLabel(question.type)}
-                              </span>
-                              <span
-                                className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                                  question.isRequired
-                                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300'
-                                    : 'bg-slate-100 text-slate-700 dark:bg-slate-950/40 dark:text-slate-300'
-                                }`}
-                              >
-                                {question.isRequired ? 'Required' : 'Optional'}
-                              </span>
+                        <div className="space-y-3">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+                              Question {index + 1}
+                            </span>
+                            <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-foreground">
+                              {formatQuestionTypeLabel(question.type)}
+                            </span>
+                            <span
+                              className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                                question.isRequired
+                                  ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300'
+                                  : 'bg-slate-100 text-slate-700 dark:bg-slate-950/40 dark:text-slate-300'
+                              }`}
+                            >
+                              {question.isRequired ? 'Required' : 'Optional'}
+                            </span>
+                          </div>
+                          <p className="text-sm font-medium text-foreground">
+                            {question.question}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Question ID: {question.id}
+                          </p>
+
+                          {question.type === 'multipleChoice' &&
+                          question.options.length > 0 ? (
+                            <div className="space-y-2">
+                              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                Options
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                {question.options.map(option => (
+                                  <span
+                                    key={option}
+                                    className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-foreground"
+                                  >
+                                    {option}
+                                  </span>
+                                ))}
+                              </div>
                             </div>
-                            <p className="text-sm font-medium text-foreground">
-                              {question.question}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              Question ID: {question.id}
-                            </p>
-                          </div>
+                          ) : question.type === 'rating' ||
+                            question.type === 'scale' ? (
+                            <div className="space-y-2">
+                              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                Range
+                              </p>
+                              <p className="text-sm font-medium text-foreground">
+                                {question.minValue ?? '1'} to{' '}
+                                {question.maxValue ?? '5'}
+                              </p>
+                            </div>
+                          ) : question.type === 'yesNo' ? (
+                            <div className="space-y-2">
+                              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                Response format
+                              </p>
+                              <p className="text-sm font-medium text-foreground">
+                                Fixed Yes / No choice
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="space-y-2">
+                              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                Response format
+                              </p>
+                              <p className="text-sm font-medium text-foreground">
+                                Free text response
+                              </p>
+                              {question.placeholder && (
+                                <p className="text-xs text-muted-foreground">
+                                  Placeholder: {question.placeholder}
+                                </p>
+                              )}
+                            </div>
+                          )}
 
-                          <div className="min-w-0 rounded-xl border border-border bg-muted/15 p-4 lg:w-[42%]">
-                            {question.type === 'multipleChoice' &&
-                            question.options.length > 0 ? (
-                              <div className="space-y-2">
+                          {topAnswers.length > 0 && (
+                            <div className="space-y-3 rounded-xl border border-border bg-muted/15 p-4">
+                              <div className="flex items-center justify-between gap-3">
                                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                                  Options
+                                  Top responses
                                 </p>
-                                <div className="flex flex-wrap gap-2">
-                                  {question.options.map(option => (
-                                    <span
-                                      key={option}
-                                      className="rounded-full bg-background px-2.5 py-1 text-xs font-medium text-foreground"
-                                    >
-                                      {option}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            ) : question.type === 'rating' ||
-                              question.type === 'scale' ? (
-                              <div className="space-y-2">
-                                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                                  Range
-                                </p>
-                                <p className="text-sm font-medium text-foreground">
-                                  {question.minValue ?? '1'} to{' '}
-                                  {question.maxValue ?? '5'}
+                                <p className="text-xs text-muted-foreground">
+                                  {totalAnswers} recorded
                                 </p>
                               </div>
-                            ) : question.type === 'yesNo' ? (
                               <div className="space-y-2">
-                                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                                  Response format
-                                </p>
-                                <p className="text-sm font-medium text-foreground">
-                                  Fixed Yes / No choice
-                                </p>
-                              </div>
-                            ) : (
-                              <div className="space-y-2">
-                                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                                  Response format
-                                </p>
-                                <p className="text-sm font-medium text-foreground">
-                                  Free text response
-                                </p>
-                                {question.placeholder && (
-                                  <p className="text-xs text-muted-foreground">
-                                    Placeholder: {question.placeholder}
-                                  </p>
-                                )}
-                              </div>
-                            )}
-
-                            {topAnswers.length > 0 && (
-                              <div className="mt-4 space-y-3 rounded-xl bg-background/80 p-4">
-                                <div className="flex items-center justify-between gap-3">
-                                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                                    Top responses
-                                  </p>
-                                  <p className="text-xs text-muted-foreground">
-                                    {totalAnswers} recorded
-                                  </p>
-                                </div>
-                                <div className="space-y-2">
-                                  {topAnswers.map(([answer, count]) => (
-                                    <div key={answer} className="space-y-1">
-                                      <div className="flex items-center justify-between gap-3 text-xs">
-                                        <span className="truncate text-foreground">
-                                          {answer}
-                                        </span>
-                                        <span className="text-muted-foreground">
-                                          {count}
-                                        </span>
-                                      </div>
-                                      <div className="h-2 overflow-hidden rounded-full bg-muted">
-                                        <div
-                                          className="h-full rounded-full bg-primary"
-                                          style={{
-                                            width: `${
-                                              maxCount
-                                                ? Math.max(
-                                                    4,
-                                                    (count / maxCount) * 100
-                                                  )
-                                                : 0
-                                            }%`,
-                                          }}
-                                        />
-                                      </div>
+                                {topAnswers.map(([answer, count]) => (
+                                  <div key={answer} className="space-y-1">
+                                    <div className="flex items-center justify-between gap-3 text-xs">
+                                      <span className="truncate text-foreground">
+                                        {answer}
+                                      </span>
+                                      <span className="text-muted-foreground">
+                                        {count}
+                                      </span>
                                     </div>
-                                  ))}
-                                </div>
+                                    <div className="h-2 overflow-hidden rounded-full bg-muted">
+                                      <div
+                                        className="h-full rounded-full bg-primary"
+                                        style={{
+                                          width: `${
+                                            maxCount
+                                              ? Math.max(
+                                                  4,
+                                                  (count / maxCount) * 100
+                                                )
+                                              : 0
+                                          }%`,
+                                        }}
+                                      />
+                                    </div>
+                                  </div>
+                                ))}
                               </div>
-                            )}
-                          </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
@@ -861,61 +886,6 @@ const SurveyDetailsPage: React.FC = () => {
                     This survey does not have any questions yet.
                   </div>
                 )}
-              </div>
-            </Card>
-
-            <Card className="p-6">
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-foreground">
-                    Responses
-                  </h3>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Review individual submissions, inspect the raw payload, and export the collected data.
-                  </p>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-foreground">
-                    {filteredResponses.length} matched
-                  </span>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outlined"
-                        Icon={AqDownload01}
-                        iconPosition="start"
-                      >
-                        Export
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" minWidth={180}>
-                      <DropdownMenuItem onClick={handleExportCsv}>
-                        Export CSV
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={handleExportPdf}>
-                        Export PDF
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
-
-              <div className="mt-5">
-                <ServerSideTable
-                  title="Survey responses"
-                  data={responseRows}
-                  columns={responseColumns}
-                  loading={responsesLoading}
-                  error={
-                    responsesError
-                      ? getUserFriendlyErrorMessage(responsesError)
-                      : null
-                  }
-                  onRefresh={handleRefresh}
-                  showClientPagination={true}
-                  pageSize={10}
-                  compactRows={true}
-                />
               </div>
             </Card>
           </div>
@@ -1064,12 +1034,60 @@ const SurveyDetailsPage: React.FC = () => {
           </div>
         </div>
 
-        <SurveyResponseDialog
-          isOpen={Boolean(selectedResponse)}
-          onClose={() => setSelectedResponse(null)}
-          response={selectedResponse}
-          survey={currentSurvey}
-        />
+        <Card className="p-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-semibold text-foreground">
+                Responses
+              </h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Review individual submissions and export the collected data.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-foreground">
+                {filteredResponses.length} matched
+              </span>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outlined"
+                    Icon={AqDownload01}
+                    iconPosition="start"
+                  >
+                    Export
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" minWidth={180}>
+                  <DropdownMenuItem onClick={handleExportCsv}>
+                    Export CSV
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleExportPdf}>
+                    Export PDF
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+
+          <div className="mt-5">
+            <ServerSideTable
+              title="Survey responses"
+              data={responseRows}
+              columns={responseColumns}
+              loading={responsesLoading}
+              error={
+                responsesError
+                  ? getUserFriendlyErrorMessage(responsesError)
+                  : null
+              }
+              onRefresh={handleRefresh}
+              showClientPagination={true}
+              pageSize={10}
+              compactRows={true}
+            />
+          </div>
+        </Card>
 
         <Dialog
           isOpen={deleteDialogOpen}
@@ -1099,6 +1117,13 @@ const SurveyDetailsPage: React.FC = () => {
             ? This cannot be undone.
           </p>
         </Dialog>
+
+        <SurveyResponseDialog
+          isOpen={Boolean(selectedResponse)}
+          onClose={() => setSelectedResponse(null)}
+          response={selectedResponse}
+          survey={currentSurvey}
+        />
       </div>
     </PermissionGuard>
   );

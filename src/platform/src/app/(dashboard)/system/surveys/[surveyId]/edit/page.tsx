@@ -85,7 +85,9 @@ const SurveyEditPage: React.FC = () => {
       ) : error || !survey ? (
         <Card className="p-6">
           <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">{surveyErrorMessage}</p>
+            <p className="text-sm text-muted-foreground">
+              {surveyErrorMessage}
+            </p>
             <button
               type="button"
               onClick={() => router.push('/system/surveys')}

@@ -87,14 +87,9 @@ export class SurveyService {
   async getActiveSurveys(): Promise<Survey[]> {
     await this.ensureAuthenticated();
 
-    const response = await this.authenticatedClient.get<any>(
-      '/users/surveys'
-    );
+    const response = await this.authenticatedClient.get<any>('/users/surveys');
 
-    const data = extractResponseData(
-      response.data,
-      'Failed to load surveys'
-    );
+    const data = extractResponseData(response.data, 'Failed to load surveys');
 
     return normalizeSurveyList(data);
   }
@@ -122,10 +117,7 @@ export class SurveyService {
       payload
     );
 
-    const data = extractResponseData(
-      response.data,
-      'Failed to create survey'
-    );
+    const data = extractResponseData(response.data, 'Failed to create survey');
 
     return normalizeSurvey(data);
   }
@@ -141,10 +133,7 @@ export class SurveyService {
       payload
     );
 
-    const data = extractResponseData(
-      response.data,
-      'Failed to update survey'
-    );
+    const data = extractResponseData(response.data, 'Failed to update survey');
 
     try {
       return normalizeSurvey(data);

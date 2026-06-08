@@ -41,43 +41,21 @@ const SurveyResponseDialog: React.FC<SurveyResponseDialogProps> = ({
     );
   }, [survey?.questions]);
 
-  const statusLabel = response?.status ? formatQuestionTypeLabel(response.status) : 'Unknown';
-  const rawPayload = useMemo(() => {
-    if (!response) {
-      return '';
-    }
-
-    return JSON.stringify(
-      {
-        responseId: response._id,
-        surveyId: response.surveyId,
-        userId: response.userId || null,
-        deviceId: response.deviceId || null,
-        status: response.status || null,
-        isGuest: response.isGuest ?? false,
-        startedAt: response.startedAt || null,
-        completedAt: response.completedAt || null,
-        timeToComplete: response.timeToComplete ?? null,
-        hasLocationData: response.hasLocationData ?? false,
-        hasDeviceTracking: response.hasDeviceTracking ?? false,
-        answers: response.answers,
-      },
-      null,
-      2
-    );
-  }, [response]);
+  const statusLabel = response?.status
+    ? formatQuestionTypeLabel(response.status)
+    : 'Unknown';
 
   return (
     <Dialog
       isOpen={isOpen}
       onClose={onClose}
-      title="Raw response details"
+      title="Response details"
       subtitle={
         response
           ? `${response.isGuest ? 'Guest respondent' : 'Registered respondent'} · ${statusLabel}`
           : undefined
       }
-      size="xl"
+      size="2xl"
       maxHeight="max-h-[88vh]"
       showFooter={false}
     >
@@ -110,11 +88,13 @@ const SurveyResponseDialog: React.FC<SurveyResponseDialogProps> = ({
             />
             <DetailChip
               label="Survey"
-              value={survey?.title || response.survey?.title || response.surveyId}
+              value={
+                survey?.title || response.survey?.title || response.surveyId
+              }
             />
             <DetailChip
               label="Answers"
-              value={response.answerCount ?? response.answers.length}
+              value={`${response.answerCount ?? response.answers.length} of ${survey?.questions?.length ?? '?'} answered`}
             />
             <DetailChip
               label="Completed"
@@ -127,11 +107,25 @@ const SurveyResponseDialog: React.FC<SurveyResponseDialogProps> = ({
           </div>
 
           <Card className="p-5">
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-              <DetailChip label="Device ID" value={response.deviceId || 'Not tracked'} />
-              <DetailChip label="User ID" value={response.userId || 'Not tracked'} />
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <DetailChip
-                label="Location tracking"
+                label="Device ID"
+                value={
+                  <span className="break-all text-sm">
+                    {response.deviceId || 'Not tracked'}
+                  </span>
+                }
+              />
+              <DetailChip
+                label="User ID"
+                value={
+                  <span className="break-all text-sm">
+                    {response.userId || 'Not tracked'}
+                  </span>
+                }
+              />
+              <DetailChip
+                label="Location data"
                 value={response.hasLocationData ? 'Available' : 'Unavailable'}
               />
               <DetailChip
@@ -141,25 +135,11 @@ const SurveyResponseDialog: React.FC<SurveyResponseDialogProps> = ({
             </div>
           </Card>
 
-          <Card className="p-5">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <h3 className="text-base font-semibold text-foreground">
-                  Raw payload
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Unformatted response data as received from the API.
-                </p>
-              </div>
-            </div>
-            <pre className="mt-4 max-h-80 overflow-auto rounded-xl border border-border bg-muted/20 p-4 text-xs leading-6 text-foreground">
-              {rawPayload}
-            </pre>
-          </Card>
-
           <div className="space-y-3">
             <div>
-              <h3 className="text-base font-semibold text-foreground">Answers</h3>
+              <h3 className="text-base font-semibold text-foreground">
+                Answers
+              </h3>
               <p className="text-sm text-muted-foreground">
                 Answers are shown in the order they were submitted.
               </p>
@@ -178,7 +158,8 @@ const SurveyResponseDialog: React.FC<SurveyResponseDialogProps> = ({
                       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                         <div className="space-y-1">
                           <p className="text-sm font-medium text-foreground">
-                            {question?.question || `Question ${answer.questionId}`}
+                            {question?.question ||
+                              `Question ${answer.questionId}`}
                           </p>
                           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                             <span className="rounded-full bg-muted px-2.5 py-1 font-medium text-foreground">

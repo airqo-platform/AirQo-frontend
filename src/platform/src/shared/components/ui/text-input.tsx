@@ -1,7 +1,6 @@
 import * as React from 'react';
 
-interface TextInputProps
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+interface TextInputProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   id?: string;
   name?: string;
   label?: string;

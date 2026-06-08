@@ -29,7 +29,9 @@ interface SurveyEditorDialogProps {
   onSaved: (updatedSurvey: Survey) => Promise<void> | void;
 }
 
-const buildInitialQuestions = (survey: Survey | null): SurveyQuestionDraft[] => {
+const buildInitialQuestions = (
+  survey: Survey | null
+): SurveyQuestionDraft[] => {
   if (!survey?.questions?.length) {
     return [createQuestionDraft()];
   }
@@ -114,7 +116,10 @@ const SurveyEditorDialog: React.FC<SurveyEditorDialogProps> = ({
       return;
     }
 
-    if (!Number.isFinite(normalizedTimeToComplete) || normalizedTimeToComplete < 0) {
+    if (
+      !Number.isFinite(normalizedTimeToComplete) ||
+      normalizedTimeToComplete < 0
+    ) {
       toast.error('Enter a valid time to complete in seconds');
       return;
     }
@@ -148,9 +153,7 @@ const SurveyEditorDialog: React.FC<SurveyEditorDialogProps> = ({
           !Number.isFinite(maxValue) ||
           minValue > maxValue
         ) {
-          toast.error(
-            `Question ${index + 1} needs a valid rating range`
-          );
+          toast.error(`Question ${index + 1} needs a valid rating range`);
           return true;
         }
       }
@@ -189,7 +192,9 @@ const SurveyEditorDialog: React.FC<SurveyEditorDialogProps> = ({
       onClose={onClose}
       title="Edit survey"
       subtitle={
-        survey ? `Update ${survey.title} and refine the question set.` : undefined
+        survey
+          ? `Update ${survey.title} and refine the question set.`
+          : undefined
       }
       size="2xl"
       maxHeight="max-h-[88vh]"
@@ -262,8 +267,8 @@ const SurveyEditorDialog: React.FC<SurveyEditorDialogProps> = ({
               <p className="text-sm font-medium text-foreground">Questions</p>
               <p className="text-xs text-muted-foreground">
                 {totalQuestions} question
-                {totalQuestions === 1 ? '' : 's'} in this survey.
-                Use one option per line for multiple choice questions.
+                {totalQuestions === 1 ? '' : 's'} in this survey. Use one option
+                per line for multiple choice questions.
               </p>
             </div>
 
@@ -315,7 +320,11 @@ const SurveyEditorDialog: React.FC<SurveyEditorDialogProps> = ({
                         label="Question text"
                         value={question.question}
                         onChange={e =>
-                          handleQuestionChange(index, 'question', e.target.value)
+                          handleQuestionChange(
+                            index,
+                            'question',
+                            e.target.value
+                          )
                         }
                         placeholder="What was your primary activity when you received this survey?"
                         rows={3}

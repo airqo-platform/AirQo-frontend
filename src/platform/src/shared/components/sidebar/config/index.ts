@@ -323,7 +323,8 @@ const globalSidebarConfig: NavGroup[] = [
             id: 'system-surveys',
             label: 'Survey Management',
             href: '/system/surveys',
-            description: 'Review active surveys, responses, and completion stats',
+            description:
+              'Review active surveys, responses, and completion stats',
           },
           {
             id: 'system-user-statistics',
