@@ -1,8 +1,10 @@
 import React from 'react';
 import { cn } from '@/shared/lib/utils';
 
-interface RadioProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
+interface RadioProps extends Omit<
+  React.InputHTMLAttributes<HTMLInputElement>,
+  'type'
+> {
   label?: string;
   description?: string;
   error?: string;

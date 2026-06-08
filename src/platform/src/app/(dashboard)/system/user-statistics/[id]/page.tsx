@@ -27,6 +27,7 @@ import {
 } from '@airqo/icons-react';
 import { formatWithPattern } from '@/shared/utils/dateUtils';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import { refreshWithToast } from '@/shared/utils/refreshWithToast';
 
 const UserStatisticsDetailsPage: React.FC = () => {
   const params = useParams();
@@ -116,9 +117,15 @@ const UserStatisticsDetailsPage: React.FC = () => {
     router.push('/system/user-statistics');
   }, [router]);
 
-  const handleRefresh = useCallback(() => {
-    mutateUser();
-    mutateRoles();
+  const handleRefresh = useCallback(async () => {
+    try {
+      await refreshWithToast(
+        () => Promise.all([mutateUser(), mutateRoles()]),
+        'User details refreshed successfully'
+      );
+    } catch (error) {
+      toast.error(getUserFriendlyErrorMessage(error));
+    }
   }, [mutateRoles, mutateUser]);
 
   const openRoleDialog = useCallback(() => {

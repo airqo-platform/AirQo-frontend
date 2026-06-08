@@ -59,7 +59,9 @@ const getCoordinateNameScore = (
     return 5;
   }
 
-  if (words.some(word => normalized === word || normalized.endsWith(`_${word}`))) {
+  if (
+    words.some(word => normalized === word || normalized.endsWith(`_${word}`))
+  ) {
     return 4;
   }
 
@@ -109,7 +111,9 @@ const chooseCoordinateColumn = (
 ) => {
   const isLatitude = direction === 'latitude';
   const names = isLatitude ? LATITUDE_NAMES : LONGITUDE_NAMES;
-  const words = isLatitude ? ['lat', 'latitude'] : ['lon', 'lng', 'long', 'longitude'];
+  const words = isLatitude
+    ? ['lat', 'latitude']
+    : ['lon', 'lng', 'long', 'longitude'];
   const validator = isLatitude ? isValidLatitude : isValidLongitude;
 
   return columns

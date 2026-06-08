@@ -353,6 +353,8 @@ export interface Client {
   ip_addresses: string[];
   name: string;
   requireClientSecret: boolean;
+  enforce_origin?: boolean;
+  allowed_origins?: string[];
   client_secret: string;
   user: {
     firstName: string;
@@ -368,20 +370,7 @@ export interface Client {
       contentLayout: string;
     };
   };
-  access_token?: {
-    _id: string;
-    permissions: string[];
-    scopes: string[];
-    expiredEmailSent: boolean;
-    token: string;
-    client_id: string;
-    name: string;
-    expires: string;
-    createdAt: string;
-    updatedAt: string;
-    token_status?: 'active' | 'expired';
-    __v: number;
-  };
+  access_token?: ClientAccessToken;
 }
 
 export interface FeedbackSubmissionMetadata extends Record<string, unknown> {
@@ -456,6 +445,146 @@ export interface UpdateFeedbackStatusResponse {
   success: boolean;
   message: string;
   feedback: FeedbackSubmission;
+}
+
+export interface SurveyQuestion {
+  id: string;
+  question: string;
+  type: string;
+  options: string[];
+  isRequired: boolean;
+  placeholder?: string;
+  minValue?: number;
+  maxValue?: number;
+}
+
+export interface SurveyQuestionInput {
+  id?: string;
+  question: string;
+  type: string;
+  options?: string[];
+  isRequired: boolean;
+  placeholder?: string;
+  minValue?: number;
+  maxValue?: number;
+}
+
+export interface SurveyTriggerConditions extends Record<string, unknown> {
+  threshold?: number;
+  duration?: number;
+}
+
+export interface SurveyTrigger {
+  type: string;
+  conditions?: SurveyTriggerConditions;
+}
+
+export interface Survey {
+  _id: string;
+  timeToComplete: number;
+  isActive: boolean;
+  title: string;
+  description: string;
+  questions: SurveyQuestion[];
+  trigger?: SurveyTrigger | null;
+  expiresAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  questionCount?: number;
+  requiredQuestionCount?: number;
+  isExpired?: boolean;
+  surveyStatus?: string;
+}
+
+export interface CreateSurveyRequest {
+  title: string;
+  description?: string;
+  questions: SurveyQuestionInput[];
+  trigger?: SurveyTrigger;
+  timeToComplete?: number;
+  isActive?: boolean;
+  expiresAt?: string;
+}
+
+export interface UpdateSurveyRequest {
+  title?: string;
+  description?: string;
+  isActive?: boolean;
+  questions?: SurveyQuestionInput[];
+  timeToComplete?: number;
+  trigger?: SurveyTrigger;
+  expiresAt?: string;
+}
+
+export interface SurveyAnswer {
+  questionId: string;
+  answer: string | number | boolean | string[] | number[] | null;
+  answeredAt: string;
+}
+
+export interface SurveyResponseUser {
+  _id: string;
+  consent?: {
+    analytics?: boolean;
+  };
+  preferredTokenStrategy?: string;
+  subscriptionStatus?: string;
+  automaticRenewal?: boolean;
+  interests?: string[];
+  cohorts?: string[];
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  theme?: {
+    primaryColor?: string;
+    mode?: string;
+    interfaceStyle?: string;
+    contentLayout?: string;
+  };
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface SurveyResponseSummary {
+  _id: string;
+  timeToComplete?: number;
+  isActive?: boolean;
+  title?: string;
+  description?: string;
+  expiresAt?: string | null;
+  createdAt?: string;
+}
+
+export interface SurveyResponseItem {
+  _id: string;
+  isGuest?: boolean;
+  status?: string;
+  surveyId: string;
+  userId?: string;
+  deviceId?: string;
+  answers: SurveyAnswer[];
+  startedAt?: string;
+  completedAt?: string | null;
+  timeToComplete?: number;
+  updatedAt: string;
+  createdAt: string;
+  survey?: SurveyResponseSummary;
+  user?: SurveyResponseUser;
+  answerCount?: number;
+  completionEfficiency?: number;
+  submissionDate?: string;
+  hasLocationData?: boolean;
+  hasDeviceTracking?: boolean;
+}
+
+export interface SurveyStats {
+  surveyId: string;
+  totalResponses: number;
+  completedResponses: number;
+  skippedResponses: number;
+  averageCompletionTime: number;
+  completionRate: number;
+  answerDistribution: Record<string, Record<string, number>>;
 }
 
 export interface Group {
@@ -933,6 +1062,8 @@ export interface Client {
   ip_addresses: string[];
   name: string;
   requireClientSecret: boolean;
+  enforce_origin?: boolean;
+  allowed_origins?: string[];
   client_secret: string;
   user: {
     firstName: string;
@@ -948,20 +1079,7 @@ export interface Client {
       contentLayout: string;
     };
   };
-  access_token?: {
-    _id: string;
-    permissions: string[];
-    scopes: string[];
-    expiredEmailSent: boolean;
-    token: string;
-    client_id: string;
-    name: string;
-    expires: string;
-    createdAt: string;
-    updatedAt: string;
-    token_status?: 'active' | 'expired';
-    __v: number;
-  };
+  access_token?: ClientAccessToken;
 }
 
 export interface GetClientsResponse {
@@ -974,6 +1092,8 @@ export interface CreateClientRequest {
   name: string;
   user_id?: string;
   ip_addresses?: string[];
+  enforce_origin?: boolean;
+  allowed_origins?: string[];
 }
 
 export interface CreateClientResponse {
@@ -986,6 +1106,8 @@ export interface UpdateClientRequest {
   name?: string;
   ip_addresses?: string[];
   require_secret?: boolean;
+  enforce_origin?: boolean;
+  allowed_origins?: string[];
 }
 
 export interface UpdateClientResponse {
@@ -1017,20 +1139,7 @@ export interface GenerateTokenRequest {
 export interface GenerateTokenResponse {
   success: boolean;
   message: string;
-  token: {
-    _id: string;
-    permissions: string[];
-    scopes: string[];
-    expiredEmailSent: boolean;
-    token: string;
-    client_id: string;
-    name: string;
-    expires: string;
-    createdAt: string;
-    updatedAt: string;
-    token_status?: 'active' | 'expired';
-    __v: number;
-  };
+  token: ClientAccessToken;
 }
 
 export interface DeleteClientResponse {
@@ -1048,6 +1157,187 @@ export interface GetClientByIdResponse {
   success: boolean;
   message: string;
   clients: Client[];
+}
+
+export interface TokenAccessSchedule {
+  enabled: boolean;
+  allowed_days: number[];
+  allowed_hours_utc: {
+    start: number;
+    end: number;
+  };
+}
+
+export interface TokenRequestPattern {
+  auto_suspended?: boolean;
+  suspension_reason?: string | null;
+  suspended_at?: string | null;
+}
+
+export interface ClientAccessToken {
+  _id: string;
+  permissions: string[];
+  scopes: string[];
+  expiredEmailSent: boolean;
+  token: string;
+  client_id: string;
+  name: string;
+  expires: string;
+  createdAt: string;
+  updatedAt: string;
+  token_status?: 'active' | 'expired';
+  allowed_grids?: string[];
+  allowed_cohorts?: string[];
+  allowed_origins?: string[];
+  access_schedule?: TokenAccessSchedule;
+  request_pattern?: TokenRequestPattern;
+  __v: number;
+}
+
+export interface UpdateTokenSecurityRequest {
+  allowed_grids?: string[];
+  allowed_cohorts?: string[];
+  allowed_origins?: string[];
+  access_schedule?: {
+    enabled?: boolean;
+    allowed_days?: number[];
+    allowed_hours_utc?: {
+      start?: number;
+      end?: number;
+    };
+  };
+  request_pattern?: {
+    auto_suspended?: boolean;
+  };
+}
+
+export interface UpdateTokenSecurityResponse {
+  success?: boolean;
+  message: string;
+  updated_token: ClientAccessToken;
+}
+
+export interface BlockedAsn {
+  _id: string;
+  provider: string;
+  asn?: string | null;
+  cidr_ranges: string[];
+  reason?: string | null;
+  active: boolean;
+  blockedAt: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface GetBlockedAsnsResponse {
+  success?: boolean;
+  message: string;
+  blocked_asns: BlockedAsn[];
+}
+
+export interface CreateBlockedAsnRequest {
+  provider: string;
+  asn?: string;
+  cidr_ranges?: string[];
+  reason?: string;
+  active?: boolean;
+}
+
+export interface CreateBlockedAsnResponse {
+  success?: boolean;
+  message: string;
+  blocked_asn: BlockedAsn;
+}
+
+export interface DeleteBlockedAsnResponse {
+  success?: boolean;
+  message: string;
+  deleted_asn: {
+    _id: string;
+    provider: string;
+  };
+}
+
+export interface FlaggedToken {
+  _id: string;
+  token_suffix: string;
+  ip: string;
+  user_agent: string;
+  honeypot_path: string;
+  service: string;
+  action_taken: string;
+  flagged_at: string;
+  resolved: boolean;
+  resolved_at: string | null;
+  resolution_note: string | null;
+}
+
+export interface GetFlaggedTokensResponse {
+  success?: boolean;
+  message: string;
+  flagged_tokens: FlaggedToken[];
+}
+
+export interface ResolveFlaggedTokenRequest {
+  note?: string;
+}
+
+export interface ResolveFlaggedTokenResponse {
+  success?: boolean;
+  message: string;
+  flagged_token: {
+    _id: string;
+    resolved: boolean;
+    resolved_at: string | null;
+    resolution_note: string | null;
+  };
+}
+
+// Application email configuration types
+export interface ApplicationEmailConfiguration {
+  _id: string;
+  adminCCEmails: string;
+  applicationEmails: string[];
+  createdAt?: string;
+  updatedAt?: string;
+  __v?: number;
+}
+
+export interface GetApplicationEmailConfigurationsResponse {
+  success: boolean;
+  message: string;
+  applicationEmailConfigurations: ApplicationEmailConfiguration[];
+  total?: number;
+}
+
+export interface CreateApplicationEmailConfigurationRequest {
+  adminCCEmails: string;
+  applicationEmails?: string[];
+}
+
+export interface CreateApplicationEmailConfigurationResponse {
+  success: boolean;
+  message: string;
+  applicationEmailConfiguration: ApplicationEmailConfiguration;
+}
+
+export interface UpdateApplicationEmailConfigurationRequest {
+  adminCCEmails?: string;
+  applicationEmails?: string[];
+  addApplicationEmails?: string[];
+  removeApplicationEmails?: string[];
+}
+
+export interface UpdateApplicationEmailConfigurationResponse {
+  success: boolean;
+  message: string;
+  applicationEmailConfiguration: ApplicationEmailConfiguration;
+}
+
+export interface DeleteApplicationEmailConfigurationResponse {
+  success: boolean;
+  message: string;
+  applicationEmailConfiguration: ApplicationEmailConfiguration;
 }
 
 // Preferences types

@@ -8,13 +8,16 @@ import { Tooltip } from 'flowbite-react';
 import { toast } from '@/shared/components/ui';
 import { formatDate, parseDate } from '@/shared/utils';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
-import { AqPlus, AqEdit05 } from '@airqo/icons-react';
+import { sanitizeErrorForLogging } from '@/shared/utils/sanitizeErrorForLogging';
+import { AqPlus, AqEdit05, AqShield02 } from '@airqo/icons-react';
 import { useClientsByUserId, useGenerateToken } from '@/shared/hooks/useClient';
 import InactiveClientDialog from './components/InactiveClientDialog';
 import CreateClientDialog from './components/CreateClientDialog';
 import EditClientDialog from './components/EditClientDialog';
 import TokenDisplay from './components/TokenDisplay';
+import TokenSecurityDialog from './components/TokenSecurityDialog';
 import type { Client } from '@/shared/types/api';
+import { clientService } from '@/shared/services/clientService';
 import { trackApiClientAction } from '@/shared/utils/enhancedAnalytics';
 
 type TableClient = Client & { id: string };
@@ -43,6 +46,16 @@ const ApiClientPage: React.FC = () => {
     isOpen: false,
     client: null,
   });
+  const [tokenSecurityDialogState, setTokenSecurityDialogState] = useState<{
+    isOpen: boolean;
+    client: Client | null;
+  }>({
+    isOpen: false,
+    client: null,
+  });
+  const [reinstateTokenClientId, setReinstateTokenClientId] = useState<
+    string | null
+  >(null);
 
   const userId = (session?.user as { _id?: string })?._id;
   const {
@@ -113,6 +126,41 @@ const ApiClientPage: React.FC = () => {
     });
   }, []);
 
+  const handleOpenTokenSecurity = useCallback((client: TableClient) => {
+    if (!client.access_token) {
+      toast.error('Token data is unavailable for this client');
+      return;
+    }
+
+    setTokenSecurityDialogState({
+      isOpen: true,
+      client,
+    });
+  }, []);
+
+  const handleReinstateToken = useCallback(
+    async (client: TableClient) => {
+      const tokenValue = client.access_token?.token;
+      if (!tokenValue) {
+        toast.error('Token data is unavailable for this client');
+        return;
+      }
+
+      setReinstateTokenClientId(client._id);
+      try {
+        await clientService.reinstateToken(tokenValue);
+        toast.success('Token reinstated successfully');
+        await mutate();
+      } catch (error) {
+        toast.error(getUserFriendlyErrorMessage(error));
+        console.error('Reinstate token error:', sanitizeErrorForLogging(error));
+      } finally {
+        setReinstateTokenClientId(null);
+      }
+    },
+    [mutate]
+  );
+
   const renderStatus = useCallback((value: unknown, item: TableClient) => {
     // Determine token expired status (prefer server-provided status)
     const token = item.access_token;
@@ -151,14 +199,7 @@ const ApiClientPage: React.FC = () => {
       const token = item.access_token;
 
       if (token) {
-        // Determine expired state: prefer server-provided token_status, otherwise infer from expiry date
-        let expired = token.token_status === 'expired';
-        if (!expired && token.expires) {
-          const expiryDate = parseDate(token.expires);
-          if (expiryDate) expired = expiryDate.getTime() <= Date.now();
-        }
-
-        // Only display token details in this column; action buttons live in Actions column now
+        // Only display token details in this column; action buttons live in the Actions column.
         return (
           <div className="flex items-center gap-2">
             <div className="flex-1 min-w-0">
@@ -166,7 +207,10 @@ const ApiClientPage: React.FC = () => {
                 token={token.token}
                 expiresAt={token.expires}
                 tokenStatus={token.token_status}
+                requestPattern={token.request_pattern}
                 showStatusBadge={false}
+                onReinstate={() => handleReinstateToken(item)}
+                reinstateLoading={reinstateTokenClientId === item._id}
               />
             </div>
           </div>
@@ -187,7 +231,13 @@ const ApiClientPage: React.FC = () => {
         </Button>
       );
     },
-    [isGeneratingToken, handleGenerateToken, activeGeneratingTokenId]
+    [
+      isGeneratingToken,
+      handleGenerateToken,
+      activeGeneratingTokenId,
+      handleReinstateToken,
+      reinstateTokenClientId,
+    ]
   );
 
   const renderCreatedDate = useCallback((value: unknown, item: TableClient) => {
@@ -281,6 +331,51 @@ const ApiClientPage: React.FC = () => {
           const isGeneratingForThis =
             isGeneratingToken && activeGeneratingTokenId === item._id;
 
+          return (
+            <div className="flex flex-col items-stretch gap-2">
+              {token && expired && item.isActive && (
+                <Tooltip content="A new token will be generated - copy it when shown to use it">
+                  <div className="w-full">
+                    <Button
+                      size="sm"
+                      variant="outlined"
+                      onClick={() => handleGenerateToken(item, 'refresh')}
+                      disabled={isGeneratingForThis}
+                      fullWidth
+                    >
+                      {isGeneratingForThis
+                        ? 'Regenerating...'
+                        : 'Regenerate Token'}
+                    </Button>
+                  </div>
+                </Tooltip>
+              )}
+
+              {token && (
+                <Button
+                  size="sm"
+                  variant="outlined"
+                  Icon={AqShield02}
+                  onClick={() => handleOpenTokenSecurity(item)}
+                  fullWidth
+                  className="whitespace-nowrap"
+                >
+                  Manage Security
+                </Button>
+              )}
+
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => handleEditClient(item)}
+                className="h-8 w-8 self-start p-1"
+                aria-label={`Edit client ${item.name}`}
+              >
+                <AqEdit05 className="w-4 h-4" />
+              </Button>
+            </div>
+          );
+
           if (token && expired && item.isActive) {
             return (
               <Tooltip content="A new token will be generated — copy it when shown to use it">
@@ -318,6 +413,7 @@ const ApiClientPage: React.FC = () => {
       isGeneratingToken,
       activeGeneratingTokenId,
       handleGenerateToken,
+      handleOpenTokenSecurity,
     ]
   );
 
@@ -401,6 +497,25 @@ const ApiClientPage: React.FC = () => {
           client={editDialogState.client}
           onSuccess={() => {
             setEditDialogState({ isOpen: false, client: null });
+            mutate();
+          }}
+        />
+      )}
+
+      {/* Token Security Dialog */}
+      {tokenSecurityDialogState.client?.access_token && (
+        <TokenSecurityDialog
+          isOpen={tokenSecurityDialogState.isOpen}
+          onClose={() =>
+            setTokenSecurityDialogState({
+              isOpen: false,
+              client: null,
+            })
+          }
+          token={tokenSecurityDialogState.client.access_token}
+          clientName={tokenSecurityDialogState.client.name}
+          onSuccess={() => {
+            setTokenSecurityDialogState({ isOpen: false, client: null });
             mutate();
           }}
         />

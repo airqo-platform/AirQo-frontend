@@ -10,6 +10,7 @@ import PageHeading from '@/shared/components/ui/page-heading';
 import { TextInput } from '@/shared/components/ui/text-input';
 import { formatWithPattern } from '@/shared/utils/dateUtils';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import { refreshWithToast } from '@/shared/utils/refreshWithToast';
 import {
   useOrganizationRequests,
   useApproveOrganizationRequest,
@@ -104,23 +105,21 @@ const OrganizationRequestsPage = () => {
     // Apply search filter
     if (searchTerm.trim()) {
       const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        request => {
-          const projectName = getProjectName(request).toLowerCase();
-          const city = (request.city || '').toLowerCase();
-          const legacySlug = (request.organization_slug || '').toLowerCase();
-          const partner = getPartnerName(request).toLowerCase();
+      filtered = filtered.filter(request => {
+        const projectName = getProjectName(request).toLowerCase();
+        const city = (request.city || '').toLowerCase();
+        const legacySlug = (request.organization_slug || '').toLowerCase();
+        const partner = getPartnerName(request).toLowerCase();
 
-          return (
-            projectName.includes(searchLower) ||
-            request.contact_name.toLowerCase().includes(searchLower) ||
-            request.contact_email.toLowerCase().includes(searchLower) ||
-            city.includes(searchLower) ||
-            partner.includes(searchLower) ||
-            legacySlug.includes(searchLower)
-          );
-        }
-      );
+        return (
+          projectName.includes(searchLower) ||
+          request.contact_name.toLowerCase().includes(searchLower) ||
+          request.contact_email.toLowerCase().includes(searchLower) ||
+          city.includes(searchLower) ||
+          partner.includes(searchLower) ||
+          legacySlug.includes(searchLower)
+        );
+      });
     }
 
     return filtered;
@@ -151,9 +150,17 @@ const OrganizationRequestsPage = () => {
       : null;
   }, [confirmDialog, requests]);
 
-  const handleRefresh = () => {
-    mutate();
-  };
+  const handleRefresh = useCallback(async () => {
+    try {
+      await refreshWithToast(
+        () => mutate(),
+        'Organization requests refreshed successfully'
+      );
+    } catch (error) {
+      toast.error(getUserFriendlyErrorMessage(error));
+      console.error('Refresh organization requests error:', error);
+    }
+  }, [mutate]);
 
   const handleApprove = useCallback((requestId: string) => {
     setConfirmDialog({ type: 'approve', id: requestId });
@@ -367,23 +374,24 @@ const OrganizationRequestsPage = () => {
                   variant={activeTab === 'pending' ? 'filled' : 'outlined'}
                   onClick={() => setActiveTab('pending')}
                 >
-                  Pending ({requests.filter(r => r.status === 'pending').length})
+                  Pending ({requests.filter(r => r.status === 'pending').length}
+                  )
                 </Button>
                 <Button
                   size="sm"
                   variant={activeTab === 'approved' ? 'filled' : 'outlined'}
                   onClick={() => setActiveTab('approved')}
                 >
-                  Approved ({requests.filter(r => r.status === 'approved').length}
-                  )
+                  Approved (
+                  {requests.filter(r => r.status === 'approved').length})
                 </Button>
                 <Button
                   size="sm"
                   variant={activeTab === 'rejected' ? 'filled' : 'outlined'}
                   onClick={() => setActiveTab('rejected')}
                 >
-                  Rejected ({requests.filter(r => r.status === 'rejected').length}
-                  )
+                  Rejected (
+                  {requests.filter(r => r.status === 'rejected').length})
                 </Button>
               </div>
               <Button variant="outlined" size="sm" onClick={handleRefresh}>
@@ -447,7 +455,8 @@ const OrganizationRequestsPage = () => {
           >
             <p>
               Are you sure you want to {confirmDialog?.type} the request from{' '}
-              {currentRequest ? getProjectName(currentRequest) : 'this project'}?
+              {currentRequest ? getProjectName(currentRequest) : 'this project'}
+              ?
             </p>
             {confirmDialog?.type === 'reject' && (
               <TextInput

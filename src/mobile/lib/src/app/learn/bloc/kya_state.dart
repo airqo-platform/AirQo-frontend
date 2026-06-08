@@ -33,12 +33,14 @@ class LessonsLoaded extends KyaState {
 class LessonsLoadingError extends KyaState {
   final String message;
   final LessonResponseModel? cachedModel;
-  
+  final bool isOffline;
+
   const LessonsLoadingError({
     required this.message,
     this.cachedModel,
+    this.isOffline = false,
   });
-  
+
   @override
-  List<Object?> get props => [message, cachedModel];
+  List<Object?> get props => [message, cachedModel, isOffline];
 }
