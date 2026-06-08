@@ -155,7 +155,7 @@ const SurveyResponseDialog: React.FC<SurveyResponseDialogProps> = ({
                       key={`${answer.questionId}-${answer.answeredAt}`}
                       className="p-4"
                     >
-                      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                      <div className="space-y-3">
                         <div className="space-y-1">
                           <p className="text-sm font-medium text-foreground">
                             {question?.question ||
@@ -171,7 +171,7 @@ const SurveyResponseDialog: React.FC<SurveyResponseDialogProps> = ({
                           </div>
                         </div>
 
-                        <div className="min-w-0 rounded-xl bg-muted/20 px-4 py-3 text-sm text-foreground lg:max-w-[45%]">
+                        <div className="rounded-xl bg-muted/20 px-4 py-3 text-sm text-foreground">
                           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                             Answer
                           </p>
