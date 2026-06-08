@@ -55,8 +55,8 @@ export interface SidebarConfig {
 // User flow sidebar configuration
 const userSidebarConfig: NavGroup[] = [
   {
-    id: 'main',
-    label: 'Main',
+    id: 'explore',
+    label: 'Explore',
     items: [
       {
         id: 'home',
@@ -65,11 +65,24 @@ const userSidebarConfig: NavGroup[] = [
         icon: AqHomeSmile,
       },
       {
+        id: 'map',
+        label: 'Map',
+        href: '/user/map',
+        icon: AqGlobe05,
+        disabled: false,
+      },
+      {
         id: 'favorites',
         label: 'My Favorites',
         href: '/user/favorites',
         icon: AqStar06,
       },
+    ],
+  },
+  {
+    id: 'data',
+    label: 'Data & Analysis',
+    items: [
       {
         id: 'bulk-export',
         label: 'Visualization & Data Export',
@@ -81,13 +94,6 @@ const userSidebarConfig: NavGroup[] = [
         label: 'Dataset Visualizer',
         href: '/user/data-visualizer',
         icon: AqPresentationChart02,
-      },
-      {
-        id: 'map',
-        label: 'Map',
-        href: '/user/map',
-        icon: AqGlobe05,
-        disabled: false,
       },
     ],
   },
@@ -401,12 +407,17 @@ export const bottomNavItems: Record<'user' | 'organization', NavItem[]> = {
       icon: AqHomeSmile,
     },
     {
+      id: 'map',
+      label: 'Map',
+      href: '/user/map',
+      icon: AqGlobe05,
+    },
+    {
       id: 'favorites',
       label: 'Favorites',
       href: '/user/favorites',
       icon: AqStar06,
     },
-
     {
       id: 'bulk-export',
       label: 'Export',
@@ -415,15 +426,9 @@ export const bottomNavItems: Record<'user' | 'organization', NavItem[]> = {
     },
     {
       id: 'data-visualizer',
-      label: 'Dataset Visualizer',
+      label: 'Visualizer',
       href: '/user/data-visualizer',
       icon: AqPresentationChart02,
-    },
-    {
-      id: 'map',
-      label: 'Map',
-      href: '/user/map',
-      icon: AqGlobe05,
     },
   ],
   organization: [
