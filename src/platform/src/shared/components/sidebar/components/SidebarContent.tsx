@@ -97,6 +97,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
               [
                 'system-clients',
                 'system-email-configs',
+                'system-security',
                 'system-org-requests',
                 'system-user-statistics',
               ].includes(item.id)

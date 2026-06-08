@@ -2,10 +2,13 @@
 
 import React, { useState } from 'react';
 import { usePostHog } from 'posthog-js/react';
-import { Button, Input, Dialog } from '@/shared/components/ui';
+import { Button, Input, Dialog, Checkbox } from '@/shared/components/ui';
 import { toast } from '@/shared/components/ui';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
-import { isValidIpAddress } from '@/shared/lib/validators';
+import {
+  isValidIpAddress,
+  isValidOriginUrl,
+} from '@/shared/lib/validators';
 import { clientService } from '@/shared/services/clientService';
 import { trackEvent } from '@/shared/utils/analytics';
 import { trackApiClientAction } from '@/shared/utils/enhancedAnalytics';
@@ -27,6 +30,9 @@ const CreateClientDialog: React.FC<CreateClientDialogProps> = ({
   const [clientName, setClientName] = useState('');
   const [ipAddresses, setIpAddresses] = useState<string[]>(['']);
   const [ipErrors, setIpErrors] = useState<string[]>(['']);
+  const [enforceOrigin, setEnforceOrigin] = useState(false);
+  const [originAddresses, setOriginAddresses] = useState<string[]>(['']);
+  const [originErrors, setOriginErrors] = useState<string[]>(['']);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleAddIpAddress = () => {
@@ -52,6 +58,28 @@ const CreateClientDialog: React.FC<CreateClientDialogProps> = ({
     setIpErrors(newIpErrors);
   };
 
+  const handleAddOriginAddress = () => {
+    setOriginAddresses([...originAddresses, '']);
+    setOriginErrors([...originErrors, '']);
+  };
+
+  const handleRemoveOriginAddress = (index: number) => {
+    if (originAddresses.length > 1) {
+      setOriginAddresses(originAddresses.filter((_, i) => i !== index));
+      setOriginErrors(originErrors.filter((_, i) => i !== index));
+    }
+  };
+
+  const handleOriginAddressChange = (index: number, value: string) => {
+    const newOriginAddresses = [...originAddresses];
+    newOriginAddresses[index] = value;
+    setOriginAddresses(newOriginAddresses);
+
+    const newOriginErrors = [...originErrors];
+    newOriginErrors[index] = '';
+    setOriginErrors(newOriginErrors);
+  };
+
   const handleSubmit = async () => {
     if (!clientName.trim()) {
       toast.error('Client name is required');
@@ -61,6 +89,7 @@ const CreateClientDialog: React.FC<CreateClientDialogProps> = ({
     setIsSubmitting(true);
     try {
       const filteredIpAddresses = ipAddresses.filter(ip => ip.trim() !== '');
+      const filteredOrigins = originAddresses.filter(origin => origin.trim() !== '');
 
       // Validate IP addresses
       const newIpErrors = [...ipErrors];
@@ -76,6 +105,26 @@ const CreateClientDialog: React.FC<CreateClientDialogProps> = ({
       }
       setIpErrors(newIpErrors);
 
+      const newOriginErrors = [...originErrors];
+      if (enforceOrigin) {
+        if (!filteredOrigins.length) {
+          toast.error('At least one allowed origin is required');
+          setIsSubmitting(false);
+          return;
+        }
+
+        for (let i = 0; i < originAddresses.length; i++) {
+          const origin = originAddresses[i].trim();
+          if (origin && !isValidOriginUrl(origin)) {
+            newOriginErrors[i] = 'Enter a valid origin URL with http or https';
+            hasErrors = true;
+          } else {
+            newOriginErrors[i] = '';
+          }
+        }
+      }
+      setOriginErrors(newOriginErrors);
+
       if (hasErrors) {
         setIsSubmitting(false);
         return;
@@ -84,6 +133,8 @@ const CreateClientDialog: React.FC<CreateClientDialogProps> = ({
       const clientData = {
         name: clientName.trim(),
         ...(userId && { user_id: userId }),
+        enforce_origin: enforceOrigin,
+        allowed_origins: enforceOrigin ? filteredOrigins : [],
         ...(filteredIpAddresses.length > 0 && {
           ip_addresses: filteredIpAddresses,
         }),
@@ -110,6 +161,10 @@ const CreateClientDialog: React.FC<CreateClientDialogProps> = ({
       toast.success('Client created successfully');
       setClientName('');
       setIpAddresses(['']);
+      setIpErrors(['']);
+      setEnforceOrigin(false);
+      setOriginAddresses(['']);
+      setOriginErrors(['']);
       onSuccess?.();
     } catch (error) {
       toast.error(getUserFriendlyErrorMessage(error));
@@ -124,6 +179,9 @@ const CreateClientDialog: React.FC<CreateClientDialogProps> = ({
       setClientName('');
       setIpAddresses(['']);
       setIpErrors(['']);
+      setEnforceOrigin(false);
+      setOriginAddresses(['']);
+      setOriginErrors(['']);
       onClose();
     }
   };
@@ -210,6 +268,79 @@ const CreateClientDialog: React.FC<CreateClientDialogProps> = ({
             Restrict access to specific IP addresses (leave empty for no
             restrictions)
           </p>
+        </div>
+
+        <div className="rounded-xl border border-border bg-muted/20 p-4 space-y-4">
+          <div className="flex items-start gap-3">
+            <Checkbox
+              checked={enforceOrigin}
+              onCheckedChange={setEnforceOrigin}
+              className="mt-0.5"
+            />
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-foreground">
+                Enforce origin restriction
+              </p>
+              <p className="text-xs text-muted-foreground">
+                When enabled, browser requests must include an Origin header
+                that matches one of the allowed origins below.
+              </p>
+            </div>
+          </div>
+
+          {enforceOrigin && (
+            <div className="space-y-2">
+              <div>
+                <p className="text-sm font-medium text-foreground">
+                  Allowed origins
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Use the full origin with protocol, for example
+                  https://app.airqo.net.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                {originAddresses.map((origin, index) => (
+                  <div key={index} className="flex items-center space-x-2">
+                    <div className="flex-1">
+                      <Input
+                        value={origin}
+                        onChange={e =>
+                          handleOriginAddressChange(index, e.target.value)
+                        }
+                        placeholder="https://app.airqo.net"
+                        className="w-full"
+                      />
+                      {originErrors[index] && (
+                        <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                          {originErrors[index]}
+                        </p>
+                      )}
+                    </div>
+                    {originAddresses.length > 1 && (
+                      <Button
+                        variant="outlined"
+                        size="sm"
+                        onClick={() => handleRemoveOriginAddress(index)}
+                        className="px-3"
+                      >
+                        Remove
+                      </Button>
+                    )}
+                  </div>
+                ))}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleAddOriginAddress}
+                  className="w-full"
+                >
+                  + Add Origin
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </Dialog>

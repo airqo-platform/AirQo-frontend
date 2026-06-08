@@ -6,8 +6,10 @@ import { Button, Card, PageHeading } from '@/shared/components/ui';
 import { Tooltip } from 'flowbite-react';
 import { LoadingState } from '@/shared/components/ui/loading-state';
 import { toast } from '@/shared/components/ui';
+import { WarningBanner } from '@/shared/components/ui/banner';
 import { formatDate, parseDate } from '@/shared/utils';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import { sanitizeErrorForLogging } from '@/shared/utils/sanitizeErrorForLogging';
 import {
   AqArrowLeft,
   AqEdit05,
@@ -22,6 +24,7 @@ import useSWR from 'swr';
 import Dialog from '@/shared/components/ui/dialog';
 import EditClientDialog from '@/modules/api-client/components/EditClientDialog';
 import InactiveClientDialog from '@/modules/api-client/components/InactiveClientDialog';
+import TokenSecurityDialog from '@/modules/api-client/components/TokenSecurityDialog';
 import { PermissionGuard } from '@/shared/components/PermissionGuard';
 import { useRBAC, useUser } from '@/shared/hooks';
 
@@ -40,10 +43,12 @@ const ClientDetailsPage: React.FC = () => {
     activate: true,
   });
   const [generateTokenDialogOpen, setGenerateTokenDialogOpen] = useState(false);
+  const [tokenSecurityDialogOpen, setTokenSecurityDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRefreshingSecret, setIsRefreshingSecret] = useState(false);
   const [isActivating, setIsActivating] = useState(false);
   const [isGeneratingToken, setIsGeneratingToken] = useState(false);
+  const [isReinstatingToken, setIsReinstatingToken] = useState(false);
   const [inactiveDialogState, setInactiveDialogState] = useState<{
     isOpen: boolean;
     clientId: string;
@@ -90,6 +95,14 @@ const ClientDetailsPage: React.FC = () => {
     : '—';
 
   const requiresClientSecret = Boolean(client?.requireClientSecret);
+  const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const describeAllowedDays = (days: number[] | undefined) => {
+    if (!days || days.length === 0) {
+      return 'All days';
+    }
+
+    return days.map(day => dayLabels[day] || String(day)).join(', ');
+  };
 
   const handleBack = () => {
     router.push('/system/clients');
@@ -178,6 +191,37 @@ const ClientDetailsPage: React.FC = () => {
       console.error('Generate token error:', error);
     } finally {
       setIsGeneratingToken(false);
+    }
+  };
+
+  const handleOpenTokenSecurity = () => {
+    if (!token) {
+      toast.error('Token data is unavailable for this client');
+      return;
+    }
+
+    setTokenSecurityDialogOpen(true);
+  };
+
+  const handleReinstateToken = async () => {
+    if (!token?.token) {
+      toast.error('Token data is unavailable for this client');
+      return;
+    }
+
+    setIsReinstatingToken(true);
+    try {
+      await clientService.reinstateToken(token.token);
+      toast.success('Token reinstated successfully');
+      mutate();
+    } catch (error) {
+      toast.error(getUserFriendlyErrorMessage(error));
+      console.error(
+        'Reinstate token error:',
+        sanitizeErrorForLogging(error)
+      );
+    } finally {
+      setIsReinstatingToken(false);
     }
   };
 
@@ -571,6 +615,177 @@ const ClientDetailsPage: React.FC = () => {
           </div>
         </Card>
 
+        {token && (
+          <Card className="p-6">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <h3 className="text-lg font-semibold">Token Security</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Review grid, cohort, origin, and schedule restrictions for
+                  this token.
+                </p>
+              </div>
+              <Button
+                variant="outlined"
+                onClick={handleOpenTokenSecurity}
+                Icon={AqEdit05}
+                iconPosition="start"
+              >
+                Manage Security
+              </Button>
+            </div>
+
+            <div className="space-y-4">
+              {token.request_pattern?.auto_suspended && (
+                <WarningBanner
+                  title="Token automatically suspended"
+                  message={
+                    <div className="space-y-1">
+                      <p>
+                        This token was suspended because suspicious activity
+                        was detected.
+                      </p>
+                      {token.request_pattern.suspension_reason && (
+                        <p>
+                          <span className="font-medium">Reason:</span>{' '}
+                          {token.request_pattern.suspension_reason}
+                        </p>
+                      )}
+                      {token.request_pattern.suspended_at && (
+                        <p>
+                          <span className="font-medium">Suspended at:</span>{' '}
+                          {formatDate(token.request_pattern.suspended_at, {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </p>
+                      )}
+                    </div>
+                  }
+                  actions={
+                    <Button
+                      size="sm"
+                      variant="filled"
+                      onClick={handleReinstateToken}
+                      loading={isReinstatingToken}
+                      className="bg-amber-600 hover:bg-amber-700 text-white"
+                    >
+                      Reinstate token
+                    </Button>
+                  }
+                />
+              )}
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="rounded-xl border border-border bg-muted/20 p-4">
+                  <p className="text-sm font-medium text-foreground">
+                    Grid restrictions
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {token.allowed_grids && token.allowed_grids.length > 0 ? (
+                      token.allowed_grids.map(grid => (
+                        <span
+                          key={grid}
+                          className="rounded-full border border-border bg-background px-2.5 py-1 text-xs font-mono"
+                        >
+                          {grid}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-sm text-gray-500">
+                        Unrestricted
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-border bg-muted/20 p-4">
+                  <p className="text-sm font-medium text-foreground">
+                    Cohort restrictions
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {token.allowed_cohorts && token.allowed_cohorts.length > 0 ? (
+                      token.allowed_cohorts.map(cohort => (
+                        <span
+                          key={cohort}
+                          className="rounded-full border border-border bg-background px-2.5 py-1 text-xs font-mono"
+                        >
+                          {cohort}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-sm text-gray-500">
+                        Unrestricted
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-border bg-muted/20 p-4">
+                  <p className="text-sm font-medium text-foreground">
+                    Allowed origins
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {token.allowed_origins && token.allowed_origins.length > 0 ? (
+                      token.allowed_origins.map(origin => (
+                        <span
+                          key={origin}
+                          className="rounded-full border border-border bg-background px-2.5 py-1 text-xs"
+                        >
+                          {origin}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-sm text-gray-500">
+                        Unrestricted
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-border bg-muted/20 p-4">
+                  <p className="text-sm font-medium text-foreground">
+                    Access schedule
+                  </p>
+                  <div className="mt-2 space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                    {token.access_schedule?.enabled ? (
+                      <>
+                        <p>
+                          Days: {describeAllowedDays(token.access_schedule.allowed_days)}
+                        </p>
+                        {token.access_schedule.allowed_hours_utc &&
+                        typeof token.access_schedule.allowed_hours_utc.start ===
+                          'number' &&
+                        typeof token.access_schedule.allowed_hours_utc.end ===
+                          'number' ? (
+                          <p>
+                            Hours UTC:{' '}
+                            {String(
+                              token.access_schedule.allowed_hours_utc.start
+                            ).padStart(2, '0')}
+                            :00 to{' '}
+                            {String(
+                              token.access_schedule.allowed_hours_utc.end
+                            ).padStart(2, '0')}
+                            :00
+                          </p>
+                        ) : (
+                          <p>Hours UTC: All day</p>
+                        )}
+                      </>
+                    ) : (
+                      <p>Disabled</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+        )}
+
         {/* Edit Dialog */}
         <EditClientDialog
           isOpen={editDialogOpen}
@@ -581,6 +796,19 @@ const ClientDetailsPage: React.FC = () => {
             mutate();
           }}
         />
+
+        {client.access_token && (
+          <TokenSecurityDialog
+            isOpen={tokenSecurityDialogOpen}
+            onClose={() => setTokenSecurityDialogOpen(false)}
+            token={client.access_token}
+            clientName={client.name}
+            onSuccess={() => {
+              setTokenSecurityDialogOpen(false);
+              mutate();
+            }}
+          />
+        )}
 
         {/* Inactive Client Dialog */}
         <InactiveClientDialog
