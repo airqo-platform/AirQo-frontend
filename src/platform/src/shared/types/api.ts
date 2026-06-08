@@ -1153,6 +1153,53 @@ export interface ResolveFlaggedTokenResponse {
   };
 }
 
+// Application email configuration types
+export interface ApplicationEmailConfiguration {
+  _id: string;
+  adminCCEmails: string;
+  applicationEmails: string[];
+  createdAt?: string;
+  updatedAt?: string;
+  __v?: number;
+}
+
+export interface GetApplicationEmailConfigurationsResponse {
+  success: boolean;
+  message: string;
+  applicationEmailConfigurations: ApplicationEmailConfiguration[];
+  total?: number;
+}
+
+export interface CreateApplicationEmailConfigurationRequest {
+  adminCCEmails: string;
+  applicationEmails?: string[];
+}
+
+export interface CreateApplicationEmailConfigurationResponse {
+  success: boolean;
+  message: string;
+  applicationEmailConfiguration: ApplicationEmailConfiguration;
+}
+
+export interface UpdateApplicationEmailConfigurationRequest {
+  adminCCEmails?: string;
+  applicationEmails?: string[];
+  addApplicationEmails?: string[];
+  removeApplicationEmails?: string[];
+}
+
+export interface UpdateApplicationEmailConfigurationResponse {
+  success: boolean;
+  message: string;
+  applicationEmailConfiguration: ApplicationEmailConfiguration;
+}
+
+export interface DeleteApplicationEmailConfigurationResponse {
+  success: boolean;
+  message: string;
+  applicationEmailConfiguration: ApplicationEmailConfiguration;
+}
+
 // Preferences types
 export interface Site {
   isFeatured?: boolean;
