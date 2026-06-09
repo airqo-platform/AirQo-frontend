@@ -137,7 +137,7 @@ export const consumeOAuthTokenHandoffFromUrl = (): OAuthTokenHandoff | null => {
 
   return {
     token,
-    provider: provider || null,
+    provider: provider || getLastUsedOAuthProvider(),
     callbackUrl: callbackUrl || null,
   };
 };
