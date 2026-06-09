@@ -3,13 +3,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { PermissionGuard } from '@/shared/components';
-import {
-  Button,
-  Card,
-  PageHeading,
-  Select,
-  toast,
-} from '@/shared/components/ui';
+import { Button, Card, PageHeading, toast } from '@/shared/components/ui';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import { AqRefreshCw05, AqEdit05, AqPlus } from '@airqo/icons-react';
 import { useRolesSummary, usePermissions } from '@/shared/hooks/useAdmin';
@@ -53,39 +47,49 @@ const RolesPermissionsContent: React.FC = () => {
     [permissionsData?.permissions]
   );
 
-  const groups = useMemo(() => {
+  const groupMap = useMemo(() => {
     const map = new Map<string, { id: string; title: string }>();
     for (const role of roles) {
-      if (role.group?._id && !map.has(role.group._id)) {
-        map.set(role.group._id, {
-          id: role.group._id,
-          title: role.group.grp_title,
-        });
+      const gid = role.group?._id;
+      if (gid && !map.has(gid)) {
+        map.set(gid, { id: gid, title: role.group.grp_title });
       }
     }
-    return Array.from(map.values()).sort((a, b) =>
-      a.title.localeCompare(b.title)
-    );
+    return map;
   }, [roles]);
 
-  const rolesByGroup = useMemo(() => {
-    if (selectedGroupId === 'all') return roles;
-    return roles.filter(role => role.group?._id === selectedGroupId);
-  }, [roles, selectedGroupId]);
-
-  const statusCounts = useMemo(() => {
-    return {
-      total: rolesByGroup.length,
-      active: rolesByGroup.filter(r => r.role_status === 'ACTIVE').length,
-      inactive: rolesByGroup.filter(r => r.role_status === 'INACTIVE').length,
-    };
-  }, [rolesByGroup]);
+  const groups = useMemo(
+    () =>
+      Array.from(groupMap.values()).sort((a, b) =>
+        a.title.localeCompare(b.title)
+      ),
+    [groupMap]
+  );
 
   const filteredRoles = useMemo(() => {
-    return rolesByGroup.filter(role => {
-      return statusFilter === 'all' || role.role_status === statusFilter;
+    return roles.filter(role => {
+      const gid = role.group?._id;
+      const matchesGroup =
+        selectedGroupId === 'all' || String(gid) === String(selectedGroupId);
+      const matchesStatus =
+        statusFilter === 'all' || role.role_status === statusFilter;
+      return matchesGroup && matchesStatus;
     });
-  }, [rolesByGroup, statusFilter]);
+  }, [roles, selectedGroupId, statusFilter]);
+
+  const statusCounts = useMemo(() => {
+    const groupFiltered =
+      selectedGroupId === 'all'
+        ? roles
+        : roles.filter(
+            role => String(role.group?._id) === String(selectedGroupId)
+          );
+    return {
+      total: groupFiltered.length,
+      active: groupFiltered.filter(r => r.role_status === 'ACTIVE').length,
+      inactive: groupFiltered.filter(r => r.role_status === 'INACTIVE').length,
+    };
+  }, [roles, selectedGroupId]);
 
   const tableData = useMemo<RoleRow[]>(
     () => filteredRoles.map(role => ({ ...role, id: role._id })),
@@ -109,6 +113,14 @@ const RolesPermissionsContent: React.FC = () => {
       toast.error(getUserFriendlyErrorMessage(error));
     }
   }, [mutateRoles]);
+
+  const handleGroupChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setSelectedGroupId(e.target.value);
+      setStatusFilter('all');
+    },
+    []
+  );
 
   const columns = useMemo(
     () => [
@@ -202,7 +214,7 @@ const RolesPermissionsContent: React.FC = () => {
       description:
         selectedGroupId === 'all'
           ? 'Across all groups'
-          : `${groups.find(g => g.id === selectedGroupId)?.title || ''} group`,
+          : `${groupMap.get(selectedGroupId)?.title || ''} group`,
     },
     {
       title: 'Active',
@@ -247,24 +259,26 @@ const RolesPermissionsContent: React.FC = () => {
         </Button>
       </div>
       <div className="w-full sm:w-64">
-        <Select
-          label="Filter by group"
+        <label className="block text-sm text-foreground mb-2">
+          Filter by group
+        </label>
+        <select
           value={selectedGroupId}
-          onChange={e => {
-            setSelectedGroupId(String(e.target.value || 'all'));
-            setStatusFilter('all');
-          }}
+          onChange={handleGroupChange}
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary"
         >
           <option value="all">All groups ({roles.length})</option>
           {groups.map(group => {
-            const count = roles.filter(r => r.group?._id === group.id).length;
+            const count = roles.filter(
+              r => String(r.group?._id) === String(group.id)
+            ).length;
             return (
               <option key={group.id} value={group.id}>
                 {group.title} ({count})
               </option>
             );
           })}
-        </Select>
+        </select>
       </div>
     </div>
   );
@@ -311,6 +325,7 @@ const RolesPermissionsContent: React.FC = () => {
       </div>
 
       <ServerSideTable
+        key={`roles-${selectedGroupId}-${statusFilter}`}
         title="System roles"
         data={tableData}
         columns={columns}
