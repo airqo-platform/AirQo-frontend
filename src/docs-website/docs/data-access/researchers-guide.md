@@ -146,7 +146,7 @@ The coordinate approximation is still valid for: area-based and neighbourhood-le
 It requires adjustment for: highly localised point-source correlation studies, proximity analysis requiring exact locations, and fine-scale spatial modelling below 1 km resolution.
 
 :::info Accessing exact coordinates
-For research requiring precise monitor locations, contact [info@airqo.net](mailto:info@airqo.net) to discuss exact coordinate access, data sharing agreements, and collaboration opportunities.
+For research requiring precise monitor locations, contact [support@airqo.net](mailto:support@airqo.net) to discuss exact coordinate access, data sharing agreements, and collaboration opportunities.
 :::
 
 ### 3.2 Selecting Monitors by Geographic Area
@@ -159,7 +159,7 @@ AirQo provides three methods for spatial data selection:
 
 ### 3.3 Geographic Coverage
 
-Visit our [network coverage page](https://airqo.net/solutions/network-coverage) for monitor locations, or contact [info@airqo.net](mailto:info@airqo.net) for specific coverage in your study area.
+Visit our [network coverage page](https://airqo.net/solutions/network-coverage) for monitor locations, or contact [support@airqo.net](mailto:support@airqo.net) for specific coverage in your study area.
 
 ---
 
@@ -257,7 +257,7 @@ For automated or large-scale data access, use the [AirQo API](../api/intro.md) w
 | Standard | $50/month | Larger research projects |
 | Premium | $150/month | High-volume commercial or institutional use |
 
-Academic researchers requiring higher API access than the free tier provides are encouraged to contact [info@airqo.net](mailto:info@airqo.net). We support academic research and can often accommodate reasonable requests.
+Academic researchers requiring higher API access than the free tier provides are encouraged to contact [support@airqo.net](mailto:support@airqo.net). We support academic research and can often accommodate reasonable requests.
 
 ### Data Access Costs
 
@@ -371,7 +371,7 @@ For a network of approximately 10 low-cost sensors, AirQo recommends the followi
 :::info Sourcing reference-grade equipment
 AirQo does not supply reference-grade air quality monitoring equipment. For projects requiring such instruments, we recommend Met One Instruments as a reputable provider. AirQo systems support remote data collection from the BAM 1022, which is widely deployed for regulatory-grade PM measurements: https://metone.com/products/bam-1022/
 
-For research projects seeking to integrate AirQo sensors within a larger hybrid monitoring system, contact [info@airqo.net](mailto:info@airqo.net) to discuss partnership arrangements, including technical training support, API integration, and data hosting on the AirQo platform.
+For research projects seeking to integrate AirQo sensors within a larger hybrid monitoring system, contact [support@airqo.net](mailto:support@airqo.net) to discuss partnership arrangements, including technical training support, API integration, and data hosting on the AirQo platform.
 :::
 
 ---
@@ -418,7 +418,7 @@ Suggested citation format:
 Suggested acknowledgment text:
 > We acknowledge AirQo (Makerere University) for providing access to air quality monitoring data used in this study.
 
-Please share copies of published papers, technical reports, dissertations, and conference presentations with AirQo at [info@airqo.net](mailto:info@airqo.net). This helps us track research impact and demonstrate the value of open data to our funders and partners.
+Please share copies of published papers, technical reports, dissertations, and conference presentations with AirQo at [support@airqo.net](mailto:support@airqo.net). This helps us track research impact and demonstrate the value of open data to our funders and partners.
 
 ---
 
@@ -440,13 +440,13 @@ Most African cities substantially exceed WHO guidelines, with annual PM2.5 often
 ### General Questions
 
 **How much historical data is available?**
-AirQo has been collecting data since approximately 2015, with network expansion over time. Data availability varies by city and location. Contact [info@airqo.net](mailto:info@airqo.net) for specifics.
+AirQo has been collecting data since approximately 2015, with network expansion over time. Data availability varies by city and location. Contact [support@airqo.net](mailto:support@airqo.net) for specifics.
 
 **Can I get real-time data?**
 Yes, through the API for near-real-time data. For research, archived data that has undergone full quality control is preferable.
 
 **Can I request monitor deployments for my research?**
-AirQo offers network packages for research partnerships. Contact [info@airqo.net](mailto:info@airqo.net).
+AirQo offers network packages for research partnerships. Contact [support@airqo.net](mailto:support@airqo.net).
 
 **How do I handle multi-city comparative studies?**
 Ensure consistent QC criteria across cities, account for differences in monitor density, and use appropriate methods for multi-level or clustered data.
@@ -471,7 +471,7 @@ Yes, for epidemiological studies and exposure assessment. Use appropriate exposu
 Data is immediately available through the Analytics Platform and API. For large custom requests, plan ahead and allow additional time.
 
 **My download failed or seems incomplete.**
-Contact [info@airqo.net](mailto:info@airqo.net) with the time and date of your download attempt, monitors and date range requested, platform used, and any error messages.
+Contact [support@airqo.net](mailto:support@airqo.net) with the time and date of your download attempt, monitors and date range requested, platform used, and any error messages.
 
 **Can I share AirQo data with collaborators?**
 Yes, data is open access. However, we encourage collaborators to access data directly from AirQo platforms to ensure they have the most up-to-date versions.
@@ -488,7 +488,7 @@ AirQo welcomes research collaborations that advance air quality science and publ
 We support graduate students with thesis and dissertation projects, independent research, and internship opportunities at AirQo.
 
 :::tip Get involved
-Contact [info@airqo.net](mailto:info@airqo.net) to discuss collaboration opportunities, including co-authorship, joint grant applications, shared conference presentations, and policy briefs.
+Contact [support@airqo.net](mailto:support@airqo.net) to discuss collaboration opportunities, including co-authorship, joint grant applications, shared conference presentations, and policy briefs.
 :::
 
 ---
@@ -497,7 +497,7 @@ Contact [info@airqo.net](mailto:info@airqo.net) to discuss collaboration opportu
 
 | | |
 |---|---|
-| **Primary Contact** | [info@airqo.net](mailto:info@airqo.net) |
+| **Primary Contact** | [support@airqo.net](mailto:support@airqo.net) |
 | **Website** | https://airqo.africa |
 | **Analytics Platform** | https://airqo.africa/products/analytics |
 | **API Documentation** | [AirQo API →](../api/intro.md) |
@@ -508,7 +508,7 @@ Contact [info@airqo.net](mailto:info@airqo.net) to discuss collaboration opportu
 
 ## 16. Additional Resources
 
-- **Research Repository** — AirQo maintains a repository of peer-reviewed publications using our data. Visit https://airqo.africa or request a bibliography from [info@airqo.net](mailto:info@airqo.net).
+- **Research Repository** — AirQo maintains a repository of peer-reviewed publications using our data. Visit https://airqo.africa or request a bibliography from [support@airqo.net](mailto:support@airqo.net).
 - **Educational Materials** — Resources on air quality fundamentals, health effects, data visualisation techniques, and policy frameworks.
 - **Training and Capacity Building** — AirQo occasionally offers data analysis workshops, air quality monitoring training, and student mentorship programmes.
 - **Fair Usage Policy** — For full guidance on batch downloads, API rate limits, and equitable access principles, see the [AirQo Data Access Fair Usage Policy](./fair-usage-policy.md).
@@ -570,11 +570,11 @@ AirQo strives to provide accurate, high-quality data but cannot guarantee error-
 - [ ] Report data completeness statistics.
 - [ ] Discuss limitations related to monitor coverage.
 - [ ] Include a data availability statement.
-- [ ] Share preprint/publication with AirQo at [info@airqo.net](mailto:info@airqo.net).
+- [ ] Share preprint/publication with AirQo at [support@airqo.net](mailto:support@airqo.net).
 
 ### After Publication
 
-- [ ] Send final publication to [info@airqo.net](mailto:info@airqo.net).
+- [ ] Send final publication to [support@airqo.net](mailto:support@airqo.net).
 - [ ] Consider sharing processed datasets (with documentation).
 - [ ] Engage with AirQo for dissemination and collaboration opportunities.
 

@@ -99,7 +99,7 @@ For users comfortable with programming (Python, R, or similar), the [AirQo API](
 | **Free Tier** | Suitable for standard academic research — $0/month |
 | **Registration Required** | Yes — to obtain an API key for authentication |
 | **Rate Limits** | Applied per tier to ensure equitable access across all API users |
-| **Support** | [info@airqo.net](mailto:info@airqo.net) for guidance on large-scale API use |
+| **Support** | [support@airqo.net](mailto:support@airqo.net) for guidance on large-scale API use |
 
 Using the API, researchers can write scripts that automatically loop through date ranges, paginate through results, and save data incrementally. This is the recommended approach for very large datasets or when integrating AirQo data into automated analysis pipelines.
 
@@ -158,7 +158,7 @@ AirQo recommends using only data from monitors that provide **≥50% of expected
 
 - Monitor coordinates are offset by approximately 0.5 km from actual physical locations for privacy reasons.
 - This applies across all data access methods.
-- For research requiring exact coordinates, contact [info@airqo.net](mailto:info@airqo.net).
+- For research requiring exact coordinates, contact [support@airqo.net](mailto:support@airqo.net).
 
 ---
 
@@ -174,7 +174,7 @@ AirQo recommends using only data from monitors that provide **≥50% of expected
 | **Recommended Data Type** | Calibrated data (not raw) |
 | **Recommended Frequency** | Hourly data for seasonal/temporal analysis |
 | **Completeness Threshold** | ≥50% of expected readings per monitor per period |
-| **Support & Inquiries** | [info@airqo.net](mailto:info@airqo.net) |
+| **Support & Inquiries** | [support@airqo.net](mailto:support@airqo.net) |
 
 ---
 
@@ -184,7 +184,7 @@ AirQo is committed to supporting researchers and will gladly provide guidance on
 
 | | |
 |---|---|
-| **General Enquiries & Support** | [info@airqo.net](mailto:info@airqo.net) |
+| **General Enquiries & Support** | [support@airqo.net](mailto:support@airqo.net) |
 | **Website** | https://airqo.africa |
 | **API Documentation** | [AirQo API →](../api/intro.md) |
 | **Analytics Platform** | https://airqo.africa/products/analytics |
