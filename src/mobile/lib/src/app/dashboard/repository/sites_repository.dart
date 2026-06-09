@@ -27,6 +27,7 @@ class SitesImpl extends SitesRepository with NetworkLoggy {
     final headers = {
       "Accept": "application/json",
       "Content-Type": "application/json",
+      "User-Agent": "AirQo-Mobile/3.0 (Flutter)",
     };
     if (userToken != null && (userToken as String).isNotEmpty) {
       headers["Authorization"] = "JWT $userToken";

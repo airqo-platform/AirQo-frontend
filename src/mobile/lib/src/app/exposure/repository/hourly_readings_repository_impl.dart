@@ -45,13 +45,14 @@ class HourlyReadingsRepositoryImpl extends HourlyReadingsRepository with Network
     final headers = {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
+      'User-Agent': 'AirQo-Mobile/3.0 (Flutter)',
     };
     if (userToken != null && userToken.isNotEmpty) {
       headers['Authorization'] = 'JWT $userToken';
     } else {
       final appToken = dotenv.env['AIRQO_MOBILE_TOKEN'];
       if (appToken != null && appToken.isNotEmpty) {
-        headers['Authorization'] = appToken;
+        headers['Authorization'] = 'JWT $appToken';
       }
     }
     return headers;

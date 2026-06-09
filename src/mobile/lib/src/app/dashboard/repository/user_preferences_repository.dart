@@ -24,7 +24,8 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
   Future<Map<String, String>> _getHeaders({bool useAppToken = false}) async {
     final headers = {
       "Accept": "application/json",
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
+      "User-Agent": "AirQo-Mobile/3.0 (Flutter)",
     };
 
     if (!useAppToken) {

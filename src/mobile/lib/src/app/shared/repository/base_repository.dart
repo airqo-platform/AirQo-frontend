@@ -149,6 +149,7 @@ class BaseRepository with UiLoggy {
         'Authorization': 'JWT $token',
         'Accept': '*/*',
         'Content-Type': 'application/json',
+        'User-Agent': 'AirQo-Mobile/3.0 (Flutter)',
       },
     );
 
@@ -171,6 +172,7 @@ class BaseRepository with UiLoggy {
         'Authorization': 'JWT $token',
         'Accept': '*/*',
         'Content-Type': 'application/json',
+        'User-Agent': 'AirQo-Mobile/3.0 (Flutter)',
       },
     );
 
@@ -186,6 +188,7 @@ class BaseRepository with UiLoggy {
     final headers = <String, String>{
       'Accept': '*/*',
       'Content-Type': 'application/json',
+      'User-Agent': 'AirQo-Mobile/3.0 (Flutter)',
       if (token != null) 'Authorization': 'JWT $token',
     };
 
@@ -218,6 +221,7 @@ class BaseRepository with UiLoggy {
         'Accept': '*/*',
         'Authorization': 'JWT $token',
         'Content-Type': 'application/json',
+        'User-Agent': 'AirQo-Mobile/3.0 (Flutter)',
       },
     );
 
@@ -235,7 +239,11 @@ class BaseRepository with UiLoggy {
     final response = await http.post(
       Uri.parse(url),
       body: json.encode(data),
-      headers: {"Accept": "*/*", "Content-Type": "application/json"},
+      headers: {
+        "Accept": "*/*",
+        "Content-Type": "application/json",
+        "User-Agent": "AirQo-Mobile/3.0 (Flutter)",
+      },
     );
 
     loggy.info("Unauthenticated POST response status: ${response.statusCode}");

@@ -201,6 +201,7 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
         headers: {
           'Authorization': 'JWT $authToken',
           'Content-Type': 'application/json',
+          'User-Agent': 'AirQo-Mobile/3.0 (Flutter)',
         },
         body: json.encode(body),
       );

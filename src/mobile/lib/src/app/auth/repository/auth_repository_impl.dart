@@ -35,7 +35,8 @@ class AuthImpl extends AuthRepository implements SocialAuthRepository {
                 (throw StateError(
                     'AIRQO_MOBILE_TOKEN environment variable is missing')),
             "Accept": "application/json",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "User-Agent": "AirQo-Mobile/3.0 (Flutter)",
           });
 
       if (loginResponse.statusCode == 200) {
@@ -137,7 +138,8 @@ class AuthImpl extends AuthRepository implements SocialAuthRepository {
           body: registerInputModelToJson(model),
           headers: {
             "Accept": "application/json",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "User-Agent": "AirQo-Mobile/3.0 (Flutter)",
           });
 
       if (registerResponse.statusCode >= 200 &&
@@ -197,7 +199,8 @@ class AuthImpl extends AuthRepository implements SocialAuthRepository {
               (throw StateError(
                   'AIRQO_MOBILE_TOKEN environment variable is missing')),
           "Accept": "application/json",
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "User-Agent": "AirQo-Mobile/3.0 (Flutter)",
         },
         body: jsonEncode({'email': email}),
       );
@@ -251,7 +254,8 @@ class AuthImpl extends AuthRepository implements SocialAuthRepository {
         headers: {
           "Authorization": apiToken,
           "Content-Type": "application/json",
-          "Accept": "application/json"
+          "Accept": "application/json",
+          "User-Agent": "AirQo-Mobile/3.0 (Flutter)",
         },
         body: json.encode({"email": email}),
       );
@@ -300,7 +304,10 @@ class AuthImpl extends AuthRepository implements SocialAuthRepository {
       final response = await http.post(
         Uri.parse(
             '${dotenv.env["AIRQO_API_URL"]}/api/v2/users/reset-password/$token'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'AirQo-Mobile/3.0 (Flutter)',
+        },
         body: jsonEncode(
             {'password': password, 'confirmPassword': confirmPassword}),
       );
@@ -413,7 +420,8 @@ class AuthImpl extends AuthRepository implements SocialAuthRepository {
         headers: {
           "Authorization": "JWT ${_sanitizeToken(authToken)}",
           "Accept": "application/json",
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "User-Agent": "AirQo-Mobile/3.0 (Flutter)",
         },
       ).timeout(const Duration(seconds: 30));
 
