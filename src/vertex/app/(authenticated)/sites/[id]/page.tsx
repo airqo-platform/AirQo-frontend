@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { AqArrowLeft } from "@airqo/icons-react";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { useSiteDetails, useRefreshSiteMetadata } from "@/core/hooks/useSites";
+import { useBanner } from "@/context/banner-context";
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useParams } from "next/navigation";
@@ -31,7 +33,22 @@ export default function UserSiteDetailsPage() {
   const params = useParams();
   const siteId = params.id as string;
   const { data: site, isLoading, error } = useSiteDetails(siteId);
-  const { mutate: refreshMetadata, isPending: isRefreshing } = useRefreshSiteMetadata();
+  const { showBanner } = useBanner();
+  const { mutate: refreshMetadata, isPending: isRefreshing } = useRefreshSiteMetadata({
+    onSuccess: (data) => {
+      const msg = (data.message ?? "").toLowerCase();
+      if (msg.includes("partially refreshed")) {
+        showBanner({ severity: 'warning', message: data.message, scoped: false });
+      } else if (msg.includes("already complete")) {
+        showBanner({ severity: 'info', message: 'Site metadata is already up to date.', scoped: false });
+      } else {
+        showBanner({ severity: 'success', message: 'Site metadata refreshed successfully.', scoped: false });
+      }
+    },
+    onError: (error) => {
+      showBanner({ severity: 'error', message: `Refresh Failed: ${getApiErrorMessage(error)}`, scoped: false });
+    },
+  });
   const router = useRouter();
   const [editSection, setEditSection] = useState<"general" | "mobile" | null>(
     null

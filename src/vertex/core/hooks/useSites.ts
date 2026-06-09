@@ -14,7 +14,6 @@ import { useGroupCohorts } from "./useCohorts";
 import { useAppSelector } from "../redux/hooks";
 import { useUserContext } from "./useUserContext";
 import { useMemo } from "react";
-import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { AxiosError } from "axios";
 import { getApiErrorMessage } from "../utils/getApiErrorMessage";
 
@@ -139,7 +138,12 @@ export const useSiteStatistics = (network?: string) => {
     };
 };
 
-export const useApproximateCoordinates = () => {
+interface UseApproximateCoordinatesOptions {
+  onSuccess?: (data: ApproximateCoordinatesResponse) => void;
+  onError?: (error: AxiosError) => void;
+}
+
+export const useApproximateCoordinates = (options?: UseApproximateCoordinatesOptions) => {
   const {
     mutate: getApproximateCoordinates,
     data: approximateCoordinates,
@@ -152,11 +156,11 @@ export const useApproximateCoordinates = () => {
   >({
     mutationFn: ({ latitude, longitude }) =>
       adapter.getApproximateCoordinates(latitude, longitude),
+    onSuccess: (data) => {
+      options?.onSuccess?.(data);
+    },
     onError: (error) => {
-      ReusableToast({
-        message: `Unable to get approximate coordinates: ${getApiErrorMessage(error)}`,
-        type: "ERROR",
-      });
+      options?.onError?.(error);
     },
   });
 
@@ -188,7 +192,12 @@ export const useSiteDetails = (
   });
 };
 
-export const useUpdateSiteDetails = () => {
+interface UseUpdateSiteDetailsOptions {
+  onSuccess?: () => void;
+  onError?: (error: AxiosError) => void;
+}
+
+export const useUpdateSiteDetails = (options?: UseUpdateSiteDetailsOptions) => {
   const queryClient = useQueryClient();
 
   return useMutation<
@@ -203,19 +212,13 @@ export const useUpdateSiteDetails = () => {
 
       return adapter.updateSiteDetails(siteId, cleanedData);
     },
-    onSuccess: (data, { siteId }) => {
-      ReusableToast({
-        message: "Site details updated successfully",
-        type: "SUCCESS",
-      });
+    onSuccess: (_data, { siteId }) => {
       queryClient.invalidateQueries({ queryKey: ["site-details", siteId] });
       queryClient.invalidateQueries({ queryKey: ["sites"] });
+      options?.onSuccess?.();
     },
     onError: (error) => {
-      ReusableToast({
-        message: `Failed to update site: ${getApiErrorMessage(error)}`,
-        type: "ERROR",
-      });
+      options?.onError?.(error);
     },
   });
 };
@@ -228,7 +231,12 @@ interface CreateSiteRequest {
   group: string;
 }
 
-export const useCreateSite = () => {
+interface UseCreateSiteOptions {
+  onSuccess?: (data: CreateSiteResponse, variables: CreateSiteRequest) => void;
+  onError?: (error: AxiosError) => void;
+}
+
+export const useCreateSite = (options?: UseCreateSiteOptions) => {
   const queryClient = useQueryClient();
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
 
@@ -251,55 +259,33 @@ export const useCreateSite = () => {
       return createdSite;
     },
     onSuccess: (data, variables) => {
-      ReusableToast({
-        message: `Site '${variables.name}' created successfully`,
-        type: "SUCCESS",
-      });
       queryClient.invalidateQueries({ queryKey: ["sites"] });
+      options?.onSuccess?.(data, variables);
     },
     onError: (error) => {
-      ReusableToast({
-        message: `Failed to create site: ${getApiErrorMessage(error)}`,
-        type: "ERROR",
-      });
+      options?.onError?.(error);
     },
   });
 };
 
-export const useRefreshSiteMetadata = () => {
+interface UseRefreshSiteMetadataOptions {
+  onSuccess?: (data: SiteRefreshResponse) => void;
+  onError?: (error: AxiosError) => void;
+}
+
+export const useRefreshSiteMetadata = (options?: UseRefreshSiteMetadataOptions) => {
   const queryClient = useQueryClient();
 
   return useMutation<SiteRefreshResponse, AxiosError<ErrorResponse>, string>({
     mutationFn: (siteId: string) => adapter.refreshSiteMetadata(siteId),
     onSuccess: (data, siteId) => {
-      // Update the cache with the newly enriched site data
       queryClient.setQueryData(["site-details", siteId], data.site);
       queryClient.invalidateQueries({ queryKey: ["sites"] });
       queryClient.invalidateQueries({ queryKey: ["site-details", siteId] });
-
-      const msg = (data.message ?? "").toLowerCase();
-      if (msg.includes("partially refreshed")) {
-        ReusableToast({
-          message: data.message,
-          type: "WARNING",
-        });
-      } else if (msg.includes("already complete")) {
-        ReusableToast({
-          message: "Site metadata is already up to date.",
-          type: "INFO",
-        });
-      } else {
-        ReusableToast({
-          message: "Site metadata refreshed successfully.",
-          type: "SUCCESS",
-        });
-      }
+      options?.onSuccess?.(data);
     },
     onError: (error) => {
-      ReusableToast({
-        message: `Refresh Failed: ${getApiErrorMessage(error)}`,
-        type: "ERROR",
-      });
+      options?.onError?.(error);
     },
   });
 };
