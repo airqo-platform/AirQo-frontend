@@ -1,6 +1,6 @@
 import { NetworkCreationRequest, NetworkRequestActionResponse } from "@/core/apis/networks";
 import { NetworkRequestValues } from "@/components/features/networks/schema";
-import { buildServerApiUrl, buildBrowserApiUrl } from "@/lib/api-routing";
+import { buildServerApiUrl } from "@/lib/api-routing";
 import logger from "@/lib/logger";
 import axios from "axios";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
