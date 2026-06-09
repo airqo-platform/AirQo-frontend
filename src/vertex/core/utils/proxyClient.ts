@@ -85,7 +85,14 @@ export const createProxyHandler = (options: ProxyOptions = {}) => {
       path = [];
     }
 
-    const targetPath = Array.isArray(path) ? path.join('/') : '';
+    let targetPath = Array.isArray(path) ? path.join('/') : '';
+
+    // Prevent double /v2/ in the final URL because getApiBaseUrl() already provides it
+    if (targetPath.startsWith('v2/')) {
+      targetPath = targetPath.slice(3);
+    } else if (targetPath === 'v2') {
+      targetPath = '';
+    }
 
     // Method validation
     const allowedMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
