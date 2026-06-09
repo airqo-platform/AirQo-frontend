@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery, type QueryFunctionContext } from "@tanstack/react-query";
 import {
-  sites,
   ApproximateCoordinatesResponse,
   GetSitesSummaryParams,
   SitesSummaryResponse,
@@ -9,13 +8,10 @@ import {
 } from "../apis/sites";
 import { adapter } from '../adapters';
 import { DeviceActivitiesResponse } from "../apis/devices";
-
 import { useGroupCohorts } from "./useCohorts";
 import { useAppSelector } from "../redux/hooks";
-import { useUserContext } from "./useUserContext";
 import { useMemo } from "react";
 import { AxiosError } from "axios";
-import { getApiErrorMessage } from "../utils/getApiErrorMessage";
 
 interface ErrorResponse {
   message: string;

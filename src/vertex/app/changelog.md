@@ -12,7 +12,7 @@
 Migrated all user-facing notifications in the Site Management module from `ReusableToast` and Sonner `toast` to the centralized `useBanner` / `useBannerWithDelay` / `useClipboard` system.
 
 <details>
-<summary><strong>Changes (5)</strong></summary>
+<summary><strong>Changes (4)</strong></summary>
 
 - **Hooks Decoupled**: Removed `ReusableToast` from 4 mutation hooks in `useSites.ts` — `useApproximateCoordinates`, `useUpdateSiteDetails`, `useCreateSite`, `useRefreshSiteMetadata` — and replaced with optional `onSuccess`/`onError` callback interfaces. Cache invalidation logic stays in the hooks; notification responsibility is delegated to the UI layer.
 - **Create & Edit Dialogs**: `create-site-form.tsx` wires `useCreateSite` and `useApproximateCoordinates` hook-level callbacks — errors use `scoped: true` (inline in dialog), site creation success uses `showBannerWithDelay` (`scoped: false`) after navigation fires. `edit-site-details-dialog.tsx` replaces 2 Sonner `toast.error` calls with `showBanner` (`scoped: true`) and routes mutation success/error through hook-level callbacks.
@@ -22,7 +22,7 @@ Migrated all user-facing notifications in the Site Management module from `Reusa
 </details>
 
 <details>
-<summary><strong>Files Updated (7)</strong></summary>
+<summary><strong>Files Updated (8)</strong></summary>
 
 - `src/vertex/core/hooks/useSites.ts` [MODIFIED]
 - `src/vertex/components/features/sites/create-site-form.tsx` [MODIFIED]
