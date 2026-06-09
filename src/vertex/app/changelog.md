@@ -4,6 +4,49 @@
 
 ---
 
+## Version 2.0.1
+**Released:** June 09, 2026
+
+### Relative API Routing & OAuth Redirect Fixes
+
+This release resolves critical build-time environment variable issues that caused API routing to fallback to localhost, and hardens the OAuth token handoff flow to eliminate redirect loops. 
+
+<details>
+<summary><strong>API Routing & Proxy Stabilization (3)</strong></summary>
+
+- **Relative Client Routes**: Introduced `buildBrowserApiUrl` to strictly return relative paths (`/api/v2/...`) for browser-side requests. This entirely bypasses the localhost fallback bug caused by missing build-time `NEXT_PUBLIC_` environment variables.
+- **Server Routes & Strict Env Checks**: Introduced `buildServerApiUrl` for server-side requests and tightened `envConstants.ts` to explicitly require `NEXT_PUBLIC_API_URL` during initialization to fail-fast.
+- **Proxy V2 Duplication Fix**: Adjusted the proxy client's path handling to dynamically strip leading `v2/` segments, preventing double `/v2/v2/` URL paths when proxying to the backend.
+
+</details>
+
+<details>
+<summary><strong>Authentication & Session Sync (3)</strong></summary>
+
+- **Middleware Bypass**: `SocialAuthSection` now safely appends a `success=<provider>` query parameter to the `redirect_after` URL. This prevents the NextAuth middleware from forcefully intercepting the callback and generating its own localhost callback URL.
+- **UI Blocking on Token Handoff**: Added a `useEffect` watcher in `TokenHandoffHandler` to keep the UI explicitly blocked until NextAuth fully broadcasts the `authenticated` state across the React context tree, preventing rogue client-side redirects to `/login`.
+- **Resilient Profile Fetching**: Increased the OAuth profile fetch tolerance to 10 seconds, gracefully handled `AbortError`s to prevent noisy server logs, and normalized the OAuth access token to ensure `Authorization` headers are only appended when present.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (11)</strong></summary>
+
+- `app/api/auth/[...nextauth]/options.ts` [MODIFIED]
+- `app/changelog.md` [MODIFIED]
+- `components/features/auth/social-auth-section.tsx` [MODIFIED]
+- `core/apis/users.ts` [MODIFIED]
+- `core/auth/authProvider.tsx` [MODIFIED]
+- `core/auth/oauth-session.ts` [MODIFIED]
+- `core/services/network-service.ts` [MODIFIED]
+- `core/utils/proxyClient.ts` [MODIFIED]
+- `lib/api-routing.ts` [NEW]
+- `lib/envConstants.ts` [MODIFIED]
+- `vertex.config.ts` [MODIFIED]
+
+</details>
+
+---
 ## Version 2.0.0
 **Released:** June 07, 2026
 

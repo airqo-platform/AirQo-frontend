@@ -23,7 +23,7 @@ Direct Grid ID filtering will be added to the Analytics API in a future release.
 
 ## Overview
 
-To query historical data for your Grid, use the site names or device names from your Grid in the Analytics API request. You can discover the sites in your Grid by calling the [recent measurements endpoint](./recent-measurements.md) first and collecting the `site_id` and `device` values.
+To query historical data for your Grid, supply the Site IDs or device names for that Grid in the Analytics API request. Use the [Metadata API](../reference/metadata.md#get-all-site-and-device-ids-for-a-grid) (`GET /api/v2/devices/grids/{GRID_ID}/generate`) to retrieve all site and device identifiers for your Grid.
 
 ---
 
