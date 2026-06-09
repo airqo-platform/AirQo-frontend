@@ -11,10 +11,11 @@ import {
   toast,
 } from '@/shared/components/ui';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
-import { AqRefreshCw05, AqEdit05 } from '@airqo/icons-react';
+import { AqRefreshCw05, AqEdit05, AqPlus } from '@airqo/icons-react';
 import { useRolesSummary, usePermissions } from '@/shared/hooks/useAdmin';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { refreshWithToast } from '@/shared/utils/refreshWithToast';
+import CreateRoleDialog from './components/CreateRoleDialog';
 import type { UserRoleSummary } from '@/shared/types/api';
 
 type RoleRow = UserRoleSummary & {
@@ -35,6 +36,7 @@ const RolesPermissionsContent: React.FC = () => {
     'all' | 'ACTIVE' | 'INACTIVE'
   >('all');
   const [selectedGroupId, setSelectedGroupId] = useState('all');
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   const {
     data: rolesData,
@@ -273,14 +275,24 @@ const RolesPermissionsContent: React.FC = () => {
         title="Roles & Permissions"
         subtitle="Manage system roles, view assignments, and configure permissions across the platform."
         action={
-          <Button
-            variant="outlined"
-            size="sm"
-            Icon={AqRefreshCw05}
-            onClick={handleRefresh}
-          >
-            Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="filled"
+              size="sm"
+              Icon={AqPlus}
+              onClick={() => setShowCreateDialog(true)}
+            >
+              Create Role
+            </Button>
+            <Button
+              variant="outlined"
+              size="sm"
+              Icon={AqRefreshCw05}
+              onClick={handleRefresh}
+            >
+              Refresh
+            </Button>
+          </div>
         }
       />
 
@@ -308,6 +320,20 @@ const RolesPermissionsContent: React.FC = () => {
         showClientPagination={true}
         pageSize={10}
         customHeader={filterBar}
+      />
+
+      <CreateRoleDialog
+        isOpen={showCreateDialog}
+        onClose={() => setShowCreateDialog(false)}
+        onSuccess={() => {
+          setShowCreateDialog(false);
+          mutateRoles();
+        }}
+        groups={groups.map(g => ({
+          _id: g.id,
+          grp_title: g.title,
+          grp_description: '',
+        }))}
       />
     </div>
   );
