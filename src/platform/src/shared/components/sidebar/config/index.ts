@@ -17,6 +17,7 @@ import {
   AqMessageCheckCircle,
   AqMail04,
   AqClipboardCheck,
+  AqFileShield02,
 } from '@airqo/icons-react';
 
 export interface NavItem {
@@ -244,6 +245,12 @@ const systemSidebarConfig: NavGroup[] = [
         href: '/system/security',
         icon: AqShield02,
       },
+      {
+        id: 'system-roles-permissions',
+        label: 'Roles & Permissions',
+        href: '/system/roles-permissions',
+        icon: AqFileShield02,
+      },
     ],
   },
   {
@@ -318,6 +325,12 @@ const globalSidebarConfig: NavGroup[] = [
             label: 'Security',
             href: '/system/security',
             description: 'Review blocked ranges and flagged tokens',
+          },
+          {
+            id: 'system-roles-permissions',
+            label: 'Roles & Permissions',
+            href: '/system/roles-permissions',
+            description: 'Manage system roles and configure permissions',
           },
           {
             id: 'system-email-configs',
