@@ -56,7 +56,11 @@ export const networkService = {
     try {
       // Try putting admin_secret in both URL and body to be safe, 
       // as some AirQo endpoints require it in one or the other.
-      const url = buildServerApiUrl(`/devices/network-creation-requests/${id}/${action}?admin_secret=${encodeURIComponent(adminSecret.trim())}`);
+      const encodedId = encodeURIComponent(id.trim());
+      const encodedAction = encodeURIComponent(action.trim());
+      const url = buildServerApiUrl(
+        `/devices/network-creation-requests/${encodedId}/${encodedAction}?admin_secret=${encodeURIComponent(adminSecret.trim())}`
+      );
       
       const payload: Record<string, any> = {
         admin_secret: adminSecret.trim(),
