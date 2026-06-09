@@ -12,11 +12,11 @@
 Migrated all user-facing notifications in the Site Management module from `ReusableToast` and Sonner `toast` to the centralized `useBanner` / `useBannerWithDelay` / `useClipboard` system.
 
 <details>
-<summary><strong>Changes (4)</strong></summary>
+<summary><strong>Changes (5)</strong></summary>
 
 - **Hooks Decoupled**: Removed `ReusableToast` from 4 mutation hooks in `useSites.ts` — `useApproximateCoordinates`, `useUpdateSiteDetails`, `useCreateSite`, `useRefreshSiteMetadata` — and replaced with optional `onSuccess`/`onError` callback interfaces. Cache invalidation logic stays in the hooks; notification responsibility is delegated to the UI layer.
 - **Create & Edit Dialogs**: `create-site-form.tsx` wires `useCreateSite` and `useApproximateCoordinates` hook-level callbacks — errors use `scoped: true` (inline in dialog), site creation success uses `showBannerWithDelay` (`scoped: false`) after navigation fires. `edit-site-details-dialog.tsx` replaces 2 Sonner `toast.error` calls with `showBanner` (`scoped: true`) and routes mutation success/error through hook-level callbacks.
-- **Site Detail Pages**: Both `admin/sites/[id]/page.tsx` and `sites/[id]/page.tsx` wire `useRefreshSiteMetadata` with severity-aware banners (`scoped: false`): `warning` for partial refresh, `info` for already-complete, `success` for full refresh.
+- **Site Detail Pages**: Both `admin/sites/[id]/page.tsx` and `sites/[id]/page.tsx` wire `useRefreshSiteMetadata` with severity-aware banners (`scoped: false`): `warning` for partial refresh, `info` for already-complete, `success` for full refresh. The duplicated banner logic has been extracted into a shared `useRefreshMetadataWithBanner` hook.
 - **In-Page Copy Actions**: `site-information-card.tsx` and `site-measurements-api-card.tsx` replace clipboard `ReusableToast` calls with the shared `useClipboard` hook, adding async error handling for free.
 
 </details>
@@ -31,6 +31,7 @@ Migrated all user-facing notifications in the Site Management module from `Reusa
 - `src/vertex/components/features/sites/site-measurements-api-card.tsx` [MODIFIED]
 - `src/vertex/app/(authenticated)/admin/sites/[id]/page.tsx` [MODIFIED]
 - `src/vertex/app/(authenticated)/sites/[id]/page.tsx` [MODIFIED]
+- `src/vertex/core/hooks/useRefreshMetadataWithBanner.ts` [ADDED]
 
 </details>
 
