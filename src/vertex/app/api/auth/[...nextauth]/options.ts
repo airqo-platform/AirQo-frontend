@@ -9,7 +9,8 @@ import type {
 } from '@/app/types/users';
 import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
 import logger from '@/lib/logger';
-import { getApiBaseUrl, isHCaptchaEnabled } from '@/lib/envConstants';
+import { isHCaptchaEnabled } from '@/lib/envConstants';
+import { buildServerApiUrl } from '@/lib/api-routing';
 import { normalizeOAuthAccessToken } from '@/core/auth/oauth-session';
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -142,17 +143,19 @@ const fetchOAuthProfile = async (
   accessToken: string
 ): Promise<OAuthProfilePayload | null> => {
   try {
-    const profileUrl = `${getApiBaseUrl()}/users/profile/enhanced`;
+    const profileUrl = buildServerApiUrl('/users/profile/enhanced');
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    const normalizedAccessToken = normalizeOAuthAccessToken(accessToken);
 
     const response = await fetch(profileUrl, {
       method: 'GET',
       cache: 'no-store',
+      credentials: 'include',
       signal: controller.signal,
       headers: {
         Accept: 'application/json',
-        Authorization: `JWT ${accessToken}`,
+        ...(normalizedAccessToken ? { Authorization: `JWT ${normalizedAccessToken}` } : {}),
       },
     }).finally(() => clearTimeout(timeoutId));
 
@@ -167,6 +170,10 @@ const fetchOAuthProfile = async (
 
     return payload.data;
   } catch (error) {
+    const errorName = (error as { name?: string })?.name;
+    if (errorName === 'AbortError') {
+      return null;
+    }
     logger.error('Error fetching OAuth profile', { error });
     return null;
   }

@@ -1,6 +1,6 @@
 import { NetworkCreationRequest, NetworkRequestActionResponse } from "@/core/apis/networks";
 import { NetworkRequestValues } from "@/components/features/networks/schema";
-import { getApiBaseUrl } from "@/lib/envConstants";
+import { buildServerApiUrl } from "@/lib/api-routing";
 import logger from "@/lib/logger";
 import axios from "axios";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
@@ -17,8 +17,7 @@ export const networkService = {
    */
   getNetworkCreationRequests: async (token: string, adminSecret: string): Promise<NetworkCreationRequest[]> => {
     try {
-      const baseUrl = getApiBaseUrl();
-      const url = `${baseUrl}/devices/network-creation-requests?admin_secret=${adminSecret.trim()}`;
+      const url = buildServerApiUrl(`/devices/network-creation-requests?admin_secret=${encodeURIComponent(adminSecret.trim())}`);
       
       const response = await axios.get(url, {
         headers: {
@@ -55,10 +54,13 @@ export const networkService = {
     adminSecret: string
   ): Promise<any> => {
     try {
-      const baseUrl = getApiBaseUrl();
       // Try putting admin_secret in both URL and body to be safe, 
       // as some AirQo endpoints require it in one or the other.
-      const url = `${baseUrl}/devices/network-creation-requests/${id}/${action}?admin_secret=${adminSecret.trim()}`;
+      const encodedId = encodeURIComponent(id.trim());
+      const encodedAction = encodeURIComponent(action.trim());
+      const url = buildServerApiUrl(
+        `/devices/network-creation-requests/${encodedId}/${encodedAction}?admin_secret=${encodeURIComponent(adminSecret.trim())}`
+      );
       
       const payload: Record<string, any> = {
         admin_secret: adminSecret.trim(),
@@ -94,8 +96,7 @@ export const networkService = {
    * Submits a new network creation request. Public endpoint — no auth required.
    */
   submitNetworkRequest: async (data: NetworkRequestValues): Promise<NetworkRequestActionResponse> => {
-    const baseUrl = getApiBaseUrl();
-    const url = `${baseUrl}/devices/network-creation-requests`;
+    const url = buildServerApiUrl(`/devices/network-creation-requests`);
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), NETWORK_REQUEST_TIMEOUT_MS);
