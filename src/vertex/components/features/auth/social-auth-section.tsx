@@ -111,12 +111,6 @@ export default function SocialAuthSection({
     [disabled, redirectPath, showBanner]
   );
 
-  // Hide social auth completely if the required API URL environment variable is missing
-  // to prevent runtime crashes when getApiBaseUrl() throws an error during OAuth initiation.
-  if (!process.env.NEXT_PUBLIC_API_URL) {
-    return null;
-  }
-
   return (
     <div className={cn('w-full space-y-4', className)}>
       <div className="grid grid-cols-4 gap-2">
