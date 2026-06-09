@@ -2,7 +2,6 @@ import { signOut } from 'next-auth/react';
 import { useDispatch } from 'react-redux';
 import { clearUser, setLoggingOut } from '@/shared/store/userSlice';
 import { persistor } from '@/shared/store';
-import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { selectLoggingOut } from '@/shared/store/selectors';
 import { useCallback } from 'react';
@@ -19,7 +18,6 @@ const OAUTH_SIGNED_OUT_FLAG = 'airqo:oauth-signed-out';
 
 export const useLogout = (callbackUrl?: string) => {
   const dispatch = useDispatch();
-  const router = useRouter();
   const isLoggingOut = useSelector(selectLoggingOut);
   const { cache, mutate } = useSWRConfig();
   const queryClient = useQueryClient();
@@ -118,14 +116,15 @@ export const useLogout = (callbackUrl?: string) => {
         // Clear persisted Redux data
         await persistor.purge();
 
-        // Sign out from NextAuth and redirect
-        await signOut({ callbackUrl: callbackUrl || '/user/login' });
+        // Sign out from NextAuth (clear cookie server-side) then force full page reload
+        await signOut({ redirect: false });
+        window.location.href = callbackUrl || '/user/login';
       } catch (error) {
         logger.error('Logout error in useLogout', error);
         // Reset logging out state on error
         dispatch(setLoggingOut(false));
-        // Fallback redirect
-        router.push(callbackUrl || '/user/login');
+        // Force full page reload to clear all session state
+        window.location.href = callbackUrl || '/user/login';
       } finally {
         sharedIsLoggingOut = false;
         sharedLogoutPromise = null;
@@ -134,7 +133,7 @@ export const useLogout = (callbackUrl?: string) => {
 
     sharedLogoutPromise = runLogout();
     await sharedLogoutPromise;
-  }, [cache, callbackUrl, dispatch, isLoggingOut, mutate, queryClient, router]);
+  }, [cache, callbackUrl, dispatch, isLoggingOut, mutate, queryClient]);
 
   return logout;
 };
