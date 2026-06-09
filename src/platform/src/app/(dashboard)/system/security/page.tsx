@@ -869,7 +869,7 @@ const SecurityPageContent: React.FC = () => {
         }
       />
 
-      {blockedLoading && flaggedLoading ? (
+      {blockedLoading || flaggedLoading ? (
         <LoadingState
           className="min-h-[400px]"
           text="Loading security data..."
