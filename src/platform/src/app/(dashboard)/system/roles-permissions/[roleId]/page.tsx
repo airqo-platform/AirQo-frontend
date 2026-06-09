@@ -43,6 +43,7 @@ const RoleDetailContent: React.FC = () => {
 
   const {
     data: permissionsData,
+    error: permissionsError,
     isLoading: permissionsLoading,
     mutate: mutatePermissions,
   } = usePermissions();
@@ -191,6 +192,16 @@ const RoleDetailContent: React.FC = () => {
       <Card className="p-6">
         <p className="text-sm text-muted-foreground">
           {getUserFriendlyErrorMessage(roleError)}
+        </p>
+      </Card>
+    );
+  }
+
+  if (permissionsError) {
+    return (
+      <Card className="p-6">
+        <p className="text-sm text-muted-foreground">
+          {getUserFriendlyErrorMessage(permissionsError)}
         </p>
       </Card>
     );
