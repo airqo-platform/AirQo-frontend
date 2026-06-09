@@ -14,13 +14,12 @@ export default withAuth(
   },
   {
     callbacks: {
-      authorized: ({ req, token }) => {
-        // Bypass server-side protection for OAuth callbacks so the client can process the token hash.
-        // Client-side AuthWrapper will still enforce protection if the token is invalid.
-        if (req.nextUrl.searchParams.has('success')) {
-          return true;
-        }
-        return Boolean(token);
+      authorized: () => {
+        // Delegate route protection entirely to the client-side AuthWrapper.
+        // This is strictly necessary because the OAuth flow relies on URL hash fragments (#token=...)
+        // which the server-side middleware cannot read. If we block requests here, 
+        // the Next.js server will strip the callback and force a redirect loop through /login.
+        return true;
       },
     },
     pages: {
