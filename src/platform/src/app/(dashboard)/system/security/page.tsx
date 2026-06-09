@@ -8,6 +8,7 @@ import {
   Card,
   Checkbox,
   Dialog,
+  LoadingState,
   PageHeading,
   TextInput,
   toast,
@@ -868,6 +869,13 @@ const SecurityPageContent: React.FC = () => {
         }
       />
 
+      {blockedLoading && flaggedLoading ? (
+        <LoadingState
+          className="min-h-[400px]"
+          text="Loading security data..."
+        />
+      ) : (
+      <>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {summaryCards.map(card => (
           <Card key={card.title} className="p-4">
@@ -997,6 +1005,8 @@ const SecurityPageContent: React.FC = () => {
             pageSize={10}
           />
         </div>
+      )}
+      </>
       )}
 
       <BlockedAsnDialog
