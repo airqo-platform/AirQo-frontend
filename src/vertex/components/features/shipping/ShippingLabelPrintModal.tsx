@@ -5,6 +5,7 @@ import { ShippingLabel } from '@/app/types/devices';
 import ReusableDialog from '@/components/shared/dialog/ReusableDialog';
 import { Printer } from 'lucide-react';
 import Image from 'next/image';
+import { useBanner } from '@/context/banner-context';
 
 interface ShippingLabelPrintModalProps {
     labels: ShippingLabel[];
@@ -13,6 +14,8 @@ interface ShippingLabelPrintModalProps {
 }
 
 const ShippingLabelPrintModal: React.FC<ShippingLabelPrintModalProps> = ({ labels, isOpen, onClose }) => {
+    const { showBanner } = useBanner();
+
     const isValidDataUrl = (url: string) => {
         return url.startsWith('data:image/') || /^https?:\/\//i.test(url);
     };
@@ -22,13 +25,13 @@ const ShippingLabelPrintModal: React.FC<ShippingLabelPrintModalProps> = ({ label
         const printWindow = window.open('', '_blank');
 
         if (!printWindow) {
-            alert('Please allow pop-ups for this site to print labels');
+            showBanner({ severity: 'error', message: 'Please allow pop-ups for this site to print labels', scoped: true });
             return;
         }
 
         const invalidLabels = labels.filter(label => !isValidDataUrl(label.qr_code_image));
         if (invalidLabels.length > 0) {
-            alert('Some QR code images have invalid URLs');
+            showBanner({ severity: 'error', message: 'Some QR code images have invalid URLs', scoped: true });
             return;
         }
 
