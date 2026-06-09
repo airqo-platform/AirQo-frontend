@@ -145,15 +145,17 @@ const fetchOAuthProfile = async (
   try {
     const profileUrl = buildServerApiUrl('/users/profile/enhanced');
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    const normalizedAccessToken = normalizeOAuthAccessToken(accessToken);
 
     const response = await fetch(profileUrl, {
       method: 'GET',
       cache: 'no-store',
+      credentials: 'include',
       signal: controller.signal,
       headers: {
         Accept: 'application/json',
-        Authorization: `JWT ${accessToken}`,
+        ...(normalizedAccessToken ? { Authorization: `JWT ${normalizedAccessToken}` } : {}),
       },
     }).finally(() => clearTimeout(timeoutId));
 
@@ -168,6 +170,10 @@ const fetchOAuthProfile = async (
 
     return payload.data;
   } catch (error) {
+    const errorName = (error as { name?: string })?.name;
+    if (errorName === 'AbortError') {
+      return null;
+    }
     logger.error('Error fetching OAuth profile', { error });
     return null;
   }

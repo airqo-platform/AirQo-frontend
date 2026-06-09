@@ -90,7 +90,9 @@ export default function SocialAuthSection({
       const queryParams: Record<string, string> = {};
 
       if (redirectAfter) {
-        queryParams.redirect_after = redirectAfter;
+        const urlObj = new URL(redirectAfter);
+        urlObj.searchParams.set('success', provider);
+        queryParams.redirect_after = urlObj.toString();
       }
 
 

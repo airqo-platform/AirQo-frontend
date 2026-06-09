@@ -591,6 +591,13 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
   const [isBootstrapping, setIsBootstrapping] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
+  const { update, status } = useSession();
+
+  useEffect(() => {
+    if (status === 'authenticated' && isHandlingOAuthRef.current) {
+      isHandlingOAuthRef.current = false;
+    }
+  }, [status]);
 
   const waitForSession = useCallback(async () => {
     const attempts = 8;
@@ -627,6 +634,9 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
           });
 
           if (result?.ok) {
+            // Force NextAuth SessionProvider to immediately sync its React context
+            await update();
+            
             // Wait for session to be fully available before redirecting
             const session = await waitForSession();
             const email = session?.user?.email || '';
@@ -655,23 +665,27 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
             }
           } else {
             logger.error('[TokenHandoffHandler] OAuth sign-in failed', { error: result?.error });
+            isHandlingOAuthRef.current = false;
             router.push(`/auth-error?error=${encodeURIComponent(result?.error || 'OAuthSignin')}`);
           }
+        } else {
+          isHandlingOAuthRef.current = false;
         }
       } catch (error) {
         logger.error('[TokenHandoffHandler] Error during bootstrap', { error });
+        isHandlingOAuthRef.current = false;
       } finally {
         if (shouldUnblock) {
           setIsBootstrapping(false);
-          isHandlingOAuthRef.current = false;
         }
       }
     };
 
     bootstrap();
-  }, [router, pathname, waitForSession]);
+  }, [router, pathname, waitForSession, update]);
 
-  if (isBootstrapping && isHandlingOAuthRef.current) {
+  // Keep blocking if we successfully handed off the token but NextAuth hasn't flushed its authenticated state yet
+  if ((isBootstrapping && isHandlingOAuthRef.current) || (status === 'unauthenticated' && isHandlingOAuthRef.current)) {
     return <SessionLoadingState />;
   }
 
