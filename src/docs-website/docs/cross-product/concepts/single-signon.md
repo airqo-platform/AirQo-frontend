@@ -10,34 +10,42 @@ AirQo uses **NextAuth.js v4** with **JWT session strategy** to enable Single Sig
 
 ### Architecture
 
+Each app uses its own cookie name, but all cookies share the same parent domain (`.airqo.net`) and the same `NEXTAUTH_SECRET`. This means a JWT created by one app can be decoded by another.
+
 ```
-┌─────────────────────────────────────────────────────┐
-│                   Browser Cookie                     │
-│          Domain: .airqo.net                          │
-│          Name: __Secure-next-auth.session-token      │
-│          Strategy: JWT (stateless)                   │
-└──────────────┬──────────────────┬────────────────────┘
-               │                  │
-    ┌──────────▼──────┐  ┌───────▼──────────┐
-    │  app.airqo.net  │  │ admin.airqo.net  │
-    │   (Platform)    │  │    (Vertex)      │
-    │   Port: 443     │  │    Port: 443     │
-    └─────────────────┘  └──────────────────┘
-               │                  │
-               └────────┬─────────┘
-                        │
-               ┌────────▼────────┐
-               │  api.airqo.net  │
-               │  (Backend API)  │
-               └─────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                      Browser Cookies                         │
+│                 Domain: .airqo.net                           │
+│                                                              │
+│  Platform cookie: __Secure-next-auth.session-token           │
+│  Vertex cookie:   __Secure-next-auth.session-token-v2        │
+│  Strategy: JWT (stateless)                                   │
+└──────────────┬──────────────────────────┬────────────────────┘
+               │                          │
+    ┌──────────▼──────┐         ┌─────────▼──────────┐
+    │  app.airqo.net  │         │ admin.airqo.net    │
+    │   (Platform)    │         │    (Vertex)        │
+    │   Port: 443     │         │    Port: 443       │
+    └─────────────────┘         └────────────────────┘
+               │                          │
+               └────────────┬─────────────┘
+                            │
+                   ┌────────▼────────┐
+                   │  api.airqo.net  │
+                   │  (Backend API)  │
+                   └─────────────────┘
 ```
 
 ### How It Works
 
-1. User logs into **Platform** → NextAuth creates a JWT session cookie with domain `.airqo.net`
-2. User opens **Vertex** in a new tab → browser sends the same cookie (domain matches)
-3. Vertex's NextAuth reads the cookie → decodes the JWT using the shared secret → user is authenticated
+1. User logs into **Platform** → NextAuth creates a JWT session cookie (`__Secure-next-auth.session-token`) with domain `.airqo.net`
+2. User opens **Vertex** in a new tab → browser sends the Vertex cookie (`__Secure-next-auth.session-token-v2`)
+3. Vertex's NextAuth reads its cookie → decodes the JWT using the shared `NEXTAUTH_SECRET` → user is authenticated
 4. No redirect, no re-login — instant SSO
+
+:::note
+Platform and Vertex currently use **different cookie names** but share the same `NEXTAUTH_SECRET` and `NEXTAUTH_COOKIE_DOMAIN`. This allows each app to maintain independent sessions while still enabling SSO through shared JWT verification.
+:::
 
 ---
 
@@ -49,8 +57,9 @@ All participating applications **MUST** share:
 |---|---|
 | Same `NEXTAUTH_SECRET` | JWT signed by one app must be verifiable by the other |
 | Same `NEXTAUTH_COOKIE_DOMAIN` | Cookie must be accessible across all subdomains |
-| Same cookie name | Both apps must read/write the same session cookie |
 | Same JWT session strategy | Both must use `strategy: "jwt"` (not database sessions) |
+
+Each app uses its own cookie name (see [Current Cookie Names](#current-cookie-names) below). The cookie names don't need to match — SSO works because both apps verify the JWT with the same shared secret.
 
 All apps must be subdomains of the same parent domain (for example `*.airqo.net`) with HTTPS enabled in production.
 
@@ -104,6 +113,19 @@ Every participating app must configure NextAuth with these exact settings.
 
 ### Cookie Configuration
 
+Each app defines its own cookie name. Use the table below to pick the correct name for your app:
+
+#### Current Cookie Names
+
+| App | Production | Development |
+|-----|-----------|-------------|
+| **Platform** | `__Secure-next-auth.session-token` | `analytics.next-auth.session-token` |
+| **Vertex** | `__Secure-next-auth.session-token-v2` | `next-auth.session-token-v2` |
+
+:::tip Adding a New App?
+Choose a unique cookie name for your app to avoid collisions. Follow the pattern: `__Secure-next-auth.session-token-<suffix>` for production and `next-auth.session-token-<suffix>` for development.
+:::
+
 ```typescript
 const isProduction = process.env.NODE_ENV === 'production';
 const configuredCookieDomain =
@@ -138,9 +160,15 @@ const cookieOptions = {
   domain: cookieDomain,
 };
 
+// Platform example:
 const sessionCookieName = isProduction
   ? '__Secure-next-auth.session-token'
-  : 'next-auth.session-token';
+  : 'analytics.next-auth.session-token';
+
+// Vertex example:
+// const sessionCookieName = isProduction
+//   ? '__Secure-next-auth.session-token-v2'
+//   : 'next-auth.session-token-v2';
 ```
 
 ### NextAuth Options
@@ -168,13 +196,22 @@ export const authOptions: NextAuthOptions = {
 
 ### Middleware (must match cookie name)
 
+The middleware reads the same cookie name defined in the NextAuth options above. Use the same per-app cookie name here.
+
 ```typescript
 import { withAuth } from 'next-auth/middleware';
 
 const isProduction = process.env.NODE_ENV === 'production';
+
+// Platform middleware:
 const sessionCookieName = isProduction
   ? '__Secure-next-auth.session-token'
-  : 'next-auth.session-token';
+  : 'analytics.next-auth.session-token';
+
+// Vertex middleware:
+// const sessionCookieName = isProduction
+//   ? '__Secure-next-auth.session-token-v2'
+//   : 'next-auth.session-token-v2';
 
 export default withAuth(
   function middleware() {},
@@ -522,15 +559,16 @@ Using `router.push()` does client-side navigation which doesn't fully clear in-m
 1. Set `NEXTAUTH_SECRET` to the **same value** as other apps
 2. Set `NEXTAUTH_COOKIE_DOMAIN=.airqo.net` (or your parent domain)
 3. Set `NEXTAUTH_URL` to the app's own URL
-4. Configure `cookies.sessionToken` with the same name and domain options
-5. Update middleware to use the same cookie name
-6. Implement `authorize` returning **all fields** from the canonical session shape
-7. Implement `jwt` callback storing **all fields**
-8. Implement `session` callback exposing **all fields** with `_id` fallback
-9. Update `next-auth.d.ts` with all session/jwt fields
-10. Test: Login on existing app → open new app → verify session
-11. Test: Login on new app → open existing app → verify session
-12. Test: Logout on both apps → verify cookie is cleared
+4. Choose a **unique cookie name** for your app (see [Current Cookie Names](#current-cookie-names))
+5. Configure `cookies.sessionToken` with your app's cookie name and domain options
+6. Update middleware to use the same cookie name as the NextAuth options
+7. Implement `authorize` returning **all fields** from the canonical session shape
+8. Implement `jwt` callback storing **all fields**
+9. Implement `session` callback exposing **all fields** with `_id` fallback
+10. Update `next-auth.d.ts` with all session/jwt fields
+11. Test: Login on existing app → open new app → verify session
+12. Test: Login on new app → open existing app → verify session
+13. Test: Logout on both apps → verify cookie is cleared
 
 ### Minimum Required Session Fields
 
@@ -591,11 +629,12 @@ NEXTAUTH_URL=http://admin.airqo.local:3001
 | Symptom | Cause | Fix |
 |---|---|---|
 | SSO doesn't work (login required on both) | Cookie domain not set or mismatched | Verify `NEXTAUTH_COOKIE_DOMAIN=.airqo.net` in both apps |
-| Login fails with redirect loop | `NEXTAUTH_SECRET` differs between apps | Ensure both apps use the **exact same** secret |
+| SSO doesn't work (login required on both) | `NEXTAUTH_SECRET` differs between apps | Ensure both apps use the **exact same** secret |
 | Session data missing on target app | JWT callback not storing all fields | Ensure jwt callback stores all fields from canonical shape |
 | Logout doesn't clear cookie | Cookie domain mismatch on clear | Verify `cookies.sessionToken.options.domain` is set |
 | Works in dev but not prod | `__Secure-` prefix requires HTTPS | Ensure production uses HTTPS |
 | `_id` is undefined in session | JWT has `id` but not `_id` | Use `token._id \|\| token.id` fallback in session callback |
+| Middleware rejects valid session | Cookie name mismatch between options and middleware | Ensure `cookies.sessionToken.name` in middleware matches the NextAuth options |
 
 ---
 
@@ -606,6 +645,7 @@ NEXTAUTH_URL=http://admin.airqo.local:3001
 3. **`sameSite: 'lax'`**: Required for cross-subdomain SSO. `strict` would block the cookie on cross-site navigations.
 4. **`secure: true`** in production: Cookies are only sent over HTTPS. Required for `__Secure-` prefixed cookie names.
 5. **JWT expiry**: Set `maxAge` consistently across apps. Mismatched expiry can cause session desync.
+6. **Unique cookie names**: Each app should use a unique cookie name suffix to avoid collisions when multiple AirQo apps run on the same domain during development.
 
 ---
 
