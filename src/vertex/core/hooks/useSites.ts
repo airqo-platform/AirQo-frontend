@@ -136,7 +136,7 @@ export const useSiteStatistics = (network?: string) => {
 
 interface UseApproximateCoordinatesOptions {
   onSuccess?: (data: ApproximateCoordinatesResponse) => void;
-  onError?: (error: AxiosError) => void;
+  onError?: (error: AxiosError<ErrorResponse>) => void;
 }
 
 export const useApproximateCoordinates = (options?: UseApproximateCoordinatesOptions) => {
@@ -153,10 +153,10 @@ export const useApproximateCoordinates = (options?: UseApproximateCoordinatesOpt
     mutationFn: ({ latitude, longitude }) =>
       adapter.getApproximateCoordinates(latitude, longitude),
     onSuccess: (data) => {
-      options?.onSuccess?.(data);
+      try { options?.onSuccess?.(data); } catch (e) { console.error(e); }
     },
     onError: (error) => {
-      options?.onError?.(error);
+      try { options?.onError?.(error); } catch (e) { console.error(e); }
     },
   });
 
@@ -190,7 +190,7 @@ export const useSiteDetails = (
 
 interface UseUpdateSiteDetailsOptions {
   onSuccess?: () => void;
-  onError?: (error: AxiosError) => void;
+  onError?: (error: AxiosError<ErrorResponse>) => void;
 }
 
 export const useUpdateSiteDetails = (options?: UseUpdateSiteDetailsOptions) => {
@@ -211,10 +211,10 @@ export const useUpdateSiteDetails = (options?: UseUpdateSiteDetailsOptions) => {
     onSuccess: (_data, { siteId }) => {
       queryClient.invalidateQueries({ queryKey: ["site-details", siteId] });
       queryClient.invalidateQueries({ queryKey: ["sites"] });
-      options?.onSuccess?.();
+      try { options?.onSuccess?.(); } catch (e) { console.error(e); }
     },
     onError: (error) => {
-      options?.onError?.(error);
+      try { options?.onError?.(error); } catch (e) { console.error(e); }
     },
   });
 };
@@ -229,7 +229,7 @@ interface CreateSiteRequest {
 
 interface UseCreateSiteOptions {
   onSuccess?: (data: CreateSiteResponse, variables: CreateSiteRequest) => void;
-  onError?: (error: AxiosError) => void;
+  onError?: (error: AxiosError<ErrorResponse>) => void;
 }
 
 export const useCreateSite = (options?: UseCreateSiteOptions) => {
@@ -256,17 +256,17 @@ export const useCreateSite = (options?: UseCreateSiteOptions) => {
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["sites"] });
-      options?.onSuccess?.(data, variables);
+      try { options?.onSuccess?.(data, variables); } catch (e) { console.error(e); }
     },
     onError: (error) => {
-      options?.onError?.(error);
+      try { options?.onError?.(error); } catch (e) { console.error(e); }
     },
   });
 };
 
 interface UseRefreshSiteMetadataOptions {
   onSuccess?: (data: SiteRefreshResponse) => void;
-  onError?: (error: AxiosError) => void;
+  onError?: (error: AxiosError<ErrorResponse>) => void;
 }
 
 export const useRefreshSiteMetadata = (options?: UseRefreshSiteMetadataOptions) => {
@@ -278,10 +278,10 @@ export const useRefreshSiteMetadata = (options?: UseRefreshSiteMetadataOptions) 
       queryClient.setQueryData(["site-details", siteId], data.site);
       queryClient.invalidateQueries({ queryKey: ["sites"] });
       queryClient.invalidateQueries({ queryKey: ["site-details", siteId] });
-      options?.onSuccess?.(data);
+      try { options?.onSuccess?.(data); } catch (e) { console.error(e); }
     },
     onError: (error) => {
-      options?.onError?.(error);
+      try { options?.onError?.(error); } catch (e) { console.error(e); }
     },
   });
 };

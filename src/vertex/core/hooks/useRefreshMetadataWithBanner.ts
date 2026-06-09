@@ -10,7 +10,7 @@ export const useRefreshMetadataWithBanner = () => {
   const handleSuccess = (data: SiteRefreshResponse) => {
     const msg = (data.message ?? "").toLowerCase();
     if (msg.includes("partially refreshed")) {
-      showBanner({ severity: "warning", message: data.message, scoped: false });
+      showBanner({ severity: "warning", message: data.message ?? "Site metadata partially refreshed.", scoped: false });
     } else if (msg.includes("already complete")) {
       showBanner({ severity: "info", message: "Site metadata is already up to date.", scoped: false });
     } else {
