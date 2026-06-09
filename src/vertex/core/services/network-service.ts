@@ -92,7 +92,7 @@ export const networkService = {
    * Submits a new network creation request. Public endpoint — no auth required.
    */
   submitNetworkRequest: async (data: NetworkRequestValues): Promise<NetworkRequestActionResponse> => {
-    const url = buildBrowserApiUrl(`/devices/network-creation-requests`);
+    const url = buildServerApiUrl(`/devices/network-creation-requests`);
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), NETWORK_REQUEST_TIMEOUT_MS);
