@@ -28,7 +28,7 @@ extension BaseRepositoryExtension on BaseRepository {
         "Authorization": "JWT $token",
         "Accept": "*/*",
         "Content-Type": "application/json",
-        "User-Agent": "AirQo-Mobile/3.0 (Flutter)",
+        "User-Agent": ApiUtils.mobileUserAgent,
       }
     );
     

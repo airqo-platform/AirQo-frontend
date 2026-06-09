@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:airqo/src/meta/utils/api_utils.dart';
 import 'package:http/http.dart' as http;
 import 'package:loggy/loggy.dart';
 import 'package:airqo/src/app/dashboard/models/nearest_places_model.dart';
@@ -55,6 +56,7 @@ class NearestPlacesRepository {
         headers: {
           'Authorization': 'JWT $authToken',
           'Content-Type': 'application/json',
+          'User-Agent': ApiUtils.mobileUserAgent,
         },
       );
 
@@ -119,6 +121,7 @@ class NearestPlacesRepository {
         headers: {
           'Authorization': 'JWT $authToken',
           'Content-Type': 'application/json',
+          'User-Agent': ApiUtils.mobileUserAgent,
         },
       );
 

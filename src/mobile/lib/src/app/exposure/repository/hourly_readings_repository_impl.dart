@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:airqo/src/meta/utils/api_utils.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:loggy/loggy.dart';
@@ -45,7 +46,7 @@ class HourlyReadingsRepositoryImpl extends HourlyReadingsRepository with Network
     final headers = {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
-      'User-Agent': 'AirQo-Mobile/3.0 (Flutter)',
+      'User-Agent': ApiUtils.mobileUserAgent,
     };
     if (userToken != null && userToken.isNotEmpty) {
       headers['Authorization'] = 'JWT $userToken';

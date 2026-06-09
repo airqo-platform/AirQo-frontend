@@ -10,6 +10,7 @@ import 'package:airqo/src/app/auth/services/auth_helper.dart';
 import 'package:airqo/src/app/auth/services/auth_token_storage.dart';
 import 'package:airqo/src/app/shared/repository/global_auth_manager.dart';
 import 'package:airqo/src/app/shared/repository/secure_storage_repository.dart';
+import 'package:airqo/src/meta/utils/api_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
@@ -201,7 +202,7 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
         headers: {
           'Authorization': 'JWT $authToken',
           'Content-Type': 'application/json',
-          'User-Agent': 'AirQo-Mobile/3.0 (Flutter)',
+          'User-Agent': ApiUtils.mobileUserAgent,
         },
         body: json.encode(body),
       );
