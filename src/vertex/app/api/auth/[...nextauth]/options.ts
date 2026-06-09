@@ -334,7 +334,7 @@ export const options: NextAuthOptions = {
         session.user = {
           ...session.user,
           id: token.id as string,
-          _id: token.id as string,
+          _id: (token._id as string) || (token.id as string),
           accessToken: token.accessToken as string,
           userName: token.userName as string,
           organization: token.organization as string,

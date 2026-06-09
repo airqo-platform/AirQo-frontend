@@ -121,9 +121,15 @@ export const useLogout = (callbackUrl?: string) => {
         window.location.href = callbackUrl || '/user/login';
       } catch (error) {
         logger.error('Logout error in useLogout', error);
-        // Reset logging out state on error
-        dispatch(setLoggingOut(false));
-        // Force full page reload to clear all session state
+        // signOut failed — cookie may still be set. Attempt fallback form-based
+        // signOut which is more reliable for cookie clearing, then navigate.
+        try {
+          await signOut({ redirect: false });
+        } catch {
+          // Both attempts failed — clear state and let the user know
+          dispatch(setLoggingOut(false));
+          return;
+        }
         window.location.href = callbackUrl || '/user/login';
       } finally {
         sharedIsLoggingOut = false;
