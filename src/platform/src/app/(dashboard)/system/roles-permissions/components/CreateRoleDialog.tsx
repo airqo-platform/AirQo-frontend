@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Dialog, Input, Select } from '@/shared/components/ui';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Dialog, Input } from '@/shared/components/ui';
 import { toast } from '@/shared/components/ui';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { useCreateRole } from '@/shared/hooks/useAdmin';
@@ -25,6 +25,41 @@ const CreateRoleDialog: React.FC<CreateRoleDialogProps> = ({
   const [roleCode, setRoleCode] = useState('');
   const [groupId, setGroupId] = useState('');
   const [networkId, setNetworkId] = useState('');
+  const [groupSearch, setGroupSearch] = useState('');
+  const [showGroupDropdown, setShowGroupDropdown] = useState(false);
+  const groupDropdownRef = useRef<HTMLDivElement>(null);
+
+  const selectedGroup = useMemo(
+    () => groups.find(g => g._id === groupId),
+    [groups, groupId]
+  );
+
+  const filteredGroups = useMemo(() => {
+    if (!groupSearch) return groups;
+    const term = groupSearch.toLowerCase();
+    return groups.filter(g => g.grp_title.toLowerCase().includes(term));
+  }, [groups, groupSearch]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        groupDropdownRef.current &&
+        !groupDropdownRef.current.contains(e.target as Node)
+      ) {
+        setShowGroupDropdown(false);
+      }
+    };
+    if (showGroupDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showGroupDropdown]);
+
+  const handleSelectGroup = useCallback((id: string) => {
+    setGroupId(id);
+    setGroupSearch('');
+    setShowGroupDropdown(false);
+  }, []);
 
   const handleSubmit = async () => {
     if (!roleName.trim()) {
@@ -50,6 +85,7 @@ const CreateRoleDialog: React.FC<CreateRoleDialogProps> = ({
       setRoleCode('');
       setGroupId('');
       setNetworkId('');
+      setGroupSearch('');
       onSuccess?.();
     } catch (error) {
       toast.error(getUserFriendlyErrorMessage(error));
@@ -62,6 +98,8 @@ const CreateRoleDialog: React.FC<CreateRoleDialogProps> = ({
       setRoleCode('');
       setGroupId('');
       setNetworkId('');
+      setGroupSearch('');
+      setShowGroupDropdown(false);
       onClose();
     }
   };
@@ -114,20 +152,64 @@ const CreateRoleDialog: React.FC<CreateRoleDialogProps> = ({
           />
         </div>
 
-        <div>
-          <Select
-            label="Group"
-            value={groupId}
-            onChange={e => setGroupId(String(e.target.value || ''))}
-            placeholder="Select a group"
+        <div className="relative" ref={groupDropdownRef}>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Group
+          </label>
+          <button
+            type="button"
+            onClick={() => setShowGroupDropdown(prev => !prev)}
+            className="w-full flex justify-between items-center rounded-md px-4 py-2.5 text-sm border border-input bg-background text-foreground hover:bg-muted transition duration-150 ease-in-out focus:outline-none focus:border-primary"
           >
-            <option value="">None</option>
-            {groups.map(group => (
-              <option key={group._id} value={group._id}>
-                {group.grp_title}
-              </option>
-            ))}
-          </Select>
+            <span className={selectedGroup ? '' : 'text-muted-foreground'}>
+              {selectedGroup?.grp_title || 'None'}
+            </span>
+            <svg
+              className={`w-5 h-5 ml-2 transition-transform duration-200 flex-shrink-0 text-muted-foreground ${showGroupDropdown ? 'rotate-180' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {showGroupDropdown && (
+            <div className="absolute z-50 w-full mt-1 bg-popover rounded-md shadow-lg border border-primary overflow-hidden">
+              <div className="p-2">
+                <input
+                  type="text"
+                  value={groupSearch}
+                  onChange={e => setGroupSearch(e.target.value)}
+                  placeholder="Search groups..."
+                  className="w-full px-3 py-2 text-sm rounded-md border border-input bg-background text-foreground focus:outline-none focus:border-primary"
+                  autoFocus
+                />
+              </div>
+              <ul className="py-1 max-h-48 overflow-y-auto">
+                <li
+                  onClick={() => handleSelectGroup('')}
+                  className={`cursor-pointer px-4 py-2.5 text-sm transition-colors duration-150 hover:bg-primary/10 ${!groupId ? 'bg-primary/20 text-primary font-medium' : 'text-foreground'}`}
+                >
+                  None
+                </li>
+                {filteredGroups.map(group => (
+                  <li
+                    key={group._id}
+                    onClick={() => handleSelectGroup(group._id)}
+                    className={`cursor-pointer px-4 py-2.5 text-sm transition-colors duration-150 hover:bg-primary/10 ${groupId === group._id ? 'bg-primary/20 text-primary font-medium' : 'text-foreground'}`}
+                  >
+                    {group.grp_title}
+                  </li>
+                ))}
+                {filteredGroups.length === 0 && (
+                  <li className="px-4 py-2.5 text-sm text-muted-foreground">
+                    No groups found
+                  </li>
+                )}
+              </ul>
+            </div>
+          )}
         </div>
 
         <div>
