@@ -14,7 +14,7 @@ Historical data access requires a **Standard Tier** subscription or above.
 :::caution Cohort ID direct filtering — coming soon
 The Analytics API does not yet accept `cohort_id` as a request parameter. You must supply individual **device names** (`device_names`) in the request body instead.
 
-**Workaround:** Call the [Metadata API](../reference/metadata.md#get-all-site-and-device-ids-for-a-cohort) (`GET /api/v2/devices/cohorts/{COHORT_ID}/generate`) to retrieve all device identifiers for your Cohort, then include those in your Analytics API request.
+**Workaround:** Call the [Metadata API](../reference/metadata.md#get-all-site-and-device-ids-for-a-cohort) (`GET /api/v2/devices/cohorts/{COHORT_ID}/generate`) to retrieve the `device_name` values for your Cohort, then pass them as the `device_names` parameter in your Analytics API request.
 
 Direct Cohort ID filtering will be added to the Analytics API in a future release.
 :::
