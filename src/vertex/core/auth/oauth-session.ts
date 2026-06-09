@@ -1,4 +1,4 @@
-import { getApiBaseUrl } from "@/lib/envConstants";
+import { buildBrowserApiUrl } from "@/lib/api-routing";
 
 const OAUTH_FRAGMENT_TOKEN_KEY = 'token';
 const OAUTH_SUCCESS_PROVIDER_KEY = 'success';
@@ -149,8 +149,7 @@ export const buildOAuthInitiationUrl = (
   provider = 'google',
   queryParams?: Record<string, string | undefined>
 ): string => {
-  const apiUrl = getApiBaseUrl();
-  const baseUrl = `${apiUrl}/users/auth/${encodeURIComponent(provider)}`;
+  const baseUrl = buildBrowserApiUrl(`/users/auth/${encodeURIComponent(provider)}`);
   const params = new URLSearchParams();
 
   if (queryParams) {

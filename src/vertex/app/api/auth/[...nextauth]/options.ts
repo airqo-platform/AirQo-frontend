@@ -9,7 +9,8 @@ import type {
 } from '@/app/types/users';
 import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
 import logger from '@/lib/logger';
-import { getApiBaseUrl, isHCaptchaEnabled } from '@/lib/envConstants';
+import { isHCaptchaEnabled } from '@/lib/envConstants';
+import { buildServerApiUrl } from '@/lib/api-routing';
 import { normalizeOAuthAccessToken } from '@/core/auth/oauth-session';
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -142,7 +143,7 @@ const fetchOAuthProfile = async (
   accessToken: string
 ): Promise<OAuthProfilePayload | null> => {
   try {
-    const profileUrl = `${getApiBaseUrl()}/users/profile/enhanced`;
+    const profileUrl = buildServerApiUrl('/users/profile/enhanced');
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
 
