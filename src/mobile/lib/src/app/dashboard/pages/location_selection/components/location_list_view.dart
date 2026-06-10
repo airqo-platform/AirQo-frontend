@@ -300,85 +300,117 @@ class LocationListView extends StatelessWidget with UiLoggy {
         loggy.debug(
             'Split measurements: ${selectedMeasurements.length} selected, ${unselectedMeasurements.length} unselected');
 
-        return ListView(
-          children: [
-            if (selectedMeasurements.isNotEmpty) ...[
-              Container(
-                margin: const EdgeInsets.only(top: 12, bottom: 4),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? AppColors.darkHighlight.withValues(alpha: 0.5)
-                      : AppColors.lightHighlight.withValues(alpha: 0.5),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.favorite,
-                      size: 18,
-                      color: AppColors.primaryColor,
-                    ),
-                    const SizedBox(width: 8),
-                    TranslatedText(
-                      "Favorite Locations",
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).textTheme.headlineSmall?.color,
-                      ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      "${selectedMeasurements.length}",
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primaryColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              ...selectedMeasurements
-                  .map((m) => _buildLocationTile(m, context: context)),
-              const Divider(thickness: 1, height: 16),
-            ],
-            Container(
-              margin: const EdgeInsets.only(top: 8, bottom: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.darkHighlight.withValues(alpha: 0.5)
-                    : AppColors.lightHighlight.withValues(alpha: 0.5),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.location_on,
-                    size: 18,
-                    color: Theme.of(context).textTheme.headlineSmall?.color,
-                  ),
-                  const SizedBox(width: 8),
-                  TranslatedText(
-                    unselectedMeasurements.isEmpty &&
-                            selectedMeasurements.isNotEmpty
-                        ? "Other Locations"
-                        : "All Locations",
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).textTheme.headlineSmall?.color,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            ...unselectedMeasurements
-                .map((m) => _buildLocationTile(m, context: context)),
-          ],
+        return ListView.builder(
+          itemCount: _mainListItemCount(selectedMeasurements, unselectedMeasurements),
+          itemBuilder: (context, index) => _buildMainListItem(
+            context,
+            index,
+            selectedMeasurements,
+            unselectedMeasurements,
+          ),
         );
       },
+    );
+  }
+
+  int _mainListItemCount(List<Measurement> selected, List<Measurement> unselected) {
+    // With favorites: [favHeader, ...selected, divider, allHeader, ...unselected]
+    // Without:        [allHeader, ...unselected]
+    return selected.isNotEmpty
+        ? 1 + selected.length + 1 + 1 + unselected.length
+        : 1 + unselected.length;
+  }
+
+  Widget _buildMainListItem(
+    BuildContext context,
+    int index,
+    List<Measurement> selected,
+    List<Measurement> unselected,
+  ) {
+    if (selected.isNotEmpty) {
+      if (index == 0) return _buildFavoritesHeader(context, selected.length);
+      if (index <= selected.length) {
+        return _buildLocationTile(selected[index - 1], context: context);
+      }
+      if (index == selected.length + 1) return const Divider(thickness: 1, height: 16);
+      if (index == selected.length + 2) {
+        return _buildSectionHeader(context, selected, unselected);
+      }
+      return _buildLocationTile(unselected[index - selected.length - 3], context: context);
+    }
+    if (index == 0) return _buildSectionHeader(context, selected, unselected);
+    return _buildLocationTile(unselected[index - 1], context: context);
+  }
+
+  Widget _buildFavoritesHeader(BuildContext context, int count) {
+    return Container(
+      margin: const EdgeInsets.only(top: 12, bottom: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.darkHighlight.withValues(alpha: 0.5)
+            : AppColors.lightHighlight.withValues(alpha: 0.5),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.favorite, size: 18, color: AppColors.primaryColor),
+          const SizedBox(width: 8),
+          TranslatedText(
+            "Favorite Locations",
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).textTheme.headlineSmall?.color,
+            ),
+          ),
+          const Spacer(),
+          Text(
+            "$count",
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: AppColors.primaryColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(
+    BuildContext context,
+    List<Measurement> selected,
+    List<Measurement> unselected,
+  ) {
+    final label = unselected.isEmpty && selected.isNotEmpty
+        ? "Other Locations"
+        : "All Locations";
+    return Container(
+      margin: const EdgeInsets.only(top: 8, bottom: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.darkHighlight.withValues(alpha: 0.5)
+            : AppColors.lightHighlight.withValues(alpha: 0.5),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.location_on,
+            size: 18,
+            color: Theme.of(context).textTheme.headlineSmall?.color,
+          ),
+          const SizedBox(width: 8),
+          TranslatedText(
+            label,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).textTheme.headlineSmall?.color,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

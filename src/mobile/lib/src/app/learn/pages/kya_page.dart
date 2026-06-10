@@ -172,21 +172,17 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
             ShimmerContainer(height: 200, borderRadius: 8, width: double.infinity),
           ]);
         } else if (state is LessonsLoaded) {
-          return SingleChildScrollView(
-            child: Column(
-              children: state.model.kyaLessons
-                  .map((lesson) => KyaLessonContainer(lesson))
-                  .toList(),
-            ),
+          return ListView.builder(
+            itemCount: state.model.kyaLessons.length,
+            itemBuilder: (context, index) =>
+                KyaLessonContainer(state.model.kyaLessons[index]),
           );
         } else if (state is LessonsLoadingError) {
           if (state.cachedModel != null) {
-            return SingleChildScrollView(
-              child: Column(
-                children: state.cachedModel!.kyaLessons
-                    .map((lesson) => KyaLessonContainer(lesson))
-                    .toList(),
-              ),
+            return ListView.builder(
+              itemCount: state.cachedModel!.kyaLessons.length,
+              itemBuilder: (context, index) =>
+                  KyaLessonContainer(state.cachedModel!.kyaLessons[index]),
             );
           }
           return RefreshIndicator(
