@@ -97,7 +97,13 @@ export default function LoginPage() {
       try {
         const session = await getSession();
         if (session?.user && isMounted.current) {
-          window.location.replace(callbackUrl || '/home');
+          const isAuthRouteCallback =
+            callbackUrl.startsWith('/login') ||
+            callbackUrl.startsWith('/auth-error') ||
+            callbackUrl.startsWith('/forgot-password');
+          const redirectUrl =
+            callbackUrl && !isAuthRouteCallback ? callbackUrl : '/home';
+          window.location.replace(redirectUrl);
         }
       } catch {
         // No session — stay on login page
