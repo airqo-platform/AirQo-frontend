@@ -35,7 +35,12 @@ import type {
 import { ExtendedSession } from '../utils/secureApiProxyClient';
 import { useLogout, CROSS_TAB_LOGOUT_KEY, CROSS_TAB_LOGIN_KEY } from '@/core/hooks/useLogout';
 import logger from '@/lib/logger';
-import { consumeOAuthTokenHandoffFromUrl } from './oauth-session';
+import {
+  consumeOAuthTokenHandoffFromUrl,
+  verifyBackendOAuthSession,
+  buildSessionFromProfile,
+  type BackendOAuthSession,
+} from './oauth-session';
 
 // --- Helper Functions ---
 
@@ -373,6 +378,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   const isLoggingOut = useAppSelector((state) => state.user.isLoggingOut);
   const logout = useLogout();
   const [hasHandledUnauthorized, setHasHandledUnauthorized] = useState(false);
+  const [backendSessionAttempted, setBackendSessionAttempted] = useState(false);
   const hasStartedLogoutRef = useRef(false);
 
   const isAuthRoute = authRoutes.some((route) => matchesRoute(pathname, route));
@@ -513,6 +519,55 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('storage', handleCrossTabLogin);
   }, [status, isLoggingOut, update]);
 
+  // Backend session verification fallback: when NextAuth session is not available,
+  // try to bootstrap from the shared backend session (cross-app SSO from Platform).
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (status !== 'unauthenticated') return;
+    if (isPublicRoute || isAuthRoute) return;
+    if (isLoggingOut) return;
+    if (backendSessionAttempted) return;
+
+    let isMounted = true;
+
+    const tryBackendSession = async () => {
+      try {
+        const backendProfile = await verifyBackendOAuthSession();
+        if (!isMounted) return;
+
+        if (backendProfile) {
+          logger.info('[AuthWrapper] Backend session found, bootstrapping NextAuth session');
+          // Sign in with the backend profile's token to create a NextAuth session
+          const signInResult = await signIn('credentials', {
+            redirect: false,
+            oauthToken: backendProfile.accessToken || '',
+          });
+
+          if (signInResult?.ok && isMounted) {
+            await update();
+            try {
+              localStorage.setItem(CROSS_TAB_LOGIN_KEY, String(Date.now()));
+            } catch {
+              // Ignore storage errors
+            }
+          }
+        }
+      } catch (error) {
+        logger.warn('[AuthWrapper] Backend session verification failed', { error });
+      } finally {
+        if (isMounted) {
+          setBackendSessionAttempted(true);
+        }
+      }
+    };
+
+    tryBackendSession();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [status, isPublicRoute, isAuthRoute, isLoggingOut, backendSessionAttempted, update]);
+
   // Handle unauthorized/expired token events
   const handleUnauthorized = useCallback(async () => {
     if (isPublicRoute) return;
@@ -639,8 +694,13 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
   }
 
-  // For protected routes without session, show loading while redirecting
+  // For protected routes without session, show loading while attempting backend session verification
   if (!session) {
+    // If we haven't tried backend session yet, show loading while the fallback runs
+    if (!backendSessionAttempted && !isLoggingOut) {
+      return <SessionLoadingState />;
+    }
+    // If backend session was attempted and still no session, show loading while redirecting
     return <SessionLoadingState />;
   }
 
