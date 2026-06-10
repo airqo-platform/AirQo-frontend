@@ -91,6 +91,20 @@ export default function LoginPage() {
     // Reset logout state when login page mounts
     dispatch(setLoggingOut(false));
 
+    // Auto-detect existing SSO session — if the user arrives with a valid
+    // cookie (e.g. from Platform), redirect to home instead of showing login.
+    const checkExistingSession = async () => {
+      try {
+        const session = await getSession();
+        if (session?.user && isMounted.current) {
+          window.location.replace(callbackUrl || '/home');
+        }
+      } catch {
+        // No session — stay on login page
+      }
+    };
+    checkExistingSession();
+
     // OS Detection for download link and platform check
     const userAgent = window.navigator.userAgent.toLowerCase();
     const isWin = userAgent.includes('win');
@@ -122,7 +136,7 @@ export default function LoginPage() {
     return () => {
       isMounted.current = false;
     };
-  }, [dispatch, searchParams, showBanner]);
+  }, [dispatch, searchParams, showBanner, callbackUrl]);
 
 
   const onSubmit = useCallback(async (values: z.infer<typeof loginSchema>) => {

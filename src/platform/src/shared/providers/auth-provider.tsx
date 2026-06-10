@@ -746,9 +746,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (isCurrentPublicRoute) {
-          // Public auth routes only need the lightweight NextAuth session check.
-          // Skipping the backend profile bootstrap here avoids an extra
-          // /users/profile/enhanced request on login/register screens.
+          // On public routes, still check for an existing SSO session.
+          // If the user arrives with a valid cookie (e.g. from another app),
+          // redirect them to the dashboard instead of showing the login page.
+          const existingSession = await getSession();
+          if (!isMounted) return;
+
+          if (existingSession?.user) {
+            setCachedSessionAccessToken(
+              getSessionAccessTokenFromSession(existingSession)
+            );
+            clearBackendOAuthSignedOutFlag();
+            setBootstrapSession(existingSession as BackendOAuthSession);
+            return;
+          }
+
           setBootstrapSession(null);
           return;
         }
