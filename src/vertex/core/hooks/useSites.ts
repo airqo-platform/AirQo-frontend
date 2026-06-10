@@ -189,7 +189,7 @@ export const useSiteDetails = (
 };
 
 interface UseUpdateSiteDetailsOptions {
-  onSuccess?: () => void;
+  onSuccess?: (siteId: string) => void;
   onError?: (error: AxiosError<ErrorResponse>) => void;
 }
 
@@ -211,7 +211,7 @@ export const useUpdateSiteDetails = (options?: UseUpdateSiteDetailsOptions) => {
     onSuccess: (_data, { siteId }) => {
       queryClient.invalidateQueries({ queryKey: ["site-details", siteId] });
       queryClient.invalidateQueries({ queryKey: ["sites"] });
-      options?.onSuccess?.();
+      options?.onSuccess?.(siteId);
     },
     onError: (error) => {
       options?.onError?.(error);
@@ -265,7 +265,7 @@ export const useCreateSite = (options?: UseCreateSiteOptions) => {
 };
 
 interface UseRefreshSiteMetadataOptions {
-  onSuccess?: (data: SiteRefreshResponse) => void;
+  onSuccess?: (data: SiteRefreshResponse, siteId: string) => void;
   onError?: (error: AxiosError<ErrorResponse>) => void;
 }
 
@@ -278,7 +278,7 @@ export const useRefreshSiteMetadata = (options?: UseRefreshSiteMetadataOptions) 
       queryClient.setQueryData(["site-details", siteId], data.site);
       queryClient.invalidateQueries({ queryKey: ["sites"] });
       queryClient.invalidateQueries({ queryKey: ["site-details", siteId] });
-      options?.onSuccess?.(data);
+      options?.onSuccess?.(data, siteId);
     },
     onError: (error) => {
       options?.onError?.(error);

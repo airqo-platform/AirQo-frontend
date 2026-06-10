@@ -5,6 +5,13 @@ import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import type { SiteRefreshResponse } from "@/core/apis/sites";
 import type { AxiosError } from "axios";
 
+interface ErrorResponse {
+  message: string;
+  errors?: {
+    message: string;
+  };
+}
+
 export const useRefreshMetadataWithBanner = () => {
   const { showBanner } = useBanner();
 
@@ -19,7 +26,7 @@ export const useRefreshMetadataWithBanner = () => {
     }
   }, [showBanner]);
 
-  const handleError = useCallback((error: AxiosError) => {
+  const handleError = useCallback((error: AxiosError<ErrorResponse>) => {
     showBanner({ severity: "error", message: `Refresh Failed: ${getApiErrorMessage(error)}`, scoped: false });
   }, [showBanner]);
 
