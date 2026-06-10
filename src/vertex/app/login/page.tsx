@@ -22,6 +22,7 @@ import {
   setLoggingOut,
 } from "@/core/redux/slices/userSlice";
 import { getLastActiveModule } from "@/core/utils/userPreferences";
+import { CROSS_TAB_LOGIN_KEY } from "@/core/hooks/useLogout";
 import { ROUTE_LINKS } from "@/core/routes";
 import SocialAuthSection from "@/components/features/auth/social-auth-section";
 import { motion, AnimatePresence } from "framer-motion";
@@ -91,6 +92,29 @@ export default function LoginPage() {
     // Reset logout state when login page mounts
     dispatch(setLoggingOut(false));
 
+    // Auto-detect existing SSO session — if the user arrives with a valid
+    // cookie (e.g. from Platform), redirect to home instead of showing login.
+    const checkExistingSession = async () => {
+      try {
+        const session = await getSession();
+        if (session?.user && isMounted.current) {
+          const email = session.user.email || '';
+          const lastModule = getLastActiveModule(email);
+          const fallbackUrl = lastModule === 'admin' ? '/admin/networks' : '/home';
+          const isAuthRouteCallback =
+            callbackUrl.startsWith('/login') ||
+            callbackUrl.startsWith('/auth-error') ||
+            callbackUrl.startsWith('/forgot-password');
+          const redirectUrl =
+            callbackUrl && !isAuthRouteCallback ? callbackUrl : fallbackUrl;
+          window.location.replace(redirectUrl);
+        }
+      } catch {
+        // No session — stay on login page
+      }
+    };
+    checkExistingSession();
+
     // OS Detection for download link and platform check
     const userAgent = window.navigator.userAgent.toLowerCase();
     const isWin = userAgent.includes('win');
@@ -122,7 +146,7 @@ export default function LoginPage() {
     return () => {
       isMounted.current = false;
     };
-  }, [dispatch, searchParams, showBanner]);
+  }, [dispatch, searchParams, showBanner, callbackUrl]);
 
 
   const onSubmit = useCallback(async (values: z.infer<typeof loginSchema>) => {
@@ -184,7 +208,14 @@ export default function LoginPage() {
           throw new Error("Could not confirm session. Please try again.");
         }
         showBanner({ severity: 'success', message: 'Welcome back!', scoped: true });
-        
+
+        // Signal other tabs/apps that login occurred
+        try {
+          localStorage.setItem(CROSS_TAB_LOGIN_KEY, String(Date.now()));
+        } catch {
+          // Ignore storage errors
+        }
+
          window.location.replace(result.url || redirectUrl);
       } else {
         let message = "Login failed. Please check your credentials.";
