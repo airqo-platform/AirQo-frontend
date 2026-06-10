@@ -95,6 +95,7 @@ class DashboardImpl extends DashboardRepository with UiLoggy {
           ),
           headers: {
             'Content-Type': 'application/json',
+            'User-Agent': ApiUtils.mobileUserAgent,
           },
         );
         
@@ -157,6 +158,7 @@ class DashboardImpl extends DashboardRepository with UiLoggy {
         ),
         headers: {
           'Content-Type': 'application/json',
+          'User-Agent': ApiUtils.mobileUserAgent,
         },
       );
       

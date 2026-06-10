@@ -3,6 +3,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class ApiUtils {
   const ApiUtils._();
 
+  static const String mobileUserAgent = 'AirQo-Mobile/3.0 (Flutter)';
+
   static String baseUrl =
       dotenv.env['AIRQO_API_URL'] ?? "http://localhost:3001";
 

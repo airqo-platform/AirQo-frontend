@@ -182,6 +182,7 @@ class AuthHelper {
           'Authorization': 'JWT $token',
           'Content-Type': 'application/json',
           'Accept': '*/*',
+          'User-Agent': ApiUtils.mobileUserAgent,
         },
       ).timeout(const Duration(seconds: 10));
 
