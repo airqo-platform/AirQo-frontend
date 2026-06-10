@@ -21,9 +21,7 @@ const baseMetadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_BASE_URL || 'https://analytics.airqo.net'
-  ),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || ''),
   alternates: {
     canonical: '/',
   },
