@@ -393,9 +393,11 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
   const getCurrentSessionUserIdentifier = useCallback((): string | null => {
     const currentUser = session?.user as
-      | { id?: string; email?: string }
+      | { id?: string; _id?: string; email?: string }
       | undefined;
-    const userId = typeof currentUser?.id === 'string' ? currentUser.id.trim() : '';
+    // Check both _id and id — platform sets account_deleted_user_identifier with _id
+    const userId = (typeof currentUser?._id === 'string' && currentUser._id.trim()) ||
+      (typeof currentUser?.id === 'string' && currentUser.id.trim()) || '';
     if (userId) return `id:${userId}`;
     const email = typeof currentUser?.email === 'string' ? currentUser.email.trim().toLowerCase() : '';
     if (email) return `email:${email}`;
@@ -405,9 +407,17 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   const checkAccountDeletionFlag = useCallback((): boolean => {
     if (typeof window === 'undefined') return false;
 
-    const accountDeleted = localStorage.getItem('account_deleted');
-    const deletionTimestamp = localStorage.getItem('account_deleted_timestamp');
-    const deletionUserIdentifier = localStorage.getItem(ACCOUNT_DELETION_USER_IDENTIFIER_KEY);
+    let accountDeleted: string | null = null;
+    let deletionTimestamp: string | null = null;
+    let deletionUserIdentifier: string | null = null;
+    try {
+      accountDeleted = localStorage.getItem('account_deleted');
+      deletionTimestamp = localStorage.getItem('account_deleted_timestamp');
+      deletionUserIdentifier = localStorage.getItem(ACCOUNT_DELETION_USER_IDENTIFIER_KEY);
+    } catch {
+      // Safari private mode / blocked storage — skip check
+      return false;
+    }
     const parsedTimestamp = deletionTimestamp ? parseInt(deletionTimestamp, 10) : NaN;
     const hasValidTimestamp = !isNaN(parsedTimestamp);
     const now = Date.now();
@@ -493,7 +503,9 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
         !isLoggingOut
       ) {
         logger.info('[AuthWrapper] Cross-tab login detected, refreshing session');
-        update();
+        update().catch(() => {
+          // Transient network error — session will be revalidated on next focus/navigation
+        });
       }
     };
 
@@ -522,14 +534,20 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
       if (freshSession && freshSession.user) {
         // Session is valid - track 401s to detect account issues
-        const unauthorizedCount = parseInt(
-          localStorage.getItem('unauthorized_count') || '0',
-          10
-        );
-        const lastUnauthorized = parseInt(
-          localStorage.getItem('last_unauthorized') || '0',
-          10
-        );
+        let unauthorizedCount = 0;
+        let lastUnauthorized = 0;
+        try {
+          unauthorizedCount = parseInt(
+            localStorage.getItem('unauthorized_count') || '0',
+            10
+          );
+          lastUnauthorized = parseInt(
+            localStorage.getItem('last_unauthorized') || '0',
+            10
+          );
+        } catch {
+          // Safari private mode / blocked storage — skip tracking
+        }
         const now = Date.now();
 
         // Multiple 401s in short time = likely account deletion
@@ -546,8 +564,12 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        localStorage.setItem('unauthorized_count', (unauthorizedCount + 1).toString());
-        localStorage.setItem('last_unauthorized', now.toString());
+        try {
+          localStorage.setItem('unauthorized_count', (unauthorizedCount + 1).toString());
+          localStorage.setItem('last_unauthorized', now.toString());
+        } catch {
+          // Safari private mode / blocked storage — skip tracking
+        }
         return;
       }
 

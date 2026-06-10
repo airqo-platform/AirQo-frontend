@@ -323,10 +323,12 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
   const getCurrentSessionUserIdentifier = useCallback((): string | null => {
     const currentUser = session?.user as
-      | { _id?: string; email?: string }
+      | { _id?: string; id?: string; email?: string }
       | undefined;
+    // Check both _id and id — vertex sets account_deleted_user_identifier with id
     const userId =
-      typeof currentUser?._id === 'string' ? currentUser._id.trim() : '';
+      (typeof currentUser?._id === 'string' && currentUser._id.trim()) ||
+      (typeof currentUser?.id === 'string' && currentUser.id.trim()) || '';
     if (userId) {
       return `id:${userId}`;
     }
@@ -378,11 +380,19 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   const checkAccountDeletionFlag = useCallback((): boolean => {
     if (typeof window === 'undefined') return false;
 
-    const accountDeleted = localStorage.getItem('account_deleted');
-    const deletionTimestamp = localStorage.getItem('account_deleted_timestamp');
-    const deletionUserIdentifier = localStorage.getItem(
-      ACCOUNT_DELETION_USER_IDENTIFIER_KEY
-    );
+    let accountDeleted: string | null = null;
+    let deletionTimestamp: string | null = null;
+    let deletionUserIdentifier: string | null = null;
+    try {
+      accountDeleted = localStorage.getItem('account_deleted');
+      deletionTimestamp = localStorage.getItem('account_deleted_timestamp');
+      deletionUserIdentifier = localStorage.getItem(
+        ACCOUNT_DELETION_USER_IDENTIFIER_KEY
+      );
+    } catch {
+      // Safari private mode / blocked storage — skip check
+      return false;
+    }
     const parsedTimestamp = deletionTimestamp
       ? Number.parseInt(deletionTimestamp, 10)
       : NaN;
@@ -480,7 +490,9 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
         !isLoggingOut
       ) {
         logger.info('Cross-tab login detected, refreshing session');
-        update();
+        update().catch(() => {
+          // Transient network error — session will be revalidated on next focus/navigation
+        });
       }
     };
 
@@ -795,21 +807,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (isCurrentPublicRoute) {
-          // On public routes, still check for an existing SSO session.
-          // If the user arrives with a valid cookie (e.g. from another app),
-          // redirect them to the dashboard instead of showing the login page.
-          const existingSession = await getSession();
-          if (!isMounted) return;
-
-          if (existingSession?.user) {
-            setCachedSessionAccessToken(
-              getSessionAccessTokenFromSession(existingSession)
-            );
-            clearBackendOAuthSignedOutFlag();
-            setBootstrapSession(existingSession as BackendOAuthSession);
-            return;
-          }
-
+          // No existing session found — show login/register page.
           setBootstrapSession(null);
           return;
         }
