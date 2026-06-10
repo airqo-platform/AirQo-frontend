@@ -97,12 +97,15 @@ export default function LoginPage() {
       try {
         const session = await getSession();
         if (session?.user && isMounted.current) {
+          const email = session.user.email || '';
+          const lastModule = getLastActiveModule(email);
+          const fallbackUrl = lastModule === 'admin' ? '/admin/networks' : '/home';
           const isAuthRouteCallback =
             callbackUrl.startsWith('/login') ||
             callbackUrl.startsWith('/auth-error') ||
             callbackUrl.startsWith('/forgot-password');
           const redirectUrl =
-            callbackUrl && !isAuthRouteCallback ? callbackUrl : '/home';
+            callbackUrl && !isAuthRouteCallback ? callbackUrl : fallbackUrl;
           window.location.replace(redirectUrl);
         }
       } catch {
