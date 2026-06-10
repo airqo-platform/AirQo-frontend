@@ -513,6 +513,54 @@ export const METADATA_CONFIGS = {
       type: 'image/png',
     },
   },
+  beacon: {
+    title:
+      'AirQo Beacon | Device Health and Collocation Management for Air Quality Networks',
+    description:
+      'Monitor device health, collocation performance, uptime, MTBF, MTTR, and operational reliability across air quality sensor networks with AirQo Beacon.',
+    keywords:
+      'AirQo Beacon, device health monitoring, air quality network operations, sensor uptime monitoring, collocation management, MTBF, MTTR, maintenance dashboard, sensor network reliability, air quality device performance',
+    url: '/products/beacon',
+    image: {
+      url: '/assets/images/products/beacon/beacon-dashboard-showcase.png',
+      alt: 'AirQo Beacon device health and collocation management platform',
+      width: 1200,
+      height: 630,
+      type: 'image/png',
+    },
+  },
+  vertex: {
+    title:
+      'AirQo Vertex | Open Device Deployment and Public Air Quality Data Sharing',
+    description:
+      'Add air quality monitors, track maintenance, and share sensor data publicly through AirQo. Vertex supports devices from any manufacturer and helps teams join an open monitoring network.',
+    keywords:
+      'AirQo Vertex, device deployment platform, public air quality data sharing, open sensor network, multi-manufacturer support, sensor onboarding, air quality device maintenance, air monitoring data sharing',
+    url: '/products/vertex',
+    image: {
+      url: '/assets/images/products/vertex/vertex-dashboard-showcase.png',
+      alt: 'AirQo Vertex open device deployment and public data sharing platform',
+      width: 1200,
+      height: 630,
+      type: 'image/png',
+    },
+  },
+  aiPlatform: {
+    title:
+      'AirQo AI Platform | Forecasting, Site Selection, Categorization, and Reporting',
+    description:
+      'Use AirQo AI to forecast PM2.5, optimize monitor placement, categorize sites, automate air quality reports, and turn environmental data into decision-ready insight.',
+    keywords:
+      'AirQo AI Platform, air quality forecasting, environmental intelligence platform, sensor site selection, air quality reports, site categorization, spatial analysis, PM2.5 forecasting, AI for air quality',
+    url: '/products/ai-platform',
+    image: {
+      url: '/assets/images/products/ai-platform/ai-platform-dashboard-showcase.png',
+      alt: 'AirQo AI Platform environmental intelligence dashboard',
+      width: 1200,
+      height: 630,
+      type: 'image/png',
+    },
+  },
   airqoDevCon: {
     title:
       'AirQo DevCon 2026 | Free Student Developer Conference at Makerere University',
