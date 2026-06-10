@@ -24,6 +24,19 @@ void main() {
         })}.';
   }
 
+  String validToken() {
+    String encode(Map<String, dynamic> value) =>
+        base64Url.encode(utf8.encode(jsonEncode(value))).replaceAll('=', '');
+
+    return '${encode({'alg': 'none', 'typ': 'JWT'})}.${encode({
+          'sub': 'user-1',
+          'exp': DateTime.now()
+                  .add(const Duration(hours: 1))
+                  .millisecondsSinceEpoch ~/
+              1000,
+        })}.';
+  }
+
   setUp(() {
     FlutterSecureStorage.setMockInitialValues({});
   });
@@ -89,6 +102,25 @@ void main() {
       expect(token, isNull);
 
       await server.close(force: true);
+    });
+
+    // Before we move up to bloc and lifecycle behavior, we need to confirm the
+    // normal path is calm: if the stored token is still valid, the helper
+    // should simply give that token back instead of trying to refresh it.
+    // This matters because it tells us whether the bug only begins once the
+    // token is already expired, or whether even a healthy stored session is at
+    // risk. Confirmed by this passing test: a valid token is returned as-is.
+    test('returns the existing token when it is still valid', () async {
+      final token = validToken();
+
+      await SecureStorageRepository.instance.saveSecureData(
+        SecureStorageKeys.authToken,
+        token,
+      );
+
+      final result = await AuthHelper.refreshTokenIfNeeded();
+
+      expect(result, token);
     });
   });
 }
