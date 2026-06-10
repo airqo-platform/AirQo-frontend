@@ -14,8 +14,8 @@ import { persistor } from '../redux/store';
 let sharedLogoutPromise: Promise<void> | null = null;
 let sharedIsLoggingOut = false;
 
-export const CROSS_TAB_LOGOUT_KEY = 'vertex:auth:cross-tab-logout';
-export const CROSS_TAB_LOGIN_KEY = 'vertex:auth:cross-tab-login';
+export const CROSS_TAB_LOGOUT_KEY = 'airqo:auth:cross-tab-logout';
+export const CROSS_TAB_LOGIN_KEY = 'airqo:auth:cross-tab-login';
 
 /**
  * A hook to provide a centralized logout function.
