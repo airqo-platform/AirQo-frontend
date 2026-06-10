@@ -41,6 +41,10 @@ void main() {
     FlutterSecureStorage.setMockInitialValues({});
   });
 
+  tearDown(() {
+    ApiUtils.baseUrl = 'http://localhost:3001';
+  });
+
   group('AuthHelper.refreshTokenIfNeeded', () {
     // My current hypothesis is that unexpected logout begins here:
     // when the app resumes with an expired stored token, it tries to refresh
@@ -49,7 +53,6 @@ void main() {
     // "the session has expired" and send the user back to the welcome screen.
     // This test isolates that first signal so we can prove the behavior before
     // checking how the bloc and lifecycle code react to it.
-    // Confirmed by this passing test: a hard refresh failure returns null.
     test('returns null when expired token refresh fails', () async {
       final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
       ApiUtils.baseUrl = 'http://127.0.0.1:${server.port}';
@@ -79,7 +82,6 @@ void main() {
     // the helper returns null. If that happens, higher layers may not be able
     // to distinguish "the session is truly dead" from "refresh timed out on
     // resume", which is exactly the kind of confusion we are investigating.
-    // Confirmed by this passing test: a refresh timeout also returns null.
     test('returns null when expired token refresh times out', () async {
       final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
       ApiUtils.baseUrl = 'http://127.0.0.1:${server.port}';
@@ -109,7 +111,7 @@ void main() {
     // should simply give that token back instead of trying to refresh it.
     // This matters because it tells us whether the bug only begins once the
     // token is already expired, or whether even a healthy stored session is at
-    // risk. Confirmed by this passing test: a valid token is returned as-is.
+    // risk.
     test('returns the existing token when it is still valid', () async {
       final token = validToken();
 
@@ -127,8 +129,7 @@ void main() {
     // problems collapse into the exact same helper output as a real refresh
     // failure. If an expired token cannot be refreshed because the network is
     // unavailable, higher layers may still just see null and treat that as a
-    // dead session. Confirmed by this passing test: a network-level refresh
-    // failure also returns null.
+    // dead session.
     test('returns null when expired token refresh hits a network error',
         () async {
       ApiUtils.baseUrl = 'http://127.0.0.1:1';
@@ -146,8 +147,7 @@ void main() {
     // We also need to know whether broken token data follows the same path as
     // true expiry problems. If secure storage contains something that is not a
     // valid JWT, the helper should fail in a stable way instead of crashing or
-    // producing ambiguous state. Confirmed by this passing test: a malformed
-    // stored token is handled by returning null.
+    // producing ambiguous state.
     test('returns null when the stored token is malformed', () async {
       await SecureStorageRepository.instance.saveSecureData(
         SecureStorageKeys.authToken,
