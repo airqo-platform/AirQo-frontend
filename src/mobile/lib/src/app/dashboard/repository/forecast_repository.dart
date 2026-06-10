@@ -69,6 +69,7 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
 
   static const Map<String, String> _headers = {
     'Content-Type': 'application/json',
+    'User-Agent': ApiUtils.mobileUserAgent,
   };
 
   Map<String, String> _baseParams(String siteId) => {

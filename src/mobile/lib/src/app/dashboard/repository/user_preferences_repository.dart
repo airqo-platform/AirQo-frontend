@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:airqo/src/meta/utils/api_utils.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:loggy/loggy.dart';
@@ -24,7 +25,8 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
   Future<Map<String, String>> _getHeaders({bool useAppToken = false}) async {
     final headers = {
       "Accept": "application/json",
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
+      "User-Agent": ApiUtils.mobileUserAgent,
     };
 
     if (!useAppToken) {

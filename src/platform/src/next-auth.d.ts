@@ -5,6 +5,11 @@ type SessionUser = NonNullable<DefaultSession['user']> & {
   _id?: string;
   firstName?: string;
   lastName?: string;
+  userName?: string;
+  organization?: string;
+  privilege?: string;
+  country?: string;
+  phoneNumber?: string;
 };
 
 declare module 'next-auth' {
@@ -18,6 +23,12 @@ declare module 'next-auth' {
     name?: string | null;
     image?: string | null;
     authMethods?: AuthMethods;
+    userName?: string;
+    organization?: string;
+    privilege?: string;
+    country?: string;
+    phoneNumber?: string;
+    exp?: number;
   }
 
   interface Session extends DefaultSession {
@@ -36,5 +47,12 @@ declare module 'next-auth/jwt' {
     accessToken?: string;
     expiresAt?: string;
     authMethods?: AuthMethods;
+    userName?: string;
+    organization?: string;
+    privilege?: string;
+    country?: string;
+    phoneNumber?: string;
+    image?: string;
+    exp?: number;
   }
 }

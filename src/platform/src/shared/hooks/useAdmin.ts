@@ -103,7 +103,7 @@ export const useCreateRole = () => {
       {
         arg,
       }: {
-        arg: { role_name: string; group_id: string; role_description?: string };
+        arg: { role_name: string; role_code?: string; network_id?: string; group_id?: string; role_description?: string };
       }
     ) => {
       return await adminService.createRole(arg);

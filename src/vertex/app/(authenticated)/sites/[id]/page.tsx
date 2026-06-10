@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AqArrowLeft } from "@airqo/icons-react";
 import ReusableButton from "@/components/shared/button/ReusableButton";
-import { useSiteDetails, useRefreshSiteMetadata } from "@/core/hooks/useSites";
+import { useSiteDetails } from "@/core/hooks/useSites";
+import { useRefreshMetadataWithBanner } from "@/core/hooks/useRefreshMetadataWithBanner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useParams } from "next/navigation";
@@ -31,7 +32,7 @@ export default function UserSiteDetailsPage() {
   const params = useParams();
   const siteId = params.id as string;
   const { data: site, isLoading, error } = useSiteDetails(siteId);
-  const { mutate: refreshMetadata, isPending: isRefreshing } = useRefreshSiteMetadata();
+  const { mutate: refreshMetadata, isPending: isRefreshing } = useRefreshMetadataWithBanner();
   const router = useRouter();
   const [editSection, setEditSection] = useState<"general" | "mobile" | null>(
     null

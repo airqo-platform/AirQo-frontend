@@ -1,14 +1,18 @@
+"use client";
+
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Copy } from "lucide-react";
 import React from "react";
-import ReusableToast from "@/components/shared/toast/ReusableToast";
+import { useClipboard } from "@/core/hooks/useClipboard";
 
 interface SiteMeasurementsApiCardProps {
     siteId: string;
 }
 
 const SiteMeasurementsApiCard: React.FC<SiteMeasurementsApiCardProps> = ({ siteId }) => {
+    const { handleCopy } = useClipboard();
+
     return (
         <Card className="w-full rounded-lg flex flex-col gap-4 px-3 py-2">
             <h2 className="text-lg font-semibold mb-2">Site Measurements API</h2>
@@ -22,11 +26,9 @@ const SiteMeasurementsApiCard: React.FC<SiteMeasurementsApiCardProps> = ({ siteI
                     <Button
                         variant="ghost"
                         size="icon"
+                        aria-label="Copy recent measurements API URL"
                         className="hover:bg-transparent"
-                        onClick={() => {
-                            navigator.clipboard.writeText(`https://api.airqo.net/api/v2/devices/measurements/sites/${siteId}/recent?token=YOUR_TOKEN`);
-                            ReusableToast({ message: "Copied", type: "SUCCESS" });
-                        }}
+                        onClick={() => handleCopy(`https://api.airqo.net/api/v2/devices/measurements/sites/${siteId}/recent?token=YOUR_TOKEN`)}
                     >
                         <Copy className="w-4 h-4" />
                     </Button>
@@ -42,11 +44,9 @@ const SiteMeasurementsApiCard: React.FC<SiteMeasurementsApiCardProps> = ({ siteI
                     <Button
                         variant="ghost"
                         size="icon"
+                        aria-label="Copy historical measurements API URL"
                         className="hover:bg-transparent"
-                        onClick={() => {
-                            navigator.clipboard.writeText(`https://api.airqo.net/api/v2/devices/measurements/sites/${siteId}/historical?token=YOUR_TOKEN`);
-                            ReusableToast({ message: "Copied", type: "SUCCESS" });
-                        }}
+                        onClick={() => handleCopy(`https://api.airqo.net/api/v2/devices/measurements/sites/${siteId}/historical?token=YOUR_TOKEN`)}
                     >
                         <Copy className="w-4 h-4" />
                     </Button>

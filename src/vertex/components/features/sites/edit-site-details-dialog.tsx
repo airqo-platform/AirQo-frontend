@@ -5,9 +5,11 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Form, FormField } from "@/components/ui/form";
 import { useUpdateSiteDetails } from "@/core/hooks/useSites";
-import { toast } from "sonner";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
+import { useBanner } from "@/context/banner-context";
+import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import { useEffect } from "react";
 import { Site } from "@/app/types/sites";
 
@@ -49,7 +51,16 @@ export function EditSiteDetailsDialog({
   site,
   section,
 }: EditSiteDetailsDialogProps) {
-  const { mutate: updateSite, isPending } = useUpdateSiteDetails();
+  const { showBanner } = useBanner();
+  const { showBannerWithDelay } = useBannerWithDelay();
+  const { mutate: updateSite, isPending } = useUpdateSiteDetails({
+    onSuccess: () => {
+      showBannerWithDelay({ severity: 'success', message: 'Site details updated successfully', scoped: false });
+    },
+    onError: (error) => {
+      showBanner({ severity: 'error', message: `Failed to update site: ${getApiErrorMessage(error)}`, scoped: true });
+    },
+  });
 
   const form = useForm<SiteFormValues>({
     resolver: zodResolver(siteFormSchema),
@@ -107,12 +118,12 @@ export function EditSiteDetailsDialog({
     );
 
     if (Object.keys(transformedData).length === 0) {
-      toast.error("No fields have been modified");
+      showBanner({ severity: 'error', message: 'No fields have been modified', scoped: true });
       return;
     }
 
     if (!site._id) {
-      toast.error("Site ID is missing");
+      showBanner({ severity: 'error', message: 'Site ID is missing', scoped: true });
       return;
     }
 
