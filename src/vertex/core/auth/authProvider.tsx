@@ -171,6 +171,8 @@ function useUserDetails(userId: string | null) {
 
 const authRoutes = ['/login', '/auth-error'];
 const publicRoutes = [...authRoutes, '/download'];
+const ACCOUNT_DELETION_TTL_MS = 5 * 60 * 1000;
+const ACCOUNT_DELETION_USER_IDENTIFIER_KEY = 'account_deleted_user_identifier';
 const matchesRoute = (pathname: string, route: string) =>
   pathname === route || pathname.startsWith(`${route}/`);
 
@@ -371,11 +373,91 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   const isLoggingOut = useAppSelector((state) => state.user.isLoggingOut);
   const logout = useLogout();
   const [hasHandledUnauthorized, setHasHandledUnauthorized] = useState(false);
+  const hasStartedLogoutRef = useRef(false);
 
   const isAuthRoute = authRoutes.some((route) => matchesRoute(pathname, route));
   const isPublicRoute = publicRoutes.some((route) =>
     matchesRoute(pathname, route)
   );
+
+  const clearAccountDeletionFlags = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.removeItem('account_deleted');
+      localStorage.removeItem('account_deleted_timestamp');
+      localStorage.removeItem(ACCOUNT_DELETION_USER_IDENTIFIER_KEY);
+    } catch {
+      // Ignore storage errors
+    }
+  }, []);
+
+  const getCurrentSessionUserIdentifier = useCallback((): string | null => {
+    const currentUser = session?.user as
+      | { id?: string; email?: string }
+      | undefined;
+    const userId = typeof currentUser?.id === 'string' ? currentUser.id.trim() : '';
+    if (userId) return `id:${userId}`;
+    const email = typeof currentUser?.email === 'string' ? currentUser.email.trim().toLowerCase() : '';
+    if (email) return `email:${email}`;
+    return null;
+  }, [session?.user]);
+
+  const checkAccountDeletionFlag = useCallback((): boolean => {
+    if (typeof window === 'undefined') return false;
+
+    const accountDeleted = localStorage.getItem('account_deleted');
+    const deletionTimestamp = localStorage.getItem('account_deleted_timestamp');
+    const deletionUserIdentifier = localStorage.getItem(ACCOUNT_DELETION_USER_IDENTIFIER_KEY);
+    const parsedTimestamp = deletionTimestamp ? parseInt(deletionTimestamp, 10) : NaN;
+    const hasValidTimestamp = !isNaN(parsedTimestamp);
+    const now = Date.now();
+
+    if (accountDeleted === 'true') {
+      if (!hasValidTimestamp || now - parsedTimestamp > ACCOUNT_DELETION_TTL_MS) {
+        clearAccountDeletionFlags();
+        return false;
+      }
+
+      const currentUserIdentifier = getCurrentSessionUserIdentifier();
+      if (
+        !deletionUserIdentifier ||
+        !currentUserIdentifier ||
+        deletionUserIdentifier !== currentUserIdentifier
+      ) {
+        logger.warn('[AuthWrapper] Ignoring stale account deletion flag due to missing or mismatched user identifier');
+        clearAccountDeletionFlags();
+        return false;
+      }
+
+      logger.info('[AuthWrapper] Account deletion detected, logging out...');
+      ReusableToast({
+        message: 'Your account has been deleted. You have been logged out.',
+        type: 'ERROR',
+      });
+      logout();
+      return true;
+    }
+
+    if (hasValidTimestamp && now - parsedTimestamp > ACCOUNT_DELETION_TTL_MS) {
+      clearAccountDeletionFlags();
+    }
+
+    return false;
+  }, [clearAccountDeletionFlags, getCurrentSessionUserIdentifier, logout]);
+
+  // Cross-tab account deletion propagation
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === 'account_deleted' && event.newValue === 'true') {
+        checkAccountDeletionFlag();
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, [checkAccountDeletionFlag]);
 
   // Handle unauthorized/expired token events
   const handleUnauthorized = useCallback(async () => {
@@ -385,36 +467,10 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
     logger.debug('[AuthWrapper] Handling unauthorized event');
 
-    // Check for account deletion flag
-    if (typeof window !== 'undefined') {
-      const accountDeleted = localStorage.getItem('account_deleted');
-      const deletionTimestamp = localStorage.getItem('account_deleted_timestamp');
-
-      if (accountDeleted === 'true') {
-        setHasHandledUnauthorized(true);
-        try {
-          localStorage.removeItem('account_deleted');
-          localStorage.removeItem('account_deleted_timestamp');
-        } catch {
-          // Ignore storage errors
-        }
-
-        ReusableToast({
-          message: 'Your account has been deleted. You have been logged out.',
-          type: 'ERROR',
-        });
-        logout();
-        return;
-      }
-
-      // Clean up old deletion timestamps
-      if (deletionTimestamp) {
-        const timestamp = parseInt(deletionTimestamp, 10);
-        if (Date.now() - timestamp > 5 * 60 * 1000) {
-          localStorage.removeItem('account_deleted');
-          localStorage.removeItem('account_deleted_timestamp');
-        }
-      }
+    // Check for account deletion flag (with user identifier validation and TTL)
+    if (checkAccountDeletionFlag()) {
+      setHasHandledUnauthorized(true);
+      return;
     }
 
     try {
@@ -466,7 +522,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       setHasHandledUnauthorized(true);
       logout();
     }
-  }, [logout, update, isPublicRoute, hasHandledUnauthorized, isLoggingOut]);
+  }, [logout, update, isPublicRoute, hasHandledUnauthorized, isLoggingOut, checkAccountDeletionFlag]);
 
   // Listen for auth token expiration events
   useEffect(() => {
@@ -481,6 +537,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (status === 'authenticated') {
       setHasHandledUnauthorized(false);
+      hasStartedLogoutRef.current = false;
     }
   }, [status]);
 
@@ -489,11 +546,17 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     if (status === 'authenticated' && isAuthRoute) {
       logger.debug('[AuthWrapper] Authenticated user on auth route, redirecting to /home');
       router.push('/home');
-    } else if (status === 'unauthenticated' && !isPublicRoute && !isLoggingOut) {
-      logger.debug('[AuthWrapper] Unauthenticated user on protected route, redirecting to /login');
-      router.push('/login');
+    } else if (
+      status === 'unauthenticated' &&
+      !isPublicRoute &&
+      !isLoggingOut &&
+      !hasStartedLogoutRef.current
+    ) {
+      logger.debug('[AuthWrapper] Unauthenticated user on protected route, logging out');
+      hasStartedLogoutRef.current = true;
+      logout();
     }
-  }, [status, isAuthRoute, isPublicRoute, router, isLoggingOut]);
+  }, [status, isAuthRoute, isPublicRoute, router, isLoggingOut, logout]);
 
   // Check if we have a session from SSR or client fetch
   const hasSession = !!session;
