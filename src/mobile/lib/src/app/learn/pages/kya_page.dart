@@ -166,7 +166,7 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
     return BlocBuilder<KyaBloc, KyaState>(
       builder: (context, state) {
         if (state is LessonsLoading || _isRetrying) {
-          return Column(children: [
+          return ListView(children: [
             ShimmerContainer(height: 200, borderRadius: 8, width: double.infinity),
             const SizedBox(height: 16),
             ShimmerContainer(height: 200, borderRadius: 8, width: double.infinity),

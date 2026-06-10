@@ -382,7 +382,7 @@ class LocationListView extends StatelessWidget with UiLoggy {
     List<Measurement> selected,
     List<Measurement> unselected,
   ) {
-    final label = unselected.isEmpty && selected.isNotEmpty
+    final label = selected.isNotEmpty
         ? "Other Locations"
         : "All Locations";
     return Container(
