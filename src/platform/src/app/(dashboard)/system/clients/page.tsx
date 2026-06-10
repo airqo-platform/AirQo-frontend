@@ -5,7 +5,11 @@ import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import { Button, PageHeading } from '@/shared/components/ui';
 import { toast } from '@/shared/components/ui/toast';
 import { formatDate } from '@/shared/utils';
-import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import {
+  getUserFriendlyErrorMessage,
+  isForbiddenError,
+} from '@/shared/utils/errorMessages';
+import { AccessDenied } from '@/shared/components/AccessDenied';
 import {
   AqEdit05,
   AqTrash01,
@@ -398,6 +402,12 @@ const ClientsAdminPage: React.FC = () => {
       accessDeniedTitle="Access Restricted"
       accessDeniedMessage="You do not have the required permissions to access this page."
     >
+      {isForbiddenError(error) ? (
+        <AccessDenied
+          title="Access Denied"
+          message="You do not have the required permissions to view API clients."
+        />
+      ) : (
       <div className="space-y-6">
         <PageHeading
           title="API Clients Management"
@@ -623,6 +633,7 @@ const ClientsAdminPage: React.FC = () => {
           </div>
         </Dialog>
       </div>
+      )}
     </PermissionGuard>
   );
 };

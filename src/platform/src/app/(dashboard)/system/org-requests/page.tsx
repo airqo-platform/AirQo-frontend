@@ -9,7 +9,8 @@ import ReusableDialog from '@/shared/components/ui/dialog';
 import PageHeading from '@/shared/components/ui/page-heading';
 import { TextInput } from '@/shared/components/ui/text-input';
 import { formatWithPattern } from '@/shared/utils/dateUtils';
-import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import { getUserFriendlyErrorMessage, isForbiddenError } from '@/shared/utils/errorMessages';
+import { AccessDenied } from '@/shared/components/AccessDenied';
 import { refreshWithToast } from '@/shared/utils/refreshWithToast';
 import {
   useOrganizationRequests,
@@ -347,6 +348,11 @@ const OrganizationRequestsPage = () => {
         <LoadingState
           className="h-[calc(100vh-200px)]"
           text="Loading organization requests..."
+        />
+      ) : isForbiddenError(error) ? (
+        <AccessDenied
+          title="Access Denied"
+          message="You do not have the required permissions to view organization requests."
         />
       ) : errorMessage ? (
         <ErrorBanner

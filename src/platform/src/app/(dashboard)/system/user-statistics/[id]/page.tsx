@@ -26,7 +26,8 @@ import {
   AqUsersCheck,
 } from '@airqo/icons-react';
 import { formatWithPattern } from '@/shared/utils/dateUtils';
-import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import { getUserFriendlyErrorMessage, isForbiddenError } from '@/shared/utils/errorMessages';
+import { AccessDenied } from '@/shared/components/AccessDenied';
 import { refreshWithToast } from '@/shared/utils/refreshWithToast';
 
 const UserStatisticsDetailsPage: React.FC = () => {
@@ -163,6 +164,11 @@ const UserStatisticsDetailsPage: React.FC = () => {
         <LoadingState
           className="h-[calc(100vh-220px)]"
           text="Loading user details..."
+        />
+      ) : isForbiddenError(userError) ? (
+        <AccessDenied
+          title="Access Denied"
+          message="You do not have the required permissions to view user details."
         />
       ) : userError || !user ? (
         <div className="space-y-6">
