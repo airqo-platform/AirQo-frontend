@@ -1,0 +1,409 @@
+'use client';
+
+import React, { useState } from 'react';
+import { X, ShieldCheck, ChevronDown, ChevronRight, Clock } from 'lucide-react';
+import { AqHomeSmile } from '@airqo/icons-react';
+import { Button } from '@/components/ui/button';
+import { motion } from 'framer-motion';
+import Image from 'next/image';
+import { NavItem } from './NavItem';
+import { useUserContext } from '@/core/hooks/useUserContext';
+import { useRecentlyVisited } from '@/core/hooks/useRecentlyVisited';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useRouter, usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
+import { ROUTE_LINKS } from '@/core/routes';
+import { PERMISSIONS } from '@/core/permissions/constants';
+import PermissionTooltip from '@/components/ui/permission-tooltip';
+import { vertexConfig } from '@/vertex.config';
+
+interface PrimarySidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+  activeModule: string;
+  onModuleChange: (module: string, targetPath?: string) => void;
+  onNavigate?: () => void;
+}
+
+interface AdminDropdownItemProps {
+  permission: boolean;
+  permissionCode: string;
+  tooltipMessage: string;
+  onClick: () => void;
+  label: string;
+  subLabel: string;
+  isActive: boolean;
+}
+
+const AdminDropdownItem: React.FC<AdminDropdownItemProps> = ({
+  permission,
+  permissionCode,
+  tooltipMessage,
+  onClick,
+  label,
+  subLabel,
+  isActive,
+}) => {
+  const item = (
+    <DropdownMenuItem
+      disabled={!permission}
+      onClick={onClick}
+      className={cn(
+        "flex flex-col items-start gap-1 p-3 cursor-pointer outline-none transition-colors duration-200",
+        isActive ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary" : "hover:bg-accent dark:hover:bg-zinc-800"
+      )}
+    >
+      <span className="font-medium">{label}</span>
+      <span className={cn("text-xs", isActive ? "text-primary dark:text-primary" : "text-muted-foreground dark:text-gray-400")}>
+        {subLabel}
+      </span>
+    </DropdownMenuItem>
+  );
+
+  return (
+    <span className="w-full h-full block">
+      {!permission ? (
+        <PermissionTooltip permission={permissionCode} message={tooltipMessage}>
+          {item}
+        </PermissionTooltip>
+      ) : (
+        item
+      )}
+    </span>
+  );
+};
+
+const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
+  isOpen,
+  onClose,
+  activeModule,
+  onModuleChange: handleModuleChange,
+  onNavigate,
+}) => {
+  const router = useRouter();
+  const pathname = usePathname();
+  const { getContextPermissions } = useUserContext();
+  const permissions = getContextPermissions();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isRecentOpen, setIsRecentOpen] = useState(false);
+  const { visitedPages } = useRecentlyVisited();
+  const { activeGroup } = useUserContext();
+  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const recentTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  // Determine if user can view Admin Panel (Role based ONLY)
+  const canViewAdminPanel = React.useMemo(() => {
+    if (!activeGroup?.role?.role_name) return false;
+
+    const allowedRoles = ['AIRQO_SUPER_ADMIN', 'AIRQO_ADMIN', 'AIRQO_NETWORK_ADMIN'];
+    return allowedRoles.includes(activeGroup.role.role_name);
+  }, [activeGroup]);
+
+  const navigateWithShimmer = (targetPath: string, navigate: () => void) => {
+    if (pathname === targetPath) return;
+    router.prefetch(targetPath);
+    onNavigate?.();
+    navigate();
+  };
+
+  React.useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (recentTimeoutRef.current) clearTimeout(recentTimeoutRef.current);
+    };
+  }, []);
+
+  return (
+    <>
+      {isOpen && (
+        <div className="fixed inset-0 bg-black/60 z-[999]" onClick={onClose} />
+      )}
+      <motion.aside
+        data-vertex-primary-sidebar
+        initial={{ x: '-100%' }}
+        animate={{ x: isOpen ? '0%' : '-100%' }}
+        transition={{ duration: 0.3, ease: 'easeInOut' }}
+        className="fixed top-[var(--vertex-ui-top-offset)] left-0 w-72 h-[calc(100vh-var(--vertex-ui-top-offset))] bg-card shadow-lg z-[1000] flex flex-col p-4"
+      >
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <Image
+              src={vertexConfig.org.logo}
+              alt={`${vertexConfig.org.name} Logo`}
+              width={40}
+              height={40}
+            />
+            <div className="flex flex-col justify-center gap-0.5">
+              <span className="font-bold text-lg leading-tight">{vertexConfig.org.name}</span>
+              {activeGroup?.grp_title && (
+                <div className="flex">
+                  <span 
+                    className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-primary/10 text-primary dark:bg-primary/20 max-w-[140px] truncate" 
+                    title={activeGroup.grp_title.replace(/[_-]/g, " ").toUpperCase()}
+                  >
+                    {activeGroup.grp_title.replace(/[_-]/g, " ")}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+
+        <nav className="flex flex-col gap-2">
+          {/* Home - visible to ALL users */}
+          <NavItem
+            item={{
+              href: ROUTE_LINKS.HOME,
+              icon: AqHomeSmile,
+              label: 'Home',
+              activeOverride: activeModule === 'devices',
+            }}
+            onClick={() => {
+              navigateWithShimmer(ROUTE_LINKS.HOME, () => handleModuleChange('devices'));
+            }}
+          />
+
+          {/* Administrative Panel - visible to authorized admin roles */}
+          {canViewAdminPanel && (
+            <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen} modal={false}>
+              <DropdownMenuTrigger asChild>
+                <div
+                  role="button"
+                  tabIndex={0}
+                  className="w-full"
+                  onMouseEnter={() => {
+                    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+                    setIsDropdownOpen(true);
+                  }}
+                  onMouseLeave={() => {
+                    timeoutRef.current = setTimeout(() => setIsDropdownOpen(false), 200);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setIsDropdownOpen(!isDropdownOpen);
+                    }
+                  }}
+                >
+                  <NavItem
+                    item={{
+                      href: '#', // Force dropdown usage
+                      icon: ShieldCheck,
+                      label: 'Administrative Panel',
+                      activeOverride: activeModule === 'admin',
+                      endIcon: isDropdownOpen ? ChevronDown : ChevronRight,
+                    }}
+                    onClick={(e) => { e?.preventDefault(); }}
+                  />
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                side="right"
+                className="w-64 ml-2 z-[1001]"
+                align="start"
+                onMouseEnter={() => {
+                  if (timeoutRef.current) clearTimeout(timeoutRef.current);
+                }}
+                onMouseLeave={() => {
+                  timeoutRef.current = setTimeout(() => setIsDropdownOpen(false), 200);
+                }}
+              >
+                <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider">
+                  Administrative Panel
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+
+                <AdminDropdownItem
+                  permission={!!permissions.canViewNetworks}
+                  permissionCode={PERMISSIONS.NETWORK.VIEW}
+                  tooltipMessage="This action requires network view permission"
+                   onClick={() => {
+                    navigateWithShimmer(ROUTE_LINKS.ADMIN_NETWORKS, () => {
+                      handleModuleChange('admin', ROUTE_LINKS.ADMIN_NETWORKS);
+                      setIsDropdownOpen(false);
+                    });
+                  }}
+                  label="Sensor Manufacturers"
+                  subLabel="Manage and configure devices"
+                  isActive={pathname === ROUTE_LINKS.ADMIN_NETWORKS}
+                />
+
+                {vertexConfig.features.networkRequests && (
+                  <AdminDropdownItem
+                    permission={!!permissions.canViewNetworks}
+                    permissionCode={PERMISSIONS.NETWORK.VIEW}
+                    tooltipMessage="This action requires network view permission"
+                     onClick={() => {
+                      navigateWithShimmer(ROUTE_LINKS.ADMIN_NETWORK_REQUESTS, () => {
+                        handleModuleChange('admin', ROUTE_LINKS.ADMIN_NETWORK_REQUESTS);
+                        setIsDropdownOpen(false);
+                      });
+                    }}
+                    label="Manufacturer Requests"
+                    subLabel="Review new sensor requests"
+                    isActive={pathname === ROUTE_LINKS.ADMIN_NETWORK_REQUESTS}
+                  />
+                )}
+
+                <AdminDropdownItem
+                  permission={!!permissions.canViewDevices}
+                  permissionCode={PERMISSIONS.DEVICE.VIEW}
+                  tooltipMessage="This action requires device view permission"
+                   onClick={() => {
+                    navigateWithShimmer(ROUTE_LINKS.COHORTS, () => {
+                      handleModuleChange('admin', ROUTE_LINKS.COHORTS);
+                      setIsDropdownOpen(false);
+                    });
+                  }}
+                  label="Cohorts"
+                  subLabel="Group devices for analytics"
+                  isActive={pathname.startsWith(ROUTE_LINKS.COHORTS)}
+                />
+
+                {vertexConfig.features.siteManagement && (
+                  <AdminDropdownItem
+                    permission={!!permissions.canViewSites}
+                    permissionCode={PERMISSIONS.SITE.VIEW}
+                    tooltipMessage="This action requires site view permission"
+                     onClick={() => {
+                      navigateWithShimmer(ROUTE_LINKS.SITES, () => {
+                        handleModuleChange('admin', ROUTE_LINKS.SITES);
+                        setIsDropdownOpen(false);
+                      });
+                    }}
+                    label="Sites"
+                    subLabel="Manage location deployments"
+                    isActive={pathname.startsWith(ROUTE_LINKS.SITES)}
+                  />
+                )}
+
+                {vertexConfig.features.siteManagement && (
+                  <AdminDropdownItem
+                    permission={!!permissions.canViewSites}
+                    permissionCode={PERMISSIONS.SITE.VIEW}
+                    tooltipMessage="This action requires site view permission"
+                     onClick={() => {
+                      navigateWithShimmer(ROUTE_LINKS.GRIDS, () => {
+                        handleModuleChange('admin', ROUTE_LINKS.GRIDS);
+                        setIsDropdownOpen(false);
+                      });
+                    }}
+                    label="Grids"
+                    subLabel="Configure spatial grids"
+                    isActive={pathname.startsWith(ROUTE_LINKS.GRIDS)}
+                  />
+                )}
+
+                {vertexConfig.features.shipping && (
+                  <AdminDropdownItem
+                    permission={!!permissions.canViewShipping || !!permissions.canViewNetworks}
+                    permissionCode={PERMISSIONS.SHIPPING.VIEW}
+                    tooltipMessage="This action requires shipping or network view permission"
+                     onClick={() => {
+                      navigateWithShimmer(ROUTE_LINKS.ADMIN_SHIPPING, () => {
+                        handleModuleChange('admin', ROUTE_LINKS.ADMIN_SHIPPING);
+                        setIsDropdownOpen(false);
+                      });
+                    }}
+                    label="Shipping"
+                    subLabel="Track device logistics"
+                    isActive={pathname.startsWith(ROUTE_LINKS.ADMIN_SHIPPING)}
+                  />
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+
+          {/* Recently Visited - visible to ALL users */}
+          {visitedPages.length > 0 && (
+            <DropdownMenu open={isRecentOpen} onOpenChange={setIsRecentOpen} modal={false}>
+              <DropdownMenuTrigger asChild>
+                <div
+                  role="button"
+                  tabIndex={0}
+                  className="w-full"
+                  onMouseEnter={() => {
+                    if (recentTimeoutRef.current) clearTimeout(recentTimeoutRef.current);
+                    setIsRecentOpen(true);
+                  }}
+                  onMouseLeave={() => {
+                    recentTimeoutRef.current = setTimeout(() => setIsRecentOpen(false), 200);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setIsRecentOpen(!isRecentOpen);
+                    }
+                  }}
+                >
+                  <NavItem
+                    item={{
+                      href: '#',
+                      icon: Clock,
+                      label: 'Recently Visited',
+                      endIcon: isRecentOpen ? ChevronDown : ChevronRight,
+                    }}
+                    onClick={(e) => { e?.preventDefault(); }}
+                  />
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                side="right"
+                className="w-64 ml-2 z-[1001]"
+                align="start"
+                onMouseEnter={() => {
+                  if (recentTimeoutRef.current) clearTimeout(recentTimeoutRef.current);
+                }}
+                onMouseLeave={() => {
+                  recentTimeoutRef.current = setTimeout(() => setIsRecentOpen(false), 200);
+                }}
+              >
+                <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider">
+                  Recently Visited
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+
+                {visitedPages.map((page, index) => (
+                  <DropdownMenuItem
+                    key={`${page.href}-${index}`}
+                     onClick={() => {
+                      navigateWithShimmer(page.href, () => {
+                        // Detect module from href using route constants
+                        if (page.href.startsWith('/devices')) {
+                          handleModuleChange('devices', page.href);
+                        } else if (page.href.startsWith('/admin')) {
+                          handleModuleChange('admin', page.href);
+                        } else {
+                          router.push(page.href);
+                        }
+                        setIsRecentOpen(false);
+                      });
+                    }}
+                    className={cn(
+                      "flex flex-col items-start gap-1 p-3 cursor-pointer",
+                      pathname === page.href && "bg-primary/10 text-primary"
+                    )}
+                  >
+                    <span className="font-medium">{page.label}</span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </nav>
+      </motion.aside>
+    </>
+  );
+};
+
+export default PrimarySidebar;

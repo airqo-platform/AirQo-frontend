@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AirQo Vertex Offline</title>
+    <style>
+      :root {
+        color-scheme: light;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Segoe UI", Arial, sans-serif;
+        background: #f5f7fb;
+        color: #0f172a;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+      .card {
+        width: min(560px, 100%);
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+        padding: 28px;
+      }
+      .title {
+        margin: 0 0 10px;
+        font-size: 24px;
+        line-height: 1.2;
+      }
+      .text {
+        margin: 0 0 18px;
+        font-size: 15px;
+        line-height: 1.6;
+        color: #334155;
+      }
+      .status {
+        display: inline-block;
+        margin-bottom: 18px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: #fff7ed;
+        color: #9a3412;
+        border: 1px solid #fed7aa;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .button {
+        border: 0;
+        border-radius: 10px;
+        padding: 10px 16px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .button-primary {
+        background: #2563eb;
+        color: #ffffff;
+      }
+      .button-secondary {
+        background: #f1f5f9;
+        color: #0f172a;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <div class="status">Offline Mode</div>
+      <h1 class="title">Unable to reach the internet</h1>
+      <p class="text">
+        You are viewing an offline version of this page.
+      </p>
+      <p class="text">
+        You can stay on this screen and try again when internet is back.
+        Click <strong>Retry Connection</strong> or <strong>Refresh Page</strong> to reopen live Vertex.
+      </p>
+      <div class="actions">
+        <button id="retry-connection" class="button button-primary" type="button">
+          Retry Connection
+        </button>
+        <button class="button button-secondary" type="button" onclick="location.reload()">
+          Refresh Page
+        </button>
+      </div>
+    </main>
+  </body>
+</html>

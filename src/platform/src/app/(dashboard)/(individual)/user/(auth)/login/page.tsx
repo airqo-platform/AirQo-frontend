@@ -1,0 +1,254 @@
+'use client';
+
+import { useEffect, useState, type FormEvent } from 'react';
+import AuthLayout from '@/shared/layouts/AuthLayout';
+import SocialAuthSection from '@/shared/components/auth/SocialAuthSection';
+import SelectedEmailCard from '@/shared/components/auth/SelectedEmailCard';
+import { signIn } from 'next-auth/react';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { Button, Input } from '@/shared/components/ui';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from '@/shared/components/ui';
+import { loginSchema, type LoginFormData } from '@/shared/lib/validators';
+import {
+  normalizeCallbackUrl,
+  redirectWithReload,
+} from '@/shared/lib/auth-redirect';
+import { CROSS_TAB_LOGIN_KEY } from '@/shared/hooks/useLogout';
+
+export default function LoginPage() {
+  const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState<'email' | 'password'>('email');
+  const searchParams = useSearchParams();
+  const callbackUrl =
+    normalizeCallbackUrl(searchParams.get('callbackUrl')) || '/user/home';
+
+  const {
+    register,
+    handleSubmit,
+    trigger,
+    watch,
+    resetField,
+    setFocus,
+    formState: { errors },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+    mode: 'onChange',
+  });
+
+  const emailValue = (watch('email') || '').trim();
+
+  useEffect(() => {
+    setFocus(step === 'email' ? 'email' : 'password');
+  }, [setFocus, step]);
+
+  const handleContinue = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const isEmailValid = await trigger('email');
+    if (isEmailValid) {
+      setStep('password');
+    }
+  };
+
+  const handleGoBack = () => {
+    resetField('password');
+    setStep('email');
+  };
+
+  const onSubmit = async (data: LoginFormData) => {
+    setLoading(true);
+
+    try {
+      const res = await signIn('credentials', {
+        redirect: false,
+        email: data.email,
+        password: data.password,
+        callbackUrl,
+      });
+
+      if (res?.error) {
+        let errorMessage = 'Login failed. Please try again.';
+        let errorTitle = 'Login Failed';
+
+        try {
+          // Try to parse the enhanced error data
+          const errorData = JSON.parse(res.error);
+
+          if (errorData && typeof errorData === 'object') {
+            // Use the status and data from the API response
+            const { status, data, message } = errorData;
+
+            if (status === 400 && data) {
+              // Handle specific API error messages
+              if (data.message) {
+                errorMessage = data.message;
+              } else if (message) {
+                errorMessage = message;
+              }
+
+              // Provide user-friendly titles based on status
+              if (
+                data.message?.includes('username or password does not exist')
+              ) {
+                errorTitle = 'Invalid Credentials';
+              } else if (
+                data.message?.includes('incorrect username or password')
+              ) {
+                errorTitle = 'Invalid Credentials';
+              }
+            } else if (status === 401) {
+              errorTitle = 'Unauthorized';
+              errorMessage = 'Please check your credentials and try again.';
+            } else if (status === 403) {
+              errorTitle = 'Access Denied';
+              errorMessage =
+                'You do not have permission to access this service.';
+            } else if (status >= 500) {
+              errorTitle = 'Server Error';
+              errorMessage =
+                'Service temporarily unavailable. Please try again later.';
+            } else if (message) {
+              errorMessage = message;
+            }
+          }
+        } catch {
+          // If parsing fails, fall back to the original error handling
+
+          if (res.error === 'incorrect username or password') {
+            errorMessage = 'Incorrect username or password';
+            errorTitle = 'Invalid Credentials';
+          } else if (res.error.includes('incorrect username or password')) {
+            errorMessage = 'Incorrect username or password';
+            errorTitle = 'Invalid Credentials';
+          } else if (res.error.includes('This endpoint does not exist')) {
+            errorMessage =
+              'Service temporarily unavailable. Please try again later.';
+            errorTitle = 'Service Unavailable';
+          } else if (res.error.includes('Login failed')) {
+            const apiMessageMatch = res.error.match(/Login failed:?\s*(.+)/i);
+            if (apiMessageMatch && apiMessageMatch[1]) {
+              errorMessage = apiMessageMatch[1].trim();
+            }
+          } else if (res.error && res.error !== 'CredentialsSignin') {
+            errorMessage = res.error;
+          }
+        }
+
+        toast.error(errorTitle, errorMessage);
+      } else {
+        toast.success('Welcome back!', 'You have successfully signed in.');
+
+        // Signal other tabs/apps that login occurred
+        try {
+          localStorage.setItem(CROSS_TAB_LOGIN_KEY, String(Date.now()));
+        } catch {
+          // Ignore storage errors
+        }
+
+        redirectWithReload(normalizeCallbackUrl(res?.url) || callbackUrl);
+      }
+    } catch (error) {
+      console.error('Unexpected login error:', error);
+      toast.error(
+        'Login Failed',
+        'An unexpected error occurred. Please try again.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <AuthLayout
+      pageTitle="Login"
+      heading="Access open air quality data and insights across Africa"
+      subtitle="AirQo provides openly available air quality data to support research, policy, and public awareness."
+      rightText={
+        <>
+          What you&apos;ve built here is so much better for air pollution
+          monitoring than anything else on the market!
+        </>
+      }
+    >
+      {step === 'email' ? (
+        <form onSubmit={handleContinue} className="w-full space-y-4">
+          <Input
+            label="Email Address"
+            type="email"
+            placeholder="user@example.com"
+            error={errors.email?.message}
+            {...register('email')}
+          />
+
+          <Button type="submit" fullWidth disabled={loading}>
+            Continue
+          </Button>
+
+          <SocialAuthSection
+            mode="login"
+            disabled={loading}
+            callbackUrl={callbackUrl}
+          />
+
+          <div className="w-full pt-0 text-center">
+            <p className="text-sm">
+              Don&apos;t have an account?{' '}
+              <Link
+                href="/user/creation/individual/register"
+                className="text-blue-600"
+              >
+                Register
+              </Link>
+            </p>
+          </div>
+        </form>
+      ) : (
+        <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-4">
+          <SelectedEmailCard email={emailValue} onChangeEmail={handleGoBack} />
+
+          <Input
+            label="Password"
+            type="password"
+            placeholder="password"
+            error={errors.password?.message}
+            containerClassName="mb-0"
+            showPasswordToggle
+            {...register('password')}
+          />
+
+          <div className="flex items-center justify-end gap-3">
+            <Link
+              href="/user/forgotPwd"
+              className="text-sm font-medium text-blue-600 hover:text-blue-800"
+            >
+              Forgot Password?
+            </Link>
+          </div>
+
+          <Button type="submit" fullWidth loading={loading} disabled={loading}>
+            {loading ? 'Signing in...' : 'Login'}
+          </Button>
+
+          <div className="w-full pt-0 text-center">
+            <p className="text-sm">
+              Don&apos;t have an account?{' '}
+              <Link
+                href="/user/creation/individual/register"
+                className="text-blue-600"
+              >
+                Register
+              </Link>
+            </p>
+          </div>
+        </form>
+      )}
+    </AuthLayout>
+  );
+}

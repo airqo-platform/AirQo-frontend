@@ -1,0 +1,86 @@
+name: deploy-android-to-firebase-app-distribution
+
+on:
+  workflow_dispatch:
+    inputs:
+      android:
+        description: "Deploy android to firebase app distribution"
+        required: false
+        type: boolean
+
+jobs:
+  android:
+    name: android build
+    runs-on: ubuntu-latest
+    if: inputs.android == true
+    defaults:
+      run:
+        working-directory: src/mobile
+    steps:
+      - name: Checkout
+        uses: "actions/checkout@v4"
+
+      - name: set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2.10.0
+        with:
+          channel: "stable"
+
+      - name: Google login
+        uses: google-github-actions/auth@v1.0.0
+        with:
+          credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
+
+      - name: Setup Cloud SDK(gcloud)
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: Add google-services.json for Firebase
+        run: gcloud secrets versions access latest --secret="sta-key-mobile-android-firebase-json" > android/app/google-services.json
+
+      - name: Add  keystore and key.properties files
+        run: |
+          cd android/
+          gcloud secrets versions access latest --secret="sta-key-mobile-upload-keystore-encrypted" | base64 -di > app/upload-keystore.jks
+          gcloud secrets versions access latest --secret="sta-key-mobile-airqo-dev-keystore" | base64 -di > app/airqo-dev-keystore.jks
+          gcloud secrets versions access latest --secret="sta-key-mobile-prod-properties" > prod-key.properties
+          gcloud secrets versions access latest --secret="sta-key-mobile-properties" > key.properties
+
+      - name: Add firebase options files
+        run: |
+          cd lib/
+          gcloud secrets versions access latest --secret="sta-key-mobile-firebase-options-dev" > firebase_options_dev.dart
+          gcloud secrets versions access latest --secret="sta-key-mobile-firebase_options" > firebase_options.dart
+
+      - name: Add .env files
+        run: |
+          gcloud secrets versions access latest --secret="sta-env-mobile-app-CI" > .env.prod
+          gcloud secrets versions access latest --secret="sta-env-mobile-app" > .env.dev
+
+      - name: Add firebase app distribution service account
+        run: |
+          cd android/fastlane
+          gcloud secrets versions access latest --secret="sta-key-mobile-firebase-app-distribution" > firebase-app-distribution.json
+
+      - name: Setup Fastlane
+        uses: ruby/setup-ruby@v1.123.0
+        with:
+          ruby-version: "2.6"
+          working-directory: src/mobile/android
+
+      - name: Install bundle
+        run: |
+          cd android/
+          bundle config path vendor/bundle
+          bundle install --jobs 4 --retry 3
+
+      - name: Deploy to app distribution
+        run: |
+          cd android/
+          bundle exec fastlane android app_distribution
+        env:
+          MOBILE_ANDROID_ID_FIREBASE: ${{secrets.MOBILE_ANDROID_ID_FIREBASE}}

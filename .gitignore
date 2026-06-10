@@ -1,0 +1,17 @@
+.vscode
+.DS_Store
+src/mobile/lib/config/env.dart
+src/mobile/android/app.properties
+src/mobile/lib/config/env.dart
+src/mobile/ios/Runner/env.plist
+src/mobile/android/key.properties
+src/mobile/android/app/google-services.json
+.DS_Store/
+.DS_Store
+.env
+.cache_ggshield
+secret
+.env.yaml
+.stage-env.yaml
+.prod-env.yaml
+.idea/*

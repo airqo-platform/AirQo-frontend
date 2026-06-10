@@ -1,0 +1,357 @@
+import { useMemo, useCallback } from 'react';
+import { useUserRolesById } from './useAuth';
+import { useUser } from './useUser';
+
+export interface UserRole {
+  group_id?: string;
+  group_name?: string;
+  network_id?: string;
+  network_name?: string;
+  role_id: string;
+  role_name: string;
+  permissions: string[];
+}
+
+export interface UserRolesData {
+  user_id: string;
+  groups: UserRole[];
+  networks: UserRole[];
+}
+
+const isNonEmptyString = (value: unknown): value is string => {
+  return typeof value === 'string' && value.trim().length > 0;
+};
+
+/**
+ * Hook for managing Role-Based Access Control (RBAC)
+ * Provides utilities to check user permissions and roles
+ */
+export const useRBAC = () => {
+  const { user, isLoading: userLoading } = useUser();
+  const { activeGroup } = useUser();
+  const {
+    data: rolesData,
+    error,
+    isLoading: rolesLoading,
+  } = useUserRolesById(user?.id || null);
+
+  const userRoles = useMemo((): UserRolesData | null => {
+    if (!rolesData?.user_roles) return null;
+
+    const groups = Array.isArray(rolesData.user_roles.groups)
+      ? rolesData.user_roles.groups
+      : [];
+    const networks = Array.isArray(rolesData.user_roles.networks)
+      ? rolesData.user_roles.networks
+      : [];
+
+    return {
+      user_id: rolesData.user_roles.user_id,
+      groups: groups.map(group => ({
+        ...group,
+        role_name: isNonEmptyString(group?.role_name) ? group.role_name : '',
+        permissions: Array.isArray(group?.permissions)
+          ? group.permissions.filter(isNonEmptyString)
+          : [],
+      })),
+      networks: networks.map(network => ({
+        ...network,
+        role_name: isNonEmptyString(network?.role_name)
+          ? network.role_name
+          : '',
+        permissions: Array.isArray(network?.permissions)
+          ? network.permissions.filter(isNonEmptyString)
+          : [],
+      })),
+    };
+  }, [rolesData]);
+
+  const allPermissions = useMemo((): string[] => {
+    if (!userRoles) return [];
+
+    const permissions = new Set<string>();
+
+    // Collect permissions from groups
+    userRoles.groups.forEach(group => {
+      if (!Array.isArray(group.permissions)) return;
+      group.permissions.forEach(permission => {
+        if (isNonEmptyString(permission)) {
+          permissions.add(permission);
+        }
+      });
+    });
+
+    // Collect permissions from networks
+    userRoles.networks.forEach(network => {
+      if (!Array.isArray(network.permissions)) return;
+      network.permissions.forEach(permission => {
+        if (isNonEmptyString(permission)) {
+          permissions.add(permission);
+        }
+      });
+    });
+
+    return Array.from(permissions);
+  }, [userRoles]);
+
+  const allRoles = useMemo((): string[] => {
+    if (!userRoles) return [];
+
+    const roles = new Set<string>();
+
+    // Collect roles from groups
+    userRoles.groups.forEach(group => {
+      if (isNonEmptyString(group.role_name)) {
+        roles.add(group.role_name);
+      }
+    });
+
+    // Collect roles from networks
+    userRoles.networks.forEach(network => {
+      if (isNonEmptyString(network.role_name)) {
+        roles.add(network.role_name);
+      }
+    });
+
+    return Array.from(roles);
+  }, [userRoles]);
+
+  /**
+   * Check if user has a specific permission
+   */
+  const hasPermission = useCallback(
+    (permission: string): boolean => {
+      return allPermissions.includes(permission);
+    },
+    [allPermissions]
+  );
+
+  /**
+   * Check if user has any of the specified permissions
+   */
+  const hasAnyPermission = (permissions: string[]): boolean => {
+    return permissions.some(permission => hasPermission(permission));
+  };
+
+  /**
+   * Check if user has all of the specified permissions
+   */
+  const hasAllPermissions = (permissions: string[]): boolean => {
+    return permissions.every(permission => hasPermission(permission));
+  };
+
+  /**
+   * Check if user has a specific role
+   */
+  const hasRole = (role: string): boolean => {
+    return allRoles.includes(role);
+  };
+
+  /**
+   * Check if user has any of the specified roles
+   */
+  const hasAnyRole = (roles: string[]): boolean => {
+    return roles.some(role => hasRole(role));
+  };
+
+  /**
+   * Check if user has a specific permission in a specific group
+   */
+  const hasPermissionInGroup = (
+    permission: string,
+    groupName: string
+  ): boolean => {
+    if (!userRoles) return false;
+
+    const group = userRoles.groups.find(g => g.group_name === groupName);
+    return group ? group.permissions.includes(permission) : false;
+  };
+
+  /**
+   * Check if user has a specific permission in a specific network
+   */
+  const hasPermissionInNetwork = (
+    permission: string,
+    networkName: string
+  ): boolean => {
+    if (!userRoles) return false;
+
+    const network = userRoles.networks.find(
+      n => n.network_name === networkName
+    );
+    return network ? network.permissions.includes(permission) : false;
+  };
+
+  /**
+   * Check if user has a specific role in a specific group
+   */
+  const hasRoleInGroup = (role: string, groupName: string): boolean => {
+    if (!userRoles) return false;
+
+    const group = userRoles.groups.find(g => g.group_name === groupName);
+    return group ? group.role_name === role : false;
+  };
+
+  /**
+   * Check if user has a specific role in a specific network
+   */
+  const hasRoleInNetwork = (role: string, networkName: string): boolean => {
+    if (!userRoles) return false;
+
+    const network = userRoles.networks.find(
+      n => n.network_name === networkName
+    );
+    return network ? network.role_name === role : false;
+  };
+
+  /**
+   * Get all groups the user belongs to
+   */
+  const getUserGroups = (): UserRole[] => {
+    return userRoles?.groups || [];
+  };
+
+  /**
+   * Get all networks the user belongs to
+   */
+  const getUserNetworks = (): UserRole[] => {
+    return userRoles?.networks || [];
+  };
+
+  /**
+   * Check if user is admin (has any admin role)
+   */
+  const isAdmin = (): boolean => {
+    const adminRoles = ['ADMIN'];
+    return allRoles.some(role => adminRoles.includes(role.toUpperCase()));
+  };
+
+  /**
+   * Check if user is super admin
+   */
+  const isSuperAdmin = (): boolean => {
+    return allRoles.some(role => role.toUpperCase() === 'SUPER_ADMIN');
+  };
+
+  /**
+   * Check if user has a specific permission in the active group
+   */
+  const hasPermissionInActiveGroup = (permission: string): boolean => {
+    if (!userRoles || !activeGroup) return false;
+
+    const group = userRoles.groups.find(
+      g => g.group_name === activeGroup.title
+    );
+    return group ? group.permissions.includes(permission) : false;
+  };
+
+  /**
+   * Check if user has any of the specified permissions in the active group
+   */
+  const hasAnyPermissionInActiveGroup = (permissions: string[]): boolean => {
+    return permissions.some(permission =>
+      hasPermissionInActiveGroup(permission)
+    );
+  };
+
+  /**
+   * Check if user has all of the specified permissions in the active group
+   */
+  const hasAllPermissionsInActiveGroup = (permissions: string[]): boolean => {
+    return permissions.every(permission =>
+      hasPermissionInActiveGroup(permission)
+    );
+  };
+
+  /**
+   * Check if user has a specific role in the active group
+   */
+  const hasRoleInActiveGroup = (role: string): boolean => {
+    if (!userRoles || !activeGroup) return false;
+
+    const group = userRoles.groups.find(
+      g => g.group_name === activeGroup.title
+    );
+    return group ? group.role_name === role : false;
+  };
+
+  /**
+   * Check if user can access admin panel (AIRQO_ADMIN or AIRQO_SUPER_ADMIN role + @airqo.net email + SYSTEM_ADMIN or SUPER_ADMIN permission)
+   */
+  const canAccessAdminPanel = (): boolean => {
+    const hasAirQoAdmin = allRoles.some(
+      role => role.toUpperCase() === 'AIRQO_ADMIN'
+    );
+    const hasAirQoSuperAdmin = allRoles.some(
+      role => role.toUpperCase() === 'AIRQO_SUPER_ADMIN'
+    );
+    const hasSystemAdmin = allPermissions.some(
+      perm => perm.toUpperCase() === 'SYSTEM_ADMIN'
+    );
+    const hasSuperAdmin = allPermissions.some(
+      perm => perm.toUpperCase() === 'SUPER_ADMIN'
+    );
+    const hasValidEmail = !!user?.email?.toLowerCase().endsWith('@airqo.net');
+
+    return (
+      (hasAirQoAdmin || hasAirQoSuperAdmin) &&
+      hasValidEmail &&
+      (hasSystemAdmin || hasSuperAdmin)
+    );
+  };
+
+  /**
+   * Check if user is AIRQO_SUPER_ADMIN with @airqo.net email
+   */
+  const isAirQoSuperAdminWithEmail = useCallback((): boolean => {
+    const hasRole = allRoles.some(
+      role => role.toUpperCase() === 'AIRQO_SUPER_ADMIN'
+    );
+    const hasValidEmail = !!user?.email?.toLowerCase().endsWith('@airqo.net');
+    return hasRole && hasValidEmail;
+  }, [allRoles, user?.email]);
+
+  const isLoading = userLoading || rolesLoading;
+
+  return {
+    // Data
+    userRoles,
+    allPermissions,
+    allRoles,
+
+    // Loading state
+    isLoading,
+    error,
+
+    // Permission checks
+    hasPermission,
+    hasAnyPermission,
+    hasAllPermissions,
+
+    // Role checks
+    hasRole,
+    hasAnyRole,
+
+    // Group-specific checks
+    hasPermissionInGroup,
+    hasRoleInGroup,
+
+    // Network-specific checks
+    hasPermissionInNetwork,
+    hasRoleInNetwork,
+
+    // Utility functions
+    getUserGroups,
+    getUserNetworks,
+    isAdmin,
+    isSuperAdmin,
+    canAccessAdminPanel,
+    isAirQoSuperAdminWithEmail,
+
+    // Active group permission checks
+    hasPermissionInActiveGroup,
+    hasAnyPermissionInActiveGroup,
+    hasAllPermissionsInActiveGroup,
+    hasRoleInActiveGroup,
+  };
+};

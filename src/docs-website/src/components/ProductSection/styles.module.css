@@ -1,0 +1,131 @@
+/* Main Section Wrapper */
+.section {
+  padding: 0 0 4rem;
+  display: flex;
+  justify-content: center;
+}
+
+/* Container to center content */
+.container {
+  max-width: 1200px;
+  width: 100%;
+  padding: 0 1rem;
+}
+
+/* Grid Layout for Cards - Two Column Layout */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 996px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Individual Card Styling - Horizontal Layout */
+.card {
+  border-radius: 1.25rem;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  transition: all 0.2s ease;
+  text-decoration: none !important;
+  color: inherit;
+  background-color: var(--ifm-background-surface-color);
+  border: 1px solid var(--ifm-color-emphasis-300);
+  position: relative;
+}
+
+.card:hover {
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Card Content Wrapper */
+.cardContent {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  flex: 1;
+}
+
+/* Icon Styling - Left Side */
+/* Icon Styling - Left Side */
+.cardIcon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background-color: var(--ifm-color-emphasis-200);
+  border-radius: 50%;
+  color: var(--ifm-color-emphasis-700);
+  transition: all 0.2s ease;
+}
+
+.cardIcon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.card:hover .cardIcon {
+  background-color: var(--ifm-color-primary-lightest);
+  color: var(--ifm-color-primary);
+}
+
+/* Text Content Wrapper */
+.cardText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+/* Card Title Typography */
+.cardTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.4;
+  color: var(--ifm-heading-color);
+}
+
+/* Card Description Typography */
+.cardDescription {
+  font-size: 0.875rem;
+  margin: 0;
+  line-height: 1.5;
+  color: var(--ifm-color-emphasis-700);
+}
+
+/* Arrow Icon - Right Side */
+.cardArrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: transparent;
+  color: var(--ifm-color-emphasis-400);
+  border: 1px solid var(--ifm-color-emphasis-200);
+  transition: all 0.2s ease;
+}
+
+.cardArrow svg {
+  width: 16px;
+  height: 16px;
+}
+
+.card:hover .cardArrow {
+  border-color: var(--ifm-color-primary);
+  background-color: var(--ifm-color-primary);
+  color: #ffffff;
+}

@@ -1,0 +1,47 @@
+part of 'auth_bloc.dart';
+
+sealed class AuthState extends Equatable {
+  const AuthState();
+
+  @override
+  List<Object> get props => [];
+}
+
+final class AuthInitial extends AuthState {}
+
+class AuthLoading extends AuthState {}
+
+class AuthLoaded extends AuthState {
+  final AuthPurpose authPurpose;
+
+  const AuthLoaded(this.authPurpose);
+}
+
+class AuthLoadingError extends AuthState {
+  final String message;
+
+  const AuthLoadingError(this.message);
+}
+
+enum AuthPurpose { login, register }
+
+final class GuestUser extends AuthState {}
+
+/// Emitted when a previously authenticated session has expired.
+/// Distinct from [GuestUser] (voluntary guest) so the UI can show
+/// a "session expired – please log in" prompt.
+final class SessionExpiredState extends AuthState {}
+
+final class AuthVerified extends AuthState {}
+
+/// Emitted when the user dismisses the OAuth in-app browser without completing sign-in.
+final class OAuthCancelled extends AuthState {}
+
+final class EmailUnverifiedError extends AuthLoadingError {
+  final String email;
+
+  const EmailUnverifiedError(super.message, this.email);
+  
+  @override
+  List<Object> get props => [message, email];
+}

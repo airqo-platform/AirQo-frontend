@@ -1,0 +1,22 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+class ApiUtils {
+  const ApiUtils._();
+
+  static const String mobileUserAgent = 'AirQo-Mobile/3.0 (Flutter)';
+
+  static String baseUrl =
+      dotenv.env['AIRQO_API_URL'] ?? "http://localhost:3001";
+
+  static String map = "/api/v2/devices/readings/recent";
+
+  static String sitesSearch = "/api/v2/devices/sites/summary";
+
+  static String fetchLessons = "/api/v2/devices/kya/lessons";
+
+  static String fetchDailyForecasts = "/api/v2/predict/daily-forecasting";
+
+  static String fetchHourlyForecasts = "/api/v2/predict/hourly-forecasting";
+
+  static String fetchCountries = "/api/v2/devices/grids/countries";
+}

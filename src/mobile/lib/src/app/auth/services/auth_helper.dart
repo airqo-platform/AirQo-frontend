@@ -1,0 +1,230 @@
+import 'dart:async';
+import 'dart:convert';
+import 'package:airqo/src/app/auth/services/auth_token_storage.dart';
+import 'package:airqo/src/app/shared/repository/secure_storage_repository.dart';
+import 'package:airqo/src/meta/utils/api_utils.dart';
+import 'package:http/http.dart' as http;
+import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:loggy/loggy.dart';
+
+/// AuthHelper class with dedicated logger
+class AuthHelper {
+  // Create a static logger using your app's logging setup
+  static final _logger = Loggy('AuthHelper');
+
+  // Serialises concurrent refresh calls: if a refresh is already in-flight,
+  // new callers await the same Future instead of issuing duplicate requests.
+  static Future<String?>? _refreshFuture;
+
+  /// Get the current user ID from secure storage (preferred method)
+  static Future<String?> getCurrentUserId(
+      {bool suppressGuestWarning = false}) async {
+    try {
+      // First, try to get userId directly from secure storage
+      final userId = await SecureStorageRepository.instance
+          .getSecureData(SecureStorageKeys.userId);
+
+      if (userId != null && userId.isNotEmpty) {
+        _logger.info('User ID retrieved from secure storage');
+        return userId;
+      }
+
+      // If not found in secure storage, try to extract from token
+      _logger
+          .info('User ID not found in secure storage, extracting from token');
+      return await getUserIdFromToken(
+          suppressGuestWarning: suppressGuestWarning);
+    } catch (e) {
+      _logger.error('Unexpected error getting user ID: $e');
+      return null;
+    }
+  }
+
+  /// Get user ID by decoding the JWT token (fallback method)
+  static Future<String?> getUserIdFromToken(
+      {bool suppressGuestWarning = false}) async {
+    try {
+      final token = await SecureStorageRepository.instance
+          .getSecureData(SecureStorageKeys.authToken);
+
+      if (token == null) {
+        if (!suppressGuestWarning) {
+          _logger.info('No authentication token found - user is in guest mode');
+        }
+        return null;
+      }
+
+      if (token.isEmpty) {
+        _logger.warning('Token is empty string');
+        return null;
+      }
+
+      _logger.info('Token retrieved successfully');
+
+      try {
+        // Try to decode the token
+        final Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+        _logger.info('Token decoded successfully');
+
+        final possibleIdFields = [
+          'sub',
+          'id',
+          'userId',
+          'user_id',
+          '_id',
+          'uid'
+        ];
+        String? userId;
+
+        for (final field in possibleIdFields) {
+          if (decodedToken.containsKey(field) && decodedToken[field] != null) {
+            userId = decodedToken[field].toString();
+            _logger.info('Found user ID in token');
+
+            try {
+              await SecureStorageRepository.instance
+                  .saveSecureData(SecureStorageKeys.userId, userId);
+              _logger.info('Saved user ID to secure storage');
+            } catch (e) {
+              _logger.warning('Failed to save user ID to secure storage');
+            }
+
+            return userId;
+          }
+        }
+
+        // If we got here, we didn't find a user ID in the expected fields
+        _logger
+            .warning('Token decoded but no user ID found in expected fields');
+
+        return null;
+      } catch (decodeError) {
+        _logger.error('Error decoding token');
+        return null;
+      }
+    } catch (e) {
+      _logger.error('Unexpected error getting user ID from token');
+      return null;
+    }
+  }
+
+  /// Debug the token information directly
+  static Future<void> debugToken() async {
+    _logger.info('Debugging auth token');
+
+    try {
+      final token = await SecureStorageRepository.instance
+          .getSecureData(SecureStorageKeys.authToken);
+
+      if (token == null) {
+        _logger.warning('DEBUG: Token is null');
+        return;
+      }
+
+      if (token.isEmpty) {
+        _logger.warning('DEBUG: Token is empty string');
+        return;
+      }
+
+      _logger.info('DEBUG: Token exists with length ${token.length}');
+      _logger.info('DEBUG: Token format appears valid');
+
+      // Check if it's a valid JWT format (3 parts separated by dots)
+      final parts = token.split('.');
+      if (parts.length == 3) {
+        _logger
+            .info('DEBUG: Token appears to be in valid JWT format (3 parts)');
+      } else {
+        _logger.warning(
+            'DEBUG: Token is not in standard JWT format (expected 3 parts, found ${parts.length})');
+      }
+
+      try {
+        JwtDecoder.decode(token);
+        _logger.info('DEBUG: JWT decoded successfully');
+      } catch (e) {
+        _logger.error('DEBUG: Failed to decode as JWT');
+      }
+    } catch (e) {
+      _logger.error('DEBUG: Error accessing token');
+    }
+  }
+
+  /// Silently refreshes the token if it has expired.
+  ///
+  /// Returns the valid token on success (either the existing non-expired token
+  /// or a freshly fetched one). Returns `null` if no token is stored or if
+  /// the refresh request itself fails (e.g. token older than 7 days, or no
+  /// network). Callers should fall back to the stored token and let the normal
+  /// 401 path handle the failure.
+  static Future<String?> refreshTokenIfNeeded() {
+    // If a refresh is already in-flight, join it — don't issue a second request.
+    _refreshFuture ??= _doRefresh().whenComplete(() => _refreshFuture = null);
+    return _refreshFuture!;
+  }
+
+  static Future<String?> _doRefresh() async {
+    try {
+      final token = await SecureStorageRepository.instance
+          .getSecureData(SecureStorageKeys.authToken);
+
+      if (token == null || token.isEmpty) return null;
+
+      // Token still valid — return it immediately, no network call needed.
+      if (!JwtDecoder.isExpired(token)) return token;
+
+      _logger.info('Token expired — attempting silent refresh');
+
+      final url = '${ApiUtils.baseUrl}/api/v2/users/token/refresh';
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'JWT $token',
+          'Content-Type': 'application/json',
+          'Accept': '*/*',
+          'User-Agent': ApiUtils.mobileUserAgent,
+        },
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final body = json.decode(response.body) as Map<String, dynamic>;
+        if (body['success'] == true && body['token'] != null) {
+          final newToken = body['token'] as String;
+          await AuthTokenStorage.saveAuthToken(newToken);
+          _logger.info('Silent token refresh succeeded');
+          return AuthTokenStorage.sanitizeToken(newToken);
+        }
+      }
+
+      _logger.warning('Token refresh failed (${response.statusCode})');
+      return null;
+    } on TimeoutException {
+      _logger.warning('Token refresh timed out');
+      return null;
+    } catch (e) {
+      _logger.error('Error during silent token refresh: $e');
+      return null;
+    }
+  }
+
+  /// Check if the current token is expired
+  static Future<bool> isTokenExpired() async {
+    try {
+      final token = await SecureStorageRepository.instance
+          .getSecureData(SecureStorageKeys.authToken);
+
+      if (token == null || token.isEmpty) {
+        _logger.warning('Token is null or empty, considered expired');
+        return true; // No token = effectively expired
+      }
+
+      final isExpired = JwtDecoder.isExpired(token);
+      _logger
+          .info('Token expiration check: ${isExpired ? "Expired" : "Valid"}');
+      return isExpired;
+    } catch (e) {
+      _logger.error('Error checking token expiration');
+      return true; // Assume expired on error
+    }
+  }
+}

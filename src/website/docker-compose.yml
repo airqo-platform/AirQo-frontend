@@ -1,0 +1,47 @@
+services:
+  # Development: bind-mounts source, runs `npm run dev` with hot-reload
+  web:
+    image: node:20-alpine
+    container_name: airqo-website-dev
+    working_dir: /app
+    volumes:
+      - ./:/app:cached
+      - /app/node_modules
+    ports:
+      - '3000:3000'
+    env_file:
+      - .env
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    command: sh -c "npm ci && npm run dev -- -H 0.0.0.0 -p 3000"
+
+  # Production: builds and runs standalone Next.js server
+  web-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Server-side variables
+        API_URL: ${API_URL}
+        OPENCAGE_API_KEY: ${OPENCAGE_API_KEY}
+        API_TOKEN: ${API_TOKEN}
+        SLACK_WEBHOOK_URL: ${SLACK_WEBHOOK_URL}
+        SLACK_CHANNEL: ${SLACK_CHANNEL}
+        # Client-side variables
+        NEXT_PUBLIC_GA_MEASUREMENT_ID: ${NEXT_PUBLIC_GA_MEASUREMENT_ID}
+    image: airqo-website:prod
+    container_name: airqo-website-prod
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      # Runtime environment variables for server-side access
+      - API_URL=${API_URL}
+      - OPENCAGE_API_KEY=${OPENCAGE_API_KEY}
+      - API_TOKEN=${API_TOKEN}
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}
+      - SLACK_CHANNEL=${SLACK_CHANNEL}
+      - NEXT_PUBLIC_GA_MEASUREMENT_ID=${NEXT_PUBLIC_GA_MEASUREMENT_ID}
+      - PORT=8080
+    ports:
+      - '8080:8080'

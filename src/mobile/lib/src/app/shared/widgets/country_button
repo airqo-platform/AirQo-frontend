@@ -1,0 +1,66 @@
+import 'package:flutter/material.dart';
+import 'package:airqo/src/meta/utils/colors.dart';
+
+class CountryButton extends StatelessWidget {
+  final String flag;
+  final String name;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final bool isUserCountry;
+
+  const CountryButton({
+    super.key,
+    required this.flag,
+    required this.name,
+    required this.isSelected,
+    required this.onTap,
+    this.isUserCountry = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primaryColor
+              : isUserCountry && !isSelected
+                  ? Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.darkHighlight.withOpacity(0.8)
+                      : AppColors.dividerColorlight.withOpacity(0.8)
+                  : Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.darkHighlight
+                      : AppColors.dividerColorlight,
+          borderRadius: BorderRadius.circular(30),
+          border: isUserCountry && !isSelected
+              ? Border.all(
+                  color: AppColors.primaryColor.withOpacity(0.3),
+                  width: 1,
+                )
+              : null,
+        ),
+        child: Row(
+          children: [
+            Text(flag, style: TextStyle(fontSize: 16)),
+            SizedBox(width: 6),
+            Text(
+              name,
+              style: TextStyle(
+                color: isSelected
+                    ? Colors.white
+                    : Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white
+                        : Colors.black87,
+                fontWeight: isSelected || isUserCountry
+                    ? FontWeight.bold
+                    : FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

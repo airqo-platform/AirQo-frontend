@@ -1,0 +1,55 @@
+name: remove-deploy-previews
+
+on:
+  pull_request:
+    branches:
+      - staging
+    types:
+      - closed
+
+env:
+  RG: airqo-main-rg
+
+jobs:
+
+  branch-name:
+    name: Format branch name string
+    runs-on: ubuntu-latest
+    outputs:
+      sanitized: ${{ steps.sanitize.outputs.sanitized }}
+    steps:
+      - id: string
+        uses: ASzc/change-string-case-action@v5
+        with:
+          string: ${{ github.head_ref || github.ref_name }}
+
+      - name: sanitize branch name
+        id: sanitize
+        env:
+          RAW: ${{ steps.string.outputs.lowercase }}
+        run: |
+          CLEAN=$(printf '%s' "${RAW:0:12}" | sed 's/-*$//')
+          echo "sanitized=$CLEAN" >> $GITHUB_OUTPUT
+
+  remove-previews:
+    name: remove all previews for branch
+    needs: [branch-name]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Delete all preview Container Apps for this branch
+        run: |
+          BRANCH="${{ needs.branch-name.outputs.sanitized }}"
+
+          for SERVICE in website beacon calibrate-app analytics-p vertex docs; do
+            APP="${BRANCH}-${SERVICE}-preview"
+            echo "Attempting to delete $APP..."
+            az containerapp delete \
+              --name $APP \
+              --resource-group ${{ env.RG }} \
+              --yes 2>/dev/null || echo "$APP not found, skipping"
+          done

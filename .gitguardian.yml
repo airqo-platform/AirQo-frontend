@@ -1,0 +1,6 @@
+# .gitguardian.yml
+# Exclude files and paths by globbing
+paths-ignore:
+  - '**/README.md'
+  - 'doc/*'
+  - 'LICENSE'

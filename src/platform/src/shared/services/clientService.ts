@@ -1,0 +1,267 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import {
+  ApiClient,
+  createAuthenticatedClient,
+  createServerClient,
+  createOpenClient,
+} from './apiClient';
+import { syncClientSessionToken } from './sessionAuthToken';
+import type {
+  GetClientsResponse,
+  CreateClientRequest,
+  CreateClientResponse,
+  UpdateClientRequest,
+  UpdateClientResponse,
+  ActivateClientRequest,
+  ActivateClientResponse,
+  RequestClientActivationResponse,
+  GenerateTokenRequest,
+  GenerateTokenResponse,
+  DeleteClientResponse,
+  RefreshClientSecretResponse,
+  GetClientByIdResponse,
+  UpdateTokenSecurityRequest,
+  UpdateTokenSecurityResponse,
+  ApiErrorResponse,
+} from '../types/api';
+
+export class ClientService {
+  private authenticatedClient: ApiClient;
+  private serverClient: ApiClient;
+  private openClient: ApiClient;
+
+  constructor() {
+    this.authenticatedClient = createAuthenticatedClient();
+    this.serverClient = createServerClient();
+    this.openClient = createOpenClient();
+  }
+
+  private async ensureAuthenticated() {
+    await syncClientSessionToken(this.authenticatedClient);
+  }
+
+  // Get all clients for the authenticated user
+  async getClients(): Promise<GetClientsResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.get<
+      GetClientsResponse | ApiErrorResponse
+    >('/users/clients');
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to get clients');
+    }
+
+    return data as GetClientsResponse;
+  }
+
+  // Get clients for a specific user
+  async getClientsByUserId(userId: string): Promise<GetClientsResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.get<
+      GetClientsResponse | ApiErrorResponse
+    >(`/users/clients?user_id=${userId}`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to get clients for user');
+    }
+
+    return data as GetClientsResponse;
+  }
+
+  // Create a new client
+  async createClient(
+    clientData: CreateClientRequest
+  ): Promise<CreateClientResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.post<
+      CreateClientResponse | ApiErrorResponse
+    >('/users/clients', clientData);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to create client');
+    }
+
+    return data as CreateClientResponse;
+  }
+
+  // Update an existing client
+  async updateClient(
+    clientId: string,
+    clientData: UpdateClientRequest
+  ): Promise<UpdateClientResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.put<
+      UpdateClientResponse | ApiErrorResponse
+    >(`/users/clients/${clientId}`, clientData);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to update client');
+    }
+
+    return data as UpdateClientResponse;
+  }
+
+  async updateTokenSecurity(
+    token: string,
+    payload: UpdateTokenSecurityRequest
+  ): Promise<UpdateTokenSecurityResponse> {
+    await this.ensureAuthenticated();
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, 30000);
+    const authorization = this.authenticatedClient.getAuthToken();
+
+    try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      if (authorization) {
+        headers.Authorization = authorization;
+      }
+
+      const response = await fetch('/api/users/tokens/security', {
+        method: 'PATCH',
+        cache: 'no-store',
+        credentials: 'same-origin',
+        headers,
+        body: JSON.stringify({
+          token,
+          ...payload,
+        }),
+        signal: controller.signal,
+      });
+
+      const data = (await response.json()) as
+        | UpdateTokenSecurityResponse
+        | ApiErrorResponse;
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to update token security');
+      }
+
+      if ('success' in data && !data.success) {
+        throw new Error(data.message || 'Failed to update token security');
+      }
+
+      return data as UpdateTokenSecurityResponse;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  async reinstateToken(token: string): Promise<UpdateTokenSecurityResponse> {
+    return this.updateTokenSecurity(token, {
+      request_pattern: {
+        auto_suspended: false,
+      },
+    });
+  }
+
+  // Activate or deactivate a client
+  async activateClient(
+    clientId: string,
+    activationData: ActivateClientRequest
+  ): Promise<ActivateClientResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.post<
+      ActivateClientResponse | ApiErrorResponse
+    >(`/users/clients/activate/${clientId}`, activationData);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to activate client');
+    }
+
+    return data as ActivateClientResponse;
+  }
+
+  // Request client activation
+  async requestClientActivation(
+    clientId: string
+  ): Promise<RequestClientActivationResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.get<
+      RequestClientActivationResponse | ApiErrorResponse
+    >(`/users/clients/activate-request/${clientId}`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to request client activation');
+    }
+
+    return data as RequestClientActivationResponse;
+  }
+
+  // Generate token for a client
+  async generateToken(
+    tokenData: GenerateTokenRequest
+  ): Promise<GenerateTokenResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.post<
+      GenerateTokenResponse | ApiErrorResponse
+    >('/users/tokens', tokenData);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to generate token');
+    }
+
+    return data as GenerateTokenResponse;
+  }
+
+  // Get client by ID
+  async getClientById(clientId: string): Promise<GetClientByIdResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.get<
+      GetClientByIdResponse | ApiErrorResponse
+    >(`/users/clients/${clientId}`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to get client details');
+    }
+
+    return data as GetClientByIdResponse;
+  }
+
+  // Delete a client
+  async deleteClient(clientId: string): Promise<DeleteClientResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.delete<
+      DeleteClientResponse | ApiErrorResponse
+    >(`/users/clients/${clientId}`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to delete client');
+    }
+
+    return data as DeleteClientResponse;
+  }
+
+  // Refresh client secret
+  async refreshClientSecret(
+    clientId: string
+  ): Promise<RefreshClientSecretResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.patch<
+      RefreshClientSecretResponse | ApiErrorResponse
+    >(`/users/clients/${clientId}/secret`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to refresh client secret');
+    }
+
+    return data as RefreshClientSecretResponse;
+  }
+}
+
+// Export singleton instance
+export const clientService = new ClientService();

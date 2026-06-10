@@ -1,0 +1,213 @@
+import 'dart:convert';
+
+import 'package:airqo/src/app/auth/services/auth_helper.dart';
+import 'package:airqo/src/app/profile/models/profile_response_model.dart';
+import 'package:airqo/src/app/shared/repository/base_repository.dart';
+import 'package:airqo/src/app/shared/repository/secure_storage_repository.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:http/http.dart' as http;
+import 'package:loggy/loggy.dart';
+
+abstract class UserRepository extends BaseRepository {
+  Future<ProfileResponseModel> loadUserProfile();
+  Future<ProfileResponseModel> loadUserProfileFromToken();
+  Future<ProfileResponseModel> updateUserProfile({
+    required String firstName,
+    required String lastName,
+    required String email,
+    String? profilePicture,
+  });
+}
+
+class UserImpl extends UserRepository with UiLoggy {
+  String _stringFromToken(Map<String, dynamic> token, List<String> keys) {
+    for (final key in keys) {
+      final value = token[key];
+      if (value != null && value.toString().trim().isNotEmpty) {
+        return value.toString().trim();
+      }
+    }
+    return "";
+  }
+
+  ({String firstName, String lastName}) _nameFromToken(
+    Map<String, dynamic> token,
+  ) {
+    final firstName = _stringFromToken(
+      token,
+      ['firstName', 'first_name', 'given_name'],
+    );
+    final lastName = _stringFromToken(
+      token,
+      ['lastName', 'last_name', 'family_name'],
+    );
+
+    if (firstName.isNotEmpty || lastName.isNotEmpty) {
+      return (firstName: firstName, lastName: lastName);
+    }
+
+    final displayName = _stringFromToken(
+      token,
+      ['displayName', 'display_name', 'name', 'fullName', 'full_name'],
+    );
+    if (displayName.isEmpty) {
+      return (firstName: "", lastName: "");
+    }
+
+    final parts = displayName.split(RegExp(r'\s+'));
+    return (
+      firstName: parts.first,
+      lastName: parts.length > 1 ? parts.skip(1).join(' ') : "",
+    );
+  }
+
+  String _requiredStringFromToken(
+    Map<String, dynamic> token,
+    List<String> keys,
+    String claimName,
+  ) {
+    final value = _stringFromToken(token, keys);
+    if (value.isEmpty) {
+      throw Exception("Token does not contain user $claimName");
+    }
+    return value;
+  }
+
+  DateTime _dateTimeFromToken(Map<String, dynamic> token, String key) {
+    return DateTime.tryParse(token[key]?.toString() ?? "") ?? DateTime.now();
+  }
+
+  @override
+  Future<ProfileResponseModel> loadUserProfile() async {
+    try {
+      // Try to load from JWT token first (faster and more reliable)
+      return await loadUserProfileFromToken();
+    } catch (e) {
+      loggy.warning("Failed to load profile from JWT token");
+
+      // Fallback to API call
+      final userId = await AuthHelper.getCurrentUserId();
+      if (userId == null) {
+        throw Exception("User ID not found - user may not be authenticated");
+      }
+
+      http.Response profileResponse =
+          await createAuthenticatedGetRequest("/api/v2/users/$userId", {});
+
+      ProfileResponseModel model =
+          profileResponseModelFromJson(profileResponse.body);
+      return model;
+    }
+  }
+
+  @override
+  Future<ProfileResponseModel> loadUserProfileFromToken() async {
+    final token = await SecureStorageRepository.instance
+        .getSecureData(SecureStorageKeys.authToken);
+
+    if (token == null || token.isEmpty) {
+      throw Exception("No authentication token found");
+    }
+
+    try {
+      final Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      loggy.info('Loading user profile from JWT token');
+      final name = _nameFromToken(decodedToken);
+
+      // Create User object from JWT payload matching your provided structure
+      final user = User(
+        id: _requiredStringFromToken(
+          decodedToken,
+          ['_id', 'user_id', 'userId', 'id', 'sub', 'uid'],
+          'id',
+        ),
+        firstName: name.firstName,
+        lastName: name.lastName,
+        profilePicture: _stringFromToken(
+          decodedToken,
+          [
+            'profilePicture',
+            'profile_picture',
+            'picture',
+            'avatar',
+            'photoUrl',
+            'photoURL',
+          ],
+        ),
+        lastLogin: _dateTimeFromToken(decodedToken, "lastLogin"),
+        isActive: true, // Default since not in JWT
+        loginCount: decodedToken["nrp"] ?? 1, // Use 'nrp' field from JWT
+        userName: _stringFromToken(
+          decodedToken,
+          ['userName', 'username', 'displayName', 'display_name', 'email'],
+        ),
+        email: _requiredStringFromToken(decodedToken, ['email'], 'email'),
+        verified: true, // Default since user is authenticated
+        analyticsVersion: 1, // Default
+        privilege: decodedToken["privilege"] ?? "user",
+        updatedAt: _dateTimeFromToken(decodedToken, "updatedAt"),
+      );
+
+      // Return as ProfileResponseModel format
+      return ProfileResponseModel(
+        success: true,
+        message: "Profile loaded from JWT token",
+        users: [user],
+      );
+    } catch (e) {
+      loggy.error("Failed to parse JWT token for user profile");
+      throw Exception("Failed to extract user profile from token");
+    }
+  }
+
+  @override
+  Future<ProfileResponseModel> updateUserProfile({
+    required String firstName,
+    required String lastName,
+    required String email,
+    String? profilePicture,
+  }) async {
+    final userId = await AuthHelper.getCurrentUserId();
+    if (userId == null) {
+      throw Exception("User ID not found - user may not be authenticated");
+    }
+
+    // Prepare the request body with the updated fields
+    final Map<String, dynamic> requestBody = {
+      "firstName": firstName,
+      "lastName": lastName,
+      "email": email,
+    };
+
+    if (profilePicture != null) {
+      requestBody["profilePicture"] = profilePicture;
+    }
+
+    http.Response updateResponse = await createAuthenticatedPutRequest(
+      path: "/api/v2/users/$userId",
+      data: requestBody,
+    );
+
+    try {
+      final responseBody = json.decode(updateResponse.body);
+      loggy.info("Response structure: ${responseBody.keys}");
+
+      responseBody.forEach((key, value) {
+        loggy.debug("Key: $key, Value: $value, Type: ${value?.runtimeType}");
+      });
+
+      if (responseBody.containsKey('user') && responseBody['user'] != null) {
+        loggy.debug("User object keys: ${(responseBody['user'] as Map).keys}");
+      }
+    } catch (e) {
+      loggy.warning("Error parsing update response");
+    }
+
+    http.Response profileResponse =
+        await createAuthenticatedGetRequest("/api/v2/users/$userId", {});
+
+    ProfileResponseModel model =
+        profileResponseModelFromJson(profileResponse.body);
+    return model;
+  }
+}

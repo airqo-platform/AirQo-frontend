@@ -1,0 +1,203 @@
+'use client';
+
+import Image from 'next/image';
+import type React from 'react';
+import { useState } from 'react';
+
+import { CustomButton } from '@/components/ui';
+import mainConfig from '@/configs/mainConfigs';
+import { useImpactNumbers, usePartners } from '@/hooks/useApiHooks';
+
+import { Accordion } from './Accordion';
+import { accordionItems, statItems } from './data';
+
+const HomeStatsSection: React.FC = () => {
+  const { data: impactNumbersResponse } = useImpactNumbers();
+  const { data: partnersResponse, isLoading: partnersLoading } = usePartners({
+    featured: true,
+  });
+  // API returns array of impact numbers, take the first one
+  const impactNumbers = impactNumbersResponse?.[0] ?? null;
+  const featuredPartners = partnersResponse?.results ?? [];
+  const [activeTab, setActiveTab] = useState<'cities' | 'communities'>(
+    'cities',
+  );
+
+  return (
+    <section className="py-8 px-4 w-full space-y-20 bg-[#ECF2FF]">
+      <div className={`${mainConfig.containerClass} space-y-16`}>
+        <PartnerLogosSection
+          partners={featuredPartners}
+          isLoading={partnersLoading}
+        />
+        <HeadingSection activeTab={activeTab} setActiveTab={setActiveTab} />
+        <AccordionAndImageSection activeTab={activeTab} />
+      </div>
+      <StatisticsSection impactNumbers={impactNumbers} />
+    </section>
+  );
+};
+
+interface Partner {
+  id: string | number;
+  partner_logo_url?: string;
+  logo?: string;
+  partner_name?: string;
+  name?: string;
+}
+
+const PartnerLogosSection: React.FC<{
+  partners: Partner[];
+  isLoading: boolean;
+}> = ({ partners, isLoading }) => (
+  <section className="max-w-6xl mx-auto py-12 px-4">
+    <div className="text-center space-y-6">
+      <h3 className="text-lg font-semibold text-gray-500">
+        AIRQO IS SUPPORTED BY
+      </h3>
+      <div className="flex flex-wrap justify-center">
+        {isLoading || partners.length === 0
+          ? Array.from({ length: 6 }, (_, index) => (
+              <div
+                key={`partner-skeleton-${index}`}
+                className="flex h-[100px] w-full max-w-[220px] items-center justify-center border border-gray-300 p-4 sm:w-[220px]"
+              >
+                <div className="h-12 w-full max-w-[150px] animate-pulse rounded-lg bg-white/70" />
+              </div>
+            ))
+          : partners.map((partner, index) => (
+              <div
+                key={partner.id || index}
+                className="flex h-[100px] w-full max-w-[220px] items-center justify-center overflow-hidden border border-gray-300 p-4 sm:w-[220px]"
+              >
+                <div className="relative h-full w-full">
+                  <Image
+                    src={
+                      partner.partner_logo_url ||
+                      partner.logo ||
+                      '/assets/images/placeholder.webp'
+                    }
+                    alt={
+                      partner.partner_name ||
+                      partner.name ||
+                      `Partner ${index + 1}`
+                    }
+                    fill
+                    className="cursor-pointer object-contain p-3 transition-transform duration-500 ease-in-out hover:scale-110"
+                    sizes="(max-width: 640px) 220px, 220px"
+                  />
+                </div>
+              </div>
+            ))}
+      </div>
+    </div>
+  </section>
+);
+
+const HeadingSection: React.FC<{
+  activeTab: 'cities' | 'communities';
+  setActiveTab: (tab: 'cities' | 'communities') => void;
+}> = ({ activeTab, setActiveTab }) => (
+  <div className="text-center space-y-6">
+    <h2 className="text-3xl lg:text-5xl font-bold">
+      Closing the air quality <br /> data gaps in Africa
+    </h2>
+    <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+      We provide accurate, hyperlocal, and timely air quality data to provide{' '}
+      <br />
+      evidence of the magnitude and scale of air pollution across Africa.
+    </p>
+    <div className="flex justify-center items-center gap-0 relative">
+      <CustomButton
+        onClick={() => setActiveTab('cities')}
+        className={`px-6 py-3 ${
+          activeTab === 'cities'
+            ? 'bg-[#2E3A59] text-white z-10 scale-105 rounded-xl'
+            : 'bg-[#DFE8F9] text-[#2E3A59] -ml-1 rounded-l-xl'
+        } border border-[#DFE8F9]`}
+      >
+        For African cities
+      </CustomButton>
+      <CustomButton
+        onClick={() => setActiveTab('communities')}
+        className={`px-6 py-3 ${
+          activeTab === 'communities'
+            ? 'bg-[#2E3A59] text-white z-10 scale-105 rounded-xl'
+            : 'bg-[#DFE8F9] text-[#2E3A59] -ml-1 rounded-r-xl'
+        } border border-[#DFE8F9]`}
+      >
+        For Communities
+      </CustomButton>
+    </div>
+  </div>
+);
+
+const AccordionAndImageSection: React.FC<{
+  activeTab: 'cities' | 'communities';
+}> = ({ activeTab }) => (
+  <div className="flex flex-col lg:flex-row gap-8 items-start justify-between">
+    <div className="lg:w-1/2 w-full">
+      <Accordion items={accordionItems[activeTab]} />
+    </div>
+    <div className="lg:w-1/2 w-full rounded-lg">
+      <div className="relative w-full h-[400px] overflow-hidden">
+        <Image
+          src={`${
+            activeTab === 'cities'
+              ? 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp'
+              : 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1726578795/website/photos/ForCommunities_oepvth.webp'
+          }`}
+          alt="Air quality monitor installation"
+          fill
+          style={{ objectFit: 'cover' }}
+          className="rounded-lg object-contain flex justify-self-center w-full h-full max-w-[440px] transition-transform duration-500 ease-in-out transform hover:scale-110 cursor-pointer"
+          sizes="(max-width: 1024px) 100vw, 50vw"
+          loading="lazy"
+        />
+      </div>
+    </div>
+  </div>
+);
+
+const StatisticsSection: React.FC<{ impactNumbers: any }> = ({
+  impactNumbers,
+}) => {
+  const formatStatValue = (key: string, value: number): string => {
+    if (key === 'data_records') {
+      return `${value}M+`;
+    }
+    return `${value}+`;
+  };
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
+      {statItems.map((stat, index) => {
+        const IconComponent = stat.icon;
+        const value = impactNumbers ? (impactNumbers[stat.key] ?? 0) : 0;
+        return (
+          <div
+            key={index}
+            className="h-[240px] p-6 bg-[#DFE8F9] rounded-lg flex flex-col justify-between items-start space-y-4"
+          >
+            <div className="text-left flex flex-col items-start">
+              <p className="text-3xl font-bold">
+                {formatStatValue(stat.key, value)}
+              </p>
+              <p className="text-gray-600">{stat.label}</p>
+            </div>
+            <div className="flex items-center justify-center w-12 h-12 bg-white rounded-full">
+              <IconComponent
+                size={20}
+                color={stat.color}
+                className=""
+                aria-label={stat.label}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+export default HomeStatsSection;
