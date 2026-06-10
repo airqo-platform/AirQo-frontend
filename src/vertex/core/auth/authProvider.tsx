@@ -623,15 +623,10 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
     let shouldUnblock = true;
     const bootstrap = async () => {
       try {
-        if (shouldSkipBackendOAuthBootstrap()) {
-          logger.debug('[TokenHandoffHandler] Skipping OAuth bootstrap due to signed-out flag');
-          isHandlingOAuthRef.current = false;
-          shouldUnblock = true;
-          return;
-        }
-
         const handoff = consumeOAuthTokenHandoffFromUrl();
         if (handoff?.token) {
+          // Fresh OAuth token indicates explicit sign-in, clear any stale flag
+          clearBackendOAuthSignedOutFlag();
           logger.info('[TokenHandoffHandler] OAuth token detected, signing in...');
 
           const result = await signIn('credentials', {
@@ -641,7 +636,6 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
           });
 
           if (result?.ok) {
-            clearBackendOAuthSignedOutFlag();
             // Force NextAuth SessionProvider to immediately sync its React context
             await update();
             
@@ -677,6 +671,12 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
             router.push(`/auth-error?error=${encodeURIComponent(result?.error || 'OAuthSignin')}`);
           }
         } else {
+          if (shouldSkipBackendOAuthBootstrap()) {
+            logger.debug('[TokenHandoffHandler] No OAuth token and signed-out flag set, skipping bootstrap');
+            isHandlingOAuthRef.current = false;
+            shouldUnblock = true;
+            return;
+          }
           isHandlingOAuthRef.current = false;
         }
       } catch (error) {
