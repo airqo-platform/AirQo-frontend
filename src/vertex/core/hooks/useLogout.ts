@@ -10,6 +10,7 @@ import { rememberAccount } from '../utils/rememberedAccounts';
 import logger from '@/lib/logger';
 import { useAppSelector, useAppDispatch } from '../redux/hooks';
 import { persistor } from '../redux/store';
+import { setBackendOAuthSignedOutFlag } from '../auth/oauth-session';
 
 let sharedLogoutPromise: Promise<void> | null = null;
 let sharedIsLoggingOut = false;
@@ -65,6 +66,7 @@ export const useLogout = (callbackUrl?: string) => {
         queryClient.clear();
         await persistor.purge();
 
+        setBackendOAuthSignedOutFlag();
         await signOut({ redirect: false });
         router.push(callbackUrl || '/login');
       } catch (error) {

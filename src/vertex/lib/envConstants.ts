@@ -2,7 +2,7 @@
  * Environment constants and utilities for API configuration
  * Centralizes environment variable access with proper validation
  */
-import { stripTrailingSlash } from './utils';
+
 
 /**
  * Gets the current environment from environment variables
@@ -12,17 +12,6 @@ export const getEnvironment = (): string => {
   return process.env.NEXT_PUBLIC_ENV || 'development';
 };
 
-/**
- * Gets the API base URL from environment variables
- * @returns {string} The API base URL
- */
-export const getApiBaseUrl = (): string => {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  if (!apiUrl) {
-    throw new Error('API base URL is not defined. Set NEXT_PUBLIC_API_URL in environment variables.');
-  }
-  return stripTrailingSlash(apiUrl);
-};
 
 /**
  * Gets the API token from environment variables (server-side only)

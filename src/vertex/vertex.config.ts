@@ -3,7 +3,7 @@ import {
   validateVertexConfig,
   type VertexConfigInput,
 } from "./core/config/vertex-config";
-import { getApiBaseUrl } from "./lib/envConstants";
+import { resolveApiOrigin } from "./lib/api-routing";
 
 const config: VertexConfigInput = {
   ...defaultVertexConfig,
@@ -18,9 +18,8 @@ const config: VertexConfigInput = {
   },
   api: {
     adapter: "airqo",
-    baseUrl: getApiBaseUrl(),
-    publicMeasurementsBaseUrl:
-      process.env.NEXT_PUBLIC_API_BASE_URL || getApiBaseUrl(),
+    baseUrl: resolveApiOrigin(),
+    publicMeasurementsBaseUrl: resolveApiOrigin(),
   },
   auth: {
     provider: "airqo",

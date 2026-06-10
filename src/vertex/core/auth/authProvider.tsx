@@ -35,7 +35,7 @@ import type {
 import { ExtendedSession } from '../utils/secureApiProxyClient';
 import { useLogout } from '@/core/hooks/useLogout';
 import logger from '@/lib/logger';
-import { consumeOAuthTokenHandoffFromUrl } from './oauth-session';
+import { consumeOAuthTokenHandoffFromUrl, shouldSkipBackendOAuthBootstrap, clearBackendOAuthSignedOutFlag } from './oauth-session';
 
 // --- Helper Functions ---
 
@@ -623,6 +623,13 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
     let shouldUnblock = true;
     const bootstrap = async () => {
       try {
+        if (shouldSkipBackendOAuthBootstrap()) {
+          logger.debug('[TokenHandoffHandler] Skipping OAuth bootstrap due to signed-out flag');
+          isHandlingOAuthRef.current = false;
+          shouldUnblock = true;
+          return;
+        }
+
         const handoff = consumeOAuthTokenHandoffFromUrl();
         if (handoff?.token) {
           logger.info('[TokenHandoffHandler] OAuth token detected, signing in...');
@@ -634,6 +641,7 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
           });
 
           if (result?.ok) {
+            clearBackendOAuthSignedOutFlag();
             // Force NextAuth SessionProvider to immediately sync its React context
             await update();
             
