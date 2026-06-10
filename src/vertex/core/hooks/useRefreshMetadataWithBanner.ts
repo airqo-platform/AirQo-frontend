@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { useRefreshSiteMetadata } from "@/core/hooks/useSites";
 import { useBanner } from "@/context/banner-context";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
@@ -7,7 +8,7 @@ import type { AxiosError } from "axios";
 export const useRefreshMetadataWithBanner = () => {
   const { showBanner } = useBanner();
 
-  const handleSuccess = (data: SiteRefreshResponse) => {
+  const handleSuccess = useCallback((data: SiteRefreshResponse) => {
     const msg = (data.message ?? "").toLowerCase();
     if (msg.includes("partially refreshed")) {
       showBanner({ severity: "warning", message: data.message ?? "Site metadata partially refreshed.", scoped: false });
@@ -16,11 +17,11 @@ export const useRefreshMetadataWithBanner = () => {
     } else {
       showBanner({ severity: "success", message: "Site metadata refreshed successfully.", scoped: false });
     }
-  };
+  }, [showBanner]);
 
-  const handleError = (error: AxiosError) => {
+  const handleError = useCallback((error: AxiosError) => {
     showBanner({ severity: "error", message: `Refresh Failed: ${getApiErrorMessage(error)}`, scoped: false });
-  };
+  }, [showBanner]);
 
   return useRefreshSiteMetadata({ onSuccess: handleSuccess, onError: handleError });
 };
