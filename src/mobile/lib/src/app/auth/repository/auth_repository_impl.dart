@@ -8,6 +8,7 @@ import 'package:airqo/src/app/auth/repository/social_auth_repository.dart';
 import 'package:airqo/src/app/auth/services/auth_token_storage.dart';
 import 'package:airqo/src/app/auth/services/oauth_service.dart';
 import 'package:airqo/src/app/shared/repository/secure_storage_repository.dart';
+import 'package:airqo/src/meta/utils/api_utils.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
@@ -31,11 +32,11 @@ class AuthImpl extends AuthRepository implements SocialAuthRepository {
           Uri.parse("${dotenv.env["AIRQO_API_URL"]}/api/v2/users/loginUser"),
           body: jsonEncode({"userName": username, "password": password}),
           headers: {
-            "Authorization": dotenv.env["AIRQO_MOBILE_TOKEN"] ??
-                (throw StateError(
-                    'AIRQO_MOBILE_TOKEN environment variable is missing')),
+            "Authorization":
+                "JWT ${dotenv.env["AIRQO_MOBILE_TOKEN"] ?? (throw StateError('AIRQO_MOBILE_TOKEN environment variable is missing'))}",
             "Accept": "application/json",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "User-Agent": ApiUtils.mobileUserAgent,
           });
 
       if (loginResponse.statusCode == 200) {
@@ -137,7 +138,8 @@ class AuthImpl extends AuthRepository implements SocialAuthRepository {
           body: registerInputModelToJson(model),
           headers: {
             "Accept": "application/json",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "User-Agent": ApiUtils.mobileUserAgent,
           });
 
       if (registerResponse.statusCode >= 200 &&
@@ -193,11 +195,11 @@ class AuthImpl extends AuthRepository implements SocialAuthRepository {
         Uri.parse(
             '${dotenv.env["AIRQO_API_URL"]}/api/v2/users/reset-password-request'),
         headers: {
-          "Authorization": dotenv.env["AIRQO_MOBILE_TOKEN"] ??
-              (throw StateError(
-                  'AIRQO_MOBILE_TOKEN environment variable is missing')),
+          "Authorization":
+              "JWT ${dotenv.env["AIRQO_MOBILE_TOKEN"] ?? (throw StateError('AIRQO_MOBILE_TOKEN environment variable is missing'))}",
           "Accept": "application/json",
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "User-Agent": ApiUtils.mobileUserAgent,
         },
         body: jsonEncode({'email': email}),
       );
@@ -249,9 +251,10 @@ class AuthImpl extends AuthRepository implements SocialAuthRepository {
         Uri.parse(
             "${dotenv.env["AIRQO_API_URL"]}/api/v2/users/verify-email/$token"),
         headers: {
-          "Authorization": apiToken,
+          "Authorization": "JWT $apiToken",
           "Content-Type": "application/json",
-          "Accept": "application/json"
+          "Accept": "application/json",
+          "User-Agent": ApiUtils.mobileUserAgent,
         },
         body: json.encode({"email": email}),
       );
@@ -300,7 +303,10 @@ class AuthImpl extends AuthRepository implements SocialAuthRepository {
       final response = await http.post(
         Uri.parse(
             '${dotenv.env["AIRQO_API_URL"]}/api/v2/users/reset-password/$token'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': ApiUtils.mobileUserAgent,
+        },
         body: jsonEncode(
             {'password': password, 'confirmPassword': confirmPassword}),
       );
@@ -413,7 +419,8 @@ class AuthImpl extends AuthRepository implements SocialAuthRepository {
         headers: {
           "Authorization": "JWT ${_sanitizeToken(authToken)}",
           "Accept": "application/json",
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "User-Agent": ApiUtils.mobileUserAgent,
         },
       ).timeout(const Duration(seconds: 30));
 
