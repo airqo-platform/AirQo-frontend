@@ -63,7 +63,8 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
   const previousActiveElementRef = useRef<HTMLElement | null>(null);
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const captchaRef = useRef<HCaptcha>(null);
+  const captchaSiteKey = process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY || '';
+  const captchaRef = useRef<HCaptcha | null>(null);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   const [isSaving, setIsSaving] = useState(false);
@@ -416,6 +417,8 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
     if (!operator.trim()) return 'Operator is required';
     if (!manufacturer.trim()) return 'Manufacturer is required';
     if (!pollutants.trim()) return 'Pollutants are required';
+    if (!captchaSiteKey)
+      return 'Captcha is not configured. Please contact support.';
     if (!captchaToken) return 'Please complete the captcha verification';
     return null;
   };
@@ -936,12 +939,18 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
           )}
 
           <div className="mt-4">
-            <HCaptcha
-              sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY!}
-              onVerify={handleCaptchaVerify}
-              onExpire={handleCaptchaExpire}
-              ref={captchaRef}
-            />
+            {captchaSiteKey ? (
+              <HCaptcha
+                sitekey={captchaSiteKey}
+                onVerify={handleCaptchaVerify}
+                onExpire={handleCaptchaExpire}
+                ref={captchaRef}
+              />
+            ) : (
+              <p className="text-sm text-amber-600">
+                Captcha is not configured. Please contact support.
+              </p>
+            )}
           </div>
         </div>
 
