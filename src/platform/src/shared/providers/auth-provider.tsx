@@ -16,7 +16,7 @@ import {
   selectGroups,
   selectLoggingOut,
 } from '@/shared/store/selectors';
-import { useLogout } from '@/shared/hooks/useLogout';
+import { useLogout, CROSS_TAB_LOGOUT_KEY, CROSS_TAB_LOGIN_KEY } from '@/shared/hooks/useLogout';
 import { toast } from '@/shared/components/ui/toast';
 import logger from '@/shared/lib/logger';
 import { SWRProvider } from '@/shared/providers/swr-provider';
@@ -323,10 +323,12 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
   const getCurrentSessionUserIdentifier = useCallback((): string | null => {
     const currentUser = session?.user as
-      | { _id?: string; email?: string }
+      | { _id?: string; id?: string; email?: string }
       | undefined;
+    // Check both _id and id — vertex sets account_deleted_user_identifier with id
     const userId =
-      typeof currentUser?._id === 'string' ? currentUser._id.trim() : '';
+      (typeof currentUser?._id === 'string' && currentUser._id.trim()) ||
+      (typeof currentUser?.id === 'string' && currentUser.id.trim()) || '';
     if (userId) {
       return `id:${userId}`;
     }
@@ -378,11 +380,19 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   const checkAccountDeletionFlag = useCallback((): boolean => {
     if (typeof window === 'undefined') return false;
 
-    const accountDeleted = localStorage.getItem('account_deleted');
-    const deletionTimestamp = localStorage.getItem('account_deleted_timestamp');
-    const deletionUserIdentifier = localStorage.getItem(
-      ACCOUNT_DELETION_USER_IDENTIFIER_KEY
-    );
+    let accountDeleted: string | null = null;
+    let deletionTimestamp: string | null = null;
+    let deletionUserIdentifier: string | null = null;
+    try {
+      accountDeleted = localStorage.getItem('account_deleted');
+      deletionTimestamp = localStorage.getItem('account_deleted_timestamp');
+      deletionUserIdentifier = localStorage.getItem(
+        ACCOUNT_DELETION_USER_IDENTIFIER_KEY
+      );
+    } catch {
+      // Safari private mode / blocked storage — skip check
+      return false;
+    }
     const parsedTimestamp = deletionTimestamp
       ? Number.parseInt(deletionTimestamp, 10)
       : NaN;
@@ -445,6 +455,50 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     window.addEventListener('storage', handleStorage);
     return () => window.removeEventListener('storage', handleStorage);
   }, [checkAccountDeletionFlag]);
+
+  // Cross-tab logout propagation: when another tab/app logs out, detect via storage event
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleCrossTabLogout = (event: StorageEvent) => {
+      if (
+        event.key === CROSS_TAB_LOGOUT_KEY &&
+        event.newValue &&
+        !isLoggingOut &&
+        !hasStartedLogoutRef.current &&
+        status === 'authenticated'
+      ) {
+        logger.info('Cross-tab logout detected, logging out');
+        hasStartedLogoutRef.current = true;
+        logout();
+      }
+    };
+
+    window.addEventListener('storage', handleCrossTabLogout);
+    return () => window.removeEventListener('storage', handleCrossTabLogout);
+  }, [isLoggingOut, logout, status]);
+
+  // Cross-tab login propagation: when another tab/app logs in, refresh session
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleCrossTabLogin = (event: StorageEvent) => {
+      if (
+        event.key === CROSS_TAB_LOGIN_KEY &&
+        event.newValue &&
+        status !== 'authenticated' &&
+        !isLoggingOut
+      ) {
+        logger.info('Cross-tab login detected, refreshing session');
+        update().catch(() => {
+          // Transient network error — session will be revalidated on next focus/navigation
+        });
+      }
+    };
+
+    window.addEventListener('storage', handleCrossTabLogin);
+    return () => window.removeEventListener('storage', handleCrossTabLogin);
+  }, [status, isLoggingOut, update]);
 
   // Listen for unauthorized events from API client
   const handleUnauthorized = useCallback(
@@ -713,6 +767,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               provider: oauthTokenHandoff.provider,
               error: signInResult.error,
             });
+          } else {
+            // Signal other tabs/apps that login occurred via OAuth
+            try {
+              localStorage.setItem(CROSS_TAB_LOGIN_KEY, String(Date.now()));
+            } catch {
+              // Ignore storage errors
+            }
           }
         }
 
@@ -746,9 +807,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (isCurrentPublicRoute) {
-          // Public auth routes only need the lightweight NextAuth session check.
-          // Skipping the backend profile bootstrap here avoids an extra
-          // /users/profile/enhanced request on login/register screens.
+          // No existing session found — show login/register page.
           setBootstrapSession(null);
           return;
         }
@@ -787,7 +846,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider
       session={bootstrapSession}
-      refetchOnWindowFocus={false}
+      refetchOnWindowFocus
       refetchInterval={0}
     >
       <AuthScopedCacheProviders>

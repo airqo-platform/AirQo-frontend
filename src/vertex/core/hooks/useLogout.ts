@@ -14,6 +14,9 @@ import { persistor } from '../redux/store';
 let sharedLogoutPromise: Promise<void> | null = null;
 let sharedIsLoggingOut = false;
 
+export const CROSS_TAB_LOGOUT_KEY = 'airqo:auth:cross-tab-logout';
+export const CROSS_TAB_LOGIN_KEY = 'airqo:auth:cross-tab-login';
+
 /**
  * A hook to provide a centralized logout function.
  * It handles clearing Redux state, local storage, React Query cache, and signing out from NextAuth.
@@ -63,6 +66,14 @@ export const useLogout = (callbackUrl?: string) => {
         clearTokenCache();
         queryClient.clear();
         await persistor.purge();
+
+        // Signal other tabs/apps that logout occurred (before signOut clears the cookie)
+        try {
+          localStorage.setItem(CROSS_TAB_LOGOUT_KEY, String(Date.now()));
+          localStorage.removeItem(CROSS_TAB_LOGIN_KEY);
+        } catch {
+          // Ignore storage errors
+        }
 
         await signOut({ redirect: false });
         window.location.href = callbackUrl || '/login';

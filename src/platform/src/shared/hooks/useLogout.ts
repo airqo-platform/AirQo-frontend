@@ -15,6 +15,8 @@ let sharedLogoutPromise: Promise<void> | null = null;
 let sharedIsLoggingOut = false;
 const ACCOUNT_DELETION_TTL_MS = 5 * 60 * 1000;
 const OAUTH_SIGNED_OUT_FLAG = 'airqo:oauth-signed-out';
+export const CROSS_TAB_LOGOUT_KEY = 'airqo:auth:cross-tab-logout';
+export const CROSS_TAB_LOGIN_KEY = 'airqo:auth:cross-tab-login';
 
 export const useLogout = (callbackUrl?: string) => {
   const dispatch = useDispatch();
@@ -81,6 +83,8 @@ export const useLogout = (callbackUrl?: string) => {
             : new Set<string>();
 
           crossTabSignalKeys.add(OAUTH_SIGNED_OUT_FLAG);
+          crossTabSignalKeys.add(CROSS_TAB_LOGOUT_KEY);
+          crossTabSignalKeys.add(CROSS_TAB_LOGIN_KEY);
 
           for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
@@ -115,6 +119,14 @@ export const useLogout = (callbackUrl?: string) => {
 
         // Clear persisted Redux data
         await persistor.purge();
+
+        // Signal other tabs/apps that logout occurred (before signOut clears the cookie)
+        try {
+          localStorage.setItem(CROSS_TAB_LOGOUT_KEY, String(Date.now()));
+          localStorage.removeItem(CROSS_TAB_LOGIN_KEY);
+        } catch {
+          // Ignore storage errors
+        }
 
         // Sign out from NextAuth (clear cookie server-side) then force full page reload
         await signOut({ redirect: false });

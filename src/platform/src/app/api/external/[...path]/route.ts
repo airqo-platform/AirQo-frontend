@@ -21,10 +21,7 @@ const normalizeApiBaseUrl = (baseUrl: string): string => {
 
 function buildBaseUrl(): string {
   const configuredBaseUrl =
-    process.env.API_BASE_URL ||
-    process.env.NEXT_PUBLIC_API_BASE_URL ||
-    process.env.NEXT_PUBLIC_BASE_URL ||
-    '';
+    process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '';
 
   if (!configuredBaseUrl) {
     throw new Error(
