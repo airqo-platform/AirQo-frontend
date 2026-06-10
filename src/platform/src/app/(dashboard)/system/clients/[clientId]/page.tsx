@@ -27,13 +27,12 @@ import EditClientDialog from '@/modules/api-client/components/EditClientDialog';
 import InactiveClientDialog from '@/modules/api-client/components/InactiveClientDialog';
 import TokenSecurityDialog from '@/modules/api-client/components/TokenSecurityDialog';
 import { PermissionGuard } from '@/shared/components/PermissionGuard';
-import { useRBAC, useUser } from '@/shared/hooks';
+import { useRBAC } from '@/shared/hooks';
 
 const ClientDetailsPage: React.FC = () => {
   const params = useParams();
   const router = useRouter();
   const { hasAnyPermission } = useRBAC();
-  const { user } = useUser();
   const clientId = params?.clientId as string;
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -251,10 +250,9 @@ const ClientDetailsPage: React.FC = () => {
     if (isForbiddenError(error)) {
       return (
         <PermissionGuard
-          requiredRoles={['AIRQO_SUPER_ADMIN']}
-          customCheck={() => !!user?.email?.toLowerCase().endsWith('@airqo.net')}
+          requiredPermissions={['SYSTEM_ADMIN']}
           accessDeniedTitle="Access Restricted"
-          accessDeniedMessage="You need super admin privileges and a valid AirQo email to access API client details."
+          accessDeniedMessage="You need system administrator permissions to access API client details."
         >
           <AccessDenied
             title="Access Denied"
@@ -284,10 +282,9 @@ const ClientDetailsPage: React.FC = () => {
 
   return (
     <PermissionGuard
-      requiredRoles={['AIRQO_SUPER_ADMIN']}
-      customCheck={() => !!user?.email?.toLowerCase().endsWith('@airqo.net')}
+      requiredPermissions={['SYSTEM_ADMIN']}
       accessDeniedTitle="Access Restricted"
-      accessDeniedMessage="You need super admin privileges and a valid AirQo email to access API client details."
+      accessDeniedMessage="You need system administrator permissions to access API client details."
     >
       <div className="space-y-6">
         {/* Back Button */}

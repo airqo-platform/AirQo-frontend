@@ -25,7 +25,7 @@ import useSWR from 'swr';
 import Dialog from '@/shared/components/ui/dialog';
 import EditClientDialog from '@/modules/api-client/components/EditClientDialog';
 import { PermissionGuard } from '@/shared/components/PermissionGuard';
-import { useRBAC, useUser } from '@/shared/hooks';
+import { useRBAC } from '@/shared/hooks';
 import type { Client } from '@/shared/types/api';
 import { refreshWithToast } from '@/shared/utils/refreshWithToast';
 
@@ -34,7 +34,6 @@ type TableClient = Client & { id: string };
 const ClientsAdminPage: React.FC = () => {
   const router = useRouter();
   const { hasAnyPermission } = useRBAC();
-  const { user } = useUser();
   const [statusFilter, setStatusFilter] = useState<
     'all' | 'active' | 'inactive'
   >('all');
@@ -394,13 +393,9 @@ const ClientsAdminPage: React.FC = () => {
 
   return (
     <PermissionGuard
-      requiredRoles={['AIRQO_SUPER_ADMIN']}
-      customCheck={() => {
-        const email = user?.email?.toLowerCase();
-        return !!email && email.endsWith('@airqo.net');
-      }}
+      requiredPermissions={['SYSTEM_ADMIN']}
       accessDeniedTitle="Access Restricted"
-      accessDeniedMessage="You do not have the required permissions to access this page."
+      accessDeniedMessage="You need system administrator permissions to manage API clients."
     >
       {isForbiddenError(error) ? (
         <AccessDenied
@@ -408,231 +403,231 @@ const ClientsAdminPage: React.FC = () => {
           message="You do not have the required permissions to view API clients."
         />
       ) : (
-      <div className="space-y-6">
-        <PageHeading
-          title="API Clients Management"
-          subtitle="Manage all API clients across the platform. View, edit, and delete client credentials."
-        />
+        <div className="space-y-6">
+          <PageHeading
+            title="API Clients Management"
+            subtitle="Manage all API clients across the platform. View, edit, and delete client credentials."
+          />
 
-        {/* Actions */}
-        <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            variant={statusFilter === 'all' ? 'filled' : 'outlined'}
-            onClick={() => setStatusFilter('all')}
+          {/* Actions */}
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant={statusFilter === 'all' ? 'filled' : 'outlined'}
+              onClick={() => setStatusFilter('all')}
+            >
+              All ({clients.length})
+            </Button>
+            <Button
+              size="sm"
+              variant={statusFilter === 'active' ? 'filled' : 'outlined'}
+              onClick={() => setStatusFilter('active')}
+            >
+              Active ({clients.filter(c => c.isActive).length})
+            </Button>
+            <Button
+              size="sm"
+              variant={statusFilter === 'inactive' ? 'filled' : 'outlined'}
+              onClick={() => setStatusFilter('inactive')}
+            >
+              Inactive ({clients.filter(c => !c.isActive).length})
+            </Button>
+            <Button
+              size="sm"
+              variant="outlined"
+              Icon={AqRefreshCw05}
+              onClick={handleRefresh}
+              className="ml-auto"
+            >
+              Refresh
+            </Button>
+          </div>
+
+          {/* Table */}
+          <ServerSideTable
+            title="All Clients"
+            data={tableData}
+            columns={columns}
+            loading={isLoading}
+            error={error?.message}
+            showClientPagination={true}
+          />
+
+          {/* Edit Client Dialog */}
+          <EditClientDialog
+            isOpen={editDialogState.isOpen}
+            client={editDialogState.client}
+            onClose={() =>
+              setEditDialogState({
+                isOpen: false,
+                client: null,
+              })
+            }
+            onSuccess={() => {
+              setEditDialogState({
+                isOpen: false,
+                client: null,
+              });
+              mutate();
+            }}
+          />
+
+          {/* Delete Confirmation Dialog */}
+          <Dialog
+            isOpen={deleteDialogState.isOpen}
+            onClose={() =>
+              setDeleteDialogState({
+                isOpen: false,
+                clientId: '',
+                clientName: '',
+              })
+            }
+            title="Delete Client"
+            size="md"
           >
-            All ({clients.length})
-          </Button>
-          <Button
-            size="sm"
-            variant={statusFilter === 'active' ? 'filled' : 'outlined'}
-            onClick={() => setStatusFilter('active')}
+            <div className="space-y-4">
+              <p className="text-gray-700 dark:text-gray-300">
+                Are you sure you want to delete the client{' '}
+                <span className="font-semibold">
+                  {deleteDialogState.clientName}
+                </span>
+                ? This action cannot be undone and will invalidate all
+                associated tokens.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <Button
+                  variant="outlined"
+                  onClick={() =>
+                    setDeleteDialogState({
+                      isOpen: false,
+                      clientId: '',
+                      clientName: '',
+                    })
+                  }
+                  disabled={isDeleting}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="filled"
+                  onClick={handleDeleteClient}
+                  disabled={isDeleting}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  {isDeleting ? 'Deleting...' : 'Delete Client'}
+                </Button>
+              </div>
+            </div>
+          </Dialog>
+
+          {/* Refresh Secret Confirmation Dialog */}
+          <Dialog
+            isOpen={refreshSecretDialogState.isOpen}
+            onClose={() =>
+              setRefreshSecretDialogState({
+                isOpen: false,
+                clientId: '',
+                clientName: '',
+              })
+            }
+            title="Regenerate Client Secret"
+            size="md"
           >
-            Active ({clients.filter(c => c.isActive).length})
-          </Button>
-          <Button
-            size="sm"
-            variant={statusFilter === 'inactive' ? 'filled' : 'outlined'}
-            onClick={() => setStatusFilter('inactive')}
+            <div className="space-y-4">
+              <p className="text-gray-700 dark:text-gray-300">
+                Are you sure you want to regenerate the client secret for{' '}
+                <span className="font-semibold">
+                  {refreshSecretDialogState.clientName}
+                </span>
+                ? The old secret will be invalidated and a new one will be
+                generated.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <Button
+                  variant="outlined"
+                  onClick={() =>
+                    setRefreshSecretDialogState({
+                      isOpen: false,
+                      clientId: '',
+                      clientName: '',
+                    })
+                  }
+                  disabled={isRefreshingSecret}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="filled"
+                  onClick={handleRefreshSecret}
+                  disabled={isRefreshingSecret}
+                >
+                  {isRefreshingSecret ? 'Regenerating...' : 'Regenerate Secret'}
+                </Button>
+              </div>
+            </div>
+          </Dialog>
+
+          {/* Activate/Deactivate Confirmation Dialog */}
+          <Dialog
+            isOpen={activateDialogState.isOpen}
+            onClose={() =>
+              setActivateDialogState({
+                isOpen: false,
+                clientId: '',
+                clientName: '',
+                activate: true,
+              })
+            }
+            title={`${activateDialogState.activate ? 'Activate' : 'Deactivate'} Client`}
+            size="md"
           >
-            Inactive ({clients.filter(c => !c.isActive).length})
-          </Button>
-          <Button
-            size="sm"
-            variant="outlined"
-            Icon={AqRefreshCw05}
-            onClick={handleRefresh}
-            className="ml-auto"
-          >
-            Refresh
-          </Button>
+            <div className="space-y-4">
+              <p className="text-gray-700 dark:text-gray-300">
+                Are you sure you want to{' '}
+                {activateDialogState.activate ? 'activate' : 'deactivate'} the
+                client{' '}
+                <span className="font-semibold">
+                  {activateDialogState.clientName}
+                </span>
+                ? This will{' '}
+                {activateDialogState.activate
+                  ? 'enable the client to access the API'
+                  : 'prevent the client from accessing the API'}
+                .
+              </p>
+              <div className="flex gap-3 justify-end">
+                <Button
+                  variant="outlined"
+                  onClick={() =>
+                    setActivateDialogState({
+                      isOpen: false,
+                      clientId: '',
+                      clientName: '',
+                      activate: true,
+                    })
+                  }
+                  disabled={isActivating}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="filled"
+                  onClick={handleActivateClient}
+                  loading={isActivating}
+                  className={
+                    activateDialogState.activate
+                      ? 'bg-green-600 hover:bg-green-700'
+                      : 'bg-yellow-600 hover:bg-yellow-700'
+                  }
+                >
+                  {isActivating
+                    ? `${activateDialogState.activate ? 'Activating' : 'Deactivating'}...`
+                    : `${activateDialogState.activate ? 'Activate' : 'Deactivate'} Client`}
+                </Button>
+              </div>
+            </div>
+          </Dialog>
         </div>
-
-        {/* Table */}
-        <ServerSideTable
-          title="All Clients"
-          data={tableData}
-          columns={columns}
-          loading={isLoading}
-          error={error?.message}
-          showClientPagination={true}
-        />
-
-        {/* Edit Client Dialog */}
-        <EditClientDialog
-          isOpen={editDialogState.isOpen}
-          client={editDialogState.client}
-          onClose={() =>
-            setEditDialogState({
-              isOpen: false,
-              client: null,
-            })
-          }
-          onSuccess={() => {
-            setEditDialogState({
-              isOpen: false,
-              client: null,
-            });
-            mutate();
-          }}
-        />
-
-        {/* Delete Confirmation Dialog */}
-        <Dialog
-          isOpen={deleteDialogState.isOpen}
-          onClose={() =>
-            setDeleteDialogState({
-              isOpen: false,
-              clientId: '',
-              clientName: '',
-            })
-          }
-          title="Delete Client"
-          size="md"
-        >
-          <div className="space-y-4">
-            <p className="text-gray-700 dark:text-gray-300">
-              Are you sure you want to delete the client{' '}
-              <span className="font-semibold">
-                {deleteDialogState.clientName}
-              </span>
-              ? This action cannot be undone and will invalidate all associated
-              tokens.
-            </p>
-            <div className="flex gap-3 justify-end">
-              <Button
-                variant="outlined"
-                onClick={() =>
-                  setDeleteDialogState({
-                    isOpen: false,
-                    clientId: '',
-                    clientName: '',
-                  })
-                }
-                disabled={isDeleting}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="filled"
-                onClick={handleDeleteClient}
-                disabled={isDeleting}
-                className="bg-red-600 hover:bg-red-700"
-              >
-                {isDeleting ? 'Deleting...' : 'Delete Client'}
-              </Button>
-            </div>
-          </div>
-        </Dialog>
-
-        {/* Refresh Secret Confirmation Dialog */}
-        <Dialog
-          isOpen={refreshSecretDialogState.isOpen}
-          onClose={() =>
-            setRefreshSecretDialogState({
-              isOpen: false,
-              clientId: '',
-              clientName: '',
-            })
-          }
-          title="Regenerate Client Secret"
-          size="md"
-        >
-          <div className="space-y-4">
-            <p className="text-gray-700 dark:text-gray-300">
-              Are you sure you want to regenerate the client secret for{' '}
-              <span className="font-semibold">
-                {refreshSecretDialogState.clientName}
-              </span>
-              ? The old secret will be invalidated and a new one will be
-              generated.
-            </p>
-            <div className="flex gap-3 justify-end">
-              <Button
-                variant="outlined"
-                onClick={() =>
-                  setRefreshSecretDialogState({
-                    isOpen: false,
-                    clientId: '',
-                    clientName: '',
-                  })
-                }
-                disabled={isRefreshingSecret}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="filled"
-                onClick={handleRefreshSecret}
-                disabled={isRefreshingSecret}
-              >
-                {isRefreshingSecret ? 'Regenerating...' : 'Regenerate Secret'}
-              </Button>
-            </div>
-          </div>
-        </Dialog>
-
-        {/* Activate/Deactivate Confirmation Dialog */}
-        <Dialog
-          isOpen={activateDialogState.isOpen}
-          onClose={() =>
-            setActivateDialogState({
-              isOpen: false,
-              clientId: '',
-              clientName: '',
-              activate: true,
-            })
-          }
-          title={`${activateDialogState.activate ? 'Activate' : 'Deactivate'} Client`}
-          size="md"
-        >
-          <div className="space-y-4">
-            <p className="text-gray-700 dark:text-gray-300">
-              Are you sure you want to{' '}
-              {activateDialogState.activate ? 'activate' : 'deactivate'} the
-              client{' '}
-              <span className="font-semibold">
-                {activateDialogState.clientName}
-              </span>
-              ? This will{' '}
-              {activateDialogState.activate
-                ? 'enable the client to access the API'
-                : 'prevent the client from accessing the API'}
-              .
-            </p>
-            <div className="flex gap-3 justify-end">
-              <Button
-                variant="outlined"
-                onClick={() =>
-                  setActivateDialogState({
-                    isOpen: false,
-                    clientId: '',
-                    clientName: '',
-                    activate: true,
-                  })
-                }
-                disabled={isActivating}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="filled"
-                onClick={handleActivateClient}
-                loading={isActivating}
-                className={
-                  activateDialogState.activate
-                    ? 'bg-green-600 hover:bg-green-700'
-                    : 'bg-yellow-600 hover:bg-yellow-700'
-                }
-              >
-                {isActivating
-                  ? `${activateDialogState.activate ? 'Activating' : 'Deactivating'}...`
-                  : `${activateDialogState.activate ? 'Activate' : 'Deactivate'} Client`}
-              </Button>
-            </div>
-          </div>
-        </Dialog>
-      </div>
       )}
     </PermissionGuard>
   );

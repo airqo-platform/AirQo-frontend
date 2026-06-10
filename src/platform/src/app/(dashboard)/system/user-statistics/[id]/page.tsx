@@ -156,9 +156,9 @@ const UserStatisticsDetailsPage: React.FC = () => {
 
   return (
     <PermissionGuard
-      requireAirQoSuperAdmin={true}
+      requiredPermissions={['SYSTEM_ADMIN']}
       accessDeniedTitle="Access Restricted"
-      accessDeniedMessage="You need the AIRQO_SUPER_ADMIN role with an @airqo.net email to view user details."
+      accessDeniedMessage="You need system administrator permissions to view user details."
     >
       {userLoading ? (
         <LoadingState

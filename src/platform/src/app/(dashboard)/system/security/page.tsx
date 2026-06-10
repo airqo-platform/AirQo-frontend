@@ -1070,9 +1070,9 @@ const SecurityPageContent: React.FC = () => {
 const SystemSecurityPage: React.FC = () => {
   return (
     <PermissionGuard
-      requireAirQoSuperAdmin={true}
+      requiredPermissions={['SYSTEM_ADMIN']}
       accessDeniedTitle="Access Restricted"
-      accessDeniedMessage="You need the AIRQO_SUPER_ADMIN role with an @airqo.net email to manage security controls."
+      accessDeniedMessage="You need system administrator permissions to manage security controls."
     >
       <SecurityPageContent />
     </PermissionGuard>
