@@ -211,8 +211,8 @@ export class AdminService {
     }
 
     const url = query.toString()
-      ? `/tokens/blocked-asns?${query.toString()}`
-      : '/tokens/blocked-asns';
+      ? `/users/tokens/blocked-asns?${query.toString()}`
+      : '/users/tokens/blocked-asns';
 
     const response =
       await this.authenticatedClient.get<GetBlockedAsnsResponse>(url);
@@ -228,7 +228,7 @@ export class AdminService {
     await this.ensureAuthenticated();
     const response =
       await this.authenticatedClient.post<CreateBlockedAsnResponse>(
-        '/tokens/blocked-asns',
+        '/users/tokens/blocked-asns',
         payload
       );
     return extractSuccessData(
@@ -241,7 +241,7 @@ export class AdminService {
     await this.ensureAuthenticated();
     const response =
       await this.authenticatedClient.delete<DeleteBlockedAsnResponse>(
-        `/tokens/blocked-asns/${encodeURIComponent(id)}`
+        `/users/tokens/blocked-asns/${encodeURIComponent(id)}`
       );
     return extractSuccessData(
       response.data,
@@ -267,8 +267,8 @@ export class AdminService {
     }
 
     const url = query.toString()
-      ? `/tokens/flagged-tokens?${query.toString()}`
-      : '/tokens/flagged-tokens';
+      ? `/users/tokens/flagged-tokens?${query.toString()}`
+      : '/users/tokens/flagged-tokens';
 
     const response =
       await this.authenticatedClient.get<GetFlaggedTokensResponse>(url);
@@ -282,7 +282,7 @@ export class AdminService {
     await this.ensureAuthenticated();
     const response =
       await this.authenticatedClient.put<ResolveFlaggedTokenResponse>(
-        `/tokens/flagged-tokens/${encodeURIComponent(id)}/resolve`,
+        `/users/tokens/flagged-tokens/${encodeURIComponent(id)}/resolve`,
         payload
       );
     return extractSuccessData(response.data, 'Failed to resolve flagged token');
