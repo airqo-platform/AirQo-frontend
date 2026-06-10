@@ -13,6 +13,9 @@ import ReusableButton from "@/components/shared/button/ReusableButton";
 import { useAppSelector } from "@/core/redux/hooks";
 import "leaflet/dist/leaflet.css";
 import { useApproximateCoordinates, useCreateSite } from "@/core/hooks/useSites";
+import { useBanner } from "@/context/banner-context";
+import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import { AqPlus } from "@airqo/icons-react";
 import LocationAutocomplete from "@/components/features/location-autocomplete/LocationAutocomplete";
 import { Label } from "@/components/ui/label";
@@ -68,8 +71,21 @@ export function CreateSiteForm({ disabled = false, basePath = "/admin/sites" }: 
   const router = useRouter();
   const [inputMode, setInputMode] = useState<"siteName" | "coordinates">("coordinates");
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
-  const { getApproximateCoordinates, isPending: isOptimizing } = useApproximateCoordinates();
-  const { mutate: createSite, isPending: isCreating } = useCreateSite();
+  const { showBanner } = useBanner();
+  const { showBannerWithDelay } = useBannerWithDelay();
+  const { getApproximateCoordinates, isPending: isOptimizing } = useApproximateCoordinates({
+    onError: (error) => {
+      showBanner({ severity: 'error', message: `Unable to get approximate coordinates: ${getApiErrorMessage(error)}`, scoped: true });
+    },
+  });
+  const { mutate: createSite, isPending: isCreating } = useCreateSite({
+    onSuccess: (_data, variables) => {
+      showBannerWithDelay({ severity: 'success', message: `Site '${variables.name}' created successfully`, scoped: false });
+    },
+    onError: (error) => {
+      showBanner({ severity: 'error', message: `Failed to create site: ${getApiErrorMessage(error)}`, scoped: true });
+    },
+  });
   const { networks, isLoading: isLoadingNetworks } = useNetworks();
 
   const form = useForm<SiteFormValues>({
