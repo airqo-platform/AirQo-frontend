@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -35,6 +36,7 @@ void main() {
     // "the session has expired" and send the user back to the welcome screen.
     // This test isolates that first signal so we can prove the behavior before
     // checking how the bloc and lifecycle code react to it.
+    // Confirmed by this passing test: a hard refresh failure returns null.
     test('returns null when expired token refresh fails', () async {
       final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
       ApiUtils.baseUrl = 'http://127.0.0.1:${server.port}';
@@ -43,6 +45,37 @@ void main() {
         expect(request.uri.path, '/api/v2/users/token/refresh');
         request.response.statusCode = HttpStatus.internalServerError;
         request.response.write('{"success":false}');
+        await request.response.close();
+      });
+
+      await SecureStorageRepository.instance.saveSecureData(
+        SecureStorageKeys.authToken,
+        expiredToken(),
+      );
+
+      final token = await AuthHelper.refreshTokenIfNeeded();
+
+      expect(token, isNull);
+
+      await server.close(force: true);
+    });
+
+    // My next hypothesis is that a temporary network stall can produce the
+    // same first signal as a hard refresh failure: the token is expired, the
+    // app asks the server for a replacement, the request takes too long, and
+    // the helper returns null. If that happens, higher layers may not be able
+    // to distinguish "the session is truly dead" from "refresh timed out on
+    // resume", which is exactly the kind of confusion we are investigating.
+    // Confirmed by this passing test: a refresh timeout also returns null.
+    test('returns null when expired token refresh times out', () async {
+      final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      ApiUtils.baseUrl = 'http://127.0.0.1:${server.port}';
+
+      server.listen((request) async {
+        expect(request.uri.path, '/api/v2/users/token/refresh');
+        await Future<void>.delayed(const Duration(seconds: 11));
+        request.response.statusCode = HttpStatus.ok;
+        request.response.write('{"success":true,"token":"fresh-token"}');
         await request.response.close();
       });
 
