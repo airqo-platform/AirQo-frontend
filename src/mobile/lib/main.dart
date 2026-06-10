@@ -5,8 +5,8 @@ import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
 import 'package:airqo/src/app/auth/repository/auth_repository_impl.dart';
 import 'package:airqo/src/app/auth/repository/auth_repository.dart';
 import 'package:airqo/src/app/auth/repository/social_auth_repository.dart';
+import 'package:airqo/src/app/auth/lifecycle/app_resume_session_guard.dart';
 import 'package:airqo/src/app/auth/services/oauth_service.dart';
-import 'package:airqo/src/app/auth/services/auth_helper.dart';
 import 'package:airqo/src/app/shared/repository/global_auth_manager.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/bloc/forecast/forecast_bloc.dart';
@@ -237,6 +237,7 @@ class Decider extends StatefulWidget {
 
 class _DeciderState extends State<Decider> with WidgetsBindingObserver {
   bool _hasRequestedUserLoad = false;
+  final AppResumeSessionGuard _appResumeSessionGuard = AppResumeSessionGuard();
 
   @override
   void initState() {
@@ -276,13 +277,10 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
 
   Future<void> _checkTokenExpiryOnResume() async {
     final authBloc = context.read<AuthBloc>();
-    final currentState = authBloc.state;
-    if (currentState is! AuthLoaded) return;
-
-    final token = await AuthHelper.refreshTokenIfNeeded();
-    if (token == null && mounted) {
-      GlobalAuthManager.instance.notifySessionExpired();
-    }
+    await _appResumeSessionGuard.handleAuthState(
+      authBloc.state,
+      isMounted: mounted,
+    );
   }
 
   @override
