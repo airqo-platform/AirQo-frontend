@@ -4,6 +4,45 @@
 
 ---
 
+## Version 2.0.2
+**Released:** June 10, 2026
+
+### Resilient API Routing & Social Auth Safety Fixes
+
+This release aligns the Vertex application's social login and API routing behavior with the more robust patterns used in the platform project, creating a significant safety net around our authentication flow and API communication.
+
+<details>
+<summary><strong>Resilient API Routing (2)</strong></summary>
+
+- **Multi-Fallback Routing**: Replaced single-variable URL concatenation (`getApiBaseUrl()`) with `resolveApiOrigin()` and `resolveVersionedApiPath()`. The app now automatically scans multiple environment variables (`API_BASE_URL`, `NEXT_PUBLIC_API_BASE_URL`, `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_BASE_URL`) before failing.
+- **Suffix Stripping**: Implemented automatic `/api/v2` suffix stripping to prevent duplicate path segments caused by slight CI/CD misconfigurations.
+
+</details>
+
+<details>
+<summary><strong>Social Authentication Fixes (3)</strong></summary>
+
+- **Sign-Out Safety Flag**: Added the `OAUTH_SIGNED_OUT_FLAG` pattern to prevent "phantom token" bootstrapping if a user signs out and uses the browser back button to navigate to an old OAuth callback URL. The flag is explicitly cleared on the next intentional login to prevent redirect loops.
+- **Google Account Picker**: Explicitly injected `prompt=select_account` into the Google OAuth initialization query parameters to prevent Google from silently logging users back into their active browser session.
+- **Fail-Open Render Guard**: Removed the silent render guard from the Social Auth component. The buttons will now always render and gracefully handle URL resolution errors by displaying a UI banner rather than mysteriously vanishing.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (7)</strong></summary>
+
+- `lib/envConstants.ts` [MODIFIED]
+- `lib/api-routing.ts` [MODIFIED]
+- `vertex.config.ts` [MODIFIED]
+- `components/features/auth/social-auth-section.tsx` [MODIFIED]
+- `core/auth/oauth-session.ts` [MODIFIED]
+- `core/auth/authProvider.tsx` [MODIFIED]
+- `core/hooks/useLogout.ts` [MODIFIED]
+
+</details>
+
+---
+
 ## Version 2.0.1
 **Released:** June 09, 2026
 
