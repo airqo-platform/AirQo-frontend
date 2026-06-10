@@ -26,6 +26,7 @@ const SiteMeasurementsApiCard: React.FC<SiteMeasurementsApiCardProps> = ({ siteI
                     <Button
                         variant="ghost"
                         size="icon"
+                        aria-label="Copy recent measurements API URL"
                         className="hover:bg-transparent"
                         onClick={() => handleCopy(`https://api.airqo.net/api/v2/devices/measurements/sites/${siteId}/recent?token=YOUR_TOKEN`)}
                     >
@@ -43,6 +44,7 @@ const SiteMeasurementsApiCard: React.FC<SiteMeasurementsApiCardProps> = ({ siteI
                     <Button
                         variant="ghost"
                         size="icon"
+                        aria-label="Copy historical measurements API URL"
                         className="hover:bg-transparent"
                         onClick={() => handleCopy(`https://api.airqo.net/api/v2/devices/measurements/sites/${siteId}/historical?token=YOUR_TOKEN`)}
                     >
