@@ -122,5 +122,41 @@ void main() {
 
       expect(result, token);
     });
+
+    // Another part of my investigation is whether ordinary mobile network
+    // problems collapse into the exact same helper output as a real refresh
+    // failure. If an expired token cannot be refreshed because the network is
+    // unavailable, higher layers may still just see null and treat that as a
+    // dead session. Confirmed by this passing test: a network-level refresh
+    // failure also returns null.
+    test('returns null when expired token refresh hits a network error',
+        () async {
+      ApiUtils.baseUrl = 'http://127.0.0.1:1';
+
+      await SecureStorageRepository.instance.saveSecureData(
+        SecureStorageKeys.authToken,
+        expiredToken(),
+      );
+
+      final token = await AuthHelper.refreshTokenIfNeeded();
+
+      expect(token, isNull);
+    });
+
+    // We also need to know whether broken token data follows the same path as
+    // true expiry problems. If secure storage contains something that is not a
+    // valid JWT, the helper should fail in a stable way instead of crashing or
+    // producing ambiguous state. Confirmed by this passing test: a malformed
+    // stored token is handled by returning null.
+    test('returns null when the stored token is malformed', () async {
+      await SecureStorageRepository.instance.saveSecureData(
+        SecureStorageKeys.authToken,
+        'not-a-jwt',
+      );
+
+      final token = await AuthHelper.refreshTokenIfNeeded();
+
+      expect(token, isNull);
+    });
   });
 }
