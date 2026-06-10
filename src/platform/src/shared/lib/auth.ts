@@ -44,7 +44,7 @@ const getCookieDomain = () => {
     return undefined;
   } catch {
     console.warn(
-      '[NextAuth] Invalid NEXTAUTH_URL while validating cookie domain; disabling cookie domain override.',
+      '[NextAuth] Invalid NEXTAUTH_URL while validating cookie domain; using configured cookie domain.',
       { configuredCookieDomain, referenceUrl }
     );
     return configuredCookieDomain;

@@ -38,8 +38,6 @@ import logger from '@/lib/logger';
 import {
   consumeOAuthTokenHandoffFromUrl,
   verifyBackendOAuthSession,
-  buildSessionFromProfile,
-  type BackendOAuthSession,
 } from './oauth-session';
 
 // --- Helper Functions ---
@@ -535,12 +533,11 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
         const backendProfile = await verifyBackendOAuthSession();
         if (!isMounted) return;
 
-        if (backendProfile) {
+        if (backendProfile?.accessToken) {
           logger.info('[AuthWrapper] Backend session found, bootstrapping NextAuth session');
-          // Sign in with the backend profile's token to create a NextAuth session
           const signInResult = await signIn('credentials', {
             redirect: false,
-            oauthToken: backendProfile.accessToken || '',
+            oauthToken: backendProfile.accessToken,
           });
 
           if (signInResult?.ok && isMounted) {
@@ -669,13 +666,14 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       status === 'unauthenticated' &&
       !isPublicRoute &&
       !isLoggingOut &&
-      !hasStartedLogoutRef.current
+      !hasStartedLogoutRef.current &&
+      backendSessionAttempted
     ) {
       logger.debug('[AuthWrapper] Unauthenticated user on protected route, logging out');
       hasStartedLogoutRef.current = true;
       logout();
     }
-  }, [status, isAuthRoute, isPublicRoute, router, isLoggingOut, logout]);
+  }, [status, isAuthRoute, isPublicRoute, router, isLoggingOut, logout, backendSessionAttempted]);
 
   // Check if we have a session from SSR or client fetch
   const hasSession = !!session;
