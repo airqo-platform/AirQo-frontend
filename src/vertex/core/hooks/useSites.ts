@@ -153,10 +153,10 @@ export const useApproximateCoordinates = (options?: UseApproximateCoordinatesOpt
     mutationFn: ({ latitude, longitude }) =>
       adapter.getApproximateCoordinates(latitude, longitude),
     onSuccess: (data) => {
-      try { options?.onSuccess?.(data); } catch (e) { console.error(e); }
+      options?.onSuccess?.(data);
     },
     onError: (error) => {
-      try { options?.onError?.(error); } catch (e) { console.error(e); }
+      options?.onError?.(error);
     },
   });
 
@@ -211,10 +211,10 @@ export const useUpdateSiteDetails = (options?: UseUpdateSiteDetailsOptions) => {
     onSuccess: (_data, { siteId }) => {
       queryClient.invalidateQueries({ queryKey: ["site-details", siteId] });
       queryClient.invalidateQueries({ queryKey: ["sites"] });
-      try { options?.onSuccess?.(); } catch (e) { console.error(e); }
+      options?.onSuccess?.();
     },
     onError: (error) => {
-      try { options?.onError?.(error); } catch (e) { console.error(e); }
+      options?.onError?.(error);
     },
   });
 };
@@ -256,10 +256,10 @@ export const useCreateSite = (options?: UseCreateSiteOptions) => {
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["sites"] });
-      try { options?.onSuccess?.(data, variables); } catch (e) { console.error(e); }
+      options?.onSuccess?.(data, variables);
     },
     onError: (error) => {
-      try { options?.onError?.(error); } catch (e) { console.error(e); }
+      options?.onError?.(error);
     },
   });
 };
@@ -278,10 +278,10 @@ export const useRefreshSiteMetadata = (options?: UseRefreshSiteMetadataOptions) 
       queryClient.setQueryData(["site-details", siteId], data.site);
       queryClient.invalidateQueries({ queryKey: ["sites"] });
       queryClient.invalidateQueries({ queryKey: ["site-details", siteId] });
-      try { options?.onSuccess?.(data); } catch (e) { console.error(e); }
+      options?.onSuccess?.(data);
     },
     onError: (error) => {
-      try { options?.onError?.(error); } catch (e) { console.error(e); }
+      options?.onError?.(error);
     },
   });
 };
