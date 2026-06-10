@@ -33,7 +33,7 @@ import type {
   UserDetails,
 } from '@/app/types/users';
 import { ExtendedSession } from '../utils/secureApiProxyClient';
-import { useLogout } from '@/core/hooks/useLogout';
+import { useLogout, CROSS_TAB_LOGOUT_KEY, CROSS_TAB_LOGIN_KEY } from '@/core/hooks/useLogout';
 import logger from '@/lib/logger';
 import { consumeOAuthTokenHandoffFromUrl } from './oauth-session';
 
@@ -459,6 +459,48 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('storage', handleStorage);
   }, [checkAccountDeletionFlag]);
 
+  // Cross-tab logout propagation: when another tab/app logs out, detect via storage event
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleCrossTabLogout = (event: StorageEvent) => {
+      if (
+        event.key === CROSS_TAB_LOGOUT_KEY &&
+        event.newValue &&
+        !isLoggingOut &&
+        !hasStartedLogoutRef.current &&
+        status === 'authenticated'
+      ) {
+        logger.info('[AuthWrapper] Cross-tab logout detected, logging out');
+        hasStartedLogoutRef.current = true;
+        logout();
+      }
+    };
+
+    window.addEventListener('storage', handleCrossTabLogout);
+    return () => window.removeEventListener('storage', handleCrossTabLogout);
+  }, [isLoggingOut, logout, status]);
+
+  // Cross-tab login propagation: when another tab/app logs in, refresh session
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleCrossTabLogin = (event: StorageEvent) => {
+      if (
+        event.key === CROSS_TAB_LOGIN_KEY &&
+        event.newValue &&
+        status !== 'authenticated' &&
+        !isLoggingOut
+      ) {
+        logger.info('[AuthWrapper] Cross-tab login detected, refreshing session');
+        update();
+      }
+    };
+
+    window.addEventListener('storage', handleCrossTabLogin);
+    return () => window.removeEventListener('storage', handleCrossTabLogin);
+  }, [status, isLoggingOut, update]);
+
   // Handle unauthorized/expired token events
   const handleUnauthorized = useCallback(async () => {
     if (isPublicRoute) return;
@@ -704,6 +746,13 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
             const session = await waitForSession();
             const email = session?.user?.email || '';
             
+            // Signal other tabs/apps that login occurred
+            try {
+              localStorage.setItem(CROSS_TAB_LOGIN_KEY, String(Date.now()));
+            } catch {
+              // Ignore storage errors
+            }
+
             // Priority: handoff.callbackUrl > lastActiveModule logic
             const lastModule = getLastActiveModule(email);
             const fallbackUrl = lastModule === 'admin' ? '/admin/networks' : '/home';
@@ -766,7 +815,7 @@ export function AuthProvider({
   session?: Session | null;
 }) {
   return (
-    <SessionProvider session={session} refetchOnWindowFocus={false} refetchInterval={0}>
+    <SessionProvider session={session} refetchOnWindowFocus refetchInterval={0}>
       <TokenHandoffHandler>
         <AuthWrapper>{children}</AuthWrapper>
       </TokenHandoffHandler>

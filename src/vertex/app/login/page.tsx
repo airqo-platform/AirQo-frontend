@@ -22,6 +22,7 @@ import {
   setLoggingOut,
 } from "@/core/redux/slices/userSlice";
 import { getLastActiveModule } from "@/core/utils/userPreferences";
+import { CROSS_TAB_LOGIN_KEY } from "@/core/hooks/useLogout";
 import { ROUTE_LINKS } from "@/core/routes";
 import SocialAuthSection from "@/components/features/auth/social-auth-section";
 import { motion, AnimatePresence } from "framer-motion";
@@ -207,7 +208,14 @@ export default function LoginPage() {
           throw new Error("Could not confirm session. Please try again.");
         }
         showBanner({ severity: 'success', message: 'Welcome back!', scoped: true });
-        
+
+        // Signal other tabs/apps that login occurred
+        try {
+          localStorage.setItem(CROSS_TAB_LOGIN_KEY, String(Date.now()));
+        } catch {
+          // Ignore storage errors
+        }
+
          window.location.replace(result.url || redirectUrl);
       } else {
         let message = "Login failed. Please check your credentials.";
