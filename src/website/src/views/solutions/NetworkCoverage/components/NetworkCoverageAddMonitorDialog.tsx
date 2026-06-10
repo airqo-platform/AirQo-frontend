@@ -1,5 +1,6 @@
 /* eslint-disable simple-import-sort/imports */
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import HCaptcha from '@hcaptcha/react-hcaptcha';
 import { FiX, FiMinus, FiPlus } from 'react-icons/fi';
 
 import { networkCoverageService } from '@/services/apiService';
@@ -57,12 +58,31 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
   });
 
   const dialogRef = useRef<HTMLDivElement | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const errorRef = useRef<HTMLParagraphElement | null>(null);
   const previousActiveElementRef = useRef<HTMLElement | null>(null);
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const captchaRef = useRef<HCaptcha>(null);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  const handleCaptchaVerify = useCallback((token: string) => {
+    setCaptchaToken(token);
+  }, []);
+
+  const handleCaptchaExpire = useCallback(() => {
+    setCaptchaToken(null);
+  }, []);
+
+  useEffect(() => {
+    if (error && errorRef.current && scrollContainerRef.current) {
+      errorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [error]);
 
   useEffect(() => {
     if (isOpen) {
@@ -96,6 +116,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
       setMapVisible(false);
       setError(null);
       setSuccess(null);
+      setCaptchaToken(null);
     }
   }, [isOpen, initialCountryName, initialCountryIso2]);
 
@@ -391,6 +412,11 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
     if (lat < -90 || lat > 90) return 'Latitude must be between -90 and 90';
     if (lon < -180 || lon > 180)
       return 'Longitude must be between -180 and 180';
+    if (!network.trim()) return 'Network is required';
+    if (!operator.trim()) return 'Operator is required';
+    if (!manufacturer.trim()) return 'Manufacturer is required';
+    if (!pollutants.trim()) return 'Pollutants are required';
+    if (!captchaToken) return 'Please complete the captcha verification';
     return null;
   };
 
@@ -445,6 +471,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
           .filter(Boolean);
       if (viewDataUrl.trim()) payload.viewDataUrl = viewDataUrl.trim();
       if (publicData) payload.publicData = publicData;
+      if (captchaToken) payload.captchaToken = captchaToken;
 
       const response =
         await networkCoverageService.upsertNetworkCoverageRegistry(payload);
@@ -458,6 +485,8 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
 
       closeTimeoutRef.current = setTimeout(() => {
         setIsSaving(false);
+        setCaptchaToken(null);
+        captchaRef.current?.resetCaptcha();
         onClose();
         closeTimeoutRef.current = null;
       }, 600);
@@ -503,7 +532,10 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
           </button>
         </div>
 
-        <div className="max-h-[70vh] overflow-y-auto p-4">
+        <div
+          ref={scrollContainerRef}
+          className="max-h-[70vh] overflow-y-auto p-4"
+        >
           <p className="mb-3 text-sm text-slate-600">
             Add a new external monitor to the public registry. Required fields
             are highlighted.
@@ -661,7 +693,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
 
             <label className="block sm:col-span-2">
               <div className="mb-1 text-xs font-semibold text-slate-500">
-                Network
+                Network *
               </div>
               <input
                 value={network}
@@ -672,7 +704,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
 
             <label className="block sm:col-span-2">
               <div className="mb-1 text-xs font-semibold text-slate-500">
-                Operator
+                Operator *
               </div>
               <input
                 value={operator}
@@ -694,7 +726,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
 
             <label className="block">
               <div className="mb-1 text-xs font-semibold text-slate-500">
-                Manufacturer
+                Manufacturer *
               </div>
               <input
                 value={manufacturer}
@@ -705,7 +737,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
 
             <label className="block sm:col-span-2">
               <div className="mb-1 text-xs font-semibold text-slate-500">
-                Pollutants (comma separated)
+                Pollutants (comma separated) *
               </div>
               <input
                 value={pollutants}
@@ -894,10 +926,23 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
             </div>
           )}
 
-          {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+          {error && (
+            <p ref={errorRef} className="mt-3 text-sm text-red-600">
+              {error}
+            </p>
+          )}
           {success && (
             <p className="mt-3 text-sm text-emerald-700">{success}</p>
           )}
+
+          <div className="mt-4">
+            <HCaptcha
+              sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY!}
+              onVerify={handleCaptchaVerify}
+              onExpire={handleCaptchaExpire}
+              ref={captchaRef}
+            />
+          </div>
         </div>
 
         <div className="flex items-center justify-end gap-2 border-t px-4 py-3">
