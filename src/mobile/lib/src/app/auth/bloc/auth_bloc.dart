@@ -4,6 +4,7 @@ import 'package:airqo/src/app/auth/repository/social_auth_repository.dart';
 import 'package:airqo/src/app/auth/services/auth_helper.dart';
 import 'package:airqo/src/app/auth/services/oauth_service.dart';
 import 'package:airqo/src/app/shared/repository/global_auth_manager.dart';
+import 'package:airqo/src/app/shared/repository/token_refresher.dart';
 import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -19,11 +20,14 @@ part 'auth_state.dart';
 class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
   final AuthRepository authRepository;
   final SocialAuthRepository socialAuthRepository;
+  final TokenRefresher _tokenRefresher;
 
   AuthBloc({
     required this.authRepository,
     required this.socialAuthRepository,
-  }) : super(GuestUser()) {
+    TokenRefresher? tokenRefresher,
+  })  : _tokenRefresher = tokenRefresher ?? const DefaultTokenRefresher(),
+        super(GuestUser()) {
     on<AppStarted>(_onAppStarted);
 
     on<LoginUser>(_onLoginUser);
@@ -54,7 +58,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
 
       if (token != null && token.isNotEmpty) {
         emit(AuthLoading());
-        final validToken = await AuthHelper.refreshTokenIfNeeded();
+        final validToken = await _tokenRefresher.refreshTokenIfNeeded();
         if (validToken == null) {
           loggy.warning(
               'Token found on app start but silent refresh failed — treating as session expiry');
