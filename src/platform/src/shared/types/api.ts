@@ -166,7 +166,9 @@ export interface GetPermissionsResponse {
 
 export interface CreateRoleRequest {
   role_name: string;
-  group_id: string;
+  role_code?: string;
+  network_id?: string;
+  group_id?: string;
   role_description?: string;
 }
 
