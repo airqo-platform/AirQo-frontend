@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -73,6 +74,19 @@ void main() {
         })}.';
   }
 
+  String validToken() {
+    String encode(Map<String, dynamic> value) =>
+        base64Url.encode(utf8.encode(jsonEncode(value))).replaceAll('=', '');
+
+    return '${encode({'alg': 'none', 'typ': 'JWT'})}.${encode({
+          'sub': 'user-1',
+          'exp': DateTime.now()
+                  .add(const Duration(hours: 1))
+                  .millisecondsSinceEpoch ~/
+              1000,
+        })}.';
+  }
+
   setUp(() {
     FlutterSecureStorage.setMockInitialValues({});
   });
@@ -125,6 +139,123 @@ void main() {
       expect(storedToken, isNull);
 
       await server.close(force: true);
+      await bloc.close();
+    });
+
+    // The next thing we need is the healthy startup baseline. If the app finds
+    // a still-valid stored token, startup should restore the session instead
+    // of pushing the user into the expiry flow. This gives us the clean
+    // comparison against the failing startup case above.
+    test('emits loading then loaded when startup finds a valid stored session',
+        () async {
+      await SecureStorageRepository.instance.saveSecureData(
+        SecureStorageKeys.authToken,
+        validToken(),
+      );
+
+      final bloc = AuthBloc(
+        authRepository: _FakeAuthRepository(),
+        socialAuthRepository: _FakeSocialAuthRepository(),
+      );
+
+      bloc.add(AppStarted());
+
+      await expectLater(
+        bloc.stream,
+        emitsInOrder([
+          isA<AuthLoading>(),
+          isA<AuthLoaded>().having(
+            (state) => state.authPurpose,
+            'authPurpose',
+            AuthPurpose.login,
+          ),
+        ]),
+      );
+
+      await bloc.close();
+    });
+  });
+
+  group('AuthBloc on SessionExpired', () {
+    // Once another layer has already decided the session is no longer usable,
+    // the auth bloc should perform the same cleanup and fallback sequence the
+    // user would feel in the app: mark the session as expired, then return to
+    // guest mode.
+    test('emits session expired then guest and clears stored auth data',
+        () async {
+      await SecureStorageRepository.instance.saveSecureData(
+        SecureStorageKeys.authToken,
+        validToken(),
+      );
+      await SecureStorageRepository.instance.saveSecureData(
+        SecureStorageKeys.userId,
+        'user-1',
+      );
+
+      final bloc = AuthBloc(
+        authRepository: _FakeAuthRepository(),
+        socialAuthRepository: _FakeSocialAuthRepository(),
+      );
+
+      bloc.add(const SessionExpired());
+
+      await expectLater(
+        bloc.stream,
+        emitsInOrder([
+          isA<SessionExpiredState>(),
+          isA<GuestUser>(),
+        ]),
+      );
+
+      final storedToken = await SecureStorageRepository.instance
+          .getSecureData(SecureStorageKeys.authToken);
+      final storedUserId = await SecureStorageRepository.instance
+          .getSecureData(SecureStorageKeys.userId);
+
+      expect(storedToken, isNull);
+      expect(storedUserId, isNull);
+
+      await bloc.close();
+    });
+  });
+
+  group('AuthBloc on LogoutUser', () {
+    // This is the intentional version of leaving a session. We need it so we
+    // can compare "the user chose to log out" with "the app forced the user
+    // out because it believed the session had expired".
+    test('emits loading then guest and clears stored auth data', () async {
+      await SecureStorageRepository.instance.saveSecureData(
+        SecureStorageKeys.authToken,
+        validToken(),
+      );
+      await SecureStorageRepository.instance.saveSecureData(
+        SecureStorageKeys.userId,
+        'user-1',
+      );
+
+      final bloc = AuthBloc(
+        authRepository: _FakeAuthRepository(),
+        socialAuthRepository: _FakeSocialAuthRepository(),
+      );
+
+      bloc.add(const LogoutUser());
+
+      await expectLater(
+        bloc.stream,
+        emitsInOrder([
+          isA<AuthLoading>(),
+          isA<GuestUser>(),
+        ]),
+      );
+
+      final storedToken = await SecureStorageRepository.instance
+          .getSecureData(SecureStorageKeys.authToken);
+      final storedUserId = await SecureStorageRepository.instance
+          .getSecureData(SecureStorageKeys.userId);
+
+      expect(storedToken, isNull);
+      expect(storedUserId, isNull);
+
       await bloc.close();
     });
   });
