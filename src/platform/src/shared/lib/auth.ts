@@ -12,12 +12,17 @@ const isProduction = process.env.NODE_ENV === 'production';
 const configuredCookieDomain =
   process.env.NEXTAUTH_COOKIE_DOMAIN?.trim() || undefined;
 
+if (isProduction && !process.env.NEXTAUTH_URL && !process.env.AUTH_TRUST_HOST) {
+  process.env.AUTH_TRUST_HOST = 'true';
+  console.warn('[NextAuth] WARNING: NEXTAUTH_URL is missing. Dynamic host detection will be used.');
+}
+
 const getCookieDomain = () => {
   if (!configuredCookieDomain) {
     return undefined;
   }
 
-  const referenceUrl = process.env.NEXTAUTH_URL;
+  const referenceUrl = process.env.NEXTAUTH_URL || process.env.NEXTAUTH_URL_INTERNAL;
   if (!referenceUrl) {
     return configuredCookieDomain;
   }
@@ -39,10 +44,10 @@ const getCookieDomain = () => {
     return undefined;
   } catch {
     console.warn(
-      '[NextAuth] Invalid NEXTAUTH_URL while validating cookie domain; disabling cookie domain override.',
+      '[NextAuth] Invalid NEXTAUTH_URL while validating cookie domain; using configured cookie domain.',
       { configuredCookieDomain, referenceUrl }
     );
-    return undefined;
+    return configuredCookieDomain;
   }
 };
 
@@ -135,7 +140,7 @@ const normalizeAuthMethods = (value: unknown): AuthMethods | undefined => {
 };
 
 export const authOptions: any = {
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
   useSecureCookies: isProduction,
   providers: [
     CredentialsProvider({

@@ -2,21 +2,38 @@ import NextAuth from 'next-auth';
 import { options } from './options';
 import type { NextRequest } from 'next/server';
 
-const getRequestOrigin = (req: NextRequest) => {
-  const forwardedProto = req.headers.get('x-forwarded-proto') || 'https';
-  const forwardedHost = req.headers.get('x-forwarded-host');
-  const host = forwardedHost || req.headers.get('host');
+const VALID_PROTOCOLS = new Set(['http:', 'https:']);
+
+const sanitizeHeaderValue = (value: string): string | null => {
+  const first = value.split(',')[0].trim();
+  if (!first || /[\/\n\r\x00]/.test(first)) {
+    return null;
+  }
+  return first;
+};
+
+const getRequestOrigin = (req: NextRequest): string | null => {
+  const protoRaw = req.headers.get('x-forwarded-proto');
+  const proto = protoRaw ? sanitizeHeaderValue(protoRaw) : null;
+  const effectiveProto = proto && VALID_PROTOCOLS.has(`${proto}:`) ? proto : 'https';
+
+  const hostRaw = req.headers.get('x-forwarded-host') || req.headers.get('host');
+  const host = hostRaw ? sanitizeHeaderValue(hostRaw) : null;
 
   if (!host) {
     return null;
   }
 
-  return `${forwardedProto}://${host}`;
+  return `${effectiveProto}://${host}`;
 };
 
 const handler = NextAuth(options);
 
 const setRuntimeAuthUrls = (req: NextRequest) => {
+  if (process.env.NEXTAUTH_URL) {
+    return;
+  }
+
   const requestOrigin = getRequestOrigin(req);
 
   if (requestOrigin) {
