@@ -61,7 +61,7 @@ export const resolveApiOrigin = (): string => {
   const normalizedOrigin = stripApiSuffix(configuredBaseUrl);
   if (!normalizedOrigin) {
     throw new Error(
-      'API base URL is not defined. Set NEXT_PUBLIC_API_URL or API_BASE_URL in environment variables.'
+      'API base URL is not defined. Set NEXT_PUBLIC_API_BASE_URL or NEXT_PUBLIC_API_URL (client) and/or API_BASE_URL (server) in environment variables.'
     );
   }
 
