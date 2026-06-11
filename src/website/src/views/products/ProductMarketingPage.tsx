@@ -199,8 +199,8 @@ const ProductSpotlight = ({
             {section.title}
           </h3>
           <div className="space-y-4 text-lg text-gray-700">
-            {section.description.map((paragraph) => (
-              <p key={paragraph}>{paragraph}</p>
+            {section.description.map((paragraph, idx) => (
+              <p key={idx}>{paragraph}</p>
             ))}
           </div>
 

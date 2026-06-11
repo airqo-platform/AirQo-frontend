@@ -538,11 +538,11 @@ export const METADATA_CONFIGS = {
       'AirQo Vertex, device deployment platform, public air quality data sharing, open sensor network, multi-manufacturer support, sensor onboarding, air quality device maintenance, air monitoring data sharing',
     url: '/products/vertex',
     image: {
-      url: '/assets/images/products/vertex/vertex-dashboard-showcase.png',
+      url: '/assets/images/products/vertex/vertex-dashboard-showcase.webp',
       alt: 'AirQo Vertex open device deployment and public data sharing platform',
-      width: 1200,
-      height: 630,
-      type: 'image/png',
+      width: 1672,
+      height: 941,
+      type: 'image/webp',
     },
   },
   aiPlatform: {
@@ -554,11 +554,11 @@ export const METADATA_CONFIGS = {
       'AirQo AI Platform, air quality forecasting, environmental intelligence platform, sensor site selection, air quality reports, site categorization, spatial analysis, PM2.5 forecasting, AI for air quality',
     url: '/products/ai-platform',
     image: {
-      url: '/assets/images/products/ai-platform/ai-platform-dashboard-showcase.png',
-      alt: 'AirQo AI Platform environmental intelligence dashboard',
-      width: 1200,
-      height: 630,
-      type: 'image/png',
+      url: '/assets/images/products/ai-platform/ai-platform-forecast-showcase.webp',
+      alt: 'AirQo AI Platform map with a selected monitoring node and forecast details for the chosen location',
+      width: 1448,
+      height: 1086,
+      type: 'image/webp',
     },
   },
   airqoDevCon: {
