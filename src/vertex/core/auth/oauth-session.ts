@@ -3,6 +3,7 @@ import { buildServerApiUrl } from "@/lib/api-routing";
 const OAUTH_FRAGMENT_TOKEN_KEY = 'token';
 const OAUTH_SUCCESS_PROVIDER_KEY = 'success';
 const LAST_USED_OAUTH_PROVIDER_KEY = 'vertex:last-oauth-provider';
+const OAUTH_SIGNED_OUT_FLAG = 'vertex:oauth-signed-out';
 
 export const SUPPORTED_SOCIAL_AUTH_PROVIDERS = [
   'google',
@@ -66,6 +67,30 @@ export const setLastUsedOAuthProvider = (
   }
 
   localStorage.setItem(LAST_USED_OAUTH_PROVIDER_KEY, provider);
+};
+
+export const shouldSkipBackendOAuthBootstrap = (): boolean => {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  return localStorage.getItem(OAUTH_SIGNED_OUT_FLAG) === 'true';
+};
+
+export const clearBackendOAuthSignedOutFlag = (): void => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  localStorage.removeItem(OAUTH_SIGNED_OUT_FLAG);
+};
+
+export const setBackendOAuthSignedOutFlag = (): void => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  localStorage.setItem(OAUTH_SIGNED_OUT_FLAG, 'true');
 };
 
 export interface OAuthTokenHandoff {
