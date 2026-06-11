@@ -1,4 +1,5 @@
 import 'package:airqo/src/app/auth/pages/login_page.dart';
+import 'package:airqo/src/app/profile/pages/guest_profile_page.dart';
 import 'package:airqo/src/app/profile/pages/profile_page.dart';
 import 'package:airqo/src/app/shared/widgets/translated_tooltip.dart';
 import 'package:flutter/material.dart';
@@ -72,37 +73,22 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   Widget _buildGuestAvatar(BuildContext context) {
-    return TranslatedTooltip(
-      message: "Sign in or create an account",
-      preferBelow: true,
-      verticalOffset: 20,
-      showDuration: Duration(seconds: 2),
-      triggerMode: TooltipTriggerMode.tap,
-      decoration: BoxDecoration(
-        color: Colors.black87,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      textStyle: TextStyle(
-        color: Colors.white,
-        fontSize: 12,
-      ),
-      child: GestureDetector(
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => LoginPage(),
-            ),
-          );
-        },
-        child: CircleAvatar(
-          backgroundColor: Theme.of(context).highlightColor,
-          radius: 24,
-          child: Center(
-            child: SvgPicture.asset(
-              "assets/icons/user_icon.svg",
-              height: 22,
-              width: 22,
-            ),
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => const GuestProfilePage(),
+          ),
+        );
+      },
+      child: CircleAvatar(
+        backgroundColor: Theme.of(context).highlightColor,
+        radius: 24,
+        child: Center(
+          child: SvgPicture.asset(
+            "assets/icons/user_icon.svg",
+            height: 22,
+            width: 22,
           ),
         ),
       ),
