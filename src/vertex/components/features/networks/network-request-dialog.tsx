@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Form, FormField } from "@/components/ui/form";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
+import { HCaptchaWidget, HCaptchaWidgetHandle } from "@/components/ui/hcaptcha-widget";
 import { networkRequestSchema, NetworkRequestValues } from "./schema";
 import { useAppSelector } from "@/core/redux/hooks";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
@@ -23,13 +24,15 @@ export function NetworkRequestDialog({ open, onOpenChange }: NetworkRequestDialo
     const queryClient = useQueryClient();
     const { showBanner } = useBanner();
     const { showBannerWithDelay } = useBannerWithDelay();
+    const [captchaToken, setCaptchaToken] = useState("");
+    const captchaRef = useRef<HCaptchaWidgetHandle>(null);
 
     const { mutate: submitRequest, isPending } = useMutation({
         mutationFn: async (data: NetworkRequestValues) => {
             const response = await fetch("/api/devices/network-creation-requests", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data),
+                body: JSON.stringify({ ...data, captchaToken }),
             });
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ message: "Request failed" }));
@@ -44,8 +47,10 @@ export function NetworkRequestDialog({ open, onOpenChange }: NetworkRequestDialo
             queryClient.invalidateQueries({ queryKey: ["network-requests"] });
             showBannerWithDelay({ severity: 'success', message: resp.message || "Your request for a new Sensor Manufacturer has been submitted successfully!", scoped: true });
         },
-        onError: (error) => {            
+        onError: (error) => {
             showBanner({ severity: 'error', message: getApiErrorMessage(error), scoped: true });
+            setCaptchaToken("");
+            captchaRef.current?.reset();
         },
     });
 
@@ -78,6 +83,8 @@ export function NetworkRequestDialog({ open, onOpenChange }: NetworkRequestDialo
     const handleClose = useCallback(() => {
         onOpenChange(false);
         form.reset();
+        setCaptchaToken("");
+        captchaRef.current?.reset();
     }, [form, onOpenChange]);
 
     const onSubmit = (values: NetworkRequestValues) => {
@@ -102,7 +109,7 @@ export function NetworkRequestDialog({ open, onOpenChange }: NetworkRequestDialo
             primaryAction={{
                 label: isPending ? "Submitting..." : "Submit Request",
                 onClick: form.handleSubmit(onSubmit),
-                disabled: isPending,
+                disabled: isPending || !captchaToken,
             }}
             secondaryAction={{
                 label: "Cancel",
@@ -217,6 +224,11 @@ export function NetworkRequestDialog({ open, onOpenChange }: NetworkRequestDialo
                             )} 
                         />
                     </div>
+                    <HCaptchaWidget
+                        ref={captchaRef}
+                        onVerify={(token) => setCaptchaToken(token)}
+                        onExpire={() => setCaptchaToken("")}
+                    />
                 </form>
             </Form>
         </ReusableDialog>
