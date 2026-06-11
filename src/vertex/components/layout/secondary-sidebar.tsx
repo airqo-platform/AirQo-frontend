@@ -50,7 +50,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   activeModule,
   onNavigate,
 }) => {
-  const { getContextPermissions, isExternalOrg } =
+  const { getContextPermissions, isExternalOrg, isPersonalContext } =
     useUserContext();
   const contextPermissions = getContextPermissions();
   const pathname = usePathname();
@@ -143,6 +143,18 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                     isCollapsed={isCollapsed}
                     onClick={onNavigate}
                   />
+                  {isPersonalContext && (
+                    <NavItem
+                      item={{
+                        href: ROUTE_LINKS.MY_SITES,
+                        icon: AqMarkerPin01,
+                        label: 'My Sites',
+                        disabled: false,
+                      }}
+                      isCollapsed={isCollapsed}
+                      onClick={onNavigate}
+                    />
+                  )}
 
                   <SidebarSectionHeading isCollapsed={isCollapsed}>
                     Data Access & Visibility

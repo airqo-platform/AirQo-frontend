@@ -262,6 +262,29 @@ export const sites = {
     }
   },
 
+  getMySites: async (
+    userId: string,
+    groupIds?: string[],
+    cohortIds?: string[]
+  ): Promise<SitesSummaryResponse> => {
+    try {
+      const params = new URLSearchParams({ user_id: userId, tenant: "airqo" });
+      if (groupIds && groupIds.length > 0) {
+        params.append("group_ids", groupIds.join(","));
+      }
+      if (cohortIds && cohortIds.length > 0) {
+        params.append("cohort_ids", cohortIds.join(","));
+      }
+      const response = await createSecureApiClient().get<SitesSummaryResponse>(
+        `/devices/sites/my-sites?${params.toString()}`,
+        { headers: { "X-Auth-Type": "JWT" } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   refreshSiteMetadata: async (siteId: string): Promise<SiteRefreshResponse> => {
     try {
       const response = await createSecureApiClient().put<SiteRefreshResponse>(

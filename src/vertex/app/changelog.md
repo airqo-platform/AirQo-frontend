@@ -4,6 +4,39 @@
 
 ---
 
+## Version 2.0.5
+**Released:** June 11, 2026
+
+### My Sites Page — Personal Context
+
+Introduced a dedicated **My Sites** page for users operating in a Personal Context, mirroring the existing My Devices flow to ensure consistent behavior across personal assets.
+
+<details>
+<summary><strong>Changes (6)</strong></summary>
+
+- **API**: Added `getMySites(userId, groupIds?, cohortIds?)` to the `sites` API object. Calls `GET /devices/sites/my-sites` with `user_id`, `group_ids` (comma-separated), `cohort_ids` (comma-separated), and `tenant=airqo` query params. Returns `SitesSummaryResponse`. Header `X-Auth-Type: JWT` included.
+- **Adapter type**: Added `getMySites: typeof sites.getMySites` to the `VertexAdapter` interface so the method is correctly typed through the adapter layer.
+- **Hook**: Added `useMySites(userId, organizationId?, options?)` to `useSites.ts`, mirroring `useMyDevices` exactly. Imports `usePersonalUserCohorts` to resolve personal cohort IDs; filters `userDetails.groups` to exclude the "airqo" group when building `groupIds`; falls back to `userDetails.cohort_ids` if no personal cohorts are found. Query key includes `userId`, `organizationId || activeGroup?._id`, `groupIds`, and `cohortIds`.
+- **Route**: Added `MY_SITES: '/sites/my-sites'` to `ROUTE_LINKS` in `routes.ts`.
+- **Sidebar**: Destructured `isPersonalContext` from `useUserContext()` in `secondary-sidebar.tsx`. Added a "My Sites" `NavItem` (icon: `AqMarkerPin01`) under the "Personal assets" section, rendered only when `isPersonalContext === true` (i.e. the user's active group is the `airqo` group). Remains hidden when the user has switched to an external organisation context.
+- **Page**: Created `my-sites/page.tsx` with `RouteGuard` (`PERMISSIONS.SITE.VIEW`), status filter badge, client-side filtering on `rawOnlineStatus`/`isOnline`, `ClientPaginatedSitesTable` with `multiSelect`, `CreateSiteForm` with `basePath="/sites"` to prevent non-admin users being routed to `/admin/sites` after creation, and an error state card with retry.
+
+</details>
+
+<details>
+<summary><strong>Files Updated (6)</strong></summary>
+
+- `src/vertex/core/apis/sites.ts` [MODIFIED]
+- `src/vertex/core/adapters/types.ts` [MODIFIED]
+- `src/vertex/core/hooks/useSites.ts` [MODIFIED]
+- `src/vertex/core/routes.ts` [MODIFIED]
+- `src/vertex/components/layout/secondary-sidebar.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/sites/my-sites/page.tsx` [NEW]
+
+</details>
+
+---
+
 ## Version 2.0.4
 **Released:** June 11, 2026
 
