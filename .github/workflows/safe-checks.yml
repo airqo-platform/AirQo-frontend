@@ -31,8 +31,7 @@ jobs:
         run: |
           git fetch origin ${{ github.base_ref }}
           git diff --name-only \
-            origin/${{ github.base_ref }} \
-            ${{ github.event.pull_request.head.sha }} > files.txt
+            origin/${{ github.base_ref }}...${{ github.event.pull_request.head.sha }} > files.txt
           cat files.txt
 
           echo "website=false"   >> $GITHUB_OUTPUT

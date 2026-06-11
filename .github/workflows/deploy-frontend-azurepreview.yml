@@ -64,13 +64,11 @@ jobs:
           echo "=============== list modified files ==============="
           git fetch origin ${{ github.base_ref }}
           git diff --name-only \
-            origin/${{ github.base_ref }} \
-            ${{ github.event.pull_request.head.sha }}
+            origin/${{ github.base_ref }}...${{ github.event.pull_request.head.sha }}
 
           echo "========== check paths of modified files =========="
           git diff --name-only \
-            origin/${{ github.base_ref }} \
-            ${{ github.event.pull_request.head.sha }} > files.txt
+            origin/${{ github.base_ref }}...${{ github.event.pull_request.head.sha }} > files.txt
 
           echo "run_calibrate_app=false" >>$GITHUB_OUTPUT
           echo "run_analytics_platform=false" >>$GITHUB_OUTPUT
