@@ -5,7 +5,7 @@
 ---
 
 ## Version 2.0.3
-**Released:** June 10, 2026
+**Released:** June 11, 2026
 
 ### Resilient API Routing & Social Auth Safety Fixes
 
