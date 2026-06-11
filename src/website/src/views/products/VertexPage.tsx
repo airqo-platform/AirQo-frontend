@@ -32,7 +32,7 @@ const VertexPage = () => {
         description:
           'Vertex helps organizations and device owners add monitors, manage visibility, and share public air quality data through AirQo without vendor lock-in.',
         image: {
-          src: '/assets/images/products/vertex/vertex-dashboard-showcase.png',
+          src: '/assets/images/products/vertex/bring-device.webp',
           alt: 'Vertex device health and visibility dashboard product showcase',
         },
       }}
@@ -57,7 +57,7 @@ const VertexPage = () => {
           'That makes it easier to move from private device ownership to broader public contribution without losing operational control.',
         ],
         image: {
-          src: '/assets/images/products/vertex/vertex-network-render.png',
+          src: '/assets/images/products/vertex/application-1.webp',
           alt: 'Vertex network render showing connected devices across a mapped region',
         },
         cardBackgroundClassName: 'bg-[#EDF5FF]',
@@ -153,7 +153,7 @@ const VertexPage = () => {
           'This is what makes the platform useful beyond onboarding alone: it links deployment, public visibility, and future data reuse in one place.',
         ],
         image: {
-          src: '/assets/images/products/vertex/vertex-dashboard-showcase.png',
+          src: '/assets/images/products/vertex/vertex-dashboard-showcase.webp',
           alt: 'Vertex application interface with device health and visibility sections',
         },
         cardBackgroundClassName: 'bg-[#EEF8F1]',

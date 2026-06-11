@@ -32,7 +32,7 @@ const BeaconPage = () => {
         description:
           'Beacon gives operations and engineering teams a clearer view of device health, deployment status, uptime, and collocation quality across distributed air quality sensor networks.',
         image: {
-          src: '/assets/images/products/beacon/beacon-device-render.png',
+          src: '/assets/images/products/beacon/beacon-device-render.webp',
           alt: 'Beacon hardware device render mounted under a solar panel',
         },
       }}
@@ -152,7 +152,7 @@ const BeaconPage = () => {
           'It also supports broader operational review by making health logs and recurring performance issues easier to interpret over time.',
         ],
         image: {
-          src: '/assets/images/products/beacon/beacon-device-render.png',
+          src: '/assets/images/products/beacon/person-call.webp',
           alt: 'Beacon hardware render used on the product page',
         },
         cardBackgroundClassName: 'bg-[#FFF7E8]',
