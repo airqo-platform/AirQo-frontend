@@ -43,6 +43,8 @@ jobs:
 
   check:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
     outputs:
       run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }}
       run_analytics_platform: ${{ steps.check_files.outputs.run_analytics_platform }}
