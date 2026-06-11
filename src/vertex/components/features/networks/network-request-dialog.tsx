@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -13,6 +13,7 @@ import { useAppSelector } from "@/core/redux/hooks";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import { useBanner } from "@/context/banner-context";
 import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
+import { isHCaptchaEnabled } from "@/lib/envConstants";
 
 interface NetworkRequestDialogProps {
     open: boolean;
@@ -26,13 +27,14 @@ export function NetworkRequestDialog({ open, onOpenChange }: NetworkRequestDialo
     const { showBannerWithDelay } = useBannerWithDelay();
     const [captchaToken, setCaptchaToken] = useState("");
     const captchaRef = useRef<HCaptchaWidgetHandle>(null);
+    const hcaptchaEnabled = useMemo(() => isHCaptchaEnabled(), []);
 
     const { mutate: submitRequest, isPending } = useMutation({
         mutationFn: async (data: NetworkRequestValues) => {
             const response = await fetch("/api/devices/network-creation-requests", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...data, captchaToken }),
+                body: JSON.stringify({ ...data, ...(hcaptchaEnabled && { captchaToken }) }),
             });
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ message: "Request failed" }));
@@ -109,7 +111,7 @@ export function NetworkRequestDialog({ open, onOpenChange }: NetworkRequestDialo
             primaryAction={{
                 label: isPending ? "Submitting..." : "Submit Request",
                 onClick: form.handleSubmit(onSubmit),
-                disabled: isPending || !captchaToken,
+                disabled: isPending || (hcaptchaEnabled && !captchaToken),
             }}
             secondaryAction={{
                 label: "Cancel",
@@ -224,11 +226,13 @@ export function NetworkRequestDialog({ open, onOpenChange }: NetworkRequestDialo
                             )} 
                         />
                     </div>
-                    <HCaptchaWidget
-                        ref={captchaRef}
-                        onVerify={(token) => setCaptchaToken(token)}
-                        onExpire={() => setCaptchaToken("")}
-                    />
+                    {hcaptchaEnabled ? (
+                        <HCaptchaWidget
+                            ref={captchaRef}
+                            onVerify={(token) => setCaptchaToken(token)}
+                            onExpire={() => setCaptchaToken("")}
+                        />
+                    ) : null}
                 </form>
             </Form>
         </ReusableDialog>
