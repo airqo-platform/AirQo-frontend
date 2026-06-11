@@ -257,5 +257,31 @@ export function createErrorMessageGetter(
   return (error: unknown) => getUserFriendlyErrorMessage(error, customMappings);
 }
 
+/**
+ * Check if an error is a 403 Forbidden error
+ * @param error - The error object to check
+ * @returns true if the error is a 403 Forbidden error
+ */
+export function isForbiddenError(error: unknown): boolean {
+  if (!error) return false;
+
+  // Check Axios errors
+  if ((error as AxiosError).isAxiosError || (error as AxiosError).response) {
+    return (error as AxiosError).response?.status === 403;
+  }
+
+  // Check Error objects with status property
+  if (error instanceof Error && 'status' in error) {
+    return (error as Error & { status: number }).status === 403;
+  }
+
+  // Check plain objects with status property
+  if (typeof error === 'object' && error !== null && 'status' in error) {
+    return (error as { status: number }).status === 403;
+  }
+
+  return false;
+}
+
 // Export default mappings for reference
 export { DEFAULT_ERROR_MAPPINGS };

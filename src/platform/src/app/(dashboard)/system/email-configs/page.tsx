@@ -29,7 +29,8 @@ import { useUser } from '@/shared/hooks';
 import { applicationEmailConfigService } from '@/shared/services';
 import type { ApplicationEmailConfiguration } from '@/shared/types/api';
 import { formatDate } from '@/shared/utils';
-import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import { getUserFriendlyErrorMessage, isForbiddenError } from '@/shared/utils/errorMessages';
+import { AccessDenied } from '@/shared/components/AccessDenied';
 import { sanitizeErrorForLogging } from '@/shared/utils/sanitizeErrorForLogging';
 
 type EmailConfigMode = 'replace' | 'add' | 'remove';
@@ -553,6 +554,12 @@ const EmailConfigContent: React.FC = () => {
       accessDeniedTitle="Access Restricted"
       accessDeniedMessage="You need the SUPER_ADMIN permission and an @airqo.net super-admin account to manage email configs."
     >
+      {isForbiddenError(error) ? (
+        <AccessDenied
+          title="Access Denied"
+          message="You do not have the required permissions to view email configurations."
+        />
+      ) : (
       <div className="space-y-6">
         <PageHeading
           title="Email Configuration"
@@ -782,6 +789,7 @@ const EmailConfigContent: React.FC = () => {
           </div>
         </Dialog>
       </div>
+      )}
     </PermissionGuard>
   );
 };

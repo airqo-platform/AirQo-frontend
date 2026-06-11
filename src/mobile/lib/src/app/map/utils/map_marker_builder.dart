@@ -3,6 +3,7 @@ import 'package:airqo/src/app/map/utils/map_aq_presentation.dart';
 import 'package:airqo/src/meta/utils/utils.dart';
 import 'package:airqo/src/meta/utils/widget_to_map_icon.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/painting.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class MapMarkerBuilder {
@@ -39,7 +40,10 @@ class MapMarkerBuilder {
 
     return Marker(
       onTap: () => onTap(measurement),
-      icon: await bitmapDescriptorFromSvgAsset(resolvedPath),
+      icon: await bitmapDescriptorFromSvgAsset(
+        resolvedPath,
+        const Size(10, 10),
+      ),
       position: LatLng(
         measurement.siteDetails!.approximateLatitude!,
         measurement.siteDetails!.approximateLongitude!,

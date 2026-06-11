@@ -39,7 +39,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   return (
     <>
       {/* Full-screen loading overlay during logout */}
-      <LoadingOverlay isVisible={isLoggingOut} />
+      <LoadingOverlay isVisible={isLoggingOut} delayMs={0} />
 
       {!isLoggingOut && (
         <>

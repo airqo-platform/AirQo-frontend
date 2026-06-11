@@ -7,37 +7,31 @@
 ## Version 2.0.2
 **Released:** June 10, 2026
 
-### Resilient API Routing & Social Auth Safety Fixes
+### Site Management Banner Migration
 
-This release aligns the Vertex application's social login and API routing behavior with the more robust patterns used in the platform project, creating a significant safety net around our authentication flow and API communication.
+Migrated all user-facing notifications in the Site Management module from `ReusableToast` and Sonner `toast` to the centralized `useBanner` / `useBannerWithDelay` / `useClipboard` system.
 
 <details>
-<summary><strong>Resilient API Routing (2)</strong></summary>
+<summary><strong>Changes (4)</strong></summary>
 
-- **Multi-Fallback Routing**: Replaced single-variable URL concatenation (`getApiBaseUrl()`) with `resolveApiOrigin()` and `resolveVersionedApiPath()`. The app now automatically scans multiple environment variables (`API_BASE_URL`, `NEXT_PUBLIC_API_BASE_URL`, `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_BASE_URL`) before failing.
-- **Suffix Stripping**: Implemented automatic `/api/v2` suffix stripping to prevent duplicate path segments caused by slight CI/CD misconfigurations.
+- **Hooks Decoupled**: Removed `ReusableToast` from 4 mutation hooks in `useSites.ts` — `useApproximateCoordinates`, `useUpdateSiteDetails`, `useCreateSite`, `useRefreshSiteMetadata` — and replaced with optional `onSuccess`/`onError` callback interfaces. Cache invalidation logic stays in the hooks; notification responsibility is delegated to the UI layer.
+- **Create & Edit Dialogs**: `create-site-form.tsx` wires `useCreateSite` and `useApproximateCoordinates` hook-level callbacks — errors use `scoped: true` (inline in dialog), site creation success uses `showBannerWithDelay` (`scoped: false`) after navigation fires. `edit-site-details-dialog.tsx` replaces 2 Sonner `toast.error` calls with `showBanner` (`scoped: true`) and routes mutation success/error through hook-level callbacks.
+- **Site Detail Pages**: Both `admin/sites/[id]/page.tsx` and `sites/[id]/page.tsx` wire `useRefreshSiteMetadata` with severity-aware banners (`scoped: false`): `warning` for partial refresh, `info` for already-complete, `success` for full refresh. The duplicated banner logic has been extracted into a shared `useRefreshMetadataWithBanner` hook.
+- **In-Page Copy Actions**: `site-information-card.tsx` and `site-measurements-api-card.tsx` replace clipboard `ReusableToast` calls with the shared `useClipboard` hook, adding async error handling for free.
 
 </details>
 
 <details>
-<summary><strong>Social Authentication Fixes (3)</strong></summary>
+<summary><strong>Files Updated (8)</strong></summary>
 
-- **Sign-Out Safety Flag**: Added the `OAUTH_SIGNED_OUT_FLAG` pattern to prevent "phantom token" bootstrapping if a user signs out and uses the browser back button to navigate to an old OAuth callback URL. The flag is explicitly cleared on the next intentional login to prevent redirect loops.
-- **Google Account Picker**: Explicitly injected `prompt=select_account` into the Google OAuth initialization query parameters to prevent Google from silently logging users back into their active browser session.
-- **Fail-Open Render Guard**: Removed the silent render guard from the Social Auth component. The buttons will now always render and gracefully handle URL resolution errors by displaying a UI banner rather than mysteriously vanishing.
-
-</details>
-
-<details>
-<summary><strong>Files Modified (7)</strong></summary>
-
-- `lib/envConstants.ts` [MODIFIED]
-- `lib/api-routing.ts` [MODIFIED]
-- `vertex.config.ts` [MODIFIED]
-- `components/features/auth/social-auth-section.tsx` [MODIFIED]
-- `core/auth/oauth-session.ts` [MODIFIED]
-- `core/auth/authProvider.tsx` [MODIFIED]
-- `core/hooks/useLogout.ts` [MODIFIED]
+- `src/vertex/core/hooks/useSites.ts` [MODIFIED]
+- `src/vertex/components/features/sites/create-site-form.tsx` [MODIFIED]
+- `src/vertex/components/features/sites/edit-site-details-dialog.tsx` [MODIFIED]
+- `src/vertex/components/features/sites/site-information-card.tsx` [MODIFIED]
+- `src/vertex/components/features/sites/site-measurements-api-card.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/admin/sites/[id]/page.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/sites/[id]/page.tsx` [MODIFIED]
+- `src/vertex/core/hooks/useRefreshMetadataWithBanner.ts` [ADDED]
 
 </details>
 
