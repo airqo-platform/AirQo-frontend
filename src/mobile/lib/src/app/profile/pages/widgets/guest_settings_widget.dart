@@ -40,7 +40,16 @@ class _GuestSettingsWidgetState extends State<GuestSettingsWidget> {
       if (!serviceEnabled) {
         await Geolocator.openLocationSettings();
         serviceEnabled = await Geolocator.isLocationServiceEnabled();
-        if (!serviceEnabled) return;
+        if (!serviceEnabled) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: TranslatedText('Location services still disabled.'),
+              ),
+            );
+          }
+          return;
+        }
       }
 
       LocationPermission permission = await Geolocator.checkPermission();

@@ -21,11 +21,15 @@ class _GuestAboutPageState extends State<GuestAboutPage> {
   }
 
   Future<void> _loadVersion() async {
-    final info = await PackageInfo.fromPlatform();
-    if (mounted) {
-      setState(() {
-        _appVersion = '${info.version}(${info.buildNumber})';
-      });
+    try {
+      final info = await PackageInfo.fromPlatform();
+      if (mounted) {
+        setState(() {
+          _appVersion = '${info.version}(${info.buildNumber})';
+        });
+      }
+    } catch (_) {
+      // Version unavailable; page renders without it
     }
   }
 
