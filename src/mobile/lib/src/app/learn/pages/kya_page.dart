@@ -183,6 +183,8 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
         final stage = LearnCatalog.currentStage(courses, _progress);
         final completed = LearnCatalog.catalogCompletedLessons(courses, _progress);
         final total = LearnCatalog.catalogTotalLessons(courses);
+        final points = _progress.totalPoints(courses);
+        final maxPoints = _progress.maxPoints(courses);
 
         return CustomScrollView(
           slivers: [
@@ -191,6 +193,8 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
                 stage: stage,
                 completedLessons: completed,
                 totalLessons: total,
+                earnedPoints: points,
+                maxPoints: maxPoints,
               ),
             ),
             SliverToBoxAdapter(

@@ -1,5 +1,6 @@
 import 'package:airqo/src/app/learn/models/learn_lesson_continuation.dart';
 import 'package:airqo/src/app/learn/models/lesson_response_model.dart';
+import 'package:airqo/src/app/learn/services/learn_lesson_experience_service.dart';
 import 'package:airqo/src/app/learn/services/learn_progress_service.dart';
 
 class LearnLessonSlot {
@@ -17,13 +18,8 @@ class LearnLessonSlot {
 
   bool get hasContent => apiLesson != null && apiLesson!.tasks.isNotEmpty;
 
-  int get stepCount => apiLesson?.tasks.length ?? 0;
-
-  /// Planned activities when API content is not bound yet.
-  static const defaultActivityCount = 3;
-
-  int get activityCount =>
-      stepCount > 0 ? stepCount : defaultActivityCount;
+  /// Scripted demo flow activity count.
+  int get activityCount => LearnLessonExperienceService.demoActivityCount;
 }
 
 class LearnUnitViewModel {
@@ -347,13 +343,21 @@ class LearnCatalog {
   ) {
     if (!isUnitUnlocked(course, unitIndex, progress)) return false;
     if (!isLessonUnlocked(unit, lessonIndex, progress)) return false;
-    return unit.lessons[lessonIndex].hasContent;
+    return true;
   }
 
   static LearnStageInfo currentStage(
     List<LearnCourseViewModel> courses,
     LearnProgressService progress,
   ) {
+    final maxPts = progress.maxPoints(courses);
+    final pts = progress.totalPoints(courses);
+    if (maxPts > 0 && pts > 0) {
+      final ratio = pts / maxPts;
+      final idx = (ratio * stages.length).floor().clamp(0, stages.length - 1);
+      return stages[idx];
+    }
+
     final total = courses.fold(0, (s, c) => s + c.totalLessons);
     final done = courses.fold(0, (s, c) => s + c.completedLessons(progress));
     if (total == 0) return stages.first;
@@ -406,20 +410,21 @@ class LearnCatalog {
   static LearnLessonContinuation? continuationFor(
     LearnCourseViewModel course,
     LearnUnitViewModel unit,
+    int unitIndex,
     int lessonIndex,
     List<LearnCourseViewModel> allCourses,
   ) {
     if (lessonIndex + 1 < unit.lessons.length) {
       final next = unit.lessons[lessonIndex + 1];
-      if (!next.hasContent) return null;
       return LearnLessonContinuation(
-        nextLesson: next.apiLesson!,
-        nextProgressKey: next.catalogId,
+        nextSlot: next,
         unitPlainTitle: unit.plainTitleKey,
         courseTitle: course.title,
         lessonNumberInUnit: lessonIndex + 2,
         lessonsInUnit: unit.lessons.length,
         learnCourseId: course.id,
+        unitIndex: unitIndex,
+        lessonIndex: lessonIndex + 1,
       );
     }
     return null;

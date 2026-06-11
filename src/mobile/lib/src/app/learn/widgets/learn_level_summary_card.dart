@@ -8,12 +8,16 @@ class LearnLevelSummaryCard extends StatefulWidget {
   final LearnStageInfo stage;
   final int completedLessons;
   final int totalLessons;
+  final int earnedPoints;
+  final int maxPoints;
 
   const LearnLevelSummaryCard({
     super.key,
     required this.stage,
     required this.completedLessons,
     required this.totalLessons,
+    this.earnedPoints = 0,
+    this.maxPoints = 0,
   });
 
   @override
@@ -26,9 +30,11 @@ class _LearnLevelSummaryCardState extends State<LearnLevelSummaryCard> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final progress = widget.totalLessons > 0
-        ? widget.completedLessons / widget.totalLessons
-        : 0.0;
+    final progress = widget.maxPoints > 0
+        ? widget.earnedPoints / widget.maxPoints
+        : widget.totalLessons > 0
+            ? widget.completedLessons / widget.totalLessons
+            : 0.0;
     final iconBg =
         isDark ? AppColors.darkThemeBackground : const Color(0xffF0F4FF);
     final stages = LearnCatalog.stages;
@@ -90,7 +96,9 @@ class _LearnLevelSummaryCardState extends State<LearnLevelSummaryCard> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     TranslatedText(
-                      '${widget.completedLessons} / ${widget.totalLessons} lessons',
+                      widget.maxPoints > 0
+                          ? '${widget.earnedPoints} / ${widget.maxPoints} points'
+                          : '${widget.completedLessons} / ${widget.totalLessons} lessons',
                       style: LearnDesignTokens.activitySubtitle(context),
                     ),
                     TranslatedText(

@@ -12,6 +12,10 @@ class LearnProgressService {
   static const _stepPrefix = 'learn_step_';
   static const _completePrefix = 'learn_complete_';
   static const _courseDemoKey = 'learn_course_demo_shown_';
+  static const _starsPrefix = 'learn_stars_';
+  static const _pointsPrefix = 'learn_points_';
+  static const _quizScorePrefix = 'learn_quiz_score_';
+  static const _freeTextPrefix = 'learn_free_text_';
 
   final ValueNotifier<int> revision = ValueNotifier(0);
   SharedPreferences? _prefs;
@@ -51,6 +55,60 @@ class LearnProgressService {
     return (furthestStep(lessonKey) / totalSteps).clamp(0.0, 1.0);
   }
 
+  int lessonStars(String lessonKey) {
+    return _prefs?.getInt('$_starsPrefix$lessonKey') ?? 0;
+  }
+
+  int lessonPoints(String lessonKey) {
+    return _prefs?.getInt('$_pointsPrefix$lessonKey') ?? 0;
+  }
+
+  double lessonQuizScore(String lessonKey) {
+    return _prefs?.getDouble('$_quizScorePrefix$lessonKey') ?? 0;
+  }
+
+  String? lessonFreeText(String lessonKey) {
+    return _prefs?.getString('$_freeTextPrefix$lessonKey');
+  }
+
+  Future<void> saveLessonResult({
+    required String lessonKey,
+    required int stars,
+    required int points,
+    required double quizScoreRatio,
+    String? freeText,
+  }) async {
+    await ensureInitialized();
+    await _prefs!.setInt('$_starsPrefix$lessonKey', stars);
+    await _prefs!.setInt('$_pointsPrefix$lessonKey', points);
+    await _prefs!.setDouble('$_quizScorePrefix$lessonKey', quizScoreRatio);
+    if (freeText != null && freeText.trim().isNotEmpty) {
+      await _prefs!.setString('$_freeTextPrefix$lessonKey', freeText.trim());
+    }
+    _notify();
+  }
+
+  int totalPoints(List<LearnCourseViewModel> courses) {
+    var total = 0;
+    for (final course in courses) {
+      for (final unit in course.units) {
+        for (final lesson in unit.lessons) {
+          total += lessonPoints(lesson.progressKey);
+        }
+      }
+    }
+    return total;
+  }
+
+  /// Max points if every lesson earned 3 stars (30 pts each).
+  int maxPoints(List<LearnCourseViewModel> courses) {
+    return catalogTotalLessons(courses) * 30;
+  }
+
+  static int catalogTotalLessons(List<LearnCourseViewModel> courses) {
+    return courses.fold(0, (s, c) => s + c.totalLessons);
+  }
+
   bool hasShownCourseDemo(String courseId) {
     return _prefs?.getBool('$_courseDemoKey$courseId') ?? false;
   }
@@ -85,10 +143,17 @@ class LearnProgressService {
     Future<void> markInProgress(String key, int step) =>
         _prefs!.setInt('$_stepPrefix$key', step);
 
+    Future<void> seedResult(String key, {int stars = 3}) async {
+      await markComplete(key);
+      await _prefs!.setInt('$_starsPrefix$key', stars);
+      await _prefs!.setInt('$_pointsPrefix$key', stars * 10);
+      await _prefs!.setDouble('$_quizScorePrefix$key', stars / 3);
+    }
+
     // Course 1 — fully completed.
     for (final unit in courses.first.units) {
       for (final lesson in unit.lessons) {
-        await markComplete(lesson.progressKey);
+        await seedResult(lesson.progressKey);
       }
     }
 
@@ -99,7 +164,7 @@ class LearnProgressService {
       for (var i = 0; i < lessons.length && i <= 2; i++) {
         final key = lessons[i].progressKey;
         if (i < 2) {
-          await markComplete(key);
+          await seedResult(key, stars: i == 0 ? 3 : 2);
         } else {
           await markInProgress(key, 2);
         }
@@ -116,6 +181,10 @@ class LearnProgressService {
           key.startsWith(_stepPrefix) ||
           key.startsWith(_completePrefix) ||
           key.startsWith(_courseDemoKey) ||
+          key.startsWith(_starsPrefix) ||
+          key.startsWith(_pointsPrefix) ||
+          key.startsWith(_quizScorePrefix) ||
+          key.startsWith(_freeTextPrefix) ||
           key == _pilotSeedKey ||
           key == 'learn_pilot_seeded_v2',
     );

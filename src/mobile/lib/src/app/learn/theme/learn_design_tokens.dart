@@ -31,13 +31,38 @@ class LearnDesignTokens {
   static const double horizontalPadding = 16;
 
   static Widget dragHandle(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(top: 10, bottom: 8),
-      height: 4,
-      width: 36,
-      decoration: BoxDecoration(
-        color: muted(context).withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(2),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final handleColor = isDark
+        ? AppColors.boldHeadlineColor2
+        : AppColors.secondaryHeadlineColor4;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Center(
+        child: Container(
+          width: 36,
+          height: 4,
+          decoration: BoxDecoration(
+            color: handleColor.withValues(alpha: 0.4),
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static Widget lessonProgressBar(
+    BuildContext context, {
+    required double value,
+    bool complete = false,
+  }) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(2),
+      child: LinearProgressIndicator(
+        value: value.clamp(0.0, 1.0),
+        minHeight: 3,
+        backgroundColor: divider(context),
+        color: complete ? success : primary(context),
       ),
     );
   }

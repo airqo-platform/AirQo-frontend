@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/learn/formatting/learn_display_text.dart';
 import 'package:airqo/src/app/learn/models/learn_course_structure.dart';
 import 'package:airqo/src/app/learn/services/learn_progress_service.dart';
 import 'package:airqo/src/app/learn/widgets/learn_lesson_list_row.dart';
@@ -9,6 +10,7 @@ import 'package:flutter/material.dart';
 typedef LearnLessonTapCallback = void Function(
   LearnCourseViewModel course,
   LearnUnitViewModel unit,
+  int unitIndex,
   int lessonIndex,
   LearnLessonSlot slot,
 );
@@ -150,7 +152,22 @@ class _LearnCourseDetailPageState extends State<LearnCourseDetailPage> {
                   setState(() => _selectedUnitIndex = index);
                 },
               ),
-              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+                child: TranslatedText(
+                  learnUnitHeader(
+                    _selectedUnitIndex,
+                    selectedUnit.plainTitleKey,
+                  ),
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.6,
+                    color: subtitleColor,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
               Expanded(
                 child: ListView.builder(
                   controller: scrollCtrl,
@@ -166,14 +183,12 @@ class _LearnCourseDetailPageState extends State<LearnCourseDetailPage> {
                         );
                     final complete =
                         progress.isLessonComplete(slot.progressKey);
-                    final ratio = slot.hasContent
-                        ? progress.lessonProgressRatio(
-                            slot.progressKey,
-                            slot.apiLesson!.tasks.length,
-                          )
-                        : 0.0;
+                    final ratio = progress.lessonProgressRatio(
+                      slot.progressKey,
+                      slot.activityCount,
+                    );
                     final locked = !lessonUnlocked;
-                    final canOpen = lessonUnlocked && slot.hasContent;
+                    final canOpen = lessonUnlocked;
 
                     return LearnLessonListRow(
                       slot: slot,
@@ -186,6 +201,7 @@ class _LearnCourseDetailPageState extends State<LearnCourseDetailPage> {
                           ? () => widget.onLessonTap(
                                 course,
                                 selectedUnit,
+                                _selectedUnitIndex,
                                 lessonIndex,
                                 slot,
                               )
