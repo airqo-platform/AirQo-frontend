@@ -4,6 +4,7 @@ import 'package:airqo/src/app/surveys/bloc/survey_bloc.dart';
 import 'package:airqo/src/app/surveys/models/survey_model.dart';
 import 'package:airqo/src/app/surveys/services/survey_notification_service.dart';
 import 'package:airqo/src/app/learn/pages/kya_page.dart';
+import 'package:airqo/src/app/shared/pages/nav_page.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 
 class NewSurveyBanner extends StatefulWidget {
@@ -129,6 +130,7 @@ class _NewSurveyBannerState extends State<NewSurveyBanner> {
           const SizedBox(width: 8),
           TextButton(
             onPressed: () {
+              NavPage.openLearnSurveysTab();
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (context) => const KyaPage(initialIndex: 1),
