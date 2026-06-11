@@ -4,6 +4,33 @@
 
 ---
 
+## Version 2.0.4
+**Released:** June 11, 2026
+
+### hCaptcha Integration — Sensor Manufacturer Request Form
+
+Added hCaptcha verification to the public-facing Sensor Manufacturer Request form (`NetworkRequestDialog`) to protect the unauthenticated `/api/devices/network-creation-requests` endpoint from automated abuse and spam submissions.
+
+<details>
+<summary><strong>Changes (4)</strong></summary>
+
+- **Schema**: Added optional `captchaToken` field to `networkRequestSchema` to align the Zod schema with the POST body sent to the backend.
+- **Dialog**: Wired `HCaptchaWidget` into the form with `onVerify`/`onExpire` handlers managing a `captchaToken` state variable. The Submit button is disabled until the CAPTCHA is verified. The token is included in the POST body alongside form data.
+- **Reset on close**: `handleClose` now calls `captchaRef.current?.reset()` and clears `captchaToken` state so the widget is fully reset when the dialog is dismissed or cancelled.
+- **Reset on error**: `onError` also resets the widget and clears `captchaToken` so the Submit button re-disables and the user must re-verify before retrying.
+
+</details>
+
+<details>
+<summary><strong>Files Updated (2)</strong></summary>
+
+- `src/vertex/components/features/networks/network-request-dialog.tsx` [MODIFIED]
+- `src/vertex/components/features/networks/schema.ts` [MODIFIED]
+
+</details>
+
+---
+
 ## Version 2.0.3
 **Released:** June 11, 2026
 
