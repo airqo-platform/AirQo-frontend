@@ -16,7 +16,8 @@ import {
 import { AqArrowLeft } from '@airqo/icons-react';
 import { feedbackService } from '@/modules/feedback';
 import { toast } from '@/shared/components/ui/toast';
-import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import { getUserFriendlyErrorMessage, isForbiddenError } from '@/shared/utils/errorMessages';
+import { AccessDenied } from '@/shared/components/AccessDenied';
 import type { FeedbackSubmission } from '@/shared/types/api';
 
 const STATUS_OPTIONS = ['pending', 'reviewed', 'resolved', 'archived'] as const;
@@ -231,6 +232,14 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
   }
 
   if (error || !feedback) {
+    if (isForbiddenError(error)) {
+      return (
+        <AccessDenied
+          title="Access Denied"
+          message="You do not have the required permissions to view this feedback submission."
+        />
+      );
+    }
     return (
       <Card className="p-6">
         <p className="text-sm text-muted-foreground">

@@ -17,7 +17,8 @@ import {
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import { AqEdit05, AqTrash01, AqRefreshCw05, AqPlus } from '@airqo/icons-react';
 import { adminService } from '@/shared/services/adminService';
-import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import { getUserFriendlyErrorMessage, isForbiddenError } from '@/shared/utils/errorMessages';
+import { AccessDenied } from '@/shared/components/AccessDenied';
 import { sanitizeErrorForLogging } from '@/shared/utils/sanitizeErrorForLogging';
 import { formatDate } from '@/shared/utils';
 import { isValidAsn, isValidCidrNotation } from '@/shared/lib/validators';
@@ -855,6 +856,15 @@ const SecurityPageContent: React.FC = () => {
     },
   ];
 
+  if (isForbiddenError(blockedError) || isForbiddenError(flaggedError)) {
+    return (
+      <AccessDenied
+        title="Access Denied"
+        message="You do not have the required permissions to view security controls."
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       <PageHeading
@@ -1060,9 +1070,9 @@ const SecurityPageContent: React.FC = () => {
 const SystemSecurityPage: React.FC = () => {
   return (
     <PermissionGuard
-      requireAirQoSuperAdmin={true}
+      requiredPermissions={['SYSTEM_ADMIN']}
       accessDeniedTitle="Access Restricted"
-      accessDeniedMessage="You need the AIRQO_SUPER_ADMIN role with an @airqo.net email to manage security controls."
+      accessDeniedMessage="You need system administrator permissions to manage security controls."
     >
       <SecurityPageContent />
     </PermissionGuard>

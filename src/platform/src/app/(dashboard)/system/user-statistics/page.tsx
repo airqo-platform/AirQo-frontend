@@ -8,6 +8,8 @@ import { useUserStatistics } from '@/shared/hooks/useAdmin';
 import { LoadingState } from '@/shared/components/ui/loading-state';
 import { ErrorBanner } from '@/shared/components/ui/banner';
 import { PermissionGuard } from '@/shared/components';
+import { AccessDenied } from '@/shared/components/AccessDenied';
+import { isForbiddenError } from '@/shared/utils/errorMessages';
 import { AqUsers01, AqUsersCheck, AqKey01, AqEye } from '@airqo/icons-react';
 import { Card } from '@/shared/components/ui/card';
 import jsPDF from 'jspdf';
@@ -336,6 +338,14 @@ const UserStatisticsPage: React.FC = () => {
   }
 
   if (error) {
+    if (isForbiddenError(error)) {
+      return (
+        <AccessDenied
+          title="Access Denied"
+          message="You do not have the required permissions to view user statistics."
+        />
+      );
+    }
     return (
       <div className="p-6">
         <ErrorBanner
@@ -448,9 +458,9 @@ const UserStatisticsPage: React.FC = () => {
 const ProtectedUserStatisticsPage: React.FC = () => {
   return (
     <PermissionGuard
-      requireAirQoSuperAdmin={true}
+      requiredPermissions={['SYSTEM_ADMIN']}
       accessDeniedTitle="Access Denied"
-      accessDeniedMessage="You need the AIRQO_SUPER_ADMIN role with an @airqo.net email to view user statistics."
+      accessDeniedMessage="You need system administrator permissions to view user statistics."
     >
       <UserStatisticsPage />
     </PermissionGuard>
