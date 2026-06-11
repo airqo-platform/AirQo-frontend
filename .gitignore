@@ -9,6 +9,9 @@ src/mobile/android/app/google-services.json
 .DS_Store/
 .DS_Store
 .env
+.env.*
+src/mobile/android/secrets.properties
+src/mobile/android/key.properties
 .cache_ggshield
 secret
 .env.yaml
