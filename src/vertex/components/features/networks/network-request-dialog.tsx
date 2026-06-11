@@ -90,6 +90,11 @@ export function NetworkRequestDialog({ open, onOpenChange }: NetworkRequestDialo
     }, [form, onOpenChange]);
 
     const onSubmit = (values: NetworkRequestValues) => {
+        if (hcaptchaEnabled && !captchaToken) {
+            showBanner({ severity: 'error', message: 'Please complete the CAPTCHA before submitting.', scoped: true });
+            return;
+        }
+
         const cleanedValues = Object.fromEntries(
             Object.entries(values).filter(([, v]) => v !== "" && v !== null && v !== undefined)
         ) as NetworkRequestValues;
