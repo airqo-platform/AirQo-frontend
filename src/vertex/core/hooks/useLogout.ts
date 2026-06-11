@@ -10,6 +10,7 @@ import { rememberAccount } from '../utils/rememberedAccounts';
 import logger from '@/lib/logger';
 import { useAppSelector, useAppDispatch } from '../redux/hooks';
 import { persistor } from '../redux/store';
+import { setBackendOAuthSignedOutFlag } from '../auth/oauth-session';
 
 let sharedLogoutPromise: Promise<void> | null = null;
 let sharedIsLoggingOut = false;
@@ -67,6 +68,7 @@ export const useLogout = (callbackUrl?: string) => {
         queryClient.clear();
         await persistor.purge();
 
+        setBackendOAuthSignedOutFlag();
         // Signal other tabs/apps that logout occurred (before signOut clears the cookie)
         try {
           localStorage.setItem(CROSS_TAB_LOGOUT_KEY, String(Date.now()));

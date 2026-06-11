@@ -1,5 +1,6 @@
 import 'package:airqo/src/app/learn/models/lesson_response_model.dart';
 import 'package:airqo/src/app/learn/pages/lesson_page.dart';
+import 'package:airqo/src/app/shared/widgets/loading_widget.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
 
@@ -30,6 +31,18 @@ class KyaLessonContainer extends StatelessWidget {
                   child: Image.network(
                     kyaLesson.image,
                     fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return ShimmerContainer(
+                        height: double.infinity,
+                        width: double.infinity,
+                        borderRadius: 8,
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      color: Theme.of(context).highlightColor,
+                      child: const Center(child: Icon(Icons.broken_image, size: 48)),
+                    ),
                   ),
                 ),
               ),
