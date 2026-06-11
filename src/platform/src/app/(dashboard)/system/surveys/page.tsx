@@ -14,7 +14,8 @@ import {
 } from '@/shared/components/ui';
 import { AqEye, AqPlus, AqRefreshCw05 } from '@airqo/icons-react';
 import { surveyService } from '@/shared/services';
-import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import { getUserFriendlyErrorMessage, isForbiddenError } from '@/shared/utils/errorMessages';
+import { AccessDenied } from '@/shared/components/AccessDenied';
 import { refreshWithToast } from '@/shared/utils/refreshWithToast';
 import type { Survey } from '@/shared/types/api';
 import {
@@ -191,10 +192,16 @@ const SurveyListPage: React.FC = () => {
 
   return (
     <PermissionGuard
-      requireAirQoSuperAdmin={true}
+      requiredPermissions={['SYSTEM_ADMIN']}
       accessDeniedTitle="Access Restricted"
-      accessDeniedMessage="You need the AIRQO_SUPER_ADMIN role with an @airqo.net email to manage surveys."
+      accessDeniedMessage="You need system administrator permissions to manage surveys."
     >
+      {isForbiddenError(error) ? (
+        <AccessDenied
+          title="Access Denied"
+          message="You do not have the required permissions to view surveys."
+        />
+      ) : (
       <div className="space-y-6">
         <PageHeading
           title="Survey Management"
@@ -287,6 +294,7 @@ const SurveyListPage: React.FC = () => {
           </div>
         )}
       </div>
+      )}
     </PermissionGuard>
   );
 };

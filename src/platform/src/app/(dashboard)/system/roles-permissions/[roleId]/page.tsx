@@ -18,7 +18,8 @@ import {
 } from '@airqo/icons-react';
 import { useRoleById, usePermissions } from '@/shared/hooks/useAdmin';
 import { adminService } from '@/shared/services/adminService';
-import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import { getUserFriendlyErrorMessage, isForbiddenError } from '@/shared/utils/errorMessages';
+import { AccessDenied } from '@/shared/components/AccessDenied';
 import { refreshWithToast } from '@/shared/utils/refreshWithToast';
 import type { RoleDetails, RolePermission } from '@/shared/types/api';
 
@@ -188,6 +189,14 @@ const RoleDetailContent: React.FC = () => {
   }
 
   if (roleError) {
+    if (isForbiddenError(roleError)) {
+      return (
+        <AccessDenied
+          title="Access Denied"
+          message="You do not have the required permissions to view role details."
+        />
+      );
+    }
     return (
       <Card className="p-6">
         <p className="text-sm text-muted-foreground">
@@ -198,6 +207,14 @@ const RoleDetailContent: React.FC = () => {
   }
 
   if (permissionsError) {
+    if (isForbiddenError(permissionsError)) {
+      return (
+        <AccessDenied
+          title="Access Denied"
+          message="You do not have the required permissions to view permissions."
+        />
+      );
+    }
     return (
       <Card className="p-6">
         <p className="text-sm text-muted-foreground">

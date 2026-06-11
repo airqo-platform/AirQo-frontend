@@ -9,6 +9,7 @@ import {
   getLastUsedOAuthProvider,
   resolveOAuthRedirectAfterUrl,
   setLastUsedOAuthProvider,
+  clearBackendOAuthSignedOutFlag,
   type SupportedSocialAuthProvider,
 } from '@/core/auth/oauth-session';
 import { cn } from '@/lib/utils';
@@ -93,9 +94,14 @@ export default function SocialAuthSection({
         queryParams.redirect_after = redirectAfter;
       }
 
+      if (provider === 'google') {
+        queryParams.prompt = 'select_account';
+      }
+
 
       try {
         setLastUsedOAuthProvider(provider);
+        clearBackendOAuthSignedOutFlag();
         window.location.replace(buildOAuthInitiationUrl(provider, queryParams));
       } catch (error) {
         showBanner({
@@ -109,11 +115,6 @@ export default function SocialAuthSection({
     [disabled, redirectPath, showBanner]
   );
 
-  // Hide social auth completely if the required API URL environment variable is missing
-  // to prevent runtime crashes when getApiBaseUrl() throws an error during OAuth initiation.
-  if (!process.env.NEXT_PUBLIC_API_URL) {
-    return null;
-  }
 
   return (
     <div className={cn('w-full space-y-4', className)}>

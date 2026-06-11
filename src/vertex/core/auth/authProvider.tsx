@@ -38,6 +38,8 @@ import logger from '@/lib/logger';
 import {
   consumeOAuthTokenHandoffFromUrl,
   verifyBackendOAuthSession,
+  shouldSkipBackendOAuthBootstrap,
+  clearBackendOAuthSignedOutFlag,
 } from './oauth-session';
 
 // --- Helper Functions ---
@@ -773,6 +775,7 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
   const isHandlingOAuthRef = useRef(
     typeof window !== 'undefined' && window.location.hash.includes('token=')
   );
+  const hasInitiatedBootstrapRef = useRef(false);
   const [isBootstrapping, setIsBootstrapping] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
@@ -805,11 +808,21 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    if (hasInitiatedBootstrapRef.current) return;
+    hasInitiatedBootstrapRef.current = true;
+
     let shouldUnblock = true;
     const bootstrap = async () => {
       try {
         const handoff = consumeOAuthTokenHandoffFromUrl();
         if (handoff?.token) {
+          if (shouldSkipBackendOAuthBootstrap()) {
+            logger.debug('[TokenHandoffHandler] OAuth token present but signed-out flag set, ignoring token handoff');
+            isHandlingOAuthRef.current = false;
+            return;
+          }
+          // Fresh OAuth token indicates explicit sign-in, clear any stale flag
+          clearBackendOAuthSignedOutFlag();
           logger.info('[TokenHandoffHandler] OAuth token detected, signing in...');
 
           const result = await signIn('credentials', {
@@ -861,6 +874,12 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
             router.push(`/auth-error?error=${encodeURIComponent(result?.error || 'OAuthSignin')}`);
           }
         } else {
+          if (shouldSkipBackendOAuthBootstrap()) {
+            logger.debug('[TokenHandoffHandler] No OAuth token and signed-out flag set, skipping bootstrap');
+            isHandlingOAuthRef.current = false;
+            shouldUnblock = true;
+            return;
+          }
           isHandlingOAuthRef.current = false;
         }
       } catch (error) {

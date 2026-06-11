@@ -7,7 +7,8 @@ import { Button, Card, PageHeading, toast } from '@/shared/components/ui';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import { AqRefreshCw05, AqEdit05, AqPlus } from '@airqo/icons-react';
 import { useRolesSummary, usePermissions } from '@/shared/hooks/useAdmin';
-import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import { getUserFriendlyErrorMessage, isForbiddenError } from '@/shared/utils/errorMessages';
+import { AccessDenied } from '@/shared/components/AccessDenied';
 import { refreshWithToast } from '@/shared/utils/refreshWithToast';
 import CreateRoleDialog from './components/CreateRoleDialog';
 import type { UserRoleSummary } from '@/shared/types/api';
@@ -282,6 +283,15 @@ const RolesPermissionsContent: React.FC = () => {
       </div>
     </div>
   );
+
+  if (isForbiddenError(rolesError)) {
+    return (
+      <AccessDenied
+        title="Access Denied"
+        message="You do not have the required permissions to view roles and permissions."
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
