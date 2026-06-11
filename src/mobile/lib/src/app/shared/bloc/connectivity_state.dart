@@ -15,4 +15,7 @@ class ConnectivityOffline extends ConnectivityState {
   final bool isDismissed;
 
   const ConnectivityOffline([this.isDismissed = false]);
+
+  @override
+  List<Object?> get props => [isDismissed];
 }
