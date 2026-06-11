@@ -3,7 +3,7 @@ import { withAuth } from 'next-auth/middleware';
 const isProduction = process.env.NODE_ENV === 'production';
 const sessionCookieName = isProduction
   ? '__Secure-next-auth.session-token'
-  : 'analytics.next-auth.session-token';
+  : 'next-auth.session-token';
 
 export default withAuth(
   function middleware() {

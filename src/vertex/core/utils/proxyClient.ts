@@ -2,7 +2,8 @@ import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 import { getServerSession } from 'next-auth';
 import { options as authOptions } from '@/app/api/auth/[...nextauth]/options';
 import logger from '@/lib/logger';
-import { getApiBaseUrl, getApiToken } from '@/lib/envConstants';
+import { getApiToken } from '@/lib/envConstants';
+import { buildServerApiUrl } from '@/lib/api-routing';
 import { NextRequest, NextResponse } from 'next/server';
 
 // Type definitions
@@ -84,7 +85,14 @@ export const createProxyHandler = (options: ProxyOptions = {}) => {
       path = [];
     }
 
-    const targetPath = Array.isArray(path) ? path.join('/') : '';
+    let targetPath = Array.isArray(path) ? path.join('/') : '';
+
+    // Prevent double /v2/ in the final URL because getApiBaseUrl() already provides it
+    if (targetPath.startsWith('v2/')) {
+      targetPath = targetPath.slice(3);
+    } else if (targetPath === 'v2') {
+      targetPath = '';
+    }
 
     // Method validation
     const allowedMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
@@ -96,10 +104,10 @@ export const createProxyHandler = (options: ProxyOptions = {}) => {
     }
 
     try {
-      // Get API base URL
-      let API_BASE_URL: string;
+      // Get API URL
+      let API_URL: string;
       try {
-        API_BASE_URL = getApiBaseUrl();
+        API_URL = buildServerApiUrl(targetPath);
       } catch (envError) {
         logger.error('Failed to get API base URL from environment:', { error: envError instanceof Error ? envError.message : String(envError) });
         return NextResponse.json(
@@ -111,7 +119,7 @@ export const createProxyHandler = (options: ProxyOptions = {}) => {
         );
       }
 
-      if (!API_BASE_URL) {
+      if (!API_URL) {
         return NextResponse.json(
           {
             success: false,
@@ -121,13 +129,10 @@ export const createProxyHandler = (options: ProxyOptions = {}) => {
         );
       }
 
-      // Normalize URL
-      const normalizedBaseUrl = API_BASE_URL.replace(/\/+$/, '');
-
       // Configure request
       const config: ExtendedAxiosConfig = {
         method: req.method,
-        url: `${normalizedBaseUrl}/${targetPath}`,
+        url: API_URL,
         params: { ...queryParams },
         headers: {
           'Content-Type': 'application/json',

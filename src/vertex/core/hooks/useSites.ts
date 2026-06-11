@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery, type QueryFunctionContext } from "@tanstack/react-query";
 import {
-  sites,
   ApproximateCoordinatesResponse,
   GetSitesSummaryParams,
   SitesSummaryResponse,
@@ -9,13 +8,10 @@ import {
 } from "../apis/sites";
 import { adapter } from '../adapters';
 import { DeviceActivitiesResponse } from "../apis/devices";
-
 import { useGroupCohorts } from "./useCohorts";
 import { useAppSelector } from "../redux/hooks";
-import { useUserContext } from "./useUserContext";
 import { useMemo } from "react";
 import { AxiosError } from "axios";
-import { getApiErrorMessage } from "../utils/getApiErrorMessage";
 
 interface ErrorResponse {
   message: string;
@@ -140,7 +136,7 @@ export const useSiteStatistics = (network?: string) => {
 
 interface UseApproximateCoordinatesOptions {
   onSuccess?: (data: ApproximateCoordinatesResponse) => void;
-  onError?: (error: AxiosError) => void;
+  onError?: (error: AxiosError<ErrorResponse>) => void;
 }
 
 export const useApproximateCoordinates = (options?: UseApproximateCoordinatesOptions) => {
@@ -193,8 +189,8 @@ export const useSiteDetails = (
 };
 
 interface UseUpdateSiteDetailsOptions {
-  onSuccess?: () => void;
-  onError?: (error: AxiosError) => void;
+  onSuccess?: (siteId: string) => void;
+  onError?: (error: AxiosError<ErrorResponse>) => void;
 }
 
 export const useUpdateSiteDetails = (options?: UseUpdateSiteDetailsOptions) => {
@@ -215,7 +211,7 @@ export const useUpdateSiteDetails = (options?: UseUpdateSiteDetailsOptions) => {
     onSuccess: (_data, { siteId }) => {
       queryClient.invalidateQueries({ queryKey: ["site-details", siteId] });
       queryClient.invalidateQueries({ queryKey: ["sites"] });
-      options?.onSuccess?.();
+      options?.onSuccess?.(siteId);
     },
     onError: (error) => {
       options?.onError?.(error);
@@ -233,7 +229,7 @@ interface CreateSiteRequest {
 
 interface UseCreateSiteOptions {
   onSuccess?: (data: CreateSiteResponse, variables: CreateSiteRequest) => void;
-  onError?: (error: AxiosError) => void;
+  onError?: (error: AxiosError<ErrorResponse>) => void;
 }
 
 export const useCreateSite = (options?: UseCreateSiteOptions) => {
@@ -269,8 +265,8 @@ export const useCreateSite = (options?: UseCreateSiteOptions) => {
 };
 
 interface UseRefreshSiteMetadataOptions {
-  onSuccess?: (data: SiteRefreshResponse) => void;
-  onError?: (error: AxiosError) => void;
+  onSuccess?: (data: SiteRefreshResponse, siteId: string) => void;
+  onError?: (error: AxiosError<ErrorResponse>) => void;
 }
 
 export const useRefreshSiteMetadata = (options?: UseRefreshSiteMetadataOptions) => {
@@ -282,7 +278,7 @@ export const useRefreshSiteMetadata = (options?: UseRefreshSiteMetadataOptions) 
       queryClient.setQueryData(["site-details", siteId], data.site);
       queryClient.invalidateQueries({ queryKey: ["sites"] });
       queryClient.invalidateQueries({ queryKey: ["site-details", siteId] });
-      options?.onSuccess?.(data);
+      options?.onSuccess?.(data, siteId);
     },
     onError: (error) => {
       options?.onError?.(error);

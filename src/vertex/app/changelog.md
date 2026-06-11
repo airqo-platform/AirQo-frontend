@@ -4,8 +4,8 @@
 
 ---
 
-## Version 2.0.1
-**Released:** June 09, 2026
+## Version 2.0.2
+**Released:** June 10, 2026
 
 ### Site Management Banner Migration
 
@@ -16,13 +16,13 @@ Migrated all user-facing notifications in the Site Management module from `Reusa
 
 - **Hooks Decoupled**: Removed `ReusableToast` from 4 mutation hooks in `useSites.ts` — `useApproximateCoordinates`, `useUpdateSiteDetails`, `useCreateSite`, `useRefreshSiteMetadata` — and replaced with optional `onSuccess`/`onError` callback interfaces. Cache invalidation logic stays in the hooks; notification responsibility is delegated to the UI layer.
 - **Create & Edit Dialogs**: `create-site-form.tsx` wires `useCreateSite` and `useApproximateCoordinates` hook-level callbacks — errors use `scoped: true` (inline in dialog), site creation success uses `showBannerWithDelay` (`scoped: false`) after navigation fires. `edit-site-details-dialog.tsx` replaces 2 Sonner `toast.error` calls with `showBanner` (`scoped: true`) and routes mutation success/error through hook-level callbacks.
-- **Site Detail Pages**: Both `admin/sites/[id]/page.tsx` and `sites/[id]/page.tsx` wire `useRefreshSiteMetadata` with severity-aware banners (`scoped: false`): `warning` for partial refresh, `info` for already-complete, `success` for full refresh.
+- **Site Detail Pages**: Both `admin/sites/[id]/page.tsx` and `sites/[id]/page.tsx` wire `useRefreshSiteMetadata` with severity-aware banners (`scoped: false`): `warning` for partial refresh, `info` for already-complete, `success` for full refresh. The duplicated banner logic has been extracted into a shared `useRefreshMetadataWithBanner` hook.
 - **In-Page Copy Actions**: `site-information-card.tsx` and `site-measurements-api-card.tsx` replace clipboard `ReusableToast` calls with the shared `useClipboard` hook, adding async error handling for free.
 
 </details>
 
 <details>
-<summary><strong>Files Updated (7)</strong></summary>
+<summary><strong>Files Updated (8)</strong></summary>
 
 - `src/vertex/core/hooks/useSites.ts` [MODIFIED]
 - `src/vertex/components/features/sites/create-site-form.tsx` [MODIFIED]
@@ -31,11 +31,55 @@ Migrated all user-facing notifications in the Site Management module from `Reusa
 - `src/vertex/components/features/sites/site-measurements-api-card.tsx` [MODIFIED]
 - `src/vertex/app/(authenticated)/admin/sites/[id]/page.tsx` [MODIFIED]
 - `src/vertex/app/(authenticated)/sites/[id]/page.tsx` [MODIFIED]
+- `src/vertex/core/hooks/useRefreshMetadataWithBanner.ts` [ADDED]
 
 </details>
 
 ---
 
+## Version 2.0.1
+**Released:** June 09, 2026
+
+### Relative API Routing & OAuth Redirect Fixes
+
+This release resolves critical build-time environment variable issues that caused API routing to fallback to localhost, and hardens the OAuth token handoff flow to eliminate redirect loops. 
+
+<details>
+<summary><strong>API Routing & Proxy Stabilization (3)</strong></summary>
+
+- **Relative Client Routes**: Introduced `buildBrowserApiUrl` to strictly return relative paths (`/api/v2/...`) for browser-side requests. This entirely bypasses the localhost fallback bug caused by missing build-time `NEXT_PUBLIC_` environment variables.
+- **Server Routes & Strict Env Checks**: Introduced `buildServerApiUrl` for server-side requests and tightened `envConstants.ts` to explicitly require `NEXT_PUBLIC_API_URL` during initialization to fail-fast.
+- **Proxy V2 Duplication Fix**: Adjusted the proxy client's path handling to dynamically strip leading `v2/` segments, preventing double `/v2/v2/` URL paths when proxying to the backend.
+
+</details>
+
+<details>
+<summary><strong>Authentication & Session Sync (3)</strong></summary>
+
+- **Middleware Bypass**: `SocialAuthSection` now safely appends a `success=<provider>` query parameter to the `redirect_after` URL. This prevents the NextAuth middleware from forcefully intercepting the callback and generating its own localhost callback URL.
+- **UI Blocking on Token Handoff**: Added a `useEffect` watcher in `TokenHandoffHandler` to keep the UI explicitly blocked until NextAuth fully broadcasts the `authenticated` state across the React context tree, preventing rogue client-side redirects to `/login`.
+- **Resilient Profile Fetching**: Increased the OAuth profile fetch tolerance to 10 seconds, gracefully handled `AbortError`s to prevent noisy server logs, and normalized the OAuth access token to ensure `Authorization` headers are only appended when present.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (11)</strong></summary>
+
+- `app/api/auth/[...nextauth]/options.ts` [MODIFIED]
+- `app/changelog.md` [MODIFIED]
+- `components/features/auth/social-auth-section.tsx` [MODIFIED]
+- `core/apis/users.ts` [MODIFIED]
+- `core/auth/authProvider.tsx` [MODIFIED]
+- `core/auth/oauth-session.ts` [MODIFIED]
+- `core/services/network-service.ts` [MODIFIED]
+- `core/utils/proxyClient.ts` [MODIFIED]
+- `lib/api-routing.ts` [NEW]
+- `lib/envConstants.ts` [MODIFIED]
+- `vertex.config.ts` [MODIFIED]
+
+</details>
+
+---
 ## Version 2.0.0
 **Released:** June 07, 2026
 

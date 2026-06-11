@@ -37,6 +37,19 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Pull secrets from Key Vault
+        run: |
+          az keyvault secret show \
+            --vault-name airqo-kv-staging \
+            --name sta-env-vertex \
+            --query value -o tsv > secrets.json
+          jq -r 'to_entries | .[] | "\(.key)=\(.value|tojson)"' secrets.json > .env        
+
       - name: Build Application
         run: npm run build
 

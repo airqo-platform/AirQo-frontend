@@ -9,7 +9,8 @@ import type {
 } from '@/app/types/users';
 import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
 import logger from '@/lib/logger';
-import { getApiBaseUrl, isHCaptchaEnabled } from '@/lib/envConstants';
+import { isHCaptchaEnabled } from '@/lib/envConstants';
+import { buildServerApiUrl } from '@/lib/api-routing';
 import { normalizeOAuthAccessToken } from '@/core/auth/oauth-session';
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -142,17 +143,19 @@ const fetchOAuthProfile = async (
   accessToken: string
 ): Promise<OAuthProfilePayload | null> => {
   try {
-    const profileUrl = `${getApiBaseUrl()}/users/profile/enhanced`;
+    const profileUrl = buildServerApiUrl('/users/profile/enhanced');
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    const normalizedAccessToken = normalizeOAuthAccessToken(accessToken);
 
     const response = await fetch(profileUrl, {
       method: 'GET',
       cache: 'no-store',
+      credentials: 'include',
       signal: controller.signal,
       headers: {
         Accept: 'application/json',
-        Authorization: `JWT ${accessToken}`,
+        ...(normalizedAccessToken ? { Authorization: `JWT ${normalizedAccessToken}` } : {}),
       },
     }).finally(() => clearTimeout(timeoutId));
 
@@ -167,6 +170,10 @@ const fetchOAuthProfile = async (
 
     return payload.data;
   } catch (error) {
+    const errorName = (error as { name?: string })?.name;
+    if (errorName === 'AbortError') {
+      return null;
+    }
     logger.error('Error fetching OAuth profile', { error });
     return null;
   }
@@ -211,6 +218,7 @@ export const options: NextAuthOptions = {
             id: profile._id,
             email: profile.email,
             name: `${profile.firstName} ${profile.lastName}`.trim() || profile.email,
+            image: profile.profilePicture || decoded?.profilePicture || '',
             userName: profile.userName || decoded?.userName || profile.email,
             accessToken: oauthToken,
             organization: profile.organization || decoded?.organization || '',
@@ -254,6 +262,7 @@ export const options: NextAuthOptions = {
               id: decoded._id,
               email: decoded.email,
               name: `${decoded.firstName} ${decoded.lastName}`,
+              image: decoded.profilePicture || '',
               userName: decoded.userName,
               accessToken: loginResponse.token,
               organization: decoded.organization,
@@ -288,8 +297,8 @@ export const options: NextAuthOptions = {
   cookies: {
     sessionToken: {
       name: isProduction
-        ? '__Secure-next-auth.session-token-v2'
-        : 'next-auth.session-token-v2',
+        ? '__Secure-next-auth.session-token'
+        : 'next-auth.session-token',
       options: cookieOptions,
     },
   },
@@ -307,6 +316,7 @@ export const options: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token._id = (user._id as string | undefined) || user.id;
         token.accessToken = user.accessToken;
         token.userName = user.userName;
         token.organization = user.organization;
@@ -316,6 +326,7 @@ export const options: NextAuthOptions = {
         token.country = user.country;
         token.timezone = user.timezone;
         token.phoneNumber = user.phoneNumber;
+        token.image = user.image ?? undefined;
         token.exp = user.exp;
       }
       return token;
@@ -330,6 +341,7 @@ export const options: NextAuthOptions = {
         session.user = {
           ...session.user,
           id: token.id as string,
+          _id: (token._id as string) || (token.id as string),
           accessToken: token.accessToken as string,
           userName: token.userName as string,
           organization: token.organization as string,
@@ -339,6 +351,7 @@ export const options: NextAuthOptions = {
           country: token.country as string,
           timezone: token.timezone as string,
           phoneNumber: token.phoneNumber as string,
+          image: (token.image as string) || '',
           exp: token.exp,
         };
       }

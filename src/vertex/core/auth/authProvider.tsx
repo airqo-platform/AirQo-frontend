@@ -33,7 +33,7 @@ import type {
   UserDetails,
 } from '@/app/types/users';
 import { ExtendedSession } from '../utils/secureApiProxyClient';
-import { useLogout } from '@/core/hooks/useLogout';
+import { useLogout, CROSS_TAB_LOGOUT_KEY, CROSS_TAB_LOGIN_KEY } from '@/core/hooks/useLogout';
 import logger from '@/lib/logger';
 import { consumeOAuthTokenHandoffFromUrl } from './oauth-session';
 
@@ -171,6 +171,8 @@ function useUserDetails(userId: string | null) {
 
 const authRoutes = ['/login', '/auth-error'];
 const publicRoutes = [...authRoutes, '/download'];
+const ACCOUNT_DELETION_TTL_MS = 5 * 60 * 1000;
+const ACCOUNT_DELETION_USER_IDENTIFIER_KEY = 'account_deleted_user_identifier';
 const matchesRoute = (pathname: string, route: string) =>
   pathname === route || pathname.startsWith(`${route}/`);
 
@@ -371,11 +373,145 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   const isLoggingOut = useAppSelector((state) => state.user.isLoggingOut);
   const logout = useLogout();
   const [hasHandledUnauthorized, setHasHandledUnauthorized] = useState(false);
+  const hasStartedLogoutRef = useRef(false);
 
   const isAuthRoute = authRoutes.some((route) => matchesRoute(pathname, route));
   const isPublicRoute = publicRoutes.some((route) =>
     matchesRoute(pathname, route)
   );
+
+  const clearAccountDeletionFlags = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.removeItem('account_deleted');
+      localStorage.removeItem('account_deleted_timestamp');
+      localStorage.removeItem(ACCOUNT_DELETION_USER_IDENTIFIER_KEY);
+    } catch {
+      // Ignore storage errors
+    }
+  }, []);
+
+  const getCurrentSessionUserIdentifier = useCallback((): string | null => {
+    const currentUser = session?.user as
+      | { id?: string; _id?: string; email?: string }
+      | undefined;
+    // Check both _id and id — platform sets account_deleted_user_identifier with _id
+    const userId = (typeof currentUser?._id === 'string' && currentUser._id.trim()) ||
+      (typeof currentUser?.id === 'string' && currentUser.id.trim()) || '';
+    if (userId) return `id:${userId}`;
+    const email = typeof currentUser?.email === 'string' ? currentUser.email.trim().toLowerCase() : '';
+    if (email) return `email:${email}`;
+    return null;
+  }, [session?.user]);
+
+  const checkAccountDeletionFlag = useCallback((): boolean => {
+    if (typeof window === 'undefined') return false;
+
+    let accountDeleted: string | null = null;
+    let deletionTimestamp: string | null = null;
+    let deletionUserIdentifier: string | null = null;
+    try {
+      accountDeleted = localStorage.getItem('account_deleted');
+      deletionTimestamp = localStorage.getItem('account_deleted_timestamp');
+      deletionUserIdentifier = localStorage.getItem(ACCOUNT_DELETION_USER_IDENTIFIER_KEY);
+    } catch {
+      // Safari private mode / blocked storage — skip check
+      return false;
+    }
+    const parsedTimestamp = deletionTimestamp ? parseInt(deletionTimestamp, 10) : NaN;
+    const hasValidTimestamp = !isNaN(parsedTimestamp);
+    const now = Date.now();
+
+    if (accountDeleted === 'true') {
+      if (!hasValidTimestamp || now - parsedTimestamp > ACCOUNT_DELETION_TTL_MS) {
+        clearAccountDeletionFlags();
+        return false;
+      }
+
+      const currentUserIdentifier = getCurrentSessionUserIdentifier();
+      if (
+        !deletionUserIdentifier ||
+        !currentUserIdentifier ||
+        deletionUserIdentifier !== currentUserIdentifier
+      ) {
+        logger.warn('[AuthWrapper] Ignoring stale account deletion flag due to missing or mismatched user identifier');
+        clearAccountDeletionFlags();
+        return false;
+      }
+
+      logger.info('[AuthWrapper] Account deletion detected, logging out...');
+      ReusableToast({
+        message: 'Your account has been deleted. You have been logged out.',
+        type: 'ERROR',
+      });
+      logout();
+      return true;
+    }
+
+    if (hasValidTimestamp && now - parsedTimestamp > ACCOUNT_DELETION_TTL_MS) {
+      clearAccountDeletionFlags();
+    }
+
+    return false;
+  }, [clearAccountDeletionFlags, getCurrentSessionUserIdentifier, logout]);
+
+  // Cross-tab account deletion propagation
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === 'account_deleted' && event.newValue === 'true') {
+        checkAccountDeletionFlag();
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, [checkAccountDeletionFlag]);
+
+  // Cross-tab logout propagation: when another tab/app logs out, detect via storage event
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleCrossTabLogout = (event: StorageEvent) => {
+      if (
+        event.key === CROSS_TAB_LOGOUT_KEY &&
+        event.newValue &&
+        !isLoggingOut &&
+        !hasStartedLogoutRef.current &&
+        status === 'authenticated'
+      ) {
+        logger.info('[AuthWrapper] Cross-tab logout detected, logging out');
+        hasStartedLogoutRef.current = true;
+        logout();
+      }
+    };
+
+    window.addEventListener('storage', handleCrossTabLogout);
+    return () => window.removeEventListener('storage', handleCrossTabLogout);
+  }, [isLoggingOut, logout, status]);
+
+  // Cross-tab login propagation: when another tab/app logs in, refresh session
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleCrossTabLogin = (event: StorageEvent) => {
+      if (
+        event.key === CROSS_TAB_LOGIN_KEY &&
+        event.newValue &&
+        status !== 'authenticated' &&
+        !isLoggingOut
+      ) {
+        logger.info('[AuthWrapper] Cross-tab login detected, refreshing session');
+        update().catch(() => {
+          // Transient network error — session will be revalidated on next focus/navigation
+        });
+      }
+    };
+
+    window.addEventListener('storage', handleCrossTabLogin);
+    return () => window.removeEventListener('storage', handleCrossTabLogin);
+  }, [status, isLoggingOut, update]);
 
   // Handle unauthorized/expired token events
   const handleUnauthorized = useCallback(async () => {
@@ -385,36 +521,10 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
     logger.debug('[AuthWrapper] Handling unauthorized event');
 
-    // Check for account deletion flag
-    if (typeof window !== 'undefined') {
-      const accountDeleted = localStorage.getItem('account_deleted');
-      const deletionTimestamp = localStorage.getItem('account_deleted_timestamp');
-
-      if (accountDeleted === 'true') {
-        setHasHandledUnauthorized(true);
-        try {
-          localStorage.removeItem('account_deleted');
-          localStorage.removeItem('account_deleted_timestamp');
-        } catch {
-          // Ignore storage errors
-        }
-
-        ReusableToast({
-          message: 'Your account has been deleted. You have been logged out.',
-          type: 'ERROR',
-        });
-        logout();
-        return;
-      }
-
-      // Clean up old deletion timestamps
-      if (deletionTimestamp) {
-        const timestamp = parseInt(deletionTimestamp, 10);
-        if (Date.now() - timestamp > 5 * 60 * 1000) {
-          localStorage.removeItem('account_deleted');
-          localStorage.removeItem('account_deleted_timestamp');
-        }
-      }
+    // Check for account deletion flag (with user identifier validation and TTL)
+    if (checkAccountDeletionFlag()) {
+      setHasHandledUnauthorized(true);
+      return;
     }
 
     try {
@@ -424,14 +534,20 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
       if (freshSession && freshSession.user) {
         // Session is valid - track 401s to detect account issues
-        const unauthorizedCount = parseInt(
-          localStorage.getItem('unauthorized_count') || '0',
-          10
-        );
-        const lastUnauthorized = parseInt(
-          localStorage.getItem('last_unauthorized') || '0',
-          10
-        );
+        let unauthorizedCount = 0;
+        let lastUnauthorized = 0;
+        try {
+          unauthorizedCount = parseInt(
+            localStorage.getItem('unauthorized_count') || '0',
+            10
+          );
+          lastUnauthorized = parseInt(
+            localStorage.getItem('last_unauthorized') || '0',
+            10
+          );
+        } catch {
+          // Safari private mode / blocked storage — skip tracking
+        }
         const now = Date.now();
 
         // Multiple 401s in short time = likely account deletion
@@ -448,8 +564,12 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        localStorage.setItem('unauthorized_count', (unauthorizedCount + 1).toString());
-        localStorage.setItem('last_unauthorized', now.toString());
+        try {
+          localStorage.setItem('unauthorized_count', (unauthorizedCount + 1).toString());
+          localStorage.setItem('last_unauthorized', now.toString());
+        } catch {
+          // Safari private mode / blocked storage — skip tracking
+        }
         return;
       }
 
@@ -466,7 +586,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       setHasHandledUnauthorized(true);
       logout();
     }
-  }, [logout, update, isPublicRoute, hasHandledUnauthorized, isLoggingOut]);
+  }, [logout, update, isPublicRoute, hasHandledUnauthorized, isLoggingOut, checkAccountDeletionFlag]);
 
   // Listen for auth token expiration events
   useEffect(() => {
@@ -481,6 +601,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (status === 'authenticated') {
       setHasHandledUnauthorized(false);
+      hasStartedLogoutRef.current = false;
     }
   }, [status]);
 
@@ -489,11 +610,17 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     if (status === 'authenticated' && isAuthRoute) {
       logger.debug('[AuthWrapper] Authenticated user on auth route, redirecting to /home');
       router.push('/home');
-    } else if (status === 'unauthenticated' && !isPublicRoute && !isLoggingOut) {
-      logger.debug('[AuthWrapper] Unauthenticated user on protected route, redirecting to /login');
-      router.push('/login');
+    } else if (
+      status === 'unauthenticated' &&
+      !isPublicRoute &&
+      !isLoggingOut &&
+      !hasStartedLogoutRef.current
+    ) {
+      logger.debug('[AuthWrapper] Unauthenticated user on protected route, logging out');
+      hasStartedLogoutRef.current = true;
+      logout();
     }
-  }, [status, isAuthRoute, isPublicRoute, router, isLoggingOut]);
+  }, [status, isAuthRoute, isPublicRoute, router, isLoggingOut, logout]);
 
   // Check if we have a session from SSR or client fetch
   const hasSession = !!session;
@@ -591,6 +718,13 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
   const [isBootstrapping, setIsBootstrapping] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
+  const { update, status } = useSession();
+
+  useEffect(() => {
+    if (status === 'authenticated' && isHandlingOAuthRef.current) {
+      isHandlingOAuthRef.current = false;
+    }
+  }, [status]);
 
   const waitForSession = useCallback(async () => {
     const attempts = 8;
@@ -627,10 +761,20 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
           });
 
           if (result?.ok) {
+            // Force NextAuth SessionProvider to immediately sync its React context
+            await update();
+            
             // Wait for session to be fully available before redirecting
             const session = await waitForSession();
             const email = session?.user?.email || '';
             
+            // Signal other tabs/apps that login occurred
+            try {
+              localStorage.setItem(CROSS_TAB_LOGIN_KEY, String(Date.now()));
+            } catch {
+              // Ignore storage errors
+            }
+
             // Priority: handoff.callbackUrl > lastActiveModule logic
             const lastModule = getLastActiveModule(email);
             const fallbackUrl = lastModule === 'admin' ? '/admin/networks' : '/home';
@@ -655,23 +799,27 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
             }
           } else {
             logger.error('[TokenHandoffHandler] OAuth sign-in failed', { error: result?.error });
+            isHandlingOAuthRef.current = false;
             router.push(`/auth-error?error=${encodeURIComponent(result?.error || 'OAuthSignin')}`);
           }
+        } else {
+          isHandlingOAuthRef.current = false;
         }
       } catch (error) {
         logger.error('[TokenHandoffHandler] Error during bootstrap', { error });
+        isHandlingOAuthRef.current = false;
       } finally {
         if (shouldUnblock) {
           setIsBootstrapping(false);
-          isHandlingOAuthRef.current = false;
         }
       }
     };
 
     bootstrap();
-  }, [router, pathname, waitForSession]);
+  }, [router, pathname, waitForSession, update]);
 
-  if (isBootstrapping && isHandlingOAuthRef.current) {
+  // Keep blocking if we successfully handed off the token but NextAuth hasn't flushed its authenticated state yet
+  if ((isBootstrapping && isHandlingOAuthRef.current) || (status === 'unauthenticated' && isHandlingOAuthRef.current)) {
     return <SessionLoadingState />;
   }
 
@@ -689,7 +837,7 @@ export function AuthProvider({
   session?: Session | null;
 }) {
   return (
-    <SessionProvider session={session} refetchOnWindowFocus={false} refetchInterval={0}>
+    <SessionProvider session={session} refetchOnWindowFocus refetchInterval={0}>
       <TokenHandoffHandler>
         <AuthWrapper>{children}</AuthWrapper>
       </TokenHandoffHandler>

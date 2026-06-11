@@ -8,7 +8,8 @@ import { LoadingState } from '@/shared/components/ui/loading-state';
 import { toast } from '@/shared/components/ui';
 import { WarningBanner } from '@/shared/components/ui/banner';
 import { formatDate, parseDate } from '@/shared/utils';
-import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import { getUserFriendlyErrorMessage, isForbiddenError } from '@/shared/utils/errorMessages';
+import { AccessDenied } from '@/shared/components/AccessDenied';
 import { sanitizeErrorForLogging } from '@/shared/utils/sanitizeErrorForLogging';
 import {
   AqArrowLeft,
@@ -26,13 +27,12 @@ import EditClientDialog from '@/modules/api-client/components/EditClientDialog';
 import InactiveClientDialog from '@/modules/api-client/components/InactiveClientDialog';
 import TokenSecurityDialog from '@/modules/api-client/components/TokenSecurityDialog';
 import { PermissionGuard } from '@/shared/components/PermissionGuard';
-import { useRBAC, useUser } from '@/shared/hooks';
+import { useRBAC } from '@/shared/hooks';
 
 const ClientDetailsPage: React.FC = () => {
   const params = useParams();
   const router = useRouter();
   const { hasAnyPermission } = useRBAC();
-  const { user } = useUser();
   const clientId = params?.clientId as string;
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -247,6 +247,20 @@ const ClientDetailsPage: React.FC = () => {
   }
 
   if (error || !client) {
+    if (isForbiddenError(error)) {
+      return (
+        <PermissionGuard
+          requiredPermissions={['SYSTEM_ADMIN']}
+          accessDeniedTitle="Access Restricted"
+          accessDeniedMessage="You need system administrator permissions to access API client details."
+        >
+          <AccessDenied
+            title="Access Denied"
+            message="You do not have the required permissions to view this client."
+          />
+        </PermissionGuard>
+      );
+    }
     return (
       <div className="space-y-6">
         <Button
@@ -268,10 +282,9 @@ const ClientDetailsPage: React.FC = () => {
 
   return (
     <PermissionGuard
-      requiredRoles={['AIRQO_SUPER_ADMIN']}
-      customCheck={() => !!user?.email?.toLowerCase().endsWith('@airqo.net')}
+      requiredPermissions={['SYSTEM_ADMIN']}
       accessDeniedTitle="Access Restricted"
-      accessDeniedMessage="You need super admin privileges and a valid AirQo email to access API client details."
+      accessDeniedMessage="You need system administrator permissions to access API client details."
     >
       <div className="space-y-6">
         {/* Back Button */}

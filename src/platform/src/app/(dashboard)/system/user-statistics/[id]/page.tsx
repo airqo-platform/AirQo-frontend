@@ -26,7 +26,8 @@ import {
   AqUsersCheck,
 } from '@airqo/icons-react';
 import { formatWithPattern } from '@/shared/utils/dateUtils';
-import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import { getUserFriendlyErrorMessage, isForbiddenError } from '@/shared/utils/errorMessages';
+import { AccessDenied } from '@/shared/components/AccessDenied';
 import { refreshWithToast } from '@/shared/utils/refreshWithToast';
 
 const UserStatisticsDetailsPage: React.FC = () => {
@@ -155,14 +156,19 @@ const UserStatisticsDetailsPage: React.FC = () => {
 
   return (
     <PermissionGuard
-      requireAirQoSuperAdmin={true}
+      requiredPermissions={['SYSTEM_ADMIN']}
       accessDeniedTitle="Access Restricted"
-      accessDeniedMessage="You need the AIRQO_SUPER_ADMIN role with an @airqo.net email to view user details."
+      accessDeniedMessage="You need system administrator permissions to view user details."
     >
       {userLoading ? (
         <LoadingState
           className="h-[calc(100vh-220px)]"
           text="Loading user details..."
+        />
+      ) : isForbiddenError(userError) ? (
+        <AccessDenied
+          title="Access Denied"
+          message="You do not have the required permissions to view user details."
         />
       ) : userError || !user ? (
         <div className="space-y-6">

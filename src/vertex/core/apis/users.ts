@@ -1,13 +1,13 @@
 import { LoginCredentials } from "@/app/types/users";
 import createSecureApiClient from "../utils/secureApiProxyClient";
 import axios from "axios";
-import { getApiBaseUrl } from "@/lib/envConstants";
+import { buildServerApiUrl } from "@/lib/api-routing";
 
 export const users = {
   loginWithDetails: async (data: LoginCredentials) => {
     try {
-      const apiUrl = getApiBaseUrl();
-      const response = await axios.post(`${apiUrl}/users/login-with-details`, data, {
+      const url = buildServerApiUrl('/users/login-with-details');
+      const response = await axios.post(url, data, {
         timeout: 15000, // 15-second timeout for login request
       });
       return response.data;
