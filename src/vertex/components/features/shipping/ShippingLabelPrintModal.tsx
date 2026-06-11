@@ -16,7 +16,8 @@ interface ShippingLabelPrintModalProps {
 const ShippingLabelPrintModal: React.FC<ShippingLabelPrintModalProps> = ({ labels, isOpen, onClose }) => {
     const { showBanner } = useBanner();
 
-    const isValidDataUrl = (url: string) => {
+    const isValidDataUrl = (url: unknown): url is string => {
+        if (typeof url !== 'string') return false;
         return url.startsWith('data:image/') || /^https?:\/\//i.test(url);
     };
 
