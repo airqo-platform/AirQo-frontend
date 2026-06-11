@@ -15,6 +15,11 @@ import 'package:flutter_svg/svg.dart';
 class NavPage extends StatefulWidget {
   const NavPage({super.key});
 
+  /// Opens Learn tab on Surveys sub-tab (when surveys feature flag is on).
+  static void openLearnSurveysTab() {
+    KyaPage.tabIndexNotifier.value = 1;
+  }
+
   @override
   State<NavPage> createState() => _NavPageState();
 }
