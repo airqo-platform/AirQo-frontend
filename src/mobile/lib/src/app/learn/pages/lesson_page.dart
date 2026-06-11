@@ -19,6 +19,7 @@ class LessonPage extends StatefulWidget {
   final int lessonNumberInUnit;
   final int lessonsInUnit;
   final String? learnCourseId;
+  final String? progressKey;
   final LearnLessonContinuation? continuation;
 
   const LessonPage(
@@ -30,8 +31,11 @@ class LessonPage extends StatefulWidget {
     this.lessonNumberInUnit = 1,
     this.lessonsInUnit = 1,
     this.learnCourseId,
+    this.progressKey,
     this.continuation,
   });
+
+  String get _storageKey => progressKey ?? lesson.id;
 
   @override
   State<LessonPage> createState() => _LessonPageState();
@@ -45,9 +49,9 @@ class _LessonPageState extends State<LessonPage> {
   @override
   void initState() {
     super.initState();
-    final saved = _progress.furthestStep(widget.lesson.id);
+    final saved = _progress.furthestStep(widget._storageKey);
     _stepIndex = saved.clamp(0, widget.lesson.tasks.length - 1);
-    if (_progress.isLessonComplete(widget.lesson.id)) {
+    if (_progress.isLessonComplete(widget._storageKey)) {
       _finished = true;
     }
   }
@@ -55,9 +59,9 @@ class _LessonPageState extends State<LessonPage> {
   Task get _currentTask => widget.lesson.tasks[_stepIndex];
 
   Future<void> _advance() async {
-    await _progress.recordLessonFurthestStep(widget.lesson.id, _stepIndex + 1);
+    await _progress.recordLessonFurthestStep(widget._storageKey, _stepIndex + 1);
     if (_stepIndex >= widget.lesson.tasks.length - 1) {
-      await _progress.markLessonComplete(widget.lesson.id);
+      await _progress.markLessonComplete(widget._storageKey);
       setState(() => _finished = true);
     } else {
       setState(() => _stepIndex++);
@@ -76,6 +80,7 @@ class _LessonPageState extends State<LessonPage> {
       LearnBottomSheets.showLesson(
         context,
         lesson: next.nextLesson,
+        progressKey: next.nextProgressKey,
         unitPlainTitle: next.unitPlainTitle,
         courseTitle: next.courseTitle,
         lessonNumberInUnit: next.lessonNumberInUnit,

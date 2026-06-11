@@ -1,6 +1,7 @@
 import 'package:airqo/src/app/learn/models/learn_course_structure.dart';
 import 'package:airqo/src/app/learn/theme/learn_design_tokens.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
+import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 
 class LearnLevelSummaryCard extends StatefulWidget {
@@ -24,9 +25,13 @@ class _LearnLevelSummaryCardState extends State<LearnLevelSummaryCard> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final progress = widget.totalLessons > 0
         ? widget.completedLessons / widget.totalLessons
         : 0.0;
+    final iconBg =
+        isDark ? AppColors.darkThemeBackground : const Color(0xffF0F4FF);
+    final stages = LearnCatalog.stages;
 
     return GestureDetector(
       onTap: () => setState(() => _expanded = !_expanded),
@@ -46,11 +51,15 @@ class _LearnLevelSummaryCardState extends State<LearnLevelSummaryCard> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: const Color(0xffF0F4FF),
+                    color: iconBg,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   alignment: Alignment.center,
-                  child: Text(widget.stage.emoji, style: const TextStyle(fontSize: 18)),
+                  child: Icon(
+                    Icons.emoji_events_outlined,
+                    size: 20,
+                    color: AppColors.primaryColor,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -58,7 +67,7 @@ class _LearnLevelSummaryCardState extends State<LearnLevelSummaryCard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       TranslatedText(
-                        'YOUR STAGE',
+                        'YOUR LEVEL',
                         style: TextStyle(
                           fontSize: 9,
                           letterSpacing: 1,
@@ -85,7 +94,7 @@ class _LearnLevelSummaryCardState extends State<LearnLevelSummaryCard> {
                       style: LearnDesignTokens.activitySubtitle(context),
                     ),
                     TranslatedText(
-                      _expanded ? 'Hide stages' : 'See all stages',
+                      _expanded ? 'Hide levels' : 'See all levels',
                       style: TextStyle(
                         fontSize: 10,
                         color: LearnDesignTokens.primary(context),
@@ -111,67 +120,103 @@ class _LearnLevelSummaryCardState extends State<LearnLevelSummaryCard> {
               Divider(color: LearnDesignTokens.divider(context)),
               const SizedBox(height: 8),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: LearnCatalog.stages.map((s) {
-                  final active = s.index == widget.stage.index;
-                  final done = s.index < widget.stage.index;
-                  return Expanded(
-                    child: Column(
-                      children: [
-                        Container(
-                          width: active ? 28 : 26,
-                          height: active ? 28 : 26,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: done
-                                ? LearnDesignTokens.successBg
-                                : active
-                                    ? const Color(0xffE8F0FF)
-                                    : Theme.of(context).highlightColor,
-                            border: Border.all(
-                              color: done
-                                  ? LearnDesignTokens.success
-                                  : active
-                                      ? LearnDesignTokens.primary(context)
-                                      : LearnDesignTokens.divider(context),
-                              width: active ? 2 : 1.5,
-                            ),
-                          ),
-                          child: Center(
-                            child: done
-                                ? Icon(Icons.check,
-                                    size: 11, color: LearnDesignTokens.success)
-                                : Text(
-                                    '${s.index + 1}',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
-                                      color: active
-                                          ? LearnDesignTokens.primary(context)
-                                          : LearnDesignTokens.disabled,
-                                    ),
-                                  ),
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (var i = 0; i < stages.length; i++) ...[
+                    if (i > 0)
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 13),
+                          child: Container(
+                            height: 1.5,
+                            color: stages[i - 1].index < widget.stage.index
+                                ? LearnDesignTokens.success
+                                : LearnDesignTokens.divider(context),
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          s.name,
-                          style: TextStyle(
-                            fontSize: 8,
-                            color: active
-                                ? LearnDesignTokens.primary(context)
-                                : LearnDesignTokens.muted(context),
-                            fontWeight: active ? FontWeight.w600 : FontWeight.normal,
-                          ),
-                        ),
-                      ],
+                      ),
+                    _LevelNode(
+                      stage: stages[i],
+                      active: stages[i].index == widget.stage.index,
+                      done: stages[i].index < widget.stage.index,
                     ),
-                  );
-                }).toList(),
+                  ],
+                ],
               ),
             ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _LevelNode extends StatelessWidget {
+  final LearnStageInfo stage;
+  final bool active;
+  final bool done;
+
+  const _LevelNode({
+    required this.stage,
+    required this.active,
+    required this.done,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: active ? 44 : 40,
+      child: Column(
+        children: [
+          Container(
+            width: active ? 28 : 26,
+            height: active ? 28 : 26,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: done
+                  ? LearnDesignTokens.successBg
+                  : active
+                      ? const Color(0xffE8F0FF)
+                      : Theme.of(context).highlightColor,
+              border: Border.all(
+                color: done
+                    ? LearnDesignTokens.success
+                    : active
+                        ? LearnDesignTokens.primary(context)
+                        : LearnDesignTokens.divider(context),
+                width: active ? 2 : 1.5,
+              ),
+            ),
+            child: Center(
+              child: done
+                  ? LearnDesignTokens.completedCheckIconWidget(size: 14)
+                  : Text(
+                      '${stage.index + 1}',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: active
+                            ? LearnDesignTokens.primary(context)
+                            : LearnDesignTokens.disabled,
+                      ),
+                    ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            stage.name,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 8,
+              color: active
+                  ? LearnDesignTokens.primary(context)
+                  : LearnDesignTokens.muted(context),
+              fontWeight: active ? FontWeight.w600 : FontWeight.normal,
+            ),
+          ),
+        ],
       ),
     );
   }

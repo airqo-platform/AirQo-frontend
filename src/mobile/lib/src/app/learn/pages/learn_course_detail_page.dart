@@ -1,8 +1,9 @@
-import 'package:airqo/src/app/learn/formatting/learn_display_text.dart';
 import 'package:airqo/src/app/learn/models/learn_course_structure.dart';
 import 'package:airqo/src/app/learn/services/learn_progress_service.dart';
-import 'package:airqo/src/app/learn/theme/learn_design_tokens.dart';
+import 'package:airqo/src/app/learn/widgets/learn_lesson_list_row.dart';
+import 'package:airqo/src/app/learn/widgets/learn_unit_chip.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
+import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 
 typedef LearnLessonTapCallback = void Function(
@@ -15,14 +16,12 @@ typedef LearnLessonTapCallback = void Function(
 class LearnCourseDetailPage extends StatefulWidget {
   final LearnCourseViewModel course;
   final List<LearnCourseViewModel> allCourses;
-  final int initialUnitIndex;
   final LearnLessonTapCallback onLessonTap;
 
   const LearnCourseDetailPage({
     super.key,
     required this.course,
     required this.allCourses,
-    required this.initialUnitIndex,
     required this.onLessonTap,
   });
 
@@ -32,324 +31,173 @@ class LearnCourseDetailPage extends StatefulWidget {
 
 class _LearnCourseDetailPageState extends State<LearnCourseDetailPage> {
   late int _selectedUnitIndex;
-  final _unitRailController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    _selectedUnitIndex = widget.initialUnitIndex.clamp(
-      0,
-      widget.course.units.length - 1,
-    );
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToActiveUnit());
-  }
-
-  @override
-  void dispose() {
-    _unitRailController.dispose();
-    super.dispose();
-  }
-
-  void _scrollToActiveUnit() {
-    if (!_unitRailController.hasClients) return;
-    _unitRailController.animateTo(
-      _selectedUnitIndex * 120.0,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
+    _selectedUnitIndex = LearnCatalog.defaultSelectedUnitIndex(
+      widget.course,
+      LearnProgressService.instance,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final progress = LearnProgressService.instance;
-    final unit = widget.course.units[_selectedUnitIndex];
+    return ValueListenableBuilder<int>(
+      valueListenable: LearnProgressService.instance.revision,
+      builder: (context, _, __) => _buildSheet(context),
+    );
+  }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        LearnDesignTokens.dragHandle(context),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
+  Widget _buildSheet(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = isDark ? AppColors.darkHighlight : Colors.white;
+    final titleColor = isDark ? Colors.white : const Color(0xFF1A1D23);
+    final subtitleColor = isDark
+        ? AppColors.boldHeadlineColor2
+        : AppColors.secondaryHeadlineColor4;
+    final progress = LearnProgressService.instance;
+    final course = widget.course;
+    final completed = course.completedLessons(progress);
+    final total = course.totalLessons;
+    final selectedUnit = course.units[_selectedUnitIndex.clamp(
+      0,
+      course.units.length - 1,
+    )];
+    final unitUnlocked = LearnCatalog.isUnitUnlocked(
+      course,
+      _selectedUnitIndex,
+      progress,
+    );
+
+    return DraggableScrollableSheet(
+      initialChildSize: 0.88,
+      minChildSize: 0.5,
+      maxChildSize: 0.95,
+      expand: false,
+      builder: (ctx, scrollCtrl) {
+        return Container(
+          decoration: BoxDecoration(
+            color: bg,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: TranslatedText(
-                  widget.course.plainTitleKey,
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: LearnDesignTokens.headline(context),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: subtitleColor.withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
               ),
-              IconButton(
-                onPressed: () => Navigator.of(context).pop(),
-                icon: const Icon(Icons.close),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 12, 0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Course ${course.courseNumber}',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
+                              color: subtitleColor,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          TranslatedText(
+                            course.plainTitleKey,
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              height: 1.2,
+                              color: titleColor,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '$completed of $total lessons complete',
+                            style: TextStyle(fontSize: 13, color: subtitleColor),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: Icon(Icons.close, color: subtitleColor),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              LearnUnitChipRow(
+                course: course,
+                selectedUnitIndex: _selectedUnitIndex,
+                isDark: isDark,
+                onUnitSelected: (index) {
+                  setState(() => _selectedUnitIndex = index);
+                },
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: ListView.builder(
+                  controller: scrollCtrl,
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+                  itemCount: selectedUnit.lessons.length,
+                  itemBuilder: (context, lessonIndex) {
+                    final slot = selectedUnit.lessons[lessonIndex];
+                    final lessonUnlocked = unitUnlocked &&
+                        LearnCatalog.isLessonUnlocked(
+                          selectedUnit,
+                          lessonIndex,
+                          progress,
+                        );
+                    final complete =
+                        progress.isLessonComplete(slot.progressKey);
+                    final ratio = slot.hasContent
+                        ? progress.lessonProgressRatio(
+                            slot.progressKey,
+                            slot.apiLesson!.tasks.length,
+                          )
+                        : 0.0;
+                    final locked = !lessonUnlocked;
+                    final canOpen = lessonUnlocked && slot.hasContent;
+
+                    return LearnLessonListRow(
+                      slot: slot,
+                      unitIndex: _selectedUnitIndex,
+                      lessonIndex: lessonIndex,
+                      locked: locked,
+                      complete: complete,
+                      progressRatio: ratio,
+                      onOpen: canOpen
+                          ? () => widget.onLessonTap(
+                                course,
+                                selectedUnit,
+                                lessonIndex,
+                                slot,
+                              )
+                          : null,
+                    );
+                  },
+                ),
               ),
             ],
           ),
-        ),
-        const SizedBox(height: 8),
-        SizedBox(
-          height: 44,
-          child: ListView.builder(
-            controller: _unitRailController,
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: widget.course.units.length,
-            itemBuilder: (context, index) {
-              final u = widget.course.units[index];
-              final unlocked = LearnCatalog.isUnitUnlocked(
-                widget.course,
-                index,
-                progress,
-              );
-              final selected = index == _selectedUnitIndex;
-              final allDone = u.lessons.every(
-                (l) => progress.isLessonComplete(l.progressKey),
-              );
-              final isNext = !selected &&
-                  !allDone &&
-                  unlocked &&
-                  u.lessons.any(
-                    (l) => !progress.isLessonComplete(l.progressKey),
-                  );
-
-              Color bg = Theme.of(context).cardColor;
-              Color border = LearnDesignTokens.divider(context);
-              Color text = LearnDesignTokens.muted(context);
-
-              if (!unlocked) {
-                bg = Theme.of(context).highlightColor;
-                text = LearnDesignTokens.disabled;
-              } else if (selected) {
-                bg = LearnDesignTokens.primary(context);
-                border = LearnDesignTokens.primary(context);
-                text = Colors.white;
-              } else if (allDone) {
-                bg = LearnDesignTokens.successBg;
-                border = LearnDesignTokens.success;
-                text = LearnDesignTokens.successText;
-              } else if (isNext) {
-                border = LearnDesignTokens.primary(context);
-                text = LearnDesignTokens.primary(context);
-              }
-
-              return Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: GestureDetector(
-                  onTap: unlocked
-                      ? () => setState(() => _selectedUnitIndex = index)
-                      : null,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: bg,
-                      borderRadius: BorderRadius.circular(40),
-                      border: Border.all(color: border, width: 1.5),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (!unlocked)
-                          Padding(
-                            padding: const EdgeInsets.only(right: 4),
-                            child: Icon(Icons.lock, size: 12, color: text),
-                          ),
-                        if (allDone && !selected)
-                          Padding(
-                            padding: const EdgeInsets.only(right: 4),
-                            child: Icon(Icons.check, size: 12, color: text),
-                          ),
-                        TranslatedText(
-                          learnDisplayTitle(u.title),
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: text,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-          child: TranslatedText(
-            learnUnitHeader(_selectedUnitIndex, unit.title),
-            style: LearnDesignTokens.slbl(context),
-          ),
-        ),
-        Expanded(
-          child: GridView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 0.72,
-            ),
-            itemCount: unit.lessons.length,
-            itemBuilder: (context, lessonIndex) {
-              final slot = unit.lessons[lessonIndex];
-              final unitUnlocked = LearnCatalog.isUnitUnlocked(
-                widget.course,
-                _selectedUnitIndex,
-                progress,
-              );
-              final lessonUnlocked = unitUnlocked &&
-                  LearnCatalog.isLessonUnlocked(
-                    unit,
-                    lessonIndex,
-                    unit,
-                    progress,
-                  );
-              final complete = progress.isLessonComplete(slot.progressKey);
-              final ratio = slot.hasContent
-                  ? progress.lessonProgressRatio(
-                      slot.progressKey,
-                      slot.apiLesson!.tasks.length,
-                    )
-                  : 0.0;
-              final locked = !lessonUnlocked || !slot.hasContent;
-
-              return GestureDetector(
-                onTap: locked
-                    ? null
-                    : () => widget.onLessonTap(
-                          widget.course,
-                          unit,
-                          lessonIndex,
-                          slot,
-                        ),
-                child: _LessonPortraitTile(
-                  slot: slot,
-                  lessonIndex: lessonIndex,
-                  locked: locked,
-                  complete: complete,
-                  progressRatio: ratio,
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _LessonPortraitTile extends StatelessWidget {
-  final LearnLessonSlot slot;
-  final int lessonIndex;
-  final bool locked;
-  final bool complete;
-  final double progressRatio;
-
-  const _LessonPortraitTile({
-    required this.slot,
-    required this.lessonIndex,
-    required this.locked,
-    required this.complete,
-    required this.progressRatio,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(LearnDesignTokens.portraitCardRadius),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Container(color: slot.placeholderColor),
-          Center(
-            child: Opacity(
-              opacity: locked ? 0.25 : 1,
-              child: Text(slot.emoji, style: const TextStyle(fontSize: 46)),
-            ),
-          ),
-          if (complete)
-            Positioned(
-              top: 8,
-              right: 8,
-              child: Container(
-                width: 22,
-                height: 22,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: LearnDesignTokens.success, width: 1.5),
-                  color: LearnDesignTokens.success.withValues(alpha: 0.12),
-                ),
-                child: Icon(Icons.check, size: 11, color: LearnDesignTokens.success),
-              ),
-            ),
-          if (locked)
-            Center(
-              child: Icon(Icons.lock, size: 24, color: LearnDesignTokens.disabled),
-            ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(9, 7, 9, 9),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    LearnDesignTokens.footerGradient,
-                  ],
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    learnLessonLabel(lessonIndex),
-                    style: const TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.5,
-                      color: Color(0x80FFFFFF),
-                    ),
-                  ),
-                  TranslatedText(
-                    slot.plainTitleKey,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: locked
-                          ? Colors.white.withValues(alpha: 0.55)
-                          : Colors.white,
-                      height: 1.2,
-                    ),
-                  ),
-                  if (!locked && !complete && progressRatio > 0) ...[
-                    const SizedBox(height: 6),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(1),
-                      child: LinearProgressIndicator(
-                        value: progressRatio,
-                        minHeight: 2,
-                        backgroundColor: Colors.white.withValues(alpha: 0.2),
-                        color: LearnDesignTokens.primary(context),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

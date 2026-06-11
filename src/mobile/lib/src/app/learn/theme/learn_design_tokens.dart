@@ -1,4 +1,6 @@
 import 'package:airqo/src/meta/utils/colors.dart';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 /// Design tokens for the Learn tab — aligned with Exposure + HTML prototype.
@@ -66,4 +68,27 @@ class LearnDesignTokens {
         fontWeight: FontWeight.w500,
         color: muted(context),
       );
+
+  static const IconData completedCheckIcon = Icons.check_circle_outline;
+
+  static Widget completedCheckIconWidget({double size = 18}) {
+    return Icon(
+      completedCheckIcon,
+      size: size,
+      color: success,
+    );
+  }
+
+  static Widget lockedContentBlur({
+    required Widget child,
+    required BorderRadius borderRadius,
+  }) {
+    return ClipRRect(
+      borderRadius: borderRadius,
+      child: ImageFiltered(
+        imageFilter: ImageFilter.blur(sigmaX: 1.2, sigmaY: 1.2),
+        child: Opacity(opacity: 0.72, child: child),
+      ),
+    );
+  }
 }

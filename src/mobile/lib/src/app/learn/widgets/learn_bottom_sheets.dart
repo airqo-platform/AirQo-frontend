@@ -13,7 +13,6 @@ class LearnBottomSheets {
     BuildContext context, {
     required LearnCourseViewModel course,
     required List<LearnCourseViewModel> allCourses,
-    int initialUnitIndex = 0,
   }) {
     final callerContext = context;
     return showModalBottomSheet<void>(
@@ -22,27 +21,32 @@ class LearnBottomSheets {
       useSafeArea: false,
       backgroundColor: Colors.transparent,
       builder: (sheetContext) {
-        return DraggableScrollableSheet(
-          initialChildSize: 0.88,
-          minChildSize: 0.5,
-          maxChildSize: 0.95,
-          expand: true,
-          builder: (_, __) {
-            return Container(
-              decoration: BoxDecoration(
-                color: LearnDesignTokens.cardBg(sheetContext),
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(LearnDesignTokens.sheetTopRadius),
-                ),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: _LearnCourseSheetHost(
-                callerContext: callerContext,
-                course: course,
-                allCourses: allCourses,
-                initialUnitIndex: initialUnitIndex,
-              ),
+        return LearnCourseDetailPage(
+          course: course,
+          allCourses: allCourses,
+          onLessonTap: (course, unit, lessonIndex, slot) {
+            if (slot.apiLesson == null) return;
+            final continuation = LearnCatalog.continuationFor(
+              course,
+              unit,
+              lessonIndex,
+              allCourses,
             );
+            Navigator.of(sheetContext).pop();
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!callerContext.mounted) return;
+              LearnBottomSheets.showLesson(
+                callerContext,
+                lesson: slot.apiLesson!,
+                progressKey: slot.progressKey,
+                unitPlainTitle: unit.plainTitleKey,
+                courseTitle: course.title,
+                lessonNumberInUnit: lessonIndex + 1,
+                lessonsInUnit: unit.lessons.length,
+                learnCourseId: course.id,
+                continuation: continuation,
+              );
+            });
           },
         );
       },
@@ -52,6 +56,7 @@ class LearnBottomSheets {
   static Future<void> showLesson(
     BuildContext context, {
     required KyaLesson lesson,
+    String? progressKey,
     String? unitPlainTitle,
     String? courseTitle,
     int lessonNumberInUnit = 1,
@@ -77,6 +82,7 @@ class LearnBottomSheets {
           child: LessonPage(
             lesson,
             presentedAsModalSheet: true,
+            progressKey: progressKey,
             unitPlainTitle: unitPlainTitle,
             courseTitle: courseTitle,
             lessonNumberInUnit: lessonNumberInUnit,
@@ -85,52 +91,6 @@ class LearnBottomSheets {
             continuation: continuation,
           ),
         );
-      },
-    );
-  }
-}
-
-class _LearnCourseSheetHost extends StatelessWidget {
-  final BuildContext callerContext;
-  final LearnCourseViewModel course;
-  final List<LearnCourseViewModel> allCourses;
-  final int initialUnitIndex;
-
-  const _LearnCourseSheetHost({
-    required this.callerContext,
-    required this.course,
-    required this.allCourses,
-    required this.initialUnitIndex,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return LearnCourseDetailPage(
-      course: course,
-      allCourses: allCourses,
-      initialUnitIndex: initialUnitIndex,
-      onLessonTap: (course, unit, lessonIndex, slot) {
-        if (slot.apiLesson == null) return;
-        final continuation = LearnCatalog.continuationFor(
-          course,
-          unit,
-          lessonIndex,
-          allCourses,
-        );
-        Navigator.of(context).pop();
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!callerContext.mounted) return;
-          LearnBottomSheets.showLesson(
-            callerContext,
-            lesson: slot.apiLesson!,
-            unitPlainTitle: unit.plainTitleKey,
-            courseTitle: course.title,
-            lessonNumberInUnit: lessonIndex + 1,
-            lessonsInUnit: unit.lessons.length,
-            learnCourseId: course.id,
-            continuation: continuation,
-          );
-        });
       },
     );
   }

@@ -33,6 +33,7 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
   bool _isRetrying = false;
   late int _selectedIndex;
   final _progress = LearnProgressService.instance;
+  String? _lastSeedFingerprint;
 
   bool get _surveysEnabled =>
       FeatureFlagService.instance.isEnabled(AppFeatureFlag.surveys);
@@ -66,13 +67,15 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
     });
   }
 
-  void _onLessonsReady(List<LearnCourseViewModel> courses) {
-    final keys = courses
-        .expand((c) => c.units)
-        .expand((u) => u.lessons)
-        .map((l) => l.progressKey)
-        .toList();
-    _progress.ensurePilotLearnDemosV2(lessonKeys: keys);
+  void _onLessonsReady(
+    List<LearnCourseViewModel> courses,
+    List<KyaLesson> apiLessons,
+  ) {
+    final fingerprint =
+        '${apiLessons.length}:${apiLessons.map((l) => l.id).join('|')}';
+    if (_lastSeedFingerprint == fingerprint) return;
+    _lastSeedFingerprint = fingerprint;
+    _progress.ensurePilotLearnDemosV3(courses: courses);
   }
 
   @override
@@ -171,9 +174,9 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
         }
 
         final courses = LearnCatalog.buildFromLessons(apiLessons);
-        if (state is LessonsLoaded) {
+        if (state is LessonsLoaded || apiLessons.isNotEmpty) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            _onLessonsReady(courses);
+            _onLessonsReady(courses, apiLessons);
           });
         }
 
@@ -219,6 +222,10 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
                     return LearnCoursePortraitCard(
                       course: course,
                       locked: locked,
+                      coverImageUrl: LearnCatalog.courseCoverImage(
+                        course,
+                        apiLessons,
+                      ),
                       onTap: () => LearnBottomSheets.showCourseDetail(
                         context,
                         course: course,
