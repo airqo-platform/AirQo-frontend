@@ -756,6 +756,11 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
       try {
         const handoff = consumeOAuthTokenHandoffFromUrl();
         if (handoff?.token) {
+          if (shouldSkipBackendOAuthBootstrap()) {
+            logger.debug('[TokenHandoffHandler] OAuth token present but signed-out flag set, ignoring token handoff');
+            isHandlingOAuthRef.current = false;
+            return;
+          }
           // Fresh OAuth token indicates explicit sign-in, clear any stale flag
           clearBackendOAuthSignedOutFlag();
           logger.info('[TokenHandoffHandler] OAuth token detected, signing in...');
