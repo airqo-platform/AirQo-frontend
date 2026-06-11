@@ -31,8 +31,8 @@ const AIPlatformPage = () => {
         description:
           'AirQo AI Platform combines forecasting, site recommendation, categorization, reporting, and spatial analysis in one workspace so teams can move from raw observations to clearer environmental decisions.',
         image: {
-          src: '/assets/images/products/ai-platform/ai-platform-dashboard-showcase.png',
-          alt: 'AirQo AI platform dashboard showing map, locate, categorize, and reports',
+          src: '/assets/images/products/ai-platform/ai-platform-locate-showcase.png',
+          alt: 'AirQo AI Locate workspace showing an analysis boundary, recommended monitoring sites, and planning insights',
         },
       }}
       intro={{
@@ -150,8 +150,8 @@ const AIPlatformPage = () => {
           'This is what makes it useful beyond prediction alone: it helps teams turn information into planning logic and decision support.',
         ],
         image: {
-          src: '/assets/images/products/ai-platform/ai-platform-dashboard-showcase.png',
-          alt: 'AI Platform dashboard showing map intelligence and report modules',
+          src: '/assets/images/products/ai-platform/ai-platform-locate-showcase.png',
+          alt: 'AirQo AI Locate map with boundary planning, recommended sites, and priority monitoring locations',
         },
         cardBackgroundClassName: 'bg-[#FFF7E8]',
         reverse: true,
