@@ -14,7 +14,7 @@ class KyaLessonContainer extends StatelessWidget {
     final taskCount = kyaLesson.tasks.length;
 
     return GestureDetector(
-      onTap: () => showLesson(context, kyaLesson),
+      onTap: () => LearnBottomSheets.showLesson(context, lesson: kyaLesson),
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 8),
         width: double.infinity,

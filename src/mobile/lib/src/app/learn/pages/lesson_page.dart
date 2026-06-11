@@ -1,313 +1,228 @@
-import 'package:airqo/src/app/auth/pages/register_page.dart';
+import 'package:airqo/src/app/learn/formatting/learn_display_text.dart';
+import 'package:airqo/src/app/learn/models/learn_lesson_continuation.dart';
 import 'package:airqo/src/app/learn/models/lesson_response_model.dart';
-import 'package:airqo/src/app/learn/pages/lesson_finished.dart';
+import 'package:airqo/src/app/learn/services/learn_progress_service.dart';
+import 'package:airqo/src/app/learn/theme/learn_design_tokens.dart';
+import 'package:airqo/src/app/learn/widgets/learn_bottom_sheets.dart';
+import 'package:airqo/src/app/learn/widgets/learn_lesson_activities.dart';
+import 'package:airqo/src/app/learn/widgets/learn_lesson_confetti.dart';
+import 'package:airqo/src/app/learn/widgets/learn_sheet_button_styles.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
-import 'package:airqo/src/meta/utils/colors.dart';
-import 'package:flutter_card_swiper/flutter_card_swiper.dart';
+import 'package:airqo/src/app/surveys/widgets/survey_progress_indicator.dart';
 import 'package:flutter/material.dart';
 
 class LessonPage extends StatefulWidget {
   final KyaLesson lesson;
+  final bool presentedAsModalSheet;
+  final String? unitPlainTitle;
+  final String? courseTitle;
+  final int lessonNumberInUnit;
+  final int lessonsInUnit;
+  final String? learnCourseId;
+  final LearnLessonContinuation? continuation;
 
-  const LessonPage(this.lesson, {super.key});
+  const LessonPage(
+    this.lesson, {
+    super.key,
+    this.presentedAsModalSheet = false,
+    this.unitPlainTitle,
+    this.courseTitle,
+    this.lessonNumberInUnit = 1,
+    this.lessonsInUnit = 1,
+    this.learnCourseId,
+    this.continuation,
+  });
 
   @override
   State<LessonPage> createState() => _LessonPageState();
 }
 
 class _LessonPageState extends State<LessonPage> {
-  late final CardSwiperController _controller;
-  int _currentIndex = 0;
+  late int _stepIndex;
   bool _finished = false;
+  final _progress = LearnProgressService.instance;
 
   @override
   void initState() {
     super.initState();
-    _controller = CardSwiperController();
+    final saved = _progress.furthestStep(widget.lesson.id);
+    _stepIndex = saved.clamp(0, widget.lesson.tasks.length - 1);
+    if (_progress.isLessonComplete(widget.lesson.id)) {
+      _finished = true;
+    }
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+  Task get _currentTask => widget.lesson.tasks[_stepIndex];
+
+  Future<void> _advance() async {
+    await _progress.recordLessonFurthestStep(widget.lesson.id, _stepIndex + 1);
+    if (_stepIndex >= widget.lesson.tasks.length - 1) {
+      await _progress.markLessonComplete(widget.lesson.id);
+      setState(() => _finished = true);
+    } else {
+      setState(() => _stepIndex++);
+    }
   }
 
-  void _onIndexChanged(int index) {
-    setState(() => _currentIndex = index);
+  void _openNextLesson() {
+    final next = widget.continuation;
+    if (next == null) {
+      Navigator.of(context).pop();
+      return;
+    }
+    Navigator.of(context).pop();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!context.mounted) return;
+      LearnBottomSheets.showLesson(
+        context,
+        lesson: next.nextLesson,
+        unitPlainTitle: next.unitPlainTitle,
+        courseTitle: next.courseTitle,
+        lessonNumberInUnit: next.lessonNumberInUnit,
+        lessonsInUnit: next.lessonsInUnit,
+        learnCourseId: next.learnCourseId,
+      );
+    });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _LessonSheetHeader(
-          lesson: widget.lesson,
-          currentIndex: _currentIndex,
-          taskCount: widget.lesson.tasks.length,
-          finished: _finished,
-        ),
-        Expanded(
-          child: _finished
-              ? LessonFinishedWidget()
-              : _LessonCardBody(
-                  lesson: widget.lesson,
-                  controller: _controller,
-                  currentIndex: _currentIndex,
-                  onIndexChanged: _onIndexChanged,
-                  onFinished: () => setState(() => _finished = true),
-                ),
-        ),
-      ],
-    );
-  }
-}
-
-// ─── Sheet header: drag handle + title + stepper + close ─────────────────────
-
-class _LessonSheetHeader extends StatelessWidget {
-  final KyaLesson lesson;
-  final int currentIndex;
-  final int taskCount;
-  final bool finished;
-
-  const _LessonSheetHeader({
-    required this.lesson,
-    required this.currentIndex,
-    required this.taskCount,
-    required this.finished,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Drag handle
-        const SizedBox(height: 10),
-        Container(
-          height: 4,
-          width: 40,
-          decoration: BoxDecoration(
-            color: Colors.grey.shade300,
-            borderRadius: BorderRadius.circular(2),
+  Widget _buildBody() {
+    if (_finished) {
+      return Stack(
+        children: [
+          _LessonFinishPane(
+            onDone: () => Navigator.of(context).pop(),
+            onNext: widget.continuation != null ? _openNextLesson : null,
           ),
-        ),
-        const SizedBox(height: 12),
+          const LearnLessonConfetti(),
+        ],
+      );
+    }
+
+    final activity = _stepIndex.isEven
+        ? LearnImageActivityCard(
+            title: _currentTask.title,
+            body: _currentTask.content,
+            imageUrl: _currentTask.image,
+            onContinue: _advance,
+          )
+        : LearnNotesActivityCard(
+            title: _currentTask.title,
+            body: _currentTask.content,
+            onContinue: _advance,
+          );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (widget.presentedAsModalSheet) LearnDesignTokens.dragHandle(context),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
           child: Row(
             children: [
-              Expanded(
-                child: TranslatedText(
-                  lesson.title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.boldHeadlineColor,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              GestureDetector(
-                onTap: () => Navigator.of(context).pop(),
-                child: Container(
-                  height: 32,
-                  width: 32,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.grey.shade200,
-                  ),
-                  child: const Icon(Icons.close, size: 18, color: Colors.black54),
-                ),
+              Expanded(child: _buildHeader()),
+              IconButton(
+                onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(Icons.close),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 12),
-        if (!finished)
-          SizedBox(
-            height: 6,
-            child: StepperWidget(
-              green: true,
-              currentIndex: currentIndex,
-              count: taskCount,
-            ),
-          ),
-        const SizedBox(height: 8),
+        SurveyProgressIndicator(
+          currentQuestion: _stepIndex + 1,
+          totalQuestions: widget.lesson.tasks.length,
+          showQuestionNumbers: false,
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+        ),
+        Expanded(child: activity),
       ],
+    );
+  }
+
+  Widget _buildHeader() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          learnLessonLabel(widget.lessonNumberInUnit - 1),
+          style: LearnDesignTokens.lessonLabel(context),
+        ),
+        TranslatedText(
+          learnDisplayTitle(widget.lesson.title),
+          style: LearnDesignTokens.lessonTitle(context),
+        ),
+        const SizedBox(height: 4),
+        TranslatedText(
+          'Activity ${_stepIndex + 1} of ${widget.lesson.tasks.length}: ${_currentTask.title}',
+          style: LearnDesignTokens.activitySubtitle(context),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Nested Scaffold breaks Expanded layout inside modal bottom sheets.
+    final body = _buildBody();
+    if (widget.presentedAsModalSheet) {
+      return SizedBox.expand(child: body);
+    }
+    return Scaffold(
+      appBar: AppBar(
+        title: const TranslatedText('Lesson'),
+        centerTitle: true,
+      ),
+      body: body,
     );
   }
 }
 
-// ─── Card body: swiper + nav buttons ─────────────────────────────────────────
+class _LessonFinishPane extends StatelessWidget {
+  final VoidCallback onDone;
+  final VoidCallback? onNext;
 
-class _LessonCardBody extends StatelessWidget {
-  final KyaLesson lesson;
-  final CardSwiperController controller;
-  final int currentIndex;
-  final ValueChanged<int> onIndexChanged;
-  final VoidCallback onFinished;
-
-  const _LessonCardBody({
-    required this.lesson,
-    required this.controller,
-    required this.currentIndex,
-    required this.onIndexChanged,
-    required this.onFinished,
+  const _LessonFinishPane({
+    required this.onDone,
+    this.onNext,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: CardSwiper(
-            allowedSwipeDirection: AllowedSwipeDirection.none(),
-            controller: controller,
-            cardsCount: lesson.tasks.length,
-            onSwipe: (previousIndex, idx, direction) async {
-              onIndexChanged(idx!);
-              if (idx == lesson.tasks.length - 1) {
-                await Future.delayed(const Duration(seconds: 3));
-                onFinished();
-              }
-              return true;
-            },
-            onUndo: (previousIndex, idx, direction) {
-              onIndexChanged(idx);
-              return true;
-            },
-            cardBuilder: (context, index, percentX, percentY) =>
-                CardContent(data: lesson.tasks[index]),
-          ),
-        ),
-        _NavButtons(controller: controller),
-        const SizedBox(height: 24),
-      ],
-    );
-  }
-}
-
-class _NavButtons extends StatelessWidget {
-  final CardSwiperController controller;
-  const _NavButtons({required this.controller});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          _NavButton(
-            onTap: () => controller.undo(),
-            icon: Icons.arrow_back_ios,
-            color: Theme.of(context).highlightColor,
-          ),
-          const SizedBox(width: 12),
-          _NavButton(
-            onTap: () => controller.swipe(CardSwiperDirection.left),
-            icon: Icons.arrow_forward_ios,
-            color: const Color(0xff57D175),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _NavButton extends StatelessWidget {
-  final VoidCallback onTap;
-  final IconData icon;
-  final Color color;
-  const _NavButton({required this.onTap, required this.icon, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 62,
-        width: 78,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(40),
-          color: color,
-        ),
-        child: Center(
-          child: Icon(icon, color: Colors.black, size: 17),
-        ),
-      ),
-    );
-  }
-}
-
-// ─── Card content ─────────────────────────────────────────────────────────────
-
-class CardContent extends StatelessWidget {
-  final Task data;
-  const CardContent({super.key, required this.data});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: NetworkImage(data.image),
-          fit: BoxFit.cover,
-        ),
-        color: Colors.blue,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      alignment: Alignment.center,
-      child: Column(
-        children: [
-          const Spacer(),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: const BoxDecoration(
-              color: Color(0xff57D175),
-              borderRadius: BorderRadius.only(
-                bottomRight: Radius.circular(8),
-                bottomLeft: Radius.circular(8),
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('🎉', style: TextStyle(fontSize: 48)),
+            const SizedBox(height: 16),
+            TranslatedText(
+              'Great Job!',
+              style: LearnDesignTokens.lessonTitle(context),
+            ),
+            const SizedBox(height: 8),
+            TranslatedText(
+              'You finished this lesson. Keep going to learn more about your air.',
+              textAlign: TextAlign.center,
+              style: LearnDesignTokens.activitySubtitle(context),
+            ),
+            const SizedBox(height: 24),
+            if (onNext != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: ElevatedButton(
+                  onPressed: onNext,
+                  style: learnExposurePrimaryButtonStyle(),
+                  child: const TranslatedText('Next lesson'),
+                ),
               ),
+            OutlinedButton(
+              onPressed: onDone,
+              style: learnExposureSecondaryButtonStyle(context),
+              child: const TranslatedText('Done'),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TranslatedText(
-                  data.title,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TranslatedText(
-                  data.content,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 4),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
-}
-
-/// Kept for any existing code that still references [CardContentData] by name.
-class CardContentData {
-  final String title;
-  final String text;
-  const CardContentData({required this.title, required this.text});
 }
