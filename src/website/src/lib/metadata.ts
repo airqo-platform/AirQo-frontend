@@ -522,11 +522,11 @@ export const METADATA_CONFIGS = {
       'AirQo Beacon, device health monitoring, air quality network operations, sensor uptime monitoring, collocation management, MTBF, MTTR, maintenance dashboard, sensor network reliability, air quality device performance',
     url: '/products/beacon',
     image: {
-      url: '/assets/images/products/beacon/beacon-dashboard-showcase.png',
-      alt: 'AirQo Beacon device health and collocation management platform',
-      width: 1200,
-      height: 630,
-      type: 'image/png',
+      url: '/assets/images/products/beacon/beacon-device-render.webp',
+      alt: 'AirQo Beacon device render mounted under a solar panel',
+      width: 1536,
+      height: 1024,
+      type: 'image/webp',
     },
   },
   vertex: {
@@ -538,8 +538,8 @@ export const METADATA_CONFIGS = {
       'AirQo Vertex, device deployment platform, public air quality data sharing, open sensor network, multi-manufacturer support, sensor onboarding, air quality device maintenance, air monitoring data sharing',
     url: '/products/vertex',
     image: {
-      url: '/assets/images/products/vertex/vertex-dashboard-showcase.webp',
-      alt: 'AirQo Vertex open device deployment and public data sharing platform',
+      url: '/assets/images/products/vertex/bring-device.webp',
+      alt: 'AirQo Vertex deployment workflow shown on a laptop in a field operations setting',
       width: 1672,
       height: 941,
       type: 'image/webp',
@@ -554,8 +554,8 @@ export const METADATA_CONFIGS = {
       'AirQo AI Platform, air quality forecasting, environmental intelligence platform, sensor site selection, air quality reports, site categorization, spatial analysis, PM2.5 forecasting, AI for air quality',
     url: '/products/ai-platform',
     image: {
-      url: '/assets/images/products/ai-platform/ai-platform-forecast-showcase.webp',
-      alt: 'AirQo AI Platform map with a selected monitoring node and forecast details for the chosen location',
+      url: '/assets/images/products/ai-platform/hero.webp',
+      alt: 'AirQo AI platform shown on a laptop with locate planning and monitoring site selection',
       width: 1448,
       height: 1086,
       type: 'image/webp',
