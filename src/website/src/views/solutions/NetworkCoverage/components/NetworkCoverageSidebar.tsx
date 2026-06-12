@@ -1,6 +1,7 @@
 /* eslint-disable simple-import-sort/imports */
 import React from 'react';
 import {
+  FiChevronDown,
   FiChevronLeft,
   FiChevronRight,
   FiMapPin,
@@ -111,6 +112,8 @@ interface NetworkCoverageSidebarProps {
   isSearching?: boolean;
   selectedTypes: MonitorType[];
   activeOnly: boolean;
+  selectedNetworks: string[];
+  availableNetworks: string[];
   selectedCountry: NetworkCoverageCountry | null;
   selectedMonitor: NetworkCoverageMonitor | null;
   showAddMonitorPromptFor: string | null;
@@ -119,6 +122,7 @@ interface NetworkCoverageSidebarProps {
   onQueryChange: (value: string) => void;
   onToggleType: (type: MonitorType) => void;
   onToggleActiveOnly: () => void;
+  onToggleNetwork: (network: string) => void;
   onSelectCountry: (countryId: string) => void;
   onSelectMonitor: (monitorId: string, countryId: string) => void;
   onClosePrompt: () => void;
@@ -138,12 +142,15 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
   searchQuery,
   selectedTypes,
   activeOnly,
+  selectedNetworks,
+  availableNetworks,
   selectedCountry,
   selectedMonitor,
   showAddMonitorPromptFor,
   onQueryChange,
   onToggleType,
   onToggleActiveOnly,
+  onToggleNetwork,
   onSelectCountry,
   onSelectMonitor,
   onClosePrompt,
@@ -159,13 +166,27 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
   const q = (searchQuery || '').trim().toLowerCase();
 
   const scrollRef = React.useRef<HTMLDivElement | null>(null);
+  const networkDropdownRef = React.useRef<HTMLDivElement | null>(null);
   const [promptTop, setPromptTop] = React.useState<number | null>(null);
+  const [networkDropdownOpen, setNetworkDropdownOpen] = React.useState(false);
+
+  const matchesNetworkFilter = React.useCallback(
+    (monitor: NetworkCoverageMonitor) => {
+      if (selectedNetworks.length === 0) return true;
+      return selectedNetworks.includes((monitor.network || '').trim());
+    },
+    [selectedNetworks],
+  );
 
   const filteredCountries = React.useMemo(() => {
-    if (!q) return countries;
     return countries.filter((country) => {
+      const networkMatch = country.monitors.some(matchesNetworkFilter);
+      if (!networkMatch && selectedNetworks.length > 0) return false;
+
+      if (!q) return true;
       if (country.country.toLowerCase().includes(q)) return true;
       return country.monitors.some((monitor) => {
+        if (!matchesNetworkFilter(monitor)) return false;
         return (
           (monitor.name || '').toLowerCase().includes(q) ||
           (monitor.city || '').toLowerCase().includes(q) ||
@@ -173,7 +194,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
         );
       });
     });
-  }, [countries, q]);
+  }, [countries, q, matchesNetworkFilter, selectedNetworks]);
 
   const monitoredCountriesCount = filteredCountries.filter(
     (country) => country.monitors.length > 0,
@@ -181,15 +202,29 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
 
   const filteredCountryMonitors = React.useMemo(() => {
     if (!selectedCountry) return [];
-    if (!q) return selectedCountry.monitors;
-    return selectedCountry.monitors.filter((monitor) => {
+    const byNetwork = selectedCountry.monitors.filter(matchesNetworkFilter);
+    if (!q) return byNetwork;
+    return byNetwork.filter((monitor) => {
       return (
         (monitor.name || '').toLowerCase().includes(q) ||
         (monitor.city || '').toLowerCase().includes(q) ||
         (monitor.network || '').toLowerCase().includes(q)
       );
     });
-  }, [selectedCountry, q]);
+  }, [selectedCountry, q, matchesNetworkFilter]);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        networkDropdownRef.current &&
+        !networkDropdownRef.current.contains(event.target as Node)
+      ) {
+        setNetworkDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const isOverviewLoading = isLoading && !selectedCountry;
 
@@ -283,6 +318,72 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                 Active only
               </button>
             </div>
+
+            {/* Source / Network filter */}
+            {availableNetworks.length > 0 && (
+              <div className="relative mt-3" ref={networkDropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setNetworkDropdownOpen((p) => !p)}
+                  className={`inline-flex w-full items-center justify-between gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-all ${
+                    selectedNetworks.length > 0
+                      ? 'border-indigo-300 bg-indigo-50 text-indigo-700'
+                      : 'border-slate-300 bg-white text-slate-600 hover:border-slate-400 hover:bg-slate-50'
+                  }`}
+                >
+                  <span className="truncate">
+                    {selectedNetworks.length === 0
+                      ? 'All sources'
+                      : selectedNetworks.length === 1
+                        ? formatNetworkName(selectedNetworks[0])
+                        : `${selectedNetworks.length} sources selected`}
+                  </span>
+                  <FiChevronDown
+                    className={`h-3.5 w-3.5 flex-shrink-0 transition-transform ${networkDropdownOpen ? 'rotate-180' : ''}`}
+                  />
+                </button>
+
+                {networkDropdownOpen && (
+                  <div className="absolute left-0 right-0 z-50 mt-1 max-h-52 overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-lg">
+                    <div className="p-1">
+                      {selectedNetworks.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            selectedNetworks.forEach((n) => onToggleNetwork(n));
+                          }}
+                          className="w-full rounded-md px-3 py-1.5 text-left text-xs font-medium text-red-600 hover:bg-red-50"
+                        >
+                          Clear all
+                        </button>
+                      )}
+                      {availableNetworks.map((network) => {
+                        const isActive = selectedNetworks.includes(network);
+                        return (
+                          <button
+                            key={network}
+                            type="button"
+                            onClick={() => onToggleNetwork(network)}
+                            className={`flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-left text-xs transition-colors ${
+                              isActive
+                                ? 'bg-indigo-50 font-semibold text-indigo-700'
+                                : 'text-slate-700 hover:bg-slate-50'
+                            }`}
+                          >
+                            <span
+                              className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${isActive ? 'bg-indigo-500' : 'bg-slate-300'}`}
+                            />
+                            <span className="truncate">
+                              {formatNetworkName(network)}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Stats row */}
             <div className="mt-3">
