@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useMySites } from "@/core/hooks/useSites";
 import { useAppSelector } from "@/core/redux/hooks";
-import { useUserContext } from "@/core/hooks/useUserContext";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import ClientPaginatedSitesTable from "@/components/features/sites/client-paginated-sites-table";
@@ -11,18 +10,15 @@ import ClientPaginatedSitesTable from "@/components/features/sites/client-pagina
 const MySitesPage = () => {
   const router = useRouter();
   const { userDetails, activeGroup } = useAppSelector((state) => state.user);
-  const { userScope } = useUserContext();
-
   const { data: mySitesData, isLoading, error } = useMySites(
     userDetails?._id || "",
-    activeGroup?._id,
-    { enabled: userScope === "personal" }
+    activeGroup?._id
   );
 
   const sites = mySitesData?.sites || [];
 
   return (
-    <RouteGuard permission={PERMISSIONS.SITE.VIEW}>
+    <RouteGuard permission={PERMISSIONS.SITE.VIEW} allowedContexts={['personal']} redirectTo="/home" showError={false}>
       <div>
         <div className="mb-3">
           <div>
