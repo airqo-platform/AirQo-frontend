@@ -263,7 +263,7 @@ const NetworkCoveragePage = () => {
     return countries.map((country) => ({
       ...country,
       monitors: country.monitors.filter((monitor) =>
-        selectedNetworks.includes(monitor.network || ''),
+        selectedNetworks.includes((monitor.network || '').trim()),
       ),
     }));
   }, [countries, selectedNetworks]);
@@ -469,7 +469,9 @@ const NetworkCoveragePage = () => {
   > => {
     const filterByNetwork = (monitors: NetworkCoverageMonitor[]) => {
       if (selectedNetworks.length === 0) return monitors;
-      return monitors.filter((m) => selectedNetworks.includes(m.network || ''));
+      return monitors.filter((m) =>
+        selectedNetworks.includes((m.network || '').trim()),
+      );
     };
 
     if (!selectedCountryId) {

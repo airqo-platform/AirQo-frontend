@@ -173,7 +173,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
   const matchesNetworkFilter = React.useCallback(
     (monitor: NetworkCoverageMonitor) => {
       if (selectedNetworks.length === 0) return true;
-      return selectedNetworks.includes(monitor.network || '');
+      return selectedNetworks.includes((monitor.network || '').trim());
     },
     [selectedNetworks],
   );
