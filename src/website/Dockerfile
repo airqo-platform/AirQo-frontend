@@ -16,13 +16,15 @@ ARG API_URL
 # Public (NEXT_PUBLIC_) variables may be embedded in the client bundle.
 ARG NEXT_PUBLIC_GA_MEASUREMENT_ID
 ARG NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+ARG NEXT_PUBLIC_HCAPTCHA_SITE_KEY
 
 # Set environment variables for build (server-side variables)
 # Only set non-sensitive values. Do not store secrets in ENV here.
 # Provide secrets at runtime instead.
 ENV API_URL=$API_URL \
     NEXT_PUBLIC_GA_MEASUREMENT_ID=$NEXT_PUBLIC_GA_MEASUREMENT_ID \
-    NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=$NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+    NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=$NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN \
+    NEXT_PUBLIC_HCAPTCHA_SITE_KEY=$NEXT_PUBLIC_HCAPTCHA_SITE_KEY
 
 # Install dependencies and build
 COPY package*.json ./
