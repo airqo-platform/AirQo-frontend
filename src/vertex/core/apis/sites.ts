@@ -264,8 +264,8 @@ export const sites = {
 
   getMySites: async (
     userId: string,
-    groupIds?: string[],
-    cohortIds?: string[]
+    groupIds: string[],
+    cohortIds: string[]
   ): Promise<SitesSummaryResponse> => {
     try {
       const params = new URLSearchParams({ user_id: userId, tenant: "airqo" });

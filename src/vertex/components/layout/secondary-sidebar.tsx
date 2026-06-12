@@ -153,7 +153,6 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                     isCollapsed={isCollapsed}
                     onClick={onNavigate}
                   />
-
                   <SidebarSectionHeading isCollapsed={isCollapsed}>
                     Data Access & Visibility
                   </SidebarSectionHeading>
