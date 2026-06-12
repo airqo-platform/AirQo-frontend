@@ -537,13 +537,12 @@ const NetworkCoveragePage = () => {
     try {
       const exportCountries = await resolveExportCountries();
 
-      const isSingleCountry = !!selectedCountryId && exportCountries.length === 1;
+      const isSingleCountry =
+        !!selectedCountryId && exportCountries.length === 1;
       const selectedCountryObj = isSingleCountry ? exportCountries[0] : null;
       const countryName = selectedCountryObj?.country ?? null;
 
-      const scopeText = countryName
-        ? countryName
-        : 'All monitored countries';
+      const scopeText = countryName ? countryName : 'All monitored countries';
       const scopeLabel = countryName
         ? countryName.toLowerCase().replace(/[^a-z0-9]+/g, '-')
         : 'all-countries';
@@ -671,7 +670,9 @@ const NetworkCoveragePage = () => {
       doc.setFillColor(240, 242, 248);
       doc.rect(0, STRIP_Y, PAGE_W, STRIP_H, 'F');
 
-      const filtersLabel = filterSummary || `${selectedTypes.map(getTypeLabel).join(', ')}${activeOnly ? ' · Active only' : ''}`;
+      const filtersLabel =
+        filterSummary ||
+        `${selectedTypes.map(getTypeLabel).join(', ')}${activeOnly ? ' · Active only' : ''}`;
       const metaLine = `Scope: ${scopeText}  ·  Filters: ${filtersLabel}  ·  Generated: ${formatPdfDateTime(new Date().toISOString())}`;
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(7.5);
@@ -962,7 +963,9 @@ const NetworkCoveragePage = () => {
     }
   };
 
-  const escapeCsvField = (value: string | number | null | undefined): string => {
+  const escapeCsvField = (
+    value: string | number | null | undefined,
+  ): string => {
     const str = value == null ? '' : String(value);
     if (str.includes(',') || str.includes('"') || str.includes('\n')) {
       return `"${str.replace(/"/g, '""')}"`;
@@ -988,8 +991,11 @@ const NetworkCoveragePage = () => {
     try {
       const exportCountries = await resolveExportCountries();
 
-      const isSingleCountryCsv = !!selectedCountryId && exportCountries.length === 1;
-      const selectedCountryObjCsv = isSingleCountryCsv ? exportCountries[0] : null;
+      const isSingleCountryCsv =
+        !!selectedCountryId && exportCountries.length === 1;
+      const selectedCountryObjCsv = isSingleCountryCsv
+        ? exportCountries[0]
+        : null;
       const countryNameCsv = selectedCountryObjCsv?.country ?? null;
 
       const scopeText = countryNameCsv
@@ -1001,25 +1007,39 @@ const NetworkCoveragePage = () => {
 
       const allMonitors = exportCountries.flatMap((c) => c.monitors);
       const totalMonitors = allMonitors.length;
-      const activeMonitors = allMonitors.filter((m) => m.status === 'active').length;
+      const activeMonitors = allMonitors.filter(
+        (m) => m.status === 'active',
+      ).length;
       const inactiveMonitors = totalMonitors - activeMonitors;
-      const referenceCount = allMonitors.filter((m) => m.type === 'Reference').length;
+      const referenceCount = allMonitors.filter(
+        (m) => m.type === 'Reference',
+      ).length;
       const lcsCount = allMonitors.filter((m) => m.type === 'LCS').length;
-      const countriesWithMonitors = exportCountries.filter((c) => c.monitors.length > 0).length;
+      const countriesWithMonitors = exportCountries.filter(
+        (c) => c.monitors.length > 0,
+      ).length;
 
       const cities = new Set(
         allMonitors.map((m) => `${m.city}, ${m.country}`).filter(Boolean),
       );
-      const networks = new Set(allMonitors.map((m) => m.network).filter(Boolean));
-      const manufacturers = new Set(allMonitors.map((m) => m.manufacturer).filter(Boolean));
-      const pollutants = new Set(allMonitors.flatMap((m) => m.pollutants).filter(Boolean));
+      const networks = new Set(
+        allMonitors.map((m) => m.network).filter(Boolean),
+      );
+      const manufacturers = new Set(
+        allMonitors.map((m) => m.manufacturer).filter(Boolean),
+      );
+      const pollutants = new Set(
+        allMonitors.flatMap((m) => m.pollutants).filter(Boolean),
+      );
 
       const uptimeValues = allMonitors
         .map((m) => parseFloat(m.uptime30d))
         .filter((v) => !isNaN(v) && v >= 0 && v <= 100);
       const avgUptime =
         uptimeValues.length > 0
-          ? (uptimeValues.reduce((a, b) => a + b, 0) / uptimeValues.length).toFixed(1)
+          ? (
+              uptimeValues.reduce((a, b) => a + b, 0) / uptimeValues.length
+            ).toFixed(1)
           : '--';
 
       const lines: string[] = [];
@@ -1030,7 +1050,12 @@ const NetworkCoveragePage = () => {
       lines.push('Report Scope,' + escapeCsvField(scopeText));
       lines.push(
         'Generated,' +
-          escapeCsvField(new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date())),
+          escapeCsvField(
+            new Intl.DateTimeFormat(undefined, {
+              dateStyle: 'medium',
+              timeStyle: 'short',
+            }).format(new Date()),
+          ),
       );
       lines.push(
         'Filters Applied,' +
@@ -1076,13 +1101,23 @@ const NetworkCoveragePage = () => {
 
       // ── Section 2: Country Summary ──
       lines.push('COUNTRY SUMMARY');
-      lines.push('Country,ISO2,Total Monitors,Active,Inactive,Reference,LCS,Data Sources');
+      lines.push(
+        'Country,ISO2,Total Monitors,Active,Inactive,Reference,LCS,Data Sources',
+      );
       exportCountries.forEach((country) => {
-        const countryActive = country.monitors.filter((m) => m.status === 'active').length;
+        const countryActive = country.monitors.filter(
+          (m) => m.status === 'active',
+        ).length;
         const countryInactive = country.monitors.length - countryActive;
-        const countryRef = country.monitors.filter((m) => m.type === 'Reference').length;
-        const countryLcs = country.monitors.filter((m) => m.type === 'LCS').length;
-        const countryNetworks = [...new Set(country.monitors.map((m) => m.network).filter(Boolean))].join('; ');
+        const countryRef = country.monitors.filter(
+          (m) => m.type === 'Reference',
+        ).length;
+        const countryLcs = country.monitors.filter(
+          (m) => m.type === 'LCS',
+        ).length;
+        const countryNetworks = [
+          ...new Set(country.monitors.map((m) => m.network).filter(Boolean)),
+        ].join('; ');
         lines.push(
           [
             escapeCsvField(country.country),
@@ -1101,11 +1136,19 @@ const NetworkCoveragePage = () => {
       // ── Section 3: Cities/Locations ──
       lines.push('CITIES / LOCATIONS WITH MONITORS');
       lines.push('City,Country,ISO2,Number of Monitors,Sources');
-      const cityMap = new Map<string, { country: string; iso2: string; count: number; networks: Set<string> }>();
+      const cityMap = new Map<
+        string,
+        { country: string; iso2: string; count: number; networks: Set<string> }
+      >();
       allMonitors.forEach((m) => {
         const key = `${m.city}|${m.country}`;
         if (!cityMap.has(key)) {
-          cityMap.set(key, { country: m.country, iso2: m.iso2, count: 0, networks: new Set() });
+          cityMap.set(key, {
+            country: m.country,
+            iso2: m.iso2,
+            count: 0,
+            networks: new Set(),
+          });
         }
         const entry = cityMap.get(key)!;
         entry.count += 1;
@@ -1130,11 +1173,24 @@ const NetworkCoveragePage = () => {
       // ── Section 4: Network/Source Breakdown ──
       lines.push('SOURCE / NETWORK BREAKDOWN');
       lines.push('Source/Network,Total Monitors,Active,Inactive,Countries');
-      const networkMap = new Map<string, { total: number; active: number; inactive: number; countries: Set<string> }>();
+      const networkMap = new Map<
+        string,
+        {
+          total: number;
+          active: number;
+          inactive: number;
+          countries: Set<string>;
+        }
+      >();
       allMonitors.forEach((m) => {
         const net = m.network || 'Unknown';
         if (!networkMap.has(net)) {
-          networkMap.set(net, { total: 0, active: 0, inactive: 0, countries: new Set() });
+          networkMap.set(net, {
+            total: 0,
+            active: 0,
+            inactive: 0,
+            countries: new Set(),
+          });
         }
         const entry = networkMap.get(net)!;
         entry.total += 1;
