@@ -571,7 +571,7 @@ const NetworkCoveragePage = () => {
       const countriesWithMonitors = exportCountries.filter(
         (country) => country.monitors.length > 0,
       );
-      const countrySummaryRows = exportCountries.map((country) => [
+      const countrySummaryRows = countriesWithMonitors.map((country) => [
         country.country,
         country.iso2 || '--',
         String(country.monitors.length),
@@ -1017,9 +1017,10 @@ const NetworkCoveragePage = () => {
         (m) => m.type === 'Reference',
       ).length;
       const lcsCount = allMonitors.filter((m) => m.type === 'LCS').length;
-      const countriesWithMonitors = exportCountries.filter(
+      const countriesWithMonitorsArray = exportCountries.filter(
         (c) => c.monitors.length > 0,
-      ).length;
+      );
+      const countriesWithMonitors = countriesWithMonitorsArray.length;
 
       const cities = new Set(
         allMonitors.map((m) => `${m.city}, ${m.country}`).filter(Boolean),
@@ -1106,7 +1107,7 @@ const NetworkCoveragePage = () => {
       lines.push(
         'Country,ISO2,Total Monitors,Active,Inactive,Reference,LCS,Data Sources',
       );
-      exportCountries.forEach((country) => {
+      countriesWithMonitorsArray.forEach((country) => {
         const countryActive = country.monitors.filter(
           (m) => m.status === 'active',
         ).length;
