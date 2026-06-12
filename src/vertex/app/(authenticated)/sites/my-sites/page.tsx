@@ -3,16 +3,19 @@
 import { useRouter } from "next/navigation";
 import { useMySites } from "@/core/hooks/useSites";
 import { useAppSelector } from "@/core/redux/hooks";
+import { useUserContext } from "@/core/hooks/useUserContext";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import ClientPaginatedSitesTable from "@/components/features/sites/client-paginated-sites-table";
 
 const MySitesPage = () => {
   const router = useRouter();
+  const { userContext } = useUserContext();
   const { userDetails, activeGroup } = useAppSelector((state) => state.user);
   const { data: mySitesData, isLoading, error } = useMySites(
     userDetails?._id || "",
-    activeGroup?._id
+    activeGroup?._id,
+    { enabled: userContext === 'personal' }
   );
 
   const sites = mySitesData?.sites || [];
