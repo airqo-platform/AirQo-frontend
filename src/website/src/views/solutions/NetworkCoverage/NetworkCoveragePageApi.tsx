@@ -31,6 +31,7 @@ import NetworkCoverageSidebar from './components/NetworkCoverageSidebar';
 import {
   type MonitorType,
   type NetworkCoverageCountry,
+  type NetworkCoverageMonitor,
   type ViewMode,
   AFRICAN_COUNTRY_LIST,
   normalizeCountryId,
@@ -68,6 +69,12 @@ const buildPdfFileName = (scope: string) => {
 
 const displayText = (value?: string | null) =>
   value && value.trim() ? value : '--';
+
+const formatNetworkName = (value?: string | null) => {
+  if (!value || !value.trim()) return '--';
+  const trimmed = value.trim();
+  return trimmed.toLowerCase() === 'airqo' ? 'AirQo' : trimmed;
+};
 
 const captureWithTimeout = async <T,>(
   factory: () => Promise<T>,
@@ -113,6 +120,7 @@ const NetworkCoveragePage = () => {
     'LCS',
   ]);
   const [activeOnly, setActiveOnly] = useState(false);
+  const [selectedNetworks, setSelectedNetworks] = useState<string[]>([]);
   const [showAddMonitorPromptFor, setShowAddMonitorPromptFor] = useState<
     string | null
   >(null);
@@ -250,7 +258,15 @@ const NetworkCoveragePage = () => {
     }
   }, [selectedCountryId]);
 
-  const mapCountries = countries;
+  const mapCountries = useMemo(() => {
+    if (selectedNetworks.length === 0) return countries;
+    return countries.map((country) => ({
+      ...country,
+      monitors: country.monitors.filter((monitor) =>
+        selectedNetworks.includes(monitor.network || ''),
+      ),
+    }));
+  }, [countries, selectedNetworks]);
 
   const isSearching = query !== debouncedQuery && query.trim() !== '';
 
@@ -343,6 +359,26 @@ const NetworkCoveragePage = () => {
     return undefined;
   }, [monitorDetailQuery.isSuccess, selectedMonitorId]);
 
+  const availableNetworks = useMemo(() => {
+    const networkSet = new Set<string>();
+    allCountries.forEach((country) => {
+      country.monitors.forEach((monitor) => {
+        const network = (monitor.network || '').trim();
+        if (network) networkSet.add(network);
+      });
+    });
+    return Array.from(networkSet).sort((a, b) => a.localeCompare(b));
+  }, [allCountries]);
+
+  const toggleNetwork = (network: string) => {
+    setSelectedNetworks((previous) => {
+      if (previous.includes(network)) {
+        return previous.filter((item) => item !== network);
+      }
+      return [...previous, network];
+    });
+  };
+
   const toggleType = (type: MonitorType) => {
     setSelectedTypes((previous) => {
       const has = previous.includes(type);
@@ -431,12 +467,25 @@ const NetworkCoveragePage = () => {
   const resolveExportCountries = async (): Promise<
     NetworkCoverageCountry[]
   > => {
+    const filterByNetwork = (monitors: NetworkCoverageMonitor[]) => {
+      if (selectedNetworks.length === 0) return monitors;
+      return monitors.filter((m) => selectedNetworks.includes(m.network || ''));
+    };
+
     if (!selectedCountryId) {
-      return countries;
+      return countries.map((country) => ({
+        ...country,
+        monitors: filterByNetwork(country.monitors),
+      }));
     }
 
     if (selectedCountry) {
-      return [selectedCountry];
+      return [
+        {
+          ...selectedCountry,
+          monitors: filterByNetwork(selectedCountry.monitors),
+        },
+      ];
     }
 
     const response =
@@ -455,7 +504,7 @@ const NetworkCoveragePage = () => {
         id: response.countryId || selectedCountryId,
         country: response.country,
         iso2: response.iso2,
-        monitors: response.monitors,
+        monitors: filterByNetwork(response.monitors),
       },
     ];
   };
@@ -487,12 +536,33 @@ const NetworkCoveragePage = () => {
 
     try {
       const exportCountries = await resolveExportCountries();
-      const scopeText =
-        selectedCountry?.country ??
-        exportCountries[0]?.country ??
-        'All monitored countries';
-      const scopeLabel =
-        selectedCountry?.country ?? selectedCountryId ?? 'all-countries';
+
+      const isSingleCountry = !!selectedCountryId && exportCountries.length === 1;
+      const selectedCountryObj = isSingleCountry ? exportCountries[0] : null;
+      const countryName = selectedCountryObj?.country ?? null;
+
+      const scopeText = countryName
+        ? countryName
+        : 'All monitored countries';
+      const scopeLabel = countryName
+        ? countryName.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+        : 'all-countries';
+
+      // Build a descriptive subtitle that reflects active filters
+      const filterParts: string[] = [];
+      if (selectedTypes.length < 3) {
+        filterParts.push(selectedTypes.map(getTypeLabel).join(', '));
+      }
+      if (activeOnly) {
+        filterParts.push('Active only');
+      }
+      if (selectedNetworks.length > 0) {
+        filterParts.push(
+          `Source${selectedNetworks.length === 1 ? '' : 's'}: ${selectedNetworks.map((n) => formatNetworkName(n)).join(', ')}`,
+        );
+      }
+      const filterSummary = filterParts.join(' · ');
+
       const totalMonitors = exportCountries.reduce(
         (sum, country) => sum + country.monitors.length,
         0,
@@ -524,8 +594,10 @@ const NetworkCoveragePage = () => {
 
       // ── Document metadata ────────────────────────────────────────────────
       doc.setProperties({
-        title: 'Air Quality Monitoring Landscape in Africa Report',
-        subject: 'Air quality monitoring landscape export',
+        title: countryName
+          ? `Air Quality Monitoring Landscape — ${countryName} Report`
+          : 'Air Quality Monitoring Landscape in Africa Report',
+        subject: `Air quality monitoring landscape export — ${scopeText}`,
         author: 'Africa Air Quality Monitoring Network',
       });
 
@@ -586,7 +658,12 @@ const NetworkCoveragePage = () => {
         }
       };
 
-      drawHeader('Air Quality Monitoring Landscape in Africa');
+      drawHeader(
+        countryName
+          ? `Air Quality Monitoring Landscape — ${countryName}`
+          : 'Air Quality Monitoring Landscape in Africa',
+        filterSummary || undefined,
+      );
 
       // ── Light metadata strip ──────────────────────────────────────────────
       const STRIP_Y = HEADER_H; // immediately below header — no gap
@@ -594,7 +671,7 @@ const NetworkCoveragePage = () => {
       doc.setFillColor(240, 242, 248);
       doc.rect(0, STRIP_Y, PAGE_W, STRIP_H, 'F');
 
-      const filtersLabel = `${selectedTypes.map(getTypeLabel).join(', ')}${activeOnly ? ' · Active only' : ''}`;
+      const filtersLabel = filterSummary || `${selectedTypes.map(getTypeLabel).join(', ')}${activeOnly ? ' · Active only' : ''}`;
       const metaLine = `Scope: ${scopeText}  ·  Filters: ${filtersLabel}  ·  Generated: ${formatPdfDateTime(new Date().toISOString())}`;
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(7.5);
@@ -830,7 +907,9 @@ const NetworkCoveragePage = () => {
 
             // Repeat header banner on page 2
             drawHeader(
-              'Map Snapshot - Air Quality Monitoring Landscape in Africa',
+              countryName
+                ? `Map Snapshot — ${countryName}`
+                : 'Map Snapshot — Air Quality Monitoring Landscape in Africa',
               `Scope: ${scopeText}`,
             );
 
@@ -883,6 +962,290 @@ const NetworkCoveragePage = () => {
     }
   };
 
+  const escapeCsvField = (value: string | number | null | undefined): string => {
+    const str = value == null ? '' : String(value);
+    if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+    return str;
+  };
+
+  const buildCsvFileName = (scope: string, suffix: string) => {
+    const dateSuffix = new Date().toISOString().split('T')[0];
+    const normalizedScope = scope.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    return `network-coverage-${normalizedScope}-${suffix}-${dateSuffix}.csv`;
+  };
+
+  const downloadCsv = async () => {
+    if (exportInProgressRef.current) return;
+    exportInProgressRef.current = true;
+
+    if (isMountedRef.current) {
+      setIsDownloading(true);
+      setDownloadError(null);
+    }
+
+    try {
+      const exportCountries = await resolveExportCountries();
+
+      const isSingleCountryCsv = !!selectedCountryId && exportCountries.length === 1;
+      const selectedCountryObjCsv = isSingleCountryCsv ? exportCountries[0] : null;
+      const countryNameCsv = selectedCountryObjCsv?.country ?? null;
+
+      const scopeText = countryNameCsv
+        ? countryNameCsv
+        : 'All monitored countries';
+      const scopeLabel = countryNameCsv
+        ? countryNameCsv.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+        : 'all-countries';
+
+      const allMonitors = exportCountries.flatMap((c) => c.monitors);
+      const totalMonitors = allMonitors.length;
+      const activeMonitors = allMonitors.filter((m) => m.status === 'active').length;
+      const inactiveMonitors = totalMonitors - activeMonitors;
+      const referenceCount = allMonitors.filter((m) => m.type === 'Reference').length;
+      const lcsCount = allMonitors.filter((m) => m.type === 'LCS').length;
+      const countriesWithMonitors = exportCountries.filter((c) => c.monitors.length > 0).length;
+
+      const cities = new Set(
+        allMonitors.map((m) => `${m.city}, ${m.country}`).filter(Boolean),
+      );
+      const networks = new Set(allMonitors.map((m) => m.network).filter(Boolean));
+      const manufacturers = new Set(allMonitors.map((m) => m.manufacturer).filter(Boolean));
+      const pollutants = new Set(allMonitors.flatMap((m) => m.pollutants).filter(Boolean));
+
+      const uptimeValues = allMonitors
+        .map((m) => parseFloat(m.uptime30d))
+        .filter((v) => !isNaN(v) && v >= 0 && v <= 100);
+      const avgUptime =
+        uptimeValues.length > 0
+          ? (uptimeValues.reduce((a, b) => a + b, 0) / uptimeValues.length).toFixed(1)
+          : '--';
+
+      const lines: string[] = [];
+
+      // ── Section 1: Summary ──
+      lines.push('AIR QUALITY MONITORING NETWORK - SUMMARY REPORT');
+      lines.push('');
+      lines.push('Report Scope,' + escapeCsvField(scopeText));
+      lines.push(
+        'Generated,' +
+          escapeCsvField(new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date())),
+      );
+      lines.push(
+        'Filters Applied,' +
+          escapeCsvField(
+            `${selectedTypes.map((t) => getTypeLabel(t)).join(', ')}${activeOnly ? ' · Active only' : ''}${selectedNetworks.length > 0 ? ` · Sources: ${selectedNetworks.map((n) => formatNetworkName(n)).join(', ')}` : ''}`,
+          ),
+      );
+      lines.push('');
+      lines.push('NETWORK OVERVIEW');
+      lines.push('Metric,Value');
+      lines.push('Total Sensors Installed,' + totalMonitors);
+      lines.push('Active Sensors,' + activeMonitors);
+      lines.push('Inactive Sensors,' + inactiveMonitors);
+      lines.push('Countries Represented,' + countriesWithMonitors);
+      lines.push('Total Countries in Report,' + exportCountries.length);
+      lines.push('Unique Cities/Locations,' + cities.size);
+      lines.push('Data Sources/Networks,' + networks.size);
+      lines.push('Unique Manufacturers,' + manufacturers.size);
+      lines.push('Unique Pollutants Measured,' + pollutants.size);
+      lines.push('');
+      lines.push('MONITOR TYPE BREAKDOWN');
+      lines.push('Type,Count,Percentage');
+      lines.push(
+        `Reference Monitors,${referenceCount},${totalMonitors > 0 ? ((referenceCount / totalMonitors) * 100).toFixed(1) : 0}%`,
+      );
+      lines.push(
+        `Low-Cost Sensors (LCS),${lcsCount},${totalMonitors > 0 ? ((lcsCount / totalMonitors) * 100).toFixed(1) : 0}%`,
+      );
+      lines.push(
+        `Inactive,${inactiveMonitors},${totalMonitors > 0 ? ((inactiveMonitors / totalMonitors) * 100).toFixed(1) : 0}%`,
+      );
+      lines.push('');
+      lines.push('DATA QUALITY');
+      lines.push('Metric,Value');
+      lines.push('Average 30-Day Uptime,' + avgUptime + '%');
+      lines.push(
+        'Public Data Available,' +
+          allMonitors.filter((m) => m.publicData === 'Yes').length +
+          ' of ' +
+          totalMonitors,
+      );
+      lines.push('');
+
+      // ── Section 2: Country Summary ──
+      lines.push('COUNTRY SUMMARY');
+      lines.push('Country,ISO2,Total Monitors,Active,Inactive,Reference,LCS,Data Sources');
+      exportCountries.forEach((country) => {
+        const countryActive = country.monitors.filter((m) => m.status === 'active').length;
+        const countryInactive = country.monitors.length - countryActive;
+        const countryRef = country.monitors.filter((m) => m.type === 'Reference').length;
+        const countryLcs = country.monitors.filter((m) => m.type === 'LCS').length;
+        const countryNetworks = [...new Set(country.monitors.map((m) => m.network).filter(Boolean))].join('; ');
+        lines.push(
+          [
+            escapeCsvField(country.country),
+            escapeCsvField(country.iso2),
+            country.monitors.length,
+            countryActive,
+            countryInactive,
+            countryRef,
+            countryLcs,
+            escapeCsvField(countryNetworks),
+          ].join(','),
+        );
+      });
+      lines.push('');
+
+      // ── Section 3: Cities/Locations ──
+      lines.push('CITIES / LOCATIONS WITH MONITORS');
+      lines.push('City,Country,ISO2,Number of Monitors,Sources');
+      const cityMap = new Map<string, { country: string; iso2: string; count: number; networks: Set<string> }>();
+      allMonitors.forEach((m) => {
+        const key = `${m.city}|${m.country}`;
+        if (!cityMap.has(key)) {
+          cityMap.set(key, { country: m.country, iso2: m.iso2, count: 0, networks: new Set() });
+        }
+        const entry = cityMap.get(key)!;
+        entry.count += 1;
+        if (m.network) entry.networks.add(m.network);
+      });
+      Array.from(cityMap.entries())
+        .sort((a, b) => b[1].count - a[1].count)
+        .forEach(([cityKey, info]) => {
+          const cityName = cityKey.split('|')[0];
+          lines.push(
+            [
+              escapeCsvField(cityName),
+              escapeCsvField(info.country),
+              escapeCsvField(info.iso2),
+              info.count,
+              escapeCsvField([...info.networks].join('; ')),
+            ].join(','),
+          );
+        });
+      lines.push('');
+
+      // ── Section 4: Network/Source Breakdown ──
+      lines.push('SOURCE / NETWORK BREAKDOWN');
+      lines.push('Source/Network,Total Monitors,Active,Inactive,Countries');
+      const networkMap = new Map<string, { total: number; active: number; inactive: number; countries: Set<string> }>();
+      allMonitors.forEach((m) => {
+        const net = m.network || 'Unknown';
+        if (!networkMap.has(net)) {
+          networkMap.set(net, { total: 0, active: 0, inactive: 0, countries: new Set() });
+        }
+        const entry = networkMap.get(net)!;
+        entry.total += 1;
+        if (m.status === 'active') entry.active += 1;
+        else entry.inactive += 1;
+        if (m.country) entry.countries.add(m.country);
+      });
+      Array.from(networkMap.entries())
+        .sort((a, b) => b[1].total - a[1].total)
+        .forEach(([net, info]) => {
+          lines.push(
+            [
+              escapeCsvField(net),
+              info.total,
+              info.active,
+              info.inactive,
+              info.countries.size,
+            ].join(','),
+          );
+        });
+      lines.push('');
+
+      // ── Section 5: Detailed Monitor Data ──
+      lines.push('DETAILED MONITOR DATA');
+      lines.push(
+        [
+          'Monitor Name',
+          'City',
+          'Country',
+          'ISO2',
+          'Type',
+          'Status',
+          'Network/Source',
+          'Operator',
+          'Organization',
+          'Manufacturer',
+          'Equipment',
+          'Pollutants',
+          'Latitude',
+          'Longitude',
+          'Resolution',
+          'Transmission',
+          'Land Use',
+          'Site',
+          'Deployed',
+          'Last Active',
+          'Calibration Date',
+          'Calibration Method',
+          'Uptime (30d)',
+          'Public Data',
+          'Co-location',
+          'View Data URL',
+        ].join(','),
+      );
+      allMonitors.forEach((m) => {
+        lines.push(
+          [
+            escapeCsvField(m.name),
+            escapeCsvField(m.city),
+            escapeCsvField(m.country),
+            escapeCsvField(m.iso2),
+            escapeCsvField(m.type),
+            escapeCsvField(m.status),
+            escapeCsvField(m.network),
+            escapeCsvField(m.operator),
+            escapeCsvField(m.organisation),
+            escapeCsvField(m.manufacturer),
+            escapeCsvField(m.equipment),
+            escapeCsvField(m.pollutants.join('; ')),
+            m.latitude ?? '',
+            m.longitude ?? '',
+            escapeCsvField(m.resolution),
+            escapeCsvField(m.transmission),
+            escapeCsvField(m.landUse),
+            escapeCsvField(m.site),
+            escapeCsvField(m.deployed),
+            escapeCsvField(m.lastActive),
+            escapeCsvField(m.calibrationLastDate),
+            escapeCsvField(m.calibrationMethod),
+            escapeCsvField(m.uptime30d),
+            escapeCsvField(m.publicData),
+            escapeCsvField(m.coLocation),
+            escapeCsvField(m.viewDataUrl),
+          ].join(','),
+        );
+      });
+
+      const csvContent = lines.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = buildCsvFileName(scopeLabel, 'data');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      if (isMountedRef.current) {
+        setDownloadError(
+          error instanceof Error ? error.message : 'CSV download failed',
+        );
+      }
+    } finally {
+      exportInProgressRef.current = false;
+      if (isMountedRef.current) {
+        setIsDownloading(false);
+      }
+    }
+  };
+
   const handleDownload = async () => {
     await downloadPdf();
   };
@@ -895,6 +1258,7 @@ const NetworkCoveragePage = () => {
       <div className="flex h-full flex-col gap-2 p-2">
         <NetworkCoverageHeader
           onDownload={handleDownload}
+          onDownloadCsv={downloadCsv}
           isDownloading={isDownloading}
         />
 
@@ -929,6 +1293,8 @@ const NetworkCoveragePage = () => {
               isSearching={isSearching}
               selectedTypes={selectedTypes}
               activeOnly={activeOnly}
+              selectedNetworks={selectedNetworks}
+              availableNetworks={availableNetworks}
               selectedCountry={selectedCountry}
               selectedMonitor={selectedMonitor}
               showAddMonitorPromptFor={showAddMonitorPromptFor}
@@ -937,6 +1303,7 @@ const NetworkCoveragePage = () => {
               onQueryChange={setQuery}
               onToggleType={toggleType}
               onToggleActiveOnly={() => setActiveOnly((previous) => !previous)}
+              onToggleNetwork={toggleNetwork}
               onSelectCountry={selectCountry}
               onSelectMonitor={selectMonitor}
               // sidebar prompt opens our dialog via onOpenAddMonitor
