@@ -13,6 +13,16 @@ export interface CalendarEvent {
 }
 
 /**
+ * Strip HTML tags from a string, returning plain text.
+ */
+export const stripHtml = (html: string): string => {
+  return html
+    .replace(/<[^>]*>/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+};
+
+/**
  * Format a date for calendar URLs (YYYYMMDDTHHmmssZ format)
  */
 const formatDateForUrl = (date: Date): string => {
@@ -37,6 +47,8 @@ const formatDateForIcs = (date: Date): string => {
  */
 const escapeIcsText = (text: string): string => {
   return text
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
     .replace(/\\/g, '\\\\')
     .replace(/\n/g, '\\n')
     .replace(/,/g, '\\,')
@@ -123,7 +135,7 @@ export const generateIcsFile = (event: CalendarEvent): string => {
     `SUMMARY:${escapeIcsText(event.title)}`,
     `DESCRIPTION:${escapeIcsText(event.description || '')}`,
     `LOCATION:${escapeIcsText(event.location || '')}`,
-    `URL:${event.url || ''}`,
+    `URL:${escapeIcsText(event.url || '')}`,
     `UID:${Date.now()}@airqo.events`,
     'STATUS:CONFIRMED',
     'TRANSP:OPAQUE',

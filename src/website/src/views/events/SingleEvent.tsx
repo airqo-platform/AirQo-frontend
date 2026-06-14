@@ -40,6 +40,7 @@ import {
   getOfficeCalendarUrl,
   getOutlookCalendarUrl,
   getYahooCalendarUrl,
+  stripHtml,
 } from '@/utils/calendarUtils';
 import { convertDeltaToHtml } from '@/utils/quillUtils';
 
@@ -67,17 +68,22 @@ const SideEventsCarousel: React.FC<{
 }> = ({ sideEvents, parentEventTitle }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [cardsPerView, setCardsPerView] = useState(3);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
 
-  const getCardsPerView = useCallback(() => {
-    if (typeof window === 'undefined') return 3;
-    if (window.innerWidth < 640) return 1;
-    if (window.innerWidth < 1024) return 2;
-    return 3;
+  useEffect(() => {
+    const updateCardsPerView = () => {
+      if (window.innerWidth < 640) setCardsPerView(1);
+      else if (window.innerWidth < 1024) setCardsPerView(2);
+      else setCardsPerView(3);
+    };
+    updateCardsPerView();
+    window.addEventListener('resize', updateCardsPerView);
+    return () => window.removeEventListener('resize', updateCardsPerView);
   }, []);
 
-  const maxIndex = Math.max(0, sideEvents.length - getCardsPerView());
+  const maxIndex = Math.max(0, sideEvents.length - cardsPerView);
 
   const scrollToIndex = useCallback(
     (index: number) => {
@@ -229,8 +235,7 @@ const SideEventsCarousel: React.FC<{
                       {format(
                         parse(sideEvent.end_time, 'HH:mm:ss', new Date()),
                         'HH:mm',
-                      )}{' '}
-                      (London)
+                      )}
                     </span>
                   </div>
                 )}
@@ -311,7 +316,7 @@ const AddToCalendarButton: React.FC<{
 
   const calendarEvent: CalendarEvent = {
     title,
-    description: description || '',
+    description: description ? stripHtml(description) : '',
     location: location || '',
     startDate: combineDateAndTime(startDate, startTime),
     endDate: combineDateAndTime(endDate, endTime),
@@ -322,16 +327,32 @@ const AddToCalendarButton: React.FC<{
     setIsOpen(false);
     switch (type) {
       case 'google':
-        window.open(getGoogleCalendarUrl(calendarEvent), '_blank');
+        window.open(
+          getGoogleCalendarUrl(calendarEvent),
+          '_blank',
+          'noopener,noreferrer',
+        );
         break;
       case 'yahoo':
-        window.open(getYahooCalendarUrl(calendarEvent), '_blank');
+        window.open(
+          getYahooCalendarUrl(calendarEvent),
+          '_blank',
+          'noopener,noreferrer',
+        );
         break;
       case 'outlook':
-        window.open(getOutlookCalendarUrl(calendarEvent), '_blank');
+        window.open(
+          getOutlookCalendarUrl(calendarEvent),
+          '_blank',
+          'noopener,noreferrer',
+        );
         break;
       case 'office':
-        window.open(getOfficeCalendarUrl(calendarEvent), '_blank');
+        window.open(
+          getOfficeCalendarUrl(calendarEvent),
+          '_blank',
+          'noopener,noreferrer',
+        );
         break;
       case 'ical':
         downloadIcsFile(calendarEvent);
@@ -384,6 +405,13 @@ const ShareModal: React.FC<{
   title: string;
 }> = ({ isOpen, onClose, url, title }) => {
   const [copied, setCopied] = useState(false);
+  const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    };
+  }, []);
 
   const encodedUrl = encodeURIComponent(url);
   const encodedTitle = encodeURIComponent(title);
@@ -412,8 +440,9 @@ const ShareModal: React.FC<{
   const handleCopyUrl = async () => {
     try {
       await navigator.clipboard.writeText(url);
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      copyTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error('Failed to copy URL', err);
     }
@@ -744,7 +773,13 @@ const SingleEvent: React.FC<{ slug: string }> = ({ slug }) => {
                   {event.registration_link && (
                     <CustomButton
                       type="button"
-                      onClick={() => window.open(event.registration_link)}
+                      onClick={() =>
+                        window.open(
+                          event.registration_link,
+                          '_blank',
+                          'noopener,noreferrer',
+                        )
+                      }
                       className="text-white"
                     >
                       Register Now
