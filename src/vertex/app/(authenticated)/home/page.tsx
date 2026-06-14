@@ -4,7 +4,7 @@ import React from "react";
 import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
 import { Plus, Upload, AlertTriangle } from "lucide-react";
-import { useAppSelector, useAppDispatch } from "@/core/redux/hooks";
+import { useAppSelector } from "@/core/redux/hooks";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { usePermissions } from "@/core/hooks/usePermissions";
