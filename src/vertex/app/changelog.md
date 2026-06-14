@@ -40,12 +40,22 @@ Migrated the personal onboarding checklist state from local storage to a central
 </details>
 
 <details>
-<summary><strong>Files Added/Modified (11)</strong></summary>
+<summary><strong>UI & Security Enhancements (2)</strong></summary>
+
+- **Cohort Scope Enforcement**: Added strict client-side array filtering to `CohortSelectionStep.tsx` to ensure that even if the backend ignores the `cohort_id` array parameter, the dropdown strictly only displays cohorts belonging to the user's specific external organization or personal scope, preventing cross-organization data leakage.
+- **Smart Combobox Search**: Updated the generic `ComboBox` UI component (`combobox.tsx`) to intelligently hide its internal search bar when the list of options is completely empty. The search bar remains visible if the user is currently typing or if the component is loading data, ensuring a much cleaner empty-state UI without redundant inputs.
+
+</details>
+
+<details>
+<summary><strong>Files Added/Modified (13)</strong></summary>
 
 - `src/vertex/app/(authenticated)/home/page.tsx` [MODIFIED]
 - `src/vertex/app/types/users.ts` [MODIFIED]
+- `src/vertex/components/features/devices/import-steps/CohortSelectionStep.tsx` [MODIFIED]
 - `src/vertex/components/onboarding-checklist/ChecklistUI.tsx` [RENAMED/MODIFIED]
 - `src/vertex/components/onboarding-checklist/index.tsx` [ADDED]
+- `src/vertex/components/ui/combobox.tsx` [MODIFIED]
 - `src/vertex/core/apis/organizations.ts` [MODIFIED]
 - `src/vertex/core/apis/users.ts` [MODIFIED]
 - `src/vertex/core/hooks/useGroups.ts` [MODIFIED]
