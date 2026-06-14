@@ -1,1 +1,0 @@
-# Manage Organization Permissions
