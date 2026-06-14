@@ -120,7 +120,7 @@ export function ComboBox({
         align="start"
       >
         <Command shouldFilter={!onSearchChange}>
-          {(options.length > 0 || inputValue.length > 0 || isLoading) && (
+          {(onSearchChange || options.length > 0 || inputValue.length > 0 || isLoading) && (
             <CommandInput
               placeholder={searchPlaceholder}
               value={inputValue}
