@@ -52,10 +52,3 @@ export const useGroupDetails = (groupId: string, options?: any) => {
   });
 };
 
-export const useUpdateGroupOnboarding = () => {
-  return useMutation({
-    mutationFn: ({ groupId, payload }: { groupId: string, payload: { action: 'mark_step_complete' | 'dismiss_checklist'; step_id?: string } }) =>
-      groupsApi.updateGroupOnboardingApi(groupId, payload),
-  });
-};
-
