@@ -277,7 +277,6 @@ const WelcomePage = () => {
 
   // ── Derived state ──────────────────────────────────────────────────────────
 
-  const hasNoDevices = !hasDevices;
   const hasNoDevicesOrCohorts = !hasDevices && !hasCohorts;
 
 
