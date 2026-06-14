@@ -1,4 +1,4 @@
-name: deploy-android-to-play-store
+name: deploy-android-to-play-store-azure
 
 on:
   workflow_dispatch:
