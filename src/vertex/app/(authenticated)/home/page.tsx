@@ -25,8 +25,6 @@ import { useGroupDetails } from "@/core/hooks/useGroups";
 import { useOnboarding } from "@/core/hooks/useOnboarding";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 
-// ─── Removed Checklist localStorage helpers ──────────────────────────────────
-
 // ─── Skeletons ────────────────────────────────────────────────────────────────
 
 const StatsSkeleton = () => (
