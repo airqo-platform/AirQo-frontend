@@ -18,6 +18,7 @@ import ContextHeader from "@/components/features/home/context-header";
 import NetworkVisibilityCard from "@/components/features/home/network-visibility-card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import OnboardingChecklistWrapper from "@/components/onboarding-checklist";
+import HomeEmptyState from "@/components/features/home/HomeEmptyState";
 import { cn } from "@/lib/utils";
 import { Device } from "@/app/types/devices";
 import { useGroupDetails } from "@/core/hooks/useGroups";
@@ -156,19 +157,19 @@ const WelcomePage = () => {
     enabled: !!userId && userScope === "personal",
   });
 
+  const hasDevices =
+    userScope === "personal"
+      ? (myDevicesData?.devices ?? []).length > 0
+      : groupDevices.length > 0;
+
+  const hasCohorts =
+    userScope === "personal"
+      ? (personalCohortIds ?? []).length > 0
+      : (groupCohortIds ?? []).length > 0;
+
   const autoSteps = React.useMemo(() => {
     if (!orgId) return [];
     
-    const hasDevices =
-      userScope === "personal"
-        ? (myDevicesData?.devices ?? []).length > 0
-        : groupDevices.length > 0;
-
-    const hasCohorts =
-      userScope === "personal"
-        ? (personalCohortIds ?? []).length > 0
-        : (groupCohortIds ?? []).length > 0;
-
     const steps: string[] = [];
     if (hasDevices) {
       steps.push("add-device", "assign-cohort");
@@ -176,7 +177,7 @@ const WelcomePage = () => {
       steps.push("assign-cohort");
     }
     return steps;
-  }, [orgId, userScope, myDevicesData?.devices, groupDevices.length, personalCohortIds, groupCohortIds]);
+  }, [orgId, hasDevices, hasCohorts]);
 
   const visuallyCompletedSteps = React.useMemo(() => {
     return Array.from(new Set([...(activeChecklistState.completedSteps || []), ...autoSteps]));
@@ -276,10 +277,8 @@ const WelcomePage = () => {
 
   // ── Derived state ──────────────────────────────────────────────────────────
 
-  const hasNoDevices =
-    userScope === "personal"
-      ? (myDevicesData?.devices ?? []).length === 0
-      : groupDevices.length === 0;
+  const hasNoDevices = !hasDevices;
+  const hasNoDevicesOrCohorts = !hasDevices && !hasCohorts;
 
 
 
@@ -397,20 +396,23 @@ const WelcomePage = () => {
   }
 
   const renderMainContent = () => {
-    if (hasNoDevices) {
-      return (
-        <div className="flex-1">
-          <ContextHeader />
-          <OnboardingChecklistWrapper
-            autoCompletedSteps={autoSteps}
-            onAddDevice={openAddDeviceChoice}
-            onGoToCohorts={() => setIsAssignCohortModalOpen(true)}
-            onGoToVisibility={handleGoToVisibility}
-            canClaimDevice={canClaimDevice}
-            isLoadingGroupDetailsSafe={isLoadingGroupDetailsSafe}
-          />
-        </div>
-      );
+    if (hasNoDevicesOrCohorts) {
+      if (showChecklist) {
+        return (
+          <div className="flex-1">
+            <ContextHeader />
+            <OnboardingChecklistWrapper
+              autoCompletedSteps={autoSteps}
+              onAddDevice={openAddDeviceChoice}
+              onGoToCohorts={() => setIsAssignCohortModalOpen(true)}
+              onGoToVisibility={handleGoToVisibility}
+              canClaimDevice={canClaimDevice}
+              isLoadingGroupDetailsSafe={isLoadingGroupDetailsSafe}
+            />
+          </div>
+        );
+      }
+      return <HomeEmptyState />;
     }
 
     return (
