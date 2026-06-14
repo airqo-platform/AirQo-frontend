@@ -4,6 +4,51 @@
 
 ---
 
+## Version 2.0.5
+**Released:** June 14, 2026
+
+### Personal Onboarding Backend Integration & Code Refactoring
+
+Migrated the personal onboarding checklist state from local storage to a centralized backend API and completely refactored the checklist UI into a cleaner, modular architecture.
+
+<details>
+<summary><strong>Onboarding Backend Synchronization (4)</strong></summary>
+
+- **Server-Backed State**: Replaced the client-side `localStorage` mechanism with the `PATCH /users/onboarding` API. The personal onboarding state is now inherently tied to the user document on the backend.
+- **Session Manager Cleanup**: Stopped clearing the `vertex_onboarding` key from the session manager during logout since local storage is no longer the source of truth.
+- **UserDetails Type Update**: Updated the `UserDetails` type to include the `onboarding_checklist` object.
+- **Robust Parsing & Syncing**: Modified the Welcome Page to parse generic checklist patches, issue backend API updates, and dispatch the updated user details to Redux in real-time. Added an `isMissing` flag to prevent rendering the checklist when server state is absent.
+
+</details>
+
+<details>
+<summary><strong>Architecture Refactor & UI Wrapper (3)</strong></summary>
+
+- **Service Layer & Custom Hook**: Extracted direct API calls into a dedicated `onboardingService.ts` and encapsulated all business logic into a cleanly separated `useOnboarding.ts` hook.
+- **Smart Wrapper Component**: Introduced `OnboardingChecklistWrapper` (`index.tsx`) to compose the raw `ChecklistUI.tsx`. The wrapper completely isolates state resolution and visibility logic from the main application flow.
+- **Page Cleanup**: Simplified the main `page.tsx` by removing over 150 lines of bloated mutation logic and inline checklist conditionals. Dropped deprecated API endpoints from the users and organizations modules.
+
+</details>
+
+<details>
+<summary><strong>Files Added/Modified (11)</strong></summary>
+
+- `src/vertex/app/(authenticated)/home/page.tsx` [MODIFIED]
+- `src/vertex/app/types/users.ts` [MODIFIED]
+- `src/vertex/components/onboarding-checklist/ChecklistUI.tsx` [RENAMED/MODIFIED]
+- `src/vertex/components/onboarding-checklist/index.tsx` [ADDED]
+- `src/vertex/core/apis/organizations.ts` [MODIFIED]
+- `src/vertex/core/apis/users.ts` [MODIFIED]
+- `src/vertex/core/hooks/useGroups.ts` [MODIFIED]
+- `src/vertex/core/hooks/useOnboarding.ts` [ADDED]
+- `src/vertex/core/hooks/useUsers.ts` [ADDED/MODIFIED]
+- `src/vertex/core/services/onboardingService.ts` [ADDED]
+- `src/vertex/core/utils/sessionManager.ts` [MODIFIED]
+
+</details>
+
+---
+
 ## Version 2.0.4
 **Released:** June 11, 2026
 
