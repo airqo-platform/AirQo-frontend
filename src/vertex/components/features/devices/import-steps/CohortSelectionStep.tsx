@@ -70,8 +70,8 @@ export const CohortSelectionStep: React.FC<CohortSelectionStepProps> = ({
   const cohorts = isAdminPage 
     ? allCohorts 
     : isExternalOrg 
-      ? groupCohorts 
-      : personalCohorts;
+      ? groupCohorts?.filter(c => groupCohortIds?.includes(c._id)) 
+      : personalCohorts?.filter(c => personalCohortIds?.includes(c._id));
 
   const isFetchingCohorts = isAdminPage
     ? isFetchingAllCohorts
