@@ -79,6 +79,10 @@ export interface UserDetails {
   group_ids?: string[];
   cohort_ids?: string[];
   iat?: number;
+  onboarding_checklist?: {
+    is_dismissed: boolean;
+    completed_steps: string[];
+  };
 }
 
 export interface LoginResponse {
