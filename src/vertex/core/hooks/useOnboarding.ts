@@ -14,7 +14,7 @@ export const useOnboarding = () => {
 
   const activeChecklistState = React.useMemo(() => {
     if (userScope === 'organisation') {
-      const checklistSrc = groupDetails?.onboarding_checklist || activeGroup?.onboarding_checklist;
+      const checklistSrc = activeGroup?.onboarding_checklist ?? groupDetails?.onboarding_checklist;
       return {
         completedSteps: checklistSrc?.completed_steps || [],
         dismissed: checklistSrc?.is_dismissed || false,
