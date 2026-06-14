@@ -4,6 +4,40 @@
 
 ---
 
+## Version 2.0.5
+**Released:** June 12, 2026
+
+### My Sites Page — Personal Context
+
+Introduced a dedicated **My Sites** page for users operating in a Personal Context, mirroring the existing My Devices flow to ensure consistent behavior across personal assets.
+
+<details>
+<summary><strong>Changes (7)</strong></summary>
+
+- **API**: Added `getMySites(userId, groupIds?, cohortIds?)` to the `sites` API object. Calls `GET /devices/sites/my-sites` with `user_id`, `group_ids` (comma-separated), `cohort_ids` (comma-separated), and `tenant=airqo` query params. Returns `SitesSummaryResponse`. Header `X-Auth-Type: JWT` included.
+- **Adapter type**: Added `getMySites: typeof sites.getMySites` to the `VertexAdapter` interface so the method is correctly typed through the adapter layer.
+- **Hook**: Added `useMySites(userId, organizationId?, options?)` to `useSites.ts`, mirroring `useMyDevices` exactly. Imports `usePersonalUserCohorts` to resolve personal cohort IDs; filters `userDetails.groups` to exclude the "airqo" group when building `groupIds`; falls back to `userDetails.cohort_ids` if no personal cohorts are found. Query key includes `userId`, `organizationId || activeGroup?._id`, `groupIds`, and `cohortIds`.
+- **Route**: Added `MY_SITES: '/sites/my-sites'` to `ROUTE_LINKS` in `routes.ts`.
+- **Sidebar**: Destructured `isPersonalContext` from `useUserContext()` in `secondary-sidebar.tsx`. Added a "My Sites" `NavItem` (icon: `AqMarkerPin01`) under the "Personal assets" section, rendered only when `isPersonalContext === true` (i.e. the user's active group is the `airqo` group). Remains hidden when the user has switched to an external organisation context.
+- **Page**: Created `my-sites/page.tsx` matching the layout of `sites/overview/page.tsx` — simple title/description header with no action buttons, `ClientPaginatedSitesTable` with an `onSiteClick` handler that routes to `/sites/[id]` (the non-admin site details page). Removed `CreateSiteForm`, status filter badge, complex error card, and `useSearchParams` logic as they are not needed for the personal context use case.
+- **Site row navigation**: Passing `onSiteClick` to `ClientPaginatedSitesTable` overrides the component's default `/admin/sites/[id]` routing so personal-context users land on `/sites/[id]` instead. Back navigation from the site details page uses the existing `router.back()` call, which correctly returns the user to `/sites/my-sites`.
+
+</details>
+
+<details>
+<summary><strong>Files Updated (6)</strong></summary>
+
+- `src/vertex/core/apis/sites.ts` [MODIFIED]
+- `src/vertex/core/adapters/types.ts` [MODIFIED]
+- `src/vertex/core/hooks/useSites.ts` [MODIFIED]
+- `src/vertex/core/routes.ts` [MODIFIED]
+- `src/vertex/components/layout/secondary-sidebar.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/sites/my-sites/page.tsx` [NEW]
+
+</details>
+
+---
+
 ## Version 2.0.4
 **Released:** June 11, 2026
 

@@ -143,7 +143,16 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                     isCollapsed={isCollapsed}
                     onClick={onNavigate}
                   />
-
+                  <NavItem
+                    item={{
+                      href: ROUTE_LINKS.MY_SITES,
+                      icon: AqMarkerPin01,
+                      label: 'My Sites',
+                      disabled: false,
+                    }}
+                    isCollapsed={isCollapsed}
+                    onClick={onNavigate}
+                  />
                   <SidebarSectionHeading isCollapsed={isCollapsed}>
                     Data Access & Visibility
                   </SidebarSectionHeading>
