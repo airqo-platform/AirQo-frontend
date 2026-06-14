@@ -2,6 +2,69 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
+## Version 2.0.6
+**Released:** June 14, 2026
+
+### Personal Onboarding Backend Integration & Code Refactoring
+
+Migrated the personal onboarding checklist state from local storage to a centralized backend API and completely refactored the checklist UI into a cleaner, modular architecture.
+
+<details>
+<summary><strong>Onboarding Backend Synchronization (4)</strong></summary>
+
+- **Server-Backed State**: Replaced the client-side `localStorage` mechanism with the `PATCH /users/onboarding` API. The personal onboarding state is now inherently tied to the user document on the backend.
+- **Session Manager Cleanup**: Stopped clearing the `vertex_onboarding` key from the session manager during logout since local storage is no longer the source of truth.
+- **UserDetails Type Update**: Updated the `UserDetails` type to include the `onboarding_checklist` object.
+- **Robust Parsing & Syncing**: Modified the Welcome Page to parse generic checklist patches, issue backend API updates, and dispatch the updated user details to Redux in real-time. Added an `isMissing` flag to prevent rendering the checklist when server state is absent.
+
+</details>
+
+<details>
+<summary><strong>Architecture Refactor & UI Wrapper (3)</strong></summary>
+
+- **Service Layer & Custom Hook**: Extracted direct API calls into a dedicated `onboardingService.ts` and encapsulated all business logic into a cleanly separated `useOnboarding.ts` hook.
+- **Smart Wrapper Component**: Introduced `OnboardingChecklistWrapper` (`index.tsx`) to compose the raw `ChecklistUI.tsx`. The wrapper completely isolates state resolution and visibility logic from the main application flow.
+- **Page Cleanup**: Simplified the main `page.tsx` by removing over 150 lines of bloated mutation logic and inline checklist conditionals. Dropped deprecated API endpoints from the users and organizations modules.
+
+</details>
+
+<details>
+<summary><strong>Graceful Fallbacks & State Precedence (3)</strong></summary>
+
+- **Empty State Fallback**: Integrated the `HomeEmptyState` component into the main dashboard view. It safely renders when a user or organization has completely zero cohorts and zero devices AND the backend fails to supply an `onboarding_checklist` object. This prevents new organizations from landing on a broken or blank dashboard page.
+- **State Precedence Fix**: Resolved a "state shadowing" bug in `useOnboarding.ts` where instant Redux state updates (`activeGroup`) were ignored in favor of stale React Query cache data (`groupDetails`), delaying UI updates.
+- **Context Scope Fix**: Ensured the custom hook leverages the mapped `organisation` scope instead of treating the raw Redux `external-org` value as the scope, which previously broke the organization checklist fallback logic.
+
+</details>
+
+<details>
+<summary><strong>UI & Security Enhancements (2)</strong></summary>
+
+- **Cohort Scope Enforcement**: Added strict client-side array filtering to `CohortSelectionStep.tsx` to ensure that even if the backend ignores the `cohort_id` array parameter, the dropdown strictly only displays cohorts belonging to the user's specific external organization or personal scope, preventing cross-organization data leakage.
+- **Smart Combobox Search**: Updated the generic `ComboBox` UI component (`combobox.tsx`) to intelligently hide its internal search bar when the list of options is completely empty. The search bar remains visible if the user is currently typing or if the component is loading data, ensuring a much cleaner empty-state UI without redundant inputs.
+
+</details>
+
+<details>
+<summary><strong>Files Added/Modified (13)</strong></summary>
+
+- `src/vertex/app/(authenticated)/home/page.tsx` [MODIFIED]
+- `src/vertex/app/types/users.ts` [MODIFIED]
+- `src/vertex/components/features/devices/import-steps/CohortSelectionStep.tsx` [MODIFIED]
+- `src/vertex/components/onboarding-checklist/ChecklistUI.tsx` [RENAMED/MODIFIED]
+- `src/vertex/components/onboarding-checklist/index.tsx` [ADDED]
+- `src/vertex/components/ui/combobox.tsx` [MODIFIED]
+- `src/vertex/core/apis/organizations.ts` [MODIFIED]
+- `src/vertex/core/apis/users.ts` [MODIFIED]
+- `src/vertex/core/hooks/useGroups.ts` [MODIFIED]
+- `src/vertex/core/hooks/useOnboarding.ts` [ADDED]
+- `src/vertex/core/hooks/useUsers.ts` [ADDED/MODIFIED]
+- `src/vertex/core/services/onboardingService.ts` [ADDED]
+- `src/vertex/core/utils/sessionManager.ts` [MODIFIED]
+
+</details>
+
+
 ---
 
 ## Version 2.0.5
