@@ -8,7 +8,7 @@ import {
 } from "../apis/sites";
 import { adapter } from '../adapters';
 import { DeviceActivitiesResponse } from "../apis/devices";
-import { useGroupCohorts } from "./useCohorts";
+import { useGroupCohorts, usePersonalUserCohorts } from "./useCohorts";
 import { useAppSelector } from "../redux/hooks";
 import { useMemo } from "react";
 import { AxiosError } from "axios";
@@ -284,4 +284,51 @@ export const useRefreshSiteMetadata = (options?: UseRefreshSiteMetadataOptions) 
       options?.onError?.(error);
     },
   });
+};
+
+export const useMySites = (
+  userId: string,
+  organizationId?: string,
+  options: { enabled?: boolean } = {}
+) => {
+  const activeGroup = useAppSelector((state) => state.user.activeGroup);
+  const userDetails = useAppSelector((state) => state.user.userDetails);
+  const { enabled = true } = options;
+
+  type UserGroup = {
+    _id: string;
+    grp_title?: string;
+  };
+
+  const { data: personalCohortIds, isLoading: isPersonalCohortsLoading } =
+    usePersonalUserCohorts(userId, { enabled: !!userId && enabled });
+
+  const groupIds = userDetails?.groups
+    ? (userDetails.groups as UserGroup[])
+        .filter((g) => g.grp_title?.toLowerCase() !== "airqo")
+        .map((g) => g._id)
+    : userDetails?.group_ids || [];
+
+  const cohortIds =
+    personalCohortIds && personalCohortIds.length > 0
+      ? personalCohortIds
+      : userDetails?.cohort_ids || [];
+
+  const query = useQuery<SitesSummaryResponse, AxiosError<ErrorResponse>>({
+    queryKey: [
+      "mySites",
+      userId,
+      organizationId || activeGroup?._id,
+      groupIds,
+      cohortIds,
+    ],
+    queryFn: () => adapter.getMySites(userId, groupIds, cohortIds),
+    enabled: !!userId && enabled && !!userDetails && !isPersonalCohortsLoading,
+    staleTime: 60_000,
+  });
+
+  return {
+    ...query,
+    isLoading: query.isLoading || isPersonalCohortsLoading,
+  };
 };
