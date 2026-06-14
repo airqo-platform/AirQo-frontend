@@ -9,7 +9,8 @@ import { getApiErrorMessage } from '../utils/getApiErrorMessage';
 
 export const useOnboarding = () => {
   const dispatch = useDispatch();
-  const { userContext: userScope, userDetails: user, activeGroup, groupDetails } = useAppSelector((state: any) => state.user);
+  const { userContext, userDetails: user, activeGroup, groupDetails } = useAppSelector((state: any) => state.user);
+  const userScope = userContext === 'external-org' ? 'organisation' : 'personal';
 
   const activeChecklistState = React.useMemo(() => {
     if (userScope === 'organisation') {
