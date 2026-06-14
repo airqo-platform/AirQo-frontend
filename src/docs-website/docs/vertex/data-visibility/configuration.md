@@ -1,4 +1,4 @@
-# Configure Data Visibility
+# Configuration
 
 Vertex allows you to control whether your deployed devices are visible on the public AirQo Map, contributing to open data initiatives.
 
