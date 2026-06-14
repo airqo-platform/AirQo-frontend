@@ -115,6 +115,30 @@ const Footer = () => {
                   AirQalibrate
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/products/vertex"
+                  className="text-gray-600 hover:underline"
+                >
+                  Vertex
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/products/beacon"
+                  className="text-gray-600 hover:underline"
+                >
+                  Beacon
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/products/ai-platform"
+                  className="text-gray-600 hover:underline"
+                >
+                  AI Platform
+                </Link>
+              </li>
             </ul>
           </div>
 
