@@ -26,7 +26,10 @@ const formatDateForUrl = (date: Date): string => {
  * Format a date for ICS file (YYYYMMDDTHHmmssZ format)
  */
 const formatDateForIcs = (date: Date): string => {
-  return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  return date
+    .toISOString()
+    .replace(/[-:]/g, '')
+    .replace(/\.\d{3}/, '');
 };
 
 /**
@@ -149,10 +152,7 @@ export const downloadIcsFile = (event: CalendarEvent): void => {
 /**
  * Combine start date and time into a Date object
  */
-export const combineDateAndTime = (
-  dateStr: string,
-  timeStr?: string,
-): Date => {
+export const combineDateAndTime = (dateStr: string, timeStr?: string): Date => {
   const date = new Date(dateStr);
   if (timeStr) {
     const [hours, minutes, seconds] = timeStr.split(':').map(Number);

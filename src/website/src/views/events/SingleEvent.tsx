@@ -3,11 +3,14 @@
 import { format, isSameMonth, parse } from 'date-fns';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  FaLink,
-  FaShareAlt,
-} from 'react-icons/fa';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { FaLink, FaShareAlt } from 'react-icons/fa';
 import {
   FiCalendar,
   FiClock,
@@ -17,11 +20,7 @@ import {
   FiMapPin,
 } from 'react-icons/fi';
 import { HiArrowSmallLeft, HiArrowSmallRight } from 'react-icons/hi2';
-import {
-  RiFacebookFill,
-  RiLinkedinFill,
-  RiTwitterXFill,
-} from 'react-icons/ri';
+import { RiFacebookFill, RiLinkedinFill, RiTwitterXFill } from 'react-icons/ri';
 
 import {
   Accordion,
@@ -34,13 +33,13 @@ import {
 import mainConfig from '@/configs/mainConfigs';
 import { useEventDetails } from '@/hooks/useApiHooks';
 import {
+  type CalendarEvent,
   combineDateAndTime,
   downloadIcsFile,
   getGoogleCalendarUrl,
   getOfficeCalendarUrl,
   getOutlookCalendarUrl,
   getYahooCalendarUrl,
-  type CalendarEvent,
 } from '@/utils/calendarUtils';
 import { convertDeltaToHtml } from '@/utils/quillUtils';
 
@@ -238,7 +237,9 @@ const SideEventsCarousel: React.FC<{
                 {sideEvent.location_name && (
                   <div className="flex items-center gap-2">
                     <FiMapPin className="w-4 h-4 text-gray-400 shrink-0" />
-                    <span className="line-clamp-1">{sideEvent.location_name}</span>
+                    <span className="line-clamp-1">
+                      {sideEvent.location_name}
+                    </span>
                   </div>
                 )}
               </div>
@@ -259,7 +260,9 @@ const SideEventsCarousel: React.FC<{
             key={index}
             onClick={() => scrollToIndex(index)}
             className={`w-2 h-2 rounded-full transition-colors ${
-              index === currentIndex ? 'bg-blue-600' : 'bg-gray-300 hover:bg-gray-400'
+              index === currentIndex
+                ? 'bg-blue-600'
+                : 'bg-gray-300 hover:bg-gray-400'
             }`}
             aria-label={`Go to slide ${index + 1}`}
           />
@@ -418,16 +421,15 @@ const ShareModal: React.FC<{
 
   const handleEmailShare = () => {
     const subject = encodeURIComponent(`Check out: ${title}`);
-    const body = encodeURIComponent(`I thought you might be interested in this event: ${url}`);
+    const body = encodeURIComponent(
+      `I thought you might be interested in this event: ${url}`,
+    );
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent
-        className="max-w-md p-5 sm:p-6 mx-4"
-        hideClose
-      >
+      <DialogContent className="max-w-md p-5 sm:p-6 mx-4" hideClose>
         <DialogTitle className="text-lg font-bold text-gray-900 mb-1">
           SHARE
         </DialogTitle>
@@ -637,7 +639,10 @@ const SingleEvent: React.FC<{ slug: string }> = ({ slug }) => {
               Events
             </button>
             <span className="mx-2">{'>'}</span>
-            <button type="button" className="text-gray-400 hover:text-gray-200 line-clamp-1">
+            <button
+              type="button"
+              className="text-gray-400 hover:text-gray-200 line-clamp-1"
+            >
               {event.title}
             </button>
           </nav>
@@ -650,9 +655,7 @@ const SingleEvent: React.FC<{ slug: string }> = ({ slug }) => {
             </p>
           )}
           <ShareButton
-            url={
-              typeof window !== 'undefined' ? window.location.href : ''
-            }
+            url={typeof window !== 'undefined' ? window.location.href : ''}
             title={event.title || 'Event'}
             variant="outline"
           />
@@ -691,7 +694,9 @@ const SingleEvent: React.FC<{ slug: string }> = ({ slug }) => {
             {/* Event Details Section */}
             {eventDetailsHtml && (
               <section className="mb-8">
-                <h2 className="text-3xl font-semibold mb-6 pb-2">Event Details</h2>
+                <h2 className="text-3xl font-semibold mb-6 pb-2">
+                  Event Details
+                </h2>
                 <div className="flex justify-between w-full items-center border-b-2 py-4 mb-6">
                   <div className="flex flex-col gap-4 mb-6">
                     <div className="flex items-center space-x-2">
@@ -937,9 +942,12 @@ const SingleEvent: React.FC<{ slug: string }> = ({ slug }) => {
                             {orgLink.organizer.name}
                           </span>
                         )}
-                        {orgLink.role_display && orgLink.role !== 'organizer' && (
-                          <p className="text-xs text-gray-500">{orgLink.role_display}</p>
-                        )}
+                        {orgLink.role_display &&
+                          orgLink.role !== 'organizer' && (
+                            <p className="text-xs text-gray-500">
+                              {orgLink.role_display}
+                            </p>
+                          )}
                       </div>
                     </div>
                   ))}
@@ -955,7 +963,10 @@ const SingleEvent: React.FC<{ slug: string }> = ({ slug }) => {
                 </h3>
                 <div className="border-t border-gray-200 pt-3 space-y-4">
                   {event.partners.map((partnerLink: any) => (
-                    <div key={partnerLink.id} className="flex items-center gap-3">
+                    <div
+                      key={partnerLink.id}
+                      className="flex items-center gap-3"
+                    >
                       {partnerLink.partner.logo_url && (
                         <Image
                           src={partnerLink.partner.logo_url}
@@ -981,7 +992,9 @@ const SingleEvent: React.FC<{ slug: string }> = ({ slug }) => {
                           </span>
                         )}
                         {partnerLink.role_display && (
-                          <p className="text-xs text-gray-500">{partnerLink.role_display}</p>
+                          <p className="text-xs text-gray-500">
+                            {partnerLink.role_display}
+                          </p>
                         )}
                       </div>
                     </div>
@@ -1001,7 +1014,9 @@ const SingleEvent: React.FC<{ slug: string }> = ({ slug }) => {
                 startTime={event.start_time}
                 endTime={event.end_time}
                 url={
-                  typeof window !== 'undefined' ? window.location.href : undefined
+                  typeof window !== 'undefined'
+                    ? window.location.href
+                    : undefined
                 }
               />
             </div>
