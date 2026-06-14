@@ -5,64 +5,34 @@
 ---
 
 ## Version 2.0.5
-**Released:** June 14, 2026
+**Released:** June 12, 2026
 
-### Personal Onboarding Backend Integration & Code Refactoring
+### My Sites Page — Personal Context
 
-Migrated the personal onboarding checklist state from local storage to a centralized backend API and completely refactored the checklist UI into a cleaner, modular architecture.
+Introduced a dedicated **My Sites** page for users operating in a Personal Context, mirroring the existing My Devices flow to ensure consistent behavior across personal assets.
 
 <details>
-<summary><strong>Onboarding Backend Synchronization (4)</strong></summary>
+<summary><strong>Changes (7)</strong></summary>
 
-- **Server-Backed State**: Replaced the client-side `localStorage` mechanism with the `PATCH /users/onboarding` API. The personal onboarding state is now inherently tied to the user document on the backend.
-- **Session Manager Cleanup**: Stopped clearing the `vertex_onboarding` key from the session manager during logout since local storage is no longer the source of truth.
-- **UserDetails Type Update**: Updated the `UserDetails` type to include the `onboarding_checklist` object.
-- **Robust Parsing & Syncing**: Modified the Welcome Page to parse generic checklist patches, issue backend API updates, and dispatch the updated user details to Redux in real-time. Added an `isMissing` flag to prevent rendering the checklist when server state is absent.
+- **API**: Added `getMySites(userId, groupIds?, cohortIds?)` to the `sites` API object. Calls `GET /devices/sites/my-sites` with `user_id`, `group_ids` (comma-separated), `cohort_ids` (comma-separated), and `tenant=airqo` query params. Returns `SitesSummaryResponse`. Header `X-Auth-Type: JWT` included.
+- **Adapter type**: Added `getMySites: typeof sites.getMySites` to the `VertexAdapter` interface so the method is correctly typed through the adapter layer.
+- **Hook**: Added `useMySites(userId, organizationId?, options?)` to `useSites.ts`, mirroring `useMyDevices` exactly. Imports `usePersonalUserCohorts` to resolve personal cohort IDs; filters `userDetails.groups` to exclude the "airqo" group when building `groupIds`; falls back to `userDetails.cohort_ids` if no personal cohorts are found. Query key includes `userId`, `organizationId || activeGroup?._id`, `groupIds`, and `cohortIds`.
+- **Route**: Added `MY_SITES: '/sites/my-sites'` to `ROUTE_LINKS` in `routes.ts`.
+- **Sidebar**: Destructured `isPersonalContext` from `useUserContext()` in `secondary-sidebar.tsx`. Added a "My Sites" `NavItem` (icon: `AqMarkerPin01`) under the "Personal assets" section, rendered only when `isPersonalContext === true` (i.e. the user's active group is the `airqo` group). Remains hidden when the user has switched to an external organisation context.
+- **Page**: Created `my-sites/page.tsx` matching the layout of `sites/overview/page.tsx` — simple title/description header with no action buttons, `ClientPaginatedSitesTable` with an `onSiteClick` handler that routes to `/sites/[id]` (the non-admin site details page). Removed `CreateSiteForm`, status filter badge, complex error card, and `useSearchParams` logic as they are not needed for the personal context use case.
+- **Site row navigation**: Passing `onSiteClick` to `ClientPaginatedSitesTable` overrides the component's default `/admin/sites/[id]` routing so personal-context users land on `/sites/[id]` instead. Back navigation from the site details page uses the existing `router.back()` call, which correctly returns the user to `/sites/my-sites`.
 
 </details>
 
 <details>
-<summary><strong>Architecture Refactor & UI Wrapper (3)</strong></summary>
+<summary><strong>Files Updated (6)</strong></summary>
 
-- **Service Layer & Custom Hook**: Extracted direct API calls into a dedicated `onboardingService.ts` and encapsulated all business logic into a cleanly separated `useOnboarding.ts` hook.
-- **Smart Wrapper Component**: Introduced `OnboardingChecklistWrapper` (`index.tsx`) to compose the raw `ChecklistUI.tsx`. The wrapper completely isolates state resolution and visibility logic from the main application flow.
-- **Page Cleanup**: Simplified the main `page.tsx` by removing over 150 lines of bloated mutation logic and inline checklist conditionals. Dropped deprecated API endpoints from the users and organizations modules.
-
-</details>
-
-<details>
-<summary><strong>Graceful Fallbacks & State Precedence (3)</strong></summary>
-
-- **Empty State Fallback**: Integrated the `HomeEmptyState` component into the main dashboard view. It safely renders when a user or organization has completely zero cohorts and zero devices AND the backend fails to supply an `onboarding_checklist` object. This prevents new organizations from landing on a broken or blank dashboard page.
-- **State Precedence Fix**: Resolved a "state shadowing" bug in `useOnboarding.ts` where instant Redux state updates (`activeGroup`) were ignored in favor of stale React Query cache data (`groupDetails`), delaying UI updates.
-- **Context Scope Fix**: Ensured the custom hook leverages the mapped `organisation` scope instead of treating the raw Redux `external-org` value as the scope, which previously broke the organization checklist fallback logic.
-
-</details>
-
-<details>
-<summary><strong>UI & Security Enhancements (2)</strong></summary>
-
-- **Cohort Scope Enforcement**: Added strict client-side array filtering to `CohortSelectionStep.tsx` to ensure that even if the backend ignores the `cohort_id` array parameter, the dropdown strictly only displays cohorts belonging to the user's specific external organization or personal scope, preventing cross-organization data leakage.
-- **Smart Combobox Search**: Updated the generic `ComboBox` UI component (`combobox.tsx`) to intelligently hide its internal search bar when the list of options is completely empty. The search bar remains visible if the user is currently typing or if the component is loading data, ensuring a much cleaner empty-state UI without redundant inputs.
-
-</details>
-
-<details>
-<summary><strong>Files Added/Modified (13)</strong></summary>
-
-- `src/vertex/app/(authenticated)/home/page.tsx` [MODIFIED]
-- `src/vertex/app/types/users.ts` [MODIFIED]
-- `src/vertex/components/features/devices/import-steps/CohortSelectionStep.tsx` [MODIFIED]
-- `src/vertex/components/onboarding-checklist/ChecklistUI.tsx` [RENAMED/MODIFIED]
-- `src/vertex/components/onboarding-checklist/index.tsx` [ADDED]
-- `src/vertex/components/ui/combobox.tsx` [MODIFIED]
-- `src/vertex/core/apis/organizations.ts` [MODIFIED]
-- `src/vertex/core/apis/users.ts` [MODIFIED]
-- `src/vertex/core/hooks/useGroups.ts` [MODIFIED]
-- `src/vertex/core/hooks/useOnboarding.ts` [ADDED]
-- `src/vertex/core/hooks/useUsers.ts` [ADDED/MODIFIED]
-- `src/vertex/core/services/onboardingService.ts` [ADDED]
-- `src/vertex/core/utils/sessionManager.ts` [MODIFIED]
+- `src/vertex/core/apis/sites.ts` [MODIFIED]
+- `src/vertex/core/adapters/types.ts` [MODIFIED]
+- `src/vertex/core/hooks/useSites.ts` [MODIFIED]
+- `src/vertex/core/routes.ts` [MODIFIED]
+- `src/vertex/components/layout/secondary-sidebar.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/sites/my-sites/page.tsx` [NEW]
 
 </details>
 
