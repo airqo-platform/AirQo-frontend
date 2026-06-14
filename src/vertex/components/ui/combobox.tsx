@@ -120,12 +120,14 @@ export function ComboBox({
         align="start"
       >
         <Command shouldFilter={!onSearchChange}>
-          <CommandInput
-            placeholder={searchPlaceholder}
-            value={inputValue}
-            onValueChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-          />
+          {(options.length > 0 || inputValue.length > 0 || isLoading) && (
+            <CommandInput
+              placeholder={searchPlaceholder}
+              value={inputValue}
+              onValueChange={handleInputChange}
+              onKeyDown={handleKeyDown}
+            />
+          )}
           <CommandList className="max-h-56">
             {isLoading && (
               <CommandGroup>

@@ -108,7 +108,7 @@ export const CohortSelectionStep: React.FC<CohortSelectionStepProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-2">
+      <div className="grid gap-2 text-left">
         <Label>
           Choose cohort {isAdminPage ? '(Optional)' : <span className="text-red-500">*</span>}
         </Label>
