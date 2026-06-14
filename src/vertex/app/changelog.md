@@ -31,6 +31,15 @@ Migrated the personal onboarding checklist state from local storage to a central
 </details>
 
 <details>
+<summary><strong>Graceful Fallbacks & State Precedence (3)</strong></summary>
+
+- **Empty State Fallback**: Integrated the `HomeEmptyState` component into the main dashboard view. It safely renders when a user or organization has completely zero cohorts and zero devices AND the backend fails to supply an `onboarding_checklist` object. This prevents new organizations from landing on a broken or blank dashboard page.
+- **State Precedence Fix**: Resolved a "state shadowing" bug in `useOnboarding.ts` where instant Redux state updates (`activeGroup`) were ignored in favor of stale React Query cache data (`groupDetails`), delaying UI updates.
+- **Context Scope Fix**: Ensured the custom hook leverages the mapped `organisation` scope instead of treating the raw Redux `external-org` value as the scope, which previously broke the organization checklist fallback logic.
+
+</details>
+
+<details>
 <summary><strong>Files Added/Modified (11)</strong></summary>
 
 - `src/vertex/app/(authenticated)/home/page.tsx` [MODIFIED]
