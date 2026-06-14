@@ -20,14 +20,9 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import OnboardingChecklistWrapper from "@/components/onboarding-checklist";
 import { cn } from "@/lib/utils";
 import { Device } from "@/app/types/devices";
-import { Group } from "@/app/types/groups";
 import { useGroupDetails } from "@/core/hooks/useGroups";
 import { useOnboarding } from "@/core/hooks/useOnboarding";
-import { updateActiveGroupOnboarding, setUserDetails } from "@/core/redux/slices/userSlice";
-import { formatTitle } from "@/components/features/org-picker/organization-picker";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
-import logger from "@/lib/logger";
-import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 
 // ─── Removed Checklist localStorage helpers ──────────────────────────────────
 
@@ -108,7 +103,6 @@ const WelcomePage = () => {
   const [highlightVisibility, setHighlightVisibility] = React.useState(false);
   const visibilityRef = React.useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
-  const dispatch = useAppDispatch();
   const isMounted = React.useRef(true);
 
   React.useEffect(() => {
@@ -130,12 +124,10 @@ const WelcomePage = () => {
     ? `org_${activeGroup._id}`
     : null;
 
-  const { data: groupDetailsData, isLoading: isLoadingGroupDetails } = useGroupDetails(activeGroup?._id as string, {
+  const { isLoading: isLoadingGroupDetails } = useGroupDetails(activeGroup?._id as string, {
     enabled: userScope === "organisation" && !!activeGroup?._id,
     staleTime: 5 * 60 * 1000,
   });
-
-  const groupDetails = groupDetailsData?.group;
 
   const { activeChecklistState, updateChecklist } = useOnboarding();
 
@@ -255,7 +247,7 @@ const WelcomePage = () => {
         });
       }
     },
-    [activeChecklistState.completedSteps, refreshHomeData, updateChecklist]
+    [refreshHomeData, updateChecklist]
   );
 
   const handleCohortAssigned = React.useCallback(() => {
@@ -264,7 +256,7 @@ const WelcomePage = () => {
       step_id: 'assign-cohort',
     });
     setNewlyClaimedDevice(undefined);
-  }, [activeChecklistState.completedSteps, updateChecklist]);
+  }, [updateChecklist]);
 
 
 

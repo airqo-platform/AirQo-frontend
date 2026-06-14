@@ -22,7 +22,7 @@ export default function OnboardingChecklistWrapper({
   canClaimDevice,
   isLoadingGroupDetailsSafe,
 }: OnboardingChecklistWrapperProps) {
-  const { activeChecklistState, updateChecklist, userScope } = useOnboarding();
+  const { activeChecklistState, updateChecklist } = useOnboarding();
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
   const isMounted = useRef(true);
 
