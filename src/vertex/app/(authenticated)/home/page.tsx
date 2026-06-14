@@ -22,42 +22,14 @@ import { cn } from "@/lib/utils";
 import { Device } from "@/app/types/devices";
 import { Group } from "@/app/types/groups";
 import { useGroupDetails, useUpdateGroupOnboarding } from "@/core/hooks/useGroups";
-import { updateActiveGroupOnboarding } from "@/core/redux/slices/userSlice";
+import { useUpdateUserOnboarding } from "@/core/hooks/useUsers";
+import { updateActiveGroupOnboarding, setUserDetails } from "@/core/redux/slices/userSlice";
 import { formatTitle } from "@/components/features/org-picker/organization-picker";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 import logger from "@/lib/logger";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 
-// ─── Checklist localStorage helpers ──────────────────────────────────────────
-// Keyed per org/user so state is independent across workspace switches.
-
-function getChecklistKey(orgId: string) {
-  return `vertex_onboarding_${orgId}`;
-}
-
-function getChecklistState(orgId: string): {
-  completedSteps: string[];
-  dismissed: boolean;
-} {
-  if (typeof window === "undefined") return { completedSteps: [], dismissed: false };
-  try {
-    const raw = window.localStorage.getItem(getChecklistKey(orgId));
-    return raw ? JSON.parse(raw) : { completedSteps: [], dismissed: false };
-  } catch {
-    return { completedSteps: [], dismissed: false };
-  }
-}
-
-function saveChecklistState(
-  orgId: string,
-  state: { completedSteps: string[]; dismissed: boolean }
-) {
-  try {
-    window.localStorage.setItem(getChecklistKey(orgId), JSON.stringify(state));
-  } catch {
-    // localStorage unavailable — fail silently
-  }
-}
+// ─── Removed Checklist localStorage helpers ──────────────────────────────────
 
 // ─── Skeletons ────────────────────────────────────────────────────────────────
 
@@ -165,26 +137,22 @@ const WelcomePage = () => {
 
   const groupDetails = groupDetailsData?.group;
 
-  const [localChecklistState, setLocalChecklistState] = React.useState(() =>
-    getChecklistState(orgId ?? "")
-  );
-
-  React.useEffect(() => {
-    if (orgId && userScope === "personal") {
-      setLocalChecklistState(getChecklistState(orgId));
-    }
-  }, [orgId, userScope]);
-
   const activeChecklistState = React.useMemo(() => {
     if (userScope === "organisation") {
       const checklistSrc = groupDetails?.onboarding_checklist || activeGroup?.onboarding_checklist;
       return {
         completedSteps: checklistSrc?.completed_steps || [],
         dismissed: checklistSrc?.is_dismissed || false,
+        isMissing: !checklistSrc,
       };
     }
-    return localChecklistState;
-  }, [userScope, activeGroup?.onboarding_checklist, groupDetails?.onboarding_checklist, localChecklistState]);
+    const userChecklistSrc = user?.onboarding_checklist;
+    return {
+      completedSteps: userChecklistSrc?.completed_steps || [],
+      dismissed: userChecklistSrc?.is_dismissed || false,
+      isMissing: !userChecklistSrc,
+    };
+  }, [userScope, activeGroup?.onboarding_checklist, groupDetails?.onboarding_checklist, user?.onboarding_checklist]);
 
   // ── Permissions ────────────────────────────────────────────────────────────
   const permissionsToCheck = [PERMISSIONS.DEVICE.UPDATE];
@@ -240,89 +208,84 @@ const WelcomePage = () => {
     return Array.from(new Set([...(activeChecklistState.completedSteps || []), ...autoSteps]));
   }, [activeChecklistState.completedSteps, autoSteps]);
 
-  React.useEffect(() => {
-    if (autoSteps.length === 0) return;
 
-    if (userScope === "personal") {
-      setLocalChecklistState((prev) => {
-        const merged = Array.from(new Set([...(prev.completedSteps || []), ...autoSteps]));
-        // Only save/re-render if something actually changed
-        if (merged.length === (prev.completedSteps || []).length) return prev;
-        const next = { ...prev, completedSteps: merged };
-        saveChecklistState(orgId as string, next);
-        return next;
-      });
-    }
-  }, [orgId, userScope, autoSteps]);
 
   const { mutateAsync: updateGroupOnboarding } = useUpdateGroupOnboarding();
+  const { mutateAsync: updateUserOnboarding } = useUpdateUserOnboarding();
 
   const updateChecklist = React.useCallback(
     async (patch: { action?: 'mark_step_complete' | 'dismiss_checklist', step_id?: string, completedSteps?: string[], dismissed?: boolean }) => {
-      if (userScope === "personal") {
-        setLocalChecklistState((prev) => {
-          const next = { ...prev };
-          if (patch.completedSteps) next.completedSteps = patch.completedSteps;
-          if (patch.dismissed !== undefined) next.dismissed = patch.dismissed;
-          if (orgId) saveChecklistState(orgId, next);
-          return next;
-        });
+      // Common logic to parse action from generic patch object
+      if (!patch.action) {
+        if (patch.dismissed) patch.action = 'dismiss_checklist';
+        else if (patch.completedSteps) {
+           const newestStep = patch.completedSteps[patch.completedSteps.length - 1];
+           if (newestStep) {
+             patch.action = 'mark_step_complete';
+             patch.step_id = newestStep;
+           }
+        }
+      }
+
+      if (!patch.action) return;
+
+      if (userScope === "personal" && user) {
+        try {
+          const res = await updateUserOnboarding({ action: patch.action, step_id: patch.step_id });
+          const updatedChecklist = res.data?.onboarding_checklist || res.user?.onboarding_checklist || res.onboarding_checklist;
+          
+          if (res.success && updatedChecklist) {
+            dispatch(setUserDetails({
+              ...user,
+              onboarding_checklist: updatedChecklist
+            }));
+          }
+        } catch (error) {
+          logger.error("Failed to update personal onboarding checklist:", { error: getApiErrorMessage(error) });
+        }
         return;
       }
 
       // Handle Organisation Scope
       if (userScope === "organisation" && activeGroup?._id) {
-        if (!patch.action) {
-          if (patch.dismissed) patch.action = 'dismiss_checklist';
-          else if (patch.completedSteps) {
-             const newestStep = patch.completedSteps[patch.completedSteps.length - 1];
-             if (newestStep) {
-               patch.action = 'mark_step_complete';
-               patch.step_id = newestStep;
-             }
-          }
-        }
-
-        if (patch.action) {
-          try {
-            const missingAutoSteps = autoSteps.filter(step => 
-              !activeChecklistState.completedSteps.includes(step) && 
-              !(patch.action === 'mark_step_complete' && patch.step_id === step)
-            );
-            
-            if (missingAutoSteps.length > 0) {
-              for (const step of missingAutoSteps) {
-                try {
-                  await updateGroupOnboarding({ groupId: activeGroup._id, payload: { action: 'mark_step_complete', step_id: step } });
-                } catch (e) {
-                  logger.error("Failed to sync auto-step:", { error: getApiErrorMessage(e) });
-                }
+        try {
+          const missingAutoSteps = autoSteps.filter(step => 
+            !activeChecklistState.completedSteps.includes(step) && 
+            !(patch.action === 'mark_step_complete' && patch.step_id === step)
+          );
+          
+          if (missingAutoSteps.length > 0) {
+            for (const step of missingAutoSteps) {
+              try {
+                await updateGroupOnboarding({ groupId: activeGroup._id, payload: { action: 'mark_step_complete', step_id: step } });
+              } catch (e) {
+                logger.error("Failed to sync auto-step:", { error: getApiErrorMessage(e) });
               }
             }
-
-            const res = await updateGroupOnboarding({ groupId: activeGroup._id, payload: { action: patch.action, step_id: patch.step_id } });
-            const updatedChecklist = res.data?.onboarding_checklist || res.group?.onboarding_checklist;
-            
-            if (res.success && updatedChecklist) {
-              dispatch(updateActiveGroupOnboarding(updatedChecklist));
-              queryClient.setQueryData(['groupDetails', activeGroup._id], (old: { group?: Group } | undefined) => {
-                if (!old || !old.group) return old;
-                return {
-                  ...old,
-                  group: {
-                    ...old.group,
-                    onboarding_checklist: updatedChecklist,
-                  }
-                };
-              });
-            }
-          } catch (error) {
-            logger.error("Failed to update onboarding checklist:", { error: getApiErrorMessage(error) });
           }
+
+          const res = await updateGroupOnboarding({ groupId: activeGroup._id, payload: { action: patch.action, step_id: patch.step_id } });
+          const updatedChecklist = res.data?.onboarding_checklist || res.group?.onboarding_checklist || res.onboarding_checklist;
+          
+          if (res.success && updatedChecklist) {
+            dispatch(updateActiveGroupOnboarding(updatedChecklist));
+            queryClient.setQueryData(['groupDetails', activeGroup._id], (old: { group?: Group } | undefined) => {
+              if (!old || !old.group) return old;
+              return {
+                ...old,
+                group: {
+                  ...old.group,
+                  onboarding_checklist: updatedChecklist,
+                }
+              };
+            });
+          }
+        } catch (error) {
+          logger.error("Failed to update onboarding checklist:", { error: getApiErrorMessage(error) });
         }
       }
     },
-    [orgId, userScope, activeGroup?._id, dispatch, activeChecklistState.completedSteps, autoSteps, queryClient, updateGroupOnboarding]
+    [userScope, user, activeGroup?._id, dispatch, activeChecklistState.completedSteps, autoSteps, queryClient, updateGroupOnboarding, updateUserOnboarding]
   );
 
   const openAddDeviceChoice = React.useCallback(() => {
@@ -429,7 +392,7 @@ const WelcomePage = () => {
   //   2. The user hasn't explicitly dismissed it
   const allStepsComplete = visuallyCompletedSteps.length >= TOTAL_STEPS;
   const isLoadingGroupDetailsSafe = userScope === "organisation" && isLoadingGroupDetails;
-  const showChecklist = !allStepsComplete && !activeChecklistState.dismissed && !isLoadingGroupDetailsSafe;
+  const showChecklist = !allStepsComplete && !activeChecklistState.dismissed && !isLoadingGroupDetailsSafe && !activeChecklistState.isMissing;
 
   const showClaimDevice = (() => {
     switch (userContext) {

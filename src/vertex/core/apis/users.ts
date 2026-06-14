@@ -70,4 +70,16 @@ export const users = {
       throw error;
     }
   },
+  updateUserOnboardingApi: async (payload: { action: 'mark_step_complete' | 'dismiss_checklist'; step_id?: string }) => {
+    try {
+      const response = await createSecureApiClient().patch(
+        `/users/onboarding`,
+        payload,
+        { headers: { "X-Auth-Type": "JWT" } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
