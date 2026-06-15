@@ -170,23 +170,11 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
   const [promptTop, setPromptTop] = React.useState<number | null>(null);
   const [networkDropdownOpen, setNetworkDropdownOpen] = React.useState(false);
 
-  const matchesNetworkFilter = React.useCallback(
-    (monitor: NetworkCoverageMonitor) => {
-      if (selectedNetworks.length === 0) return true;
-      return selectedNetworks.includes((monitor.network || '').trim());
-    },
-    [selectedNetworks],
-  );
-
   const filteredCountries = React.useMemo(() => {
     return countries.filter((country) => {
-      const networkMatch = country.monitors.some(matchesNetworkFilter);
-      if (!networkMatch && selectedNetworks.length > 0) return false;
-
       if (!q) return true;
       if (country.country.toLowerCase().includes(q)) return true;
       return country.monitors.some((monitor) => {
-        if (!matchesNetworkFilter(monitor)) return false;
         return (
           (monitor.name || '').toLowerCase().includes(q) ||
           (monitor.city || '').toLowerCase().includes(q) ||
@@ -194,7 +182,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
         );
       });
     });
-  }, [countries, q, matchesNetworkFilter, selectedNetworks]);
+  }, [countries, q]);
 
   const monitoredCountriesCount = filteredCountries.filter(
     (country) => country.monitors.length > 0,
@@ -202,16 +190,15 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
 
   const filteredCountryMonitors = React.useMemo(() => {
     if (!selectedCountry) return [];
-    const byNetwork = selectedCountry.monitors.filter(matchesNetworkFilter);
-    if (!q) return byNetwork;
-    return byNetwork.filter((monitor) => {
+    if (!q) return selectedCountry.monitors;
+    return selectedCountry.monitors.filter((monitor) => {
       return (
         (monitor.name || '').toLowerCase().includes(q) ||
         (monitor.city || '').toLowerCase().includes(q) ||
         (monitor.network || '').toLowerCase().includes(q)
       );
     });
-  }, [selectedCountry, q, matchesNetworkFilter]);
+  }, [selectedCountry, q]);
 
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

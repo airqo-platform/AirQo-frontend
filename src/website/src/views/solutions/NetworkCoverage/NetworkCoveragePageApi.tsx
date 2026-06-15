@@ -16,6 +16,7 @@ import React, {
 import { MapLoader } from '@/components/map';
 import {
   useNetworkCoverageCountryMonitors,
+  useNetworkCoverageImpact,
   useNetworkCoverageMonitor,
   useNetworkCoverageSummary,
 } from '@/hooks/useApiHooks';
@@ -29,6 +30,7 @@ import NetworkCoverageLegend from './components/NetworkCoverageLegend';
 import NetworkCoverageMap from './components/NetworkCoverageMap';
 import NetworkCoverageSidebar from './components/NetworkCoverageSidebar';
 import {
+  type ImpactCityEntry,
   type MonitorType,
   type NetworkCoverageCountry,
   type NetworkCoverageMonitor,
@@ -165,23 +167,60 @@ const NetworkCoveragePage = () => {
     );
   }, [viewMode]);
 
+  // The backend only accepts "Reference" and "LCS" as type values.
+  // "Inactive" is a status filter, not a type — extract it and apply client-side.
+  const backendTypes = useMemo(
+    () => selectedTypes.filter((t) => t !== 'Inactive'),
+    [selectedTypes],
+  );
+
+  const hasInactive = useMemo(
+    () => selectedTypes.includes('Inactive'),
+    [selectedTypes],
+  );
+
   const summaryParams = useMemo(
     () => ({
       tenant: DEFAULT_TENANT,
       // Search should only filter the sidebar client-side.
       // Do not include `search` here so the map receives the full dataset.
-      activeOnly: activeOnly ? true : undefined,
-      types: selectedTypes.length === 3 ? undefined : selectedTypes.join(','),
+      activeOnly: activeOnly && !hasInactive ? true : undefined,
+      types:
+        backendTypes.length === 0 || backendTypes.length === 2
+          ? undefined
+          : backendTypes.join(','),
+      network:
+        selectedNetworks.length > 0 ? selectedNetworks.join(',') : undefined,
     }),
-    [activeOnly, selectedTypes],
+    [activeOnly, hasInactive, backendTypes, selectedNetworks],
   );
 
   const summaryQuery = useNetworkCoverageSummary(summaryParams);
 
-  const countries = useMemo<NetworkCoverageCountry[]>(
-    () => summaryQuery.data?.countries ?? [],
-    [summaryQuery.data],
-  );
+  const impactQuery = useNetworkCoverageImpact({
+    tenant: DEFAULT_TENANT,
+    activeOnly: activeOnly && !hasInactive ? true : undefined,
+    types:
+      backendTypes.length === 0 || backendTypes.length === 2
+        ? undefined
+        : backendTypes.join(','),
+    network:
+      selectedNetworks.length > 0 ? selectedNetworks.join(',') : undefined,
+  });
+
+  const impactData = impactQuery.data?.impact ?? null;
+
+  const countries = useMemo<NetworkCoverageCountry[]>(() => {
+    const raw: NetworkCoverageCountry[] =
+      summaryQuery.data?.countries ?? ([] as NetworkCoverageCountry[]);
+    if (!hasInactive) return raw;
+    return raw.map((country: NetworkCoverageCountry) => ({
+      ...country,
+      monitors: country.monitors.filter(
+        (m: NetworkCoverageMonitor) => m.status === 'inactive',
+      ),
+    }));
+  }, [summaryQuery.data, hasInactive]);
 
   const allCountries = useMemo<NetworkCoverageCountry[]>(() => {
     const normalizeForMatch = (value?: string) => {
@@ -216,13 +255,17 @@ const NetworkCoveragePage = () => {
       } as NetworkCoverageCountry;
     });
   }, [countries]);
-
   const countryMonitorsQuery = useNetworkCoverageCountryMonitors(
     selectedCountryId,
     {
       tenant: DEFAULT_TENANT,
-      activeOnly: activeOnly ? true : undefined,
-      types: selectedTypes.length === 3 ? undefined : selectedTypes.join(','),
+      activeOnly: activeOnly && !hasInactive ? true : undefined,
+      types:
+        backendTypes.length === 0 || backendTypes.length === 2
+          ? undefined
+          : backendTypes.join(','),
+      network:
+        selectedNetworks.length > 0 ? selectedNetworks.join(',') : undefined,
     },
   );
 
@@ -232,16 +275,23 @@ const NetworkCoveragePage = () => {
     }
 
     if (countryMonitorsQuery.data) {
+      let monitors: NetworkCoverageMonitor[] =
+        countryMonitorsQuery.data.monitors;
+      if (hasInactive) {
+        monitors = monitors.filter(
+          (m: NetworkCoverageMonitor) => m.status === 'inactive',
+        );
+      }
       return {
         id: countryMonitorsQuery.data.countryId,
         country: countryMonitorsQuery.data.country,
         iso2: countryMonitorsQuery.data.iso2,
-        monitors: countryMonitorsQuery.data.monitors,
+        monitors,
       };
     }
 
     return null;
-  }, [countryMonitorsQuery.data, selectedCountryId]);
+  }, [countryMonitorsQuery.data, selectedCountryId, hasInactive]);
 
   const monitorDetailQuery = useNetworkCoverageMonitor(selectedMonitorId, {
     tenant: DEFAULT_TENANT,
@@ -257,16 +307,6 @@ const NetworkCoveragePage = () => {
       setShowAddMonitorPromptFor(null);
     }
   }, [selectedCountryId]);
-
-  const mapCountries = useMemo(() => {
-    if (selectedNetworks.length === 0) return countries;
-    return countries.map((country) => ({
-      ...country,
-      monitors: country.monitors.filter((monitor) =>
-        selectedNetworks.includes((monitor.network || '').trim()),
-      ),
-    }));
-  }, [countries, selectedNetworks]);
 
   const isSearching = query !== debouncedQuery && query.trim() !== '';
 
@@ -359,16 +399,10 @@ const NetworkCoveragePage = () => {
     return undefined;
   }, [monitorDetailQuery.isSuccess, selectedMonitorId]);
 
-  const availableNetworks = useMemo(() => {
-    const networkSet = new Set<string>();
-    allCountries.forEach((country) => {
-      country.monitors.forEach((monitor) => {
-        const network = (monitor.network || '').trim();
-        if (network) networkSet.add(network);
-      });
-    });
-    return Array.from(networkSet).sort((a, b) => a.localeCompare(b));
-  }, [allCountries]);
+  const availableNetworks = useMemo(
+    () => summaryQuery.data?.meta?.availableNetworks ?? [],
+    [summaryQuery.data?.meta?.availableNetworks],
+  );
 
   const toggleNetwork = (network: string) => {
     setSelectedNetworks((previous) => {
@@ -467,27 +501,12 @@ const NetworkCoveragePage = () => {
   const resolveExportCountries = async (): Promise<
     NetworkCoverageCountry[]
   > => {
-    const filterByNetwork = (monitors: NetworkCoverageMonitor[]) => {
-      if (selectedNetworks.length === 0) return monitors;
-      return monitors.filter((m) =>
-        selectedNetworks.includes((m.network || '').trim()),
-      );
-    };
-
     if (!selectedCountryId) {
-      return countries.map((country) => ({
-        ...country,
-        monitors: filterByNetwork(country.monitors),
-      }));
+      return countries;
     }
 
     if (selectedCountry) {
-      return [
-        {
-          ...selectedCountry,
-          monitors: filterByNetwork(selectedCountry.monitors),
-        },
-      ];
+      return [selectedCountry];
     }
 
     const response =
@@ -495,18 +514,31 @@ const NetworkCoveragePage = () => {
         selectedCountryId,
         {
           tenant: DEFAULT_TENANT,
-          activeOnly: activeOnly ? true : undefined,
+          activeOnly: activeOnly && !hasInactive ? true : undefined,
           types:
-            selectedTypes.length === 3 ? undefined : selectedTypes.join(','),
+            backendTypes.length === 0 || backendTypes.length === 2
+              ? undefined
+              : backendTypes.join(','),
+          network:
+            selectedNetworks.length > 0
+              ? selectedNetworks.join(',')
+              : undefined,
         },
       );
+
+    let monitors: NetworkCoverageMonitor[] = response.monitors;
+    if (hasInactive) {
+      monitors = monitors.filter(
+        (m: NetworkCoverageMonitor) => m.status === 'inactive',
+      );
+    }
 
     return [
       {
         id: response.countryId || selectedCountryId,
         country: response.country,
         iso2: response.iso2,
-        monitors: filterByNetwork(response.monitors),
+        monitors,
       },
     ];
   };
@@ -729,6 +761,20 @@ const NetworkCoveragePage = () => {
         String(countsByStatus.inactive || 0),
       ]);
 
+      if (impactData) {
+        summaryBody.push([
+          'Population reached',
+          impactData.totalPopulationReached
+            ? impactData.totalPopulationReached.toLocaleString()
+            : '--',
+        ]);
+        summaryBody.push([
+          'Cities with population data',
+          String(impactData.citiesWithPopulationData),
+        ]);
+        summaryBody.push(['Total cities', String(impactData.totalCities)]);
+      }
+
       autoTable(doc, {
         startY: BODY_Y,
         head: [['Metric', 'Value']],
@@ -794,6 +840,66 @@ const NetworkCoveragePage = () => {
       });
 
       currentY = ((doc as any).lastAutoTable?.finalY ?? currentY) + 8;
+
+      // ── Population by city (from /impact) ─────────────────────────────
+      if (impactData && impactData.byCity.length > 0) {
+        if (currentY > PAGE_H - 55) {
+          doc.addPage('a4', 'landscape');
+          currentY = MARGIN;
+        }
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.setTextColor(15, 23, 42);
+        doc.text('Population reached by city', MARGIN, currentY);
+        currentY += 4.5;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8.5);
+        doc.setTextColor(71, 85, 105);
+        doc.text(
+          'Estimated population in cities with active monitoring stations.',
+          MARGIN,
+          currentY,
+        );
+        currentY += 5;
+
+        const cityPopRows = impactData.byCity.map((city: ImpactCityEntry) => [
+          city.city,
+          city.country,
+          city.iso2 || '--',
+          String(city.total),
+          String(city.active),
+          city.population ? city.population.toLocaleString() : '--',
+        ]);
+
+        autoTable(doc, {
+          startY: currentY,
+          head: [
+            ['City', 'Country', 'ISO', 'Monitors', 'Active', 'Population'],
+          ],
+          body: cityPopRows,
+          theme: 'grid',
+          styles: COMMON_STYLES,
+          headStyles: {
+            fillColor: SECTION_HEAD_COLOR,
+            textColor: 255,
+            fontStyle: 'bold',
+          },
+          alternateRowStyles: { fillColor: ALT_ROW },
+          columnStyles: {
+            0: { cellWidth: CONTENT_W * 0.22 },
+            1: { cellWidth: CONTENT_W * 0.2 },
+            2: { cellWidth: CONTENT_W * 0.1, halign: 'center' },
+            3: { cellWidth: CONTENT_W * 0.13, halign: 'right' },
+            4: { cellWidth: CONTENT_W * 0.13, halign: 'right' },
+            5: { cellWidth: CONTENT_W * 0.22, halign: 'right' },
+          },
+          margin: { left: MARGIN, right: MARGIN },
+          didDrawPage: () => drawFooter(),
+        });
+
+        currentY = ((doc as any).lastAutoTable?.finalY ?? currentY) + 8;
+      }
 
       if (countriesWithMonitors.length > 0) {
         if (currentY > PAGE_H - 55) {
@@ -1078,6 +1184,18 @@ const NetworkCoveragePage = () => {
       lines.push('Data Sources/Networks,' + networks.size);
       lines.push('Unique Manufacturers,' + manufacturers.size);
       lines.push('Unique Pollutants Measured,' + pollutants.size);
+      if (impactData) {
+        lines.push(
+          'Population Reached,' +
+            (impactData.totalPopulationReached
+              ? impactData.totalPopulationReached.toLocaleString()
+              : '--'),
+        );
+        lines.push(
+          'Cities with Population Data,' + impactData.citiesWithPopulationData,
+        );
+        lines.push('Total Cities Monitored,' + impactData.totalCities);
+      }
       lines.push('');
       lines.push('MONITOR TYPE BREAKDOWN');
       lines.push('Type,Count,Percentage');
@@ -1172,6 +1290,27 @@ const NetworkCoveragePage = () => {
           );
         });
       lines.push('');
+
+      // ── Section 3b: Population by city (from /impact) ──
+      if (impactData && impactData.byCity.length > 0) {
+        lines.push('POPULATION REACHED BY CITY');
+        lines.push(
+          'City,Country,ISO2,Total Monitors,Active,Population (estimated)',
+        );
+        impactData.byCity.forEach((city: ImpactCityEntry) => {
+          lines.push(
+            [
+              escapeCsvField(city.city),
+              escapeCsvField(city.country),
+              escapeCsvField(city.iso2),
+              city.total,
+              city.active,
+              city.population ? city.population.toLocaleString() : '--',
+            ].join(','),
+          );
+        });
+        lines.push('');
+      }
 
       // ── Section 4: Network/Source Breakdown ──
       lines.push('SOURCE / NETWORK BREAKDOWN');
@@ -1310,6 +1449,8 @@ const NetworkCoveragePage = () => {
   };
 
   const isInitialLoading = summaryQuery.isLoading && countries.length === 0;
+  const isFetchingData =
+    summaryQuery.isFetching || countryMonitorsQuery.isFetching;
   const summaryError = summaryQuery.error?.message ?? null;
 
   return (
@@ -1385,7 +1526,7 @@ const NetworkCoveragePage = () => {
             >
               <NetworkCoverageMap
                 key={mapStyle}
-                countries={mapCountries}
+                countries={countries}
                 selectedCountryId={selectedCountryId}
                 selectedMonitorId={selectedMonitorId}
                 viewMode={viewMode}
@@ -1397,10 +1538,8 @@ const NetworkCoveragePage = () => {
                 onRegisterSnapshot={handleRegisterSnapshot}
               />
             </MapLoader>
-            {/* Show spinner overlay while coverage or country monitors data is loading */}
-            {(summaryQuery.isLoading ||
-              countryMonitorsQuery.isLoading ||
-              monitorDetailQuery.isLoading) && (
+            {/* Show spinner overlay while data is fetching (initial load or filter change) */}
+            {isFetchingData && (
               <div className="absolute inset-0 z-30 flex items-center justify-center bg-slate-100/70">
                 <div className="text-blue-600">
                   <FiLoader className="animate-spin" />

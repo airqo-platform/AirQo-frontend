@@ -498,6 +498,7 @@ export const useNetworkCoverageSummary = (
     search?: string;
     activeOnly?: boolean;
     types?: string;
+    network?: string;
   },
   queryOptions?: ServiceQueryOptions<any>,
 ) =>
@@ -517,6 +518,7 @@ export const useNetworkCoverageCountryMonitors = (
     tenant?: string;
     activeOnly?: boolean;
     types?: string;
+    network?: string;
   },
   queryOptions?: ServiceQueryOptions<any>,
 ) =>
@@ -551,6 +553,39 @@ export const useNetworkCoverageMonitor = (
     {
       enabled: !!monitorId,
       staleTime: 30 * 60 * 1000,
+      ...queryOptions,
+    },
+  );
+
+export const useNetworkCoverageImpact = (
+  params?: {
+    tenant?: string;
+    activeOnly?: boolean;
+    types?: string;
+    network?: string;
+  },
+  queryOptions?: ServiceQueryOptions<any>,
+) =>
+  useServiceQuery(
+    apiQueryKeys.networkCoverageImpact(params),
+    () => networkCoverageService.getNetworkCoverageImpact(params || {}),
+    {
+      staleTime: 15 * 60 * 1000,
+      placeholderData: keepPreviousData,
+      ...queryOptions,
+    },
+  );
+
+export const useNetworkCoverageCities = (
+  params?: { country?: string },
+  queryOptions?: ServiceQueryOptions<any>,
+) =>
+  useServiceQuery(
+    apiQueryKeys.networkCoverageCities(params),
+    () => networkCoverageService.getNetworkCoverageCities(params || {}),
+    {
+      staleTime: 15 * 60 * 1000,
+      placeholderData: keepPreviousData,
       ...queryOptions,
     },
   );

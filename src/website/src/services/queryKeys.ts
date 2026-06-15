@@ -140,6 +140,7 @@ export const apiQueryKeys = {
     search?: string;
     activeOnly?: boolean;
     types?: string;
+    network?: string;
   }) => ['networkCoverageSummary', compactParams(params)] as const,
   networkCoverageCountryMonitors: (
     countryId: string | null,
@@ -147,6 +148,7 @@ export const apiQueryKeys = {
       tenant?: string;
       activeOnly?: boolean;
       types?: string;
+      network?: string;
     },
   ) =>
     [
@@ -160,6 +162,14 @@ export const apiQueryKeys = {
       tenant?: string;
     },
   ) => ['networkCoverageMonitor', monitorId, compactParams(params)] as const,
+  networkCoverageImpact: (params?: {
+    tenant?: string;
+    activeOnly?: boolean;
+    types?: string;
+    network?: string;
+  }) => ['networkCoverageImpact', compactParams(params)] as const,
+  networkCoverageCities: (params?: { country?: string }) =>
+    ['networkCoverageCities', compactParams(params)] as const,
   gridRepresentativeReading: (gridId: string | null) =>
     ['gridRepresentativeReading', gridId] as const,
   gridMeasurements: (
