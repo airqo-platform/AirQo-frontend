@@ -32,6 +32,7 @@ const ShippingLabelPrintModal: React.FC<ShippingLabelPrintModalProps> = ({ label
 
         const invalidLabels = labels.filter(label => !isValidDataUrl(label.qr_code_image));
         if (invalidLabels.length > 0) {
+            printWindow.close();
             showBanner({ severity: 'error', message: 'Some QR code images have invalid URLs', scoped: true });
             return;
         }
