@@ -250,6 +250,15 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
             case DashboardView.nearYou:
               return NearbyView(
                 onNavigateToFavorites: () => setView(DashboardView.favorites),
+                onExploreCities: () {
+                  final activeCountries =
+                      CountryRepository.extractActiveCountryNames(
+                          state.response.measurements!);
+                  final firstCountry = activeCountries.isNotEmpty
+                      ? activeCountries.first
+                      : 'Uganda';
+                  setView(DashboardView.country, country: firstCountry);
+                },
               );
 
             case DashboardView.country:
