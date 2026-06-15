@@ -129,11 +129,6 @@ const VertexPage = () => {
             label: 'Download for Windows',
             href: 'https://vertex.airqo.net/download',
           },
-          {
-            label: 'View All Releases',
-            href: 'https://vertex.airqo.net/download',
-            variant: 'secondary',
-          },
         ],
       }}
       secondarySection={{
