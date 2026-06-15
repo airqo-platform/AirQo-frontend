@@ -181,12 +181,6 @@ const AIPlatformPage = () => {
             href: 'https://ai.airqo.net/map',
           },
           {
-            title: 'Locate',
-            description:
-              'Run the AI-assisted site recommendation workflow for monitor deployment.',
-            href: 'https://ai.airqo.net/locate',
-          },
-          {
             title: 'Categorize',
             description:
               'Interpret sites through environmental characteristics and surrounding context.',

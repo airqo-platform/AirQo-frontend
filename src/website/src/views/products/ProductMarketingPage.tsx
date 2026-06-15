@@ -146,11 +146,12 @@ const ProductActionButton = ({ action }: { action: ProductAction }) => {
 
   return (
     <CustomButton
+      type="button"
       onClick={() => openExternalLink(action.href)}
       className={`flex items-center justify-center ${className}`}
     >
       {action.label}
-      <BiLinkExternal className="ml-2 text-lg" />
+      <BiLinkExternal className="ml-2 text-lg" aria-hidden="true" />
     </CustomButton>
   );
 };
@@ -329,7 +330,7 @@ const ProductMarketingPage = ({
                 variants={cardVariants}
               >
                 <div className="inline-flex rounded-full bg-slate-50 p-3 text-blue-700 shadow-sm">
-                  <Icon className="h-6 w-6" />
+                  <Icon className="h-6 w-6" aria-hidden="true" />
                 </div>
                 <h3 className="mt-4 text-xl font-semibold text-gray-900">
                   {title}
@@ -503,10 +504,11 @@ const ProductMarketingPage = ({
             </h3>
             <div className="grid grid-cols-1 gap-4">
               {ctaSection.quickLinks.map((link) => (
-                <button
+                <a
                   key={link.title}
-                  type="button"
-                  onClick={() => openExternalLink(link.href)}
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-full rounded-xl border border-slate-200 bg-white px-4 py-4 text-left transition-colors hover:border-blue-200 hover:bg-blue-50"
                 >
                   <div className="flex items-start justify-between gap-4">
@@ -518,9 +520,12 @@ const ProductMarketingPage = ({
                         {link.description}
                       </p>
                     </div>
-                    <BiLinkExternal className="mt-1 h-5 w-5 flex-shrink-0 text-slate-500" />
+                    <BiLinkExternal
+                      className="mt-1 h-5 w-5 flex-shrink-0 text-slate-500"
+                      aria-hidden="true"
+                    />
                   </div>
-                </button>
+                </a>
               ))}
             </div>
           </motion.div>

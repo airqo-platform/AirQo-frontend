@@ -136,7 +136,7 @@ const Footer = () => {
                   href="/products/ai-platform"
                   className="text-gray-600 hover:underline"
                 >
-                  AI Platform
+                  AirQo AI Platform
                 </Link>
               </li>
             </ul>
