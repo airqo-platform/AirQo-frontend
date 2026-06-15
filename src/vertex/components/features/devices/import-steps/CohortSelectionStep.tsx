@@ -70,8 +70,8 @@ export const CohortSelectionStep: React.FC<CohortSelectionStepProps> = ({
   const cohorts = isAdminPage 
     ? allCohorts 
     : isExternalOrg 
-      ? groupCohorts 
-      : personalCohorts;
+      ? groupCohorts?.filter(c => groupCohortIds?.includes(c._id)) 
+      : personalCohorts?.filter(c => personalCohortIds?.includes(c._id));
 
   const isFetchingCohorts = isAdminPage
     ? isFetchingAllCohorts
@@ -108,7 +108,7 @@ export const CohortSelectionStep: React.FC<CohortSelectionStepProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-2">
+      <div className="grid gap-2 text-left">
         <Label>
           Choose cohort {isAdminPage ? '(Optional)' : <span className="text-red-500">*</span>}
         </Label>

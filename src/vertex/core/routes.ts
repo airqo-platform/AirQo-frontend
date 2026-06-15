@@ -8,6 +8,7 @@ export const ROUTE_LINKS = {
   GRIDS: '/admin/grids',
   ADMIN_SHIPPING: '/admin/shipping',
   MY_DEVICES: '/devices/my-devices',
+  MY_SITES: '/sites/my-sites',
   ORG_OVERVIEW: '/home',
   ORG_ASSETS: '/devices/overview',
   DEVICE_COHORTS: '/cohorts',

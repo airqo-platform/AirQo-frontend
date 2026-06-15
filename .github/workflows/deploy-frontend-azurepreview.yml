@@ -43,6 +43,8 @@ jobs:
 
   check:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
     outputs:
       run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }}
       run_analytics_platform: ${{ steps.check_files.outputs.run_analytics_platform }}
@@ -52,25 +54,14 @@ jobs:
       run_docs: ${{ steps.check_files.outputs.run_docs }}
 
     steps:
-      - uses: actions/checkout@v4
-        with:
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
-          ref: ${{ github.event.pull_request.head.ref }}
-          fetch-depth: 0
-
       - name: check modified frontends
         id: check_files
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           echo "=============== list modified files ==============="
-          git fetch origin ${{ github.base_ref }}
-          git diff --name-only \
-            origin/${{ github.base_ref }} \
-            ${{ github.event.pull_request.head.sha }}
-
-          echo "========== check paths of modified files =========="
-          git diff --name-only \
-            origin/${{ github.base_ref }} \
-            ${{ github.event.pull_request.head.sha }} > files.txt
+          gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files \
+            --paginate --jq '.[].filename' | tee files.txt
 
           echo "run_calibrate_app=false" >>$GITHUB_OUTPUT
           echo "run_analytics_platform=false" >>$GITHUB_OUTPUT

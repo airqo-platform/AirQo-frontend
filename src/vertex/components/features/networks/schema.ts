@@ -26,6 +26,7 @@ export const networkRequestSchema = z.object({
     net_category: z.string().optional(),
     net_description: z.string().optional(),
     net_acronym: z.string().optional(),
+    captchaToken: z.string().optional(),
 });
 
 export type NetworkRequestValues = z.infer<typeof networkRequestSchema>;
