@@ -4,8 +4,6 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { FiMinus, FiPlus, FiCamera } from 'react-icons/fi';
-import html2canvas from 'html2canvas';
-import toast, { Toaster } from 'react-hot-toast';
 
 import {
   africanIso2Codes,
@@ -14,6 +12,10 @@ import {
   type NetworkCoverageMonitor,
   type ViewMode,
 } from '../networkCoverageTypes';
+
+const LazyToaster = React.lazy(() =>
+  import('react-hot-toast').then((m) => ({ default: m.Toaster })),
+);
 
 interface NetworkCoverageMapProps {
   countries: NetworkCoverageCountry[];
@@ -478,6 +480,7 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       // on high-DPI devices. Limit to 2x to keep memory usage reasonable.
       const captureScale = Math.min(deviceScale, 2);
 
+      const { default: html2canvas } = await import('html2canvas');
       const canvas = await html2canvas(mapContainerRef.current, {
         backgroundColor: null,
         useCORS: true,
@@ -490,6 +493,7 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
     } catch (err: any) {
       console.error('Snapshot capture failed', err);
       try {
+        const { default: toast } = await import('react-hot-toast');
         toast.error(
           'Failed to capture map snapshot: ' +
             (err?.message || 'Unknown error'),
@@ -1014,6 +1018,7 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
               a.click();
               a.remove();
               try {
+                const { default: toast } = await import('react-hot-toast');
                 toast.success('Screenshot downloaded', { duration: 2500 });
               } catch {
                 // ignore toast errors
@@ -1056,7 +1061,12 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       </div>
 
       {/* Snapshot preview modal removed — camera now downloads immediately */}
-      <Toaster position="bottom-right" containerStyle={{ zIndex: 40000 }} />
+      <React.Suspense fallback={null}>
+        <LazyToaster
+          position="bottom-right"
+          containerStyle={{ zIndex: 40000 }}
+        />
+      </React.Suspense>
 
       {mapInitError && (
         <div className="absolute inset-0 z-30 grid place-items-center bg-slate-100">
