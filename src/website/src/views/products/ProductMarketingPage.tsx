@@ -79,6 +79,12 @@ type ProductSpotlightSection = {
   reverse?: boolean;
 };
 
+type ProductDownloadSection = {
+  title: React.ReactNode;
+  description: string;
+  actions: ProductAction[];
+};
+
 type ProductPageTheme = {
   accentTextClassName: string;
   heroBackgroundClassName: string;
@@ -107,11 +113,12 @@ type ProductMarketingPageProps = {
     description: string;
     items: ProductCapability[];
   };
-  useCases: {
+  useCases?: {
     title: React.ReactNode;
     description: string;
     items: ProductUseCase[];
   };
+  downloadSection?: ProductDownloadSection;
   secondarySection: ProductSpotlightSection;
   audiences: {
     title: React.ReactNode;
@@ -222,6 +229,7 @@ const ProductMarketingPage = ({
   primarySection,
   capabilities,
   useCases,
+  downloadSection,
   secondarySection,
   audiences,
   ctaSection,
@@ -335,49 +343,91 @@ const ProductMarketingPage = ({
         </div>
       </motion.section>
 
-      <motion.section
-        className="px-4"
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
-        variants={containerVariants}
-      >
-        <div className={`${mainConfig.containerClass} space-y-8`}>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <motion.h2
-              className="text-[32px] lg:text-[40px] leading-tight font-semibold text-gray-900"
-              variants={itemVariants}
-            >
-              {useCases.title}
-            </motion.h2>
-            <motion.p className="text-lg text-gray-700" variants={itemVariants}>
-              {useCases.description}
-            </motion.p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {useCases.items.map((item, index) => (
-              <motion.div
-                key={item.title}
-                className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
-                variants={cardVariants}
+      {useCases ? (
+        <motion.section
+          className="px-4"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          variants={containerVariants}
+        >
+          <div className={`${mainConfig.containerClass} space-y-8`}>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <motion.h2
+                className="text-[32px] lg:text-[40px] leading-tight font-semibold text-gray-900"
+                variants={itemVariants}
               >
-                <p
-                  className={`text-sm font-semibold ${theme.accentTextClassName}`}
+                {useCases.title}
+              </motion.h2>
+              <motion.p
+                className="text-lg text-gray-700"
+                variants={itemVariants}
+              >
+                {useCases.description}
+              </motion.p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {useCases.items.map((item, index) => (
+                <motion.div
+                  key={item.title}
+                  className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
+                  variants={cardVariants}
                 >
-                  {String(index + 1).padStart(2, '0')}
-                </p>
-                <h3 className="mt-4 text-xl font-semibold text-gray-900">
-                  {item.title}
-                </h3>
-                <p className="mt-3 text-base leading-7 text-gray-700">
-                  {item.description}
-                </p>
-              </motion.div>
-            ))}
+                  <p
+                    className={`text-sm font-semibold ${theme.accentTextClassName}`}
+                  >
+                    {String(index + 1).padStart(2, '0')}
+                  </p>
+                  <h3 className="mt-4 text-xl font-semibold text-gray-900">
+                    {item.title}
+                  </h3>
+                  <p className="mt-3 text-base leading-7 text-gray-700">
+                    {item.description}
+                  </p>
+                </motion.div>
+              ))}
+            </div>
           </div>
-        </div>
-      </motion.section>
+        </motion.section>
+      ) : null}
+
+      {downloadSection ? (
+        <motion.section
+          className="px-4"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          variants={containerVariants}
+        >
+          <div
+            className={`${mainConfig.containerClass} rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-8 lg:p-12`}
+          >
+            <div className="max-w-2xl">
+              <motion.h2
+                className="text-[32px] lg:text-[40px] leading-tight font-semibold text-gray-900 mb-4"
+                variants={itemVariants}
+              >
+                {downloadSection.title}
+              </motion.h2>
+              <motion.p
+                className="text-lg text-gray-700 mb-6"
+                variants={itemVariants}
+              >
+                {downloadSection.description}
+              </motion.p>
+              <motion.div
+                className="flex flex-col sm:flex-row gap-4"
+                variants={itemVariants}
+              >
+                {downloadSection.actions.map((action) => (
+                  <ProductActionButton key={action.label} action={action} />
+                ))}
+              </motion.div>
+            </div>
+          </div>
+        </motion.section>
+      ) : null}
 
       <ProductSpotlight section={secondarySection} />
 

@@ -76,71 +76,63 @@ const VertexPage = () => {
           </>
         ),
         description:
-          'Vertex sits between deployment and public visibility. It is built for teams that want to connect devices, manage organizational context, and share more air quality data through an open ecosystem.',
+          'Vertex connects device deployment with public visibility through a single platform.',
         items: [
           {
             title: 'Guided device onboarding',
             description:
-              'Register sensors individually or onboard them through structured import workflows.',
+              'Register sensors individually or through bulk import workflows.',
             Icon: FiUploadCloud,
           },
           {
             title: 'Deployment organization',
             description:
-              'Track organization assets, sites, and device state from one working environment.',
+              'Track assets, sites, and device state from one dashboard.',
             Icon: FiGrid,
           },
           {
             title: 'Public data sharing',
-            description:
-              'Publish readings through AirQo for governments, researchers, and communities.',
+            description: 'Publish readings through AirQo for public access.',
             Icon: FiShare2,
           },
           {
             title: 'Open network visibility',
             description:
-              'Understand what is public, what is hidden, and what remains active across the organization.',
+              'Control what is public, hidden, or active across your organization.',
             Icon: FiGlobe,
           },
           {
             title: 'Multi-manufacturer support',
-            description:
-              'Connect devices from different hardware ecosystems instead of rebuilding around one stack.',
+            description: 'Connect devices from different hardware ecosystems.',
             Icon: FiLayers,
           },
           {
             title: 'Future infrastructure control',
             description:
-              'Prepare for Vertex IoT Kit if your team needs a more self-hosted operational path.',
+              'Prepare for Vertex IoT Kit for self-hosted operations.',
             Icon: FiCloudLightning,
           },
         ],
       }}
-      useCases={{
+      downloadSection={{
         title: (
           <>
-            Where{' '}
+            Download{' '}
             <span className={vertexTheme.accentTextClassName}>Vertex</span>{' '}
-            creates value
+            Desktop
           </>
         ),
         description:
-          'Vertex is designed for teams that need a practical bridge between ownership of devices and wider contribution to public environmental data.',
-        items: [
+          'Get the Vertex desktop application for Windows to manage your devices and air quality data locally.',
+        actions: [
           {
-            title: 'Launch new deployments faster',
-            description:
-              'Bring AirQo and external devices into one structured workflow without rebuilding your operational setup from scratch.',
+            label: 'Download for Windows',
+            href: 'https://vertex.airqo.net/download',
           },
           {
-            title: 'Control what becomes public',
-            description:
-              'Manage organizations, sites, cohorts, and visibility settings so public sharing happens intentionally and with the right governance.',
-          },
-          {
-            title: 'Expand without vendor lock-in',
-            description:
-              'Support a more open monitoring strategy by connecting different device ecosystems through one participation layer.',
+            label: 'View All Releases',
+            href: 'https://vertex.airqo.net/download',
+            variant: 'secondary',
           },
         ],
       }}
@@ -210,12 +202,6 @@ const VertexPage = () => {
             title: 'Import Your Devices',
             description:
               'Start onboarding monitors through the main Vertex workflow.',
-            href: 'https://vertex.airqo.net',
-          },
-          {
-            title: 'Share Publicly',
-            description:
-              'Publish organization devices and cohorts through AirQo visibility controls.',
             href: 'https://vertex.airqo.net',
           },
           {
