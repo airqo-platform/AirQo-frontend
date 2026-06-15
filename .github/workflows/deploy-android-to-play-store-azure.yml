@@ -1,0 +1,101 @@
+name: deploy-android-to-play-store-azure
+
+on:
+  workflow_dispatch:
+    inputs:
+      android:
+        description: "Deploy android to play store"
+        required: false
+        type: boolean
+
+jobs:
+  android:
+    name: android build
+    runs-on: ubuntu-22.04
+    if: inputs.android == true
+    defaults:
+      run:
+        working-directory: src/mobile
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2.10.0
+        with:
+          channel: "stable"
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Add keystore and key.properties files
+        run: |
+          cd android/
+          az keyvault secret show \
+            --vault-name airqo-kv-prod \
+            --name prod-key-mobile-upload-keystore-encrypted \
+            --query value -o tsv | base64 -di > app/upload-keystore.jks
+
+          az keyvault secret show \
+            --vault-name airqo-kv-prod \
+            --name prod-key-mobile-airqo-dev-keystore \
+            --query value -o tsv | base64 -di > app/airqo-dev-keystore.jks
+
+          az keyvault secret show \
+            --vault-name airqo-kv-prod \
+            --name prod-key-mobile-app \
+            --query value -o tsv > prod-key.properties
+
+          az keyvault secret show \
+            --vault-name airqo-kv-prod \
+            --name prod-key-mobile-properties-CI \
+            --query value -o tsv > key.properties
+
+      - name: Add .env files
+        run: |
+          az keyvault secret show \
+            --vault-name airqo-kv-prod \
+            --name prod-env-mobile-app \
+            --query value -o tsv > .env.prod
+
+          az keyvault secret show \
+            --vault-name airqo-kv-prod \
+            --name prod-env-mobile-CI \
+            --query value -o tsv > .env.dev
+
+      - name: Setup Fastlane
+        uses: ruby/setup-ruby@v1.123.0
+        with:
+          ruby-version: "3.1.0"
+          working-directory: src/mobile/android
+
+      - name: Install bundle
+        run: |
+          cd android/
+          bundle config path vendor/bundle
+          bundle install --jobs 4 --retry 3
+
+      - name: Deploy to play store
+        run: |
+          cd android/
+          printf '%s' "$MOBILE_ANDROID_PLAYSTORE_SA" > play-store-service-account.json
+          bundle exec fastlane supply init
+          mkdir -p fastlane/metadata/android/en-US/changelogs
+          touch fastlane/metadata/android/en-US/changelogs/default.txt
+
+          if [ ! -f fastlane/release_notes.txt ]; then
+            echo "App release version 3.0.2" > fastlane/release_notes.txt
+          fi
+
+          cat fastlane/release_notes.txt > fastlane/metadata/android/en-US/changelogs/default.txt
+          bundle exec fastlane android play_store
+        env:
+          MOBILE_ANDROID_PLAYSTORE_SA: ${{ secrets.MOBILE_ANDROID_PLAYSTORE_SA }}
