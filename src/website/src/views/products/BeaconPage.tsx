@@ -116,33 +116,6 @@ const BeaconPage = () => {
           },
         ],
       }}
-      useCases={{
-        title: (
-          <>
-            How teams use{' '}
-            <span className={beaconTheme.accentTextClassName}>Beacon</span>
-          </>
-        ),
-        description:
-          'Beacon is most useful when teams need to move quickly from detection to response without losing the broader picture of network health.',
-        items: [
-          {
-            title: 'Track reliability daily',
-            description:
-              'Use one operational surface to review uptime, online state, and deployment coverage before problems become prolonged outages.',
-          },
-          {
-            title: 'Prioritize maintenance work',
-            description:
-              'Focus field attention on the devices, sites, and cohorts that show the greatest operational risk or repeated instability.',
-          },
-          {
-            title: 'Protect data quality',
-            description:
-              'Review collocation behavior and recurring performance signals early enough to support stronger calibration and quality assurance decisions.',
-          },
-        ],
-      }}
       secondarySection={{
         eyebrow: 'Quality and collocation',
         title:
