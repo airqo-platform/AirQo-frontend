@@ -2,7 +2,7 @@ import type {
   ImpactCityEntry,
   NetworkCoverageCountry,
   NetworkCoverageImpact,
-} from '../networkCoverageTypes';
+} from '@/views/solutions/NetworkCoverage/networkCoverageTypes';
 
 export interface ExportData {
   countries: NetworkCoverageCountry[];
@@ -59,12 +59,20 @@ export const buildCsvFileName = (scope: string, suffix: string) => {
 export const escapeCsvField = (
   value: string | number | null | undefined,
 ): string => {
-  const str = value == null ? '' : String(value);
+  const raw = value == null ? '' : String(value);
+  // Neutralize spreadsheet formula injection: values starting with =, +, -, @
+  const str =
+    typeof value === 'string' && /^[\t\r\n ]*[=+\-@]/.test(raw)
+      ? `'${raw}`
+      : raw;
   if (str.includes(',') || str.includes('"') || str.includes('\n')) {
     return `"${str.replace(/"/g, '""')}"`;
   }
   return str;
 };
+
+export const formatPopulation = (value?: number | null): string =>
+  value == null ? '--' : value.toLocaleString();
 
 export const formatExportCoordinates = (monitor: {
   latitude: number | null;
@@ -293,9 +301,7 @@ export async function generatePdf(data: ExportData): Promise<void> {
   if (impactData) {
     summaryBody.push([
       'Population reached',
-      impactData.totalPopulationReached
-        ? impactData.totalPopulationReached.toLocaleString()
-        : '--',
+      formatPopulation(impactData.totalPopulationReached),
     ]);
     summaryBody.push([
       'Cities with population data',
@@ -397,7 +403,7 @@ export async function generatePdf(data: ExportData): Promise<void> {
       city.iso2 || '--',
       String(city.total),
       String(city.active),
-      city.population ? city.population.toLocaleString() : '--',
+      formatPopulation(city.population),
     ]);
 
     autoTable(doc, {
@@ -661,9 +667,7 @@ export async function generateCsv(data: ExportData): Promise<void> {
   if (impactData) {
     lines.push(
       'Population Reached,' +
-        (impactData.totalPopulationReached
-          ? impactData.totalPopulationReached.toLocaleString()
-          : '--'),
+        escapeCsvField(formatPopulation(impactData.totalPopulationReached)),
     );
     lines.push(
       'Cities with Population Data,' + impactData.citiesWithPopulationData,
@@ -774,7 +778,7 @@ export async function generateCsv(data: ExportData): Promise<void> {
           escapeCsvField(city.iso2),
           city.total,
           city.active,
-          city.population ? city.population.toLocaleString() : '--',
+          escapeCsvField(formatPopulation(city.population)),
         ].join(','),
       );
     });

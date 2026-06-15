@@ -437,27 +437,35 @@ const NetworkCoveragePage = () => {
     [],
   );
 
-  const buildExportData = useCallback(
-    (): ExportData => ({
-      countries,
-      impactData,
+  const buildExportData = useCallback((): ExportData => {
+    const scopedCountries =
+      selectedCountryId && selectedCountry ? [selectedCountry] : countries;
+    const effectiveActiveOnly = activeOnly && !hasInactive;
+    // Impact data is global — don't attribute it to a single country or
+    // inactive-filtered view where it would be misleading.
+    const scopedImpactData =
+      selectedCountryId || hasInactive ? null : impactData;
+
+    return {
+      countries: scopedCountries,
+      impactData: scopedImpactData,
       selectedTypes,
-      activeOnly,
+      activeOnly: effectiveActiveOnly,
       selectedNetworks,
       selectedCountryId,
       selectedCountry,
       snapshotGetter: snapshotGetterRef.current,
-    }),
-    [
-      countries,
-      impactData,
-      selectedTypes,
-      activeOnly,
-      selectedNetworks,
-      selectedCountryId,
-      selectedCountry,
-    ],
-  );
+    };
+  }, [
+    countries,
+    impactData,
+    selectedTypes,
+    activeOnly,
+    hasInactive,
+    selectedNetworks,
+    selectedCountryId,
+    selectedCountry,
+  ]);
 
   const downloadPdf = useCallback(async () => {
     if (exportInProgressRef.current) return;
