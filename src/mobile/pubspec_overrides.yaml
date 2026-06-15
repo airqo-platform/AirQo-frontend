@@ -1,0 +1,6 @@
+# Local-only simulator workaround:
+# the real MLKit translation plugin does not currently build cleanly for iOS
+# simulator, so we swap it with a stub package to unblock auth debugging.
+dependency_overrides:
+  google_mlkit_translation:
+    path: local_packages/google_mlkit_translation_stub
