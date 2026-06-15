@@ -1,7 +1,7 @@
 replicaCount: 2
 image:
   repository: airqoacr.azurecr.io/airqo-vertex
-  tag: prod-250d2dee-1781427066
+  tag: prod-75decf30-1781437211
   pullPolicy: IfNotPresent
 imagePullSecrets: []
 nameOverride: ''
