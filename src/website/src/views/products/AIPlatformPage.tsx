@@ -74,7 +74,7 @@ const AIPlatformPage = () => {
           </>
         ),
         description:
-          'The value of AirQo AI comes from bringing advanced analytical functions into a single product surface that teams can actually use in monitoring, planning, and communication workflows.',
+          'AirQo AI brings forecasting, site selection, categorization, and reporting into one workspace.',
         items: [
           {
             title: 'Air quality forecasting',
@@ -111,33 +111,6 @@ const AIPlatformPage = () => {
             description:
               'Support policymakers, practitioners, and researchers with more actionable environmental insight.',
             Icon: FiCpu,
-          },
-        ],
-      }}
-      useCases={{
-        title: (
-          <>
-            How organizations apply the{' '}
-            <span className={aiTheme.accentTextClassName}>AI Platform</span>
-          </>
-        ),
-        description:
-          'The platform is strongest when teams need not only visibility into air quality, but also structured analytical support for where to focus, deploy, and communicate.',
-        items: [
-          {
-            title: 'Forecast and prepare',
-            description:
-              'Use forecast views to understand likely PM2.5 conditions and plan communication or intervention before exposure risks escalate.',
-          },
-          {
-            title: 'Choose better monitoring sites',
-            description:
-              'Apply LOCATE and categorization workflows to decide where monitors should go and how those sites should be interpreted.',
-          },
-          {
-            title: 'Explain decisions clearly',
-            description:
-              'Turn analysis into summaries, reports, and planning narratives that policymakers, implementers, and researchers can act on.',
           },
         ],
       }}
