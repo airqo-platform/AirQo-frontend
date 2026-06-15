@@ -183,12 +183,6 @@ const BeaconPage = () => {
             href: 'https://beacon.airqo.net/dashboard/maintenance',
           },
           {
-            title: 'Site Collocation',
-            description:
-              'Review site-level collocation behavior and compare sensor performance.',
-            href: 'https://beacon.airqo.net/dashboard/collocation/site',
-          },
-          {
             title: 'Cohort Analysis',
             description:
               'Analyze device groups to identify recurring trends and issues.',
