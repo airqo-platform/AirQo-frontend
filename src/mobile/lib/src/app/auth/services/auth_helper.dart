@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:airqo/src/app/auth/services/auth_token_storage.dart';
 import 'package:airqo/src/app/shared/repository/secure_storage_repository.dart';
 import 'package:airqo/src/meta/utils/api_utils.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:loggy/loggy.dart';
@@ -171,12 +170,8 @@ class AuthHelper {
 
       if (token == null || token.isEmpty) return null;
 
-      final isExpired = _shouldTreatTokenAsExpired(token);
-      _logger.info(
-          'Refresh check: stored token is ${isExpired ? "expired" : "still valid"}');
-
       // Token still valid — return it immediately, no network call needed.
-      if (!isExpired) return token;
+      if (!JwtDecoder.isExpired(token)) return token;
 
       _logger.info('Token expired — attempting silent refresh');
 
@@ -190,33 +185,12 @@ class AuthHelper {
         },
       ).timeout(const Duration(seconds: 10));
 
-      _logger.info('Silent refresh response status: ${response.statusCode}');
-
-      Map<String, dynamic>? responseBody;
-      try {
-        responseBody = json.decode(response.body) as Map<String, dynamic>;
-      } catch (_) {
-        responseBody = null;
-      }
-
-      final responseMessage = responseBody == null
-          ? response.body
-          : (responseBody['message'] ??
-                  responseBody['errors']?['message'] ??
-                  responseBody['error'] ??
-                  response.body)
-              .toString();
-      _logger.info('Silent refresh response message: $responseMessage');
-
       if (response.statusCode == 200) {
-        final body = responseBody;
-        if (body != null && body['success'] == true && body['token'] != null) {
+        final body = json.decode(response.body) as Map<String, dynamic>;
+        if (body['success'] == true && body['token'] != null) {
           final newToken = body['token'] as String;
           await AuthTokenStorage.saveAuthToken(newToken);
-          final storedToken = await SecureStorageRepository.instance
-              .getSecureData(SecureStorageKeys.authToken);
-          _logger.info(
-              'Silent token refresh succeeded; new token saved: ${storedToken != null && storedToken.isNotEmpty}');
+          _logger.info('Silent token refresh succeeded');
           return AuthTokenStorage.sanitizeToken(newToken);
         }
       }
@@ -230,22 +204,6 @@ class AuthHelper {
       _logger.error('Error during silent token refresh: $e');
       return null;
     }
-  }
-
-  // Temporary auth-debug hook: lets us simulate the "time has passed and the
-  // app now thinks this token is expired" branch without waiting for the real
-  // 24-hour window. We still send the user's real stored token to refresh, so
-  // we can observe whether the app's refresh/logout behavior is the problem.
-  static bool _shouldTreatTokenAsExpired(String token) {
-    final forceExpiry =
-        (dotenv.env['FORCE_AUTH_TOKEN_EXPIRED'] ?? '').toLowerCase() == 'true';
-    if (forceExpiry) {
-      _logger.warning(
-          'FORCE_AUTH_TOKEN_EXPIRED is enabled - treating the stored token as expired for debugging');
-      return true;
-    }
-
-    return JwtDecoder.isExpired(token);
   }
 
   /// Check if the current token is expired

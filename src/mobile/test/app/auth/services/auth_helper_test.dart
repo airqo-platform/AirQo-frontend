@@ -5,7 +5,6 @@ import 'dart:io';
 import 'package:airqo/src/app/auth/services/auth_helper.dart';
 import 'package:airqo/src/app/shared/repository/secure_storage_repository.dart';
 import 'package:airqo/src/meta/utils/api_utils.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -40,10 +39,6 @@ void main() {
 
   setUp(() {
     FlutterSecureStorage.setMockInitialValues({});
-    dotenv.testLoad(fileInput: '''
-FORCE_AUTH_TOKEN_EXPIRED=false
-AUTH_DEBUG_SEED_MOBILE_TOKEN=false
-''');
   });
 
   tearDown(() {
