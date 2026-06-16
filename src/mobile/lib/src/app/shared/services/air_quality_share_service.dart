@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
@@ -10,7 +12,7 @@ class AirQualityShareService {
     String? fallbackLocationName,
     Rect? sharePositionOrigin,
   }) {
-    final message = _buildShareMessage(
+    final message = buildShareMessage(
       measurement,
       fallbackLocationName: fallbackLocationName,
     );
@@ -22,7 +24,30 @@ class AirQualityShareService {
     );
   }
 
-  static String _buildShareMessage(
+  static Future<void> shareMeasurementCard(
+    Uint8List imageBytes,
+    Measurement measurement, {
+    String? fallbackLocationName,
+    Rect? sharePositionOrigin,
+  }) {
+    return Share.shareXFiles(
+      [
+        XFile.fromData(
+          imageBytes,
+          mimeType: 'image/png',
+          name: 'airqo-air-quality-card.png',
+        ),
+      ],
+      text: buildShareMessage(
+        measurement,
+        fallbackLocationName: fallbackLocationName,
+      ),
+      subject: 'Air quality update from AirQo',
+      sharePositionOrigin: sharePositionOrigin,
+    );
+  }
+
+  static String buildShareMessage(
     Measurement measurement, {
     String? fallbackLocationName,
   }) {
