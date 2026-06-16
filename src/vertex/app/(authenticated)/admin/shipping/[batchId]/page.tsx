@@ -33,7 +33,6 @@ const BatchDetailsPage = () => {
     const { mutate: generateLabels, isPending: isGenerating, data: labelsData } = useGenerateShippingLabels({
         onSuccess: (data) => {
             if (data.success) {
-                showBanner({ severity: 'success', message: `Successfully generated ${data.shipping_labels.labels.length} shipping label(s)`, scoped: false });
                 setShowLabelModal(true);
             }
         },
