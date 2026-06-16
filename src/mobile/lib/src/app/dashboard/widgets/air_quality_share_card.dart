@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
@@ -14,20 +16,30 @@ class AirQualityShareCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final locationName = measurement.siteDetails?.searchName ??
-        measurement.siteDetails?.name ??
-        fallbackLocationName ??
-        'AirQo location';
-    final locationDescription = _getLocationDescription(measurement);
-    final category = measurement.aqiCategory ?? 'Unavailable';
+    final locationName = _sanitizeText(
+      measurement.siteDetails?.searchName ??
+          measurement.siteDetails?.name ??
+          fallbackLocationName ??
+          'AirQo location',
+    );
+    final locationDescription = _sanitizeText(
+      _getLocationDescription(measurement),
+    );
+    final category = _categoryLabel(
+      _sanitizeText(measurement.aqiCategory ?? 'Unavailable'),
+    );
     final pm25Value = measurement.pm25?.value;
-    final healthTip = measurement.healthTips?.firstOrNull?.tagLine ??
-        measurement.healthTips?.firstOrNull?.description ??
-        'Stay informed and plan your outdoor time wisely.';
+    final healthTip = _sanitizeText(
+      measurement.healthTips?.firstOrNull?.tagLine ??
+          measurement.healthTips?.firstOrNull?.description ??
+          'Stay informed and plan your outdoor time wisely.',
+    );
     final categoryColor = _getAqiColor(measurement);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardTextColor = isDark ? Colors.white : const Color(0xFF122033);
     final secondaryTextColor = cardTextColor.withValues(alpha: 0.72);
+    final titleFontSize = _titleFontSize(locationName);
+    final categoryFontSize = _categoryFontSize(category);
 
     return Container(
       width: double.infinity,
@@ -75,20 +87,25 @@ class AirQualityShareCard extends StatelessWidget {
                     const SizedBox(height: 10),
                     Text(
                       locationName,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: cardTextColor,
-                        fontSize: 24,
-                        height: 1.1,
+                        fontSize: titleFontSize,
+                        height: 1.02,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
                     if (locationDescription.isNotEmpty) ...[
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 8),
                       Text(
                         locationDescription,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: secondaryTextColor,
                           fontSize: 13,
+                          height: 1.25,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -96,41 +113,58 @@ class AirQualityShareCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: isDark ? 0.12 : 0.84),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  category,
-                  style: TextStyle(
-                    color: isDark ? Colors.white : categoryColor,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
+              const SizedBox(width: 12),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 124),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: isDark ? 0.12 : 0.84),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Center(
+                    child: Text(
+                      category,
+                      maxLines: 1,
+                      textAlign: TextAlign.center,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: isDark ? Colors.white : categoryColor,
+                        fontSize: categoryFontSize,
+                        height: 1.0,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
-                pm25Value?.toStringAsFixed(1) ?? '--',
-                style: TextStyle(
-                  color: cardTextColor,
-                  fontSize: 52,
-                  height: 0.95,
-                  fontWeight: FontWeight.w800,
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.bottomLeft,
+                  child: Text(
+                    pm25Value?.toStringAsFixed(1) ?? '--',
+                    style: TextStyle(
+                      color: cardTextColor,
+                      fontSize: 72,
+                      height: 0.92,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
                 ),
               ),
+              const SizedBox(width: 8),
               Padding(
-                padding: const EdgeInsets.only(left: 8, bottom: 6),
+                padding: const EdgeInsets.only(bottom: 8),
                 child: Text(
                   'PM2.5 µg/m³',
                   style: TextStyle(
@@ -142,25 +176,27 @@ class AirQualityShareCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 16),
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: isDark ? 0.08 : 0.82),
               borderRadius: BorderRadius.circular(18),
             ),
             child: Text(
               healthTip,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: cardTextColor,
                 fontSize: 14,
-                height: 1.35,
+                height: 1.3,
                 fontWeight: FontWeight.w600,
               ),
             ),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 16),
           Text(
             'Shared from the AirQo app',
             style: TextStyle(
@@ -223,6 +259,42 @@ class AirQualityShareCard extends StatelessWidget {
         return const Color(0xFF6D4C41);
       default:
         return AppColors.primaryColor;
+    }
+  }
+
+  double _titleFontSize(String title) {
+    if (title.length <= 12) return 30;
+    if (title.length <= 20) return 27;
+    if (title.length <= 28) return 24;
+    return 22;
+  }
+
+  double _categoryFontSize(String category) {
+    if (category.length <= 10) return 12;
+    if (category.length <= 16) return 11;
+    return 10;
+  }
+
+  String _categoryLabel(String category) {
+    switch (category.toLowerCase()) {
+      case 'unhealthy for sensitive groups':
+        return 'Sensitive Groups';
+      case 'very unhealthy':
+        return 'Very Unhealthy';
+      default:
+        return category;
+    }
+  }
+
+  String _sanitizeText(String value) {
+    if (!value.contains('Ã') && !value.contains('Â') && !value.contains('â')) {
+      return value;
+    }
+
+    try {
+      return utf8.decode(latin1.encode(value));
+    } catch (_) {
+      return value;
     }
   }
 }
