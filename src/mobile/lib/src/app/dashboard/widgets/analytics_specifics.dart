@@ -2,6 +2,7 @@ import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/pages/forecast_overview_page.dart';
 import 'package:airqo/src/app/dashboard/widgets/expanded_analytics_card.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_forecast_widget.dart';
+import 'package:airqo/src/app/shared/services/air_quality_share_service.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +20,8 @@ class AnalyticsSpecifics extends StatefulWidget {
 class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
   double containerHeight = 90;
   bool expanded = false;
+  bool _isSharing = false;
+  final GlobalKey _shareButtonKey = GlobalKey();
 
   @override
   void initState() {
@@ -66,6 +69,34 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
             "Unknown location";
   }
 
+  Future<void> _shareAirQuality() async {
+    if (_isSharing) return;
+
+    final renderObject =
+        _shareButtonKey.currentContext?.findRenderObject() as RenderBox?;
+    final shareOrigin = renderObject == null
+        ? null
+        : renderObject.localToGlobal(Offset.zero) & renderObject.size;
+
+    setState(() {
+      _isSharing = true;
+    });
+
+    try {
+      await AirQualityShareService.shareMeasurement(
+        widget.measurement,
+        fallbackLocationName: widget.fallbackLocationName,
+        sharePositionOrigin: shareOrigin,
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSharing = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final nameColor = Theme.of(context).textTheme.headlineSmall?.color;
@@ -101,12 +132,34 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    InkWell(
-                      onTap: () => Navigator.pop(context),
-                      child: Icon(
-                        Icons.close,
-                        color: nameColor,
-                      ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextButton.icon(
+                          key: _shareButtonKey,
+                          onPressed: _isSharing ? null : _shareAirQuality,
+                          icon: _isSharing
+                              ? const SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Icon(Icons.share_outlined, size: 18),
+                          label: const TranslatedText('Share'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppColors.primaryColor,
+                          ),
+                        ),
+                        InkWell(
+                          onTap: () => Navigator.pop(context),
+                          child: Icon(
+                            Icons.close,
+                            color: nameColor,
+                          ),
+                        ),
+                      ],
                     )
                   ],
                 ),
