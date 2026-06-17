@@ -14,8 +14,9 @@ import 'package:airqo/src/app/shared/services/cache_manager.dart';
 
 class NearbyView extends StatefulWidget {
   final VoidCallback? onNavigateToFavorites;
+  final VoidCallback? onExploreCities;
 
-  const NearbyView({super.key, this.onNavigateToFavorites});
+  const NearbyView({super.key, this.onNavigateToFavorites, this.onExploreCities});
 
   @override
   State<NearbyView> createState() => _NearbyViewState();
@@ -496,7 +497,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                       ),
                       const SizedBox(height: 8),
                       TranslatedText(
-                        "But you can add your favorite location from areas where we have presence",
+                        "AirQo covers 15 African cities. Browse and explore air quality data from any of them.",
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 16,
@@ -505,9 +506,9 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                       ),
                       const SizedBox(height: 24),
                       ElevatedButton.icon(
-                        onPressed: widget.onNavigateToFavorites ?? _retry,
-                        // icon: const Icon(Icons.favorite, color: Colors.white),
-                        label: const TranslatedText("Add Favorite Location"),
+                        onPressed: widget.onExploreCities ?? widget.onNavigateToFavorites ?? _retry,
+                        icon: const Icon(Icons.explore, color: Colors.white),
+                        label: const TranslatedText("Explore Available Cities"),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryColor,
                           foregroundColor: Colors.white,
