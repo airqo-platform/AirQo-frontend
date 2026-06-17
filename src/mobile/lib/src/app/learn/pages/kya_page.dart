@@ -1,10 +1,18 @@
+import 'package:airqo/src/app/dashboard/widgets/dashboard_app_bar.dart';
+import 'package:airqo/src/app/learn/models/lesson_response_model.dart';
 import 'package:airqo/src/app/learn/bloc/kya_bloc.dart';
+import 'package:airqo/src/app/learn/models/learn_course_structure.dart';
 import 'package:airqo/src/app/learn/pages/learn_surveys_page.dart';
-import 'package:airqo/src/app/learn/widgets/kya_lesson_container.dart';
-import 'package:airqo/src/app/shared/services/feature_flag_service.dart';
+import 'package:airqo/src/app/learn/services/learn_progress_service.dart';
+import 'package:airqo/src/app/learn/theme/learn_design_tokens.dart';
+import 'package:airqo/src/app/learn/widgets/learn_bottom_sheets.dart';
+import 'package:airqo/src/app/learn/widgets/learn_course_portrait_card.dart';
+import 'package:airqo/src/app/learn/widgets/learn_dashboard_header.dart';
+import 'package:airqo/src/app/learn/widgets/learn_level_summary_card.dart';
+import 'package:airqo/src/app/learn/widgets/learn_sheet_button_styles.dart';
 import 'package:airqo/src/app/shared/widgets/loading_widget.dart';
-import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
+import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:loggy/loggy.dart';
@@ -12,7 +20,6 @@ import 'package:loggy/loggy.dart';
 class KyaPage extends StatefulWidget {
   final int initialIndex;
 
-  // Static notifier to control the active tab externally (e.g. from survey banner)
   static final ValueNotifier<int> tabIndexNotifier = ValueNotifier(0);
 
   const KyaPage({super.key, this.initialIndex = 0});
@@ -25,9 +32,8 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
   KyaBloc? kyaBloc;
   bool _isRetrying = false;
   late int _selectedIndex;
-
-  bool get _surveysEnabled =>
-      FeatureFlagService.instance.isEnabled(AppFeatureFlag.surveys);
+  final _progress = LearnProgressService.instance;
+  String? _lastSeedFingerprint;
 
   @override
   void initState() {
@@ -35,6 +41,7 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
     _selectedIndex = widget.initialIndex;
     KyaPage.tabIndexNotifier.addListener(_onExternalTabChange);
     kyaBloc = context.read<KyaBloc>()..add(LoadLessons());
+    _progress.ensureInitialized();
   }
 
   @override
@@ -45,211 +52,224 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
 
   void _onExternalTabChange() {
     if (mounted) {
-      setState(() {
-        _selectedIndex = KyaPage.tabIndexNotifier.value;
-      });
+      setState(() => _selectedIndex = KyaPage.tabIndexNotifier.value);
     }
   }
 
   void _retryLoading() {
-    setState(() {
-      _isRetrying = true;
-    });
+    setState(() => _isRetrying = true);
     kyaBloc?.add(LoadLessons(forceRefresh: true));
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) setState(() => _isRetrying = false);
     });
   }
 
+  void _onLessonsReady(
+    List<LearnCourseViewModel> courses,
+    List<KyaLesson> apiLessons,
+  ) {
+    final fingerprint =
+        '${apiLessons.length}:${apiLessons.map((l) => l.id).join('|')}';
+    if (_lastSeedFingerprint == fingerprint) return;
+    _lastSeedFingerprint = fingerprint;
+    _progress.ensurePilotLearnDemosV3(courses: courses);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Column(
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: const DashboardAppBar(),
+      body: ValueListenableBuilder<int>(
+        valueListenable: _progress.revision,
+        builder: (context, _, __) {
+          return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 16),
-              TranslatedText(
-                "Know Your Air",
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.boldHeadlineColor,
-                ),
+              const LearnDashboardHeader(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                child: _buildTabSelector(),
               ),
-              const SizedBox(height: 8),
-              TranslatedText(
-                "👋 Welcome! to \"Know Your Air,\" you'll learn about AirQo and air quality.",
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xff7A7F87),
-                ),
-              ),
-              const SizedBox(height: 16),
-              _buildTabSelector(),
-              const SizedBox(height: 16),
               Expanded(
                 child: _selectedIndex == 0
-                    ? _buildLessonsContent()
+                    ? _buildCoursesContent()
                     : const LearnSurveysPage(),
               ),
             ],
-          ),
-        ),
+          );
+        },
       ),
     );
   }
 
   Widget _buildTabSelector() {
-    if (!_surveysEnabled) {
-      // No tab selector needed — just show the Lessons pill as before
-      return Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            height: 38,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(40),
-              color: AppColors.primaryColor,
-            ),
-            child: const Center(
-              child: TranslatedText(
-                "Lessons",
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-          ),
-        ],
-      );
-    }
-
     return Row(
       children: [
-        _buildTab("Lessons", 0),
+        _pill('Courses', selected: _selectedIndex == 0, onTap: () => setState(() => _selectedIndex = 0)),
         const SizedBox(width: 8),
-        _buildTab("Surveys", 1),
+        _pill('Surveys', selected: _selectedIndex == 1, onTap: () => setState(() => _selectedIndex = 1)),
       ],
     );
   }
 
-  Widget _buildTab(String label, int index) {
-    final isSelected = _selectedIndex == index;
+  Widget _pill(String label, {required bool selected, VoidCallback? onTap}) {
+    final isDark = LearnDesignTokens.isDark(context);
     return GestureDetector(
-      onTap: () => setState(() => _selectedIndex = index),
+      onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        height: 38,
+        height: 44,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(40),
-          color: isSelected ? AppColors.primaryColor : Colors.transparent,
-          border: isSelected
-              ? null
-              : Border.all(color: AppColors.primaryColor, width: 1),
+          borderRadius: BorderRadius.circular(LearnDesignTokens.tabPillRadius),
+          color: selected
+              ? AppColors.primaryColor
+              : (isDark ? AppColors.darkHighlight : AppColors.dividerColorlight),
         ),
-        child: Center(
-          child: TranslatedText(
-            label,
-            style: TextStyle(
-              color: isSelected ? Colors.white : AppColors.primaryColor,
-              fontWeight: FontWeight.w600,
-            ),
+        alignment: Alignment.center,
+        child: TranslatedText(
+          label,
+          style: TextStyle(
+            color: selected
+                ? Colors.white
+                : (isDark ? Colors.white : Colors.black87),
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+            fontSize: 14,
           ),
         ),
       ),
     );
   }
 
-  Widget _buildLessonsContent() {
+  Widget _buildCoursesContent() {
     return BlocBuilder<KyaBloc, KyaState>(
       builder: (context, state) {
         if (state is LessonsLoading || _isRetrying) {
-          return ListView(children: [
-            ShimmerContainer(height: 200, borderRadius: 8, width: double.infinity),
-            const SizedBox(height: 16),
-            ShimmerContainer(height: 200, borderRadius: 8, width: double.infinity),
-          ]);
-        } else if (state is LessonsLoaded) {
-          return ListView.builder(
-            itemCount: state.model.kyaLessons.length,
-            itemBuilder: (context, index) =>
-                KyaLessonContainer(state.model.kyaLessons[index]),
+          return ListView(
+            padding: const EdgeInsets.all(16),
+            children: const [
+              ShimmerContainer(height: 120, borderRadius: 12, width: double.infinity),
+              SizedBox(height: 16),
+              ShimmerContainer(height: 200, borderRadius: 12, width: double.infinity),
+            ],
           );
-        } else if (state is LessonsLoadingError) {
-          if (state.cachedModel != null) {
-            return ListView.builder(
-              itemCount: state.cachedModel!.kyaLessons.length,
-              itemBuilder: (context, index) =>
-                  KyaLessonContainer(state.cachedModel!.kyaLessons[index]),
-            );
-          }
-          return RefreshIndicator(
-            onRefresh: () async => _retryLoading(),
-            child: ListView(
+        }
+
+        final List<KyaLesson> apiLessons = switch (state) {
+          LessonsLoaded s => s.model.kyaLessons,
+          LessonsLoadingError s => s.cachedModel?.kyaLessons ?? const <KyaLesson>[],
+          _ => const <KyaLesson>[],
+        };
+
+        if (state is LessonsLoadingError && apiLessons.isEmpty) {
+          return _buildErrorState(state);
+        }
+
+        final courses = LearnCatalog.buildFromLessons(apiLessons);
+        if (state is LessonsLoaded || apiLessons.isNotEmpty) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _onLessonsReady(courses, apiLessons);
+          });
+        }
+
+        final stage = LearnCatalog.currentStage(courses, _progress);
+        final completed = LearnCatalog.catalogCompletedLessons(courses, _progress);
+        final total = LearnCatalog.catalogTotalLessons(courses);
+        final points = _progress.totalPoints(courses);
+        final maxPoints = _progress.maxPoints(courses);
+
+        return CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: LearnLevelSummaryCard(
+                stage: stage,
+                completedLessons: completed,
+                totalLessons: total,
+                earnedPoints: points,
+                maxPoints: maxPoints,
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: TranslatedText(
+                  'COURSES FOR YOU',
+                  style: LearnDesignTokens.slbl(context),
+                ),
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+              sliver: SliverGrid(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  childAspectRatio: 0.72,
+                ),
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final course = courses[index];
+                    final locked = !LearnCatalog.isCourseUnlocked(
+                      courses,
+                      index,
+                      _progress,
+                    );
+                    return LearnCoursePortraitCard(
+                      course: course,
+                      locked: locked,
+                      coverImageUrl: LearnCatalog.courseCoverImage(
+                        course,
+                        apiLessons,
+                      ),
+                      onTap: () => LearnBottomSheets.showCourseDetail(
+                        context,
+                        course: course,
+                        allCourses: courses,
+                      ),
+                    );
+                  },
+                  childCount: courses.length,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildErrorState(LessonsLoadingError state) {
+    return RefreshIndicator(
+      onRefresh: () async => _retryLoading(),
+      child: ListView(
+        children: [
+          const SizedBox(height: 100),
+          Center(
+            child: Column(
               children: [
-                const SizedBox(height: 100),
-                Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        state.isOffline ? Icons.cloud_off : Icons.error_outline,
-                        size: 64,
-                        color: Colors.grey,
-                      ),
-                      const SizedBox(height: 16),
-                      TranslatedText(
-                        "Unable to load content",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).textTheme.headlineMedium?.color,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 32.0),
-                        child: TranslatedText(
-                          state.isOffline
-                              ? "Please check your connection and try again"
-                              : "Something went wrong. Please try again later",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Theme.of(context).textTheme.bodyMedium?.color,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      ElevatedButton.icon(
-                        onPressed: _retryLoading,
-                        icon: const Icon(Icons.refresh),
-                        label: const TranslatedText('Try Again'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryColor,
-                          foregroundColor: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
+                Icon(
+                  state.isOffline ? Icons.cloud_off : Icons.error_outline,
+                  size: 64,
+                  color: Colors.grey,
+                ),
+                const SizedBox(height: 16),
+                const TranslatedText(
+                  'Unable to load content',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: _retryLoading,
+                  icon: const Icon(Icons.refresh),
+                  label: const TranslatedText('Try Again'),
+                  style: learnExposurePrimaryButtonStyle(),
                 ),
               ],
             ),
-          );
-        }
-        return const Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              TranslatedText("Loading know your air content..."),
-            ],
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 }

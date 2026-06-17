@@ -395,10 +395,10 @@ class LocationListView extends StatelessWidget with UiLoggy {
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.location_on,
-            size: 18,
-            color: Theme.of(context).textTheme.headlineSmall?.color,
+          SvgPicture.asset(
+            'assets/images/shared/location_pin.svg',
+            width: 18,
+            height: 18,
           ),
           const SizedBox(width: 8),
           TranslatedText(

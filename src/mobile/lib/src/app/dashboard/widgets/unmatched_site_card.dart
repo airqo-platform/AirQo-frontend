@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:airqo/src/app/dashboard/models/user_preferences_model.dart';
-import 'package:airqo/src/meta/utils/colors.dart';
 
 class UnmatchedSiteCard extends StatefulWidget {
   final SelectedSite site;
@@ -147,10 +146,10 @@ class _UnmatchedSiteCardState extends State<UnmatchedSiteCard> {
                                   SizedBox(height: 4),
                                   Row(
                                     children: [
-                                      Icon(
-                                        Icons.location_on,
-                                        size: 14,
-                                        color: AppColors.primaryColor,
+                                      SvgPicture.asset(
+                                        'assets/images/shared/location_pin.svg',
+                                        width: 14,
+                                        height: 14,
                                       ),
                                       SizedBox(width: 4),
                                       Expanded(
