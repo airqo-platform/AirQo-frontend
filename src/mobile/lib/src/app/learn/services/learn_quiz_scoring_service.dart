@@ -75,16 +75,20 @@ class LearnQuizScoringService {
     required List<bool> gradedQuizResults,
     String? freeTextResponse,
   }) {
-    final graded = gradedQuizResults.where((r) => r).length;
+    final correct = gradedQuizResults.where((r) => r).length;
     final totalGraded = gradedQuizResults.length;
-    final ratio = totalGraded == 0 ? 1.0 : graded / totalGraded;
+    final ratio = totalGraded == 0 ? 1.0 : correct / totalGraded;
 
-    final stars = graded >= totalGraded && totalGraded > 0
-        ? 3
-        : graded >= (totalGraded / 2).ceil()
-            ? 2
-            : 1;
-    final points = stars * 10;
+    // Points come directly from correct answers (10 per correct quiz).
+    final points = correct * 10;
+
+    final stars = totalGraded == 0
+        ? 1
+        : correct == totalGraded
+            ? 3
+            : correct >= (totalGraded / 2).ceil()
+                ? 2
+                : 1;
 
     return LearnLessonResult(
       stars: stars,

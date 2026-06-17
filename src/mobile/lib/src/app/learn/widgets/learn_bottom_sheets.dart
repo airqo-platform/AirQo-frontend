@@ -119,7 +119,16 @@ class LearnBottomSheets {
     final courses = allCourses;
     if (courses == null) return;
 
-    final course = courses.firstWhere((c) => c.id == continuation.learnCourseId);
+    final courseIndex =
+        courses.indexWhere((c) => c.id == continuation.learnCourseId);
+    if (courseIndex == -1) return;
+
+    final course = courses[courseIndex];
+    if (continuation.unitIndex < 0 ||
+        continuation.unitIndex >= course.units.length) {
+      return;
+    }
+
     final unit = course.units[continuation.unitIndex];
     final chain = LearnCatalog.continuationFor(
       course,
@@ -326,7 +335,7 @@ class LearnBottomSheets {
       unitPlainTitle: unitPlainTitle ?? 'Lesson',
       lessonNumberInUnit: lessonNumberInUnit,
       lessonsInUnit: lessonsInUnit,
-      allCourses: const [],
+      allCourses: null,
       continuation: continuation,
     );
   }

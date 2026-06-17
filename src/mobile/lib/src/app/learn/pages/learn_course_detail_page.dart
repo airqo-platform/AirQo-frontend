@@ -60,13 +60,51 @@ class _LearnCourseDetailPageState extends State<LearnCourseDetailPage> {
     final course = widget.course;
     final completed = course.completedLessons(progress);
     final total = course.totalLessons;
-    final selectedUnit = course.units[_selectedUnitIndex.clamp(
-      0,
-      course.units.length - 1,
-    )];
+
+    if (course.units.isEmpty) {
+      return DraggableScrollableSheet(
+        initialChildSize: 0.88,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (ctx, scrollCtrl) {
+          return Container(
+            decoration: BoxDecoration(
+              color: bg,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: ListView(
+              controller: scrollCtrl,
+              padding: const EdgeInsets.all(20),
+              children: [
+                LearnDesignTokens.dragHandle(context),
+                TranslatedText(
+                  course.plainTitleKey,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: titleColor,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TranslatedText(
+                  'No units available for this course yet.',
+                  style: TextStyle(fontSize: 14, color: subtitleColor),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    }
+
+    final safeUnitIndex =
+        _selectedUnitIndex.clamp(0, course.units.length - 1);
+    final selectedUnit = course.units[safeUnitIndex];
     final unitUnlocked = LearnCatalog.isUnitUnlocked(
       course,
-      _selectedUnitIndex,
+      safeUnitIndex,
       progress,
     );
 
@@ -135,7 +173,7 @@ class _LearnCourseDetailPageState extends State<LearnCourseDetailPage> {
               const SizedBox(height: 12),
               LearnUnitChipRow(
                 course: course,
-                selectedUnitIndex: _selectedUnitIndex,
+                selectedUnitIndex: safeUnitIndex,
                 onUnitSelected: (index) {
                   setState(() => _selectedUnitIndex = index);
                 },
@@ -144,7 +182,7 @@ class _LearnCourseDetailPageState extends State<LearnCourseDetailPage> {
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
                 child: TranslatedText(
                   learnUnitHeader(
-                    _selectedUnitIndex,
+                    safeUnitIndex,
                     selectedUnit.plainTitleKey,
                   ),
                   style: TextStyle(
@@ -180,7 +218,7 @@ class _LearnCourseDetailPageState extends State<LearnCourseDetailPage> {
 
                     return LearnLessonListRow(
                       slot: slot,
-                      unitIndex: _selectedUnitIndex,
+                      unitIndex: safeUnitIndex,
                       lessonIndex: lessonIndex,
                       locked: locked,
                       complete: complete,
@@ -189,7 +227,7 @@ class _LearnCourseDetailPageState extends State<LearnCourseDetailPage> {
                           ? () => widget.onLessonTap(
                                 course,
                                 selectedUnit,
-                                _selectedUnitIndex,
+                                safeUnitIndex,
                                 lessonIndex,
                                 slot,
                               )

@@ -131,8 +131,10 @@ class _ForecastOverviewPageState extends State<ForecastOverviewPage> {
       final todayIdx =
           forecasts.indexWhere((f) => _fmtDate(f.time) == _todayStr);
       if (todayIdx > 0) {
-        WidgetsBinding.instance.addPostFrameCallback(
-            (_) => setState(() => _selectedDayIndex = todayIdx));
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          setState(() => _selectedDayIndex = todayIdx);
+        });
       }
     }
   }
@@ -141,8 +143,10 @@ class _ForecastOverviewPageState extends State<ForecastOverviewPage> {
     if (_timeScope != ForecastTimeScope.hourly || entries.isEmpty) return;
     final defaultIdx = defaultHourlyIndex(entries, day);
     if (_selectedHourIndex == 0 && defaultIdx != 0) {
-      WidgetsBinding.instance.addPostFrameCallback(
-          (_) => setState(() => _selectedHourIndex = defaultIdx));
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(() => _selectedHourIndex = defaultIdx);
+      });
     }
   }
 

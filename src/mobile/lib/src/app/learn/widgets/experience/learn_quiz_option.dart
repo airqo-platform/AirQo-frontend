@@ -101,6 +101,26 @@ class _LeadingIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    Color borderColor = theme.dividerColor;
+    Color fillColor = Colors.transparent;
+    final showCheck = revealed
+        ? isCorrectOption || selected
+        : selected;
+
+    if (revealed) {
+      if (isCorrectOption) {
+        borderColor = LearnDesignTokens.success;
+        fillColor = LearnDesignTokens.success;
+      } else if (selected) {
+        borderColor = LearnDesignTokens.error;
+        fillColor = LearnDesignTokens.error;
+      }
+    } else if (selected) {
+      borderColor = AppColors.primaryColor;
+      fillColor = AppColors.primaryColor;
+    }
+
     if (showCheckbox) {
       return Container(
         width: 20,
@@ -108,25 +128,15 @@ class _LeadingIndicator extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(4),
           border: Border.all(
-            color: selected || (revealed && isCorrectOption)
-                ? (isCorrectOption || selected
-                    ? LearnDesignTokens.success
-                    : LearnDesignTokens.error)
-                : Theme.of(context).dividerColor,
-            width: 2,
+            color: borderColor,
+            width: selected || (revealed && isCorrectOption) ? 2 : 1,
           ),
-          color: selected || (revealed && isCorrectOption)
-              ? (isCorrectOption
-                  ? LearnDesignTokens.success
-                  : LearnDesignTokens.error)
+          color: showCheck && fillColor != Colors.transparent
+              ? fillColor
               : Colors.transparent,
         ),
-        child: (selected || (revealed && isCorrectOption))
-            ? Icon(
-                Icons.check,
-                size: 12,
-                color: isCorrectOption || selected ? Colors.white : Colors.white,
-              )
+        child: showCheck
+            ? const Icon(Icons.check, size: 12, color: Colors.white)
             : null,
       );
     }
@@ -137,16 +147,14 @@ class _LeadingIndicator extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
-          color: selected || (revealed && isCorrectOption)
-              ? LearnDesignTokens.success
-              : Theme.of(context).dividerColor,
-          width: 2,
+          color: borderColor,
+          width: selected || (revealed && isCorrectOption) ? 2 : 1,
         ),
-        color: selected || (revealed && isCorrectOption)
-            ? LearnDesignTokens.success
+        color: showCheck && fillColor != Colors.transparent
+            ? fillColor
             : Colors.transparent,
       ),
-      child: (selected || (revealed && isCorrectOption))
+      child: showCheck
           ? const Icon(Icons.check, size: 12, color: Colors.white)
           : null,
     );
