@@ -78,6 +78,7 @@ dependencies:
   plugin_platform_interface: ^2.1.8
   url_launcher: ^6.3.1
   flutter_secure_storage: ^9.2.2
+  share_plus: ^10.0.2
   posthog_flutter: ^5.9.0
   firebase_core: ^4.4.0
   firebase_messaging: ^16.1.1
