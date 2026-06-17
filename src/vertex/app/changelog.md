@@ -167,6 +167,33 @@ This release aligns the Vertex application's social login and API routing behavi
 
 ---
 
+## Version 2.0.3
+**Released:** June 15, 2026
+
+### Shipping Management Module — InfoBanner Migration
+
+Migrated user-facing error feedback in the Shipping Label Print Modal from native browser `alert()` calls to the centralized `useBanner` system, and cleaned up a redundant success banner in the batch details page.
+
+<details>
+<summary><strong>Changes (4)</strong></summary>
+
+- **Alert → Banner Migration**: Replaced two `alert()` calls in `ShippingLabelPrintModal` with `showBanner({ severity: 'error', scoped: true })` — one for blocked pop-ups and one for invalid QR code image URLs. Errors now appear inline inside the dialog instead of as browser-native alert dialogs, keeping feedback consistent with the rest of the platform.
+- **Orphaned Window Cleanup**: Added `printWindow.close()` before the invalid-URL error banner so the blank print tab opened by `window.open()` is immediately closed when validation fails, preventing a stale empty browser tab.
+- **Type-Safe URL Validation**: Tightened the `isValidDataUrl` helper from `(url: string)` to `(url: unknown): url is string`, adding an explicit `typeof url !== 'string'` guard. This prevents runtime exceptions if a label's `qr_code_image` field arrives as a non-string value (e.g. `null` or `undefined`).
+- **Removed Redundant Success Banner**: Removed the `showBanner` success call from `useGenerateShippingLabels.onSuccess` in the batch details page. The label print modal opening immediately after generation is sufficient feedback; the banner was an unnecessary duplicate.
+
+</details>
+
+<details>
+<summary><strong>Files Updated (2)</strong></summary>
+
+- `src/vertex/components/features/shipping/ShippingLabelPrintModal.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/admin/shipping/[batchId]/page.tsx` [MODIFIED]
+
+</details>
+
+---
+
 ## Version 2.0.2
 **Released:** June 10, 2026
 
