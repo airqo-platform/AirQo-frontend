@@ -11,8 +11,6 @@ part 'connectivity_state.dart';
 class ConnectivityBloc extends Bloc<ConnectivityEvent, ConnectivityState> {
   final Connectivity _connectivity;
   StreamSubscription? _connectivitySubscription;
-  bool _bannerDismissed = false;
-  bool get isBannerDismissed => _bannerDismissed;
 
   ConnectivityBloc(this._connectivity) : super(ConnectivityInitial()) {
     _checkInitialConnectivity();
@@ -28,6 +26,12 @@ class ConnectivityBloc extends Bloc<ConnectivityEvent, ConnectivityState> {
         emit(ConnectivityOnline());
       } else {
         emit(ConnectivityOffline());
+      }
+    });
+
+    on<ConnectivityBannerDismissed>((event, emit) {
+      if (state is ConnectivityOffline) {
+        emit(ConnectivityOffline(true));
       }
     });
   }
@@ -60,20 +64,4 @@ class ConnectivityBloc extends Bloc<ConnectivityEvent, ConnectivityState> {
     return super.close();
   }
 
-  @override
-  void onEvent(ConnectivityEvent event) {
-    if (event is ConnectivityBannerDismissed) {
-      _bannerDismissed = true;
-    }
-    super.onEvent(event);
-  }
-
-  Stream<ConnectivityState> mapEventToState(ConnectivityEvent event) async* {
-    if (event is ConnectivityChanged) {
-      yield event.isConnected ? ConnectivityOnline() : ConnectivityOffline();
-    } else if (event is ConnectivityBannerDismissed) {
-      _bannerDismissed = true;
-      yield state;
-    }
-  }
 }

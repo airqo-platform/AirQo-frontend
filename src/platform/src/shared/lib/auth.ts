@@ -9,9 +9,60 @@ import {
 import type { AuthMethods } from '@/shared/types/api';
 
 const isProduction = process.env.NODE_ENV === 'production';
+const configuredCookieDomain =
+  process.env.NEXTAUTH_COOKIE_DOMAIN?.trim() || undefined;
+
+if (isProduction && !process.env.NEXTAUTH_URL && !process.env.AUTH_TRUST_HOST) {
+  process.env.AUTH_TRUST_HOST = 'true';
+  console.warn('[NextAuth] WARNING: NEXTAUTH_URL is missing. Dynamic host detection will be used.');
+}
+
+const getCookieDomain = () => {
+  if (!configuredCookieDomain) {
+    return undefined;
+  }
+
+  const referenceUrl = process.env.NEXTAUTH_URL || process.env.NEXTAUTH_URL_INTERNAL;
+  if (!referenceUrl) {
+    return configuredCookieDomain;
+  }
+
+  try {
+    const host = new URL(referenceUrl).hostname.toLowerCase();
+    const normalizedDomain = configuredCookieDomain.replace(/^\./, '').toLowerCase();
+    const hostMatches =
+      host === normalizedDomain || host.endsWith(`.${normalizedDomain}`);
+
+    if (hostMatches) {
+      return configuredCookieDomain;
+    }
+
+    console.warn(
+      '[NextAuth] NEXTAUTH_COOKIE_DOMAIN does not match NEXTAUTH_URL host; disabling cookie domain override.',
+      { configuredCookieDomain, host }
+    );
+    return undefined;
+  } catch {
+    console.warn(
+      '[NextAuth] Invalid NEXTAUTH_URL while validating cookie domain; using configured cookie domain.',
+      { configuredCookieDomain, referenceUrl }
+    );
+    return configuredCookieDomain;
+  }
+};
+
+const cookieDomain = getCookieDomain();
+const cookieOptions = {
+  httpOnly: true,
+  sameSite: 'lax' as const,
+  path: '/',
+  secure: isProduction,
+  domain: cookieDomain,
+};
+
 const sessionCookieName = isProduction
   ? '__Secure-next-auth.session-token'
-  : 'analytics.next-auth.session-token';
+  : 'next-auth.session-token';
 
 const isJwtLikeToken = (token: string): boolean =>
   token.split('.').length === 3;
@@ -89,7 +140,7 @@ const normalizeAuthMethods = (value: unknown): AuthMethods | undefined => {
 };
 
 export const authOptions: any = {
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
   useSecureCookies: isProduction,
   providers: [
     CredentialsProvider({
@@ -119,16 +170,35 @@ export const authOptions: any = {
             .join(' ')
             .trim();
 
+          let decoded: Record<string, unknown> | null = null;
+          try {
+            const parts = oauthToken.split('.');
+            if (parts.length === 3) {
+              const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+              const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+              decoded = JSON.parse(Buffer.from(padded, 'base64').toString('utf-8'));
+            }
+          } catch {
+            decoded = null;
+          }
+
           return {
             id: profile._id,
             email: profile.email,
             name: fullName || profile.email,
-            firstName: profile.firstName,
-            lastName: profile.lastName,
             image: profile.profilePicture,
             _id: profile._id,
             accessToken: oauthToken,
             authMethods: normalizeAuthMethods(profile.authMethods),
+            firstName: profile.firstName,
+            lastName: profile.lastName,
+            userName: (decoded?.userName as string) || profile.email,
+            organization: (decoded?.organization as string) || '',
+            privilege: (decoded?.privilege as string) || '',
+            country: (decoded?.country as string) || '',
+            phoneNumber: (decoded?.phoneNumber as string) || '',
+            expiresAt: (decoded?.expiresAt as string) || '',
+            exp: (decoded?.exp as number) || 0,
           };
         }
 
@@ -150,18 +220,24 @@ export const authOptions: any = {
             password,
           });
 
-          // Return user object for NextAuth
+          // Return user object for NextAuth with all fields for cross-app SSO
           return {
             id: loginData._id,
+            _id: loginData._id,
             email: loginData.email,
             name: `${loginData.firstName} ${loginData.lastName}`,
-            firstName: loginData.firstName,
-            lastName: loginData.lastName,
             image: loginData.profilePicture,
-            _id: loginData._id,
             accessToken: normalizeOAuthAccessToken(loginData.token),
             expiresAt: loginData.expiresAt,
             authMethods: normalizeAuthMethods(loginData.authMethods),
+            firstName: loginData.firstName,
+            lastName: loginData.lastName,
+            userName: loginData.userName,
+            organization: loginData.organization,
+            privilege: loginData.privilege,
+            country: loginData.country,
+            phoneNumber: loginData.phoneNumber || '',
+            exp: 0,
           };
         } catch (error: any) {
           // Enhanced error handling to include status and full response data
@@ -181,12 +257,7 @@ export const authOptions: any = {
   cookies: {
     sessionToken: {
       name: sessionCookieName,
-      options: {
-        httpOnly: true,
-        sameSite: 'lax' as const,
-        path: '/',
-        secure: isProduction,
-      },
+      options: cookieOptions,
     },
   },
   pages: {
@@ -210,6 +281,13 @@ export const authOptions: any = {
         token.firstName = user.firstName;
         token.lastName = user.lastName;
         token.authMethods = normalizeAuthMethods(user.authMethods);
+        token.userName = user.userName || user.email;
+        token.organization = user.organization || '';
+        token.privilege = user.privilege || '';
+        token.country = user.country || '';
+        token.phoneNumber = user.phoneNumber || '';
+        token.image = user.image;
+        token.exp = user.exp || 0;
       }
 
       if (trigger === 'update' && session) {
@@ -252,9 +330,17 @@ export const authOptions: any = {
       (session as any).expiresAt = expiresAt;
       (session as any).authMethods = authMethods;
       if (session.user) {
-        (session.user as any)._id = (token as any)._id;
+        (session.user as any)._id = (token as any)._id || (token as any).id;
         (session.user as any).firstName = (token as any).firstName;
         (session.user as any).lastName = (token as any).lastName;
+        (session.user as any).userName = (token as any).userName || (session.user as any).email;
+        (session.user as any).organization = (token as any).organization || '';
+        (session.user as any).privilege = (token as any).privilege || '';
+        (session.user as any).country = (token as any).country || '';
+        (session.user as any).phoneNumber = (token as any).phoneNumber || '';
+        if ((token as any).image) {
+          (session.user as any).image = (token as any).image;
+        }
       }
       return session;
     },

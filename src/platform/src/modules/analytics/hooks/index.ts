@@ -155,7 +155,8 @@ const buildSiteCardsFromRecentReadings = (
       ...siteCard,
       _id: selectedSite._id,
       name: apiDisplayName || fallbackDisplayName,
-      search_name: siteCard.search_name || apiDisplayName || fallbackDisplayName,
+      search_name:
+        siteCard.search_name || apiDisplayName || fallbackDisplayName,
       location: siteCard.location || buildSiteCardLocation(selectedSite),
       country: siteCard.country ?? selectedSite.country,
       city: siteCard.city ?? selectedSite.city,

@@ -31,6 +31,7 @@ export interface VertexAdapter extends BaseApis {
   getSites: typeof sites.getSitesSummary;
   getSite: typeof sites.getSiteDetails;
   getSitesByStatus: typeof sites.getSitesByStatusApi;
+  getMySites: typeof sites.getMySites;
   getNetworks: typeof networks.getNetworksApi;
   getCurrentUser: typeof users.getUserDetails;
   login: typeof users.loginWithDetails;

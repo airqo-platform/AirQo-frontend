@@ -144,6 +144,70 @@ export interface EventResource {
   event: number;
 }
 
+export interface EventOrganizer {
+  id: number;
+  name: string;
+  slug?: string;
+  logo_url?: string;
+  website_url?: string;
+  description?: string;
+  order: number;
+  created: string;
+  modified: string;
+}
+
+export interface EventOrganizerLink {
+  id: number;
+  organizer: EventOrganizer;
+  role: string;
+  role_display: string;
+  order: number;
+}
+
+export interface EventPartner {
+  id: number;
+  name: string;
+  slug?: string;
+  logo_url?: string;
+  website_url?: string;
+  description?: string;
+  order: number;
+  created: string;
+  modified: string;
+}
+
+export interface EventPartnerLink {
+  id: number;
+  partner: EventPartner;
+  role: string;
+  role_display: string;
+  order: number;
+}
+
+export interface EventSideEventSummary {
+  public_identifier: string;
+  api_url: string;
+  title: string;
+  start_date: string;
+  end_date: string;
+  start_time: string;
+  end_time: string;
+  location_name: string;
+  location_link: string;
+  event_image_url?: string;
+  event_category: string;
+  event_category_display: string;
+  event_status: string;
+  label: string;
+  order: number;
+}
+
+export interface EventParentSummary {
+  public_identifier: string;
+  api_url: string;
+  title: string;
+}
+
 // Extended event shape returned by v2 API (some fields optional)
 export interface EventV2 {
   id: string | number;
@@ -187,6 +251,13 @@ export interface EventV2 {
   programs?: EventProgram[];
   partner_logos?: EventPartnerLogo[];
   resources?: EventResource[];
+  organizers?: EventOrganizerLink[];
+  partners?: EventPartnerLink[];
+  side_events?: EventSideEventSummary[];
+  is_side_event?: boolean;
+  side_event_of?: EventParentSummary | null;
+  organizers_count?: number;
+  partners_count?: number;
 }
 
 export type EventListResponse = PaginatedResponse<EventV2>;

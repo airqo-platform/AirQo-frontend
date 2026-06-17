@@ -9,6 +9,7 @@ import {
   getLastUsedOAuthProvider,
   resolveOAuthRedirectAfterUrl,
   setLastUsedOAuthProvider,
+  clearBackendOAuthSignedOutFlag,
   type SupportedSocialAuthProvider,
 } from '@/core/auth/oauth-session';
 import { cn } from '@/lib/utils';
@@ -82,21 +83,38 @@ export default function SocialAuthSection({
       ]
     : SOCIAL_PROVIDERS;
 
+  const isElectron =
+    typeof window !== 'undefined' &&
+    window.navigator.userAgent.toLowerCase().includes('electron');
+
   const handleSocialAuth = useCallback(
     (provider: SupportedSocialAuthProvider) => {
       if (typeof window === 'undefined' || disabled) return;
 
-      const redirectAfter = resolveOAuthRedirectAfterUrl(redirectPath);
       const queryParams: Record<string, string> = {};
 
-      if (redirectAfter) {
-        queryParams.redirect_after = redirectAfter;
+      if (isElectron) {
+        queryParams.redirect_after = 'vertex://login';
+      } else {
+        const redirectAfter = resolveOAuthRedirectAfterUrl(redirectPath);
+        if (redirectAfter) {
+          queryParams.redirect_after = redirectAfter;
+        }
       }
 
+      if (provider === 'google') {
+        queryParams.prompt = 'select_account';
+      }
 
       try {
         setLastUsedOAuthProvider(provider);
-        window.location.replace(buildOAuthInitiationUrl(provider, queryParams));
+        clearBackendOAuthSignedOutFlag();
+        const authUrl = buildOAuthInitiationUrl(provider, queryParams);
+        if (isElectron) {
+          window.open(authUrl, '_blank');
+        } else {
+          window.location.replace(authUrl);
+        }
       } catch (error) {
         showBanner({
           severity: 'error',
@@ -106,8 +124,9 @@ export default function SocialAuthSection({
         console.error(`Failed to start ${provider} OAuth flow:`, error);
       }
     },
-    [disabled, redirectPath, showBanner]
+    [disabled, isElectron, redirectPath, showBanner]
   );
+
 
   return (
     <div className={cn('w-full space-y-4', className)}>

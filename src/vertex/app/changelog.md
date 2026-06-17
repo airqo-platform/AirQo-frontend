@@ -2,8 +2,274 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
+## Version 2.0.6
+**Released:** June 14, 2026
+
+### Personal Onboarding Backend Integration & Code Refactoring
+
+Migrated the personal onboarding checklist state from local storage to a centralized backend API and completely refactored the checklist UI into a cleaner, modular architecture.
+
+<details>
+<summary><strong>Onboarding Backend Synchronization (4)</strong></summary>
+
+- **Server-Backed State**: Replaced the client-side `localStorage` mechanism with the `PATCH /users/onboarding` API. The personal onboarding state is now inherently tied to the user document on the backend.
+- **Session Manager Cleanup**: Stopped clearing the `vertex_onboarding` key from the session manager during logout since local storage is no longer the source of truth.
+- **UserDetails Type Update**: Updated the `UserDetails` type to include the `onboarding_checklist` object.
+- **Robust Parsing & Syncing**: Modified the Welcome Page to parse generic checklist patches, issue backend API updates, and dispatch the updated user details to Redux in real-time. Added an `isMissing` flag to prevent rendering the checklist when server state is absent.
+
+</details>
+
+<details>
+<summary><strong>Architecture Refactor & UI Wrapper (3)</strong></summary>
+
+- **Service Layer & Custom Hook**: Extracted direct API calls into a dedicated `onboardingService.ts` and encapsulated all business logic into a cleanly separated `useOnboarding.ts` hook.
+- **Smart Wrapper Component**: Introduced `OnboardingChecklistWrapper` (`index.tsx`) to compose the raw `ChecklistUI.tsx`. The wrapper completely isolates state resolution and visibility logic from the main application flow.
+- **Page Cleanup**: Simplified the main `page.tsx` by removing over 150 lines of bloated mutation logic and inline checklist conditionals. Dropped deprecated API endpoints from the users and organizations modules.
+
+</details>
+
+<details>
+<summary><strong>Graceful Fallbacks & State Precedence (3)</strong></summary>
+
+- **Empty State Fallback**: Integrated the `HomeEmptyState` component into the main dashboard view. It safely renders when a user or organization has completely zero cohorts and zero devices AND the backend fails to supply an `onboarding_checklist` object. This prevents new organizations from landing on a broken or blank dashboard page.
+- **State Precedence Fix**: Resolved a "state shadowing" bug in `useOnboarding.ts` where instant Redux state updates (`activeGroup`) were ignored in favor of stale React Query cache data (`groupDetails`), delaying UI updates.
+- **Context Scope Fix**: Ensured the custom hook leverages the mapped `organisation` scope instead of treating the raw Redux `external-org` value as the scope, which previously broke the organization checklist fallback logic.
+
+</details>
+
+<details>
+<summary><strong>UI & Security Enhancements (2)</strong></summary>
+
+- **Cohort Scope Enforcement**: Added strict client-side array filtering to `CohortSelectionStep.tsx` to ensure that even if the backend ignores the `cohort_id` array parameter, the dropdown strictly only displays cohorts belonging to the user's specific external organization or personal scope, preventing cross-organization data leakage.
+- **Smart Combobox Search**: Updated the generic `ComboBox` UI component (`combobox.tsx`) to intelligently hide its internal search bar when the list of options is completely empty. The search bar remains visible if the user is currently typing or if the component is loading data, ensuring a much cleaner empty-state UI without redundant inputs.
+
+</details>
+
+<details>
+<summary><strong>Files Added/Modified (13)</strong></summary>
+
+- `src/vertex/app/(authenticated)/home/page.tsx` [MODIFIED]
+- `src/vertex/app/types/users.ts` [MODIFIED]
+- `src/vertex/components/features/devices/import-steps/CohortSelectionStep.tsx` [MODIFIED]
+- `src/vertex/components/onboarding-checklist/ChecklistUI.tsx` [RENAMED/MODIFIED]
+- `src/vertex/components/onboarding-checklist/index.tsx` [ADDED]
+- `src/vertex/components/ui/combobox.tsx` [MODIFIED]
+- `src/vertex/core/apis/organizations.ts` [MODIFIED]
+- `src/vertex/core/apis/users.ts` [MODIFIED]
+- `src/vertex/core/hooks/useGroups.ts` [MODIFIED]
+- `src/vertex/core/hooks/useOnboarding.ts` [ADDED]
+- `src/vertex/core/hooks/useUsers.ts` [ADDED/MODIFIED]
+- `src/vertex/core/services/onboardingService.ts` [ADDED]
+- `src/vertex/core/utils/sessionManager.ts` [MODIFIED]
+
+</details>
+
+
 ---
 
+## Version 2.0.5
+**Released:** June 12, 2026
+
+### My Sites Page — Personal Context
+
+Introduced a dedicated **My Sites** page for users operating in a Personal Context, mirroring the existing My Devices flow to ensure consistent behavior across personal assets.
+
+<details>
+<summary><strong>Changes (7)</strong></summary>
+
+- **API**: Added `getMySites(userId, groupIds?, cohortIds?)` to the `sites` API object. Calls `GET /devices/sites/my-sites` with `user_id`, `group_ids` (comma-separated), `cohort_ids` (comma-separated), and `tenant=airqo` query params. Returns `SitesSummaryResponse`. Header `X-Auth-Type: JWT` included.
+- **Adapter type**: Added `getMySites: typeof sites.getMySites` to the `VertexAdapter` interface so the method is correctly typed through the adapter layer.
+- **Hook**: Added `useMySites(userId, organizationId?, options?)` to `useSites.ts`, mirroring `useMyDevices` exactly. Imports `usePersonalUserCohorts` to resolve personal cohort IDs; filters `userDetails.groups` to exclude the "airqo" group when building `groupIds`; falls back to `userDetails.cohort_ids` if no personal cohorts are found. Query key includes `userId`, `organizationId || activeGroup?._id`, `groupIds`, and `cohortIds`.
+- **Route**: Added `MY_SITES: '/sites/my-sites'` to `ROUTE_LINKS` in `routes.ts`.
+- **Sidebar**: Destructured `isPersonalContext` from `useUserContext()` in `secondary-sidebar.tsx`. Added a "My Sites" `NavItem` (icon: `AqMarkerPin01`) under the "Personal assets" section, rendered only when `isPersonalContext === true` (i.e. the user's active group is the `airqo` group). Remains hidden when the user has switched to an external organisation context.
+- **Page**: Created `my-sites/page.tsx` matching the layout of `sites/overview/page.tsx` — simple title/description header with no action buttons, `ClientPaginatedSitesTable` with an `onSiteClick` handler that routes to `/sites/[id]` (the non-admin site details page). Removed `CreateSiteForm`, status filter badge, complex error card, and `useSearchParams` logic as they are not needed for the personal context use case.
+- **Site row navigation**: Passing `onSiteClick` to `ClientPaginatedSitesTable` overrides the component's default `/admin/sites/[id]` routing so personal-context users land on `/sites/[id]` instead. Back navigation from the site details page uses the existing `router.back()` call, which correctly returns the user to `/sites/my-sites`.
+
+</details>
+
+<details>
+<summary><strong>Files Updated (6)</strong></summary>
+
+- `src/vertex/core/apis/sites.ts` [MODIFIED]
+- `src/vertex/core/adapters/types.ts` [MODIFIED]
+- `src/vertex/core/hooks/useSites.ts` [MODIFIED]
+- `src/vertex/core/routes.ts` [MODIFIED]
+- `src/vertex/components/layout/secondary-sidebar.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/sites/my-sites/page.tsx` [NEW]
+
+</details>
+
+---
+
+## Version 2.0.4
+**Released:** June 11, 2026
+
+### hCaptcha Integration — Sensor Manufacturer Request Form
+
+Added hCaptcha verification to the public-facing Sensor Manufacturer Request form (`NetworkRequestDialog`) to protect the unauthenticated `/api/devices/network-creation-requests` endpoint from automated abuse and spam submissions.
+
+<details>
+<summary><strong>Changes (4)</strong></summary>
+
+- **Schema**: Added optional `captchaToken` field to `networkRequestSchema` to align the Zod schema with the POST body sent to the backend.
+- **Dialog**: Wired `HCaptchaWidget` into the form with `onVerify`/`onExpire` handlers managing a `captchaToken` state variable. The Submit button is disabled until the CAPTCHA is verified. The token is included in the POST body alongside form data.
+- **Reset on close**: `handleClose` now calls `captchaRef.current?.reset()` and clears `captchaToken` state so the widget is fully reset when the dialog is dismissed or cancelled.
+- **Reset on error**: `onError` also resets the widget and clears `captchaToken` so the Submit button re-disables and the user must re-verify before retrying.
+
+</details>
+
+<details>
+<summary><strong>Files Updated (2)</strong></summary>
+
+- `src/vertex/components/features/networks/network-request-dialog.tsx` [MODIFIED]
+- `src/vertex/components/features/networks/schema.ts` [MODIFIED]
+
+</details>
+
+---
+
+## Version 2.0.3
+**Released:** June 11, 2026
+
+### Resilient API Routing & Social Auth Safety Fixes
+
+This release aligns the Vertex application's social login and API routing behavior with the more robust patterns used in the platform project, creating a significant safety net around our authentication flow and API communication.
+
+<details>
+<summary><strong>Resilient API Routing (2)</strong></summary>
+
+- **Multi-Fallback Routing**: Replaced single-variable URL concatenation (`getApiBaseUrl()`) with `resolveApiOrigin()` and `resolveVersionedApiPath()`. The app now automatically scans multiple environment variables (`API_BASE_URL`, `NEXT_PUBLIC_API_BASE_URL`, `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_BASE_URL`) before failing.
+- **Suffix Stripping**: Implemented automatic `/api/v2` suffix stripping to prevent duplicate path segments caused by slight CI/CD misconfigurations.
+
+</details>
+
+<details>
+<summary><strong>Social Authentication Fixes (3)</strong></summary>
+
+- **Sign-Out Safety Flag**: Added the `OAUTH_SIGNED_OUT_FLAG` pattern to prevent "phantom token" bootstrapping if a user signs out and uses the browser back button to navigate to an old OAuth callback URL. The flag is explicitly cleared on the next intentional login to prevent redirect loops.
+- **Google Account Picker**: Explicitly injected `prompt=select_account` into the Google OAuth initialization query parameters to prevent Google from silently logging users back into their active browser session.
+- **Fail-Open Render Guard**: Removed the silent render guard from the Social Auth component. The buttons will now always render and gracefully handle URL resolution errors by displaying a UI banner rather than mysteriously vanishing.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (7)</strong></summary>
+
+- `lib/envConstants.ts` [MODIFIED]
+- `lib/api-routing.ts` [MODIFIED]
+- `vertex.config.ts` [MODIFIED]
+- `components/features/auth/social-auth-section.tsx` [MODIFIED]
+- `core/auth/oauth-session.ts` [MODIFIED]
+- `core/auth/authProvider.tsx` [MODIFIED]
+- `core/hooks/useLogout.ts` [MODIFIED]
+
+</details>
+
+---
+
+## Version 2.0.3
+**Released:** June 15, 2026
+
+### Shipping Management Module — InfoBanner Migration
+
+Migrated user-facing error feedback in the Shipping Label Print Modal from native browser `alert()` calls to the centralized `useBanner` system, and cleaned up a redundant success banner in the batch details page.
+
+<details>
+<summary><strong>Changes (4)</strong></summary>
+
+- **Alert → Banner Migration**: Replaced two `alert()` calls in `ShippingLabelPrintModal` with `showBanner({ severity: 'error', scoped: true })` — one for blocked pop-ups and one for invalid QR code image URLs. Errors now appear inline inside the dialog instead of as browser-native alert dialogs, keeping feedback consistent with the rest of the platform.
+- **Orphaned Window Cleanup**: Added `printWindow.close()` before the invalid-URL error banner so the blank print tab opened by `window.open()` is immediately closed when validation fails, preventing a stale empty browser tab.
+- **Type-Safe URL Validation**: Tightened the `isValidDataUrl` helper from `(url: string)` to `(url: unknown): url is string`, adding an explicit `typeof url !== 'string'` guard. This prevents runtime exceptions if a label's `qr_code_image` field arrives as a non-string value (e.g. `null` or `undefined`).
+- **Removed Redundant Success Banner**: Removed the `showBanner` success call from `useGenerateShippingLabels.onSuccess` in the batch details page. The label print modal opening immediately after generation is sufficient feedback; the banner was an unnecessary duplicate.
+
+</details>
+
+<details>
+<summary><strong>Files Updated (2)</strong></summary>
+
+- `src/vertex/components/features/shipping/ShippingLabelPrintModal.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/admin/shipping/[batchId]/page.tsx` [MODIFIED]
+
+</details>
+
+---
+
+## Version 2.0.2
+**Released:** June 10, 2026
+
+### Site Management Banner Migration
+
+Migrated all user-facing notifications in the Site Management module from `ReusableToast` and Sonner `toast` to the centralized `useBanner` / `useBannerWithDelay` / `useClipboard` system.
+
+<details>
+<summary><strong>Changes (4)</strong></summary>
+
+- **Hooks Decoupled**: Removed `ReusableToast` from 4 mutation hooks in `useSites.ts` — `useApproximateCoordinates`, `useUpdateSiteDetails`, `useCreateSite`, `useRefreshSiteMetadata` — and replaced with optional `onSuccess`/`onError` callback interfaces. Cache invalidation logic stays in the hooks; notification responsibility is delegated to the UI layer.
+- **Create & Edit Dialogs**: `create-site-form.tsx` wires `useCreateSite` and `useApproximateCoordinates` hook-level callbacks — errors use `scoped: true` (inline in dialog), site creation success uses `showBannerWithDelay` (`scoped: false`) after navigation fires. `edit-site-details-dialog.tsx` replaces 2 Sonner `toast.error` calls with `showBanner` (`scoped: true`) and routes mutation success/error through hook-level callbacks.
+- **Site Detail Pages**: Both `admin/sites/[id]/page.tsx` and `sites/[id]/page.tsx` wire `useRefreshSiteMetadata` with severity-aware banners (`scoped: false`): `warning` for partial refresh, `info` for already-complete, `success` for full refresh. The duplicated banner logic has been extracted into a shared `useRefreshMetadataWithBanner` hook.
+- **In-Page Copy Actions**: `site-information-card.tsx` and `site-measurements-api-card.tsx` replace clipboard `ReusableToast` calls with the shared `useClipboard` hook, adding async error handling for free.
+
+</details>
+
+<details>
+<summary><strong>Files Updated (8)</strong></summary>
+
+- `src/vertex/core/hooks/useSites.ts` [MODIFIED]
+- `src/vertex/components/features/sites/create-site-form.tsx` [MODIFIED]
+- `src/vertex/components/features/sites/edit-site-details-dialog.tsx` [MODIFIED]
+- `src/vertex/components/features/sites/site-information-card.tsx` [MODIFIED]
+- `src/vertex/components/features/sites/site-measurements-api-card.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/admin/sites/[id]/page.tsx` [MODIFIED]
+- `src/vertex/app/(authenticated)/sites/[id]/page.tsx` [MODIFIED]
+- `src/vertex/core/hooks/useRefreshMetadataWithBanner.ts` [ADDED]
+
+</details>
+
+---
+
+## Version 2.0.1
+**Released:** June 09, 2026
+
+### Relative API Routing & OAuth Redirect Fixes
+
+This release resolves critical build-time environment variable issues that caused API routing to fallback to localhost, and hardens the OAuth token handoff flow to eliminate redirect loops. 
+
+<details>
+<summary><strong>API Routing & Proxy Stabilization (3)</strong></summary>
+
+- **Relative Client Routes**: Introduced `buildBrowserApiUrl` to strictly return relative paths (`/api/v2/...`) for browser-side requests. This entirely bypasses the localhost fallback bug caused by missing build-time `NEXT_PUBLIC_` environment variables.
+- **Server Routes & Strict Env Checks**: Introduced `buildServerApiUrl` for server-side requests and tightened `envConstants.ts` to explicitly require `NEXT_PUBLIC_API_URL` during initialization to fail-fast.
+- **Proxy V2 Duplication Fix**: Adjusted the proxy client's path handling to dynamically strip leading `v2/` segments, preventing double `/v2/v2/` URL paths when proxying to the backend.
+
+</details>
+
+<details>
+<summary><strong>Authentication & Session Sync (3)</strong></summary>
+
+- **Middleware Bypass**: `SocialAuthSection` now safely appends a `success=<provider>` query parameter to the `redirect_after` URL. This prevents the NextAuth middleware from forcefully intercepting the callback and generating its own localhost callback URL.
+- **UI Blocking on Token Handoff**: Added a `useEffect` watcher in `TokenHandoffHandler` to keep the UI explicitly blocked until NextAuth fully broadcasts the `authenticated` state across the React context tree, preventing rogue client-side redirects to `/login`.
+- **Resilient Profile Fetching**: Increased the OAuth profile fetch tolerance to 10 seconds, gracefully handled `AbortError`s to prevent noisy server logs, and normalized the OAuth access token to ensure `Authorization` headers are only appended when present.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (11)</strong></summary>
+
+- `app/api/auth/[...nextauth]/options.ts` [MODIFIED]
+- `app/changelog.md` [MODIFIED]
+- `components/features/auth/social-auth-section.tsx` [MODIFIED]
+- `core/apis/users.ts` [MODIFIED]
+- `core/auth/authProvider.tsx` [MODIFIED]
+- `core/auth/oauth-session.ts` [MODIFIED]
+- `core/services/network-service.ts` [MODIFIED]
+- `core/utils/proxyClient.ts` [MODIFIED]
+- `lib/api-routing.ts` [NEW]
+- `lib/envConstants.ts` [MODIFIED]
+- `vertex.config.ts` [MODIFIED]
+
+</details>
+
+---
 ## Version 2.0.0
 **Released:** June 07, 2026
 

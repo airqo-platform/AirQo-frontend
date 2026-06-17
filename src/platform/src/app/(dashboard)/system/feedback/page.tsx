@@ -14,7 +14,8 @@ import {
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import { AqEye } from '@airqo/icons-react';
 import { feedbackService } from '@/modules/feedback';
-import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import { getUserFriendlyErrorMessage, isForbiddenError } from '@/shared/utils/errorMessages';
+import { AccessDenied } from '@/shared/components/AccessDenied';
 import type { FeedbackSubmission } from '@/shared/types/api';
 
 type FeedbackRow = FeedbackSubmission & {
@@ -298,6 +299,11 @@ const FeedbackListContent: React.FC = () => {
     <LoadingState
       className="min-h-[400px]"
       text="Loading feedback submissions..."
+    />
+  ) : isForbiddenError(error) ? (
+    <AccessDenied
+      title="Access Denied"
+      message="You do not have the required permissions to view feedback submissions."
     />
   ) : error ? (
     <Card className="p-6">

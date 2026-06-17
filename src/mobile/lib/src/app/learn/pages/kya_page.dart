@@ -166,27 +166,23 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
     return BlocBuilder<KyaBloc, KyaState>(
       builder: (context, state) {
         if (state is LessonsLoading || _isRetrying) {
-          return Column(children: [
+          return ListView(children: [
             ShimmerContainer(height: 200, borderRadius: 8, width: double.infinity),
             const SizedBox(height: 16),
             ShimmerContainer(height: 200, borderRadius: 8, width: double.infinity),
           ]);
         } else if (state is LessonsLoaded) {
-          return SingleChildScrollView(
-            child: Column(
-              children: state.model.kyaLessons
-                  .map((lesson) => KyaLessonContainer(lesson))
-                  .toList(),
-            ),
+          return ListView.builder(
+            itemCount: state.model.kyaLessons.length,
+            itemBuilder: (context, index) =>
+                KyaLessonContainer(state.model.kyaLessons[index]),
           );
         } else if (state is LessonsLoadingError) {
           if (state.cachedModel != null) {
-            return SingleChildScrollView(
-              child: Column(
-                children: state.cachedModel!.kyaLessons
-                    .map((lesson) => KyaLessonContainer(lesson))
-                    .toList(),
-              ),
+            return ListView.builder(
+              itemCount: state.cachedModel!.kyaLessons.length,
+              itemBuilder: (context, index) =>
+                  KyaLessonContainer(state.cachedModel!.kyaLessons[index]),
             );
           }
           return RefreshIndicator(
@@ -198,7 +194,11 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.cloud_off, size: 64, color: Colors.grey),
+                      Icon(
+                        state.isOffline ? Icons.cloud_off : Icons.error_outline,
+                        size: 64,
+                        color: Colors.grey,
+                      ),
                       const SizedBox(height: 16),
                       TranslatedText(
                         "Unable to load content",
@@ -212,7 +212,9 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 32.0),
                         child: TranslatedText(
-                          "Please check your connection and try again",
+                          state.isOffline
+                              ? "Please check your connection and try again"
+                              : "Something went wrong. Please try again later",
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 16,

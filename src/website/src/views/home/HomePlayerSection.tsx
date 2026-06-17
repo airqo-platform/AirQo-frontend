@@ -29,10 +29,12 @@ const ReactPlayer = dynamic(
 
 ReactPlayer.displayName = 'ReactPlayer';
 
-const HOME_FULL_VIDEO =
-  'https://res.cloudinary.com/dbibjvyhm/video/upload/v1728162527/website/videos/Final_1_qttrg3.mp4';
+const HOME_FULL_VIDEO = 'https://www.youtube.com/watch?v=2NebAd1F8x8';
 const VIDEO_PREVIEW_IMAGE =
   'https://res.cloudinary.com/dbibjvyhm/video/upload/so_2,f_jpg,q_auto,w_1280/v1716038850/website/videos/opening_jtpafn.jpg';
+
+// Whether the configured video is a directly hosted file we can feed into a <video> element
+const isHostedVideo = /\.(mp4|webm|ogg)(\?|$)/i.test(HOME_FULL_VIDEO);
 
 const animations = {
   backdrop: {
@@ -98,7 +100,7 @@ const VideoSection: React.FC<{
   return (
     <div className="lg:w-1/2 w-full relative flex items-center justify-center">
       <div className="w-full h-[250px] sm:h-[300px] md:h-[400px] lg:h-[450px] rounded-lg overflow-hidden relative">
-        {showPosterImage ? (
+        {showPosterImage || !isHostedVideo ? (
           <Image
             src={VIDEO_PREVIEW_IMAGE}
             alt="AirQo story preview image"
@@ -116,6 +118,7 @@ const VideoSection: React.FC<{
             playsInline
             preload="metadata"
             poster={VIDEO_PREVIEW_IMAGE}
+            crossOrigin="anonymous"
             aria-label="Muted AirQo story preview video"
           >
             <source src={HOME_FULL_VIDEO} type="video/mp4" />

@@ -16,6 +16,7 @@ import {
   normalizeCallbackUrl,
   redirectWithReload,
 } from '@/shared/lib/auth-redirect';
+import { CROSS_TAB_LOGIN_KEY } from '@/shared/hooks/useLogout';
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -143,6 +144,14 @@ export default function LoginPage() {
         toast.error(errorTitle, errorMessage);
       } else {
         toast.success('Welcome back!', 'You have successfully signed in.');
+
+        // Signal other tabs/apps that login occurred
+        try {
+          localStorage.setItem(CROSS_TAB_LOGIN_KEY, String(Date.now()));
+        } catch {
+          // Ignore storage errors
+        }
+
         redirectWithReload(normalizeCallbackUrl(res?.url) || callbackUrl);
       }
     } catch (error) {

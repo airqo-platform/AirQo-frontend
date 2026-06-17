@@ -262,7 +262,9 @@ const getValueDomain = (points: VisualizerMapPoint[]) => {
   const min = Math.min(...values);
   const max = Math.max(...values);
 
-  return min === max ? { min: Math.max(0, min - 1), max: max + 1 } : { min, max };
+  return min === max
+    ? { min: Math.max(0, min - 1), max: max + 1 }
+    : { min, max };
 };
 
 const buildAqiColorExpression = (): ExpressionSpecification =>
@@ -284,9 +286,10 @@ const buildAqiColorExpression = (): ExpressionSpecification =>
     AIR_QUALITY_COLORS['no-value'],
   ] as ExpressionSpecification;
 
-const buildContinuousColorExpression = (
-  valueDomain: { min: number; max: number }
-): ExpressionSpecification =>
+const buildContinuousColorExpression = (valueDomain: {
+  min: number;
+  max: number;
+}): ExpressionSpecification =>
   [
     'interpolate',
     ['linear'],
@@ -315,8 +318,14 @@ export const VisualizerMapChart: React.FC<VisualizerMapChartProps> = ({
     () => getPollutantType(config.metricColumn),
     [config.metricColumn]
   );
-  const points = React.useMemo(() => buildMapPoints(rows, config), [config, rows]);
-  const initialViewState = React.useMemo(() => getInitialView(points), [points]);
+  const points = React.useMemo(
+    () => buildMapPoints(rows, config),
+    [config, rows]
+  );
+  const initialViewState = React.useMemo(
+    () => getInitialView(points),
+    [points]
+  );
   const pointCollection = React.useMemo(
     () => buildPointFeatures(points, pollutantType),
     [points, pollutantType]
@@ -416,7 +425,10 @@ export const VisualizerMapChart: React.FC<VisualizerMapChartProps> = ({
 
   return (
     <div
-      className={cn('relative min-h-[320px] overflow-hidden rounded-md', className)}
+      className={cn(
+        'relative min-h-[320px] overflow-hidden rounded-md',
+        className
+      )}
       style={{ height: config.height }}
     >
       <MapboxMap
@@ -486,7 +498,15 @@ export const VisualizerMapChart: React.FC<VisualizerMapChartProps> = ({
                     1,
                   ],
                   'heatmap-intensity': 1.1,
-                  'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 2, 10, 12, 28],
+                  'heatmap-radius': [
+                    'interpolate',
+                    ['linear'],
+                    ['zoom'],
+                    2,
+                    10,
+                    12,
+                    28,
+                  ],
                   'heatmap-opacity': 0.72,
                   'heatmap-color': [
                     'interpolate',
@@ -513,7 +533,15 @@ export const VisualizerMapChart: React.FC<VisualizerMapChartProps> = ({
                 id="uploaded-point-layer"
                 type="circle"
                 paint={{
-                  'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, 4, 12, 9],
+                  'circle-radius': [
+                    'interpolate',
+                    ['linear'],
+                    ['zoom'],
+                    2,
+                    4,
+                    12,
+                    9,
+                  ],
                   'circle-color': pollutantType
                     ? buildAqiColorExpression()
                     : buildContinuousColorExpression(valueDomain),
@@ -537,10 +565,11 @@ export const VisualizerMapChart: React.FC<VisualizerMapChartProps> = ({
           >
             <div className="min-w-[170px] text-xs">
               <div className="flex items-center gap-2 font-medium text-foreground">
-                {selectedFeature.aqLevel && (() => {
-                  const Icon = getAirQualityIcon(selectedFeature.aqLevel);
-                  return <Icon className="h-4 w-4" />;
-                })()}
+                {selectedFeature.aqLevel &&
+                  (() => {
+                    const Icon = getAirQualityIcon(selectedFeature.aqLevel);
+                    return <Icon className="h-4 w-4" />;
+                  })()}
                 <span>{selectedFeature.label}</span>
               </div>
               <div className="mt-1 text-muted-foreground">
@@ -568,10 +597,11 @@ export const VisualizerMapChart: React.FC<VisualizerMapChartProps> = ({
 
       <div className="absolute left-3 top-3 rounded-md border border-border bg-card/95 px-3 py-2 text-xs shadow-sm">
         <div className="flex items-center gap-2 font-medium text-foreground">
-          {averageAirQualityInfo && (() => {
-            const Icon = averageAirQualityInfo.icon;
-            return <Icon className="h-4 w-4" />;
-          })()}
+          {averageAirQualityInfo &&
+            (() => {
+              const Icon = averageAirQualityInfo.icon;
+              return <Icon className="h-4 w-4" />;
+            })()}
           <span>{metricLabel}</span>
         </div>
         <div className="mt-0.5 text-muted-foreground">

@@ -1,8 +1,14 @@
 import {
+  type CityPopulationEntry,
+  type NetworkCoverageCitiesResponse,
   type NetworkCoverageCountryResponse,
+  type NetworkCoverageImpactResponse,
   type NetworkCoverageMonitorResponse,
   type NetworkCoverageQueryParams,
   type NetworkCoverageSummaryResponse,
+  normalizeCityPopulationEntry,
+  normalizeNetworkCoverageCities,
+  normalizeNetworkCoverageImpact,
   normalizeNetworkCoverageMonitor,
   normalizeNetworkCoverageSummary,
 } from '@/views/solutions/NetworkCoverage/networkCoverageTypes';
@@ -15,6 +21,8 @@ const NETWORK_COVERAGE_ENDPOINTS = {
   COUNTRY_MONITORS: 'devices/network-coverage/countries',
   EXPORT_CSV: 'devices/network-coverage/export.csv',
   REGISTRY: 'devices/network-coverage/registry',
+  IMPACT: 'devices/network-coverage/impact',
+  CITIES: 'devices/network-coverage/cities',
 } as const;
 
 class NetworkCoverageService extends BaseApiService {
@@ -33,6 +41,7 @@ class NetworkCoverageService extends BaseApiService {
     if (params.activeOnly !== undefined)
       queryParams.activeOnly = params.activeOnly;
     if (params.types) queryParams.types = params.types;
+    if (params.network) queryParams.network = params.network;
 
     const response = await this.get<NetworkCoverageSummaryResponse>(
       NETWORK_COVERAGE_ENDPOINTS.SUMMARY,
@@ -53,7 +62,7 @@ class NetworkCoverageService extends BaseApiService {
     countryId: string,
     params: Pick<
       NetworkCoverageQueryParams,
-      'tenant' | 'activeOnly' | 'types'
+      'tenant' | 'activeOnly' | 'types' | 'network'
     > = {},
     options: ServiceOptions = {},
   ): Promise<NetworkCoverageCountryResponse> {
@@ -63,6 +72,7 @@ class NetworkCoverageService extends BaseApiService {
     if (params.activeOnly !== undefined)
       queryParams.activeOnly = params.activeOnly;
     if (params.types) queryParams.types = params.types;
+    if (params.network) queryParams.network = params.network;
 
     const response = await this.get<NetworkCoverageCountryResponse>(
       `${NETWORK_COVERAGE_ENDPOINTS.COUNTRY_MONITORS}/${encodeURIComponent(
@@ -126,6 +136,7 @@ class NetworkCoverageService extends BaseApiService {
       queryParams.set('activeOnly', String(params.activeOnly));
     }
     if (params.types) queryParams.set('types', params.types);
+    if (params.network) queryParams.set('network', params.network);
     if (params.countryId) queryParams.set('countryId', params.countryId);
 
     const response = await fetch(
@@ -169,14 +180,91 @@ class NetworkCoverageService extends BaseApiService {
     );
 
     if (response.success) {
-      // Treat any successful response as success even if the server
-      // returns no payload (e.g., 201/204 responses). Return the data
-      // when present, otherwise return null to indicate success with
-      // no payload.
       return response.data ?? null;
     }
 
     throw new Error(response.message || 'Failed to save registry record');
+  }
+
+  async getNetworkCoverageImpact(
+    params: Pick<
+      NetworkCoverageQueryParams,
+      'tenant' | 'activeOnly' | 'types' | 'network'
+    > = {},
+    options: ServiceOptions = {},
+  ): Promise<NetworkCoverageImpactResponse> {
+    const queryParams: Record<string, unknown> = {};
+
+    if (params.tenant) queryParams.tenant = params.tenant;
+    if (params.activeOnly !== undefined)
+      queryParams.activeOnly = params.activeOnly;
+    if (params.types) queryParams.types = params.types;
+    if (params.network) queryParams.network = params.network;
+
+    const response = await this.get<NetworkCoverageImpactResponse>(
+      NETWORK_COVERAGE_ENDPOINTS.IMPACT,
+      queryParams,
+      { ...options, throwOnError: false },
+    );
+
+    if (response.success && response.data) {
+      return normalizeNetworkCoverageImpact(response.data as any);
+    }
+
+    throw new Error(
+      response.message || 'Failed to fetch network coverage impact',
+    );
+  }
+
+  async getNetworkCoverageCities(
+    params: { country?: string } = {},
+    options: ServiceOptions = {},
+  ): Promise<NetworkCoverageCitiesResponse> {
+    const queryParams: Record<string, unknown> = {};
+    if (params.country) queryParams.country = params.country;
+
+    const response = await this.get<NetworkCoverageCitiesResponse>(
+      NETWORK_COVERAGE_ENDPOINTS.CITIES,
+      queryParams,
+      { ...options, throwOnError: false },
+    );
+
+    if (response.success && response.data) {
+      return normalizeNetworkCoverageCities(response.data as any);
+    }
+
+    throw new Error(response.message || 'Failed to fetch city population data');
+  }
+
+  async createCityPopulation(
+    body: {
+      city: string;
+      country: string;
+      iso2: string;
+      population: number;
+      year: number;
+      source: string;
+      notes?: string;
+    },
+    options: ServiceOptions = {},
+  ): Promise<CityPopulationEntry> {
+    const response = await this.post<NetworkCoverageCitiesResponse>(
+      NETWORK_COVERAGE_ENDPOINTS.CITIES,
+      body,
+      { ...options, throwOnError: false },
+    );
+
+    if (response.success && response.data) {
+      const data = response.data as any;
+      if (data.city) {
+        return normalizeCityPopulationEntry(data.city);
+      }
+      if (Array.isArray(data.cities) && data.cities.length > 0) {
+        return normalizeCityPopulationEntry(data.cities[0]);
+      }
+    }
+
+    throw new Error(response.message || 'Failed to save city population');
   }
 }
 

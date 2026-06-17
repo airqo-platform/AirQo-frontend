@@ -276,6 +276,10 @@ class _ProfilePageState extends State<ProfilePage> with UiLoggy {
           fit: BoxFit.cover,
           width: 100,
           height: 100,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return initialsWidget;
+          },
           errorBuilder: (context, error, stackTrace) {
             loggy.warning('Error loading profile image: $error');
             return initialsWidget;

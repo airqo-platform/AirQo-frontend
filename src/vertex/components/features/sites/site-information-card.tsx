@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/tooltip";
 import { AqEdit01, AqCopy01 } from "@airqo/icons-react";
 import ReusableButton from "@/components/shared/button/ReusableButton";
-import ReusableToast from "@/components/shared/toast/ReusableToast";
+import { useClipboard } from "@/core/hooks/useClipboard";
 import {
   badgeColorClasses,
   formatDisplayDate,
@@ -33,6 +33,7 @@ const DetailItem = ({ label, value }: { label: string; value: React.ReactNode })
 );
 
 export const SiteInformationCard: React.FC<SiteInformationCardProps> = ({ site, onEdit }) => {
+  const { handleCopy } = useClipboard();
   const lastActiveCheck = site.lastActive
     ? formatDisplayDate(site.lastActive)
     : null;
@@ -67,17 +68,7 @@ export const SiteInformationCard: React.FC<SiteInformationCardProps> = ({ site, 
                 <span className="font-mono text-sm truncate max-w-[150px] sm:max-w-none">{site._id}</span>
                 <ReusableButton
                   variant="text"
-                  onClick={async () => {
-                    if (site._id) {
-                      try {
-                        await navigator.clipboard.writeText(site._id);
-                        ReusableToast({ message: "Copied", type: "SUCCESS" });
-                      } catch (error) {
-                        console.error("Failed to copy:", error);
-                        ReusableToast({ message: "Failed to copy", type: "ERROR" });
-                      }
-                    }
-                  }}
+                  onClick={() => site._id && handleCopy(site._id)}
                   className="p-1 h-auto hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
                   Icon={AqCopy01}
                 />

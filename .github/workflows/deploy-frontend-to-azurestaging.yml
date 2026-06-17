@@ -134,6 +134,7 @@ jobs:
           docker build . \
             --build-arg API_URL=${{ secrets.WEBSITE_STAGE_API_URL }} \
             --build-arg NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }} \
+            --build-arg NEXT_PUBLIC_HCAPTCHA_SITE_KEY=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_HCAPTCHA_SITE_KEY }} \
             --build-arg NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }} \
             --build-arg NEXT_PUBLIC_SITE_URL=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_SITE_URL }} \
             --tag ${{ env.REGISTRY_URL }}/website2-staging:${{ needs.image-tag.outputs.build_id }}
@@ -143,7 +144,7 @@ jobs:
 
       - name: Deploy to Container Apps
         run: |
-          ENV_VARS="SECRET=${{ secrets.WEBSITE_SECRET }} API_URL=${{ secrets.WEBSITE_STAGE_API_URL }} OPENCAGE_API_KEY=${{ secrets.WEBSITE_STAGE_OPENCAGE_API_KEY }} API_TOKEN=${{ secrets.WEBSITE_STAGE_API_TOKEN }} SLACK_WEBHOOK_URL=${{ secrets.WEBSITE_STAGE_SLACK_WEBHOOK_URL }} SLACK_CHANNEL=${{ secrets.WEBSITE_STAGE_SLACK_CHANNEL }} NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }} NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }} GOOGLE_SITE_VERIFICATION=${{ secrets.WEBSITE_STAGE_GOOGLE_SITE_VERIFICATION }} NEXT_PUBLIC_SITE_URL=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_SITE_URL }}"
+          ENV_VARS="SECRET=${{ secrets.WEBSITE_SECRET }} API_URL=${{ secrets.WEBSITE_STAGE_API_URL }} OPENCAGE_API_KEY=${{ secrets.WEBSITE_STAGE_OPENCAGE_API_KEY }} API_TOKEN=${{ secrets.WEBSITE_STAGE_API_TOKEN }} SLACK_WEBHOOK_URL=${{ secrets.WEBSITE_STAGE_SLACK_WEBHOOK_URL }} SLACK_CHANNEL=${{ secrets.WEBSITE_STAGE_SLACK_CHANNEL }} NEXT_PUBLIC_HCAPTCHA_SITE_KEY=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_HCAPTCHA_SITE_KEY }} NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }} NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }} GOOGLE_SITE_VERIFICATION=${{ secrets.WEBSITE_STAGE_GOOGLE_SITE_VERIFICATION }} NEXT_PUBLIC_SITE_URL=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_SITE_URL }}"
           if az containerapp show -g ${{ env.RG }} -n website-staging >/dev/null 2>&1; then
             az containerapp update \
               --resource-group ${{ env.RG }} \
@@ -240,7 +241,7 @@ jobs:
             --name sta-env-next-platform \
             --query value -o tsv > secrets.json
 
-          jq -r 'to_entries | .[] | "\(.key)=\(.value|tojson)"' secrets.json > src/platform/.env        
+          jq -r 'to_entries | .[] | "\(.key)=\(.value|tojson)"' secrets.json > src/platform/.env
 
       - name: Build and Push Docker Image
         run: |
@@ -279,6 +280,15 @@ jobs:
 
       - name: ACR Login
         run: az acr login --name ${{ env.ACR_NAME }}
+
+      - name: Pull secrets from Key Vault
+        run: |
+          az keyvault secret show \
+            --vault-name ${{ env.KEYVAULT }} \
+            --name sta-env-vertex \
+            --query value -o tsv > secrets.json
+
+          jq -r 'to_entries | .[] | "\(.key)=\(.value|tojson)"' secrets.json > src/vertex/.env
 
       - name: Build and Push Docker Image
         run: |
@@ -378,5 +388,3 @@ jobs:
             branch: ${{ env.DEPLOY_BRANCH }}
             token: ${{ secrets.YAML_UPDATER_TOKEN }}
             message: "Update docs staging image tag to ${{ needs.image-tag.outputs.build_id }}"
-            
- 

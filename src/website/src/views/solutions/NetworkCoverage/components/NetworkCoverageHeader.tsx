@@ -13,11 +13,13 @@ const INTRO_PARAGRAPHS = [
 
 interface NetworkCoverageHeaderProps {
   onDownload: () => void;
+  onDownloadCsv?: () => void;
   isDownloading?: boolean;
 }
 
 const NetworkCoverageHeader: React.FC<NetworkCoverageHeaderProps> = ({
   onDownload,
+  onDownloadCsv,
   isDownloading = false,
 }) => {
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
@@ -122,6 +124,18 @@ const NetworkCoverageHeader: React.FC<NetworkCoverageHeaderProps> = ({
                   >
                     Export PDF report
                   </button>
+                  {onDownloadCsv && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onDownloadCsv();
+                        setShowDownloadMenu(false);
+                      }}
+                      className="w-full rounded-md px-3 py-2 text-left text-sm font-semibold text-slate-800 hover:bg-slate-50"
+                    >
+                      Export CSV data
+                    </button>
+                  )}
                 </div>
               </div>
             )}

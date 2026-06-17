@@ -3,25 +3,33 @@ sidebar_position: 3
 sidebar_label: Historical Data
 ---
 
-# Historical Data — Cohort ID
+# Historical Data — Partners
 
-Access calibrated air quality measurements going back up to one year for the devices in your Cohort. Historical data is retrieved through the Analytics API using a `POST` request.
+Access the full history of calibrated air quality measurements for the devices in your Cohort. Historical data is retrieved through the Analytics API using a `POST` request. Each individual request is capped at approximately **2 months of data** — use batched requests with pagination to retrieve longer periods.
 
 :::info Tier requirement
 Historical data access requires a **Standard Tier** subscription or above.
+:::
+
+:::caution Cohort ID direct filtering — coming soon
+The Analytics API does not yet accept `cohort_id` as a request parameter. You must supply individual **device names** (`device_names`) in the request body instead.
+
+**Workaround:** Call the [Metadata API](../reference/metadata.md#get-all-site-and-device-ids-for-a-cohort) (`GET /api/v2/devices/cohorts/{COHORT_ID}/generate`) to retrieve the `device_name` values for your Cohort, then pass them as the `device_names` parameter in your Analytics API request.
+
+Direct Cohort ID filtering will be added to the Analytics API in a future release.
 :::
 
 ---
 
 ## Overview
 
-Historical data for your Cohort is fetched via the Analytics API by specifying the device names that belong to your Cohort. If you do not know the device names, use the recent measurements endpoint first — the `device` field in each measurement is the device name.
+Historical data for your Cohort is fetched via the Analytics API by specifying the device names that belong to your Cohort. Use the [Metadata API](../reference/metadata.md#get-all-site-and-device-ids-for-a-cohort) (`GET /api/v2/devices/cohorts/{COHORT_ID}/generate`) to retrieve all device names for your Cohort.
 
 ---
 
 ## Endpoint
 
-```
+```http
 POST https://api.airqo.net/api/v3/public/analytics/data-download?token=YOUR_SECRET_TOKEN
 Content-Type: application/json
 ```
@@ -164,7 +172,7 @@ base_payload = {
     "datatype": "calibrated",
     "downloadType": "json",
     "startDateTime": "2025-01-01T00:00:00Z",
-    "endDateTime": "2025-03-31T23:59:59Z",
+    "endDateTime": "2025-02-28T23:59:59Z",
     "device_names": ["airqo_bx2847"],
     "pollutants": ["pm2_5", "pm10"],
     "frequency": "hourly"
@@ -206,6 +214,6 @@ print(f"Total records fetched: {len(all_records)}")
 
 ## Tips
 
-- **Limit your date range** to 30-day windows for faster responses on large device networks.
+- **Break requests into ~2-month batches** — each request is capped at approximately 2 months of data. For best performance on large device networks, use 30-day windows per batch.
 - **Request only the pollutants you need** — omitting unused fields reduces response size.
 - **Cache results** on your side to avoid repeating identical queries.

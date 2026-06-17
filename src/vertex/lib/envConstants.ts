@@ -2,27 +2,16 @@
  * Environment constants and utilities for API configuration
  * Centralizes environment variable access with proper validation
  */
-import { stripTrailingSlash } from './utils';
+
 
 /**
- * Gets the default API URL fallback based on the current environment
- * @returns {string} The default API URL
+ * Gets the current environment from environment variables
+ * @returns {string} The environment name
  */
-export const getDefaultApiUrl = (): string => {
-  const env = getEnvironment().toLowerCase();
-  if (env === 'production') return 'https://vertex.airqo.net/api/v2';
-  if (env === 'staging') return 'https://staging-vertex.airqo.net/api/v2';
-  return 'http://localhost:3000';
+export const getEnvironment = (): string => {
+  return process.env.NEXT_PUBLIC_ENV || 'development';
 };
 
-/**
- * Gets the API base URL from environment variables
- * @returns {string} The API base URL
- */
-export const getApiBaseUrl = (): string => {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || getDefaultApiUrl();
-  return stripTrailingSlash(apiUrl);
-};
 
 /**
  * Gets the API token from environment variables (server-side only)
@@ -113,13 +102,7 @@ export const getHCaptchaSiteKey = (): string => {
   return process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY || '';
 };
 
-/**
- * Gets the current environment from environment variables
- * @returns {string} The environment name
- */
-export const getEnvironment = (): string => {
-  return process.env.NEXT_PUBLIC_ENV || 'development';
-};
+
 
 /**
  * Whether hCaptcha should be enabled for this deployment.

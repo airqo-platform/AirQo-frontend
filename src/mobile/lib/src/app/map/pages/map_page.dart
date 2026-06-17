@@ -13,6 +13,7 @@ import 'package:airqo/src/app/map/widgets/map_overlay_controls.dart';
 import 'package:airqo/src/app/map/widgets/map_search_sheet.dart';
 import 'package:airqo/src/app/map/widgets/map_style_picker.dart';
 import 'package:airqo/src/app/other/places/bloc/google_places_bloc.dart';
+import 'package:airqo/src/app/shared/services/cache_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -41,7 +42,7 @@ class _MapScreenState extends State<MapScreen>
   List<Measurement> nearbyMeasurements = [];
   Position? userPosition;
 
-  List<Marker> markers = [];
+  Set<Marker> _mapMarkers = {};
   bool isInitializing = true;
   bool isRetrying = false;
   late GooglePlacesBloc googlePlacesBloc;
@@ -61,7 +62,7 @@ class _MapScreenState extends State<MapScreen>
     if (mounted) setState(() {});
     if (userPosition != null) {
       _cameraController.snapToPosition(userPosition!);
-    } else if (markers.isNotEmpty) {
+    } else if (_mapMarkers.isNotEmpty) {
       _cameraController.fitMeasurementsInView(allMeasurements);
     }
   }
@@ -169,14 +170,14 @@ class _MapScreenState extends State<MapScreen>
     if (!mounted || seq != _markerBuildSeq) return;
     if (mounted) {
       setState(() {
-        markers = newMarkers;
+        _mapMarkers = newMarkers.toSet();
         isInitializing = false;
       });
     }
     // Only fit on initial data load, not on later marker refreshes.
     if (source != null &&
         _cameraController.isInitialized &&
-        markers.isNotEmpty &&
+        _mapMarkers.isNotEmpty &&
         userPosition == null) {
       _cameraController.fitMeasurementsInView(allMeasurements);
     }
@@ -333,7 +334,7 @@ class _MapScreenState extends State<MapScreen>
           listener: (context, state) {
             if (state is DashboardLoaded &&
                 state.response.measurements?.isNotEmpty == true &&
-                (markers.isEmpty || allMeasurements.isEmpty)) {
+                (_mapMarkers.isEmpty || allMeasurements.isEmpty)) {
               _initializeWithData(state.response);
             }
           },
@@ -345,9 +346,11 @@ class _MapScreenState extends State<MapScreen>
                   ? state.response
                   : (state as MapLoadedFromCache).response;
               if (response.measurements?.isNotEmpty == true &&
-                  (markers.isEmpty || allMeasurements.isEmpty)) {
+                  (_mapMarkers.isEmpty || allMeasurements.isEmpty)) {
                 _initializeWithData(response);
               }
+            } else if (state is MapLoadingError) {
+              if (mounted) setState(() => isInitializing = false);
             }
           },
         ),
@@ -377,13 +380,13 @@ class _MapScreenState extends State<MapScreen>
       ],
       child: Scaffold(
         resizeToAvoidBottomInset: false,
-        body: isInitializing && markers.isEmpty && allMeasurements.isEmpty
+        body: isInitializing && _mapMarkers.isEmpty && allMeasurements.isEmpty
             ? const MapLoadingView()
             : (!isInitializing &&
-                    markers.isEmpty &&
+                    _mapMarkers.isEmpty &&
                     allMeasurements.isEmpty &&
                     !isRetrying)
-                ? MapErrorView(onRetry: _retryLoading)
+                ? MapErrorView(onRetry: _retryLoading, isOffline: !CacheManager().isConnected)
                 : _buildMapView(),
       ),
     );
@@ -405,7 +408,7 @@ class _MapScreenState extends State<MapScreen>
           minMaxZoomPreference: MinMaxZoomPreference.unbounded,
           onMapCreated: _onMapCreated,
           initialCameraPosition: const CameraPosition(target: _center, zoom: 6),
-          markers: markers.toSet(),
+          markers: _mapMarkers,
           onTap: (_) {
             if (mounted) setState(() => _selectedCardMeasurement = null);
           },

@@ -15,9 +15,9 @@ export const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
   return (
     <div className="space-y-4">
       <div className="bg-slate-50 dark:bg-gray-800 p-4 rounded-md border border-gray-200 dark:border-gray-700">
-        <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100 mb-4 border-b pb-2">Device Summary</h4>
+        <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100 mb-4 border-b pb-2 text-left">Device Summary</h4>
         
-        <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4 text-sm">
+        <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4 text-sm text-left">
           <div>
             <dt className="text-gray-500 dark:text-gray-400">Device Name</dt>
             <dd className="font-medium">{formData.long_name || '-'}</dd>

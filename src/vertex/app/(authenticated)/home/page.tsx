@@ -4,7 +4,7 @@ import React from "react";
 import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
 import { Plus, Upload, AlertTriangle } from "lucide-react";
-import { useAppSelector, useAppDispatch } from "@/core/redux/hooks";
+import { useAppSelector } from "@/core/redux/hooks";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { usePermissions } from "@/core/hooks/usePermissions";
@@ -17,47 +17,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import ContextHeader from "@/components/features/home/context-header";
 import NetworkVisibilityCard from "@/components/features/home/network-visibility-card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import OnboardingChecklist from "@/components/features/home/onboarding-checklist";
+import OnboardingChecklistWrapper from "@/components/onboarding-checklist";
+import HomeEmptyState from "@/components/features/home/HomeEmptyState";
 import { cn } from "@/lib/utils";
 import { Device } from "@/app/types/devices";
-import { Group } from "@/app/types/groups";
-import { useGroupDetails, useUpdateGroupOnboarding } from "@/core/hooks/useGroups";
-import { updateActiveGroupOnboarding } from "@/core/redux/slices/userSlice";
-import { formatTitle } from "@/components/features/org-picker/organization-picker";
+import { useGroupDetails } from "@/core/hooks/useGroups";
+import { useOnboarding } from "@/core/hooks/useOnboarding";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
-import logger from "@/lib/logger";
-import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
-
-// ─── Checklist localStorage helpers ──────────────────────────────────────────
-// Keyed per org/user so state is independent across workspace switches.
-
-function getChecklistKey(orgId: string) {
-  return `vertex_onboarding_${orgId}`;
-}
-
-function getChecklistState(orgId: string): {
-  completedSteps: string[];
-  dismissed: boolean;
-} {
-  if (typeof window === "undefined") return { completedSteps: [], dismissed: false };
-  try {
-    const raw = window.localStorage.getItem(getChecklistKey(orgId));
-    return raw ? JSON.parse(raw) : { completedSteps: [], dismissed: false };
-  } catch {
-    return { completedSteps: [], dismissed: false };
-  }
-}
-
-function saveChecklistState(
-  orgId: string,
-  state: { completedSteps: string[]; dismissed: boolean }
-) {
-  try {
-    window.localStorage.setItem(getChecklistKey(orgId), JSON.stringify(state));
-  } catch {
-    // localStorage unavailable — fail silently
-  }
-}
 
 // ─── Skeletons ────────────────────────────────────────────────────────────────
 
@@ -136,7 +102,6 @@ const WelcomePage = () => {
   const [highlightVisibility, setHighlightVisibility] = React.useState(false);
   const visibilityRef = React.useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
-  const dispatch = useAppDispatch();
   const isMounted = React.useRef(true);
 
   React.useEffect(() => {
@@ -158,33 +123,12 @@ const WelcomePage = () => {
     ? `org_${activeGroup._id}`
     : null;
 
-  const { data: groupDetailsData, isLoading: isLoadingGroupDetails } = useGroupDetails(activeGroup?._id as string, {
+  const { isLoading: isLoadingGroupDetails } = useGroupDetails(activeGroup?._id as string, {
     enabled: userScope === "organisation" && !!activeGroup?._id,
     staleTime: 5 * 60 * 1000,
   });
 
-  const groupDetails = groupDetailsData?.group;
-
-  const [localChecklistState, setLocalChecklistState] = React.useState(() =>
-    getChecklistState(orgId ?? "")
-  );
-
-  React.useEffect(() => {
-    if (orgId && userScope === "personal") {
-      setLocalChecklistState(getChecklistState(orgId));
-    }
-  }, [orgId, userScope]);
-
-  const activeChecklistState = React.useMemo(() => {
-    if (userScope === "organisation") {
-      const checklistSrc = groupDetails?.onboarding_checklist || activeGroup?.onboarding_checklist;
-      return {
-        completedSteps: checklistSrc?.completed_steps || [],
-        dismissed: checklistSrc?.is_dismissed || false,
-      };
-    }
-    return localChecklistState;
-  }, [userScope, activeGroup?.onboarding_checklist, groupDetails?.onboarding_checklist, localChecklistState]);
+  const { activeChecklistState, updateChecklist } = useOnboarding();
 
   // ── Permissions ────────────────────────────────────────────────────────────
   const permissionsToCheck = [PERMISSIONS.DEVICE.UPDATE];
@@ -211,22 +155,19 @@ const WelcomePage = () => {
     enabled: !!userId && userScope === "personal",
   });
 
-  // ── Auto-sync step completion from real data ─────────────────────────────
-  // This ensures that if an org already has devices/cohorts when a user first
-  // logs in, steps 1 and 2 are immediately shown as complete.
+  const hasDevices =
+    userScope === "personal"
+      ? (myDevicesData?.devices ?? []).length > 0
+      : groupDevices.length > 0;
+
+  const hasCohorts =
+    userScope === "personal"
+      ? (personalCohortIds ?? []).length > 0
+      : (groupCohortIds ?? []).length > 0;
+
   const autoSteps = React.useMemo(() => {
     if (!orgId) return [];
     
-    const hasDevices =
-      userScope === "personal"
-        ? (myDevicesData?.devices ?? []).length > 0
-        : groupDevices.length > 0;
-
-    const hasCohorts =
-      userScope === "personal"
-        ? (personalCohortIds ?? []).length > 0
-        : (groupCohortIds ?? []).length > 0;
-
     const steps: string[] = [];
     if (hasDevices) {
       steps.push("add-device", "assign-cohort");
@@ -234,96 +175,16 @@ const WelcomePage = () => {
       steps.push("assign-cohort");
     }
     return steps;
-  }, [orgId, userScope, myDevicesData?.devices, groupDevices.length, personalCohortIds, groupCohortIds]);
+  }, [orgId, hasDevices, hasCohorts]);
 
   const visuallyCompletedSteps = React.useMemo(() => {
     return Array.from(new Set([...(activeChecklistState.completedSteps || []), ...autoSteps]));
   }, [activeChecklistState.completedSteps, autoSteps]);
 
-  React.useEffect(() => {
-    if (autoSteps.length === 0) return;
-
-    if (userScope === "personal") {
-      setLocalChecklistState((prev) => {
-        const merged = Array.from(new Set([...(prev.completedSteps || []), ...autoSteps]));
-        // Only save/re-render if something actually changed
-        if (merged.length === (prev.completedSteps || []).length) return prev;
-        const next = { ...prev, completedSteps: merged };
-        saveChecklistState(orgId as string, next);
-        return next;
-      });
-    }
-  }, [orgId, userScope, autoSteps]);
-
-  const { mutateAsync: updateGroupOnboarding } = useUpdateGroupOnboarding();
-
-  const updateChecklist = React.useCallback(
-    async (patch: { action?: 'mark_step_complete' | 'dismiss_checklist', step_id?: string, completedSteps?: string[], dismissed?: boolean }) => {
-      if (userScope === "personal") {
-        setLocalChecklistState((prev) => {
-          const next = { ...prev };
-          if (patch.completedSteps) next.completedSteps = patch.completedSteps;
-          if (patch.dismissed !== undefined) next.dismissed = patch.dismissed;
-          if (orgId) saveChecklistState(orgId, next);
-          return next;
-        });
-        return;
-      }
-
-      // Handle Organisation Scope
-      if (userScope === "organisation" && activeGroup?._id) {
-        if (!patch.action) {
-          if (patch.dismissed) patch.action = 'dismiss_checklist';
-          else if (patch.completedSteps) {
-             const newestStep = patch.completedSteps[patch.completedSteps.length - 1];
-             if (newestStep) {
-               patch.action = 'mark_step_complete';
-               patch.step_id = newestStep;
-             }
-          }
-        }
-
-        if (patch.action) {
-          try {
-            const missingAutoSteps = autoSteps.filter(step => 
-              !activeChecklistState.completedSteps.includes(step) && 
-              !(patch.action === 'mark_step_complete' && patch.step_id === step)
-            );
-            
-            if (missingAutoSteps.length > 0) {
-              for (const step of missingAutoSteps) {
-                try {
-                  await updateGroupOnboarding({ groupId: activeGroup._id, payload: { action: 'mark_step_complete', step_id: step } });
-                } catch (e) {
-                  logger.error("Failed to sync auto-step:", { error: getApiErrorMessage(e) });
-                }
-              }
-            }
-
-            const res = await updateGroupOnboarding({ groupId: activeGroup._id, payload: { action: patch.action, step_id: patch.step_id } });
-            const updatedChecklist = res.data?.onboarding_checklist || res.group?.onboarding_checklist;
-            
-            if (res.success && updatedChecklist) {
-              dispatch(updateActiveGroupOnboarding(updatedChecklist));
-              queryClient.setQueryData(['groupDetails', activeGroup._id], (old: { group?: Group } | undefined) => {
-                if (!old || !old.group) return old;
-                return {
-                  ...old,
-                  group: {
-                    ...old.group,
-                    onboarding_checklist: updatedChecklist,
-                  }
-                };
-              });
-            }
-          } catch (error) {
-            logger.error("Failed to update onboarding checklist:", { error: getApiErrorMessage(error) });
-          }
-        }
-      }
-    },
-    [orgId, userScope, activeGroup?._id, dispatch, activeChecklistState.completedSteps, autoSteps, queryClient, updateGroupOnboarding]
-  );
+  const TOTAL_STEPS = 3;
+  const allStepsComplete = visuallyCompletedSteps.length >= TOTAL_STEPS;
+  const isLoadingGroupDetailsSafe = userScope === "organisation" && isLoadingGroupDetails;
+  const showChecklist = !allStepsComplete && !activeChecklistState.dismissed && !isLoadingGroupDetailsSafe && !activeChecklistState.isMissing;
 
   const openAddDeviceChoice = React.useCallback(() => {
     setIsAddDeviceChoiceOpen(true);
@@ -374,7 +235,6 @@ const WelcomePage = () => {
         updateChecklist({
           action: 'mark_step_complete',
           step_id: 'add-device',
-          completedSteps: Array.from(new Set([...(activeChecklistState.completedSteps || []), "add-device", "assign-cohort"])),
         });
       } else {
         if (deviceInfo?.deviceId) {
@@ -383,21 +243,19 @@ const WelcomePage = () => {
         updateChecklist({
           action: 'mark_step_complete',
           step_id: 'add-device',
-          completedSteps: Array.from(new Set([...(activeChecklistState.completedSteps || []), "add-device"])),
         });
       }
     },
-    [activeChecklistState.completedSteps, refreshHomeData, updateChecklist]
+    [refreshHomeData, updateChecklist]
   );
 
   const handleCohortAssigned = React.useCallback(() => {
     updateChecklist({
       action: 'mark_step_complete',
       step_id: 'assign-cohort',
-      completedSteps: Array.from(new Set([...(activeChecklistState.completedSteps || []), "assign-cohort"])),
     });
     setNewlyClaimedDevice(undefined);
-  }, [activeChecklistState.completedSteps, updateChecklist]);
+  }, [updateChecklist]);
 
 
 
@@ -417,19 +275,9 @@ const WelcomePage = () => {
 
   // ── Derived state ──────────────────────────────────────────────────────────
 
-  const hasNoDevices =
-    userScope === "personal"
-      ? (myDevicesData?.devices ?? []).length === 0
-      : groupDevices.length === 0;
+  const hasNoDevicesOrCohorts = !hasDevices && !hasCohorts;
 
-  const TOTAL_STEPS = 3; // add-device, assign-cohort, set-visibility
 
-  // The checklist stays visible as long as:
-  //   1. Not all steps are complete, AND
-  //   2. The user hasn't explicitly dismissed it
-  const allStepsComplete = visuallyCompletedSteps.length >= TOTAL_STEPS;
-  const isLoadingGroupDetailsSafe = userScope === "organisation" && isLoadingGroupDetails;
-  const showChecklist = !allStepsComplete && !activeChecklistState.dismissed && !isLoadingGroupDetailsSafe;
 
   const showClaimDevice = (() => {
     switch (userContext) {
@@ -545,42 +393,37 @@ const WelcomePage = () => {
   }
 
   const renderMainContent = () => {
-    if (hasNoDevices) {
-      return (
-        <div className="flex-1">
-          <ContextHeader />
-          {showChecklist && (
-            <OnboardingChecklist
-              completedSteps={visuallyCompletedSteps}
-              onDismiss={() => updateChecklist({ action: 'dismiss_checklist', dismissed: true })}
+    if (hasNoDevicesOrCohorts) {
+      if (showChecklist) {
+        return (
+          <div className="flex-1">
+            <ContextHeader />
+            <OnboardingChecklistWrapper
+              autoCompletedSteps={autoSteps}
               onAddDevice={openAddDeviceChoice}
               onGoToCohorts={() => setIsAssignCohortModalOpen(true)}
               onGoToVisibility={handleGoToVisibility}
-              onMarkAsDone={() => {}}
-              organizationName={formatTitle(activeGroup?.grp_title || "")}
-              isReadOnly={!canClaimDevice}
+              canClaimDevice={canClaimDevice}
+              isLoadingGroupDetailsSafe={isLoadingGroupDetailsSafe}
             />
-          )}
-        </div>
-      );
+          </div>
+        );
+      }
+      return <HomeEmptyState />;
     }
 
     return (
       <div className="mb-6 flex-1">
         <ContextHeader />
 
-        {showChecklist && (
-          <OnboardingChecklist
-            completedSteps={visuallyCompletedSteps}
-            onDismiss={() => updateChecklist({ action: 'dismiss_checklist', dismissed: true })}
-            onAddDevice={openAddDeviceChoice}
-            onGoToCohorts={() => setIsAssignCohortModalOpen(true)}
-            onGoToVisibility={handleGoToVisibility}
-            onMarkAsDone={() => {}}
-            organizationName={formatTitle(activeGroup?.grp_title || "")}
-            isReadOnly={!canClaimDevice}
-          />
-        )}
+        <OnboardingChecklistWrapper
+          autoCompletedSteps={autoSteps}
+          onAddDevice={openAddDeviceChoice}
+          onGoToCohorts={() => setIsAssignCohortModalOpen(true)}
+          onGoToVisibility={handleGoToVisibility}
+          canClaimDevice={canClaimDevice}
+          isLoadingGroupDetailsSafe={isLoadingGroupDetailsSafe}
+        />
 
         {showClaimDevice && (
           <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
@@ -652,7 +495,6 @@ const WelcomePage = () => {
                     updateChecklist({
                       action: 'mark_step_complete',
                       step_id: 'set-visibility',
-                      completedSteps: nextCompletedSteps,
                     });
 
                     if (justCompletedSetup) {
@@ -662,7 +504,7 @@ const WelcomePage = () => {
                       });
                       setTimeout(() => {
                         if (isMounted.current) {
-                          updateChecklist({ action: 'dismiss_checklist', dismissed: true });
+                          updateChecklist({ action: 'dismiss_checklist' });
                         }
                       }, 2000);
                     }

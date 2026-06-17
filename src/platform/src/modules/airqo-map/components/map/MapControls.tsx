@@ -8,6 +8,7 @@ import {
   AqLink03,
   AqPlus,
   AqMinus,
+  AqHome01,
 } from '@airqo/icons-react';
 import { cn } from '@/shared/lib/utils';
 import { toast } from '@/shared/components/ui';
@@ -19,6 +20,7 @@ interface MapControlsProps {
   onCopyLink?: () => void;
   onRefreshMap?: () => void;
   onMapStyleToggle?: () => void;
+  onResetView?: () => void;
   isRefreshing?: boolean;
   className?: string;
 }
@@ -30,6 +32,7 @@ export const MapControls: React.FC<MapControlsProps> = ({
   onCopyLink,
   onRefreshMap,
   onMapStyleToggle,
+  onResetView,
   isRefreshing = false,
   className,
 }) => {
@@ -147,6 +150,17 @@ export const MapControls: React.FC<MapControlsProps> = ({
             disabled: isRefreshing,
           },
           2
+        )}
+
+        {/* Reset view */}
+        {renderControlButton(
+          {
+            icon: AqHome01,
+            label: 'Reset to default view',
+            onClick: onResetView,
+            'aria-label': 'Reset map to default view',
+          },
+          3
         )}
       </div>
 

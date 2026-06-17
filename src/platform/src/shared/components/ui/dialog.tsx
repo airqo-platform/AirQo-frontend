@@ -13,7 +13,7 @@ interface ActionButton {
   disabled?: boolean;
   className?: string;
   padding?: string;
-  variant?: 'filled' | 'outlined' | 'text' | 'ghost' | 'disabled';
+  variant?: 'filled' | 'outlined' | 'text' | 'ghost' | 'disabled' | 'danger';
 }
 
 interface CardProps {
@@ -101,7 +101,7 @@ interface ActionButton {
   loading?: boolean;
   className?: string;
   padding?: string;
-  variant?: 'filled' | 'outlined' | 'text' | 'ghost' | 'disabled';
+  variant?: 'filled' | 'outlined' | 'text' | 'ghost' | 'disabled' | 'danger';
 }
 
 interface ReusableDialogProps {
@@ -300,12 +300,10 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
               <div>
                 <Button
                   onClick={primaryAction.onClick}
+                  variant={primaryAction.variant || 'filled'}
                   disabled={primaryAction.disabled}
                   loading={primaryAction.loading}
-                  className={
-                    primaryAction.className ||
-                    'text-sm bg-primary hover:bg-primary/90 focus:ring-primary text-white disabled:opacity-50'
-                  }
+                  className={primaryAction.className || 'text-sm'}
                   paddingStyles={primaryAction.padding || 'px-4 py-2'}
                 >
                   {primaryAction.label}
@@ -315,12 +313,10 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
           ) : (
             <Button
               onClick={primaryAction.onClick}
+              variant={primaryAction.variant || 'filled'}
               disabled={primaryAction.disabled}
               loading={primaryAction.loading}
-              className={
-                primaryAction.className ||
-                'text-sm bg-primary hover:bg-primary/90 focus:ring-primary text-white disabled:opacity-50'
-              }
+              className={primaryAction.className || 'text-sm'}
               paddingStyles={primaryAction.padding || 'px-4 py-2'}
             >
               {primaryAction.label}
@@ -350,29 +346,29 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
                 />
 
                 {/* Dialog */}
-                <div className="fixed inset-0 flex items-center justify-center z-[10001] p-4">
+                <div className="fixed inset-0 z-[10001] flex items-center justify-center overflow-y-auto p-2 sm:p-4">
                   <motion.div
                     initial={{ opacity: 0, scale: 0.95, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: 20 }}
                     transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-                    className="w-full"
+                    className="w-full py-2 sm:py-0"
                   >
                     <Card
                       ref={dialogRef}
-                      className={`relative ${dialogSizeClass} mx-auto overflow-hidden ${className}`}
-                      contentClassName={`${maxHeight} overflow-y-auto ${contentClassName}`}
+                      className={`relative ${dialogSizeClass} mx-auto flex w-full max-h-[calc(100vh-1rem)] flex-col overflow-hidden sm:max-h-[calc(100vh-2rem)] ${className}`}
+                      contentClassName={`${maxHeight} min-h-0 flex-1 overflow-y-auto ${contentClassName}`}
                       padding="p-0"
                       rounded={true}
                       header={createHeaderContent()}
                       headerProps={{
                         className:
-                          'px-6 py-4 border-b border-border bg-muted/50',
+                          'px-4 py-3 border-b border-border bg-muted/50 sm:px-6 sm:py-4',
                       }}
                       footer={createFooterContent()}
                       footerProps={{
                         className:
-                          'px-6 py-4 border-t border-border bg-muted/50',
+                          'px-4 py-3 border-t border-border bg-muted/50 sm:px-6 sm:py-4',
                       }}
                       role="dialog"
                       aria-modal="true"
@@ -381,7 +377,9 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
                       tabIndex={-1}
                     >
                       <div
-                        className={contentAreaClassName || 'px-6 py-4 flex-1'}
+                        className={
+                          contentAreaClassName || 'px-4 py-4 sm:px-6 sm:py-5'
+                        }
                       >
                         {children}
                       </div>

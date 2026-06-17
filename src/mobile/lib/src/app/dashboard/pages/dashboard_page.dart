@@ -1,4 +1,3 @@
-import 'package:airqo/src/app/auth/pages/login_page.dart';
 import 'package:airqo/src/app/dashboard/pages/location_selection/location_selection_screen.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
@@ -15,6 +14,7 @@ import '../widgets/dashboard_header.dart';
 import '../widgets/dashboard_loading.dart';
 import '../widgets/measurements_list.dart';
 import '../widgets/my_places_view.dart';
+import '../widgets/explore_countries_view.dart';
 import '../widgets/nearby_view.dart';
 import '../widgets/view_selector.dart';
 import 'package:loggy/loggy.dart';
@@ -78,89 +78,10 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
   }
 
   void setView(DashboardView view, {String? country}) {
-    final authState = context.read<AuthBloc>().state;
-    final isGuest = authState is GuestUser;
-
-    if (isGuest && view == DashboardView.favorites) {
-      _showLoginPrompt();
-      return;
-    }
-
     setState(() {
       currentView = view;
       selectedCountry = country;
     });
-  }
-
-  void _showLoginPrompt() {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor:
-            isDarkMode ? AppColors.darkThemeBackground : Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        title: TranslatedText(
-          'Feature Requires Account',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: isDarkMode
-                ? AppColors.boldHeadlineColor2
-                : AppColors.boldHeadlineColor5,
-          ),
-        ),
-        content: TranslatedText(
-          'Create an account or sign in to access all features including personalized views.',
-          style: TextStyle(
-            fontSize: 16,
-            color: isDarkMode
-                ? AppColors.secondaryHeadlineColor2
-                : AppColors.secondaryHeadlineColor,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            style: TextButton.styleFrom(
-              foregroundColor: isDarkMode ? Colors.grey[400] : Colors.grey[700],
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            ),
-            child: const TranslatedText(
-              'Cancel',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryColor,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => LoginPage()),
-              );
-            },
-            child: const TranslatedText(
-              'Sign In',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   Future<void> _refreshDashboard() async {
@@ -224,7 +145,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
                   ),
                 ),
                 SliverToBoxAdapter(
-                  child: _buildContentForCurrentView(),
+                  child: _buildContentForCurrentView(isGuest: isGuest),
                 ),
               ],
             ),
@@ -255,7 +176,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
     );
   }
 
-  Widget _buildContentForCurrentView() {
+  Widget _buildContentForCurrentView({bool isGuest = false}) {
     return BlocBuilder<DashboardBloc, DashboardState>(
       builder: (context, state) {
         if (state is DashboardLoading && state.previousState == null) {
@@ -263,18 +184,21 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
         }
 
         if (state is DashboardLoadingError && !state.hasCache) {
+          final isOffline = state.isOffline;
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
-                  Icons.cloud_off,
+                  isOffline ? Icons.cloud_off : Icons.error_outline,
                   size: 64,
                   color: Colors.grey,
                 ),
                 SizedBox(height: 16),
                 TranslatedText(
-                  "Couldn't connect to the internet",
+                  isOffline
+                      ? "Couldn't connect to the internet"
+                      : "Couldn't load air quality data",
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -283,7 +207,9 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
                 ),
                 SizedBox(height: 8),
                 TranslatedText(
-                  "Please check your connection and try again",
+                  isOffline
+                      ? "Please check your connection and try again"
+                      : "Something went wrong. Please try again later",
                   style: TextStyle(
                     fontSize: 16,
                     color: Theme.of(context).textTheme.bodyMedium?.color,
@@ -325,18 +251,28 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
             case DashboardView.nearYou:
               return NearbyView(
                 onNavigateToFavorites: () => setView(DashboardView.favorites),
+                onExploreCities: isGuest
+                    ? () => setView(DashboardView.explore)
+                    : null,
               );
 
             case DashboardView.country:
-              final countryMeasurements = state.response.measurements!
-                  .where((m) => m.siteDetails?.country == selectedCountry)
-                  .toList();
+              final countryMeasurements =
+                  (state.response.measurements ?? [])
+                      .where((m) => m.siteDetails?.country == selectedCountry)
+                      .toList();
 
               return MeasurementsList(measurements: countryMeasurements);
 
+            case DashboardView.explore:
+              return ExploreCountriesView(
+                measurements: state.response.measurements ?? [],
+              );
+
             default:
               return MeasurementsList(
-                measurements: state.response.measurements!.take(5).toList(),
+                measurements:
+                    (state.response.measurements ?? []).take(5).toList(),
               );
           }
         }
