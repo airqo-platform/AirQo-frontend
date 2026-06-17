@@ -91,7 +91,3 @@ ios/Flutter/ApiKeys.xcconfig
 firebase.json
 lib/firebase_options.dart
 /android/prod-key.properties
-
-# Local reference docs
-docs/workflow.md
-docs/beauty.md
