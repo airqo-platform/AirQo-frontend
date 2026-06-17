@@ -14,6 +14,7 @@ import '../widgets/dashboard_header.dart';
 import '../widgets/dashboard_loading.dart';
 import '../widgets/measurements_list.dart';
 import '../widgets/my_places_view.dart';
+import '../widgets/explore_countries_view.dart';
 import '../widgets/nearby_view.dart';
 import '../widgets/view_selector.dart';
 import 'package:loggy/loggy.dart';
@@ -144,7 +145,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
                   ),
                 ),
                 SliverToBoxAdapter(
-                  child: _buildContentForCurrentView(),
+                  child: _buildContentForCurrentView(isGuest: isGuest),
                 ),
               ],
             ),
@@ -175,7 +176,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
     );
   }
 
-  Widget _buildContentForCurrentView() {
+  Widget _buildContentForCurrentView({bool isGuest = false}) {
     return BlocBuilder<DashboardBloc, DashboardState>(
       builder: (context, state) {
         if (state is DashboardLoading && state.previousState == null) {
@@ -250,27 +251,28 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
             case DashboardView.nearYou:
               return NearbyView(
                 onNavigateToFavorites: () => setView(DashboardView.favorites),
-                onExploreCities: () {
-                  final activeCountries =
-                      CountryRepository.extractActiveCountryNames(
-                          state.response.measurements!);
-                  final firstCountry = activeCountries.isNotEmpty
-                      ? activeCountries.first
-                      : 'Uganda';
-                  setView(DashboardView.country, country: firstCountry);
-                },
+                onExploreCities: isGuest
+                    ? () => setView(DashboardView.explore)
+                    : null,
               );
 
             case DashboardView.country:
-              final countryMeasurements = state.response.measurements!
-                  .where((m) => m.siteDetails?.country == selectedCountry)
-                  .toList();
+              final countryMeasurements =
+                  (state.response.measurements ?? [])
+                      .where((m) => m.siteDetails?.country == selectedCountry)
+                      .toList();
 
               return MeasurementsList(measurements: countryMeasurements);
 
+            case DashboardView.explore:
+              return ExploreCountriesView(
+                measurements: state.response.measurements ?? [],
+              );
+
             default:
               return MeasurementsList(
-                measurements: state.response.measurements!.take(5).toList(),
+                measurements:
+                    (state.response.measurements ?? []).take(5).toList(),
               );
           }
         }
