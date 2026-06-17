@@ -14,9 +14,14 @@ This page gets you to your first successful API response in under five minutes.
 Before you begin, make sure you have:
 
 - [ ] An AirQo account at [analytics.airqo.net](https://analytics.airqo.net)
-- [ ] A `SECRET TOKEN` generated from **Account Settings**
-- [ ] Your server's IP address whitelisted (if calling from a server)
+- [ ] An API client created under **Profile → API**
+- [ ] A `SECRET TOKEN` (access token) generated for that client
+- [ ] Your server's IP address whitelisted on the client (if calling from a server)
 - [ ] A Cohort ID or Grid ID to query (see [Finding IDs →](../reference/finding-ids.md))
+
+:::tip More security options
+You can also enable the Client Secret, restrict tokens by origin, scope them to specific Grids/Cohorts, and set access schedules. See [Security Enhancements →](./security.md) for a full guide.
+:::
 
 ---
 
