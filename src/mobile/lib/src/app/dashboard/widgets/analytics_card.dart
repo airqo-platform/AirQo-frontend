@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:loggy/loggy.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
-import 'package:airqo/src/app/dashboard/widgets/analytics_details.dart';
+import 'package:airqo/src/app/dashboard/pages/forecast_overview_page.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
+import 'package:airqo/src/meta/utils/forecast_utils.dart';
 import 'package:airqo/src/meta/utils/utils.dart';
 
 class AnalyticsCard extends StatelessWidget with UiLoggy {
@@ -12,16 +13,12 @@ class AnalyticsCard extends StatelessWidget with UiLoggy {
 
   const AnalyticsCard(this.measurement, {super.key, this.fallbackLocationName});
 
-  void _showAnalyticsDetails(BuildContext context, Measurement measurement) {
-    showBottomSheet(
-        backgroundColor: Colors.transparent,
-        context: context,
-        builder: (context) {
-          return AnalyticsDetails(
-            measurement: measurement,
-            fallbackLocationName: fallbackLocationName,
-          );
-        });
+  void _openForecast(BuildContext context) {
+    ForecastOverviewPage.showForMeasurement(
+      context,
+      measurement: measurement,
+      fallbackLocationName: fallbackLocationName,
+    );
   }
 
   String _getLocationDescription(Measurement measurement) {
@@ -55,51 +52,17 @@ class AnalyticsCard extends StatelessWidget with UiLoggy {
 
 
   Color _getAqiColor(Measurement measurement) {
-    if (measurement.aqiColor != null) {
-      try {
-        final colorStr = measurement.aqiColor!.replaceAll('#', '');
-        return Color(int.parse('0xFF$colorStr'));
-      } catch (e) {
-        loggy.warning('Failed to parse AQI color: ${measurement.aqiColor}');
-      }
-    }
-
-    switch (measurement.aqiCategory?.toLowerCase() ?? '') {
-      case 'good':
-        return Colors.green;
-      case 'moderate':
-        return Colors.yellow.shade700;
-      case 'unhealthy for sensitive groups':
-      case 'u4sg':
-        return Colors.orange;
-      case 'unhealthy':
-        return Colors.red;
-      case 'very unhealthy':
-        return Colors.purple;
-      case 'hazardous':
-        return Colors.brown;
-      default:
-        return AppColors.primaryColor;
-    }
+    return getAppAqiCategoryColor(measurement.aqiCategory ?? '');
   }
 
   @override
   Widget build(BuildContext context) {
+    final locationColor = AppTextColors.muted(context);
     return InkWell(
-      onTap: () => _showAnalyticsDetails(context, measurement),
+      onTap: () => _openForecast(context),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 4,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
+        decoration: AppSurfaceColors.elevatedCardDecoration(context),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -137,10 +100,10 @@ class AnalyticsCard extends StatelessWidget with UiLoggy {
                             SizedBox(height: 4),
                             Row(
                               children: [
-                                Icon(
-                                  Icons.location_on,
-                                  size: 14,
-                                  color: AppColors.primaryColor,
+                                SvgPicture.asset(
+                                  'assets/images/shared/location_pin.svg',
+                                  width: 14,
+                                  height: 14,
                                 ),
                                 SizedBox(width: 4),
                                 Expanded(
@@ -148,11 +111,7 @@ class AnalyticsCard extends StatelessWidget with UiLoggy {
                                     _getLocationDescription(measurement),
                                     style: TextStyle(
                                       fontSize: 14,
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.color
-                                          ?.withValues(alpha: 0.7),
+                                      color: locationColor,
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -168,11 +127,7 @@ class AnalyticsCard extends StatelessWidget with UiLoggy {
                 ],
               ),
             ),
-            Divider(
-                thickness: .5,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.dividerColordark
-                    : AppColors.dividerColorlight),
+            Divider(thickness: .5, color: Theme.of(context).dividerColor),
             Padding(
               padding: const EdgeInsets.only(
                   left: 16, right: 16, bottom: 16, top: 4),

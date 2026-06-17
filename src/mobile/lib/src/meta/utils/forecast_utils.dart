@@ -40,21 +40,32 @@ String getForecastAirQualityIcon(String aqiCategory) {
   }
 }
 
-Color getForecastAirQualityColor(String aqiCategory) {
-  switch (aqiCategory) {
-    case "Good":
-      return const Color(0xFF00C853);
-    case "Moderate":
-      return const Color(0xFFFFD600);
-    case "Unhealthy for Sensitive Groups":
-      return const Color(0xFFFF6D00);
-    case "Unhealthy":
-      return const Color(0xFFDD2C00);
-    case "Very Unhealthy":
-      return const Color(0xFF6A1B9A);
-    case "Hazardous":
-      return const Color(0xFF4E0000);
+String normalizeAqiCategory(String category) {
+  return category.trim().toLowerCase();
+}
+
+/// Canonical app AQI palette — matches map markers and air quality indicators.
+/// Always prefer this over API-supplied hex values for visual consistency.
+Color getAppAqiCategoryColor(String category) {
+  switch (normalizeAqiCategory(category)) {
+    case 'good':
+      return const Color(0xFF34C759);
+    case 'moderate':
+      return const Color(0xFFFDC412);
+    case 'unhealthy for sensitive groups':
+    case 'u4sg':
+      return const Color(0xFFFF851F);
+    case 'unhealthy':
+      return const Color(0xFFFE726B);
+    case 'very unhealthy':
+      return const Color(0xFFC78AE8);
+    case 'hazardous':
+      return const Color(0xFFD95BA3);
     default:
       return const Color(0xFF9E9E9E);
   }
+}
+
+Color getForecastAirQualityColor(String aqiCategory) {
+  return getAppAqiCategoryColor(aqiCategory);
 }

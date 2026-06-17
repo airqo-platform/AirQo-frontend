@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:loggy/loggy.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
-import 'package:airqo/src/app/dashboard/widgets/analytics_details.dart';
+import 'package:airqo/src/app/dashboard/pages/forecast_overview_page.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
+import 'package:airqo/src/meta/utils/forecast_utils.dart';
 import 'package:airqo/src/meta/utils/utils.dart';
 import 'dart:async';
 
@@ -165,18 +166,14 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
     );
   }
 
-  void _showAnalyticsDetails() {
+  void _openForecast() {
     if (_isDeleteVisible || _dragOffset < 0) return;
 
-    showBottomSheet(
-        backgroundColor: Colors.transparent,
-        context: context,
-        builder: (context) {
-          return AnalyticsDetails(
-            measurement: widget.measurement,
-            fallbackLocationName: widget.fallbackLocationName,
-          );
-        });
+    ForecastOverviewPage.showForMeasurement(
+      context,
+      measurement: widget.measurement,
+      fallbackLocationName: widget.fallbackLocationName,
+    );
   }
 
   String _getLocationDescription(Measurement measurement) {
@@ -209,32 +206,7 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
   }
 
   Color _getAqiColor(Measurement measurement) {
-    if (measurement.aqiColor != null) {
-      try {
-        final colorStr = measurement.aqiColor!.replaceAll('#', '');
-        return Color(int.parse('0xFF$colorStr'));
-      } catch (e) {
-        loggy.warning('Failed to parse AQI color: ${measurement.aqiColor}');
-      }
-    }
-
-    switch (measurement.aqiCategory?.toLowerCase() ?? '') {
-      case 'good':
-        return Colors.green;
-      case 'moderate':
-        return Colors.yellow.shade700;
-      case 'unhealthy for sensitive groups':
-      case 'u4sg':
-        return Colors.orange;
-      case 'unhealthy':
-        return Colors.red;
-      case 'very unhealthy':
-        return Colors.purple;
-      case 'hazardous':
-        return Colors.brown;
-      default:
-        return AppColors.primaryColor;
-    }
+    return getAppAqiCategoryColor(measurement.aqiCategory ?? '');
   }
 
   void _handleRemove() {
@@ -308,7 +280,7 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
             final shakeOffset = (_shakeAnimation?.value ?? 0.0) * 15.0;
 
             return GestureDetector(
-              onTap: _showAnalyticsDetails,
+              onTap: _openForecast,
               onLongPress: _showHelpTooltip,
               onHorizontalDragStart: (details) {
                 if (_showTooltip) {
@@ -344,17 +316,7 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
                 offset: Offset(_dragOffset + shakeOffset, 0),
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).cardColor,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
+                  decoration: AppSurfaceColors.elevatedCardDecoration(context),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -390,10 +352,10 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
                                       const SizedBox(height: 4),
                                       Row(
                                         children: [
-                                          Icon(
-                                            Icons.location_on,
-                                            size: 14,
-                                            color: AppColors.primaryColor,
+                                          SvgPicture.asset(
+                                            'assets/images/shared/location_pin.svg',
+                                            width: 14,
+                                            height: 14,
                                           ),
                                           const SizedBox(width: 4),
                                           Expanded(
@@ -423,9 +385,7 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
                       ),
                       Divider(
                         thickness: .5,
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? AppColors.dividerColordark
-                            : AppColors.dividerColorlight,
+                        color: Theme.of(context).dividerColor,
                       ),
                       Padding(
                         padding: const EdgeInsets.only(
