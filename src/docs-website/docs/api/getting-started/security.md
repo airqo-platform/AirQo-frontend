@@ -48,7 +48,7 @@ X-Client-Secret: YOUR_CLIENT_SECRET
 import requests
 
 response = requests.get(
-    "https://api.airqo.net/api/v2/devices/measurements/cohorts/COHORT_ID",
+    "https://api.airqo.net/api/v2/devices/measurements/cohorts/YOUR_COHORT_ID",
     params={"token": "YOUR_SECRET_TOKEN"},
     headers={"X-Client-Secret": "YOUR_CLIENT_SECRET"},
 )

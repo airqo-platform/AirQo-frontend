@@ -32,7 +32,8 @@ For a complete walkthrough of every security control available on the platform, 
 
 ## Origin restriction (browser integrations)
 
-- **Enable origin restriction** on clients used in browser-based apps. Without it, any website can make requests using your token.
+- **A backend proxy is always preferred.** Never expose your token in client-side code. If you can proxy API calls through your own server, do that instead of calling the API directly from a browser.
+- **If you must call the API directly from a browser, enable origin restriction** on that client. Without it, any website can make requests using your token.
 - **Use the full origin with protocol** (`https://app.example.com`, not `app.example.com`). Entries without a protocol will be rejected by the platform.
 - **Do not enable origin restriction for server-side clients.** Server requests do not send an `Origin` header, so enabling it would block your own backend.
 
