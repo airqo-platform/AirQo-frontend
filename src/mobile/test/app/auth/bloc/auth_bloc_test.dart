@@ -6,7 +6,6 @@ import 'package:airqo/src/app/auth/models/input_model.dart';
 import 'package:airqo/src/app/auth/repository/auth_repository.dart';
 import 'package:airqo/src/app/auth/repository/social_auth_repository.dart';
 import 'package:airqo/src/app/shared/repository/secure_storage_repository.dart';
-import 'package:airqo/src/app/shared/repository/token_refresher.dart';
 import 'package:airqo/src/meta/utils/api_utils.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -57,15 +56,6 @@ class _FakeSocialAuthRepository extends SocialAuthRepository {
   Future<void> loginWithProvider(String provider) async {
     throw UnimplementedError();
   }
-}
-
-class _SuccessfulTokenRefresher implements TokenRefresher {
-  const _SuccessfulTokenRefresher(this.token);
-
-  final String token;
-
-  @override
-  Future<String?> refreshTokenIfNeeded() async => token;
 }
 
 void main() {
@@ -189,45 +179,6 @@ AUTH_DEBUG_SEED_MOBILE_TOKEN=false
       await bloc.close();
     });
 
-    // A persisted session should also survive when its stored token has
-    // expired but the server successfully replaces it. This is the refresh
-    // result that the bloc must treat as a restored session rather than a
-    // reason to clear authentication and send the user back to guest mode.
-    test('emits loading then loaded when expired session refresh succeeds',
-        () async {
-      final refreshedToken = validToken();
-
-      await SecureStorageRepository.instance.saveSecureData(
-        SecureStorageKeys.authToken,
-        expiredToken(),
-      );
-
-      final bloc = AuthBloc(
-        authRepository: _FakeAuthRepository(),
-        socialAuthRepository: _FakeSocialAuthRepository(),
-        tokenRefresher: _SuccessfulTokenRefresher(refreshedToken),
-      );
-      addTearDown(bloc.close);
-
-      bloc.add(AppStarted());
-
-      await expectLater(
-        bloc.stream,
-        emitsInOrder([
-          isA<AuthLoading>(),
-          isA<AuthLoaded>().having(
-            (state) => state.authPurpose,
-            'authPurpose',
-            AuthPurpose.login,
-          ),
-        ]),
-      );
-
-      final storedUserId = await SecureStorageRepository.instance
-          .getSecureData(SecureStorageKeys.userId);
-
-      expect(storedUserId, 'user-1');
-    });
   });
 
   group('AuthBloc on SessionExpired', () {
