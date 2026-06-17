@@ -10,7 +10,8 @@ import {
     AqPhone01,
     AqChevronSelectorVertical,
     AqCheck,
-    AqCube02
+    AqCube02,
+    AqDatabase01
 } from '@airqo/icons-react';
 
 type Product = {
@@ -56,7 +57,13 @@ const PRODUCTS: Product[] = [
         path: '/docs/cross-product',
         icon: AqCube02,
         landingPath: '/docs/cross-product/concepts/access-control',
-    }
+    },
+    {
+        title: 'Data Access',
+        path: '/docs/data-access',
+        icon: AqDatabase01,
+        landingPath: '/docs/data-access/researchers-guide',
+    },
 ];
 
 export default function ProductDropdown() {
