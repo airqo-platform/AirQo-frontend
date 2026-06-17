@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/widgets/air_quality_share_card.dart';
 import 'package:airqo/src/app/dashboard/pages/forecast_overview_page.dart';
+import 'package:airqo/src/app/dashboard/utils/measurement_location_utils.dart';
 import 'package:airqo/src/app/dashboard/widgets/expanded_analytics_card.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_forecast_widget.dart';
 import 'package:airqo/src/app/shared/services/air_quality_share_service.dart';
@@ -11,6 +12,7 @@ import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 enum _ShareAction { quickText, card }
 
@@ -247,7 +249,7 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
                           onTap: () => Navigator.pop(context),
                           child: Icon(
                             Icons.close,
-                            color: nameColor,
+                            color: AppTextColors.modalCloseIcon(context),
                           ),
                         ),
                       ],
@@ -257,10 +259,10 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    Icon(
-                      Icons.location_on,
-                      size: 14,
-                      color: AppColors.primaryColor,
+                    SvgPicture.asset(
+                      'assets/images/shared/location_pin.svg',
+                      width: 14,
+                      height: 14,
                     ),
                     const SizedBox(width: 4),
                     Expanded(
@@ -292,18 +294,18 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
                     if (widget.measurement.siteDetails?.id != null)
                       TextButton(
                         onPressed: () {
-                          Navigator.push(
+                          ForecastOverviewPage.show(
                             context,
-                            MaterialPageRoute(
-                              builder: (_) => ForecastOverviewPage(
-                                siteId: widget.measurement.siteDetails!.id!,
-                                siteName: widget
-                                        .measurement.siteDetails?.searchName ??
-                                    widget.measurement.siteDetails?.name ??
-                                    widget.fallbackLocationName ??
-                                    '',
-                              ),
+                            siteId: widget.measurement.siteDetails!.id!,
+                            siteName: measurementDisplayName(
+                              widget.measurement,
+                              fallbackLocationName:
+                                  widget.fallbackLocationName,
                             ),
+                            locationDescription: measurementLocationDescription(
+                              widget.measurement,
+                            ),
+                            measurement: widget.measurement,
                           );
                         },
                         child: TranslatedText(

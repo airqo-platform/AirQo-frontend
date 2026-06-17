@@ -1,5 +1,6 @@
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_specifics.dart';
+import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 
 class AnalyticsDetails extends StatefulWidget {
@@ -60,13 +61,7 @@ class _AnalyticsDetailsState extends State<AnalyticsDetails> {
         controller: _controller,
         builder: (BuildContext context, ScrollController scrollController) {
           return DecoratedBox(
-            decoration: BoxDecoration(
-              color: Theme.of(context).scaffoldBackgroundColor,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
-              ),
-            ),
+            decoration: AppSurfaceColors.sheetDecoration(context),
             // Avoid scroll/route focus stealing IME back from the dismissed
             // map search field on Android after this sheet attaches.
             child: FocusScope(

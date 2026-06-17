@@ -34,6 +34,124 @@ class AppColors {
 
 }
 
+/// Theme-aware text and feedback colors — white primary / grey secondary in dark mode.
+class AppTextColors {
+  const AppTextColors._();
+
+  static bool isDark(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
+
+  /// Primary titles: location names, readings, sheet titles.
+  static Color headline(BuildContext context) =>
+      isDark(context) ? Colors.white : AppColors.boldHeadlineColor4;
+
+  /// Secondary labels and supporting copy.
+  static Color muted(BuildContext context) => isDark(context)
+      ? AppColors.boldHeadlineColor2
+      : AppColors.boldHeadlineColor3;
+
+  /// Captions, metadata, section subtitles.
+  static Color subtitle(BuildContext context) => isDark(context)
+      ? AppColors.secondaryHeadlineColor2
+      : AppColors.secondaryHeadlineColor4;
+
+  static Color successBackground(BuildContext context) => isDark(context)
+      ? const Color(0xff57D175).withValues(alpha: 0.18)
+      : const Color(0xffEAF3DE);
+
+  static Color successForeground(BuildContext context) => isDark(context)
+      ? Colors.white
+      : const Color(0xff27500A);
+
+  static Color errorBackground(BuildContext context) => isDark(context)
+      ? const Color(0xffE24B4A).withValues(alpha: 0.18)
+      : const Color(0xffFCEBEB);
+
+  static Color errorForeground(BuildContext context) =>
+      isDark(context) ? Colors.white : const Color(0xffE24B4A);
+
+  static Color sheetBackground(BuildContext context) =>
+      AppSurfaceColors.sheet(context);
+
+  /// Close icon on modal sheets — white in dark mode.
+  static Color modalCloseIcon(BuildContext context) =>
+      isDark(context) ? Colors.white : AppColors.boldHeadlineColor4;
+}
+
+/// Theme-aware surfaces and borders — one palette for cards, sheets, and modals.
+class AppSurfaceColors {
+  const AppSurfaceColors._();
+
+  static bool isDark(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
+
+  /// Bottom sheets, modals, and full-screen overlay pages.
+  static Color sheet(BuildContext context) =>
+      isDark(context) ? AppColors.darkHighlight : Colors.white;
+
+  /// Cards and elevated panels on the scaffold background.
+  static Color card(BuildContext context) =>
+      isDark(context) ? AppColors.darkHighlight : Colors.white;
+
+  /// Inset wells inside cards and sheets (icon chips, stat tiles).
+  static Color nested(BuildContext context) =>
+      isDark(context) ? AppColors.darkThemeBackground : AppColors.highlightColor;
+
+  /// Standard dividers and card borders.
+  static Color border(BuildContext context) =>
+      isDark(context) ? AppColors.dividerColordark : AppColors.dividerColorlight;
+
+  static BorderSide borderSide(BuildContext context, {double width = 1}) =>
+      BorderSide(color: border(context), width: width);
+
+  static BoxDecoration elevatedCardDecoration(
+    BuildContext context, {
+    double radius = 12,
+  }) {
+    final dark = isDark(context);
+    return BoxDecoration(
+      color: card(context),
+      borderRadius: BorderRadius.circular(radius),
+      border: Border.all(color: border(context)),
+      boxShadow: dark
+          ? null
+          : [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+    );
+  }
+
+  static BoxDecoration sheetDecoration(
+    BuildContext context, {
+    double topRadius = 20,
+  }) {
+    return BoxDecoration(
+      color: sheet(context),
+      borderRadius: BorderRadius.vertical(top: Radius.circular(topRadius)),
+    );
+  }
+
+  /// Inset panel on modal/sheet surfaces — darker than [sheet] for contrast.
+  static BoxDecoration sheetPanelDecoration(
+    BuildContext context, {
+    double radius = 16,
+  }) {
+    return BoxDecoration(
+      color: nested(context),
+      borderRadius: BorderRadius.circular(radius),
+      border: Border.all(color: border(context)),
+    );
+  }
+
+  /// Inactive chips/buttons sitting on a nested panel.
+  static Color panelChip(BuildContext context) =>
+      isDark(context) ? AppColors.darkHighlight : Colors.white;
+}
+
 class AppTheme {
   static final ThemeData lightTheme = ThemeData(
     splashColor: Colors.transparent,
@@ -80,22 +198,34 @@ class AppTheme {
     primaryColor: const Color(0xff145FFF),
     scaffoldBackgroundColor: const Color(0xff1C1D20),
     cardColor: const Color(0xff2E2F33),
-    dividerColor: const Color(0xffE1E7EC),
+    dividerColor: AppColors.dividerColordark,
     highlightColor: const Color(0xff2E2F33),
     textTheme: TextTheme(
       headlineLarge: TextStyle(
-        color: const Color(0xff9EA3AA),
+        color: Colors.white,
         fontWeight: FontWeight.bold,
       ),
       headlineMedium: TextStyle(
-        color: const Color(0xff60646C),
+        color: AppColors.boldHeadlineColor2,
       ),
       headlineSmall: TextStyle(
-        color: const Color(0xff7A7F87),
+        color: Colors.white,
+        fontWeight: FontWeight.w700,
       ),
-      titleMedium: TextStyle(color: const Color(0xffE2E3E5)),
+      titleMedium: TextStyle(color: Colors.white),
       titleLarge: TextStyle(
-          fontSize: 40, fontWeight: FontWeight.w700, color: Colors.white),
+        fontSize: 40,
+        fontWeight: FontWeight.w700,
+        color: Colors.white,
+      ),
+      bodyLarge: TextStyle(
+        color: AppColors.boldHeadlineColor2,
+        fontWeight: FontWeight.w500,
+      ),
+      bodyMedium: TextStyle(color: AppColors.secondaryHeadlineColor2),
+      bodySmall: TextStyle(color: AppColors.secondaryHeadlineColor2),
+      labelLarge: TextStyle(color: AppColors.boldHeadlineColor2),
+      labelMedium: TextStyle(color: AppColors.secondaryHeadlineColor2),
     ),
   );
 }

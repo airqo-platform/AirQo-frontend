@@ -11,6 +11,7 @@ class ForecastDaySelector extends StatelessWidget {
   final String todayStr;
   final ValueChanged<int> onSelected;
   final bool isDark;
+  final bool onInsetPanel;
 
   const ForecastDaySelector({
     super.key,
@@ -19,6 +20,7 @@ class ForecastDaySelector extends StatelessWidget {
     required this.todayStr,
     required this.onSelected,
     required this.isDark,
+    this.onInsetPanel = false,
   });
 
   @override
@@ -30,13 +32,24 @@ class ForecastDaySelector extends StatelessWidget {
         final isToday = DateFormat('yyyy-MM-dd').format(f.time) == todayStr;
 
         Color bgColor;
+        Border? chipBorder;
         if (isActive) {
           bgColor = AppColors.primaryColor;
         } else if (isToday) {
-          bgColor = AppColors.primaryColor.withValues(alpha: 0.08);
+          bgColor = isDark
+              ? AppSurfaceColors.panelChip(context)
+              : AppColors.primaryColor.withValues(alpha: 0.08);
+          chipBorder = Border.all(
+            color: AppColors.primaryColor.withValues(alpha: 0.6),
+            width: 1.5,
+          );
         } else {
-          bgColor =
-              isDark ? AppColors.darkHighlight : AppColors.highlightColor;
+          bgColor = onInsetPanel
+              ? AppSurfaceColors.panelChip(context)
+              : AppSurfaceColors.nested(context);
+          if (isDark) {
+            chipBorder = Border.all(color: AppSurfaceColors.border(context));
+          }
         }
 
         return Expanded(
@@ -50,12 +63,7 @@ class ForecastDaySelector extends StatelessWidget {
               decoration: BoxDecoration(
                 color: bgColor,
                 borderRadius: BorderRadius.circular(12),
-                border: isToday && !isActive
-                    ? Border.all(
-                        color:
-                            AppColors.primaryColor.withValues(alpha: 0.6),
-                        width: 1.5)
-                    : null,
+                border: chipBorder,
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -92,7 +100,7 @@ class ForecastDaySelector extends StatelessWidget {
                           ? Colors.white70
                           : isToday
                               ? AppColors.primaryColor
-                              : AppColors.boldHeadlineColor,
+                              : AppTextColors.muted(context),
                     ),
                   ),
                   const SizedBox(height: 2),
