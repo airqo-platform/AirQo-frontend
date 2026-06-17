@@ -19,7 +19,7 @@ import {
 } from '@/core/redux/slices/userSlice';
 import { users } from '@/core/apis/users';
 import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
-import ReusableToast from '@/components/shared/toast/ReusableToast';
+import { useBanner } from '@/context/banner-context';
 import SessionLoadingState from '@/components/layout/loading/session-loading';
 import {
   getLastActiveGroupId,
@@ -209,6 +209,7 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
   const dispatch = useAppDispatch();
   const isOnline = useOnlineStatus();
+  const { showBanner } = useBanner();
   const {
     activeGroup,
     isInitialized,
@@ -263,10 +264,7 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
     // Reset toast flag when back online
     if (isOnline && hasShownOfflineToastRef.current) {
       hasShownOfflineToastRef.current = false;
-      ReusableToast({
-        message: 'Connection restored.',
-        type: 'SUCCESS',
-      });
+      showBanner({ severity: 'success', message: 'Connection restored.', scoped: false });
     }
   }, [isOnline, cachedUser, fetchStatus]);
 
@@ -285,10 +283,7 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
       if (cachedUser) {
         // ignore
       } else {
-        ReusableToast({
-          message: `Could not load user details: ${getApiErrorMessage(error)}`,
-          type: 'ERROR',
-        });
+        showBanner({ severity: 'error', message: `Could not load user details: ${getApiErrorMessage(error)}`, scoped: false });
       }
     }
   }, [isError, error, isOnline, cachedUser, fetchStatus]);
@@ -377,6 +372,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isLoggingOut = useAppSelector((state) => state.user.isLoggingOut);
   const logout = useLogout();
+  const { showBanner } = useBanner();
   const [hasHandledUnauthorized, setHasHandledUnauthorized] = useState(false);
   const [backendSessionAttempted, setBackendSessionAttempted] = useState(false);
   const hasStartedLogoutRef = useRef(false);
@@ -446,10 +442,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       }
 
       logger.info('[AuthWrapper] Account deletion detected, logging out...');
-      ReusableToast({
-        message: 'Your account has been deleted. You have been logged out.',
-        type: 'ERROR',
-      });
+      showBanner({ severity: 'error', message: 'Your account has been deleted. You have been logged out.', scoped: false });
       logout();
       return true;
     }
@@ -610,10 +603,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
             '[AuthWrapper] Multiple 401s with valid session - possible account deletion'
           );
           setHasHandledUnauthorized(true);
-          ReusableToast({
-            message: 'Your session has expired. Please log in again.', // more user-friendly message
-            type: 'ERROR',
-          });
+          showBanner({ severity: 'error', message: 'Your session has expired. Please log in again.', scoped: false });
           logout();
           return;
         }
@@ -630,10 +620,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       // Session refresh failed - token expired
       logger.info('[AuthWrapper] Session expired, logging out');
       setHasHandledUnauthorized(true);
-      ReusableToast({
-        message: 'Your session has expired. Please log in again.',
-        type: 'ERROR',
-      });
+      showBanner({ severity: 'error', message: 'Your session has expired. Please log in again.', scoped: false });
       logout();
     } catch (error) {
       logger.error('[AuthWrapper] Error handling unauthorized event', { error });

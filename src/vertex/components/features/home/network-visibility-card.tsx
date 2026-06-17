@@ -10,7 +10,7 @@ import { cohorts as cohortsApi } from '@/core/apis/cohorts';
 import ReusableDialog from '@/components/shared/dialog/ReusableDialog';
 import ReusableButton from '@/components/shared/button/ReusableButton';
 import { PERMISSIONS } from '@/core/permissions/constants';
-import ReusableToast from '@/components/shared/toast/ReusableToast';
+import { useBanner } from '@/context/banner-context';
 import { useQueryClient } from '@tanstack/react-query';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { cn } from '@/lib/utils';
@@ -30,6 +30,7 @@ const NetworkVisibilityCard = ({ onVisibilityChanged, showCoachMark }: NetworkVi
   const router = useRouter();
   const { data: session } = useSession();
   const user = useAppSelector(state => state.user.userDetails);
+  const { showBanner } = useBanner();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [targetVisibility, setTargetVisibility] = useState<boolean>(false);
@@ -129,10 +130,7 @@ const NetworkVisibilityCard = ({ onVisibilityChanged, showCoachMark }: NetworkVi
       }
     } catch (error) {
       console.error(error);
-      ReusableToast({
-        message: 'Failed to update network visibility',
-        type: 'ERROR',
-      });
+      showBanner({ severity: 'error', message: 'Failed to update network visibility', scoped: true });
     } finally {
       setIsUpdating(false);
       setIsDialogOpen(false);
