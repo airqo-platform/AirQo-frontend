@@ -9,7 +9,6 @@ class LearnUnitChip extends StatelessWidget {
   final LearnUnitViewModel unit;
   final LearnUnitStatus status;
   final bool selected;
-  final bool isDark;
   final VoidCallback onTap;
 
   const LearnUnitChip({
@@ -17,18 +16,19 @@ class LearnUnitChip extends StatelessWidget {
     required this.unit,
     required this.status,
     required this.selected,
-    required this.isDark,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isDark = LearnDesignTokens.isDark(context);
     final strokeColor = isDark
         ? AppColors.boldHeadlineColor2.withValues(alpha: 0.35)
         : AppColors.dividerColorlight;
-    final inactiveTextColor =
-        isDark ? Colors.white : AppColors.boldHeadlineColor4;
-    final bg = selected ? AppColors.primaryColor : Colors.white;
+    final inactiveTextColor = LearnDesignTokens.headline(context);
+    final bg = selected
+        ? AppColors.primaryColor
+        : (isDark ? AppColors.darkHighlight : Colors.white);
     final textColor = selected ? Colors.white : inactiveTextColor;
     final iconColor = selected
         ? Colors.white
@@ -103,14 +103,12 @@ class _StatusIcon extends StatelessWidget {
 class LearnUnitChipRow extends StatefulWidget {
   final LearnCourseViewModel course;
   final int selectedUnitIndex;
-  final bool isDark;
   final ValueChanged<int> onUnitSelected;
 
   const LearnUnitChipRow({
     super.key,
     required this.course,
     required this.selectedUnitIndex,
-    required this.isDark,
     required this.onUnitSelected,
   });
 
@@ -179,7 +177,6 @@ class _LearnUnitChipRowState extends State<LearnUnitChipRow> {
               unit: unit,
               status: status,
               selected: unitIndex == widget.selectedUnitIndex,
-              isDark: widget.isDark,
               onTap: () => widget.onUnitSelected(unitIndex),
             ),
           );

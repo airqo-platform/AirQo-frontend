@@ -8,20 +8,72 @@ class LearnDesignTokens {
   const LearnDesignTokens._();
 
   static const Color success = Color(0xff57D175);
-  static const Color successBg = Color(0xffEAF3DE);
-  static const Color successText = Color(0xff27500A);
   static const Color error = Color(0xffE24B4A);
-  static const Color errorBg = Color(0xffFCEBEB);
   static const Color disabled = Color(0xffB0B5BC);
   static const Color footerGradient = Color(0xC2121212);
 
+  static Color successBg(BuildContext context) =>
+      AppTextColors.successBackground(context);
+
+  static Color successText(BuildContext context) =>
+      AppTextColors.successForeground(context);
+
+  static Color errorBg(BuildContext context) =>
+      AppTextColors.errorBackground(context);
+
+  static Color errorText(BuildContext context) =>
+      AppTextColors.errorForeground(context);
+
+  static bool isDark(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
+
   static Color primary(BuildContext context) => AppColors.primaryColor;
-  static Color headline(BuildContext context) => AppColors.boldHeadlineColor4;
-  static Color muted(BuildContext context) => AppColors.boldHeadlineColor3;
-  static Color divider(BuildContext context) => AppColors.dividerColorlight;
+
+  static Color headline(BuildContext context) => AppTextColors.headline(context);
+
+  static Color muted(BuildContext context) => AppTextColors.muted(context);
+
+  static Color subtitle(BuildContext context) => AppTextColors.subtitle(context);
+
+  static Color divider(BuildContext context) => AppSurfaceColors.border(context);
+
+  static Color sheetBg(BuildContext context) => AppSurfaceColors.sheet(context);
+
+  static Color nestedSurface(BuildContext context) => AppSurfaceColors.nested(context);
+
+  static Color iconBg(BuildContext context) => isDark(context)
+      ? AppColors.darkThemeBackground
+      : AppColors.dividerColorlight;
+
   static Color screenBg(BuildContext context) =>
       Theme.of(context).scaffoldBackgroundColor;
-  static Color cardBg(BuildContext context) => Theme.of(context).cardColor;
+
+  static Color cardBg(BuildContext context) => AppSurfaceColors.card(context);
+
+  static Color sheetTitleColor(BuildContext context) => headline(context);
+
+  static Color sheetSubtitleColor(BuildContext context) => muted(context);
+
+  static TextStyle completionTitle(BuildContext context) => TextStyle(
+        fontSize: 24,
+        fontWeight: FontWeight.w700,
+        height: 1.15,
+        color: sheetTitleColor(context),
+      );
+
+  static TextStyle completionSubtitle(BuildContext context) => TextStyle(
+        fontSize: 15,
+        fontWeight: FontWeight.w500,
+        height: 1.3,
+        color: sheetSubtitleColor(context),
+      );
+
+  static TextStyle completionCaption(BuildContext context) => TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w500,
+        height: 1.35,
+        color: sheetSubtitleColor(context),
+      );
 
   static const double sheetTopRadius = 20;
   static const double portraitCardRadius = 16;
@@ -31,10 +83,7 @@ class LearnDesignTokens {
   static const double horizontalPadding = 16;
 
   static Widget dragHandle(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final handleColor = isDark
-        ? AppColors.boldHeadlineColor2
-        : AppColors.secondaryHeadlineColor4;
+    final handleColor = muted(context);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -43,7 +92,7 @@ class LearnDesignTokens {
           width: 36,
           height: 4,
           decoration: BoxDecoration(
-            color: handleColor.withValues(alpha: 0.4),
+            color: handleColor.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(2),
           ),
         ),
@@ -86,6 +135,13 @@ class LearnDesignTokens {
         fontWeight: FontWeight.w700,
         height: 1.15,
         color: headline(context),
+      );
+
+  static TextStyle sectionSubtitle(BuildContext context) => TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.w500,
+        height: 1.35,
+        color: subtitle(context),
       );
 
   static TextStyle activitySubtitle(BuildContext context) => TextStyle(

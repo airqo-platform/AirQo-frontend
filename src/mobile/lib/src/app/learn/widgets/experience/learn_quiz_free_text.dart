@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/exposure/widgets/exposure_place_name_text_field.dart';
 import 'package:airqo/src/app/learn/models/learn_lesson_activity.dart';
 import 'package:airqo/src/app/learn/services/learn_quiz_scoring_service.dart';
 import 'package:airqo/src/app/learn/theme/learn_design_tokens.dart';
@@ -8,6 +9,7 @@ import 'package:flutter/material.dart';
 
 class LearnQuizFreeTextActivity extends StatefulWidget {
   final LearnQuizPayload quiz;
+  final String activityTypeLabel;
   final ValueChanged<LearnQuizGrade> onGraded;
   final ValueChanged<String> onResponse;
   final VoidCallback onContinue;
@@ -15,6 +17,7 @@ class LearnQuizFreeTextActivity extends StatefulWidget {
   const LearnQuizFreeTextActivity({
     super.key,
     required this.quiz,
+    required this.activityTypeLabel,
     required this.onGraded,
     required this.onResponse,
     required this.onContinue,
@@ -55,7 +58,10 @@ class _LearnQuizFreeTextActivityState extends State<LearnQuizFreeTextActivity> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return LearnActivityCardShell(
+      activityTypeLabel: widget.activityTypeLabel,
       child: Column(
         children: [
           Expanded(
@@ -73,21 +79,14 @@ class _LearnQuizFreeTextActivityState extends State<LearnQuizFreeTextActivity> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  TextField(
+                  ExposurePlaceNameTextField(
                     controller: _controller,
+                    hintText: 'Type here...',
+                    isDark: isDark,
                     enabled: !_submitted,
                     maxLines: 4,
-                    decoration: InputDecoration(
-                      hintText: 'Type here...',
-                      filled: true,
-                      fillColor: Theme.of(context).highlightColor,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: LearnDesignTokens.divider(context),
-                        ),
-                      ),
-                    ),
+                    minLines: 4,
+                    textCapitalization: TextCapitalization.sentences,
                   ),
                   if (_grade != null)
                     LearnQuizFeedbackBanner(

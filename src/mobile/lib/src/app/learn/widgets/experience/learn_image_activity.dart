@@ -7,17 +7,20 @@ import 'package:flutter/material.dart';
 
 class LearnImageActivity extends StatelessWidget {
   final LearnImagePayload payload;
+  final String activityTypeLabel;
   final VoidCallback onContinue;
 
   const LearnImageActivity({
     super.key,
     required this.payload,
+    required this.activityTypeLabel,
     required this.onContinue,
   });
 
   @override
   Widget build(BuildContext context) {
     return LearnActivityCardShell(
+      activityTypeLabel: activityTypeLabel,
       child: Column(
         children: [
           Expanded(

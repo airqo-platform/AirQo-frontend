@@ -9,7 +9,7 @@ import 'package:airqo/src/app/learn/widgets/learn_bottom_sheets.dart';
 import 'package:airqo/src/app/learn/widgets/learn_course_portrait_card.dart';
 import 'package:airqo/src/app/learn/widgets/learn_dashboard_header.dart';
 import 'package:airqo/src/app/learn/widgets/learn_level_summary_card.dart';
-import 'package:airqo/src/app/shared/services/feature_flag_service.dart';
+import 'package:airqo/src/app/learn/widgets/learn_sheet_button_styles.dart';
 import 'package:airqo/src/app/shared/widgets/loading_widget.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
@@ -34,9 +34,6 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
   late int _selectedIndex;
   final _progress = LearnProgressService.instance;
   String? _lastSeedFingerprint;
-
-  bool get _surveysEnabled =>
-      FeatureFlagService.instance.isEnabled(AppFeatureFlag.surveys);
 
   @override
   void initState() {
@@ -107,9 +104,6 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
   }
 
   Widget _buildTabSelector() {
-    if (!_surveysEnabled) {
-      return _pill('Courses', selected: true);
-    }
     return Row(
       children: [
         _pill('Courses', selected: _selectedIndex == 0, onTap: () => setState(() => _selectedIndex = 0)),
@@ -120,6 +114,7 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
   }
 
   Widget _pill(String label, {required bool selected, VoidCallback? onTap}) {
+    final isDark = LearnDesignTokens.isDark(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -129,19 +124,16 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
           borderRadius: BorderRadius.circular(LearnDesignTokens.tabPillRadius),
           color: selected
               ? AppColors.primaryColor
-              : (Theme.of(context).brightness == Brightness.dark
-                  ? AppColors.darkHighlight
-                  : AppColors.dividerColorlight),
-          border: selected
-              ? null
-              : Border.all(color: AppColors.primaryColor.withValues(alpha: 0.2)),
+              : (isDark ? AppColors.darkHighlight : AppColors.dividerColorlight),
         ),
         alignment: Alignment.center,
         child: TranslatedText(
           label,
           style: TextStyle(
-            color: selected ? Colors.white : AppColors.primaryColor,
-            fontWeight: FontWeight.w600,
+            color: selected
+                ? Colors.white
+                : (isDark ? Colors.white : Colors.black87),
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
             fontSize: 14,
           ),
         ),
@@ -271,10 +263,7 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
                   onPressed: _retryLoading,
                   icon: const Icon(Icons.refresh),
                   label: const TranslatedText('Try Again'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor,
-                    foregroundColor: Colors.white,
-                  ),
+                  style: learnExposurePrimaryButtonStyle(),
                 ),
               ],
             ),

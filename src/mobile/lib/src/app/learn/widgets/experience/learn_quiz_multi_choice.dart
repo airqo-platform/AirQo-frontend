@@ -8,12 +8,14 @@ import 'package:flutter/material.dart';
 
 class LearnQuizMultiChoiceActivity extends StatefulWidget {
   final LearnQuizPayload quiz;
+  final String activityTypeLabel;
   final ValueChanged<LearnQuizGrade> onGraded;
   final VoidCallback onContinue;
 
   const LearnQuizMultiChoiceActivity({
     super.key,
     required this.quiz,
+    required this.activityTypeLabel,
     required this.onGraded,
     required this.onContinue,
   });
@@ -56,6 +58,7 @@ class _LearnQuizMultiChoiceActivityState
     final correct = widget.quiz.correctIndices ?? {};
 
     return LearnActivityCardShell(
+      activityTypeLabel: widget.activityTypeLabel,
       child: Column(
         children: [
           Expanded(

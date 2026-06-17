@@ -3,7 +3,6 @@ import 'package:airqo/src/app/learn/models/learn_course_structure.dart';
 import 'package:airqo/src/app/learn/theme/learn_design_tokens.dart';
 import 'package:airqo/src/app/learn/widgets/learn_lesson_thumbnail.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
-import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -45,13 +44,9 @@ class LearnLessonListRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final titleColor = isDark ? Colors.white : const Color(0xFF1A1D23);
-    final subtitleColor = isDark
-        ? AppColors.boldHeadlineColor2
-        : AppColors.secondaryHeadlineColor4;
-    final iconBg =
-        isDark ? AppColors.darkThemeBackground : AppColors.dividerColorlight;
+    final titleColor = LearnDesignTokens.headline(context);
+    final subtitleColor = LearnDesignTokens.subtitle(context);
+    final iconBg = LearnDesignTokens.iconBg(context);
     final dividerColor = LearnDesignTokens.divider(context);
     final activities = slot.activityCount;
     final barValue = complete ? 1.0 : progressRatio.clamp(0.0, 1.0);
@@ -120,9 +115,7 @@ class LearnLessonListRow extends StatelessWidget {
                                     width: 16,
                                     height: 16,
                                     colorFilter: ColorFilter.mode(
-                                      isDark
-                                          ? Colors.white
-                                          : AppColors.boldHeadlineColor4,
+                                      LearnDesignTokens.headline(context),
                                       BlendMode.srcIn,
                                     ),
                                   ),
@@ -199,7 +192,7 @@ class LearnLessonListRow extends StatelessWidget {
                             width: 18,
                             height: 18,
                             colorFilter: ColorFilter.mode(
-                              isDark ? Colors.white : Colors.black,
+                              LearnDesignTokens.headline(context),
                               BlendMode.srcIn,
                             ),
                           ),

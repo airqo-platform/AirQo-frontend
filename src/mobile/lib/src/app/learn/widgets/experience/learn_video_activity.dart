@@ -9,11 +9,13 @@ import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 class LearnVideoActivity extends StatefulWidget {
   final LearnVideoPayload payload;
+  final String activityTypeLabel;
   final VoidCallback onContinue;
 
   const LearnVideoActivity({
     super.key,
     required this.payload,
+    required this.activityTypeLabel,
     required this.onContinue,
   });
 
@@ -75,6 +77,7 @@ class _LearnVideoActivityState extends State<LearnVideoActivity> {
   @override
   Widget build(BuildContext context) {
     return LearnActivityCardShell(
+      activityTypeLabel: widget.activityTypeLabel,
       child: Column(
         children: [
           Expanded(

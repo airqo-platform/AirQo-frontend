@@ -78,10 +78,10 @@ class LearnCoursePortraitCard extends StatelessWidget {
                       width: double.infinity,
                       height: double.infinity,
                       errorBuilder: (_, __, ___) => Container(
-                        color: Theme.of(context).highlightColor,
+                        color: LearnDesignTokens.nestedSurface(context),
                       ),
                     )
-                  : Container(color: Theme.of(context).highlightColor),
+                  : Container(color: LearnDesignTokens.nestedSurface(context)),
             ),
           ),
           SizedBox(

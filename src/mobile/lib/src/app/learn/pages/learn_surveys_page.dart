@@ -1,13 +1,15 @@
+import 'package:airqo/src/app/learn/widgets/learn_sheet_button_styles.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:collection/collection.dart';
 import 'package:airqo/src/app/surveys/bloc/survey_bloc.dart';
 import 'package:airqo/src/app/surveys/models/survey_model.dart';
 import 'package:airqo/src/app/surveys/models/survey_response_model.dart';
 import 'package:airqo/src/app/surveys/pages/survey_detail_page.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
+import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+/// Surveys sub-tab inside Learn — matches the research-app experience.
 class LearnSurveysPage extends StatefulWidget {
   const LearnSurveysPage({super.key});
 
@@ -16,7 +18,6 @@ class LearnSurveysPage extends StatefulWidget {
 }
 
 class _LearnSurveysPageState extends State<LearnSurveysPage> {
-
   @override
   void initState() {
     super.initState();
@@ -64,16 +65,15 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
         context.read<SurveyBloc>().add(const LoadSurveys(forceRefresh: true));
       },
       child: SingleChildScrollView(
-        padding: const EdgeInsets.only(bottom: 16),
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 16),
-            // Survey list
             ...state.surveys.map((survey) {
               final userResponse = state.userResponses
                   .firstWhereOrNull((r) => r.surveyId == survey.id);
-              
+
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: _buildSurveyCardForLearn(
@@ -82,7 +82,6 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
                 ),
               );
             }),
-            const SizedBox(height: 16),
           ],
         ),
       ),
@@ -93,25 +92,11 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
     required Survey survey,
     SurveyResponse? userResponse,
   }) {
-    final theme = Theme.of(context);
-    final isDarkMode = theme.brightness == Brightness.dark;
-    
     return GestureDetector(
       onTap: () => _navigateToSurveyDetail(survey, userResponse),
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4),
         width: double.infinity,
-        decoration: BoxDecoration(
-          color: theme.cardColor,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
+        decoration: AppSurfaceColors.elevatedCardDecoration(context),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -126,7 +111,7 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
                       style: TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 16,
-                        color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
+                        color: AppTextColors.headline(context),
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -134,12 +119,15 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
                   ),
                   if (userResponse == null)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.primaryColor,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: TranslatedText(
+                      child: const TranslatedText(
                         'New',
                         style: TextStyle(
                           color: Colors.white,
@@ -150,12 +138,15 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
                     )
                   else if (userResponse.isCompleted)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.green,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: TranslatedText(
+                      child: const TranslatedText(
                         'Completed',
                         style: TextStyle(
                           color: Colors.white,
@@ -166,12 +157,15 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
                     )
                   else if (userResponse.isInProgress)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.orange,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: TranslatedText(
+                      child: const TranslatedText(
                         'In Progress',
                         style: TextStyle(
                           color: Colors.white,
@@ -188,7 +182,7 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
                   survey.description,
                   style: TextStyle(
                     fontSize: 14,
-                    color: isDarkMode ? Colors.grey[300] : Colors.grey[600],
+                    color: AppTextColors.muted(context),
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -200,28 +194,28 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
                   Icon(
                     Icons.schedule,
                     size: 14,
-                    color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                    color: AppTextColors.subtitle(context),
                   ),
                   const SizedBox(width: 4),
                   Text(
                     survey.estimatedTimeString,
                     style: TextStyle(
                       fontSize: 12,
-                      color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                      color: AppTextColors.subtitle(context),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Icon(
                     Icons.quiz_outlined,
                     size: 14,
-                    color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                    color: AppTextColors.subtitle(context),
                   ),
                   const SizedBox(width: 4),
                   Text(
                     '${survey.questions.length} questions',
                     style: TextStyle(
                       fontSize: 12,
-                      color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                      color: AppTextColors.subtitle(context),
                     ),
                   ),
                   const Spacer(),
@@ -275,7 +269,8 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
             Text(
               state.message,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                color:
+                    theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
               ),
               textAlign: TextAlign.center,
             ),
@@ -284,13 +279,7 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
               onPressed: () {
                 context.read<SurveyBloc>().add(const LoadSurveys());
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryColor,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
+              style: learnExposurePrimaryButtonStyle(),
               child: const TranslatedText('Try Again'),
             ),
           ],
@@ -301,7 +290,7 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
 
   Widget _buildEmptyState() {
     final theme = Theme.of(context);
-    
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -325,14 +314,17 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
             TranslatedText(
               'Check back later for new research surveys.',
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                color:
+                    theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
             TextButton(
               onPressed: () {
-                context.read<SurveyBloc>().add(const LoadSurveys(forceRefresh: true));
+                context
+                    .read<SurveyBloc>()
+                    .add(const LoadSurveys(forceRefresh: true));
               },
               child: const TranslatedText('Refresh'),
             ),
@@ -342,18 +334,22 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
     );
   }
 
-  void _navigateToSurveyDetail(Survey survey, SurveyResponse? existingResponse) {
-    Navigator.of(context).push(
+  void _navigateToSurveyDetail(
+    Survey survey,
+    SurveyResponse? existingResponse,
+  ) {
+    Navigator.of(context)
+        .push(
       MaterialPageRoute(
         builder: (context) => SurveyDetailPage(
           survey: survey,
           existingResponse: existingResponse,
         ),
       ),
-    ).then((_) {
+    )
+        .then((_) {
       if (!mounted) return;
       context.read<SurveyBloc>().add(const LoadSurveys());
     });
   }
 }
-

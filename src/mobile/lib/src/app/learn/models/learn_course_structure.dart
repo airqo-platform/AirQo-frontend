@@ -427,6 +427,22 @@ class LearnCatalog {
         lessonIndex: lessonIndex + 1,
       );
     }
+    if (unitIndex + 1 < course.units.length) {
+      final nextUnit = course.units[unitIndex + 1];
+      if (nextUnit.lessons.isNotEmpty) {
+        return LearnLessonContinuation(
+          nextSlot: nextUnit.lessons.first,
+          unitPlainTitle: nextUnit.plainTitleKey,
+          courseTitle: course.title,
+          lessonNumberInUnit: 1,
+          lessonsInUnit: nextUnit.lessons.length,
+          learnCourseId: course.id,
+          unitIndex: unitIndex + 1,
+          lessonIndex: 0,
+          isNextUnit: true,
+        );
+      }
+    }
     return null;
   }
 }

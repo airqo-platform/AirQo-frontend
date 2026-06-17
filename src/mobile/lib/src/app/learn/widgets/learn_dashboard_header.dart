@@ -27,8 +27,8 @@ class LearnDashboardHeader extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           TranslatedText(
-            'Know Your Air',
-            style: LearnDesignTokens.activitySubtitle(context),
+            'Practical courses on air quality, health risks, and steps you can take to breathe safer.',
+            style: LearnDesignTokens.sectionSubtitle(context),
           ),
         ],
       ),

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 
 class LearnQuizActivity extends StatelessWidget {
   final LearnQuizPayload quiz;
+  final String activityTypeLabel;
   final ValueChanged<LearnQuizGrade> onGraded;
   final ValueChanged<String>? onFreeText;
   final VoidCallback onContinue;
@@ -14,6 +15,7 @@ class LearnQuizActivity extends StatelessWidget {
   const LearnQuizActivity({
     super.key,
     required this.quiz,
+    required this.activityTypeLabel,
     required this.onGraded,
     required this.onContinue,
     this.onFreeText,
@@ -25,24 +27,28 @@ class LearnQuizActivity extends StatelessWidget {
       case LearnQuizFormat.singleChoice:
         return LearnQuizSingleChoiceActivity(
           quiz: quiz,
+          activityTypeLabel: activityTypeLabel,
           onGraded: onGraded,
           onContinue: onContinue,
         );
       case LearnQuizFormat.multiChoice:
         return LearnQuizMultiChoiceActivity(
           quiz: quiz,
+          activityTypeLabel: activityTypeLabel,
           onGraded: onGraded,
           onContinue: onContinue,
         );
       case LearnQuizFormat.ranking:
         return LearnQuizRankingActivity(
           quiz: quiz,
+          activityTypeLabel: activityTypeLabel,
           onGraded: onGraded,
           onContinue: onContinue,
         );
       case LearnQuizFormat.freeText:
         return LearnQuizFreeTextActivity(
           quiz: quiz,
+          activityTypeLabel: activityTypeLabel,
           onGraded: onGraded,
           onResponse: onFreeText ?? (_) {},
           onContinue: onContinue,

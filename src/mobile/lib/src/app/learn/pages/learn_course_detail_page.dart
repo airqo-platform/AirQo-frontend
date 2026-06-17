@@ -1,6 +1,7 @@
 import 'package:airqo/src/app/learn/formatting/learn_display_text.dart';
 import 'package:airqo/src/app/learn/models/learn_course_structure.dart';
 import 'package:airqo/src/app/learn/services/learn_progress_service.dart';
+import 'package:airqo/src/app/learn/theme/learn_design_tokens.dart';
 import 'package:airqo/src/app/learn/widgets/learn_lesson_list_row.dart';
 import 'package:airqo/src/app/learn/widgets/learn_unit_chip.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
@@ -52,12 +53,9 @@ class _LearnCourseDetailPageState extends State<LearnCourseDetailPage> {
   }
 
   Widget _buildSheet(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? AppColors.darkHighlight : Colors.white;
-    final titleColor = isDark ? Colors.white : const Color(0xFF1A1D23);
-    final subtitleColor = isDark
-        ? AppColors.boldHeadlineColor2
-        : AppColors.secondaryHeadlineColor4;
+    final bg = LearnDesignTokens.sheetBg(context);
+    final titleColor = LearnDesignTokens.headline(context);
+    final subtitleColor = LearnDesignTokens.subtitle(context);
     final progress = LearnProgressService.instance;
     final course = widget.course;
     final completed = course.completedLessons(progress);
@@ -86,19 +84,7 @@ class _LearnCourseDetailPageState extends State<LearnCourseDetailPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Center(
-                  child: Container(
-                    width: 36,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: subtitleColor.withValues(alpha: 0.4),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-              ),
+              LearnDesignTokens.dragHandle(context),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 12, 0),
                 child: Row(
@@ -137,7 +123,10 @@ class _LearnCourseDetailPageState extends State<LearnCourseDetailPage> {
                     ),
                     IconButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      icon: Icon(Icons.close, color: subtitleColor),
+                      icon: Icon(
+                        Icons.close,
+                        color: AppTextColors.modalCloseIcon(context),
+                      ),
                       visualDensity: VisualDensity.compact,
                     ),
                   ],
@@ -147,7 +136,6 @@ class _LearnCourseDetailPageState extends State<LearnCourseDetailPage> {
               LearnUnitChipRow(
                 course: course,
                 selectedUnitIndex: _selectedUnitIndex,
-                isDark: isDark,
                 onUnitSelected: (index) {
                   setState(() => _selectedUnitIndex = index);
                 },

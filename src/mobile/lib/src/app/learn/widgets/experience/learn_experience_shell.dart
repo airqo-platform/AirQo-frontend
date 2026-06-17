@@ -3,7 +3,6 @@ import 'package:airqo/src/app/learn/theme/learn_design_tokens.dart';
 import 'package:airqo/src/app/learn/widgets/learn_lesson_thumbnail.dart';
 import 'package:airqo/src/app/learn/widgets/learn_sheet_button_styles.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
-import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 
 class LearnExperienceShell extends StatelessWidget {
@@ -38,10 +37,6 @@ class LearnExperienceShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final subtitleColor = isDark
-        ? AppColors.boldHeadlineColor2
-        : AppColors.secondaryHeadlineColor4;
     final progress = totalSteps > 0 ? currentStep / totalSteps : 0.0;
     const horizontalPadding = LearnLessonExperienceBanner.horizontalInset;
 
@@ -49,19 +44,7 @@ class LearnExperienceShell extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (showDragHandle)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-            child: Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: subtitleColor.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-          ),
+          LearnDesignTokens.dragHandle(context),
         Padding(
           padding: EdgeInsets.fromLTRB(
             horizontalPadding,
@@ -103,7 +86,12 @@ class LearnExperienceBottomBar extends StatelessWidget {
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        padding: EdgeInsets.fromLTRB(
+          LearnLessonExperienceBanner.horizontalInset,
+          8,
+          LearnLessonExperienceBanner.horizontalInset,
+          16,
+        ),
         child: ElevatedButton(
           onPressed: primaryEnabled ? onPrimary : null,
           style: learnExposurePrimaryButtonStyle(enabled: primaryEnabled),
@@ -115,22 +103,52 @@ class LearnExperienceBottomBar extends StatelessWidget {
 }
 
 class LearnActivityCardShell extends StatelessWidget {
+  final String activityTypeLabel;
   final Widget child;
 
-  const LearnActivityCardShell({super.key, required this.child});
+  const LearnActivityCardShell({
+    super.key,
+    required this.activityTypeLabel,
+    required this.child,
+  });
 
   @override
   Widget build(BuildContext context) {
+    const horizontalInset = LearnLessonExperienceBanner.horizontalInset;
+    const topRadius = Radius.circular(LearnDesignTokens.activityCardRadius);
+    final divider = LearnDesignTokens.divider(context);
+
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      margin: const EdgeInsets.fromLTRB(horizontalInset, 0, horizontalInset, 0),
       decoration: BoxDecoration(
         color: LearnDesignTokens.cardBg(context),
-        borderRadius:
-            BorderRadius.circular(LearnDesignTokens.activityCardRadius),
-        border: Border.all(color: LearnDesignTokens.divider(context)),
+        borderRadius: const BorderRadius.only(
+          topLeft: topRadius,
+          topRight: topRadius,
+        ),
+        border: Border(
+          top: BorderSide(color: divider),
+          left: BorderSide(color: divider),
+          right: BorderSide(color: divider),
+        ),
       ),
       clipBehavior: Clip.antiAlias,
-      child: child,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+            child: Text(
+              activityTypeLabel,
+              style: LearnDesignTokens.slbl(context).copyWith(
+                letterSpacing: 0.8,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          Expanded(child: child),
+        ],
+      ),
     );
   }
 }

@@ -30,10 +30,10 @@ class LearnQuizOptionTile extends StatelessWidget {
     if (revealed) {
       if (isCorrectOption) {
         borderColor = LearnDesignTokens.success;
-        bg = LearnDesignTokens.successBg;
+        bg = LearnDesignTokens.successBg(context);
       } else if (selected) {
         borderColor = LearnDesignTokens.error;
-        bg = LearnDesignTokens.errorBg;
+        bg = LearnDesignTokens.errorBg(context);
       }
     } else if (selected) {
       borderColor = AppColors.primaryColor;
@@ -170,7 +170,9 @@ class LearnQuizFeedbackBanner extends StatelessWidget {
       margin: const EdgeInsets.only(top: 8, bottom: 4),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isCorrect ? LearnDesignTokens.successBg : LearnDesignTokens.errorBg,
+        color: isCorrect
+            ? LearnDesignTokens.successBg(context)
+            : LearnDesignTokens.errorBg(context),
         borderRadius: BorderRadius.circular(8),
       ),
       child: TranslatedText(
@@ -178,8 +180,8 @@ class LearnQuizFeedbackBanner extends StatelessWidget {
         style: TextStyle(
           fontSize: 13,
           color: isCorrect
-              ? LearnDesignTokens.successText
-              : LearnDesignTokens.error,
+              ? LearnDesignTokens.successText(context)
+              : LearnDesignTokens.errorText(context),
           height: 1.4,
         ),
       ),

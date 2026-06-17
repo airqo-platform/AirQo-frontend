@@ -11,6 +11,7 @@ class LearnLessonContinuation {
   final String learnCourseId;
   final int unitIndex;
   final int lessonIndex;
+  final bool isNextUnit;
 
   const LearnLessonContinuation({
     required this.nextSlot,
@@ -21,6 +22,7 @@ class LearnLessonContinuation {
     required this.learnCourseId,
     required this.unitIndex,
     required this.lessonIndex,
+    this.isNextUnit = false,
   });
 
   KyaLesson? get nextLesson => nextSlot.apiLesson;

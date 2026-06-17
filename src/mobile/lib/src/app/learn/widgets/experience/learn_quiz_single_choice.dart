@@ -8,12 +8,14 @@ import 'package:flutter/material.dart';
 
 class LearnQuizSingleChoiceActivity extends StatefulWidget {
   final LearnQuizPayload quiz;
+  final String activityTypeLabel;
   final ValueChanged<LearnQuizGrade> onGraded;
   final VoidCallback onContinue;
 
   const LearnQuizSingleChoiceActivity({
     super.key,
     required this.quiz,
+    required this.activityTypeLabel,
     required this.onGraded,
     required this.onContinue,
   });
@@ -44,6 +46,7 @@ class _LearnQuizSingleChoiceActivityState
   @override
   Widget build(BuildContext context) {
     return LearnActivityCardShell(
+      activityTypeLabel: widget.activityTypeLabel,
       child: Column(
         children: [
           Expanded(

@@ -1,9 +1,10 @@
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:airqo/src/app/learn/formatting/learn_display_text.dart';
 import 'package:airqo/src/app/learn/models/learn_course_structure.dart';
 import 'package:airqo/src/app/learn/theme/learn_design_tokens.dart';
-import 'package:airqo/src/app/learn/widgets/learn_lesson_confetti.dart';
+import 'package:airqo/src/app/learn/widgets/learn_completion_sheet.dart';
 import 'package:airqo/src/app/learn/widgets/learn_sheet_button_styles.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
@@ -15,13 +16,15 @@ class LearnCourseCertificatePane extends StatefulWidget {
   final LearnCourseViewModel course;
   final LearnStageInfo stage;
   final VoidCallback onDone;
+  final DateTime completedAt;
 
-  const LearnCourseCertificatePane({
+  LearnCourseCertificatePane({
     super.key,
     required this.course,
     required this.stage,
     required this.onDone,
-  });
+    DateTime? completedAt,
+  }) : completedAt = completedAt ?? DateTime.now();
 
   @override
   State<LearnCourseCertificatePane> createState() =>
@@ -29,8 +32,14 @@ class LearnCourseCertificatePane extends StatefulWidget {
 }
 
 class _LearnCourseCertificatePaneState extends State<LearnCourseCertificatePane> {
+  static const _appDownloadUrl = 'https://airqo.net/explore-data';
+
   final _certificateKey = GlobalKey();
   bool _sharing = false;
+
+  String get _shareMessage =>
+      'I completed ${learnDisplayTitle(widget.course.plainTitleKey)} course on AirQo Learn! '
+      'Download the AirQo app and complete the course yourself: $_appDownloadUrl';
 
   Future<void> _shareCertificate() async {
     setState(() => _sharing = true);
@@ -51,7 +60,7 @@ class _LearnCourseCertificatePaneState extends State<LearnCourseCertificatePane>
 
       await Share.shareXFiles(
         [XFile(file.path)],
-        text: 'I completed ${widget.course.plainTitleKey} on AirQo Learn!',
+        text: _shareMessage,
       );
     } finally {
       if (mounted) setState(() => _sharing = false);
@@ -60,64 +69,71 @@ class _LearnCourseCertificatePaneState extends State<LearnCourseCertificatePane>
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
-                child: Column(
-                  children: [
-                    TranslatedText(
-                      'Course complete!',
-                      style: LearnDesignTokens.lessonTitle(context),
-                    ),
-                    const SizedBox(height: 6),
-                    TranslatedText(
-                      widget.stage.name,
-                      style: LearnDesignTokens.activitySubtitle(context),
-                    ),
-                    const SizedBox(height: 20),
-                    RepaintBoundary(
-                      key: _certificateKey,
-                      child: _CertificateCard(
-                        courseTitle: widget.course.plainTitleKey,
-                        stageName: widget.stage.name,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+    return LearnCompletionSheet.body(
+      context: context,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: LearnDesignTokens.successBg(context),
+              shape: BoxShape.circle,
             ),
-            SafeArea(
-              top: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                child: Column(
-                  children: [
-                    ElevatedButton(
-                      onPressed: _sharing ? null : _shareCertificate,
-                      style: learnExposurePrimaryButtonStyle(
-                        enabled: !_sharing,
-                      ),
-                      child: TranslatedText(
-                        _sharing ? 'Preparing...' : 'Share certificate',
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    OutlinedButton(
-                      onPressed: widget.onDone,
-                      style: learnExposureSecondaryButtonStyle(context),
-                      child: const TranslatedText('Done'),
-                    ),
-                  ],
-                ),
-              ),
+            child: const Icon(
+              LearnDesignTokens.completedCheckIcon,
+              size: 28,
+              color: LearnDesignTokens.success,
             ),
-          ],
+          ),
+          const SizedBox(height: 14),
+          TranslatedText(
+            'Course complete!',
+            style: LearnDesignTokens.completionTitle(context),
+          ),
+          const SizedBox(height: 4),
+          TranslatedText(
+            learnDisplayTitle(widget.course.plainTitleKey),
+            textAlign: TextAlign.center,
+            style: LearnDesignTokens.completionSubtitle(context),
+          ),
+          const SizedBox(height: 16),
+          RepaintBoundary(
+            key: _certificateKey,
+            child: _CertificateCard(
+              courseTitle: widget.course.plainTitleKey,
+              stageName: widget.stage.name,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            learnCourseCompletionTime(widget.completedAt),
+            textAlign: TextAlign.center,
+            style: LearnDesignTokens.completionCaption(context),
+          ),
+          const SizedBox(height: 4),
+          TranslatedText(
+            '(${learnCourseCompletionRarityLabel()})',
+            textAlign: TextAlign.center,
+            style: LearnDesignTokens.completionCaption(context),
+          ),
+        ],
+      ),
+      actions: [
+        ElevatedButton(
+          onPressed: _sharing ? null : _shareCertificate,
+          style: learnExposurePrimaryButtonStyle(enabled: !_sharing),
+          child: TranslatedText(
+            _sharing ? 'Preparing...' : 'Share certificate',
+          ),
         ),
-        const LearnLessonConfetti(),
+        const SizedBox(height: 8),
+        OutlinedButton(
+          onPressed: widget.onDone,
+          style: learnExposureSecondaryButtonStyle(context),
+          child: const TranslatedText('Done'),
+        ),
       ],
     );
   }

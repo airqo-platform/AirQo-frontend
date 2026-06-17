@@ -1,5 +1,6 @@
 import 'package:airqo/src/app/learn/models/learn_course_structure.dart';
 import 'package:airqo/src/app/learn/theme/learn_design_tokens.dart';
+import 'package:airqo/src/app/learn/widgets/learn_bottom_sheets.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
@@ -29,14 +30,12 @@ class _LearnLevelSummaryCardState extends State<LearnLevelSummaryCard> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final progress = widget.maxPoints > 0
         ? widget.earnedPoints / widget.maxPoints
         : widget.totalLessons > 0
             ? widget.completedLessons / widget.totalLessons
             : 0.0;
-    final iconBg =
-        isDark ? AppColors.darkThemeBackground : const Color(0xffF0F4FF);
+    final iconBg = LearnDesignTokens.iconBg(context);
     final stages = LearnCatalog.stages;
 
     return GestureDetector(
@@ -101,12 +100,23 @@ class _LearnLevelSummaryCardState extends State<LearnLevelSummaryCard> {
                           : '${widget.completedLessons} / ${widget.totalLessons} lessons',
                       style: LearnDesignTokens.activitySubtitle(context),
                     ),
-                    TranslatedText(
-                      _expanded ? 'Hide levels' : 'See all levels',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: LearnDesignTokens.primary(context),
-                        fontWeight: FontWeight.w500,
+                    GestureDetector(
+                      onTap: () {
+                        if (_expanded) {
+                          setState(() => _expanded = false);
+                          return;
+                        }
+                        setState(() => _expanded = true);
+                        LearnBottomSheets.showLevelUnlockDemo(context);
+                      },
+                      behavior: HitTestBehavior.opaque,
+                      child: TranslatedText(
+                        _expanded ? 'Hide levels' : 'See all levels',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: LearnDesignTokens.primary(context),
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ],
@@ -182,7 +192,7 @@ class _LevelNode extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: done
-                  ? LearnDesignTokens.successBg
+                  ? LearnDesignTokens.successBg(context)
                   : active
                       ? const Color(0xffE8F0FF)
                       : Theme.of(context).highlightColor,

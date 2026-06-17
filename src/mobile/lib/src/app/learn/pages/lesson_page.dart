@@ -46,6 +46,7 @@ class LessonPage extends StatelessWidget {
       lessonsInUnit: lessonsInUnit,
       allCourses: allCourses,
       continuation: continuation,
+      completionContext: context,
       onClose: () => Navigator.of(context).pop(),
     );
 

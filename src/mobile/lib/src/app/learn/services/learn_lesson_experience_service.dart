@@ -130,6 +130,19 @@ class LearnLessonExperienceService {
     ];
   }
 
+  static String activityTypeKey(LearnLessonActivity activity) {
+    switch (activity.type) {
+      case LearnActivityType.article:
+        return 'ARTICLE';
+      case LearnActivityType.video:
+        return 'VIDEO';
+      case LearnActivityType.image:
+        return 'IMAGE';
+      case LearnActivityType.quiz:
+        return 'QUIZ';
+    }
+  }
+
   static String activityLabel(LearnLessonActivity activity) {
     switch (activity.type) {
       case LearnActivityType.article:

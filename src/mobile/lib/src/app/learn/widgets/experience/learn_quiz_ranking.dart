@@ -8,12 +8,14 @@ import 'package:flutter/material.dart';
 
 class LearnQuizRankingActivity extends StatefulWidget {
   final LearnQuizPayload quiz;
+  final String activityTypeLabel;
   final ValueChanged<LearnQuizGrade> onGraded;
   final VoidCallback onContinue;
 
   const LearnQuizRankingActivity({
     super.key,
     required this.quiz,
+    required this.activityTypeLabel,
     required this.onGraded,
     required this.onContinue,
   });
@@ -43,14 +45,65 @@ class _LearnQuizRankingActivityState extends State<LearnQuizRankingActivity> {
     widget.onGraded(grade);
   }
 
+  Widget _rankRow(int listIndex, int displayIndex, int optionIndex) {
+    return ReorderableDelayedDragStartListener(
+      key: ValueKey(optionIndex),
+      index: listIndex,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        constraints: const BoxConstraints(minHeight: 56),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        decoration: BoxDecoration(
+          border: Border.all(color: LearnDesignTokens.divider(context)),
+          borderRadius: BorderRadius.circular(8),
+          color: LearnDesignTokens.cardBg(context),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.drag_handle, color: LearnDesignTokens.muted(context)),
+            const SizedBox(width: 8),
+            Container(
+              width: 22,
+              height: 22,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: LearnDesignTokens.divider(context),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                '${displayIndex + 1}',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: LearnDesignTokens.headline(context),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: TranslatedText(
+                widget.quiz.options[optionIndex],
+                style: TextStyle(
+                  fontSize: 14,
+                  color: LearnDesignTokens.headline(context),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return LearnActivityCardShell(
+      activityTypeLabel: widget.activityTypeLabel,
       child: Column(
         children: [
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -63,73 +116,45 @@ class _LearnQuizRankingActivityState extends State<LearnQuizRankingActivity> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  ReorderableListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _order.length,
-                    onReorder: (oldIndex, newIndex) {
-                      if (_submitted) return;
-                      setState(() {
-                        if (newIndex > oldIndex) newIndex -= 1;
-                        final item = _order.removeAt(oldIndex);
-                        _order.insert(newIndex, item);
-                      });
-                    },
-                    itemBuilder: (context, index) {
-                      final optionIndex = _order[index];
-                      return Container(
-                        key: ValueKey(optionIndex),
-                        margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: LearnDesignTokens.divider(context),
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                          color: LearnDesignTokens.cardBg(context),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.drag_handle,
-                              color: LearnDesignTokens.muted(context),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              width: 22,
-                              height: 22,
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: LearnDesignTokens.primary(context)
-                                    .withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                '${index + 1}',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: LearnDesignTokens.primary(context),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: TranslatedText(
-                                widget.quiz.options[optionIndex],
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: LearnDesignTokens.headline(context),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+                  Expanded(
+                    child: Theme(
+                      data: Theme.of(context).copyWith(
+                        canvasColor: Colors.transparent,
+                        splashColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                      ),
+                      child: ReorderableListView.builder(
+                        buildDefaultDragHandles: false,
+                        itemCount: _order.length,
+                        proxyDecorator: (child, index, animation) {
+                          return AnimatedBuilder(
+                            animation: animation,
+                            builder: (context, child) {
+                              return Material(
+                                type: MaterialType.transparency,
+                                elevation: 0,
+                                color: Colors.transparent,
+                                shadowColor: Colors.transparent,
+                                child: child,
+                              );
+                            },
+                            child: child,
+                          );
+                        },
+                        onReorder: (oldIndex, newIndex) {
+                          if (_submitted) return;
+                          setState(() {
+                            if (newIndex > oldIndex) newIndex -= 1;
+                            final item = _order.removeAt(oldIndex);
+                            _order.insert(newIndex, item);
+                          });
+                        },
+                        itemBuilder: (context, index) {
+                          final optionIndex = _order[index];
+                          return _rankRow(index, index, optionIndex);
+                        },
+                      ),
+                    ),
                   ),
                   if (_grade != null)
                     LearnQuizFeedbackBanner(

@@ -55,12 +55,26 @@ class LearnLessonThumbnail extends StatelessWidget {
   }
 
   static Color progressTrackColorFor(int unitIndex, int lessonIndex) {
-    return numberColorFor(unitIndex, lessonIndex).withValues(alpha: 0.35);
+    return Colors.white.withValues(alpha: 0.35);
   }
+
+  /// Light mode: dark accent from the gradient palette. Dark mode: white text.
+  static Color contentColorFor(
+    BuildContext context,
+    int unitIndex,
+    int lessonIndex,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    if (isDark) return Colors.white;
+    return numberColorFor(unitIndex, lessonIndex);
+  }
+
+  static const Color progressFillColor = Colors.white;
 
   @override
   Widget build(BuildContext context) {
-    final numberColor = numberColorFor(unitIndex, lessonIndex);
+    final contentColor =
+        LearnLessonThumbnail.contentColorFor(context, unitIndex, lessonIndex);
 
     return SizedBox(
       width: double.infinity,
@@ -82,7 +96,7 @@ class LearnLessonThumbnail extends StatelessWidget {
                 fontSize: 44,
                 fontWeight: FontWeight.w800,
                 height: 1,
-                color: numberColor,
+                color: contentColor,
               ),
             ),
           ),
@@ -119,7 +133,11 @@ class LearnLessonExperienceBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const textColor = Colors.white;
+    final contentColor = LearnLessonThumbnail.contentColorFor(
+      context,
+      unitIndex,
+      lessonIndex,
+    );
     final trackColor =
         LearnLessonThumbnail.progressTrackColorFor(unitIndex, lessonIndex);
 
@@ -144,11 +162,11 @@ class LearnLessonExperienceBanner extends StatelessWidget {
               right: 14,
               child: Text(
                 '${lessonIndex + 1}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 44,
                   fontWeight: FontWeight.w800,
                   height: 1,
-                  color: textColor,
+                  color: contentColor,
                 ),
               ),
             ),
@@ -164,23 +182,23 @@ class LearnLessonExperienceBanner extends StatelessWidget {
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Text(
-                        '${learnLessonLabel(lessonIndex)} — ',
-                        style: const TextStyle(
+                        '${learnLessonLabel(lessonIndex)}: ',
+                        style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
                           letterSpacing: 0.5,
-                          color: textColor,
+                          color: contentColor,
                         ),
                       ),
                       TranslatedText(
                         lessonTitle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                           height: 1.2,
-                          color: textColor,
+                          color: contentColor,
                         ),
                       ),
                     ],
@@ -190,11 +208,11 @@ class LearnLessonExperienceBanner extends StatelessWidget {
                     activityName,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
                       height: 1.15,
-                      color: textColor,
+                      color: contentColor,
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -204,16 +222,16 @@ class LearnLessonExperienceBanner extends StatelessWidget {
                       value: progress.clamp(0.0, 1.0),
                       minHeight: 3,
                       backgroundColor: trackColor,
-                      color: textColor,
+                      color: LearnLessonThumbnail.progressFillColor,
                     ),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     activityProgressLabel,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
-                      color: textColor,
+                      color: contentColor,
                     ),
                   ),
                 ],
