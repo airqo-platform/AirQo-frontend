@@ -90,10 +90,13 @@ class _StatusIcon extends StatelessWidget {
     switch (status) {
       case LearnUnitStatus.locked:
         icon = Icons.lock_outline;
+        break;
       case LearnUnitStatus.completed:
         icon = LearnDesignTokens.completedCheckIcon;
+        break;
       case LearnUnitStatus.inProgress:
         icon = Icons.timelapse;
+        break;
     }
 
     return Icon(icon, size: 14, color: color);
