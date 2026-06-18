@@ -29,9 +29,26 @@ const PRODUCTS: Product[] = [
         icon: AqBarChartSquarePlus,
     },
     {
+        title: 'API',
+        path: '/docs/api',
+        icon: AqDataflow01,
+    },
+    {
         title: 'Vertex',
         path: '/docs/vertex',
         icon: AqServer03,
+    },
+    {
+        title: 'Data Access',
+        path: '/docs/data-access',
+        icon: AqDatabase01,
+        landingPath: '/docs/data-access/researchers-guide',
+    },
+    {
+        title: 'Cross Product Features',
+        path: '/docs/cross-product',
+        icon: AqCube02,
+        landingPath: '/docs/cross-product/concepts/access-control',
     },
     {
         title: 'Beacon',
@@ -46,27 +63,10 @@ const PRODUCTS: Product[] = [
         disabled: true,
     },
     {
-        title: 'API',
-        path: '/docs/api',
-        icon: AqDataflow01,
-    },
-    {
         title: 'Mobile App',
         path: '/docs/mobile-app',
         icon: AqPhone01,
         disabled: true,
-    },
-    {
-        title: 'Cross Product Features',
-        path: '/docs/cross-product',
-        icon: AqCube02,
-        landingPath: '/docs/cross-product/concepts/access-control',
-    },
-    {
-        title: 'Data Access',
-        path: '/docs/data-access',
-        icon: AqDatabase01,
-        landingPath: '/docs/data-access/researchers-guide',
     },
 ];
 
