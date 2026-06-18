@@ -266,7 +266,7 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
       hasShownOfflineToastRef.current = false;
       showBanner({ severity: 'success', message: 'Connection restored.', scoped: false });
     }
-  }, [isOnline, cachedUser, fetchStatus]);
+  }, [isOnline, cachedUser, fetchStatus, showBanner]);
 
   // Handle errors (only real errors, not offline state)
   useEffect(() => {
@@ -286,7 +286,7 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
         showBanner({ severity: 'error', message: `Could not load user details: ${getApiErrorMessage(error)}`, scoped: false });
       }
     }
-  }, [isError, error, isOnline, cachedUser, fetchStatus]);
+  }, [isError, error, isOnline, cachedUser, fetchStatus, showBanner]);
 
   // Handle successful data fetching
   useEffect(() => {
@@ -627,7 +627,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       setHasHandledUnauthorized(true);
       logout();
     }
-  }, [logout, update, isPublicRoute, hasHandledUnauthorized, isLoggingOut, checkAccountDeletionFlag]);
+  }, [logout, update, isPublicRoute, hasHandledUnauthorized, isLoggingOut, checkAccountDeletionFlag,showBanner]);
 
   // Listen for auth token expiration events
   useEffect(() => {
