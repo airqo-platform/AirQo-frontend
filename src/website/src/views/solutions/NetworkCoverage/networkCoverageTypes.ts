@@ -38,16 +38,30 @@ export interface NetworkCoverageMonitor {
   viewDataUrl: string;
 }
 
+export interface NetworkCoverageCountryStats {
+  total: number;
+  Reference: number;
+  LCS: number;
+  Inactive: number;
+  active: number;
+  inactive: number;
+}
+
 export interface NetworkCoverageCountry {
   id: string;
   country: string;
   iso2: string;
+  stats?: NetworkCoverageCountryStats;
   monitors: NetworkCoverageMonitor[];
 }
 
 export interface NetworkCoverageSummaryMeta {
   totalCountries: number;
   monitoredCountries: number;
+  totalMonitors?: number;
+  totalPopulationReached?: number | null;
+  citiesWithPopulationData?: number;
+  availableNetworks?: string[];
   generatedAt: string;
 }
 
@@ -78,6 +92,7 @@ export interface NetworkCoverageQueryParams {
   search?: string;
   activeOnly?: boolean;
   types?: string;
+  network?: string;
   countryId?: string;
 }
 
@@ -291,10 +306,24 @@ export const normalizeNetworkCoverageCountry = (
   const iso2 =
     normalizeIso2(source.iso2, '') || lookupIso2ForCountry(countryName);
 
+  const rawStats = source.stats;
+  const stats: NetworkCoverageCountryStats | undefined =
+    rawStats && typeof rawStats === 'object'
+      ? {
+          total: normalizeNumber(rawStats.total, 0) ?? 0,
+          Reference: normalizeNumber(rawStats.Reference, 0) ?? 0,
+          LCS: normalizeNumber(rawStats.LCS, 0) ?? 0,
+          Inactive: normalizeNumber(rawStats.Inactive, 0) ?? 0,
+          active: normalizeNumber(rawStats.active, 0) ?? 0,
+          inactive: normalizeNumber(rawStats.inactive, 0) ?? 0,
+        }
+      : undefined;
+
   return {
     id: normalizeString(source.id || normalizeCountryId(countryName)),
     country: countryName,
     iso2,
+    stats,
     monitors: rawMonitors.map((monitor: any) =>
       normalizeNetworkCoverageMonitor(monitor),
     ),
@@ -311,6 +340,8 @@ export const normalizeNetworkCoverageSummary = (
       )
     : [];
 
+  const meta = source.meta ?? {};
+
   return {
     success: source.success !== false,
     message: normalizeString(
@@ -323,11 +354,11 @@ export const normalizeNetworkCoverageSummary = (
     ),
     meta: {
       totalCountries:
-        normalizeNumber(source.meta?.totalCountries, countries.length) ??
+        normalizeNumber(meta.totalCountries, countries.length) ??
         countries.length,
       monitoredCountries:
         normalizeNumber(
-          source.meta?.monitoredCountries,
+          meta.monitoredCountries,
           countries.filter(
             (country: NetworkCoverageCountry) =>
               country.monitors && country.monitors.length > 0,
@@ -337,7 +368,221 @@ export const normalizeNetworkCoverageSummary = (
           (country: NetworkCoverageCountry) =>
             country.monitors && country.monitors.length > 0,
         ).length,
-      generatedAt: normalizeString(source.meta?.generatedAt),
+      totalMonitors: normalizeNumber(meta.totalMonitors) ?? undefined,
+      totalPopulationReached: normalizeNumber(meta.totalPopulationReached),
+      citiesWithPopulationData:
+        normalizeNumber(meta.citiesWithPopulationData) ?? undefined,
+      availableNetworks: Array.isArray(meta.availableNetworks)
+        ? meta.availableNetworks
+            .map((n: unknown) => normalizeString(n))
+            .filter(Boolean)
+        : undefined,
+      generatedAt: normalizeString(meta.generatedAt),
     },
+  };
+};
+
+// ── /impact endpoint types ────────────────────────────────────────────────
+
+export interface ImpactCountryEntry {
+  country: string;
+  iso2: string;
+  population: number | null;
+  total: number;
+  Reference: number;
+  LCS: number;
+  active: number;
+  inactive: number;
+}
+
+export interface ImpactCityEntry {
+  city: string;
+  country: string;
+  iso2: string;
+  population: number | null;
+  total: number;
+  Reference: number;
+  LCS: number;
+  active: number;
+  inactive: number;
+}
+
+export interface ImpactManufacturerEntry {
+  sensorManufacturer: string;
+  totalMonitors: number;
+  byType: { Reference: number; LCS: number; Inactive: number };
+  byStatus: { active: number; inactive: number };
+  totalCities: number;
+  totalCountries: number;
+  totalPopulationReached: number | null;
+  citiesWithPopulationData: number;
+  byCountry: ImpactCountryEntry[];
+  byCity: ImpactCityEntry[];
+}
+
+export interface NetworkCoverageImpact {
+  totalMonitors: number;
+  byType: { Reference: number; LCS: number; Inactive: number };
+  byStatus: { active: number; inactive: number };
+  totalCities: number;
+  totalCountries: number;
+  totalPopulationReached: number | null;
+  citiesWithPopulationData: number;
+  byCountry: ImpactCountryEntry[];
+  byCity: ImpactCityEntry[];
+  bySensorManufacturer: ImpactManufacturerEntry[];
+  generatedAt: string;
+}
+
+export interface NetworkCoverageImpactResponse {
+  success: boolean;
+  message: string;
+  impact: NetworkCoverageImpact;
+}
+
+// ── /cities endpoint types ────────────────────────────────────────────────
+
+export interface CityPopulationEntry {
+  _id: string;
+  city: string;
+  displayCity: string;
+  country: string;
+  displayCountry: string;
+  iso2: string;
+  population: number;
+  year: number;
+  source: string;
+  notes?: string;
+}
+
+export interface NetworkCoverageCitiesResponse {
+  success: boolean;
+  cities: CityPopulationEntry[];
+}
+
+// ── Normalizers for /impact ───────────────────────────────────────────────
+
+export const normalizeImpactCountryEntry = (
+  entry: any,
+): ImpactCountryEntry => ({
+  country: normalizeString(entry?.country),
+  iso2: normalizeIso2(entry?.iso2),
+  population:
+    entry?.population === null || entry?.population === undefined
+      ? null
+      : normalizeNumber(entry.population),
+  total: normalizeNumber(entry?.total, 0) ?? 0,
+  Reference: normalizeNumber(entry?.Reference, 0) ?? 0,
+  LCS: normalizeNumber(entry?.LCS, 0) ?? 0,
+  active: normalizeNumber(entry?.active, 0) ?? 0,
+  inactive: normalizeNumber(entry?.inactive, 0) ?? 0,
+});
+
+export const normalizeImpactCityEntry = (entry: any): ImpactCityEntry => ({
+  city: normalizeString(entry?.city),
+  country: normalizeString(entry?.country),
+  iso2: normalizeIso2(entry?.iso2),
+  population:
+    entry?.population === null || entry?.population === undefined
+      ? null
+      : normalizeNumber(entry.population),
+  total: normalizeNumber(entry?.total, 0) ?? 0,
+  Reference: normalizeNumber(entry?.Reference, 0) ?? 0,
+  LCS: normalizeNumber(entry?.LCS, 0) ?? 0,
+  active: normalizeNumber(entry?.active, 0) ?? 0,
+  inactive: normalizeNumber(entry?.inactive, 0) ?? 0,
+});
+
+export const normalizeNetworkCoverageImpact = (
+  data: any,
+): NetworkCoverageImpactResponse => {
+  const source = data ?? {};
+  const impact = source.impact ?? {};
+
+  return {
+    success: source.success !== false,
+    message: normalizeString(
+      source.message,
+      'Impact summary retrieved successfully',
+    ),
+    impact: {
+      totalMonitors: normalizeNumber(impact.totalMonitors, 0) ?? 0,
+      byType: {
+        Reference: normalizeNumber(impact.byType?.Reference, 0) ?? 0,
+        LCS: normalizeNumber(impact.byType?.LCS, 0) ?? 0,
+        Inactive: normalizeNumber(impact.byType?.Inactive, 0) ?? 0,
+      },
+      byStatus: {
+        active: normalizeNumber(impact.byStatus?.active, 0) ?? 0,
+        inactive: normalizeNumber(impact.byStatus?.inactive, 0) ?? 0,
+      },
+      totalCities: normalizeNumber(impact.totalCities, 0) ?? 0,
+      totalCountries: normalizeNumber(impact.totalCountries, 0) ?? 0,
+      totalPopulationReached: normalizeNumber(impact.totalPopulationReached),
+      citiesWithPopulationData:
+        normalizeNumber(impact.citiesWithPopulationData, 0) ?? 0,
+      byCountry: Array.isArray(impact.byCountry)
+        ? impact.byCountry.map(normalizeImpactCountryEntry)
+        : [],
+      byCity: Array.isArray(impact.byCity)
+        ? impact.byCity.map(normalizeImpactCityEntry)
+        : [],
+      bySensorManufacturer: Array.isArray(impact.bySensorManufacturer)
+        ? impact.bySensorManufacturer.map((m: any) => ({
+            sensorManufacturer: normalizeString(m?.sensorManufacturer),
+            totalMonitors: normalizeNumber(m?.totalMonitors, 0) ?? 0,
+            byType: {
+              Reference: normalizeNumber(m?.byType?.Reference, 0) ?? 0,
+              LCS: normalizeNumber(m?.byType?.LCS, 0) ?? 0,
+              Inactive: normalizeNumber(m?.byType?.Inactive, 0) ?? 0,
+            },
+            byStatus: {
+              active: normalizeNumber(m?.byStatus?.active, 0) ?? 0,
+              inactive: normalizeNumber(m?.byStatus?.inactive, 0) ?? 0,
+            },
+            totalCities: normalizeNumber(m?.totalCities, 0) ?? 0,
+            totalCountries: normalizeNumber(m?.totalCountries, 0) ?? 0,
+            totalPopulationReached: normalizeNumber(m?.totalPopulationReached),
+            citiesWithPopulationData:
+              normalizeNumber(m?.citiesWithPopulationData, 0) ?? 0,
+            byCountry: Array.isArray(m?.byCountry)
+              ? m.byCountry.map(normalizeImpactCountryEntry)
+              : [],
+            byCity: Array.isArray(m?.byCity)
+              ? m.byCity.map(normalizeImpactCityEntry)
+              : [],
+          }))
+        : [],
+      generatedAt: normalizeString(impact.generatedAt),
+    },
+  };
+};
+
+// ── Normalizers for /cities ───────────────────────────────────────────────
+
+export const normalizeCityPopulationEntry = (
+  entry: any,
+): CityPopulationEntry => ({
+  _id: normalizeString(entry?._id),
+  city: normalizeString(entry?.city),
+  displayCity: normalizeString(entry?.displayCity || entry?.city),
+  country: normalizeString(entry?.country),
+  displayCountry: normalizeString(entry?.displayCountry || entry?.country),
+  iso2: normalizeIso2(entry?.iso2),
+  population: normalizeNumber(entry?.population, 0) ?? 0,
+  year: normalizeNumber(entry?.year, 0) ?? 0,
+  source: normalizeString(entry?.source),
+  notes: normalizeString(entry?.notes),
+});
+
+export const normalizeNetworkCoverageCities = (
+  data: any,
+): NetworkCoverageCitiesResponse => {
+  const source = data ?? {};
+  return {
+    success: source.success !== false,
+    cities: Array.isArray(source.cities)
+      ? source.cities.map(normalizeCityPopulationEntry)
+      : [],
   };
 };

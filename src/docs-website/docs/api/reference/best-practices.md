@@ -9,11 +9,16 @@ Follow these guidelines to build reliable, efficient integrations with the AirQo
 
 ---
 
-## Authentication
+## Authentication & credentials
 
 - **Rotate tokens before they expire.** Tokens are valid for 7 months. Set a calendar reminder 2–3 weeks before expiry and update your token in all environments.
 - **Never expose your token in client-side code.** Always proxy API calls through your own backend when building web or mobile apps.
 - **Use environment variables** to store credentials — not hardcoded strings.
+- **Enable the Client Secret** (`X-Client-Secret` header) for all server-side integrations. It acts as a second factor: a leaked token cannot be used without the matching secret.
+- **Scope tokens to the minimum data they need.** Use the Token Security dialog to restrict a token to specific Grid IDs or Cohort IDs rather than granting access to your entire account.
+- **Set an access schedule** on tokens that only need to operate during defined hours. Requests outside the configured UTC window are automatically rejected.
+
+For a complete walkthrough of every security control available on the platform, see [Security Enhancements →](../getting-started/security.md).
 
 ---
 
@@ -22,6 +27,15 @@ Follow these guidelines to build reliable, efficient integrations with the AirQo
 - **Whitelist all egress IPs** your application uses. If you use load balancers or NAT gateways, whitelist those IPs too.
 - **Use a static egress IP** where possible to avoid maintaining a changing whitelist.
 - If you receive `200 OK` with empty `measurements`, check your whitelist first — this is the most common cause.
+
+---
+
+## Origin restriction (browser integrations)
+
+- **A backend proxy is always preferred.** Never expose your token in client-side code. If you can proxy API calls through your own server, do that instead of calling the API directly from a browser.
+- **If you must call the API directly from a browser, enable origin restriction** on that client. Without it, any website can make requests using your token.
+- **Use the full origin with protocol** (`https://app.example.com`, not `app.example.com`). Entries without a protocol will be rejected by the platform.
+- **Do not enable origin restriction for server-side clients.** Server requests do not send an `Origin` header, so enabling it would block your own backend.
 
 ---
 
@@ -80,13 +94,22 @@ def api_request_with_backoff(url, token, payload, max_retries=4):
 
 ## Development checklist
 
-- [ ] Token stored in environment variable, not code
-- [ ] Server IPs whitelisted
+**Credentials & security**
+
+- [ ] Token stored in environment variable or secrets manager — not in code
+- [ ] Client Secret enabled and stored securely for server-side clients
+- [ ] Server egress IPs whitelisted on the API client
+- [ ] Origin restriction enabled with an explicit allowlist for browser clients
+- [ ] Token scoped to the minimum required Grids and Cohorts
+- [ ] Access schedule configured if integration has defined operating hours
+- [ ] Token expiry reminder set (rotate 2–3 weeks before expiry)
+
+**Integration quality**
+
 - [ ] Date ranges bounded (not open-ended)
 - [ ] Only necessary fields requested
 - [ ] Retry logic with exponential backoff implemented
 - [ ] Caching in place for frequently accessed data
-- [ ] Token expiry reminder set
 
 ---
 

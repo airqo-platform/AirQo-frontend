@@ -1,3 +1,5 @@
+declare module '*.css';
+
 interface VertexDesktopApi {
   getAppVersion: () => Promise<string>;
   getBranding: () => Promise<{ name: string; iconDataUrl: string }>;

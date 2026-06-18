@@ -17,16 +17,22 @@ Go to [https://analytics.airqo.net](https://analytics.airqo.net) and sign up for
 
 ## Step 2 — Generate your API credentials
 
-1. Click your profile icon in the top-right corner of the dashboard.
-2. Navigate to **Account Settings**.
-3. Find the **API Access** or **Credentials** section.
-4. Click **Generate Credentials** to create a new key pair.
-5. You will receive two values:
-   - **CLIENT** — identifies your application
-   - **SECRET TOKEN** — used to authenticate API requests
+1. Click your **profile icon** in the top-right corner of the dashboard.
+2. Select **Profile** from the dropdown menu.
+3. Navigate to the **API** tab (also accessible from the left-hand sidebar under your profile settings).
+4. You will see your list of **API Clients** — each client holds a token and a set of security controls.
+5. Click **Create Client** to create a new API client. Give it a descriptive name (e.g. `My App - Production`).
+6. Once created, click **Generate Token** on the client row to issue an access token.
+
+After generating a token, each API client exposes two credentials:
+
+| Credential | Where it appears | Purpose |
+|---|---|---|
+| **Access Token** (SECRET TOKEN) | Token column on the client row | Sent as `?token=` on every API request |
+| **Client Secret** | Edit Client dialog → *Require client secret* | Optional second factor sent as the `X-Client-Secret` header |
 
 :::warning Store your credentials securely
-Your `SECRET TOKEN` grants access to all data your account is authorised for. Treat it like a password — never expose it in client-side code or public repositories.
+Your access token grants access to all data your account is authorised for. Treat it like a password — never expose it in client-side code or public repositories. If you enable the Client Secret, protect it with the same care.
 :::
 
 ---
@@ -48,6 +54,13 @@ POST https://api.airqo.net/api/v3/public/analytics/raw-data?token=YOUR_SECRET_TO
 Content-Type: application/json
 ```
 
+If you have enabled the **Client Secret** requirement on your client, also include the secret in a request header:
+
+```http
+GET https://api.airqo.net/api/v2/devices/measurements/cohorts/{COHORT_ID}?token=YOUR_SECRET_TOKEN
+X-Client-Secret: YOUR_CLIENT_SECRET
+```
+
 ---
 
 ## Token expiration
@@ -62,14 +75,15 @@ Rotate your token before it expires. After generating a new token, update it in 
 
 ## IP whitelisting
 
-If you are making API calls from a server (as opposed to a browser), you must whitelist your server's public IP address in your AirQo account settings.
+If you are making API calls from a server (as opposed to a browser), you must whitelist your server's public IP address on your API client.
 
 **Without IP whitelisting, requests from server IPs will return empty data or an unauthorised error**, even when a valid token is supplied.
 
 To whitelist your IP:
-1. Go to **Account Settings** in [analytics.airqo.net](https://analytics.airqo.net).
-2. Find the **IP Whitelist** section.
-3. Add each public IP address that your servers will use.
+
+1. Go to **Profile → API** in [analytics.airqo.net](https://analytics.airqo.net).
+2. Click the **Edit** (pencil) icon on the relevant client.
+3. Add each public IP address your servers will use under **IP Addresses**.
 
 :::note Dynamic IPs
 If your servers use dynamic IP addresses (e.g. ephemeral cloud instances), consider routing API requests through a static NAT gateway or egress IP so you can maintain a stable whitelist.
@@ -77,7 +91,22 @@ If your servers use dynamic IP addresses (e.g. ephemeral cloud instances), consi
 
 ---
 
+## Additional security controls
+
+Beyond IP whitelisting, each API client and its token support several layers of protection that you can configure directly from the platform:
+
+- **Client Secret** — require a second credential (`X-Client-Secret` header) on every request
+- **Origin restriction** — limit browser-based requests to specific domain origins
+- **Data scope** — restrict a token to specific Grid IDs or Cohort IDs
+- **Access schedule** — permit requests only on certain days of the week and within UTC hour windows
+- **Auto-suspension** — automatic token suspension when suspicious activity is detected
+
+See [Security Enhancements →](./security.md) for a full walkthrough of every control.
+
+---
+
 ## Next steps
 
+- [Security Enhancements →](./security.md)
 - [Choose a subscription tier →](./pricing-tiers.md)
 - [Make your first API call →](./quick-start.md)

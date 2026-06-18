@@ -1,208 +1,65 @@
-import 'package:airqo/src/app/auth/pages/register_page.dart';
+import 'package:airqo/src/app/learn/models/learn_course_structure.dart';
+import 'package:airqo/src/app/learn/models/learn_lesson_continuation.dart';
 import 'package:airqo/src/app/learn/models/lesson_response_model.dart';
-import 'package:airqo/src/app/learn/pages/lesson_finished.dart';
-import 'package:airqo/src/app/shared/widgets/translated_text.dart';
-import 'package:flutter_card_swiper/flutter_card_swiper.dart';
+import 'package:airqo/src/app/learn/widgets/experience/learn_lesson_experience.dart';
 import 'package:flutter/material.dart';
 
+/// Hosts [LearnLessonExperience] inside a modal sheet or full-screen route.
+class LessonPage extends StatelessWidget {
+  final LearnLessonSlot slot;
+  final KyaLesson? apiLesson;
+  final LearnCourseViewModel course;
+  final int unitIndex;
+  final int lessonIndex;
+  final String unitPlainTitle;
+  final int lessonNumberInUnit;
+  final int lessonsInUnit;
+  final List<LearnCourseViewModel>? allCourses;
+  final LearnLessonContinuation? continuation;
+  final bool presentedAsModalSheet;
 
-class LessonPage extends StatefulWidget {
-  final KyaLesson lesson;
-
-  const LessonPage(this.lesson, {super.key});
-  @override
-  State<LessonPage> createState() => _LessonPageState();
-}
-
-class _LessonPageState extends State<LessonPage> {
-  CardSwiperController? controller;
-
-  int currentIndex = 0;
-
-  void changeIndex(int index) {
-    setState(() {
-      currentIndex = index;
-    });
-  }
-
-  bool finished = false;
-
-  @override
-  void initState() {
-    controller = CardSwiperController();
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    controller!.dispose();
-    super.dispose();
-  }
+  const LessonPage({
+    super.key,
+    required this.slot,
+    required this.course,
+    required this.unitIndex,
+    required this.lessonIndex,
+    required this.unitPlainTitle,
+    this.apiLesson,
+    this.lessonNumberInUnit = 1,
+    this.lessonsInUnit = 1,
+    this.allCourses,
+    this.continuation,
+    this.presentedAsModalSheet = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Theme.of(context).scaffoldBackgroundColor,
-      child: Scaffold(
-        appBar: AppBar(
-          title: TranslatedText("Lesson"),
-          centerTitle: true,
-        ),
-        body: finished
-            ? LessonFinishedWidget()
-            : Column(
-                children: [
-                  SizedBox(
-                      height: 6,
-                      child: StepperWidget(
-                          green: true,
-                          currentIndex: currentIndex,
-                          count: widget.lesson.tasks.length)),
-                  Expanded(
-                    flex: 2,
-                    child: SizedBox(
-                      height: 400,
-                      child: CardSwiper(
-                        allowedSwipeDirection: AllowedSwipeDirection.none(),
-                        onSwipe: (previousIndex, idx, direction) async {
-                          changeIndex(idx!);
+    final experience = LearnLessonExperience(
+      slot: slot,
+      apiLesson: apiLesson ?? slot.apiLesson,
+      course: course,
+      unitIndex: unitIndex,
+      lessonIndex: lessonIndex,
+      unitPlainTitle: unitPlainTitle,
+      lessonNumberInUnit: lessonNumberInUnit,
+      lessonsInUnit: lessonsInUnit,
+      allCourses: allCourses,
+      continuation: continuation,
+      completionContext: context,
+      onClose: () => Navigator.of(context).pop(),
+    );
 
-                          if (currentIndex == widget.lesson.tasks.length - 1) {
-                            await Future.delayed(Duration(seconds: 3));
+    if (presentedAsModalSheet) {
+      return SizedBox.expand(child: experience);
+    }
 
-                            setState(() {
-                              finished = true;
-                            });
-                          }
-
-                          return true;
-                        },
-                        onUndo: (previousIndex, idx, direction) {
-                          changeIndex(idx);
-                          return true;
-                        },
-                        controller: controller,
-                        cardsCount: widget.lesson.tasks.length,
-                        cardBuilder: (context, index, percentThresholdX,
-                                percentThresholdY) =>
-                            CardContent(data: widget.lesson.tasks[index]),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                      flex: 1,
-                      child: Column(
-                          children: [
-                            SizedBox(height: 16),
-                            Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  GestureDetector(
-                                    onTap: () => controller!.undo(),
-                                    child: Container(
-                                      height: 62,
-                                      width: 78,
-                                      decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(40),
-                                          color:
-                                              Theme.of(context).highlightColor),
-                                      child: Center(
-                                        child: Icon(
-                                          Icons.arrow_back_ios,
-                                          color: Colors.black,
-                                          size: 17,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(width: 8),
-                                  GestureDetector(
-                                    onTap: () => controller!
-                                        .swipe(CardSwiperDirection.left),
-                                    child: Container(
-                                      height: 62,
-                                      width: 78,
-                                      decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(40),
-                                          color: Color(0xff57D175)),
-                                      child: Center(
-                                        child: Icon(
-                                          Icons.arrow_forward_ios,
-                                          color: Colors.black,
-                                          size: 17,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ])
-                          ],
-                        ),
-                      )
-                ],
-              ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Lesson'),
+        centerTitle: true,
       ),
+      body: experience,
     );
   }
-}
-
-class CardContent extends StatelessWidget {
-  final Task data;
-  const CardContent({super.key, required this.data});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-          image: DecorationImage(
-              image: NetworkImage(data.image), fit: BoxFit.cover),
-          color: Colors.blue,
-          borderRadius: BorderRadius.circular(8)),
-      alignment: Alignment.center,
-      child: Column(
-        children: [
-          Spacer(),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-                color: Color(0xff57D175),
-                borderRadius: BorderRadius.only(
-                    bottomRight: Radius.circular(8),
-                    bottomLeft: Radius.circular(8))),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TranslatedText(
-                  data.title,
-                  style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black),
-                ),
-                SizedBox(height: 8),
-                TranslatedText(
-                  data.content,
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black),
-                ),
-                SizedBox(height: 4),
-              ],
-            ),
-          )
-        ],
-      ),
-    );
-  }
-}
-
-class CardContentData {
-  final String title;
-  final String text;
-
-  const CardContentData({required this.title, required this.text});
 }

@@ -63,18 +63,8 @@ class MapAirQualityCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       child: BackdropFilter(
         filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-        child: Container(
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.darkHighlight : Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.10),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
+          child: Container(
+          decoration: AppSurfaceColors.elevatedCardDecoration(context),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,

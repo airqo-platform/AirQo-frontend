@@ -38,8 +38,8 @@ class DeclaredPlaceCard extends StatelessWidget {
     final hoursColor =
         isDark ? AppColors.boldHeadlineColor2 : AppColors.boldHeadlineColor3;
     // Inset elements (icon, divider) use the dark scaffold bg so they sink into the card
-    final iconBg = isDark ? AppColors.darkThemeBackground : AppColors.dividerColorlight;
-    final dividerColor = isDark ? AppColors.dividerColordark : AppColors.dividerColorlight;
+    final iconBg = AppSurfaceColors.nested(context);
+    final dividerColor = AppSurfaceColors.border(context);
     final isAbsent = place.isAbsentOn(dayOfView);
     final window = place.windowFor(dayOfView);
 
@@ -58,17 +58,7 @@ class DeclaredPlaceCard extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.10),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      decoration: AppSurfaceColors.elevatedCardDecoration(context, radius: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

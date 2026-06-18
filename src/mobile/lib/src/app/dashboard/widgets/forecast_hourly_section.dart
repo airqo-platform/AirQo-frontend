@@ -15,6 +15,9 @@ class ForecastHourlySection extends StatelessWidget {
   final bool isLoading;
   final String? errorMessage;
   final bool isDark;
+  final bool onInsetPanel;
+  final int selectedHourIndex;
+  final ValueChanged<int>? onHourSelected;
 
   const ForecastHourlySection({
     super.key,
@@ -24,6 +27,9 @@ class ForecastHourlySection extends StatelessWidget {
     this.isLoading = false,
     this.errorMessage,
     required this.isDark,
+    this.onInsetPanel = false,
+    this.selectedHourIndex = 0,
+    this.onHourSelected,
   });
 
   @override
@@ -35,14 +41,6 @@ class ForecastHourlySection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Hourly Forecast',
-          style: Theme.of(context)
-              .textTheme
-              .titleSmall
-              ?.copyWith(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 12),
         if (isLoading)
           SizedBox(
             height: 100,
@@ -57,12 +55,16 @@ class ForecastHourlySection extends StatelessWidget {
             ),
           )
         else if (errorMessage != null)
-          _ErrorRow(siteId: siteId, isDark: isDark)
+          _ErrorRow(siteId: siteId, onInsetPanel: onInsetPanel)
         else
           _HourlyList(
-              hourlyResponse: hourlyResponse!,
-              selectedDate: selectedDate,
-              isDark: isDark),
+            hourlyResponse: hourlyResponse!,
+            selectedDate: selectedDate,
+            isDark: isDark,
+            onInsetPanel: onInsetPanel,
+            selectedHourIndex: selectedHourIndex,
+            onHourSelected: onHourSelected,
+          ),
       ],
     );
   }
@@ -70,17 +72,18 @@ class ForecastHourlySection extends StatelessWidget {
 
 class _ErrorRow extends StatelessWidget {
   final String siteId;
-  final bool isDark;
+  final bool onInsetPanel;
 
-  const _ErrorRow({required this.siteId, required this.isDark});
+  const _ErrorRow({required this.siteId, this.onInsetPanel = false});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
+        color: AppSurfaceColors.nested(context),
         borderRadius: BorderRadius.circular(12),
-        color: isDark ? AppColors.darkHighlight : AppColors.highlightColor,
+        border: Border.all(color: AppSurfaceColors.border(context)),
       ),
       child: Row(
         children: [
@@ -90,7 +93,7 @@ class _ErrorRow extends StatelessWidget {
             child: Text(
               'Hourly data unavailable',
               style: TextStyle(
-                  fontSize: 13, color: AppColors.boldHeadlineColor),
+                  fontSize: 13, color: AppTextColors.muted(context)),
             ),
           ),
           TextButton(
@@ -109,12 +112,22 @@ class _HourlyList extends StatelessWidget {
   final HourlyForecastResponse hourlyResponse;
   final DateTime selectedDate;
   final bool isDark;
+  final bool onInsetPanel;
+  final int selectedHourIndex;
+  final ValueChanged<int>? onHourSelected;
 
   const _HourlyList({
     required this.hourlyResponse,
     required this.selectedDate,
     required this.isDark,
+    this.onInsetPanel = false,
+    required this.selectedHourIndex,
+    this.onHourSelected,
   });
+
+  Color _surfaceColor(BuildContext context) => onInsetPanel
+      ? AppSurfaceColors.panelChip(context)
+      : AppSurfaceColors.nested(context);
 
   @override
   Widget build(BuildContext context) {
@@ -129,18 +142,19 @@ class _HourlyList extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
+          color: _surfaceColor(context),
           borderRadius: BorderRadius.circular(12),
-          color: isDark ? AppColors.darkHighlight : AppColors.highlightColor,
+          border: Border.all(color: AppSurfaceColors.border(context)),
         ),
         child: Row(
           children: [
             Icon(Icons.schedule_rounded,
-                size: 16, color: AppColors.boldHeadlineColor),
+                size: 16, color: AppTextColors.muted(context)),
             const SizedBox(width: 8),
             Text(
               'No hourly data available for this day.',
               style: TextStyle(
-                  fontSize: 13, color: AppColors.boldHeadlineColor),
+                  fontSize: 13, color: AppTextColors.muted(context)),
             ),
           ],
         ),
@@ -158,7 +172,15 @@ class _HourlyList extends StatelessWidget {
           final entry = dayEntries[i];
           final isNow = entry.time.toLocal().hour == now.hour &&
               selectedDateStr == nowStr;
-          return _HourlyChip(entry: entry, isNow: isNow, isDark: isDark);
+          final isSelected = onHourSelected != null
+              ? i == selectedHourIndex.clamp(0, dayEntries.length - 1)
+              : isNow;
+          return _HourlyChip(
+            entry: entry,
+            isSelected: isSelected,
+            onInsetPanel: onInsetPanel,
+            onTap: onHourSelected != null ? () => onHourSelected!(i) : null,
+          );
         },
       ),
     );
@@ -167,31 +189,41 @@ class _HourlyList extends StatelessWidget {
 
 class _HourlyChip extends StatelessWidget {
   final HourlyForecastEntry entry;
-  final bool isNow;
-  final bool isDark;
+  final bool isSelected;
+  final bool onInsetPanel;
+  final VoidCallback? onTap;
 
-  const _HourlyChip(
-      {required this.entry, required this.isNow, required this.isDark});
+  const _HourlyChip({
+    required this.entry,
+    required this.isSelected,
+    this.onInsetPanel = false,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
+    final inactiveTextColor =
+        isDarkTheme ? Colors.white : AppTextColors.headline(context);
+    final inactiveMetaColor = isDarkTheme
+        ? Colors.white.withValues(alpha: 0.85)
+        : AppTextColors.muted(context);
+
+    final chip = Container(
       width: 64,
       margin: const EdgeInsets.only(right: 8),
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
       decoration: BoxDecoration(
-        color: isNow
+        color: isSelected
             ? AppColors.primaryColor
-            : isDark
-                ? AppColors.darkHighlight
-                : Colors.white,
+            : onInsetPanel
+                ? AppSurfaceColors.panelChip(context)
+                : AppSurfaceColors.nested(context),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isNow
+          color: isSelected
               ? AppColors.primaryColor
-              : isDark
-                  ? AppColors.dividerColordark
-                  : AppColors.dividerColorlight,
+              : AppSurfaceColors.border(context),
         ),
       ),
       child: Column(
@@ -202,7 +234,7 @@ class _HourlyChip extends StatelessWidget {
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: isNow ? Colors.white : AppColors.boldHeadlineColor,
+              color: isSelected ? Colors.white : inactiveMetaColor,
             ),
           ),
           const SizedBox(height: 5),
@@ -217,11 +249,14 @@ class _HourlyChip extends StatelessWidget {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: isNow ? Colors.white : null,
+              color: isSelected ? Colors.white : inactiveTextColor,
             ),
           ),
         ],
       ),
     );
+
+    if (onTap == null) return chip;
+    return GestureDetector(onTap: onTap, child: chip);
   }
 }
