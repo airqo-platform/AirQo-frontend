@@ -9,6 +9,8 @@ import {
   FiUploadCloud,
 } from 'react-icons/fi';
 
+import { getEnvironmentAwareUrl } from '@/lib/environmentAwareUrl';
+
 import ProductMarketingPage from './ProductMarketingPage';
 
 const vertexTheme = {
@@ -63,7 +65,7 @@ const VertexPage = () => {
         cardBackgroundClassName: 'bg-[#EDF5FF]',
         action: {
           label: 'Open Vertex',
-          href: 'https://vertex.airqo.net',
+          href: getEnvironmentAwareUrl('https://vertex.airqo.net'),
           variant: 'secondary',
         },
       }}
@@ -127,7 +129,7 @@ const VertexPage = () => {
         actions: [
           {
             label: 'Download for Windows',
-            href: 'https://vertex.airqo.net/download',
+            href: getEnvironmentAwareUrl('https://vertex.airqo.net/download'),
           },
         ],
       }}
@@ -184,7 +186,7 @@ const VertexPage = () => {
         actions: [
           {
             label: 'Get Started on Vertex',
-            href: 'https://vertex.airqo.net',
+            href: getEnvironmentAwareUrl('https://vertex.airqo.net'),
           },
           {
             label: 'Vertex IoT Kit',
@@ -197,7 +199,7 @@ const VertexPage = () => {
             title: 'Import Your Devices',
             description:
               'Start onboarding monitors through the main Vertex workflow.',
-            href: 'https://vertex.airqo.net',
+            href: getEnvironmentAwareUrl('https://vertex.airqo.net'),
           },
           {
             title: 'Vertex Docs',
