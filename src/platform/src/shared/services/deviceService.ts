@@ -20,7 +20,8 @@ import type {
   GridsSummaryParams,
   CountriesResponse,
   MapReadingsResponse,
-  ForecastResponse,
+  DailyForecastResponse,
+  HourlyForecastResponse,
   CohortResponse,
 } from '../types/api';
 
@@ -613,19 +614,48 @@ export class DeviceService {
     return data as MapReadingsResponse;
   }
 
-  // Get forecast data - authenticated endpoint
-  async getForecastAuthenticated(siteId: string): Promise<ForecastResponse> {
-    await this.ensureAuthenticated();
-    const response = await this.authenticatedClient.get<
-      ForecastResponse | ApiErrorResponse
-    >(`/predict/daily-forecast?site_id=${siteId}`);
+  // Get daily forecast data - new v2 endpoint (proxied to avoid CORS)
+  async getDailyForecast(siteId: string): Promise<DailyForecastResponse> {
+    const response = await this.serverClient.get<
+      DailyForecastResponse | ApiErrorResponse
+    >(`/predict/daily-forecasting/?site_id=${siteId}`);
     const data = response.data;
 
-    if ('success' in data && !data.success) {
-      throw new Error(data.message || 'Failed to get forecast data');
+    if (
+      'success' in data &&
+      !data.success &&
+      'message' in data &&
+      typeof data.message === 'string'
+    ) {
+      throw new Error(data.message || 'Failed to get daily forecast data');
     }
 
-    return data as ForecastResponse;
+    return data as DailyForecastResponse;
+  }
+
+  // Get hourly forecast data - new v2 endpoint (proxied to avoid CORS)
+  async getHourlyForecast(
+    siteId: string,
+    page = 1,
+    limit = 24
+  ): Promise<HourlyForecastResponse> {
+    const response = await this.serverClient.get<
+      HourlyForecastResponse | ApiErrorResponse
+    >(
+      `/predict/hourly-forecasting/?site_id=${siteId}&page=${page}&limit=${limit}`
+    );
+    const data = response.data;
+
+    if (
+      'success' in data &&
+      !data.success &&
+      'message' in data &&
+      typeof data.message === 'string'
+    ) {
+      throw new Error(data.message || 'Failed to get hourly forecast data');
+    }
+
+    return data as HourlyForecastResponse;
   }
 }
 
