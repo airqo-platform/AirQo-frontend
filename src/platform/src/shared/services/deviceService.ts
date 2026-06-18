@@ -615,10 +615,13 @@ export class DeviceService {
   }
 
   // Get daily forecast data - new v2 endpoint (proxied to avoid CORS)
-  async getDailyForecast(siteId: string): Promise<DailyForecastResponse> {
+  async getDailyForecast(
+    siteId: string,
+    signal?: AbortSignal
+  ): Promise<DailyForecastResponse> {
     const response = await this.serverClient.get<
       DailyForecastResponse | ApiErrorResponse
-    >(`/predict/daily-forecasting/?site_id=${siteId}`);
+    >(`/predict/daily-forecasting/?site_id=${siteId}`, { signal });
     const data = response.data;
 
     if (
@@ -637,12 +640,14 @@ export class DeviceService {
   async getHourlyForecast(
     siteId: string,
     page = 1,
-    limit = 24
+    limit = 24,
+    signal?: AbortSignal
   ): Promise<HourlyForecastResponse> {
     const response = await this.serverClient.get<
       HourlyForecastResponse | ApiErrorResponse
     >(
-      `/predict/hourly-forecasting/?site_id=${siteId}&page=${page}&limit=${limit}`
+      `/predict/hourly-forecasting/?site_id=${siteId}&page=${page}&limit=${limit}`,
+      { signal }
     );
     const data = response.data;
 

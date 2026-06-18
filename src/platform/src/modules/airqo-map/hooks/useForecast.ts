@@ -33,6 +33,21 @@ export interface UseForecastResult {
   refetch: () => Promise<void>;
 }
 
+/** Do not retry on 5xx, network errors, or aborts */
+const RETRY_CONFIG = {
+  retry: (failureCount: number, error: Error) => {
+    if (
+      error.name === 'CanceledError' ||
+      error.name === 'AbortError' ||
+      error.message === 'canceled'
+    ) {
+      return false;
+    }
+    return failureCount < 1;
+  },
+  retryDelay: 1000,
+};
+
 /**
  * Hook for fetching daily or hourly forecast data for a specific site.
  * Uses the new v2 forecasting API endpoints.
@@ -49,14 +64,15 @@ export function useForecast({
   // ── Daily query ────────────────────────────────────────────────────────────
   const dailyQuery = useQuery<DailyForecastResponse, Error>({
     queryKey: ['map', 'forecast', 'daily', siteId ?? 'none'],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       if (!siteId) throw new Error('Site ID is required');
-      return deviceService.getDailyForecast(siteId);
+      return deviceService.getDailyForecast(siteId, signal);
     },
     enabled: shouldFetchFromApi && mode === 'daily',
     networkMode: 'online',
     staleTime: 1000 * 60 * 10,
     gcTime: 1000 * 60 * 60 * 12,
+    ...RETRY_CONFIG,
   });
 
   // ── Hourly query ───────────────────────────────────────────────────────────
@@ -69,14 +85,20 @@ export function useForecast({
       hourlyPage,
       hourlyLimit,
     ],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       if (!siteId) throw new Error('Site ID is required');
-      return deviceService.getHourlyForecast(siteId, hourlyPage, hourlyLimit);
+      return deviceService.getHourlyForecast(
+        siteId,
+        hourlyPage,
+        hourlyLimit,
+        signal
+      );
     },
     enabled: shouldFetchFromApi && mode === 'hourly',
     networkMode: 'online',
     staleTime: 1000 * 60 * 10,
     gcTime: 1000 * 60 * 60 * 12,
+    ...RETRY_CONFIG,
   });
 
   const activeQuery = mode === 'daily' ? dailyQuery : hourlyQuery;

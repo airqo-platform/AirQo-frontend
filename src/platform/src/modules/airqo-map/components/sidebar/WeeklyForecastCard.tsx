@@ -74,8 +74,10 @@ function getAqiBgClass(category: string | undefined): string {
   const c = category.toLowerCase();
   if (c.includes('good')) return 'bg-green-50 border-green-200';
   if (c.includes('moderate')) return 'bg-yellow-50 border-yellow-200';
-  if (c.includes('sensitive') || c.includes('usg')) return 'bg-orange-50 border-orange-200';
-  if (c.includes('unhealthy') && !c.includes('very')) return 'bg-red-50 border-red-200';
+  if (c.includes('sensitive') || c.includes('usg'))
+    return 'bg-orange-50 border-orange-200';
+  if (c.includes('unhealthy') && !c.includes('very'))
+    return 'bg-red-50 border-red-200';
   if (c.includes('very unhealthy')) return 'bg-purple-50 border-purple-200';
   if (c.includes('hazardous')) return 'bg-pink-50 border-pink-200';
   return 'bg-gray-50 border-gray-200';
@@ -109,7 +111,7 @@ const DailyPill: React.FC<{
   item: DailyForecastItem;
   isToday: boolean;
 }> = ({ item, isToday }) => {
-  const pm25 = resolveParsedNumber(item.forecast?.pm2_5_mean) ?? 0;
+  const pm25 = resolveParsedNumber(item.forecast?.pm2_5_mean);
   const pm25Low = resolveParsedNumber(item.forecast?.pm2_5_low);
   const pm25High = resolveParsedNumber(item.forecast?.pm2_5_high);
   const aqiCategory = item.aqi?.aqi_category ?? item.aqi?.label ?? '';
@@ -119,7 +121,7 @@ const DailyPill: React.FC<{
   const temp = resolveParsedNumber(item.met?.air_temperature);
   const humidity = resolveParsedNumber(item.met?.relative_humidity);
 
-  const airInfo = getAirQualityInfo(pm25, 'pm2_5');
+  const airInfo = getAirQualityInfo(pm25 ?? 0, 'pm2_5');
   const ForecastIcon = airInfo.icon;
   const bgClass = getAqiBgClass(aqiCategory || airInfo.label);
 
@@ -127,14 +129,16 @@ const DailyPill: React.FC<{
     <div className="max-w-[220px] space-y-1.5 text-left">
       <p className="font-semibold text-white">{getFullDate(item.date)}</p>
       <p className="text-xs text-white">
-        <span className="font-medium">AQI:</span> {aqiCategory || airInfo.label}
+        <span className="font-medium">AQI:</span>{' '}
+        {aqiCategory || airInfo.label}
       </p>
       {aqiLabel && (
         <p className="text-xs leading-snug text-gray-200">{aqiLabel}</p>
       )}
       {pm25Low != null && pm25High != null && (
         <p className="text-xs text-white">
-          <span className="font-medium">PM₂.₅:</span> {pm25Low.toFixed(1)} – {pm25High.toFixed(1)} µg/m³
+          <span className="font-medium">PM₂.₅:</span> {pm25Low.toFixed(1)} –{' '}
+          {pm25High.toFixed(1)} µg/m³
         </p>
       )}
       {temp != null && (
@@ -177,7 +181,9 @@ const DailyPill: React.FC<{
         <span
           className={cn(
             'text-base font-bold mb-1',
-            isToday ? 'text-white' : 'text-gray-900'
+            isToday
+              ? 'text-white'
+              : 'text-gray-900 dark:text-gray-100'
           )}
         >
           {getDateNum(item.date)}
@@ -195,7 +201,7 @@ const DailyPill: React.FC<{
             isToday ? 'text-white' : 'text-gray-700'
           )}
         >
-          {pm25.toFixed(1)}
+          {pm25 != null ? pm25.toFixed(1) : '--'}
         </span>
 
         {/* Confidence */}
@@ -221,7 +227,7 @@ const HourlyPill: React.FC<{
   item: HourlyForecastItem;
   isFirst: boolean;
 }> = ({ item, isFirst }) => {
-  const pm25 = resolveParsedNumber(item.forecast?.pm2_5_mean) ?? 0;
+  const pm25 = resolveParsedNumber(item.forecast?.pm2_5_mean);
   const aqiCategory = item.aqi?.aqi_category ?? item.aqi?.label ?? '';
   const aqiLabel = item.aqi?.label ?? '';
   const trendMessage = item.aqi?.trend_message;
@@ -229,7 +235,7 @@ const HourlyPill: React.FC<{
   const temp = resolveParsedNumber(item.met?.air_temperature);
   const humidity = resolveParsedNumber(item.met?.relative_humidity);
 
-  const airInfo = getAirQualityInfo(pm25, 'pm2_5');
+  const airInfo = getAirQualityInfo(pm25 ?? 0, 'pm2_5');
   const ForecastIcon = airInfo.icon;
   const bgClass = getAqiBgClass(aqiCategory || airInfo.label);
 
@@ -237,13 +243,15 @@ const HourlyPill: React.FC<{
     <div className="max-w-[220px] space-y-1.5 text-left">
       <p className="font-semibold text-white">{getFullTime(item.timestamp)}</p>
       <p className="text-xs text-white">
-        <span className="font-medium">AQI:</span> {aqiCategory || airInfo.label}
+        <span className="font-medium">AQI:</span>{' '}
+        {aqiCategory || airInfo.label}
       </p>
       {aqiLabel && (
         <p className="text-xs leading-snug text-gray-200">{aqiLabel}</p>
       )}
       <p className="text-xs text-white">
-        <span className="font-medium">PM₂.₅:</span> {pm25.toFixed(1)} µg/m³
+        <span className="font-medium">PM₂.₅:</span>{' '}
+        {pm25 != null ? `${pm25.toFixed(1)} µg/m³` : '--'}
       </p>
       {temp != null && (
         <p className="text-xs text-white">
@@ -293,7 +301,7 @@ const HourlyPill: React.FC<{
             isFirst ? 'text-white' : 'text-gray-700'
           )}
         >
-          {pm25.toFixed(1)}
+          {pm25 != null ? pm25.toFixed(1) : '--'}
         </span>
 
         {/* Temp */}
@@ -344,16 +352,14 @@ export const WeeklyForecastCard: React.FC<WeeklyForecastCardProps> = ({
 }) => {
   const [mode, setMode] = React.useState<ForecastMode>('daily');
 
-  const {
-    dailyItems,
-    hourlyItems,
-    isLoading,
-    error,
-  } = useForecast({
+  const { dailyItems, hourlyItems, isLoading, error } = useForecast({
     siteId,
     mode,
     enabled: !!siteId,
   });
+
+  const activeItems = mode === 'daily' ? dailyItems : hourlyItems;
+  const showEmpty = !isLoading && !error && activeItems.length === 0;
 
   return (
     <Card className="border border-gray-200 dark:border-gray-700 shadow-sm">
@@ -388,8 +394,8 @@ export const WeeklyForecastCard: React.FC<WeeklyForecastCardProps> = ({
           </div>
         )}
 
-        {/* Empty */}
-        {!isLoading && !error && (!dailyItems?.length && !hourlyItems?.length) && (
+        {/* Empty — mode-aware */}
+        {showEmpty && (
           <div className="flex flex-col items-center justify-center py-6 text-center">
             <AqCloudOff className="w-8 h-8 text-gray-400 mb-2" />
             <p className="text-sm text-gray-500">
@@ -414,20 +420,22 @@ export const WeeklyForecastCard: React.FC<WeeklyForecastCardProps> = ({
         )}
 
         {/* Hourly view */}
-        {!isLoading && !error && mode === 'hourly' && hourlyItems.length > 0 && (
-          <div className="w-full overflow-x-auto overflow-y-hidden -mx-1 px-1">
-            <div className="flex gap-1.5 min-w-max py-1">
-              {hourlyItems.slice(0, 24).map((item, idx) => (
-                <HourlyPill
-                  key={item.timestamp}
-                  item={item}
-                  isFirst={idx === 0}
-                />
-              ))}
+        {!isLoading &&
+          !error &&
+          mode === 'hourly' &&
+          hourlyItems.length > 0 && (
+            <div className="w-full overflow-x-auto overflow-y-hidden -mx-1 px-1">
+              <div className="flex gap-1.5 min-w-max py-1">
+                {hourlyItems.slice(0, 24).map((item, idx) => (
+                  <HourlyPill
+                    key={item.timestamp}
+                    item={item}
+                    isFirst={idx === 0}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-        )}
-
+          )}
       </CardContent>
     </Card>
   );
