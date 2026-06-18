@@ -19,6 +19,7 @@ type Product = {
     path: string;
     icon: React.ElementType;
     landingPath?: string;
+    disabled?: boolean;
 };
 
 const PRODUCTS: Product[] = [
@@ -36,11 +37,13 @@ const PRODUCTS: Product[] = [
         title: 'Beacon',
         path: '/docs/beacon',
         icon: AqMonitor,
+        disabled: true,
     },
     {
         title: 'AI Platform',
         path: '/docs/ai-platform',
         icon: AqCpuChip01,
+        disabled: true,
     },
     {
         title: 'API',
@@ -51,6 +54,7 @@ const PRODUCTS: Product[] = [
         title: 'Mobile App',
         path: '/docs/mobile-app',
         icon: AqPhone01,
+        disabled: true,
     },
     {
         title: 'Cross Product Features',
@@ -85,6 +89,7 @@ export default function ProductDropdown() {
     }, []);
 
     const handleProductSelect = (product: Product) => {
+        if (product.disabled) return;
         const targetPath = product.landingPath ?? `${product.path}/intro`;
         history.push(targetPath);
         setIsOpen(false);
@@ -113,11 +118,12 @@ export default function ProductDropdown() {
                     {PRODUCTS.map((product) => (
                         <button
                             key={product.title}
-                            className={`${styles.dropdownItem} ${currentProduct.title === product.title ? styles.activeItem : ''}`}
+                            className={`${styles.dropdownItem} ${currentProduct.title === product.title ? styles.activeItem : ''} ${product.disabled ? styles.disabledItem : ''}`}
                             onClick={() => handleProductSelect(product)}
                             type="button"
                             role="option"
                             aria-selected={currentProduct.title === product.title}
+                            disabled={product.disabled}
                         >
                             <div className={styles.productIcon}>
                                 <product.icon />
