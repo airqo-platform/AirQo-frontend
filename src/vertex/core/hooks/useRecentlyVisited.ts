@@ -68,7 +68,7 @@ export const useRecentlyVisited = () => {
     } finally {
       setIsLoaded(true);
     }
-  }, [storageKey]);
+  }, [storageKey,showBanner]);
 
   // Update visited pages on pathname change
   useEffect(() => {
