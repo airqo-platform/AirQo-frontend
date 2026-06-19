@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/dashboard/widgets/air_quality_share_sheet.dart';
 import 'package:airqo/src/app/dashboard/bloc/forecast/forecast_bloc.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/models/forecast_guidance.dart';
@@ -86,6 +87,7 @@ class _ForecastOverviewPageState extends State<ForecastOverviewPage> {
   ForecastTimeScope _timeScope = ForecastTimeScope.daily;
   ScrollController? _scrollController;
   final _todayStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
+  final GlobalKey _shareButtonKey = GlobalKey();
 
   @override
   void initState() {
@@ -148,6 +150,23 @@ class _ForecastOverviewPageState extends State<ForecastOverviewPage> {
         setState(() => _selectedHourIndex = defaultIdx);
       });
     }
+  }
+
+  Future<void> _openShareSheet() async {
+    final measurement = widget.measurement;
+    if (measurement == null) return;
+
+    final renderObject =
+        _shareButtonKey.currentContext?.findRenderObject() as RenderBox?;
+    final shareOrigin = renderObject == null
+        ? null
+        : renderObject.localToGlobal(Offset.zero) & renderObject.size;
+
+    await showAirQualityShareSheet(
+      context,
+      measurement: measurement,
+      sharePositionOrigin: shareOrigin,
+    );
   }
 
   @override
@@ -216,14 +235,30 @@ class _ForecastOverviewPageState extends State<ForecastOverviewPage> {
                         ],
                       ),
                     ),
-                    IconButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      icon: Icon(
-                        Icons.close,
-                        color: AppTextColors.modalCloseIcon(context),
+                    if (widget.measurement != null)
+                      IconButton(
+                        key: _shareButtonKey,
+                        onPressed: _openShareSheet,
+                        icon: SvgPicture.asset(
+                          'assets/icons/share-icon.svg',
+                          width: 20,
+                          height: 20,
+                          colorFilter: ColorFilter.mode(
+                            AppTextColors.modalCloseIcon(context),
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                        visualDensity: VisualDensity.compact,
+                      )
+                    else
+                      IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: Icon(
+                          Icons.close,
+                          color: AppTextColors.modalCloseIcon(context),
+                        ),
+                        visualDensity: VisualDensity.compact,
                       ),
-                      visualDensity: VisualDensity.compact,
-                    ),
                   ],
                 ),
               ),
@@ -322,15 +357,13 @@ class _ForecastOverviewPageState extends State<ForecastOverviewPage> {
     final idx = _selectedDayIndex.clamp(0, forecasts.length - 1);
     final day = forecasts[idx];
     final selectedDateLabel = DateFormat('EEEE, MMMM d').format(day.time);
-    final hourEntries =
-        hourlyEntriesForDate(state.hourlyResponse, day.time);
+    final hourEntries = hourlyEntriesForDate(state.hourlyResponse, day.time);
     _syncHourIndex(hourEntries, day.time);
 
     final hourIdx = hourEntries.isEmpty
         ? 0
         : _selectedHourIndex.clamp(0, hourEntries.length - 1);
-    final selectedHour =
-        hourEntries.isNotEmpty ? hourEntries[hourIdx] : null;
+    final selectedHour = hourEntries.isNotEmpty ? hourEntries[hourIdx] : null;
 
     return SingleChildScrollView(
       controller: scrollController,
@@ -447,9 +480,7 @@ class _ForecastOverviewPageState extends State<ForecastOverviewPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              isNetwork
-                  ? Icons.wifi_off_rounded
-                  : Icons.error_outline_rounded,
+              isNetwork ? Icons.wifi_off_rounded : Icons.error_outline_rounded,
               size: 56,
               color: AppTextColors.muted(context),
             ),
