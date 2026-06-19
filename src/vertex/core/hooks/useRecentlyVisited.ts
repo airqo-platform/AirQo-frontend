@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAppSelector } from '@/core/redux/hooks';
 import { usePathname } from 'next/navigation';
 import { ROUTE_LINKS } from '@/core/routes';
-import ReusableToast from '@/components/shared/toast/ReusableToast';
+import { useBanner } from '@/context/banner-context';
 
 export interface RecentPage {
   label: string;
@@ -45,6 +45,7 @@ export const useRecentlyVisited = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const userDetails = useAppSelector((state) => state.user.userDetails);
   const userId = userDetails?._id;
+  const { showBanner } = useBanner();
 
   const storageKey = userId ? `${STORAGE_KEY}_${userId}` : null;
 
@@ -63,11 +64,11 @@ export const useRecentlyVisited = () => {
         setVisitedPages([]);
       }
     } catch (error) {
-      ReusableToast({ message: "Failed to load recently visited pages", type: "ERROR" });
+      showBanner({ severity: 'error', message: 'Failed to load recently visited pages', scoped: false });
     } finally {
       setIsLoaded(true);
     }
-  }, [storageKey]);
+  }, [storageKey,showBanner]);
 
   // Update visited pages on pathname change
   useEffect(() => {

@@ -6,7 +6,7 @@ import ReusableTable, {
 import { useRouter } from "next/navigation";
 import { Network } from "@/core/apis/networks";
 import { AqCopy01, AqLinkExternal01 } from "@airqo/icons-react";
-import { useBanner } from "@/context/banner-context";
+import { useClipboard } from "@/core/hooks/useClipboard";
 
 interface NetworksTableProps {
   networks: Network[];
@@ -26,7 +26,7 @@ export default function ClientPaginatedNetworksTable({
   onNetworkClick,
 }: NetworksTableProps) {
   const router = useRouter();
-  const { showBanner } = useBanner();
+  const { handleCopy: copyToClipboard } = useClipboard({ successMessage: 'Sensor Manufacturer ID copied' });
 
   const handleNetworkClick = (item: unknown) => {
     const network = item as Network;
@@ -34,16 +34,9 @@ export default function ClientPaginatedNetworksTable({
     else if (network._id) router.push(`/admin/networks/${network._id}`);
   };
 
-  const handleCopy = async (text: string, event: React.MouseEvent) => {
+  const handleCopy = (text: string, event: React.MouseEvent) => {
     event.stopPropagation();
-    if (text) {
-      try {
-        await navigator.clipboard.writeText(text);
-        showBanner({ message: "Sensor Manufacturer ID copied", severity: "success", scoped: false });
-      } catch {
-        showBanner({ message: "Failed to copy ID", severity: "error", scoped: false });
-      }
-    }
+    if (text) copyToClipboard(text);
   };
 
   const networksWithId: TableNetwork[] = networks

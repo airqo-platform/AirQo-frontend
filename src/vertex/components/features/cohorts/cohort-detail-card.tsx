@@ -4,6 +4,7 @@ import ReusableButton from "@/components/shared/button/ReusableButton";
 import { AqCopy01, AqEdit01 } from "@airqo/icons-react";
 import { Switch } from "@/components/ui/switch";
 import { useBanner } from "@/context/banner-context";
+import { useClipboard } from "@/core/hooks/useClipboard";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
 import { useEffect, useState } from "react";
@@ -44,6 +45,7 @@ const CohortDetailsCard: React.FC<CohortDetailsCardProps> = ({
   );
 
   const { showBanner } = useBanner();
+  const { handleCopy } = useClipboard({ successMessage: 'Cohort ID copied to clipboard' });
   const { showBannerWithDelay } = useBannerWithDelay();
   const { mutateAsync: updateCohort, isPending } = useUpdateCohortDetails();
   const { data: originalData } = useOriginalCohort(id, { enabled: !!isDuplicate });
@@ -197,15 +199,7 @@ const CohortDetailsCard: React.FC<CohortDetailsCardProps> = ({
                 </div>
                 <ReusableButton
                   variant="text"
-                  onClick={async () => {
-                    if (!id) return;
-                    try {
-                      await navigator.clipboard.writeText(id);
-                      showBanner({ severity: 'success', message: 'Cohort ID copied to clipboard', scoped: false });
-                    } catch {
-                      showBanner({ severity: 'error', message: 'Failed to copy to clipboard', scoped: false });
-                    }
-                  }}
+                  onClick={() => { if (id) handleCopy(id); }}
                   className="p-1"
                   Icon={AqCopy01}
                 />
