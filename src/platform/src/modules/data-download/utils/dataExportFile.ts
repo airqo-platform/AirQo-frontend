@@ -237,7 +237,11 @@ const escapeCsvValue = (value: unknown) => {
   }
 
   // Numeric strings — emit as bare value to preserve full precision
-  if (typeof value === 'string' && value !== '' && !isNaN(Number(value))) {
+  if (
+    typeof value === 'string' &&
+    value.trim() !== '' &&
+    Number.isFinite(Number(value))
+  ) {
     return value;
   }
 
@@ -750,7 +754,11 @@ const buildWorksheetCellXml = (
   }
 
   // Numeric strings — write as <v> with numeric format to preserve full precision
-  if (typeof value === 'string' && value !== '' && !isNaN(Number(value))) {
+  if (
+    typeof value === 'string' &&
+    value.trim() !== '' &&
+    Number.isFinite(Number(value))
+  ) {
     return `<c r="${cellReference}" s="2"><v>${value}</v></c>`;
   }
 
