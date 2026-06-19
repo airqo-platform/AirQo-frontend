@@ -9,6 +9,8 @@ import {
   FiTool,
 } from 'react-icons/fi';
 
+import { getEnvironmentAwareUrl } from '@/lib/environmentAwareUrl';
+
 import ProductMarketingPage from './ProductMarketingPage';
 
 const beaconTheme = {
@@ -64,7 +66,9 @@ const BeaconPage = () => {
         cardBackgroundClassName: 'bg-[#EEF8F1]',
         action: {
           label: 'Open Device Monitoring',
-          href: 'https://beacon.airqo.net/dashboard/maintenance',
+          href: getEnvironmentAwareUrl(
+            'https://beacon.airqo.net/dashboard/maintenance',
+          ),
           variant: 'secondary',
         },
       }}
@@ -132,7 +136,9 @@ const BeaconPage = () => {
         reverse: true,
         action: {
           label: 'Open Site Collocation',
-          href: 'https://beacon.airqo.net/dashboard/collocation/site',
+          href: getEnvironmentAwareUrl(
+            'https://beacon.airqo.net/dashboard/collocation/site',
+          ),
           variant: 'secondary',
         },
       }}
@@ -167,11 +173,13 @@ const BeaconPage = () => {
         actions: [
           {
             label: 'Get Started on Beacon',
-            href: 'https://beacon.airqo.net',
+            href: getEnvironmentAwareUrl('https://beacon.airqo.net'),
           },
           {
             label: 'Health Reports',
-            href: 'https://beacon.airqo.net/dashboard/reports',
+            href: getEnvironmentAwareUrl(
+              'https://beacon.airqo.net/dashboard/reports',
+            ),
             variant: 'secondary',
           },
         ],
@@ -180,19 +188,25 @@ const BeaconPage = () => {
             title: 'Device Map',
             description:
               'Inspect maintenance and availability context across the network.',
-            href: 'https://beacon.airqo.net/dashboard/maintenance',
+            href: getEnvironmentAwareUrl(
+              'https://beacon.airqo.net/dashboard/maintenance',
+            ),
           },
           {
             title: 'Cohort Analysis',
             description:
               'Analyze device groups to identify recurring trends and issues.',
-            href: 'https://beacon.airqo.net/dashboard/analytics?analysis=cohorts',
+            href: getEnvironmentAwareUrl(
+              'https://beacon.airqo.net/dashboard/analytics?analysis=cohorts',
+            ),
           },
           {
             title: 'Automatic Reports',
             description:
               'Use recurring reports to maintain operational awareness over time.',
-            href: 'https://beacon.airqo.net/dashboard/reports',
+            href: getEnvironmentAwareUrl(
+              'https://beacon.airqo.net/dashboard/reports',
+            ),
           },
         ],
       }}

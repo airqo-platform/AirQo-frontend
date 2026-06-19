@@ -14,6 +14,8 @@ import {
   type NetworkCoverageMonitor,
 } from '../networkCoverageTypes';
 
+import { getEnvironmentAwareUrl } from '@/lib/environmentAwareUrl';
+
 const formatRelativeTime = (value?: string | null) => {
   try {
     if (!value) return '--';
@@ -606,7 +608,9 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                                   country.iso2,
                                 )
                               : window.open(
-                                  'https://vertex.airqo.net',
+                                  getEnvironmentAwareUrl(
+                                    'https://vertex.airqo.net',
+                                  ),
                                   '_blank',
                                   'noopener,noreferrer',
                                 )
@@ -668,7 +672,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                             selectedCountry.iso2,
                           )
                         : window.open(
-                            'https://vertex.airqo.net',
+                            getEnvironmentAwareUrl('https://vertex.airqo.net'),
                             '_blank',
                             'noopener,noreferrer',
                           )

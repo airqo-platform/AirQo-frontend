@@ -145,14 +145,27 @@ const NetworkCoveragePage = () => {
   const countries = useMemo<NetworkCoverageCountry[]>(() => {
     const raw: NetworkCoverageCountry[] =
       summaryQuery.data?.countries ?? ([] as NetworkCoverageCountry[]);
-    if (!hasInactive) return raw;
-    return raw.map((country: NetworkCoverageCountry) => ({
-      ...country,
-      monitors: country.monitors.filter(
-        (m: NetworkCoverageMonitor) => m.status === 'inactive',
-      ),
-    }));
-  }, [summaryQuery.data, hasInactive]);
+    let result = raw;
+    if (hasInactive) {
+      result = result.map((country: NetworkCoverageCountry) => ({
+        ...country,
+        monitors: country.monitors.filter(
+          (m: NetworkCoverageMonitor) => m.status === 'inactive',
+        ),
+      }));
+    }
+    if (selectedNetworks.length > 0) {
+      const allowed = new Set(selectedNetworks.map((n) => n.toLowerCase()));
+      result = result.map((country: NetworkCoverageCountry) => ({
+        ...country,
+        monitors: country.monitors.filter(
+          (m: NetworkCoverageMonitor) =>
+            m.network && allowed.has(m.network.toLowerCase()),
+        ),
+      }));
+    }
+    return result;
+  }, [summaryQuery.data, hasInactive, selectedNetworks]);
 
   const allCountries = useMemo<NetworkCoverageCountry[]>(() => {
     const normalizeForMatch = (value?: string) => {
@@ -214,6 +227,13 @@ const NetworkCoveragePage = () => {
           (m: NetworkCoverageMonitor) => m.status === 'inactive',
         );
       }
+      if (selectedNetworks.length > 0) {
+        const allowed = new Set(selectedNetworks.map((n) => n.toLowerCase()));
+        monitors = monitors.filter(
+          (m: NetworkCoverageMonitor) =>
+            m.network && allowed.has(m.network.toLowerCase()),
+        );
+      }
       return {
         id: countryMonitorsQuery.data.countryId,
         country: countryMonitorsQuery.data.country,
@@ -223,7 +243,12 @@ const NetworkCoveragePage = () => {
     }
 
     return null;
-  }, [countryMonitorsQuery.data, selectedCountryId, hasInactive]);
+  }, [
+    countryMonitorsQuery.data,
+    selectedCountryId,
+    hasInactive,
+    selectedNetworks,
+  ]);
 
   const monitorDetailQuery = useNetworkCoverageMonitor(selectedMonitorId, {
     tenant: DEFAULT_TENANT,
