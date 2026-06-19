@@ -11,6 +11,10 @@ export { useMapReadings } from './useMapReadings';
 export type { UseMapReadingsResult } from './useMapReadings';
 
 export { useForecast } from './useForecast';
-export type { UseForecastParams, UseForecastResult } from './useForecast';
+export type {
+  UseForecastParams,
+  UseForecastResult,
+  ForecastMode,
+} from './useForecast';
 
 export { useSiteChartData } from './useSiteChartData';
