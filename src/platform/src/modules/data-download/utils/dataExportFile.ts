@@ -94,8 +94,48 @@ const getNormalizedString = (value: unknown): string | undefined => {
   return undefined;
 };
 
+/**
+ * Strip leading apostrophes and HTML-encoded apostrophes (&apos; / &#39;)
+ * from string values that represent numbers, then convert to actual numbers.
+ * The upstream API sometimes prefixes negative values with these characters,
+ * which corrupts exports. Additionally, CSV-parsed values arrive as strings
+ * even when they represent numbers.
+ */
+const sanitizeNumericString = (value: unknown): unknown => {
+  if (typeof value !== 'string') return value;
+
+  let cleaned = value;
+
+  // Strip leading &apos; or &#39; (HTML entity for apostrophe)
+  while (
+    cleaned.startsWith('&apos;') ||
+    cleaned.startsWith('&#39;')
+  ) {
+    cleaned = cleaned.slice(cleaned.startsWith('&apos;') ? 6 : 5);
+  }
+
+  // Strip leading literal apostrophes
+  while (cleaned.startsWith("'")) {
+    cleaned = cleaned.slice(1);
+  }
+
+  cleaned = cleaned.trim();
+
+  // Convert numeric strings to actual numbers
+  if (cleaned !== '' && !isNaN(Number(cleaned))) {
+    return Number(cleaned);
+  }
+
+  return value;
+};
+
 const normalizeDownloadRecord = (record: DownloadRecord): DownloadRecord => {
   const normalizedRecord: DownloadRecord = { ...record };
+
+  // Sanitize all values — strip apostrophe prefixes from numeric strings
+  for (const key of Object.keys(normalizedRecord)) {
+    normalizedRecord[key] = sanitizeNumericString(normalizedRecord[key]);
+  }
 
   const existingDatetime = getNormalizedString(normalizedRecord['datetime']);
   if (existingDatetime) {
@@ -195,13 +235,17 @@ const escapeCsvValue = (value: unknown) => {
     return '""';
   }
 
+  // Numbers should never be prefixed — they are not formula-injection risks
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? String(value) : '""';
+  }
+
   const stringValue = String(value);
   const trimmedValue = stringValue.trimStart();
   const firstVisibleCharacter = trimmedValue[0];
   const needsNeutralize =
     firstVisibleCharacter === '=' ||
     firstVisibleCharacter === '+' ||
-    firstVisibleCharacter === '-' ||
     firstVisibleCharacter === '@' ||
     stringValue.charAt(0) === '\t' ||
     stringValue.charAt(0) === '\r';
