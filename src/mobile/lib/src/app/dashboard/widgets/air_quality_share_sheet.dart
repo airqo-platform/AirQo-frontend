@@ -74,6 +74,13 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
         fallbackLocationName: widget.fallbackLocationName,
         sharePositionOrigin: widget.sharePositionOrigin,
       );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not share the card. Please try again.'),
+        ),
+      );
     } finally {
       if (mounted) {
         setState(() {

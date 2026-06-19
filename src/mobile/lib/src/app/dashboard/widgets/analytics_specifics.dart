@@ -78,7 +78,7 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
         : renderObject.localToGlobal(Offset.zero) & renderObject.size;
 
     await showAirQualityShareSheet(
-      context: context,
+      context,
       measurement: widget.measurement,
       fallbackLocationName: widget.fallbackLocationName,
       sharePositionOrigin: shareOrigin,

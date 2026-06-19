@@ -239,10 +239,12 @@ class _ForecastOverviewPageState extends State<ForecastOverviewPage> {
                       IconButton(
                         key: _shareButtonKey,
                         onPressed: _openShareSheet,
+                        tooltip: 'Share',
                         icon: SvgPicture.asset(
                           'assets/icons/share-icon.svg',
                           width: 20,
                           height: 20,
+                          semanticsLabel: 'Share',
                           colorFilter: ColorFilter.mode(
                             AppTextColors.modalCloseIcon(context),
                             BlendMode.srcIn,
