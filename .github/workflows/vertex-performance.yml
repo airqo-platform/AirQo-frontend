@@ -27,8 +27,8 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
-          ref: ${{ github.event.pull_request.head.ref }}        
+           repository: ${{ github.event_name == 'push' && github.repository || github.event.pull_request.head.repo.full_name }}
+           ref: ${{ github.event_name == 'push' && github.ref || github.event.pull_request.head.ref }}       
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
