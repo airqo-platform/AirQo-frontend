@@ -2,6 +2,48 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
+## Version 2.0.7
+**Released:** June 17, 2026
+
+### Toast-to-Banner Migration & Clipboard Hook Consolidation
+
+Completed the migration of all remaining non-copy action notifications from floating `ReusableToast` calls to the context-aware `InfoBanner` system. Consolidated all clipboard copy logic under the shared `useClipboard` hook.
+
+<details>
+<summary><strong>BannerProvider Scope Fix (1)</strong></summary>
+
+- **Provider Hierarchy Correction**: Moved `BannerProvider` above `AuthProvider` in `providers.tsx`. Previously, core auth components (`UserDataFetcher`, `AuthWrapper`) lived outside the `BannerProvider` boundary and could not call `useBanner`. The provider now wraps the full application tree, making banners available everywhere including auth-level components.
+
+</details>
+
+<details>
+<summary><strong>Global Banner Migration — Auth & Core (3)</strong></summary>
+
+- **Auth Provider (`authProvider.tsx`)**: Replaced all 4 `ReusableToast` calls with `showBanner({ scoped: false })` global banners. Affected messages: "Connection restored" (success), "Could not load user details" (error), "Your account has been deleted" (error), and "Your session has expired" (error ×2). These alerts now render in the `GlobalBannerContainer` regardless of the user's current page.
+- **Recently Visited Hook (`useRecentlyVisited.ts`)**: Migrated the `localStorage` read failure toast ("Failed to load recently visited pages") to a global banner so it surfaces in the main layout instead of a floating overlay.
+- **Clipboard Hook (`useClipboard.ts`)**: Updated the hook to use `toast.success` for successful copies (consistent with the intentional clipboard toast pattern) and `showBanner` for copy errors, aligning it with the dual-system convention.
+
+</details>
+
+<details>
+<summary><strong>Scoped Banner Migration — Feature Components (2)</strong></summary>
+
+- **Network Visibility Card (`network-visibility-card.tsx`)**: Replaced the "Failed to update network visibility" toast with a scoped banner (`scoped: true`). The error now renders inside the confirmation dialog via the existing `<BannerSlot />` in `ReusableDialog`, keeping the error contextually placed without requiring structural changes.
+- **File Upload Parser (`FileUploadParser.tsx`)**: Replaced all 6 `ReusableToast` error calls with scoped banners. Added a `<BannerSlot />` inside the `BulkClaimColumnMapper` modal header and threaded `showBanner` down as a prop. Affected messages: invalid file format, file too large, CSV parse error, Excel read error, general import error, and no valid devices found.
+
+</details>
+
+<details>
+<summary><strong>Clipboard Hook Consolidation (3)</strong></summary>
+
+- **Cohort Detail Card (`cohort-detail-card.tsx`)**: Replaced inline `try/catch` clipboard logic with `useClipboard({ successMessage: 'Cohort ID copied to clipboard' })`.
+- **Cohort Organizations Card (`cohort-organizations-card.tsx`)**: Removed the manual `handleCopyId` function and `ReusableToast` import. Now uses `useClipboard({ successMessage: 'Group ID copied to clipboard!' })`.
+- **Networks Table (`client-paginated-networks-table.tsx`)**: Removed inline `useBanner` clipboard pattern. Now delegates to `useClipboard({ successMessage: 'Sensor Manufacturer ID copied' })` while preserving `event.stopPropagation()` at the call site.
+
+</details>
+
+---
+
 ## Version 2.0.6
 **Released:** June 14, 2026
 

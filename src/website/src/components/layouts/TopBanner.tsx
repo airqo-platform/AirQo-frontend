@@ -19,8 +19,6 @@ import {
 } from '@/utils/googleTranslate';
 import { Language, languages } from '@/utils/languages';
 
-import DevConTopTicker from './DevConTopTicker';
-
 const DEFAULT_LANGUAGE =
   languages.find((lang) => lang.code === 'en-GB') || languages[0];
 const DEFAULT_GOOGLE_LANGUAGE = 'en';
@@ -254,8 +252,6 @@ const TopBanner = () => {
               <FaYoutube size={14} />
             </a>
           </div>
-
-          <DevConTopTicker />
 
           <button
             onClick={() => setIsModalOpen(true)}

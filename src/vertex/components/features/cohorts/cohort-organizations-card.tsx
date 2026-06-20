@@ -9,7 +9,7 @@ import { UnassignCohortFromGroupDialog } from "./unassign-cohort-from-group";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import ReusableTable, { TableColumn, TableItem } from "@/components/shared/table/ReusableTable";
-import ReusableToast from "@/components/shared/toast/ReusableToast";
+import { useClipboard } from "@/core/hooks/useClipboard";
 import { AqCopy01 } from "@airqo/icons-react";
 import { formatTitle } from "../org-picker/organization-picker";
 
@@ -25,7 +25,7 @@ export function CohortOrganizationsCard({
   canUnassign = false,
 }: CohortOrganizationsCardProps) {
   const { groups: organizations, isLoading, refetch } = useGroupsByCohort(cohortId);
-  
+  const { handleCopy } = useClipboard({ successMessage: 'Group ID copied to clipboard!' });
   const [selectedOrg, setSelectedOrg] = useState<Group | null>(null);
   const [showUnassignDialog, setShowUnassignDialog] = useState(false);
   const [showAllDialog, setShowAllDialog] = useState(false);
@@ -41,10 +41,6 @@ export function CohortOrganizationsCard({
     refetch(); // Refetch the organizations assigned to the cohort
   };
 
-  const handleCopyId = (id: string) => {
-    navigator.clipboard.writeText(id);
-    ReusableToast({ message: "Group ID copied to clipboard!", type: "SUCCESS" });
-  };
 
   const tableData = useMemo(() => {
     return organizations.map((org) => ({ ...org, id: org._id }));
@@ -68,7 +64,7 @@ export function CohortOrganizationsCard({
             className="p-1 h-auto text-muted-foreground hover:text-primary"
             onClick={(e) => {
               e.stopPropagation();
-              handleCopyId(item._id);
+              handleCopy(item._id);
             }}
             Icon={AqCopy01}
             aria-label="Copy Group ID"
@@ -152,7 +148,7 @@ export function CohortOrganizationsCard({
                           </span>
                           <ReusableButton
                             variant="text"
-                            onClick={() => handleCopyId(org._id)}
+                            onClick={() => handleCopy(org._id)}
                             className="p-1 h-auto text-muted-foreground hover:text-primary"
                             Icon={AqCopy01}
                             aria-label="Copy Organization ID"

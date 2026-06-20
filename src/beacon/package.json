@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@airqo/icons-react": "^0.2.8",
+    "@airqo/icons-react": "^0.2.9",
     "@hookform/resolvers": "^3.9.1",
     "@prisma/client": "^6.5.0",
     "@radix-ui/react-accordion": "^1.2.2",
@@ -74,7 +74,10 @@
     "three": "^0.161.0",
     "vaul": "^0.9.6",
     "xlsx": "^0.18.5",
-    "zod": "^3.24.1"
+    "xterm": "^5.3.0",
+    "xterm-addon-fit": "^0.8.0",
+    "zod": "^3.24.1",
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
     "@types/node": "^22.14.1",

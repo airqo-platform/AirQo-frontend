@@ -1,4 +1,5 @@
 import { useBanner } from '@/context/banner-context';
+import { toast } from '@/components/shared/toast/ReusableToast';
 
 interface UseClipboardOptions {
   successMessage?: string;
@@ -17,7 +18,7 @@ export const useClipboard = (options?: UseClipboardOptions) => {
   const handleCopy = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      showBanner({ severity: 'success', message: successMessage, scoped });
+      toast.success(successMessage);
     } catch {
       showBanner({ severity: 'error', message: errorMessage, scoped });
     }

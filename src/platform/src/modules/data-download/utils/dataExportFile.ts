@@ -94,8 +94,44 @@ const getNormalizedString = (value: unknown): string | undefined => {
   return undefined;
 };
 
+/**
+ * Strip leading apostrophes and HTML-encoded apostrophes (&apos; / &#39;)
+ * from string values. The upstream API sometimes prefixes negative values
+ * with these characters, which corrupts exports. Values are kept as strings
+ * to preserve exact precision from the API — converting to Number can lose
+ * digits for high-precision floats like coordinates.
+ */
+const sanitizeNumericString = (value: unknown): unknown => {
+  if (typeof value !== 'string') return value;
+
+  let cleaned = value;
+
+  // Strip leading &apos; or &#39; (HTML entity for apostrophe)
+  while (
+    cleaned.startsWith('&apos;') ||
+    cleaned.startsWith('&#39;')
+  ) {
+    cleaned = cleaned.slice(cleaned.startsWith('&apos;') ? 6 : 5);
+  }
+
+  // Strip leading literal apostrophes
+  while (cleaned.startsWith("'")) {
+    cleaned = cleaned.slice(1);
+  }
+
+  cleaned = cleaned.trim();
+
+  // Return cleaned string — do NOT convert to Number to preserve full precision
+  return cleaned;
+};
+
 const normalizeDownloadRecord = (record: DownloadRecord): DownloadRecord => {
   const normalizedRecord: DownloadRecord = { ...record };
+
+  // Sanitize all values — strip apostrophe prefixes from numeric strings
+  for (const key of Object.keys(normalizedRecord)) {
+    normalizedRecord[key] = sanitizeNumericString(normalizedRecord[key]);
+  }
 
   const existingDatetime = getNormalizedString(normalizedRecord['datetime']);
   if (existingDatetime) {
@@ -195,13 +231,26 @@ const escapeCsvValue = (value: unknown) => {
     return '""';
   }
 
+  // Numeric values (number type) — no prefix, no wrapping quotes
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? String(value) : '""';
+  }
+
+  // Numeric strings — emit as bare value to preserve full precision
+  if (
+    typeof value === 'string' &&
+    value.trim() !== '' &&
+    Number.isFinite(Number(value))
+  ) {
+    return value;
+  }
+
   const stringValue = String(value);
   const trimmedValue = stringValue.trimStart();
   const firstVisibleCharacter = trimmedValue[0];
   const needsNeutralize =
     firstVisibleCharacter === '=' ||
     firstVisibleCharacter === '+' ||
-    firstVisibleCharacter === '-' ||
     firstVisibleCharacter === '@' ||
     stringValue.charAt(0) === '\t' ||
     stringValue.charAt(0) === '\r';
@@ -699,8 +748,18 @@ const buildWorksheetCellXml = (
     return `<c r="${cellReference}"${styleAttribute}/>`;
   }
 
+  // Numbers — use numeric format style (2) to preserve full precision display
   if (typeof value === 'number' && Number.isFinite(value)) {
-    return `<c r="${cellReference}"${styleAttribute}><v>${value}</v></c>`;
+    return `<c r="${cellReference}" s="2"><v>${value}</v></c>`;
+  }
+
+  // Numeric strings — write as <v> with numeric format to preserve full precision
+  if (
+    typeof value === 'string' &&
+    value.trim() !== '' &&
+    Number.isFinite(Number(value))
+  ) {
+    return `<c r="${cellReference}" s="2"><v>${value}</v></c>`;
   }
 
   if (typeof value === 'boolean') {
@@ -928,6 +987,9 @@ const ROOT_RELATIONSHIPS_XML = `<?xml version="1.0" encoding="UTF-8" standalone=
 
 const STYLES_XML = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+  <numFmts count="1">
+    <numFmt numFmtId="164" formatCode="0.000000000000000"/>
+  </numFmts>
   <fonts count="2">
     <font><sz val="11"/><name val="Calibri"/></font>
     <font><b/><sz val="11"/><name val="Calibri"/></font>
@@ -938,9 +1000,10 @@ const STYLES_XML = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
   </fills>
   <borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>
   <cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
-  <cellXfs count="2">
+  <cellXfs count="3">
     <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
     <xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>
+    <xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>
   </cellXfs>
   <cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>
   <dxfs count="0"/>
