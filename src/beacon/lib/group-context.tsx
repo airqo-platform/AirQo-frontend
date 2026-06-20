@@ -33,6 +33,10 @@ interface GroupContextValue {
   loading: boolean
   /** Error message if fetching failed */
   error: string | null
+  /** Active group details */
+  activeGroupData: UserGroup | null
+  /** Whether the user is an admin of the active group */
+  isActiveGroupAdmin: boolean
 }
 
 const STORAGE_KEY = "beacon_active_group"
@@ -43,6 +47,8 @@ const GroupContext = createContext<GroupContextValue>({
   setActiveGroup: () => {},
   loading: true,
   error: null,
+  activeGroupData: null,
+  isActiveGroupAdmin: false,
 })
 
 // ─── Provider ────────────────────────────────────────────────────────────────
@@ -97,13 +103,26 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
             ? globalThis.localStorage.getItem(STORAGE_KEY)
             : null
 
+        // Default logic: Skip AirQo if not admin
+        let defaultGroup = groups[0]?.grp_title
+        const nonAirqoOrAdminAirqo = groups.find(g => {
+          if (g.grp_title.toLowerCase() === 'airqo') {
+             const roleName = g.role?.role_name?.toLowerCase() || ''
+             return roleName.includes('admin') || roleName === 'super' || roleName === 'net admin'
+          }
+          return true
+        })
+
+        if (nonAirqoOrAdminAirqo) {
+           defaultGroup = nonAirqoOrAdminAirqo.grp_title
+        }
+
         if (persisted && groups.some((g) => g.grp_title === persisted)) {
           setCurrentActiveGroup(persisted)
-        } else if (groups.length > 0) {
-          const first = groups[0].grp_title
-          setCurrentActiveGroup(first)
+        } else if (defaultGroup) {
+          setCurrentActiveGroup(defaultGroup)
           if (typeof globalThis.window !== "undefined") {
-            globalThis.localStorage.setItem(STORAGE_KEY, first)
+            globalThis.localStorage.setItem(STORAGE_KEY, defaultGroup)
           }
         }
       } catch (err: any) {
@@ -126,9 +145,19 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
     fetchGroups()
   }, [])
 
+  const activeGroupData = useMemo(() => {
+    return availableGroups.find(g => g.grp_title === activeGroup) || null
+  }, [activeGroup, availableGroups])
+
+  const isActiveGroupAdmin = useMemo(() => {
+    if (!activeGroupData?.role?.role_name) return false
+    const role = activeGroupData.role.role_name.toLowerCase()
+    return role.includes('admin') || role === 'super' || role === 'net admin'
+  }, [activeGroupData])
+
   const value = useMemo(
-    () => ({ activeGroup, availableGroups, setActiveGroup, loading, error }),
-    [activeGroup, availableGroups, setActiveGroup, loading, error]
+    () => ({ activeGroup, availableGroups, setActiveGroup, loading, error, activeGroupData, isActiveGroupAdmin }),
+    [activeGroup, availableGroups, setActiveGroup, loading, error, activeGroupData, isActiveGroupAdmin]
   )
 
   return (

@@ -26,7 +26,8 @@ import {
   MaintenanceMapItem,
   SyncedGrid,
   SyncedGridsResponse,
-  SyncedGridsQueryParams
+  SyncedGridsQueryParams,
+  MyDevicesResponse
 } from '@/types/api.types'
 
 
@@ -55,6 +56,16 @@ class ApiService {
   private getEndpoint(resource: string): string {
     const cleanPath = resource.startsWith('/') ? resource : `/${resource}`;
     return `${this.apiPrefix}${cleanPath}`;
+  }
+
+  /**
+   * Helper to detect if an error is due to missing cohorts/groups
+   */
+  private isNoCohortsError(error: any): boolean {
+    const msg = error?.message || '';
+    return msg.includes('have no associated cohorts') || 
+           msg.includes('Sync groups first') || 
+           msg.includes('no devices found');
   }
 
   private getAuthHeaders(): HeadersInit {
@@ -285,7 +296,18 @@ class ApiService {
 
     const endpoint = this.getEndpoint('/devices/stats')
     const url = `${this.baseUrl}${endpoint}${queryString}`
-    return this.fetchWithRetry<DeviceStatsResponse>(url)
+    
+    try {
+      return await this.fetchWithRetry<DeviceStatsResponse>(url)
+    } catch (error: any) {
+      if (this.isNoCohortsError(error)) {
+        return {
+          summary: { total: 0, online: 0, offline: 0 },
+          deployment: { deployed: 0, not_deployed: 0, recalled: 0 }
+        } as DeviceStatsResponse
+      }
+      throw error
+    }
   }
 
   // Get Device Stats with UI transformation
@@ -303,7 +325,15 @@ class ApiService {
     const url = `${this.baseUrl}${endpoint}${queryString}`
     console.log('Device API URL:', url)
     console.log('Base URL:', this.baseUrl)
-    return this.fetchWithRetry<Device[]>(url)
+    
+    try {
+      return await this.fetchWithRetry<Device[]>(url)
+    } catch (error: any) {
+      if (this.isNoCohortsError(error)) {
+        return []
+      }
+      throw error
+    }
   }
 
   // Device List API with Pagination
@@ -322,7 +352,27 @@ class ApiService {
     console.log('Device API URL (Paginated):', url)
     console.log('Base URL:', this.baseUrl)
 
-    const response = await this.fetchWithRetry<any>(url)
+    let response: any
+    try {
+      response = await this.fetchWithRetry<any>(url)
+    } catch (error: any) {
+      if (this.isNoCohortsError(error)) {
+        return {
+          devices: [],
+          pagination: {
+            total: 0,
+            skip: params?.skip || 0,
+            limit: params?.limit || 0,
+            returned: 0,
+            pages: 0,
+            current_page: 1,
+            has_next: false,
+            has_previous: false
+          }
+        }
+      }
+      throw error
+    }
 
     // Handle new response format with "meta"
     if (response.meta && response.devices) {
@@ -701,8 +751,15 @@ class ApiService {
     })
     const url = `${this.baseUrl}${endpoint}${queryString}`
 
-    const response = await this.fetchWithRetry<any>(url)
-    return response.data ?? response
+    try {
+      const response = await this.fetchWithRetry<any>(url)
+      return response.data ?? response
+    } catch (error: any) {
+      if (this.isNoCohortsError(error)) {
+        return []
+      }
+      throw error
+    }
   }
 
   // Update device configurations
@@ -912,6 +969,97 @@ class ApiService {
       },
     })
   }
+
+  // Get personal user cohorts
+  async getPersonalUserCohorts(userId: string): Promise<string[]> {
+    const token = authService.getToken()
+    if (!token) {
+      throw new Error('Authentication required')
+    }
+
+    let formattedToken = token
+    if (!formattedToken.startsWith('JWT ') && !formattedToken.startsWith('Bearer ')) {
+      formattedToken = `JWT ${formattedToken}`
+    }
+
+    const url = `/api/proxy/v2/users/${userId}/cohorts`
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': formattedToken,
+        'Content-Type': 'application/json'
+      }
+    })
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch personal cohorts: ${response.statusText}`)
+    }
+
+    const data = await response.json()
+    const ids: string[] = data.cohorts ?? []
+
+    if (!ids || ids.length === 0) return []
+
+    // Verify cohorts and filter out "airqo"
+    const verifyResults = await Promise.all(
+      ids.map(async (id) => {
+        try {
+          const verifyUrl = `/api/proxy/v2/devices/cohorts/verify/${id}`
+          const verifyResp = await fetch(verifyUrl, {
+            headers: {
+              'Authorization': formattedToken,
+              'Content-Type': 'application/json'
+            }
+          })
+          if (!verifyResp.ok) return null
+          return await verifyResp.json()
+        } catch {
+          return null
+        }
+      })
+    )
+
+    return ids.filter((id, idx) => {
+      const result = verifyResults[idx]
+      if (!result) return false
+      const name = (result?.cohort?.name || '').toLowerCase()
+      return name !== 'airqo'
+    })
+  }
+
+  // Get My Devices
+  async getMyDevices(params: {
+    userId: string
+    groupIds?: string[]
+    cohortIds?: string[]
+  }): Promise<MyDevicesResponse> {
+    const queryParams = new URLSearchParams({ user_id: params.userId })
+    if (params.groupIds && params.groupIds.length > 0) {
+      queryParams.append('group_ids', params.groupIds.join(','))
+    }
+    if (params.cohortIds && params.cohortIds.length > 0) {
+      queryParams.append('cohort_ids', params.cohortIds.join(','))
+    }
+    
+    const url = `/api/devices/my-devices?${queryParams.toString()}`
+    
+    return this.fetchWithRetry<MyDevicesResponse>(url, {
+      method: 'GET',
+    })
+  }
+
+  // Get My Devices with UI transformation
+  async getMyDevicesForUI(params: {
+    userId: string
+    groupIds?: string[]
+    cohortIds?: string[]
+  }): Promise<{ devices: UIDevice[]; total_devices: number; deployed_devices: number }> {
+    const response = await this.getMyDevices(params)
+    return {
+      devices: this.transformDeviceListToUI(response.devices || []),
+      total_devices: response.total_devices || 0,
+      deployed_devices: response.deployed_devices || 0,
+    }
+  }
 }
 
 // Export singleton instance
@@ -961,3 +1109,6 @@ export const syncThingSpeak = (days: number = 14) => deviceApiService.syncThingS
 export const syncSites = () => deviceApiService.syncSites()
 export const syncGrids = () => deviceApiService.syncGrids()
 export const syncGroups = () => deviceApiService.syncGroups()
+export const getMyDevices = (params: { userId: string; groupIds?: string[]; cohortIds?: string[] }) => deviceApiService.getMyDevices(params)
+export const getMyDevicesForUI = (params: { userId: string; groupIds?: string[]; cohortIds?: string[] }) => deviceApiService.getMyDevicesForUI(params)
+export const getPersonalUserCohorts = (userId: string) => deviceApiService.getPersonalUserCohorts(userId)
