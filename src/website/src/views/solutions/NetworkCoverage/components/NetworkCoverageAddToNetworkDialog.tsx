@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { getEnvironmentAwareUrl } from '@/lib/environmentAwareUrl';
 
 interface NetworkProviderOption {
   id: string;
@@ -68,8 +69,6 @@ interface NetworkCoverageAddToNetworkDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const vertexUrl = 'https://vertex.airqo.net';
-
 const NetworkCoverageAddToNetworkDialog = ({
   isOpen,
   onOpenChange,
@@ -83,7 +82,11 @@ const NetworkCoverageAddToNetworkDialog = ({
   }, [isOpen]);
 
   const handleContinue = () => {
-    window.open(vertexUrl, '_blank', 'noopener,noreferrer');
+    window.open(
+      getEnvironmentAwareUrl('https://vertex.airqo.net'),
+      '_blank',
+      'noopener,noreferrer',
+    );
   };
 
   return (

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:airqo/src/app/surveys/models/survey_model.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 
@@ -128,12 +129,13 @@ class SurveyCard extends StatelessWidget {
   }
 
   Widget _buildSurveyIcon(BuildContext context) {
-    IconData iconData;
+    IconData? iconData;
     Color iconColor;
+    bool useLocationPin = false;
 
     switch (survey.trigger.type) {
       case SurveyTriggerType.locationBased:
-        iconData = Icons.location_on;
+        useLocationPin = true;
         iconColor = Colors.blue;
         break;
       case SurveyTriggerType.airQualityThreshold:
@@ -160,10 +162,18 @@ class SurveyCard extends StatelessWidget {
         color: iconColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Icon(
-        iconData,
-        color: iconColor,
-        size: 20,
+      child: Center(
+        child: useLocationPin
+            ? SvgPicture.asset(
+                'assets/images/shared/location_pin.svg',
+                width: 20,
+                height: 20,
+              )
+            : Icon(
+                iconData,
+                color: iconColor,
+                size: 20,
+              ),
       ),
     );
   }

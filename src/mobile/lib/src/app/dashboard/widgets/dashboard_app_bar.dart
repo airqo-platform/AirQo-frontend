@@ -37,6 +37,11 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
+  Color _appBarIconBackground(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? AppColors.darkHighlight
+          : AppColors.dividerColorlight;
+
   Widget _buildThemeToggle(BuildContext context) {
     final themeBloc = context.read<ThemeBloc>();
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -46,16 +51,37 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
       },
       child: CircleAvatar(
         radius: 24,
-        backgroundColor: Theme.of(context).brightness == Brightness.dark
-            ? AppColors.darkHighlight
-            : AppColors.lightHighlight,
+        backgroundColor: _appBarIconBackground(context),
         child: Center(
-          child: SvgPicture.asset(
+          child: _buildAppBarIcon(
+            context,
             isDarkMode
-                ? "assets/images/dashboard/Dark_icon.svg"
-                : "assets/images/dashboard/Light_icon.svg",
+                ? 'assets/images/dashboard/sun_icon.svg'
+                : 'assets/images/dashboard/theme_toggle.svg',
+            size: 20,
           ),
         ),
+      ),
+    );
+  }
+
+  Color _appBarIconColor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? Colors.white
+          : Colors.black;
+
+  Widget _buildAppBarIcon(
+    BuildContext context,
+    String asset, {
+    double size = 22,
+  }) {
+    return SvgPicture.asset(
+      asset,
+      height: size,
+      width: size,
+      colorFilter: ColorFilter.mode(
+        _appBarIconColor(context),
+        BlendMode.srcIn,
       ),
     );
   }
@@ -82,13 +108,12 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
         );
       },
       child: CircleAvatar(
-        backgroundColor: Theme.of(context).highlightColor,
+        backgroundColor: _appBarIconBackground(context),
         radius: 24,
         child: Center(
-          child: SvgPicture.asset(
-            "assets/icons/user_icon.svg",
-            height: 22,
-            width: 22,
+          child: _buildAppBarIcon(
+            context,
+            'assets/icons/user_icon.svg',
           ),
         ),
       ),
@@ -129,12 +154,14 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
               },
               child: CircleAvatar(
                 radius: 24,
-                backgroundColor: Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.darkHighlight
-                    : AppColors.dividerColorlight,
+                backgroundColor: _appBarIconBackground(context),
                 child: ClipOval(
-                  child:
-                      _buildProfilePicture(profilePicture, firstName, lastName),
+                  child: _buildProfilePicture(
+                    context,
+                    profilePicture,
+                    firstName,
+                    lastName,
+                  ),
                 ),
               ),
             ),
@@ -164,14 +191,11 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
               },
               child: CircleAvatar(
                 radius: 24,
-                backgroundColor: Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.darkHighlight
-                    : AppColors.dividerColorlight,
+                backgroundColor: _appBarIconBackground(context),
                 child: Center(
-                  child: SvgPicture.asset(
-                    "assets/icons/user_icon.svg",
-                    height: 22,
-                    width: 22,
+                  child: _buildAppBarIcon(
+                    context,
+                    'assets/icons/user_icon.svg',
                   ),
                 ),
               ),
@@ -189,7 +213,11 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   Widget _buildProfilePicture(
-      String? profilePicture, String? firstName, String? lastName) {
+    BuildContext context,
+    String? profilePicture,
+    String? firstName,
+    String? lastName,
+  ) {
     String firstNameSafe = firstName ?? "";
     String lastNameSafe = lastName ?? "";
 
@@ -204,11 +232,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
     }
 
     Widget fallbackWidget = Center(
-      child: SvgPicture.asset(
-        "assets/icons/user_icon.svg",
-        height: 22,
-        width: 22,
-      ),
+      child: _buildAppBarIcon(context, 'assets/icons/user_icon.svg'),
     );
 
     if (initials.isEmpty &&

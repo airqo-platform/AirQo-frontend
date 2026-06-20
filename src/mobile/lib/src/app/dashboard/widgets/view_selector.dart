@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import '../../../meta/utils/colors.dart';
 import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
 
-enum DashboardView { all, nearYou ,favorites, country }
+enum DashboardView { all, nearYou, favorites, country, explore }
 
 class ViewSelector extends StatefulWidget {
   final DashboardView currentView;

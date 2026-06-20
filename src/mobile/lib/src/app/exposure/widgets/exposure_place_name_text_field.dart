@@ -8,6 +8,9 @@ class ExposurePlaceNameTextField extends StatefulWidget {
   final String? hintText;
   final bool isDark;
   final TextCapitalization textCapitalization;
+  final int? maxLines;
+  final int? minLines;
+  final bool enabled;
 
   const ExposurePlaceNameTextField({
     super.key,
@@ -15,6 +18,9 @@ class ExposurePlaceNameTextField extends StatefulWidget {
     this.hintText,
     required this.isDark,
     this.textCapitalization = TextCapitalization.words,
+    this.maxLines = 1,
+    this.minLines,
+    this.enabled = true,
   });
 
   static const _borderIdle = Color(0xFFD0D5DD);
@@ -93,10 +99,15 @@ class _ExposurePlaceNameTextFieldState extends State<ExposurePlaceNameTextField>
         child: TextField(
           controller: widget.controller,
           focusNode: _focusNode,
+          enabled: widget.enabled,
+          maxLines: widget.maxLines,
+          minLines: widget.minLines,
           cursorColor: AppColors.primaryColor,
           cursorWidth: 1,
           cursorHeight: 24,
           textCapitalization: widget.textCapitalization,
+          textAlignVertical:
+              (widget.maxLines ?? 1) > 1 ? TextAlignVertical.top : TextAlignVertical.center,
           style: TextStyle(
             fontFamily: 'Inter',
             fontSize: 16,

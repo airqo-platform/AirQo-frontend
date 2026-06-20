@@ -474,6 +474,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     { path: '/about-us', changeFrequency: 'monthly', priority: 0.8 },
     { path: '/products/monitor', changeFrequency: 'monthly', priority: 0.9 },
+    { path: '/products/vertex', changeFrequency: 'monthly', priority: 0.9 },
+    { path: '/products/beacon', changeFrequency: 'monthly', priority: 0.9 },
+    {
+      path: '/products/ai-platform',
+      changeFrequency: 'monthly',
+      priority: 0.9,
+    },
     { path: '/products/analytics', changeFrequency: 'monthly', priority: 0.9 },
     { path: '/products/api', changeFrequency: 'monthly', priority: 0.9 },
     { path: '/products/mobile-app', changeFrequency: 'monthly', priority: 0.9 },

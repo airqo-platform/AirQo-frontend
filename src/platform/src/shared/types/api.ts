@@ -997,7 +997,196 @@ export interface MapReadingsResponse {
   measurements: MapReading[];
 }
 
-// Forecast types
+// Forecast types – Daily Forecasting API v2
+
+export interface DailyForecastMet {
+  air_temperature?: ParsedNumber;
+  relative_humidity?: ParsedNumber;
+  air_pressure_at_sea_level?: ParsedNumber;
+  precipitation_amount?: ParsedNumber;
+  cloud_area_fraction?: ParsedNumber;
+  wind_speed?: ParsedNumber;
+  wind_from_direction?: ParsedNumber;
+  wind_direction_compass?: string;
+}
+
+export interface DailyForecastAqi {
+  aqi_value?: ParsedNumber;
+  label?: string;
+  trend_message?: string | null;
+  aqi_category?: string;
+  aqi_color_name?: string;
+  aqi_color?: string;
+}
+
+export interface DailyForecastItem {
+  date: string;
+  forecast: {
+    pm2_5_mean?: ParsedNumber;
+    pm2_5_low?: ParsedNumber;
+    pm2_5_high?: ParsedNumber;
+    pm2_5_min?: ParsedNumber;
+    pm2_5_max?: ParsedNumber;
+    forecast_confidence?: ParsedNumber;
+  };
+  aqi?: DailyForecastAqi;
+  met?: DailyForecastMet;
+  created_at?: string;
+}
+
+export interface DailyForecastSiteDetails {
+  site_id: string;
+  site_name: string;
+  site_latitude?: ParsedNumber;
+  site_longitude?: ParsedNumber;
+}
+
+export interface DailyForecastSite {
+  site_details: DailyForecastSiteDetails;
+  start_date?: string;
+  end_date?: string;
+  days?: number;
+  total?: number;
+  forecasts: DailyForecastItem[];
+}
+
+export interface DailyForecastUnits {
+  pm2_5: string;
+  air_temperature: string;
+  relative_humidity: string;
+  air_pressure_at_sea_level: string;
+  precipitation_amount: string;
+  cloud_area_fraction: string;
+  wind_speed: string;
+  wind_from_direction: string;
+  forecast_confidence: string;
+}
+
+export interface DailyForecastScope {
+  type?: string;
+  id?: string;
+  grid_id?: string;
+}
+
+export interface DailyForecastResponse {
+  success: boolean;
+  data: {
+    start_date: string;
+    end_date: string;
+    days: number;
+    total: number;
+    units: DailyForecastUnits;
+    forecasts: DailyForecastSite[];
+    scope?: DailyForecastScope;
+    sites_count?: number;
+    sites_with_forecasts_count?: number;
+    site_names?: string[];
+  };
+}
+
+// Forecast types – Hourly Forecasting API v2
+
+/** Some numeric fields may arrive as a plain number or {source, parsedValue} */
+export type ParsedNumber = number | { source: string; parsedValue: number };
+
+/** Extract a usable number from a ParsedNumber */
+export function resolveParsedNumber(value: ParsedNumber | undefined | null): number | undefined {
+  if (value == null) return undefined;
+  if (typeof value === 'number') return value;
+  if (typeof value === 'object' && 'parsedValue' in value) return value.parsedValue;
+  return undefined;
+}
+
+export interface HourlyForecastMet {
+  air_temperature?: ParsedNumber;
+  relative_humidity?: ParsedNumber;
+  air_pressure_at_sea_level?: ParsedNumber;
+  precipitation_amount?: ParsedNumber;
+  cloud_area_fraction?: ParsedNumber;
+  wind_speed?: ParsedNumber;
+  wind_from_direction?: ParsedNumber;
+  wind_direction_compass?: string;
+}
+
+export interface HourlyForecastAqi {
+  aqi_value?: ParsedNumber;
+  label?: string;
+  trend_message?: string | null;
+  aqi_category?: string;
+  aqi_color_name?: string;
+  aqi_color?: string;
+}
+
+export interface HourlyForecastItem {
+  timestamp: string;
+  forecast: {
+    pm2_5_mean?: ParsedNumber;
+    pm2_5_q10?: ParsedNumber;
+    pm2_5_q90?: ParsedNumber;
+    forecast_confidence?: ParsedNumber;
+  };
+  aqi?: HourlyForecastAqi;
+  met?: HourlyForecastMet;
+  created_at?: string;
+}
+
+export interface HourlyForecastSiteDetails {
+  site_id: string;
+  site_name: string;
+  site_latitude?: ParsedNumber;
+  site_longitude?: ParsedNumber;
+}
+
+export interface HourlyForecastSite {
+  site_details: HourlyForecastSiteDetails;
+  start_timestamp?: string;
+  end_timestamp?: string;
+  hours?: number;
+  total?: number;
+  page?: number;
+  limit?: number;
+  total_pages?: number;
+  has_next?: boolean;
+  forecasts: HourlyForecastItem[];
+}
+
+export interface HourlyForecastUnits {
+  pm2_5: string;
+  air_temperature: string;
+  relative_humidity: string;
+  air_pressure_at_sea_level: string;
+  precipitation_amount: string;
+  cloud_area_fraction: string;
+  wind_speed: string;
+  wind_from_direction: string;
+  forecast_confidence: string;
+}
+
+export interface HourlyForecastScope {
+  type?: string;
+  id?: string;
+  grid_id?: string;
+}
+
+export interface HourlyForecastResponse {
+  success: boolean;
+  data: {
+    start_date: string;
+    end_date: string;
+    total: number;
+    page?: number;
+    limit?: number;
+    has_next?: boolean;
+    units: HourlyForecastUnits;
+    forecasts: HourlyForecastSite[];
+    scope?: HourlyForecastScope;
+    sites_count?: number;
+    sites_with_forecasts_count?: number;
+    site_names?: string[];
+  };
+}
+
+// Legacy forecast types (kept for backward compatibility)
 export interface ForecastData {
   time: string;
   pm2_5: number;

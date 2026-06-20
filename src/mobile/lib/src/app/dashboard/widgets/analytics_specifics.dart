@@ -1,10 +1,13 @@
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/pages/forecast_overview_page.dart';
+import 'package:airqo/src/app/dashboard/utils/measurement_location_utils.dart';
+import 'package:airqo/src/app/dashboard/widgets/air_quality_share_sheet.dart';
 import 'package:airqo/src/app/dashboard/widgets/expanded_analytics_card.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_forecast_widget.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class AnalyticsSpecifics extends StatefulWidget {
   final Measurement measurement;
@@ -19,6 +22,7 @@ class AnalyticsSpecifics extends StatefulWidget {
 class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
   double containerHeight = 90;
   bool expanded = false;
+  final GlobalKey _shareButtonKey = GlobalKey();
 
   @override
   void initState() {
@@ -66,6 +70,21 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
             "Unknown location";
   }
 
+  Future<void> _shareAirQuality() async {
+    final renderObject =
+        _shareButtonKey.currentContext?.findRenderObject() as RenderBox?;
+    final shareOrigin = renderObject == null
+        ? null
+        : renderObject.localToGlobal(Offset.zero) & renderObject.size;
+
+    await showAirQualityShareSheet(
+      context,
+      measurement: widget.measurement,
+      fallbackLocationName: widget.fallbackLocationName,
+      sharePositionOrigin: shareOrigin,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final nameColor = Theme.of(context).textTheme.headlineSmall?.color;
@@ -101,22 +120,44 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    InkWell(
-                      onTap: () => Navigator.pop(context),
-                      child: Icon(
-                        Icons.close,
-                        color: nameColor,
-                      ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextButton.icon(
+                          key: _shareButtonKey,
+                          onPressed: _shareAirQuality,
+                          icon: SvgPicture.asset(
+                            'assets/icons/share-icon.svg',
+                            width: 18,
+                            height: 18,
+                            colorFilter: const ColorFilter.mode(
+                              AppColors.primaryColor,
+                              BlendMode.srcIn,
+                            ),
+                          ),
+                          label: const TranslatedText('Share'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppColors.primaryColor,
+                          ),
+                        ),
+                        InkWell(
+                          onTap: () => Navigator.pop(context),
+                          child: Icon(
+                            Icons.close,
+                            color: AppTextColors.modalCloseIcon(context),
+                          ),
+                        ),
+                      ],
                     )
                   ],
                 ),
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    Icon(
-                      Icons.location_on,
-                      size: 14,
-                      color: AppColors.primaryColor,
+                    SvgPicture.asset(
+                      'assets/images/shared/location_pin.svg',
+                      width: 14,
+                      height: 14,
                     ),
                     const SizedBox(width: 4),
                     Expanded(
@@ -148,18 +189,17 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
                     if (widget.measurement.siteDetails?.id != null)
                       TextButton(
                         onPressed: () {
-                          Navigator.push(
+                          ForecastOverviewPage.show(
                             context,
-                            MaterialPageRoute(
-                              builder: (_) => ForecastOverviewPage(
-                                siteId: widget.measurement.siteDetails!.id!,
-                                siteName: widget.measurement.siteDetails
-                                        ?.searchName ??
-                                    widget.measurement.siteDetails?.name ??
-                                    widget.fallbackLocationName ??
-                                    '',
-                              ),
+                            siteId: widget.measurement.siteDetails!.id!,
+                            siteName: measurementDisplayName(
+                              widget.measurement,
+                              fallbackLocationName: widget.fallbackLocationName,
                             ),
+                            locationDescription: measurementLocationDescription(
+                              widget.measurement,
+                            ),
+                            measurement: widget.measurement,
                           );
                         },
                         child: TranslatedText(

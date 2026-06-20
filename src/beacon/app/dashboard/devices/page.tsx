@@ -28,56 +28,31 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Pagination } from "@/components/ui/pagination"
 import { useToast } from "@/components/ui/use-toast"
-import dynamic from "next/dynamic"
-import { getDeviceSummary, getDevicesForUIPaginated, syncDevices, syncDevicePerformance } from "@/services/device-api.service"
+import { 
+  getDeviceSummary, 
+  getDevicesForUIPaginated, 
+  syncDevices, 
+  syncDevicePerformance,
+  getMyDevicesForUI,
+  getPersonalUserCohorts 
+} from "@/services/device-api.service"
+import authService from "@/services/api-service"
 import type { ApiResponseMeta, DeviceSummaryResponse, UIDevice } from "@/types/api.types"
 import UpdateDeviceDialog from "@/components/dashboard/update-device-dialog"
 import { formatCategoryLabel } from "@/lib/utils"
 import { useGroup } from "@/lib/group-context"
-
-// Dynamically import the map component to avoid SSR issues with better error handling
-const AfricaMap = dynamic(
-  () => import("./africa-map").catch((error) => {
-    console.error('Failed to load AfricaMap:', error)
-    // Return a fallback component
-    return {
-      default: () => (
-        <div className="h-[700px] w-full flex items-center justify-center bg-red-50 rounded-lg border-2 border-red-200">
-          <div className="text-center">
-            <MapPin className="h-10 w-10 text-red-400 mx-auto mb-2" />
-            <p className="text-red-600 text-sm">Africa map failed to load</p>
-            <button
-              onClick={() => globalThis.location.reload()}
-              className="mt-2 px-3 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"
-            >
-              Retry
-            </button>
-          </div>
-        </div>
-      )
-    }
-  }),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="h-[700px] w-full flex items-center justify-center bg-gray-100 rounded-lg">
-        <div className="text-center">
-          <MapPin className="h-10 w-10 text-gray-400 mx-auto mb-2" />
-          <p className="text-gray-500">Loading map...</p>
-        </div>
-      </div>
-    ),
-  }
-)
 
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 
 export default function DevicesPage() {
   const { toast } = useToast()
-  const { activeGroup, loading: groupLoading } = useGroup()
+  const { activeGroup, loading: groupLoading, isActiveGroupAdmin } = useGroup()
 
-  // State for device data
+  const isAirqoGroup = activeGroup?.toLowerCase() === 'airqo'
+  const hideOrgDevices = isAirqoGroup && !isActiveGroupAdmin
+
+  // State for device data (Org Devices)
   const [devices, setDevices] = useState<UIDevice[]>([])
   const [devicesMeta, setDevicesMeta] = useState<ApiResponseMeta | null>(null)
   const [totalDevices, setTotalDevices] = useState(0)
@@ -93,6 +68,25 @@ export default function DevicesPage() {
     tracked_offline: 0
   })
 
+  // State for personal devices (My Devices)
+  const [deviceScope, setDeviceScope] = useState<"org" | "my">("org")
+
+  // Sync default scope when hideOrgDevices changes
+  useEffect(() => {
+    if (hideOrgDevices) {
+      setDeviceScope("my")
+    } else if (deviceScope === "my" && !hideOrgDevices) {
+      // Optional: don't automatically flip back to org if they were on my
+    }
+  }, [hideOrgDevices])
+  const [myDevices, setMyDevices] = useState<UIDevice[]>([])
+  const [myDevicesLoading, setMyDevicesLoading] = useState(false)
+  const [myDevicesError, setMyDevicesError] = useState<string | null>(null)
+  const [myDevicesCounts, setMyDevicesCounts] = useState({
+    total: 0,
+    deployed: 0
+  })
+
   // UI states
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -102,8 +96,6 @@ export default function DevicesPage() {
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
-  const [showMap, setShowMap] = useState(false)
-  const [viewMode, setViewMode] = useState<"list" | "map">("list")
   const [firmwareDialogOpen, setFirmwareDialogOpen] = useState(false)
   const [selectedFirmwareDevice, setSelectedFirmwareDevice] = useState<UIDevice | null>(null)
   const [showTracked, setShowTracked] = useState(true) // Default to tracked
@@ -112,6 +104,10 @@ export default function DevicesPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(25)
 
+  // Derived loading and error states based on active scope
+  const isDataLoading = deviceScope === "org" ? loading : myDevicesLoading
+  const activeError = deviceScope === "org" ? error : myDevicesError
+
   // Fetch device counts
   const fetchDeviceCounts = async () => {
     try {
@@ -119,11 +115,10 @@ export default function DevicesPage() {
       setDeviceCounts(data)
     } catch (err) {
       console.error("Error fetching device counts:", err)
-      // Don't set error for counts, just use defaults
     }
   }
 
-  // Fetch devices list with pagination
+  // Fetch devices list with pagination (Org Devices)
   const fetchDevices = async () => {
     if (!activeGroup) {
       setDevices([])
@@ -141,31 +136,17 @@ export default function DevicesPage() {
       setLoading(true)
       setError(null)
 
-      // Calculate skip based on current page
       const skip = (currentPage - 1) * itemsPerPage
-
-      // Prepare query params
       const params: any = {
         skip,
         limit: itemsPerPage,
         group: activeGroup,
       }
 
-      // Add search term if provided (backend search)
       if (searchTerm && searchTerm.trim()) {
         params.search = searchTerm.trim()
       }
 
-      // Network and status filters are currently handled by the backend's
-      // default scoping. UI filter controls are disabled until needed.
-      // if (networkFilter !== "all") {
-      //   params.network = networkFilter
-      // }
-      // if (statusFilter !== "all") {
-      //   params.status = statusFilter
-      // }
-
-      // Fetch from the /devices endpoint with pagination
       const data = await getDevicesForUIPaginated(params)
 
       setDevices(data.devices)
@@ -174,8 +155,6 @@ export default function DevicesPage() {
       setTotalPages(data.pagination.pages)
       setHasNext(data.pagination.has_next)
       setHasPrevious(data.pagination.has_previous)
-
-      console.log('Pagination metadata:', data.pagination)
     } catch (err) {
       console.error("Error fetching devices:", err)
       setError("Failed to load device data")
@@ -185,38 +164,90 @@ export default function DevicesPage() {
     }
   }
 
+  // Fetch personal devices (My Devices)
+  const fetchMyDevices = async () => {
+    try {
+      setMyDevicesLoading(true)
+      setMyDevicesError(null)
+
+      let userData = authService.getUserData()
+      if (!userData) {
+        const token = authService.getToken()
+        if (!token) throw new Error("No authentication token")
+        const userResp = await fetch("/api/auth/user", {
+          headers: {
+            'Authorization': token,
+            'Content-Type': 'application/json'
+          }
+        })
+        if (!userResp.ok) throw new Error("Failed to fetch user details")
+        const data = await userResp.json()
+        userData = data.users?.[0]
+      }
+
+      if (!userData?._id) {
+        throw new Error("Could not retrieve user ID")
+      }
+
+      const uId = userData._id
+
+      const grps = userData.groups || []
+      const grpIds = grps
+        .filter((g: any) => g.grp_title?.toLowerCase() !== "airqo")
+        .map((g: any) => g._id)
+
+      const cohortIds = await getPersonalUserCohorts(uId)
+
+      const result = await getMyDevicesForUI({
+        userId: uId,
+        groupIds: grpIds,
+        cohortIds: cohortIds
+      })
+
+      setMyDevices(result.devices)
+      setMyDevicesCounts({
+        total: result.total_devices,
+        deployed: result.deployed_devices
+      })
+    } catch (err: any) {
+      console.error("Error fetching my devices:", err)
+      setMyDevicesError(err.message || "Failed to fetch personal devices")
+    } finally {
+      setMyDevicesLoading(false)
+      setIsRefreshing(false)
+    }
+  }
+
   // Initial data load
   useEffect(() => {
     if (groupLoading || !activeGroup) return
-
     fetchDeviceCounts()
-
-    // Delay showing the map to avoid React reconciliation issues
-    const timer = setTimeout(() => {
-      setShowMap(true)
-    }, 1000)
-
-    return () => clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeGroup, groupLoading])
 
-  // Refetch devices when pagination or search changes
+  // Refetch devices when pagination, search, or scope changes
   useEffect(() => {
     if (groupLoading || !activeGroup) return
 
-    // Debounce search to avoid too many API calls
-    const searchDebounce = setTimeout(() => {
-      fetchDevices()
-    }, 500) // Wait 500ms after user stops typing
-
-    return () => clearTimeout(searchDebounce)
+    if (deviceScope === "org") {
+      const searchDebounce = setTimeout(() => {
+        fetchDevices()
+      }, 500)
+      return () => clearTimeout(searchDebounce)
+    } else {
+      fetchMyDevices()
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, itemsPerPage, searchTerm, showTracked, activeGroup, groupLoading]) // Added searchTerm and showTracked
+  }, [currentPage, itemsPerPage, searchTerm, showTracked, activeGroup, groupLoading, deviceScope])
 
   // Refresh all data
   const refreshData = () => {
     setIsRefreshing(true)
-    Promise.all([fetchDeviceCounts(), fetchDevices()])
+    if (deviceScope === "org") {
+      Promise.all([fetchDeviceCounts(), fetchDevices()]).finally(() => setIsRefreshing(false))
+    } else {
+      Promise.all([fetchDeviceCounts(), fetchMyDevices()]).finally(() => setIsRefreshing(false))
+    }
   }
 
   // Sync devices and performance
@@ -244,19 +275,32 @@ export default function DevicesPage() {
     }
   }
 
-  // Calculate percentages for the progress bars
-  // Calculate percentages for the progress bars
+  // Calculate percentages for progress bars
   const calculatePercentage = useCallback((value: number, total: number) => {
     return total > 0
       ? Math.round((value / total) * 100)
       : 0
   }, [])
 
-  const totalDevicesCount = devicesMeta?.totalDevices ?? devicesMeta?.total ?? deviceCounts.total_devices
-  const trackedDevicesCount = devicesMeta?.devicesInAtLeastOneCohort ?? deviceCounts.tracked_devices
-  const deployedDevicesCount = devicesMeta?.deployedDevices ?? deviceCounts.deployed_devices
-  const onlineDevicesCount = devicesMeta?.onlineDevices ?? deviceCounts.tracked_online
-  const offlineDevicesCount = devicesMeta?.offlineDevices ?? deviceCounts.tracked_offline
+  const totalDevicesCount = deviceScope === "org"
+    ? (devicesMeta?.totalDevices ?? devicesMeta?.total ?? deviceCounts.total_devices)
+    : myDevices.length
+
+  const trackedDevicesCount = deviceScope === "org"
+    ? (devicesMeta?.devicesInAtLeastOneCohort ?? deviceCounts.tracked_devices)
+    : myDevices.length
+
+  const deployedDevicesCount = deviceScope === "org"
+    ? (devicesMeta?.deployedDevices ?? deviceCounts.deployed_devices)
+    : myDevices.filter(d => d.status === "deployed").length
+
+  const onlineDevicesCount = deviceScope === "org"
+    ? (devicesMeta?.onlineDevices ?? deviceCounts.tracked_online)
+    : myDevices.filter(d => isDeviceOnline(d)).length
+
+  const offlineDevicesCount = deviceScope === "org"
+    ? (devicesMeta?.offlineDevices ?? deviceCounts.tracked_offline)
+    : myDevices.filter(d => !isDeviceOnline(d)).length
 
   const trackedPercentage = calculatePercentage(trackedDevicesCount, totalDevicesCount)
   const onlinePercentage = calculatePercentage(onlineDevicesCount, trackedDevicesCount)
@@ -265,11 +309,11 @@ export default function DevicesPage() {
 
   // Get unique networks for filter
   const uniqueNetworks = useMemo(() => {
-    const networks = new Set(devices.map(d => d.network).filter(Boolean))
+    const activeDevicesList = deviceScope === "org" ? devices : myDevices
+    const networks = new Set(activeDevicesList.map(d => d.network).filter(Boolean))
     return Array.from(networks)
-  }, [devices])
+  }, [devices, myDevices, deviceScope])
 
-  // No client-side filtering needed - backend handles search
   const getDeviceLastSeenTimestamp = useCallback((device: UIDevice) => {
     return device.reading_timestamp || device.last_updated || null
   }, [])
@@ -279,13 +323,12 @@ export default function DevicesPage() {
     const lastSeenTimestamp = getDeviceLastSeenTimestamp(device)
     if (!lastSeenTimestamp) return false
 
-    // Check if timestamp is from yesterday or today (or later)
     const updatedDate = new Date(lastSeenTimestamp)
     if (Number.isNaN(updatedDate.getTime())) return false
 
     const cutoffDate = new Date()
-    cutoffDate.setDate(cutoffDate.getDate() - 1) // Subtract 1 day
-    cutoffDate.setHours(0, 0, 0, 0) // Start of that day
+    cutoffDate.setDate(cutoffDate.getDate() - 1)
+    cutoffDate.setHours(0, 0, 0, 0)
 
     return updatedDate >= cutoffDate
   }, [getDeviceLastSeenTimestamp])
@@ -293,39 +336,59 @@ export default function DevicesPage() {
   // Sort devices - online devices first, then by name
   const sortedDevices = useMemo(() => {
     return [...devices].sort((a, b) => {
-      // First sort by deployment status
       if (a.status === "deployed" && b.status !== "deployed") return -1;
       if (a.status !== "deployed" && b.status === "deployed") return 1;
-
-      // Then sort by name
       return (a.device_name || "").localeCompare(b.device_name || "");
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [devices]);
+  }, [devices])
 
-  // Memoize map device data to avoid re-filtering/mapping on every render
-  const mapDevices = useMemo(() => {
-    return devices
-      .filter((device) =>
-        device.latitude != null &&
-        device.longitude != null &&
-        !Number.isNaN(device.latitude) &&
-        !Number.isNaN(device.longitude)
+  // Filter, sort, and paginate devices dynamically based on scope
+  const displayedDevices = useMemo(() => {
+    if (deviceScope === "org") {
+      return sortedDevices
+    }
+
+    let filtered = myDevices
+    if (searchTerm && searchTerm.trim()) {
+      const term = searchTerm.toLowerCase().trim()
+      filtered = filtered.filter((d) => 
+        (d.device_name || "").toLowerCase().includes(term) ||
+        (d.device_id || "").toLowerCase().includes(term) ||
+        (d.location_name || "").toLowerCase().includes(term) ||
+        (d.city || "").toLowerCase().includes(term) ||
+        (d.country || "").toLowerCase().includes(term)
       )
-      .map((device) => ({
-        id: device.device_id,
-        name: device.device_name,
-        status: device.status ?? (isDeviceOnline(device) ? "online" : "offline"),
-        lat: device.latitude,
-        lng: device.longitude,
-        pm2_5: device.pm2_5 ?? undefined,
-        pm10: device.pm10 ?? undefined,
-        reading_timestamp: device.reading_timestamp,
-      }))
-  }, [devices, isDeviceOnline])
+    }
 
-  // Display current items (no need for slicing since backend handles pagination)
-  const currentItems = sortedDevices;
+    const sorted = [...filtered].sort((a, b) => {
+      if (a.status === "deployed" && b.status !== "deployed") return -1
+      if (a.status !== "deployed" && b.status === "deployed") return 1
+      return (a.device_name || "").localeCompare(b.device_name || "")
+    })
+
+    return sorted
+  }, [deviceScope, sortedDevices, myDevices, searchTerm])
+
+  const paginatedDisplayedDevices = useMemo(() => {
+    if (deviceScope === "org") {
+      return displayedDevices
+    }
+
+    const startIndex = (currentPage - 1) * itemsPerPage
+    return displayedDevices.slice(startIndex, startIndex + itemsPerPage)
+  }, [deviceScope, displayedDevices, currentPage, itemsPerPage])
+
+  const currentTotalItems = useMemo(() => {
+    return deviceScope === "org" ? totalDevices : displayedDevices.length
+  }, [deviceScope, totalDevices, displayedDevices])
+
+  const currentTotalPages = useMemo(() => {
+    return deviceScope === "org"
+      ? totalPages
+      : Math.ceil(displayedDevices.length / itemsPerPage) || 1
+  }, [deviceScope, totalPages, displayedDevices, itemsPerPage])
+
+  const currentItems = paginatedDisplayedDevices;
 
   // Get status badge variant
   const getStatusBadge = useCallback((device: UIDevice) => {
@@ -454,17 +517,14 @@ export default function DevicesPage() {
             <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
             {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
           </Button>
-          {/* <Button className="bg-primary hover:bg-primary/90">
-            <Plus className="mr-2 h-4 w-4" /> Add Device
-          </Button> */}
         </div>
       </div>
 
-      {error && (
+      {activeError && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{activeError}</AlertDescription>
         </Alert>
       )}
 
@@ -481,13 +541,13 @@ export default function DevicesPage() {
             <div className="flex justify-between items-end">
               <div>
                 <div className="text-3xl font-bold">
-                  {loading ? '...' : totalDevicesCount}
+                  {isDataLoading ? '...' : totalDevicesCount}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">Registered devices</p>
               </div>
               <div className="text-right">
                 <div className="text-xl font-bold text-primary">
-                  {loading ? '...' : trackedDevicesCount}
+                  {isDataLoading ? '...' : trackedDevicesCount}
                 </div>
                 <p className="text-xs text-muted-foreground">Tracked ({trackedPercentage}%)</p>
               </div>
@@ -510,7 +570,7 @@ export default function DevicesPage() {
           </CardHeader>
           <CardContent className="pt-4">
             <div className="text-3xl font-bold">
-              {loading ? '...' : deployedDevicesCount}
+              {isDataLoading ? '...' : deployedDevicesCount}
             </div>
             <div className="flex items-center mt-1">
               <div className="h-2 bg-blue-500 rounded-full" style={{ width: `${deployedPercentage}%` }}></div>
@@ -529,7 +589,7 @@ export default function DevicesPage() {
           </CardHeader>
           <CardContent className="pt-4">
             <div className="text-3xl font-bold">
-              {loading ? '...' : onlineDevicesCount}
+              {isDataLoading ? '...' : onlineDevicesCount}
             </div>
             <div className="flex items-center mt-1">
               <div className="h-2 bg-green-500 rounded-full" style={{ width: `${onlinePercentage}%` }}></div>
@@ -548,7 +608,7 @@ export default function DevicesPage() {
           </CardHeader>
           <CardContent className="pt-4">
             <div className="text-3xl font-bold">
-              {loading ? '...' : offlineDevicesCount}
+              {isDataLoading ? '...' : offlineDevicesCount}
             </div>
             <div className="flex items-center mt-1">
               <div className="h-2 bg-red-500 rounded-full" style={{ width: `${offlinePercentage}%` }}></div>
@@ -558,316 +618,237 @@ export default function DevicesPage() {
         </Card>
       </div>
 
-      {/* Device List and Map Section with Toggle */}
+      {/* Device List Section with Tabs */}
       <Card className="hover:shadow-md transition-shadow">
         <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <CardTitle className="flex items-center">
-              {viewMode === "list" ? (
-                <>
-                  <BarChart3 className="mr-2 h-5 w-5 text-primary" />
-                  Device List
-                </>
-              ) : (
-                <>
-                  <MapPin className="mr-2 h-5 w-5 text-primary" />
-                  Device Locations
-                </>
-              )}
+              <BarChart3 className="mr-2 h-5 w-5 text-primary" />
+              Device List
             </CardTitle>
 
-            {/* View Toggle Buttons */}
+            {/* Scope Tabs */}
             <div className="flex items-center gap-2">
+              {!hideOrgDevices && (
+                <Button
+                  variant={deviceScope === "org" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setDeviceScope("org")}
+                  className="flex items-center"
+                >
+                  <List className="mr-2 h-4 w-4" />
+                  Org Devices
+                </Button>
+              )}
               <Button
-                variant={viewMode === "list" ? "default" : "outline"}
+                variant={deviceScope === "my" ? "default" : "outline"}
                 size="sm"
-                onClick={() => setViewMode("list")}
+                onClick={() => setDeviceScope("my")}
                 className="flex items-center"
               >
-                <List className="mr-2 h-4 w-4" />
-                List View
-              </Button>
-              <Button
-                variant={viewMode === "map" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setViewMode("map")}
-                className="flex items-center"
-              >
-                <MapIcon className="mr-2 h-4 w-4" />
-                Map View
+                <Package className="mr-2 h-4 w-4" />
+                My Devices
               </Button>
             </div>
           </div>
         </CardHeader>
 
         <CardContent className="p-4">
-          {/* List View */}
-          {viewMode === "list" && (
-            <>
-              {/* Controls Container */}
-              <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
-                {/* Search Input */}
-                <div className="relative flex-1 max-w-md">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="search"
-                    placeholder="Search by device name, ID, location, city, or country..."
-                    className="pl-8"
-                    value={searchTerm}
-                    onChange={(e) => {
-                      setSearchTerm(e.target.value)
-                      setCurrentPage(1) // Reset to first page when searching
-                    }}
-                  />
-                  {searchTerm && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-2 top-1.5 h-7 w-7 p-0"
-                      onClick={() => {
-                        setSearchTerm("")
-                        setCurrentPage(1)
-                      }}
-                    >
-                      <span className="sr-only">Clear search</span>
-                      ✕
-                    </Button>
-                  )}
-                </div>
-
-
-
-              </div>
-
-              {/* Filters - Temporarily Commented Out */}
-              {/* <div className="flex items-center space-x-2">
-                <Filter className="h-4 w-4 text-muted-foreground" />
-                <Select
-                  value={statusFilter}
-                  onValueChange={(value) => {
-                    setStatusFilter(value)
-                    setCurrentPage(1) // Reset to first page when filter changes
+          <>
+            {/* Controls Container */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
+              {/* Search Input */}
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search by device name, ID, location, city, or country..."
+                  className="pl-8"
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value)
+                    setCurrentPage(1) // Reset to first page when searching
                   }}
-                >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Filter by status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="online">Online</SelectItem>
-                    <SelectItem value="offline">Offline</SelectItem>
-                    <SelectItem value="deployed">Deployed</SelectItem>
-                    <SelectItem value="not_deployed">Not Deployed</SelectItem>
-                    <SelectItem value="recalled">Recalled</SelectItem>
-                  </SelectContent>
-                </Select>
-                
-                {uniqueNetworks.length > 0 && (
-                  <Select
-                    value={networkFilter}
-                    onValueChange={(value) => {
-                      setNetworkFilter(value)
-                      setCurrentPage(1) // Reset to first page when filter changes
+                />
+                {searchTerm && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-2 top-1.5 h-7 w-7 p-0"
+                    onClick={() => {
+                      setSearchTerm("")
+                      setCurrentPage(1)
                     }}
                   >
-                    <SelectTrigger className="w-[150px]">
-                      <SelectValue placeholder="Network" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Networks</SelectItem>
-                      {uniqueNetworks.map(network => (
-                        <SelectItem key={network} value={network}>
-                          {network}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    <span className="sr-only">Clear search</span>
+                    ✕
+                  </Button>
                 )}
-              </div> */}
+              </div>
+            </div>
 
-              {loading ? (
-                <div className="py-8 flex justify-center items-center">
-                  <RefreshCw className="h-10 w-10 text-primary animate-spin" />
-                  <span className="ml-4 text-lg">Loading devices...</span>
-                </div>
-              ) : sortedDevices.length === 0 ? (
-                <div className="py-8 text-center text-gray-500">
-                  <AlertCircle className="h-10 w-10 mx-auto mb-4 text-gray-400" />
-                  <p>No devices found matching your criteria.</p>
-                  <p className="text-sm mt-2">Try changing your search or filter settings.</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="bg-gray-50">
-                        <th className="text-left py-3 px-4 font-medium text-gray-600">Device Name</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-600">Deployment</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-600">Category</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-600">Channel ID</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-600">Network ID</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-600">Firmware</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-600">Location</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {currentItems.map((device) => {
-                        const statusInfo = getStatusBadge(device)
-                        const deploymentInfo = getDeploymentBadge(device.status)
-                        const StatusIcon = statusInfo.icon
-                        const lastSeenTimestamp = getDeviceLastSeenTimestamp(device)
-                        const firmwareInfo = getFirmwareBadge(
-                          device.current_firmware,
-                          device.target_firmware,
-                          device.firmware_download_state
-                        )
+            {isDataLoading ? (
+              <div className="py-8 flex justify-center items-center">
+                <RefreshCw className="h-10 w-10 text-primary animate-spin" />
+                <span className="ml-4 text-lg">Loading devices...</span>
+              </div>
+            ) : currentItems.length === 0 ? (
+              <div className="py-8 text-center text-gray-500">
+                <AlertCircle className="h-10 w-10 mx-auto mb-4 text-gray-400" />
+                <p>No devices found matching your criteria.</p>
+                <p className="text-sm mt-2">Try changing your search or filter settings.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="text-left py-3 px-4 font-medium text-gray-600">Device Name</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-600">Deployment</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-600">Category</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-600">Channel ID</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-600">Network ID</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-600">Firmware</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-600">Location</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentItems.map((device) => {
+                      const statusInfo = getStatusBadge(device)
+                      const deploymentInfo = getDeploymentBadge(device.status)
+                      const StatusIcon = statusInfo.icon
+                      const lastSeenTimestamp = getDeviceLastSeenTimestamp(device)
+                      const firmwareInfo = getFirmwareBadge(
+                        device.current_firmware,
+                        device.target_firmware,
+                        device.firmware_download_state
+                      )
 
-                        return (
-                          <tr
-                            key={device.device_id}
-                            className="border-b hover:bg-gray-50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
-                            onClick={() => handleRowClick(device.device_id)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault()
-                                handleRowClick(device.device_id)
-                              }
-                            }}
-                            tabIndex={0}
-                            role="button"
-                            aria-label={`View details for device ${device.device_name || device.device_id}`}
-                          >
-                            <td className="py-3 px-4">
-                              <div className="flex items-center gap-2">
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger>
-                                      <StatusIcon
-                                        className={`h-4 w-4 ${isDeviceOnline(device) ? 'text-green-500' : 'text-gray-400'}`}
-                                      />
-                                    </TooltipTrigger>
-                                    <TooltipContent className={isDeviceOnline(device) ? "bg-green-600 text-white border-green-600" : "bg-gray-600 text-white border-gray-600"}>
-                                      <p>Last updated: {lastSeenTimestamp ? new Date(lastSeenTimestamp).toLocaleString() : 'Never'}</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                                <span className="font-medium">{device.device_name || "Unnamed"}</span>
-                              </div>
-                            </td>
-                            <td className="py-3 px-4">
-                              <Badge className={`${deploymentInfo.className}`}>
-                                {deploymentInfo.text}
-                              </Badge>
-                            </td>
-                            <td className="py-3 px-4">
-                              <span className="text-sm text-gray-600">
-                                {formatCategoryLabel(device.category)}
-                              </span>
-                            </td>
-                            <td className="py-3 px-4">
-                              <span className="text-sm text-gray-600">
-                                {device.channel_id || "-"}
-                              </span>
-                            </td>
-                            <td className="py-3 px-4" onClick={(e) => handleNetworkIdClick(device, e)}>
-                              <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200 cursor-pointer transition-colors">
-                                {device.network_id || "Not Set"}
-                              </Badge>
-                            </td>
-                            <td className="py-3 px-4" onClick={(e) => handleFirmwareClick(device, e)}>
+                      return (
+                        <tr
+                          key={device.device_id}
+                          className="border-b hover:bg-gray-50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
+                          onClick={() => handleRowClick(device.device_id)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault()
+                              handleRowClick(device.device_id)
+                            }
+                          }}
+                          tabIndex={0}
+                          role="button"
+                          aria-label={`View details for device ${device.device_name || device.device_id}`}
+                        >
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-2">
                               <TooltipProvider>
                                 <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Badge className={`${firmwareInfo.color} cursor-pointer transition-colors`}>
-                                      {firmwareInfo.text}
-                                    </Badge>
+                                  <TooltipTrigger>
+                                    <StatusIcon
+                                      className={`h-4 w-4 ${isDeviceOnline(device) ? 'text-green-500' : 'text-gray-400'}`}
+                                    />
                                   </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>{firmwareInfo.tooltip}</p>
+                                  <TooltipContent className={isDeviceOnline(device) ? "bg-green-600 text-white border-green-600" : "bg-gray-600 text-white border-gray-600"}>
+                                    <p>Last updated: {lastSeenTimestamp ? new Date(lastSeenTimestamp).toLocaleString() : 'Never'}</p>
                                   </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>
-                            </td>
-                            <td className="py-3 px-4">
-                              {device.location_name || device.city || device.country ? (
-                                <div className="flex flex-col">
-                                  <span className="text-sm font-medium">
-                                    {device.location_name || "Unknown"}
+                              <span className="font-medium">{device.device_name || "Unnamed"}</span>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <Badge className={`${deploymentInfo.className}`}>
+                              {deploymentInfo.text}
+                            </Badge>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="text-sm text-gray-600">
+                              {formatCategoryLabel(device.category)}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="text-sm text-gray-600">
+                              {device.channel_id || "-"}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4" onClick={(e) => handleNetworkIdClick(device, e)}>
+                            <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200 cursor-pointer transition-colors">
+                              {device.network_id || "Not Set"}
+                            </Badge>
+                          </td>
+                          <td className="py-3 px-4" onClick={(e) => handleFirmwareClick(device, e)}>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Badge className={`${firmwareInfo.color} cursor-pointer transition-colors`}>
+                                    {firmwareInfo.text}
+                                  </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>{firmwareInfo.tooltip}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </td>
+                          <td className="py-3 px-4">
+                            {device.location_name || device.city || device.country ? (
+                              <div className="flex flex-col">
+                                <span className="text-sm font-medium">
+                                  {device.location_name || "Unknown"}
+                                </span>
+                                {(device.city || device.country) && (
+                                  <span className="text-xs text-gray-500">
+                                    {[device.city, device.country].filter(Boolean).join(", ")}
                                   </span>
-                                  {(device.city || device.country) && (
-                                    <span className="text-xs text-gray-500">
-                                      {[device.city, device.country].filter(Boolean).join(", ")}
-                                    </span>
-                                  )}
-                                </div>
-                              ) : (
-                                <span className="text-gray-400 text-sm">No location</span>
-                              )}
-                            </td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-gray-400 text-sm">No location</span>
+                            )}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
 
-                  {/* Pagination */}
-                  <div className="mt-4 pt-4 border-t">
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-600">Items per page:</span>
-                        <Select
-                          value={itemsPerPage.toString()}
-                          onValueChange={(value) => {
-                            setItemsPerPage(Number(value));
-                            setCurrentPage(1);
-                          }}
-                        >
-                          <SelectTrigger className="w-[100px]">
-                            <SelectValue placeholder="Per page" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="10">10</SelectItem>
-                            <SelectItem value="15">15</SelectItem>
-                            <SelectItem value="20">20</SelectItem>
-                            <SelectItem value="25">25</SelectItem>
-                            <SelectItem value="30">30</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <Pagination
-                        currentPage={currentPage}
-                        totalPages={totalPages || 1}
-                        onPageChange={setCurrentPage}
-                        showInfo={true}
-                        totalItems={totalDevices}
-                        itemsPerPage={itemsPerPage}
-                      />
+                {/* Pagination */}
+                <div className="mt-4 pt-4 border-t">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-600">Items per page:</span>
+                      <Select
+                        value={itemsPerPage.toString()}
+                        onValueChange={(value) => {
+                          setItemsPerPage(Number(value));
+                          setCurrentPage(1);
+                        }}
+                      >
+                        <SelectTrigger className="w-[100px]">
+                          <SelectValue placeholder="Per page" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="10">10</SelectItem>
+                          <SelectItem value="15">15</SelectItem>
+                          <SelectItem value="20">20</SelectItem>
+                          <SelectItem value="25">25</SelectItem>
+                          <SelectItem value="30">30</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={currentTotalPages || 1}
+                      onPageChange={setCurrentPage}
+                      showInfo={true}
+                      totalItems={currentTotalItems}
+                      itemsPerPage={itemsPerPage}
+                    />
                   </div>
                 </div>
-              )}
-            </>
-          )}
-
-          {/* Map View */}
-          {viewMode === "map" && showMap && (
-            <div className="h-[700px] w-full">
-              <AfricaMap
-                devices={mapDevices}
-                onDeviceSelect={handleDeviceSelect}
-                selectedDeviceId={selectedDeviceId || undefined}
-              />
-            </div>
-          )}
-
-          {viewMode === "map" && !showMap && (
-            <div className="h-[700px] w-full flex items-center justify-center bg-gray-100 rounded-lg">
-              <div className="text-center">
-                <MapPin className="h-10 w-10 text-gray-400 mx-auto mb-2" />
-                <p className="text-gray-500">Loading map...</p>
               </div>
-            </div>
-          )}
+            )}
+          </>
         </CardContent>
       </Card>
 
@@ -878,6 +859,6 @@ export default function DevicesPage() {
         device={selectedFirmwareDevice}
         onUpdateSuccess={handleUpdateSuccess}
       />
-    </div >
+    </div>
   )
 }

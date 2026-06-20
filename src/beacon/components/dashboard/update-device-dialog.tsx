@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge"
 import { RefreshCw } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { config } from "@/lib/config"
+import authService from "@/services/api-service"
 
 // Firmware version interface
 export interface FirmwareVersion {
@@ -93,10 +94,16 @@ export default function UpdateDeviceDialog({
       const endpoint = `${prefix}/firmware`
       const url = `${baseUrl}${endpoint}`
 
+      const token = authService.getToken()
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      }
+      if (token) {
+        headers["Authorization"] = token
+      }
+
       const response = await fetch(url, {
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers,
       })
 
       if (!response.ok) {
@@ -220,11 +227,17 @@ export default function UpdateDeviceDialog({
         payload.network_id = networkIdInput.trim()
       }
 
+      const token = authService.getToken()
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      }
+      if (token) {
+        headers["Authorization"] = token
+      }
+
       const response = await fetch(url, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers,
         body: JSON.stringify(payload),
       })
 

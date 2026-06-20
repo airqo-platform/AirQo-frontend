@@ -37,6 +37,18 @@ import { Skeleton } from '@/components/ui/skeleton';
 import firmwareService from '@/services/firmware.service';
 import { FirmwareVersion, FirmwareType } from '@/types/firmware.types';
 import { useGroup } from '@/lib/group-context';
+import dynamic from 'next/dynamic';
+
+const Terminal = dynamic(() => import('@/components/iot/Terminal').then((mod) => mod.Terminal), {
+  ssr: false,
+  loading: () => (
+    <div className="h-full w-full bg-[#1e1e1e] flex items-center justify-center text-gray-500 rounded-md border border-gray-800">
+      Initializing terminal...
+    </div>
+  ),
+});
+import { FlashingPanel } from '@/components/iot/FlashingPanel';
+import { DeviceCards } from '@/components/iot/DeviceCards';
 
 const FirmwarePage = () => {
   const { toast } = useToast();
@@ -346,32 +358,40 @@ const FirmwarePage = () => {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Firmware Management</h1>
-          <p className="text-muted-foreground">
-            Manage device firmware versions and updates
-          </p>
+      <Tabs defaultValue="library" className="w-full space-y-6">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Firmware Management</h1>
+            <p className="text-muted-foreground">
+              Manage device firmware versions and flash devices directly
+            </p>
+          </div>
+          <div className="flex items-center gap-4">
+            <TabsList>
+              <TabsTrigger value="library">Library</TabsTrigger>
+              <TabsTrigger value="workbench">Device Workbench</TabsTrigger>
+            </TabsList>
+            <Button onClick={() => setUploadDialog(true)} className="gap-2">
+              <Upload className="h-4 w-4" />
+              Upload Firmware
+            </Button>
+          </div>
         </div>
-        <Button onClick={() => setUploadDialog(true)} className="gap-2">
-          <Upload className="h-4 w-4" />
-          Upload Firmware
-        </Button>
-      </div>
 
-      {/* Search */}
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search firmware versions..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-      </div>
+        <TabsContent value="library" className="space-y-6 m-0">
+          {/* Search */}
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search firmware versions..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
 
       {/* Firmware List */}
       {isLoading ? (
@@ -480,6 +500,22 @@ const FirmwarePage = () => {
           ))}
         </div>
       )}
+      </TabsContent>
+
+      <TabsContent value="workbench" className="m-0">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-1 space-y-6">
+            <DeviceCards />
+            <FlashingPanel firmwareVersions={firmwareVersions} />
+          </div>
+          <div className="lg:col-span-2">
+            <div className="h-[600px] shadow-lg">
+              <Terminal />
+            </div>
+          </div>
+        </div>
+      </TabsContent>
+      </Tabs>
 
       {/* Upload Dialog */}
       <Dialog open={uploadDialog} onOpenChange={setUploadDialog}>

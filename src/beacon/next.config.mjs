@@ -37,8 +37,10 @@ const nextConfig = {
     }
     
     // AirQo Platform API proxy
-    const airqoApiUrl = process.env.AIRQO_API_BASE_URL || 
-                        process.env.AIRQO_STAGING_API_BASE_URL;
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const airqoApiUrl = isDevelopment
+      ? (process.env.AIRQO_STAGING_API_BASE_URL || process.env.AIRQO_API_BASE_URL)
+      : (process.env.AIRQO_API_BASE_URL || process.env.AIRQO_STAGING_API_BASE_URL);
     if (airqoApiUrl) {
       rewrites.push({
         source: '/api/proxy/:path*',

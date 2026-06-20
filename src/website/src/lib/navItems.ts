@@ -15,6 +15,21 @@ export const NAV_ITEMS: NavMenuSection = {
       href: '/products/monitor',
     },
     {
+      title: 'Vertex',
+      description: 'Add devices and share air quality data publicly',
+      href: '/products/vertex',
+    },
+    {
+      title: 'Beacon',
+      description: 'Monitor device health and collocation performance',
+      href: '/products/beacon',
+    },
+    {
+      title: 'AirQo AI Platform',
+      description: 'Forecast, locate, categorize, and automate reporting',
+      href: '/products/ai-platform',
+    },
+    {
       title: 'Analytics Dashboard',
       description: 'Air quality analytics for African cities',
       href: '/products/analytics',

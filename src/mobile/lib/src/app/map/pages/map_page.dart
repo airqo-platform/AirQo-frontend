@@ -1,7 +1,7 @@
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/pages/location_selection/utils/location_helpers.dart';
-import 'package:airqo/src/app/dashboard/widgets/analytics_details.dart';
+import 'package:airqo/src/app/dashboard/pages/forecast_overview_page.dart';
 import 'package:airqo/src/app/map/bloc/map_bloc.dart';
 import 'package:airqo/src/app/map/controllers/map_camera_controller.dart';
 import 'package:airqo/src/app/map/utils/map_marker_builder.dart';
@@ -120,9 +120,7 @@ class _MapScreenState extends State<MapScreen>
     SystemChannels.textInput.invokeMethod<Object?>('TextInput.hide');
   }
 
-  void _showAnalyticsDetails(Measurement measurement) {
-    // showBottomSheet (not showModalBottomSheet) avoids a lingering scrim;
-    // we also drop IME so the draggable sheet isn't pushed by the keyboard.
+  void _showForecastModal(Measurement measurement) {
     _hideTextInputOverlay();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -131,10 +129,9 @@ class _MapScreenState extends State<MapScreen>
       Future<void>.delayed(const Duration(milliseconds: 48), () {
         if (!mounted) return;
         _hideTextInputOverlay();
-        showBottomSheet(
-          context: context,
-          backgroundColor: Colors.transparent,
-          builder: (_) => AnalyticsDetails(measurement: measurement),
+        ForecastOverviewPage.showForMeasurement(
+          context,
+          measurement: measurement,
         );
       });
     });
@@ -456,7 +453,7 @@ class _MapScreenState extends State<MapScreen>
           measurement: _selectedCardMeasurement,
           onDismiss: () => setState(() => _selectedCardMeasurement = null),
           onViewForecast: () =>
-              _showAnalyticsDetails(_selectedCardMeasurement!),
+              _showForecastModal(_selectedCardMeasurement!),
         ),
       ],
     );

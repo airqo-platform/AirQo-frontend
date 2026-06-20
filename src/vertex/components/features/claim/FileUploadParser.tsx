@@ -3,7 +3,7 @@
 import React, { useRef, useState } from 'react';
 import { AqUploadCloud02 } from '@airqo/icons-react';
 import ReusableButton from '@/components/shared/button/ReusableButton';
-import ReusableToast from '@/components/shared/toast/ReusableToast';
+import { useBanner, BannerSlot } from '@/context/banner-context';
 
 export interface ParsedFileData {
     headers: string[];
@@ -15,12 +15,14 @@ interface BulkClaimColumnMapperProps {
     filePreview: ParsedFileData;
     onConfirm: (deviceNameColumn: number, claimTokenColumn: number) => void;
     onCancel: () => void;
+    showBanner: ReturnType<typeof useBanner>['showBanner'];
 }
 
 export const BulkClaimColumnMapper: React.FC<BulkClaimColumnMapperProps> = ({
     filePreview,
     onConfirm,
     onCancel,
+    showBanner,
 }) => {
     const [deviceNameColumn, setDeviceNameColumn] = useState<number>(() => {
         // Auto-detect device name column
@@ -40,10 +42,7 @@ export const BulkClaimColumnMapper: React.FC<BulkClaimColumnMapperProps> = ({
 
     const handleConfirm = () => {
         if (deviceNameColumn === claimTokenColumn) {
-            ReusableToast({
-                message: 'Device name and claim token must be in different columns',
-                type: 'ERROR',
-            });
+            showBanner({ severity: 'error', message: 'Device name and claim token must be in different columns', scoped: true });
             return;
         }
         onConfirm(deviceNameColumn, claimTokenColumn);
@@ -52,13 +51,16 @@ export const BulkClaimColumnMapper: React.FC<BulkClaimColumnMapperProps> = ({
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-                <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                        Map Columns for Device Claiming
-                    </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        File: {filePreview.fileName}
-                    </p>
+                <div className="border-b border-gray-200 dark:border-gray-700">
+                    <div className="p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            Map Columns for Device Claiming
+                        </h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            File: {filePreview.fileName}
+                        </p>
+                    </div>
+                    <BannerSlot />
                 </div>
 
                 <div className="p-6 overflow-auto flex-1">
@@ -178,6 +180,7 @@ export const FileUploadParser: React.FC<FileUploadParserProps> = ({ onFilesParse
     const [isImporting, setIsImporting] = useState(false);
     const [filePreview, setFilePreview] = useState<ParsedFileData | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const { showBanner } = useBanner();
 
     const handleFileImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -185,16 +188,13 @@ export const FileUploadParser: React.FC<FileUploadParserProps> = ({ onFilesParse
 
         const fileExtension = file.name.split('.').pop()?.toLowerCase();
         if (!['csv', 'xlsx', 'xls'].includes(fileExtension || '')) {
-            ReusableToast({
-                message: 'Invalid file format. Please upload a CSV or Excel file.',
-                type: 'ERROR',
-            });
+            showBanner({ severity: 'error', message: 'Invalid file format. Please upload a CSV or Excel file.', scoped: true });
             e.target.value = '';
             return;
         }
 
         if (file.size > 5 * 1024 * 1024) {
-            ReusableToast({ message: 'File too large. Maximum size is 5MB.', type: 'ERROR' });
+            showBanner({ severity: 'error', message: 'File too large. Maximum size is 5MB.', scoped: true });
             e.target.value = '';
             return;
         }
@@ -221,10 +221,7 @@ export const FileUploadParser: React.FC<FileUploadParserProps> = ({ onFilesParse
                         setIsImporting(false);
                     },
                     error: (error) => {
-                        ReusableToast({
-                            message: `Error parsing CSV: ${error.message}`,
-                            type: 'ERROR',
-                        });
+                        showBanner({ severity: 'error', message: `Error parsing CSV: ${error.message}`, scoped: true });
                         setIsImporting(false);
                     },
                 });
@@ -247,16 +244,13 @@ export const FileUploadParser: React.FC<FileUploadParserProps> = ({ onFilesParse
                     setIsImporting(false);
                 };
                 reader.onerror = () => {
-                    ReusableToast({ message: 'Error reading Excel file', type: 'ERROR' });
+                    showBanner({ severity: 'error', message: 'Error reading Excel file', scoped: true });
                     setIsImporting(false);
                 };
                 reader.readAsBinaryString(file);
             }
         } catch {
-            ReusableToast({
-                message: 'Error importing file. Please ensure papaparse and xlsx libraries are installed.',
-                type: 'ERROR',
-            });
+            showBanner({ severity: 'error', message: 'Error importing file. Please ensure papaparse and xlsx libraries are installed.', scoped: true });
             setIsImporting(false);
         }
 
@@ -285,10 +279,7 @@ export const FileUploadParser: React.FC<FileUploadParserProps> = ({ onFilesParse
             .filter((device) => device.device_name.length > 0 && device.claim_token.length > 0);
 
         if (devices.length === 0) {
-            ReusableToast({
-                message: 'No valid devices found in the selected columns',
-                type: 'ERROR',
-            });
+            showBanner({ severity: 'error', message: 'No valid devices found in the selected columns', scoped: true });
             return;
         }
 
@@ -307,6 +298,7 @@ export const FileUploadParser: React.FC<FileUploadParserProps> = ({ onFilesParse
                     filePreview={filePreview}
                     onConfirm={handleConfirmImport}
                     onCancel={handleCancelImport}
+                    showBanner={showBanner}
                 />
             )}
 

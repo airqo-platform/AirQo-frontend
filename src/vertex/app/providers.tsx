@@ -40,22 +40,22 @@ export default function Providers({ children, session }: { children: React.React
     <Provider store={store}>
       <PersistGate loading={<SessionLoadingState />} persistor={persistor}>
         <QueryProvider scopeKey={cacheScope}>
-          <AuthProvider session={session}>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="light"
-              enableSystem={false}
-              disableTransitionOnChange
-            >
-              <BannerProvider>
+          <BannerProvider>
+            <AuthProvider session={session}>
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="light"
+                enableSystem={false}
+                disableTransitionOnChange
+              >
                 {children}
-              </BannerProvider>
-            </ThemeProvider>
-            {process.env.NODE_ENV !== "production" && (
-              <ReactQueryDevtools initialIsOpen={false} />
-            )}
-            <NetworkStatusBanner />
-          </AuthProvider>
+              </ThemeProvider>
+              {process.env.NODE_ENV !== "production" && (
+                <ReactQueryDevtools initialIsOpen={false} />
+              )}
+              <NetworkStatusBanner />
+            </AuthProvider>
+          </BannerProvider>
         </QueryProvider>
       </PersistGate>
     </Provider>
