@@ -13,8 +13,9 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ sidebarOpen, onToggleSidebar }: Readonly<SidebarProps>) {
-  const { activeGroup } = useGroup()
+  const { activeGroup, isActiveGroupAdmin } = useGroup()
   const isAirqoGroup = activeGroup?.toLowerCase() === 'airqo'
+  const hideOtherItems = isAirqoGroup && !isActiveGroupAdmin
 
   return (
     <div
@@ -57,7 +58,8 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar }: Readonly<Sideb
               )}
             </Link>
           </li>
-          <li className="relative group/analytics">
+          {!hideOtherItems && (
+            <li className="relative group/analytics">
             <div
               className={`flex items-center rounded-md hover:bg-gray-100 transition-colors cursor-pointer ${sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
                 }`}
@@ -91,8 +93,9 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar }: Readonly<Sideb
               </Link>
             </div>
           </li>
+          )}
 
-          {isAirqoGroup && (
+          {isAirqoGroup && isActiveGroupAdmin && (
             <>
               {/* Collocation - hover flyout menu */}
               <li className="relative group/collocation">
@@ -144,7 +147,7 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar }: Readonly<Sideb
               )}
             </Link>
           </li> */}
-          {isAirqoGroup && (
+          {isAirqoGroup && isActiveGroupAdmin && (
             <>
               <li>
                 <Link
@@ -196,9 +199,11 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar }: Readonly<Sideb
               </li>
             </>
           )}
-          <li>
-            <Link
-              href="/dashboard/maintenance"
+          {!hideOtherItems && (
+            <>
+              <li>
+                <Link
+                  href="/dashboard/maintenance"
               className={`flex items-center rounded-md hover:bg-gray-100 transition-colors group relative ${sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
                 }`}
               title={!sidebarOpen ? "Maintenance" : ""}
@@ -228,6 +233,8 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar }: Readonly<Sideb
               )}
             </Link>
           </li>
+          </>
+          )}
 
           {/* <li>
             <Link

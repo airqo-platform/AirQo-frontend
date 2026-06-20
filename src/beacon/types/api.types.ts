@@ -515,3 +515,12 @@ export interface MaintenanceAnalyticsResponse {
   // Define properties based on usage or allow flexible structure for now if unknown
   [key: string]: any
 }
+
+export interface MyDevicesResponse {
+  success: boolean
+  message: string
+  devices: Device[]
+  total_devices: number
+  deployed_devices: number
+  deployed_devices_count?: number
+}

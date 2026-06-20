@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Bell, LogOut, Loader2, RefreshCw } from "lucide-react"
-import { AqAlignLeft } from '@/components/icons'
+import { AqAirQo } from '@airqo/icons-react'
 import { Button } from "@/components/ui/button"
 import GroupSelector from "@/components/dashboard/group-selector"
 import { syncGroups } from "@/services/device-api.service"
@@ -137,18 +137,11 @@ export default function TopNav({
       <header className="bg-white shadow-sm h-14 flex items-center justify-between px-6 flex-shrink-0 mx-4 mt-3 rounded-xl border border-gray-300 fixed top-0 left-0 right-0 z-50">
         <div className="flex items-center space-x-3">
           <button
-            onClick={onToggleSidebar}
-            className="p-2 rounded-md hover:bg-gray-100 transition-colors"
-            aria-label="Toggle sidebar"
-            type="button"
-          >
-            <AqAlignLeft size={30} color="#0A84FF" />
-          </button>
-          <button
             type="button"
             className="flex items-center space-x-2 cursor-pointer"
-            onClick={() => router.push('/dashboard')}
+            onClick={onToggleSidebar}
           >
+            <AqAirQo size={48} color="#0A84FF" />
             <span className="text-xl font-bold text-gray-800">Beacon</span>
           </button>
         </div>

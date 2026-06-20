@@ -184,6 +184,20 @@ class FirmwareService {
   }
 
   /**
+   * Get firmware download URL
+   */
+  getDownloadUrl(params: FirmwareDownloadParams): string {
+    if (params.firmware_id) {
+      const endpoint = this.getEndpoint(`/firmware/${params.firmware_id}/download/${params.file_type}`);
+      return `${this.baseUrl}${endpoint}`;
+    } else if (params.firmware_version) {
+      const endpoint = this.getEndpoint('/firmware/download');
+      return `${this.baseUrl}${endpoint}?firmware_version=${params.firmware_version}&file_type=${params.file_type}`;
+    }
+    throw new Error('Either firmware_id or firmware_version must be provided');
+  }
+
+  /**
    * Download firmware file
    */
   async downloadFirmware(params: FirmwareDownloadParams): Promise<Blob> {
