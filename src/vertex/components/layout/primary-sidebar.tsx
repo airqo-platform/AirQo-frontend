@@ -89,22 +89,18 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
 }) => {
   const router = useRouter();
   const pathname = usePathname();
-  const { getContextPermissions } = useUserContext();
+  const { getContextPermissions, isPersonalContext, activeGroup } = useUserContext();
   const permissions = getContextPermissions();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isRecentOpen, setIsRecentOpen] = useState(false);
   const { visitedPages } = useRecentlyVisited();
-  const { activeGroup } = useUserContext();
   const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const recentTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
-  // Determine if user can view Admin Panel (Role based ONLY)
   const canViewAdminPanel = React.useMemo(() => {
-    if (!activeGroup?.role?.role_name) return false;
-
-    const allowedRoles = ['AIRQO_SUPER_ADMIN', 'AIRQO_ADMIN', 'AIRQO_NETWORK_ADMIN'];
-    return allowedRoles.includes(activeGroup.role.role_name);
-  }, [activeGroup]);
+    if (!isPersonalContext) return false;
+    return !!permissions.canViewNetworks;
+  }, [isPersonalContext, permissions.canViewNetworks]);
 
   const navigateWithShimmer = (targetPath: string, navigate: () => void) => {
     if (pathname === targetPath) return;
