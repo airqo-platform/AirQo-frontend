@@ -8,6 +8,7 @@ type ProductItem = {
     description: string;
     link: string;
     Icon: React.ElementType;
+    disabled?: boolean;
 };
 
 const ProductList: ProductItem[] = [
@@ -28,12 +29,14 @@ const ProductList: ProductItem[] = [
         description: 'Monitor real-time technical health metrics like battery and signal strength for the sensor network',
         link: '/beacon/intro',
         Icon: AqMonitor,
+        disabled: true,
     },
     {
         title: 'AI Platform',
         description: 'Leverage machine learning for advanced air quality forecasting and spatial analysis',
         link: '/ai-platform/intro',
         Icon: AqCpuChip01,
+        disabled: true,
     },
     {
         title: 'API',
@@ -46,6 +49,7 @@ const ProductList: ProductItem[] = [
         description: 'Monitor air quality on the go with personalized recommendations and alerts',
         link: '/mobile-app/intro',
         Icon: AqPhone01,
+        disabled: true,
     },
     {
         title: 'Cross-Product Features',
@@ -61,9 +65,9 @@ const ProductList: ProductItem[] = [
     },
 ];
 
-function ProductCard({ title, description, link, Icon }: ProductItem) {
-    return (
-        <Link to={link} className={styles.card}>
+function ProductCard({ title, description, link, Icon, disabled }: ProductItem) {
+    const cardContent = (
+        <>
             <div className={styles.cardContent}>
                 <div className={styles.cardIcon}>
                     <Icon />
@@ -73,22 +77,52 @@ function ProductCard({ title, description, link, Icon }: ProductItem) {
                     <p className={styles.cardDescription}>{description}</p>
                 </div>
             </div>
-            <div className={styles.cardArrow}>
-                <AqArrowRight />
+            {!disabled && (
+                <div className={styles.cardArrow}>
+                    <AqArrowRight />
+                </div>
+            )}
+        </>
+    );
+
+    if (disabled) {
+        return (
+            <div className={`${styles.card} ${styles.disabledCard}`}>
+                {cardContent}
             </div>
+        );
+    }
+
+    return (
+        <Link to={link} className={styles.card}>
+            {cardContent}
         </Link>
     );
 }
 
 export default function ProductSection(): React.ReactNode {
+    const activeProducts = ProductList.filter(p => !p.disabled);
+    const disabledProducts = ProductList.filter(p => p.disabled);
+
     return (
         <section className={styles.section}>
             <div className={styles.container}>
                 <div className={styles.grid}>
-                    {ProductList.map((props, idx) => (
+                    {activeProducts.map((props, idx) => (
                         <ProductCard key={idx} {...props} />
                     ))}
                 </div>
+                
+                {disabledProducts.length > 0 && (
+                    <div className={styles.comingSoonSection}>
+                        <h2 className={styles.comingSoonTitle}>Coming Soon</h2>
+                        <div className={styles.grid}>
+                            {disabledProducts.map((props, idx) => (
+                                <ProductCard key={idx} {...props} />
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
         </section>
     );

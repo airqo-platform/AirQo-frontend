@@ -129,3 +129,12 @@
   background-color: var(--ifm-color-primary);
   color: #ffffff;
 }
+
+/* Disabled Card State */
+.disabledCard { opacity: 0.5; cursor: not-allowed; }
+.disabledCard:hover { border-color: var(--ifm-color-emphasis-300); box-shadow: none; }
+.disabledCard:hover .cardIcon { background-color: var(--ifm-color-emphasis-200); color: var(--ifm-color-emphasis-500); }
+/* Coming Soon Section */
+.comingSoonSection { margin-top: 4rem; }
+.comingSoonTitle { font-size: 1.5rem; font-weight: 600; color: var(--ifm-heading-color); margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--ifm-color-emphasis-200); }
+

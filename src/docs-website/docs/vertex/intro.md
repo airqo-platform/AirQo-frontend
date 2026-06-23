@@ -1,28 +1,29 @@
 ---
 sidebar_position: 1
 ---
+# Overview
 
-# About Vertex
+Vertex is an open device deployment and data sharing platform. 
 
-Here you’ll find comprehensive information for managing your device lifecycle, configuring sensor networks, and ensuring seamless data flow to the AirQo ecosystem. We’ve designed this documentation to be a technical roadmap for hardware engineers, network managers, and partner organizations who need to onboard and maintain air quality monitoring equipment.
+## What Vertex Does
+It acts as the central hub for integrating air quality hardware, whether you are deploying AirQo's own monitors or importing data from third-party Air Quality Sensor Manufacturers. Vertex allows you to group devices, deploy them to specific physical sites, and control whether their environmental data is shared publicly on the AirQo Map or kept strictly private.
 
-In keeping with AirQo’s commitment to transparency, Vertex is built on an **open-source foundation**. We provide the tools to integrate not only AirQo sensors but also **external hardware devices**, fostering a collaborative global network. Our codebase is open for contribution, and we invite developers to help us refine our device management protocols. You can explore the repository and contribute to our hardware-interfacing logic on GitHub: [https://github.com/airqo-platform/](https://github.com/airqo-platform/).
+## Who is it For?
+Vertex is designed for anyone deploying air quality sensors. This includes:
+* **Individuals** testing a single device at home.
+* **Organizations**, researchers, and governments coordinating multiple devices across various regions.
+* **Integrators** who want to route data from external sensor hardware into the AirQo ecosystem.
 
----
+## How to Access Vertex
+You can access the platform through two primary interfaces, depending on your workflow:
+* **Web Application:** Access the platform directly from any browser at [vertex.airqo.net](https://vertex.airqo.net).
+* **Windows Desktop:** Download the dedicated desktop application for Windows at [vertex.airqo.net/download](https://vertex.airqo.net/download).
 
-## Overview
+> [!NOTE]
+> **Account Setup:** Vertex is strictly for device deployment. All user account creation, profile setup, and workspace initialization must be performed through the **AirQo Analytics platform**.
 
-Vertex serves as the central nervous system for the AirQo sensor network. It is a powerful, secure platform that allows organizations to deploy, monitor, and maintain air quality hardware with precision. By bridging the gap between physical sensors and digital insights, Vertex ensures that every data point collected is accurate, attributed, and actionable.
-
-With Vertex, you manage the entire "life" of a device through a centralized workspace. Once you onboard a device—whether through a specialized Cohort ID for bulk deployment or via external integration—you gain full control over its metadata and operational status. As devices transmit telemetry, Vertex provides real-time health monitoring, allowing you to identify offline sensors, troubleshoot power issues, and manage maintenance logs. Furthermore, the platform empowers you to define **data privacy**, giving you the choice to contribute to the open-access map or maintain a private organizational network.
-
----
-
-## Questions?
-
-We’re always happy to help with device onboarding, API configurations, or hardware troubleshooting!
-
-* **Search our documentation:** Use the search bar to find specific guides on "Cohort IDs" or "External Integrations."
-* **Visit the Help Center:** Access technical FAQs for quick fixes on connectivity and firmware.
-* **Connect with Engineering:** Reach out to our hardware team for support with specific sensor calibrations.
-* **Join the Community:** Meet other hardware enthusiasts and environmental engineers in the AirQo developer community to share best practices for network maintenance.
+## Next Steps
+Use the sidebar to navigate the documentation based on your specific goals:
+* Just starting out? Read the [For Individuals](./getting-started/for-individuals.md) or [For Organizations](./getting-started/for-organizations.md) guide.
+* Need to add a new device? Head to [Add an AirQo Device](./device-deployment/add-airqo-device.md).
+* Using hardware from another manufacturer? Check out the [Import Devices](./third-party-sensors/import-devices.md) guide.

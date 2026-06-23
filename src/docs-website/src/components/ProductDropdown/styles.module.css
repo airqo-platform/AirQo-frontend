@@ -96,3 +96,8 @@
   margin-left: auto;
   color: var(--ifm-color-primary);
 }
+
+.disabledItem { opacity: 0.5; cursor: not-allowed; }
+.disabledItem:hover { background-color: transparent !important; color: var(--ifm-font-color-base) !important; }
+.disabledItem:hover .productIcon { color: var(--ifm-color-primary) !important; }
+

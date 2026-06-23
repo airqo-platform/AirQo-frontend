@@ -19,6 +19,7 @@ type Product = {
     path: string;
     icon: React.ElementType;
     landingPath?: string;
+    disabled?: boolean;
 };
 
 const PRODUCTS: Product[] = [
@@ -28,29 +29,20 @@ const PRODUCTS: Product[] = [
         icon: AqBarChartSquarePlus,
     },
     {
-        title: 'Vertex',
-        path: '/docs/vertex',
-        icon: AqServer03,
-    },
-    {
-        title: 'Beacon',
-        path: '/docs/beacon',
-        icon: AqMonitor,
-    },
-    {
-        title: 'AI Platform',
-        path: '/docs/ai-platform',
-        icon: AqCpuChip01,
-    },
-    {
         title: 'API',
         path: '/docs/api',
         icon: AqDataflow01,
     },
     {
-        title: 'Mobile App',
-        path: '/docs/mobile-app',
-        icon: AqPhone01,
+        title: 'Vertex',
+        path: '/docs/vertex',
+        icon: AqServer03,
+    },
+    {
+        title: 'Data Access',
+        path: '/docs/data-access',
+        icon: AqDatabase01,
+        landingPath: '/docs/data-access/researchers-guide',
     },
     {
         title: 'Cross Product Features',
@@ -59,10 +51,22 @@ const PRODUCTS: Product[] = [
         landingPath: '/docs/cross-product/concepts/access-control',
     },
     {
-        title: 'Data Access',
-        path: '/docs/data-access',
-        icon: AqDatabase01,
-        landingPath: '/docs/data-access/researchers-guide',
+        title: 'Beacon',
+        path: '/docs/beacon',
+        icon: AqMonitor,
+        disabled: true,
+    },
+    {
+        title: 'AI Platform',
+        path: '/docs/ai-platform',
+        icon: AqCpuChip01,
+        disabled: true,
+    },
+    {
+        title: 'Mobile App',
+        path: '/docs/mobile-app',
+        icon: AqPhone01,
+        disabled: true,
     },
 ];
 
@@ -85,6 +89,7 @@ export default function ProductDropdown() {
     }, []);
 
     const handleProductSelect = (product: Product) => {
+        if (product.disabled) return;
         const targetPath = product.landingPath ?? `${product.path}/intro`;
         history.push(targetPath);
         setIsOpen(false);
@@ -113,11 +118,12 @@ export default function ProductDropdown() {
                     {PRODUCTS.map((product) => (
                         <button
                             key={product.title}
-                            className={`${styles.dropdownItem} ${currentProduct.title === product.title ? styles.activeItem : ''}`}
+                            className={`${styles.dropdownItem} ${currentProduct.title === product.title ? styles.activeItem : ''} ${product.disabled ? styles.disabledItem : ''}`}
                             onClick={() => handleProductSelect(product)}
                             type="button"
                             role="option"
                             aria-selected={currentProduct.title === product.title}
+                            disabled={product.disabled}
                         >
                             <div className={styles.productIcon}>
                                 <product.icon />
