@@ -46,3 +46,13 @@ Vertex is designed to be accessible from multiple environments to suit your work
     *Coming soon!* The `vertex-iot-kit` is a powerful command-line scaffolding tool that allows developers to instantly bootstrap a fully configured boilerplate, making it easy to start building custom IoT sensor management applications right away.
   </TabItem>
 </Tabs>
+
+<br />
+
+## Next steps
+
+- [**For Organizations**](./getting-started/for-organizations.md)  
+  Learn how to coordinate multiple devices across various regions, manage cohorts, and oversee complex deployments.
+
+- [**For Individuals**](./getting-started/for-individuals.md)  
+  Discover how to deploy a single device at home and contribute to the global air quality network.
