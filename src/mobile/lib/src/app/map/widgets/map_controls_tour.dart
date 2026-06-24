@@ -200,19 +200,28 @@ class _TooltipBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screen = MediaQuery.of(context).size;
+    final padding = MediaQuery.paddingOf(context);
+    final screen = MediaQuery.sizeOf(context);
     final bubbleBg = isDark ? AppColors.darkHighlight : Colors.white;
     final textColor = isDark ? Colors.white : const Color(0xFF1A1D23);
     final subColor =
         isDark ? AppColors.boldHeadlineColor2 : AppColors.boldHeadlineColor3;
 
-    final bubbleWidth =
-        (screen.width - _hPad * 2 - _arrowW - 12).clamp(220.0, _maxBubbleWidth);
-    final left = (targetRect.left - bubbleWidth - _arrowW - 12)
-        .clamp(_hPad, screen.width - bubbleWidth - _hPad);
+    final bubbleWidth = (screen.width -
+            padding.horizontal -
+            _hPad * 2 -
+            _arrowW -
+            12)
+        .clamp(220.0, _maxBubbleWidth);
+    final left = (targetRect.left - bubbleWidth - _arrowW - 12).clamp(
+      _hPad + padding.left,
+      screen.width - bubbleWidth - _hPad - padding.right,
+    );
 
-    final bubbleTop = (targetRect.center.dy - 72)
-        .clamp(_hPad + 8, screen.height * 0.55);
+    final bubbleTop = (targetRect.center.dy - 72).clamp(
+      padding.top + _hPad + 8,
+      screen.height * 0.55,
+    );
 
     final arrowTop = (targetRect.center.dy - bubbleTop - 10)
         .clamp(18.0, 120.0);

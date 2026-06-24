@@ -19,9 +19,9 @@ class MapOverlayControls extends StatelessWidget {
   final VoidCallback? onLocateTap;
   final VoidCallback onZoomIn;
   final VoidCallback onZoomOut;
-  final Key? layersKey;
-  final Key? locateKey;
-  final Key? zoomKey;
+  final GlobalKey? layersKey;
+  final GlobalKey? locateKey;
+  final GlobalKey? zoomKey;
 
   @override
   Widget build(BuildContext context) {

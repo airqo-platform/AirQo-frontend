@@ -73,12 +73,13 @@ class MapIconButton extends StatelessWidget {
         ? Colors.white
         : AppTextColors.modalCloseIcon(context);
 
-    return SizedBox(
-      width: _mapControlTapSize,
-      height: _mapControlTapSize,
-      child: Center(
-        child: GestureDetector(
-          onTap: onTap,
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: SizedBox(
+        width: _mapControlTapSize,
+        height: _mapControlTapSize,
+        child: Center(
           child: Container(
             width: _mapControlVisualSize,
             height: _mapControlVisualSize,
@@ -114,19 +115,19 @@ class MapZoomGroup extends StatelessWidget {
     final iconColor = AppTextColors.modalCloseIcon(context);
     final divider = Colors.grey.withValues(alpha: 0.25);
 
-    return SizedBox(
-      width: _mapControlTapSize,
-      height: _mapZoomTapHeight,
-      child: Center(
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTapUp: (details) {
-            if (details.localPosition.dy < _mapZoomVisualHeight / 2) {
-              onZoomIn();
-            } else {
-              onZoomOut();
-            }
-          },
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapUp: (details) {
+        if (details.localPosition.dy < _mapZoomTapHeight / 2) {
+          onZoomIn();
+        } else {
+          onZoomOut();
+        }
+      },
+      child: SizedBox(
+        width: _mapControlTapSize,
+        height: _mapZoomTapHeight,
+        child: Center(
           child: Container(
             width: _mapControlVisualSize,
             height: _mapZoomVisualHeight,
