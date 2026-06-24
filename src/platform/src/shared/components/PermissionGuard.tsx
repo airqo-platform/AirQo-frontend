@@ -75,7 +75,6 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
     hasAllPermissionsInActiveGroup,
     hasRoleInActiveGroup,
     canAccessAdminPanel,
-    isAirQoSuperAdminWithEmail,
     isLoading,
     error,
   } = useRBAC();
@@ -96,7 +95,7 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
     }
 
     // Check AIRQO SUPER ADMIN requirement
-    if (requireAirQoSuperAdmin && !isAirQoSuperAdminWithEmail()) {
+    if (requireAirQoSuperAdmin && !canAccessAdminPanel()) {
       return false;
     }
 
@@ -166,7 +165,6 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
     hasRole,
     hasRoleInActiveGroup,
     canAccessAdminPanel,
-    isAirQoSuperAdminWithEmail,
   ]);
 
   // Show loading state while checking permissions
