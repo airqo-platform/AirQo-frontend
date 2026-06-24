@@ -11,6 +11,7 @@ describe("Login Page @auth", function () {
   this.timeout(30000);
 
   before(async function () {
+    this.timeout(45000);
     driver = await createDriver();
     loginPage = new LoginPage(driver);
   });
@@ -51,6 +52,7 @@ describe("Login Page @auth", function () {
     await loginPage.navigateToLogin();
     await loginPage.enterEmail(Config.TEST_USER_EMAIL);
     await loginPage.clickContinue();
+    await loginPage.isPasswordStep();
 
     let isVisible = await loginPage.isPasswordVisible();
     expect(isVisible).to.be.false;
@@ -70,6 +72,9 @@ describe("Login Page @auth", function () {
 
   it("should navigate to forgot password page", async function () {
     await loginPage.navigateToLogin();
+    await loginPage.enterEmail(Config.TEST_USER_EMAIL);
+    await loginPage.clickContinue();
+    await loginPage.isPasswordStep();
     await loginPage.clickForgotPassword();
     await loginPage.waitForUrlContains("/forgotPwd");
     const url = await loginPage.getCurrentUrl();

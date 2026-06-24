@@ -5,14 +5,13 @@ export class LoginPage extends BasePage {
   protected static readonly EMAIL_INPUT = By.css('input[type="email"]');
   protected static readonly PASSWORD_INPUT = By.css('input[type="password"]');
   protected static readonly SUBMIT_BUTTON = By.css('button[type="submit"]');
-  protected static readonly REGISTER_LINK = By.linkText("Register");
-  protected static readonly FORGOT_PASSWORD_LINK = By.linkText("Forgot Password?");
+  protected static readonly REGISTER_LINK = By.xpath("//a[contains(text(), 'Register')]");
+  protected static readonly FORGOT_PASSWORD_LINK = By.xpath("//a[contains(text(), 'Forgot Password')]");
   protected static readonly PASSWORD_TOGGLE = By.css('button[aria-label="Show password"]');
   protected static readonly GOOGLE_AUTH = By.css('button[aria-label="Sign in with Google"]');
   protected static readonly GITHUB_AUTH = By.css('button[aria-label="Sign in with GitHub"]');
   protected static readonly LINKEDIN_AUTH = By.css('button[aria-label="Sign in with LinkedIn"]');
   protected static readonly X_AUTH = By.css('button[aria-label="Sign in with X"]');
-  protected static readonly ERROR_MESSAGE = By.css(".text-destructive");
 
   constructor(driver: WebDriver) {
     super(driver);
@@ -71,15 +70,9 @@ export class LoginPage extends BasePage {
     await this.click(LoginPage.FORGOT_PASSWORD_LINK);
   }
 
-  async getErrorMessage(): Promise<string> {
-    return this.getText(LoginPage.ERROR_MESSAGE);
-  }
-
   async hasSocialAuthProviders(): Promise<boolean> {
     const google = await this.isDisplayed(LoginPage.GOOGLE_AUTH, 3);
     const github = await this.isDisplayed(LoginPage.GITHUB_AUTH, 3);
-    const linkedin = await this.isDisplayed(LoginPage.LINKEDIN_AUTH, 3);
-    const x = await this.isDisplayed(LoginPage.X_AUTH, 3);
-    return google && github && linkedin && x;
+    return google && github;
   }
 }

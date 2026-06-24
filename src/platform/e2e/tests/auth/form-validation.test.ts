@@ -42,11 +42,10 @@ describe("Form Validation Edge Cases @auth", function () {
     await lastName.sendKeys("User");
     const password = await driver.findElement(By.css('input[placeholder="Create password"]'));
     await password.sendKeys("TestPassword123!");
+    await new Promise((r) => setTimeout(r, 1000));
     const submitBtn = await driver.findElement(By.css('button[type="submit"]'));
-    await submitBtn.click();
-    await new Promise((r) => setTimeout(r, 2000));
-    const url = await driver.getCurrentUrl();
-    expect(url).to.include("/register");
+    const isDisabled = await submitBtn.getAttribute("disabled");
+    expect(isDisabled).to.not.be.null;
   });
 
   it("should reject weak password on register", async function () {

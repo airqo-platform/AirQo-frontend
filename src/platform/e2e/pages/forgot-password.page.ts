@@ -4,11 +4,10 @@ import { BasePage } from "./base.page";
 export class ForgotPasswordPage extends BasePage {
   protected static readonly EMAIL_INPUT = By.css('input[type="email"]');
   protected static readonly SUBMIT_BUTTON = By.css('button[type="submit"]');
-  protected static readonly SUCCESS_BANNER = By.xpath("//div[contains(@class, 'green') or contains(@class, 'success')]");
-  protected static readonly ERROR_MESSAGE = By.css(".text-destructive");
+  protected static readonly SUCCESS_TEXT = By.xpath("//p[contains(text(), 'Password reset email sent successfully')]");
   protected static readonly TRY_AGAIN_BUTTON = By.xpath("//button[contains(text(), 'Try Again')]");
-  protected static readonly LOGIN_LINK = By.linkText("Login");
-  protected static readonly BACK_LINK = By.linkText("Back to Login");
+  protected static readonly LOGIN_LINK = By.xpath("//a[contains(text(), 'Login')]");
+  protected static readonly ERROR_MESSAGE = By.css(".text-destructive");
 
   constructor(driver: WebDriver) {
     super(driver);
@@ -32,11 +31,7 @@ export class ForgotPasswordPage extends BasePage {
   }
 
   async isSuccessDisplayed(): Promise<boolean> {
-    return this.isDisplayed(ForgotPasswordPage.SUCCESS_BANNER, 5);
-  }
-
-  async getErrorMessage(): Promise<string> {
-    return this.getText(ForgotPasswordPage.ERROR_MESSAGE);
+    return this.isDisplayed(ForgotPasswordPage.SUCCESS_TEXT, 5);
   }
 
   async hasError(): Promise<boolean> {
@@ -49,9 +44,5 @@ export class ForgotPasswordPage extends BasePage {
 
   async clickLogin(): Promise<void> {
     await this.click(ForgotPasswordPage.LOGIN_LINK);
-  }
-
-  async clickBackToLogin(): Promise<void> {
-    await this.click(ForgotPasswordPage.BACK_LINK);
   }
 }

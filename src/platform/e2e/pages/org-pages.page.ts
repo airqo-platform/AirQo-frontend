@@ -2,13 +2,8 @@ import { WebDriver, By } from "selenium-webdriver";
 import { BasePage } from "./base.page";
 
 export class OrgSettingsPage extends BasePage {
-  protected static readonly PAGE_TITLE = By.css("h1, h2");
-  protected static readonly GROUP_NAME_INPUT = By.css('input[placeholder*="name"], input[name*="name"]');
-  protected static readonly DESCRIPTION_INPUT = By.css('textarea, input[placeholder*="description"]');
-  protected static readonly SAVE_BUTTON = By.xpath("//button[contains(text(), 'Save')]");
-  protected static readonly LEAVE_ORG_BUTTON = By.xpath("//button[contains(text(), 'Leave')]");
-  protected static readonly DELETE_ORG_BUTTON = By.xpath("//button[contains(text(), 'Delete')]");
-  protected static readonly THEME_SECTION = By.xpath("//h3[contains(text(), 'Theme') or contains(text(), 'theme')]");
+  protected static readonly THEME_TAB = By.xpath("//button[contains(., 'Theme')]");
+  protected static readonly GROUP_DETAILS_TAB = By.xpath("//button[contains(., 'Group Details')]");
 
   constructor(driver: WebDriver) {
     super(driver);
@@ -19,21 +14,20 @@ export class OrgSettingsPage extends BasePage {
   }
 
   async isPageLoaded(): Promise<boolean> {
-    return this.isDisplayed(OrgSettingsPage.PAGE_TITLE, 5);
-  }
-
-  async getPageTitle(): Promise<string> {
-    return this.getText(OrgSettingsPage.PAGE_TITLE);
+    return (
+      (await this.isDisplayed(OrgSettingsPage.THEME_TAB, 5)) ||
+      (await this.isDisplayed(OrgSettingsPage.GROUP_DETAILS_TAB, 5))
+    );
   }
 
   async hasThemeSection(): Promise<boolean> {
-    return this.isDisplayed(OrgSettingsPage.THEME_SECTION, 3);
+    return this.isDisplayed(OrgSettingsPage.THEME_TAB, 3);
   }
 }
 
 export class OrgRolesPage extends BasePage {
   protected static readonly PAGE_TITLE = By.css("h1, h2");
-  protected static readonly CREATE_ROLE_BUTTON = By.xpath("//button[contains(text(), 'Create') or contains(text(), 'New Role')]");
+  protected static readonly CREATE_ROLE_BUTTON = By.xpath("//button[contains(., 'Create New Role') or contains(., 'Create')]");
   protected static readonly ROLES_TABLE = By.css("table");
   protected static readonly ROLE_NAME = By.css("table tbody tr td:first-child");
   protected static readonly SEARCH_INPUT = By.css('input[placeholder*="Search"]');
@@ -85,7 +79,7 @@ export class OrgRolesPage extends BasePage {
 }
 
 export class MemberRequestsPage extends BasePage {
-  protected static readonly PAGE_TITLE = By.css("h1, h2");
+  protected static readonly PAGE_TITLE = By.xpath("//h1[contains(text(), 'MEMBER REQUESTS') or contains(text(), 'Member Requests')]");
   protected static readonly REQUESTS_TABLE = By.css("table");
   protected static readonly APPROVE_BUTTON = By.xpath("//button[contains(text(), 'Approve')]");
   protected static readonly REJECT_BUTTON = By.xpath("//button[contains(text(), 'Reject')]");

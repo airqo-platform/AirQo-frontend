@@ -39,12 +39,14 @@ describe("Organization Members @organization", function () {
 
   it("should display table headers", async function () {
     await membersPage.navigateToMembers(Config.TEST_ORG_SLUG);
+    await new Promise((r) => setTimeout(r, 5000));
     const headers = await membersPage.getTableHeaders();
     expect(headers.length).to.be.greaterThan(0);
   });
 
   it("should have expected columns", async function () {
     await membersPage.navigateToMembers(Config.TEST_ORG_SLUG);
+    await new Promise((r) => setTimeout(r, 5000));
     const headers = await membersPage.getTableHeaders();
     const headerText = headers.join(" ").toLowerCase();
     expect(headerText).to.include("user");

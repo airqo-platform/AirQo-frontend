@@ -22,20 +22,20 @@ export class DashboardPage extends BasePage {
   }
 
   async isAccessDenied(): Promise<boolean> {
-    return this.isDisplayed(DashboardPage.ACCESS_DENIED, 5);
+    return this.isDisplayed(DashboardPage.ACCESS_DENIED, 3);
   }
 
   async hasCharts(): Promise<boolean> {
     return (
-      (await this.isDisplayed(DashboardPage.LINE_CHART, 3)) ||
-      (await this.isDisplayed(DashboardPage.BAR_CHART, 3))
+      (await this.isDisplayed(DashboardPage.LINE_CHART, 2)) ||
+      (await this.isDisplayed(DashboardPage.BAR_CHART, 2))
     );
   }
 
   async hasNoFavorites(): Promise<boolean> {
     return (
-      (await this.isDisplayed(DashboardPage.NO_FAVORITES, 3)) ||
-      (await this.isDisplayed(DashboardPage.SUGGESTED_LOCATIONS, 3))
+      (await this.isDisplayed(DashboardPage.NO_FAVORITES, 2)) ||
+      (await this.isDisplayed(DashboardPage.SUGGESTED_LOCATIONS, 2))
     );
   }
 
@@ -43,7 +43,7 @@ export class DashboardPage extends BasePage {
     return (
       (await this.hasCharts()) ||
       (await this.hasNoFavorites()) ||
-      (await this.isDisplayed(DashboardPage.MANAGE_FAVORITES, 3))
+      (await this.isDisplayed(DashboardPage.MANAGE_FAVORITES, 2))
     );
   }
 
