@@ -81,6 +81,7 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
 }) => {
   const {
     isLoading,
+    error,
     hasAnyPermission,
     hasAllPermissions,
     hasAnyPermissionInActiveGroup,
@@ -88,21 +89,27 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
   } = useRBAC();
 
   const hasAccess = useMemo(() => {
-    if (requiredPermissions && !hasAnyPermission(requiredPermissions)) return false;
-    if (requiredAllPermissions && !hasAllPermissions(requiredAllPermissions)) return false;
+    // A bootstrap error means permissions could not be resolved — deny conservatively.
+    // This is intentionally separate from the access-denied path so callers can
+    // distinguish a permission failure from an auth/context failure if needed.
+    if (error) return false;
+
+    if (requiredPermissions?.length && !hasAnyPermission(requiredPermissions)) return false;
+    if (requiredAllPermissions?.length && !hasAllPermissions(requiredAllPermissions)) return false;
     if (
-      requiredPermissionsInActiveGroup &&
+      requiredPermissionsInActiveGroup?.length &&
       !hasAnyPermissionInActiveGroup(requiredPermissionsInActiveGroup)
     )
       return false;
     if (
-      requiredAllPermissionsInActiveGroup &&
+      requiredAllPermissionsInActiveGroup?.length &&
       !hasAllPermissionsInActiveGroup(requiredAllPermissionsInActiveGroup)
     )
       return false;
 
     return true;
   }, [
+    error,
     requiredPermissions,
     requiredAllPermissions,
     requiredPermissionsInActiveGroup,
@@ -115,6 +122,17 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
 
   if (isLoading) {
     return <>{loadingComponent ?? null}</>;
+  }
+
+  // Auth/context bootstrap failed — show a distinct error state, not the
+  // permission-denied message, so the user isn't confused about why they're blocked.
+  if (error) {
+    return (
+      <InlineAccessDenied
+        title="Something went wrong"
+        message="Unable to verify your permissions. Please refresh the page."
+      />
+    );
   }
 
   if (!hasAccess) {
