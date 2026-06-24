@@ -23,7 +23,7 @@ class _ProfilePageState extends State<ProfilePage> with UiLoggy {
   void initState() {
     super.initState();
     final state = context.read<UserBloc>().state;
-    if (state is! UserLoaded) {
+    if (state is! UserLoaded && state is! UserLoading) {
       context.read<UserBloc>().add(LoadUser());
     }
   }
