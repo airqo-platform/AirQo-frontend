@@ -3,6 +3,51 @@ import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+const _mapControlTapSize = 56.0;
+const _mapControlVisualSize = 44.0;
+const _mapControlIconSize = 20.0;
+const _mapZoomVisualHeight = 88.0;
+const _mapZoomTapHeight = 96.0;
+
+/// Visual distance from the screen edge to map control pills.
+const mapControlVisualEdgeInset = 12.0;
+
+/// Position for the 56px tap wrapper so the 44px pill sits [mapControlVisualEdgeInset] from the edge.
+const mapControlSideInset =
+    mapControlVisualEdgeInset - (_mapControlTapSize - _mapControlVisualSize) / 2;
+
+/// Centers a 44px control inside the shared 56px tap column width.
+class MapControlSideSlot extends StatelessWidget {
+  const MapControlSideSlot({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: _mapControlTapSize,
+      child: Center(child: child),
+    );
+  }
+}
+
+BoxDecoration _mapControlDecoration({
+  required Color background,
+  required BorderRadius borderRadius,
+}) {
+  return BoxDecoration(
+    color: background,
+    borderRadius: borderRadius,
+    boxShadow: const [
+      BoxShadow(
+        color: Color(0x33536A87),
+        offset: Offset(0, 2),
+        blurRadius: 5,
+      ),
+    ],
+  );
+}
+
 class MapIconButton extends StatelessWidget {
   final IconData icon;
   final bool isDark;
@@ -24,30 +69,24 @@ class MapIconButton extends StatelessWidget {
         : (isDark
             ? AppColors.darkHighlight.withValues(alpha: 0.94)
             : Colors.white.withValues(alpha: 0.95));
-    final iconColor =
-        filled ? Colors.white : Theme.of(context).textTheme.bodyMedium?.color;
+    final iconColor = filled
+        ? Colors.white
+        : AppTextColors.modalCloseIcon(context);
 
     return SizedBox(
-      width: 48,
-      height: 48,
+      width: _mapControlTapSize,
+      height: _mapControlTapSize,
       child: Center(
         child: GestureDetector(
           onTap: onTap,
           child: Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: bg,
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x33536A87),
-                  offset: Offset(0, 2),
-                  blurRadius: 5,
-                ),
-              ],
+            width: _mapControlVisualSize,
+            height: _mapControlVisualSize,
+            decoration: _mapControlDecoration(
+              background: bg,
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, size: 16, color: iconColor),
+            child: Icon(icon, size: _mapControlIconSize, color: iconColor),
           ),
         ),
       ),
@@ -72,64 +111,55 @@ class MapZoomGroup extends StatelessWidget {
     final bg = isDark
         ? AppColors.darkHighlight.withValues(alpha: 0.94)
         : Colors.white.withValues(alpha: 0.95);
-    final iconColor = Theme.of(context).textTheme.bodyMedium?.color;
+    final iconColor = AppTextColors.modalCloseIcon(context);
     final divider = Colors.grey.withValues(alpha: 0.25);
 
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x33536A87),
-            offset: Offset(0, 2),
-            blurRadius: 5,
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            width: 48,
-            height: 48,
-            child: Center(
-              child: GestureDetector(
-                onTap: onZoomIn,
-                child: Container(
-                  width: 32,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: bg,
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(8)),
-                    border:
-                        Border(bottom: BorderSide(color: divider, width: 0.8)),
+    return SizedBox(
+      width: _mapControlTapSize,
+      height: _mapZoomTapHeight,
+      child: Center(
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTapUp: (details) {
+            if (details.localPosition.dy < _mapZoomVisualHeight / 2) {
+              onZoomIn();
+            } else {
+              onZoomOut();
+            }
+          },
+          child: Container(
+            width: _mapControlVisualSize,
+            height: _mapZoomVisualHeight,
+            decoration: _mapControlDecoration(
+              background: bg,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              children: [
+                Expanded(
+                  child: Center(
+                    child: Icon(
+                      Icons.add,
+                      size: _mapControlIconSize,
+                      color: iconColor,
+                    ),
                   ),
-                  child: Icon(Icons.add, size: 16, color: iconColor),
                 ),
-              ),
+                Container(height: 0.8, color: divider),
+                Expanded(
+                  child: Center(
+                    child: Icon(
+                      Icons.remove,
+                      size: _mapControlIconSize,
+                      color: iconColor,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          SizedBox(
-            width: 48,
-            height: 48,
-            child: Center(
-              child: GestureDetector(
-                onTap: onZoomOut,
-                child: Container(
-                  width: 32,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: bg,
-                    borderRadius:
-                        const BorderRadius.vertical(bottom: Radius.circular(8)),
-                  ),
-                  child: Icon(Icons.remove, size: 16, color: iconColor),
-                ),
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -173,21 +203,16 @@ class MapAqLegend extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bg = isDark
+        ? AppColors.darkHighlight.withValues(alpha: 0.94)
+        : Colors.white.withValues(alpha: 0.95);
+
     return Container(
-      width: 40,
-      padding: const EdgeInsets.symmetric(vertical: 7),
-      decoration: BoxDecoration(
-        color: isDark
-            ? AppColors.darkHighlight.withValues(alpha: 0.94)
-            : Colors.white.withValues(alpha: 0.95),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x33536A87),
-            offset: Offset(0, 2),
-            blurRadius: 5,
-          ),
-        ],
+      width: _mapControlVisualSize,
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      decoration: _mapControlDecoration(
+        background: bg,
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
