@@ -2,6 +2,29 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
+## Version 2.0.8
+**Released:** June 24, 2026
+
+### Permission Evaluation Bug Fix
+
+Fixed a critical issue in the permission evaluation service that prevented administrative users from accessing their valid permissions when operating in the Personal Context.
+
+<details>
+<summary><strong>Changes (1)</strong></summary>
+
+- **Legacy Permission Mapping Fix (`permissionService.ts`)**: Corrected the `addPerm` helper function in both `getEffectivePermissions` and `getOrganizationPermissions`. The service now checks if a permission string is already a modern `Permission` constant before attempting to map it as a legacy permission. Previously, modern permissions like `NETWORK_VIEW` were silently dropped during mapping when a user switched out of an active organization group into their Personal Context, which incorrectly locked them out of the Administrative Panel and its secondary sidebar options.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (1)</strong></summary>
+
+- `src/vertex/core/permissions/permissionService.ts` [MODIFIED]
+
+</details>
+
+---
+
 ## Version 2.0.7
 **Released:** June 17, 2026
 
