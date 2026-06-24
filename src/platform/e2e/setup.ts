@@ -63,7 +63,7 @@ export function getDriver(): WebDriver {
 
 export async function screenshotOnFailure(testName: string): Promise<void> {
   if (!driver) return;
-  const screenshotDir = path.resolve(__dirname, "../screenshots");
+  const screenshotDir = path.resolve(__dirname, "./screenshots");
   if (!fs.existsSync(screenshotDir)) {
     fs.mkdirSync(screenshotDir, { recursive: true });
   }
