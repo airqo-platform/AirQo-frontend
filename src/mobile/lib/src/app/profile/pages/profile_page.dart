@@ -19,6 +19,15 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> with UiLoggy {
   bool isRetrying = false;
 
+  @override
+  void initState() {
+    super.initState();
+    final state = context.read<UserBloc>().state;
+    if (state is! UserLoaded) {
+      context.read<UserBloc>().add(LoadUser());
+    }
+  }
+
   bool _isHtmlError(String message) {
     return message.contains("<html>") ||
         message.contains("<!DOCTYPE") ||
@@ -69,7 +78,19 @@ class _ProfilePageState extends State<ProfilePage> with UiLoggy {
               height: double.infinity,
               alignment: Alignment.center,
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: ErrorPage(),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ErrorPage(),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () {
+                      context.read<UserBloc>().add(LoadUser());
+                    },
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
             ),
           );
         } else if (state is UserLoaded) {
