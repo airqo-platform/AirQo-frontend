@@ -88,12 +88,29 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
     hasAllPermissionsInActiveGroup,
   } = useRBAC();
 
+  // Warn in dev when a defined-but-empty array is passed — it will be treated as
+  // "no requirement" (same as undefined). This catches accidental [] from computed
+  // lists before they silently allow access in production.
+  if (process.env.NODE_ENV !== 'production') {
+    if (requiredPermissions !== undefined && requiredPermissions.length === 0)
+      console.warn('[PermissionGuard] requiredPermissions is an empty array — treated as no requirement. Pass undefined to suppress this warning.');
+    if (requiredAllPermissions !== undefined && requiredAllPermissions.length === 0)
+      console.warn('[PermissionGuard] requiredAllPermissions is an empty array — treated as no requirement. Pass undefined to suppress this warning.');
+    if (requiredPermissionsInActiveGroup !== undefined && requiredPermissionsInActiveGroup.length === 0)
+      console.warn('[PermissionGuard] requiredPermissionsInActiveGroup is an empty array — treated as no requirement. Pass undefined to suppress this warning.');
+    if (requiredAllPermissionsInActiveGroup !== undefined && requiredAllPermissionsInActiveGroup.length === 0)
+      console.warn('[PermissionGuard] requiredAllPermissionsInActiveGroup is an empty array — treated as no requirement. Pass undefined to suppress this warning.');
+  }
+
   const hasAccess = useMemo(() => {
     // A bootstrap error means permissions could not be resolved — deny conservatively.
     // This is intentionally separate from the access-denied path so callers can
     // distinguish a permission failure from an auth/context failure if needed.
     if (error) return false;
 
+    // Empty arrays are treated as "no requirement" (same as undefined) to keep
+    // hasAny and hasAll consistent — [].some() = false (deny) vs [].every() = true
+    // (allow) would otherwise produce different outcomes for the same intent.
     if (requiredPermissions?.length && !hasAnyPermission(requiredPermissions)) return false;
     if (requiredAllPermissions?.length && !hasAllPermissions(requiredAllPermissions)) return false;
     if (

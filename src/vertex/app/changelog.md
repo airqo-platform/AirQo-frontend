@@ -47,9 +47,9 @@ Introduced the foundational infrastructure for a dynamic, capability-driven auth
 ## Version 2.0.8
 **Released:** June 23, 2026
 
-### Admin Panel Access Control — Granular Permission Gates
+### Admin Panel Access Control — Primary Sidebar Permission Gate
 
-Replaced all static role-name checks that guarded the Administrative Panel with a dynamic, permission-based model. Access is now determined by the user's live capability set and organizational context rather than hardcoded role strings.
+Replaced the static role-name check that guarded the Administrative Panel entry in the primary sidebar with a dynamic, permission-based model.
 
 <details>
 <summary><strong>Primary Sidebar (`primary-sidebar.tsx`)</strong></summary>
@@ -57,14 +57,6 @@ Replaced all static role-name checks that guarded the Administrative Panel with 
 - **Permission-based gate**: Removed the `allowedRoles` array (`AIRQO_SUPER_ADMIN`, `AIRQO_ADMIN`, `AIRQO_NETWORK_ADMIN`) and replaced `canViewAdminPanel` with a `useHasAnyPermission` check against `SYSTEM.SUPER_ADMIN`, `SYSTEM.SYSTEM_ADMIN`, `ORGANIZATION.VIEW`, and `NETWORK.VIEW`.
 - **Context enforcement preserved**: The `isPersonalContext` guard remains — the Administrative Panel entry is never shown when the user is operating under an external organisation.
 - **Hook consolidation**: Eliminated a redundant second `useUserContext()` call; `isPersonalContext` and `activeGroup` are now destructured from the same call as `getContextPermissions`.
-
-</details>
-
-<details>
-<summary><strong>Admin Route Guard (`admin/layout.tsx`)</strong></summary>
-
-- Switched from `roles` to `permissions` prop on `RouteGuard`. All `/admin/*` pages are now protected by `useHasAnyPermission([SYSTEM.SUPER_ADMIN, SYSTEM.SYSTEM_ADMIN, ORGANIZATION.VIEW, NETWORK.VIEW])` instead of a role-name string match.
-- `allowedContexts={['personal']}` unchanged — the personal (AirQo group) context restriction is preserved at the route level.
 
 </details>
 

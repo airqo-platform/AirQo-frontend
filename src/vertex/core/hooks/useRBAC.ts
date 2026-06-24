@@ -42,6 +42,9 @@ export const useRBAC = () => {
   }, [activeGroup]);
 
   // --- Single permission (all orgs + legacy mapping via permissionService) ---
+  // No activeOrganization passed here — permissionService.getEffectivePermissions
+  // filters to a single org when organizationId is provided, which would make this
+  // identical to hasPermissionInActiveGroup. Omitting it checks all groups/networks.
 
   const hasPermission = useCallback(
     (permission: string): boolean => {
@@ -49,11 +52,9 @@ export const useRBAC = () => {
         return MOCK_PERMISSIONS[permission as Permission] ?? false;
       }
       if (!user) return false;
-      return permissionService.hasPermission(user, permission as Permission, {
-        activeOrganization: activeGroup ?? undefined,
-      });
+      return permissionService.hasPermission(user, permission as Permission);
     },
-    [user, activeGroup]
+    [user]
   );
 
   const hasAnyPermission = useCallback(
