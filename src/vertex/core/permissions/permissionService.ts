@@ -119,6 +119,17 @@ class PermissionService {
     // helper to add new-style permissions (handles legacy strings)
     const addPerm = (permStr: string | undefined) => {
       if (!permStr) return;
+      
+      const ALL_PERMISSIONS = new Set<Permission>(
+        (Object.values(PERMISSIONS) as Array<Record<string, Permission>>)
+          .flatMap(group => Object.values(group))
+      );
+
+      if (ALL_PERMISSIONS.has(permStr as Permission)) {
+        permissions.add(permStr as Permission);
+        return;
+      }
+
       const mapped = mapLegacyPermission(permStr);
       if (mapped.length === 0) return;
       mapped.forEach((p) => permissions.add(p));
@@ -265,14 +276,30 @@ class PermissionService {
   getOrganizationPermissions(user: UserDetails, organizationId: string): Permission[] {
     const permissions = new Set<Permission>();
 
+    const addPerm = (permStr: string | undefined) => {
+      if (!permStr) return;
+      
+      const ALL_PERMISSIONS = new Set<Permission>(
+        (Object.values(PERMISSIONS) as Array<Record<string, Permission>>)
+          .flatMap(group => Object.values(group))
+      );
+
+      if (ALL_PERMISSIONS.has(permStr as Permission)) {
+        permissions.add(permStr as Permission);
+        return;
+      }
+
+      const mapped = mapLegacyPermission(permStr);
+      if (mapped.length === 0) return;
+      mapped.forEach((p) => permissions.add(p));
+    };
+
     // Check networks
     if (user.networks) {
       const network = user.networks.find((n) => n._id === organizationId);
       if (network?.role?.role_permissions) {
         network.role.role_permissions.forEach((permission) => {
-          if (permission.permission) {
-            permissions.add(permission.permission as Permission);
-          }
+          addPerm(permission.permission);
         });
       }
     }
@@ -282,9 +309,7 @@ class PermissionService {
       const group = user.groups.find((g) => g._id === organizationId);
       if (group?.role?.role_permissions) {
         group.role.role_permissions.forEach((permission) => {
-          if (permission.permission) {
-            permissions.add(permission.permission as Permission);
-          }
+          addPerm(permission.permission);
         });
       }
     }
