@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { WebDriver, By } from "selenium-webdriver";
 import { createDriver, quitDriver, screenshotOnFailure } from "../../setup";
 import { DataVisualizerPage, DataExportPage, MapPage } from "../../pages/data.page";
-import { Config } from "../config";
+import { Config } from "../../config";
 
 describe("Data Visualizer @data", function () {
   let driver: WebDriver;
