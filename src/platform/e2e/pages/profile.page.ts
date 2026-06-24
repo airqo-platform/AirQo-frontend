@@ -2,18 +2,18 @@ import { WebDriver, By } from "selenium-webdriver";
 import { BasePage } from "./base.page";
 
 export class ProfilePage extends BasePage {
-  private static readonly TAB_BUTTONS = By.css("nav button");
-  private static readonly FIRST_NAME = By.css('input[placeholder="Enter your first name"]');
-  private static readonly LAST_NAME = By.css('input[placeholder="Enter your last name"]');
-  private static readonly EMAIL = By.css('input[placeholder="Enter your email"]');
-  private static readonly PHONE = By.css('input[placeholder="Enter your phone number"]');
-  private static readonly JOB_TITLE = By.css('input[placeholder="Enter your job title"]');
-  private static readonly BIO = By.css('textarea[placeholder="Tell us about yourself..."]');
-  private static readonly SAVE_BUTTON = By.xpath("//button[contains(text(), 'Save Changes')]");
-  private static readonly CURRENT_PASSWORD = By.css('input[placeholder="Enter your current password"]');
-  private static readonly NEW_PASSWORD = By.css('input[placeholder="Enter your new password"]');
-  private static readonly CONFIRM_PASSWORD = By.css('input[placeholder="Confirm your new password"]');
-  private static readonly CHANGE_PASSWORD = By.xpath("//button[contains(text(), 'Change Password')]");
+  protected static readonly TAB_BUTTONS = By.css("nav button");
+  protected static readonly FIRST_NAME = By.css('input[placeholder="Enter your first name"]');
+  protected static readonly LAST_NAME = By.css('input[placeholder="Enter your last name"]');
+  protected static readonly EMAIL = By.css('input[placeholder="Enter your email"]');
+  protected static readonly PHONE = By.css('input[placeholder="Enter your phone number"]');
+  protected static readonly JOB_TITLE = By.css('input[placeholder="Enter your job title"]');
+  protected static readonly BIO = By.css('textarea[placeholder="Tell us about yourself..."]');
+  protected static readonly SAVE_BUTTON = By.xpath("//button[contains(text(), 'Save Changes')]");
+  protected static readonly CURRENT_PASSWORD = By.css('input[placeholder="Enter your current password"]');
+  protected static readonly NEW_PASSWORD = By.css('input[placeholder="Enter your new password"]');
+  protected static readonly CONFIRM_PASSWORD = By.css('input[placeholder="Confirm your new password"]');
+  protected static readonly CHANGE_PASSWORD = By.xpath("//button[contains(text(), 'Change Password')]");
 
   constructor(driver: WebDriver) {
     super(driver);
@@ -30,9 +30,10 @@ export class ProfilePage extends BasePage {
 
   async clickTab(index: number): Promise<void> {
     const tabs = await this.findAll(ProfilePage.TAB_BUTTONS);
-    if (index < tabs.length) {
-      await tabs[index].click();
+    if (index >= tabs.length) {
+      throw new Error(`Tab at index ${index} not found (only ${tabs.length} tabs present)`);
     }
+    await tabs[index].click();
   }
 
   async clickProfileTab(): Promise<void> {

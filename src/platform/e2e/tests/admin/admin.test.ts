@@ -35,7 +35,7 @@ describe("System Admin @admin", function () {
   it("should load clients page @smoke", async function () {
     await adminPage.navigateToClients();
     const title = await adminPage.getPageTitle();
-    expect(title).to.be.a("string");
+    expect(title.trim()).to.not.be.empty;
   });
 
   it("should display data table or create button on clients", async function () {
@@ -48,30 +48,30 @@ describe("System Admin @admin", function () {
   it("should load feedback page", async function () {
     await adminPage.navigateToFeedback();
     const title = await adminPage.getPageTitle();
-    expect(title).to.be.a("string");
+    expect(title.trim()).to.not.be.empty;
   });
 
   it("should load roles & permissions page", async function () {
     await adminPage.navigateToRolesPermissions();
     const title = await adminPage.getPageTitle();
-    expect(title).to.be.a("string");
+    expect(title.trim()).to.not.be.empty;
   });
 
   it("should load security page", async function () {
     await adminPage.navigateToSecurity();
     const title = await adminPage.getPageTitle();
-    expect(title).to.be.a("string");
+    expect(title.trim()).to.not.be.empty;
   });
 
   it("should load surveys page", async function () {
     await adminPage.navigateToSurveys();
     const title = await adminPage.getPageTitle();
-    expect(title).to.be.a("string");
+    expect(title.trim()).to.not.be.empty;
   });
 
   it("should load user statistics page", async function () {
     await adminPage.navigateToUserStatistics();
     const title = await adminPage.getPageTitle();
-    expect(title).to.be.a("string");
+    expect(title.trim()).to.not.be.empty;
   });
 });

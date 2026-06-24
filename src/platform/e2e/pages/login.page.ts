@@ -2,17 +2,17 @@ import { WebDriver, By } from "selenium-webdriver";
 import { BasePage } from "./base.page";
 
 export class LoginPage extends BasePage {
-  private static readonly EMAIL_INPUT = By.css('input[type="email"]');
-  private static readonly PASSWORD_INPUT = By.css('input[type="password"]');
-  private static readonly SUBMIT_BUTTON = By.css('button[type="submit"]');
-  private static readonly REGISTER_LINK = By.linkText("Register");
-  private static readonly FORGOT_PASSWORD_LINK = By.linkText("Forgot Password?");
-  private static readonly PASSWORD_TOGGLE = By.css('button[aria-label="Show password"]');
-  private static readonly GOOGLE_AUTH = By.css('button[aria-label="Sign in with Google"]');
-  private static readonly GITHUB_AUTH = By.css('button[aria-label="Sign in with GitHub"]');
-  private static readonly LINKEDIN_AUTH = By.css('button[aria-label="Sign in with LinkedIn"]');
-  private static readonly X_AUTH = By.css('button[aria-label="Sign in with X"]');
-  private static readonly ERROR_MESSAGE = By.css(".text-destructive");
+  protected static readonly EMAIL_INPUT = By.css('input[type="email"]');
+  protected static readonly PASSWORD_INPUT = By.css('input[type="password"]');
+  protected static readonly SUBMIT_BUTTON = By.css('button[type="submit"]');
+  protected static readonly REGISTER_LINK = By.linkText("Register");
+  protected static readonly FORGOT_PASSWORD_LINK = By.linkText("Forgot Password?");
+  protected static readonly PASSWORD_TOGGLE = By.css('button[aria-label="Show password"]');
+  protected static readonly GOOGLE_AUTH = By.css('button[aria-label="Sign in with Google"]');
+  protected static readonly GITHUB_AUTH = By.css('button[aria-label="Sign in with GitHub"]');
+  protected static readonly LINKEDIN_AUTH = By.css('button[aria-label="Sign in with LinkedIn"]');
+  protected static readonly X_AUTH = By.css('button[aria-label="Sign in with X"]');
+  protected static readonly ERROR_MESSAGE = By.css(".text-destructive");
 
   constructor(driver: WebDriver) {
     super(driver);

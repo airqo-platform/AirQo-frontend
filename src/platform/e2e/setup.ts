@@ -40,12 +40,20 @@ export async function createDriver(): Promise<WebDriver> {
   const builder = new Builder().forBrowser(browser === "chrome" ? Browser.CHROME : browser === "firefox" ? Browser.FIREFOX : Browser.EDGE);
 
   if (options) {
-    builder.setChromeOptions(options);
-    builder.setFirefoxOptions(options);
+    if (browser === "chrome") {
+      builder.setChromeOptions(options);
+    } else if (browser === "firefox") {
+      builder.setFirefoxOptions(options);
+    } else if (browser === "edge") {
+      builder.setEdgeOptions(options);
+    }
   }
 
   driver = await builder.build();
-  await driver.manage().setTimeouts({ implicit: Config.IMPLICIT_WAIT * 1000 });
+  await driver.manage().setTimeouts({
+    implicit: Config.IMPLICIT_WAIT * 1000,
+    pageLoad: Config.PAGE_LOAD_TIMEOUT * 1000,
+  });
   await driver.manage().window().maximize();
 
   return driver;
@@ -68,7 +76,8 @@ export async function screenshotOnFailure(testName: string): Promise<void> {
     fs.mkdirSync(screenshotDir, { recursive: true });
   }
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-  const filepath = path.join(screenshotDir, `${testName}_${timestamp}.png`);
+  const safeName = testName.replace(/[^a-zA-Z0-9-_]/g, "_");
+  const filepath = path.join(screenshotDir, `${safeName}_${timestamp}.png`);
   const image = await driver.takeScreenshot();
   fs.writeFileSync(filepath, image, "base64");
   console.log(`Screenshot saved: ${filepath}`);

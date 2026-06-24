@@ -2,17 +2,17 @@ import { WebDriver, By } from "selenium-webdriver";
 import { BasePage } from "./base.page";
 
 export class MembersPage extends BasePage {
-  private static readonly PAGE_TITLE = By.css("h1, h2");
-  private static readonly TABLE_ROWS = By.css("table tbody tr");
-  private static readonly TABLE_HEADERS = By.css("table thead th");
-  private static readonly SEND_INVITES = By.xpath("//button[contains(text(), 'Send Invites')]");
-  private static readonly ACTION_MENU = By.css("table tbody tr button");
-  private static readonly VIEW_DETAILS = By.xpath("//div[contains(@role, 'menuitem')][contains(text(), 'View Details')]");
-  private static readonly INVITE_DIALOG = By.xpath("//div[contains(@role, 'dialog')]");
-  private static readonly EMAIL_INPUT_DIALOG = By.css('div[role="dialog"] input[type="email"]');
-  private static readonly ADD_EMAIL = By.xpath("//div[contains(@role, 'dialog')]//button[contains(text(), 'Add Email')]");
-  private static readonly SEND_INVITES_SUBMIT = By.xpath("//div[contains(@role, 'dialog')]//button[contains(text(), 'Send Invites')]");
-  private static readonly CANCEL = By.xpath("//div[contains(@role, 'dialog')]//button[contains(text(), 'Cancel')]");
+  protected static readonly PAGE_TITLE = By.css("h1, h2");
+  protected static readonly TABLE_ROWS = By.css("table tbody tr");
+  protected static readonly TABLE_HEADERS = By.css("table thead th");
+  protected static readonly SEND_INVITES = By.xpath("//button[contains(text(), 'Send Invites')]");
+  protected static readonly ACTION_MENU = By.css("table tbody tr button");
+  protected static readonly VIEW_DETAILS = By.xpath("//div[contains(@role, 'menuitem')][contains(text(), 'View Details')]");
+  protected static readonly INVITE_DIALOG = By.xpath("//div[contains(@role, 'dialog')]");
+  protected static readonly EMAIL_INPUT_DIALOG = By.css('div[role="dialog"] input[type="email"]');
+  protected static readonly ADD_EMAIL = By.xpath("//div[contains(@role, 'dialog')]//button[contains(text(), 'Add Email')]");
+  protected static readonly SEND_INVITES_SUBMIT = By.xpath("//div[contains(@role, 'dialog')]//button[contains(text(), 'Send Invites')]");
+  protected static readonly CANCEL = By.xpath("//div[contains(@role, 'dialog')]//button[contains(text(), 'Cancel')]");
 
   constructor(driver: WebDriver) {
     super(driver);

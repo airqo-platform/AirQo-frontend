@@ -54,14 +54,17 @@ describe("Reset Password @auth", function () {
   it("should reject mismatched passwords", async function () {
     await page.navigateToResetPassword("valid-token-placeholder");
     await new Promise((r) => setTimeout(r, 3000));
-    if (await page.isDisplayed(ResetPasswordPage["PASSWORD_INPUT"], 3)) {
-      await page.enterPassword("NewPassword123!");
-      await page.enterConfirmPassword("DifferentPassword123!");
-      await page.click(ResetPasswordPage["SUBMIT_BUTTON"]);
-      await new Promise((r) => setTimeout(r, 2000));
-      const hasError = await page.hasError();
-      const stillOnPage = (await page.getCurrentUrl()).includes("/reset");
-      expect(hasError || stillOnPage).to.be.true;
+    const formVisible = await page.isDisplayed(ResetPasswordPage["PASSWORD_INPUT"], 3);
+    if (!formVisible) {
+      this.skip();
+      return;
     }
+    await page.enterPassword("NewPassword123!");
+    await page.enterConfirmPassword("DifferentPassword123!");
+    await page.click(ResetPasswordPage["SUBMIT_BUTTON"]);
+    await new Promise((r) => setTimeout(r, 2000));
+    const hasError = await page.hasError();
+    const stillOnPage = (await page.getCurrentUrl()).includes("/reset");
+    expect(hasError || stillOnPage).to.be.true;
   });
 });

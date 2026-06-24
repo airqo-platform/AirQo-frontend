@@ -2,11 +2,11 @@ import { WebDriver, By } from "selenium-webdriver";
 import { BasePage } from "./base.page";
 
 export class DataVisualizerPage extends BasePage {
-  private static readonly PAGE_HEADING = By.xpath("//h1[contains(text(), 'Upload & Visualize')]");
-  private static readonly WATCH_TUTORIAL = By.xpath("//button[contains(., 'Watch tutorial')]|//a[contains(., 'Watch tutorial')]");
-  private static readonly FILE_INPUT = By.css('input[type="file"]');
-  private static readonly TUTORIAL_DIALOG = By.xpath("//div[contains(@role, 'dialog')][contains(., 'Tutorial')]");
-  private static readonly CLOSE_TUTORIAL = By.xpath("//div[contains(@role, 'dialog')]//button[contains(@aria-label, 'Close')]");
+  protected static readonly PAGE_HEADING = By.xpath("//h1[contains(text(), 'Upload & Visualize')]");
+  protected static readonly WATCH_TUTORIAL = By.xpath("//button[contains(., 'Watch tutorial')]|//a[contains(., 'Watch tutorial')]");
+  protected static readonly FILE_INPUT = By.css('input[type="file"]');
+  protected static readonly TUTORIAL_DIALOG = By.xpath("//div[contains(@role, 'dialog')][contains(., 'Tutorial')]");
+  protected static readonly CLOSE_TUTORIAL = By.xpath("//div[contains(@role, 'dialog')]//button[contains(@aria-label, 'Close')]");
 
   constructor(driver: WebDriver) {
     super(driver);
@@ -27,8 +27,8 @@ export class DataVisualizerPage extends BasePage {
 
   async hasChart(): Promise<boolean> {
     return (
-      (await this.isDisplayed(DataVisualizerPage.PAGE_HEADING, 5)) ||
-      (await this.isDisplayed(DataVisualizerPage.WATCH_TUTORIAL, 5))
+      (await this.isDisplayed(By.css("svg, canvas"), 3)) ||
+      (await this.isDisplayed(By.css("[class*='chart']"), 3))
     );
   }
 
@@ -40,10 +40,10 @@ export class DataVisualizerPage extends BasePage {
 }
 
 export class DataExportPage extends BasePage {
-  private static readonly PAGE_HEADING = By.xpath("//h1[contains(text(), 'Custom Data Downloads')]|//h2[contains(text(), 'Custom Data Downloads')]");
-  private static readonly SIDEBAR = By.css("[class*='sidebar']");
-  private static readonly DOWNLOAD_BUTTON = By.xpath("//button[contains(., 'Download')]|//a[contains(., 'Download')]");
-  private static readonly TABLE = By.css("table");
+  protected static readonly PAGE_HEADING = By.xpath("//h1[contains(text(), 'Custom Data Downloads')]|//h2[contains(text(), 'Custom Data Downloads')]");
+  protected static readonly SIDEBAR = By.css("[class*='sidebar']");
+  protected static readonly DOWNLOAD_BUTTON = By.xpath("//button[contains(., 'Download')]|//a[contains(., 'Download')]");
+  protected static readonly TABLE = By.css("table");
 
   constructor(driver: WebDriver) {
     super(driver);
@@ -74,8 +74,8 @@ export class DataExportPage extends BasePage {
 }
 
 export class MapPage extends BasePage {
-  private static readonly MAP_CONTAINER = By.css(".mapboxgl-map, [class*='mapbox']");
-  private static readonly MARKERS = By.css(".mapboxgl-marker, [class*='marker']");
+  protected static readonly MAP_CONTAINER = By.css(".mapboxgl-map, [class*='mapbox']");
+  protected static readonly MARKERS = By.css(".mapboxgl-marker, [class*='marker']");
 
   constructor(driver: WebDriver) {
     super(driver);

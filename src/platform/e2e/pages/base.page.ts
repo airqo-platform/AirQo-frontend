@@ -106,8 +106,9 @@ export class BasePage {
     const image = await this.driver.takeScreenshot();
     const fs = require("fs");
     const path = require("path");
-    const dir = path.resolve(__dirname, "../screenshots");
+    const dir = path.resolve(__dirname, "./screenshots");
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(path.join(dir, `${name}.png`), image, "base64");
+    const safeName = name.replace(/[^a-zA-Z0-9-_]/g, "_");
+    fs.writeFileSync(path.join(dir, `${safeName}.png`), image, "base64");
   }
 }

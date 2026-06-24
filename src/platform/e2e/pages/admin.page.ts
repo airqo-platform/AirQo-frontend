@@ -2,10 +2,10 @@ import { WebDriver, By } from "selenium-webdriver";
 import { BasePage } from "./base.page";
 
 export class SystemAdminPage extends BasePage {
-  private static readonly PAGE_TITLE = By.css("h1, h2");
-  private static readonly DATA_TABLE = By.css("table");
-  private static readonly CREATE_BUTTON = By.xpath("//button[contains(text(), 'Create') or contains(text(), 'New')]");
-  private static readonly SEARCH_INPUT = By.css('input[type="search"], input[placeholder*="Search"]');
+  protected static readonly PAGE_TITLE = By.css("h1, h2");
+  protected static readonly DATA_TABLE = By.css("table");
+  protected static readonly CREATE_BUTTON = By.xpath("//button[contains(text(), 'Create') or contains(text(), 'New')]");
+  protected static readonly SEARCH_INPUT = By.css('input[type="search"], input[placeholder*="Search"]');
 
   constructor(driver: WebDriver) {
     super(driver);

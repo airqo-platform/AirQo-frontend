@@ -3,14 +3,14 @@ import { BasePage } from "./base.page";
 import { Config } from "../config";
 
 export class DashboardPage extends BasePage {
-  private static readonly LOADING = By.xpath("//p[contains(text(), 'Loading dashboard')]");
-  private static readonly ACCESS_DENIED = By.xpath("//h2[contains(text(), 'Organization not found')]");
-  private static readonly LINE_CHART = By.xpath("//h3[contains(text(), 'Air Pollution Trends')]");
-  private static readonly BAR_CHART = By.xpath("//h3[contains(text(), 'Air Pollution Levels Distribution')]");
-  private static readonly NO_FAVORITES = By.xpath("//p[contains(text(), 'No favorite locations yet')]|//h3[contains(text(), 'No favorite')]");
-  private static readonly MANAGE_FAVORITES = By.xpath("//button[contains(., 'Manage Favorites')]|//a[contains(., 'Manage Favorites')]");
-  private static readonly ADD_FAVORITE = By.xpath("//button[contains(., 'Add favorite')]|//a[contains(., 'Add favorite')]");
-  private static readonly SUGGESTED_LOCATIONS = By.xpath("//h2[contains(text(), 'Suggested')]|//h3[contains(text(), 'Suggested')]");
+  protected static readonly LOADING = By.xpath("//p[contains(text(), 'Loading dashboard')]");
+  protected static readonly ACCESS_DENIED = By.xpath("//h2[contains(text(), 'Organization not found')]");
+  protected static readonly LINE_CHART = By.xpath("//h3[contains(text(), 'Air Pollution Trends')]");
+  protected static readonly BAR_CHART = By.xpath("//h3[contains(text(), 'Air Pollution Levels Distribution')]");
+  protected static readonly NO_FAVORITES = By.xpath("//p[contains(text(), 'No favorite locations yet')]|//h3[contains(text(), 'No favorite')]");
+  protected static readonly MANAGE_FAVORITES = By.xpath("//button[contains(., 'Manage Favorites')]|//a[contains(., 'Manage Favorites')]");
+  protected static readonly ADD_FAVORITE = By.xpath("//button[contains(., 'Add favorite')]|//a[contains(., 'Add favorite')]");
+  protected static readonly SUGGESTED_LOCATIONS = By.xpath("//h2[contains(text(), 'Suggested')]|//h3[contains(text(), 'Suggested')]");
 
   constructor(driver: WebDriver) {
     super(driver);

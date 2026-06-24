@@ -2,15 +2,15 @@ import { WebDriver, By } from "selenium-webdriver";
 import { BasePage } from "./base.page";
 
 export class RegisterPage extends BasePage {
-  private static readonly FIRST_NAME = By.css('input[placeholder="Enter your first name"]');
-  private static readonly LAST_NAME = By.css('input[placeholder="Enter your last name"]');
-  private static readonly EMAIL = By.css('input[placeholder="Enter your email"]');
-  private static readonly PASSWORD = By.css('input[placeholder="Create password"]');
-  private static readonly SUBMIT_BUTTON = By.css('button[type="submit"]');
-  private static readonly LOGIN_LINK = By.linkText("Log in");
-  private static readonly PASSWORD_HINT = By.xpath("//p[contains(text(), 'Must be at least 8 characters')]");
-  private static readonly GOOGLE_AUTH = By.css('button[aria-label="Continue with Google"]');
-  private static readonly GITHUB_AUTH = By.css('button[aria-label="Continue with GitHub"]');
+  protected static readonly FIRST_NAME = By.css('input[placeholder="Enter your first name"]');
+  protected static readonly LAST_NAME = By.css('input[placeholder="Enter your last name"]');
+  protected static readonly EMAIL = By.css('input[placeholder="Enter your email"]');
+  protected static readonly PASSWORD = By.css('input[placeholder="Create password"]');
+  protected static readonly SUBMIT_BUTTON = By.css('button[type="submit"]');
+  protected static readonly LOGIN_LINK = By.linkText("Log in");
+  protected static readonly PASSWORD_HINT = By.xpath("//p[contains(text(), 'Must be at least 8 characters')]");
+  protected static readonly GOOGLE_AUTH = By.css('button[aria-label="Continue with Google"]');
+  protected static readonly GITHUB_AUTH = By.css('button[aria-label="Continue with GitHub"]');
 
   constructor(driver: WebDriver) {
     super(driver);

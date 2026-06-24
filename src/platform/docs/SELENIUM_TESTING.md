@@ -22,7 +22,7 @@ This is a Next.js 14 + TypeScript project. Using TypeScript for tests means:
 
 | Component | Choice | Version |
 |-----------|--------|---------|
-| Browser Automation | selenium-webdriver | 4.27.1 |
+| Browser Automation | selenium-webdriver | 4.45.0 |
 | Test Runner | Mocha | 11.1.0 |
 | Assertions | Chai | (via Mocha) |
 | HTML Reports | Mochawesome | 7.1.3 |
@@ -95,20 +95,20 @@ platform/
 
 ```bash
 cd src/platform/e2e
-npm install
+yarn install
 cp .env.example .env    # edit with your settings
-npm test                 # run all tests
-npm run test:smoke       # smoke tests only
-npm run test:report      # run with HTML report
+yarn test                 # run all tests
+yarn test:smoke           # smoke tests only
+yarn test:report          # run with HTML report
 ```
 
 ### From Project Root
 
 ```bash
 cd src/platform
-npm run test:e2e
-npm run test:e2e:smoke
-npm run test:e2e:report
+yarn test:e2e
+yarn test:e2e:smoke
+yarn test:e2e:report
 ```
 
 ## Configuration
@@ -131,7 +131,7 @@ npm run test:e2e:report
 Reports generate to `e2e/reports/` as HTML files via Mochawesome:
 
 ```bash
-npm run test:report     # generates reports/airqo-e2e-tests.html
+yarn test:report     # generates reports/airqo-e2e-tests.html
 ```
 
 Report includes:
@@ -146,14 +146,14 @@ Report includes:
 ### By Category
 
 ```bash
-npm run test:auth       # All auth tests (login, register, forgot/reset password, protected routes, validation)
-npm run test:user       # User tests (home, profile, favorites, request-org)
-npm run test:org        # Org tests (dashboard, members, settings, roles, member-requests)
-npm run test:admin      # Admin tests (all system admin pages)
-npm run test:data       # Data tests (visualizer, export, map)
-npm run test:smoke      # Critical path only (@smoke tag)
-npm run test:headed     # Run with browser visible (not headless)
-npm run test:report     # Run all with HTML report
+yarn test:auth       # All auth tests (login, register, forgot/reset password, protected routes, validation)
+yarn test:user       # User tests (home, profile, favorites, request-org)
+yarn test:org        # Org tests (dashboard, members, settings, roles, member-requests)
+yarn test:admin      # Admin tests (all system admin pages)
+yarn test:data       # Data tests (visualizer, export, map)
+yarn test:smoke      # Critical path only (@smoke tag)
+yarn test:headed     # Run with browser visible (not headless)
+yarn test:report     # Run all with HTML report
 ```
 
 ### Specific Tests
@@ -423,7 +423,7 @@ describe("My Feature @tag", function () {
 1. **One describe block per page or feature** with a `@tag` in the description
 2. **Fresh driver per describe block** via `before()` / `after()`
 3. **Screenshot on every failure** via `afterEach()` hook
-4. **Locators in page objects only** — tests never use raw `By.xxx`
+4. **Locators in page objects preferred** — tests use page object methods; raw `By` only for quick existence checks
 5. **Assertions in tests only** — page objects return data, don't assert
 6. **Async/await everywhere** — all Selenium calls are async
 7. **Timeouts configurable** — via `.env` and `this.timeout()`
@@ -447,7 +447,7 @@ jobs:
       - uses: browser-actions/setup-chrome@latest
       - name: Install e2e dependencies
         working-directory: src/platform/e2e
-        run: npm install
+        run: yarn install
       - name: Run smoke tests
         working-directory: src/platform/e2e
         env:
@@ -455,11 +455,11 @@ jobs:
           TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
           TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
           TEST_ORG_SLUG: ${{ secrets.TEST_ORG_SLUG }}
-        run: npm run test:smoke
+        run: yarn test:smoke
       - name: Generate report
         if: always()
         working-directory: src/platform/e2e
-        run: npm run test:report
+        run: yarn test:report
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -480,7 +480,7 @@ pipeline {
     stages {
         stage('E2E Tests') {
             steps {
-                sh 'cd src/platform/e2e && npm install && npm run test:report'
+                sh 'cd src/platform/e2e && yarn install && yarn test:report'
             }
         }
     }
@@ -502,7 +502,7 @@ pipeline {
 | Issue | Solution |
 |-------|----------|
 | `WebDriverError: Chrome not found` | Install Chrome or set `BROWSER=firefox` |
-| `MODULE_NOT_FOUND` | Run `npm install` in `e2e/` |
+| `MODULE_NOT_FOUND` | Run `yarn install` in `e2e/` |
 | `TimeoutError` | Increase `IMPLICIT_WAIT` in `.env` |
 | `ElementNotInteractableError` | Add wait, scroll to element |
 | Tests fail headless only | Set `HEADLESS=false` to debug |

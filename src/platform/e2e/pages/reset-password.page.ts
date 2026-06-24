@@ -2,15 +2,15 @@ import { WebDriver, By } from "selenium-webdriver";
 import { BasePage } from "./base.page";
 
 export class ResetPasswordPage extends BasePage {
-  private static readonly PASSWORD_INPUT = By.css('input[placeholder*="password"]');
-  private static readonly CONFIRM_PASSWORD_INPUT = By.css('input[placeholder*="Confirm"]');
-  private static readonly SUBMIT_BUTTON = By.css('button[type="submit"]');
-  private static readonly INVALID_LINK_STATE = By.xpath("//*[contains(text(), 'Invalid Reset Link') or contains(text(), 'invalid') or contains(text(), 'expired')]");
-  private static readonly SUCCESS_STATE = By.xpath("//h2[contains(text(), 'Password Reset') or contains(text(), 'Success')]");
-  private static readonly COUNTDOWN_TEXT = By.xpath("//p[contains(text(), 'seconds')]");
-  private static readonly LOGIN_LINK = By.linkText("click here to login");
-  private static readonly ERROR_MESSAGE = By.css(".text-destructive");
-  private static readonly PASSWORD_TOGGLE = By.css('button[aria-label="Show password"]');
+  protected static readonly PASSWORD_INPUT = By.css('input[placeholder*="password"]');
+  protected static readonly CONFIRM_PASSWORD_INPUT = By.css('input[placeholder*="Confirm"]');
+  protected static readonly SUBMIT_BUTTON = By.css('button[type="submit"]');
+  protected static readonly INVALID_LINK_STATE = By.xpath("//*[contains(text(), 'Invalid Reset Link') or contains(text(), 'invalid') or contains(text(), 'expired')]");
+  protected static readonly SUCCESS_STATE = By.xpath("//h2[contains(text(), 'Password Reset') or contains(text(), 'Success')]");
+  protected static readonly COUNTDOWN_TEXT = By.xpath("//p[contains(text(), 'seconds')]");
+  protected static readonly LOGIN_LINK = By.linkText("click here to login");
+  protected static readonly ERROR_MESSAGE = By.css(".text-destructive");
+  protected static readonly PASSWORD_TOGGLE = By.css('button[aria-label="Show password"]');
 
   constructor(driver: WebDriver) {
     super(driver);

@@ -56,7 +56,6 @@ describe("Organization Dashboard @organization", function () {
     await dashboardPage.navigateToOrgDashboard("nonexistent-org-slug");
     await new Promise((r) => setTimeout(r, 3000));
     const denied = await dashboardPage.isAccessDenied();
-    const url = await dashboardPage.getCurrentUrl();
-    expect(denied || url.includes("/nonexistent-org-slug")).to.be.true;
+    expect(denied).to.be.true;
   });
 });

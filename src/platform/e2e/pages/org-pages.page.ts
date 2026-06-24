@@ -2,13 +2,13 @@ import { WebDriver, By } from "selenium-webdriver";
 import { BasePage } from "./base.page";
 
 export class OrgSettingsPage extends BasePage {
-  private static readonly PAGE_TITLE = By.css("h1, h2");
-  private static readonly GROUP_NAME_INPUT = By.css('input[placeholder*="name"], input[name*="name"]');
-  private static readonly DESCRIPTION_INPUT = By.css('textarea, input[placeholder*="description"]');
-  private static readonly SAVE_BUTTON = By.xpath("//button[contains(text(), 'Save')]");
-  private static readonly LEAVE_ORG_BUTTON = By.xpath("//button[contains(text(), 'Leave')]");
-  private static readonly DELETE_ORG_BUTTON = By.xpath("//button[contains(text(), 'Delete')]");
-  private static readonly THEME_SECTION = By.xpath("//h3[contains(text(), 'Theme') or contains(text(), 'theme')]");
+  protected static readonly PAGE_TITLE = By.css("h1, h2");
+  protected static readonly GROUP_NAME_INPUT = By.css('input[placeholder*="name"], input[name*="name"]');
+  protected static readonly DESCRIPTION_INPUT = By.css('textarea, input[placeholder*="description"]');
+  protected static readonly SAVE_BUTTON = By.xpath("//button[contains(text(), 'Save')]");
+  protected static readonly LEAVE_ORG_BUTTON = By.xpath("//button[contains(text(), 'Leave')]");
+  protected static readonly DELETE_ORG_BUTTON = By.xpath("//button[contains(text(), 'Delete')]");
+  protected static readonly THEME_SECTION = By.xpath("//h3[contains(text(), 'Theme') or contains(text(), 'theme')]");
 
   constructor(driver: WebDriver) {
     super(driver);
@@ -32,16 +32,16 @@ export class OrgSettingsPage extends BasePage {
 }
 
 export class OrgRolesPage extends BasePage {
-  private static readonly PAGE_TITLE = By.css("h1, h2");
-  private static readonly CREATE_ROLE_BUTTON = By.xpath("//button[contains(text(), 'Create') or contains(text(), 'New Role')]");
-  private static readonly ROLES_TABLE = By.css("table");
-  private static readonly ROLE_NAME = By.css("table tbody tr td:first-child");
-  private static readonly SEARCH_INPUT = By.css('input[placeholder*="Search"]');
-  private static readonly ROLE_DIALOG = By.xpath("//div[contains(@role, 'dialog')]");
-  private static readonly ROLE_NAME_INPUT = By.css('div[role="dialog"] input');
-  private static readonly DIALOG_SUBMIT = By.xpath("//div[contains(@role, 'dialog')]//button[contains(text(), 'Create') or contains(text(), 'Save')]");
-  private static readonly PERMISSION_COUNT = By.css("table tbody tr td:nth-child(2)");
-  private static readonly USER_COUNT = By.css("table tbody tr td:nth-child(3)");
+  protected static readonly PAGE_TITLE = By.css("h1, h2");
+  protected static readonly CREATE_ROLE_BUTTON = By.xpath("//button[contains(text(), 'Create') or contains(text(), 'New Role')]");
+  protected static readonly ROLES_TABLE = By.css("table");
+  protected static readonly ROLE_NAME = By.css("table tbody tr td:first-child");
+  protected static readonly SEARCH_INPUT = By.css('input[placeholder*="Search"]');
+  protected static readonly ROLE_DIALOG = By.xpath("//div[contains(@role, 'dialog')]");
+  protected static readonly ROLE_NAME_INPUT = By.css('div[role="dialog"] input');
+  protected static readonly DIALOG_SUBMIT = By.xpath("//div[contains(@role, 'dialog')]//button[contains(text(), 'Create') or contains(text(), 'Save')]");
+  protected static readonly PERMISSION_COUNT = By.css("table tbody tr td:nth-child(2)");
+  protected static readonly USER_COUNT = By.css("table tbody tr td:nth-child(3)");
 
   constructor(driver: WebDriver) {
     super(driver);
@@ -85,16 +85,16 @@ export class OrgRolesPage extends BasePage {
 }
 
 export class MemberRequestsPage extends BasePage {
-  private static readonly PAGE_TITLE = By.css("h1, h2");
-  private static readonly REQUESTS_TABLE = By.css("table");
-  private static readonly APPROVE_BUTTON = By.xpath("//button[contains(text(), 'Approve')]");
-  private static readonly REJECT_BUTTON = By.xpath("//button[contains(text(), 'Reject')]");
-  private static readonly TABS = By.css("nav button, [role='tablist'] button");
-  private static readonly STATUS_BADGE = By.css("[class*='badge'], [class*='status']");
-  private static readonly CONFIRM_DIALOG = By.xpath("//div[contains(@role, 'dialog')]");
-  private static readonly CONFIRM_APPROVE = By.xpath("//div[contains(@role, 'dialog')]//button[contains(text(), 'Approve')]");
-  private static readonly CONFIRM_REJECT = By.xpath("//div[contains(@role, 'dialog')]//button[contains(text(), 'Reject')]");
-  private static readonly REJECT_REASON = By.css('div[role="dialog"] textarea, div[role="dialog"] input');
+  protected static readonly PAGE_TITLE = By.css("h1, h2");
+  protected static readonly REQUESTS_TABLE = By.css("table");
+  protected static readonly APPROVE_BUTTON = By.xpath("//button[contains(text(), 'Approve')]");
+  protected static readonly REJECT_BUTTON = By.xpath("//button[contains(text(), 'Reject')]");
+  protected static readonly TABS = By.css("nav button, [role='tablist'] button");
+  protected static readonly STATUS_BADGE = By.css("[class*='badge'], [class*='status']");
+  protected static readonly CONFIRM_DIALOG = By.xpath("//div[contains(@role, 'dialog')]");
+  protected static readonly CONFIRM_APPROVE = By.xpath("//div[contains(@role, 'dialog')]//button[contains(text(), 'Approve')]");
+  protected static readonly CONFIRM_REJECT = By.xpath("//div[contains(@role, 'dialog')]//button[contains(text(), 'Reject')]");
+  protected static readonly REJECT_REASON = By.css('div[role="dialog"] textarea, div[role="dialog"] input');
 
   constructor(driver: WebDriver) {
     super(driver);
@@ -105,8 +105,10 @@ export class MemberRequestsPage extends BasePage {
   }
 
   async isPageLoaded(): Promise<boolean> {
-    return this.isDisplayed(MemberRequestsPage.PAGE_TITLE, 5) ||
-           this.isDisplayed(MemberRequestsPage.REQUESTS_TABLE, 5);
+    return (
+      (await this.isDisplayed(MemberRequestsPage.PAGE_TITLE, 5)) ||
+      (await this.isDisplayed(MemberRequestsPage.REQUESTS_TABLE, 5))
+    );
   }
 
   async getTabCount(): Promise<number> {

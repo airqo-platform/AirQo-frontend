@@ -2,13 +2,13 @@ import { WebDriver, By } from "selenium-webdriver";
 import { BasePage } from "./base.page";
 
 export class ForgotPasswordPage extends BasePage {
-  private static readonly EMAIL_INPUT = By.css('input[type="email"]');
-  private static readonly SUBMIT_BUTTON = By.css('button[type="submit"]');
-  private static readonly SUCCESS_BANNER = By.xpath("//div[contains(@class, 'green') or contains(@class, 'success')]");
-  private static readonly ERROR_MESSAGE = By.css(".text-destructive");
-  private static readonly TRY_AGAIN_BUTTON = By.xpath("//button[contains(text(), 'Try Again')]");
-  private static readonly LOGIN_LINK = By.linkText("Login");
-  private static readonly BACK_LINK = By.linkText("Back to Login");
+  protected static readonly EMAIL_INPUT = By.css('input[type="email"]');
+  protected static readonly SUBMIT_BUTTON = By.css('button[type="submit"]');
+  protected static readonly SUCCESS_BANNER = By.xpath("//div[contains(@class, 'green') or contains(@class, 'success')]");
+  protected static readonly ERROR_MESSAGE = By.css(".text-destructive");
+  protected static readonly TRY_AGAIN_BUTTON = By.xpath("//button[contains(text(), 'Try Again')]");
+  protected static readonly LOGIN_LINK = By.linkText("Login");
+  protected static readonly BACK_LINK = By.linkText("Back to Login");
 
   constructor(driver: WebDriver) {
     super(driver);
