@@ -107,7 +107,14 @@ export const PERMISSIONS = {
   },
 } as const;
 
-// Role definitions with inheritance and capabilities
+/**
+ * @deprecated Do not use ROLES for access control in the UI.
+ * The frontend should only check capabilities (PERMISSIONS.*), not role names.
+ * Role-to-permission mappings are owned by the backend and can change without
+ * a frontend deploy. Use useRBAC() or PermissionGuard instead.
+ *
+ * This object is kept for reference only and will be removed in a future release.
+ */
 export const ROLES = {
   AIRQO_SUPER_ADMIN: {
     name: 'AIRQO_SUPER_ADMIN',
