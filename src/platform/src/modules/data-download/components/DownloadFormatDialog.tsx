@@ -43,11 +43,11 @@ const formatCards: Array<{
   },
   {
     format: 'pdf',
-    title: 'PDF report',
+    title: 'PDF summary',
     actionLabel: 'Download PDF',
     description:
-      'Download a formatted report with a summary, table, and page numbers.',
-    badge: 'Report',
+      'Download a formatted summary with a summary, table, and page numbers.',
+    badge: 'Summary',
   },
 ];
 
