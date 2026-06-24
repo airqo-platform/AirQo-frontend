@@ -315,7 +315,7 @@ const FeedbackListContent: React.FC = () => {
     <div className="space-y-6">
       <PageHeading
         title="Feedback"
-        subtitle="Review user-reported bugs, feature requests, praise, and support messages."
+        subtitle="Review user-flagged bugs, feature requests, praise, and support messages."
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

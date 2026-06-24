@@ -44,7 +44,7 @@ const getHealthTip = (level: string): string => {
     case 'hazardous':
       return 'Everyone should avoid all physical activities outdoors. Stay indoors and keep activity levels low.';
     default:
-      return 'Check local air quality reports for the latest information.';
+      return 'Check local air quality updates for the latest information.';
   }
 };
 

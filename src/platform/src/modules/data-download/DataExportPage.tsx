@@ -714,7 +714,7 @@ const DataExportPage = () => {
       const savedLabel = format.toUpperCase();
       const savedMessage =
         format === 'pdf'
-          ? 'Your professional PDF report has been saved.'
+          ? 'Your professional PDF summary has been saved.'
           : format === 'xlsx'
             ? 'Your Excel workbook has been saved with one sheet per location.'
             : format === 'csv'
