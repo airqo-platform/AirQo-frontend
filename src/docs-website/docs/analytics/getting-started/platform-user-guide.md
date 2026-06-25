@@ -1,5 +1,6 @@
 ---
-sidebar_position: 4
+sidebar_position: 1
+sidebar_label: User Guide
 ---
 
 # Platform User Guide
