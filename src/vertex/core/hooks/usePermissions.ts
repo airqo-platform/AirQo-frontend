@@ -69,8 +69,8 @@ export const usePermissionCheck = (permission: Permission, context?: Partial<Acc
     }
 
     return permissionService.checkPermission(user, permission, {
-      activeOrganization: activeGroup ?? undefined,
       ...context,
+      activeOrganization: context?.activeOrganization ?? activeGroup ?? undefined,
     });
   }, [user, permission, activeGroup, context]);
 };
@@ -194,8 +194,8 @@ export const usePermissions = (permissions: Permission[], context?: Partial<Acce
 
     return permissions.reduce((acc, permission) => {
       acc[permission] = permissionService.hasPermission(user, permission, {
-        activeOrganization: activeGroup ?? undefined,
         ...context,
+        activeOrganization: context?.activeOrganization ?? activeGroup ?? undefined,
       });
       return acc;
     }, {} as Record<Permission, boolean>);
@@ -216,8 +216,8 @@ export const useHasAnyPermission = (permissions: Permission[], context?: Partial
 
     return permissions.some((permission) =>
       permissionService.hasPermission(user, permission, {
-        activeOrganization: activeGroup ?? undefined,
         ...context,
+        activeOrganization: context?.activeOrganization ?? activeGroup ?? undefined,
       })
     );
   }, [user, permissions, activeGroup, context]);
@@ -235,8 +235,8 @@ export const useHasAllPermissions = (permissions: Permission[], context?: Partia
 
     return permissions.every((permission) =>
       permissionService.hasPermission(user, permission, {
-        activeOrganization: activeGroup ?? undefined,
         ...context,
+        activeOrganization: context?.activeOrganization ?? activeGroup ?? undefined,
       })
     );
   }, [user, permissions, activeGroup, context]);
