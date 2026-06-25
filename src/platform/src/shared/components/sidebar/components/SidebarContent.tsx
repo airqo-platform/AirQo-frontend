@@ -84,10 +84,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
           ...group,
           items: group.items.filter(item => {
             if (item.id === 'system-feedback') {
-              return (
-                hasAnyPermissionInActiveGroup(['SYSTEM_ADMIN', 'SUPER_ADMIN']) ||
-                isSuperAdmin
-              );
+              return isSuperAdmin;
             }
 
             if (item.id === 'system-surveys') {
