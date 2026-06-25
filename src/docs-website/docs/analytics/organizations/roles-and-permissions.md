@@ -5,15 +5,15 @@ sidebar_label: Roles & Permissions
 
 # Organization Roles & Permissions
 
-A guide to managing roles, permissions, and members within your organization on the AirQo platform.
+A guide to managing roles, permissions, and members within your organization on the AirQo Analytics platform.
 
 ---
 
 ## What Is an Organization?
 
-An organization is a workspace on the AirQo platform where team members collaborate. Each organization has its own set of members, roles, permissions, and settings. You can belong to multiple organizations and switch between them from the header dropdown.
+An organization is a workspace on the AirQo Analytics platform where team members collaborate. Each organization has its own set of members, roles, permissions, and settings. You can belong to multiple organizations and switch between them from the header dropdown.
 
-When you first join the platform, you are assigned to a default organization. Organization administrators can invite additional members, create custom roles, and configure settings.
+When you first join the AirQo Analytics platform, you are assigned to a default organization. Organization administrators can invite additional members, create custom roles, and configure settings.
 
 ---
 
@@ -145,7 +145,7 @@ This action requires the `MEMBER_INVITE` permission.
 
 ### Join Request (User-Initiated)
 
-1. A user requests to join your organization (via the platform or a shared link).
+1. A user requests to join your organization (via the AirQo Analytics platform or a shared link).
 2. The request appears in the **Member Requests** tab of your Members page.
 3. You can **Approve** or **Reject** each request.
 

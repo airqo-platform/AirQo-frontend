@@ -31,7 +31,7 @@ You can save up to **four** favorite locations at a time. These locations will b
 
 ## Visualizing Favorite Data
 
-Once your favorites are set, the platform displays graphical analysis and trends for these locations directly on your dashboard:
+Once your favorites are set, the AirQo Analytics platform displays graphical analysis and trends for these locations directly on your dashboard:
 
 - **Quick View** — See real-time or historical trends for PM₂.₅ or PM₁₀ across your selected areas.
 - **Deep Dive** — Click the **More** link on any visualization chart to access the **Explore** page for deeper analysis and data export.

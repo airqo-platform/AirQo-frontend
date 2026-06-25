@@ -15,7 +15,7 @@ For developers looking to contribute or run the platform locally, you can find o
 
 ## Overview
 
-AirQo Analytics provides a powerful, secure platform to help organizations and individuals monitor, analyze, and act on air quality data across Africa. Through a conversion-optimized user interface, the platform makes it easy to visualize complex environmental data in minutes.
+AirQo Analytics provides a powerful, secure platform to help organizations and individuals monitor, analyze, and act on air quality data across Africa. Through a conversion-optimized user interface, the AirQo Analytics platform makes it easy to visualize complex environmental data in minutes.
 
 With AirQo Analytics, you can explore real-time and historical air quality trends through interactive maps and custom dashboards. The platform allows you to:
 
