@@ -208,6 +208,13 @@ class PermissionService {
     const hasSuperAdmin = (role: any) =>
       role?.role_permissions?.some((p: any) => p.permission === PERMISSIONS.SYSTEM.SUPER_ADMIN);
 
+    const hasAirQoSuperAdmin = (role: any) =>
+      role?.role_name === "AIRQO_SUPER_ADMIN" && hasSuperAdmin(role);
+
+    if (user.groups.some((group) => hasAirQoSuperAdmin(group.role))) {
+      return true;
+    }
+
     if (organizationId) {
       if (user.groups && user.groups.length > 0) {
         const group = user.groups.find((g) => g._id === organizationId);
