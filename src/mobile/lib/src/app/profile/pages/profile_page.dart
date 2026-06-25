@@ -81,7 +81,7 @@ class _ProfilePageState extends State<ProfilePage> with UiLoggy {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  ErrorPage(),
+const ErrorPage(),
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () {
