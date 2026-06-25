@@ -165,7 +165,7 @@ Manage your saved monitoring locations:
 
 ### Visualization & Data Export
 
-Download air quality datasets for offline analysis. See the full guide in [Exporting Air Quality Data](./data-export.md).
+Download air quality datasets for offline analysis. See the full guide in [Exporting Air Quality Data](../data-export/data-export.md).
 
 Key capabilities:
 - Select individual sites, devices, countries, or cities
@@ -175,7 +175,7 @@ Key capabilities:
 
 ### Dataset Visualizer
 
-Upload your own air quality data files and build interactive charts. See the full guide in [Using the Dataset Visualizer](./dataset-visualizer.md).
+Upload your own air quality data files and build interactive charts. See the full guide in [Using the Dataset Visualizer](../data-exploration/dataset-visualizer.md).
 
 Key capabilities:
 - Upload CSV and Excel files (up to 100 MB)
@@ -323,6 +323,6 @@ Configure your organization's workspace:
 ## Further Reading
 
 - [About AirQo Analytics](../intro.md) — platform overview and capabilities
-- [Exporting Air Quality Data](./data-export.md) — detailed data export guide
-- [Using the Dataset Visualizer](./dataset-visualizer.md) — upload and visualize your own data
-- [Managing Favorite Locations](./manage-favorites.md) — save and organize monitoring sites
+- [Exporting Air Quality Data](../data-export/data-export.md) — detailed data export guide
+- [Using the Dataset Visualizer](../data-exploration/dataset-visualizer.md) — upload and visualize your own data
+- [Managing Favorite Locations](../data-exploration/manage-favorites.md) — save and organize monitoring sites
