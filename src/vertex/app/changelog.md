@@ -5,9 +5,18 @@
 ## Version 2.0.8
 **Released:** June 24, 2026
 
-### Permission Evaluation Bug Fix
+### Permission Evaluation Bug Fixes
 
-Fixed a critical issue in the permission evaluation service that prevented administrative users from accessing their valid permissions when operating in the Personal Context.
+- **Strict Context Scoping**: Updated `permissionService.ts` to strictly scope permissions and Super Admin overrides to the active organization/group context. Previously, a user with `SUPER_ADMIN` in one group would be granted global access across all contexts. Now, permissions and roles are only evaluated for the currently active context, preventing unauthorized access (e.g., to the Administrative Panel) when switching between groups.
+- **Legacy Permission Mapping**: Fixed a critical issue in the permission evaluation service that prevented administrative users from accessing their valid permissions when operating in the Personal Context.
+
+#### Root Cause
+- The `getEffectivePermissions` and `isSuperAdmin` functions were aggregating and evaluating roles globally across all assigned groups and networks, rather than restricting the evaluation to the currently active context.
+- The `addPerm` function within `getEffectivePermissions` was dropping newly defined granular permissions if they did not match the legacy mapping constants (`constants.ts`).
+
+#### Solution
+- Modified `isSuperAdmin` and `getEffectivePermissions` to accept and enforce an `organizationId`, strictly scoping all evaluations to that context.
+- Updated the `addPerm` logic to cross-reference all incoming permission strings against the complete set of new `PERMISSIONS` values before falling back to the legacy map.
 
 <details>
 <summary><strong>Changes (1)</strong></summary>

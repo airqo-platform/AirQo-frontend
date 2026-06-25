@@ -74,8 +74,8 @@ class PermissionService {
       };
     }
 
-    // 1. Check if user is AIRQO_SUPER_ADMIN (system-wide override)
-    if (this.isSuperAdmin(user)) {
+    // 1. Check if user is AIRQO_SUPER_ADMIN (system-wide override for the active context)
+    if (this.isSuperAdmin(user, context?.activeOrganization?._id)) {
       return {
         hasPermission: true,
         reason: "User has AIRQO_SUPER_ADMIN role with system-wide access",
@@ -116,7 +116,7 @@ class PermissionService {
 
     const permissions = new Set<Permission>();
 
-    // helper to add new-style permissions (handles legacy strings)
+    // Helper to add new-style permissions (handles legacy strings)
     const addPerm = (permStr: string | undefined) => {
       if (!permStr) return;
       
@@ -135,26 +135,20 @@ class PermissionService {
       mapped.forEach((p) => permissions.add(p));
     };
 
-    // From user's networks
-    if (user.networks) {
-      user.networks.forEach((network) => {
-        network.role?.role_permissions?.forEach((rp) => addPerm(rp.permission));
-      });
-    }
-
-    // From user's groups
-    if (user.groups) {
-      user.groups.forEach((group) => {
-        group.role?.role_permissions?.forEach((rp) =>
-          addPerm(rp.permission)
-        )
-      });
-    }
-
     if (organizationId) {
-      return Array.from(permissions).filter((p) =>
-        this.hasPermissionInOrganization(user, p, organizationId)
-      );
+      if (user.groups && user.groups.length > 0) {
+        const group = user.groups.find((g) => g._id === organizationId);
+        group?.role?.role_permissions?.forEach((rp) => addPerm(rp.permission));
+      }
+    } else {
+      // From user's groups
+      if (user.groups && user.groups.length > 0) {
+        user.groups.forEach((group) => {
+          group.role?.role_permissions?.forEach((rp) =>
+            addPerm(rp.permission)
+          )
+        });
+      }
     }
 
     return Array.from(permissions);
@@ -192,15 +186,7 @@ class PermissionService {
    * Get user's role in specific organization
    */
   getUserRole(user: UserDetails, organizationId?: string): string | undefined {
-    if (!user.networks && !user.groups) return undefined;
-
-    // Check networks first
-    if (user.networks) {
-      const networkRole = user.networks.find((network) => network._id === organizationId);
-      if (networkRole?.role?.role_name) {
-        return networkRole.role.role_name;
-      }
-    }
+    if (!user.groups) return undefined;
 
     // Check groups
     if (user.groups) {
@@ -216,21 +202,23 @@ class PermissionService {
   /**
    * Check if user is super admin
    */
-  isSuperAdmin(user: UserDetails): boolean {
-    if (!user.networks && !user.groups) return false;
+  isSuperAdmin(user: UserDetails, organizationId?: string): boolean {
+    if (!user.groups) return false;
 
-    // Check if user has SUPER_ADMIN permission in any network
-    if (user.networks) {
-      return user.networks.some((network) =>
-        network.role?.role_permissions?.some((p) => p.permission === PERMISSIONS.SYSTEM.SUPER_ADMIN)
-      );
+    const hasSuperAdmin = (role: any) =>
+      role?.role_permissions?.some((p: any) => p.permission === PERMISSIONS.SYSTEM.SUPER_ADMIN);
+
+    if (organizationId) {
+      if (user.groups && user.groups.length > 0) {
+        const group = user.groups.find((g) => g._id === organizationId);
+        if (group && hasSuperAdmin(group.role)) return true;
+      }
+      return false;
     }
 
     // Check if user has SUPER_ADMIN permission in any group
-    if (user.groups) {
-      return user.groups.some((group) =>
-        group.role?.role_permissions?.some((p) => p.permission === PERMISSIONS.SYSTEM.SUPER_ADMIN)
-      );
+    if (user.groups && user.groups.length > 0) {
+      if (user.groups.some((group) => hasSuperAdmin(group.role))) return true;
     }
 
     return false;
@@ -294,16 +282,6 @@ class PermissionService {
       mapped.forEach((p) => permissions.add(p));
     };
 
-    // Check networks
-    if (user.networks) {
-      const network = user.networks.find((n) => n._id === organizationId);
-      if (network?.role?.role_permissions) {
-        network.role.role_permissions.forEach((permission) => {
-          addPerm(permission.permission);
-        });
-      }
-    }
-
     // Check groups
     if (user.groups) {
       const group = user.groups.find((g) => g._id === organizationId);
@@ -330,19 +308,6 @@ class PermissionService {
    */
   getUserRoles(user: UserDetails): Array<{ role: string; organizationId: string; organizationName: string }> {
     const roles: Array<{ role: string; organizationId: string; organizationName: string }> = [];
-
-    // Add network roles
-    if (user.networks) {
-      user.networks.forEach((network) => {
-        if (network.role?.role_name) {
-          roles.push({
-            role: network.role.role_name,
-            organizationId: network._id,
-            organizationName: network.net_name,
-          });
-        }
-      });
-    }
 
     // Add group roles
     if (user.groups) {
