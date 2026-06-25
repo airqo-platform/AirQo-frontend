@@ -23,6 +23,7 @@ import { useUser } from '@/shared/hooks/useUser';
 import {
   useGroupTheme,
   useUpdateOrganizationGroupTheme,
+  useUpdateUserTheme,
 } from '@/shared/hooks/usePreferences';
 import { Tooltip } from 'flowbite-react';
 import SettingsLayout from '@/modules/user-profile/components/SettingsLayout';
@@ -45,12 +46,13 @@ const ThemeSettings: React.FC = () => {
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [customColor, setCustomColor] = useState('#1649e5');
   const [showPreview, setShowPreview] = useState(false);
-  const { activeGroup } = useUser();
+  const { activeGroup, user } = useUser();
   const { mutate } = useSWRConfig();
   const { data: groupThemeData, isLoading: isLoadingGroupTheme } =
     useGroupTheme(activeGroup?.id || '');
   const { trigger: updateTheme, isMutating: isUpdatingTheme } =
     useUpdateOrganizationGroupTheme();
+  const { trigger: updateUserTheme } = useUpdateUserTheme();
 
   // Draft state for unsaved changes
   const [draftTheme, setDraftTheme] = useState<{
@@ -111,6 +113,27 @@ const ThemeSettings: React.FC = () => {
         groupId: activeGroup.id,
         data: draftTheme,
       });
+
+      // Sync the current user's personal theme to match the new org theme
+      // so the admin sees changes immediately without needing a page reload.
+      if (user?.id) {
+        try {
+          await updateUserTheme({
+            userId: user.id,
+            groupId: activeGroup.id,
+            theme: {
+              primaryColor: draftTheme.primaryColor,
+              mode:
+                draftTheme.mode === 'system' ? 'light' : draftTheme.mode,
+              interfaceStyle: draftTheme.interfaceStyle,
+              contentLayout: draftTheme.contentLayout,
+            },
+          });
+        } catch {
+          // Non-critical: org theme was saved successfully, user theme
+          // sync failure just means the admin may need to refresh.
+        }
+      }
 
       // Apply the theme immediately to the current session
       applyThemeImmediately({
