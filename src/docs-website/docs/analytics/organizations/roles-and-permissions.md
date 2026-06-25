@@ -3,28 +3,9 @@ sidebar_position: 1
 sidebar_label: Roles & Permissions
 ---
 
-# Organization Roles & Permissions Guide
+# Organization Roles & Permissions
 
-A comprehensive guide to understanding how roles, permissions, and member management work in your AirQo organization.
-
----
-
-## Table of Contents
-
-1. [What Is an Organization?](#what-is-an-organization)
-2. [How Roles & Permissions Work](#how-roles--permissions-work)
-3. [Default Roles](#default-roles)
-4. [Available Permissions](#available-permissions)
-5. [Managing Organization Members](#managing-organization-members)
-6. [Inviting New Members](#inviting-new-members)
-7. [Handling Join Requests](#handling-join-requests)
-8. [Creating & Managing Custom Roles](#creating--managing-custom-roles)
-9. [Assigning Roles to Members](#assigning-roles-to-members)
-10. [Setting a Group Manager](#setting-a-group-manager)
-11. [Organization Settings](#organization-settings)
-12. [Leaving an Organization](#leaving-an-organization)
-13. [Common Workflows](#common-workflows)
-14. [Frequently Asked Questions](#frequently-asked-questions)
+A guide to managing roles, permissions, and members within your organization on the AirQo platform.
 
 ---
 
@@ -38,7 +19,7 @@ When you first join the platform, you are assigned to a default organization. Or
 
 ## How Roles & Permissions Work
 
-AirQo uses a **permission-based Role-Based Access Control (RBAC)** system. Here is how the pieces fit together:
+AirQo uses a **permission-based Role-Based Access Control (RBAC)** system:
 
 ```
 Organization
@@ -49,7 +30,7 @@ Organization
 
 - **Roles** are named collections of permissions. Each organization can define its own roles.
 - **Permissions** are individual access rights (like `MEMBER_VIEW` or `DATA_EXPORT`) that determine what a user can see and do.
-- **Members** are assigned one or more roles within an organization. The permissions from all assigned roles combine to determine what the member can access.
+- **Members** are assigned one or more roles. The permissions from all assigned roles combine to determine what the member can access.
 
 :::note
 Access is determined by the *permissions* your roles grant, not by the role name itself. An organization's "Manager" role may have different permissions than another organization's "Manager" role.
@@ -59,10 +40,10 @@ Access is determined by the *permissions* your roles grant, not by the role name
 
 ## Default Roles
 
-Every organization comes with a set of default roles. The exact roles depend on your organization's configuration, but common defaults include:
+Every organization comes with a set of default roles:
 
-| Role | Typical Description |
-|------|-------------------|
+| Role | Description |
+|------|-------------|
 | **Organization Owner** | Full access to all organization features, settings, and member management. Usually assigned to the person who created the organization. |
 | **Manager** | Can manage members, roles, and most organization settings. Cannot delete the organization. |
 | **Member** | Can access shared resources, view data, and perform day-to-day tasks. Cannot manage roles or invite new members unless explicitly granted. |
@@ -76,39 +57,37 @@ Organization administrators can create additional custom roles with any combinat
 
 ## Available Permissions
 
-Permissions are the building blocks of access control. Below is a comprehensive list of permissions available in the platform:
+### Member Management
 
-### Member Management Permissions
-
-| Permission | What It Grants |
-|------------|---------------|
+| Permission | Description |
+|------------|-------------|
 | `MEMBER_VIEW` | View the list of organization members and see individual member details. |
 | `MEMBER_INVITE` | Send email invitations to new members and manage pending join requests. |
 | `MEMBER_REMOVE` | Remove members from the organization. |
 
-### Role Management Permissions
+### Role Management
 
-| Permission | What It Grants |
-|------------|---------------|
+| Permission | Description |
+|------------|-------------|
 | `ROLE_VIEW` | View the list of roles and see role details. |
 | `ROLE_CREATE` | Create new custom roles for the organization. |
 | `ROLE_EDIT` | Edit existing roles, change their permissions, and toggle their status (active/inactive). |
 
-### Organization Management Permissions
+### Organization Management
 
-| Permission | What It Grants |
-|------------|---------------|
+| Permission | Description |
+|------------|-------------|
 | `GROUP_MANAGEMENT` | Access organization settings, update organization details, change the Group Manager, and configure organization theme. |
 
-### Data Permissions
+### Data
 
-| Permission | What It Grants |
-|------------|---------------|
+| Permission | Description |
+|------------|-------------|
 | `DATA_EXPORT` | Export and download organization data from analytics and data visualizer pages. |
 
 ---
 
-## Managing Organization Members
+## Managing Members
 
 ### Viewing Members
 
@@ -123,7 +102,7 @@ This action requires the `MEMBER_VIEW` permission.
 ### Viewing Member Details
 
 1. Click on any member's name in the members list.
-2. The detail page shows the member's profile information and all roles currently assigned to them within the organization.
+2. The detail page shows the member's profile information and all roles currently assigned to them.
 
 :::note Requires MEMBER_VIEW
 This action requires the `MEMBER_VIEW` permission.
@@ -148,9 +127,7 @@ You cannot remove the organization's Group Manager. You must reassign the manage
 
 ## Inviting New Members
 
-There are two ways new members can join an organization:
-
-### Method 1: Email Invitation (Admin-Initiated)
+### Email Invitation (Admin-Initiated)
 
 1. Navigate to the **Members** page.
 2. Click the **Send Invites** button.
@@ -166,7 +143,7 @@ The invitees will receive an email with a link to join your organization. When t
 This action requires the `MEMBER_INVITE` permission.
 :::
 
-### Method 2: Join Request (User-Initiated)
+### Join Request (User-Initiated)
 
 1. A user requests to join your organization (via the platform or a shared link).
 2. The request appears in the **Member Requests** tab of your Members page.
@@ -239,14 +216,14 @@ This action requires the `ROLE_EDIT` permission.
 
 ## Assigning Roles to Members
 
-### Assigning a Role to a Single Member
+### Single Assignment
 
 1. Go to the **Members** page and click on the member's name.
 2. On the member detail page, find the **Roles** section.
 3. Use the dropdown to select a role to assign.
 4. Click **Assign**.
 
-### Bulk Role Assignment
+### Bulk Assignment
 
 1. Go to the **Members** page.
 2. Select multiple members using the checkboxes in the table.
@@ -254,7 +231,7 @@ This action requires the `ROLE_EDIT` permission.
 4. Choose the role from the dropdown.
 5. Confirm the assignment.
 
-### Removing a Role from a Member
+### Removing a Role
 
 1. Open the member's detail page.
 2. Find the role you want to remove.
@@ -262,7 +239,7 @@ This action requires the `ROLE_EDIT` permission.
 4. Confirm the action.
 
 :::note
-The ability to assign roles depends on the roles available in your organization. You can only assign roles that exist within the same organization.
+You can only assign roles that exist within the same organization.
 :::
 
 ---
@@ -270,8 +247,6 @@ The ability to assign roles depends on the roles available in your organization.
 ## Setting a Group Manager
 
 The Group Manager is a special designation for the primary administrator of an organization. The manager has overall responsibility for the organization and appears with a **Manager** badge in the members list.
-
-### How to Set a Group Manager
 
 1. Go to **Organization Settings** in the sidebar.
 2. Open the **Group Details** tab.
@@ -282,19 +257,16 @@ The Group Manager is a special designation for the primary administrator of an o
 This action requires the `GROUP_MANAGEMENT` permission.
 :::
 
-### Important Notes About the Group Manager
-
+:::important
 - There can only be **one** Group Manager per organization.
 - The Group Manager **cannot be removed** from the organization. You must assign a new manager before removing the current one.
-- The Group Manager badge is visible next to the manager's name in the members list.
+:::
 
 ---
 
 ## Organization Settings
 
 Organization settings allow you to configure your workspace's appearance and basic information.
-
-### Accessing Organization Settings
 
 1. Click **Organization Settings** in the sidebar.
 2. You will see two tabs: **Theme** and **Group Details**.
@@ -330,8 +302,6 @@ Manage your organization's information:
 
 ## Leaving an Organization
 
-If you want to leave an organization you no longer need access to:
-
 1. Click on your profile icon and go to **Profile**.
 2. Navigate to the **Security** tab.
 3. Scroll to the **Leave Organization** section at the bottom.
@@ -350,84 +320,32 @@ The Group Manager cannot leave the organization. You must transfer the manager r
 
 ## Common Workflows
 
-### Workflow 1: Setting Up a New Organization
+### Setting Up a New Organization
 
-1. **Request Organization:** If you need a new organization, go to **Request New Organization** from the organization selector dropdown. Fill in the required details and submit.
-2. **Wait for Approval:** An AirQo administrator will review and approve your request.
-3. **Configure Settings:** Once approved, go to Organization Settings to set up your theme, logo, and organization details.
-4. **Invite Members:** Navigate to the Members page and send email invitations to your team.
-5. **Create Roles:** Set up custom roles with the specific permissions your team members need.
-6. **Assign Roles:** Assign the appropriate roles to each member.
+1. Go to **Request New Organization** from the organization selector dropdown.
+2. Fill in the required details and submit.
+3. Wait for an AirQo administrator to review and approve your request.
+4. Once approved, go to **Organization Settings** to configure your theme, logo, and details.
+5. Navigate to **Members** and send email invitations to your team.
+6. Create custom roles and assign them to each member.
 
-### Workflow 2: Onboarding a New Team Member
+### Onboarding a New Team Member
 
-1. **Send Invitation:** Go to Members > Send Invites and enter their email address.
-2. **Member Accepts:** The new member receives an email and clicks the link to join.
-3. **Assign Role:** Once they accept, go to their member detail page and assign the appropriate role.
-4. **Verify Access:** Confirm the member can access the features they need.
+1. Go to **Members > Send Invites** and enter their email address.
+2. The new member receives an email and clicks the link to join.
+3. Once they accept, go to their member detail page and assign the appropriate role.
+4. Verify the member can access the features they need.
 
-### Workflow 3: Granting Additional Access
+### Granting Additional Access
 
-1. **Identify the Permission Needed:** Determine what the member needs to do (e.g., export data, manage roles).
-2. **Check Existing Roles:** Go to Roles & Permissions to see if a role already has that permission.
-3. **Option A - Use Existing Role:** If a suitable role exists, assign it to the member.
-4. **Option B - Create New Role:** If no existing role fits, create a new role with the required permissions and assign it to the member.
-5. **Option C - Edit Existing Role:** If you want multiple members to have the new permission, edit an existing role to include it.
-
-### Workflow 4: Managing Role Changes
-
-1. **Review Current Roles:** Go to Roles & Permissions to see all roles and their permissions.
-2. **Edit the Role:** Click on the role and modify its permissions.
-3. **Save Changes:** All members with that role will automatically gain or lose the affected permissions.
-4. **Deactivate if Needed:** If a role is no longer needed, set its status to INACTIVE to prevent future assignments.
+1. Determine what permission the member needs (e.g., export data, manage roles).
+2. Go to **Roles & Permissions** to see if a role already has that permission.
+3. If a suitable role exists, assign it to the member.
+4. If no existing role fits, create a new role with the required permissions and assign it.
 
 ---
 
-## Frequently Asked Questions
-
-### Can I belong to multiple organizations?
-
-Yes. You can be a member of multiple organizations simultaneously. Use the organization selector dropdown in the header to switch between them.
-
-### What happens to my access if my role is changed?
-
-Your access updates immediately. If permissions are removed from your role, you will lose access to the corresponding features. If permissions are added, you will gain access.
-
-### Can I create a role with no permissions?
-
-Yes, but it would not grant the member any access beyond the platform's base functionality. Roles are most useful when they contain specific permissions.
-
-### What is the difference between the Group Manager and an Organization Owner role?
-
-The Group Manager is a **designation** assigned to one specific member, visible with a badge. The Organization Owner is a **role** with a specific set of permissions. A member can hold both the Group Manager designation and the Organization Owner role simultaneously.
-
-### How do I know what permissions I have?
-
-Navigate to your profile page within the organization. Your assigned roles and their permissions will be displayed there.
-
-### Can a member have multiple roles?
-
-Yes. A member can be assigned multiple roles. Their effective permissions are the **union** of all permissions from all assigned roles.
-
-### What if I need a permission that doesn't exist in any role?
-
-Contact your organization's administrator. They can create a new role with the specific permission or add it to an existing role.
-
-### Who can manage organization settings?
-
-Only members with the `GROUP_MANAGEMENT` permission can access and modify organization settings.
-
-### Can I undo removing a member?
-
-No. Once a member is removed, they must be re-invited to rejoin the organization.
-
-### What happens to data when a member is removed?
-
-The member's contributions (data, configurations, etc.) remain in the organization. Only their access is revoked.
-
----
-
-## Quick Reference: Permission Matrix
+## Permission Reference
 
 | Action | Required Permission |
 |--------|-------------------|
@@ -445,9 +363,3 @@ The member's contributions (data, configurations, etc.) remain in the organizati
 | Update organization details | `GROUP_MANAGEMENT` |
 | Set Group Manager | `GROUP_MANAGEMENT` |
 | Export data | `DATA_EXPORT` |
-
----
-
-## Need Help?
-
-If you have questions about roles and permissions that are not covered in this guide, contact your organization administrator or reach out to the AirQo support team.
