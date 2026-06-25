@@ -8,7 +8,15 @@
     "start": "next start",
     "lint": "next lint",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test:e2e": "cd e2e && npm test",
+    "test:e2e:smoke": "cd e2e && npm run test:smoke",
+    "test:e2e:auth": "cd e2e && npm run test:auth",
+    "test:e2e:user": "cd e2e && npm run test:user",
+    "test:e2e:org": "cd e2e && npm run test:org",
+    "test:e2e:admin": "cd e2e && npm run test:admin",
+    "test:e2e:data": "cd e2e && npm run test:data",
+    "test:e2e:headed": "cd e2e && npm run test:headed"
   },
   "dependencies": {
     "@airqo/icons-react": "0.2.9",

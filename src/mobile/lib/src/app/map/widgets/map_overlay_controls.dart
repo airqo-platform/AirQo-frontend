@@ -9,6 +9,9 @@ class MapOverlayControls extends StatelessWidget {
     required this.onZoomIn,
     required this.onZoomOut,
     this.onLocateTap,
+    this.layersKey,
+    this.locateKey,
+    this.zoomKey,
   });
 
   final bool isDark;
@@ -16,6 +19,9 @@ class MapOverlayControls extends StatelessWidget {
   final VoidCallback? onLocateTap;
   final VoidCallback onZoomIn;
   final VoidCallback onZoomOut;
+  final GlobalKey? layersKey;
+  final GlobalKey? locateKey;
+  final GlobalKey? zoomKey;
 
   @override
   Widget build(BuildContext context) {
@@ -23,21 +29,23 @@ class MapOverlayControls extends StatelessWidget {
       children: [
         Positioned(
           top: 50,
-          right: 12,
+          right: mapControlSideInset,
           child: MapIconButton(
+            key: layersKey,
             icon: Icons.layers_outlined,
             isDark: isDark,
             onTap: onLayersTap,
           ),
         ),
         Positioned(
-          top: 90,
-          right: 12,
+          top: 112,
+          right: mapControlSideInset,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               if (onLocateTap != null) ...[
                 MapIconButton(
+                  key: locateKey,
                   icon: Icons.my_location,
                   isDark: isDark,
                   filled: true,
@@ -46,6 +54,7 @@ class MapOverlayControls extends StatelessWidget {
                 const SizedBox(height: 6),
               ],
               MapZoomGroup(
+                key: zoomKey,
                 isDark: isDark,
                 onZoomIn: onZoomIn,
                 onZoomOut: onZoomOut,

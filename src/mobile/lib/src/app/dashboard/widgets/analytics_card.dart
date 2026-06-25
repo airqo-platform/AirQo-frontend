@@ -55,6 +55,18 @@ class AnalyticsCard extends StatelessWidget with UiLoggy {
     return getAppAqiCategoryColor(measurement.aqiCategory ?? '');
   }
 
+  Widget _chevron(BuildContext context) {
+    return SvgPicture.asset(
+      'assets/icons/chevron-right.svg',
+      width: 20,
+      height: 20,
+      colorFilter: ColorFilter.mode(
+        AppTextColors.modalCloseIcon(context),
+        BlendMode.srcIn,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final locationColor = AppTextColors.muted(context);
@@ -75,7 +87,7 @@ class AnalyticsCard extends StatelessWidget with UiLoggy {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
                         child: Column(
@@ -104,6 +116,10 @@ class AnalyticsCard extends StatelessWidget with UiLoggy {
                                   'assets/images/shared/location_pin.svg',
                                   width: 14,
                                   height: 14,
+                                  colorFilter: ColorFilter.mode(
+                                    locationColor,
+                                    BlendMode.srcIn,
+                                  ),
                                 ),
                                 SizedBox(width: 4),
                                 Expanded(
@@ -121,6 +137,10 @@ class AnalyticsCard extends StatelessWidget with UiLoggy {
                             ),
                           ],
                         ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8, top: 2),
+                        child: _chevron(context),
                       ),
                     ],
                   ),

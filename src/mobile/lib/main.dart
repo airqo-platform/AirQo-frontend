@@ -40,6 +40,7 @@ import 'package:airqo/src/app/other/language/bloc/language_bloc.dart';
 import 'package:airqo/src/app/other/language/services/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:posthog_flutter/posthog_flutter.dart';
+import 'package:airqo/src/app/shared/services/feature_flag_service.dart';
 import 'package:airqo/src/app/surveys/bloc/survey_bloc.dart';
 import 'package:airqo/src/app/surveys/repository/survey_repository.dart';
 
@@ -76,6 +77,7 @@ void main() async {
         try {
           await Posthog().setup(postHogConfig);
           Object().logInfo('PostHog initialized successfully');
+          await FeatureFlagService.instance.reloadFlags();
         } catch (e) {
           Object().logError('PostHog init failed', e, null);
         }

@@ -7,6 +7,7 @@ import 'package:airqo/src/app/map/controllers/map_camera_controller.dart';
 import 'package:airqo/src/app/map/utils/map_marker_builder.dart';
 import 'package:airqo/src/app/map/widgets/map_aq_card_layer.dart';
 import 'package:airqo/src/app/map/widgets/map_controls.dart';
+import 'package:airqo/src/app/map/widgets/map_controls_tour.dart';
 import 'package:airqo/src/app/map/widgets/map_error_view.dart';
 import 'package:airqo/src/app/map/widgets/map_loading_view.dart';
 import 'package:airqo/src/app/map/widgets/map_overlay_controls.dart';
@@ -20,6 +21,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:loggy/loggy.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -52,6 +54,13 @@ class _MapScreenState extends State<MapScreen>
   Measurement? _selectedCardMeasurement;
   String? _mapStyleJson;
   int _markerBuildSeq = 0;
+
+  static const String _tourSeenKey = 'map_controls_tour_seen';
+  final GlobalKey _layersControlKey = GlobalKey();
+  final GlobalKey _locateControlKey = GlobalKey();
+  final GlobalKey _zoomControlKey = GlobalKey();
+  bool _showControlsTour = false;
+  bool _locationResolved = false;
 
   static const LatLng _center = LatLng(0.347596, 32.582520);
   static const double _sheetPeekSize = 0.13;
@@ -122,18 +131,19 @@ class _MapScreenState extends State<MapScreen>
 
   void _showForecastModal(Measurement measurement) {
     _hideTextInputOverlay();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       _hideTextInputOverlay();
 
-      Future<void>.delayed(const Duration(milliseconds: 48), () {
-        if (!mounted) return;
-        _hideTextInputOverlay();
-        ForecastOverviewPage.showForMeasurement(
-          context,
-          measurement: measurement,
-        );
-      });
+      await Future<void>.delayed(const Duration(milliseconds: 48));
+      if (!mounted) return;
+      _hideTextInputOverlay();
+      await ForecastOverviewPage.showForMeasurement(
+        context,
+        measurement: measurement,
+      );
+      if (!mounted) return;
+      _hideTextInputOverlay();
     });
   }
 
@@ -202,7 +212,56 @@ class _MapScreenState extends State<MapScreen>
       _cameraController.snapToPosition(userPosition!);
     } catch (e) {
       loggy.error('Failed to get user location: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _locationResolved = true);
+        _maybeShowControlsTour();
+      }
     }
+  }
+
+  Future<void> _dismissControlsTour() async {
+    setState(() => _showControlsTour = false);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_tourSeenKey, true);
+  }
+
+  void _maybeShowControlsTour() {
+    if (_showControlsTour || !_locationResolved) return;
+    SharedPreferences.getInstance().then((prefs) {
+      final seen = prefs.getBool(_tourSeenKey) ?? false;
+      if (!seen && mounted) setState(() => _showControlsTour = true);
+    });
+  }
+
+  List<MapControlTourStep> _controlsTourSteps() {
+    final steps = <MapControlTourStep>[
+      MapControlTourStep(
+        targetKey: _layersControlKey,
+        icon: Icons.layers_outlined,
+        title: 'Map style',
+        subtitle: 'Switch between standard, satellite, and other map views.',
+      ),
+    ];
+    if (userPosition != null) {
+      steps.add(
+        MapControlTourStep(
+          targetKey: _locateControlKey,
+          icon: Icons.my_location,
+          title: 'Your location',
+          subtitle: 'Center the map on where you are right now.',
+        ),
+      );
+    }
+    steps.add(
+      MapControlTourStep(
+        targetKey: _zoomControlKey,
+        icon: Icons.add,
+        title: 'Zoom in and out',
+        subtitle: 'Use + and − to zoom the map closer or further away.',
+      ),
+    );
+    return steps;
   }
 
   void _updateNearbyMeasurements() {
@@ -413,6 +472,9 @@ class _MapScreenState extends State<MapScreen>
         Positioned.fill(
           child: MapOverlayControls(
             isDark: isDark,
+            layersKey: _layersControlKey,
+            locateKey: _locateControlKey,
+            zoomKey: _zoomControlKey,
             onLayersTap: _openMapStylePicker,
             onLocateTap: userPosition != null
                 ? () => _cameraController.snapToPosition(userPosition!)
@@ -423,8 +485,10 @@ class _MapScreenState extends State<MapScreen>
         ),
         Positioned(
           top: 50,
-          left: 10,
-          child: MapAqLegend(isDark: isDark),
+          left: mapControlSideInset,
+          child: MapControlSideSlot(
+            child: MapAqLegend(isDark: isDark),
+          ),
         ),
         DraggableScrollableSheet(
           controller: _sheetController,
@@ -455,6 +519,11 @@ class _MapScreenState extends State<MapScreen>
           onViewForecast: () =>
               _showForecastModal(_selectedCardMeasurement!),
         ),
+        if (_showControlsTour)
+          MapControlsTour(
+            steps: _controlsTourSteps(),
+            onDismiss: _dismissControlsTour,
+          ),
       ],
     );
   }
