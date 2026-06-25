@@ -29,10 +29,10 @@ interface PermissionGuardProps {
   // Role requirements in ACTIVE GROUP
   requiredRolesInActiveGroup?: string[];
 
-  // Special check for AIRQO admin (role + email domain)
+  // Special check for AIRQO admin (email domain + SYSTEM_ADMIN or SUPER_ADMIN permission)
   requireAirQoAdmin?: boolean;
 
-  // Special check for AIRQO SUPER ADMIN (role + email domain)
+  // Special check for AIRQO SUPER ADMIN (email domain + SYSTEM_ADMIN or SUPER_ADMIN permission)
   requireAirQoSuperAdmin?: boolean;
 
   // Custom access check function
@@ -75,7 +75,6 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
     hasAllPermissionsInActiveGroup,
     hasRoleInActiveGroup,
     canAccessAdminPanel,
-    isSuperAdmin,
     isLoading,
     error,
   } = useRBAC();
@@ -96,7 +95,7 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
     }
 
     // Check AIRQO SUPER ADMIN requirement
-    if (requireAirQoSuperAdmin && !isSuperAdmin()) {
+    if (requireAirQoSuperAdmin && !canAccessAdminPanel()) {
       return false;
     }
 
@@ -151,7 +150,6 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
     customCheck,
     requireAirQoAdmin,
     requireAirQoSuperAdmin,
-    isSuperAdmin,
     requiredPermissions,
     requiredAllPermissions,
     requiredPermissionsInActiveGroup,

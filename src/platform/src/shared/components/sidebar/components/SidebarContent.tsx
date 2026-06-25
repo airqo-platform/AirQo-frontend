@@ -27,7 +27,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
   // Get the appropriate sidebar configuration
   const sidebarConfig = React.useMemo(() => {
     let config = getSidebarConfig(flow);
-    const isSuperAdmin = canAccessAdminPanel();
+    const canAccessAdmin = canAccessAdminPanel();
 
     // Filter admin items based on permissions
     if (flow === 'admin') {
@@ -36,10 +36,10 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
           ...group,
           items: group.items.filter(item => {
             if (item.id === 'admin-dashboard') {
-              return isSuperAdmin;
+              return canAccessAdmin;
             }
             if (['admin-statistics', 'admin-org-requests'].includes(item.id)) {
-              return isSuperAdmin;
+              return canAccessAdmin;
             }
             return true;
           }),
@@ -56,9 +56,13 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
             return {
               ...group,
               items: group.items.filter(item => {
-                // Members and Member Requests require MEMBER_VIEW
-                if (['org-members', 'org-member-requests'].includes(item.id)) {
+                // Members require MEMBER_VIEW
+                if (item.id === 'org-members') {
                   return hasAnyPermissionInActiveGroup(['MEMBER_VIEW']);
+                }
+                // Member Requests require MEMBER_INVITE
+                if (item.id === 'org-member-requests') {
+                  return hasAnyPermissionInActiveGroup(['MEMBER_INVITE']);
                 }
                 // Roles & Permissions require ROLE_VIEW
                 if (item.id === 'org-roles') {
@@ -84,11 +88,11 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
           ...group,
           items: group.items.filter(item => {
             if (item.id === 'system-feedback') {
-              return isSuperAdmin;
+              return canAccessAdmin;
             }
 
             if (item.id === 'system-surveys') {
-              return isSuperAdmin;
+              return canAccessAdmin;
             }
 
             if (
@@ -100,7 +104,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
                 'system-user-statistics',
               ].includes(item.id)
             ) {
-              return isSuperAdmin;
+              return canAccessAdmin;
             }
             return true;
           }),

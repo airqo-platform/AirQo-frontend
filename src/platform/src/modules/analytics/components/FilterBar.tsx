@@ -27,6 +27,7 @@ import {
 import DownloadDialog from './DownloadDialog';
 import { trackEvent } from '@/shared/utils/analytics';
 import { trackFeatureUsage } from '@/shared/utils/enhancedAnalytics';
+import { useRBAC } from '@/shared/hooks';
 
 // Frequency options - exclude 'raw' as requested
 const FREQUENCY_OPTIONS = Object.entries(FREQUENCY_LABELS)
@@ -63,6 +64,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   const posthog = usePostHog();
   const { filters, setFrequency, setDateRange, setPollutant } = useAnalytics();
   const { selectedSiteIds } = useAnalyticsPreferences();
+  const { hasPermission } = useRBAC();
+  const canExportData = hasPermission('DATA_EXPORT');
 
   const [frequencyOpen, setFrequencyOpen] = useState(false);
   const [pollutantOpen, setPollutantOpen] = useState(false);
@@ -305,16 +308,18 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           <span className="sm:hidden">Favorites</span>
         </button>
 
-        <span title="Download openly available air quality data for your own use">
-          <Button
-            variant="filled"
-            size="sm"
-            className="px-4 py-2 shadow-sm"
-            onClick={handleDownloadClick}
-          >
-            Download Data ({selectedSiteIds.length})
-          </Button>
-        </span>
+        {canExportData && (
+          <span title="Download openly available air quality data for your own use">
+            <Button
+              variant="filled"
+              size="sm"
+              className="px-4 py-2 shadow-sm"
+              onClick={handleDownloadClick}
+            >
+              Download Data ({selectedSiteIds.length})
+            </Button>
+          </span>
+        )}
       </div>
 
       {/* Download Confirmation Dialog */}

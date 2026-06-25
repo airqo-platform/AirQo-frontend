@@ -17,6 +17,7 @@ interface DataExportHeaderProps {
   isDownloadReady: boolean;
   isDownloading: boolean;
   isGroupSyncing?: boolean;
+  canDownload?: boolean;
   onRefresh?: () => void;
   isRefreshing?: boolean;
   onTabChange: (tab: TabType) => void;
@@ -40,6 +41,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
   isDownloadReady,
   isDownloading,
   isGroupSyncing = false,
+  canDownload = true,
   onRefresh,
   isRefreshing = false,
   onTabChange,
@@ -164,20 +166,22 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
           Visualize Data
         </Button>
         {/* Preview button removed: preview shown via Review & Download flow */}
-        <Tooltip content={reviewDownloadTooltip} placement="top">
-          <span className="inline-flex w-full xl:w-auto">
-            <Button
-              variant="filled"
-              onClick={onDownload}
-              Icon={AqDownload01}
-              className="px-4 py-2 w-full xl:w-auto"
-              disabled={isGroupSyncing || !isDownloadReady}
-              loading={isDownloading}
-            >
-              {isDownloading ? 'Downloading...' : 'Review & Download'}
-            </Button>
-          </span>
-        </Tooltip>
+        {canDownload && (
+          <Tooltip content={reviewDownloadTooltip} placement="top">
+            <span className="inline-flex w-full xl:w-auto">
+              <Button
+                variant="filled"
+                onClick={onDownload}
+                Icon={AqDownload01}
+                className="px-4 py-2 w-full xl:w-auto"
+                disabled={isGroupSyncing || !isDownloadReady}
+                loading={isDownloading}
+              >
+                {isDownloading ? 'Downloading...' : 'Review & Download'}
+              </Button>
+            </span>
+          </Tooltip>
+        )}
       </div>
     </div>
   );

@@ -219,21 +219,6 @@ export const useRBAC = () => {
   };
 
   /**
-   * Check if user is admin (has any admin role)
-   */
-  const isAdmin = (): boolean => {
-    const adminRoles = ['ADMIN'];
-    return allRoles.some(role => adminRoles.includes(role.toUpperCase()));
-  };
-
-  /**
-   * Check if user is super admin
-   */
-  const isSuperAdmin = (): boolean => {
-    return allRoles.some(role => role.toUpperCase() === 'SUPER_ADMIN');
-  };
-
-  /**
    * Check if user has a specific permission in the active group
    */
   const hasPermissionInActiveGroup = (permission: string): boolean => {
@@ -325,8 +310,6 @@ export const useRBAC = () => {
     // Utility functions
     getUserGroups,
     getUserNetworks,
-    isAdmin,
-    isSuperAdmin,
     canAccessAdminPanel,
     hasEmailDomain,
 
