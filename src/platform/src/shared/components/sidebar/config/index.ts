@@ -349,7 +349,7 @@ const globalSidebarConfig: NavGroup[] = [
             id: 'system-feedback',
             label: 'Feedback',
             href: '/system/feedback',
-            description: 'Review user feedback and reported issues',
+            description: 'Review user feedback and flagged issues',
           },
           {
             id: 'system-surveys',

@@ -446,7 +446,7 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
         <div className="space-y-4">
           <SectionHeader
             title="Screenshot"
-            description="Visual context captured alongside the report."
+            description="Visual context captured alongside the submission."
             action={
               feedback.screenshot_url ? (
                 <a

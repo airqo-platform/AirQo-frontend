@@ -334,7 +334,7 @@ class _SearchResults extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                      color: AppTextColors.headline(context),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -504,7 +504,7 @@ List<Widget> _measurementRows({
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                      color: AppTextColors.headline(context),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

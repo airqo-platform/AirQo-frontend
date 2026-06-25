@@ -108,10 +108,10 @@ const pageMetadata: Record<string, Partial<Metadata>> = {
   },
   '/user/data-export': {
     title: 'Data Export',
-    description: 'Export air quality data for analysis and reporting.',
+    description: 'Export air quality data for analysis and presentation.',
     openGraph: {
       title: 'Data Export | AirQo Analytics',
-      description: 'Export air quality data for analysis and reporting.',
+      description: 'Export air quality data for analysis and presentation.',
     },
   },
   '/org/dashboard': {
@@ -127,11 +127,11 @@ const pageMetadata: Record<string, Partial<Metadata>> = {
   '/org/data-export': {
     title: 'Organization Data Export',
     description:
-      'Export organization air quality data for analysis and reporting.',
+      'Export organization air quality data for analysis and presentation.',
     openGraph: {
       title: 'Organization Data Export | AirQo Analytics',
       description:
-        'Export organization air quality data for analysis and reporting.',
+        'Export organization air quality data for analysis and presentation.',
     },
   },
   '/org/favorites': {
@@ -210,10 +210,10 @@ const pageMetadata: Record<string, Partial<Metadata>> = {
   },
   '/system/feedback': {
     title: 'Feedback',
-    description: 'Review user feedback submissions and reported issues.',
+    description: 'Review user feedback submissions and flagged issues.',
     openGraph: {
       title: 'Feedback | AirQo Analytics',
-      description: 'Review user feedback submissions and reported issues.',
+      description: 'Review user feedback submissions and flagged issues.',
     },
   },
   '/system/feedback/[id]': {
