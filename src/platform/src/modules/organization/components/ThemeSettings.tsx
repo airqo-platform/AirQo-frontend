@@ -114,27 +114,6 @@ const ThemeSettings: React.FC = () => {
         data: draftTheme,
       });
 
-      // Sync the current user's personal theme to match the new org theme
-      // so the admin sees changes immediately without needing a page reload.
-      if (user?.id) {
-        try {
-          await updateUserTheme({
-            userId: user.id,
-            groupId: activeGroup.id,
-            theme: {
-              primaryColor: draftTheme.primaryColor,
-              mode:
-                draftTheme.mode === 'system' ? 'light' : draftTheme.mode,
-              interfaceStyle: draftTheme.interfaceStyle,
-              contentLayout: draftTheme.contentLayout,
-            },
-          });
-        } catch {
-          // Non-critical: org theme was saved successfully, user theme
-          // sync failure just means the admin may need to refresh.
-        }
-      }
-
       // Apply the theme immediately to the current session
       applyThemeImmediately({
         primaryColor: draftTheme.primaryColor,
@@ -158,6 +137,25 @@ const ThemeSettings: React.FC = () => {
       mutate(
         key => typeof key === 'string' && key.startsWith('preferences/theme/')
       );
+
+      // Fire-and-forget: sync current user's personal theme to match the new
+      // org theme so the admin sees changes immediately. Non-critical, so we
+      // intentionally do not await this to avoid blocking the save path.
+      if (user?.id) {
+        updateUserTheme({
+          userId: user.id,
+          groupId: activeGroup.id,
+          theme: {
+            primaryColor: draftTheme.primaryColor,
+            mode: draftTheme.mode,
+            interfaceStyle: draftTheme.interfaceStyle,
+            contentLayout: draftTheme.contentLayout,
+          },
+        }).catch(() => {
+          // Non-critical: org theme was saved successfully, user theme
+          // sync failure just means the admin may need to refresh.
+        });
+      }
 
       // Reset draft after successful save
       setDraftTheme(null);

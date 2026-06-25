@@ -105,6 +105,9 @@ export function clearStoredTheme(groupId?: string): void {
  */
 function hexToRgb(hex: string): string {
   const clean = hex.replace('#', '');
+  if (!/^[0-9a-fA-F]{6}$/.test(clean)) {
+    return '22 73 229';
+  }
   const r = parseInt(clean.substring(0, 2), 16);
   const g = parseInt(clean.substring(2, 4), 16);
   const b = parseInt(clean.substring(4, 6), 16);
@@ -254,6 +257,9 @@ export function getThemeScript(): string {
 
           // Apply primary color as RGB
           var hex = primaryColor.replace('#', '');
+          if (!/^[0-9a-fA-F]{6}$/.test(hex)) {
+            hex = '1649e5';
+          }
           var r = parseInt(hex.substring(0, 2), 16);
           var g = parseInt(hex.substring(2, 4), 16);
           var b = parseInt(hex.substring(4, 6), 16);

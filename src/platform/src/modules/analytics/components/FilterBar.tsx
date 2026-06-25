@@ -64,8 +64,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   const posthog = usePostHog();
   const { filters, setFrequency, setDateRange, setPollutant } = useAnalytics();
   const { selectedSiteIds } = useAnalyticsPreferences();
-  const { hasPermission } = useRBAC();
-  const canExportData = hasPermission('DATA_EXPORT');
+  const { hasPermissionInActiveGroup } = useRBAC();
+  const canExportData = hasPermissionInActiveGroup('DATA_EXPORT');
 
   const [frequencyOpen, setFrequencyOpen] = useState(false);
   const [pollutantOpen, setPollutantOpen] = useState(false);
