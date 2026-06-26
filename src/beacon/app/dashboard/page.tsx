@@ -1,897 +1,724 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
-  AlertCircle,
-  AlertTriangle,
-  ArrowRight,
-  MapPin,
-  Wifi,
-  WifiOff,
-  BarChart3,
-  Clock,
-  Activity,
-  TrendingUp,
-  Layers,
-  Settings,
-  RefreshCw,
-  Wrench,
-  Calendar,
-  Timer,
-  Zap,
-  BarChart,
-  PieChart,
-  Battery,
-  Package,
-  AlertOctagon,
-  ThermometerSun,
-  Wind,
-  CheckCircle,
-  XCircle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { 
+  Activity, 
+  AlertTriangle, 
+  TrendingUp, 
+  Clock, 
+  RefreshCw, 
+  AlertCircle, 
+  CheckCircle2, 
+  XCircle, 
+  Wifi, 
+  WifiOff, 
+  SlidersHorizontal,
+  ServerCrash
 } from "lucide-react"
 import {
-  LineChart,
-  Line,
-  PieChart as RechartsPieChart,
-  Pie,
+  BarChart,
+  Bar,
   Cell,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
-  BarChart as RechartsBarChart,
-  Bar,
+  LineChart,
+  Line,
+  Legend
 } from "recharts"
-import Link from "next/link"
 import { format, parseISO } from "date-fns"
-import { 
-  getDashboardSummary, 
-  getSystemHealth, 
-  getDataTransmissionSummary, 
-  getNetworkPerformance,
-  getDeviceStats,
-  getDevices,
-  getOfflineDevices,
-  getUpcomingMaintenance
-} from "@/services/device-api.service"
-import { useGroup } from "@/lib/group-context"
+import { networkStatusService, NetworkStatusAlert, NetworkStatistics, HourlyTrend, UptimeSummaryItem } from "@/services/network-status.service"
+
+const aggregateUptimeFromAlerts = (alerts: NetworkStatusAlert[]): UptimeSummaryItem[] => {
+  const groups: Record<string, {
+    percentages: number[];
+    maxPercentage: number;
+    minPercentage: number;
+    totalChecks: number;
+    alertsTriggered: number;
+  }> = {}
+
+  alerts.forEach(alert => {
+    const dateStr = alert.checked_at.split('T')[0]
+    if (!groups[dateStr]) {
+      groups[dateStr] = {
+        percentages: [],
+        maxPercentage: 0,
+        minPercentage: 100,
+        totalChecks: 0,
+        alertsTriggered: 0
+      }
+    }
+
+    const pct = alert.not_transmitting_percentage
+    groups[dateStr].percentages.push(pct)
+    groups[dateStr].maxPercentage = Math.max(groups[dateStr].maxPercentage, pct)
+    groups[dateStr].minPercentage = Math.min(groups[dateStr].minPercentage, pct)
+    groups[dateStr].totalChecks += 1
+    if (alert.threshold_exceeded) {
+      groups[dateStr].alertsTriggered += 1
+    }
+  })
+
+  return Object.entries(groups)
+    .map(([date, data]) => {
+      const avg = data.percentages.reduce((sum, val) => sum + val, 0) / data.percentages.length
+      return {
+        _id: date,
+        avgOfflinePercentage: avg,
+        maxOfflinePercentage: data.maxPercentage,
+        minOfflinePercentage: data.minPercentage,
+        totalChecks: data.totalChecks,
+        alertsTriggered: data.alertsTriggered
+      }
+    })
+    .sort((a, b) => a._id.localeCompare(b._id))
+}
 
 export default function DashboardPage() {
-  const { activeGroup, loading: groupLoading } = useGroup()
-
-  // State for dashboard data
-  const [dashboardData, setDashboardData] = useState<any>(null)
-  const [systemHealth, setSystemHealth] = useState<any>(null)
-  const [transmissionData, setTransmissionData] = useState<any>(null)
-  const [networkData, setNetworkData] = useState<any>(null)
-  const [deviceStats, setDeviceStats] = useState<any>(null)
-  const [devices, setDevices] = useState<any[]>([])
-  const [offlineDevices, setOfflineDevices] = useState<any[]>([])
-  const [upcomingMaintenance, setUpcomingMaintenance] = useState<any[]>([])
+  const [stats, setStats] = useState<NetworkStatistics | null>(null)
+  const [trends, setTrends] = useState<HourlyTrend[]>([])
+  const [uptime, setUptime] = useState<UptimeSummaryItem[]>([])
+  const [recentAlerts, setRecentAlerts] = useState<NetworkStatusAlert[]>([])
+  const [allAlerts, setAllAlerts] = useState<NetworkStatusAlert[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Fetch dashboard summary data (critical data first)
-  const fetchDashboardSummary = async () => {
+  // Compute date range (last 14 days)
+  const endDate = new Date().toISOString()
+  const startDate = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString()
+
+  const fetchData = async () => {
+    setLoading(true)
+    setError(null)
     try {
-      const dashboard = await getDashboardSummary()
-      setDashboardData(dashboard)
-      setLoading(false) // Stop loading once we have basic data
-    } catch (err) {
-      console.error("Error fetching dashboard summary:", err)
-      setError("Failed to load dashboard data")
+      const params = { start_date: startDate, end_date: endDate }
+      const [statsRes, trendsRes, uptimeRes, recentRes, allRes] = await Promise.all([
+        networkStatusService.getStatistics(params),
+        networkStatusService.getHourlyTrends(params),
+        networkStatusService.getUptimeSummary(14),
+        networkStatusService.getRecentAlerts(48), // Past 48 hours for critical list
+        networkStatusService.getAlerts({ limit: 200 }) // Load more alerts for client-side aggregation fallback
+      ])
+
+      let rawAlerts: NetworkStatusAlert[] = []
+      if (allRes.success) {
+        rawAlerts = allRes.alerts
+        setAllAlerts(rawAlerts)
+      }
+
+      if (statsRes.success && statsRes.statistics.length > 0) {
+        setStats(statsRes.statistics[0])
+      }
+      if (trendsRes.success) {
+        const sortedTrends = [...trendsRes.trends].sort((a, b) => a._id.hour - b._id.hour)
+        setTrends(sortedTrends)
+      }
+      if (uptimeRes.success) {
+        // Fallback: If staging database aggregation returns null values for average rates,
+        // compute daily uptime statistics client-side from the raw alerts list.
+        const hasNulls = uptimeRes.summary.some(
+          (item: any) => item.avgOfflinePercentage === null
+        )
+
+        if (hasNulls && rawAlerts.length > 0) {
+          const aggregatedUptime = aggregateUptimeFromAlerts(rawAlerts)
+          setUptime(aggregatedUptime)
+        } else {
+          setUptime(uptimeRes.summary.reverse()) // Order from oldest to newest for chart
+        }
+      }
+      if (recentRes.success) {
+        if (recentRes.alerts.length === 0 && rawAlerts.length > 0) {
+          // Fallback: If no recent alerts returned by staging (due to lack of recent checks in past 48h),
+          // filter the loaded raw alerts list client-side to show recent threshold-exceeded incidents.
+          const localIncidents = rawAlerts.filter(alert => alert.threshold_exceeded).slice(0, 10)
+          setRecentAlerts(localIncidents)
+        } else {
+          setRecentAlerts(recentRes.alerts)
+        }
+      }
+    } catch (err: any) {
+      console.error(err)
+      setError(err.message || "Failed to load network status data. Please verify your connection to staging.")
+    } finally {
       setLoading(false)
     }
   }
 
-  // Fetch system health data
-  const fetchSystemHealthData = async () => {
-    try {
-      const health = await getSystemHealth()
-      setSystemHealth(health)
-    } catch (err) {
-      console.error("Error fetching system health:", err)
-    }
-  }
-
-  // Fetch transmission data
-  const fetchTransmissionData = async () => {
-    try {
-      const transmission = await getDataTransmissionSummary({ days: 7 })
-      setTransmissionData(transmission)
-    } catch (err) {
-      console.error("Error fetching transmission data:", err)
-    }
-  }
-
-  // Fetch network performance
-  const fetchNetworkData = async () => {
-    try {
-      const network = await getNetworkPerformance({ days: 7 })
-      setNetworkData(network)
-    } catch (err) {
-      console.error("Error fetching network data:", err)
-    }
-  }
-
-  // Fetch device statistics
-  const fetchDeviceStatistics = async () => {
-    if (groupLoading || !activeGroup) return
-
-    try {
-      const stats = await getDeviceStats({ include_networks: true, include_categories: true, include_maintenance: true, group: activeGroup })
-      setDeviceStats(stats)
-    } catch (err) {
-      console.error("Error fetching device stats:", err)
-    }
-  }
-
-  // Fetch device lists
-  const fetchDeviceLists = async () => {
-    if (groupLoading || !activeGroup) return
-
-    try {
-      const [deviceList, offline, maintenance] = await Promise.all([
-        getDevices({ limit: 10, group: activeGroup }),
-        getOfflineDevices({ hours: 24, limit: 10 }),
-        getUpcomingMaintenance({ days: 30, limit: 10 })
-      ])
-      
-      setDevices(deviceList || [])
-      setOfflineDevices(offline?.devices || [])
-      setUpcomingMaintenance(maintenance?.devices || [])
-    } catch (err) {
-      console.error("Error fetching device lists:", err)
-    }
-  }
-
-  // Refresh all data
-  const refreshData = async () => {
-    setLoading(true)
-    setError(null)
-    
-    // Fetch critical data first
-    await fetchDashboardSummary()
-    
-    // Then fetch other data in parallel groups
-    Promise.all([
-      fetchSystemHealthData(),
-      fetchTransmissionData(),
-      fetchNetworkData(),
-      fetchDeviceStatistics(),
-      fetchDeviceLists()
-    ])
-  }
-
-  // Call fetch functions on component mount
   useEffect(() => {
-    if (groupLoading || !activeGroup) return
+    fetchData()
+  }, [])
 
-    // Fetch critical dashboard data first
-    fetchDashboardSummary()
-    
-    // Then fetch other data independently (non-blocking)
-    fetchSystemHealthData()
-    fetchTransmissionData()
-    fetchNetworkData()
-    fetchDeviceStatistics()
-    fetchDeviceLists()
-  }, [activeGroup, groupLoading])
-
-  // Get device counts from dashboard data
-  const deviceCounts = dashboardData?.devices || {
-    total: 0,
-    active: 0,
-    online: 0,
-    offline: 0,
-    inactive: 0,
-    maintenance_soon: 0
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'OK':
+        return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-900'
+      case 'WARNING':
+        return 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-900'
+      case 'CRITICAL':
+        return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-900'
+      default:
+        return 'bg-slate-100 text-slate-800 border-slate-200'
+    }
   }
-  
-  const siteCounts = dashboardData?.sites || {
-    total: 0,
-    active: 0,
-    inactive: 0
-  }
-  
-  // Calculate percentages
-  const activePercentage = deviceCounts.total > 0 
-    ? Math.round((deviceCounts.active / deviceCounts.total) * 100) 
-    : 0
-  const onlinePercentage = deviceCounts.total > 0
-    ? Math.round((deviceCounts.online / deviceCounts.total) * 100)
-    : 0
-  const offlinePercentage = deviceCounts.total > 0
-    ? Math.round((deviceCounts.offline / deviceCounts.total) * 100)
-    : 0
 
-  // Get health indicators
-  const healthIndicators = dashboardData?.health_indicators || {}
-  
-  // Get network distribution data for charts
-  const networkDistribution = dashboardData?.network_distribution || {}
-  const networkChartData = Object.entries(networkDistribution).map(([network, count]) => ({
-    network: network === 'null' ? 'Unknown' : network,
-    count: count as number,
-    percentage: deviceCounts.total > 0 ? Math.round((count as number / deviceCounts.total) * 100) : 0
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'OK':
+        return <CheckCircle2 className="h-5 w-5 text-green-500" />
+      case 'WARNING':
+        return <AlertTriangle className="h-5 w-5 text-amber-500" />
+      case 'CRITICAL':
+        return <XCircle className="h-5 w-5 text-red-500" />
+      default:
+        return <Activity className="h-5 w-5 text-slate-500" />
+    }
+  }
+
+  // Common color scheme for uptime:
+  // >= 75%: Green
+  // >= 50% && < 75%: Orange/Amber
+  // < 50%: Red
+  const getUptimeColorClass = (value: number) => {
+    if (value >= 75) return "text-green-600 dark:text-green-400"
+    if (value >= 50) return "text-orange-500 dark:text-orange-400"
+    return "text-red-600 dark:text-red-400"
+  }
+
+  const getUptimeBorderClass = (value: number) => {
+    if (value >= 75) return "border-l-green-500"
+    if (value >= 50) return "border-l-orange-500"
+    return "border-l-red-500"
+  }
+
+  const getUptimeHexColor = (value: number) => {
+    if (value >= 75) return "#22C55E" // bg-green-500
+    if (value >= 50) return "#F97316" // bg-orange-500
+    return "#EF4444" // bg-red-500
+  }
+
+  // Format hour (e.g. 14 -> 2 PM)
+  const formatHour = (hour: number) => {
+    const ampm = hour >= 12 ? 'PM' : 'AM'
+    const formattedHour = hour % 12 || 12
+    return `${formattedHour} ${ampm}`
+  }
+
+  // Latest check info
+  const latestCheck = allAlerts[0]
+
+  // Map uptime to online trends
+  const uptimeChartData = uptime.map(item => ({
+    ...item,
+    avgOnlinePercentage: 100 - (item.avgOfflinePercentage ?? 0),
+    minOnlinePercentage: 100 - (item.maxOfflinePercentage ?? 0),
   }))
 
-  // Get categories data from device stats
-  const categoriesData = deviceStats?.categories ? 
-    Object.entries(deviceStats.categories).map(([category, count]) => ({
-      name: category === 'unknown' ? 'Unknown' : category,
-      value: count as number,
-      color: `hsl(${Math.random() * 360}, 70%, 50%)`
-    })) : []
-
-  const isLoading = loading
+  // Map trends to online hourly data
+  const trendsChartData = trends.map(item => ({
+    ...item,
+    avgOnlinePercentage: 100 - (item.avg_not_transmitting_percentage ?? 0),
+  }))
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold"></h1>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="flex items-center"
-          onClick={() => refreshData()}
-        >
-          <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} /> 
-          {isLoading ? 'Loading...' : 'Refresh Data'}
-        </Button>
+    <div className="space-y-8 p-6 lg:p-8 max-w-7xl mx-auto">
+      {/* Top Bar */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            Network Status Monitor
+          </h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            Real-time status tracking for the AirQo device transmission network
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex items-center gap-2 border-slate-200 shadow-sm hover:bg-slate-50"
+              >
+                <SlidersHorizontal className="h-4 w-4 text-slate-500" />
+                Network Legend
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl bg-white dark:bg-slate-950 border dark:border-slate-800">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-lg font-bold">
+                  <Activity className="h-5 w-5 text-blue-500" /> Network Legend
+                </DialogTitle>
+                <DialogDescription>
+                  Device classification parameters &amp; categories
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-6 pt-4">
+                <div>
+                  <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Classification Criteria</h4>
+                  <p className="text-xxs text-muted-foreground mb-3 leading-relaxed">
+                    Devices are classified by evaluating two distinct transmission conditions:
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="p-3 bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900 rounded-xl">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <Clock className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                        <span className="font-bold text-slate-800 dark:text-slate-200 text-xxs">isOnline (Feed)</span>
+                      </div>
+                      <p className="text-xxs text-slate-500 dark:text-slate-400 leading-relaxed">
+                        Measures <strong>feed freshness</strong>. Fresh if last active timestamp is <strong>&le; 5 hours</strong>.
+                      </p>
+                    </div>
+                    
+                    <div className="p-3 bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900 rounded-xl">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <Wifi className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+                        <span className="font-bold text-slate-800 dark:text-slate-200 text-xxs">rawOnlineStatus (Tx)</span>
+                      </div>
+                      <p className="text-xxs text-slate-500 dark:text-slate-400 leading-relaxed">
+                        Measures <strong>active connection</strong>. Active if device transmitted data <strong>&le; 2 hours</strong> ago.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-3">Category Mapping Matrix</h4>
+                  <div className="overflow-x-auto rounded-lg border border-slate-100 dark:border-slate-800">
+                    <table className="w-full text-left border-collapse text-xxs">
+                      <thead>
+                        <tr className="bg-slate-50 dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 text-slate-500 font-bold">
+                          <th className="py-2 px-2.5">Category</th>
+                          <th className="py-2 px-2 text-center">Feed (≤5h)</th>
+                          <th className="py-2 px-2 text-center">Tx (≤2h)</th>
+                          <th className="py-2 px-2.5">Time Criteria</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        <tr className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
+                          <td className="py-2 px-2.5 font-bold text-green-700 dark:text-green-400">Operational</td>
+                          <td className="py-2 px-2 text-center"><CheckCircle2 className="h-3.5 w-3.5 text-green-500 mx-auto" /></td>
+                          <td className="py-2 px-2 text-center"><CheckCircle2 className="h-3.5 w-3.5 text-green-500 mx-auto" /></td>
+                          <td className="py-2 px-2.5 text-slate-600 dark:text-slate-400 leading-snug">Feed fresh &amp; Active Tx</td>
+                        </tr>
+                        <tr className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
+                          <td className="py-2 px-2.5 font-bold text-blue-700 dark:text-blue-400">Transmitting</td>
+                          <td className="py-2 px-2 text-center"><XCircle className="h-3.5 w-3.5 text-red-400 mx-auto" /></td>
+                          <td className="py-2 px-2 text-center"><CheckCircle2 className="h-3.5 w-3.5 text-green-500 mx-auto" /></td>
+                          <td className="py-2 px-2.5 text-slate-600 dark:text-slate-400 leading-snug">Active Tx but feed is stale (&gt;5h)</td>
+                        </tr>
+                        <tr className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
+                          <td className="py-2 px-2.5 font-bold text-amber-700 dark:text-amber-400">Data Available</td>
+                          <td className="py-2 px-2 text-center"><CheckCircle2 className="h-3.5 w-3.5 text-green-500 mx-auto" /></td>
+                          <td className="py-2 px-2 text-center"><XCircle className="h-3.5 w-3.5 text-red-400 mx-auto" /></td>
+                          <td className="py-2 px-2.5 text-slate-600 dark:text-slate-400 leading-snug">Feed fresh (≤5h) but no active Tx (&gt;2h)</td>
+                        </tr>
+                        <tr className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
+                          <td className="py-2 px-2.5 font-bold text-red-700 dark:text-red-400">Not Transmitting</td>
+                          <td className="py-2 px-2 text-center"><XCircle className="h-3.5 w-3.5 text-red-500 mx-auto" /></td>
+                          <td className="py-2 px-2 text-center"><XCircle className="h-3.5 w-3.5 text-red-500 mx-auto" /></td>
+                          <td className="py-2 px-2.5 text-slate-600 dark:text-slate-400 leading-snug">Fully offline (stale feed &amp; no Tx)</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={fetchData} 
+            disabled={loading}
+            className="flex items-center gap-2 border-slate-200 shadow-sm hover:bg-slate-50"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            {loading ? 'Refreshing...' : 'Refresh Data'}
+          </Button>
+        </div>
       </div>
 
       {error && (
-        <Alert variant="destructive">
+        <Alert variant="destructive" className="border-red-200 bg-red-50 text-red-900 dark:bg-red-950 dark:text-red-100">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
+          <AlertTitle>Connection Error</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
-      {/* Device Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="overflow-hidden border-l-4 border-l-primary hover:shadow-md transition-shadow">
-          <CardHeader className="pb-2 bg-gradient-to-r from-primary/10 to-transparent">
-            <CardTitle className="text-sm font-medium flex items-center">
-              <Layers className="mr-2 h-5 w-5 text-primary" />
-              Total Devices
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="text-3xl font-bold">
-              {isLoading ? '...' : deviceCounts.total}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Devices in the network</p>
-          </CardContent>
-        </Card>
-
-        <Card className="overflow-hidden border-l-4 border-l-green-500 hover:shadow-md transition-shadow">
-          <CardHeader className="pb-2 bg-gradient-to-r from-green-500/10 to-transparent">
-            <CardTitle className="text-sm font-medium flex items-center">
-              <Wifi className="mr-2 h-5 w-5 text-green-500" />
-              Online Devices
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="text-3xl font-bold">
-              {isLoading ? '...' : deviceCounts.online}
-            </div>
-            <div className="flex items-center mt-1">
-              <div className="h-2 bg-green-500 rounded-full" style={{ width: `${onlinePercentage}%` }}></div>
-              <span className="text-xs text-muted-foreground ml-2">{onlinePercentage}%</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="overflow-hidden border-l-4 border-l-red-500 hover:shadow-md transition-shadow">
-          <CardHeader className="pb-2 bg-gradient-to-r from-red-500/10 to-transparent">
-            <CardTitle className="text-sm font-medium flex items-center">
-              <WifiOff className="mr-2 h-5 w-5 text-red-500" />
-              Offline Devices
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="text-3xl font-bold">
-              {isLoading ? '...' : deviceCounts.offline}
-            </div>
-            <div className="flex items-center mt-1">
-              <div className="h-2 bg-red-500 rounded-full" style={{ width: `${offlinePercentage}%` }}></div>
-              <span className="text-xs text-muted-foreground ml-2">{offlinePercentage}%</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="overflow-hidden border-l-4 border-l-blue-500 hover:shadow-md transition-shadow">
-          <CardHeader className="pb-2 bg-gradient-to-r from-blue-500/10 to-transparent">
-            <CardTitle className="text-sm font-medium flex items-center">
-              <Activity className="mr-2 h-5 w-5 text-blue-500" />
-              Active Devices
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="text-3xl font-bold">
-              {isLoading ? '...' : deviceCounts.active}
-            </div>
-            <div className="flex items-center mt-1">
-              <div className="h-2 bg-blue-500 rounded-full" style={{ width: `${activePercentage}%` }}></div>
-              <span className="text-xs text-muted-foreground ml-2">{activePercentage}%</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="overflow-hidden border-l-4 border-l-purple-500 hover:shadow-md transition-shadow">
-          <CardHeader className="pb-2 bg-gradient-to-r from-purple-500/10 to-transparent">
-            <CardTitle className="text-sm font-medium flex items-center">
-              <MapPin className="mr-2 h-5 w-5 text-purple-500" />
-              Total Sites
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="text-3xl font-bold">
-              {isLoading ? '...' : siteCounts.total}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {siteCounts.active} active, {siteCounts.inactive} inactive
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="overflow-hidden border-l-4 border-l-amber-500 hover:shadow-md transition-shadow">
-          <CardHeader className="pb-2 bg-gradient-to-r from-amber-500/10 to-transparent">
-            <CardTitle className="text-sm font-medium flex items-center">
-              <Wrench className="mr-2 h-5 w-5 text-amber-500" />
-              Maintenance Due
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="text-3xl font-bold">
-              {isLoading ? '...' : deviceCounts.maintenance_soon}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Within next 30 days</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* System Health and Data Transmission */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* System Health Card */}
-        <Card className="hover:shadow-lg transition-all duration-300 overflow-hidden border-0 bg-gradient-to-br from-white to-gray-50">
-          <CardHeader className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white pb-8">
-            <CardTitle className="flex items-center text-xl">
-              <div className="p-2 bg-white/20 rounded-lg mr-3">
-                <Activity className="h-6 w-6" />
-              </div>
-              System Health Monitor
-            </CardTitle>
-            <CardDescription className="text-white/90 mt-1">Real-time system performance analysis</CardDescription>
-          </CardHeader>
-          <CardContent className="p-6 -mt-4">
-            {isLoading ? (
-              <div className="h-48 flex items-center justify-center">
-                <RefreshCw className="h-8 w-8 text-gray-400 animate-spin" />
-              </div>
-            ) : systemHealth ? (
-              <div className="space-y-5">
-                {/* Health Score Visual */}
-                <div className="bg-white rounded-xl shadow-sm border p-5">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-semibold text-gray-700">Overall Health Score</h3>
-                    <Badge 
-                      className={`px-3 py-1 text-sm font-bold ${
-                        systemHealth.status === "healthy" 
-                          ? "bg-green-100 text-green-800 border-green-200" 
-                          : systemHealth.status === "degraded" 
-                          ? "bg-yellow-100 text-yellow-800 border-yellow-200" 
-                          : "bg-red-100 text-red-800 border-red-200"
-                      }`}
-                    >
-                      {systemHealth.status?.toUpperCase()}
-                    </Badge>
-                  </div>
-                  <div className="relative">
-                    <div className="flex items-center justify-center">
-                      <div className="relative w-32 h-32">
-                        <svg className="w-32 h-32 transform -rotate-90">
-                          <circle
-                            cx="64"
-                            cy="64"
-                            r="56"
-                            stroke="currentColor"
-                            strokeWidth="12"
-                            fill="none"
-                            className="text-gray-200"
-                          />
-                          <circle
-                            cx="64"
-                            cy="64"
-                            r="56"
-                            stroke="currentColor"
-                            strokeWidth="12"
-                            fill="none"
-                            strokeDasharray={`${2 * Math.PI * 56}`}
-                            strokeDashoffset={`${2 * Math.PI * 56 * (1 - (systemHealth.health_score || 0) / 100)}`}
-                            className={`transition-all duration-1000 ${
-                              systemHealth.health_score >= 80 
-                                ? "text-green-500" 
-                                : systemHealth.health_score >= 60 
-                                ? "text-yellow-500" 
-                                : "text-red-500"
-                            }`}
-                          />
-                        </svg>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="text-center">
-                            <div className="text-3xl font-bold">{systemHealth.health_score}%</div>
-                            <div className="text-xs text-gray-500">Health</div>
-                          </div>
-                        </div>
-                      </div>
+      {loading && !latestCheck ? (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 animate-pulse">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-32 bg-slate-100 dark:bg-slate-800 rounded-xl border" />
+          ))}
+        </div>
+      ) : (
+        <>
+          {/* KPI Dashboard Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            
+            {/* Status KPI Card */}
+            <Card className={`hover:shadow-md transition-shadow duration-200 border-l-4 ${latestCheck ? getUptimeBorderClass(100 - latestCheck.not_transmitting_percentage) : 'border-l-blue-500'}`}>
+              <CardHeader className="pb-2">
+                <CardDescription className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Current Status
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {latestCheck ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      {getStatusIcon(latestCheck.status)}
+                      <span className="text-xl font-bold">{latestCheck.status}</span>
                     </div>
-                  </div>
-                </div>
-
-                {/* Issues Alert */}
-                {systemHealth.issues && systemHealth.issues.length > 0 && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <div className="flex items-start">
-                      <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 mr-2" />
-                      <div className="flex-1">
-                        <p className="text-sm font-semibold text-red-800 mb-2">Active Issues</p>
-                        <ul className="space-y-1">
-                          {systemHealth.issues.map((issue: string, index: number) => (
-                            <li key={index} className="text-xs text-red-700 flex items-center">
-                              <span className="w-1.5 h-1.5 bg-red-500 rounded-full mr-2"></span>
-                              {issue}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+                    <div className={`text-2xl font-black ${getUptimeColorClass(100 - latestCheck.not_transmitting_percentage)}`}>
+                      {(100 - latestCheck.not_transmitting_percentage).toFixed(1)}% <span className="text-xs font-normal text-muted-foreground text-slate-500">online</span>
                     </div>
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      {latestCheck.message} <span className="text-xxs opacity-70 block mt-1">({latestCheck.not_transmitting_percentage.toFixed(1)}% offline)</span>
+                    </p>
                   </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No data loaded</p>
                 )}
+              </CardContent>
+            </Card>
 
-                {/* Performance Metrics */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
-                    <div className="flex items-center justify-between mb-2">
-                      <Wifi className="h-4 w-4 text-blue-600" />
-                      <span className="text-xs text-blue-600 font-medium">Online Rate</span>
+            {/* Average Online KPI Card */}
+            <Card className={`hover:shadow-md transition-shadow duration-200 border-l-4 ${stats ? getUptimeBorderClass(100 - stats.avg_not_transmitting_percentage) : ''}`}>
+              <CardHeader className="pb-2">
+                <CardDescription className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Average Online Rate
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {stats ? (
+                  <div className="space-y-1">
+                    <div className={`text-3xl font-black flex items-baseline gap-1 ${getUptimeColorClass(100 - stats.avg_not_transmitting_percentage)}`}>
+                      {(100 - stats.avg_not_transmitting_percentage).toFixed(1)}%
                     </div>
-                    <div className="text-2xl font-bold text-blue-900">{healthIndicators.device_online_rate || 0}%</div>
-                    <div className="mt-2 h-1.5 bg-blue-100 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-blue-500 transition-all duration-500" 
-                        style={{ width: `${healthIndicators.device_online_rate || 0}%` }}
-                      />
+                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                      <TrendingUp className="h-3 w-3 text-green-500" />
+                      Min Online: <span className="font-semibold text-slate-700 dark:text-slate-300">{(100 - stats.max_not_transmitting_percentage).toFixed(1)}%</span>
                     </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Based on last {stats.totalAlerts} checks <span className="text-xxs opacity-70 block mt-0.5">({stats.avg_not_transmitting_percentage.toFixed(1)}% avg offline)</span>
+                    </p>
                   </div>
-
-                  <div className="bg-green-50 rounded-lg p-3 border border-green-100">
-                    <div className="flex items-center justify-between mb-2">
-                      <Activity className="h-4 w-4 text-green-600" />
-                      <span className="text-xs text-green-600 font-medium">Active Rate</span>
-                    </div>
-                    <div className="text-2xl font-bold text-green-900">{healthIndicators.device_active_rate || 0}%</div>
-                    <div className="mt-2 h-1.5 bg-green-100 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-green-500 transition-all duration-500" 
-                        style={{ width: `${healthIndicators.device_active_rate || 0}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="bg-purple-50 rounded-lg p-3 border border-purple-100">
-                    <div className="flex items-center justify-between mb-2">
-                      <MapPin className="h-4 w-4 text-purple-600" />
-                      <span className="text-xs text-purple-600 font-medium">Site Active</span>
-                    </div>
-                    <div className="text-2xl font-bold text-purple-900">{healthIndicators.site_active_rate || 0}%</div>
-                    <div className="mt-2 h-1.5 bg-purple-100 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-purple-500 transition-all duration-500" 
-                        style={{ width: `${healthIndicators.site_active_rate || 0}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="bg-amber-50 rounded-lg p-3 border border-amber-100">
-                    <div className="flex items-center justify-between mb-2">
-                      <Wrench className="h-4 w-4 text-amber-600" />
-                      <span className="text-xs text-amber-600 font-medium">Maintenance</span>
-                    </div>
-                    <div className="text-2xl font-bold text-amber-900">{healthIndicators.maintenance_rate || 0}%</div>
-                    <div className="mt-2 h-1.5 bg-amber-100 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-amber-500 transition-all duration-500" 
-                        style={{ width: `${healthIndicators.maintenance_rate || 0}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="h-48 flex items-center justify-center text-gray-500">
-                <div className="text-center">
-                  <Activity className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                  <p>No health data available</p>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Data Transmission Card */}
-        <Card className="hover:shadow-lg transition-all duration-300 overflow-hidden border-0 bg-gradient-to-br from-white to-gray-50">
-          <CardHeader className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white pb-8">
-            <CardTitle className="flex items-center text-xl">
-              <div className="p-2 bg-white/20 rounded-lg mr-3">
-                <BarChart3 className="h-6 w-6" />
-              </div>
-              Data Transmission Analytics
-            </CardTitle>
-            <CardDescription className="text-white/90 mt-1">Real-time data flow and quality metrics</CardDescription>
-          </CardHeader>
-          <CardContent className="p-6 -mt-4">
-            {isLoading ? (
-              <div className="h-48 flex items-center justify-center">
-                <RefreshCw className="h-8 w-8 text-gray-400 animate-spin" />
-              </div>
-            ) : transmissionData ? (
-              <div className="space-y-5">
-                {/* Main Metrics */}
-                <div className="bg-white rounded-xl shadow-sm border p-5">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center">
-                      <div className="inline-flex items-center justify-center w-14 h-14 bg-blue-100 rounded-full mb-2">
-                        <Activity className="h-7 w-7 text-blue-600" />
-                      </div>
-                      <div className="text-3xl font-bold text-gray-900">
-                        {(transmissionData.transmission?.total_readings || 0).toLocaleString()}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">Total Readings (7 days)</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="inline-flex items-center justify-center w-14 h-14 bg-green-100 rounded-full mb-2">
-                        <TrendingUp className="h-7 w-7 text-green-600" />
-                      </div>
-                      <div className="text-3xl font-bold text-gray-900">
-                        {transmissionData.transmission?.data_quality || 0}%
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">Data Quality Score</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Transmission Rate Visual */}
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <h4 className="text-sm font-semibold text-gray-700">Transmission Rate</h4>
-                      <p className="text-xs text-gray-500 mt-0.5">Network performance indicator</p>
-                    </div>
-                    <div className="text-2xl font-bold text-blue-900">
-                      {transmissionData.transmission?.transmission_rate || 0}%
-                    </div>
-                  </div>
-                  <div className="relative h-3 bg-white rounded-full overflow-hidden shadow-inner">
-                    <div 
-                      className={`h-full transition-all duration-1000 rounded-full ${
-                        (transmissionData.transmission?.transmission_rate || 0) >= 90 
-                          ? "bg-gradient-to-r from-green-400 to-green-500" 
-                          : (transmissionData.transmission?.transmission_rate || 0) >= 70 
-                          ? "bg-gradient-to-r from-yellow-400 to-yellow-500" 
-                          : "bg-gradient-to-r from-red-400 to-red-500"
-                      }`}
-                      style={{ width: `${transmissionData.transmission?.transmission_rate || 0}%` }}
-                    />
-                  </div>
-                </div>
-
-                {/* Detailed Statistics */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-green-50 rounded-lg p-3 border border-green-100">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
-                        <span className="text-xs text-gray-600">Valid Readings</span>
-                      </div>
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                    </div>
-                    <div className="text-xl font-bold text-green-900 mt-1">
-                      {(transmissionData.transmission?.valid_readings || 0).toLocaleString()}
-                    </div>
-                  </div>
-
-                  <div className="bg-red-50 rounded-lg p-3 border border-red-100">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
-                        <span className="text-xs text-gray-600">Invalid Readings</span>
-                      </div>
-                      <XCircle className="h-4 w-4 text-red-500" />
-                    </div>
-                    <div className="text-xl font-bold text-red-900 mt-1">
-                      {(transmissionData.transmission?.invalid_readings || 0).toLocaleString()}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Daily Average */}
-                <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-100">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <Clock className="h-5 w-5 text-purple-600 mr-2" />
-                      <div>
-                        <p className="text-sm font-semibold text-gray-700">Daily Average</p>
-                        <p className="text-xs text-gray-500">Readings per day</p>
-                      </div>
-                    </div>
-                    <div className="text-2xl font-bold text-purple-900">
-                      {Math.round(transmissionData.transmission?.average_daily_readings || 0).toLocaleString()}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Active Devices Info */}
-                {transmissionData.devices && (
-                  <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t">
-                    <span className="flex items-center">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mr-1 animate-pulse"></div>
-                      {transmissionData.devices.active || 0} Active Devices
-                    </span>
-                    <span>{transmissionData.devices.total || 0} Total Devices</span>
-                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No statistics available</p>
                 )}
-              </div>
-            ) : (
-              <div className="h-48 flex items-center justify-center text-gray-500">
-                <div className="text-center">
-                  <BarChart3 className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                  <p>No transmission data available</p>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+              </CardContent>
+            </Card>
 
-      {/* Network Distribution and Categories */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Network Distribution Chart */}
-        <Card className="hover:shadow-md transition-shadow overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-blue-50 to-transparent border-b">
-            <CardTitle className="flex items-center">
-              <BarChart3 className="mr-2 h-5 w-5 text-blue-500" />
-              Network Distribution
-            </CardTitle>
-            <CardDescription>Device distribution across networks</CardDescription>
-          </CardHeader>
-          <CardContent className="p-4">
-            {isLoading ? (
-              <div className="h-80 flex items-center justify-center">
-                <RefreshCw className="h-8 w-8 text-gray-400 animate-spin" />
-              </div>
-            ) : networkChartData.length > 0 ? (
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <RechartsBarChart data={networkChartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey="network" 
-                      tick={{ fontSize: 12 }}
-                      angle={-45}
-                      textAnchor="end"
-                      height={80}
-                    />
-                    <YAxis />
-                    <Tooltip 
-                      formatter={(value: any) => [value, 'Devices']}
-                      labelFormatter={(label: any) => `Network: ${label}`}
-                    />
-                    <Bar dataKey="count" fill="#3B82F6" radius={[4, 4, 0, 0]} />
-                  </RechartsBarChart>
-                </ResponsiveContainer>
-              </div>
-            ) : (
-              <div className="h-80 flex items-center justify-center text-gray-500">
-                <div className="text-center">
-                  <BarChart3 className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                  <p>No network distribution data available</p>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Device Categories Chart */}
-        <Card className="hover:shadow-md transition-shadow overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-purple-50 to-transparent border-b">
-            <CardTitle className="flex items-center">
-              <Package className="mr-2 h-5 w-5 text-purple-500" />
-              Device Categories
-            </CardTitle>
-            <CardDescription>Distribution by device category</CardDescription>
-          </CardHeader>
-          <CardContent className="p-4">
-            {isLoading ? (
-              <div className="h-80 flex items-center justify-center">
-                <RefreshCw className="h-8 w-8 text-gray-400 animate-spin" />
-              </div>
-            ) : categoriesData.length > 0 ? (
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <RechartsPieChart>
-                    <Pie
-                      data={categoriesData}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={100}
-                      dataKey="value"
-                      label={({ name, percent }) => `${name} ${percent ? (percent * 100).toFixed(0) : 0}%`}
-                    >
-                      {categoriesData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value: any) => [value, 'Devices']} />
-                  </RechartsPieChart>
-                </ResponsiveContainer>
-              </div>
-            ) : (
-              <div className="h-80 flex items-center justify-center text-gray-500">
-                <div className="text-center">
-                  <Package className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                  <p>No category data available</p>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Offline Devices and Upcoming Maintenance */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Offline Devices */}
-        <Card className="hover:shadow-md transition-shadow overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-red-50 to-transparent border-b">
-            <CardTitle className="flex items-center">
-              <WifiOff className="mr-2 h-5 w-5 text-red-500" />
-              Offline Devices
-            </CardTitle>
-            <CardDescription>Devices offline for more than 24 hours</CardDescription>
-          </CardHeader>
-          <CardContent className="p-4">
-            {isLoading ? (
-              <div className="h-80 flex items-center justify-center">
-                <RefreshCw className="h-8 w-8 text-gray-400 animate-spin" />
-              </div>
-            ) : offlineDevices.length > 0 ? (
-              <div className="space-y-3 max-h-80 overflow-y-auto">
-                {offlineDevices.map((device) => (
-                  <div 
-                    key={device.device_key || device.device_id} 
-                    className="flex items-center justify-between p-3 bg-red-50 rounded-lg hover:bg-red-100 transition-colors border border-red-100"
-                  >
-                    <div className="flex items-center">
-                      <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center mr-3">
-                        <WifiOff className="h-5 w-5 text-red-500" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900">{device.device_name}</p>
-                        <p className="text-sm text-gray-600">Network: {device.network || 'Unknown'}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <Badge variant="destructive">
-                        {device.status || 'Offline'}
+            {/* Warning & Critical Counts */}
+            <Card className="hover:shadow-md transition-shadow duration-200">
+              <CardHeader className="pb-2">
+                <CardDescription className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Incidents (14d)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {stats ? (
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground flex items-center gap-1.5">
+                        <AlertTriangle className="h-4 w-4 text-amber-500" /> Warnings
+                      </span>
+                      <Badge variant="outline" className="font-bold border-amber-200 text-amber-700 bg-amber-50">
+                        {stats.warningCount}
                       </Badge>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Last seen: {device.last_updated === "Never" ? "Never" : format(parseISO(device.last_updated), "MMM dd, HH:mm")}
-                      </p>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground flex items-center gap-1.5">
+                        <ServerCrash className="h-4 w-4 text-red-500" /> Critical Events
+                      </span>
+                      <Badge variant="outline" className="font-bold border-red-200 text-red-700 bg-red-50">
+                        {stats.criticalCount}
+                      </Badge>
                     </div>
                   </div>
-                ))}
-                {offlineDevices.length >= 10 && (
-                  <div className="text-center pt-2">
-                    <Link href="/dashboard/devices?filter=offline">
-                      <Button variant="outline" size="sm">
-                        View all offline devices
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </Link>
-                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No statistics available</p>
                 )}
-              </div>
-            ) : (
-              <div className="h-80 flex items-center justify-center text-gray-500">
-                <div className="text-center">
-                  <Wifi className="h-12 w-12 mx-auto mb-3 text-green-300" />
-                  <p>All devices are online!</p>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
 
-        {/* Upcoming Maintenance */}
-        <Card className="hover:shadow-md transition-shadow overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-amber-50 to-transparent border-b">
-            <CardTitle className="flex items-center">
-              <Calendar className="mr-2 h-5 w-5 text-amber-500" />
-              Upcoming Maintenance
-            </CardTitle>
-            <CardDescription>Scheduled device maintenance</CardDescription>
-          </CardHeader>
-          <CardContent className="p-4">
-            {isLoading ? (
-              <div className="h-80 flex items-center justify-center">
-                <RefreshCw className="h-8 w-8 text-gray-400 animate-spin" />
-              </div>
-            ) : upcomingMaintenance.length > 0 ? (
-              <div className="space-y-3 max-h-80 overflow-y-auto">
-                {upcomingMaintenance.map((device) => (
-                  <div 
-                    key={device.device_key || device.device_id} 
-                    className="flex items-center justify-between p-3 bg-amber-50 rounded-lg hover:bg-amber-100 transition-colors"
-                  >
-                    <div className="flex items-center">
-                      <div className={`h-10 w-10 rounded-full flex items-center justify-center mr-3 ${
-                        device.days_until_due <= 7 
-                          ? 'bg-red-100' 
-                          : device.days_until_due <= 14 
-                            ? 'bg-yellow-100' 
-                            : 'bg-green-100'
-                      }`}>
-                        <Wrench className={`h-5 w-5 ${
-                          device.days_until_due <= 7 
-                            ? 'text-red-500' 
-                            : device.days_until_due <= 14 
-                              ? 'text-yellow-500' 
-                              : 'text-green-500'
-                        }`} />
-                      </div>
-                      <div>
-                        <p className="font-medium">{device.device_name}</p>
-                        <p className="text-sm text-gray-500">{device.site_name || 'Unknown location'}</p>
-                      </div>
+            {/* Avg Devices Counts */}
+            <Card className="hover:shadow-md transition-shadow duration-200">
+              <CardHeader className="pb-2">
+                <CardDescription className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Active Network Count
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {stats ? (
+                  <div className="space-y-2">
+                    <div className="text-3xl font-black text-slate-800 dark:text-slate-100 flex items-baseline gap-1">
+                      {Math.round(stats.avg_operational_count)}
                     </div>
-                    <div className="text-right">
-                      <p className="font-medium">{format(parseISO(device.next_maintenance), 'MMM dd, yyyy')}</p>
-                      <p className="text-sm text-gray-500">
-                        In {device.days_until_due} day{device.days_until_due !== 1 ? 's' : ''}
-                      </p>
+                    <div className="text-xs text-muted-foreground">
+                      Average operational devices transmitting live data
+                    </div>
+                    <div className="flex gap-2 text-xxs text-muted-foreground mt-2">
+                      <span>Tx Feed: {Math.round(stats.avg_transmitting_count)}</span>
+                      <span>·</span>
+                      <span>Stale Tx: {Math.round(stats.avg_data_available_count)}</span>
                     </div>
                   </div>
-                ))}
-                {upcomingMaintenance.length >= 10 && (
-                  <div className="text-center pt-2">
-                    <Link href="/dashboard/devices?filter=maintenance">
-                      <Button variant="outline" size="sm">
-                        View all maintenance schedules
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </Link>
-                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No statistics available</p>
                 )}
-              </div>
-            ) : (
-              <div className="h-80 flex items-center justify-center text-gray-500">
-                <div className="text-center">
-                  <Calendar className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                  <p>No upcoming maintenance scheduled</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Charts Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            {/* Uptime Line Chart */}
+            <Card className="hover:shadow-md transition-shadow duration-200">
+              <CardHeader>
+                <CardTitle className="text-base font-bold flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-blue-500" /> Historical Uptime Trend (14 Days)
+                </CardTitle>
+                <CardDescription>Daily average and minimum device online rates</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-80 w-full">
+                  {uptimeChartData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={uptimeChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+                        <XAxis 
+                          dataKey="_id" 
+                          tickFormatter={(tick) => format(parseISO(tick), "MMM dd")}
+                          tick={{ fontSize: 10 }}
+                        />
+                        <YAxis tick={{ fontSize: 10 }} unit="%" domain={[0, 100]} />
+                        <Tooltip 
+                          labelFormatter={(label) => format(parseISO(label), "MMMM dd, yyyy")}
+                          formatter={(value: any, name: any, props: any) => {
+                            const val = parseFloat(value).toFixed(1)
+                            const item = props.payload
+                            if (name === 'Average Online') {
+                              const offlineVal = parseFloat(item.avgOfflinePercentage).toFixed(1)
+                              return [`${val}% (${offlineVal}% offline)`, 'Average Online']
+                            }
+                            if (name === 'Min Online') {
+                              const maxOfflineVal = parseFloat(item.maxOfflinePercentage).toFixed(1)
+                              return [`${val}% (${maxOfflineVal}% offline)`, 'Min Online']
+                            }
+                            return [`${val}%`, name]
+                          }}
+                        />
+                        <Legend wrapperStyle={{ fontSize: '11px', marginTop: '10px' }} />
+                        <Line 
+                          type="monotone" 
+                          dataKey="avgOnlinePercentage" 
+                          name="Average Online"
+                          stroke="#2563EB" 
+                          strokeWidth={2}
+                          dot={{ r: 3 }}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="minOnlinePercentage" 
+                          name="Min Online"
+                          stroke="#EF4444" 
+                          strokeWidth={1}
+                          strokeDasharray="4 4"
+                          dot={false}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-full flex items-center justify-center text-slate-400 text-sm">
+                      No historical uptime data available
+                    </div>
+                  )}
                 </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+              </CardContent>
+            </Card>
+
+            {/* Hourly Trends Bar Chart */}
+            <Card className="hover:shadow-md transition-shadow duration-200">
+              <CardHeader>
+                <CardTitle className="text-base font-bold flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-indigo-500" /> Hourly Uptime Pattern
+                </CardTitle>
+                <CardDescription>Average online percentage by hour of day (EAT)</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-80 w-full">
+                  {trendsChartData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={trendsChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+                        <XAxis 
+                          dataKey="_id.hour" 
+                          tickFormatter={formatHour}
+                          tick={{ fontSize: 10 }}
+                        />
+                        <YAxis tick={{ fontSize: 10 }} unit="%" domain={[0, 100]} />
+                        <Tooltip 
+                          labelFormatter={(label) => `Hour: ${formatHour(Number(label))}`}
+                          formatter={(value: any, name: any, props: any) => {
+                            const val = parseFloat(value).toFixed(1)
+                            const item = props.payload
+                            const offlineVal = parseFloat(item.avg_not_transmitting_percentage).toFixed(1)
+                            return [`${val}% (${offlineVal}% offline)`, 'Average Online']
+                          }}
+                        />
+                        <Bar 
+                          dataKey="avgOnlinePercentage" 
+                          radius={[4, 4, 0, 0]}
+                        >
+                          {trendsChartData.map((entry, index) => (
+                            <Cell 
+                              key={`cell-${index}`} 
+                              fill={getUptimeHexColor(entry.avgOnlinePercentage)} 
+                            />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-full flex items-center justify-center text-slate-400 text-sm">
+                      No hourly trend data available
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Lower Grid: Alert Feeds */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+            
+            {/* Recent Incidents (Threshold Exceeded) */}
+            <Card className="lg:col-span-1 hover:shadow-md transition-shadow duration-200">
+              <CardHeader>
+                <CardTitle className="text-base font-bold text-red-600 flex items-center gap-1.5">
+                  <AlertCircle className="h-4 w-4" /> Recent Incidents
+                </CardTitle>
+                <CardDescription>Checks exceeding the 35% offline threshold</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4 max-h-[400px] overflow-y-auto pr-1">
+                  {recentAlerts.length > 0 ? (
+                    recentAlerts.map((alert) => (
+                      <div 
+                        key={alert._id} 
+                        className="p-3 rounded-lg border bg-slate-50 dark:bg-slate-900 border-slate-100 flex flex-col gap-1"
+                      >
+                        <div className="flex justify-between items-start">
+                          <Badge className={`${getStatusColor(alert.status)} text-xs border font-semibold`}>
+                            {alert.status}
+                          </Badge>
+                          <span className="text-xxs text-muted-foreground">
+                            {format(parseISO(alert.checked_at), "MMM dd, HH:mm")}
+                          </span>
+                        </div>
+                        <p className="text-xs font-bold text-slate-800 dark:text-slate-200 mt-1">
+                          {(100 - alert.not_transmitting_percentage).toFixed(1)}% Online ({alert.total_deployed_devices - alert.not_transmitting_devices_count}/{alert.total_deployed_devices} devices)
+                        </p>
+                        <p className="text-xxs text-muted-foreground leading-relaxed mt-0.5">
+                          {alert.message} <span className="opacity-70 block mt-0.5">({alert.not_transmitting_percentage.toFixed(1)}% offline)</span>
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="py-8 text-center text-slate-400 text-sm flex flex-col items-center gap-2">
+                      <CheckCircle2 className="h-8 w-8 text-green-500" />
+                      No outages or warnings in the last 48 hours.
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Detailed Checks Log */}
+            <Card className="lg:col-span-2 hover:shadow-md transition-shadow duration-200">
+              <CardHeader>
+                <CardTitle className="text-base font-bold flex items-center gap-2">
+                  <SlidersHorizontal className="h-4 w-4 text-slate-500" /> Historical Checks Log
+                </CardTitle>
+                <CardDescription>Latest 10 network checks executed in staging</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-slate-100 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                        <th className="py-3 px-2">Time Checked</th>
+                        <th className="py-3 px-2 text-center">Status</th>
+                        <th className="py-3 px-2 text-center">Online % (Offline %)</th>
+                        <th className="py-3 px-2 text-center">Operational</th>
+                        <th className="py-3 px-2 text-center">Total Devices</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {allAlerts.length > 0 ? (
+                        allAlerts.slice(0, 10).map((alert) => (
+                          <tr key={alert._id} className="hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
+                            <td className="py-3 px-2 font-medium text-slate-700 dark:text-slate-300">
+                              {format(parseISO(alert.checked_at), "MMM dd, yyyy HH:mm")}
+                            </td>
+                            <td className="py-3 px-2 text-center">
+                              <Badge className={`${getStatusColor(alert.status)} text-xxs font-bold`}>
+                                {alert.status}
+                              </Badge>
+                            </td>
+                            <td className="py-3 px-2 text-center">
+                              <span className={`font-bold ${getUptimeColorClass(100 - alert.not_transmitting_percentage)}`}>
+                                {(100 - alert.not_transmitting_percentage).toFixed(1)}%
+                              </span>
+                              <span className="text-xxs font-semibold ml-1.5 text-muted-foreground">
+                                ({alert.not_transmitting_percentage.toFixed(1)}%)
+                              </span>
+                            </td>
+                            <td className="py-3 px-2 text-center text-slate-600 dark:text-slate-400">
+                              {alert.operational_count || 0}
+                            </td>
+                            <td className="py-3 px-2 text-center text-slate-600 dark:text-slate-400">
+                              {alert.total_deployed_devices}
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={5} className="py-8 text-center text-slate-400">
+                            No checks recorded yet
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+
+          </div>
+        </>
+      )}
     </div>
   )
 }
