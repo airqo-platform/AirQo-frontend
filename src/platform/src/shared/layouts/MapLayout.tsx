@@ -24,11 +24,11 @@ export const MapLayout: React.FC<MainLayoutProps> = ({
   showBottomNav = false,
 }) => {
   const theme = useAppSelector(state => state.theme);
-  const { isLoading: userLoading, isLoggingOut } = useUser();
+  const { isLoggingOut } = useUser();
 
   return (
     <>
-      <LoadingOverlay isVisible={isLoggingOut || userLoading} delayMs={0} />
+      <LoadingOverlay isVisible={isLoggingOut} delayMs={0} />
 
       <div
         className={cn(

@@ -31,7 +31,8 @@ export const GlobalSidebar: React.FC = () => {
   const { activeGroup, isLoading: userLoading } = useUserActions();
   const {
     hasPermission,
-    isAirQoSuperAdminWithEmail,
+    hasAnyPermissionInActiveGroup,
+    hasEmailDomain,
     isLoading: rbacLoading,
   } = useRBAC();
   const [imageError, setImageError] = React.useState(false);
@@ -126,9 +127,9 @@ export const GlobalSidebar: React.FC = () => {
     return config.flatMap(group =>
       group.items
         .filter(item => {
-          // Only show system-management if user has AIRQO_SUPER_ADMIN or AIRQO_ADMIN role
+          // Only show system-management if user has @airqo.net email AND SYSTEM_ADMIN or SUPER_ADMIN permission in active group
           if (item.id === 'system-management') {
-            return isAirQoSuperAdminWithEmail();
+            return hasEmailDomain('@airqo.net') && hasAnyPermissionInActiveGroup(['SYSTEM_ADMIN', 'SUPER_ADMIN']);
           }
           // Only show admin-panel if user has GROUP_MANAGEMENT permission
           if (item.id === 'admin-panel') {
@@ -160,7 +161,7 @@ export const GlobalSidebar: React.FC = () => {
           };
         })
     );
-  }, [flow, orgSlug, hasPermission, isAirQoSuperAdminWithEmail]);
+  }, [flow, orgSlug, hasPermission, hasAnyPermissionInActiveGroup, hasEmailDomain]);
   const isProtectedSidebarRoute =
     pathname.startsWith('/org/') ||
     pathname.startsWith('/system/') ||

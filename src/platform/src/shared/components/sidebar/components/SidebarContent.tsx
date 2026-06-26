@@ -20,14 +20,14 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
 }) => {
   const pathname = usePathname();
   const {
-    isAirQoSuperAdminWithEmail,
-    hasAnyPermission,
+    canAccessAdminPanel,
     hasAnyPermissionInActiveGroup,
   } = useRBAC();
 
   // Get the appropriate sidebar configuration
   const sidebarConfig = React.useMemo(() => {
     let config = getSidebarConfig(flow);
+    const canAccessAdmin = canAccessAdminPanel();
 
     // Filter admin items based on permissions
     if (flow === 'admin') {
@@ -35,18 +35,16 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
         .map(group => ({
           ...group,
           items: group.items.filter(item => {
-            // Hide admin dashboard if user doesn't have AIRQO_SUPER_ADMIN role
             if (item.id === 'admin-dashboard') {
-              return isAirQoSuperAdminWithEmail();
+              return canAccessAdmin;
             }
-            // Hide statistics and org-requests if user doesn't have AIRQO_SUPER_ADMIN role
             if (['admin-statistics', 'admin-org-requests'].includes(item.id)) {
-              return isAirQoSuperAdminWithEmail();
+              return canAccessAdmin;
             }
             return true;
           }),
         }))
-        .filter(group => group.items.length > 0); // Filter out empty groups
+        .filter(group => group.items.length > 0);
     }
 
     // Filter organization management items based on permissions
@@ -58,9 +56,13 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
             return {
               ...group,
               items: group.items.filter(item => {
-                // Members and Member Requests require MEMBER_VIEW
-                if (['org-members', 'org-member-requests'].includes(item.id)) {
+                // Members require MEMBER_VIEW
+                if (item.id === 'org-members') {
                   return hasAnyPermissionInActiveGroup(['MEMBER_VIEW']);
+                }
+                // Member Requests require MEMBER_INVITE
+                if (item.id === 'org-member-requests') {
+                  return hasAnyPermissionInActiveGroup(['MEMBER_INVITE']);
                 }
                 // Roles & Permissions require ROLE_VIEW
                 if (item.id === 'org-roles') {
@@ -86,18 +88,13 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
           ...group,
           items: group.items.filter(item => {
             if (item.id === 'system-feedback') {
-              return (
-                hasAnyPermission(['SYSTEM_ADMIN', 'SUPER_ADMIN']) ||
-                isAirQoSuperAdminWithEmail()
-              );
+              return canAccessAdmin;
             }
 
             if (item.id === 'system-surveys') {
-              return isAirQoSuperAdminWithEmail();
+              return canAccessAdmin;
             }
 
-            // Hide system-clients, system-security, system-org-requests, and system-user-statistics if user doesn't have AIRQO_SUPER_ADMIN role
-            // Hide the super-admin-only system items if the user doesn't have AIRQO_SUPER_ADMIN role
             if (
               [
                 'system-clients',
@@ -107,12 +104,12 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
                 'system-user-statistics',
               ].includes(item.id)
             ) {
-              return isAirQoSuperAdminWithEmail();
+              return canAccessAdmin;
             }
             return true;
           }),
         }))
-        .filter(group => group.items.length > 0); // Filter out empty groups
+        .filter(group => group.items.length > 0);
     }
 
     // If org flow and orgSlug provided, replace placeholders with actual slug
@@ -130,8 +127,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
   }, [
     flow,
     orgSlug,
-    isAirQoSuperAdminWithEmail,
-    hasAnyPermission,
+    canAccessAdminPanel,
     hasAnyPermissionInActiveGroup,
   ]);
 
