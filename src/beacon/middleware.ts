@@ -45,12 +45,21 @@ export async function middleware(request: NextRequest) {
     // Preserve the original destination for redirect after login
     loginUrl.searchParams.set('from', pathname)
     return NextResponse.redirect(loginUrl)
-
   }
   
   // Redirect authenticated users away from auth pages
   if (isAuthenticated && isPublicRoute) {
-    return NextResponse.redirect(new URL('/dashboard/devices', request.url))
+    const isAirqoAdmin = request.cookies.get('isAirqoAdmin')?.value === 'true'
+    const defaultRoute = isAirqoAdmin ? '/dashboard' : '/dashboard/devices'
+    return NextResponse.redirect(new URL(defaultRoute, request.url))
+  }
+
+  // Restrict access to /dashboard to AirQo Admins only
+  if (pathname === '/dashboard' || pathname === '/dashboard/') {
+    const isAirqoAdmin = request.cookies.get('isAirqoAdmin')?.value === 'true'
+    if (!isAirqoAdmin) {
+      return NextResponse.redirect(new URL('/dashboard/devices', request.url))
+    }
   }
   
   return NextResponse.next()

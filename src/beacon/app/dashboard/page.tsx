@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { useGroup } from "@/lib/group-context"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
@@ -90,6 +92,9 @@ const aggregateUptimeFromAlerts = (alerts: NetworkStatusAlert[]): UptimeSummaryI
 }
 
 export default function DashboardPage() {
+  const router = useRouter()
+  const { availableGroups, loading: groupsLoading } = useGroup()
+  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null)
   const [stats, setStats] = useState<NetworkStatistics | null>(null)
   const [trends, setTrends] = useState<HourlyTrend[]>([])
   const [uptime, setUptime] = useState<UptimeSummaryItem[]>([])
@@ -97,6 +102,24 @@ export default function DashboardPage() {
   const [allAlerts, setAllAlerts] = useState<NetworkStatusAlert[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!groupsLoading) {
+      const hasAirqoAdmin = availableGroups.some(g => {
+        if (g.grp_title?.toLowerCase() === 'airqo') {
+          const roleName = g.role?.role_name?.toLowerCase() || ''
+          return roleName.includes('admin') || roleName === 'super' || roleName === 'net admin'
+        }
+        return false
+      })
+
+      if (!hasAirqoAdmin) {
+        router.replace('/dashboard/devices')
+      } else {
+        setIsAuthorized(true)
+      }
+    }
+  }, [availableGroups, groupsLoading, router])
 
   const fetchData = async () => {
     setLoading(true)
@@ -234,6 +257,17 @@ export default function DashboardPage() {
     ...item,
     avgOnlinePercentage: 100 - (item.avg_not_transmitting_percentage ?? 0),
   }))
+
+  if (groupsLoading || isAuthorized === null) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="flex flex-col items-center gap-2">
+          <RefreshCw className="h-8 w-8 animate-spin text-blue-600" />
+          <p className="text-sm text-slate-500">Checking authorization...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-8 p-6 lg:p-8 max-w-7xl mx-auto">
