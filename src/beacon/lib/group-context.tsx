@@ -97,6 +97,22 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
 
         setAvailableGroups(groups)
 
+        // Check if user is an AirQo Admin
+        const isAirqoAdmin = groups.some(g => {
+          if (g.grp_title?.toLowerCase() === 'airqo') {
+             const roleName = g.role?.role_name?.toLowerCase() || ''
+             return roleName.includes('admin') || roleName === 'super' || roleName === 'net admin'
+          }
+          return false
+        })
+
+        // Set isAirqoAdmin cookie and localStorage
+        if (typeof globalThis.window !== "undefined") {
+          const maxAge = 7 * 24 * 60 * 60 // 7 days
+          globalThis.document.cookie = `isAirqoAdmin=${isAirqoAdmin}; path=/; max-age=${maxAge}; SameSite=Strict`
+          globalThis.localStorage.setItem('isAirqoAdmin', String(isAirqoAdmin))
+        }
+
         // Pick active group: persisted selection → first group returned by profile
         const persisted =
           typeof globalThis.window !== "undefined"

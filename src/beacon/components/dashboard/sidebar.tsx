@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Package, Layers, Box, ChevronRight, Wrench, FlaskConical, FileText, MessageSquare } from "lucide-react"
+import { Home, Package, Layers, Box, ChevronRight, Wrench, FlaskConical, FileText, MessageSquare } from "lucide-react"
 import { AqMonitor, AqAirQlouds } from '@/components/icons'
 import { useGroup } from '@/lib/group-context'
 import { openFeedbackDialog } from '@/components/features/feedback/feedback-dialog'
@@ -25,23 +25,25 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar }: Readonly<Sideb
 
       <nav className="px-2 py-3 flex-1">
         <ul className="space-y-1">
-          {/* <li>
-            <Link
-              href="/dashboard"
-              className={`flex items-center rounded-md hover:bg-gray-100 transition-colors group relative ${
-                sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
-              }`}
-              title={!sidebarOpen ? "Overview" : ""}
-            >
-              <Home className="h-5 w-5 flex-shrink-0" />
-              {sidebarOpen && <span className="ml-3 text-sm">Overview</span>}
-              {!sidebarOpen && (
-                <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
-                  Overview
-                </span>
-              )}
-            </Link>
-          </li> */}
+          {isAirqoGroup && isActiveGroupAdmin && (
+            <li>
+              <Link
+                href="/dashboard"
+                className={`flex items-center rounded-md hover:bg-gray-100 transition-colors group relative ${
+                  sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
+                }`}
+                title={!sidebarOpen ? "Overview" : ""}
+              >
+                <Home className="h-5 w-5 flex-shrink-0" />
+                {sidebarOpen && <span className="ml-3 text-sm">Overview</span>}
+                {!sidebarOpen && (
+                  <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                    Overview
+                  </span>
+                )}
+              </Link>
+            </li>
+          )}
           <li>
             <Link
               href="/dashboard/devices"

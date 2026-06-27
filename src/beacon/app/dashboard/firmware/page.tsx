@@ -502,17 +502,13 @@ const FirmwarePage = () => {
       )}
       </TabsContent>
 
-      <TabsContent value="workbench" className="m-0">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1 space-y-6">
-            <DeviceCards />
-            <FlashingPanel firmwareVersions={firmwareVersions} />
-          </div>
-          <div className="lg:col-span-2">
-            <div className="h-[600px] shadow-lg">
-              <Terminal />
-            </div>
-          </div>
+      <TabsContent value="workbench" className="m-0 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <DeviceCards />
+          <FlashingPanel firmwareVersions={firmwareVersions} />
+        </div>
+        <div className="h-[600px] shadow-lg">
+          <Terminal />
         </div>
       </TabsContent>
       </Tabs>

@@ -85,7 +85,7 @@ export const DeviceCards: React.FC = () => {
       ) : (
         <div className="space-y-4">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Connect to an ESP via native Web Serial, or an Arduino via the Local Agent.
+            Connect via native Web Serial, or via the Local Agent.
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -95,7 +95,7 @@ export const DeviceCards: React.FC = () => {
               className="flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-colors dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600"
             >
               <Usb size={16} className="mr-2 text-blue-500" />
-              Connect ESP (Browser)
+              Connect via Browser
             </button>
             
             {isLocalAgentRunning ? (
@@ -123,7 +123,7 @@ export const DeviceCards: React.FC = () => {
                   className="flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:opacity-50 transition-colors"
                 >
                   <Wifi size={16} className="mr-2" />
-                  Connect Arduino (Agent)
+                  Connect via Agent
                 </button>
               </div>
             ) : (
