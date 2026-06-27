@@ -1,3 +1,4 @@
+import { buildPlatformApiUrl } from '@/lib/config';
 import authService from './api-service';
 
 export interface NetworkStatusAlert {
@@ -48,7 +49,7 @@ export interface UptimeSummaryItem {
 }
 
 class NetworkStatusService {
-  private readonly baseUrl = 'https://staging-platform.airqo.net/api/v2/devices/network-status';
+  private readonly baseUrl = buildPlatformApiUrl('devices/network-status', 'v2');
 
   private getHeaders(): HeadersInit {
     const headers: Record<string, string> = {
@@ -58,7 +59,7 @@ class NetworkStatusService {
     if (token) {
       // API documentation states: Authorization: JWT <token>
       // We prepend 'JWT ' if not already formatted with 'Bearer' or 'JWT'
-      headers['Authorization'] = token.startsWith('JWT') || token.startsWith('Bearer') 
+      headers['Authorization'] = token.startsWith('JWT ') || token.startsWith('Bearer') 
         ? token 
         : `JWT ${token}`;
     }

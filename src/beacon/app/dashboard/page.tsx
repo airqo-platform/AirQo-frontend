@@ -98,21 +98,21 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Compute date range (last 14 days)
-  const endDate = new Date().toISOString()
-  const startDate = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString()
-
   const fetchData = async () => {
     setLoading(true)
     setError(null)
     try {
-      const params = { start_date: startDate, end_date: endDate }
+      // Compute date range dynamically on each fetch (last 14 days)
+      const currentEndDate = new Date().toISOString()
+      const currentStartDate = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString()
+      const params = { start_date: currentStartDate, end_date: currentEndDate }
+
       const [statsRes, trendsRes, uptimeRes, recentRes, allRes] = await Promise.all([
         networkStatusService.getStatistics(params),
         networkStatusService.getHourlyTrends(params),
         networkStatusService.getUptimeSummary(14),
         networkStatusService.getRecentAlerts(48), // Past 48 hours for critical list
-        networkStatusService.getAlerts({ limit: 200 }) // Load more alerts for client-side aggregation fallback
+        networkStatusService.getAlerts({ limit: 200, start_date: currentStartDate, end_date: currentEndDate }) // Load more alerts for client-side aggregation fallback
       ])
 
       let rawAlerts: NetworkStatusAlert[] = []
@@ -271,16 +271,16 @@ export default function DashboardPage() {
               <div className="space-y-6 pt-4">
                 <div>
                   <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Classification Criteria</h4>
-                  <p className="text-xxs text-muted-foreground mb-3 leading-relaxed">
+                  <p className="text-[10px] text-muted-foreground mb-3 leading-relaxed">
                     Devices are classified by evaluating two distinct transmission conditions:
                   </p>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="p-3 bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900 rounded-xl">
                       <div className="flex items-center gap-1.5 mb-1">
                         <Clock className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-                        <span className="font-bold text-slate-800 dark:text-slate-200 text-xxs">isOnline (Feed)</span>
+                        <span className="font-bold text-slate-800 dark:text-slate-200 text-[10px]">isOnline (Feed)</span>
                       </div>
-                      <p className="text-xxs text-slate-500 dark:text-slate-400 leading-relaxed">
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
                         Measures <strong>feed freshness</strong>. Fresh if last active timestamp is <strong>&le; 5 hours</strong>.
                       </p>
                     </div>
@@ -288,9 +288,9 @@ export default function DashboardPage() {
                     <div className="p-3 bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900 rounded-xl">
                       <div className="flex items-center gap-1.5 mb-1">
                         <Wifi className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
-                        <span className="font-bold text-slate-800 dark:text-slate-200 text-xxs">rawOnlineStatus (Tx)</span>
+                        <span className="font-bold text-slate-800 dark:text-slate-200 text-[10px]">rawOnlineStatus (Tx)</span>
                       </div>
-                      <p className="text-xxs text-slate-500 dark:text-slate-400 leading-relaxed">
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
                         Measures <strong>active connection</strong>. Active if device transmitted data <strong>&le; 2 hours</strong> ago.
                       </p>
                     </div>
@@ -300,7 +300,7 @@ export default function DashboardPage() {
                 <div>
                   <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-3">Category Mapping Matrix</h4>
                   <div className="overflow-x-auto rounded-lg border border-slate-100 dark:border-slate-800">
-                    <table className="w-full text-left border-collapse text-xxs">
+                    <table className="w-full text-left border-collapse text-[10px]">
                       <thead>
                         <tr className="bg-slate-50 dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 text-slate-500 font-bold">
                           <th className="py-2 px-2.5">Category</th>
@@ -392,7 +392,7 @@ export default function DashboardPage() {
                       {(100 - latestCheck.not_transmitting_percentage).toFixed(1)}% <span className="text-xs font-normal text-muted-foreground text-slate-500">online</span>
                     </div>
                     <p className="text-xs text-muted-foreground line-clamp-2">
-                      {latestCheck.message} <span className="text-xxs opacity-70 block mt-1">({latestCheck.not_transmitting_percentage.toFixed(1)}% offline)</span>
+                      {latestCheck.message} <span className="text-[10px] opacity-70 block mt-1">({latestCheck.not_transmitting_percentage.toFixed(1)}% offline)</span>
                     </p>
                   </div>
                 ) : (
@@ -400,7 +400,7 @@ export default function DashboardPage() {
                 )}
               </CardContent>
             </Card>
-
+ 
             {/* Average Online KPI Card */}
             <Card className={`hover:shadow-md transition-shadow duration-200 border-l-4 ${stats ? getUptimeBorderClass(100 - stats.avg_not_transmitting_percentage) : ''}`}>
               <CardHeader className="pb-2">
@@ -419,7 +419,7 @@ export default function DashboardPage() {
                       Min Online: <span className="font-semibold text-slate-700 dark:text-slate-300">{(100 - stats.max_not_transmitting_percentage).toFixed(1)}%</span>
                     </div>
                     <p className="text-xs text-muted-foreground mt-2">
-                      Based on last {stats.totalAlerts} checks <span className="text-xxs opacity-70 block mt-0.5">({stats.avg_not_transmitting_percentage.toFixed(1)}% avg offline)</span>
+                      Based on last {stats.totalAlerts} checks <span className="text-[10px] opacity-70 block mt-0.5">({stats.avg_not_transmitting_percentage.toFixed(1)}% avg offline)</span>
                     </p>
                   </div>
                 ) : (
@@ -477,7 +477,7 @@ export default function DashboardPage() {
                     <div className="text-xs text-muted-foreground">
                       Average operational devices transmitting live data
                     </div>
-                    <div className="flex gap-2 text-xxs text-muted-foreground mt-2">
+                    <div className="flex gap-2 text-[10px] text-muted-foreground mt-2">
                       <span>Tx Feed: {Math.round(stats.avg_transmitting_count)}</span>
                       <span>·</span>
                       <span>Stale Tx: {Math.round(stats.avg_data_available_count)}</span>
@@ -633,14 +633,14 @@ export default function DashboardPage() {
                           <Badge className={`${getStatusColor(alert.status)} text-xs border font-semibold`}>
                             {alert.status}
                           </Badge>
-                          <span className="text-xxs text-muted-foreground">
+                          <span className="text-[10px] text-muted-foreground">
                             {format(parseISO(alert.checked_at), "MMM dd, HH:mm")}
                           </span>
                         </div>
                         <p className="text-xs font-bold text-slate-800 dark:text-slate-200 mt-1">
                           {(100 - alert.not_transmitting_percentage).toFixed(1)}% Online ({alert.total_deployed_devices - alert.not_transmitting_devices_count}/{alert.total_deployed_devices} devices)
                         </p>
-                        <p className="text-xxs text-muted-foreground leading-relaxed mt-0.5">
+                        <p className="text-[10px] text-muted-foreground leading-relaxed mt-0.5">
                           {alert.message} <span className="opacity-70 block mt-0.5">({alert.not_transmitting_percentage.toFixed(1)}% offline)</span>
                         </p>
                       </div>
@@ -683,7 +683,7 @@ export default function DashboardPage() {
                               {format(parseISO(alert.checked_at), "MMM dd, yyyy HH:mm")}
                             </td>
                             <td className="py-3 px-2 text-center">
-                              <Badge className={`${getStatusColor(alert.status)} text-xxs font-bold`}>
+                              <Badge className={`${getStatusColor(alert.status)} text-[10px] font-bold`}>
                                 {alert.status}
                               </Badge>
                             </td>
@@ -691,7 +691,7 @@ export default function DashboardPage() {
                               <span className={`font-bold ${getUptimeColorClass(100 - alert.not_transmitting_percentage)}`}>
                                 {(100 - alert.not_transmitting_percentage).toFixed(1)}%
                               </span>
-                              <span className="text-xxs font-semibold ml-1.5 text-muted-foreground">
+                              <span className="text-[10px] font-semibold ml-1.5 text-muted-foreground">
                                 ({alert.not_transmitting_percentage.toFixed(1)}%)
                               </span>
                             </td>
