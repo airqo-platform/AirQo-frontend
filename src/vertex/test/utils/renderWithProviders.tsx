@@ -1,7 +1,7 @@
 import React, { ReactElement } from "react";
 import { render, RenderOptions } from "@testing-library/react";
 import { Provider } from "react-redux";
-import { configureStore } from "@reduxjs/toolkit";
+import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { createTestQueryClient } from "../mocks/queryClient";
 import userReducer from "@/core/redux/slices/userSlice";
@@ -17,15 +17,17 @@ interface ExtendedRenderOptions extends Omit<RenderOptions, "queries"> {
 }
 
 export function setupStore(preloadedState?: any) {
+  const rootReducer = combineReducers({
+    user: userReducer,
+    sites: sitesReducer,
+    devices: devicesReducer,
+    grids: gridsReducer,
+    cohorts: cohortsReducer,
+    groups: groupsReducer,
+  });
+
   return configureStore({
-    reducer: {
-      user: userReducer,
-      sites: sitesReducer,
-      devices: devicesReducer,
-      grids: gridsReducer,
-      cohorts: cohortsReducer,
-      groups: groupsReducer,
-    },
+    reducer: rootReducer,
     preloadedState,
   });
 }
