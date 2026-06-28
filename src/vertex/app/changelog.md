@@ -21,7 +21,7 @@ Introduced a robust unit testing infrastructure using Vitest and React Testing L
 <details>
 <summary><strong>UI & Shared Component Testing (3)</strong></summary>
 
-- **Core UI Components**: Achieved full coverage for over 30 shadcn/radix UI components (Dialogs, Accords, Tooltips, Buttons, Inputs, Forms, etc.) verifying accessibility and interaction states without snapshot testing.
+- **Core UI Components**: Added comprehensive tests for 30+ shadcn/radix UI components (Dialogs, Accords, Tooltips, Buttons, Inputs, Forms, etc.) verifying accessibility and interaction states without snapshot testing.
 - **Shared Abstractions**: Extracted and tested shared wrappers including `ReusableTable`, `ReusableSelectInput`, `ReusableButton`, and `ReusableFileUpload`, ensuring robust prop forwarding and DOM nesting compliance.
 - **Warning Resolutions**: Proactively fixed React DOM nesting warnings (e.g., `<a>` cannot appear as a descendant of `<a>`) and accessibility label warnings across components during test implementation.
 
