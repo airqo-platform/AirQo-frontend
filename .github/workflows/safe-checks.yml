@@ -98,6 +98,10 @@ jobs:
         run: cd src/vertex && npm ci
       - name: Lint
         run: cd src/vertex && npm run lint --if-present
+      - name: Type Check
+        run: cd src/vertex && npx tsc --noEmit
+      - name: Test & Coverage
+        run: cd src/vertex && npm run test:coverage
 
   check-platform:
     needs: detect-changes
