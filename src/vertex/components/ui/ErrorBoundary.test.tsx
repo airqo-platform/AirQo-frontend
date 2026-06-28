@@ -9,6 +9,8 @@ const ThrowError = () => {
 describe("ErrorBoundary", () => {
   it("catches errors and displays fallback", () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    const preventError = (e: ErrorEvent) => e.preventDefault();
+    window.addEventListener("error", preventError);
     
     render(
       <ErrorBoundary>
@@ -17,6 +19,8 @@ describe("ErrorBoundary", () => {
     );
 
     expect(screen.getByText("Sorry.. there was an error")).toBeInTheDocument();
+    
+    window.removeEventListener("error", preventError);
     consoleError.mockRestore();
   });
 });

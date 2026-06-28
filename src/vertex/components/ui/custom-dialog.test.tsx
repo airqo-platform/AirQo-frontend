@@ -7,7 +7,11 @@ describe("CustomDialogContent", () => {
   it("renders when open", () => {
     render(
       <DialogPrimitive.Root open>
-        <CustomDialogContent>Custom Content</CustomDialogContent>
+        <CustomDialogContent>
+          <DialogPrimitive.Title>Dialog Title</DialogPrimitive.Title>
+          <DialogPrimitive.Description>Dialog Description</DialogPrimitive.Description>
+          Custom Content
+        </CustomDialogContent>
       </DialogPrimitive.Root>
     );
     expect(screen.getByText("Custom Content")).toBeInTheDocument();

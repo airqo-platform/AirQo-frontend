@@ -1,17 +1,17 @@
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
-import { Stepper, Step, StepTitle, StepDescription } from "./stepper";
+import { Stepper, Step } from "./stepper";
 
 describe("Stepper", () => {
   it("renders steps based on index", () => {
     render(
       <Stepper index={1}>
         <Step>
-          <StepTitle>Step 1</StepTitle>
-          <StepDescription>Desc 1</StepDescription>
+          <span>Step 1</span>
+          <span>Desc 1</span>
         </Step>
         <Step>
-          <StepTitle>Step 2</StepTitle>
+          <span>Step 2</span>
         </Step>
       </Stepper>
     );
