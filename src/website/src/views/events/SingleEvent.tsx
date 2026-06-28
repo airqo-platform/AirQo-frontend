@@ -162,14 +162,14 @@ const SideEventsCarousel: React.FC<{
           <button
             onClick={prevSlide}
             className="p-2 rounded-lg border border-gray-300 hover:border-blue-600 hover:text-blue-600 transition-colors"
-            aria-label="Previous side events"
+            aria-label="Previous sessions to watch"
           >
             <HiArrowSmallLeft className="w-5 h-5" />
           </button>
           <button
             onClick={nextSlide}
             className="p-2 rounded-lg border border-gray-300 hover:border-blue-600 hover:text-blue-600 transition-colors"
-            aria-label="Next side events"
+            aria-label="Next sessions to watch"
           >
             <HiArrowSmallRight className="w-5 h-5" />
           </button>
