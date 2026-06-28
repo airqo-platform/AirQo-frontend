@@ -51,6 +51,6 @@ describe("useBannerWithDelay", () => {
     });
 
     expect(showBannerMock).toHaveBeenCalledTimes(1);
-    expect(showBannerMock).toHaveBeenCalledWith({ message: "Second" });
+    expect(showBannerMock).toHaveBeenCalledWith({ message: "Second", severity: "info" });
   });
 });
