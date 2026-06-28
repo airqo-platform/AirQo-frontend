@@ -43,7 +43,7 @@ const VertexPage = () => {
           },
           {
             label: 'Read the Documentation',
-            href: 'https://docs.airqo.net/',
+            href: 'https://platform.airqo.net/docs/vertex/intro/',
             variant: 'secondary',
           },
         ],
