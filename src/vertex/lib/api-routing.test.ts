@@ -38,6 +38,10 @@ describe("api-routing", () => {
     ];
 
     it.each(envCases)("resolves from $name with correct stripping", ({ env, expected }) => {
+      delete process.env.API_BASE_URL;
+      delete process.env.NEXT_PUBLIC_API_BASE_URL;
+      delete process.env.NEXT_PUBLIC_API_URL;
+      delete process.env.NEXT_PUBLIC_BASE_URL;
       Object.assign(process.env, env);
       expect(resolveApiOrigin()).toBe(expected);
     });
