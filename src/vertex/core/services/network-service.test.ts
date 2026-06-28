@@ -66,13 +66,12 @@ describe("network-service", () => {
     it("handles errors correctly", async () => {
       vi.mocked(axios.put).mockRejectedValueOnce(mockAxiosError(400, "Bad Request", { message: "Invalid action" }));
 
-      try {
-        await networkService.updateNetworkRequestStatus("1", "approve", "", "token", "secret");
-      } catch (err: any) {
-        expect(err.message).toContain("Invalid action");
-        expect(err.status).toBe(400);
-        expect(err.data.message).toBe("Invalid action");
-      }
+      const promise = networkService.updateNetworkRequestStatus("1", "approve", "", "token", "secret");
+      await expect(promise).rejects.toThrow("Invalid action");
+      await expect(promise).rejects.toMatchObject({
+        status: 400,
+        data: { message: "Invalid action" },
+      });
     });
   });
 
@@ -95,12 +94,9 @@ describe("network-service", () => {
 
       const data = { network_name: "Test Net" } as any;
       
-      try {
-        await networkService.submitNetworkRequest(data);
-      } catch (err: any) {
-        expect(err.message).toBe("Server error");
-        expect(err.status).toBe(500);
-      }
+      const promise = networkService.submitNetworkRequest(data);
+      await expect(promise).rejects.toThrow("Server error");
+      await expect(promise).rejects.toMatchObject({ status: 500 });
     });
 
     it("throws on timeout", async () => {
@@ -111,12 +107,9 @@ describe("network-service", () => {
 
       const data = { network_name: "Test Net" } as any;
       
-      try {
-        await networkService.submitNetworkRequest(data);
-      } catch (err: any) {
-        expect(err.message).toBe("Network request timed out");
-        expect(err.status).toBe(504);
-      }
+      const promise = networkService.submitNetworkRequest(data);
+      await expect(promise).rejects.toThrow("Network request timed out");
+      await expect(promise).rejects.toMatchObject({ status: 504 });
     });
   });
 });
