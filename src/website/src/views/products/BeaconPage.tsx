@@ -3,10 +3,10 @@
 import {
   FiActivity,
   FiBarChart2,
-  FiClock,
+  FiDownload,
   FiMapPin,
   FiShield,
-  FiTool,
+  FiWifi,
 } from 'react-icons/fi';
 
 import { getEnvironmentAwareUrl } from '@/lib/environmentAwareUrl';
@@ -89,48 +89,48 @@ const BeaconPage = () => {
       capabilities={{
         title: (
           <>
-            What teams can do with{' '}
+            What you get with{' '}
             <span className={beaconTheme.accentTextClassName}>Beacon</span>
           </>
         ),
         description:
-          'Beacon is designed for the operational layer of air quality monitoring, where support workflows, reliability indicators, and device quality directly affect the value of the network.',
+          'Beacon is designed for the everyday work of managing air quality monitoring networks. It helps teams track device health, review site performance, support collocation management, and understand whether the network is reliable enough to support research, public communication, and decision-making.',
         items: [
           {
             title: 'Device health dashboard',
             description:
-              'Monitor device status in detail and respond faster to hardware or connectivity failures.',
+              'See the status of devices across your network, including deployed devices, tracked devices, online devices, offline devices, and devices that may need follow-up.',
             Icon: FiActivity,
           },
           {
-            title: 'Performance analytics',
+            title: 'Site and network visibility',
             description:
-              'Review uptime, MTBF, MTTR, and related metrics to understand network reliability over time.',
-            Icon: FiBarChart2,
-          },
-          {
-            title: 'Collocation oversight',
-            description:
-              'Compare low-cost sensors and reference devices to support better data quality assurance.',
-            Icon: FiShield,
-          },
-          {
-            title: 'Maintenance context',
-            description:
-              'Use site and device-level visibility to prioritize maintenance work more effectively.',
-            Icon: FiTool,
-          },
-          {
-            title: 'Location awareness',
-            description:
-              'Understand where device issues are happening across the network and why they matter.',
+              'Understand where devices are located, which sites are active, and where performance issues are happening across cities and monitoring sites.',
             Icon: FiMapPin,
           },
           {
-            title: 'Historical reporting',
+            title: 'Online and offline tracking',
             description:
-              'Investigate recurring issues, long-term trends, and operational behavior with more confidence.',
-            Icon: FiClock,
+              'Quickly identify devices that have gone offline, stopped reporting, or may be affecting data availability across the network.',
+            Icon: FiWifi,
+          },
+          {
+            title: 'Collocation site review',
+            description:
+              'Review how low-cost air quality sensors are performing alongside reference monitors, including site uptime, error margin, correlation, and reference monitor status.',
+            Icon: FiShield,
+          },
+          {
+            title: 'Performance analysis',
+            description:
+              'Compare performance across devices to see where the network is stable and where recurring issues may need attention.',
+            Icon: FiBarChart2,
+          },
+          {
+            title: 'Reports and exports',
+            description:
+              'Use downloadable reports and performance summaries to support planning, maintenance, internal reviews, and long-term network management.',
+            Icon: FiDownload,
           },
         ],
       }}
