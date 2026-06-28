@@ -142,11 +142,10 @@ const VertexPage = () => {
       }}
       secondarySection={{
         eyebrow: 'Visibility and sharing',
-        title:
-          'Manage device visibility in a way that makes public contribution practical',
+        title: 'From deployed monitors to public impact',
         description: [
-          'Vertex is designed to make sharing less abstract. It helps organizations understand which devices are visible, which cohorts are public, and how their network appears inside the broader AirQo ecosystem.',
-          'This is what makes the platform useful beyond onboarding alone: it links deployment, public visibility, and future data reuse in one place.',
+          'Air quality data becomes more useful when it can be accessed, understood and used by more people.',
+          'By opening up more sensor data, organisations can support better research, stronger public awareness, more informed policy and cleaner air decisions. Vertex makes this easier by giving monitor owners the tools to manage their devices and share selected data through one open platform.',
         ],
         image: {
           src: '/assets/images/products/vertex/vertex-dashboard-showcase.webp',
@@ -159,25 +158,6 @@ const VertexPage = () => {
           href: 'https://platform.airqo.net/docs/vertex/intro/',
           variant: 'secondary',
         },
-      }}
-      audiences={{
-        title: (
-          <>
-            Built for organizations that want a more{' '}
-            <span className={vertexTheme.accentTextClassName}>open</span> and
-            visible network
-          </>
-        ),
-        description:
-          'Vertex is useful wherever the challenge is not only collecting readings, but making those readings accessible, reusable, and easier to contribute to public environmental understanding.',
-        items: [
-          'City governments',
-          'Research institutions',
-          'Universities',
-          'NGOs and environmental agencies',
-          'Independent monitor owners',
-          'Open-source contributors',
-        ],
       }}
       ctaSection={{
         eyebrow: 'AirQo Vertex',
