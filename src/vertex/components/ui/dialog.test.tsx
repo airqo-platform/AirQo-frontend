@@ -10,24 +10,12 @@ import {
   DialogTrigger,
 } from "./dialog";
 
+import { setupPointerEventMock } from "@/test/utils/domMocks";
+
+setupPointerEventMock();
+
 describe("Dialog", () => {
   // Radix UI components use PointerEvents internally, which JSDOM doesn't support well
-  class MockPointerEvent extends Event {
-    button: number;
-    ctrlKey: boolean;
-    pointerType: string;
-
-    constructor(type: string, props: PointerEventInit) {
-      super(type, props);
-      this.button = props.button || 0;
-      this.ctrlKey = props.ctrlKey || false;
-      this.pointerType = props.pointerType || "mouse";
-    }
-  }
-  window.PointerEvent = MockPointerEvent as never;
-  window.HTMLElement.prototype.scrollIntoView = () => {};
-  window.HTMLElement.prototype.hasPointerCapture = () => false;
-  window.HTMLElement.prototype.releasePointerCapture = () => {};
 
   it("opens and closes correctly", async () => {
     render(

@@ -3,11 +3,9 @@ import { describe, it, expect, vi } from "vitest";
 import { ChartContainer } from "./chart";
 import { BarChart, Bar } from "recharts";
 
-window.ResizeObserver = class ResizeObserver {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-};
+import { setupResizeObserverMock } from "@/test/utils/domMocks";
+
+setupResizeObserverMock();
 
 vi.mock("recharts", async () => {
   const OriginalRecharts = await vi.importActual<Record<string, unknown>>("recharts");

@@ -3,22 +3,9 @@ import { describe, it, expect, vi } from "vitest";
 import userEvent from "@testing-library/user-event";
 import { ComboBox } from "./combobox";
 
-class MockPointerEvent extends Event {
-  button: number;
-  ctrlKey: boolean;
-  pointerType: string;
+import { setupPointerEventMock } from "@/test/utils/domMocks";
 
-  constructor(type: string, props: PointerEventInit) {
-    super(type, props);
-    this.button = props.button || 0;
-    this.ctrlKey = props.ctrlKey || false;
-    this.pointerType = props.pointerType || "mouse";
-  }
-}
-window.PointerEvent = MockPointerEvent as never;
-window.HTMLElement.prototype.scrollIntoView = () => {};
-window.HTMLElement.prototype.hasPointerCapture = () => false;
-window.HTMLElement.prototype.releasePointerCapture = () => {};
+setupPointerEventMock();
 
 window.ResizeObserver = class ResizeObserver {
   observe() {}

@@ -8,23 +8,11 @@ import {
   DropdownMenuTrigger,
 } from "./dropdown-menu";
 
-describe("DropdownMenu", () => {
-  class MockPointerEvent extends Event {
-    button: number;
-    ctrlKey: boolean;
-    pointerType: string;
+import { setupPointerEventMock } from "@/test/utils/domMocks";
 
-    constructor(type: string, props: PointerEventInit) {
-      super(type, props);
-      this.button = props.button || 0;
-      this.ctrlKey = props.ctrlKey || false;
-      this.pointerType = props.pointerType || "mouse";
-    }
-  }
-  window.PointerEvent = MockPointerEvent as never;
-  window.HTMLElement.prototype.scrollIntoView = () => {};
-  window.HTMLElement.prototype.hasPointerCapture = () => false;
-  window.HTMLElement.prototype.releasePointerCapture = () => {};
+setupPointerEventMock();
+
+describe("DropdownMenu", () => {
 
   it("opens menu and shows items", async () => {
     render(
