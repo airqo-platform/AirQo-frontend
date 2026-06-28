@@ -26,7 +26,6 @@ const AIPlatformPage = () => {
       theme={aiTheme}
       hero={{
         breadcrumb: 'Our Products > AirQo AI Platform',
-        eyebrow: 'Forecasting, Site Selection, Categorization, and Reporting',
         title: 'Turn air quality data into environmental intelligence.',
         description:
           'AirQo AI Platform combines forecasting, site recommendation, categorization, reporting, and spatial analysis in one workspace so teams can move from raw observations to clearer environmental decisions.',
@@ -133,24 +132,6 @@ const AIPlatformPage = () => {
           href: 'https://ai.airqo.net/locate',
           variant: 'secondary',
         },
-      }}
-      audiences={{
-        title: (
-          <>
-            Built for teams that need faster, better environmental{' '}
-            <span className={aiTheme.accentTextClassName}>decisions</span>
-          </>
-        ),
-        description:
-          'The AI Platform is positioned for analytical and planning work across public, research, and environmental management contexts.',
-        items: [
-          'Government agencies',
-          'City authorities and urban planners',
-          'Environmental researchers',
-          'Public health organizations',
-          'Monitoring teams',
-          'Environmental consultants',
-        ],
       }}
       ctaSection={{
         eyebrow: 'AirQo AI Platform',
