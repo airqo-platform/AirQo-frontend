@@ -20,19 +20,15 @@ const routeToSidebarConfig: Record<string, keyof SidebarConfig> = {
 
 export const isRouteAccessible = (route: string, sidebarConfig: SidebarConfig): boolean => {
   if (route === ROUTE_LINKS.HOME) return true;
-  
-  const configKey = routeToSidebarConfig[route];
-  if (configKey) {
-    return sidebarConfig[configKey] === true;
+
+  const matchedRoute = Object.keys(routeToSidebarConfig)
+    .sort((a, b) => b.length - a.length)
+    .find((candidate) => route === candidate || route.startsWith(`${candidate}/`));
+
+  if (matchedRoute) {
+    return sidebarConfig[routeToSidebarConfig[matchedRoute]] === true;
   }
-  
-  const basePath = route.split('/')[1];
-  const baseRoute = `/${basePath}`;
-  const baseConfigKey = routeToSidebarConfig[baseRoute];
-  if (baseConfigKey) {
-    return sidebarConfig[baseConfigKey] === true;
-  }
-  
+
   return true;
 };
 

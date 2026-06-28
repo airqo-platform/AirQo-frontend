@@ -29,6 +29,7 @@ describe("useContextAwareRouting helpers", () => {
       { name: "inaccessible explicitly via access control string", route: "/access-control", expected: false },
       { name: "accessible base path match", route: "/user-management/123/edit", expected: true },
       { name: "inaccessible base path match", route: "/access-control/roles/1", expected: false },
+      { name: "inaccessible nested base path match", route: ROUTE_LINKS.ADMIN_NETWORKS + "/requests/42", expected: false },
       { name: "defaults to true for unknown paths", route: "/unknown-path", expected: true },
     ];
 
