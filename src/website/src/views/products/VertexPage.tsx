@@ -29,44 +29,51 @@ const VertexPage = () => {
       theme={vertexTheme}
       hero={{
         breadcrumb: 'Our Products > Vertex',
-        title: 'Bring your devices onto an open air quality network.',
+        title: 'Connect your air quality monitors and share data publicly.',
         description:
-          'Vertex helps organizations and device owners add monitors, manage visibility, and share public air quality data through AirQo without vendor lock-in.',
+          'Collecting air quality data is only the first step. For that data to inform decisions, support public awareness, and drive clean air action, it must be visible, accessible, and usable. Vertex helps monitor owners, organisations, and network managers connect air quality monitors, manage device visibility, track network health, and share data through an open air quality data platform.',
         image: {
           src: '/assets/images/products/vertex/bring-device.webp',
           alt: 'Vertex device health and visibility dashboard product showcase',
         },
+        actions: [
+          {
+            label: 'Get Started on Vertex',
+            href: getEnvironmentAwareUrl('https://vertex.airqo.net'),
+          },
+          {
+            label: 'Read the Documentation',
+            href: 'https://docs.airqo.net/',
+            variant: 'secondary',
+          },
+        ],
       }}
       intro={{
         title: (
           <>
-            A simpler path from{' '}
+            Bring your air quality data into{' '}
             <span className={vertexTheme.accentTextClassName}>
-              device ownership
-            </span>{' '}
-            to public impact
+              one open network
+            </span>
           </>
         ),
-        description:
-          'Air quality devices are deployed by cities, universities, NGOs, and individual teams, but their data is often fragmented or hidden from broader use. Vertex closes that gap with one platform for onboarding, organization visibility, and network participation.',
-      }}
-      primarySection={{
-        eyebrow: 'Open onboarding',
-        title: 'Register, organize, and expose devices through one workflow',
-        description: [
-          'Vertex gives teams a structured way to add AirQo devices or import external devices into the network while maintaining a clear view of organization assets, sites, and sharing status.',
-          'That makes it easier to move from private device ownership to broader public contribution without losing operational control.',
-        ],
-        image: {
-          src: '/assets/images/products/vertex/application-1.webp',
-          alt: 'Vertex network render showing connected devices across a mapped region',
-        },
-        cardBackgroundClassName: 'bg-[#EDF5FF]',
-        action: {
-          label: 'Open Vertex',
-          href: getEnvironmentAwareUrl('https://vertex.airqo.net'),
-          variant: 'secondary',
-        },
+        description: (
+          <>
+            <p>
+              Across African cities, more air quality monitors are being
+              deployed to close critical data gaps. But monitoring alone is not
+              enough. The data also needs to move into systems where it can be
+              managed, shared, and used to inform action.
+            </p>
+            <p className="mt-4">Vertex helps close that gap.</p>
+            <p className="mt-4">
+              It gives monitor owners a clear way to connect their devices,
+              manage their sensor network and share air quality data publicly.
+              This makes data easier to access, compare and use for research,
+              public awareness, policy and clean air action.
+            </p>
+          </>
+        ),
       }}
       capabilities={{
         title: (

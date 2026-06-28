@@ -102,12 +102,13 @@ type ProductMarketingPageProps = {
     title: React.ReactNode;
     description: string;
     image: ProductImageConfig;
+    actions?: ProductAction[];
   };
   intro: {
     title: React.ReactNode;
     description: React.ReactNode;
   };
-  primarySection: ProductSpotlightSection;
+  primarySection?: ProductSpotlightSection;
   capabilities: {
     title: React.ReactNode;
     description: string;
@@ -260,6 +261,13 @@ const ProductMarketingPage = ({
               {hero.title}
             </h1>
             <p className="text-[18px] text-gray-700">{hero.description}</p>
+            {hero.actions && hero.actions.length > 0 && (
+              <div className="flex flex-col sm:flex-row gap-4 pt-2">
+                {hero.actions.map((action) => (
+                  <ProductActionButton key={action.label} action={action} />
+                ))}
+              </div>
+            )}
           </motion.div>
 
           <motion.div
@@ -300,7 +308,7 @@ const ProductMarketingPage = ({
         </motion.p>
       </motion.section>
 
-      <ProductSpotlight section={primarySection} />
+      {primarySection ? <ProductSpotlight section={primarySection} /> : null}
 
       <motion.section
         className={`${theme.capabilitiesBackgroundClassName} py-16 px-4`}
