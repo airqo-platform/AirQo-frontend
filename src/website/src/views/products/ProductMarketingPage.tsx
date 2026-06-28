@@ -105,7 +105,7 @@ type ProductMarketingPageProps = {
   };
   intro: {
     title: React.ReactNode;
-    description: string;
+    description: React.ReactNode;
   };
   primarySection: ProductSpotlightSection;
   capabilities: {

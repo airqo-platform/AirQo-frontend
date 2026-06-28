@@ -514,12 +514,11 @@ export const METADATA_CONFIGS = {
     },
   },
   beacon: {
-    title:
-      'AirQo Beacon | Device Health and Collocation Management for Air Quality Networks',
+    title: 'Beacon | Device Health Monitoring for Air Quality Sensor Networks',
     description:
-      'Monitor device health, collocation performance, uptime, MTBF, MTTR, and operational reliability across air quality sensor networks with AirQo Beacon.',
+      'Beacon helps teams manage air quality monitoring networks by tracking device health, uptime, offline devices, collocation performance, and site-level data quality in one dashboard.',
     keywords:
-      'AirQo Beacon, device health monitoring, air quality network operations, sensor uptime monitoring, collocation management, MTBF, MTTR, maintenance dashboard, sensor network reliability, air quality device performance',
+      'air quality monitoring network management, device health monitoring, air quality sensor networks, collocation management, air quality device management, sensor network management, network uptime monitoring, low-cost sensor monitoring, air quality data quality, air quality monitoring dashboard, reference monitor collocation',
     url: '/products/beacon',
     image: {
       url: '/assets/images/products/beacon/beacon-device-render.webp',

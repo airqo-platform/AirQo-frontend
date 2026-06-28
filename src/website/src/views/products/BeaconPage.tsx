@@ -29,10 +29,10 @@ const BeaconPage = () => {
       theme={beaconTheme}
       hero={{
         breadcrumb: 'Our Products > Beacon',
-        eyebrow: 'Device Health and Collocation Management',
-        title: 'Monitor device performance before data gaps grow.',
+        title:
+          'Keep your air quality monitoring network visible, reliable, and easier to manage.',
         description:
-          'Beacon gives operations and engineering teams a clearer view of device health, deployment status, uptime, and collocation quality across distributed air quality sensor networks.',
+          'Beacon helps air quality network management teams see what is happening across their air quality monitoring network in one place. From device status and uptime to collocation performance and site-level issues, Beacon makes it easier to spot problems early and ensure data reliability.',
         image: {
           src: '/assets/images/products/beacon/beacon-device-render.webp',
           alt: 'Beacon hardware device render mounted under a solar panel',
@@ -48,16 +48,30 @@ const BeaconPage = () => {
             into a daily operating signal
           </>
         ),
-        description:
-          'As monitoring networks expand across different cities, climates, and infrastructure conditions, failures become harder to detect early. Beacon is built to give teams the operational visibility they need to keep networks reliable, responsive, and trusted over time.',
+        description: (
+          <>
+            <p>
+              As air quality monitoring networks grow across African cities,
+              sensor issues can quickly become data gaps. A monitor may go
+              offline, a site may stop reporting, or a sensor may begin to
+              perform differently from a reference monitor.
+            </p>
+            <p className="mt-4">
+              Beacon gives operations, engineering, and data quality teams the
+              visibility they need to understand which devices are working,
+              which sites need attention, and where network performance is
+              changing over time.
+            </p>
+          </>
+        ),
       }}
       primarySection={{
-        eyebrow: 'Operational monitoring',
+        eyebrow: 'Operational visibility',
         title:
-          'One dashboard for device health, deployment status, and field response',
+          'Know what is working, what is offline, and what needs attention',
         description: [
-          'Beacon centralizes device monitoring so teams can quickly understand what is deployed, what is online, what is being tracked, and where performance is slipping.',
-          'This makes it easier to move from reactive support to more deliberate operational management across distributed devices and sites.',
+          'Beacon brings device status, deployment information, uptime, online and offline tracking, location details, and site performance into one air quality monitoring dashboard.',
+          'This helps teams move from reactive troubleshooting to more planned network management, with clearer information on where to act, what to prioritize, and how to keep the network reliable over time.',
         ],
         image: {
           src: '/assets/images/products/beacon/beacon-dashboard-showcase.png',
@@ -65,7 +79,7 @@ const BeaconPage = () => {
         },
         cardBackgroundClassName: 'bg-[#EEF8F1]',
         action: {
-          label: 'Open Device Monitoring',
+          label: 'Get started on Beacon',
           href: getEnvironmentAwareUrl(
             'https://beacon.airqo.net/dashboard/maintenance',
           ),
