@@ -48,7 +48,7 @@ Introduced a robust unit testing infrastructure using Vitest and React Testing L
 - `src/vertex/core/utils/*.test.ts` [NEW]
 - `src/vertex/test/factories/apiResponseFactory.ts` [NEW]
 - `src/vertex/test/mocks/nextAuth.ts` [NEW]
-- `src/vertex/test/setup.ts` [NEW]
+- `src/vertex/vitest.setup.ts` [NEW]
 
 </details>
 
