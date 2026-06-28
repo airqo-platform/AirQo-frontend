@@ -19,12 +19,14 @@ describe("getMacArchitecture", () => {
   it("returns unknown when running outside browser", async () => {
     const origWindow = global.window;
     // @ts-ignore
-    delete global.window;
-    
-    const arch = await getMacArchitecture();
-    expect(arch).toBe("unknown");
-    
-    global.window = origWindow;
+    delete (global as any).window;
+
+    try {
+      const arch = await getMacArchitecture();
+      expect(arch).toBe("unknown");
+    } finally {
+      global.window = origWindow;
+    }
   });
 
   it("detects arm64 using userAgentData API", async () => {
