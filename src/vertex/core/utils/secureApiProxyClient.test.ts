@@ -80,6 +80,9 @@ describe("secureApiProxyClient", () => {
   });
 
   it("response error interceptor clears token on 401", async () => {
+    mockGetSession.mockResolvedValueOnce(createMockSession());
+    expect(await hasValidToken()).toBe(true);
+
     const error = { response: { status: 401 }, config: { url: "/test", headers: { "x-auth-type": "jwt" } } };
     
     const dispatchEventSpy = vi.spyOn(window, "dispatchEvent");
