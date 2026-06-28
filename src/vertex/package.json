@@ -10,7 +10,10 @@
     "lint": "next lint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check-size": "npm run build && size-limit"
+    "check-size": "npm run build && size-limit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@airqo/icons-react": "^0.2.6",
@@ -85,6 +88,9 @@
     "@size-limit/preset-app": "^12.0.0",
     "@tailwindcss/typography": "^0.5.19",
     "@tanstack/eslint-plugin-query": "^5.62.9",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/leaflet": "^1.9.16",
     "@types/mapbox__mapbox-gl-draw": "^1.4.9",
     "@types/node": "^20",
@@ -92,13 +98,17 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@types/react-select-country-list": "^2.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "@vitest/coverage-v8": "^4.1.9",
     "cross-env": "^10.0.0",
     "eslint": "^8",
     "eslint-config-next": "14.2.16",
+    "jsdom": "^29.1.1",
     "postcss": "^8",
     "size-limit": "^12.0.0",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.9"
   },
   "size-limit": [
     {
