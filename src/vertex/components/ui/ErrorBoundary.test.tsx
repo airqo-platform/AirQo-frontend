@@ -11,16 +11,17 @@ describe("ErrorBoundary", () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
     const preventError = (e: ErrorEvent) => e.preventDefault();
     window.addEventListener("error", preventError);
-    
-    render(
-      <ErrorBoundary>
-        <ThrowError />
-      </ErrorBoundary>
-    );
+    try {
+      render(
+        <ErrorBoundary>
+          <ThrowError />
+        </ErrorBoundary>
+      );
 
-    expect(screen.getByText("Sorry.. there was an error")).toBeInTheDocument();
-    
-    window.removeEventListener("error", preventError);
-    consoleError.mockRestore();
+      expect(screen.getByText("Sorry.. there was an error")).toBeInTheDocument();
+    } finally {
+      window.removeEventListener("error", preventError);
+      consoleError.mockRestore();
+    }
   });
 });
