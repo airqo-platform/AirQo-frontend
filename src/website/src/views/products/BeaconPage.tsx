@@ -136,11 +136,10 @@ const BeaconPage = () => {
       }}
       secondarySection={{
         eyebrow: 'Quality and collocation',
-        title:
-          'Support better collocation analysis and long-term device reliability',
+        title: 'Protect data quality before problems spread across the network',
         description: [
-          'Beacon helps teams inspect collocation site behavior and compare low-cost sensors against reference devices before poor calibration or drift affects the overall quality of the network.',
-          'It also supports broader operational review by making health logs and recurring performance issues easier to interpret over time.',
+          'Reliable air quality data depends on more than deploying devices. Teams also need to know whether devices are performing as expected, whether reference monitors are reporting, and whether low-cost sensors remain aligned with reference grade monitors.',
+          'Beacon supports collocation management by helping teams compare low-cost sensors with reference monitors at site level. This makes it easier to identify performance concerns early, support calibration workflows, and maintain confidence in the air quality data produced by the network.',
         ],
         image: {
           src: '/assets/images/products/beacon/person-call.webp',
@@ -149,7 +148,7 @@ const BeaconPage = () => {
         cardBackgroundClassName: 'bg-[#FFF7E8]',
         reverse: true,
         action: {
-          label: 'Open Site Collocation',
+          label: 'Open site collocation',
           href: getEnvironmentAwareUrl(
             'https://beacon.airqo.net/dashboard/collocation/site',
           ),
