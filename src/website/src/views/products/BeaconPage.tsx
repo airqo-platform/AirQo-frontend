@@ -34,7 +34,7 @@ const BeaconPage = () => {
         description:
           'Beacon helps air quality network management teams see what is happening across their air quality monitoring network in one place. From device status and uptime to collocation performance and site-level issues, Beacon makes it easier to spot problems early and ensure data reliability.',
         image: {
-          src: '/assets/images/products/beacon/beacon-device-render.webp',
+          src: '/assets/images/products/beacon/beacon-home.webp',
           alt: 'Beacon hardware device render mounted under a solar panel',
         },
       }}
@@ -155,24 +155,6 @@ const BeaconPage = () => {
           variant: 'secondary',
         },
       }}
-      audiences={{
-        title: (
-          <>
-            Built for the teams responsible for network{' '}
-            <span className={beaconTheme.accentTextClassName}>reliability</span>
-          </>
-        ),
-        description:
-          'Beacon is especially useful where operations, maintenance, and data quality are tightly linked and small failures can quietly become bigger network problems.',
-        items: [
-          'Network administrators',
-          'Field maintenance teams',
-          'Engineering teams',
-          'Data quality leads',
-          'Research operations teams',
-          'Collocation managers',
-        ],
-      }}
       ctaSection={{
         eyebrow: 'AirQo Beacon',
         title: (
@@ -182,14 +164,14 @@ const BeaconPage = () => {
           </>
         ),
         description:
-          'Open Beacon to review device health, inspect collocation workflows, and maintain stronger operational control across your monitoring network.',
+          'Open Beacon to review device health, track site performance, inspect collocation workflows, and maintain stronger operational control across your air quality monitoring network.',
         actions: [
           {
             label: 'Get Started on Beacon',
             href: getEnvironmentAwareUrl('https://beacon.airqo.net'),
           },
           {
-            label: 'Health Reports',
+            label: 'Download Health Reports',
             href: getEnvironmentAwareUrl(
               'https://beacon.airqo.net/dashboard/reports',
             ),
@@ -200,7 +182,7 @@ const BeaconPage = () => {
           {
             title: 'Device Map',
             description:
-              'Inspect maintenance and availability context across the network.',
+              'See where devices are deployed and understand maintenance and availability context across the network.',
             href: getEnvironmentAwareUrl(
               'https://beacon.airqo.net/dashboard/maintenance',
             ),
@@ -208,7 +190,7 @@ const BeaconPage = () => {
           {
             title: 'Cohort Analysis',
             description:
-              'Analyze device groups to identify recurring trends and issues.',
+              'Compare groups of devices to identify recurring performance trends, reliability issues, and areas that may need follow-up.',
             href: getEnvironmentAwareUrl(
               'https://beacon.airqo.net/dashboard/analytics?analysis=cohorts',
             ),
@@ -216,7 +198,7 @@ const BeaconPage = () => {
           {
             title: 'Automatic Reports',
             description:
-              'Use recurring reports to maintain operational awareness over time.',
+              'Use recurring health and performance reports to maintain operational awareness over time.',
             href: getEnvironmentAwareUrl(
               'https://beacon.airqo.net/dashboard/reports',
             ),

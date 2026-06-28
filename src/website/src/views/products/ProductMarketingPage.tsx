@@ -120,7 +120,7 @@ type ProductMarketingPageProps = {
   };
   downloadSection?: ProductDownloadSection;
   secondarySection: ProductSpotlightSection;
-  audiences: {
+  audiences?: {
     title: React.ReactNode;
     description: string;
     items: string[];
@@ -432,41 +432,43 @@ const ProductMarketingPage = ({
 
       <ProductSpotlight section={secondarySection} />
 
-      <motion.section
-        className="px-4"
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
-        variants={containerVariants}
-      >
-        <div
-          className={`${mainConfig.containerClass} ${theme.audiencesBackgroundClassName} rounded-2xl p-8 lg:p-12`}
+      {audiences ? (
+        <motion.section
+          className="px-4"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          variants={containerVariants}
         >
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-            <motion.div className="space-y-5" variants={itemVariants}>
-              <h2 className="text-[32px] lg:text-[40px] leading-tight font-semibold text-gray-900">
-                {audiences.title}
-              </h2>
-              <p className="text-lg text-gray-700">{audiences.description}</p>
-            </motion.div>
+          <div
+            className={`${mainConfig.containerClass} ${theme.audiencesBackgroundClassName} rounded-2xl p-8 lg:p-12`}
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+              <motion.div className="space-y-5" variants={itemVariants}>
+                <h2 className="text-[32px] lg:text-[40px] leading-tight font-semibold text-gray-900">
+                  {audiences.title}
+                </h2>
+                <p className="text-lg text-gray-700">{audiences.description}</p>
+              </motion.div>
 
-            <motion.div
-              className="grid grid-cols-1 sm:grid-cols-2 gap-4"
-              variants={containerVariants}
-            >
-              {audiences.items.map((item) => (
-                <motion.div
-                  key={item}
-                  className="rounded-xl border border-white/70 bg-white/80 px-4 py-4 text-sm font-medium text-gray-800 shadow-sm"
-                  variants={cardVariants}
-                >
-                  {item}
-                </motion.div>
-              ))}
-            </motion.div>
+              <motion.div
+                className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+                variants={containerVariants}
+              >
+                {audiences.items.map((item) => (
+                  <motion.div
+                    key={item}
+                    className="rounded-xl border border-white/70 bg-white/80 px-4 py-4 text-sm font-medium text-gray-800 shadow-sm"
+                    variants={cardVariants}
+                  >
+                    {item}
+                  </motion.div>
+                ))}
+              </motion.div>
+            </div>
           </div>
-        </div>
-      </motion.section>
+        </motion.section>
+      ) : null}
 
       <motion.section
         className="px-4"
@@ -476,7 +478,7 @@ const ProductMarketingPage = ({
         variants={containerVariants}
       >
         <div
-          className={`${mainConfig.containerClass} rounded-2xl border border-blue-100 ${theme.ctaBackgroundClassName} p-8 lg:p-12 grid grid-cols-1 lg:grid-cols-2 gap-10 items-start`}
+          className={`${mainConfig.containerClass} rounded-2xl border border-blue-100 ${theme.ctaBackgroundClassName} p-8 lg:p-12 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center`}
         >
           <motion.div className="space-y-5" variants={itemVariants}>
             <p

@@ -521,7 +521,7 @@ export const METADATA_CONFIGS = {
       'air quality monitoring network management, device health monitoring, air quality sensor networks, collocation management, air quality device management, sensor network management, network uptime monitoring, low-cost sensor monitoring, air quality data quality, air quality monitoring dashboard, reference monitor collocation',
     url: '/products/beacon',
     image: {
-      url: '/assets/images/products/beacon/beacon-device-render.webp',
+      url: '/assets/images/products/beacon/beacon-home.webp',
       alt: 'AirQo Beacon device render mounted under a solar panel',
       width: 1536,
       height: 1024,
