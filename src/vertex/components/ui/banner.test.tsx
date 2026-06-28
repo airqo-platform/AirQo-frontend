@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import userEvent from "@testing-library/user-event";
-import { Banner, SuccessBanner, ErrorBanner, WarningBanner, InfoBanner } from "./banner";
+import { SuccessBanner, InfoBanner } from "./banner";
 
 describe("Banner", () => {
   it("renders success banner correctly", () => {

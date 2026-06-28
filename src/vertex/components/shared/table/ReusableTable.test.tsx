@@ -21,14 +21,14 @@ describe("ReusableTable", () => {
 
   it("renders data correctly", () => {
     const columns = [
-      { key: "name", render: (val: any) => val },
+      { key: "name", render: (val: unknown) => String(val) },
     ];
     const data = [
       { id: 1, name: "Alice" },
       { id: 2, name: "Bob" }
     ];
 
-    render(<ReusableTable columns={columns as any} data={data} />);
+    render(<ReusableTable columns={columns as never} data={data} />);
     expect(screen.getByText("Alice")).toBeInTheDocument();
     expect(screen.getByText("Bob")).toBeInTheDocument();
   });

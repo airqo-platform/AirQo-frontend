@@ -10,10 +10,10 @@ window.ResizeObserver = class ResizeObserver {
 };
 
 vi.mock("recharts", async () => {
-  const OriginalRecharts = await vi.importActual<any>("recharts");
+  const OriginalRecharts = await vi.importActual<Record<string, unknown>>("recharts");
   return {
     ...OriginalRecharts,
-    ResponsiveContainer: ({ children }: any) => (
+    ResponsiveContainer: ({ children }: { children: React.ReactNode }) => (
       <div style={{ width: 800, height: 800 }}>{children}</div>
     ),
   };

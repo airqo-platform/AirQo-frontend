@@ -24,7 +24,7 @@ describe("Dialog", () => {
       this.pointerType = props.pointerType || "mouse";
     }
   }
-  window.PointerEvent = MockPointerEvent as any;
+  window.PointerEvent = MockPointerEvent as never;
   window.HTMLElement.prototype.scrollIntoView = () => {};
   window.HTMLElement.prototype.hasPointerCapture = () => false;
   window.HTMLElement.prototype.releasePointerCapture = () => {};
