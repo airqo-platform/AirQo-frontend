@@ -16,7 +16,7 @@ export const NAV_ITEMS: NavMenuSection = {
     },
     {
       title: 'Vertex',
-      description: 'Add devices and share air quality data publicly',
+      description: 'Open air quality data sharing platform',
       href: '/products/vertex',
     },
     {

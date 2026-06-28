@@ -29,7 +29,6 @@ const VertexPage = () => {
       theme={vertexTheme}
       hero={{
         breadcrumb: 'Our Products > Vertex',
-        eyebrow: 'Open Device Deployment and Public Data Sharing',
         title: 'Bring your devices onto an open air quality network.',
         description:
           'Vertex helps organizations and device owners add monitors, manage visibility, and share public air quality data through AirQo without vendor lock-in.',

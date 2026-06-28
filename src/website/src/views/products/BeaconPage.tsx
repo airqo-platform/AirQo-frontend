@@ -74,7 +74,7 @@ const BeaconPage = () => {
           'This helps teams move from reactive troubleshooting to more planned network management, with clearer information on where to act, what to prioritize, and how to keep the network reliable over time.',
         ],
         image: {
-          src: '/assets/images/products/beacon/beacon-dashboard-showcase.png',
+          src: '/assets/images/products/beacon/beacon-dashboard-showcase.webp',
           alt: 'Beacon device monitoring dashboard product showcase',
         },
         cardBackgroundClassName: 'bg-[#EEF8F1]',

@@ -529,12 +529,11 @@ export const METADATA_CONFIGS = {
     },
   },
   vertex: {
-    title:
-      'AirQo Vertex | Open Device Deployment and Public Air Quality Data Sharing',
+    title: 'Vertex | Open Air Quality Data Sharing Platform',
     description:
-      'Add air quality monitors, track maintenance, and share sensor data publicly through AirQo. Vertex supports devices from any manufacturer and helps teams join an open monitoring network.',
+      'Vertex helps monitor owners connect air quality monitors, manage sensor networks, track device health, and share public air quality data through an open data platform.',
     keywords:
-      'AirQo Vertex, device deployment platform, public air quality data sharing, open sensor network, multi-manufacturer support, sensor onboarding, air quality device maintenance, air monitoring data sharing',
+      'open air quality data sharing platform, open air quality data, public air quality data, open data platform, air quality monitoring network, connect air quality monitors, low-cost air quality sensors, sensor network management, device health monitoring, open air quality network',
     url: '/products/vertex',
     image: {
       url: '/assets/images/products/vertex/bring-device.webp',
