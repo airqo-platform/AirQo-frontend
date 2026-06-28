@@ -1472,7 +1472,7 @@ const ReusableTable = <T extends TableItem>({
       )}
 
       {/* Add CSS to hide scrollbar on thead */}
-      <style jsx>{`
+      <style>{`
       .scrollbar-hide::-webkit-scrollbar {
         display: none;
       }
@@ -1502,24 +1502,6 @@ const ReusableTable = <T extends TableItem>({
       )}
     </div>
   );
-};
-
-ReusableTable.defaultProps = {
-  title: "Table",
-  data: [],
-  columns: [],
-  searchable: true,
-  filterable: true,
-  filters: [],
-  pageSize: 10,
-  showPagination: true,
-  sortable: true,
-  pageSizeOptions: [5, 10, 20, 50, 100],
-  loading: false,
-  multiSelect: false,
-  actions: [],
-  tableId: undefined,
-  stickyHeader: false,
 };
 
 export default ReusableTable;

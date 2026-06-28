@@ -18,6 +18,20 @@ const routeToSidebarConfig: Record<string, keyof SidebarConfig> = {
   [ROUTE_LINKS.ADMIN_SHIPPING]: 'showShipping',
 };
 
+export const isRouteAccessible = (route: string, sidebarConfig: SidebarConfig): boolean => {
+  if (route === ROUTE_LINKS.HOME) return true;
+
+  const matchedRoute = Object.keys(routeToSidebarConfig)
+    .sort((a, b) => b.length - a.length)
+    .find((candidate) => route === candidate || route.startsWith(`${candidate}/`));
+
+  if (matchedRoute) {
+    return sidebarConfig[routeToSidebarConfig[matchedRoute]] === true;
+  }
+
+  return true;
+};
+
 export const useContextAwareRouting = () => {
   const router = useRouter();
   const pathname = usePathname();
@@ -33,29 +47,11 @@ export const useContextAwareRouting = () => {
 
     const sidebarConfig = getSidebarConfig();
 
-    const isRouteAccessible = (route: string): boolean => {
-      if (route === ROUTE_LINKS.HOME) return true;
-      
-      const configKey = routeToSidebarConfig[route];
-      if (configKey) {
-        return sidebarConfig[configKey] === true;
-      }
-      
-      const basePath = route.split('/')[1];
-      const baseRoute = `/${basePath}`;
-      const baseConfigKey = routeToSidebarConfig[baseRoute];
-      if (baseConfigKey) {
-        return sidebarConfig[baseConfigKey] === true;
-      }
-      
-      return true;
-    };
-
     initializedRef.current = true;
     previousContextRef.current = userContext;
 
     // Enforce access on every pathname or context change
-    if (!isRouteAccessible(pathname)) {
+    if (!isRouteAccessible(pathname, sidebarConfig)) {
       router.replace(ROUTE_LINKS.HOME);
       return;
     }
