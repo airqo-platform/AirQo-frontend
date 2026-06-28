@@ -300,12 +300,12 @@ const ProductMarketingPage = ({
         >
           {intro.title}
         </motion.h2>
-        <motion.p
+        <motion.div
           className="text-lg text-gray-700 mb-6"
           variants={itemVariants}
         >
           {intro.description}
-        </motion.p>
+        </motion.div>
       </motion.section>
 
       {primarySection ? <ProductSpotlight section={primarySection} /> : null}
