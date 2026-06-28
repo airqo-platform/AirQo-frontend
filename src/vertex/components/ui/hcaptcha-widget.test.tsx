@@ -10,12 +10,13 @@ vi.mock("@/lib/envConstants", () => ({
 }));
 
 vi.mock("@hcaptcha/react-hcaptcha", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const React = require("react");
-  return {
-    default: React.forwardRef(({ sitekey }: any, ref: any) => (
-      <div data-testid="mock-hcaptcha" data-sitekey={sitekey} />
-    ))
-  };
+  const MockHCaptcha = React.forwardRef(({ sitekey }: { sitekey: string }) => (
+    <div data-testid="mock-hcaptcha" data-sitekey={sitekey} />
+  ));
+  MockHCaptcha.displayName = "MockHCaptcha";
+  return { default: MockHCaptcha };
 });
 
 describe("HCaptchaWidget", () => {
