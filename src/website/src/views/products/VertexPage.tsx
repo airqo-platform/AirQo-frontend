@@ -1,9 +1,9 @@
 'use client';
 
 import {
-  FiCloudLightning,
   FiGlobe,
   FiGrid,
+  FiHeart,
   FiLayers,
   FiShare2,
   FiUploadCloud,
@@ -78,47 +78,48 @@ const VertexPage = () => {
       capabilities={{
         title: (
           <>
-            What makes{' '}
-            <span className={vertexTheme.accentTextClassName}>Vertex</span>{' '}
-            useful
+            What you can do with{' '}
+            <span className={vertexTheme.accentTextClassName}>Vertex</span>
           </>
         ),
         description:
-          'Vertex connects device deployment with public visibility through a single platform.',
+          'Vertex provides a simple way to move from device deployment to public data sharing.',
         items: [
           {
-            title: 'Guided device onboarding',
+            title: 'Add your air quality monitors',
             description:
-              'Register sensors individually or through bulk import workflows.',
+              'Register individual monitors or import multiple devices at once through a guided onboarding workflow.',
             Icon: FiUploadCloud,
           },
           {
-            title: 'Deployment organization',
+            title: 'Connect monitors from different manufacturers',
             description:
-              'Track assets, sites, and device state from one dashboard.',
-            Icon: FiGrid,
-          },
-          {
-            title: 'Public data sharing',
-            description: 'Publish readings through AirQo for public access.',
-            Icon: FiShare2,
-          },
-          {
-            title: 'Open network visibility',
-            description:
-              'Control what is public, hidden, or active across your organization.',
-            Icon: FiGlobe,
-          },
-          {
-            title: 'Multi-manufacturer support',
-            description: 'Connect devices from different hardware ecosystems.',
+              'Bring together air quality monitors from different hardware providers and sensor networks. Vertex is built to support more open data sharing without tying users to one device ecosystem.',
             Icon: FiLayers,
           },
           {
-            title: 'Future infrastructure control',
+            title: 'Manage your sensor network',
             description:
-              'Prepare for Vertex IoT Kit for self-hosted operations.',
-            Icon: FiCloudLightning,
+              'Organise devices by organisation, site, deployment area or project, and keep a clear view of your monitoring network.',
+            Icon: FiGrid,
+          },
+          {
+            title: 'Track device health and maintenance',
+            description:
+              'See whether your devices are online, active and transmitting data, so your team can respond quickly when a monitor needs attention.',
+            Icon: FiHeart,
+          },
+          {
+            title: 'Choose what to share publicly',
+            description:
+              'Control which devices remain private and which ones contribute to public air quality data. Share selected data while keeping flexibility over how your network is managed.',
+            Icon: FiShare2,
+          },
+          {
+            title: 'Contribute to open air quality data',
+            description:
+              'Make your air quality data available to researchers, governments, communities, developers and the public, helping more people understand the air they breathe.',
+            Icon: FiGlobe,
           },
         ],
       }}
