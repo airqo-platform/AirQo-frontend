@@ -35,6 +35,13 @@ npm run dev
 - `npm run format`: Format code with Prettier.
 - `npm run format:check`: Check formatting.
 - `npm run check-size`: Build and run bundle size checks.
+- `npm run test`: Run the Vitest test suite once.
+- `npm run test:watch`: Run Vitest in watch mode.
+- `npm run test:coverage`: Generate Vitest coverage reports.
+
+## Testing
+
+Vertex uses Vitest and React Testing Library for unit, hook, and component tests. Follow the internal testing conventions in `app/_docs/internal/TESTING.md` when adding or updating tests.
 
 ## Environment variables
 
