@@ -157,19 +157,19 @@ const SideEventsCarousel: React.FC<{
       onMouseLeave={handleMouseLeave}
     >
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-3xl font-semibold">Side events</h2>
+        <h2 className="text-3xl font-semibold">Sessions to watch</h2>
         <div className="flex items-center gap-2">
           <button
             onClick={prevSlide}
             className="p-2 rounded-lg border border-gray-300 hover:border-blue-600 hover:text-blue-600 transition-colors"
-            aria-label="Previous side events"
+            aria-label="Previous sessions to watch"
           >
             <HiArrowSmallLeft className="w-5 h-5" />
           </button>
           <button
             onClick={nextSlide}
             className="p-2 rounded-lg border border-gray-300 hover:border-blue-600 hover:text-blue-600 transition-colors"
-            aria-label="Next side events"
+            aria-label="Next sessions to watch"
           >
             <HiArrowSmallRight className="w-5 h-5" />
           </button>
@@ -675,7 +675,10 @@ const SingleEvent: React.FC<{ slug: string }> = ({ slug }) => {
               {event.title}
             </button>
           </nav>
-          <h1 className="text-xl sm:text-2xl lg:text-[40px] font-bold mb-2 line-clamp-3 sm:line-clamp-none">
+          <h1
+            className="text-xl sm:text-2xl lg:text-[40px] font-bold mb-2 line-clamp-3 sm:line-clamp-none"
+            style={{ lineHeight: '1.3' }}
+          >
             {event.title}
           </h1>
           {event.title_subtext && (
