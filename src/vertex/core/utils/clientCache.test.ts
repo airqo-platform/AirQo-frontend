@@ -10,7 +10,7 @@ const MISMATCH_LOG_KEY = "airqo:vertex:cache-version-mismatch:last";
 
 describe("clientCache utilities", () => {
   beforeEach(() => {
-    localStorage.clear();
+    window.localStorage.clear();
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-06-28T12:00:00.000Z"));
   });
@@ -18,7 +18,7 @@ describe("clientCache utilities", () => {
   afterEach(() => {
     vi.useRealTimers();
     vi.restoreAllMocks();
-    localStorage.clear();
+    window.localStorage.clear();
   });
 
   it("reports that persisted client cache is enabled", () => {
@@ -26,30 +26,30 @@ describe("clientCache utilities", () => {
   });
 
   it("does nothing when the cache version already matches", () => {
-    localStorage.setItem(VERSION_KEY, VERSION);
-    localStorage.setItem(`${QUERY_CACHE_PREFIX}devices`, "cached");
+    window.localStorage.setItem(VERSION_KEY, VERSION);
+    window.localStorage.setItem(`${QUERY_CACHE_PREFIX}devices`, "cached");
 
     runClientCacheMaintenance();
 
-    expect(localStorage.getItem(`${QUERY_CACHE_PREFIX}devices`)).toBe(
+    expect(window.localStorage.getItem(`${QUERY_CACHE_PREFIX}devices`)).toBe(
       "cached"
     );
-    expect(localStorage.getItem(MISMATCH_LOG_KEY)).toBeNull();
+    expect(window.localStorage.getItem(MISMATCH_LOG_KEY)).toBeNull();
   });
 
   it("removes persisted react-query cache entries when the version changes", () => {
-    localStorage.setItem(VERSION_KEY, "old-version");
-    localStorage.setItem(`${QUERY_CACHE_PREFIX}devices`, "remove-me");
-    localStorage.setItem(`${QUERY_CACHE_PREFIX}sites`, "remove-me");
-    localStorage.setItem("unrelated", "keep-me");
+    window.localStorage.setItem(VERSION_KEY, "old-version");
+    window.localStorage.setItem(`${QUERY_CACHE_PREFIX}devices`, "remove-me");
+    window.localStorage.setItem(`${QUERY_CACHE_PREFIX}sites`, "remove-me");
+    window.localStorage.setItem("unrelated", "keep-me");
 
     runClientCacheMaintenance();
 
-    expect(localStorage.getItem(`${QUERY_CACHE_PREFIX}devices`)).toBeNull();
-    expect(localStorage.getItem(`${QUERY_CACHE_PREFIX}sites`)).toBeNull();
-    expect(localStorage.getItem("unrelated")).toBe("keep-me");
-    expect(localStorage.getItem(VERSION_KEY)).toBe(VERSION);
-    expect(localStorage.getItem(MISMATCH_LOG_KEY)).toBe(
+    expect(window.localStorage.getItem(`${QUERY_CACHE_PREFIX}devices`)).toBeNull();
+    expect(window.localStorage.getItem(`${QUERY_CACHE_PREFIX}sites`)).toBeNull();
+    expect(window.localStorage.getItem("unrelated")).toBe("keep-me");
+    expect(window.localStorage.getItem(VERSION_KEY)).toBe(VERSION);
+    expect(window.localStorage.getItem(MISMATCH_LOG_KEY)).toBe(
       "2026-06-28T12:00:00.000Z"
     );
   });
@@ -57,31 +57,63 @@ describe("clientCache utilities", () => {
   it("sets the cache version on first maintenance run", () => {
     runClientCacheMaintenance();
 
-    expect(localStorage.getItem(VERSION_KEY)).toBe(VERSION);
+    expect(window.localStorage.getItem(VERSION_KEY)).toBe(VERSION);
   });
 
   it("tolerates localStorage remove failures while continuing maintenance", () => {
-    localStorage.setItem(VERSION_KEY, "old-version");
-    localStorage.setItem(`${QUERY_CACHE_PREFIX}devices`, "remove-me");
-    const removeSpy = vi
-      .spyOn(window.localStorage, "removeItem")
-      .mockImplementation(() => {
+    const fakeLocalStorage = {
+      getItem: (key: string) => {
+        if (key === VERSION_KEY) return "old-version";
+        return null;
+      },
+      setItem: vi.fn(),
+      removeItem: vi.fn(() => {
         throw new Error("storage unavailable");
-      });
+      }),
+      length: 1,
+      key: (i: number) => (i === 0 ? `${QUERY_CACHE_PREFIX}devices` : null),
+    };
+
+    const originalLocalStorage = window.localStorage;
+    Object.defineProperty(window, "localStorage", {
+      value: fakeLocalStorage,
+      configurable: true,
+    });
 
     expect(() => runClientCacheMaintenance()).not.toThrow();
-    expect(removeSpy).toHaveBeenCalledWith(`${QUERY_CACHE_PREFIX}devices`);
-    expect(localStorage.getItem(VERSION_KEY)).toBe(VERSION);
+    expect(fakeLocalStorage.removeItem).toHaveBeenCalledWith(
+      `${QUERY_CACHE_PREFIX}devices`
+    );
+
+    Object.defineProperty(window, "localStorage", {
+      value: originalLocalStorage,
+      configurable: true,
+    });
   });
 
   it("tolerates localStorage write failures", () => {
-    const setSpy = vi
-      .spyOn(window.localStorage, "setItem")
-      .mockImplementation(() => {
+    const fakeLocalStorage = {
+      getItem: () => null,
+      setItem: vi.fn(() => {
         throw new Error("storage unavailable");
-      });
+      }),
+      removeItem: vi.fn(),
+      length: 0,
+      key: () => null,
+    };
+
+    const originalLocalStorage = window.localStorage;
+    Object.defineProperty(window, "localStorage", {
+      value: fakeLocalStorage,
+      configurable: true,
+    });
 
     expect(() => runClientCacheMaintenance()).not.toThrow();
-    expect(setSpy).toHaveBeenCalledWith(VERSION_KEY, VERSION);
+    expect(fakeLocalStorage.setItem).toHaveBeenCalledWith(VERSION_KEY, VERSION);
+
+    Object.defineProperty(window, "localStorage", {
+      value: originalLocalStorage,
+      configurable: true,
+    });
   });
 });
