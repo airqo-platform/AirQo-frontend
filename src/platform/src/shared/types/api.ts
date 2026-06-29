@@ -478,7 +478,7 @@ export interface UpdateFeedbackStatusResponse {
 }
 
 export interface ReplyToFeedbackRequest {
-  replyMessage: string;
+  message: string;
 }
 
 export interface ReplyToFeedbackResponse {

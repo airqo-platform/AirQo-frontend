@@ -14,7 +14,7 @@ import {
   PageHeading,
 } from '@/shared/components/ui';
 import { Input } from '@/shared/components/ui/input';
-import { TextInput } from '@/shared/components/ui/text-input';
+import { RichTextEditor } from '@/shared/components/ui/rich-text-editor';
 import { AqArrowLeft } from '@airqo/icons-react';
 import { feedbackService } from '@/modules/feedback';
 import { toast } from '@/shared/components/ui/toast';
@@ -122,6 +122,7 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
 
   const [adminNotes, setAdminNotes] = useState('');
   const [isSavingNotes, setIsSavingNotes] = useState(false);
+  const [isEditingNotes, setIsEditingNotes] = useState(false);
 
   const [assigneeId, setAssigneeId] = useState('');
   const [isAssigning, setIsAssigning] = useState(false);
@@ -206,12 +207,13 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
       return [];
     }
 
-    const allowedStatuses = new Set<string>([
-      feedback.status,
-      ...(ALLOWED_TRANSITIONS[feedback.status] || []),
-    ]);
+    const allowedTransitions = new Set<string>(
+      ALLOWED_TRANSITIONS[feedback.status] || []
+    );
 
-    return STATUS_OPTIONS.filter(status => allowedStatuses.has(status));
+    return STATUS_OPTIONS.filter(
+      status => allowedTransitions.has(status) && status !== feedback.status
+    );
   }, [feedback]);
 
   const rating = Math.max(0, Math.min(5, Number(feedback?.rating || 0)));
@@ -259,7 +261,7 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
     setIsSendingReply(true);
     try {
       await feedbackService.replyToFeedback(feedbackId, {
-        replyMessage: replyMessage.trim(),
+        message: replyMessage.trim(),
       });
       toast.success('Reply sent successfully');
       setReplyMessage('');
@@ -280,6 +282,7 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
         adminNotes: adminNotes.trim(),
       });
       toast.success('Admin notes saved');
+      setIsEditingNotes(false);
       await refreshAll();
     } catch (notesError) {
       toast.error(getUserFriendlyErrorMessage(notesError));
@@ -514,15 +517,13 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
               {allowedStatusOptions.map(status => (
                 <Button
                   key={status}
-                  variant={feedback.status === status ? 'filled' : 'outlined'}
+                  variant="outlined"
                   loading={isUpdating && pendingStatus === status}
-                  disabled={isUpdating && feedback.status !== status}
+                  disabled={isUpdating}
                   onClick={() => void handleUpdateStatus(status)}
                   fullWidth
                 >
-                  {feedback.status === status
-                    ? `${STATUS_LABELS[status]} now`
-                    : `Move to ${STATUS_LABELS[status]}`}
+                  Move to {STATUS_LABELS[status]}
                 </Button>
               ))}
             </div>
@@ -631,17 +632,11 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
               description="Send a reply email directly to the person who submitted this feedback."
             />
 
-            <TextInput
-              id="reply-message"
-              label="Reply message"
-              placeholder="Type your reply..."
+            <RichTextEditor
               value={replyMessage}
-              onChange={e =>
-                setReplyMessage(
-                  (e as React.ChangeEvent<HTMLTextAreaElement>).target.value
-                )
-              }
-              rows={4}
+              onChange={setReplyMessage}
+              placeholder="Type your reply..."
+              label="Reply message"
             />
 
             <Button
@@ -657,21 +652,24 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   Previous replies ({replies.length})
                 </p>
-                {replies.map((reply: FeedbackReply, index: number) => (
-                  <div
-                    key={`${reply.sentAt}-${index}`}
-                    className="rounded-md border bg-muted/20 p-3"
-                  >
-                    <p className="whitespace-pre-wrap text-sm text-foreground">
-                      {reply.message}
-                    </p>
-                    <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-                      <span>{reply.adminEmail}</span>
-                      <span>·</span>
-                      <span>{formatDateTime(reply.sentAt)}</span>
+                <div className="max-h-[400px] space-y-3 overflow-y-auto pr-1">
+                  {replies.map((reply: FeedbackReply, index: number) => (
+                    <div
+                      key={`${reply.sentAt}-${index}`}
+                      className="rounded-md border bg-muted/20 p-3"
+                    >
+                      <div
+                        className="prose prose-sm max-w-none text-sm text-foreground"
+                        dangerouslySetInnerHTML={{ __html: reply.message }}
+                      />
+                      <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                        <span>{reply.adminEmail}</span>
+                        <span>·</span>
+                        <span>{formatDateTime(reply.sentAt)}</span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -682,27 +680,64 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
             <SectionHeader
               title="Admin notes"
               description="Internal notes for the team. These are never shown to the submitter."
-            />
-
-            <TextInput
-              id="admin-notes"
-              label="Notes"
-              placeholder="Add internal notes about this feedback..."
-              value={adminNotes}
-              onChange={e =>
-                setAdminNotes(
-                  (e as React.ChangeEvent<HTMLTextAreaElement>).target.value
-                )
+              action={
+                !isEditingNotes ? (
+                  <Button
+                    variant="ghost"
+                    paddingStyles="h-8 px-3"
+                    onClick={() => {
+                      setIsEditingNotes(true);
+                    }}
+                  >
+                    Edit notes
+                  </Button>
+                ) : undefined
               }
-              rows={4}
             />
 
-            <Button
-              loading={isSavingNotes}
-              onClick={() => void handleSaveNotes()}
-            >
-              Save notes
-            </Button>
+            {isEditingNotes ? (
+              <>
+                <RichTextEditor
+                  value={adminNotes}
+                  onChange={setAdminNotes}
+                  placeholder="Add internal notes about this feedback..."
+                  label="Notes"
+                />
+
+                <div className="flex gap-3">
+                  <Button
+                    loading={isSavingNotes}
+                    onClick={() => void handleSaveNotes()}
+                  >
+                    Save notes
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    disabled={isSavingNotes}
+                    onClick={() => {
+                      setAdminNotes(feedback?.adminNotes || '');
+                      setIsEditingNotes(false);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </>
+            ) : feedback?.adminNotes ? (
+              <div className="rounded-md border bg-muted/20 p-4">
+                <div
+                  className="prose prose-sm max-w-none text-sm text-foreground"
+                  dangerouslySetInnerHTML={{ __html: feedback.adminNotes }}
+                />
+              </div>
+            ) : (
+              <div className="rounded-md border border-dashed bg-muted/10 px-4 py-8 text-center">
+                <p className="text-sm text-muted-foreground">
+                  No notes yet. Click &quot;Edit notes&quot; to add internal
+                  context for the team.
+                </p>
+              </div>
+            )}
           </div>
         </Card>
       </div>
