@@ -96,6 +96,11 @@ const RolesPage = () => {
       return;
     }
 
+    if (!/^[A-Z0-9_]+$/.test(newRoleName.trim())) {
+      toast.error('Role name must contain only uppercase letters, numbers, and underscores');
+      return;
+    }
+
     try {
       await createRoleMutation.trigger({
         role_name: newRoleName.trim(),
@@ -278,8 +283,8 @@ const RolesPage = () => {
                 <Input
                   type="text"
                   value={newRoleName}
-                  onChange={e => setNewRoleName(e.target.value)}
-                  placeholder="Enter role name"
+                  onChange={e => setNewRoleName(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '_'))}
+                  placeholder="EXAMPLE_ROLE_NAME"
                   className="w-full"
                   disabled={createRoleMutation.isMutating}
                 />
